@@ -1,0 +1,201 @@
+name: CD Pipeline - Deploy to VM
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: "20"
+  DOCKER_IMAGE: profile-backend
+  DEPLOY_PATH: /opt/profile-services
+
+jobs:
+  build-and-push:
+    name: Build and Push Docker Image
+    runs-on: ubuntu-latest
+
+    outputs:
+      image_tag: ${{ steps.meta.outputs.tags }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=ref,event=branch
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64
+
+  deploy:
+    name: Deploy to Alpine Linux VM
+    runs-on: ubuntu-latest
+    needs: build-and-push
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.VM_SSH_PRIVATE_KEY }}
+          VM_HOST: ${{ secrets.VM_HOST }}
+          VM_USER: ${{ secrets.VM_USER }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H $VM_HOST >> ~/.ssh/known_hosts
+
+      - name: Create deployment directory
+        env:
+          VM_HOST: ${{ secrets.VM_HOST }}
+          VM_USER: ${{ secrets.VM_USER }}
+        run: |
+          ssh -i ~/.ssh/deploy_key $VM_USER@$VM_HOST "mkdir -p ${{ env.DEPLOY_PATH }}"
+
+      - name: Copy docker-compose to VM
+        env:
+          VM_HOST: ${{ secrets.VM_HOST }}
+          VM_USER: ${{ secrets.VM_USER }}
+        run: |
+          scp -i ~/.ssh/deploy_key docker-compose.yml $VM_USER@$VM_HOST:${{ env.DEPLOY_PATH }}/
+
+      - name: Create .env file on VM
+        env:
+          VM_HOST: ${{ secrets.VM_HOST }}
+          VM_USER: ${{ secrets.VM_USER }}
+        run: |
+          ssh -i ~/.ssh/deploy_key $VM_USER@$VM_HOST "cat > ${{ env.DEPLOY_PATH }}/.env" <<EOF
+          # Node Environment
+          NODE_ENV=production
+
+          # Server Configuration
+          BACKEND_PORT=${{ secrets.BACKEND_PORT }}
+
+          # Database Configuration
+          POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB=${{ secrets.POSTGRES_DB }}
+          POSTGRES_PORT=5432
+          DATABASE_URL=postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@postgres:5432/${{ secrets.POSTGRES_DB }}?schema=public
+
+          # Redis Configuration
+          REDIS_HOST=redis
+          REDIS_PORT=6379
+          REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
+
+          # JWT Configuration
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          JWT_EXPIRATION=7d
+
+          # SendGrid Configuration
+          SENDGRID_API_KEY=${{ secrets.SENDGRID_API_KEY }}
+          SENDGRID_EMAIL_FROM=${{ secrets.SENDGRID_EMAIL_FROM }}
+
+          # MinIO S3 Configuration
+          MINIO_ENDPOINT=${{ secrets.MINIO_ENDPOINT }}
+          MINIO_ACCESS_KEY=${{ secrets.MINIO_ACCESS_KEY }}
+          MINIO_SECRET_KEY=${{ secrets.MINIO_SECRET_KEY }}
+          MINIO_BUCKET=${{ secrets.MINIO_BUCKET }}
+          EOF
+
+      - name: Login to GitHub Container Registry on VM
+        env:
+          VM_HOST: ${{ secrets.VM_HOST }}
+          VM_USER: ${{ secrets.VM_USER }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ssh -i ~/.ssh/deploy_key $VM_USER@$VM_HOST \
+            "echo $GITHUB_TOKEN | docker login ghcr.io -u ${{ github.actor }} --password-stdin"
+
+      - name: Pull and deploy with Docker Compose
+        env:
+          VM_HOST: ${{ secrets.VM_HOST }}
+          VM_USER: ${{ secrets.VM_USER }}
+        run: |
+          ssh -i ~/.ssh/deploy_key $VM_USER@$VM_HOST << 'ENDSSH'
+            cd ${{ env.DEPLOY_PATH }}
+
+            # Pull the latest image
+            docker pull ghcr.io/${{ github.repository }}:latest
+
+            # Stop and remove old containers
+            docker-compose down || true
+
+            # Start services
+            docker-compose up -d
+
+            # Run database migrations
+            docker-compose exec -T backend npx prisma migrate deploy
+
+            # Show logs
+            docker-compose logs --tail=50
+          ENDSSH
+
+      - name: Health check
+        env:
+          VM_HOST: ${{ secrets.VM_HOST }}
+          BACKEND_PORT: ${{ secrets.BACKEND_PORT }}
+        run: |
+          echo "Waiting for service to be healthy..."
+          sleep 15
+
+          for i in {1..10}; do
+            if curl -f http://$VM_HOST:$BACKEND_PORT/api/health; then
+              echo "Service is healthy!"
+              exit 0
+            fi
+            echo "Attempt $i failed, retrying..."
+            sleep 5
+          done
+
+          echo "Health check failed after 10 attempts"
+          exit 1
+
+      - name: Cleanup
+        if: always()
+        run: rm -f ~/.ssh/deploy_key
+
+  notify:
+    name: Deployment Notification
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: always()
+
+    steps:
+      - name: Send deployment status
+        run: |
+          if [ "${{ needs.deploy.result }}" == "success" ]; then
+            echo "Deployment successful!"
+          else
+            echo "Deployment failed!"
+            exit 1
+          fi

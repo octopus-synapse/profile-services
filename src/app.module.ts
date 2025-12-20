@@ -1,0 +1,54 @@
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard } from '@nestjs/throttler';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { PrismaModule } from './prisma/prisma.module';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
+import { ResumesModule } from './resumes/resumes.module';
+import { OnboardingModule } from './onboarding/onboarding.module';
+import { ExportModule } from './export/export.module';
+import { UploadModule } from './upload/upload.module';
+import { LoggerModule } from './common/logger/logger.module';
+import { CacheModule } from './common/cache/cache.module';
+import { GitHubModule } from './integrations/github/github.module';
+import { validate } from './common/config/env.validation';
+import { APP_CONSTANTS } from './common/constants/app.constants';
+
+@Module({
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+      validate,
+    }),
+    ThrottlerModule.forRoot([
+      {
+        ttl: APP_CONSTANTS.RATE_LIMIT_TTL * 1000,
+        limit: APP_CONSTANTS.RATE_LIMIT_MAX_REQUESTS,
+      },
+    ]),
+    LoggerModule,
+    CacheModule,
+    PrismaModule,
+    AuthModule,
+    UsersModule,
+    ResumesModule,
+    OnboardingModule,
+    ExportModule,
+    UploadModule,
+    GitHubModule,
+  ],
+  controllers: [AppController],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
+})
+export class AppModule {}

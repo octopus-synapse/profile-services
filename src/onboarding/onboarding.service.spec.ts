@@ -1,0 +1,350 @@
+import { Test, TestingModule } from '@nestjs/testing';
+import { NotFoundException } from '@nestjs/common';
+import { OnboardingService } from './onboarding.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { AppLoggerService } from '../common/logger/logger.service';
+import { ResumeOnboardingService } from './services/resume-onboarding.service';
+import { SkillsOnboardingService } from './services/skills-onboarding.service';
+import { ExperienceOnboardingService } from './services/experience-onboarding.service';
+import { EducationOnboardingService } from './services/education-onboarding.service';
+import { LanguagesOnboardingService } from './services/languages-onboarding.service';
+import {
+  ERROR_MESSAGES,
+  SUCCESS_MESSAGES,
+} from '../common/constants/app.constants';
+
+describe('OnboardingService', () => {
+  let service: OnboardingService;
+  let prisma: PrismaService;
+  let logger: AppLoggerService;
+  let resumeService: ResumeOnboardingService;
+  let skillsService: SkillsOnboardingService;
+  let experienceService: ExperienceOnboardingService;
+  let educationService: EducationOnboardingService;
+  let languagesService: LanguagesOnboardingService;
+
+  const mockPrismaService = {
+    user: {
+      findUnique: jest.fn(),
+      update: jest.fn(),
+    },
+  };
+
+  const mockLoggerService = {
+    log: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+    debug: jest.fn(),
+  };
+
+  const mockResumeOnboardingService = {
+    upsertResume: jest.fn(),
+  };
+
+  const mockSkillsOnboardingService = {
+    saveSkills: jest.fn(),
+  };
+
+  const mockExperienceOnboardingService = {
+    saveExperiences: jest.fn(),
+  };
+
+  const mockEducationOnboardingService = {
+    saveEducation: jest.fn(),
+  };
+
+  const mockLanguagesOnboardingService = {
+    saveLanguages: jest.fn(),
+  };
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        OnboardingService,
+        {
+          provide: PrismaService,
+          useValue: mockPrismaService,
+        },
+        {
+          provide: AppLoggerService,
+          useValue: mockLoggerService,
+        },
+        {
+          provide: ResumeOnboardingService,
+          useValue: mockResumeOnboardingService,
+        },
+        {
+          provide: SkillsOnboardingService,
+          useValue: mockSkillsOnboardingService,
+        },
+        {
+          provide: ExperienceOnboardingService,
+          useValue: mockExperienceOnboardingService,
+        },
+        {
+          provide: EducationOnboardingService,
+          useValue: mockEducationOnboardingService,
+        },
+        {
+          provide: LanguagesOnboardingService,
+          useValue: mockLanguagesOnboardingService,
+        },
+      ],
+    }).compile();
+
+    service = module.get<OnboardingService>(OnboardingService);
+    prisma = module.get<PrismaService>(PrismaService);
+    logger = module.get<LoggerService>(LoggerService);
+    resumeService = module.get<ResumeOnboardingService>(
+      ResumeOnboardingService,
+    );
+    skillsService = module.get<SkillsOnboardingService>(
+      SkillsOnboardingService,
+    );
+    experienceService = module.get<ExperienceOnboardingService>(
+      ExperienceOnboardingService,
+    );
+    educationService = module.get<EducationOnboardingService>(
+      EducationOnboardingService,
+    );
+    languagesService = module.get<LanguagesOnboardingService>(
+      LanguagesOnboardingService,
+    );
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('completeOnboarding', () => {
+    it('should successfully complete onboarding', async () => {
+      const userId = 'user-123';
+      const onboardingData = {
+        personalInfo: {
+          fullName: 'John Doe',
+          email: 'john@example.com',
+          phone: '1234567890',
+          location: 'New York, NY',
+        },
+        professionalProfile: {
+          jobTitle: 'Senior Developer',
+          summary:
+            'Experienced developer with 5+ years in full-stack development',
+          linkedin: 'https://linkedin.com/in/johndoe',
+          github: 'https://github.com/johndoe',
+          website: 'https://johndoe.com',
+        },
+        skillsStep: {
+          skills: [
+            { name: 'JavaScript', category: 'Frontend', level: 5 },
+            { name: 'Node.js', category: 'Backend', level: 4 },
+          ],
+          noSkills: false,
+        },
+        experiencesStep: {
+          experiences: [
+            {
+              company: 'Tech Corp',
+              position: 'Senior Developer',
+              startDate: '2020-01-01',
+              endDate: '2024-01-01',
+              isCurrent: false,
+              description: 'Building applications',
+              location: 'New York, NY',
+            },
+          ],
+          noExperience: false,
+        },
+        educationStep: {
+          education: [
+            {
+              institution: 'University',
+              degree: 'BSc',
+              field: 'Computer Science',
+              startDate: '2015-09-01',
+              endDate: '2019-06-01',
+              isCurrent: false,
+            },
+          ],
+          noEducation: false,
+        },
+        languages: [
+          { name: 'English', level: 'nativo' as const },
+          { name: 'Spanish', level: 'intermediário' as const },
+        ],
+        templateSelection: {
+          template: 'professional' as const,
+          palette: 'blue',
+        },
+      };
+
+      const mockUser = { id: userId, email: 'john@example.com' };
+      const mockResume = { id: 'resume-123', userId };
+
+      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+      mockResumeOnboardingService.upsertResume.mockResolvedValue(mockResume);
+      mockSkillsOnboardingService.saveSkills.mockResolvedValue(undefined);
+      mockExperienceOnboardingService.saveExperiences.mockResolvedValue(
+        undefined,
+      );
+      mockEducationOnboardingService.saveEducation.mockResolvedValue(undefined);
+      mockLanguagesOnboardingService.saveLanguages.mockResolvedValue(undefined);
+      mockPrismaService.user.update.mockResolvedValue({
+        ...mockUser,
+        hasCompletedOnboarding: true,
+      });
+
+      const result = await service.completeOnboarding(userId, onboardingData);
+
+      expect(result).toEqual({
+        success: true,
+        resumeId: mockResume.id,
+        message: SUCCESS_MESSAGES.ONBOARDING_COMPLETED,
+      });
+
+      expect(mockPrismaService.user.findUnique).toHaveBeenCalledWith({
+        where: { id: userId },
+      });
+      expect(mockResumeOnboardingService.upsertResume).toHaveBeenCalledWith(
+        userId,
+        onboardingData,
+      );
+      expect(mockSkillsOnboardingService.saveSkills).toHaveBeenCalledWith(
+        mockResume.id,
+        onboardingData,
+      );
+      expect(
+        mockExperienceOnboardingService.saveExperiences,
+      ).toHaveBeenCalledWith(mockResume.id, onboardingData);
+      expect(mockEducationOnboardingService.saveEducation).toHaveBeenCalledWith(
+        mockResume.id,
+        onboardingData,
+      );
+      expect(mockLanguagesOnboardingService.saveLanguages).toHaveBeenCalledWith(
+        mockResume.id,
+        onboardingData,
+      );
+      expect(mockPrismaService.user.update).toHaveBeenCalledWith({
+        where: { id: userId },
+        data: {
+          hasCompletedOnboarding: true,
+          onboardingCompletedAt: expect.any(Date),
+          palette: onboardingData.templateSelection.palette,
+        },
+      });
+      expect(logger.log).toHaveBeenCalledWith(
+        'Onboarding process started',
+        'OnboardingService',
+        { userId },
+      );
+      expect(logger.log).toHaveBeenCalledWith(
+        'Onboarding completed successfully',
+        'OnboardingService',
+        { userId, resumeId: mockResume.id },
+      );
+    });
+
+    it('should throw NotFoundException if user does not exist', async () => {
+      const userId = 'invalid-user';
+      const onboardingData = {
+        personalInfo: {
+          fullName: 'John Doe',
+          email: 'john@example.com',
+        },
+        professionalProfile: {
+          jobTitle: 'Developer',
+          summary:
+            'A passionate developer looking to make a difference in tech',
+        },
+        skillsStep: {
+          skills: [],
+          noSkills: true,
+        },
+        templateSelection: {
+          template: 'professional' as const,
+          palette: 'blue',
+        },
+      };
+
+      mockPrismaService.user.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.completeOnboarding(userId, onboardingData),
+      ).rejects.toThrow(NotFoundException);
+      await expect(
+        service.completeOnboarding(userId, onboardingData),
+      ).rejects.toThrow(ERROR_MESSAGES.USER_NOT_FOUND);
+
+      expect(mockResumeOnboardingService.upsertResume).not.toHaveBeenCalled();
+      expect(logger.warn).toHaveBeenCalled();
+    });
+
+    it('should throw error if data validation fails', async () => {
+      const userId = 'user-123';
+      const invalidData = {
+        // Missing required fields
+      };
+
+      await expect(
+        service.completeOnboarding(userId, invalidData),
+      ).rejects.toThrow();
+    });
+  });
+
+  describe('getOnboardingStatus', () => {
+    it('should successfully get onboarding status', async () => {
+      const userId = 'user-123';
+      const completedAt = new Date('2024-01-01');
+      const mockUser = {
+        hasCompletedOnboarding: true,
+        onboardingCompletedAt: completedAt,
+      };
+
+      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+
+      const result = await service.getOnboardingStatus(userId);
+
+      expect(result).toEqual({
+        hasCompletedOnboarding: true,
+        onboardingCompletedAt: completedAt,
+      });
+
+      expect(mockPrismaService.user.findUnique).toHaveBeenCalledWith({
+        where: { id: userId },
+        select: {
+          hasCompletedOnboarding: true,
+          onboardingCompletedAt: true,
+        },
+      });
+    });
+
+    it('should return incomplete status for user who has not completed onboarding', async () => {
+      const userId = 'user-123';
+      const mockUser = {
+        hasCompletedOnboarding: false,
+        onboardingCompletedAt: null,
+      };
+
+      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+
+      const result = await service.getOnboardingStatus(userId);
+
+      expect(result).toEqual({
+        hasCompletedOnboarding: false,
+        onboardingCompletedAt: null,
+      });
+    });
+
+    it('should throw NotFoundException if user does not exist', async () => {
+      const userId = 'invalid-user';
+      mockPrismaService.user.findUnique.mockResolvedValue(null);
+
+      await expect(service.getOnboardingStatus(userId)).rejects.toThrow(
+        NotFoundException,
+      );
+      await expect(service.getOnboardingStatus(userId)).rejects.toThrow(
+        ERROR_MESSAGES.USER_NOT_FOUND,
+      );
+    });
+  });
+});

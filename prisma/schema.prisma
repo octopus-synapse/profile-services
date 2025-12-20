@@ -1,0 +1,550 @@
+// Prisma Schema para ProFile com NextAuth
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// NextAuth Models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?   // Hashed password for credentials auth
+
+  accounts      Account[]
+  sessions      Session[]
+
+  // Profile fields
+  username      String?   @unique
+  displayName   String?
+  photoURL      String?
+  bio           String?   @db.Text
+  location      String?
+  phone         String?
+  website       String?
+  linkedin      String?
+  github        String?
+
+  // Legacy preference fields (kept for backward compatibility during migration)
+  bannerColor   String?
+  palette       String?
+
+  // Onboarding tracking
+  hasCompletedOnboarding Boolean @default(false)
+  onboardingCompletedAt  DateTime?
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  resumes       Resume[]
+  preferences   UserPreferences?
+
+  @@index([username])
+  @@index([email])
+  @@index([hasCompletedOnboarding])
+}
+
+model UserPreferences {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Appearance
+  theme         String   @default("dark") // "light" | "dark" | "auto"
+  palette       String   @default("ocean")
+  bannerColor   String?
+
+  // Localization
+  language      String   @default("en") // "en" | "pt-br" | "es"
+  dateFormat    String   @default("MM/DD/YYYY") // "MM/DD/YYYY" | "DD/MM/YYYY" | "YYYY-MM-DD"
+  timezone      String   @default("UTC")
+
+  // Notifications
+  emailNotifications      Boolean @default(true)
+  resumeExpiryAlerts      Boolean @default(true)
+  weeklyDigest            Boolean @default(false)
+  marketingEmails         Boolean @default(false)
+
+  // Privacy
+  profileVisibility       String  @default("private") // "public" | "private" | "unlisted"
+  showEmail               Boolean @default(false)
+  showPhone               Boolean @default(false)
+  allowSearchEngineIndex  Boolean @default(false)
+
+  // Export defaults
+  defaultExportFormat     String  @default("pdf") // "pdf" | "docx" | "json"
+  includePhotoInExport    Boolean @default(true)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Resume {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title         String?
+  template      String   @default("professional")
+  language      String   @default("pt-br")
+  isPublic      Boolean  @default(false)
+  slug          String?  @unique
+
+  // 🎯 PERSONALITY: Tech Persona
+  techPersona   String?  // "devops" | "security" | "data" | "fullstack" | "mobile" | "ai-ml" | "qa" | "ux-ui"
+  techArea      String?  // "Web Development" | "Mobile Development" | etc.
+  primaryStack  String[] // ["React", "Node.js", "TypeScript", etc.]
+  experienceYears Int?   @default(0)
+
+  fullName      String?
+  jobTitle      String?
+  phone         String?
+  emailContact  String?
+  location      String?
+  linkedin      String?
+  github        String?
+  website       String?
+  summary       String?  @db.Text
+
+  currentCompanyLogo String?
+
+  // 🔗 PERSONALITY: Social & Professional Links
+  twitter       String?
+  medium        String?
+  devto         String?
+  stackoverflow String?
+  kaggle        String?
+  hackerrank    String?
+  leetcode      String?
+
+  // 🎨 PERSONALITY: Visual Customization
+  accentColor   String?  @default("#3B82F6")
+  customTheme   Json?    // Configurações de tema personalizadas
+
+  // 📊 PERSONALITY: Stats & Achievements
+  profileViews  Int      @default(0)
+  totalStars    Int      @default(0)  // GitHub stars
+  totalCommits  Int      @default(0)  // GitHub commits
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  publishedAt   DateTime?
+
+  experiences   Experience[]
+  education     Education[]
+  skills        Skill[]
+  languages     Language[]
+  projects      Project[]
+  certifications Certification[]
+  awards        Award[]
+  recommendations Recommendation[]
+  interests     Interest[]
+  achievements  Achievement[]
+  publications  Publication[]
+  talks         Talk[]
+  openSource    OpenSourceContribution[]
+  bugBounties   BugBounty[]
+  hackathons    Hackathon[]
+
+  @@index([userId])
+  @@index([slug])
+  @@index([isPublic])
+  @@index([createdAt])
+  @@index([techPersona])
+}
+
+model Experience {
+  id            String   @id @default(cuid())
+  resumeId      String
+  resume        Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  
+  company       String
+  position      String
+  startDate     DateTime
+  endDate       DateTime?
+  isCurrent     Boolean  @default(false)
+  location      String?
+  description   String?  @db.Text
+  skills        String[]
+  
+  order         Int      @default(0)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([resumeId])
+  @@index([order])
+  @@index([resumeId, order])
+  @@index([isCurrent])
+}
+
+model Education {
+  id            String   @id @default(cuid())
+  resumeId      String
+  resume        Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  
+  institution   String
+  degree        String
+  field         String
+  startDate     DateTime
+  endDate       DateTime?
+  isCurrent     Boolean  @default(false)
+  location      String?
+  description   String?  @db.Text
+  gpa           String?
+  
+  order         Int      @default(0)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([resumeId])
+  @@index([order])
+  @@index([resumeId, order])
+  @@index([isCurrent])
+}
+
+model Skill {
+  id            String   @id @default(cuid())
+  resumeId      String
+  resume        Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  
+  name          String
+  category      String
+  level         Int?
+  
+  order         Int      @default(0)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([resumeId])
+  @@index([category])
+  @@index([resumeId, category])
+  @@index([resumeId, order])
+}
+
+model Language {
+  id            String   @id @default(cuid())
+  resumeId      String
+  resume        Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  
+  name          String
+  level         String
+  
+  order         Int      @default(0)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([resumeId])
+  @@index([resumeId, order])
+}
+
+model Project {
+  id            String   @id @default(cuid())
+  resumeId      String
+  resume        Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  
+  name          String
+  description   String?  @db.Text
+  url           String?
+  startDate     DateTime?
+  endDate       DateTime?
+  isCurrent     Boolean  @default(false)
+  technologies  String[]
+  
+  order         Int      @default(0)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([resumeId])
+  @@index([resumeId, order])
+  @@index([isCurrent])
+}
+
+model Certification {
+  id            String   @id @default(cuid())
+  resumeId      String
+  resume        Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  
+  name          String
+  issuer        String
+  issueDate     DateTime
+  expiryDate    DateTime?
+  credentialId  String?
+  credentialUrl String?
+  
+  order         Int      @default(0)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([resumeId])
+  @@index([resumeId, order])
+}
+
+model Award {
+  id            String   @id @default(cuid())
+  resumeId      String
+  resume        Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  
+  title         String
+  issuer        String
+  date          DateTime
+  description   String?  @db.Text
+  
+  order         Int      @default(0)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([resumeId])
+  @@index([order])
+}
+
+model Recommendation {
+  id            String   @id @default(cuid())
+  resumeId      String
+  resume        Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  
+  author        String
+  position      String?
+  company       String?
+  content       String   @db.Text
+  date          DateTime?
+  
+  order         Int      @default(0)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([resumeId])
+  @@index([order])
+}
+
+model Interest {
+  id            String   @id @default(cuid())
+  resumeId      String
+  resume        Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  
+  name          String
+  description   String?  @db.Text
+  
+  order         Int      @default(0)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([resumeId])
+  @@index([order])
+}
+
+// 🏆 PERSONALITY MODELS - O que torna cada profissional ÚNICO
+
+model Achievement {
+  id            String   @id @default(cuid())
+  resumeId      String
+  resume        Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  
+  type          String   // "github_stars" | "kaggle_medal" | "ctf_win" | "bug_bounty" | "certification" | "custom"
+  title         String
+  description   String?  @db.Text
+  badgeUrl      String?
+  verificationUrl String?
+  achievedAt    DateTime
+  
+  // Stats específicos
+  value         Int?     // e.g., número de stars, valor do bounty, ranking
+  rank          String?  // e.g., "Gold Medal", "Top 1%"
+  
+  order         Int      @default(0)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([resumeId])
+  @@index([resumeId, type])
+  @@index([resumeId, order])
+}
+
+model Publication {
+  id            String   @id @default(cuid())
+  resumeId      String
+  resume        Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  
+  title         String
+  publisher     String   // Journal, Conference, Blog platform
+  publicationType String // "paper" | "article" | "blog" | "whitepaper"
+  url           String?
+  publishedAt   DateTime
+  abstract      String?  @db.Text
+  coAuthors     String[]
+  citations     Int?     @default(0)
+  
+  order         Int      @default(0)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([resumeId])
+  @@index([resumeId, order])
+  @@index([publicationType])
+}
+
+model Talk {
+  id            String   @id @default(cuid())
+  resumeId      String
+  resume        Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  
+  title         String
+  event         String
+  eventType     String   // "conference" | "meetup" | "webinar" | "podcast" | "workshop"
+  location      String?
+  date          DateTime
+  description   String?  @db.Text
+  slidesUrl     String?
+  videoUrl      String?
+  attendees     Int?     // Número de participantes
+  
+  order         Int      @default(0)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([resumeId])
+  @@index([resumeId, order])
+  @@index([eventType])
+}
+
+model OpenSourceContribution {
+  id            String   @id @default(cuid())
+  resumeId      String
+  resume        Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  
+  projectName   String
+  projectUrl    String
+  role          String   // "maintainer" | "core_contributor" | "contributor"
+  description   String?  @db.Text
+  technologies  String[]
+  
+  // Stats
+  commits       Int?     @default(0)
+  prsCreated    Int?     @default(0)
+  prsMerged     Int?     @default(0)
+  issuesClosed  Int?     @default(0)
+  stars         Int?     @default(0)
+  
+  startDate     DateTime
+  endDate       DateTime?
+  isCurrent     Boolean  @default(false)
+  
+  order         Int      @default(0)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([resumeId])
+  @@index([resumeId, order])
+  @@index([role])
+}
+
+model BugBounty {
+  id            String   @id @default(cuid())
+  resumeId      String
+  resume        Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  
+  platform      String   // "HackerOne" | "Bugcrowd" | "YesWeHack" | "Custom"
+  company       String
+  severity      String   // "critical" | "high" | "medium" | "low"
+  vulnerabilityType String // "XSS" | "SQL Injection" | "CSRF" | "RCE" | etc
+  cveId         String?
+  reward        Float?   // Valor do bounty
+  currency      String?  @default("USD")
+  reportUrl     String?
+  reportedAt    DateTime
+  resolvedAt    DateTime?
+  
+  order         Int      @default(0)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([resumeId])
+  @@index([resumeId, order])
+  @@index([severity])
+}
+
+model Hackathon {
+  id            String   @id @default(cuid())
+  resumeId      String
+  resume        Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  
+  name          String
+  organizer     String
+  position      String?  // "1st Place" | "Winner" | "Finalist"
+  projectName   String
+  description   String?  @db.Text
+  technologies  String[]
+  teamSize      Int?
+  demoUrl       String?
+  repoUrl       String?
+  date          DateTime
+  prize         String?  // Descrição do prêmio
+  
+  order         Int      @default(0)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([resumeId])
+  @@index([resumeId, order])
+}

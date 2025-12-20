@@ -1,0 +1,106 @@
+version: "3.8"
+
+services:
+  # ==================================
+  # PostgreSQL Database
+  # ==================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: profile-postgres-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-profile_dev}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    networks:
+      - profile-dev-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==================================
+  # Redis Cache
+  # ==================================
+  redis:
+    image: redis:7-alpine
+    container_name: profile-redis-dev
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis}
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_dev_data:/data
+    networks:
+      - profile-dev-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # ==================================
+  # Backend (NestJS) - Development Mode
+  # ==================================
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    container_name: profile-backend-dev
+    restart: unless-stopped
+    command: npm run start:dev
+    environment:
+      NODE_ENV: development
+      PORT: ${BACKEND_PORT:-3001}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-profile_dev}?schema=public
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-redis}
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-key}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-7d}
+      SENDGRID_API_KEY: ${SENDGRID_API_KEY}
+      SENDGRID_EMAIL_FROM: ${SENDGRID_EMAIL_FROM}
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+      MINIO_BUCKET: ${MINIO_BUCKET:-profile-uploads}
+      LOG_LEVEL: debug
+    ports:
+      - "${BACKEND_PORT:-3001}:3001"
+      - "9229:9229"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - profile-dev-network
+    volumes:
+      - ./src:/app/src:delegated
+      - ./test:/app/test:delegated
+      - /app/node_modules
+      - ./logs:/app/logs
+
+# ==================================
+# Networks
+# ==================================
+networks:
+  profile-dev-network:
+    driver: bridge
+    name: profile-dev-network
+
+# ==================================
+# Volumes
+# ==================================
+volumes:
+  postgres_dev_data:
+    name: profile-postgres-dev-data
+  redis_dev_data:
+    name: profile-redis-dev-data

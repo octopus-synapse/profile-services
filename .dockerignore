@@ -1,0 +1,130 @@
+# ==================================
+# Dependencies
+# ==================================
+node_modules
+npm-debug.log*
+yarn-error.log
+yarn.lock
+pnpm-lock.yaml
+# package-lock.json is needed for Docker builds (npm ci)
+.npm
+.yarn
+
+# ==================================
+# Build outputs
+# ==================================
+dist
+build
+.nest
+*.tsbuildinfo
+
+# ==================================
+# Testing
+# ==================================
+coverage
+.nyc_output
+*.spec.ts
+*.test.ts
+test
+**/__tests__
+**/__mocks__
+
+# ==================================
+# IDE & Editors
+# ==================================
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.vs
+.editorconfig
+
+# ==================================
+# Git
+# ==================================
+.git
+.gitignore
+.gitattributes
+.gitmodules
+
+# ==================================
+# Environment & Secrets
+# ==================================
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.p12
+*.pfx
+
+# ==================================
+# Docker
+# ==================================
+Dockerfile*
+.dockerignore
+docker-compose*.yml
+.docker
+
+# ==================================
+# Documentation
+# ==================================
+README*.md
+CHANGELOG*.md
+CONTRIBUTING*.md
+LICENSE*
+docs
+*.md
+!prisma/*.md
+
+# ==================================
+# CI/CD
+# ==================================
+.github
+.gitlab-ci.yml
+.travis.yml
+.circleci
+azure-pipelines.yml
+Jenkinsfile
+
+# ==================================
+# Logs
+# ==================================
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# ==================================
+# OS
+# ==================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ==================================
+# Misc
+# ==================================
+.prettierrc*
+.eslintrc*
+.eslintignore
+eslint.config.*
+.editorconfig
+.husky
+.commitlintrc*
+tsconfig*.json
+!tsconfig.json
+!tsconfig.build.json
+nest-cli.json
+.claude
