@@ -1,83 +1,18 @@
-name: Rollback Deployment
+name: Rollback
 
 on:
   workflow_dispatch:
     inputs:
       image_tag:
-        description: "Docker image tag to rollback to (e.g., main-abc1234)"
+        description: "Image tag (e.g., main-abc1234)"
         required: true
         type: string
 
-env:
-  DEPLOY_PATH: /opt/profile-services
-
 jobs:
   rollback:
-    name: Rollback to Previous Version
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup SSH
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.VM_SSH_PRIVATE_KEY }}
-          VM_HOST: ${{ secrets.VM_HOST }}
-          VM_USER: ${{ secrets.VM_USER }}
-        run: |
-          mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          ssh-keyscan -H $VM_HOST >> ~/.ssh/known_hosts
-
-      - name: Rollback deployment
-        env:
-          VM_HOST: ${{ secrets.VM_HOST }}
-          VM_USER: ${{ secrets.VM_USER }}
-          IMAGE_TAG: ${{ inputs.image_tag }}
-        run: |
-          ssh -i ~/.ssh/deploy_key $VM_USER@$VM_HOST << ENDSSH
-            cd ${{ env.DEPLOY_PATH }}
-
-            echo "Rolling back to image: ghcr.io/${{ github.repository }}:${IMAGE_TAG}"
-
-            # Pull the specified image
-            docker pull ghcr.io/${{ github.repository }}:${IMAGE_TAG}
-
-            # Update the docker-compose to use the specific tag
-            export IMAGE_TAG=${IMAGE_TAG}
-
-            # Stop current containers
-            docker-compose down
-
-            # Start with the rollback image
-            docker-compose up -d
-
-            # Show logs
-            docker-compose logs --tail=50
-          ENDSSH
-
-      - name: Health check
-        env:
-          VM_HOST: ${{ secrets.VM_HOST }}
-          BACKEND_PORT: ${{ secrets.BACKEND_PORT }}
-        run: |
-          echo "Waiting for service to be healthy..."
-          sleep 15
-
-          for i in {1..10}; do
-            if curl -f http://$VM_HOST:$BACKEND_PORT/api/health; then
-              echo "Rollback successful! Service is healthy!"
-              exit 0
-            fi
-            echo "Attempt $i failed, retrying..."
-            sleep 5
-          done
-
-          echo "Health check failed after rollback"
-          exit 1
-
-      - name: Cleanup
-        if: always()
-        run: rm -f ~/.ssh/deploy_key
+    uses: efpatti/octopus-workflows/.github/workflows/rollback.yml@main
+    with:
+      image-tag: ${{ inputs.image_tag }}
+      service-port: "3001"
+      deploy-path: "/opt/profile-services"
+    # Octopus secrets (OCTOPUS_VM_*) inherited from octopus environment automatically
