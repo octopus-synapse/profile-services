@@ -5,6 +5,11 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  actions: read
+  packages: write
+
 jobs:
   deploy:
     uses: efpatti/octopus-workflows/.github/workflows/cd.yml@main

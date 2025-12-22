@@ -6,6 +6,10 @@ on:
   push:
     branches: [dev]
 
+permissions:
+  contents: read
+  actions: read
+
 jobs:
   ci:
     uses: efpatti/octopus-workflows/.github/workflows/ci.yml@main
