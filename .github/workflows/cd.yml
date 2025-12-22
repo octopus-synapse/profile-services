@@ -10,15 +10,13 @@ jobs:
     uses: efpatti/octopus-workflows/.github/workflows/cd.yml@main
     with:
       service-name: "profile-backend"
-      service-port: "3001"
       deploy-path: "/opt/profile-services"
       has-database: true
     secrets:
-      # Octopus secrets (OCTOPUS_VM_*) inherited automatically from octopus environment
-      # Project-specific secrets below
+      SERVICE_PORT: ${{ secrets.BACKEND_PORT }}
       ENV_VARS: |
         NODE_ENV=production
-        BACKEND_PORT=3001
+        BACKEND_PORT=${{ secrets.BACKEND_PORT }}
         POSTGRES_USER=${{ secrets.POSTGRES_USER }}
         POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
         POSTGRES_DB=${{ secrets.POSTGRES_DB }}
