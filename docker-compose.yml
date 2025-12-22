@@ -49,11 +49,7 @@ services:
   # Backend (NestJS)
   # ==================================
   backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        PORT: ${BACKEND_PORT:-3001}
+    image: ${DOCKER_IMAGE:-ghcr.io/efpatti/profile-services:${IMAGE_TAG:-latest}}
     container_name: profile-backend
     restart: unless-stopped
     environment:
