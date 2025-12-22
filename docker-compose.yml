@@ -49,7 +49,7 @@ services:
   # Backend (NestJS)
   # ==================================
   backend:
-    image: ${DOCKER_IMAGE:-ghcr.io/efpatti/profile-services:${IMAGE_TAG:-latest}}
+    image: ${DOCKER_IMAGE:-ghcr.io/octopus-synapse/profile-services:${IMAGE_TAG:-latest}}
     container_name: profile-backend
     restart: unless-stopped
     environment:
@@ -97,7 +97,7 @@ services:
 # ==================================
 networks:
   profile-network:
-    driver: bridge
+    external: true
     name: profile-network
 
 # ==================================
