@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   ci:
-    uses: efpatti/octopus-workflows/.github/workflows/ci.yml@main
+    uses: octopus-synapse/octopus-workflows/.github/workflows/ci.yml@main
     with:
       node-version: "20"
       has-database: true

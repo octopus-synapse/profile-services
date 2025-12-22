@@ -12,16 +12,13 @@ permissions:
 
 jobs:
   deploy:
-    uses: efpatti/octopus-workflows/.github/workflows/cd.yml@main
+    uses: octopus-synapse/octopus-workflows/.github/workflows/cd.yml@main
     with:
       service-name: "profile-backend"
       deploy-path: "/opt/profile-services"
       has-database: true
     secrets:
       SERVICE_PORT: ${{ secrets.BACKEND_PORT }}
-      OCTOPUS_VM_SSH_PRIVATE_KEY: ${{ secrets.OCTOPUS_VM_SSH_PRIVATE_KEY }}
-      OCTOPUS_VM_HOST: ${{ secrets.OCTOPUS_VM_HOST }}
-      OCTOPUS_VM_USER: ${{ secrets.OCTOPUS_VM_USER }}
       ENV_VARS: |
         NODE_ENV=production
         BACKEND_PORT=${{ secrets.BACKEND_PORT }}

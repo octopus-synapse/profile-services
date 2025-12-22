@@ -10,9 +10,8 @@ on:
 
 jobs:
   rollback:
-    uses: efpatti/octopus-workflows/.github/workflows/rollback.yml@main
+    uses: octopus-synapse/octopus-workflows/.github/workflows/rollback.yml@main
     with:
       image-tag: ${{ inputs.image_tag }}
       service-port: "3001"
       deploy-path: "/opt/profile-services"
-    # Octopus secrets (OCTOPUS_VM_*) inherited from octopus environment automatically
