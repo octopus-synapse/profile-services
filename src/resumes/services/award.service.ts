@@ -9,6 +9,10 @@ import { ResumesRepository } from '../resumes.repository';
 import { CreateAwardDto, UpdateAwardDto } from '../dto/award.dto';
 import { PaginatedResult } from '../dto/pagination.dto';
 import { Award } from '@prisma/client';
+import {
+  ApiResponseHelper,
+  MessageResponse,
+} from '../../common/dto/api-response.dto';
 
 @Injectable()
 export class AwardService {
@@ -72,7 +76,7 @@ export class AwardService {
     resumeId: string,
     id: string,
     userId: string,
-  ): Promise<{ success: boolean; message: string }> {
+  ): Promise<MessageResponse> {
     await this.validateResumeOwnership(resumeId, userId);
 
     const deleted = await this.awardRepository.delete(id, resumeId);
@@ -81,18 +85,18 @@ export class AwardService {
     }
 
     this.logger.log(`Deleted award: ${id}`);
-    return { success: true, message: 'Award deleted successfully' };
+    return ApiResponseHelper.message('Award deleted successfully');
   }
 
   async reorder(
     resumeId: string,
     userId: string,
     ids: string[],
-  ): Promise<{ success: boolean; message: string }> {
+  ): Promise<MessageResponse> {
     await this.validateResumeOwnership(resumeId, userId);
 
     await this.awardRepository.reorder(resumeId, ids);
-    return { success: true, message: 'Awards reordered successfully' };
+    return ApiResponseHelper.message('Awards reordered successfully');
   }
 
   private async validateResumeOwnership(

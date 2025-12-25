@@ -9,6 +9,10 @@ import { ResumesRepository } from '../resumes.repository';
 import { CreateTalkDto, UpdateTalkDto } from '../dto/talk.dto';
 import { PaginatedResult } from '../dto/pagination.dto';
 import { Talk } from '@prisma/client';
+import {
+  ApiResponseHelper,
+  MessageResponse,
+} from '../../common/dto/api-response.dto';
 
 @Injectable()
 export class TalkService {
@@ -72,7 +76,7 @@ export class TalkService {
     resumeId: string,
     id: string,
     userId: string,
-  ): Promise<{ success: boolean; message: string }> {
+  ): Promise<MessageResponse> {
     await this.validateResumeOwnership(resumeId, userId);
 
     const deleted = await this.talkRepository.delete(id, resumeId);
@@ -81,18 +85,18 @@ export class TalkService {
     }
 
     this.logger.log(`Deleted talk: ${id}`);
-    return { success: true, message: 'Talk deleted successfully' };
+    return ApiResponseHelper.message('Talk deleted successfully');
   }
 
   async reorder(
     resumeId: string,
     userId: string,
     ids: string[],
-  ): Promise<{ success: boolean; message: string }> {
+  ): Promise<MessageResponse> {
     await this.validateResumeOwnership(resumeId, userId);
 
     await this.talkRepository.reorder(resumeId, ids);
-    return { success: true, message: 'Talks reordered successfully' };
+    return ApiResponseHelper.message('Talks reordered successfully');
   }
 
   private async validateResumeOwnership(

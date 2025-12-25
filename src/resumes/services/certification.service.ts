@@ -12,6 +12,10 @@ import {
 } from '../dto/certification.dto';
 import { PaginatedResult } from '../dto/pagination.dto';
 import { Certification } from '@prisma/client';
+import {
+  ApiResponseHelper,
+  MessageResponse,
+} from '../../common/dto/api-response.dto';
 
 @Injectable()
 export class CertificationService {
@@ -86,7 +90,7 @@ export class CertificationService {
     resumeId: string,
     id: string,
     userId: string,
-  ): Promise<{ success: boolean; message: string }> {
+  ): Promise<MessageResponse> {
     await this.validateResumeOwnership(resumeId, userId);
 
     const deleted = await this.certificationRepository.delete(id, resumeId);
@@ -95,18 +99,18 @@ export class CertificationService {
     }
 
     this.logger.log(`Deleted certification: ${id}`);
-    return { success: true, message: 'Certification deleted successfully' };
+    return ApiResponseHelper.message('Certification deleted successfully');
   }
 
   async reorder(
     resumeId: string,
     userId: string,
     ids: string[],
-  ): Promise<{ success: boolean; message: string }> {
+  ): Promise<MessageResponse> {
     await this.validateResumeOwnership(resumeId, userId);
 
     await this.certificationRepository.reorder(resumeId, ids);
-    return { success: true, message: 'Certifications reordered successfully' };
+    return ApiResponseHelper.message('Certifications reordered successfully');
   }
 
   private async validateResumeOwnership(

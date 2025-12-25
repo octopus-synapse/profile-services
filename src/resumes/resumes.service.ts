@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { ResumesRepository } from './resumes.repository';
 import { CreateResumeDto } from './dto/create-resume.dto';
 import { UpdateResumeDto } from './dto/update-resume.dto';
+import { ApiResponseHelper } from '../common/dto/api-response.dto';
 
 @Injectable()
 export class ResumesService {
@@ -53,7 +54,7 @@ export class ResumesService {
       throw new NotFoundException('Resume not found');
     }
 
-    return { success: true, message: 'Resume deleted successfully' };
+    return ApiResponseHelper.message('Resume deleted successfully');
   }
 
   async findByUserId(userId: string) {

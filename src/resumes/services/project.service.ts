@@ -9,6 +9,10 @@ import { ResumesRepository } from '../resumes.repository';
 import { CreateProjectDto, UpdateProjectDto } from '../dto/project.dto';
 import { PaginatedResult } from '../dto/pagination.dto';
 import { Project } from '@prisma/client';
+import {
+  ApiResponseHelper,
+  MessageResponse,
+} from '../../common/dto/api-response.dto';
 
 @Injectable()
 export class ProjectService {
@@ -76,7 +80,7 @@ export class ProjectService {
     resumeId: string,
     id: string,
     userId: string,
-  ): Promise<{ success: boolean; message: string }> {
+  ): Promise<MessageResponse> {
     await this.validateResumeOwnership(resumeId, userId);
 
     const deleted = await this.projectRepository.delete(id, resumeId);
@@ -85,18 +89,18 @@ export class ProjectService {
     }
 
     this.logger.log(`Deleted project: ${id}`);
-    return { success: true, message: 'Project deleted successfully' };
+    return ApiResponseHelper.message('Project deleted successfully');
   }
 
   async reorder(
     resumeId: string,
     userId: string,
     ids: string[],
-  ): Promise<{ success: boolean; message: string }> {
+  ): Promise<MessageResponse> {
     await this.validateResumeOwnership(resumeId, userId);
 
     await this.projectRepository.reorder(resumeId, ids);
-    return { success: true, message: 'Projects reordered successfully' };
+    return ApiResponseHelper.message('Projects reordered successfully');
   }
 
   private async validateResumeOwnership(

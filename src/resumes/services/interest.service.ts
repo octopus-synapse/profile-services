@@ -9,6 +9,10 @@ import { ResumesRepository } from '../resumes.repository';
 import { CreateInterestDto, UpdateInterestDto } from '../dto/interest.dto';
 import { PaginatedResult } from '../dto/pagination.dto';
 import { Interest } from '@prisma/client';
+import {
+  ApiResponseHelper,
+  MessageResponse,
+} from '../../common/dto/api-response.dto';
 
 @Injectable()
 export class InterestService {
@@ -76,7 +80,7 @@ export class InterestService {
     resumeId: string,
     id: string,
     userId: string,
-  ): Promise<{ success: boolean; message: string }> {
+  ): Promise<MessageResponse> {
     await this.validateResumeOwnership(resumeId, userId);
 
     const deleted = await this.interestRepository.delete(id, resumeId);
@@ -85,18 +89,18 @@ export class InterestService {
     }
 
     this.logger.log(`Deleted interest: ${id}`);
-    return { success: true, message: 'Interest deleted successfully' };
+    return ApiResponseHelper.message('Interest deleted successfully');
   }
 
   async reorder(
     resumeId: string,
     userId: string,
     ids: string[],
-  ): Promise<{ success: boolean; message: string }> {
+  ): Promise<MessageResponse> {
     await this.validateResumeOwnership(resumeId, userId);
 
     await this.interestRepository.reorder(resumeId, ids);
-    return { success: true, message: 'Interests reordered successfully' };
+    return ApiResponseHelper.message('Interests reordered successfully');
   }
 
   private async validateResumeOwnership(

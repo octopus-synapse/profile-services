@@ -9,6 +9,11 @@ import { ResumesRepository } from '../resumes.repository';
 import { CreateBugBountyDto, UpdateBugBountyDto } from '../dto/bug-bounty.dto';
 import { PaginatedResult } from '../dto/pagination.dto';
 import { BugBounty } from '@prisma/client';
+import {
+  ApiResponseHelper,
+  MessageResponse,
+  ApiResponse,
+} from '../../common/dto/api-response.dto';
 
 @Injectable()
 export class BugBountyService {
@@ -76,7 +81,7 @@ export class BugBountyService {
     resumeId: string,
     id: string,
     userId: string,
-  ): Promise<{ success: boolean; message: string }> {
+  ): Promise<MessageResponse> {
     await this.validateResumeOwnership(resumeId, userId);
 
     const deleted = await this.bugBountyRepository.delete(id, resumeId);
@@ -85,27 +90,27 @@ export class BugBountyService {
     }
 
     this.logger.log(`Deleted bug bounty: ${id}`);
-    return { success: true, message: 'Bug bounty deleted successfully' };
+    return ApiResponseHelper.message('Bug bounty deleted successfully');
   }
 
   async reorder(
     resumeId: string,
     userId: string,
     ids: string[],
-  ): Promise<{ success: boolean; message: string }> {
+  ): Promise<MessageResponse> {
     await this.validateResumeOwnership(resumeId, userId);
 
     await this.bugBountyRepository.reorder(resumeId, ids);
-    return { success: true, message: 'Bug bounties reordered successfully' };
+    return ApiResponseHelper.message('Bug bounties reordered successfully');
   }
 
   async getTotalRewards(
     resumeId: string,
     userId: string,
-  ): Promise<{ total: number }> {
+  ): Promise<ApiResponse<{ total: number }>> {
     await this.validateResumeOwnership(resumeId, userId);
     const total = await this.bugBountyRepository.getTotalRewards(resumeId);
-    return { total };
+    return ApiResponseHelper.success({ total });
   }
 
   private async validateResumeOwnership(

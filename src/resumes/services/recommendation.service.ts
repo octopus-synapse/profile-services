@@ -12,6 +12,10 @@ import {
 } from '../dto/recommendation.dto';
 import { PaginatedResult } from '../dto/pagination.dto';
 import { Recommendation } from '@prisma/client';
+import {
+  ApiResponseHelper,
+  MessageResponse,
+} from '../../common/dto/api-response.dto';
 
 @Injectable()
 export class RecommendationService {
@@ -86,7 +90,7 @@ export class RecommendationService {
     resumeId: string,
     id: string,
     userId: string,
-  ): Promise<{ success: boolean; message: string }> {
+  ): Promise<MessageResponse> {
     await this.validateResumeOwnership(resumeId, userId);
 
     const deleted = await this.recommendationRepository.delete(id, resumeId);
@@ -95,18 +99,18 @@ export class RecommendationService {
     }
 
     this.logger.log(`Deleted recommendation: ${id}`);
-    return { success: true, message: 'Recommendation deleted successfully' };
+    return ApiResponseHelper.message('Recommendation deleted successfully');
   }
 
   async reorder(
     resumeId: string,
     userId: string,
     ids: string[],
-  ): Promise<{ success: boolean; message: string }> {
+  ): Promise<MessageResponse> {
     await this.validateResumeOwnership(resumeId, userId);
 
     await this.recommendationRepository.reorder(resumeId, ids);
-    return { success: true, message: 'Recommendations reordered successfully' };
+    return ApiResponseHelper.message('Recommendations reordered successfully');
   }
 
   private async validateResumeOwnership(

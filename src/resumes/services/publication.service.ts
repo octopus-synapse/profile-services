@@ -12,6 +12,10 @@ import {
 } from '../dto/publication.dto';
 import { PaginatedResult } from '../dto/pagination.dto';
 import { Publication } from '@prisma/client';
+import {
+  ApiResponseHelper,
+  MessageResponse,
+} from '../../common/dto/api-response.dto';
 
 @Injectable()
 export class PublicationService {
@@ -83,7 +87,7 @@ export class PublicationService {
     resumeId: string,
     id: string,
     userId: string,
-  ): Promise<{ success: boolean; message: string }> {
+  ): Promise<MessageResponse> {
     await this.validateResumeOwnership(resumeId, userId);
 
     const deleted = await this.publicationRepository.delete(id, resumeId);
@@ -92,18 +96,18 @@ export class PublicationService {
     }
 
     this.logger.log(`Deleted publication: ${id}`);
-    return { success: true, message: 'Publication deleted successfully' };
+    return ApiResponseHelper.message('Publication deleted successfully');
   }
 
   async reorder(
     resumeId: string,
     userId: string,
     ids: string[],
-  ): Promise<{ success: boolean; message: string }> {
+  ): Promise<MessageResponse> {
     await this.validateResumeOwnership(resumeId, userId);
 
     await this.publicationRepository.reorder(resumeId, ids);
-    return { success: true, message: 'Publications reordered successfully' };
+    return ApiResponseHelper.message('Publications reordered successfully');
   }
 
   private async validateResumeOwnership(

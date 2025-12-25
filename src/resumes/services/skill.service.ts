@@ -13,6 +13,11 @@ import {
 } from '../dto/skill.dto';
 import { PaginatedResult } from '../dto/pagination.dto';
 import { Skill } from '@prisma/client';
+import {
+  ApiResponseHelper,
+  MessageResponse,
+  ApiResponse,
+} from '../../common/dto/api-response.dto';
 
 @Injectable()
 export class SkillService {
@@ -60,14 +65,14 @@ export class SkillService {
     resumeId: string,
     userId: string,
     data: BulkCreateSkillsDto,
-  ): Promise<{ success: boolean; count: number }> {
+  ): Promise<ApiResponse<{ count: number }>> {
     await this.validateResumeOwnership(resumeId, userId);
 
     this.logger.log(
       `Creating ${data.skills.length} skills for resume: ${resumeId}`,
     );
     const count = await this.skillRepository.createMany(resumeId, data.skills);
-    return { success: true, count };
+    return ApiResponseHelper.count(count, 'Skills created successfully');
   }
 
   async update(
@@ -91,7 +96,7 @@ export class SkillService {
     resumeId: string,
     id: string,
     userId: string,
-  ): Promise<{ success: boolean; message: string }> {
+  ): Promise<MessageResponse> {
     await this.validateResumeOwnership(resumeId, userId);
 
     const deleted = await this.skillRepository.delete(id, resumeId);
@@ -100,14 +105,14 @@ export class SkillService {
     }
 
     this.logger.log(`Deleted skill: ${id}`);
-    return { success: true, message: 'Skill deleted successfully' };
+    return ApiResponseHelper.message('Skill deleted successfully');
   }
 
   async removeByCategory(
     resumeId: string,
     userId: string,
     category: string,
-  ): Promise<{ success: boolean; count: number }> {
+  ): Promise<ApiResponse<{ count: number }>> {
     await this.validateResumeOwnership(resumeId, userId);
 
     const count = await this.skillRepository.deleteByCategory(
@@ -115,7 +120,7 @@ export class SkillService {
       category,
     );
     this.logger.log(`Deleted ${count} skills in category: ${category}`);
-    return { success: true, count };
+    return ApiResponseHelper.count(count, 'Skills deleted successfully');
   }
 
   async getCategories(resumeId: string, userId: string): Promise<string[]> {
@@ -127,11 +132,11 @@ export class SkillService {
     resumeId: string,
     userId: string,
     ids: string[],
-  ): Promise<{ success: boolean; message: string }> {
+  ): Promise<MessageResponse> {
     await this.validateResumeOwnership(resumeId, userId);
 
     await this.skillRepository.reorder(resumeId, ids);
-    return { success: true, message: 'Skills reordered successfully' };
+    return ApiResponseHelper.message('Skills reordered successfully');
   }
 
   private async validateResumeOwnership(

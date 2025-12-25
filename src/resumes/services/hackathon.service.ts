@@ -9,6 +9,10 @@ import { ResumesRepository } from '../resumes.repository';
 import { CreateHackathonDto, UpdateHackathonDto } from '../dto/hackathon.dto';
 import { PaginatedResult } from '../dto/pagination.dto';
 import { Hackathon } from '@prisma/client';
+import {
+  ApiResponseHelper,
+  MessageResponse,
+} from '../../common/dto/api-response.dto';
 
 @Injectable()
 export class HackathonService {
@@ -76,7 +80,7 @@ export class HackathonService {
     resumeId: string,
     id: string,
     userId: string,
-  ): Promise<{ success: boolean; message: string }> {
+  ): Promise<MessageResponse> {
     await this.validateResumeOwnership(resumeId, userId);
 
     const deleted = await this.hackathonRepository.delete(id, resumeId);
@@ -85,18 +89,18 @@ export class HackathonService {
     }
 
     this.logger.log(`Deleted hackathon: ${id}`);
-    return { success: true, message: 'Hackathon deleted successfully' };
+    return ApiResponseHelper.message('Hackathon deleted successfully');
   }
 
   async reorder(
     resumeId: string,
     userId: string,
     ids: string[],
-  ): Promise<{ success: boolean; message: string }> {
+  ): Promise<MessageResponse> {
     await this.validateResumeOwnership(resumeId, userId);
 
     await this.hackathonRepository.reorder(resumeId, ids);
-    return { success: true, message: 'Hackathons reordered successfully' };
+    return ApiResponseHelper.message('Hackathons reordered successfully');
   }
 
   private async validateResumeOwnership(

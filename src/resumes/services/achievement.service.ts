@@ -12,6 +12,10 @@ import {
 } from '../dto/achievement.dto';
 import { PaginatedResult } from '../dto/pagination.dto';
 import { Achievement } from '@prisma/client';
+import {
+  ApiResponseHelper,
+  MessageResponse,
+} from '../../common/dto/api-response.dto';
 
 @Injectable()
 export class AchievementService {
@@ -83,7 +87,7 @@ export class AchievementService {
     resumeId: string,
     id: string,
     userId: string,
-  ): Promise<{ success: boolean; message: string }> {
+  ): Promise<MessageResponse> {
     await this.validateResumeOwnership(resumeId, userId);
 
     const deleted = await this.achievementRepository.delete(id, resumeId);
@@ -92,18 +96,18 @@ export class AchievementService {
     }
 
     this.logger.log(`Deleted achievement: ${id}`);
-    return { success: true, message: 'Achievement deleted successfully' };
+    return ApiResponseHelper.message('Achievement deleted successfully');
   }
 
   async reorder(
     resumeId: string,
     userId: string,
     ids: string[],
-  ): Promise<{ success: boolean; message: string }> {
+  ): Promise<MessageResponse> {
     await this.validateResumeOwnership(resumeId, userId);
 
     await this.achievementRepository.reorder(resumeId, ids);
-    return { success: true, message: 'Achievements reordered successfully' };
+    return ApiResponseHelper.message('Achievements reordered successfully');
   }
 
   private async validateResumeOwnership(

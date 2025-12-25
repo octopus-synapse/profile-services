@@ -12,6 +12,10 @@ import {
 } from '../dto/experience.dto';
 import { PaginatedResult } from '../dto/pagination.dto';
 import { Experience } from '@prisma/client';
+import {
+  ApiResponseHelper,
+  MessageResponse,
+} from '../../common/dto/api-response.dto';
 
 @Injectable()
 export class ExperienceService {
@@ -83,7 +87,7 @@ export class ExperienceService {
     resumeId: string,
     id: string,
     userId: string,
-  ): Promise<{ success: boolean; message: string }> {
+  ): Promise<MessageResponse> {
     await this.validateResumeOwnership(resumeId, userId);
 
     const deleted = await this.experienceRepository.delete(id, resumeId);
@@ -92,18 +96,18 @@ export class ExperienceService {
     }
 
     this.logger.log(`Deleted experience: ${id}`);
-    return { success: true, message: 'Experience deleted successfully' };
+    return ApiResponseHelper.message('Experience deleted successfully');
   }
 
   async reorder(
     resumeId: string,
     userId: string,
     ids: string[],
-  ): Promise<{ success: boolean; message: string }> {
+  ): Promise<MessageResponse> {
     await this.validateResumeOwnership(resumeId, userId);
 
     await this.experienceRepository.reorder(resumeId, ids);
-    return { success: true, message: 'Experiences reordered successfully' };
+    return ApiResponseHelper.message('Experiences reordered successfully');
   }
 
   private async validateResumeOwnership(

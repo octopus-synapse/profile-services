@@ -9,6 +9,10 @@ import { ResumesRepository } from '../resumes.repository';
 import { CreateEducationDto, UpdateEducationDto } from '../dto/education.dto';
 import { PaginatedResult } from '../dto/pagination.dto';
 import { Education } from '@prisma/client';
+import {
+  ApiResponseHelper,
+  MessageResponse,
+} from '../../common/dto/api-response.dto';
 
 @Injectable()
 export class EducationService {
@@ -76,7 +80,7 @@ export class EducationService {
     resumeId: string,
     id: string,
     userId: string,
-  ): Promise<{ success: boolean; message: string }> {
+  ): Promise<MessageResponse> {
     await this.validateResumeOwnership(resumeId, userId);
 
     const deleted = await this.educationRepository.delete(id, resumeId);
@@ -85,21 +89,18 @@ export class EducationService {
     }
 
     this.logger.log(`Deleted education: ${id}`);
-    return { success: true, message: 'Education deleted successfully' };
+    return ApiResponseHelper.message('Education deleted successfully');
   }
 
   async reorder(
     resumeId: string,
     userId: string,
     ids: string[],
-  ): Promise<{ success: boolean; message: string }> {
+  ): Promise<MessageResponse> {
     await this.validateResumeOwnership(resumeId, userId);
 
     await this.educationRepository.reorder(resumeId, ids);
-    return {
-      success: true,
-      message: 'Education entries reordered successfully',
-    };
+    return ApiResponseHelper.message('Education entries reordered successfully');
   }
 
   private async validateResumeOwnership(

@@ -9,6 +9,10 @@ import { ResumesRepository } from '../resumes.repository';
 import { CreateLanguageDto, UpdateLanguageDto } from '../dto/language.dto';
 import { PaginatedResult } from '../dto/pagination.dto';
 import { Language } from '@prisma/client';
+import {
+  ApiResponseHelper,
+  MessageResponse,
+} from '../../common/dto/api-response.dto';
 
 @Injectable()
 export class LanguageService {
@@ -76,7 +80,7 @@ export class LanguageService {
     resumeId: string,
     id: string,
     userId: string,
-  ): Promise<{ success: boolean; message: string }> {
+  ): Promise<MessageResponse> {
     await this.validateResumeOwnership(resumeId, userId);
 
     const deleted = await this.languageRepository.delete(id, resumeId);
@@ -85,18 +89,18 @@ export class LanguageService {
     }
 
     this.logger.log(`Deleted language: ${id}`);
-    return { success: true, message: 'Language deleted successfully' };
+    return ApiResponseHelper.message('Language deleted successfully');
   }
 
   async reorder(
     resumeId: string,
     userId: string,
     ids: string[],
-  ): Promise<{ success: boolean; message: string }> {
+  ): Promise<MessageResponse> {
     await this.validateResumeOwnership(resumeId, userId);
 
     await this.languageRepository.reorder(resumeId, ids);
-    return { success: true, message: 'Languages reordered successfully' };
+    return ApiResponseHelper.message('Languages reordered successfully');
   }
 
   private async validateResumeOwnership(

@@ -12,6 +12,11 @@ import {
 } from '../dto/open-source.dto';
 import { PaginatedResult } from '../dto/pagination.dto';
 import { OpenSourceContribution } from '@prisma/client';
+import {
+  ApiResponseHelper,
+  MessageResponse,
+  ApiResponse,
+} from '../../common/dto/api-response.dto';
 
 @Injectable()
 export class OpenSourceService {
@@ -85,7 +90,7 @@ export class OpenSourceService {
     resumeId: string,
     id: string,
     userId: string,
-  ): Promise<{ success: boolean; message: string }> {
+  ): Promise<MessageResponse> {
     await this.validateResumeOwnership(resumeId, userId);
 
     const deleted = await this.openSourceRepository.delete(id, resumeId);
@@ -94,32 +99,33 @@ export class OpenSourceService {
     }
 
     this.logger.log(`Deleted open source contribution: ${id}`);
-    return {
-      success: true,
-      message: 'Open source contribution deleted successfully',
-    };
+    return ApiResponseHelper.message(
+      'Open source contribution deleted successfully',
+    );
   }
 
   async reorder(
     resumeId: string,
     userId: string,
     ids: string[],
-  ): Promise<{ success: boolean; message: string }> {
+  ): Promise<MessageResponse> {
     await this.validateResumeOwnership(resumeId, userId);
 
     await this.openSourceRepository.reorder(resumeId, ids);
-    return {
-      success: true,
-      message: 'Open source contributions reordered successfully',
-    };
+    return ApiResponseHelper.message(
+      'Open source contributions reordered successfully',
+    );
   }
 
   async getTotalStats(
     resumeId: string,
     userId: string,
-  ): Promise<{ totalCommits: number; totalPRs: number; totalStars: number }> {
+  ): Promise<
+    ApiResponse<{ totalCommits: number; totalPRs: number; totalStars: number }>
+  > {
     await this.validateResumeOwnership(resumeId, userId);
-    return this.openSourceRepository.getTotalStats(resumeId);
+    const stats = await this.openSourceRepository.getTotalStats(resumeId);
+    return ApiResponseHelper.success(stats);
   }
 
   private async validateResumeOwnership(
