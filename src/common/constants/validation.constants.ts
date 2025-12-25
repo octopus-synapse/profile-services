@@ -60,6 +60,14 @@ export const REGEX = {
   USERNAME: /^[a-zA-Z0-9_-]+$/,
   PHONE: /^[\d\s\-+()]+$/,
   HEX_COLOR: /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/,
+  // Password: at least 1 uppercase, 1 lowercase, 1 number, 1 special char
+  PASSWORD: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/,
+} as const;
+
+export const PASSWORD_REQUIREMENTS = {
+  MIN_LENGTH: 8,
+  REQUIREMENTS_MESSAGE:
+    'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&)',
 } as const;
 
 // ==================== DATE VALIDATION ====================

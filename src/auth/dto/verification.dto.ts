@@ -1,5 +1,9 @@
-import { IsString, IsEmail } from 'class-validator';
+import { IsString, IsEmail, MinLength, Matches } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import {
+  REGEX,
+  PASSWORD_REQUIREMENTS,
+} from '../../common/constants/validation.constants';
 
 export class RequestVerificationDto {
   @ApiProperty({
@@ -37,11 +41,17 @@ export class ResetPasswordDto {
   token: string;
 
   @ApiProperty({
-    description: 'New password (min 8 characters)',
+    description: 'New password',
     example: 'NewSecurePass123!',
-    minLength: 8,
+    minLength: PASSWORD_REQUIREMENTS.MIN_LENGTH,
   })
   @IsString()
+  @MinLength(PASSWORD_REQUIREMENTS.MIN_LENGTH, {
+    message: `Password must be at least ${PASSWORD_REQUIREMENTS.MIN_LENGTH} characters`,
+  })
+  @Matches(REGEX.PASSWORD, {
+    message: PASSWORD_REQUIREMENTS.REQUIREMENTS_MESSAGE,
+  })
   password: string;
 }
 
@@ -54,10 +64,16 @@ export class ChangePasswordDto {
   currentPassword: string;
 
   @ApiProperty({
-    description: 'New password (min 8 characters)',
+    description: 'New password',
     example: 'NewSecurePass123!',
-    minLength: 8,
+    minLength: PASSWORD_REQUIREMENTS.MIN_LENGTH,
   })
   @IsString()
+  @MinLength(PASSWORD_REQUIREMENTS.MIN_LENGTH, {
+    message: `Password must be at least ${PASSWORD_REQUIREMENTS.MIN_LENGTH} characters`,
+  })
+  @Matches(REGEX.PASSWORD, {
+    message: PASSWORD_REQUIREMENTS.REQUIREMENTS_MESSAGE,
+  })
   newPassword: string;
 }

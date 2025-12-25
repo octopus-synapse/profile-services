@@ -4,9 +4,14 @@ import {
   MinLength,
   MaxLength,
   IsOptional,
+  Matches,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { STRING_LENGTH } from '../../common/constants/validation.constants';
+import {
+  STRING_LENGTH,
+  REGEX,
+  PASSWORD_REQUIREMENTS,
+} from '../../common/constants/validation.constants';
 
 export class SignupDto {
   @ApiProperty({
@@ -23,11 +28,14 @@ export class SignupDto {
   @ApiProperty({
     description: 'User password (will be hashed)',
     example: 'SecurePass123!',
-    minLength: STRING_LENGTH.MIN.PASSWORD,
+    minLength: PASSWORD_REQUIREMENTS.MIN_LENGTH,
   })
   @IsString()
-  @MinLength(STRING_LENGTH.MIN.PASSWORD, {
-    message: `Password must be at least ${STRING_LENGTH.MIN.PASSWORD} characters`,
+  @MinLength(PASSWORD_REQUIREMENTS.MIN_LENGTH, {
+    message: `Password must be at least ${PASSWORD_REQUIREMENTS.MIN_LENGTH} characters`,
+  })
+  @Matches(REGEX.PASSWORD, {
+    message: PASSWORD_REQUIREMENTS.REQUIREMENTS_MESSAGE,
   })
   password: string;
 
