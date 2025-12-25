@@ -52,10 +52,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      target: builder
+      target: deps
     container_name: profile-backend-dev
     restart: unless-stopped
-    command: npm run start:dev
+    command: sh -c "npx prisma generate && npx prisma migrate deploy && npm run start:dev"
     environment:
       NODE_ENV: development
       PORT: ${BACKEND_PORT:-3001}
@@ -85,6 +85,11 @@ services:
     volumes:
       - ./src:/app/src:delegated
       - ./test:/app/test:delegated
+      - ./prisma:/app/prisma:delegated
+      - ./tsconfig.json:/app/tsconfig.json:delegated
+      - ./tsconfig.build.json:/app/tsconfig.build.json:delegated
+      - ./nest-cli.json:/app/nest-cli.json:delegated
+      - ./package.json:/app/package.json:delegated
       - /app/node_modules
       - ./logs:/app/logs
 
