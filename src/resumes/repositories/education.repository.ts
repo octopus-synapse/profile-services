@@ -73,36 +73,38 @@ export class EducationRepository {
     resumeId: string,
     data: UpdateEducationDto,
   ): Promise<Education | null> {
-    const exists = await this.findOne(id, resumeId);
-    if (!exists) return null;
+    const updateData = {
+      ...(data.institution && { institution: data.institution }),
+      ...(data.degree && { degree: data.degree }),
+      ...(data.field && { field: data.field }),
+      ...(data.startDate && { startDate: new Date(data.startDate) }),
+      ...(data.endDate !== undefined && {
+        endDate: data.endDate ? new Date(data.endDate) : null,
+      }),
+      ...(data.isCurrent !== undefined && { isCurrent: data.isCurrent }),
+      ...(data.location !== undefined && { location: data.location }),
+      ...(data.description !== undefined && {
+        description: data.description,
+      }),
+      ...(data.gpa !== undefined && { gpa: data.gpa }),
+      ...(data.order !== undefined && { order: data.order }),
+    };
 
-    return this.prisma.education.update({
-      where: { id },
-      data: {
-        ...(data.institution && { institution: data.institution }),
-        ...(data.degree && { degree: data.degree }),
-        ...(data.field && { field: data.field }),
-        ...(data.startDate && { startDate: new Date(data.startDate) }),
-        ...(data.endDate !== undefined && {
-          endDate: data.endDate ? new Date(data.endDate) : null,
-        }),
-        ...(data.isCurrent !== undefined && { isCurrent: data.isCurrent }),
-        ...(data.location !== undefined && { location: data.location }),
-        ...(data.description !== undefined && {
-          description: data.description,
-        }),
-        ...(data.gpa !== undefined && { gpa: data.gpa }),
-        ...(data.order !== undefined && { order: data.order }),
-      },
+    const result = await this.prisma.education.updateMany({
+      where: { id, resumeId },
+      data: updateData,
     });
+
+    if (result.count === 0) return null;
+
+    return this.prisma.education.findUnique({ where: { id } });
   }
 
   async delete(id: string, resumeId: string): Promise<boolean> {
-    const exists = await this.findOne(id, resumeId);
-    if (!exists) return false;
-
-    await this.prisma.education.delete({ where: { id } });
-    return true;
+    const result = await this.prisma.education.deleteMany({
+      where: { id, resumeId },
+    });
+    return result.count > 0;
   }
 
   async reorder(resumeId: string, ids: string[]): Promise<void> {

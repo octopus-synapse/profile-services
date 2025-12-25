@@ -78,35 +78,40 @@ export class ExperienceRepository {
     resumeId: string,
     data: UpdateExperienceDto,
   ): Promise<Experience | null> {
-    const exists = await this.findOne(id, resumeId);
-    if (!exists) return null;
+    // Use updateMany to avoid N+1 query and handle non-existent records
+    const updateData = {
+      ...(data.company && { company: data.company }),
+      ...(data.position && { position: data.position }),
+      ...(data.startDate && { startDate: new Date(data.startDate) }),
+      ...(data.endDate !== undefined && {
+        endDate: data.endDate ? new Date(data.endDate) : null,
+      }),
+      ...(data.isCurrent !== undefined && { isCurrent: data.isCurrent }),
+      ...(data.location !== undefined && { location: data.location }),
+      ...(data.description !== undefined && {
+        description: data.description,
+      }),
+      ...(data.skills && { skills: data.skills }),
+      ...(data.order !== undefined && { order: data.order }),
+    };
 
-    return this.prisma.experience.update({
-      where: { id },
-      data: {
-        ...(data.company && { company: data.company }),
-        ...(data.position && { position: data.position }),
-        ...(data.startDate && { startDate: new Date(data.startDate) }),
-        ...(data.endDate !== undefined && {
-          endDate: data.endDate ? new Date(data.endDate) : null,
-        }),
-        ...(data.isCurrent !== undefined && { isCurrent: data.isCurrent }),
-        ...(data.location !== undefined && { location: data.location }),
-        ...(data.description !== undefined && {
-          description: data.description,
-        }),
-        ...(data.skills && { skills: data.skills }),
-        ...(data.order !== undefined && { order: data.order }),
-      },
+    const result = await this.prisma.experience.updateMany({
+      where: { id, resumeId },
+      data: updateData,
     });
+
+    if (result.count === 0) return null;
+
+    // Fetch and return the updated record
+    return this.prisma.experience.findUnique({ where: { id } });
   }
 
   async delete(id: string, resumeId: string): Promise<boolean> {
-    const exists = await this.findOne(id, resumeId);
-    if (!exists) return false;
-
-    await this.prisma.experience.delete({ where: { id } });
-    return true;
+    // Use deleteMany to avoid N+1 query - single query handles both check and delete
+    const result = await this.prisma.experience.deleteMany({
+      where: { id, resumeId },
+    });
+    return result.count > 0;
   }
 
   async reorder(resumeId: string, ids: string[]): Promise<void> {

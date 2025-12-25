@@ -85,26 +85,28 @@ export class SkillRepository {
     resumeId: string,
     data: UpdateSkillDto,
   ): Promise<Skill | null> {
-    const exists = await this.findOne(id, resumeId);
-    if (!exists) return null;
+    const updateData = {
+      ...(data.name && { name: data.name }),
+      ...(data.category && { category: data.category }),
+      ...(data.level !== undefined && { level: data.level }),
+      ...(data.order !== undefined && { order: data.order }),
+    };
 
-    return this.prisma.skill.update({
-      where: { id },
-      data: {
-        ...(data.name && { name: data.name }),
-        ...(data.category && { category: data.category }),
-        ...(data.level !== undefined && { level: data.level }),
-        ...(data.order !== undefined && { order: data.order }),
-      },
+    const result = await this.prisma.skill.updateMany({
+      where: { id, resumeId },
+      data: updateData,
     });
+
+    if (result.count === 0) return null;
+
+    return this.prisma.skill.findUnique({ where: { id } });
   }
 
   async delete(id: string, resumeId: string): Promise<boolean> {
-    const exists = await this.findOne(id, resumeId);
-    if (!exists) return false;
-
-    await this.prisma.skill.delete({ where: { id } });
-    return true;
+    const result = await this.prisma.skill.deleteMany({
+      where: { id, resumeId },
+    });
+    return result.count > 0;
   }
 
   async deleteByCategory(resumeId: string, category: string): Promise<number> {
