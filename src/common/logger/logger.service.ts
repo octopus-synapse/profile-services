@@ -4,6 +4,7 @@ import * as winston from 'winston';
 @Injectable()
 export class AppLoggerService implements NestLoggerService {
   private logger: winston.Logger;
+  private context?: string;
 
   constructor() {
     const isProduction = process.env.NODE_ENV === 'production';
@@ -90,6 +91,17 @@ export class AppLoggerService implements NestLoggerService {
     context?: string,
     meta?: Record<string, unknown>,
   ): void {
-    this.logger.verbose(message, { context, ...meta });
+    this.logger.verbose(message, { context: context ?? this.context, ...meta });
+  }
+
+  setContext(context: string): void {
+    this.context = context;
+  }
+
+  errorWithMeta(
+    message: string,
+    meta?: Record<string, unknown>,
+  ): void {
+    this.logger.error(message, { context: this.context, ...meta });
   }
 }

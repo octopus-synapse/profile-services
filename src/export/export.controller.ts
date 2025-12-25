@@ -6,6 +6,7 @@ import {
   StreamableFile,
   Header,
   BadRequestException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -21,6 +22,7 @@ import { ResumePDFService } from './services/resume-pdf.service';
 import { ResumeDOCXService } from './services/resume-docx.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { UserPayload } from '../auth/interfaces/auth-request.interface';
+import { AppLoggerService } from '../common/logger/logger.service';
 
 @ApiTags('export')
 @ApiBearerAuth('JWT-auth')
@@ -30,7 +32,10 @@ export class ExportController {
     private readonly bannerCaptureService: BannerCaptureService,
     private readonly resumePDFService: ResumePDFService,
     private readonly resumeDOCXService: ResumeDOCXService,
-  ) {}
+    private readonly logger: AppLoggerService,
+  ) {
+    this.logger.setContext(ExportController.name);
+  }
 
   @UseGuards(JwtAuthGuard)
   @Get('banner')
@@ -50,8 +55,16 @@ export class ExportController {
     try {
       const buffer = await this.bannerCaptureService.capture(palette, logoUrl);
       return new StreamableFile(buffer);
-    } catch {
-      throw new BadRequestException('Failed to generate banner');
+    } catch (error) {
+      this.logger.errorWithMeta('Failed to generate banner', {
+        palette,
+        logoUrl,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+      throw new InternalServerErrorException(
+        'Failed to generate banner. Please try again later.',
+      );
     }
   }
 
@@ -81,8 +94,18 @@ export class ExportController {
         userId: user.userId,
       });
       return new StreamableFile(buffer);
-    } catch {
-      throw new BadRequestException('Failed to generate PDF');
+    } catch (error) {
+      this.logger.errorWithMeta('Failed to generate PDF', {
+        userId: user.userId,
+        palette,
+        lang,
+        bannerColor,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+      throw new InternalServerErrorException(
+        'Failed to generate PDF. Please try again later.',
+      );
     }
   }
 
@@ -105,8 +128,14 @@ export class ExportController {
       const buffer = await this.resumeDOCXService.generate(user.userId);
       return new StreamableFile(buffer);
     } catch (error) {
-      const err = error as Error;
-      throw new BadRequestException(`Failed to generate DOCX: ${err.message}`);
+      this.logger.errorWithMeta('Failed to generate DOCX', {
+        userId: user.userId,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+      throw new InternalServerErrorException(
+        'Failed to generate DOCX. Please try again later.',
+      );
     }
   }
 }

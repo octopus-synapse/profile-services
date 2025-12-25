@@ -6,9 +6,10 @@ import { BrowserManagerService } from './services/browser-manager.service';
 import { ResumeDOCXService } from './services/resume-docx.service';
 import { ResumesModule } from '../resumes/resumes.module';
 import { UsersModule } from '../users/users.module';
+import { LoggerModule } from '../common/logger/logger.module';
 
 @Module({
-  imports: [ResumesModule, UsersModule],
+  imports: [ResumesModule, UsersModule, LoggerModule],
   controllers: [ExportController],
   providers: [
     BannerCaptureService,
