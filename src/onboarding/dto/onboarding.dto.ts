@@ -324,3 +324,119 @@ export class OnboardingDto {
   @Type(() => TemplateSelectionDto)
   templateSelection: TemplateSelectionDto;
 }
+
+// DTO for saving onboarding progress (partial data)
+export class OnboardingProgressDto {
+  @ApiProperty({
+    example: 'personal-info',
+    enum: [
+      'welcome',
+      'personal-info',
+      'professional-profile',
+      'experience',
+      'education',
+      'skills',
+      'languages',
+      'template',
+      'review',
+      'complete',
+    ],
+  })
+  @IsString()
+  currentStep: string;
+
+  @ApiProperty({ example: ['welcome', 'personal-info'] })
+  @IsArray()
+  @IsString({ each: true })
+  completedSteps: string[];
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsObject()
+  personalInfo?: {
+    fullName?: string;
+    email?: string;
+    phone?: string;
+    location?: string;
+  };
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsObject()
+  professionalProfile?: {
+    jobTitle?: string;
+    summary?: string;
+    linkedin?: string;
+    github?: string;
+    website?: string;
+  };
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsArray()
+  experiences?: Array<{
+    id?: string;
+    company?: string;
+    position?: string;
+    startDate?: string;
+    endDate?: string;
+    isCurrent?: boolean;
+    description?: string;
+    location?: string;
+  }>;
+
+  @ApiProperty({ example: false })
+  @IsOptional()
+  @IsBoolean()
+  noExperience?: boolean;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsArray()
+  education?: Array<{
+    id?: string;
+    institution?: string;
+    degree?: string;
+    field?: string;
+    startDate?: string;
+    endDate?: string;
+    isCurrent?: boolean;
+  }>;
+
+  @ApiProperty({ example: false })
+  @IsOptional()
+  @IsBoolean()
+  noEducation?: boolean;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsArray()
+  skills?: Array<{
+    id?: string;
+    name?: string;
+    category?: string;
+    level?: number;
+  }>;
+
+  @ApiProperty({ example: false })
+  @IsOptional()
+  @IsBoolean()
+  noSkills?: boolean;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsArray()
+  languages?: Array<{
+    id?: string;
+    name?: string;
+    level?: string;
+  }>;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsObject()
+  templateSelection?: {
+    template?: string;
+    palette?: string;
+  };
+}

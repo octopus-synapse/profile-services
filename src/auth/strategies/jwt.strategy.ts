@@ -7,6 +7,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 export interface JwtPayload {
   sub: string;
   email: string;
+  role?: string;
   hasCompletedOnboarding?: boolean;
 }
 
@@ -34,6 +35,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         id: true,
         email: true,
         name: true,
+        role: true,
         hasCompletedOnboarding: true,
       },
     });
@@ -46,6 +48,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       userId: user.id,
       email: user.email,
       name: user.name,
+      role: user.role,
       hasCompletedOnboarding: user.hasCompletedOnboarding,
     };
   }

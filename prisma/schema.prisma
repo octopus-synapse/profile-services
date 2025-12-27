@@ -48,6 +48,11 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+enum UserRole {
+  USER
+  ADMIN
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -55,6 +60,7 @@ model User {
   emailVerified DateTime?
   image         String?
   password      String?   // Hashed password for credentials auth
+  role          UserRole  @default(USER)
 
   accounts      Account[]
   sessions      Session[]
@@ -83,9 +89,11 @@ model User {
 
   resumes       Resume[]
   preferences   UserPreferences?
+  onboardingProgress OnboardingProgress?
 
   @@index([username])
   @@index([email])
+  @@index([role])
   @@index([hasCompletedOnboarding])
 }
 
@@ -119,6 +127,34 @@ model UserPreferences {
   // Export defaults
   defaultExportFormat     String  @default("pdf") // "pdf" | "docx" | "json"
   includePhotoInExport    Boolean @default(true)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// Onboarding Progress - Stores partial progress for checkpoint/resume functionality
+model OnboardingProgress {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Current step (checkpoint)
+  currentStep   String   @default("welcome")
+  completedSteps String[] @default([])
+
+  // Form data (stored as JSON for flexibility)
+  personalInfo       Json?
+  professionalProfile Json?
+  experiences        Json?
+  noExperience       Boolean @default(false)
+  education          Json?
+  noEducation        Boolean @default(false)
+  skills             Json?
+  noSkills           Boolean @default(false)
+  languages          Json?
+  templateSelection  Json?
 
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt

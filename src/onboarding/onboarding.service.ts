@@ -14,6 +14,7 @@ import { SkillsOnboardingService } from './services/skills-onboarding.service';
 import { ExperienceOnboardingService } from './services/experience-onboarding.service';
 import { EducationOnboardingService } from './services/education-onboarding.service';
 import { LanguagesOnboardingService } from './services/languages-onboarding.service';
+import { OnboardingProgressDto } from './dto/onboarding.dto';
 
 @Injectable()
 export class OnboardingService {
@@ -54,6 +55,9 @@ export class OnboardingService {
     ]);
 
     await this.markOnboardingComplete(user.id, validatedData);
+
+    // Clean up progress after successful completion
+    await this.deleteProgress(userId);
 
     this.logger.log('Onboarding completed successfully', 'OnboardingService', {
       userId,
@@ -112,5 +116,105 @@ export class OnboardingService {
       hasCompletedOnboarding: user.hasCompletedOnboarding,
       onboardingCompletedAt: user.onboardingCompletedAt,
     };
+  }
+
+  /**
+   * Save onboarding progress (checkpoint)
+   */
+  async saveProgress(userId: string, data: OnboardingProgressDto) {
+    this.logger.debug('Saving onboarding progress', 'OnboardingService', {
+      userId,
+      currentStep: data.currentStep,
+    });
+
+    const progress = await this.prisma.onboardingProgress.upsert({
+      where: { userId },
+      update: {
+        currentStep: data.currentStep,
+        completedSteps: data.completedSteps,
+        personalInfo: data.personalInfo ?? undefined,
+        professionalProfile: data.professionalProfile ?? undefined,
+        experiences: data.experiences ?? undefined,
+        noExperience: data.noExperience ?? false,
+        education: data.education ?? undefined,
+        noEducation: data.noEducation ?? false,
+        skills: data.skills ?? undefined,
+        noSkills: data.noSkills ?? false,
+        languages: data.languages ?? undefined,
+        templateSelection: data.templateSelection ?? undefined,
+      },
+      create: {
+        userId,
+        currentStep: data.currentStep,
+        completedSteps: data.completedSteps,
+        personalInfo: data.personalInfo ?? undefined,
+        professionalProfile: data.professionalProfile ?? undefined,
+        experiences: data.experiences ?? undefined,
+        noExperience: data.noExperience ?? false,
+        education: data.education ?? undefined,
+        noEducation: data.noEducation ?? false,
+        skills: data.skills ?? undefined,
+        noSkills: data.noSkills ?? false,
+        languages: data.languages ?? undefined,
+        templateSelection: data.templateSelection ?? undefined,
+      },
+    });
+
+    return {
+      success: true,
+      currentStep: progress.currentStep,
+      completedSteps: progress.completedSteps,
+    };
+  }
+
+  /**
+   * Get onboarding progress (checkpoint)
+   */
+  async getProgress(userId: string) {
+    const progress = await this.prisma.onboardingProgress.findUnique({
+      where: { userId },
+    });
+
+    if (!progress) {
+      // Return initial state if no progress saved
+      return {
+        currentStep: 'welcome',
+        completedSteps: [],
+        personalInfo: null,
+        professionalProfile: null,
+        experiences: [],
+        noExperience: false,
+        education: [],
+        noEducation: false,
+        skills: [],
+        noSkills: false,
+        languages: [],
+        templateSelection: null,
+      };
+    }
+
+    return {
+      currentStep: progress.currentStep,
+      completedSteps: progress.completedSteps,
+      personalInfo: progress.personalInfo,
+      professionalProfile: progress.professionalProfile,
+      experiences: progress.experiences ?? [],
+      noExperience: progress.noExperience,
+      education: progress.education ?? [],
+      noEducation: progress.noEducation,
+      skills: progress.skills ?? [],
+      noSkills: progress.noSkills,
+      languages: progress.languages ?? [],
+      templateSelection: progress.templateSelection,
+    };
+  }
+
+  /**
+   * Delete onboarding progress after completion
+   */
+  async deleteProgress(userId: string) {
+    await this.prisma.onboardingProgress.deleteMany({
+      where: { userId },
+    });
   }
 }

@@ -2,6 +2,7 @@ import {
   Controller,
   Post,
   Get,
+  Put,
   Body,
   UseGuards,
   HttpCode,
@@ -14,7 +15,7 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { OnboardingService } from './onboarding.service';
-import { OnboardingDto } from './dto/onboarding.dto';
+import { OnboardingDto, OnboardingProgressDto } from './dto/onboarding.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { UserPayload } from '../auth/interfaces/auth-request.interface';
@@ -66,5 +67,55 @@ export class OnboardingController {
   @ApiResponse({ status: 404, description: 'User not found' })
   async getStatus(@CurrentUser() user: UserPayload) {
     return this.onboardingService.getOnboardingStatus(user.userId);
+  }
+
+  @Get('progress')
+  @ApiOperation({ summary: 'Get user onboarding progress (checkpoint)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Onboarding progress retrieved successfully',
+    schema: {
+      example: {
+        currentStep: 'professional-profile',
+        completedSteps: ['welcome', 'personal-info'],
+        personalInfo: { fullName: 'John Doe', email: 'john@example.com' },
+        professionalProfile: null,
+        experiences: [],
+        noExperience: false,
+        education: [],
+        noEducation: false,
+        skills: [],
+        noSkills: false,
+        languages: [],
+        templateSelection: null,
+      },
+    },
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async getProgress(@CurrentUser() user: UserPayload) {
+    return this.onboardingService.getProgress(user.userId);
+  }
+
+  @Put('progress')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Save user onboarding progress (checkpoint)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Onboarding progress saved successfully',
+    schema: {
+      example: {
+        success: true,
+        currentStep: 'professional-profile',
+        completedSteps: ['welcome', 'personal-info'],
+      },
+    },
+  })
+  @ApiResponse({ status: 400, description: 'Invalid input data' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  async saveProgress(
+    @CurrentUser() user: UserPayload,
+    @Body() data: OnboardingProgressDto,
+  ) {
+    return this.onboardingService.saveProgress(user.userId, data);
   }
 }

@@ -29,7 +29,7 @@ import {
 // Type for a user object without the password field
 type ValidatedUser = Omit<User, 'password'>;
 // Type for the user data we encode in the JWT
-type JwtUserPayload = Pick<User, 'id' | 'email' | 'hasCompletedOnboarding'>;
+type JwtUserPayload = Pick<User, 'id' | 'email' | 'role' | 'hasCompletedOnboarding'>;
 
 @Injectable()
 export class AuthService {
@@ -76,6 +76,7 @@ export class AuthService {
     const token = this.generateToken({
       id: user.id,
       email: user.email!, // email is non-null after creation
+      role: user.role,
       hasCompletedOnboarding: user.hasCompletedOnboarding,
     });
 
@@ -85,6 +86,9 @@ export class AuthService {
         id: user.id,
         email: user.email,
         name: user.name,
+        role: user.role,
+        username: user.username,
+        image: user.image,
         hasCompletedOnboarding: user.hasCompletedOnboarding,
       },
       token,
@@ -132,6 +136,7 @@ export class AuthService {
     const token = this.generateToken({
       id: user.id,
       email: user.email!, // email is non-null for a validated user
+      role: user.role,
       hasCompletedOnboarding: user.hasCompletedOnboarding,
     });
 
@@ -146,6 +151,9 @@ export class AuthService {
         id: user.id,
         email: user.email,
         name: user.name,
+        role: user.role,
+        username: user.username,
+        image: user.image,
         hasCompletedOnboarding: user.hasCompletedOnboarding,
       },
       token,
@@ -159,6 +167,7 @@ export class AuthService {
         id: true,
         email: true,
         name: true,
+        role: true,
         hasCompletedOnboarding: true,
       },
     });
@@ -173,6 +182,7 @@ export class AuthService {
     const token = this.generateToken({
       id: user.id,
       email: user.email,
+      role: user.role,
       hasCompletedOnboarding: user.hasCompletedOnboarding,
     });
 
@@ -194,6 +204,7 @@ export class AuthService {
     const payload = {
       sub: user.id,
       email: user.email,
+      role: user.role,
       hasCompletedOnboarding: user.hasCompletedOnboarding ?? false,
     };
 
@@ -477,5 +488,98 @@ export class AuthService {
     }
 
     return { success: true, message: 'Password changed successfully' };
+  }
+
+  /**
+   * Change user email
+   */
+  async changeEmail(userId: string, dto: any) {
+    const { newEmail, currentPassword } = dto;
+
+    // Get user
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+
+    if (!user || !user.password) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    // Verify current password
+    const isPasswordValid = await bcrypt.compare(
+      currentPassword,
+      user.password,
+    );
+
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Current password is incorrect');
+    }
+
+    // Check if new email is already in use
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email: newEmail },
+    });
+
+    if (existingUser) {
+      throw new ConflictException('Email already in use');
+    }
+
+    // Update email
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        email: newEmail,
+        emailVerified: null, // Reset verification
+      },
+    });
+
+    this.logger.log(`Email changed for user`, 'AuthService', { userId });
+
+    return {
+      success: true,
+      message: 'Email changed successfully. Please verify your new email.',
+    };
+  }
+
+  /**
+   * Delete user account
+   */
+  async deleteAccount(userId: string, dto: any) {
+    const { password } = dto;
+
+    // Get user
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+
+    if (!user || !user.password) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    // Verify password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Password is incorrect');
+    }
+
+    // Prevent deleting admin if they're the last one
+    if (user.role === 'ADMIN') {
+      const adminCount = await this.prisma.user.count({
+        where: { role: 'ADMIN' },
+      });
+
+      if (adminCount <= 1) {
+        throw new BadRequestException(
+          'Cannot delete the last admin account',
+        );
+      }
+    }
+
+    // Delete user (cascade will delete related data)
+    await this.prisma.user.delete({ where: { id: userId } });
+
+    this.logger.log(`Account deleted`, 'AuthService', { userId });
+
+    return {
+      success: true,
+      message: 'Account deleted successfully',
+    };
   }
 }

@@ -15,6 +15,7 @@ import { UploadModule } from './upload/upload.module';
 import { LoggerModule } from './common/logger/logger.module';
 import { CacheModule } from './common/cache/cache.module';
 import { GitHubModule } from './integrations/github/github.module';
+import { AdminModule } from './admin/admin.module';
 import { validate } from './common/config/env.validation';
 import { APP_CONSTANTS } from './common/constants/app.constants';
 
@@ -41,6 +42,7 @@ import { APP_CONSTANTS } from './common/constants/app.constants';
     ExportModule,
     UploadModule,
     GitHubModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [
