@@ -8,7 +8,10 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CacheService } from '../../common/cache/cache.service';
 import { AppLoggerService } from '../../common/logger/logger.service';
-import { MEC_CACHE_KEYS, MEC_CACHE_TTL } from '../interfaces/mec-data.interface';
+import {
+  MEC_CACHE_KEYS,
+  MEC_CACHE_TTL,
+} from '../interfaces/mec-data.interface';
 import { MecInstitution, MecCourse } from '@prisma/client';
 import * as crypto from 'crypto';
 
@@ -80,7 +83,11 @@ export class MecQueryService {
     });
 
     // Cache result
-    await this.cache.set(cacheKey, institutions, MEC_CACHE_TTL.INSTITUTIONS_LIST);
+    await this.cache.set(
+      cacheKey,
+      institutions,
+      MEC_CACHE_TTL.INSTITUTIONS_LIST,
+    );
 
     return institutions;
   }
@@ -118,7 +125,11 @@ export class MecQueryService {
     });
 
     // Cache result
-    await this.cache.set(cacheKey, institutions, MEC_CACHE_TTL.INSTITUTIONS_BY_UF);
+    await this.cache.set(
+      cacheKey,
+      institutions,
+      MEC_CACHE_TTL.INSTITUTIONS_BY_UF,
+    );
 
     return institutions;
   }
@@ -181,7 +192,11 @@ export class MecQueryService {
     }
 
     // Generate cache key from query hash
-    const queryHash = crypto.createHash('md5').update(normalizedQuery).digest('hex').slice(0, 8);
+    const queryHash = crypto
+      .createHash('md5')
+      .update(normalizedQuery)
+      .digest('hex')
+      .slice(0, 8);
     const cacheKey = `${MEC_CACHE_KEYS.COURSES_SEARCH}${queryHash}`;
 
     // Try cache first
@@ -229,36 +244,39 @@ export class MecQueryService {
   }
 
   /**
-   * Search institutions by name or sigla
+   * Search institutions by name or sigla (accent-insensitive)
+   * Uses PostgreSQL unaccent extension for proper Brazilian Portuguese search
    */
-  async searchInstitutions(query: string, limit = 20): Promise<InstitutionDto[]> {
+  async searchInstitutions(
+    query: string,
+    limit = 20,
+  ): Promise<InstitutionDto[]> {
     const normalizedQuery = query.toLowerCase().trim();
 
     if (normalizedQuery.length < 2) {
       return [];
     }
 
-    const institutions = await this.prisma.mecInstitution.findMany({
-      where: {
-        isActive: true,
-        OR: [
-          { nome: { contains: normalizedQuery, mode: 'insensitive' } },
-          { sigla: { contains: normalizedQuery, mode: 'insensitive' } },
-        ],
-      },
-      take: limit,
-      orderBy: [{ uf: 'asc' }, { nome: 'asc' }],
-      select: {
-        id: true,
-        codigoIes: true,
-        nome: true,
-        sigla: true,
-        uf: true,
-        municipio: true,
-        categoria: true,
-        organizacao: true,
-      },
-    });
+    // Use raw SQL with unaccent for accent-insensitive search
+    const institutions = await this.prisma.$queryRaw<InstitutionDto[]>`
+      SELECT 
+        id,
+        "codigoIes",
+        nome,
+        sigla,
+        uf,
+        municipio,
+        categoria,
+        organizacao
+      FROM "MecInstitution"
+      WHERE "isActive" = true
+        AND (
+          immutable_unaccent(lower(nome)) LIKE '%' || immutable_unaccent(lower(${normalizedQuery})) || '%'
+          OR (sigla IS NOT NULL AND immutable_unaccent(lower(sigla)) LIKE '%' || immutable_unaccent(lower(${normalizedQuery})) || '%')
+        )
+      ORDER BY uf ASC, nome ASC
+      LIMIT ${limit}
+    `;
 
     return institutions;
   }
@@ -266,7 +284,9 @@ export class MecQueryService {
   /**
    * Get institution by MEC code
    */
-  async getInstitutionByCode(codigoIes: number): Promise<InstitutionWithCoursesDto | null> {
+  async getInstitutionByCode(
+    codigoIes: number,
+  ): Promise<InstitutionWithCoursesDto | null> {
     const institution = await this.prisma.mecInstitution.findUnique({
       where: { codigoIes },
       include: {
@@ -338,21 +358,22 @@ export class MecQueryService {
    * Get statistics for dashboard
    */
   async getStats() {
-    const [institutionsCount, coursesCount, coursesByGrau, institutionsByUf] = await Promise.all([
-      this.prisma.mecInstitution.count({ where: { isActive: true } }),
-      this.prisma.mecCourse.count({ where: { isActive: true } }),
-      this.prisma.mecCourse.groupBy({
-        by: ['grau'],
-        where: { isActive: true },
-        _count: true,
-      }),
-      this.prisma.mecInstitution.groupBy({
-        by: ['uf'],
-        where: { isActive: true },
-        _count: true,
-        orderBy: { uf: 'asc' },
-      }),
-    ]);
+    const [institutionsCount, coursesCount, coursesByGrau, institutionsByUf] =
+      await Promise.all([
+        this.prisma.mecInstitution.count({ where: { isActive: true } }),
+        this.prisma.mecCourse.count({ where: { isActive: true } }),
+        this.prisma.mecCourse.groupBy({
+          by: ['grau'],
+          where: { isActive: true },
+          _count: true,
+        }),
+        this.prisma.mecInstitution.groupBy({
+          by: ['uf'],
+          where: { isActive: true },
+          _count: true,
+          orderBy: { uf: 'asc' },
+        }),
+      ]);
 
     return {
       totalInstitutions: institutionsCount,
@@ -396,6 +417,8 @@ export class MecQueryService {
       orderBy: { areaConhecimento: 'asc' },
     });
 
-    return areas.map((a) => a.areaConhecimento).filter((a): a is string => a !== null);
+    return areas
+      .map((a) => a.areaConhecimento)
+      .filter((a): a is string => a !== null);
   }
 }
