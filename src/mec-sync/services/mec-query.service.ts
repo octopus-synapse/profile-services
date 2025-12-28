@@ -181,7 +181,7 @@ export class MecQueryService {
   }
 
   /**
-   * Search courses by name (cached with short TTL)
+   * Search courses by name (accent-insensitive, cached with short TTL)
    * Used for course autocomplete in onboarding/settings
    */
   async searchCourses(query: string, limit = 20): Promise<CourseDto[]> {
@@ -205,27 +205,37 @@ export class MecQueryService {
       return cached;
     }
 
-    // Query database with full-text-like search
-    const courses = await this.prisma.mecCourse.findMany({
-      where: {
-        isActive: true,
-        nome: {
-          contains: normalizedQuery,
-          mode: 'insensitive',
-        },
-      },
-      take: limit,
-      orderBy: { nome: 'asc' },
-      include: {
-        institution: {
-          select: {
-            nome: true,
-            sigla: true,
-            uf: true,
-          },
-        },
-      },
-    });
+    // Query database with accent-insensitive search using unaccent
+    const courses = await this.prisma.$queryRaw<
+      Array<{
+        id: string;
+        codigoCurso: number;
+        nome: string;
+        grau: string | null;
+        modalidade: string | null;
+        areaConhecimento: string | null;
+        institution_nome: string;
+        institution_sigla: string | null;
+        institution_uf: string;
+      }>
+    >`
+      SELECT 
+        c.id,
+        c."codigoCurso",
+        c.nome,
+        c.grau,
+        c.modalidade,
+        c."areaConhecimento",
+        i.nome as institution_nome,
+        i.sigla as institution_sigla,
+        i.uf as institution_uf
+      FROM "MecCourse" c
+      JOIN "MecInstitution" i ON c."codigoIes" = i."codigoIes"
+      WHERE c."isActive" = true
+        AND immutable_unaccent(lower(c.nome)) LIKE '%' || immutable_unaccent(lower(${normalizedQuery})) || '%'
+      ORDER BY c.nome ASC
+      LIMIT ${limit}
+    `;
 
     const result: CourseDto[] = courses.map((c) => ({
       id: c.id,
@@ -234,7 +244,11 @@ export class MecQueryService {
       grau: c.grau,
       modalidade: c.modalidade,
       areaConhecimento: c.areaConhecimento,
-      institution: c.institution,
+      institution: {
+        nome: c.institution_nome,
+        sigla: c.institution_sigla,
+        uf: c.institution_uf,
+      },
     }));
 
     // Cache with short TTL
