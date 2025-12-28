@@ -102,8 +102,28 @@ export class MecCsvParserService {
       }
     }
 
-    // MEC CSV is typically Latin-1 encoded
-    const csvContent = iconv.decode(csvBuffer, 'latin1');
+    // Try to detect encoding - if it's already valid UTF-8, use it directly
+    // Otherwise, try Latin-1 decoding (older MEC CSVs used Latin-1)
+    let csvContent: string;
+    try {
+      // Check if buffer is valid UTF-8
+      const utf8Content = csvBuffer.toString('utf8');
+      // If no replacement characters, it's valid UTF-8
+      if (!utf8Content.includes('\uFFFD')) {
+        csvContent = utf8Content;
+        this.logger.log('CSV detected as UTF-8', 'MecCsvParser');
+      } else {
+        csvContent = iconv.decode(csvBuffer, 'latin1');
+        this.logger.log(
+          'CSV detected as Latin-1, converted to UTF-8',
+          'MecCsvParser',
+        );
+      }
+    } catch {
+      // Fallback to Latin-1
+      csvContent = iconv.decode(csvBuffer, 'latin1');
+      this.logger.log('CSV encoding fallback to Latin-1', 'MecCsvParser');
+    }
 
     return this.parseCsv(csvContent, csvBuffer.length);
   }
@@ -316,7 +336,12 @@ export class MecCsvParserService {
    * Parse CSV content and extract institutions/courses
    */
   private parseCsv(content: string, fileSize: number): ParseResult {
-    const lines = content.split('\n').filter((line) => line.trim());
+    // Normalize line endings (CRLF -> LF) and split
+    const lines = content
+      .replace(/\r\n/g, '\n')
+      .replace(/\r/g, '\n')
+      .split('\n')
+      .filter((line) => line.trim());
     const errors: SyncError[] = [];
 
     if (lines.length < 2) {
@@ -402,7 +427,7 @@ export class MecCsvParserService {
         } else {
           inQuotes = !inQuotes;
         }
-      } else if (char === ';' && !inQuotes) {
+      } else if (char === ',' && !inQuotes) {
         result.push(current.trim());
         current = '';
       } else {
@@ -432,6 +457,11 @@ export class MecCsvParserService {
 
   /**
    * Map array values to row object using column map
+   * Column names from MEC CSV 2022:
+   * CODIGO_IES, NOME_IES, CATEGORIA_ADMINISTRATIVA, ORGANIZACAO_ACADEMICA,
+   * CODIGO_CURSO, NOME_CURSO, GRAU, AREA_OCDE, MODALIDADE, SITUACAO_CURSO,
+   * QT_VAGAS_AUTORIZADAS, CARGA_HORARIA, CODIGO_AREA_OCDE_CINE, AREA_OCDE_CINE,
+   * CODIGO_MUNICIPIO, MUNICIPIO, UF, REGIAO
    */
   private mapToRow(
     values: string[],
@@ -443,27 +473,49 @@ export class MecCsvParserService {
     };
 
     return {
-      CO_IES: getValue('CO_IES'),
-      NO_IES: getValue('NO_IES'),
-      SG_IES: getValue('SG_IES'),
+      CO_IES: getValue('CODIGO_IES') || getValue('CO_IES'),
+      NO_IES: getValue('NOME_IES') || getValue('NO_IES'),
+      SG_IES: getValue('SG_IES') || '', // Not in 2022 CSV
       TP_ORGANIZACAO:
-        getValue('TP_ORGANIZACAO_ACADEMICA') || getValue('TP_ORGANIZACAO'),
+        getValue('ORGANIZACAO_ACADEMICA') ||
+        getValue('TP_ORGANIZACAO_ACADEMICA') ||
+        getValue('TP_ORGANIZACAO'),
       TP_CATEGORIA:
-        getValue('TP_CATEGORIA_ADMINISTRATIVA') || getValue('TP_CATEGORIA'),
+        getValue('CATEGORIA_ADMINISTRATIVA') ||
+        getValue('TP_CATEGORIA_ADMINISTRATIVA') ||
+        getValue('TP_CATEGORIA'),
       CO_MUNICIPIO_IES:
-        getValue('CO_MUNICIPIO_IES') || getValue('CO_MUNICIPIO'),
+        getValue('CODIGO_MUNICIPIO') ||
+        getValue('CO_MUNICIPIO_IES') ||
+        getValue('CO_MUNICIPIO'),
       NO_MUNICIPIO_IES:
-        getValue('NO_MUNICIPIO_IES') || getValue('NO_MUNICIPIO'),
-      SG_UF_IES: getValue('SG_UF_IES') || getValue('SG_UF'),
-      CO_CURSO: getValue('CO_CURSO'),
-      NO_CURSO: getValue('NO_CURSO'),
-      TP_GRAU: getValue('TP_GRAU_ACADEMICO') || getValue('TP_GRAU'),
+        getValue('MUNICIPIO') ||
+        getValue('NO_MUNICIPIO_IES') ||
+        getValue('NO_MUNICIPIO'),
+      SG_UF_IES: getValue('UF') || getValue('SG_UF_IES') || getValue('SG_UF'),
+      CO_CURSO: getValue('CODIGO_CURSO') || getValue('CO_CURSO'),
+      NO_CURSO: getValue('NOME_CURSO') || getValue('NO_CURSO'),
+      TP_GRAU:
+        getValue('GRAU') ||
+        getValue('TP_GRAU_ACADEMICO') ||
+        getValue('TP_GRAU'),
       TP_MODALIDADE:
-        getValue('TP_MODALIDADE_ENSINO') || getValue('TP_MODALIDADE'),
-      NO_CINE_AREA_GERAL: getValue('NO_CINE_AREA_GERAL') || getValue('NO_AREA'),
+        getValue('MODALIDADE') ||
+        getValue('TP_MODALIDADE_ENSINO') ||
+        getValue('TP_MODALIDADE'),
+      NO_CINE_AREA_GERAL:
+        getValue('AREA_OCDE_CINE') ||
+        getValue('AREA_OCDE') ||
+        getValue('NO_CINE_AREA_GERAL') ||
+        getValue('NO_AREA'),
       QT_CARGA_HORARIA:
-        getValue('QT_CARGA_HORARIA_TOTAL') || getValue('QT_CARGA_HORARIA'),
-      CO_SITUACAO: getValue('CO_SITUACAO_CURSO') || getValue('CO_SITUACAO'),
+        getValue('CARGA_HORARIA') ||
+        getValue('QT_CARGA_HORARIA_TOTAL') ||
+        getValue('QT_CARGA_HORARIA'),
+      CO_SITUACAO:
+        getValue('SITUACAO_CURSO') ||
+        getValue('CO_SITUACAO_CURSO') ||
+        getValue('CO_SITUACAO'),
     };
   }
 
