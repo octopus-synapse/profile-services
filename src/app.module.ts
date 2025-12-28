@@ -18,6 +18,8 @@ import { GitHubModule } from './integrations/github/github.module';
 import { AdminModule } from './admin/admin.module';
 import { ThemesModule } from './themes/themes.module';
 import { MecSyncModule } from './mec-sync/mec-sync.module';
+import { TechSkillsModule } from './tech-skills/tech-skills.module';
+import { SpokenLanguagesModule } from './spoken-languages/spoken-languages.module';
 import { validate } from './common/config/env.validation';
 import { APP_CONSTANTS } from './common/constants/app.constants';
 
@@ -47,6 +49,8 @@ import { APP_CONSTANTS } from './common/constants/app.constants';
     AdminModule,
     ThemesModule,
     MecSyncModule,
+    TechSkillsModule,
+    SpokenLanguagesModule,
   ],
   controllers: [AppController],
   providers: [

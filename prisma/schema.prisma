@@ -321,15 +321,16 @@ model Language {
   id            String   @id @default(cuid())
   resumeId      String
   resume        Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
-  
+
   name          String
-  level         String
-  
+  level         String   // basic, intermediate, advanced, fluent, native
+  cefrLevel     String?  // Optional CEFR level: A1, A2, B1, B2, C1, C2
+
   order         Int      @default(0)
-  
+
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-  
+
   @@index([resumeId])
   @@index([resumeId, order])
 }
@@ -796,4 +797,197 @@ model MecSyncLog {
   @@index([status])
   @@index([startedAt])
   @@index([createdAt])
+}
+
+// ===========================================
+// Tech Skills Catalog (Pre-populated data)
+// ===========================================
+
+enum TechAreaType {
+  DEVELOPMENT
+  DEVOPS
+  DATA
+  SECURITY
+  DESIGN
+  PRODUCT
+  QA
+  INFRASTRUCTURE
+  OTHER
+}
+
+enum SkillType {
+  LANGUAGE        // Programming languages (JavaScript, Python, etc.)
+  FRAMEWORK       // Frameworks (React, Django, Spring, etc.)
+  LIBRARY         // Libraries (Lodash, Axios, etc.)
+  DATABASE        // Databases (PostgreSQL, MongoDB, etc.)
+  TOOL            // Tools (Git, Docker, VS Code, etc.)
+  PLATFORM        // Platforms (AWS, Azure, Vercel, etc.)
+  METHODOLOGY     // Methodologies (Agile, Scrum, etc.)
+  SOFT_SKILL      // Soft skills (Communication, Leadership, etc.)
+  CERTIFICATION   // Certifications (AWS Certified, etc.)
+  OTHER           // Other skills
+}
+
+// Tech Area (Development, DevOps, Data, etc.)
+model TechArea {
+  id              String        @id @default(cuid())
+  type            TechAreaType  @unique
+  
+  // Translations
+  nameEn          String        // English name
+  namePtBr        String        // Portuguese name
+  descriptionEn   String?       // English description
+  descriptionPtBr String?       // Portuguese description
+  
+  icon            String?       // Icon identifier (e.g., "code", "server", "database")
+  color           String?       // Hex color for UI
+  order           Int           @default(0)
+  isActive        Boolean       @default(true)
+  
+  niches          TechNiche[]
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  @@index([type])
+  @@index([order])
+  @@index([isActive])
+}
+
+// Tech Niche (Backend, Frontend, Mobile, etc.)
+model TechNiche {
+  id              String        @id @default(cuid())
+  slug            String        @unique  // e.g., "backend", "frontend", "mobile"
+  
+  // Translations
+  nameEn          String
+  namePtBr        String
+  descriptionEn   String?
+  descriptionPtBr String?
+  
+  icon            String?
+  color           String?
+  order           Int           @default(0)
+  isActive        Boolean       @default(true)
+  
+  // Relations
+  areaId          String
+  area            TechArea      @relation(fields: [areaId], references: [id], onDelete: Cascade)
+  skills          TechSkill[]
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  @@index([areaId])
+  @@index([slug])
+  @@index([order])
+  @@index([isActive])
+}
+
+// Tech Skill Catalog (Pre-populated skills)
+model TechSkill {
+  id              String        @id @default(cuid())
+  slug            String        @unique  // e.g., "javascript", "react", "docker"
+  
+  // Translations
+  nameEn          String        // Display name in English
+  namePtBr        String        // Display name in Portuguese
+  descriptionEn   String?
+  descriptionPtBr String?
+  
+  type            SkillType     @default(OTHER)
+  
+  // Metadata
+  icon            String?       // Icon URL or identifier
+  color           String?       // Brand color (hex)
+  website         String?       // Official website
+  
+  // Categorization
+  nicheId         String?
+  niche           TechNiche?    @relation(fields: [nicheId], references: [id], onDelete: SetNull)
+  
+  // Search optimization
+  aliases         String[]      // Alternative names (e.g., ["JS", "ECMAScript"] for JavaScript)
+  keywords        String[]      // Search keywords
+  
+  // Popularity/ordering
+  popularity      Int           @default(0)  // For sorting by popularity
+  order           Int           @default(0)
+  isActive        Boolean       @default(true)
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  @@index([nicheId])
+  @@index([type])
+  @@index([slug])
+  @@index([popularity])
+  @@index([order])
+  @@index([isActive])
+}
+
+// ===========================================
+// Spoken Languages Catalog (Pre-populated data)
+// Languages for resume language selection
+// ===========================================
+
+model SpokenLanguage {
+  id              String   @id @default(cuid())
+  code            String   @unique  // ISO 639-1 code (e.g., "en", "pt", "es")
+
+  // Translations for the language name
+  nameEn          String   // Name in English
+  namePtBr        String   // Name in Portuguese (Brazil)
+  nameEs          String   // Name in Spanish
+
+  // Native name (e.g., "Deutsch" for German)
+  nativeName      String?
+
+  // Ordering and status
+  order           Int      @default(0)
+  isActive        Boolean  @default(true)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([code])
+  @@index([order])
+  @@index([isActive])
+}
+
+// Programming Languages Catalog (separate for better organization)
+model ProgrammingLanguage {
+  id              String        @id @default(cuid())
+  slug            String        @unique  // e.g., "javascript", "python"
+  
+  // Translations
+  nameEn          String
+  namePtBr        String
+  descriptionEn   String?
+  descriptionPtBr String?
+  
+  // Metadata
+  icon            String?
+  color           String?       // Brand color
+  website         String?
+  
+  // Typing
+  paradigms       String[]      // e.g., ["object-oriented", "functional"]
+  typing          String?       // e.g., "static", "dynamic"
+  
+  // Search
+  aliases         String[]      // e.g., ["JS"] for JavaScript
+  fileExtensions  String[]      // e.g., [".js", ".mjs", ".cjs"]
+  
+  popularity      Int           @default(0)
+  order           Int           @default(0)
+  isActive        Boolean       @default(true)
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  @@index([slug])
+  @@index([popularity])
+  @@index([order])
+  @@index([isActive])
 }

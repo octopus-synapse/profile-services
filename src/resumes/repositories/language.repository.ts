@@ -56,6 +56,7 @@ export class LanguageRepository {
         resumeId,
         name: data.name,
         level: data.level,
+        cefrLevel: data.cefrLevel ?? null,
         order: data.order ?? maxOrder + 1,
       },
     });
@@ -74,6 +75,7 @@ export class LanguageRepository {
       data: {
         ...(data.name && { name: data.name }),
         ...(data.level && { level: data.level }),
+        ...(data.cefrLevel !== undefined && { cefrLevel: data.cefrLevel }),
         ...(data.order !== undefined && { order: data.order }),
       },
     });

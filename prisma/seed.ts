@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 import { seedThemes } from './seeds/theme.seed';
+import { seedSpokenLanguages } from './seeds/spoken-language.seed';
 
 const prisma = new PrismaClient();
 
@@ -40,6 +41,9 @@ async function main() {
 
   // Seed system themes
   await seedThemes(prisma, admin.id);
+
+  // Seed spoken languages catalog
+  await seedSpokenLanguages(prisma);
 }
 
 main()
