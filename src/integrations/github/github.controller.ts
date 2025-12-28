@@ -52,8 +52,16 @@ export class GitHubController {
       type: 'object',
       required: ['githubUsername', 'resumeId'],
       properties: {
-        githubUsername: { type: 'string', description: 'GitHub username to sync', example: 'octocat' },
-        resumeId: { type: 'string', description: 'Target resume ID', example: 'clxyz123' },
+        githubUsername: {
+          type: 'string',
+          description: 'GitHub username to sync',
+          example: 'octocat',
+        },
+        resumeId: {
+          type: 'string',
+          description: 'Target resume ID',
+          example: 'clxyz123',
+        },
       },
     },
   })
@@ -76,7 +84,10 @@ export class GitHubController {
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Auto-sync GitHub from resume GitHub link' })
   @ApiParam({ name: 'resumeId', description: 'Resume ID to sync' })
-  @ApiResponse({ status: 200, description: 'GitHub data auto-synced successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'GitHub data auto-synced successfully',
+  })
   @ApiResponse({ status: 400, description: 'No GitHub link found in resume' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Resume not found' })

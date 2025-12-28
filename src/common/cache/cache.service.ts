@@ -146,6 +146,57 @@ export class CacheService implements OnModuleDestroy {
     }
   }
 
+  /**
+   * Acquire a distributed lock using SETNX
+   * Returns true if lock was acquired, false if already locked
+   */
+  async acquireLock(key: string, ttl: number): Promise<boolean> {
+    if (!this.isEnabled || !this.client) {
+      // If Redis is disabled, allow operation (no distributed coordination)
+      return true;
+    }
+
+    try {
+      const result = await this.client.set(key, Date.now().toString(), 'EX', ttl, 'NX');
+      return result === 'OK';
+    } catch (error) {
+      this.logger.error(
+        `Failed to acquire lock: ${key}`,
+        error instanceof Error ? error.stack : undefined,
+        'CacheService',
+      );
+      return false;
+    }
+  }
+
+  /**
+   * Release a distributed lock
+   */
+  async releaseLock(key: string): Promise<void> {
+    await this.delete(key);
+  }
+
+  /**
+   * Check if a lock exists
+   */
+  async isLocked(key: string): Promise<boolean> {
+    if (!this.isEnabled || !this.client) {
+      return false;
+    }
+
+    try {
+      const exists = await this.client.exists(key);
+      return exists === 1;
+    } catch (error) {
+      this.logger.error(
+        `Failed to check lock: ${key}`,
+        error instanceof Error ? error.stack : undefined,
+        'CacheService',
+      );
+      return false;
+    }
+  }
+
   async onModuleDestroy(): Promise<void> {
     if (this.client) {
       await this.client.quit();

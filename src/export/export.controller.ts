@@ -43,8 +43,16 @@ export class ExportController {
   @Header('Content-Disposition', 'attachment; filename="linkedin-banner.png"')
   @ApiOperation({ summary: 'Export LinkedIn banner image' })
   @ApiProduces('image/png')
-  @ApiQuery({ name: 'palette', required: false, description: 'Color palette name' })
-  @ApiQuery({ name: 'logo', required: false, description: 'Logo URL to include in banner' })
+  @ApiQuery({
+    name: 'palette',
+    required: false,
+    description: 'Color palette name',
+  })
+  @ApiQuery({
+    name: 'logo',
+    required: false,
+    description: 'Logo URL to include in banner',
+  })
   @ApiResponse({ status: 200, description: 'PNG image file' })
   @ApiResponse({ status: 400, description: 'Failed to generate banner' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
@@ -74,9 +82,21 @@ export class ExportController {
   @Header('Content-Disposition', 'attachment; filename="resume.pdf"')
   @ApiOperation({ summary: 'Export resume as PDF document' })
   @ApiProduces('application/pdf')
-  @ApiQuery({ name: 'palette', required: false, description: 'Color palette name for styling' })
-  @ApiQuery({ name: 'lang', required: false, description: 'Language code (e.g., en, pt)' })
-  @ApiQuery({ name: 'bannerColor', required: false, description: 'Custom banner color (hex)' })
+  @ApiQuery({
+    name: 'palette',
+    required: false,
+    description: 'Color palette name for styling',
+  })
+  @ApiQuery({
+    name: 'lang',
+    required: false,
+    description: 'Language code (e.g., en, pt)',
+  })
+  @ApiQuery({
+    name: 'bannerColor',
+    required: false,
+    description: 'Custom banner color (hex)',
+  })
   @ApiResponse({ status: 200, description: 'PDF document file' })
   @ApiResponse({ status: 400, description: 'Failed to generate PDF' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
@@ -117,7 +137,9 @@ export class ExportController {
   )
   @Header('Content-Disposition', 'attachment; filename="resume.docx"')
   @ApiOperation({ summary: 'Export resume as DOCX document' })
-  @ApiProduces('application/vnd.openxmlformats-officedocument.wordprocessingml.document')
+  @ApiProduces(
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  )
   @ApiResponse({ status: 200, description: 'DOCX document file' })
   @ApiResponse({ status: 400, description: 'Failed to generate DOCX' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })

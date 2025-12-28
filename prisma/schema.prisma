@@ -51,6 +51,7 @@ model VerificationToken {
 enum UserRole {
   USER
   ADMIN
+  APPROVER  // Can approve/reject themes for public publication
 }
 
 model User {
@@ -90,6 +91,10 @@ model User {
   resumes       Resume[]
   preferences   UserPreferences?
   onboardingProgress OnboardingProgress?
+  
+  // Theme system
+  createdThemes   ResumeTheme[]  @relation("ThemeAuthor")
+  approvedThemes  ResumeTheme[]  @relation("ThemeApprover")
 
   @@index([username])
   @@index([email])
@@ -202,7 +207,11 @@ model Resume {
 
   // 🎨 PERSONALITY: Visual Customization
   accentColor   String?  @default("#3B82F6")
-  customTheme   Json?    // Configurações de tema personalizadas
+  customTheme   Json?    // Configurações de tema personalizadas (overrides)
+  
+  // Theme System - Reference to active theme
+  activeThemeId String?
+  activeTheme   ResumeTheme? @relation("ResumeActiveTheme", fields: [activeThemeId], references: [id], onDelete: SetNull)
 
   // 📊 PERSONALITY: Stats & Achievements
   profileViews  Int      @default(0)
@@ -234,6 +243,7 @@ model Resume {
   @@index([isPublic])
   @@index([createdAt])
   @@index([techPersona])
+  @@index([activeThemeId])
 }
 
 model Experience {
@@ -583,4 +593,207 @@ model Hackathon {
   
   @@index([resumeId])
   @@index([resumeId, order])
+}
+
+// =============================================================================
+// THEME SYSTEM
+// Users can create custom themes, personalize existing ones, and publish themes
+// Published themes require approval from users with APPROVER role
+// =============================================================================
+
+enum ThemeStatus {
+  DRAFT              // Work in progress, not usable
+  PRIVATE            // Usable only by the author
+  PENDING_APPROVAL   // Submitted for public publication, awaiting review
+  PUBLISHED          // Approved and publicly available
+  REJECTED           // Rejected by approver, author can edit and resubmit
+}
+
+enum ThemeCategory {
+  PROFESSIONAL
+  CREATIVE
+  TECHNICAL
+  ACADEMIC
+  MINIMAL
+  MODERN
+  CLASSIC
+  EXECUTIVE
+}
+
+model ResumeTheme {
+  id            String   @id @default(cuid())
+  
+  // Metadata
+  name          String
+  description   String?  @db.Text
+  
+  // Author
+  authorId      String
+  author        User     @relation("ThemeAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  
+  // Categorization
+  category      ThemeCategory @default(MODERN)
+  tags          String[]
+  
+  // The actual style configuration (JSON)
+  // Contains: layout, theme (colors, fonts), sections config
+  styleConfig   Json
+  
+  // Preview assets
+  thumbnailUrl  String?
+  previewImages String[]
+  
+  // Publication status
+  status        ThemeStatus @default(PRIVATE)
+  isSystemTheme Boolean     @default(false) // Built-in themes that can't be deleted
+  
+  // Approval workflow
+  approvedById  String?
+  approvedBy    User?    @relation("ThemeApprover", fields: [approvedById], references: [id], onDelete: SetNull)
+  approvedAt    DateTime?
+  rejectionReason String? @db.Text
+  
+  // Stats
+  usageCount    Int      @default(0)
+  rating        Float?
+  ratingCount   Int      @default(0)
+  
+  // Versioning
+  version       String   @default("1.0.0")
+  parentThemeId String?  // If this is a fork/customization of another theme
+  parentTheme   ResumeTheme?  @relation("ThemeForks", fields: [parentThemeId], references: [id], onDelete: SetNull)
+  forks         ResumeTheme[] @relation("ThemeForks")
+  
+  // Timestamps
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  publishedAt   DateTime?
+  
+  // Resumes using this theme
+  resumes       Resume[] @relation("ResumeActiveTheme")
+  
+  @@index([authorId])
+  @@index([status])
+  @@index([category])
+  @@index([isSystemTheme])
+  @@index([usageCount])
+  @@index([rating])
+  @@index([createdAt])
+  @@index([publishedAt])
+}
+
+// =============================================================================
+// MEC DATA - Brazilian Higher Education Institutions and Courses
+// Synchronized weekly from MEC's open data portal
+// =============================================================================
+
+model MecInstitution {
+  id                String   @id @default(cuid())
+
+  // Official MEC identifiers (used for idempotency)
+  codigoIes         Int      @unique  // Código da IES no MEC
+  codigoMunicipio   Int?              // Código IBGE do município
+
+  // Institution data
+  nome              String            // Nome da instituição
+  sigla             String?           // Sigla (ex: USP, UNICAMP)
+  organizacao       String?           // Organização acadêmica (Universidade, Centro Universitário, etc.)
+  categoria         String?           // Categoria administrativa (Pública, Privada)
+
+  // Location
+  uf                String            // Estado (UF)
+  municipio         String?           // Nome do município
+
+  // Status
+  isActive          Boolean  @default(true)
+
+  // Relationships
+  courses           MecCourse[]
+
+  // Timestamps
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([nome])
+  @@index([sigla])
+  @@index([uf])
+  @@index([categoria])
+  @@index([isActive])
+  @@index([codigoMunicipio])
+}
+
+model MecCourse {
+  id                  String   @id @default(cuid())
+
+  // Official MEC identifiers (used for idempotency)
+  codigoCurso         Int      @unique  // Código do curso no MEC
+  codigoIes           Int               // FK para instituição
+
+  // Course data
+  nome                String            // Nome do curso
+  grau                String?           // Grau (Bacharelado, Licenciatura, Tecnológico)
+  modalidade          String?           // Modalidade (Presencial, EaD)
+
+  // Additional info
+  areaConhecimento    String?           // Área de conhecimento
+  cargaHoraria        Int?              // Carga horária total
+
+  // Status
+  situacao            String?           // Situação do curso (Em atividade, Extinto, etc.)
+  isActive            Boolean  @default(true)
+
+  // Relationships
+  institution         MecInstitution @relation(fields: [codigoIes], references: [codigoIes])
+
+  // Timestamps
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@index([nome])
+  @@index([codigoIes])
+  @@index([grau])
+  @@index([modalidade])
+  @@index([areaConhecimento])
+  @@index([isActive])
+  @@index([situacao])
+}
+
+enum MecSyncStatus {
+  RUNNING
+  SUCCESS
+  FAILED
+  PARTIAL
+}
+
+model MecSyncLog {
+  id                  String        @id @default(cuid())
+
+  // Sync metadata
+  status              MecSyncStatus
+  startedAt           DateTime      @default(now())
+  completedAt         DateTime?
+
+  // Results
+  institutionsInserted Int          @default(0)
+  institutionsUpdated  Int          @default(0)
+  coursesInserted      Int          @default(0)
+  coursesUpdated       Int          @default(0)
+
+  // Error tracking
+  errorMessage        String?       @db.Text
+  errorDetails        Json?
+
+  // Source info
+  sourceUrl           String?
+  sourceFileSize      Int?          // bytes
+  totalRowsProcessed  Int?
+
+  // Triggered by
+  triggeredBy         String?       // "cron", "manual", "api"
+
+  createdAt           DateTime      @default(now())
+
+  @@index([status])
+  @@index([startedAt])
+  @@index([createdAt])
 }

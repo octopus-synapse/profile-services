@@ -98,10 +98,7 @@ export class AppLoggerService implements NestLoggerService {
     this.context = context;
   }
 
-  errorWithMeta(
-    message: string,
-    meta?: Record<string, unknown>,
-  ): void {
+  errorWithMeta(message: string, meta?: Record<string, unknown>): void {
     this.logger.error(message, { context: this.context, ...meta });
   }
 }

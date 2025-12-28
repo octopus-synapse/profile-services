@@ -123,7 +123,10 @@ export class AdminController {
 
   @Get('stats')
   @ApiOperation({ summary: 'Get platform statistics (Admin only)' })
-  @ApiResponse({ status: 200, description: 'Statistics retrieved successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Statistics retrieved successfully',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden - Admin only' })
   async getStats() {

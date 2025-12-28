@@ -217,9 +217,7 @@ export class AdminService {
       });
 
       if (adminCount <= 1) {
-        throw new BadRequestException(
-          'Cannot delete the last admin user',
-        );
+        throw new BadRequestException('Cannot delete the last admin user');
       }
     }
 

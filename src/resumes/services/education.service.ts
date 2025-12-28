@@ -100,7 +100,9 @@ export class EducationService {
     await this.validateResumeOwnership(resumeId, userId);
 
     await this.educationRepository.reorder(resumeId, ids);
-    return ApiResponseHelper.message('Education entries reordered successfully');
+    return ApiResponseHelper.message(
+      'Education entries reordered successfully',
+    );
   }
 
   private async validateResumeOwnership(

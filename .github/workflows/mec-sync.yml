@@ -1,0 +1,89 @@
+# MEC Data Synchronization
+# Downloads CSV from MEC website using Puppeteer and syncs to database
+# Runs every 6 months (January 1st and July 1st at 03:00 UTC)
+
+name: MEC Data Sync
+
+on:
+  schedule:
+    # Run on January 1st at 03:00 UTC
+    - cron: "0 3 1 1 *"
+    # Run on July 1st at 03:00 UTC
+    - cron: "0 3 1 7 *"
+  workflow_dispatch:
+
+jobs:
+  download-and-sync:
+    name: Download MEC CSV & Sync
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chrome dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb
+
+      - name: Install Puppeteer Chrome
+        run: npx puppeteer browsers install chrome
+
+      - name: Download MEC CSV
+        run: |
+          xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" \
+            npx ts-node scripts/mec-download.ts
+        env:
+          DISPLAY: ":99"
+
+      - name: Verify CSV file
+        run: |
+          if [ -f data/mec-courses.csv ]; then
+            FILE_SIZE=$(stat -c%s "data/mec-courses.csv")
+            echo "✅ CSV downloaded: $(numfmt --to=iec-i --suffix=B $FILE_SIZE)"
+            
+            if [ "$FILE_SIZE" -lt 100000000 ]; then
+              echo "❌ File too small (expected ~225MB)"
+              exit 1
+            fi
+            
+            echo "First 3 lines:"
+            head -3 data/mec-courses.csv
+          else
+            echo "❌ CSV file not found"
+            exit 1
+          fi
+
+      - name: Commit CSV to repository
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+          if git diff --quiet data/mec-courses.csv 2>/dev/null; then
+            echo "📌 No changes to commit"
+          else
+            git add data/mec-courses.csv
+            git commit -m "chore(mec): update courses data [skip ci]"
+            git push
+            echo "✅ Committed new MEC data"
+          fi
+
+      - name: Trigger database sync
+        if: ${{ vars.MEC_SYNC_API_ENABLED == 'true' }}
+        run: |
+          curl -s -X POST \
+            -H "Content-Type: application/json" \
+            -H "x-internal-token: ${{ secrets.INTERNAL_API_TOKEN }}" \
+            "${{ secrets.BACKEND_URL }}/api/mec/internal/sync" | jq '.'

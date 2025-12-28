@@ -8,8 +8,6 @@ import { ERROR_MESSAGES } from '../common/constants/app.constants';
 
 describe('UsersService', () => {
   let service: UsersService;
-  let repository: UsersRepository;
-  let logger: AppLoggerService;
 
   const mockUsersRepository = {
     getUser: jest.fn(),
@@ -53,8 +51,6 @@ describe('UsersService', () => {
     }).compile();
 
     service = module.get<UsersService>(UsersService);
-    repository = module.get<UsersRepository>(UsersRepository);
-    logger = module.get<AppLoggerService>(AppLoggerService);
   });
 
   afterEach(() => {
@@ -91,7 +87,7 @@ describe('UsersService', () => {
       const username = 'notfound';
       mockUsersRepository.findByUsername.mockResolvedValue(null);
 
-      await expect(
+      await expect(() =>
         service.getPublicProfileByUsername(username),
       ).rejects.toThrow(new NotFoundException('Public profile not found'));
     });
@@ -104,7 +100,7 @@ describe('UsersService', () => {
       };
       mockUsersRepository.findByUsername.mockResolvedValue(mockUser);
 
-      await expect(
+      await expect(() =>
         service.getPublicProfileByUsername(username),
       ).rejects.toThrow(new NotFoundException('Public profile not found'));
     });
@@ -139,10 +135,10 @@ describe('UsersService', () => {
       const userId = 'invalid-user';
       mockUsersRepository.getUserProfile.mockResolvedValue(null);
 
-      await expect(service.getProfile(userId)).rejects.toThrow(
+      await expect(() => service.getProfile(userId)).rejects.toThrow(
         NotFoundException,
       );
-      await expect(service.getProfile(userId)).rejects.toThrow(
+      await expect(() => service.getProfile(userId)).rejects.toThrow(
         ERROR_MESSAGES.USER_NOT_FOUND,
       );
     });
@@ -194,7 +190,7 @@ describe('UsersService', () => {
         userId,
         updateProfileDto,
       );
-      expect(logger.debug).toHaveBeenCalled();
+      expect(mockLoggerService.debug).toHaveBeenCalled();
     });
 
     it('should throw NotFoundException if user does not exist', async () => {
@@ -205,10 +201,10 @@ describe('UsersService', () => {
 
       mockUsersRepository.getUser.mockResolvedValue(null);
 
-      await expect(
+      await expect(() =>
         service.updateProfile(userId, updateProfileDto),
       ).rejects.toThrow(NotFoundException);
-      await expect(
+      await expect(() =>
         service.updateProfile(userId, updateProfileDto),
       ).rejects.toThrow(ERROR_MESSAGES.USER_NOT_FOUND);
 
@@ -240,10 +236,10 @@ describe('UsersService', () => {
       const userId = 'invalid-user';
       mockUsersRepository.getUserPreferences.mockResolvedValue(null);
 
-      await expect(service.getPreferences(userId)).rejects.toThrow(
+      await expect(() => service.getPreferences(userId)).rejects.toThrow(
         NotFoundException,
       );
-      await expect(service.getPreferences(userId)).rejects.toThrow(
+      await expect(() => service.getPreferences(userId)).rejects.toThrow(
         ERROR_MESSAGES.USER_NOT_FOUND,
       );
     });
@@ -279,7 +275,7 @@ describe('UsersService', () => {
         userId,
         updatePreferencesDto,
       );
-      expect(logger.debug).toHaveBeenCalled();
+      expect(mockLoggerService.debug).toHaveBeenCalled();
     });
 
     it('should throw NotFoundException if user does not exist', async () => {
@@ -290,10 +286,10 @@ describe('UsersService', () => {
 
       mockUsersRepository.getUser.mockResolvedValue(null);
 
-      await expect(
+      await expect(() =>
         service.updatePreferences(userId, updatePreferencesDto),
       ).rejects.toThrow(NotFoundException);
-      await expect(
+      await expect(() =>
         service.updatePreferences(userId, updatePreferencesDto),
       ).rejects.toThrow(ERROR_MESSAGES.USER_NOT_FOUND);
 
@@ -371,7 +367,7 @@ describe('UsersService', () => {
       expect(
         mockUsersRepository.upsertFullUserPreferences,
       ).toHaveBeenCalledWith(userId, updateFullPreferencesDto);
-      expect(logger.debug).toHaveBeenCalled();
+      expect(mockLoggerService.debug).toHaveBeenCalled();
     });
 
     it('should throw NotFoundException if user does not exist', async () => {
@@ -382,10 +378,10 @@ describe('UsersService', () => {
 
       mockUsersRepository.getUser.mockResolvedValue(null);
 
-      await expect(
+      await expect(() =>
         service.updateFullPreferences(userId, updateFullPreferencesDto),
       ).rejects.toThrow(NotFoundException);
-      await expect(
+      await expect(() =>
         service.updateFullPreferences(userId, updateFullPreferencesDto),
       ).rejects.toThrow(ERROR_MESSAGES.USER_NOT_FOUND);
 

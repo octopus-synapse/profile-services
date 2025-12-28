@@ -16,6 +16,8 @@ import { LoggerModule } from './common/logger/logger.module';
 import { CacheModule } from './common/cache/cache.module';
 import { GitHubModule } from './integrations/github/github.module';
 import { AdminModule } from './admin/admin.module';
+import { ThemesModule } from './themes/themes.module';
+import { MecSyncModule } from './mec-sync/mec-sync.module';
 import { validate } from './common/config/env.validation';
 import { APP_CONSTANTS } from './common/constants/app.constants';
 
@@ -43,6 +45,8 @@ import { APP_CONSTANTS } from './common/constants/app.constants';
     UploadModule,
     GitHubModule,
     AdminModule,
+    ThemesModule,
+    MecSyncModule,
   ],
   controllers: [AppController],
   providers: [

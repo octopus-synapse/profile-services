@@ -29,7 +29,10 @@ import {
 // Type for a user object without the password field
 type ValidatedUser = Omit<User, 'password'>;
 // Type for the user data we encode in the JWT
-type JwtUserPayload = Pick<User, 'id' | 'email' | 'role' | 'hasCompletedOnboarding'>;
+type JwtUserPayload = Pick<
+  User,
+  'id' | 'email' | 'role' | 'hasCompletedOnboarding'
+>;
 
 @Injectable()
 export class AuthService {
@@ -566,9 +569,7 @@ export class AuthService {
       });
 
       if (adminCount <= 1) {
-        throw new BadRequestException(
-          'Cannot delete the last admin account',
-        );
+        throw new BadRequestException('Cannot delete the last admin account');
       }
     }
 

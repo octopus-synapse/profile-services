@@ -30,7 +30,12 @@ async function bootstrap() {
         ? {
             directives: {
               defaultSrc: ["'self'"],
-              scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", 'https://cdn.jsdelivr.net'],
+              scriptSrc: [
+                "'self'",
+                "'unsafe-inline'",
+                "'unsafe-eval'",
+                'https://cdn.jsdelivr.net',
+              ],
               styleSrc: ["'self'", "'unsafe-inline'", 'https:'],
               fontSrc: ["'self'", 'https:', 'data:'],
               imgSrc: ["'self'", 'data:', 'https:'],
@@ -134,16 +139,34 @@ All errors follow a consistent format:
         'JWT-auth',
       )
       // Authentication & Authorization
-      .addTag('auth', 'Authentication endpoints - Login, Signup, Password Reset, Email Verification')
-      .addTag('users', 'User profile management - View and update user information')
-      .addTag('onboarding', 'User onboarding flow - Complete profile setup for new users')
+      .addTag(
+        'auth',
+        'Authentication endpoints - Login, Signup, Password Reset, Email Verification',
+      )
+      .addTag(
+        'users',
+        'User profile management - View and update user information',
+      )
+      .addTag(
+        'onboarding',
+        'User onboarding flow - Complete profile setup for new users',
+      )
       // Resume Management
-      .addTag('resumes', 'Resume CRUD operations - Create, read, update, and delete resumes with all sections')
+      .addTag(
+        'resumes',
+        'Resume CRUD operations - Create, read, update, and delete resumes with all sections',
+      )
       // File Management
-      .addTag('upload', 'File upload endpoints - Upload profile pictures and attachments')
+      .addTag(
+        'upload',
+        'File upload endpoints - Upload profile pictures and attachments',
+      )
       .addTag('export', 'Export resumes - Generate PDF and DOCX documents')
       // Integrations
-      .addTag('github', 'GitHub integration - Import projects and contributions')
+      .addTag(
+        'github',
+        'GitHub integration - Import projects and contributions',
+      )
       .build();
 
     const document = SwaggerModule.createDocument(app, config, {
