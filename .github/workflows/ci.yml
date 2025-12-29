@@ -17,5 +17,6 @@ jobs:
       node-version: "20"
       has-database: true
       has-redis: true
+      has-smoke-tests: true
       build-output-dir: "dist"
     secrets: inherit
