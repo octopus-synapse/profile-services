@@ -67,8 +67,9 @@ model User {
   sessions      Session[]
 
   // Profile fields
-  username      String?   @unique
-  displayName   String?
+  username          String?   @unique
+  usernameUpdatedAt DateTime?
+  displayName       String?
   photoURL      String?
   bio           String?   @db.Text
   location      String?
@@ -149,6 +150,9 @@ model OnboardingProgress {
   currentStep   String   @default("welcome")
   completedSteps String[] @default([])
 
+  // Username (chosen during onboarding)
+  username      String?
+
   // Form data (stored as JSON for flexibility)
   personalInfo       Json?
   professionalProfile Json?
@@ -178,7 +182,12 @@ model Resume {
   isPublic      Boolean  @default(false)
   slug          String?  @unique
 
-  // 🎯 PERSONALITY: Tech Persona
+  // � BILINGUAL: Content in both languages
+  contentPtBr   Json?    // Complete resume content in PT-BR (JSON)
+  contentEn     Json?    // Complete resume content in EN (auto-translated)
+  primaryLanguage String @default("pt-br") // "pt-br" | "en"
+
+  // �🎯 PERSONALITY: Tech Persona
   techPersona   String?  // "devops" | "security" | "data" | "fullstack" | "mobile" | "ai-ml" | "qa" | "ux-ui"
   techArea      String?  // "Web Development" | "Mobile Development" | etc.
   primaryStack  String[] // ["React", "Node.js", "TypeScript", etc.]
@@ -244,6 +253,7 @@ model Resume {
   @@index([createdAt])
   @@index([techPersona])
   @@index([activeThemeId])
+  @@index([primaryLanguage])
 }
 
 model Experience {

@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 import { seedThemes } from './seeds/theme.seed';
 import { seedSpokenLanguages } from './seeds/spoken-language.seed';
+import { seedUsernames } from './seeds/username.seed';
 
 const prisma = new PrismaClient();
 
@@ -44,6 +45,9 @@ async function main() {
 
   // Seed spoken languages catalog
   await seedSpokenLanguages(prisma);
+
+  // Seed usernames for existing users without one
+  await seedUsernames(prisma);
 }
 
 main()

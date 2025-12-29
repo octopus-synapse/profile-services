@@ -262,6 +262,12 @@ class TemplateSelectionDto {
 }
 
 export class OnboardingDto {
+  @ApiProperty({ example: 'johndoe', description: 'Unique username for profile URL' })
+  @IsString()
+  @MinLength(3)
+  @MaxLength(30)
+  username: string;
+
   @IsObject()
   @ValidateNested()
   @Type(() => PersonalInfoDto)
@@ -332,6 +338,7 @@ export class OnboardingProgressDto {
     enum: [
       'welcome',
       'personal-info',
+      'username',
       'professional-profile',
       'experience',
       'education',
@@ -349,6 +356,13 @@ export class OnboardingProgressDto {
   @IsArray()
   @IsString({ each: true })
   completedSteps: string[];
+
+  @ApiProperty({ example: 'johndoe', required: false })
+  @IsOptional()
+  @IsString()
+  @MinLength(3)
+  @MaxLength(30)
+  username?: string;
 
   @ApiProperty({ required: false })
   @IsOptional()

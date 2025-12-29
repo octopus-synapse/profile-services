@@ -21,7 +21,7 @@ import {
 import { AdminService } from './admin.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ResetPasswordDto } from './dto/reset-password.dto';
+import { AdminResetPasswordDto } from './dto/reset-password.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -116,9 +116,9 @@ export class AdminController {
   @ApiResponse({ status: 404, description: 'User not found' })
   async resetUserPassword(
     @Param('id') id: string,
-    @Body() resetPasswordDto: ResetPasswordDto,
+    @Body() dto: AdminResetPasswordDto,
   ) {
-    return this.adminService.resetUserPassword(id, resetPasswordDto);
+    return this.adminService.resetUserPassword(id, dto);
   }
 
   @Get('stats')

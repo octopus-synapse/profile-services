@@ -7,7 +7,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ResetPasswordDto } from './dto/reset-password.dto';
+import { AdminResetPasswordDto } from './dto/reset-password.dto';
 import { UserRole } from '../common/enums/user-role.enum';
 import * as bcrypt from 'bcryptjs';
 
@@ -229,7 +229,7 @@ export class AdminService {
     };
   }
 
-  async resetUserPassword(id: string, resetPasswordDto: ResetPasswordDto) {
+  async resetUserPassword(id: string, dto: AdminResetPasswordDto) {
     const user = await this.prisma.user.findUnique({ where: { id } });
 
     if (!user) {
@@ -237,10 +237,7 @@ export class AdminService {
     }
 
     const saltRounds = parseInt(process.env.BCRYPT_SALT_ROUNDS || '10', 10);
-    const hashedPassword = await bcrypt.hash(
-      resetPasswordDto.newPassword,
-      saltRounds,
-    );
+    const hashedPassword = await bcrypt.hash(dto.newPassword, saltRounds);
 
     await this.prisma.user.update({
       where: { id },

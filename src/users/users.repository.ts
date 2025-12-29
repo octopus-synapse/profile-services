@@ -43,6 +43,8 @@ export class UsersRepository {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: {
+        username: true,
+        usernameUpdatedAt: true,
         displayName: true,
         photoURL: true,
         bio: true,
@@ -171,5 +173,38 @@ export class UsersRepository {
     await this.prisma.user.delete({
       where: { id: userId },
     });
+  }
+
+  async isUsernameTaken(username: string, excludeUserId?: string): Promise<boolean> {
+    const user = await this.prisma.user.findUnique({
+      where: { username },
+      select: { id: true },
+    });
+
+    if (!user) return false;
+    if (excludeUserId && user.id === excludeUserId) return false;
+    return true;
+  }
+
+  async updateUsername(
+    userId: string,
+    username: string,
+  ): Promise<User> {
+    this.logger.log(`Updating username for user: ${userId}`);
+    return await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        username,
+        usernameUpdatedAt: new Date(),
+      },
+    });
+  }
+
+  async getLastUsernameUpdate(userId: string): Promise<Date | null> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { usernameUpdatedAt: true },
+    });
+    return user?.usernameUpdatedAt ?? null;
   }
 }

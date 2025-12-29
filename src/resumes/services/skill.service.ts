@@ -1,9 +1,5 @@
-import {
-  Injectable,
-  NotFoundException,
-  ForbiddenException,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { Skill } from '@prisma/client';
 import { SkillRepository } from '../repositories/skill.repository';
 import { ResumesRepository } from '../resumes.repository';
 import {
@@ -12,22 +8,28 @@ import {
   BulkCreateSkillsDto,
 } from '../dto/skill.dto';
 import { PaginatedResult } from '../dto/pagination.dto';
-import { Skill } from '@prisma/client';
-import {
-  ApiResponseHelper,
-  MessageResponse,
-  ApiResponse,
-} from '../../common/dto/api-response.dto';
+import { ApiResponseHelper, ApiResponse } from '../../common/dto/api-response.dto';
+import { BaseSubResourceService } from './base';
 
 @Injectable()
-export class SkillService {
-  private readonly logger = new Logger(SkillService.name);
+export class SkillService extends BaseSubResourceService<
+  Skill,
+  CreateSkillDto,
+  UpdateSkillDto
+> {
+  protected readonly entityName = 'Skill';
+  protected readonly logger = new Logger(SkillService.name);
 
   constructor(
     private readonly skillRepository: SkillRepository,
-    private readonly resumesRepository: ResumesRepository,
-  ) {}
+    resumesRepository: ResumesRepository,
+  ) {
+    super(skillRepository, resumesRepository);
+  }
 
+  /**
+   * Override findAll to support category filter and higher default limit
+   */
   async findAll(
     resumeId: string,
     userId: string,
@@ -39,35 +41,15 @@ export class SkillService {
     return this.skillRepository.findAll(resumeId, page, limit, category);
   }
 
-  async findOne(resumeId: string, id: string, userId: string): Promise<Skill> {
-    await this.validateResumeOwnership(resumeId, userId);
-
-    const skill = await this.skillRepository.findOne(id, resumeId);
-    if (!skill) {
-      throw new NotFoundException('Skill not found');
-    }
-
-    return skill;
-  }
-
-  async create(
-    resumeId: string,
-    userId: string,
-    data: CreateSkillDto,
-  ): Promise<Skill> {
-    await this.validateResumeOwnership(resumeId, userId);
-
-    this.logger.log(`Creating skill for resume: ${resumeId}`);
-    return this.skillRepository.create(resumeId, data);
-  }
-
+  /**
+   * Bulk create multiple skills at once
+   */
   async createMany(
     resumeId: string,
     userId: string,
     data: BulkCreateSkillsDto,
   ): Promise<ApiResponse<{ count: number }>> {
     await this.validateResumeOwnership(resumeId, userId);
-
     this.logger.log(
       `Creating ${data.skills.length} skills for resume: ${resumeId}`,
     );
@@ -75,46 +57,15 @@ export class SkillService {
     return ApiResponseHelper.count(count, 'Skills created successfully');
   }
 
-  async update(
-    resumeId: string,
-    id: string,
-    userId: string,
-    data: UpdateSkillDto,
-  ): Promise<Skill> {
-    await this.validateResumeOwnership(resumeId, userId);
-
-    const skill = await this.skillRepository.update(id, resumeId, data);
-    if (!skill) {
-      throw new NotFoundException('Skill not found');
-    }
-
-    this.logger.log(`Updated skill: ${id}`);
-    return skill;
-  }
-
-  async remove(
-    resumeId: string,
-    id: string,
-    userId: string,
-  ): Promise<MessageResponse> {
-    await this.validateResumeOwnership(resumeId, userId);
-
-    const deleted = await this.skillRepository.delete(id, resumeId);
-    if (!deleted) {
-      throw new NotFoundException('Skill not found');
-    }
-
-    this.logger.log(`Deleted skill: ${id}`);
-    return ApiResponseHelper.message('Skill deleted successfully');
-  }
-
+  /**
+   * Remove all skills in a category
+   */
   async removeByCategory(
     resumeId: string,
     userId: string,
     category: string,
   ): Promise<ApiResponse<{ count: number }>> {
     await this.validateResumeOwnership(resumeId, userId);
-
     const count = await this.skillRepository.deleteByCategory(
       resumeId,
       category,
@@ -123,29 +74,11 @@ export class SkillService {
     return ApiResponseHelper.count(count, 'Skills deleted successfully');
   }
 
+  /**
+   * Get all unique categories for a resume
+   */
   async getCategories(resumeId: string, userId: string): Promise<string[]> {
     await this.validateResumeOwnership(resumeId, userId);
     return this.skillRepository.getCategories(resumeId);
-  }
-
-  async reorder(
-    resumeId: string,
-    userId: string,
-    ids: string[],
-  ): Promise<MessageResponse> {
-    await this.validateResumeOwnership(resumeId, userId);
-
-    await this.skillRepository.reorder(resumeId, ids);
-    return ApiResponseHelper.message('Skills reordered successfully');
-  }
-
-  private async validateResumeOwnership(
-    resumeId: string,
-    userId: string,
-  ): Promise<void> {
-    const resume = await this.resumesRepository.findOne(resumeId, userId);
-    if (!resume) {
-      throw new ForbiddenException('Resume not found or access denied');
-    }
   }
 }

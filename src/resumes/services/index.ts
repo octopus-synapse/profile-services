@@ -1,3 +1,4 @@
+export * from './base';
 export * from './experience.service';
 export * from './education.service';
 export * from './skill.service';

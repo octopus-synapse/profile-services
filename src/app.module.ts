@@ -20,6 +20,7 @@ import { ThemesModule } from './themes/themes.module';
 import { MecSyncModule } from './mec-sync/mec-sync.module';
 import { TechSkillsModule } from './tech-skills/tech-skills.module';
 import { SpokenLanguagesModule } from './spoken-languages/spoken-languages.module';
+import { TranslationModule } from './translation/translation.module';
 import { validate } from './common/config/env.validation';
 import { APP_CONSTANTS } from './common/constants/app.constants';
 
@@ -51,6 +52,7 @@ import { APP_CONSTANTS } from './common/constants/app.constants';
     MecSyncModule,
     TechSkillsModule,
     SpokenLanguagesModule,
+    TranslationModule,
   ],
   controllers: [AppController],
   providers: [

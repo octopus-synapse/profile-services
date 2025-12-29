@@ -39,6 +39,24 @@ export class ResumesController {
     return this.resumesService.findAll(user.userId);
   }
 
+  @Get('slots')
+  @ApiOperation({ summary: 'Get remaining resume slots for current user' })
+  @ApiResponse({
+    status: 200,
+    description: 'Resume slots info',
+    schema: {
+      type: 'object',
+      properties: {
+        used: { type: 'number', example: 2 },
+        limit: { type: 'number', example: 4 },
+        remaining: { type: 'number', example: 2 },
+      },
+    },
+  })
+  async getRemainingSlots(@CurrentUser() user: UserPayload) {
+    return this.resumesService.getRemainingSlots(user.userId);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get a specific resume' })
   @ApiParam({ name: 'id', description: 'Resume ID' })

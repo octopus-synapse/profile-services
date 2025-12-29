@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsBoolean } from 'class-validator';
+import { IsString, IsOptional, IsBoolean, IsIn } from 'class-validator';
 
 export class UpdateFullPreferencesDto {
   @IsOptional()
@@ -28,4 +28,9 @@ export class UpdateFullPreferencesDto {
   @IsOptional()
   @IsString()
   timezone?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsIn(['public', 'private', 'unlisted'])
+  profileVisibility?: string;
 }

@@ -95,6 +95,7 @@ export class OnboardingService {
         hasCompletedOnboarding: true,
         onboardingCompletedAt: new Date(),
         palette: data.templateSelection.palette,
+        username: data.username,
       },
     });
   }
@@ -132,6 +133,7 @@ export class OnboardingService {
       update: {
         currentStep: data.currentStep,
         completedSteps: data.completedSteps,
+        username: data.username ?? undefined,
         personalInfo: data.personalInfo ?? undefined,
         professionalProfile: data.professionalProfile ?? undefined,
         experiences: data.experiences ?? undefined,
@@ -147,6 +149,7 @@ export class OnboardingService {
         userId,
         currentStep: data.currentStep,
         completedSteps: data.completedSteps,
+        username: data.username ?? undefined,
         personalInfo: data.personalInfo ?? undefined,
         professionalProfile: data.professionalProfile ?? undefined,
         experiences: data.experiences ?? undefined,
@@ -180,6 +183,7 @@ export class OnboardingService {
       return {
         currentStep: 'welcome',
         completedSteps: [],
+        username: null,
         personalInfo: null,
         professionalProfile: null,
         experiences: [],
@@ -196,6 +200,7 @@ export class OnboardingService {
     return {
       currentStep: progress.currentStep,
       completedSteps: progress.completedSteps,
+      username: progress.username,
       personalInfo: progress.personalInfo,
       professionalProfile: progress.professionalProfile,
       experiences: progress.experiences ?? [],

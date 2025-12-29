@@ -191,8 +191,16 @@ export const templateSelectionSchema = z.object({
 
 export type TemplateSelection = z.infer<typeof templateSelectionSchema>;
 
+// Username schema
+export const usernameSchema = z
+  .string()
+  .min(3, 'Username deve ter pelo menos 3 caracteres')
+  .max(30, 'Username deve ter no máximo 30 caracteres')
+  .regex(/^[a-zA-Z0-9_]+$/, 'Username pode conter apenas letras, números e underscore');
+
 // Complete Onboarding Data
 export const onboardingDataSchema = z.object({
+  username: usernameSchema,
   personalInfo: personalInfoSchema,
   professionalProfile: professionalProfileSchema,
   skillsStep: skillsStepSchema,

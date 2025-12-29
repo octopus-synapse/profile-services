@@ -5,7 +5,7 @@ import {
   PASSWORD_REQUIREMENTS,
 } from '../../common/constants/validation.constants';
 
-export class ResetPasswordDto {
+export class AdminResetPasswordDto {
   @ApiProperty({
     description: 'New password for the user',
     example: 'NewSecurePass123!',
