@@ -11,6 +11,10 @@ global.fetch = mockFetch;
 const mockPrismaService = {
   resume: {
     update: jest.fn(),
+    findUnique: jest.fn().mockResolvedValue({
+      id: 'resume-id',
+      userId: 'user-id',
+    }),
   },
   openSourceContribution: {
     deleteMany: jest.fn(),

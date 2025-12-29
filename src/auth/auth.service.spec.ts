@@ -75,7 +75,7 @@ describe('AuthService', () => {
     service = module.get<AuthService>(AuthService);
     prisma = module.get<PrismaService>(PrismaService);
     jwtService = module.get<JwtService>(JwtService);
-    logger = module.get<LoggerService>(LoggerService);
+    logger = module.get<AppLoggerService>(AppLoggerService);
     emailService = module.get<EmailService>(EmailService);
   });
 
@@ -251,6 +251,7 @@ describe('AuthService', () => {
           id: true,
           email: true,
           name: true,
+          role: true,
           hasCompletedOnboarding: true,
         },
       });

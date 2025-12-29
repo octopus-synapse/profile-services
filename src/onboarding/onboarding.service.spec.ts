@@ -28,6 +28,9 @@ describe('OnboardingService', () => {
       findUnique: jest.fn(),
       update: jest.fn(),
     },
+    onboardingProgress: {
+      deleteMany: jest.fn(),
+    },
   };
 
   const mockLoggerService = {
@@ -94,7 +97,7 @@ describe('OnboardingService', () => {
 
     service = module.get<OnboardingService>(OnboardingService);
     prisma = module.get<PrismaService>(PrismaService);
-    logger = module.get<LoggerService>(LoggerService);
+    logger = module.get<AppLoggerService>(AppLoggerService);
     resumeService = module.get<ResumeOnboardingService>(
       ResumeOnboardingService,
     );
@@ -120,6 +123,7 @@ describe('OnboardingService', () => {
     it('should successfully complete onboarding', async () => {
       const userId = 'user-123';
       const onboardingData = {
+        username: 'johndoe',
         personalInfo: {
           fullName: 'John Doe',
           email: 'john@example.com',
@@ -230,6 +234,7 @@ describe('OnboardingService', () => {
           hasCompletedOnboarding: true,
           onboardingCompletedAt: expect.any(Date),
           palette: onboardingData.templateSelection.palette,
+          username: onboardingData.username,
         },
       });
       expect(logger.log).toHaveBeenCalledWith(
@@ -247,6 +252,7 @@ describe('OnboardingService', () => {
     it('should throw NotFoundException if user does not exist', async () => {
       const userId = 'invalid-user';
       const onboardingData = {
+        username: 'johndoe',
         personalInfo: {
           fullName: 'John Doe',
           email: 'john@example.com',
