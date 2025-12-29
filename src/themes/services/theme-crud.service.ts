@@ -36,7 +36,7 @@ export class ThemeCrudService {
 
   async update(userId: string, themeId: string, dto: UpdateThemeDto) {
     const theme = await this.findOrFail(themeId);
-    this.assertCanEdit(theme, userId);
+    await this.assertCanEdit(theme, userId);
 
     if (dto.styleConfig) {
       this.validateConfig(dto.styleConfig);
