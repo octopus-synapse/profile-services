@@ -1,0 +1,96 @@
+{
+  "projectStatus": {
+    "lastUpdated": "2025-12-29",
+    "overallScore": "7.8/10",
+    "currentTestCoverage": "15-20%",
+    "targetTestCoverage": "60%"
+  },
+  "refactoringStatus": {
+    "BaseSubResourceService": {
+      "status": "DONE",
+      "description": "Classe base genérica para 15 services de sub-resources",
+      "file": "src/resumes/services/base/base-sub-resource.service.ts"
+    },
+    "BaseSubResourceController": {
+      "status": "NOT_DONE",
+      "description": "Ainda existem 15 controllers duplicados (~130 linhas cada)",
+      "duplicatedFiles": [
+        "src/resumes/controllers/experience.controller.ts",
+        "src/resumes/controllers/education.controller.ts",
+        "src/resumes/controllers/skill.controller.ts",
+        "src/resumes/controllers/project.controller.ts",
+        "src/resumes/controllers/certification.controller.ts",
+        "src/resumes/controllers/award.controller.ts",
+        "src/resumes/controllers/publication.controller.ts",
+        "src/resumes/controllers/talk.controller.ts",
+        "src/resumes/controllers/hackathon.controller.ts",
+        "src/resumes/controllers/language.controller.ts",
+        "src/resumes/controllers/interest.controller.ts",
+        "src/resumes/controllers/recommendation.controller.ts",
+        "src/resumes/controllers/achievement.controller.ts",
+        "src/resumes/controllers/bug-bounty.controller.ts",
+        "src/resumes/controllers/open-source.controller.ts"
+      ]
+    }
+  },
+  "completedMilestones": [
+    {
+      "id": "MILESTONE_1",
+      "name": "CI Gates & Environment Validation",
+      "status": "completed"
+    },
+    {
+      "id": "MILESTONE_2",
+      "name": "Smoke Tests",
+      "status": "completed"
+    }
+  ],
+  "inProgressMilestones": [
+    {
+      "id": "MILESTONE_3",
+      "name": "Export Module Tests",
+      "status": "75%",
+      "completed": [
+        "src/export/__mocks__/puppeteer.mock.ts",
+        "src/export/services/browser-manager.service.spec.ts",
+        "src/export/services/resume-pdf.service.spec.ts",
+        "src/export/services/resume-docx.service.spec.ts"
+      ],
+      "pending": [
+        "src/export/services/banner-capture.service.spec.ts"
+      ]
+    }
+  ],
+  "pendingMilestones": [
+    {
+      "id": "MILESTONE_4",
+      "name": "Themes Module Tests",
+      "files": 7
+    },
+    {
+      "id": "MILESTONE_5",
+      "name": "Core Services Unit Tests",
+      "files": 4
+    },
+    {
+      "id": "MILESTONE_6",
+      "name": "Integration Tests",
+      "files": 2
+    }
+  ],
+  "pendingRefactoring": [
+    {
+      "priority": "P0",
+      "title": "Criar BaseSubResourceController",
+      "status": "NOT_DONE",
+      "impact": "Elimina ~1950 linhas duplicadas (15 × 130 linhas)",
+      "pattern": "BaseSubResourceController<Entity, CreateDto, UpdateDto, Service>"
+    }
+  ],
+  "uncleBobKentBeckScores": {
+    "architecture": "8.5/10",
+    "cleanCode": "8/10",
+    "testability": "5.5/10",
+    "maintainability": "7.5/10"
+  }
+}
