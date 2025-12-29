@@ -21,6 +21,7 @@ import { MecSyncModule } from './mec-sync/mec-sync.module';
 import { TechSkillsModule } from './tech-skills/tech-skills.module';
 import { SpokenLanguagesModule } from './spoken-languages/spoken-languages.module';
 import { TranslationModule } from './translation/translation.module';
+import { HealthModule } from './health/health.module';
 import { validate } from './common/config/env.validation';
 import { APP_CONSTANTS } from './common/constants/app.constants';
 
@@ -53,6 +54,7 @@ import { APP_CONSTANTS } from './common/constants/app.constants';
     TechSkillsModule,
     SpokenLanguagesModule,
     TranslationModule,
+    HealthModule,
   ],
   controllers: [AppController],
   providers: [

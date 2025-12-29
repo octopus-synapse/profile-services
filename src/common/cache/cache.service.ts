@@ -5,16 +5,16 @@ import { AppLoggerService } from '../logger/logger.service';
 @Injectable()
 export class CacheService implements OnModuleDestroy {
   private client: Redis | null = null;
-  private readonly isEnabled: boolean;
+  private _isEnabled: boolean;
 
   constructor(private readonly logger: AppLoggerService) {
     const redisHost = process.env.REDIS_HOST;
     const redisPort = parseInt(process.env.REDIS_PORT || '6379', 10);
     const redisPassword = process.env.REDIS_PASSWORD;
 
-    this.isEnabled = !!redisHost;
+    this._isEnabled = !!redisHost;
 
-    if (this.isEnabled) {
+    if (this._isEnabled) {
       try {
         this.client = new Redis({
           host: redisHost,
@@ -45,7 +45,7 @@ export class CacheService implements OnModuleDestroy {
           error instanceof Error ? error.stack : undefined,
           'CacheService',
         );
-        this.isEnabled = false;
+        this._isEnabled = false;
       }
     } else {
       this.logger.warn(
@@ -56,7 +56,7 @@ export class CacheService implements OnModuleDestroy {
   }
 
   async get<T>(key: string): Promise<T | null> {
-    if (!this.isEnabled || !this.client) {
+    if (!this._isEnabled || !this.client) {
       return null;
     }
 
@@ -74,7 +74,7 @@ export class CacheService implements OnModuleDestroy {
   }
 
   async set(key: string, value: unknown, ttl?: number): Promise<void> {
-    if (!this.isEnabled || !this.client) {
+    if (!this._isEnabled || !this.client) {
       return;
     }
 
@@ -95,7 +95,7 @@ export class CacheService implements OnModuleDestroy {
   }
 
   async delete(key: string): Promise<void> {
-    if (!this.isEnabled || !this.client) {
+    if (!this._isEnabled || !this.client) {
       return;
     }
 
@@ -111,7 +111,7 @@ export class CacheService implements OnModuleDestroy {
   }
 
   async deletePattern(pattern: string): Promise<void> {
-    if (!this.isEnabled || !this.client) {
+    if (!this._isEnabled || !this.client) {
       return;
     }
 
@@ -130,7 +130,7 @@ export class CacheService implements OnModuleDestroy {
   }
 
   async flush(): Promise<void> {
-    if (!this.isEnabled || !this.client) {
+    if (!this._isEnabled || !this.client) {
       return;
     }
 
@@ -151,7 +151,7 @@ export class CacheService implements OnModuleDestroy {
    * Returns true if lock was acquired, false if already locked
    */
   async acquireLock(key: string, ttl: number): Promise<boolean> {
-    if (!this.isEnabled || !this.client) {
+    if (!this._isEnabled || !this.client) {
       // If Redis is disabled, allow operation (no distributed coordination)
       return true;
     }
@@ -180,7 +180,7 @@ export class CacheService implements OnModuleDestroy {
    * Check if a lock exists
    */
   async isLocked(key: string): Promise<boolean> {
-    if (!this.isEnabled || !this.client) {
+    if (!this._isEnabled || !this.client) {
       return false;
     }
 
@@ -202,5 +202,12 @@ export class CacheService implements OnModuleDestroy {
       await this.client.quit();
       this.logger.log('Redis connection closed', 'CacheService');
     }
+  }
+
+  /**
+   * Check if Redis caching is enabled
+   */
+  get isEnabled(): boolean {
+    return this._isEnabled;
   }
 }

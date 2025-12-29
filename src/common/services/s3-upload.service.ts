@@ -3,6 +3,7 @@ import {
   S3Client,
   PutObjectCommand,
   DeleteObjectCommand,
+  HeadBucketCommand,
 } from '@aws-sdk/client-s3';
 import { AppLoggerService } from '../logger/logger.service';
 
@@ -10,7 +11,7 @@ import { AppLoggerService } from '../logger/logger.service';
 export class S3UploadService {
   private client: S3Client | null = null;
   private bucket: string | null = null;
-  private readonly isEnabled: boolean;
+  private _isEnabled: boolean;
 
   constructor(private readonly logger: AppLoggerService) {
     const endpoint = process.env.MINIO_ENDPOINT;
@@ -18,9 +19,9 @@ export class S3UploadService {
     const secretAccessKey = process.env.MINIO_SECRET_KEY;
     const bucket = process.env.MINIO_BUCKET;
 
-    this.isEnabled = !!(endpoint && accessKeyId && secretAccessKey && bucket);
+    this._isEnabled = !!(endpoint && accessKeyId && secretAccessKey && bucket);
 
-    if (this.isEnabled) {
+    if (this._isEnabled) {
       try {
         this.client = new S3Client({
           endpoint: endpoint!,
@@ -42,7 +43,7 @@ export class S3UploadService {
           error instanceof Error ? error.stack : undefined,
           'S3UploadService',
         );
-        this.isEnabled = false;
+        this._isEnabled = false;
       }
     } else {
       this.logger.warn(
@@ -57,7 +58,7 @@ export class S3UploadService {
     key: string,
     contentType: string,
   ): Promise<{ url: string; key: string } | null> {
-    if (!this.isEnabled || !this.client || !this.bucket) {
+    if (!this._isEnabled || !this.client || !this.bucket) {
       this.logger.warn(
         'S3 upload attempted but service is disabled',
         'S3UploadService',
@@ -101,7 +102,7 @@ export class S3UploadService {
   }
 
   async deleteFile(key: string): Promise<boolean> {
-    if (!this.isEnabled || !this.client || !this.bucket) {
+    if (!this._isEnabled || !this.client || !this.bucket) {
       this.logger.warn(
         'MinIO delete attempted but service is disabled',
         'S3UploadService',
@@ -136,7 +137,32 @@ export class S3UploadService {
     }
   }
 
-  isServiceEnabled(): boolean {
-    return this.isEnabled;
+  /**
+   * Check if S3/MinIO is enabled
+   */
+  get isEnabled(): boolean {
+    return this._isEnabled;
+  }
+
+  /**
+   * Check connection to S3/MinIO bucket
+   */
+  async checkConnection(): Promise<boolean> {
+    if (!this._isEnabled || !this.client || !this.bucket) {
+      return false;
+    }
+
+    try {
+      const command = new HeadBucketCommand({ Bucket: this.bucket });
+      await this.client.send(command);
+      return true;
+    } catch (error) {
+      this.logger.error(
+        'S3/MinIO connection check failed',
+        error instanceof Error ? error.stack : undefined,
+        'S3UploadService',
+      );
+      return false;
+    }
   }
 }

@@ -106,6 +106,6 @@ export class UploadService {
   }
 
   isServiceAvailable(): boolean {
-    return this.s3Service.isServiceEnabled();
+    return this.s3Service.isEnabled;
   }
 }
