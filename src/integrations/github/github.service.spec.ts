@@ -1,13 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConfigService } from '@nestjs/config';
 import { HttpException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { GitHubService } from './github.service';
+import {
+  GitHubApiService,
+  GitHubContributionService,
+  GitHubAchievementService,
+} from './services';
 
-// Mock the global fetch
-const mockFetch = jest.fn();
-global.fetch = mockFetch;
-
+// Mock services
 const mockPrismaService = {
   resume: {
     update: jest.fn(),
@@ -26,29 +27,46 @@ const mockPrismaService = {
   },
   $transaction: jest.fn().mockImplementation(async (actions) => {
     for (const action of actions) {
-      // In a real test, you might want to inspect the actions
-      // For now, we just mock that they succeed
+      // Mock transaction execution
     }
     return [];
   }),
 };
 
-const mockConfigService = {
-  get: jest.fn().mockReturnValue('mock_github_token'),
+const mockGitHubApiService = {
+  getUserProfile: jest.fn(),
+  getUserRepos: jest.fn(),
+  getRepoCommitCount: jest.fn(),
+  getRepoPullRequests: jest.fn(),
+};
+
+const mockGitHubContributionService = {
+  processContributions: jest.fn(),
+};
+
+const mockGitHubAchievementService = {
+  generateAchievements: jest.fn(),
 };
 
 describe('GitHubService', () => {
   let service: GitHubService;
 
   beforeEach(async () => {
-    mockFetch.mockClear();
     jest.clearAllMocks();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         GitHubService,
         { provide: PrismaService, useValue: mockPrismaService },
-        { provide: ConfigService, useValue: mockConfigService },
+        { provide: GitHubApiService, useValue: mockGitHubApiService },
+        {
+          provide: GitHubContributionService,
+          useValue: mockGitHubContributionService,
+        },
+        {
+          provide: GitHubAchievementService,
+          useValue: mockGitHubAchievementService,
+        },
       ],
     }).compile();
 
@@ -60,27 +78,22 @@ describe('GitHubService', () => {
   });
 
   describe('getUserProfile', () => {
-    it('should fetch and return a user profile', async () => {
+    it('should delegate to GitHubApiService', async () => {
       const mockProfile = { login: 'testuser', name: 'Test User' };
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockProfile,
-      });
+      mockGitHubApiService.getUserProfile.mockResolvedValueOnce(mockProfile);
 
       const profile = await service.getUserProfile('testuser');
 
       expect(profile).toEqual(mockProfile);
-      expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.github.com/users/testuser',
-        expect.any(Object),
+      expect(mockGitHubApiService.getUserProfile).toHaveBeenCalledWith(
+        'testuser',
       );
     });
 
-    it('should throw HttpException if user not found', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-        status: 404,
-      });
+    it('should propagate errors from GitHubApiService', async () => {
+      mockGitHubApiService.getUserProfile.mockRejectedValueOnce(
+        new HttpException('Not found', 404),
+      );
 
       await expect(service.getUserProfile('nonexistent')).rejects.toThrow(
         HttpException,
@@ -90,7 +103,7 @@ describe('GitHubService', () => {
 
   describe('syncUserGitHub', () => {
     it('should orchestrate the full sync process', async () => {
-      // Arrange: Mock all the GitHub API responses
+      // Arrange
       const mockProfile = {
         login: 'testuser',
         name: 'Test User',
@@ -116,13 +129,20 @@ describe('GitHubService', () => {
           topics: [],
         },
       ];
-      mockFetch
-        .mockResolvedValueOnce({ ok: true, json: async () => mockProfile }) // getUserProfile
-        .mockResolvedValueOnce({ ok: true, json: async () => mockRepos }) // getUserRepos
-        .mockResolvedValueOnce({ ok: true, json: async () => [{}] }) // getRepoCommitCount for repo1
-        .mockResolvedValueOnce({ ok: true, json: async () => [] }) // getRepoPullRequests for repo1
-        .mockResolvedValueOnce({ ok: true, json: async () => [{}] }) // getRepoCommitCount for repo2
-        .mockResolvedValueOnce({ ok: true, json: async () => [] }); // getRepoPullRequests for repo2
+      const mockContributions = [
+        { repoName: 'repo1', repoUrl: 'url', role: 'owner' },
+        { repoName: 'repo2', repoUrl: 'url', role: 'owner' },
+      ];
+      const mockAchievements = [{ title: '100 Stars', description: 'desc' }];
+
+      mockGitHubApiService.getUserProfile.mockResolvedValueOnce(mockProfile);
+      mockGitHubApiService.getUserRepos.mockResolvedValueOnce(mockRepos);
+      mockGitHubContributionService.processContributions.mockResolvedValueOnce(
+        mockContributions,
+      );
+      mockGitHubAchievementService.generateAchievements.mockReturnValueOnce(
+        mockAchievements,
+      );
 
       // Act
       const result = await service.syncUserGitHub(
@@ -132,11 +152,25 @@ describe('GitHubService', () => {
       );
 
       // Assert
-      // Check the final result object
       expect(result.success).toBe(true);
       expect(result.stats.totalStars).toBe(160);
       expect(result.stats.contributionsAdded).toBe(2);
-      expect(result.stats.achievementsAdded).toBe(1); // Only stars achievement
+      expect(result.stats.achievementsAdded).toBe(1);
+
+      // Verify delegation to sub-services
+      expect(mockGitHubApiService.getUserProfile).toHaveBeenCalledWith(
+        'testuser',
+      );
+      expect(mockGitHubApiService.getUserRepos).toHaveBeenCalledWith(
+        'testuser',
+        expect.any(Object),
+      );
+      expect(
+        mockGitHubContributionService.processContributions,
+      ).toHaveBeenCalled();
+      expect(
+        mockGitHubAchievementService.generateAchievements,
+      ).toHaveBeenCalled();
 
       // Check that the database methods were called
       expect(mockPrismaService.resume.update).toHaveBeenCalled();
