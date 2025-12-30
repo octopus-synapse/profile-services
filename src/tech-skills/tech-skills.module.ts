@@ -18,6 +18,10 @@ import { SkillQueryService } from './services/skill-query.service';
 import { SkillSearchService } from './services/skill-search.service';
 import { GithubLinguistParserService } from './services/github-linguist-parser.service';
 import { StackOverflowParserService } from './services/stackoverflow-parser.service';
+import { TechAreasSyncService } from './services/tech-areas-sync.service';
+import { TechNichesSyncService } from './services/tech-niches-sync.service';
+import { LanguagesSyncService } from './services/languages-sync.service';
+import { SkillsDataSyncService } from './services/skills-data-sync.service';
 import { PrismaModule } from '../prisma/prisma.module';
 import { InternalAuthGuard } from '../mec-sync/guards/internal-auth.guard';
 
@@ -25,15 +29,23 @@ import { InternalAuthGuard } from '../mec-sync/guards/internal-auth.guard';
   imports: [ConfigModule, PrismaModule],
   controllers: [TechSkillsSyncController, TechSkillsQueryController],
   providers: [
+    // Sync services
+    TechAreasSyncService,
+    TechNichesSyncService,
+    LanguagesSyncService,
+    SkillsDataSyncService,
     TechSkillsSyncService,
+    // Query services
     TechSkillsQueryService,
     TechAreaQueryService,
     TechNicheQueryService,
     LanguageQueryService,
     SkillQueryService,
     SkillSearchService,
+    // Parser services
     GithubLinguistParserService,
     StackOverflowParserService,
+    // Guards
     InternalAuthGuard,
   ],
   exports: [TechSkillsSyncService, TechSkillsQueryService],
