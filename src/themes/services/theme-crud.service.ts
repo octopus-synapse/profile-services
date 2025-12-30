@@ -12,6 +12,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { ThemeStatus, UserRole, Prisma } from '@prisma/client';
 import { CreateThemeDto, UpdateThemeDto } from '../dto';
 import { validateLayoutConfig, validateSectionsConfig } from '../validators';
+import { ERROR_MESSAGES } from '../../common/constants/app.constants';
 
 @Injectable()
 export class ThemeCrudService {
@@ -58,10 +59,10 @@ export class ThemeCrudService {
     const theme = await this.findOrFail(themeId);
 
     if (theme.isSystemTheme) {
-      throw new ForbiddenException('Cannot delete system themes');
+      throw new ForbiddenException(ERROR_MESSAGES.CANNOT_DELETE_SYSTEM_THEMES);
     }
     if (theme.authorId !== userId) {
-      throw new ForbiddenException('Can only delete own themes');
+      throw new ForbiddenException(ERROR_MESSAGES.CAN_ONLY_DELETE_OWN_THEMES);
     }
 
     return this.prisma.resumeTheme.delete({ where: { id: themeId } });
@@ -69,7 +70,7 @@ export class ThemeCrudService {
 
   async findOrFail(id: string) {
     const theme = await this.prisma.resumeTheme.findUnique({ where: { id } });
-    if (!theme) throw new NotFoundException('Theme not found');
+    if (!theme) throw new NotFoundException(ERROR_MESSAGES.THEME_NOT_FOUND);
     return theme;
   }
 
@@ -85,10 +86,12 @@ export class ThemeCrudService {
     if (theme.isSystemTheme) {
       const user = await this.prisma.user.findUnique({ where: { id: userId } });
       if (user?.role !== UserRole.ADMIN) {
-        throw new ForbiddenException('Only admins can edit system themes');
+        throw new ForbiddenException(
+          ERROR_MESSAGES.ONLY_ADMINS_CAN_EDIT_SYSTEM_THEMES,
+        );
       }
     } else if (theme.authorId !== userId) {
-      throw new ForbiddenException('Can only edit own themes');
+      throw new ForbiddenException(ERROR_MESSAGES.CAN_ONLY_EDIT_OWN_THEMES);
     }
   }
 }

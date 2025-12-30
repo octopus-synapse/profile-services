@@ -3,6 +3,7 @@
  */
 
 import { BadRequestException } from '@nestjs/common';
+import { ERROR_MESSAGES } from '../../common/constants/app.constants';
 
 const VALID_LAYOUT_TYPES = [
   'single-column',
@@ -35,7 +36,7 @@ const VALID_SECTION_IDS = [
 
 export function validateLayoutConfig(layout: unknown): void {
   if (!layout || typeof layout !== 'object') {
-    throw new BadRequestException('Layout config is required');
+    throw new BadRequestException(ERROR_MESSAGES.LAYOUT_CONFIG_REQUIRED);
   }
 
   const l = layout as Record<string, unknown>;
@@ -47,7 +48,7 @@ export function validateLayoutConfig(layout: unknown): void {
 
 export function validateSectionsConfig(sections: unknown): void {
   if (!Array.isArray(sections)) {
-    throw new BadRequestException('Sections must be an array');
+    throw new BadRequestException(ERROR_MESSAGES.SECTIONS_MUST_BE_ARRAY);
   }
 
   for (const section of sections) {
@@ -71,7 +72,7 @@ export function validateItemOverrides(overrides: unknown): void {
   if (!overrides) return;
 
   if (typeof overrides !== 'object') {
-    throw new BadRequestException('Item overrides must be an object');
+    throw new BadRequestException(ERROR_MESSAGES.ITEM_OVERRIDES_MUST_BE_OBJECT);
   }
 
   for (const [sectionId, items] of Object.entries(overrides)) {

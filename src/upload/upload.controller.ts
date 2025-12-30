@@ -24,6 +24,7 @@ import { UploadService } from './upload.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { UserPayload } from '../auth/interfaces/auth-request.interface';
+import { ERROR_MESSAGES } from '../common/constants/app.constants';
 
 @ApiTags('upload')
 @ApiBearerAuth('JWT-auth')
@@ -66,7 +67,7 @@ export class UploadController {
     @UploadedFile() file: Express.Multer.File,
   ) {
     if (!file) {
-      throw new BadRequestException('No file provided');
+      throw new BadRequestException(ERROR_MESSAGES.NO_FILE_PROVIDED);
     }
 
     return this.uploadService.uploadProfileImage(user.userId, {
@@ -113,7 +114,7 @@ export class UploadController {
     @UploadedFile() file: Express.Multer.File,
   ) {
     if (!file) {
-      throw new BadRequestException('No file provided');
+      throw new BadRequestException(ERROR_MESSAGES.NO_FILE_PROVIDED);
     }
 
     return this.uploadService.uploadCompanyLogo(user.userId, resumeId, {

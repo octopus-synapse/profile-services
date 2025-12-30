@@ -8,6 +8,7 @@ import { ResumesRepository } from './resumes.repository';
 import { CreateResumeDto } from './dto/create-resume.dto';
 import { UpdateResumeDto } from './dto/update-resume.dto';
 import { ApiResponseHelper } from '../common/dto/api-response.dto';
+import { ERROR_MESSAGES } from '../common/constants/app.constants';
 
 /** Maximum number of resumes a user can create */
 const MAX_RESUMES_PER_USER = 4;
@@ -57,7 +58,7 @@ export class ResumesService {
     );
 
     if (!resume) {
-      throw new NotFoundException('Resume not found');
+      throw new NotFoundException(ERROR_MESSAGES.RESUME_NOT_FOUND);
     }
 
     return resume;
@@ -68,7 +69,7 @@ export class ResumesService {
     const deleted = await this.resumesRepository.delete(id, userId);
 
     if (!deleted) {
-      throw new NotFoundException('Resume not found');
+      throw new NotFoundException(ERROR_MESSAGES.RESUME_NOT_FOUND);
     }
 
     return ApiResponseHelper.message('Resume deleted successfully');

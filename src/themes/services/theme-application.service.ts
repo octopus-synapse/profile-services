@@ -14,6 +14,7 @@ import { ThemeCrudService } from './theme-crud.service';
 import { ThemeQueryService } from './theme-query.service';
 import { deepMerge } from '../utils';
 import { ThemeStatus, Prisma } from '@prisma/client';
+import { ERROR_MESSAGES } from '../../common/constants/app.constants';
 
 @Injectable()
 export class ThemeApplicationService {
@@ -29,13 +30,13 @@ export class ThemeApplicationService {
     });
 
     if (!resume || resume.userId !== userId) {
-      throw new ForbiddenException('Resume not found or access denied');
+      throw new ForbiddenException(ERROR_MESSAGES.RESUME_ACCESS_DENIED);
     }
 
     // Verify theme access
     const theme = await this.query.findOne(dto.themeId, userId);
     if (!theme) {
-      throw new NotFoundException('Theme not found or access denied');
+      throw new NotFoundException(ERROR_MESSAGES.THEME_ACCESS_DENIED);
     }
 
     // Apply theme and increment usage
@@ -65,7 +66,7 @@ export class ThemeApplicationService {
       original.status !== ThemeStatus.PUBLISHED &&
       original.authorId !== userId
     ) {
-      throw new ForbiddenException('Cannot fork this theme');
+      throw new ForbiddenException(ERROR_MESSAGES.CANNOT_FORK_THEME);
     }
 
     return this.prisma.resumeTheme.create({
@@ -89,7 +90,7 @@ export class ThemeApplicationService {
     });
 
     if (!resume || resume.userId !== userId) {
-      throw new ForbiddenException('Resume not found');
+      throw new ForbiddenException(ERROR_MESSAGES.RESUME_NOT_FOUND);
     }
 
     if (!resume.activeTheme) {

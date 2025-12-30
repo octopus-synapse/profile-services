@@ -1,29 +1,23 @@
 /**
- * GitHub Service (Refactored)
- * Single Responsibility: Orchestrate GitHub sync operations
- * Delegates to specialized services for API, contributions, and achievements
+ * GitHub Service (Facade)
+ * Provides unified API for GitHub operations
+ * Delegates to specialized services for implementation
  */
 
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-import { PrismaService } from '../../prisma/prisma.service';
-import {
-  ERROR_MESSAGES,
-  API_LIMITS,
-} from '../../common/constants/app.constants';
+import { API_LIMITS } from '../../common/constants/app.constants';
 import {
   GitHubApiService,
-  GitHubContributionService,
-  GitHubAchievementService,
+  GitHubSyncService,
+  GitHubDatabaseService,
 } from './services';
 
 @Injectable()
 export class GitHubService {
   constructor(
-    private readonly prisma: PrismaService,
     private readonly apiService: GitHubApiService,
-    private readonly contributionService: GitHubContributionService,
-    private readonly achievementService: GitHubAchievementService,
+    private readonly syncService: GitHubSyncService,
+    private readonly databaseService: GitHubDatabaseService,
   ) {}
 
   // ==================== Public API Delegation ====================
@@ -48,85 +42,22 @@ export class GitHubService {
     githubUsername: string,
     resumeId: string,
   ) {
-    await this.verifyResumeOwnership(userId, resumeId);
-
-    try {
-      const profile = await this.apiService.getUserProfile(githubUsername);
-      const repos = await this.apiService.getUserRepos(githubUsername, {
-        sort: 'updated',
-        per_page: 100,
-      });
-
-      const totalStars = repos.reduce(
-        (sum, repo) => sum + repo.stargazers_count,
-        0,
-      );
-
-      await this.updateResumeGitHubStats(resumeId, githubUsername, totalStars);
-
-      const contributions = await this.contributionService.processContributions(
-        resumeId,
-        githubUsername,
-        repos.slice(0, API_LIMITS.MAX_REPOS_TO_PROCESS),
-      );
-
-      const achievements = this.achievementService.generateAchievements(
-        resumeId,
-        githubUsername,
-        profile,
-        totalStars,
-      );
-
-      await this.reconcileDbEntries(
-        resumeId,
-        githubUsername,
-        contributions,
-        achievements,
-      );
-
-      return {
-        success: true,
-        profile: {
-          username: profile.login,
-          name: profile.name,
-          bio: profile.bio,
-          publicRepos: profile.public_repos,
-        },
-        stats: {
-          totalStars,
-          publicRepos: profile.public_repos,
-          contributionsAdded: contributions.length,
-          achievementsAdded: achievements.length,
-        },
-      };
-    } catch (error) {
-      if (error instanceof HttpException) throw error;
-      throw new HttpException(
-        'Failed to sync GitHub data',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
+    return this.syncService.syncUserGitHub(userId, githubUsername, resumeId);
   }
 
   async autoSyncGitHubFromResume(userId: string, resumeId: string) {
-    const resume = await this.verifyResumeOwnership(userId, resumeId);
-
-    if (!resume.github) {
-      throw new HttpException(
-        'No GitHub username found in resume',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
-    const githubUsername = this.extractUsername(resume.github);
-    return this.syncUserGitHub(userId, githubUsername, resumeId);
+    return this.syncService.autoSyncGitHubFromResume(userId, resumeId);
   }
 
   async getSyncStatus(userId: string, resumeId: string) {
-    const resume = await this.verifyResumeOwnership(userId, resumeId, {
-      openSource: { where: { projectUrl: { contains: 'github.com' } } },
-      achievements: { where: { type: 'github_stars' } },
-    });
+    const resume = await this.databaseService.verifyResumeOwnership(
+      userId,
+      resumeId,
+      {
+        openSource: { where: { projectUrl: { contains: 'github.com' } } },
+        achievements: { where: { type: 'github_stars' } },
+      },
+    );
 
     const openSourceList =
       'openSource' in resume ? (resume.openSource as unknown[]) : [];
@@ -184,84 +115,6 @@ export class GitHubService {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
-  }
-
-  // ==================== Private Helpers ====================
-
-  private async verifyResumeOwnership(
-    userId: string,
-    resumeId: string,
-    include?: Prisma.ResumeInclude,
-  ) {
-    const resume = await this.prisma.resume.findUnique({
-      where: { id: resumeId },
-      include,
-    });
-
-    if (!resume) {
-      throw new HttpException(
-        ERROR_MESSAGES.RESUME_NOT_FOUND,
-        HttpStatus.NOT_FOUND,
-      );
-    }
-
-    if (resume.userId !== userId) {
-      throw new HttpException(
-        ERROR_MESSAGES.ACCESS_DENIED,
-        HttpStatus.FORBIDDEN,
-      );
-    }
-
-    return resume;
-  }
-
-  private async updateResumeGitHubStats(
-    resumeId: string,
-    githubUsername: string,
-    totalStars: number,
-  ) {
-    return this.prisma.resume.update({
-      where: { id: resumeId },
-      data: {
-        github: `https://github.com/${githubUsername}`,
-        totalStars,
-      },
-    });
-  }
-
-  private async reconcileDbEntries(
-    resumeId: string,
-    githubUsername: string,
-    contributions: Prisma.OpenSourceContributionCreateManyInput[],
-    achievements: Prisma.AchievementCreateManyInput[],
-  ) {
-    return this.prisma.$transaction([
-      this.prisma.openSourceContribution.deleteMany({
-        where: {
-          resumeId,
-          projectUrl: { contains: 'github.com' },
-        },
-      }),
-      ...(contributions.length > 0
-        ? [
-            this.prisma.openSourceContribution.createMany({
-              data: contributions,
-            }),
-          ]
-        : []),
-      this.prisma.achievement.deleteMany({
-        where: {
-          resumeId,
-          OR: [
-            { type: 'github_stars' },
-            { verificationUrl: { contains: `github.com/${githubUsername}` } },
-          ],
-        },
-      }),
-      ...(achievements.length > 0
-        ? [this.prisma.achievement.createMany({ data: achievements })]
-        : []),
-    ]);
   }
 
   private extractUsername(githubUrl: string): string {

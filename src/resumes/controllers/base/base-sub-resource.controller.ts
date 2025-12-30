@@ -90,13 +90,13 @@ export abstract class BaseSubResourceController<
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiResponse({ status: 200, description: 'List of entities' })
-  async findAll(
+  async listAll(
     @Param('resumeId', ParseCuidPipe) resumeId: string,
     @CurrentUser() user: UserPayload,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
   ): Promise<PaginatedResult<Entity>> {
-    return this.service.findAll(resumeId, user.userId, page, limit);
+    return this.service.listForResume(resumeId, user.userId, page, limit);
   }
 
   @Get(':id')
@@ -105,12 +105,12 @@ export abstract class BaseSubResourceController<
   @ApiParam({ name: 'id', description: 'Entity ID' })
   @ApiResponse({ status: 200, description: 'Entity found' })
   @ApiResponse({ status: 404, description: 'Entity not found' })
-  async findOne(
+  async getOne(
     @Param('resumeId', ParseCuidPipe) resumeId: string,
-    @Param('id', ParseCuidPipe) id: string,
+    @Param('id', ParseCuidPipe) entityId: string,
     @CurrentUser() user: UserPayload,
   ): Promise<Entity> {
-    return this.service.findOne(resumeId, id, user.userId);
+    return this.service.getById(resumeId, entityId, user.userId);
   }
 
   @Post()
@@ -119,12 +119,12 @@ export abstract class BaseSubResourceController<
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
   @ApiResponse({ status: 201, description: 'Entity created' })
   @ApiResponse({ status: 403, description: 'Access denied' })
-  async create(
+  async add(
     @Param('resumeId', ParseCuidPipe) resumeId: string,
     @CurrentUser() user: UserPayload,
     @Body() createDto: CreateDto,
   ): Promise<Entity> {
-    return this.service.create(resumeId, user.userId, createDto);
+    return this.service.addToResume(resumeId, user.userId, createDto);
   }
 
   @Patch(':id')
@@ -133,13 +133,13 @@ export abstract class BaseSubResourceController<
   @ApiParam({ name: 'id', description: 'Entity ID' })
   @ApiResponse({ status: 200, description: 'Entity updated' })
   @ApiResponse({ status: 404, description: 'Entity not found' })
-  async update(
+  async edit(
     @Param('resumeId', ParseCuidPipe) resumeId: string,
-    @Param('id', ParseCuidPipe) id: string,
+    @Param('id', ParseCuidPipe) entityId: string,
     @CurrentUser() user: UserPayload,
     @Body() updateDto: UpdateDto,
   ): Promise<Entity> {
-    return this.service.update(resumeId, id, user.userId, updateDto);
+    return this.service.updateById(resumeId, entityId, user.userId, updateDto);
   }
 
   @Delete(':id')
@@ -149,12 +149,12 @@ export abstract class BaseSubResourceController<
   @ApiParam({ name: 'id', description: 'Entity ID' })
   @ApiResponse({ status: 200, description: 'Entity deleted' })
   @ApiResponse({ status: 404, description: 'Entity not found' })
-  async remove(
+  async delete(
     @Param('resumeId', ParseCuidPipe) resumeId: string,
-    @Param('id', ParseCuidPipe) id: string,
+    @Param('id', ParseCuidPipe) entityId: string,
     @CurrentUser() user: UserPayload,
   ): Promise<MessageResponse> {
-    return this.service.remove(resumeId, id, user.userId);
+    return this.service.deleteById(resumeId, entityId, user.userId);
   }
 
   @Post('reorder')
@@ -167,6 +167,6 @@ export abstract class BaseSubResourceController<
     @CurrentUser() user: UserPayload,
     @Body() reorderDto: ReorderDto,
   ): Promise<MessageResponse> {
-    return this.service.reorder(resumeId, user.userId, reorderDto.ids);
+    return this.service.reorderInResume(resumeId, user.userId, reorderDto.ids);
   }
 }

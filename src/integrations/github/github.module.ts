@@ -6,6 +6,8 @@ import {
   GitHubApiService,
   GitHubContributionService,
   GitHubAchievementService,
+  GitHubDatabaseService,
+  GitHubSyncService,
 } from './services';
 
 @Module({
@@ -16,6 +18,8 @@ import {
     GitHubApiService,
     GitHubContributionService,
     GitHubAchievementService,
+    GitHubDatabaseService,
+    GitHubSyncService,
   ],
   exports: [GitHubService],
 })

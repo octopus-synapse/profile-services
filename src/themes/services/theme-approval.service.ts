@@ -12,6 +12,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { ThemeStatus, UserRole } from '@prisma/client';
 import { ReviewThemeDto } from '../dto';
 import { ThemeCrudService } from './theme-crud.service';
+import { ERROR_MESSAGES } from '../../common/constants/app.constants';
 
 @Injectable()
 export class ThemeApprovalService {
@@ -24,7 +25,7 @@ export class ThemeApprovalService {
     const theme = await this.crud.findOrFail(themeId);
 
     if (theme.authorId !== userId) {
-      throw new ForbiddenException('Can only submit own themes');
+      throw new ForbiddenException(ERROR_MESSAGES.CAN_ONLY_SUBMIT_OWN_THEMES);
     }
 
     const validStatuses: ThemeStatus[] = [
@@ -32,7 +33,9 @@ export class ThemeApprovalService {
       ThemeStatus.REJECTED,
     ];
     if (!validStatuses.includes(theme.status)) {
-      throw new BadRequestException('Theme must be private or rejected');
+      throw new BadRequestException(
+        ERROR_MESSAGES.THEME_MUST_BE_PRIVATE_OR_REJECTED,
+      );
     }
 
     return this.prisma.resumeTheme.update({
@@ -47,10 +50,10 @@ export class ThemeApprovalService {
     const theme = await this.crud.findOrFail(dto.themeId);
 
     if (theme.status !== ThemeStatus.PENDING_APPROVAL) {
-      throw new BadRequestException('Theme is not pending approval');
+      throw new BadRequestException(ERROR_MESSAGES.THEME_NOT_PENDING_APPROVAL);
     }
     if (theme.authorId === approverId) {
-      throw new ForbiddenException('Cannot approve own themes');
+      throw new ForbiddenException(ERROR_MESSAGES.CANNOT_APPROVE_OWN_THEMES);
     }
 
     if (dto.approved) {
@@ -84,7 +87,7 @@ export class ThemeApprovalService {
 
   private async reject(themeId: string, approverId: string, reason?: string) {
     if (!reason) {
-      throw new BadRequestException('Rejection reason is required');
+      throw new BadRequestException(ERROR_MESSAGES.REJECTION_REASON_REQUIRED);
     }
 
     return this.prisma.resumeTheme.update({

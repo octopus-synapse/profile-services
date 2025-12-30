@@ -1,7 +1,10 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { S3UploadService } from '../common/services/s3-upload.service';
 import { AppLoggerService } from '../common/logger/logger.service';
-import { APP_CONSTANTS } from '../common/constants/app.constants';
+import {
+  APP_CONSTANTS,
+  ERROR_MESSAGES,
+} from '../common/constants/app.constants';
 import { v4 as uuidv4 } from 'uuid';
 
 export interface FileUpload {
@@ -34,7 +37,7 @@ export class UploadService {
     );
 
     if (!result) {
-      throw new BadRequestException('File upload service unavailable');
+      throw new BadRequestException(ERROR_MESSAGES.FILE_UPLOAD_UNAVAILABLE);
     }
 
     this.logger.log('Profile image uploaded', 'UploadService', {
@@ -59,7 +62,7 @@ export class UploadService {
     );
 
     if (!result) {
-      throw new BadRequestException('File upload service unavailable');
+      throw new BadRequestException(ERROR_MESSAGES.FILE_UPLOAD_UNAVAILABLE);
     }
 
     this.logger.log('Company logo uploaded', 'UploadService', {
