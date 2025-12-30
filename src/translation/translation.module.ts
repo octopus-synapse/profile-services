@@ -7,6 +7,11 @@ import { Module } from '@nestjs/common';
 import { HttpModule } from '@nestjs/axios';
 import { TranslationService } from './translation.service';
 import { TranslationController } from './translation.controller';
+import {
+  TranslationCoreService,
+  TranslationBatchService,
+  ResumeTranslationService,
+} from './services';
 
 @Module({
   imports: [
@@ -16,7 +21,12 @@ import { TranslationController } from './translation.controller';
     }),
   ],
   controllers: [TranslationController],
-  providers: [TranslationService],
+  providers: [
+    TranslationCoreService,
+    TranslationBatchService,
+    ResumeTranslationService,
+    TranslationService,
+  ],
   exports: [TranslationService],
 })
 export class TranslationModule {}
