@@ -1,0 +1,46 @@
+/**
+ * Skill Brand Colors
+ *
+ * Maps skill slugs to their official brand colors.
+ */
+
+export const SKILL_COLORS: Record<string, string> = {
+  react: '#61DAFB',
+  angular: '#DD0031',
+  'vue.js': '#4FC08D',
+  svelte: '#FF3E00',
+  'next.js': '#000000',
+  'node.js': '#339933',
+  express: '#000000',
+  nestjs: '#E0234E',
+  django: '#092E20',
+  flask: '#000000',
+  fastapi: '#009688',
+  spring: '#6DB33F',
+  laravel: '#FF2D20',
+  rails: '#CC0000',
+  docker: '#2496ED',
+  kubernetes: '#326CE5',
+  aws: '#FF9900',
+  azure: '#0078D4',
+  gcp: '#4285F4',
+  terraform: '#7B42BC',
+  mysql: '#4479A1',
+  postgresql: '#336791',
+  mongodb: '#47A248',
+  redis: '#DC382D',
+  elasticsearch: '#005571',
+  firebase: '#FFCA28',
+  git: '#F05032',
+  github: '#181717',
+  gitlab: '#FCA121',
+  figma: '#F24E1E',
+  tailwindcss: '#06B6D4',
+  bootstrap: '#7952B3',
+  graphql: '#E10098',
+  tensorflow: '#FF6F00',
+  pytorch: '#EE4C2C',
+  jest: '#C21325',
+  cypress: '#17202C',
+  selenium: '#43B02A',
+};
