@@ -1,0 +1,46 @@
+import { TechPersona } from './tech-persona.enum';
+import { PersonaConfig } from './persona-config.interface';
+
+export const CLOUD_PERSONA: PersonaConfig = {
+  id: TechPersona.CLOUD,
+  name: 'Cloud Architect',
+  description: 'AWS, Azure, GCP, Cloud Native',
+  icon: '☁️',
+  primaryColor: '#0EA5E9',
+  accentColor: '#0284C7',
+  gradient: ['#0EA5E9', '#8B5CF6'],
+  skillCategories: [
+    'Cloud Platforms',
+    'Cloud Architecture',
+    'Serverless',
+    'Infrastructure as Code',
+    'Cloud Security',
+    'Cost Optimization',
+    'Multi-Cloud',
+  ],
+  achievementTypes: [
+    'cost_savings',
+    'cloud_migration',
+    'architecture_design',
+    'cloud_certifications',
+  ],
+  prioritySections: ['certifications', 'experiences', 'projects', 'talks'],
+  keywords: [
+    'aws',
+    'azure',
+    'gcp',
+    'lambda',
+    'ec2',
+    's3',
+    'cloudformation',
+    'terraform',
+    'serverless',
+    'kubernetes',
+    'ecs',
+    'fargate',
+    'cloud-native',
+    'well-architected',
+    'cloud-security',
+    'finops',
+  ],
+};

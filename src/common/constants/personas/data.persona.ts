@@ -1,0 +1,53 @@
+import { TechPersona } from './tech-persona.enum';
+import { PersonaConfig } from './persona-config.interface';
+
+export const DATA_PERSONA: PersonaConfig = {
+  id: TechPersona.DATA,
+  name: 'Data Scientist',
+  description: 'Data Analysis, Machine Learning, Big Data',
+  icon: '📊',
+  primaryColor: '#8B5CF6',
+  accentColor: '#A78BFA',
+  gradient: ['#8B5CF6', '#EC4899'],
+  skillCategories: [
+    'Data Analysis',
+    'Machine Learning',
+    'Data Visualization',
+    'Big Data Technologies',
+    'Statistical Analysis',
+    'Data Engineering',
+    'Programming Languages',
+  ],
+  achievementTypes: [
+    'kaggle_medal',
+    'paper_published',
+    'dataset_created',
+    'model_deployed',
+  ],
+  prioritySections: [
+    'publications',
+    'projects',
+    'achievements',
+    'certifications',
+  ],
+  keywords: [
+    'python',
+    'r',
+    'sql',
+    'pandas',
+    'numpy',
+    'scikit-learn',
+    'tensorflow',
+    'pytorch',
+    'keras',
+    'spark',
+    'hadoop',
+    'tableau',
+    'powerbi',
+    'jupyter',
+    'kaggle',
+    'statistics',
+    'regression',
+    'classification',
+  ],
+};

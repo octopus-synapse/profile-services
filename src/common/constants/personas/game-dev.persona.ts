@@ -1,0 +1,45 @@
+import { TechPersona } from './tech-persona.enum';
+import { PersonaConfig } from './persona-config.interface';
+
+export const GAME_DEV_PERSONA: PersonaConfig = {
+  id: TechPersona.GAME_DEV,
+  name: 'Game Developer',
+  description: 'Unity, Unreal, Game Design, Graphics',
+  icon: '🎮',
+  primaryColor: '#A855F7',
+  accentColor: '#9333EA',
+  gradient: ['#A855F7', '#EC4899'],
+  skillCategories: [
+    'Game Engines',
+    'Graphics Programming',
+    'Game Design',
+    'Physics',
+    'AI for Games',
+    'Multiplayer',
+    'Optimization',
+  ],
+  achievementTypes: [
+    'game_downloads',
+    'game_awards',
+    'jam_wins',
+    'player_count',
+  ],
+  prioritySections: ['projects', 'hackathons', 'awards', 'experiences'],
+  keywords: [
+    'unity',
+    'unreal-engine',
+    'c#',
+    'c++',
+    'godot',
+    '3d-modeling',
+    'shader',
+    'physics',
+    'multiplayer',
+    'steam',
+    'mobile-games',
+    'game-jam',
+    'procedural-generation',
+    'ai',
+    'networking',
+  ],
+};
