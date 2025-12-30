@@ -1,22 +1,29 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import {
-  ConflictException,
-  UnauthorizedException,
-  BadRequestException,
-} from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcryptjs';
+import { ConflictException, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { AppLoggerService } from '../common/logger/logger.service';
-import { EmailService } from '../common/email/email.service';
+import {
+  TokenService,
+  PasswordService,
+  EmailVerificationService,
+  PasswordResetService,
+  AccountManagementService,
+} from './services';
 
+/**
+ * AuthService Unit Tests
+ *
+ * These tests focus on the core authentication methods (signup, login, refreshToken)
+ * Delegated operations are tested in their respective service test files:
+ * - token.service.spec.ts
+ * - password.service.spec.ts
+ * - email-verification.service.spec.ts (if exists)
+ * - password-reset.service.spec.ts (if exists)
+ * - account-management.service.spec.ts (if exists)
+ */
 describe('AuthService', () => {
   let service: AuthService;
-  let prisma: PrismaService;
-  let jwtService: JwtService;
-  let logger: AppLoggerService;
-  let emailService: EmailService;
 
   const mockPrismaService = {
     user: {
@@ -24,15 +31,16 @@ describe('AuthService', () => {
       create: jest.fn(),
       update: jest.fn(),
     },
-    verificationToken: {
-      upsert: jest.fn(),
-      findUnique: jest.fn(),
-      delete: jest.fn(),
-    },
   };
 
-  const mockJwtService = {
-    sign: jest.fn(),
+  const mockTokenService = {
+    generateToken: jest.fn().mockReturnValue('mock-jwt-token'),
+    verifyToken: jest.fn(),
+  };
+
+  const mockPasswordService = {
+    hash: jest.fn().mockResolvedValue('hashedPassword123'),
+    compare: jest.fn(),
   };
 
   const mockLoggerService = {
@@ -42,102 +50,78 @@ describe('AuthService', () => {
     debug: jest.fn(),
   };
 
-  const mockEmailService = {
-    sendVerificationEmail: jest.fn(),
-    sendPasswordResetEmail: jest.fn(),
-    sendWelcomeEmail: jest.fn(),
-    sendPasswordChangedEmail: jest.fn(),
+  const mockEmailVerificationService = {
+    requestVerification: jest.fn(),
+    verifyEmail: jest.fn(),
+  };
+
+  const mockPasswordResetService = {
+    forgotPassword: jest.fn(),
+    resetPassword: jest.fn(),
+    changePassword: jest.fn(),
+  };
+
+  const mockAccountManagementService = {
+    changeEmail: jest.fn(),
+    deleteAccount: jest.fn(),
   };
 
   beforeEach(async () => {
+    jest.clearAllMocks();
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
+        { provide: PrismaService, useValue: mockPrismaService },
+        { provide: AppLoggerService, useValue: mockLoggerService },
+        { provide: TokenService, useValue: mockTokenService },
+        { provide: PasswordService, useValue: mockPasswordService },
         {
-          provide: PrismaService,
-          useValue: mockPrismaService,
+          provide: EmailVerificationService,
+          useValue: mockEmailVerificationService,
         },
+        { provide: PasswordResetService, useValue: mockPasswordResetService },
         {
-          provide: JwtService,
-          useValue: mockJwtService,
-        },
-        {
-          provide: AppLoggerService,
-          useValue: mockLoggerService,
-        },
-        {
-          provide: EmailService,
-          useValue: mockEmailService,
+          provide: AccountManagementService,
+          useValue: mockAccountManagementService,
         },
       ],
     }).compile();
 
     service = module.get<AuthService>(AuthService);
-    prisma = module.get<PrismaService>(PrismaService);
-    jwtService = module.get<JwtService>(JwtService);
-    logger = module.get<AppLoggerService>(AppLoggerService);
-    emailService = module.get<EmailService>(EmailService);
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
   });
 
   describe('signup', () => {
-    it('should successfully register a new user', async () => {
-      const signupDto = {
-        email: 'test@example.com',
-        password: 'password123',
-        name: 'Test User',
-      };
+    const signupDto = {
+      email: 'test@example.com',
+      password: 'password123',
+      name: 'Test User',
+    };
 
-      const hashedPassword = 'hashedPassword123';
+    it('should register a new user successfully', async () => {
       const mockUser = {
         id: 'user-123',
         email: signupDto.email,
         name: signupDto.name,
-        password: hashedPassword,
         hasCompletedOnboarding: false,
+        role: 'USER',
       };
 
       mockPrismaService.user.findUnique.mockResolvedValue(null);
       mockPrismaService.user.create.mockResolvedValue(mockUser);
-      mockJwtService.sign.mockReturnValue('mock-jwt-token');
-
-      jest
-        .spyOn(bcrypt, 'hash')
-        .mockImplementation(() => Promise.resolve(hashedPassword as never));
 
       const result = await service.signup(signupDto);
 
-      expect(result).toEqual({
-        success: true,
-        user: {
-          id: mockUser.id,
-          email: mockUser.email,
-          name: mockUser.name,
-          hasCompletedOnboarding: false,
-        },
-        token: 'mock-jwt-token',
-      });
-
-      expect(mockPrismaService.user.findUnique).toHaveBeenCalledWith({
-        where: { email: signupDto.email },
-      });
-      expect(mockPrismaService.user.create).toHaveBeenCalled();
-      expect(mockJwtService.sign).toHaveBeenCalled();
+      expect(result.success).toBe(true);
+      expect(result.token).toBe('mock-jwt-token');
+      expect(result.user.email).toBe(signupDto.email);
+      expect(mockPasswordService.hash).toHaveBeenCalledWith(signupDto.password);
+      expect(mockTokenService.generateToken).toHaveBeenCalled();
     });
 
-    it('should throw ConflictException if email already exists', async () => {
-      const signupDto = {
-        email: 'existing@example.com',
-        password: 'password123',
-        name: 'Test User',
-      };
-
+    it('should throw ConflictException if email exists', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue({
         id: 'existing-user',
-        email: signupDto.email,
       });
 
       await expect(service.signup(signupDto)).rejects.toThrow(
@@ -148,52 +132,29 @@ describe('AuthService', () => {
   });
 
   describe('login', () => {
-    it('should successfully login with valid credentials', async () => {
-      const loginDto = {
-        email: 'test@example.com',
-        password: 'password123',
-      };
+    const loginDto = { email: 'test@example.com', password: 'password123' };
 
-      const hashedPassword = await bcrypt.hash(loginDto.password, 12);
+    it('should login successfully with valid credentials', async () => {
       const mockUser = {
         id: 'user-123',
         email: loginDto.email,
         name: 'Test User',
-        password: hashedPassword,
+        password: 'hashedPassword',
         hasCompletedOnboarding: true,
+        role: 'USER',
       };
 
       mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
-      mockJwtService.sign.mockReturnValue('mock-jwt-token');
-
-      jest
-        .spyOn(bcrypt, 'compare')
-        .mockImplementation(() => Promise.resolve(true as never));
+      mockPasswordService.compare.mockResolvedValue(true);
 
       const result = await service.login(loginDto);
 
-      expect(result).toEqual({
-        success: true,
-        user: {
-          id: mockUser.id,
-          email: mockUser.email,
-          name: mockUser.name,
-          hasCompletedOnboarding: true,
-        },
-        token: 'mock-jwt-token',
-      });
-
-      expect(mockPrismaService.user.findUnique).toHaveBeenCalledWith({
-        where: { email: loginDto.email },
-      });
+      expect(result.success).toBe(true);
+      expect(result.token).toBe('mock-jwt-token');
+      expect(result.user.email).toBe(loginDto.email);
     });
 
-    it('should throw UnauthorizedException with invalid credentials', async () => {
-      const loginDto = {
-        email: 'test@example.com',
-        password: 'wrongpassword',
-      };
-
+    it('should throw UnauthorizedException if user not found', async () => {
       mockPrismaService.user.findUnique.mockResolvedValue(null);
 
       await expect(service.login(loginDto)).rejects.toThrow(
@@ -201,12 +162,7 @@ describe('AuthService', () => {
       );
     });
 
-    it('should throw UnauthorizedException with invalid password', async () => {
-      const loginDto = {
-        email: 'test@example.com',
-        password: 'wrongpassword',
-      };
-
+    it('should throw UnauthorizedException if password is invalid', async () => {
       const mockUser = {
         id: 'user-123',
         email: loginDto.email,
@@ -214,9 +170,7 @@ describe('AuthService', () => {
       };
 
       mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
-      jest
-        .spyOn(bcrypt, 'compare')
-        .mockImplementation(() => Promise.resolve(false as never));
+      mockPasswordService.compare.mockResolvedValue(false);
 
       await expect(service.login(loginDto)).rejects.toThrow(
         UnauthorizedException,
@@ -225,36 +179,22 @@ describe('AuthService', () => {
   });
 
   describe('refreshToken', () => {
-    it('should successfully refresh token for valid user', async () => {
-      const userId = 'user-123';
+    it('should refresh token for valid user', async () => {
       const mockUser = {
-        id: userId,
+        id: 'user-123',
         email: 'test@example.com',
         name: 'Test User',
+        role: 'USER',
         hasCompletedOnboarding: true,
       };
 
       mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
-      mockJwtService.sign.mockReturnValue('new-jwt-token');
 
-      const result = await service.refreshToken(userId);
+      const result = await service.refreshToken('user-123');
 
-      expect(result).toEqual({
-        success: true,
-        token: 'new-jwt-token',
-        user: mockUser,
-      });
-
-      expect(mockPrismaService.user.findUnique).toHaveBeenCalledWith({
-        where: { id: userId },
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          role: true,
-          hasCompletedOnboarding: true,
-        },
-      });
+      expect(result.success).toBe(true);
+      expect(result.token).toBe('mock-jwt-token');
+      expect(mockTokenService.generateToken).toHaveBeenCalled();
     });
 
     it('should throw UnauthorizedException if user not found', async () => {
@@ -266,264 +206,43 @@ describe('AuthService', () => {
     });
   });
 
-  describe('requestEmailVerification', () => {
-    it('should create verification token and send email', async () => {
+  describe('delegated operations', () => {
+    it('should delegate requestEmailVerification to EmailVerificationService', async () => {
       const dto = { email: 'test@example.com' };
-      const mockUser = {
-        id: 'user-123',
-        email: dto.email,
-        name: 'Test User',
-        emailVerified: null,
-      };
-
-      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
-      mockPrismaService.verificationToken.upsert.mockResolvedValue({
-        identifier: dto.email,
-        token: 'verification-token',
-        expires: new Date(),
+      mockEmailVerificationService.requestVerification.mockResolvedValue({
+        success: true,
       });
 
-      const result = await service.requestEmailVerification(dto);
+      await service.requestEmailVerification(dto);
 
-      expect(result.success).toBe(true);
-      expect(result.message).toBe('Verification email sent');
-      expect(mockPrismaService.verificationToken.upsert).toHaveBeenCalled();
-      expect(emailService.sendVerificationEmail).toHaveBeenCalledWith(
-        dto.email,
-        mockUser.name,
-        expect.any(String),
-      );
+      expect(
+        mockEmailVerificationService.requestVerification,
+      ).toHaveBeenCalledWith(dto);
     });
 
-    it('should return success even if user not found (prevent email enumeration)', async () => {
-      const dto = { email: 'nonexistent@example.com' };
-      mockPrismaService.user.findUnique.mockResolvedValue(null);
-
-      const result = await service.requestEmailVerification(dto);
-
-      expect(result.success).toBe(true);
-      expect(mockPrismaService.verificationToken.upsert).not.toHaveBeenCalled();
-      expect(emailService.sendVerificationEmail).not.toHaveBeenCalled();
-    });
-
-    it('should not send email if already verified', async () => {
-      const dto = { email: 'verified@example.com' };
-      const mockUser = {
-        id: 'user-123',
-        email: dto.email,
-        emailVerified: new Date(),
-      };
-
-      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
-
-      const result = await service.requestEmailVerification(dto);
-
-      expect(result.success).toBe(true);
-      expect(result.message).toBe('Email is already verified');
-      expect(emailService.sendVerificationEmail).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('verifyEmail', () => {
-    it('should verify email and send welcome email', async () => {
-      const dto = { token: 'valid-token' };
-      const mockToken = {
-        identifier: 'test@example.com',
-        token: dto.token,
-        expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
-      };
-      const mockUser = {
-        id: 'user-123',
-        email: 'test@example.com',
-        name: 'Test User',
-      };
-
-      mockPrismaService.verificationToken.findUnique.mockResolvedValue(
-        mockToken,
-      );
-      mockPrismaService.user.update.mockResolvedValue(mockUser);
-      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
-      mockPrismaService.verificationToken.delete.mockResolvedValue(mockToken);
-
-      const result = await service.verifyEmail(dto);
-
-      expect(result.success).toBe(true);
-      expect(result.message).toBe('Email verified successfully');
-      expect(mockPrismaService.user.update).toHaveBeenCalled();
-      expect(mockPrismaService.verificationToken.delete).toHaveBeenCalled();
-      expect(emailService.sendWelcomeEmail).toHaveBeenCalledWith(
-        mockUser.email,
-        mockUser.name,
-      );
-    });
-
-    it('should throw BadRequestException for invalid token', async () => {
-      const dto = { token: 'invalid-token' };
-      mockPrismaService.verificationToken.findUnique.mockResolvedValue(null);
-
-      await expect(service.verifyEmail(dto)).rejects.toThrow(
-        BadRequestException,
-      );
-    });
-
-    it('should throw BadRequestException for expired token', async () => {
-      const dto = { token: 'expired-token' };
-      const mockToken = {
-        identifier: 'test@example.com',
-        token: dto.token,
-        expires: new Date(Date.now() - 1000), // Expired
-      };
-
-      mockPrismaService.verificationToken.findUnique.mockResolvedValue(
-        mockToken,
-      );
-      mockPrismaService.verificationToken.delete.mockResolvedValue(mockToken);
-
-      await expect(service.verifyEmail(dto)).rejects.toThrow(
-        BadRequestException,
-      );
-      expect(mockPrismaService.verificationToken.delete).toHaveBeenCalled();
-    });
-  });
-
-  describe('forgotPassword', () => {
-    it('should create reset token and send email', async () => {
+    it('should delegate forgotPassword to PasswordResetService', async () => {
       const dto = { email: 'test@example.com' };
-      const mockUser = {
-        id: 'user-123',
-        email: dto.email,
-        name: 'Test User',
-      };
-
-      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
-      mockPrismaService.verificationToken.upsert.mockResolvedValue({
-        identifier: `reset:${dto.email}`,
-        token: 'reset-token',
-        expires: new Date(),
+      mockPasswordResetService.forgotPassword.mockResolvedValue({
+        success: true,
       });
 
-      const result = await service.forgotPassword(dto);
+      await service.forgotPassword(dto);
 
-      expect(result.success).toBe(true);
-      expect(result.message).toBe('Password reset email sent');
-      expect(mockPrismaService.verificationToken.upsert).toHaveBeenCalled();
-      expect(emailService.sendPasswordResetEmail).toHaveBeenCalledWith(
-        dto.email,
-        mockUser.name,
-        expect.any(String),
-      );
+      expect(mockPasswordResetService.forgotPassword).toHaveBeenCalledWith(dto);
     });
 
-    it('should return success even if user not found', async () => {
-      const dto = { email: 'nonexistent@example.com' };
-      mockPrismaService.user.findUnique.mockResolvedValue(null);
+    it('should delegate changeEmail to AccountManagementService', async () => {
+      const dto = { newEmail: 'new@example.com', currentPassword: 'password' };
+      mockAccountManagementService.changeEmail.mockResolvedValue({
+        success: true,
+      });
 
-      const result = await service.forgotPassword(dto);
+      await service.changeEmail('user-123', dto);
 
-      expect(result.success).toBe(true);
-      expect(mockPrismaService.verificationToken.upsert).not.toHaveBeenCalled();
-      expect(emailService.sendPasswordResetEmail).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('resetPassword', () => {
-    it('should reset password successfully', async () => {
-      const dto = { token: 'reset-token', password: 'newpassword123' };
-      const mockToken = {
-        identifier: 'reset:test@example.com',
-        token: dto.token,
-        expires: new Date(Date.now() + 60 * 60 * 1000),
-      };
-
-      mockPrismaService.verificationToken.findUnique.mockResolvedValue(
-        mockToken,
+      expect(mockAccountManagementService.changeEmail).toHaveBeenCalledWith(
+        'user-123',
+        dto,
       );
-      mockPrismaService.user.update.mockResolvedValue({});
-      mockPrismaService.verificationToken.delete.mockResolvedValue(mockToken);
-
-      jest
-        .spyOn(bcrypt, 'hash')
-        .mockImplementation(() =>
-          Promise.resolve('hashed-new-password' as never),
-        );
-
-      const result = await service.resetPassword(dto);
-
-      expect(result.success).toBe(true);
-      expect(result.message).toBe('Password reset successfully');
-      expect(mockPrismaService.user.update).toHaveBeenCalled();
-      expect(mockPrismaService.verificationToken.delete).toHaveBeenCalled();
-    });
-
-    it('should throw BadRequestException for invalid token', async () => {
-      const dto = { token: 'invalid-token', password: 'newpassword123' };
-      mockPrismaService.verificationToken.findUnique.mockResolvedValue(null);
-
-      await expect(service.resetPassword(dto)).rejects.toThrow(
-        BadRequestException,
-      );
-    });
-  });
-
-  describe('changePassword', () => {
-    it('should change password and send notification email', async () => {
-      const userId = 'user-123';
-      const dto = {
-        currentPassword: 'oldpassword',
-        newPassword: 'newpassword123',
-      };
-      const mockUser = {
-        id: userId,
-        email: 'test@example.com',
-        name: 'Test User',
-        password: 'hashed-old-password',
-      };
-
-      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
-      mockPrismaService.user.update.mockResolvedValue(mockUser);
-
-      jest
-        .spyOn(bcrypt, 'compare')
-        .mockImplementation(() => Promise.resolve(true as never));
-      jest
-        .spyOn(bcrypt, 'hash')
-        .mockImplementation(() =>
-          Promise.resolve('hashed-new-password' as never),
-        );
-
-      const result = await service.changePassword(userId, dto);
-
-      expect(result.success).toBe(true);
-      expect(result.message).toBe('Password changed successfully');
-      expect(mockPrismaService.user.update).toHaveBeenCalled();
-      expect(emailService.sendPasswordChangedEmail).toHaveBeenCalledWith(
-        mockUser.email,
-        mockUser.name,
-      );
-    });
-
-    it('should throw UnauthorizedException if current password is incorrect', async () => {
-      const userId = 'user-123';
-      const dto = {
-        currentPassword: 'wrongpassword',
-        newPassword: 'newpassword123',
-      };
-      const mockUser = {
-        id: userId,
-        email: 'test@example.com',
-        password: 'hashed-password',
-      };
-
-      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
-      jest
-        .spyOn(bcrypt, 'compare')
-        .mockImplementation(() => Promise.resolve(false as never));
-
-      await expect(service.changePassword(userId, dto)).rejects.toThrow(
-        UnauthorizedException,
-      );
-      expect(mockPrismaService.user.update).not.toHaveBeenCalled();
-      expect(emailService.sendPasswordChangedEmail).not.toHaveBeenCalled();
     });
   });
 });

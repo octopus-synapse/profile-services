@@ -21,6 +21,8 @@ import {
   EmailVerificationService,
   PasswordResetService,
   AccountManagementService,
+  AuthCoreService,
+  TokenRefreshService,
 } from './services';
 
 @Module({
@@ -54,15 +56,21 @@ import {
     AuthAccountController,
   ],
   providers: [
-    AuthService,
-    JwtStrategy,
-    LocalStrategy,
+    // Core services
     TokenService,
     PasswordService,
     VerificationTokenService,
+    // Feature services
+    AuthCoreService,
+    TokenRefreshService,
     EmailVerificationService,
     PasswordResetService,
     AccountManagementService,
+    // Facade
+    AuthService,
+    // Strategies
+    JwtStrategy,
+    LocalStrategy,
   ],
   exports: [AuthService, JwtModule, TokenService, PasswordService],
 })
