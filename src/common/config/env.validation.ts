@@ -1,53 +1,105 @@
 import { plainToInstance } from 'class-transformer';
-import { validateSync } from 'class-validator';
-import { DatabaseEnvironmentVariables } from './env-database.validation';
-import { AuthEnvironmentVariables } from './env-auth.validation';
 import {
-  ServicesEnvironmentVariables,
-  Environment,
-} from './env-services.validation';
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUrl,
+  Max,
+  Min,
+  validateSync,
+} from 'class-validator';
 
 /**
- * Combined Environment Variables
- * Merges all environment variable classes
+ * Environment types
  */
-export class EnvironmentVariables
-  implements
-    DatabaseEnvironmentVariables,
-    AuthEnvironmentVariables,
-    ServicesEnvironmentVariables
-{
+export enum Environment {
+  Development = 'development',
+  Production = 'production',
+  Test = 'test',
+}
+
+/**
+ * Combined Environment Variables with validation decorators
+ */
+export class EnvironmentVariables {
   // App config
+  @IsEnum(Environment)
+  @IsOptional()
   NODE_ENV: Environment = Environment.Development;
+
+  @IsNumber()
+  @Min(1000)
+  @Max(65535)
+  @IsOptional()
   PORT: number = 3001;
 
   // Database
+  @IsNotEmpty()
+  @IsString()
   DATABASE_URL: string;
 
   // Auth
+  @IsNotEmpty()
+  @IsString()
   JWT_SECRET: string;
+
+  @IsOptional()
+  @IsString()
   JWT_EXPIRATION?: string;
 
   // Redis
+  @IsOptional()
+  @IsString()
   REDIS_HOST?: string;
+
+  @IsOptional()
+  @IsNumber()
   REDIS_PORT?: number;
+
+  @IsOptional()
+  @IsString()
   REDIS_PASSWORD?: string;
 
   // MinIO
+  @IsOptional()
+  @IsString()
   MINIO_ENDPOINT?: string;
+
+  @IsOptional()
+  @IsString()
   MINIO_ACCESS_KEY?: string;
+
+  @IsOptional()
+  @IsString()
   MINIO_SECRET_KEY?: string;
+
+  @IsOptional()
+  @IsString()
   MINIO_BUCKET?: string;
 
   // Email
+  @IsOptional()
+  @IsString()
   SENDGRID_API_KEY?: string;
+
+  @IsOptional()
+  @IsString()
   EMAIL_FROM?: string;
+
+  @IsOptional()
+  @IsString()
   EMAIL_FROM_NAME?: string;
 
   // Frontend
+  @IsOptional()
+  @IsUrl({ require_tld: false })
   FRONTEND_URL?: string;
 
   // Logging
+  @IsOptional()
+  @IsString()
   LOG_LEVEL?: string;
 }
 
@@ -81,7 +133,7 @@ export function validate(
   return validatedConfig;
 }
 
-// Re-export for convenience
-export { DatabaseEnvironmentVariables };
-export { AuthEnvironmentVariables };
-export { ServicesEnvironmentVariables, Environment };
+// Re-export individual validators for modular usage
+export { DatabaseEnvironmentVariables } from './env-database.validation';
+export { AuthEnvironmentVariables } from './env-auth.validation';
+export { ServicesEnvironmentVariables } from './env-services.validation';

@@ -4,7 +4,8 @@
  */
 
 import { TechAreaType } from '../interfaces';
-import techSkillsData from '../../../data/tech-skills-data.json';
+import * as path from 'path';
+import * as fs from 'fs';
 
 export interface TechAreaData {
   type: TechAreaType;
@@ -29,7 +30,21 @@ export interface TechNicheData {
   order: number;
 }
 
-export const TECH_AREAS: TechAreaData[] =
-  techSkillsData.techAreas as TechAreaData[];
-export const TECH_NICHES: TechNicheData[] =
-  techSkillsData.techNiches as TechNicheData[];
+interface TechSkillsDataFile {
+  techAreas: TechAreaData[];
+  techNiches: TechNicheData[];
+}
+
+function loadTechSkillsData(): TechSkillsDataFile {
+  const dataPath = path.resolve(
+    __dirname,
+    '../../../data/tech-skills-data.json',
+  );
+  const fileContent = fs.readFileSync(dataPath, 'utf-8');
+  return JSON.parse(fileContent) as TechSkillsDataFile;
+}
+
+const techSkillsData = loadTechSkillsData();
+
+export const TECH_AREAS: TechAreaData[] = techSkillsData.techAreas;
+export const TECH_NICHES: TechNicheData[] = techSkillsData.techNiches;
