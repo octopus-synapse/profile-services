@@ -91,6 +91,10 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/data ./dist/data
+COPY --from=builder /app/dist/prisma.config.js ./prisma.config.js
+
+# Install Prisma CLI for migrations
+RUN npm install -g prisma@6.17.1
 
 # Change ownership to nestjs user
 RUN chown -R nestjs:nodejs /app
