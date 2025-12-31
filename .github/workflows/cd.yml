@@ -10,6 +10,10 @@ permissions:
   actions: read
   packages: write
 
+concurrency:
+  group: production
+  cancel-in-progress: true
+
 jobs:
   deploy:
     uses: octopus-synapse/octopus-workflows/.github/workflows/cd.yml@main
