@@ -37,9 +37,11 @@ export class PasswordResetService {
 
     // Always return success to prevent email enumeration
     if (!user) {
-      return this.buildSuccessResponse(
-        'If the email exists, a password reset link has been sent',
-      );
+      return {
+        success: true,
+        message: 'If the email exists, a password reset link has been sent',
+        emailSent: false, // Don't reveal if user exists, but indicate email wasn't sent
+      };
     }
 
     const token = await this.tokenService.createPasswordResetToken(dto.email);
@@ -48,11 +50,34 @@ export class PasswordResetService {
       email: dto.email,
     });
 
-    await this.sendPasswordResetEmail(dto.email, user.name, token);
+    // Try to send email and track if it was successful
+    let emailSent = false;
+    try {
+      await this.sendPasswordResetEmail(dto.email, user.name, token);
+      emailSent = true;
+    } catch (error) {
+      // Email failed to send, but we still created the token
+      // Log the error but don't throw to prevent email enumeration
+      this.logger.error(
+        'Failed to send password reset email',
+        error instanceof Error ? error.stack : 'Unknown error',
+        this.context,
+        { email: dto.email },
+      );
+      // Return success but indicate email was not sent
+      // This prevents email enumeration while still informing the frontend
+      return {
+        success: true,
+        message: 'If the email exists, a password reset link has been sent',
+        emailSent: false,
+        ...(process.env.NODE_ENV !== 'production' && { token }),
+      };
+    }
 
     return {
       success: true,
       message: 'Password reset email sent',
+      emailSent: true,
       ...(process.env.NODE_ENV !== 'production' && { token }),
     };
   }
@@ -136,19 +161,12 @@ export class PasswordResetService {
     name: string | null,
     token: string,
   ): Promise<void> {
-    try {
-      await this.emailService.sendPasswordResetEmail(
-        email,
-        name ?? 'Usuário',
-        token,
-      );
-    } catch (error) {
-      this.logger.error(
-        'Failed to send password reset email',
-        error instanceof Error ? error.stack : 'Unknown error',
-        this.context,
-      );
-    }
+    // Don't catch error here - let it propagate so forgotPassword can track if email was sent
+    await this.emailService.sendPasswordResetEmail(
+      email,
+      name ?? 'Usuário',
+      token,
+    );
   }
 
   private async sendPasswordChangedEmail(

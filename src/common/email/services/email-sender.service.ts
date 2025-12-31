@@ -26,15 +26,21 @@ export class EmailSenderService {
     private readonly logger: AppLoggerService,
   ) {
     const apiKey = this.configService.get<string>('SENDGRID_API_KEY');
+    // Support both EMAIL_FROM and SENDGRID_EMAIL_FROM for compatibility
     this.fromEmail =
-      this.configService.get<string>('EMAIL_FROM') ?? 'noreply@profile.com';
+      this.configService.get<string>('EMAIL_FROM') ??
+      this.configService.get<string>('SENDGRID_EMAIL_FROM') ??
+      'noreply@profile.com';
     this.fromName =
       this.configService.get<string>('EMAIL_FROM_NAME') ?? 'ProFile';
 
     if (apiKey) {
       sgMail.setApiKey(apiKey);
       this.isConfigured = true;
-      this.logger.log('SendGrid configured successfully', 'EmailSenderService');
+      this.logger.log('SendGrid configured successfully', 'EmailSenderService', {
+        fromEmail: this.fromEmail,
+        hasApiKey: !!apiKey,
+      });
     } else {
       this.isConfigured = false;
       this.logger.warn(
@@ -76,16 +82,41 @@ export class EmailSenderService {
         subject: options.subject,
       });
     } catch (error) {
-      this.logger.error(
-        'Failed to send email',
-        error instanceof Error ? error.stack : 'Unknown error',
-        'EmailSenderService',
-        {
-          to: options.to,
-          subject: options.subject,
-          error: error instanceof Error ? error.message : 'Unknown error',
-        },
-      );
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorDetails: any = {
+        to: options.to,
+        subject: options.subject,
+        from: this.fromEmail,
+        error: errorMessage,
+      };
+
+      // Add more details for SendGrid errors
+      if (error instanceof Error && 'response' in error) {
+        const sgError = error as any;
+        if (sgError.response?.body) {
+          errorDetails.sendgridError = sgError.response.body;
+        }
+        if (sgError.response?.statusCode) {
+          errorDetails.statusCode = sgError.response.statusCode;
+        }
+      }
+
+      // Provide helpful error messages for common issues
+      if (errorMessage.includes('Forbidden') || errorMessage.includes('403')) {
+        this.logger.error(
+          'SendGrid Forbidden error. Common causes: 1) Invalid API key, 2) Email "from" not verified in SendGrid, 3) Domain not verified, 4) API key lacks send permissions',
+          error instanceof Error ? error.stack : 'Unknown error',
+          'EmailSenderService',
+          errorDetails,
+        );
+      } else {
+        this.logger.error(
+          'Failed to send email',
+          error instanceof Error ? error.stack : 'Unknown error',
+          'EmailSenderService',
+          errorDetails,
+        );
+      }
       throw error;
     }
   }
