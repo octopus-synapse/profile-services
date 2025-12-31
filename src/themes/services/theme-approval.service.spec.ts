@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/unbound-method */
 /**
  * Theme Approval Service Tests
  * Tests for theme submission and review workflow

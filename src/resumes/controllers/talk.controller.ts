@@ -2,11 +2,7 @@ import { Controller, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { TalkService } from '../services/talk.service';
-import {
-  CreateTalkDto,
-  UpdateTalkDto,
-  TalkResponseDto,
-} from '../dto/talk.dto';
+import { CreateTalkDto, UpdateTalkDto, TalkResponseDto } from '../dto/talk.dto';
 import {
   BaseSubResourceController,
   SubResourceControllerConfig,

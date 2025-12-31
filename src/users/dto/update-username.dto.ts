@@ -1,9 +1,4 @@
-import {
-  IsString,
-  MinLength,
-  MaxLength,
-  Matches,
-} from 'class-validator';
+import { IsString, MinLength, MaxLength, Matches } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import {
   STRING_LENGTH,
@@ -25,7 +20,8 @@ export class UpdateUsernameDto {
     message: `Username must be at most ${STRING_LENGTH.MAX.USERNAME} characters`,
   })
   @Matches(REGEX.USERNAME, {
-    message: 'Username can only contain letters, numbers, underscores, and hyphens',
+    message:
+      'Username can only contain letters, numbers, underscores, and hyphens',
   })
   username: string;
 }

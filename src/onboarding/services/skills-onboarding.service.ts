@@ -11,9 +11,9 @@ export class SkillsOnboardingService {
   async saveSkills(resumeId: string, data: OnboardingData) {
     const { skillsStep } = data;
 
-    if (!skillsStep || skillsStep.noSkills || !skillsStep.skills?.length) {
+    if (skillsStep.noSkills || !skillsStep.skills?.length) {
       this.logger.log(
-        skillsStep?.noSkills ? 'User selected noSkills' : 'No skills provided',
+        skillsStep.noSkills ? 'User selected noSkills' : 'No skills provided',
       );
       return;
     }

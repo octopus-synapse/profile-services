@@ -8,7 +8,10 @@ import {
   BulkCreateSkillsDto,
 } from '../dto/skill.dto';
 import { PaginatedResult } from '../dto/pagination.dto';
-import { ApiResponseHelper, ApiResponse } from '../../common/dto/api-response.dto';
+import {
+  ApiResponseHelper,
+  ApiResponse,
+} from '../../common/dto/api-response.dto';
 import { BaseSubResourceService } from './base';
 
 @Injectable()

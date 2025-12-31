@@ -1,0 +1,58 @@
+// Enums shared across models
+
+enum UserRole {
+  USER
+  ADMIN
+  APPROVER
+}
+
+enum ThemeStatus {
+  DRAFT
+  PRIVATE
+  PENDING_APPROVAL
+  PUBLISHED
+  REJECTED
+}
+
+enum ThemeCategory {
+  PROFESSIONAL
+  CREATIVE
+  TECHNICAL
+  ACADEMIC
+  MINIMAL
+  MODERN
+  CLASSIC
+  EXECUTIVE
+}
+
+enum MecSyncStatus {
+  RUNNING
+  SUCCESS
+  FAILED
+  PARTIAL
+}
+
+enum TechAreaType {
+  DEVELOPMENT
+  DEVOPS
+  DATA
+  SECURITY
+  DESIGN
+  PRODUCT
+  QA
+  INFRASTRUCTURE
+  OTHER
+}
+
+enum SkillType {
+  LANGUAGE
+  FRAMEWORK
+  LIBRARY
+  DATABASE
+  TOOL
+  PLATFORM
+  METHODOLOGY
+  SOFT_SKILL
+  CERTIFICATION
+  OTHER
+}

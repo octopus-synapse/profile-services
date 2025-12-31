@@ -2,7 +2,6 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { OnboardingData } from '../schemas/onboarding.schema';
 import { DateUtils } from '../../common/utils/date.utils';
-import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class EducationOnboardingService {

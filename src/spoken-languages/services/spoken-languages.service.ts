@@ -5,6 +5,7 @@
 
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { APP_CONSTANTS } from '../../common/constants/app.constants';
 
 export interface SpokenLanguageDto {
   code: string;
@@ -40,9 +41,10 @@ export class SpokenLanguagesService {
   /**
    * Search spoken languages by name (in any supported language)
    */
-  async search(query: string, limit = 10): Promise<SpokenLanguageDto[]> {
-    const searchTerm = `%${query.toLowerCase()}%`;
-
+  async search(
+    query: string,
+    limit: number = APP_CONSTANTS.SEARCH_AUTOCOMPLETE_LIMIT,
+  ): Promise<SpokenLanguageDto[]> {
     const languages = await this.prisma.spokenLanguage.findMany({
       where: {
         isActive: true,

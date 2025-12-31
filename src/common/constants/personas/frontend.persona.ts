@@ -1,0 +1,48 @@
+import { TechPersona } from './tech-persona.enum';
+import { PersonaConfig } from './persona-config.interface';
+
+export const FRONTEND_PERSONA: PersonaConfig = {
+  id: TechPersona.FRONTEND,
+  name: 'Frontend Developer',
+  description: 'React, Vue, Angular, Web Performance',
+  icon: '🌐',
+  primaryColor: '#6366F1',
+  accentColor: '#4F46E5',
+  gradient: ['#6366F1', '#EC4899'],
+  skillCategories: [
+    'JavaScript Frameworks',
+    'CSS/Styling',
+    'State Management',
+    'Build Tools',
+    'Web Performance',
+    'Accessibility',
+    'Testing',
+  ],
+  achievementTypes: [
+    'npm_package',
+    'lighthouse_score',
+    'github_stars',
+    'performance_improvement',
+  ],
+  prioritySections: ['projects', 'openSource', 'experiences', 'achievements'],
+  keywords: [
+    'react',
+    'vue',
+    'angular',
+    'typescript',
+    'javascript',
+    'nextjs',
+    'tailwind',
+    'css',
+    'sass',
+    'webpack',
+    'vite',
+    'redux',
+    'zustand',
+    'testing-library',
+    'jest',
+    'cypress',
+    'web-performance',
+    'pwa',
+  ],
+};

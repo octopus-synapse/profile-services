@@ -88,8 +88,8 @@ export const getBaseTemplate = (content: string, title: string) => `
     <div class="email-footer">
       <p>&copy; ${new Date().getFullYear()} ProFile. Todos os direitos reservados.</p>
       <p>
-        <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}">Acessar ProFile</a> |
-        <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/help">Ajuda</a>
+        <a href="${process.env.FRONTEND_URL ?? 'http://localhost:3000'}">Acessar ProFile</a> |
+        <a href="${process.env.FRONTEND_URL ?? 'http://localhost:3000'}/help">Ajuda</a>
       </p>
     </div>
   </div>

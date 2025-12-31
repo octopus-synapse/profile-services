@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { ForbiddenException, Logger, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
@@ -97,31 +94,31 @@ describe('BaseSubResourceService', () => {
 
       // Access private method through public methods
       await expect(
-        service.findAll(mockResumeId, mockUserId),
+        service.listForResume(mockResumeId, mockUserId),
       ).resolves.not.toThrow();
     });
 
     it('should throw ForbiddenException when resume not found', async () => {
       mockResumesRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.findAll(mockResumeId, mockUserId)).rejects.toThrow(
-        ForbiddenException,
-      );
-      await expect(service.findAll(mockResumeId, mockUserId)).rejects.toThrow(
-        'Resume not found or access denied',
-      );
+      await expect(
+        service.listForResume(mockResumeId, mockUserId),
+      ).rejects.toThrow(ForbiddenException);
+      await expect(
+        service.listForResume(mockResumeId, mockUserId),
+      ).rejects.toThrow('Resume not found or access denied');
     });
 
     it('should throw ForbiddenException when user does not own resume', async () => {
       mockResumesRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.findAll(mockResumeId, 'other-user')).rejects.toThrow(
-        ForbiddenException,
-      );
+      await expect(
+        service.listForResume(mockResumeId, 'other-user'),
+      ).rejects.toThrow(ForbiddenException);
     });
   });
 
-  describe('findAll', () => {
+  describe('listForResume', () => {
     const mockPaginatedResult: PaginatedResult<TestEntity> = {
       data: [mockEntity],
       meta: {
@@ -141,7 +138,7 @@ describe('BaseSubResourceService', () => {
     it('should return paginated results for valid owner', async () => {
       mockRepository.findAll.mockResolvedValue(mockPaginatedResult);
 
-      const result = await service.findAll(mockResumeId, mockUserId);
+      const result = await service.listForResume(mockResumeId, mockUserId);
 
       expect(result).toEqual(mockPaginatedResult);
       expect(mockResumesRepository.findOne).toHaveBeenCalledWith(
@@ -154,7 +151,7 @@ describe('BaseSubResourceService', () => {
     it('should pass custom pagination parameters', async () => {
       mockRepository.findAll.mockResolvedValue(mockPaginatedResult);
 
-      await service.findAll(mockResumeId, mockUserId, 2, 10);
+      await service.listForResume(mockResumeId, mockUserId, 2, 10);
 
       expect(mockRepository.findAll).toHaveBeenCalledWith(mockResumeId, 2, 10);
     });
@@ -162,7 +159,7 @@ describe('BaseSubResourceService', () => {
     it('should use default pagination when not provided', async () => {
       mockRepository.findAll.mockResolvedValue(mockPaginatedResult);
 
-      await service.findAll(mockResumeId, mockUserId);
+      await service.listForResume(mockResumeId, mockUserId);
 
       expect(mockRepository.findAll).toHaveBeenCalledWith(mockResumeId, 1, 20);
     });
@@ -176,13 +173,16 @@ describe('BaseSubResourceService', () => {
     it('should return entity when found', async () => {
       mockRepository.findOne.mockResolvedValue(mockEntity);
 
-      const result = await service.findOne(
+      const result = await service.getById(
         mockResumeId,
         mockEntityId,
         mockUserId,
       );
 
-      expect(result).toEqual(mockEntity);
+      expect(result).toEqual({
+        success: true,
+        data: mockEntity,
+      });
       expect(mockRepository.findOne).toHaveBeenCalledWith(
         mockEntityId,
         mockResumeId,
@@ -193,10 +193,10 @@ describe('BaseSubResourceService', () => {
       mockRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        service.findOne(mockResumeId, mockEntityId, mockUserId),
+        service.getById(mockResumeId, mockEntityId, mockUserId),
       ).rejects.toThrow(NotFoundException);
       await expect(
-        service.findOne(mockResumeId, mockEntityId, mockUserId),
+        service.getById(mockResumeId, mockEntityId, mockUserId),
       ).rejects.toThrow('TestEntity not found');
     });
 
@@ -204,7 +204,7 @@ describe('BaseSubResourceService', () => {
       mockResumesRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        service.findOne(mockResumeId, mockEntityId, mockUserId),
+        service.getById(mockResumeId, mockEntityId, mockUserId),
       ).rejects.toThrow(ForbiddenException);
 
       expect(mockRepository.findOne).not.toHaveBeenCalled();
@@ -222,9 +222,16 @@ describe('BaseSubResourceService', () => {
     it('should create entity for valid owner', async () => {
       mockRepository.create.mockResolvedValue(createdEntity);
 
-      const result = await service.create(mockResumeId, mockUserId, createDto);
+      const result = await service.addToResume(
+        mockResumeId,
+        mockUserId,
+        createDto,
+      );
 
-      expect(result).toEqual(createdEntity);
+      expect(result).toEqual({
+        success: true,
+        data: createdEntity,
+      });
       expect(mockRepository.create).toHaveBeenCalledWith(
         mockResumeId,
         createDto,
@@ -235,7 +242,7 @@ describe('BaseSubResourceService', () => {
       mockResumesRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        service.create(mockResumeId, mockUserId, createDto),
+        service.addToResume(mockResumeId, mockUserId, createDto),
       ).rejects.toThrow(ForbiddenException);
 
       expect(mockRepository.create).not.toHaveBeenCalled();
@@ -244,7 +251,7 @@ describe('BaseSubResourceService', () => {
     it('should delegate creation to repository', async () => {
       mockRepository.create.mockResolvedValue(createdEntity);
 
-      await service.create(mockResumeId, mockUserId, createDto);
+      await service.addToResume(mockResumeId, mockUserId, createDto);
 
       expect(mockRepository.create).toHaveBeenCalledWith(
         mockResumeId,
@@ -264,14 +271,17 @@ describe('BaseSubResourceService', () => {
     it('should update entity for valid owner', async () => {
       mockRepository.update.mockResolvedValue(updatedEntity);
 
-      const result = await service.update(
+      const result = await service.updateById(
         mockResumeId,
         mockEntityId,
         mockUserId,
         updateDto,
       );
 
-      expect(result).toEqual(updatedEntity);
+      expect(result).toEqual({
+        success: true,
+        data: updatedEntity,
+      });
       expect(mockRepository.update).toHaveBeenCalledWith(
         mockEntityId,
         mockResumeId,
@@ -283,7 +293,7 @@ describe('BaseSubResourceService', () => {
       mockRepository.update.mockResolvedValue(null);
 
       await expect(
-        service.update(mockResumeId, mockEntityId, mockUserId, updateDto),
+        service.updateById(mockResumeId, mockEntityId, mockUserId, updateDto),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -291,7 +301,7 @@ describe('BaseSubResourceService', () => {
       mockResumesRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        service.update(mockResumeId, mockEntityId, mockUserId, updateDto),
+        service.updateById(mockResumeId, mockEntityId, mockUserId, updateDto),
       ).rejects.toThrow(ForbiddenException);
 
       expect(mockRepository.update).not.toHaveBeenCalled();
@@ -306,7 +316,7 @@ describe('BaseSubResourceService', () => {
     it('should delete entity for valid owner', async () => {
       mockRepository.delete.mockResolvedValue(true);
 
-      const result = await service.remove(
+      const result = await service.deleteById(
         mockResumeId,
         mockEntityId,
         mockUserId,
@@ -326,10 +336,10 @@ describe('BaseSubResourceService', () => {
       mockRepository.delete.mockResolvedValue(false);
 
       await expect(
-        service.remove(mockResumeId, mockEntityId, mockUserId),
+        service.deleteById(mockResumeId, mockEntityId, mockUserId),
       ).rejects.toThrow(NotFoundException);
       await expect(
-        service.remove(mockResumeId, mockEntityId, mockUserId),
+        service.deleteById(mockResumeId, mockEntityId, mockUserId),
       ).rejects.toThrow('TestEntity not found');
     });
 
@@ -337,7 +347,7 @@ describe('BaseSubResourceService', () => {
       mockResumesRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        service.remove(mockResumeId, mockEntityId, mockUserId),
+        service.deleteById(mockResumeId, mockEntityId, mockUserId),
       ).rejects.toThrow(ForbiddenException);
 
       expect(mockRepository.delete).not.toHaveBeenCalled();
@@ -354,7 +364,11 @@ describe('BaseSubResourceService', () => {
     it('should reorder entities for valid owner', async () => {
       mockRepository.reorder.mockResolvedValue(undefined);
 
-      const result = await service.reorder(mockResumeId, mockUserId, ids);
+      const result = await service.reorderInResume(
+        mockResumeId,
+        mockUserId,
+        ids,
+      );
 
       expect(result).toEqual({
         message: 'TestEntitys reordered successfully',
@@ -367,7 +381,7 @@ describe('BaseSubResourceService', () => {
       mockResumesRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        service.reorder(mockResumeId, mockUserId, ids),
+        service.reorderInResume(mockResumeId, mockUserId, ids),
       ).rejects.toThrow(ForbiddenException);
 
       expect(mockRepository.reorder).not.toHaveBeenCalled();
@@ -376,7 +390,7 @@ describe('BaseSubResourceService', () => {
     it('should delegate to repository correctly', async () => {
       mockRepository.reorder.mockResolvedValue(undefined);
 
-      await service.reorder(mockResumeId, mockUserId, ids);
+      await service.reorderInResume(mockResumeId, mockUserId, ids);
 
       expect(mockRepository.reorder).toHaveBeenCalledWith(mockResumeId, ids);
     });

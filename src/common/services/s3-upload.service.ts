@@ -21,18 +21,18 @@ export class S3UploadService {
 
     this._isEnabled = !!(endpoint && accessKeyId && secretAccessKey && bucket);
 
-    if (this._isEnabled) {
+    if (this._isEnabled && endpoint && accessKeyId && secretAccessKey) {
       try {
         this.client = new S3Client({
-          endpoint: endpoint!,
+          endpoint,
           region: 'us-east-1', // MinIO requires a region but doesn't use it
           credentials: {
-            accessKeyId: accessKeyId!,
-            secretAccessKey: secretAccessKey!,
+            accessKeyId,
+            secretAccessKey,
           },
           forcePathStyle: true, // Required for MinIO
         });
-        this.bucket = bucket || null;
+        this.bucket = bucket ?? null;
         this.logger.log('MinIO upload service initialized', 'S3UploadService', {
           endpoint,
           bucket,

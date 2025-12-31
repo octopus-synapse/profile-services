@@ -1,0 +1,76 @@
+/**
+ * Admin Stats Service Tests
+ */
+
+import { Test, TestingModule } from '@nestjs/testing';
+import { AdminStatsService } from './admin-stats.service';
+import { PrismaService } from '../../prisma/prisma.service';
+
+describe('AdminStatsService', () => {
+  let service: AdminStatsService;
+  let prisma: jest.Mocked<PrismaService>;
+
+  beforeEach(async () => {
+    const mockPrismaService = {
+      user: {
+        count: jest.fn(),
+      },
+      resume: {
+        count: jest.fn(),
+      },
+    };
+
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        AdminStatsService,
+        { provide: PrismaService, useValue: mockPrismaService },
+      ],
+    }).compile();
+
+    service = module.get<AdminStatsService>(AdminStatsService);
+    prisma = module.get(PrismaService);
+  });
+
+  describe('getStats', () => {
+    it('should return correct statistics', async () => {
+      (prisma.user.count as jest.Mock)
+        .mockResolvedValueOnce(100) // totalUsers
+        .mockResolvedValueOnce(5) // totalAdmins
+        .mockResolvedValueOnce(80) // usersWithOnboarding
+        .mockResolvedValueOnce(15); // recentUsers
+
+      (prisma.resume.count as jest.Mock).mockResolvedValue(200);
+
+      const result = await service.getStats();
+
+      expect(result).toEqual({
+        users: {
+          total: 100,
+          admins: 5,
+          regular: 95,
+          withOnboarding: 80,
+          recentSignups: 15,
+        },
+        resumes: {
+          total: 200,
+        },
+      });
+    });
+
+    it('should filter admins correctly', async () => {
+      (prisma.user.count as jest.Mock).mockImplementation(
+        (args: { where?: { role?: string } }) => {
+          if (args?.where?.role === 'ADMIN') return Promise.resolve(3);
+          return Promise.resolve(50);
+        },
+      );
+      (prisma.resume.count as jest.Mock).mockResolvedValue(100);
+
+      await service.getStats();
+
+      expect(prisma.user.count).toHaveBeenCalledWith({
+        where: { role: 'ADMIN' },
+      });
+    });
+  });
+});

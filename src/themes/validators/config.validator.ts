@@ -3,6 +3,7 @@
  */
 
 import { BadRequestException } from '@nestjs/common';
+import { ERROR_MESSAGES } from '../../common/constants/app.constants';
 
 const VALID_LAYOUT_TYPES = [
   'single-column',
@@ -35,33 +36,38 @@ const VALID_SECTION_IDS = [
 
 export function validateLayoutConfig(layout: unknown): void {
   if (!layout || typeof layout !== 'object') {
-    throw new BadRequestException('Layout config is required');
+    throw new BadRequestException(ERROR_MESSAGES.LAYOUT_CONFIG_REQUIRED);
   }
 
   const l = layout as Record<string, unknown>;
 
-  if (l.type && !VALID_LAYOUT_TYPES.includes(l.type as string)) {
-    throw new BadRequestException(`Invalid layout type: ${l.type}`);
+  if (
+    l.type &&
+    typeof l.type === 'string' &&
+    !VALID_LAYOUT_TYPES.includes(l.type)
+  ) {
+    throw new BadRequestException(`Invalid layout type: ${String(l.type)}`);
   }
 }
 
 export function validateSectionsConfig(sections: unknown): void {
   if (!Array.isArray(sections)) {
-    throw new BadRequestException('Sections must be an array');
+    throw new BadRequestException(ERROR_MESSAGES.SECTIONS_MUST_BE_ARRAY);
   }
 
-  for (const section of sections) {
-    if (!section.id || !VALID_SECTION_IDS.includes(section.id)) {
-      throw new BadRequestException(`Invalid section id: ${section.id}`);
+  for (const section of sections as Array<Record<string, unknown>>) {
+    const sectionId = section.id as string;
+    if (!sectionId || !VALID_SECTION_IDS.includes(sectionId)) {
+      throw new BadRequestException(`Invalid section id: ${String(sectionId)}`);
     }
     if (typeof section.visible !== 'boolean') {
       throw new BadRequestException(
-        `Section ${section.id} must have visible property`,
+        `Section ${sectionId} must have visible property`,
       );
     }
     if (typeof section.order !== 'number') {
       throw new BadRequestException(
-        `Section ${section.id} must have order property`,
+        `Section ${sectionId} must have order property`,
       );
     }
   }
@@ -71,7 +77,7 @@ export function validateItemOverrides(overrides: unknown): void {
   if (!overrides) return;
 
   if (typeof overrides !== 'object') {
-    throw new BadRequestException('Item overrides must be an object');
+    throw new BadRequestException(ERROR_MESSAGES.ITEM_OVERRIDES_MUST_BE_OBJECT);
   }
 
   for (const [sectionId, items] of Object.entries(overrides)) {

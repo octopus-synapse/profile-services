@@ -16,7 +16,6 @@ const mockResumesRepository = {
 
 describe('ResumesService', () => {
   let service: ResumesService;
-  let repository: ResumesRepository;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -30,7 +29,6 @@ describe('ResumesService', () => {
     }).compile();
 
     service = module.get<ResumesService>(ResumesService);
-    repository = module.get<ResumesRepository>(ResumesRepository);
   });
 
   afterEach(() => {
@@ -48,7 +46,10 @@ describe('ResumesService', () => {
       mockResumesRepository.findAll.mockResolvedValue(expectedResumes);
 
       const result = await service.findAll(userId);
-      expect(result).toEqual(expectedResumes);
+      expect(result).toEqual({
+        success: true,
+        data: expectedResumes,
+      });
       expect(mockResumesRepository.findAll).toHaveBeenCalledWith(userId);
     });
   });
@@ -61,7 +62,10 @@ describe('ResumesService', () => {
       mockResumesRepository.findOne.mockResolvedValue(expectedResume);
 
       const result = await service.findOne(resumeId, userId);
-      expect(result).toEqual(expectedResume);
+      expect(result).toEqual({
+        success: true,
+        data: expectedResume,
+      });
       expect(mockResumesRepository.findOne).toHaveBeenCalledWith(
         resumeId,
         userId,
@@ -90,7 +94,10 @@ describe('ResumesService', () => {
       mockResumesRepository.create.mockResolvedValue(expectedResume);
 
       const result = await service.create(userId, createResumeDto);
-      expect(result).toEqual(expectedResume);
+      expect(result).toEqual({
+        success: true,
+        data: expectedResume,
+      });
       expect(mockResumesRepository.create).toHaveBeenCalledWith(
         userId,
         createResumeDto,
@@ -107,7 +114,10 @@ describe('ResumesService', () => {
       mockResumesRepository.update.mockResolvedValue(updatedResume);
 
       const result = await service.update(resumeId, userId, updateResumeDto);
-      expect(result).toEqual(updatedResume);
+      expect(result).toEqual({
+        success: true,
+        data: updatedResume,
+      });
       expect(mockResumesRepository.update).toHaveBeenCalledWith(
         resumeId,
         userId,

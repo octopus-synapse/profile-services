@@ -1,54 +1,49 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConfigService } from '@nestjs/config';
 import { HttpException } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
 import { GitHubService } from './github.service';
+import {
+  GitHubApiService,
+  GitHubSyncService,
+  GitHubDatabaseService,
+} from './services';
 
-// Mock the global fetch
-const mockFetch = jest.fn();
-global.fetch = mockFetch;
-
-const mockPrismaService = {
-  resume: {
-    update: jest.fn(),
-    findUnique: jest.fn().mockResolvedValue({
-      id: 'resume-id',
-      userId: 'user-id',
-    }),
-  },
-  openSourceContribution: {
-    deleteMany: jest.fn(),
-    createMany: jest.fn(),
-  },
-  achievement: {
-    deleteMany: jest.fn(),
-    createMany: jest.fn(),
-  },
-  $transaction: jest.fn().mockImplementation(async (actions) => {
-    for (const action of actions) {
-      // In a real test, you might want to inspect the actions
-      // For now, we just mock that they succeed
-    }
-    return [];
-  }),
+const mockGitHubApiService = {
+  getUserProfile: jest.fn(),
+  getUserRepos: jest.fn(),
+  getRepoCommitCount: jest.fn(),
+  getRepoPullRequests: jest.fn(),
 };
 
-const mockConfigService = {
-  get: jest.fn().mockReturnValue('mock_github_token'),
+const mockGitHubSyncService = {
+  syncUserGitHub: jest.fn(),
+};
+
+const mockGitHubDatabaseService = {
+  saveContributions: jest.fn(),
+  saveAchievements: jest.fn(),
 };
 
 describe('GitHubService', () => {
   let service: GitHubService;
 
   beforeEach(async () => {
-    mockFetch.mockClear();
     jest.clearAllMocks();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         GitHubService,
-        { provide: PrismaService, useValue: mockPrismaService },
-        { provide: ConfigService, useValue: mockConfigService },
+        {
+          provide: GitHubApiService,
+          useValue: mockGitHubApiService,
+        },
+        {
+          provide: GitHubSyncService,
+          useValue: mockGitHubSyncService,
+        },
+        {
+          provide: GitHubDatabaseService,
+          useValue: mockGitHubDatabaseService,
+        },
       ],
     }).compile();
 
@@ -60,27 +55,22 @@ describe('GitHubService', () => {
   });
 
   describe('getUserProfile', () => {
-    it('should fetch and return a user profile', async () => {
+    it('should delegate to GitHubApiService', async () => {
       const mockProfile = { login: 'testuser', name: 'Test User' };
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => mockProfile,
-      });
+      mockGitHubApiService.getUserProfile.mockResolvedValueOnce(mockProfile);
 
       const profile = await service.getUserProfile('testuser');
 
       expect(profile).toEqual(mockProfile);
-      expect(mockFetch).toHaveBeenCalledWith(
-        'https://api.github.com/users/testuser',
-        expect.any(Object),
+      expect(mockGitHubApiService.getUserProfile).toHaveBeenCalledWith(
+        'testuser',
       );
     });
 
-    it('should throw HttpException if user not found', async () => {
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-        status: 404,
-      });
+    it('should propagate errors from GitHubApiService', async () => {
+      mockGitHubApiService.getUserProfile.mockRejectedValueOnce(
+        new HttpException('Not found', 404),
+      );
 
       await expect(service.getUserProfile('nonexistent')).rejects.toThrow(
         HttpException,
@@ -89,58 +79,29 @@ describe('GitHubService', () => {
   });
 
   describe('syncUserGitHub', () => {
-    it('should orchestrate the full sync process', async () => {
-      // Arrange: Mock all the GitHub API responses
-      const mockProfile = {
-        login: 'testuser',
-        name: 'Test User',
-        public_repos: 5,
+    it('should delegate to syncService', async () => {
+      const mockResult = {
+        success: true,
+        stats: {
+          totalStars: 160,
+          contributionsAdded: 2,
+          achievementsAdded: 1,
+        },
       };
-      const mockRepos = [
-        {
-          name: 'repo1',
-          stargazers_count: 10,
-          owner: { login: 'testuser' },
-          created_at: new Date().toISOString(),
-          pushed_at: new Date().toISOString(),
-          html_url: 'url',
-          topics: [],
-        },
-        {
-          name: 'repo2',
-          stargazers_count: 150,
-          owner: { login: 'testuser' },
-          created_at: new Date().toISOString(),
-          pushed_at: new Date().toISOString(),
-          html_url: 'url',
-          topics: [],
-        },
-      ];
-      mockFetch
-        .mockResolvedValueOnce({ ok: true, json: async () => mockProfile }) // getUserProfile
-        .mockResolvedValueOnce({ ok: true, json: async () => mockRepos }) // getUserRepos
-        .mockResolvedValueOnce({ ok: true, json: async () => [{}] }) // getRepoCommitCount for repo1
-        .mockResolvedValueOnce({ ok: true, json: async () => [] }) // getRepoPullRequests for repo1
-        .mockResolvedValueOnce({ ok: true, json: async () => [{}] }) // getRepoCommitCount for repo2
-        .mockResolvedValueOnce({ ok: true, json: async () => [] }); // getRepoPullRequests for repo2
+      mockGitHubSyncService.syncUserGitHub.mockResolvedValue(mockResult);
 
-      // Act
       const result = await service.syncUserGitHub(
         'user-id',
         'testuser',
         'resume-id',
       );
 
-      // Assert
-      // Check the final result object
-      expect(result.success).toBe(true);
-      expect(result.stats.totalStars).toBe(160);
-      expect(result.stats.contributionsAdded).toBe(2);
-      expect(result.stats.achievementsAdded).toBe(1); // Only stars achievement
-
-      // Check that the database methods were called
-      expect(mockPrismaService.resume.update).toHaveBeenCalled();
-      expect(mockPrismaService.$transaction).toHaveBeenCalled();
+      expect(result).toEqual(mockResult);
+      expect(mockGitHubSyncService.syncUserGitHub).toHaveBeenCalledWith(
+        'user-id',
+        'testuser',
+        'resume-id',
+      );
     });
   });
 });

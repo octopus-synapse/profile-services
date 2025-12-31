@@ -7,6 +7,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ThemeStatus, Prisma } from '@prisma/client';
 import { QueryThemesDto } from '../dto';
+import { APP_CONSTANTS } from '../../common/constants/app.constants';
 
 @Injectable()
 export class ThemeQueryService {
@@ -18,7 +19,7 @@ export class ThemeQueryService {
       sortBy = 'createdAt',
       sortDir = 'desc',
       page = 1,
-      limit = 20,
+      limit = APP_CONSTANTS.DEFAULT_PAGE_SIZE,
     } = query;
 
     const [data, total] = await Promise.all([
@@ -58,7 +59,7 @@ export class ThemeQueryService {
     return theme;
   }
 
-  async getPopular(limit = 10) {
+  async getPopular(limit: number = APP_CONSTANTS.SEARCH_AUTOCOMPLETE_LIMIT) {
     return this.prisma.resumeTheme.findMany({
       where: { status: ThemeStatus.PUBLISHED },
       orderBy: [{ usageCount: 'desc' }, { rating: 'desc' }],

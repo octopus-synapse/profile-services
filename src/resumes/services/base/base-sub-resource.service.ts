@@ -1,15 +1,13 @@
-import {
-  ForbiddenException,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
+import { ForbiddenException, Logger, NotFoundException } from '@nestjs/common';
 import { ResumesRepository } from '../../resumes.repository';
 import { ISubResourceRepository } from '../../interfaces/base-sub-resource.interface';
 import { PaginatedResult } from '../../dto/pagination.dto';
 import {
   ApiResponseHelper,
+  DataResponse,
   MessageResponse,
 } from '../../../common/dto/api-response.dto';
+import { ERROR_MESSAGES } from '../../../common/constants/app.constants';
 
 /**
  * Abstract base service for resume sub-resources
@@ -40,7 +38,11 @@ export abstract class BaseSubResourceService<T, CreateDto, UpdateDto> {
   protected abstract readonly logger: Logger;
 
   constructor(
-    protected readonly repository: ISubResourceRepository<T, CreateDto, UpdateDto>,
+    protected readonly repository: ISubResourceRepository<
+      T,
+      CreateDto,
+      UpdateDto
+    >,
     protected readonly resumesRepository: ResumesRepository,
   ) {}
 
@@ -54,14 +56,14 @@ export abstract class BaseSubResourceService<T, CreateDto, UpdateDto> {
   ): Promise<void> {
     const resume = await this.resumesRepository.findOne(resumeId, userId);
     if (!resume) {
-      throw new ForbiddenException('Resume not found or access denied');
+      throw new ForbiddenException(ERROR_MESSAGES.RESUME_ACCESS_DENIED);
     }
   }
 
   /**
-   * Find all entities for a resume with pagination
+   * List all entities for a resume with pagination
    */
-  async findAll(
+  async listForResume(
     resumeId: string,
     userId: string,
     page: number = 1,
@@ -72,78 +74,83 @@ export abstract class BaseSubResourceService<T, CreateDto, UpdateDto> {
   }
 
   /**
-   * Find a single entity by ID
+   * Get a single entity by its ID
    * Throws NotFoundException if not found
    */
-  async findOne(resumeId: string, id: string, userId: string): Promise<T> {
+  async getById(
+    resumeId: string,
+    entityId: string,
+    userId: string,
+  ): Promise<DataResponse<T>> {
     await this.validateResumeOwnership(resumeId, userId);
-    const entity = await this.repository.findOne(id, resumeId);
+    const entity = await this.repository.findOne(entityId, resumeId);
     if (!entity) {
       throw new NotFoundException(`${this.entityName} not found`);
     }
-    return entity;
+    return ApiResponseHelper.success(entity);
   }
 
   /**
-   * Create a new entity
+   * Add a new entity to the resume
    */
-  async create(
+  async addToResume(
     resumeId: string,
     userId: string,
-    data: CreateDto,
-  ): Promise<T> {
+    entityData: CreateDto,
+  ): Promise<DataResponse<T>> {
     await this.validateResumeOwnership(resumeId, userId);
     this.logger.log(`Creating ${this.entityName} for resume: ${resumeId}`);
-    return this.repository.create(resumeId, data);
+    const entity = await this.repository.create(resumeId, entityData);
+    return ApiResponseHelper.success(entity);
   }
 
   /**
-   * Update an existing entity
+   * Update an existing entity by its ID
    * Throws NotFoundException if not found
    */
-  async update(
+  async updateById(
     resumeId: string,
-    id: string,
+    entityId: string,
     userId: string,
-    data: UpdateDto,
-  ): Promise<T> {
+    updateData: UpdateDto,
+  ): Promise<DataResponse<T>> {
     await this.validateResumeOwnership(resumeId, userId);
-    const entity = await this.repository.update(id, resumeId, data);
+    const entity = await this.repository.update(entityId, resumeId, updateData);
     if (!entity) {
       throw new NotFoundException(`${this.entityName} not found`);
     }
-    this.logger.log(`Updated ${this.entityName}: ${id}`);
-    return entity;
+    this.logger.log(`Updated ${this.entityName}: ${entityId}`);
+    return ApiResponseHelper.success(entity);
   }
 
   /**
-   * Remove an entity
+   * Delete an entity by its ID
    * Throws NotFoundException if not found
    */
-  async remove(
+  async deleteById(
     resumeId: string,
-    id: string,
+    entityId: string,
     userId: string,
   ): Promise<MessageResponse> {
     await this.validateResumeOwnership(resumeId, userId);
-    const deleted = await this.repository.delete(id, resumeId);
+    const deleted = await this.repository.delete(entityId, resumeId);
     if (!deleted) {
       throw new NotFoundException(`${this.entityName} not found`);
     }
-    this.logger.log(`Deleted ${this.entityName}: ${id}`);
+    this.logger.log(`Deleted ${this.entityName}: ${entityId}`);
     return ApiResponseHelper.message(`${this.entityName} deleted successfully`);
   }
 
   /**
    * Reorder entities within a resume
    */
-  async reorder(
+  async reorderInResume(
     resumeId: string,
     userId: string,
-    ids: string[],
+    entityIds: string[],
   ): Promise<MessageResponse> {
     await this.validateResumeOwnership(resumeId, userId);
-    await this.repository.reorder(resumeId, ids);
+    await this.repository.reorder(resumeId, entityIds);
     return ApiResponseHelper.message(
       `${this.entityName}s reordered successfully`,
     );

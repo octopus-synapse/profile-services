@@ -49,11 +49,11 @@ const SUB_RESOURCES: SubResourceConfig[] = [
     endpoint: 'skills',
     createPayload: {
       name: 'TypeScript',
-      level: 'Advanced',
+      level: 4,
       category: 'Programming Languages',
     },
     updatePayload: {
-      level: 'Expert',
+      level: 5,
     },
   },
   {
@@ -98,7 +98,8 @@ const SUB_RESOURCES: SubResourceConfig[] = [
     createPayload: {
       title: 'Test Publication',
       publisher: 'Tech Journal',
-      date: '2023-01-01',
+      publicationType: 'Article',
+      publishedAt: '2023-01-01',
     },
     updatePayload: {
       title: 'Updated Test Publication',
@@ -110,6 +111,7 @@ const SUB_RESOURCES: SubResourceConfig[] = [
     createPayload: {
       title: 'Test Conference Talk',
       event: 'Tech Conference 2023',
+      eventType: 'Conference',
       date: '2023-06-15',
     },
     updatePayload: {
@@ -122,22 +124,22 @@ const SUB_RESOURCES: SubResourceConfig[] = [
     createPayload: {
       name: 'Test Hackathon',
       organizer: 'Tech Corp',
+      projectName: 'Test Project',
       date: '2023-03-01',
-      result: 'Winner',
     },
     updatePayload: {
-      result: '1st Place',
+      projectName: 'Updated Test Project',
     },
   },
   {
     name: 'languages',
     endpoint: 'languages',
     createPayload: {
-      language: 'English',
-      proficiency: 'Native',
+      name: 'English',
+      level: 'Native',
     },
     updatePayload: {
-      proficiency: 'Fluent',
+      level: 'Fluent',
     },
   },
   {
@@ -155,9 +157,9 @@ const SUB_RESOURCES: SubResourceConfig[] = [
     name: 'recommendations',
     endpoint: 'recommendations',
     createPayload: {
-      recommenderName: 'John Doe',
-      recommenderTitle: 'CTO',
-      recommenderCompany: 'Tech Corp',
+      author: 'John Doe',
+      position: 'CTO',
+      company: 'Tech Corp',
       content: 'Great developer!',
     },
     updatePayload: {
@@ -168,9 +170,10 @@ const SUB_RESOURCES: SubResourceConfig[] = [
     name: 'achievements',
     endpoint: 'achievements',
     createPayload: {
+      type: 'Award',
       title: 'Test Achievement',
       description: 'Achieved something great',
-      date: '2023-01-01',
+      achievedAt: '2023-01-01',
     },
     updatePayload: {
       title: 'Outstanding Achievement',
@@ -183,8 +186,9 @@ const SUB_RESOURCES: SubResourceConfig[] = [
       platform: 'HackerOne',
       company: 'Tech Corp',
       severity: 'High',
+      vulnerabilityType: 'SQL Injection',
       reward: 1000,
-      date: '2023-01-01',
+      reportedAt: '2023-01-01',
     },
     updatePayload: {
       reward: 2000,
@@ -192,12 +196,13 @@ const SUB_RESOURCES: SubResourceConfig[] = [
   },
   {
     name: 'open-source',
-    endpoint: 'open-source',
+    endpoint: 'open-sources',
     createPayload: {
       projectName: 'Test OSS Project',
+      projectUrl: 'https://github.com/test/project',
       role: 'Maintainer',
       description: 'Open source contribution',
-      url: 'https://github.com/test/project',
+      startDate: '2023-01-01',
     },
     updatePayload: {
       role: 'Core Maintainer',

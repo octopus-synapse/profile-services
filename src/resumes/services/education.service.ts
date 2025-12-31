@@ -4,7 +4,10 @@ import { EducationRepository } from '../repositories/education.repository';
 import { ResumesRepository } from '../resumes.repository';
 import { CreateEducationDto, UpdateEducationDto } from '../dto/education.dto';
 import { BaseSubResourceService } from './base';
-import { ApiResponseHelper, MessageResponse } from '../../common/dto/api-response.dto';
+import {
+  ApiResponseHelper,
+  MessageResponse,
+} from '../../common/dto/api-response.dto';
 
 @Injectable()
 export class EducationService extends BaseSubResourceService<
@@ -32,6 +35,8 @@ export class EducationService extends BaseSubResourceService<
   ): Promise<MessageResponse> {
     await this.validateResumeOwnership(resumeId, userId);
     await this.repository.reorder(resumeId, ids);
-    return ApiResponseHelper.message('Education entries reordered successfully');
+    return ApiResponseHelper.message(
+      'Education entries reordered successfully',
+    );
   }
 }

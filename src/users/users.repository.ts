@@ -1,210 +1,113 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+/**
+ * Users Repository Facade
+ * Delegates to specialized query and mutation repositories
+ * Maintains backward compatibility with existing code
+ */
+
+import { Injectable } from '@nestjs/common';
 import { User, UserPreferences } from '@prisma/client';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UpdatePreferencesDto } from './dto/update-preferences.dto';
 import { UpdateFullPreferencesDto } from './dto/update-full-preferences.dto';
+import { UserQueryRepository, UserMutationRepository } from './repositories';
 
 @Injectable()
 export class UsersRepository {
-  private readonly logger = new Logger(UsersRepository.name);
+  constructor(
+    private readonly queryRepo: UserQueryRepository,
+    private readonly mutationRepo: UserMutationRepository,
+  ) {}
 
-  constructor(private readonly prisma: PrismaService) {}
-
+  // Query operations
   async getUser(userId: string): Promise<User | null> {
-    return await this.prisma.user.findUnique({
-      where: { id: userId },
-    });
+    return this.queryRepo.getUser(userId);
   }
 
   async getUserWithPreferences(
     userId: string,
   ): Promise<(User & { preferences: UserPreferences | null }) | null> {
-    return await this.prisma.user.findUnique({
-      where: { id: userId },
-      include: {
-        preferences: true,
-      },
-    });
+    return this.queryRepo.getUserWithPreferences(userId);
   }
 
   async findByUsername(
     username: string,
   ): Promise<(User & { preferences: UserPreferences | null }) | null> {
-    return await this.prisma.user.findUnique({
-      where: { username },
-      include: {
-        preferences: true,
-      },
-    });
+    return this.queryRepo.findByUsername(username);
   }
 
   async getUserProfile(userId: string): Promise<Partial<User> | null> {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        username: true,
-        usernameUpdatedAt: true,
-        displayName: true,
-        photoURL: true,
-        bio: true,
-        location: true,
-        phone: true,
-        website: true,
-        linkedin: true,
-        github: true,
-      },
-    });
-
-    return user;
-  }
-
-  async updateUserProfile(
-    userId: string,
-    profile: UpdateProfileDto,
-  ): Promise<User> {
-    this.logger.log(`Updating profile for user: ${userId}`);
-    return await this.prisma.user.update({
-      where: { id: userId },
-      data: profile,
-    });
+    return this.queryRepo.getUserProfile(userId);
   }
 
   async getUserPreferences(userId: string): Promise<Partial<User> | null> {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        palette: true,
-        bannerColor: true,
-        displayName: true,
-        photoURL: true,
-      },
-    });
-
-    return user;
+    return this.queryRepo.getUserPreferences(userId);
   }
 
   async getFullUserPreferences(
     userId: string,
   ): Promise<UserPreferences | null> {
-    return await this.prisma.userPreferences.findUnique({
-      where: { userId },
-    });
+    return this.queryRepo.getFullUserPreferences(userId);
   }
 
-  async updateUserPreferences(
-    userId: string,
-    preferences: UpdatePreferencesDto,
-  ): Promise<void> {
-    this.logger.log(`Updating preferences for user: ${userId}`);
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: preferences,
-    });
+  async isUsernameTaken(
+    username: string,
+    excludeUserId?: string,
+  ): Promise<boolean> {
+    return this.queryRepo.isUsernameTaken(username, excludeUserId);
   }
 
-  async upsertFullUserPreferences(
-    userId: string,
-    preferences: UpdateFullPreferencesDto,
-  ): Promise<UserPreferences> {
-    this.logger.log(`Upserting full preferences for user: ${userId}`);
-    return await this.prisma.userPreferences.upsert({
-      where: { userId },
-      create: {
-        userId,
-        ...preferences,
-      },
-      update: preferences,
-    });
+  async getLastUsernameUpdate(userId: string): Promise<Date | null> {
+    return this.queryRepo.getLastUsernameUpdate(userId);
   }
 
-  async updatePalette(userId: string, palette: string): Promise<void> {
-    this.logger.log(`Updating palette for user: ${userId}`);
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { palette },
-    });
-
-    // Also update in preferences table
-    await this.prisma.userPreferences.upsert({
-      where: { userId },
-      create: { userId, palette },
-      update: { palette },
-    });
-  }
-
-  async updateBannerColor(userId: string, bannerColor: string): Promise<void> {
-    this.logger.log(`Updating banner color for user: ${userId}`);
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { bannerColor },
-    });
-
-    // Also update in preferences table
-    await this.prisma.userPreferences.upsert({
-      where: { userId },
-      create: { userId, bannerColor },
-      update: { bannerColor },
-    });
-  }
-
+  // Mutation operations
   async createUser(userData: {
     id: string;
     email: string;
     displayName?: string;
     photoURL?: string;
   }): Promise<User> {
-    this.logger.log(`Creating user: ${userData.email}`);
-    return await this.prisma.user.create({
-      data: userData,
-    });
+    return this.mutationRepo.createUser(userData);
   }
 
   async updateUser(userId: string, userData: Partial<User>): Promise<User> {
-    this.logger.log(`Updating user: ${userId}`);
-    return await this.prisma.user.update({
-      where: { id: userId },
-      data: userData,
-    });
+    return this.mutationRepo.updateUser(userId, userData);
   }
 
   async deleteUser(userId: string): Promise<void> {
-    this.logger.log(`Deleting user: ${userId}`);
-    await this.prisma.user.delete({
-      where: { id: userId },
-    });
+    return this.mutationRepo.deleteUser(userId);
   }
 
-  async isUsernameTaken(username: string, excludeUserId?: string): Promise<boolean> {
-    const user = await this.prisma.user.findUnique({
-      where: { username },
-      select: { id: true },
-    });
-
-    if (!user) return false;
-    if (excludeUserId && user.id === excludeUserId) return false;
-    return true;
-  }
-
-  async updateUsername(
+  async updateUserProfile(
     userId: string,
-    username: string,
+    profile: UpdateProfileDto,
   ): Promise<User> {
-    this.logger.log(`Updating username for user: ${userId}`);
-    return await this.prisma.user.update({
-      where: { id: userId },
-      data: {
-        username,
-        usernameUpdatedAt: new Date(),
-      },
-    });
+    return this.mutationRepo.updateUserProfile(userId, profile);
   }
 
-  async getLastUsernameUpdate(userId: string): Promise<Date | null> {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { usernameUpdatedAt: true },
-    });
-    return user?.usernameUpdatedAt ?? null;
+  async updateUserPreferences(
+    userId: string,
+    preferences: UpdatePreferencesDto,
+  ): Promise<void> {
+    return this.mutationRepo.updateUserPreferences(userId, preferences);
+  }
+
+  async upsertFullUserPreferences(
+    userId: string,
+    preferences: UpdateFullPreferencesDto,
+  ): Promise<UserPreferences> {
+    return this.mutationRepo.upsertFullUserPreferences(userId, preferences);
+  }
+
+  async updatePalette(userId: string, palette: string): Promise<void> {
+    return this.mutationRepo.updatePalette(userId, palette);
+  }
+
+  async updateBannerColor(userId: string, bannerColor: string): Promise<void> {
+    return this.mutationRepo.updateBannerColor(userId, bannerColor);
+  }
+
+  async updateUsername(userId: string, username: string): Promise<User> {
+    return this.mutationRepo.updateUsername(userId, username);
   }
 }

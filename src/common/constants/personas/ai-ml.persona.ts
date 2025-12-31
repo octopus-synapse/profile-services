@@ -1,0 +1,47 @@
+import { TechPersona } from './tech-persona.enum';
+import { PersonaConfig } from './persona-config.interface';
+
+export const AI_ML_PERSONA: PersonaConfig = {
+  id: TechPersona.AI_ML,
+  name: 'AI/ML Engineer',
+  description: 'Artificial Intelligence, Deep Learning, NLP',
+  icon: '🤖',
+  primaryColor: '#06B6D4',
+  accentColor: '#0891B2',
+  gradient: ['#06B6D4', '#8B5CF6'],
+  skillCategories: [
+    'Deep Learning',
+    'Natural Language Processing',
+    'Computer Vision',
+    'Reinforcement Learning',
+    'ML Frameworks',
+    'MLOps',
+    'Research',
+  ],
+  achievementTypes: [
+    'paper_citations',
+    'model_performance',
+    'research_contribution',
+    'open_source_ml_lib',
+  ],
+  prioritySections: ['publications', 'openSource', 'projects', 'achievements'],
+  keywords: [
+    'tensorflow',
+    'pytorch',
+    'transformers',
+    'bert',
+    'gpt',
+    'llm',
+    'computer-vision',
+    'nlp',
+    'deep-learning',
+    'neural-networks',
+    'gan',
+    'cnn',
+    'rnn',
+    'lstm',
+    'attention',
+    'mlflow',
+    'kubeflow',
+  ],
+};

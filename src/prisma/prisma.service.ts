@@ -6,6 +6,22 @@ import {
 } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 
+// Type-safe model accessor for cleanup operations
+type DeletableModel = { deleteMany: () => Promise<unknown> };
+type PrismaModelKey = keyof Omit<
+  PrismaClient,
+  | '$connect'
+  | '$disconnect'
+  | '$on'
+  | '$transaction'
+  | '$use'
+  | '$extends'
+  | '$executeRaw'
+  | '$executeRawUnsafe'
+  | '$queryRaw'
+  | '$queryRawUnsafe'
+>;
+
 @Injectable()
 export class PrismaService
   extends PrismaClient
@@ -69,8 +85,12 @@ export class PrismaService
 
     for (const modelName of modelNames) {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-        await (this[modelName] as any)?.deleteMany?.();
+        const model = this[modelName as PrismaModelKey] as
+          | DeletableModel
+          | undefined;
+        if (model) {
+          await model.deleteMany();
+        }
       } catch {
         // Model may not exist, skip
       }

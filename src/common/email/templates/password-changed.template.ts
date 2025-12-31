@@ -21,7 +21,7 @@ export const getPasswordChangedTemplate = (name: string): string => {
       </p>
     </div>
     <div style="text-align: center; margin-top: 32px;">
-      <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/login" class="btn">
+      <a href="${process.env.FRONTEND_URL ?? 'http://localhost:3000'}/login" class="btn">
         Fazer login
       </a>
     </div>

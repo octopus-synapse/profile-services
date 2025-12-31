@@ -5,7 +5,6 @@ import {
   UseGuards,
   StreamableFile,
   Header,
-  BadRequestException,
   InternalServerErrorException,
 } from '@nestjs/common';
 import {

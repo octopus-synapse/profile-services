@@ -1,4 +1,11 @@
-import { IsString, IsInt, Min, MaxLength, IsOptional, IsIn } from 'class-validator';
+import {
+  IsString,
+  IsInt,
+  Min,
+  MaxLength,
+  IsOptional,
+  IsIn,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional, PartialType } from '@nestjs/swagger';
 
 const CEFR_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'] as const;
@@ -14,7 +21,11 @@ export class CreateLanguageDto {
   @MaxLength(50)
   level: string;
 
-  @ApiPropertyOptional({ example: 'B2', enum: CEFR_LEVELS, description: 'CEFR language proficiency level' })
+  @ApiPropertyOptional({
+    example: 'B2',
+    enum: CEFR_LEVELS,
+    description: 'CEFR language proficiency level',
+  })
   @IsOptional()
   @IsString()
   @IsIn(CEFR_LEVELS)

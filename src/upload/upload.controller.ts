@@ -8,7 +8,6 @@ import {
   Param,
   HttpCode,
   HttpStatus,
-  BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
@@ -65,10 +64,6 @@ export class UploadController {
     @CurrentUser() user: UserPayload,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    if (!file) {
-      throw new BadRequestException('No file provided');
-    }
-
     return this.uploadService.uploadProfileImage(user.userId, {
       buffer: file.buffer,
       originalname: file.originalname,
@@ -112,10 +107,6 @@ export class UploadController {
     @Param('resumeId') resumeId: string,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    if (!file) {
-      throw new BadRequestException('No file provided');
-    }
-
     return this.uploadService.uploadCompanyLogo(user.userId, resumeId, {
       buffer: file.buffer,
       originalname: file.originalname,

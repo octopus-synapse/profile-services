@@ -16,7 +16,6 @@ const mockPrismaService = {
 
 describe('ResumesRepository', () => {
   let repository: ResumesRepository;
-  let prisma: PrismaService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -30,7 +29,6 @@ describe('ResumesRepository', () => {
     }).compile();
 
     repository = module.get<ResumesRepository>(ResumesRepository);
-    prisma = module.get<PrismaService>(PrismaService);
   });
 
   afterEach(() => {

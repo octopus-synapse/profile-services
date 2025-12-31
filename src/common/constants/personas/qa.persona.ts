@@ -1,0 +1,45 @@
+import { TechPersona } from './tech-persona.enum';
+import { PersonaConfig } from './persona-config.interface';
+
+export const QA_PERSONA: PersonaConfig = {
+  id: TechPersona.QA,
+  name: 'QA Engineer',
+  description: 'Test Automation, Quality Assurance, Testing',
+  icon: '🧪',
+  primaryColor: '#14B8A6',
+  accentColor: '#0D9488',
+  gradient: ['#14B8A6', '#06B6D4'],
+  skillCategories: [
+    'Test Automation',
+    'Manual Testing',
+    'Performance Testing',
+    'Security Testing',
+    'Test Frameworks',
+    'CI/CD Integration',
+    'Bug Tracking',
+  ],
+  achievementTypes: [
+    'bugs_found',
+    'test_coverage',
+    'automation_rate',
+    'quality_improvement',
+  ],
+  prioritySections: ['experiences', 'certifications', 'projects', 'skills'],
+  keywords: [
+    'selenium',
+    'cypress',
+    'playwright',
+    'jest',
+    'junit',
+    'testng',
+    'jmeter',
+    'postman',
+    'rest-assured',
+    'appium',
+    'cucumber',
+    'bdd',
+    'tdd',
+    'continuous-testing',
+    'qa-automation',
+  ],
+};

@@ -8,10 +8,10 @@ import {
   ApiBody,
 } from '@nestjs/swagger';
 import { GitHubService } from './github.service';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
-import { UserPayload } from 'src/auth/interfaces/auth-request.interface';
-import { Public } from 'src/auth/decorators/public.decorator';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { UserPayload } from '../../auth/interfaces/auth-request.interface';
+import { Public } from '../../auth/decorators/public.decorator';
 
 @ApiTags('github')
 @Controller('integrations/github')

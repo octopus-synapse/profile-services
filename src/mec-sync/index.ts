@@ -1,9 +1,19 @@
 /**
- * MEC Sync Module Exports
+ * MEC Sync Module - Clean Architecture
+ *
+ * Structure:
+ * ├── constants/       # Configuration constants
+ * ├── dto/            # Data Transfer Objects
+ * ├── guards/         # Authentication guards
+ * ├── interfaces/     # TypeScript interfaces
+ * ├── mappers/        # Data transformation functions
+ * ├── parsers/        # CSV parsing utilities
+ * ├── repositories/   # Data access layer
+ * └── services/       # Business logic
  */
 
-export { MecSyncModule } from './mec-sync.module';
-export { MecSyncService } from './services/mec-sync.service';
-export { MecQueryService, InstitutionDto, CourseDto } from './services/mec-query.service';
-export { MecCsvParserService } from './services/mec-csv-parser.service';
-export * from './interfaces/mec-data.interface';
+export * from './mec-sync.module';
+export * from './dto';
+export * from './services/institution-query.service';
+export * from './services/course-query.service';
+export * from './services/mec-stats.service';

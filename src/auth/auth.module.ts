@@ -3,12 +3,27 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthService } from './auth.service';
-import { AuthController } from './auth.controller';
+import {
+  AuthCoreController,
+  AuthVerificationController,
+  AuthPasswordController,
+  AuthAccountController,
+} from './controllers';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
 import { PrismaModule } from '../prisma/prisma.module';
 import { EmailModule } from '../common/email/email.module';
 import { LoggerModule } from '../common/logger/logger.module';
+import {
+  TokenService,
+  PasswordService,
+  VerificationTokenService,
+  EmailVerificationService,
+  PasswordResetService,
+  AccountManagementService,
+  AuthCoreService,
+  TokenRefreshService,
+} from './services';
 
 @Module({
   imports: [
@@ -27,15 +42,36 @@ import { LoggerModule } from '../common/logger/logger.module';
         return {
           secret,
           signOptions: {
-            expiresIn: configService.get('JWT_EXPIRES_IN') || '7d',
+            expiresIn: configService.get('JWT_EXPIRES_IN') ?? '7d',
           },
         };
       },
       inject: [ConfigService],
     }),
   ],
-  controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, LocalStrategy],
-  exports: [AuthService, JwtModule],
+  controllers: [
+    AuthCoreController,
+    AuthVerificationController,
+    AuthPasswordController,
+    AuthAccountController,
+  ],
+  providers: [
+    // Core services
+    TokenService,
+    PasswordService,
+    VerificationTokenService,
+    // Feature services
+    AuthCoreService,
+    TokenRefreshService,
+    EmailVerificationService,
+    PasswordResetService,
+    AccountManagementService,
+    // Facade
+    AuthService,
+    // Strategies
+    JwtStrategy,
+    LocalStrategy,
+  ],
+  exports: [AuthService, JwtModule, TokenService, PasswordService],
 })
 export class AuthModule {}

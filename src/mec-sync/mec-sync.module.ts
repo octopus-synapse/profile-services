@@ -1,26 +1,76 @@
 /**
  * MEC Sync Module
- * Handles synchronization of Brazilian higher education data from MEC
+ * Clean Architecture: Controllers -> Services -> Repositories
  */
 
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { MecSyncController } from './mec-sync.controller';
-import { MecSyncService } from './services/mec-sync.service';
-import { MecQueryService } from './services/mec-query.service';
-import { MecCsvParserService } from './services/mec-csv-parser.service';
-import { InternalAuthGuard } from './guards/internal-auth.guard';
+
+// Controllers
+import {
+  MecSyncInternalController,
+  MecInstitutionController,
+  MecCourseController,
+  MecMetadataController,
+} from './controllers';
+
+// Repositories
+import {
+  InstitutionRepository,
+  CourseRepository,
+  SyncLogRepository,
+} from './repositories';
+
+// Services
+import {
+  InstitutionQueryService,
+  CourseQueryService,
+  MecStatsService,
+  MecSyncOrchestratorService,
+  DataSyncService,
+  SyncHelperService,
+  MecCsvParserService,
+  CsvFileCacheService,
+  CsvDownloaderService,
+  CsvEncodingService,
+  CsvRowProcessorService,
+  CloudflareHandlerService,
+} from './services';
+
+// Shared modules
 import { PrismaModule } from '../prisma/prisma.module';
+import { CacheModule } from '../common/cache/cache.module';
+import { LoggerModule } from '../common/logger/logger.module';
 
 @Module({
-  imports: [ConfigModule, PrismaModule],
-  controllers: [MecSyncController],
-  providers: [
-    MecSyncService,
-    MecQueryService,
-    MecCsvParserService,
-    InternalAuthGuard,
+  imports: [PrismaModule, CacheModule, LoggerModule],
+  controllers: [
+    MecSyncInternalController,
+    MecInstitutionController,
+    MecCourseController,
+    MecMetadataController,
   ],
-  exports: [MecSyncService, MecQueryService],
+  providers: [
+    // Repositories
+    InstitutionRepository,
+    CourseRepository,
+    SyncLogRepository,
+
+    // Query Services
+    InstitutionQueryService,
+    CourseQueryService,
+    MecStatsService,
+
+    // Sync Services
+    MecSyncOrchestratorService,
+    DataSyncService,
+    SyncHelperService,
+    MecCsvParserService,
+    CsvFileCacheService,
+    CsvDownloaderService,
+    CsvEncodingService,
+    CsvRowProcessorService,
+    CloudflareHandlerService,
+  ],
+  exports: [InstitutionQueryService, CourseQueryService, MecStatsService],
 })
 export class MecSyncModule {}

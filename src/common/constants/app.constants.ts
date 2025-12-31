@@ -1,71 +1,55 @@
+/**
+ * Application Constants - Re-export for backward compatibility
+ *
+ * This file has been refactored. All constants are now split into
+ * smaller files under ./config/ directory.
+ *
+ * @see ./config/index.ts for the new structure
+ * @deprecated Import directly from './config' instead
+ */
+
+import {
+  APP_CONFIG,
+  RATE_LIMIT_CONFIG,
+  FILE_UPLOAD_CONFIG,
+  EXPORT_CONFIG,
+  CACHE_CONFIG,
+  CRYPTO_CONSTANTS,
+  API_LIMITS,
+  TIME_MS,
+  TOKEN_EXPIRY,
+  ERROR_MESSAGES,
+  SUCCESS_MESSAGES,
+} from './config';
+
+// Re-export everything
+export {
+  CRYPTO_CONSTANTS,
+  API_LIMITS,
+  TIME_MS,
+  TOKEN_EXPIRY,
+  ERROR_MESSAGES,
+  SUCCESS_MESSAGES,
+};
+
+// Legacy APP_CONSTANTS for backward compatibility
 export const APP_CONSTANTS = {
-  // Authentication
-  JWT_EXPIRATION: '7d',
-  BCRYPT_ROUNDS: 12,
-
-  // Rate Limiting
-  RATE_LIMIT_TTL: 60, // seconds
-  RATE_LIMIT_MAX_REQUESTS: 100,
-  AUTH_RATE_LIMIT_MAX_REQUESTS: 5,
-
-  // Pagination
-  DEFAULT_PAGE_SIZE: 20,
-  MAX_PAGE_SIZE: 100,
-
-  // File Upload
-  MAX_FILE_SIZE: 5 * 1024 * 1024, // 5MB
-  ALLOWED_IMAGE_TYPES: ['image/jpeg', 'image/png', 'image/webp'],
-
-  // Export
-  PUPPETEER_TIMEOUT: 30000, // 30 seconds
-  PDF_MAX_PAGES: 10,
-
-  // Cache TTL (in seconds)
-  CACHE_TTL_SHORT: 300, // 5 minutes
-  CACHE_TTL_MEDIUM: 1800, // 30 minutes
-  CACHE_TTL_LONG: 3600, // 1 hour
-
-  // Onboarding
-  ONBOARDING_MAX_RETRY_ATTEMPTS: 3,
-} as const;
-
-export const ERROR_MESSAGES = {
-  // Auth
-  INVALID_CREDENTIALS: 'Invalid email or password',
-  EMAIL_ALREADY_EXISTS: 'Email already registered',
-  USER_NOT_FOUND: 'User not found',
-  UNAUTHORIZED: 'Unauthorized access',
-
-  // Validation
-  INVALID_EMAIL: 'Invalid email format',
-  INVALID_PASSWORD: 'Password must be at least 8 characters',
-  INVALID_DATE: 'Invalid date format',
-
-  // Resources
-  RESUME_NOT_FOUND: 'Resume not found',
-  RESOURCE_NOT_FOUND: 'Resource not found',
-  ACCESS_DENIED: 'Access denied to this resource',
-
-  // Export
-  EXPORT_FAILED: 'Failed to export document',
-  INVALID_EXPORT_FORMAT: 'Invalid export format',
-
-  // Server
-  INTERNAL_SERVER_ERROR: 'Internal server error',
-  SERVICE_UNAVAILABLE: 'Service temporarily unavailable',
-} as const;
-
-export const SUCCESS_MESSAGES = {
-  // Auth
-  USER_REGISTERED: 'User registered successfully',
-  LOGIN_SUCCESS: 'Login successful',
-  LOGOUT_SUCCESS: 'Logout successful',
-
-  // Resources
-  CREATED: 'Resource created successfully',
-  UPDATED: 'Resource updated successfully',
-  DELETED: 'Resource deleted successfully',
-
-  // Onboarding
-  ONBOARDING_COMPLETED: 'Onboarding completed successfully',
+  JWT_EXPIRATION: APP_CONFIG.JWT_EXPIRATION,
+  BCRYPT_ROUNDS: APP_CONFIG.BCRYPT_ROUNDS,
+  RATE_LIMIT_TTL: RATE_LIMIT_CONFIG.TTL,
+  RATE_LIMIT_MAX_REQUESTS: RATE_LIMIT_CONFIG.MAX_REQUESTS,
+  AUTH_RATE_LIMIT_MAX_REQUESTS: RATE_LIMIT_CONFIG.AUTH_MAX_REQUESTS,
+  DEFAULT_PAGE_SIZE: APP_CONFIG.DEFAULT_PAGE_SIZE,
+  MAX_PAGE_SIZE: APP_CONFIG.MAX_PAGE_SIZE,
+  SEARCH_DEFAULT_LIMIT: APP_CONFIG.SEARCH_DEFAULT_LIMIT,
+  SEARCH_AUTOCOMPLETE_LIMIT: APP_CONFIG.SEARCH_AUTOCOMPLETE_LIMIT,
+  SEARCH_MAX_RESULTS: APP_CONFIG.SEARCH_MAX_RESULTS,
+  MAX_FILE_SIZE: FILE_UPLOAD_CONFIG.MAX_SIZE,
+  ALLOWED_IMAGE_TYPES: FILE_UPLOAD_CONFIG.ALLOWED_IMAGE_TYPES,
+  PUPPETEER_TIMEOUT: EXPORT_CONFIG.PUPPETEER_TIMEOUT,
+  PDF_MAX_PAGES: EXPORT_CONFIG.PDF_MAX_PAGES,
+  CACHE_TTL_SHORT: CACHE_CONFIG.TTL_SHORT,
+  CACHE_TTL_MEDIUM: CACHE_CONFIG.TTL_MEDIUM,
+  CACHE_TTL_LONG: CACHE_CONFIG.TTL_LONG,
+  ONBOARDING_MAX_RETRY_ATTEMPTS: APP_CONFIG.ONBOARDING_MAX_RETRY_ATTEMPTS,
 } as const;

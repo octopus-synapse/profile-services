@@ -1,0 +1,48 @@
+import { TechPersona } from './tech-persona.enum';
+import { PersonaConfig } from './persona-config.interface';
+
+export const DEVOPS_PERSONA: PersonaConfig = {
+  id: TechPersona.DEVOPS,
+  name: 'DevOps Engineer',
+  description: 'Infrastructure, Automation, CI/CD',
+  icon: '⚙️',
+  primaryColor: '#FF6B6B',
+  accentColor: '#FFA500',
+  gradient: ['#FF6B6B', '#FF8E53'],
+  skillCategories: [
+    'Infrastructure as Code',
+    'CI/CD',
+    'Containers & Orchestration',
+    'Cloud Platforms',
+    'Monitoring & Observability',
+    'Configuration Management',
+    'Scripting & Automation',
+  ],
+  achievementTypes: [
+    'infrastructure_scale',
+    'deployment_frequency',
+    'uptime_achievement',
+    'cost_optimization',
+  ],
+  prioritySections: ['openSource', 'certifications', 'talks', 'experiences'],
+  keywords: [
+    'kubernetes',
+    'docker',
+    'terraform',
+    'ansible',
+    'jenkins',
+    'gitlab-ci',
+    'aws',
+    'azure',
+    'gcp',
+    'prometheus',
+    'grafana',
+    'elk',
+    'datadog',
+    'helm',
+    'argocd',
+    'istio',
+    'vault',
+    'consul',
+  ],
+};

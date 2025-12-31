@@ -52,7 +52,7 @@ export class SectionVisibilityService {
     update: { visible?: boolean; order?: number },
   ) {
     const overrides = { ...config.itemOverrides };
-    const items = overrides[sectionId] || [];
+    const items = overrides[sectionId] ?? [];
 
     const idx = items.findIndex((o) => o.itemId === itemId);
     if (idx >= 0) {

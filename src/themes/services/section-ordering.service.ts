@@ -6,6 +6,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { ResumeConfigRepository } from './resume-config.repository';
 import { moveItem, normalizeOrders } from '../utils';
+import { ERROR_MESSAGES } from '../../common/constants/app.constants';
 
 @Injectable()
 export class SectionOrderingService {
@@ -20,7 +21,8 @@ export class SectionOrderingService {
     const config = await this.repo.get(userId, resumeId);
 
     const idx = config.sections.findIndex((s) => s.id === sectionId);
-    if (idx === -1) throw new BadRequestException('Section not found');
+    if (idx === -1)
+      throw new BadRequestException(ERROR_MESSAGES.SECTION_NOT_FOUND);
 
     config.sections = moveItem(config.sections, idx, newOrder);
 
@@ -38,7 +40,7 @@ export class SectionOrderingService {
     const config = await this.repo.get(userId, resumeId);
 
     const overrides = { ...config.itemOverrides };
-    const items = overrides[sectionId] || [];
+    const items = overrides[sectionId] ?? [];
 
     const idx = items.findIndex((o) => o.itemId === itemId);
     if (idx >= 0) {

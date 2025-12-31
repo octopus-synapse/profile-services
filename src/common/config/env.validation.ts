@@ -6,18 +6,25 @@ import {
   IsOptional,
   IsString,
   IsUrl,
-  Min,
   Max,
+  Min,
   validateSync,
 } from 'class-validator';
 
-enum Environment {
+/**
+ * Environment types
+ */
+export enum Environment {
   Development = 'development',
   Production = 'production',
   Test = 'test',
 }
 
-class EnvironmentVariables {
+/**
+ * Combined Environment Variables with validation decorators
+ */
+export class EnvironmentVariables {
+  // App config
   @IsEnum(Environment)
   @IsOptional()
   NODE_ENV: Environment = Environment.Development;
@@ -28,10 +35,12 @@ class EnvironmentVariables {
   @IsOptional()
   PORT: number = 3001;
 
+  // Database
   @IsNotEmpty()
   @IsString()
   DATABASE_URL: string;
 
+  // Auth
   @IsNotEmpty()
   @IsString()
   JWT_SECRET: string;
@@ -40,6 +49,7 @@ class EnvironmentVariables {
   @IsString()
   JWT_EXPIRATION?: string;
 
+  // Redis
   @IsOptional()
   @IsString()
   REDIS_HOST?: string;
@@ -52,6 +62,7 @@ class EnvironmentVariables {
   @IsString()
   REDIS_PASSWORD?: string;
 
+  // MinIO
   @IsOptional()
   @IsString()
   MINIO_ENDPOINT?: string;
@@ -68,14 +79,7 @@ class EnvironmentVariables {
   @IsString()
   MINIO_BUCKET?: string;
 
-  @IsOptional()
-  @IsUrl({ require_tld: false })
-  FRONTEND_URL?: string;
-
-  @IsOptional()
-  @IsString()
-  LOG_LEVEL?: string;
-
+  // Email
   @IsOptional()
   @IsString()
   SENDGRID_API_KEY?: string;
@@ -87,8 +91,21 @@ class EnvironmentVariables {
   @IsOptional()
   @IsString()
   EMAIL_FROM_NAME?: string;
+
+  // Frontend
+  @IsOptional()
+  @IsUrl({ require_tld: false })
+  FRONTEND_URL?: string;
+
+  // Logging
+  @IsOptional()
+  @IsString()
+  LOG_LEVEL?: string;
 }
 
+/**
+ * Validates environment variables
+ */
 export function validate(
   config: Record<string, unknown>,
 ): EnvironmentVariables {
@@ -115,3 +132,8 @@ export function validate(
 
   return validatedConfig;
 }
+
+// Re-export individual validators for modular usage
+export { DatabaseEnvironmentVariables } from './env-database.validation';
+export { AuthEnvironmentVariables } from './env-auth.validation';
+export { ServicesEnvironmentVariables } from './env-services.validation';

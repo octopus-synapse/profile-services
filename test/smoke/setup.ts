@@ -5,8 +5,8 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { AppModule } from '../../src/app.module';
 import * as request from 'supertest';
 
-// Load .env.test file before tests run
-config({ path: join(__dirname, '..', '..', '.env.test') });
+// Load .env.test file before tests run (don't override existing env vars from CI)
+config({ path: join(__dirname, '..', '..', '.env.test'), override: false });
 
 // Global test timeout
 jest.setTimeout(30000);
@@ -78,8 +78,24 @@ export function getRequest() {
  */
 export async function closeApp(): Promise<void> {
   if (app) {
-    await app.close();
-    app = undefined as unknown as INestApplication;
+    try {
+      await app.close();
+    } catch (error) {
+      // Ignore errors during shutdown
+      console.warn('Error closing app:', error);
+    } finally {
+      app = undefined as unknown as INestApplication;
+    }
+  }
+  if (testModule) {
+    try {
+      await testModule.close();
+    } catch (error) {
+      // Ignore errors during shutdown
+      console.warn('Error closing test module:', error);
+    } finally {
+      testModule = undefined as unknown as TestingModule;
+    }
   }
 }
 
@@ -108,22 +124,37 @@ export async function createTestUserAndLogin(): Promise<{
     });
 
     if (loginRes.status !== 200 && loginRes.status !== 201) {
-      throw new Error(`Failed to create/login test user: ${JSON.stringify(loginRes.body)}`);
+      throw new Error(
+        `Failed to create/login test user: ${JSON.stringify(loginRes.body)}`,
+      );
     }
 
-    testContext.accessToken = loginRes.body.data?.accessToken || loginRes.body.accessToken;
-    testContext.refreshToken = loginRes.body.data?.refreshToken || loginRes.body.refreshToken;
+    testContext.accessToken =
+      loginRes.body.data?.accessToken || loginRes.body.accessToken;
+    testContext.refreshToken =
+      loginRes.body.data?.refreshToken || loginRes.body.refreshToken;
     testContext.userId = loginRes.body.data?.user?.id || loginRes.body.user?.id;
   } else {
-    testContext.accessToken = signupRes.body.data?.accessToken || signupRes.body.accessToken;
-    testContext.refreshToken = signupRes.body.data?.refreshToken || signupRes.body.refreshToken;
-    testContext.userId = signupRes.body.data?.user?.id || signupRes.body.user?.id;
+    testContext.accessToken =
+      signupRes.body.data?.accessToken || signupRes.body.accessToken;
+    testContext.refreshToken =
+      signupRes.body.data?.refreshToken || signupRes.body.refreshToken;
+    testContext.userId =
+      signupRes.body.data?.user?.id || signupRes.body.user?.id;
+  }
+
+  if (
+    !testContext.accessToken ||
+    !testContext.refreshToken ||
+    !testContext.userId
+  ) {
+    throw new Error('Test context is incomplete - missing tokens or userId');
   }
 
   return {
-    accessToken: testContext.accessToken!,
-    refreshToken: testContext.refreshToken!,
-    userId: testContext.userId!,
+    accessToken: testContext.accessToken,
+    refreshToken: testContext.refreshToken,
+    userId: testContext.userId,
   };
 }
 

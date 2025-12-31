@@ -1,0 +1,53 @@
+// Theme System - Customizable resume themes
+
+model ResumeTheme {
+  id String @id @default(cuid())
+
+  name        String
+  description String? @db.Text
+
+  authorId String
+  author   User   @relation("ThemeAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+
+  category    ThemeCategory @default(MODERN)
+  tags        String[]
+  styleConfig Json
+
+  thumbnailUrl  String?
+  previewImages String[]
+
+  status        ThemeStatus @default(PRIVATE)
+  isSystemTheme Boolean     @default(false)
+
+  // Approval workflow
+  approvedById    String?
+  approvedBy      User?     @relation("ThemeApprover", fields: [approvedById], references: [id], onDelete: SetNull)
+  approvedAt      DateTime?
+  rejectionReason String?   @db.Text
+
+  // Stats
+  usageCount  Int    @default(0)
+  rating      Float?
+  ratingCount Int    @default(0)
+
+  // Versioning
+  version       String        @default("1.0.0")
+  parentThemeId String?
+  parentTheme   ResumeTheme?  @relation("ThemeForks", fields: [parentThemeId], references: [id], onDelete: SetNull)
+  forks         ResumeTheme[] @relation("ThemeForks")
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  publishedAt DateTime?
+
+  resumes Resume[] @relation("ResumeActiveTheme")
+
+  @@index([authorId])
+  @@index([status])
+  @@index([category])
+  @@index([isSystemTheme])
+  @@index([usageCount])
+  @@index([rating])
+  @@index([createdAt])
+  @@index([publishedAt])
+}

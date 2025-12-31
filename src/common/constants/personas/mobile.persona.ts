@@ -1,0 +1,50 @@
+import { TechPersona } from './tech-persona.enum';
+import { PersonaConfig } from './persona-config.interface';
+
+export const MOBILE_PERSONA: PersonaConfig = {
+  id: TechPersona.MOBILE,
+  name: 'Mobile Developer',
+  description: 'iOS, Android, React Native, Flutter',
+  icon: '📱',
+  primaryColor: '#F59E0B',
+  accentColor: '#D97706',
+  gradient: ['#F59E0B', '#EF4444'],
+  skillCategories: [
+    'Mobile Frameworks',
+    'Native Development',
+    'Cross-Platform',
+    'App Architecture',
+    'UI/UX',
+    'App Store Optimization',
+    'Testing',
+  ],
+  achievementTypes: [
+    'app_downloads',
+    'app_rating',
+    'featured_app',
+    'app_revenue',
+  ],
+  prioritySections: [
+    'projects',
+    'experiences',
+    'achievements',
+    'certifications',
+  ],
+  keywords: [
+    'react-native',
+    'flutter',
+    'swift',
+    'kotlin',
+    'ios',
+    'android',
+    'swiftui',
+    'jetpack-compose',
+    'firebase',
+    'realm',
+    'sqlite',
+    'push-notifications',
+    'in-app-purchases',
+    'app-store',
+    'play-store',
+  ],
+};

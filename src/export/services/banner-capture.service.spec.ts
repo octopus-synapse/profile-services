@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/unbound-method */
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { BannerCaptureService } from './banner-capture.service';
@@ -22,6 +19,20 @@ describe('BannerCaptureService', () => {
   let mockPage: MockPage;
   let mockBrowser: MockBrowser;
   let mockElementHandle: MockElementHandle;
+
+  // Silence Nest logger during tests to reduce noise
+  const originalConsoleError = console.error;
+  const originalConsoleWarn = console.warn;
+
+  beforeAll(() => {
+    console.error = jest.fn();
+    console.warn = jest.fn();
+  });
+
+  afterAll(() => {
+    console.error = originalConsoleError;
+    console.warn = originalConsoleWarn;
+  });
 
   beforeEach(async () => {
     mockPage = createMockPage();
