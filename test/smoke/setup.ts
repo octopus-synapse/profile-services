@@ -5,8 +5,8 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { AppModule } from '../../src/app.module';
 import * as request from 'supertest';
 
-// Load .env.test file before tests run
-config({ path: join(__dirname, '..', '..', '.env.test') });
+// Load .env.test file before tests run (don't override existing env vars from CI)
+config({ path: join(__dirname, '..', '..', '.env.test'), override: false });
 
 // Global test timeout
 jest.setTimeout(30000);
