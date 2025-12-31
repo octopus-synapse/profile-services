@@ -1,5 +1,5 @@
 -- CreateEnum
-CREATE TYPE "UserRole" AS ENUM ('USER', 'ADMIN');
+CREATE TYPE "UserRole" AS ENUM ('USER', 'ADMIN', 'APPROVER');
 
 -- AlterTable
 ALTER TABLE "Resume" ADD COLUMN     "primaryStack" TEXT[],

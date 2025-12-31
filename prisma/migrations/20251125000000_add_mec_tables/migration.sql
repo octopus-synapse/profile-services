@@ -1,5 +1,5 @@
 -- CreateEnum
-CREATE TYPE "MecSyncStatus" AS ENUM ('PENDING', 'IN_PROGRESS', 'COMPLETED', 'FAILED');
+CREATE TYPE "MecSyncStatus" AS ENUM ('RUNNING', 'SUCCESS', 'FAILED', 'PARTIAL');
 
 -- CreateTable
 CREATE TABLE "MecInstitution" (
