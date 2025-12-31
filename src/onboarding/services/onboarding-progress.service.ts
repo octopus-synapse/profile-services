@@ -3,10 +3,11 @@
  * Single Responsibility: Manage onboarding progress (checkpoints)
  */
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AppLoggerService } from '../../common/logger/logger.service';
 import { OnboardingProgressDto } from '../dto/onboarding.dto';
+import { ERROR_MESSAGES } from '../../common/constants/app.constants';
 
 const INITIAL_PROGRESS = {
   currentStep: 'welcome',
@@ -41,6 +42,11 @@ export class OnboardingProgressService {
       },
     );
 
+    // Validate username uniqueness if provided
+    if (data.username) {
+      await this.validateUsernameUniqueness(data.username, userId);
+    }
+
     const progressData = this.buildProgressData(data);
 
     const progress = await this.prisma.onboardingProgress.upsert({
@@ -54,6 +60,23 @@ export class OnboardingProgressService {
       currentStep: progress.currentStep,
       completedSteps: progress.completedSteps,
     };
+  }
+
+  private async validateUsernameUniqueness(username: string, userId: string): Promise<void> {
+    const existingUser = await this.prisma.user.findUnique({
+      where: { username },
+      select: { id: true },
+    });
+
+    // Allow if it's the same user (user already has this username)
+    if (existingUser && existingUser.id === userId) {
+      return;
+    }
+
+    // Check if username is taken by another user
+    if (existingUser) {
+      throw new ConflictException(ERROR_MESSAGES.USERNAME_ALREADY_IN_USE);
+    }
   }
 
   async getProgress(userId: string) {

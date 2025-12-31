@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AppLoggerService } from '../common/logger/logger.service';
 import {
@@ -37,37 +37,56 @@ export class OnboardingService {
 
     const validatedData = onboardingDataSchema.parse(data);
     const user = await this.findUser(userId);
-    const resume = await this.resumeService.upsertResume(userId, validatedData);
 
-    this.logger.debug(
-      'Resume created/updated, processing sections',
-      'OnboardingService',
-      {
+    // Validate username uniqueness before starting
+    await this.validateUsernameUniqueness(validatedData.username, userId);
+
+    try {
+      const resume = await this.resumeService.upsertResume(userId, validatedData);
+
+      this.logger.debug(
+        'Resume created/updated, processing sections',
+        'OnboardingService',
+        {
+          userId,
+          resumeId: resume.id,
+        },
+      );
+
+      // Save all sections in parallel
+      await Promise.all([
+        this.skillsService.saveSkills(resume.id, validatedData),
+        this.experienceService.saveExperiences(resume.id, validatedData),
+        this.educationService.saveEducation(resume.id, validatedData),
+        this.languagesService.saveLanguages(resume.id, validatedData),
+      ]);
+
+      // Mark onboarding complete and update username
+      await this.markOnboardingComplete(user.id, validatedData);
+
+      // Only delete progress after everything succeeds
+      await this.progressService.deleteProgress(userId);
+
+      this.logger.log('Onboarding completed successfully', 'OnboardingService', {
         userId,
         resumeId: resume.id,
-      },
-    );
+      });
 
-    await Promise.all([
-      this.skillsService.saveSkills(resume.id, validatedData),
-      this.experienceService.saveExperiences(resume.id, validatedData),
-      this.educationService.saveEducation(resume.id, validatedData),
-      this.languagesService.saveLanguages(resume.id, validatedData),
-    ]);
-
-    await this.markOnboardingComplete(user.id, validatedData);
-    await this.progressService.deleteProgress(userId);
-
-    this.logger.log('Onboarding completed successfully', 'OnboardingService', {
-      userId,
-      resumeId: resume.id,
-    });
-
-    return {
-      success: true,
-      resumeId: resume.id,
-      message: SUCCESS_MESSAGES.ONBOARDING_COMPLETED,
-    };
+      return {
+        success: true,
+        resumeId: resume.id,
+        message: SUCCESS_MESSAGES.ONBOARDING_COMPLETED,
+      };
+    } catch (error) {
+      // If anything fails, don't delete progress so user can retry
+      this.logger.error(
+        'Onboarding completion failed, progress preserved',
+        error instanceof Error ? error.stack : 'Unknown error',
+        'OnboardingService',
+        { userId, error: error instanceof Error ? error.message : 'Unknown error' },
+      );
+      throw error;
+    }
   }
 
   async getOnboardingStatus(userId: string) {
@@ -121,5 +140,30 @@ export class OnboardingService {
         username: data.username,
       },
     });
+  }
+
+  private async validateUsernameUniqueness(
+    username: string,
+    userId: string,
+  ): Promise<void> {
+    const existingUser = await this.prisma.user.findUnique({
+      where: { username },
+      select: { id: true },
+    });
+
+    // Allow if it's the same user (user already has this username)
+    if (existingUser && existingUser.id === userId) {
+      return;
+    }
+
+    // Check if username is taken by another user
+    if (existingUser) {
+      this.logger.warn(
+        'Username already taken during onboarding completion',
+        'OnboardingService',
+        { username, userId },
+      );
+      throw new ConflictException(ERROR_MESSAGES.USERNAME_ALREADY_IN_USE);
+    }
   }
 }
