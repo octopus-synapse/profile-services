@@ -81,8 +81,21 @@ export class RedisConnectionService implements OnModuleDestroy {
 
   async onModuleDestroy(): Promise<void> {
     if (this._client) {
-      await this._client.quit();
-      this.logger.log('Redis connection closed', 'RedisConnectionService');
+      try {
+        await this._client.quit();
+        this.logger.log('Redis connection closed', 'RedisConnectionService');
+      } catch (error) {
+        // Ignore errors during shutdown
+        this.logger.warn(
+          'Error closing Redis connection',
+          'RedisConnectionService',
+          {
+            error: error instanceof Error ? error.message : String(error),
+          },
+        );
+      } finally {
+        this._client = null;
+      }
     }
   }
 

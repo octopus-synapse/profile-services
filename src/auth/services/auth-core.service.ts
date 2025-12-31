@@ -8,7 +8,7 @@ import {
   ConflictException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { User } from '@prisma/client';
+import { User, UserRole } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AppLoggerService } from '../../common/logger/logger.service';
 import { SignupDto } from '../dto/signup.dto';
@@ -97,29 +97,44 @@ export class AuthCoreService {
   }
 
   async login(dto: LoginDto) {
-    const user = await this.validateUser(dto.email, dto.password);
+    try {
+      const user = await this.validateUser(dto.email, dto.password);
 
-    if (!user) {
-      throw new UnauthorizedException(ERROR_MESSAGES.INVALID_CREDENTIALS);
+      if (!user) {
+        throw new UnauthorizedException(ERROR_MESSAGES.INVALID_CREDENTIALS);
+      }
+
+      if (!user.email) {
+        throw new UnauthorizedException(ERROR_MESSAGES.INVALID_CREDENTIALS);
+      }
+
+      const token = this.tokenService.generateToken({
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        hasCompletedOnboarding: user.hasCompletedOnboarding,
+      });
+
+      this.logger.log(`User logged in successfully`, this.context, {
+        userId: user.id,
+        email: user.email,
+      });
+
+      return this.buildAuthResponse(user, token);
+    } catch (error) {
+      // Re-throw UnauthorizedException as-is
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+      // Log and re-throw other errors
+      this.logger.error(
+        'Login error',
+        error instanceof Error ? error.stack : undefined,
+        this.context,
+        { email: dto.email },
+      );
+      throw error;
     }
-
-    if (!user.email) {
-      throw new UnauthorizedException(ERROR_MESSAGES.INVALID_CREDENTIALS);
-    }
-
-    const token = this.tokenService.generateToken({
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      hasCompletedOnboarding: user.hasCompletedOnboarding,
-    });
-
-    this.logger.log(`User logged in successfully`, this.context, {
-      userId: user.id,
-      email: user.email,
-    });
-
-    return this.buildAuthResponse(user, token);
   }
 
   private async ensureEmailNotExists(email: string): Promise<void> {
@@ -147,18 +162,34 @@ export class AuthCoreService {
     },
     token: string,
   ) {
+    if (!user.email) {
+      throw new Error('User email is required for token generation');
+    }
+
+    // Generate refresh token (for simplicity, using same token generation)
+    // In production, use a separate refresh token with longer expiry
+    const refreshToken = this.tokenService.generateToken({
+      id: user.id,
+      email: user.email,
+      role: user.role as UserRole,
+      hasCompletedOnboarding: user.hasCompletedOnboarding,
+    });
+
     return {
       success: true,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        username: user.username ?? null,
-        image: user.image ?? null,
-        hasCompletedOnboarding: user.hasCompletedOnboarding,
+      data: {
+        accessToken: token,
+        refreshToken,
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+          username: user.username ?? null,
+          image: user.image ?? null,
+          hasCompletedOnboarding: user.hasCompletedOnboarding,
+        },
       },
-      token,
     };
   }
 }

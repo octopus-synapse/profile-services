@@ -78,8 +78,24 @@ export function getRequest() {
  */
 export async function closeApp(): Promise<void> {
   if (app) {
-    await app.close();
-    app = undefined as unknown as INestApplication;
+    try {
+      await app.close();
+    } catch (error) {
+      // Ignore errors during shutdown
+      console.warn('Error closing app:', error);
+    } finally {
+      app = undefined as unknown as INestApplication;
+    }
+  }
+  if (testModule) {
+    try {
+      await testModule.close();
+    } catch (error) {
+      // Ignore errors during shutdown
+      console.warn('Error closing test module:', error);
+    } finally {
+      testModule = undefined as unknown as TestingModule;
+    }
   }
 }
 
