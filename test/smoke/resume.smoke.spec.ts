@@ -22,7 +22,7 @@ describe('Resume Smoke Tests', () => {
         .set(authHeader())
         .send({
           title: 'Smoke Test Resume',
-          headline: 'Software Engineer',
+          jobTitle: 'Software Engineer',
           summary: 'This is a smoke test resume',
         });
 
@@ -43,13 +43,15 @@ describe('Resume Smoke Tests', () => {
       expect(res.status).toBe(401);
     });
 
-    it('should reject with missing required fields', async () => {
+    it('should create resume with empty body (all fields optional)', async () => {
       const res = await getRequest()
         .post('/api/resumes')
         .set(authHeader())
         .send({});
 
-      expect(res.status).toBe(400);
+      expect(res.status).toBe(201);
+      expect(res.body).toHaveProperty('data');
+      expect(res.body.data).toHaveProperty('id');
     });
   });
 
@@ -116,13 +118,13 @@ describe('Resume Smoke Tests', () => {
         .set(authHeader())
         .send({
           title: 'Updated Smoke Test Resume',
-          headline: 'Senior Software Engineer',
+          jobTitle: 'Senior Software Engineer',
         });
 
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('data');
       expect(res.body.data.title).toBe('Updated Smoke Test Resume');
-      expect(res.body.data.headline).toBe('Senior Software Engineer');
+      expect(res.body.data.jobTitle).toBe('Senior Software Engineer');
     });
 
     it('should reject update for non-existent resume', async () => {

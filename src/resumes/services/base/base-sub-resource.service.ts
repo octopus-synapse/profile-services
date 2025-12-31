@@ -4,6 +4,7 @@ import { ISubResourceRepository } from '../../interfaces/base-sub-resource.inter
 import { PaginatedResult } from '../../dto/pagination.dto';
 import {
   ApiResponseHelper,
+  DataResponse,
   MessageResponse,
 } from '../../../common/dto/api-response.dto';
 import { ERROR_MESSAGES } from '../../../common/constants/app.constants';
@@ -80,13 +81,13 @@ export abstract class BaseSubResourceService<T, CreateDto, UpdateDto> {
     resumeId: string,
     entityId: string,
     userId: string,
-  ): Promise<T> {
+  ): Promise<DataResponse<T>> {
     await this.validateResumeOwnership(resumeId, userId);
     const entity = await this.repository.findOne(entityId, resumeId);
     if (!entity) {
       throw new NotFoundException(`${this.entityName} not found`);
     }
-    return entity;
+    return ApiResponseHelper.success(entity);
   }
 
   /**
@@ -96,10 +97,11 @@ export abstract class BaseSubResourceService<T, CreateDto, UpdateDto> {
     resumeId: string,
     userId: string,
     entityData: CreateDto,
-  ): Promise<T> {
+  ): Promise<DataResponse<T>> {
     await this.validateResumeOwnership(resumeId, userId);
     this.logger.log(`Creating ${this.entityName} for resume: ${resumeId}`);
-    return this.repository.create(resumeId, entityData);
+    const entity = await this.repository.create(resumeId, entityData);
+    return ApiResponseHelper.success(entity);
   }
 
   /**
@@ -111,14 +113,14 @@ export abstract class BaseSubResourceService<T, CreateDto, UpdateDto> {
     entityId: string,
     userId: string,
     updateData: UpdateDto,
-  ): Promise<T> {
+  ): Promise<DataResponse<T>> {
     await this.validateResumeOwnership(resumeId, userId);
     const entity = await this.repository.update(entityId, resumeId, updateData);
     if (!entity) {
       throw new NotFoundException(`${this.entityName} not found`);
     }
     this.logger.log(`Updated ${this.entityName}: ${entityId}`);
-    return entity;
+    return ApiResponseHelper.success(entity);
   }
 
   /**

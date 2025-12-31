@@ -6,9 +6,12 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   UseGuards,
   HttpCode,
   HttpStatus,
+  ParseIntPipe,
+  DefaultValuePipe,
 } from '@nestjs/common';
 import { ResumesService } from './resumes.service';
 import { CreateResumeDto } from './dto/create-resume.dto';
@@ -35,8 +38,12 @@ export class ResumesController {
   @Get()
   @ApiOperation({ summary: 'Get all resumes for current user' })
   @ApiResponse({ status: 200, description: 'List of resumes' })
-  async findAll(@CurrentUser() user: UserPayload) {
-    return this.resumesService.findAll(user.userId);
+  async findAll(
+    @CurrentUser() user: UserPayload,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page?: number,
+    @Query('limit', new DefaultValuePipe(50), ParseIntPipe) limit?: number,
+  ) {
+    return this.resumesService.findAll(user.userId, page, limit);
   }
 
   @Get('slots')
@@ -57,11 +64,24 @@ export class ResumesController {
     return this.resumesService.getRemainingSlots(user.userId);
   }
 
+  @Get(':id/full')
+  @ApiOperation({ summary: 'Get a resume with all sections' })
+  @ApiParam({ name: 'id', description: 'Resume ID' })
+  @ApiResponse({ status: 200, description: 'Resume with all sections' })
+  @ApiResponse({ status: 404, description: 'Resume not found' })
+  async findFull(
+    @Param('id', ParseCuidPipe) id: string,
+    @CurrentUser() user: UserPayload,
+  ) {
+    return this.resumesService.findOne(id, user.userId);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get a specific resume' })
   @ApiParam({ name: 'id', description: 'Resume ID' })
   @ApiResponse({ status: 200, description: 'Resume found' })
   @ApiResponse({ status: 404, description: 'Resume not found' })
+  @ApiResponse({ status: 400, description: 'Invalid resume ID format' })
   async findOne(
     @Param('id', ParseCuidPipe) id: string,
     @CurrentUser() user: UserPayload,

@@ -19,9 +19,30 @@ export class ResumesService {
 
   constructor(private readonly resumesRepository: ResumesRepository) {}
 
-  async findAll(userId: string) {
+  async findAll(userId: string, page?: number, limit?: number) {
     this.logger.log(`Finding all resumes for user: ${userId}`);
-    return await this.resumesRepository.findAll(userId);
+    const resumes = await this.resumesRepository.findAll(userId);
+
+    // If pagination is requested, return paginated response
+    if (page !== undefined && limit !== undefined) {
+      const total = resumes.length;
+      const startIndex = (page - 1) * limit;
+      const endIndex = startIndex + limit;
+      const paginatedResumes = resumes.slice(startIndex, endIndex);
+      const totalPages = Math.ceil(total / limit);
+
+      return ApiResponseHelper.paginated(paginatedResumes, {
+        total,
+        page,
+        limit,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      });
+    }
+
+    // Otherwise return simple data wrapper
+    return ApiResponseHelper.success(resumes);
   }
 
   async findOne(id: string, userId: string) {
@@ -32,7 +53,7 @@ export class ResumesService {
       throw new NotFoundException('Resume not found');
     }
 
-    return resume;
+    return ApiResponseHelper.success(resume);
   }
 
   async create(userId: string, createResumeDto: CreateResumeDto) {
@@ -46,7 +67,8 @@ export class ResumesService {
       );
     }
 
-    return await this.resumesRepository.create(userId, createResumeDto);
+    const resume = await this.resumesRepository.create(userId, createResumeDto);
+    return ApiResponseHelper.success(resume);
   }
 
   async update(id: string, userId: string, updateResumeDto: UpdateResumeDto) {
@@ -61,7 +83,7 @@ export class ResumesService {
       throw new NotFoundException(ERROR_MESSAGES.RESUME_NOT_FOUND);
     }
 
-    return resume;
+    return ApiResponseHelper.success(resume);
   }
 
   async remove(id: string, userId: string) {

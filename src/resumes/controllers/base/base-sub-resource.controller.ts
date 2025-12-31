@@ -19,7 +19,10 @@ import { BaseSubResourceService } from '../../services/base/base-sub-resource.se
 import { ReorderDto } from '../../dto/reorder.dto';
 import { ParseCuidPipe } from '../../../common/pipes/parse-cuid.pipe';
 import { PaginatedResult } from '../../dto/pagination.dto';
-import { MessageResponse } from '../../../common/dto/api-response.dto';
+import {
+  DataResponse,
+  MessageResponse,
+} from '../../../common/dto/api-response.dto';
 
 /**
  * Configuration for the BaseSubResourceController
@@ -109,7 +112,7 @@ export abstract class BaseSubResourceController<
     @Param('resumeId', ParseCuidPipe) resumeId: string,
     @Param('id', ParseCuidPipe) entityId: string,
     @CurrentUser() user: UserPayload,
-  ): Promise<Entity> {
+  ): Promise<DataResponse<Entity>> {
     return this.service.getById(resumeId, entityId, user.userId);
   }
 
@@ -123,7 +126,7 @@ export abstract class BaseSubResourceController<
     @Param('resumeId', ParseCuidPipe) resumeId: string,
     @CurrentUser() user: UserPayload,
     @Body() createDto: CreateDto,
-  ): Promise<Entity> {
+  ): Promise<DataResponse<Entity>> {
     return this.service.addToResume(resumeId, user.userId, createDto);
   }
 
@@ -138,7 +141,7 @@ export abstract class BaseSubResourceController<
     @Param('id', ParseCuidPipe) entityId: string,
     @CurrentUser() user: UserPayload,
     @Body() updateDto: UpdateDto,
-  ): Promise<Entity> {
+  ): Promise<DataResponse<Entity>> {
     return this.service.updateById(resumeId, entityId, user.userId, updateDto);
   }
 

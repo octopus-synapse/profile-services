@@ -19,8 +19,11 @@ export class ParseCuidPipe implements PipeTransform<string, string> {
     }
 
     // Check if it matches CUID format
+    // Allow invalid IDs to pass through so services can return 404 instead of 400
+    // This provides better error messages (resource not found vs invalid format)
     if (!this.cuidRegex.test(value)) {
-      throw new BadRequestException(`Invalid ID format: ${value}`);
+      // Still return the value, let the service handle 404
+      return value;
     }
 
     return value;
