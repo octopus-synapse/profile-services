@@ -173,7 +173,7 @@ export class AuthCoreService {
       id: string;
       email: string | null;
       name: string | null;
-      role: UserRole | string;
+      role: UserRole;
       username?: string | null;
       image?: string | null;
       hasCompletedOnboarding: boolean;
@@ -188,7 +188,7 @@ export class AuthCoreService {
     // In production, use a separate refresh token with longer expiry
     // Ensure role is UserRole type for token generation
     const userRole: UserRole =
-      typeof user.role === 'string' ? (user.role as UserRole) : user.role;
+      typeof user.role === 'string' ? user.role : user.role;
     const refreshToken = this.tokenService.generateToken({
       id: user.id,
       email: user.email,

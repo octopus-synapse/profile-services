@@ -135,7 +135,10 @@ describe('AchievementService', () => {
 
       const result = await service.getById(resumeId, achievementId, userId);
 
-      expect(result).toEqual(mockAchievement);
+      expect(result).toEqual({
+        success: true,
+        data: mockAchievement,
+      });
       expect(mockAchievementRepository.findOne).toHaveBeenCalledWith(
         achievementId,
         resumeId,
@@ -195,7 +198,10 @@ describe('AchievementService', () => {
 
       const result = await service.addToResume(resumeId, userId, createDto);
 
-      expect(result).toEqual(mockCreatedAchievement);
+      expect(result).toEqual({
+        success: true,
+        data: mockCreatedAchievement,
+      });
       expect(mockAchievementRepository.create).toHaveBeenCalledWith(
         resumeId,
         createDto,
@@ -250,7 +256,10 @@ describe('AchievementService', () => {
         updateDto,
       );
 
-      expect(result).toEqual(mockUpdatedAchievement);
+      expect(result).toEqual({
+        success: true,
+        data: mockUpdatedAchievement,
+      });
       expect(mockAchievementRepository.update).toHaveBeenCalledWith(
         achievementId,
         resumeId,

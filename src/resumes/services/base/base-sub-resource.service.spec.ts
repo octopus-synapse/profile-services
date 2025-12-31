@@ -179,7 +179,10 @@ describe('BaseSubResourceService', () => {
         mockUserId,
       );
 
-      expect(result).toEqual(mockEntity);
+      expect(result).toEqual({
+        success: true,
+        data: mockEntity,
+      });
       expect(mockRepository.findOne).toHaveBeenCalledWith(
         mockEntityId,
         mockResumeId,
@@ -225,7 +228,10 @@ describe('BaseSubResourceService', () => {
         createDto,
       );
 
-      expect(result).toEqual(createdEntity);
+      expect(result).toEqual({
+        success: true,
+        data: createdEntity,
+      });
       expect(mockRepository.create).toHaveBeenCalledWith(
         mockResumeId,
         createDto,
@@ -272,7 +278,10 @@ describe('BaseSubResourceService', () => {
         updateDto,
       );
 
-      expect(result).toEqual(updatedEntity);
+      expect(result).toEqual({
+        success: true,
+        data: updatedEntity,
+      });
       expect(mockRepository.update).toHaveBeenCalledWith(
         mockEntityId,
         mockResumeId,
