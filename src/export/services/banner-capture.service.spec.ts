@@ -20,6 +20,20 @@ describe('BannerCaptureService', () => {
   let mockBrowser: MockBrowser;
   let mockElementHandle: MockElementHandle;
 
+  // Silence Nest logger during tests to reduce noise
+  const originalConsoleError = console.error;
+  const originalConsoleWarn = console.warn;
+
+  beforeAll(() => {
+    console.error = jest.fn();
+    console.warn = jest.fn();
+  });
+
+  afterAll(() => {
+    console.error = originalConsoleError;
+    console.warn = originalConsoleWarn;
+  });
+
   beforeEach(async () => {
     mockPage = createMockPage();
     mockBrowser = createMockBrowser(mockPage);
