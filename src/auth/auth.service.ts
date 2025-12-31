@@ -58,6 +58,14 @@ export class AuthService {
     return this.tokenRefreshService.refreshToken(userId);
   }
 
+  async refreshTokenWithToken(refreshToken: string) {
+    return this.tokenRefreshService.refreshWithToken(refreshToken);
+  }
+
+  async getCurrentUser(userId: string) {
+    return this.tokenRefreshService.getCurrentUser(userId);
+  }
+
   // ==================== Email Verification ====================
 
   async requestEmailVerification(dto: RequestVerificationDto) {

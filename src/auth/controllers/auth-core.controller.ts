@@ -1,11 +1,12 @@
 /**
  * Auth Core Controller
- * Handles signup, login, and token refresh
+ * Handles signup, login, token refresh, and current user info
  */
 
 import {
   Controller,
   Post,
+  Get,
   Body,
   UseGuards,
   HttpCode,
@@ -21,6 +22,7 @@ import { Throttle, SkipThrottle } from '@nestjs/throttler';
 import { AuthService } from '../auth.service';
 import { SignupDto } from '../dto/signup.dto';
 import { LoginDto } from '../dto/login.dto';
+import { RefreshTokenDto } from '../dto/refresh-token.dto';
 import { Public } from '../decorators/public.decorator';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -59,15 +61,25 @@ export class AuthCoreController {
     return this.authService.login(loginDto);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @Public()
   @SkipThrottle()
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
-  @ApiBearerAuth('JWT-auth')
-  @ApiOperation({ summary: 'Refresh JWT token' })
+  @ApiOperation({ summary: 'Refresh JWT token using refresh token' })
   @ApiResponse({ status: 200, description: 'Token refreshed successfully' })
+  @ApiResponse({ status: 401, description: 'Invalid refresh token' })
+  async refreshToken(@Body() dto: RefreshTokenDto) {
+    return this.authService.refreshTokenWithToken(dto.refreshToken);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @SkipThrottle()
+  @Get('me')
+  @ApiBearerAuth('JWT-auth')
+  @ApiOperation({ summary: 'Get current authenticated user info' })
+  @ApiResponse({ status: 200, description: 'User info retrieved successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async refreshToken(@CurrentUser() user: UserPayload) {
-    return this.authService.refreshToken(user.userId);
+  async getCurrentUser(@CurrentUser() user: UserPayload) {
+    return this.authService.getCurrentUser(user.userId);
   }
 }
