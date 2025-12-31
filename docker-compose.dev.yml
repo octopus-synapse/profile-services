@@ -18,7 +18,11 @@ services:
     networks:
       - profile-dev-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-profile_dev}",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -64,7 +68,8 @@ services:
       JWT_SECRET: ${JWT_SECRET:-dev-secret-key}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-7d}
       SENDGRID_API_KEY: ${SENDGRID_API_KEY}
-      SENDGRID_EMAIL_FROM: ${SENDGRID_EMAIL_FROM}
+      EMAIL_FROM: ${EMAIL_FROM:-${SENDGRID_EMAIL_FROM}}
+      EMAIL_FROM_NAME: ${EMAIL_FROM_NAME:-ProFile}
       MINIO_ENDPOINT: ${MINIO_ENDPOINT}
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
@@ -87,7 +92,9 @@ services:
     volumes:
       - ./src:/app/src:delegated
       - ./test:/app/test:delegated
+      - ./data:/app/data:delegated
       - ./prisma:/app/prisma:delegated
+      - ./prisma.config.ts:/app/prisma.config.ts:delegated
       - ./tsconfig.json:/app/tsconfig.json:delegated
       - ./tsconfig.build.json:/app/tsconfig.build.json:delegated
       - ./nest-cli.json:/app/nest-cli.json:delegated
@@ -112,7 +119,11 @@ services:
     volumes:
       - libretranslate_models:/home/libretranslate/.local
     healthcheck:
-      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:5000/languages')\" || exit 1"]
+      test:
+        [
+          "CMD-SHELL",
+          'python -c "import urllib.request; urllib.request.urlopen(''http://localhost:5000/languages'')" || exit 1',
+        ]
       interval: 30s
       timeout: 10s
       retries: 10
