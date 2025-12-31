@@ -28,7 +28,7 @@ export class DocxProjectBuilder {
 
   private createDescriptionParagraph(description: string | null): Paragraph {
     return new Paragraph({
-      text: description || '',
+      text: description ?? '',
       bullet: { level: 0 },
       indent: { left: 720 },
       spacing: { after: 200 },

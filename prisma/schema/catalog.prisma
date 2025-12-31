@@ -1,0 +1,158 @@
+// Tech Skills Catalog - Pre-populated skills data
+
+model TechArea {
+  id   String       @id @default(cuid())
+  type TechAreaType @unique
+
+  // Translations
+  nameEn          String
+  namePtBr        String
+  descriptionEn   String?
+  descriptionPtBr String?
+
+  icon     String?
+  color    String?
+  order    Int     @default(0)
+  isActive Boolean @default(true)
+
+  niches TechNiche[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([type])
+  @@index([order])
+  @@index([isActive])
+}
+
+model TechNiche {
+  id   String @id @default(cuid())
+  slug String @unique
+
+  // Translations
+  nameEn          String
+  namePtBr        String
+  descriptionEn   String?
+  descriptionPtBr String?
+
+  icon     String?
+  color    String?
+  order    Int     @default(0)
+  isActive Boolean @default(true)
+
+  // Relations
+  areaId String
+  area   TechArea    @relation(fields: [areaId], references: [id], onDelete: Cascade)
+  skills TechSkill[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([areaId])
+  @@index([slug])
+  @@index([order])
+  @@index([isActive])
+}
+
+model TechSkill {
+  id   String @id @default(cuid())
+  slug String @unique
+
+  // Translations
+  nameEn          String
+  namePtBr        String
+  descriptionEn   String?
+  descriptionPtBr String?
+
+  type SkillType @default(OTHER)
+
+  // Metadata
+  icon    String?
+  color   String?
+  website String?
+
+  // Categorization
+  nicheId String?
+  niche   TechNiche? @relation(fields: [nicheId], references: [id], onDelete: SetNull)
+
+  // Search optimization
+  aliases  String[]
+  keywords String[]
+
+  // Popularity/ordering
+  popularity Int     @default(0)
+  order      Int     @default(0)
+  isActive   Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([nicheId])
+  @@index([type])
+  @@index([slug])
+  @@index([popularity])
+  @@index([order])
+  @@index([isActive])
+}
+
+// Spoken Languages Catalog
+model SpokenLanguage {
+  id   String @id @default(cuid())
+  code String @unique
+
+  // Translations for the language name
+  nameEn   String
+  namePtBr String
+  nameEs   String
+
+  // Native name
+  nativeName String?
+
+  // Ordering and status
+  order    Int     @default(0)
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([code])
+  @@index([order])
+  @@index([isActive])
+}
+
+// Programming Languages Catalog
+model ProgrammingLanguage {
+  id   String @id @default(cuid())
+  slug String @unique
+
+  // Translations
+  nameEn          String
+  namePtBr        String
+  descriptionEn   String?
+  descriptionPtBr String?
+
+  // Metadata
+  icon    String?
+  color   String?
+  website String?
+
+  // Typing
+  paradigms String[]
+  typing    String?
+
+  // Search
+  aliases        String[]
+  fileExtensions String[]
+
+  popularity Int     @default(0)
+  order      Int     @default(0)
+  isActive   Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([slug])
+  @@index([popularity])
+  @@index([order])
+  @@index([isActive])
+}

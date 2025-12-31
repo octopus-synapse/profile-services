@@ -28,9 +28,9 @@ export class BannerPageSetup {
 
   buildBannerUrl(palette: string, logoUrl: string): string {
     const host =
-      this.configService.get<string>('FRONTEND_HOST') || DEFAULT.HOST;
+      this.configService.get<string>('FRONTEND_HOST') ?? DEFAULT.HOST;
     const port =
-      this.configService.get<number>('FRONTEND_PORT') || DEFAULT.PORT;
+      this.configService.get<number>('FRONTEND_PORT') ?? DEFAULT.PORT;
 
     let url = `http://${host}:${port}/?palette=${encodeURIComponent(palette)}`;
     if (logoUrl) {

@@ -31,7 +31,7 @@ export class TokenRefreshService {
       },
     });
 
-    if (!user || !user.email) {
+    if (!user?.email) {
       this.logger.warn(`Token refresh failed - user not found`, this.context, {
         userId,
       });

@@ -16,7 +16,6 @@ const mockResumesRepository = {
 
 describe('ResumesService', () => {
   let service: ResumesService;
-  let repository: ResumesRepository;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -30,7 +29,6 @@ describe('ResumesService', () => {
     }).compile();
 
     service = module.get<ResumesService>(ResumesService);
-    repository = module.get<ResumesRepository>(ResumesRepository);
   });
 
   afterEach(() => {

@@ -10,7 +10,7 @@ export class AppLoggerService implements NestLoggerService {
     const isProduction = process.env.NODE_ENV === 'production';
 
     this.logger = winston.createLogger({
-      level: process.env.LOG_LEVEL || (isProduction ? 'info' : 'debug'),
+      level: process.env.LOG_LEVEL ?? (isProduction ? 'info' : 'debug'),
       format: winston.format.combine(
         winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
         winston.format.errors({ stack: true }),
@@ -29,7 +29,14 @@ export class AppLoggerService implements NestLoggerService {
                   log += ` ${JSON.stringify(meta)}`;
                 }
                 if (stack) {
-                  const stk = String(stack);
+                  let stk: string;
+                  if (typeof stack === 'string') {
+                    stk = stack;
+                  } else if (stack instanceof Error) {
+                    stk = stack.stack ?? stack.message;
+                  } else {
+                    stk = JSON.stringify(stack);
+                  }
                   log += `\n${stk}`;
                 }
                 return log;

@@ -26,7 +26,7 @@ export class CloudflareHandlerService {
 
     await page.waitForFunction(
       () => {
-        const body = document.body?.innerHTML || '';
+        const body = document.body.innerHTML || '';
         return (
           !body.includes('Just a moment') &&
           !body.includes('Checking your browser') &&

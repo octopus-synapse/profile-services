@@ -27,7 +27,7 @@ export class MecStatsService {
       totalInstitutions,
       totalCourses,
       coursesByGrau: coursesByDegree.map((g) => ({
-        grau: g.grau || 'Não informado',
+        grau: g.grau ?? 'Não informado',
         count: g._count,
       })),
       institutionsByUf: institutionsByUf.map((u) => ({

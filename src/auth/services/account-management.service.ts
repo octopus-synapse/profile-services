@@ -68,7 +68,7 @@ export class AccountManagementService {
       select: { id: true, email: true, password: true, role: true },
     });
 
-    if (!user || !user.password) {
+    if (!user?.password) {
       throw new UnauthorizedException(ERROR_MESSAGES.INVALID_CREDENTIALS);
     }
 

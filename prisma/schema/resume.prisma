@@ -1,0 +1,88 @@
+// Resume Model - Core resume entity
+
+model Resume {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  title    String?
+  template String  @default("professional")
+  language String  @default("pt-br")
+  isPublic Boolean @default(false)
+  slug     String? @unique
+
+  // Bilingual content
+  contentPtBr     Json?
+  contentEn       Json?
+  primaryLanguage String @default("pt-br")
+
+  // Tech Persona
+  techPersona     String?
+  techArea        String?
+  primaryStack    String[]
+  experienceYears Int?     @default(0)
+
+  // Contact info
+  fullName     String?
+  jobTitle     String?
+  phone        String?
+  emailContact String?
+  location     String?
+  linkedin     String?
+  github       String?
+  website      String?
+  summary      String? @db.Text
+
+  currentCompanyLogo String?
+
+  // Social links
+  twitter       String?
+  medium        String?
+  devto         String?
+  stackoverflow String?
+  kaggle        String?
+  hackerrank    String?
+  leetcode      String?
+
+  // Visual customization
+  accentColor String? @default("#3B82F6")
+  customTheme Json?
+
+  // Theme System
+  activeThemeId String?
+  activeTheme   ResumeTheme? @relation("ResumeActiveTheme", fields: [activeThemeId], references: [id], onDelete: SetNull)
+
+  // Stats
+  profileViews Int @default(0)
+  totalStars   Int @default(0)
+  totalCommits Int @default(0)
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  publishedAt DateTime?
+
+  // Relations
+  experiences     Experience[]
+  education       Education[]
+  skills          Skill[]
+  languages       Language[]
+  projects        Project[]
+  certifications  Certification[]
+  awards          Award[]
+  recommendations Recommendation[]
+  interests       Interest[]
+  achievements    Achievement[]
+  publications    Publication[]
+  talks           Talk[]
+  openSource      OpenSourceContribution[]
+  bugBounties     BugBounty[]
+  hackathons      Hackathon[]
+
+  @@index([userId])
+  @@index([slug])
+  @@index([isPublic])
+  @@index([createdAt])
+  @@index([techPersona])
+  @@index([activeThemeId])
+  @@index([primaryLanguage])
+}

@@ -18,7 +18,7 @@ export class SkillsDataSyncService {
     let updated = 0;
 
     for (const skill of skills) {
-      const nicheId = await this.findNicheId(skill.nicheSlug);
+      const nicheId = await this.findNicheId(skill.nicheSlug ?? undefined);
       const existing = await this.prisma.techSkill.findUnique({
         where: { slug: skill.slug },
       });
@@ -53,13 +53,13 @@ export class SkillsDataSyncService {
     return { inserted, updated };
   }
 
-  private async findNicheId(nicheSlug?: string): Promise<string | null> {
-    if (!nicheSlug) return null;
+  private async findNicheId(nicheSlug?: string): Promise<string | undefined> {
+    if (!nicheSlug) return undefined;
 
     const niche = await this.prisma.techNiche.findUnique({
       where: { slug: nicheSlug },
     });
 
-    return niche?.id || null;
+    return niche?.id ?? undefined;
   }
 }

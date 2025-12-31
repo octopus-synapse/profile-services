@@ -1,247 +1,192 @@
-/* eslint-disable @typescript-eslint/unbound-method */
-import { AppLoggerService } from '../logger/logger.service';
-
-// Create a mock Redis client that we can control
-const mockRedis = {
-  get: jest.fn(),
-  set: jest.fn(),
-  setex: jest.fn(),
-  del: jest.fn(),
-  keys: jest.fn(),
-  flushdb: jest.fn(),
-  exists: jest.fn(),
-  quit: jest.fn(),
-  on: jest.fn(),
-};
-
-// Mock ioredis before importing CacheService
-// Need to mock as default export for ES module compatibility
-jest.mock('ioredis', () => {
-  return {
-    default: jest.fn(() => mockRedis),
-    __esModule: true,
-  };
-});
-
-// Import after mock setup
+import { Test, TestingModule } from '@nestjs/testing';
 import { CacheService } from './cache.service';
+import { CacheCoreService } from './services/cache-core.service';
+import { CachePatternsService } from './services/cache-patterns.service';
+import { RedisConnectionService } from './redis-connection.service';
 
 describe('CacheService', () => {
-  let mockLogger: jest.Mocked<AppLoggerService>;
-  const originalEnv = process.env;
+  let service: CacheService;
+  let coreService: jest.Mocked<CacheCoreService>;
+  let patternsService: jest.Mocked<CachePatternsService>;
+  let redisConnection: jest.Mocked<RedisConnectionService>;
 
-  beforeEach(() => {
-    // Reset all mocks
-    jest.clearAllMocks();
+  beforeEach(async () => {
+    const mockCoreService = {
+      get: jest.fn(),
+      set: jest.fn(),
+      delete: jest.fn(),
+      deletePattern: jest.fn(),
+      flush: jest.fn(),
+      isEnabled: true,
+    };
 
-    // Reset mock implementations
-    mockRedis.get.mockReset();
-    mockRedis.set.mockReset();
-    mockRedis.setex.mockReset();
-    mockRedis.del.mockReset();
-    mockRedis.keys.mockReset();
-    mockRedis.flushdb.mockReset();
-    mockRedis.exists.mockReset();
-    mockRedis.quit.mockReset();
-    mockRedis.on.mockReset();
+    const mockPatternsService = {
+      acquireLock: jest.fn(),
+      releaseLock: jest.fn(),
+      isLocked: jest.fn(),
+      getOrSet: jest.fn(),
+    };
 
-    // Create fresh logger mock
-    mockLogger = {
-      log: jest.fn(),
-      error: jest.fn(),
-      warn: jest.fn(),
-      debug: jest.fn(),
-      verbose: jest.fn(),
-    } as unknown as jest.Mocked<AppLoggerService>;
+    const mockRedisConnection = {
+      onModuleDestroy: jest.fn(),
+      client: null,
+    };
 
-    // Reset process.env
-    jest.resetModules();
-    process.env = { ...originalEnv };
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        CacheService,
+        {
+          provide: CacheCoreService,
+          useValue: mockCoreService,
+        },
+        {
+          provide: CachePatternsService,
+          useValue: mockPatternsService,
+        },
+        {
+          provide: RedisConnectionService,
+          useValue: mockRedisConnection,
+        },
+      ],
+    }).compile();
+
+    service = module.get<CacheService>(CacheService);
+    coreService = module.get(CacheCoreService);
+    patternsService = module.get(CachePatternsService);
+    redisConnection = module.get(RedisConnectionService);
   });
 
-  afterAll(() => {
-    process.env = originalEnv;
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   describe('when Redis is configured', () => {
-    let service: CacheService;
-
-    beforeEach(() => {
-      process.env.REDIS_HOST = 'localhost';
-      process.env.REDIS_PORT = '6379';
-      process.env.REDIS_PASSWORD = 'test-password';
-      service = new CacheService(mockLogger);
-    });
-
     it('should be enabled', () => {
       expect(service.isEnabled).toBe(true);
-    });
-
-    it('should register event handlers on Redis client', () => {
-      expect(mockRedis.on).toHaveBeenCalledWith(
-        'connect',
-        expect.any(Function),
-      );
-      expect(mockRedis.on).toHaveBeenCalledWith('error', expect.any(Function));
     });
 
     describe('get', () => {
       it('should return parsed value when key exists', async () => {
         const testData = { name: 'test', value: 123 };
-        mockRedis.get.mockResolvedValue(JSON.stringify(testData));
+        coreService.get.mockResolvedValue(testData);
 
         const result = await service.get<typeof testData>('test-key');
 
         expect(result).toEqual(testData);
-        expect(mockRedis.get).toHaveBeenCalledWith('test-key');
+        expect(coreService.get).toHaveBeenCalledWith('test-key');
       });
 
       it('should return null when key does not exist', async () => {
-        mockRedis.get.mockResolvedValue(null);
+        coreService.get.mockResolvedValue(null);
 
         const result = await service.get('non-existent-key');
 
         expect(result).toBeNull();
       });
-
-      it('should return null on error and log', async () => {
-        mockRedis.get.mockRejectedValue(new Error('Connection error'));
-
-        const result = await service.get('test-key');
-
-        expect(result).toBeNull();
-        expect(mockLogger.error).toHaveBeenCalled();
-      });
     });
 
     describe('set', () => {
       it('should set value without TTL', async () => {
-        mockRedis.set.mockResolvedValue('OK');
+        coreService.set.mockResolvedValue(undefined);
 
         await service.set('test-key', { data: 'value' });
 
-        expect(mockRedis.set).toHaveBeenCalledWith(
+        expect(coreService.set).toHaveBeenCalledWith(
           'test-key',
-          JSON.stringify({ data: 'value' }),
+          { data: 'value' },
+          undefined,
         );
       });
 
-      it('should set value with TTL using setex', async () => {
-        mockRedis.setex.mockResolvedValue('OK');
+      it('should set value with TTL', async () => {
+        coreService.set.mockResolvedValue(undefined);
 
         await service.set('test-key', { data: 'value' }, 300);
 
-        expect(mockRedis.setex).toHaveBeenCalledWith(
+        expect(coreService.set).toHaveBeenCalledWith(
           'test-key',
+          { data: 'value' },
           300,
-          JSON.stringify({ data: 'value' }),
         );
-      });
-
-      it('should log error on failure', async () => {
-        mockRedis.set.mockRejectedValue(new Error('Set failed'));
-
-        await service.set('test-key', 'value');
-
-        expect(mockLogger.error).toHaveBeenCalled();
       });
     });
 
     describe('delete', () => {
       it('should delete key', async () => {
-        mockRedis.del.mockResolvedValue(1);
+        coreService.delete.mockResolvedValue(undefined);
 
         await service.delete('test-key');
 
-        expect(mockRedis.del).toHaveBeenCalledWith('test-key');
-      });
-
-      it('should log error on failure', async () => {
-        mockRedis.del.mockRejectedValue(new Error('Delete failed'));
-
-        await service.delete('test-key');
-
-        expect(mockLogger.error).toHaveBeenCalled();
+        expect(coreService.delete).toHaveBeenCalledWith('test-key');
       });
     });
 
     describe('deletePattern', () => {
       it('should delete keys matching pattern', async () => {
-        mockRedis.keys.mockResolvedValue(['key1', 'key2', 'key3']);
-        mockRedis.del.mockResolvedValue(3);
+        coreService.deletePattern.mockResolvedValue(undefined);
 
         await service.deletePattern('user:*');
 
-        expect(mockRedis.keys).toHaveBeenCalledWith('user:*');
-        expect(mockRedis.del).toHaveBeenCalledWith('key1', 'key2', 'key3');
-      });
-
-      it('should not call del when no keys match', async () => {
-        mockRedis.keys.mockResolvedValue([]);
-
-        await service.deletePattern('user:*');
-
-        expect(mockRedis.keys).toHaveBeenCalledWith('user:*');
-        expect(mockRedis.del).not.toHaveBeenCalled();
+        expect(coreService.deletePattern).toHaveBeenCalledWith('user:*');
       });
     });
 
     describe('flush', () => {
       it('should flush database', async () => {
-        mockRedis.flushdb.mockResolvedValue('OK');
+        coreService.flush.mockResolvedValue(undefined);
 
         await service.flush();
 
-        expect(mockRedis.flushdb).toHaveBeenCalled();
+        expect(coreService.flush).toHaveBeenCalled();
       });
     });
 
     describe('acquireLock', () => {
       it('should acquire lock successfully', async () => {
-        mockRedis.set.mockResolvedValue('OK');
+        patternsService.acquireLock.mockResolvedValue(true);
 
         const result = await service.acquireLock('lock:resource', 60);
 
         expect(result).toBe(true);
-        expect(mockRedis.set).toHaveBeenCalledWith(
+        expect(patternsService.acquireLock).toHaveBeenCalledWith(
           'lock:resource',
-          expect.any(String),
-          'EX',
           60,
-          'NX',
         );
       });
 
       it('should return false when lock already exists', async () => {
-        mockRedis.set.mockResolvedValue(null);
+        patternsService.acquireLock.mockResolvedValue(false);
 
         const result = await service.acquireLock('lock:resource', 60);
 
         expect(result).toBe(false);
       });
+    });
 
-      it('should return false on error', async () => {
-        mockRedis.set.mockRejectedValue(new Error('Lock failed'));
+    describe('releaseLock', () => {
+      it('should release lock', async () => {
+        patternsService.releaseLock.mockResolvedValue(undefined);
 
-        const result = await service.acquireLock('lock:resource', 60);
+        await service.releaseLock('lock:resource');
 
-        expect(result).toBe(false);
-        expect(mockLogger.error).toHaveBeenCalled();
+        expect(patternsService.releaseLock).toHaveBeenCalledWith(
+          'lock:resource',
+        );
       });
     });
 
     describe('isLocked', () => {
       it('should return true when lock exists', async () => {
-        mockRedis.exists.mockResolvedValue(1);
+        patternsService.isLocked.mockResolvedValue(true);
 
         const result = await service.isLocked('lock:resource');
 
         expect(result).toBe(true);
-        expect(mockRedis.exists).toHaveBeenCalledWith('lock:resource');
+        expect(patternsService.isLocked).toHaveBeenCalledWith('lock:resource');
       });
 
       it('should return false when lock does not exist', async () => {
-        mockRedis.exists.mockResolvedValue(0);
+        patternsService.isLocked.mockResolvedValue(false);
 
         const result = await service.isLocked('lock:resource');
 
@@ -249,60 +194,123 @@ describe('CacheService', () => {
       });
     });
 
+    describe('getOrSet', () => {
+      it('should get or set value', async () => {
+        const computeFn = jest.fn().mockResolvedValue('computed-value');
+        patternsService.getOrSet.mockResolvedValue('computed-value');
+
+        const result = await service.getOrSet('test-key', computeFn, 60);
+
+        expect(result).toBe('computed-value');
+        expect(patternsService.getOrSet).toHaveBeenCalledWith(
+          'test-key',
+          computeFn,
+          60,
+        );
+      });
+    });
+
     describe('onModuleDestroy', () => {
       it('should close Redis connection', async () => {
-        mockRedis.quit.mockResolvedValue('OK');
+        redisConnection.onModuleDestroy.mockResolvedValue(undefined);
 
         await service.onModuleDestroy();
 
-        expect(mockRedis.quit).toHaveBeenCalled();
+        expect(redisConnection.onModuleDestroy).toHaveBeenCalled();
       });
     });
   });
 
   describe('when Redis is not configured', () => {
-    let service: CacheService;
+    let disabledService: CacheService;
 
-    beforeEach(() => {
-      // Ensure REDIS_HOST is not set
-      delete process.env.REDIS_HOST;
-      service = new CacheService(mockLogger);
+    beforeEach(async () => {
+      const mockCoreServiceDisabled = {
+        get: jest.fn(),
+        set: jest.fn(),
+        delete: jest.fn(),
+        deletePattern: jest.fn(),
+        flush: jest.fn(),
+        isEnabled: false,
+      };
+
+      const mockPatternsService = {
+        acquireLock: jest.fn(),
+        releaseLock: jest.fn(),
+        isLocked: jest.fn(),
+        getOrSet: jest.fn(),
+      };
+
+      const mockRedisConnection = {
+        onModuleDestroy: jest.fn(),
+        client: null,
+      };
+
+      const module: TestingModule = await Test.createTestingModule({
+        providers: [
+          CacheService,
+          {
+            provide: CacheCoreService,
+            useValue: mockCoreServiceDisabled,
+          },
+          {
+            provide: CachePatternsService,
+            useValue: mockPatternsService,
+          },
+          {
+            provide: RedisConnectionService,
+            useValue: mockRedisConnection,
+          },
+        ],
+      }).compile();
+
+      disabledService = module.get<CacheService>(CacheService);
     });
 
     it('should be disabled', () => {
-      expect(service.isEnabled).toBe(false);
-    });
-
-    it('should log warning on initialization', () => {
-      expect(mockLogger.warn).toHaveBeenCalledWith(
-        'Redis not configured - caching disabled',
-        'CacheService',
-      );
+      expect(disabledService.isEnabled).toBe(false);
     });
 
     it('should return null from get', async () => {
-      const result = await service.get('test-key');
+      const mockCoreServiceDisabled = {
+        get: jest.fn().mockResolvedValue(null),
+        set: jest.fn(),
+        delete: jest.fn(),
+        deletePattern: jest.fn(),
+        flush: jest.fn(),
+        isEnabled: false,
+      };
+
+      // Recreate service with disabled mock
+      const module: TestingModule = await Test.createTestingModule({
+        providers: [
+          CacheService,
+          {
+            provide: CacheCoreService,
+            useValue: mockCoreServiceDisabled,
+          },
+          {
+            provide: CachePatternsService,
+            useValue: {
+              acquireLock: jest.fn(),
+              releaseLock: jest.fn(),
+              isLocked: jest.fn(),
+              getOrSet: jest.fn(),
+            },
+          },
+          {
+            provide: RedisConnectionService,
+            useValue: {
+              onModuleDestroy: jest.fn(),
+              client: null,
+            },
+          },
+        ],
+      }).compile();
+
+      const testService = module.get<CacheService>(CacheService);
+      const result = await testService.get('test-key');
       expect(result).toBeNull();
-    });
-
-    it('should do nothing on set', async () => {
-      await service.set('test-key', 'value');
-      expect(mockRedis.set).not.toHaveBeenCalled();
-    });
-
-    it('should do nothing on delete', async () => {
-      await service.delete('test-key');
-      expect(mockRedis.del).not.toHaveBeenCalled();
-    });
-
-    it('should return true for acquireLock (allow operation without coordination)', async () => {
-      const result = await service.acquireLock('lock:resource', 60);
-      expect(result).toBe(true);
-    });
-
-    it('should return false for isLocked', async () => {
-      const result = await service.isLocked('lock:resource');
-      expect(result).toBe(false);
     });
   });
 });

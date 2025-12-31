@@ -41,8 +41,12 @@ export function validateLayoutConfig(layout: unknown): void {
 
   const l = layout as Record<string, unknown>;
 
-  if (l.type && !VALID_LAYOUT_TYPES.includes(l.type as string)) {
-    throw new BadRequestException(`Invalid layout type: ${l.type}`);
+  if (
+    l.type &&
+    typeof l.type === 'string' &&
+    !VALID_LAYOUT_TYPES.includes(l.type)
+  ) {
+    throw new BadRequestException(`Invalid layout type: ${String(l.type)}`);
   }
 }
 
@@ -51,18 +55,19 @@ export function validateSectionsConfig(sections: unknown): void {
     throw new BadRequestException(ERROR_MESSAGES.SECTIONS_MUST_BE_ARRAY);
   }
 
-  for (const section of sections) {
-    if (!section.id || !VALID_SECTION_IDS.includes(section.id)) {
-      throw new BadRequestException(`Invalid section id: ${section.id}`);
+  for (const section of sections as Array<Record<string, unknown>>) {
+    const sectionId = section.id as string;
+    if (!sectionId || !VALID_SECTION_IDS.includes(sectionId)) {
+      throw new BadRequestException(`Invalid section id: ${String(sectionId)}`);
     }
     if (typeof section.visible !== 'boolean') {
       throw new BadRequestException(
-        `Section ${section.id} must have visible property`,
+        `Section ${sectionId} must have visible property`,
       );
     }
     if (typeof section.order !== 'number') {
       throw new BadRequestException(
-        `Section ${section.id} must have order property`,
+        `Section ${sectionId} must have order property`,
       );
     }
   }

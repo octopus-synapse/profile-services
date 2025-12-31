@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /**
  * Deep Merge Utility Tests
  * Tests for merging nested config objects

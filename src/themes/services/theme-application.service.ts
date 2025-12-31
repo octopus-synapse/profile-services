@@ -29,7 +29,7 @@ export class ThemeApplicationService {
       where: { id: dto.resumeId },
     });
 
-    if (!resume || resume.userId !== userId) {
+    if (resume?.userId !== userId) {
       throw new ForbiddenException(ERROR_MESSAGES.RESUME_ACCESS_DENIED);
     }
 
@@ -45,7 +45,7 @@ export class ThemeApplicationService {
         where: { id: dto.resumeId },
         data: {
           activeThemeId: dto.themeId,
-          customTheme: (dto.customizations ||
+          customTheme: (dto.customizations ??
             Prisma.JsonNull) as Prisma.InputJsonValue,
         },
       }),

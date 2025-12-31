@@ -26,7 +26,4 @@ export type { ParsedLanguage, ParsedSkill } from './parsed-skill.interface';
 export type { TechSkillsSyncResult } from './sync-result.interface';
 
 // Cache configuration
-export {
-  TECH_SKILLS_CACHE_KEYS,
-  TECH_SKILLS_CACHE_TTL,
-} from './cache.config';
+export { TECH_SKILLS_CACHE_KEYS, TECH_SKILLS_CACHE_TTL } from './cache.config';

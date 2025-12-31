@@ -3,7 +3,15 @@
  * Complete DTO for onboarding submission
  */
 
-import { IsObject, ValidateNested, IsOptional, IsArray, IsString, MinLength, MaxLength } from 'class-validator';
+import {
+  IsObject,
+  ValidateNested,
+  IsOptional,
+  IsArray,
+  IsString,
+  MinLength,
+  MaxLength,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -38,7 +46,10 @@ export { TemplateSelectionDto } from './template-selection.dto';
 export { OnboardingProgressDto } from './onboarding-progress.dto';
 
 export class OnboardingDto {
-  @ApiProperty({ example: 'johndoe', description: 'Unique username for profile URL' })
+  @ApiProperty({
+    example: 'johndoe',
+    description: 'Unique username for profile URL',
+  })
   @IsString()
   @MinLength(3)
   @MaxLength(30)

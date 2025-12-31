@@ -71,10 +71,10 @@ export class TechSkillsSyncService {
       await this.clearCache();
       this.logger.log('Tech skills sync completed successfully');
     } catch (error) {
-      this.logger.error('Tech skills sync failed', error);
-      result.errors.push(
-        error instanceof Error ? error.message : String(error),
-      );
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      this.logger.error('Tech skills sync failed', errorMessage);
+      result.errors.push(errorMessage);
     }
 
     return result;

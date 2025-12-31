@@ -37,9 +37,10 @@ export class TranslationBatchService {
         if (result.status === 'fulfilled') {
           translations.push(result.value);
         } else {
+          const error = result.reason as Error | undefined;
           failed.push({
             text: batch[index],
-            error: result.reason?.message || 'Unknown error',
+            error: error?.message ?? 'Unknown error',
           });
         }
       });

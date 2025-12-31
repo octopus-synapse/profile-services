@@ -45,8 +45,6 @@ export class SpokenLanguagesService {
     query: string,
     limit: number = APP_CONSTANTS.SEARCH_AUTOCOMPLETE_LIMIT,
   ): Promise<SpokenLanguageDto[]> {
-    const searchTerm = `%${query.toLowerCase()}%`;
-
     const languages = await this.prisma.spokenLanguage.findMany({
       where: {
         isActive: true,

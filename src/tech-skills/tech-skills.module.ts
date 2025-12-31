@@ -8,6 +8,9 @@ import { ConfigModule } from '@nestjs/config';
 import {
   TechSkillsSyncController,
   TechSkillsQueryController,
+  TechAreaController,
+  TechNicheController,
+  TechSkillController,
 } from './controllers';
 import { TechSkillsSyncService } from './services/tech-skills-sync.service';
 import { TechSkillsQueryService } from './services/tech-skills-query.service';
@@ -27,7 +30,13 @@ import { InternalAuthGuard } from '../mec-sync/guards/internal-auth.guard';
 
 @Module({
   imports: [ConfigModule, PrismaModule],
-  controllers: [TechSkillsSyncController, TechSkillsQueryController],
+  controllers: [
+    TechSkillsSyncController,
+    TechSkillsQueryController,
+    TechAreaController,
+    TechNicheController,
+    TechSkillController,
+  ],
   providers: [
     // Sync services
     TechAreasSyncService,

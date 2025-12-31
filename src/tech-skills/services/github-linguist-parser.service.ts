@@ -8,16 +8,10 @@ import { AppLoggerService } from '../../common/logger/logger.service';
 import * as yaml from 'js-yaml';
 import type { GithubLanguagesYml, ParsedLanguage } from '../interfaces';
 import {
-  LANGUAGE_TRANSLATIONS,
-  LANGUAGE_PARADIGMS,
-  LANGUAGE_TYPING,
-  POPULARITY_ORDER,
-  LANGUAGE_WEBSITES,
-} from '../constants';
+  LANGUAGE_METADATA,
+  GITHUB_LINGUIST_URL,
+} from '../constants/language-metadata.const';
 import { createLanguageSlug } from '../utils';
-
-const LINGUIST_URL =
-  'https://raw.githubusercontent.com/github/linguist/master/lib/linguist/languages.yml';
 
 @Injectable()
 export class GithubLinguistParserService {
@@ -28,7 +22,7 @@ export class GithubLinguistParserService {
     this.logger.log('Fetching GitHub Linguist languages...');
 
     try {
-      const response = await fetch(LINGUIST_URL);
+      const response = await fetch(GITHUB_LINGUIST_URL);
       if (!response.ok) {
         throw new Error(
           `Failed to fetch: ${response.status} ${response.statusText}`,
@@ -40,8 +34,9 @@ export class GithubLinguistParserService {
 
       return this.parseLanguages(languages);
     } catch (error) {
-      this.logger.error('Failed to fetch GitHub Linguist', error);
-      throw error;
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error('Failed to fetch GitHub Linguist', err.message);
+      throw err;
     }
   }
 
@@ -52,18 +47,18 @@ export class GithubLinguistParserService {
     for (const [name, lang] of Object.entries(languages)) {
       if (lang.type !== 'programming') continue;
 
-      const popularityIndex = POPULARITY_ORDER.indexOf(name);
+      const popularityIndex = LANGUAGE_METADATA.popularityOrder.indexOf(name);
 
       parsed.push({
         slug: createLanguageSlug(name),
         nameEn: name,
-        namePtBr: LANGUAGE_TRANSLATIONS[name] || name,
-        color: lang.color || null,
-        extensions: lang.extensions || [],
-        aliases: lang.aliases || [],
-        paradigms: LANGUAGE_PARADIGMS[name] || [],
-        typing: LANGUAGE_TYPING[name] || null,
-        website: LANGUAGE_WEBSITES[name] || null,
+        namePtBr: LANGUAGE_METADATA.translations[name] ?? name,
+        color: lang.color ?? null,
+        extensions: lang.extensions ?? [],
+        aliases: lang.aliases ?? [],
+        paradigms: LANGUAGE_METADATA.paradigms[name] ?? [],
+        typing: LANGUAGE_METADATA.typing[name] ?? null,
+        website: LANGUAGE_METADATA.websites[name] ?? null,
         popularity: popularityIndex >= 0 ? 1000 - popularityIndex : 0,
       });
     }

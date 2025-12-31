@@ -21,11 +21,7 @@ export class UserProfileService {
   async getPublicProfileByUsername(username: string) {
     const user = await this.usersRepository.findByUsername(username);
 
-    if (
-      !user ||
-      !user.preferences ||
-      user.preferences.profileVisibility !== 'public'
-    ) {
+    if (!user || user.preferences?.profileVisibility !== 'public') {
       throw new NotFoundException(ERROR_MESSAGES.PUBLIC_PROFILE_NOT_FOUND);
     }
 

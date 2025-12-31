@@ -151,7 +151,10 @@ export class UsersController {
       },
     },
   })
-  @ApiResponse({ status: 400, description: 'Invalid username or cooldown period active' })
+  @ApiResponse({
+    status: 400,
+    description: 'Invalid username or cooldown period active',
+  })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'User not found' })
   @ApiResponse({ status: 409, description: 'Username already taken' })

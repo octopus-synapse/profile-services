@@ -63,7 +63,7 @@ export class SkillController extends BaseSubResourceController<
     super(skillService);
   }
 
-  // Override findAll to add category filter
+  // Custom findAll with category filter (not overriding base listAll)
   @Get()
   @ApiOperation({ summary: 'Get all skills for a resume' })
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
@@ -71,7 +71,7 @@ export class SkillController extends BaseSubResourceController<
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiQuery({ name: 'category', required: false, type: String })
   @ApiResponse({ status: 200, description: 'List of skills' })
-  override async findAll(
+  async findAll(
     @Param('resumeId', ParseCuidPipe) resumeId: string,
     @CurrentUser() user: UserPayload,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,

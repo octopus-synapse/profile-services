@@ -53,7 +53,7 @@ export class DocxExperienceBuilder {
     return new Paragraph({
       children: [
         new TextRun({
-          text: `${location || ''} | ${startDate} - ${endDate}`,
+          text: `${location ?? ''} | ${startDate} - ${endDate}`,
           italics: true,
           color: '595959',
         }),
@@ -64,7 +64,7 @@ export class DocxExperienceBuilder {
 
   private createDescriptionParagraph(description: string | null): Paragraph {
     return new Paragraph({
-      text: description || '',
+      text: description ?? '',
       bullet: { level: 0 },
       indent: { left: 720 },
       spacing: { after: 200 },

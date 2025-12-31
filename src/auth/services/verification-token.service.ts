@@ -61,10 +61,7 @@ export class VerificationTokenService {
   async validatePasswordResetToken(token: string): Promise<string> {
     const verificationToken = await this.findToken(token);
 
-    if (
-      !verificationToken ||
-      !verificationToken.identifier.startsWith(RESET_TOKEN_PREFIX)
-    ) {
+    if (!verificationToken?.identifier.startsWith(RESET_TOKEN_PREFIX)) {
       throw new BadRequestException(ERROR_MESSAGES.INVALID_RESET_TOKEN);
     }
 

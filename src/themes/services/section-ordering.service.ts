@@ -40,7 +40,7 @@ export class SectionOrderingService {
     const config = await this.repo.get(userId, resumeId);
 
     const overrides = { ...config.itemOverrides };
-    const items = overrides[sectionId] || [];
+    const items = overrides[sectionId] ?? [];
 
     const idx = items.findIndex((o) => o.itemId === itemId);
     if (idx >= 0) {

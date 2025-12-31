@@ -1,53 +1,29 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConflictException, UnauthorizedException } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { PrismaService } from '../prisma/prisma.service';
-import { AppLoggerService } from '../common/logger/logger.service';
 import {
-  TokenService,
-  PasswordService,
+  AuthCoreService,
+  TokenRefreshService,
   EmailVerificationService,
   PasswordResetService,
   AccountManagementService,
 } from './services';
 
-/**
- * AuthService Unit Tests
- *
- * These tests focus on the core authentication methods (signup, login, refreshToken)
- * Delegated operations are tested in their respective service test files:
- * - token.service.spec.ts
- * - password.service.spec.ts
- * - email-verification.service.spec.ts (if exists)
- * - password-reset.service.spec.ts (if exists)
- * - account-management.service.spec.ts (if exists)
- */
 describe('AuthService', () => {
   let service: AuthService;
+  let authCoreService: jest.Mocked<AuthCoreService>;
+  let tokenRefreshService: jest.Mocked<TokenRefreshService>;
+  let emailVerificationService: jest.Mocked<EmailVerificationService>;
+  let passwordResetService: jest.Mocked<PasswordResetService>;
+  let accountManagementService: jest.Mocked<AccountManagementService>;
 
-  const mockPrismaService = {
-    user: {
-      findUnique: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-    },
+  const mockAuthCoreService = {
+    signup: jest.fn(),
+    validateUser: jest.fn(),
+    login: jest.fn(),
   };
 
-  const mockTokenService = {
-    generateToken: jest.fn().mockReturnValue('mock-jwt-token'),
-    verifyToken: jest.fn(),
-  };
-
-  const mockPasswordService = {
-    hash: jest.fn().mockResolvedValue('hashedPassword123'),
-    compare: jest.fn(),
-  };
-
-  const mockLoggerService = {
-    log: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-    debug: jest.fn(),
+  const mockTokenRefreshService = {
+    refreshToken: jest.fn(),
   };
 
   const mockEmailVerificationService = {
@@ -72,15 +48,22 @@ describe('AuthService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
-        { provide: PrismaService, useValue: mockPrismaService },
-        { provide: AppLoggerService, useValue: mockLoggerService },
-        { provide: TokenService, useValue: mockTokenService },
-        { provide: PasswordService, useValue: mockPasswordService },
+        {
+          provide: AuthCoreService,
+          useValue: mockAuthCoreService,
+        },
+        {
+          provide: TokenRefreshService,
+          useValue: mockTokenRefreshService,
+        },
         {
           provide: EmailVerificationService,
           useValue: mockEmailVerificationService,
         },
-        { provide: PasswordResetService, useValue: mockPasswordResetService },
+        {
+          provide: PasswordResetService,
+          useValue: mockPasswordResetService,
+        },
         {
           provide: AccountManagementService,
           useValue: mockAccountManagementService,
@@ -89,6 +72,11 @@ describe('AuthService', () => {
     }).compile();
 
     service = module.get<AuthService>(AuthService);
+    authCoreService = module.get(AuthCoreService);
+    tokenRefreshService = module.get(TokenRefreshService);
+    emailVerificationService = module.get(EmailVerificationService);
+    passwordResetService = module.get(PasswordResetService);
+    accountManagementService = module.get(AccountManagementService);
   });
 
   describe('signup', () => {
@@ -98,115 +86,55 @@ describe('AuthService', () => {
       name: 'Test User',
     };
 
-    it('should register a new user successfully', async () => {
-      const mockUser = {
-        id: 'user-123',
-        email: signupDto.email,
-        name: signupDto.name,
-        hasCompletedOnboarding: false,
-        role: 'USER',
+    it('should delegate to authCoreService', async () => {
+      const mockResult = {
+        success: true,
+        token: 'mock-jwt-token',
+        user: { id: 'user-123', email: signupDto.email },
       };
-
-      mockPrismaService.user.findUnique.mockResolvedValue(null);
-      mockPrismaService.user.create.mockResolvedValue(mockUser);
+      mockAuthCoreService.signup.mockResolvedValue(mockResult);
 
       const result = await service.signup(signupDto);
 
-      expect(result.success).toBe(true);
-      expect(result.token).toBe('mock-jwt-token');
-      expect(result.user.email).toBe(signupDto.email);
-      expect(mockPasswordService.hash).toHaveBeenCalledWith(signupDto.password);
-      expect(mockTokenService.generateToken).toHaveBeenCalled();
-    });
-
-    it('should throw ConflictException if email exists', async () => {
-      mockPrismaService.user.findUnique.mockResolvedValue({
-        id: 'existing-user',
-      });
-
-      await expect(service.signup(signupDto)).rejects.toThrow(
-        ConflictException,
-      );
-      expect(mockPrismaService.user.create).not.toHaveBeenCalled();
+      expect(result).toEqual(mockResult);
+      expect(authCoreService.signup).toHaveBeenCalledWith(signupDto);
     });
   });
 
   describe('login', () => {
     const loginDto = { email: 'test@example.com', password: 'password123' };
 
-    it('should login successfully with valid credentials', async () => {
-      const mockUser = {
-        id: 'user-123',
-        email: loginDto.email,
-        name: 'Test User',
-        password: 'hashedPassword',
-        hasCompletedOnboarding: true,
-        role: 'USER',
+    it('should delegate to authCoreService', async () => {
+      const mockResult = {
+        success: true,
+        token: 'mock-jwt-token',
+        user: { id: 'user-123', email: loginDto.email },
       };
-
-      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
-      mockPasswordService.compare.mockResolvedValue(true);
+      mockAuthCoreService.login.mockResolvedValue(mockResult);
 
       const result = await service.login(loginDto);
 
-      expect(result.success).toBe(true);
-      expect(result.token).toBe('mock-jwt-token');
-      expect(result.user.email).toBe(loginDto.email);
-    });
-
-    it('should throw UnauthorizedException if user not found', async () => {
-      mockPrismaService.user.findUnique.mockResolvedValue(null);
-
-      await expect(service.login(loginDto)).rejects.toThrow(
-        UnauthorizedException,
-      );
-    });
-
-    it('should throw UnauthorizedException if password is invalid', async () => {
-      const mockUser = {
-        id: 'user-123',
-        email: loginDto.email,
-        password: 'hashedPassword',
-      };
-
-      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
-      mockPasswordService.compare.mockResolvedValue(false);
-
-      await expect(service.login(loginDto)).rejects.toThrow(
-        UnauthorizedException,
-      );
+      expect(result).toEqual(mockResult);
+      expect(authCoreService.login).toHaveBeenCalledWith(loginDto);
     });
   });
 
   describe('refreshToken', () => {
-    it('should refresh token for valid user', async () => {
-      const mockUser = {
-        id: 'user-123',
-        email: 'test@example.com',
-        name: 'Test User',
-        role: 'USER',
-        hasCompletedOnboarding: true,
+    it('should delegate to tokenRefreshService', async () => {
+      const mockResult = {
+        success: true,
+        token: 'new-mock-jwt-token',
       };
-
-      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+      mockTokenRefreshService.refreshToken.mockResolvedValue(mockResult);
 
       const result = await service.refreshToken('user-123');
 
-      expect(result.success).toBe(true);
-      expect(result.token).toBe('mock-jwt-token');
-      expect(mockTokenService.generateToken).toHaveBeenCalled();
-    });
-
-    it('should throw UnauthorizedException if user not found', async () => {
-      mockPrismaService.user.findUnique.mockResolvedValue(null);
-
-      await expect(service.refreshToken('invalid-id')).rejects.toThrow(
-        UnauthorizedException,
-      );
+      expect(result).toEqual(mockResult);
+      expect(tokenRefreshService.refreshToken).toHaveBeenCalledWith('user-123');
     });
   });
 
-  describe('delegated operations', () => {
+  describe('email verification', () => {
     it('should delegate requestEmailVerification to EmailVerificationService', async () => {
       const dto = { email: 'test@example.com' };
       mockEmailVerificationService.requestVerification.mockResolvedValue({
@@ -215,11 +143,24 @@ describe('AuthService', () => {
 
       await service.requestEmailVerification(dto);
 
-      expect(
-        mockEmailVerificationService.requestVerification,
-      ).toHaveBeenCalledWith(dto);
+      expect(emailVerificationService.requestVerification).toHaveBeenCalledWith(
+        dto,
+      );
     });
 
+    it('should delegate verifyEmail to EmailVerificationService', async () => {
+      const dto = { token: 'verification-token' };
+      mockEmailVerificationService.verifyEmail.mockResolvedValue({
+        success: true,
+      });
+
+      await service.verifyEmail(dto);
+
+      expect(emailVerificationService.verifyEmail).toHaveBeenCalledWith(dto);
+    });
+  });
+
+  describe('password reset', () => {
     it('should delegate forgotPassword to PasswordResetService', async () => {
       const dto = { email: 'test@example.com' };
       mockPasswordResetService.forgotPassword.mockResolvedValue({
@@ -228,9 +169,39 @@ describe('AuthService', () => {
 
       await service.forgotPassword(dto);
 
-      expect(mockPasswordResetService.forgotPassword).toHaveBeenCalledWith(dto);
+      expect(passwordResetService.forgotPassword).toHaveBeenCalledWith(dto);
     });
 
+    it('should delegate resetPassword to PasswordResetService', async () => {
+      const dto = { token: 'reset-token', password: 'newpass123' };
+      mockPasswordResetService.resetPassword.mockResolvedValue({
+        success: true,
+      });
+
+      await service.resetPassword(dto);
+
+      expect(passwordResetService.resetPassword).toHaveBeenCalledWith(dto);
+    });
+
+    it('should delegate changePassword to PasswordResetService', async () => {
+      const dto = {
+        currentPassword: 'oldpass',
+        newPassword: 'newpass123',
+      };
+      mockPasswordResetService.changePassword.mockResolvedValue({
+        success: true,
+      });
+
+      await service.changePassword('user-123', dto);
+
+      expect(passwordResetService.changePassword).toHaveBeenCalledWith(
+        'user-123',
+        dto,
+      );
+    });
+  });
+
+  describe('account management', () => {
     it('should delegate changeEmail to AccountManagementService', async () => {
       const dto = { newEmail: 'new@example.com', currentPassword: 'password' };
       mockAccountManagementService.changeEmail.mockResolvedValue({
@@ -239,7 +210,21 @@ describe('AuthService', () => {
 
       await service.changeEmail('user-123', dto);
 
-      expect(mockAccountManagementService.changeEmail).toHaveBeenCalledWith(
+      expect(accountManagementService.changeEmail).toHaveBeenCalledWith(
+        'user-123',
+        dto,
+      );
+    });
+
+    it('should delegate deleteAccount to AccountManagementService', async () => {
+      const dto = { password: 'password123' };
+      mockAccountManagementService.deleteAccount.mockResolvedValue({
+        success: true,
+      });
+
+      await service.deleteAccount('user-123', dto);
+
+      expect(accountManagementService.deleteAccount).toHaveBeenCalledWith(
         'user-123',
         dto,
       );

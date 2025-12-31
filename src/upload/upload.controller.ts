@@ -8,7 +8,6 @@ import {
   Param,
   HttpCode,
   HttpStatus,
-  BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
@@ -24,7 +23,6 @@ import { UploadService } from './upload.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { UserPayload } from '../auth/interfaces/auth-request.interface';
-import { ERROR_MESSAGES } from '../common/constants/app.constants';
 
 @ApiTags('upload')
 @ApiBearerAuth('JWT-auth')
@@ -66,10 +64,6 @@ export class UploadController {
     @CurrentUser() user: UserPayload,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    if (!file) {
-      throw new BadRequestException(ERROR_MESSAGES.NO_FILE_PROVIDED);
-    }
-
     return this.uploadService.uploadProfileImage(user.userId, {
       buffer: file.buffer,
       originalname: file.originalname,
@@ -113,10 +107,6 @@ export class UploadController {
     @Param('resumeId') resumeId: string,
     @UploadedFile() file: Express.Multer.File,
   ) {
-    if (!file) {
-      throw new BadRequestException(ERROR_MESSAGES.NO_FILE_PROVIDED);
-    }
-
     return this.uploadService.uploadCompanyLogo(user.userId, resumeId, {
       buffer: file.buffer,
       originalname: file.originalname,

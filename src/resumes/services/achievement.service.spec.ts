@@ -6,8 +6,6 @@ import { ResumesRepository } from '../resumes.repository';
 
 describe('AchievementService', () => {
   let service: AchievementService;
-  let achievementRepository: AchievementRepository;
-  let resumesRepository: ResumesRepository;
 
   const mockAchievementRepository = {
     findAll: jest.fn(),
@@ -38,10 +36,6 @@ describe('AchievementService', () => {
     }).compile();
 
     service = module.get<AchievementService>(AchievementService);
-    achievementRepository = module.get<AchievementRepository>(
-      AchievementRepository,
-    );
-    resumesRepository = module.get<ResumesRepository>(ResumesRepository);
   });
 
   afterEach(() => {
@@ -72,7 +66,7 @@ describe('AchievementService', () => {
       mockResumesRepository.findOne.mockResolvedValue(mockResume);
       mockAchievementRepository.findAll.mockResolvedValue(mockAchievements);
 
-      const result = await service.findAll(resumeId, userId);
+      const result = await service.listForResume(resumeId, userId);
 
       expect(result).toEqual(mockAchievements);
       expect(mockResumesRepository.findOne).toHaveBeenCalledWith(
@@ -92,7 +86,7 @@ describe('AchievementService', () => {
 
       mockResumesRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.findAll(resumeId, userId)).rejects.toThrow(
+      await expect(service.listForResume(resumeId, userId)).rejects.toThrow(
         ForbiddenException,
       );
       expect(mockAchievementRepository.findAll).not.toHaveBeenCalled();
@@ -112,7 +106,7 @@ describe('AchievementService', () => {
         totalPages: 0,
       });
 
-      await service.findAll(resumeId, userId, 2, 10);
+      await service.listForResume(resumeId, userId, 2, 10);
 
       expect(mockAchievementRepository.findAll).toHaveBeenCalledWith(
         resumeId,
@@ -139,7 +133,7 @@ describe('AchievementService', () => {
       mockResumesRepository.findOne.mockResolvedValue(mockResume);
       mockAchievementRepository.findOne.mockResolvedValue(mockAchievement);
 
-      const result = await service.findOne(resumeId, achievementId, userId);
+      const result = await service.getById(resumeId, achievementId, userId);
 
       expect(result).toEqual(mockAchievement);
       expect(mockAchievementRepository.findOne).toHaveBeenCalledWith(
@@ -158,7 +152,7 @@ describe('AchievementService', () => {
       mockAchievementRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        service.findOne(resumeId, achievementId, userId),
+        service.getById(resumeId, achievementId, userId),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -170,7 +164,7 @@ describe('AchievementService', () => {
       mockResumesRepository.findOne.mockResolvedValue(null);
 
       await expect(
-        service.findOne(resumeId, achievementId, userId),
+        service.getById(resumeId, achievementId, userId),
       ).rejects.toThrow(ForbiddenException);
       expect(mockAchievementRepository.findOne).not.toHaveBeenCalled();
     });
@@ -199,7 +193,7 @@ describe('AchievementService', () => {
         mockCreatedAchievement,
       );
 
-      const result = await service.create(resumeId, userId, createDto);
+      const result = await service.addToResume(resumeId, userId, createDto);
 
       expect(result).toEqual(mockCreatedAchievement);
       expect(mockAchievementRepository.create).toHaveBeenCalledWith(
@@ -220,9 +214,9 @@ describe('AchievementService', () => {
 
       mockResumesRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.create(resumeId, userId, createDto)).rejects.toThrow(
-        ForbiddenException,
-      );
+      await expect(
+        service.addToResume(resumeId, userId, createDto),
+      ).rejects.toThrow(ForbiddenException);
       expect(mockAchievementRepository.create).not.toHaveBeenCalled();
     });
   });
@@ -249,7 +243,7 @@ describe('AchievementService', () => {
         mockUpdatedAchievement,
       );
 
-      const result = await service.update(
+      const result = await service.updateById(
         resumeId,
         achievementId,
         userId,
@@ -275,7 +269,7 @@ describe('AchievementService', () => {
       mockAchievementRepository.update.mockResolvedValue(null);
 
       await expect(
-        service.update(resumeId, achievementId, userId, updateDto),
+        service.updateById(resumeId, achievementId, userId, updateDto),
       ).rejects.toThrow(NotFoundException);
     });
   });
@@ -290,7 +284,7 @@ describe('AchievementService', () => {
       mockResumesRepository.findOne.mockResolvedValue(mockResume);
       mockAchievementRepository.delete.mockResolvedValue(true);
 
-      const result = await service.remove(resumeId, achievementId, userId);
+      const result = await service.deleteById(resumeId, achievementId, userId);
 
       expect(result).toEqual({
         success: true,
@@ -312,7 +306,7 @@ describe('AchievementService', () => {
       mockAchievementRepository.delete.mockResolvedValue(false);
 
       await expect(
-        service.remove(resumeId, achievementId, userId),
+        service.deleteById(resumeId, achievementId, userId),
       ).rejects.toThrow(NotFoundException);
     });
   });
@@ -327,7 +321,7 @@ describe('AchievementService', () => {
       mockResumesRepository.findOne.mockResolvedValue(mockResume);
       mockAchievementRepository.reorder.mockResolvedValue(undefined);
 
-      const result = await service.reorder(resumeId, userId, ids);
+      const result = await service.reorderInResume(resumeId, userId, ids);
 
       expect(result).toEqual({
         success: true,
@@ -346,9 +340,9 @@ describe('AchievementService', () => {
 
       mockResumesRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.reorder(resumeId, userId, ids)).rejects.toThrow(
-        ForbiddenException,
-      );
+      await expect(
+        service.reorderInResume(resumeId, userId, ids),
+      ).rejects.toThrow(ForbiddenException);
       expect(mockAchievementRepository.reorder).not.toHaveBeenCalled();
     });
   });

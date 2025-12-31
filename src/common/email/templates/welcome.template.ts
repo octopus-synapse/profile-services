@@ -23,13 +23,13 @@ export const getWelcomeEmailTemplate = (name: string): string => {
       <li>🌐 Compartilhar seu portfólio online</li>
     </ul>
     <div style="text-align: center; margin-top: 32px;">
-      <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/dashboard" class="btn">
+      <a href="${process.env.FRONTEND_URL ?? 'http://localhost:3000'}/dashboard" class="btn">
         Começar agora
       </a>
     </div>
     <div class="divider"></div>
     <p class="text-muted" style="text-align: center;">
-      Precisa de ajuda? Confira nosso <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/help" style="color: #3B82F6;">guia de início rápido</a>
+      Precisa de ajuda? Confira nosso <a href="${process.env.FRONTEND_URL ?? 'http://localhost:3000'}/help" style="color: #3B82F6;">guia de início rápido</a>
     </p>
   `;
 

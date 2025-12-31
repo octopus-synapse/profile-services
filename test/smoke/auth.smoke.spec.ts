@@ -48,11 +48,13 @@ describe('Auth Smoke Tests', () => {
     });
 
     it('should reject weak password', async () => {
-      const res = await getRequest().post('/api/auth/signup').send({
-        email: `weak-pass-${Date.now()}@test.com`,
-        password: '123',
-        name: TEST_USER.name,
-      });
+      const res = await getRequest()
+        .post('/api/auth/signup')
+        .send({
+          email: `weak-pass-${Date.now()}@test.com`,
+          password: '123',
+          name: TEST_USER.name,
+        });
 
       expect(res.status).toBe(400);
     });

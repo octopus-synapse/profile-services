@@ -9,7 +9,9 @@ import { Public } from '../auth/decorators/public.decorator';
 
 @Controller('spoken-languages')
 export class SpokenLanguagesController {
-  constructor(private readonly spokenLanguagesService: SpokenLanguagesService) {}
+  constructor(
+    private readonly spokenLanguagesService: SpokenLanguagesService,
+  ) {}
 
   /**
    * Get all spoken languages
@@ -26,10 +28,7 @@ export class SpokenLanguagesController {
    */
   @Public()
   @Get('search')
-  async search(
-    @Query('q') query: string,
-    @Query('limit') limit?: string,
-  ) {
+  async search(@Query('q') query: string, @Query('limit') limit?: string) {
     return this.spokenLanguagesService.search(
       query || '',
       limit ? parseInt(limit, 10) : 10,

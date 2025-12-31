@@ -4,7 +4,7 @@
  */
 
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
-import { API_LIMITS } from 'src/common/constants/app.constants';
+import { API_LIMITS } from '../../../common/constants/app.constants';
 import { GitHubApiService } from './github-api.service';
 import { GitHubContributionService } from './github-contribution.service';
 import { GitHubAchievementService } from './github-achievement.service';

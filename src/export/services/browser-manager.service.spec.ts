@@ -51,7 +51,9 @@ describe('BrowserManagerService', () => {
       const error = new Error('Browser launch failed');
       (puppeteer.launch as jest.Mock).mockRejectedValueOnce(error);
 
-      await expect(service.getBrowser()).rejects.toThrow('Browser launch failed');
+      await expect(service.getBrowser()).rejects.toThrow(
+        'Browser launch failed',
+      );
     });
   });
 

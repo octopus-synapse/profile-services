@@ -55,7 +55,11 @@ export class SkillQueryService {
     });
 
     const result = mapSkillsToDto(skills);
-    await this.cache.set(cacheKey, result, TECH_SKILLS_CACHE_TTL.SKILLS_BY_NICHE);
+    await this.cache.set(
+      cacheKey,
+      result,
+      TECH_SKILLS_CACHE_TTL.SKILLS_BY_NICHE,
+    );
     return result;
   }
 

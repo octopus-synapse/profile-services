@@ -42,7 +42,7 @@ import {
         return {
           secret,
           signOptions: {
-            expiresIn: configService.get('JWT_EXPIRES_IN') || '7d',
+            expiresIn: configService.get('JWT_EXPIRES_IN') ?? '7d',
           },
         };
       },

@@ -40,7 +40,7 @@ export class AuthCoreService {
     const user = await this.prisma.user.create({
       data: {
         email,
-        name: name || email.split('@')[0],
+        name: name ?? email.split('@')[0],
         password: hashedPassword,
         hasCompletedOnboarding: false,
       },
@@ -51,9 +51,13 @@ export class AuthCoreService {
       email,
     });
 
+    if (!user.email) {
+      throw new Error('User email is required after registration');
+    }
+
     const token = this.tokenService.generateToken({
       id: user.id,
-      email: user.email!,
+      email: user.email,
       role: user.role,
       hasCompletedOnboarding: user.hasCompletedOnboarding,
     });
@@ -67,7 +71,7 @@ export class AuthCoreService {
   ): Promise<ValidatedUser | null> {
     const user = await this.prisma.user.findUnique({ where: { email } });
 
-    if (!user || !user.password) {
+    if (!user?.password) {
       this.logger.warn(`Failed login attempt - user not found`, this.context, {
         email,
       });
@@ -88,7 +92,6 @@ export class AuthCoreService {
       return null;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _, ...result } = user;
     return result;
   }
@@ -100,9 +103,13 @@ export class AuthCoreService {
       throw new UnauthorizedException(ERROR_MESSAGES.INVALID_CREDENTIALS);
     }
 
+    if (!user.email) {
+      throw new UnauthorizedException(ERROR_MESSAGES.INVALID_CREDENTIALS);
+    }
+
     const token = this.tokenService.generateToken({
       id: user.id,
-      email: user.email!,
+      email: user.email,
       role: user.role,
       hasCompletedOnboarding: user.hasCompletedOnboarding,
     });

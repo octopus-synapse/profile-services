@@ -16,7 +16,7 @@ export class ResumeOnboardingService {
     });
 
     const resume = await this.prisma.resume.upsert({
-      where: { id: existingResume?.id || 'nonexistent' },
+      where: { id: existingResume?.id ?? 'nonexistent' },
       update: {
         fullName: personalInfo.fullName,
         emailContact: personalInfo.email,

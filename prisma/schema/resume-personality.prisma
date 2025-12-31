@@ -1,0 +1,149 @@
+// Resume Personality - Advanced sections for tech professionals
+
+model Achievement {
+  id       String @id @default(cuid())
+  resumeId String
+  resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  type            String
+  title           String
+  description     String?  @db.Text
+  badgeUrl        String?
+  verificationUrl String?
+  achievedAt      DateTime
+  value           Int?
+  rank            String?
+  order           Int      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([resumeId])
+  @@index([resumeId, type])
+  @@index([resumeId, order])
+}
+
+model Publication {
+  id       String @id @default(cuid())
+  resumeId String
+  resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  title           String
+  publisher       String
+  publicationType String
+  url             String?
+  publishedAt     DateTime
+  abstract        String?  @db.Text
+  coAuthors       String[]
+  citations       Int?     @default(0)
+  order           Int      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([resumeId])
+  @@index([resumeId, order])
+  @@index([publicationType])
+}
+
+model Talk {
+  id       String @id @default(cuid())
+  resumeId String
+  resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  title       String
+  event       String
+  eventType   String
+  location    String?
+  date        DateTime
+  description String?  @db.Text
+  slidesUrl   String?
+  videoUrl    String?
+  attendees   Int?
+  order       Int      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([resumeId])
+  @@index([resumeId, order])
+  @@index([eventType])
+}
+
+model OpenSourceContribution {
+  id       String @id @default(cuid())
+  resumeId String
+  resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  projectName  String
+  projectUrl   String
+  role         String
+  description  String?   @db.Text
+  technologies String[]
+  commits      Int?      @default(0)
+  prsCreated   Int?      @default(0)
+  prsMerged    Int?      @default(0)
+  issuesClosed Int?      @default(0)
+  stars        Int?      @default(0)
+  startDate    DateTime
+  endDate      DateTime?
+  isCurrent    Boolean   @default(false)
+  order        Int       @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([resumeId])
+  @@index([resumeId, order])
+  @@index([role])
+}
+
+model BugBounty {
+  id       String @id @default(cuid())
+  resumeId String
+  resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  platform          String
+  company           String
+  severity          String
+  vulnerabilityType String
+  cveId             String?
+  reward            Float?
+  currency          String?   @default("USD")
+  reportUrl         String?
+  reportedAt        DateTime
+  resolvedAt        DateTime?
+  order             Int       @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([resumeId])
+  @@index([resumeId, order])
+  @@index([severity])
+}
+
+model Hackathon {
+  id       String @id @default(cuid())
+  resumeId String
+  resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+
+  name         String
+  organizer    String
+  position     String?
+  projectName  String
+  description  String?  @db.Text
+  technologies String[]
+  teamSize     Int?
+  demoUrl      String?
+  repoUrl      String?
+  date         DateTime
+  prize        String?
+  order        Int      @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([resumeId])
+  @@index([resumeId, order])
+}

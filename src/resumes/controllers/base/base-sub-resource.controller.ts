@@ -25,7 +25,7 @@ import { MessageResponse } from '../../../common/dto/api-response.dto';
  * Configuration for the BaseSubResourceController
  */
 export interface SubResourceControllerConfig<
-  Entity,
+  _Entity,
   CreateDto,
   UpdateDto,
   ResponseDto,

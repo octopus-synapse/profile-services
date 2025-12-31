@@ -55,7 +55,7 @@ export class UserPreferencesService {
     const preferences =
       await this.usersRepository.getFullUserPreferences(userId);
 
-    return preferences || {};
+    return preferences ?? {};
   }
 
   async updateFullPreferences(

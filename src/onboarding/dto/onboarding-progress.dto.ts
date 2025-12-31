@@ -27,9 +27,17 @@ export class OnboardingProgressDto {
   @ApiProperty({
     example: 'personal-info',
     enum: [
-      'welcome', 'personal-info', 'username', 'professional-profile',
-      'experience', 'education', 'skills', 'languages', 'template',
-      'review', 'complete',
+      'welcome',
+      'personal-info',
+      'username',
+      'professional-profile',
+      'experience',
+      'education',
+      'skills',
+      'languages',
+      'template',
+      'review',
+      'complete',
     ],
   })
   @IsString()

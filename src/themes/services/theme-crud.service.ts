@@ -26,7 +26,7 @@ export class ThemeCrudService {
         name: dto.name,
         description: dto.description,
         category: dto.category,
-        tags: dto.tags || [],
+        tags: dto.tags ?? [],
         styleConfig: dto.styleConfig as Prisma.InputJsonValue,
         parentThemeId: dto.parentThemeId,
         authorId: userId,

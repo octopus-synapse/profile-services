@@ -71,7 +71,12 @@ export class GitHubContributionService {
       projectUrl: repo.html_url,
       role,
       description: repo.description || undefined,
-      technologies: repo.topics || (repo.language ? [repo.language] : []),
+      technologies:
+        repo.topics.length > 0
+          ? repo.topics
+          : repo.language
+            ? [repo.language]
+            : [],
       commits: commits || undefined,
       prsCreated: pullRequests || undefined,
       stars: repo.stargazers_count > 0 ? repo.stargazers_count : undefined,

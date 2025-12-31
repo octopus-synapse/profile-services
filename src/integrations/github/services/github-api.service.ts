@@ -20,7 +20,7 @@ export class GitHubApiService {
   private readonly githubToken: string;
 
   constructor(private readonly configService: ConfigService) {
-    this.githubToken = this.configService.get<string>('GITHUB_TOKEN') || '';
+    this.githubToken = this.configService.get<string>('GITHUB_TOKEN') ?? '';
   }
 
   async fetchGitHub<T>(endpoint: string): Promise<T> {
@@ -49,8 +49,8 @@ export class GitHubApiService {
     username: string,
     options: GitHubFetchOptions = {},
   ): Promise<GitHubRepo[]> {
-    const sort = options.sort || 'updated';
-    const perPage = options.per_page || 100;
+    const sort = options.sort ?? 'updated';
+    const perPage = options.per_page ?? 100;
     return this.fetchGitHub<GitHubRepo[]>(
       `/users/${username}/repos?sort=${sort}&per_page=${perPage}`,
     );

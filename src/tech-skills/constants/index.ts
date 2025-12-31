@@ -13,6 +13,18 @@ export { LANGUAGE_PARADIGMS } from './language-paradigms.const';
 export { LANGUAGE_TYPING } from './language-typing.const';
 export { POPULARITY_ORDER } from './language-popularity.const';
 export { LANGUAGE_WEBSITES } from './language-websites.const';
+export {
+  LANGUAGE_METADATA,
+  GITHUB_LINGUIST_URL,
+} from './language-metadata.const';
+
+// Stack Overflow specific constants
+export {
+  STACKOVERFLOW_CATEGORIES,
+  type StackOverflowCategory,
+} from './stackoverflow-categories.const';
+export { STACKOVERFLOW_TRANSLATIONS } from './stackoverflow-translations.const';
+export { STACKOVERFLOW_COLORS } from './stackoverflow-colors.const';
 
 // Individual category groups (for specific imports)
 export {

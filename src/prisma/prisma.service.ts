@@ -88,7 +88,9 @@ export class PrismaService
         const model = this[modelName as PrismaModelKey] as
           | DeletableModel
           | undefined;
-        await model?.deleteMany?.();
+        if (model) {
+          await model.deleteMany();
+        }
       } catch {
         // Model may not exist, skip
       }

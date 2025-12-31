@@ -20,15 +20,15 @@ export class RedisConnectionService implements OnModuleDestroy {
   constructor(private readonly logger: AppLoggerService) {
     const redisHost = process.env.REDIS_HOST;
     const redisPort = parseInt(
-      process.env.REDIS_PORT || String(REDIS_DEFAULT_PORT),
+      process.env.REDIS_PORT ?? String(REDIS_DEFAULT_PORT),
       10,
     );
     const redisPassword = process.env.REDIS_PASSWORD;
 
     this._isEnabled = !!redisHost;
 
-    if (this._isEnabled) {
-      this.initializeClient(redisHost!, redisPort, redisPassword);
+    if (this._isEnabled && redisHost) {
+      this.initializeClient(redisHost, redisPort, redisPassword);
     } else {
       this.logger.warn(
         'Redis not configured - caching disabled',

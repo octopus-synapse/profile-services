@@ -91,7 +91,7 @@ export class EmailVerificationService {
     try {
       await this.emailService.sendVerificationEmail(
         email,
-        name || 'Usuário',
+        name ?? 'Usuário',
         token,
       );
     } catch (error) {
@@ -109,7 +109,7 @@ export class EmailVerificationService {
     if (!user) return;
 
     try {
-      await this.emailService.sendWelcomeEmail(email, user.name || 'Usuário');
+      await this.emailService.sendWelcomeEmail(email, user.name ?? 'Usuário');
     } catch (error) {
       this.logger.error(
         'Failed to send welcome email',

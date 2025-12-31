@@ -41,9 +41,9 @@ export class PdfPageSetup {
       userId,
     } = options;
     const host =
-      this.configService.get<string>('FRONTEND_HOST') || DEFAULT.HOST;
+      this.configService.get<string>('FRONTEND_HOST') ?? DEFAULT.HOST;
     const port =
-      this.configService.get<number>('FRONTEND_PORT') || DEFAULT.PORT;
+      this.configService.get<number>('FRONTEND_PORT') ?? DEFAULT.PORT;
 
     let url = `http://${host}:${port}/protected/resume?export=1&palette=${encodeURIComponent(palette)}&lang=${encodeURIComponent(lang)}`;
 

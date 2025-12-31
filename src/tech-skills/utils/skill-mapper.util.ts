@@ -57,12 +57,13 @@ export function mapRawSkillsToDto(
     website: s.website,
     aliases: s.aliases,
     popularity: s.popularity,
-    niche: s.niche_slug
-      ? {
-          slug: s.niche_slug,
-          nameEn: s.niche_nameEn!,
-          namePtBr: s.niche_namePtBr!,
-        }
-      : null,
+    niche:
+      s.niche_slug && s.niche_nameEn && s.niche_namePtBr
+        ? {
+            slug: s.niche_slug,
+            nameEn: s.niche_nameEn,
+            namePtBr: s.niche_namePtBr,
+          }
+        : null,
   }));
 }

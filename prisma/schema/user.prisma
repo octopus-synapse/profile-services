@@ -1,0 +1,114 @@
+// User and Preferences Models
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          UserRole  @default(USER)
+
+  accounts Account[]
+  sessions Session[]
+
+  // Profile fields
+  username          String?   @unique
+  usernameUpdatedAt DateTime?
+  displayName       String?
+  photoURL          String?
+  bio               String?   @db.Text
+  location          String?
+  phone             String?
+  website           String?
+  linkedin          String?
+  github            String?
+
+  // Legacy preference fields
+  bannerColor String?
+  palette     String?
+
+  // Onboarding tracking
+  hasCompletedOnboarding Boolean   @default(false)
+  onboardingCompletedAt  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  resumes            Resume[]
+  preferences        UserPreferences?
+  onboardingProgress OnboardingProgress?
+
+  // Theme system
+  createdThemes  ResumeTheme[] @relation("ThemeAuthor")
+  approvedThemes ResumeTheme[] @relation("ThemeApprover")
+
+  @@index([username])
+  @@index([email])
+  @@index([role])
+  @@index([hasCompletedOnboarding])
+}
+
+model UserPreferences {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Appearance
+  theme       String  @default("dark")
+  palette     String  @default("ocean")
+  bannerColor String?
+
+  // Localization
+  language   String @default("en")
+  dateFormat String @default("MM/DD/YYYY")
+  timezone   String @default("UTC")
+
+  // Notifications
+  emailNotifications Boolean @default(true)
+  resumeExpiryAlerts Boolean @default(true)
+  weeklyDigest       Boolean @default(false)
+  marketingEmails    Boolean @default(false)
+
+  // Privacy
+  profileVisibility      String  @default("private")
+  showEmail              Boolean @default(false)
+  showPhone              Boolean @default(false)
+  allowSearchEngineIndex Boolean @default(false)
+
+  // Export defaults
+  defaultExportFormat  String  @default("pdf")
+  includePhotoInExport Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model OnboardingProgress {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  currentStep    String   @default("welcome")
+  completedSteps String[] @default([])
+  username       String?
+
+  // Form data (JSON)
+  personalInfo        Json?
+  professionalProfile Json?
+  experiences         Json?
+  noExperience        Boolean @default(false)
+  education           Json?
+  noEducation         Boolean @default(false)
+  skills              Json?
+  noSkills            Boolean @default(false)
+  languages           Json?
+  templateSelection   Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}

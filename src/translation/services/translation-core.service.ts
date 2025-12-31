@@ -100,7 +100,10 @@ export class TranslationCoreService implements OnModuleInit {
           ),
       );
 
-      const translatedText = response.data?.translatedText || text;
+      const responseData = response.data as
+        | { translatedText?: string }
+        | undefined;
+      const translatedText = responseData?.translatedText ?? text;
       return {
         original: text,
         translated: translatedText,

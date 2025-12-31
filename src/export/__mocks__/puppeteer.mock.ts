@@ -46,7 +46,9 @@ export const createMockPage = (): MockPage => ({
   pdf: jest.fn().mockResolvedValue(Buffer.from('mock-pdf-content')),
   screenshot: jest.fn().mockResolvedValue(undefined),
   addStyleTag: jest.fn().mockResolvedValue(undefined),
-  content: jest.fn().mockResolvedValue('<html><body><div id="banner"></div></body></html>'),
+  content: jest
+    .fn()
+    .mockResolvedValue('<html><body><div id="banner"></div></body></html>'),
   $: jest.fn().mockResolvedValue(null),
   close: jest.fn().mockResolvedValue(undefined),
 });

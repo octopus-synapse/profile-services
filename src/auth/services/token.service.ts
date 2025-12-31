@@ -24,11 +24,15 @@ export class TokenService {
   constructor(private readonly jwtService: JwtService) {}
 
   generateToken(user: JwtUserPayload): string {
+    if (!user.email) {
+      throw new Error('User email is required for token generation');
+    }
+
     const payload: TokenPayload = {
       sub: user.id,
-      email: user.email!,
+      email: user.email,
       role: user.role,
-      hasCompletedOnboarding: user.hasCompletedOnboarding ?? false,
+      hasCompletedOnboarding: user.hasCompletedOnboarding,
     };
 
     return this.jwtService.sign(payload);
@@ -39,6 +43,6 @@ export class TokenService {
   }
 
   decodeToken(token: string): TokenPayload | null {
-    return this.jwtService.decode(token) as TokenPayload | null;
+    return this.jwtService.decode(token);
   }
 }

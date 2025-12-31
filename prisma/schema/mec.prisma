@@ -1,0 +1,80 @@
+// MEC Data - Brazilian Higher Education
+
+model MecInstitution {
+  id              String @id @default(cuid())
+  codigoIes       Int    @unique
+  codigoMunicipio Int?
+
+  nome        String
+  sigla       String?
+  organizacao String?
+  categoria   String?
+
+  uf        String
+  municipio String?
+
+  isActive Boolean     @default(true)
+  courses  MecCourse[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([nome])
+  @@index([sigla])
+  @@index([uf])
+  @@index([categoria])
+  @@index([isActive])
+  @@index([codigoMunicipio])
+}
+
+model MecCourse {
+  id          String @id @default(cuid())
+  codigoCurso Int    @unique
+  codigoIes   Int
+
+  nome             String
+  grau             String?
+  modalidade       String?
+  areaConhecimento String?
+  cargaHoraria     Int?
+  situacao         String?
+  isActive         Boolean @default(true)
+
+  institution MecInstitution @relation(fields: [codigoIes], references: [codigoIes])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([nome])
+  @@index([codigoIes])
+  @@index([grau])
+  @@index([modalidade])
+  @@index([areaConhecimento])
+  @@index([isActive])
+  @@index([situacao])
+}
+
+model MecSyncLog {
+  id          String        @id @default(cuid())
+  status      MecSyncStatus
+  startedAt   DateTime      @default(now())
+  completedAt DateTime?
+
+  institutionsInserted Int @default(0)
+  institutionsUpdated  Int @default(0)
+  coursesInserted      Int @default(0)
+  coursesUpdated       Int @default(0)
+
+  errorMessage       String? @db.Text
+  errorDetails       Json?
+  sourceUrl          String?
+  sourceFileSize     Int?
+  totalRowsProcessed Int?
+  triggeredBy        String?
+
+  createdAt DateTime @default(now())
+
+  @@index([status])
+  @@index([startedAt])
+  @@index([createdAt])
+}

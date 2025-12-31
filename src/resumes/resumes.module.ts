@@ -3,9 +3,8 @@ import { ResumesService } from './resumes.service';
 import { ResumesController } from './resumes.controller';
 import { ResumesRepository } from './resumes.repository';
 import { PrismaModule } from '../prisma/prisma.module';
-
-// Sub-resource Controllers
 import {
+  // Controllers
   ExperienceController,
   EducationController,
   SkillController,
@@ -21,10 +20,7 @@ import {
   HackathonController,
   BugBountyController,
   OpenSourceController,
-} from './controllers';
-
-// Sub-resource Services
-import {
+  // Services
   ExperienceService,
   EducationService,
   SkillService,
@@ -40,10 +36,7 @@ import {
   HackathonService,
   BugBountyService,
   OpenSourceService,
-} from './services';
-
-// Sub-resource Repositories
-import {
+  // Repositories
   ExperienceRepository,
   EducationRepository,
   SkillRepository,
@@ -59,7 +52,7 @@ import {
   HackathonRepository,
   BugBountyRepository,
   OpenSourceRepository,
-} from './repositories';
+} from './module-imports';
 
 @Module({
   imports: [PrismaModule],

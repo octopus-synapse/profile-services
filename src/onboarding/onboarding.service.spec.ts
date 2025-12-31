@@ -8,6 +8,7 @@ import { SkillsOnboardingService } from './services/skills-onboarding.service';
 import { ExperienceOnboardingService } from './services/experience-onboarding.service';
 import { EducationOnboardingService } from './services/education-onboarding.service';
 import { LanguagesOnboardingService } from './services/languages-onboarding.service';
+import { OnboardingProgressService } from './services/onboarding-progress.service';
 import {
   ERROR_MESSAGES,
   SUCCESS_MESSAGES,
@@ -15,13 +16,7 @@ import {
 
 describe('OnboardingService', () => {
   let service: OnboardingService;
-  let prisma: PrismaService;
   let logger: AppLoggerService;
-  let resumeService: ResumeOnboardingService;
-  let skillsService: SkillsOnboardingService;
-  let experienceService: ExperienceOnboardingService;
-  let educationService: EducationOnboardingService;
-  let languagesService: LanguagesOnboardingService;
 
   const mockPrismaService = {
     user: {
@@ -60,6 +55,12 @@ describe('OnboardingService', () => {
     saveLanguages: jest.fn(),
   };
 
+  const mockOnboardingProgressService = {
+    updateProgress: jest.fn(),
+    markCompleted: jest.fn(),
+    deleteProgress: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -92,27 +93,15 @@ describe('OnboardingService', () => {
           provide: LanguagesOnboardingService,
           useValue: mockLanguagesOnboardingService,
         },
+        {
+          provide: OnboardingProgressService,
+          useValue: mockOnboardingProgressService,
+        },
       ],
     }).compile();
 
     service = module.get<OnboardingService>(OnboardingService);
-    prisma = module.get<PrismaService>(PrismaService);
     logger = module.get<AppLoggerService>(AppLoggerService);
-    resumeService = module.get<ResumeOnboardingService>(
-      ResumeOnboardingService,
-    );
-    skillsService = module.get<SkillsOnboardingService>(
-      SkillsOnboardingService,
-    );
-    experienceService = module.get<ExperienceOnboardingService>(
-      ExperienceOnboardingService,
-    );
-    educationService = module.get<EducationOnboardingService>(
-      EducationOnboardingService,
-    );
-    languagesService = module.get<LanguagesOnboardingService>(
-      LanguagesOnboardingService,
-    );
   });
 
   afterEach(() => {

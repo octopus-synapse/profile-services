@@ -72,7 +72,7 @@ export class PasswordResetService {
   async changePassword(userId: string, dto: ChangePasswordDto) {
     const user = await this.findUserById(userId);
 
-    if (!user || !user.password) {
+    if (!user?.password) {
       throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
     }
 
@@ -93,7 +93,9 @@ export class PasswordResetService {
 
     this.logger.log(`Password changed successfully`, this.context, { userId });
 
-    await this.sendPasswordChangedEmail(user.email!, user.name);
+    if (user.email) {
+      await this.sendPasswordChangedEmail(user.email, user.name);
+    }
 
     return this.buildSuccessResponse('Password changed successfully');
   }
@@ -137,7 +139,7 @@ export class PasswordResetService {
     try {
       await this.emailService.sendPasswordResetEmail(
         email,
-        name || 'Usuário',
+        name ?? 'Usuário',
         token,
       );
     } catch (error) {
@@ -156,7 +158,7 @@ export class PasswordResetService {
     try {
       await this.emailService.sendPasswordChangedEmail(
         email,
-        name || 'Usuário',
+        name ?? 'Usuário',
       );
     } catch (error) {
       this.logger.error(

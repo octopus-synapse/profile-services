@@ -5,8 +5,8 @@
 
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { PrismaService } from 'src/prisma/prisma.service';
-import { ERROR_MESSAGES } from 'src/common/constants/app.constants';
+import { PrismaService } from '../../../prisma/prisma.service';
+import { ERROR_MESSAGES } from '../../../common/constants/app.constants';
 
 @Injectable()
 export class GitHubDatabaseService {
@@ -23,17 +23,27 @@ export class GitHubDatabaseService {
     });
 
     if (!resume) {
-      throw new HttpException(ERROR_MESSAGES.RESUME_NOT_FOUND, HttpStatus.NOT_FOUND);
+      throw new HttpException(
+        ERROR_MESSAGES.RESUME_NOT_FOUND,
+        HttpStatus.NOT_FOUND,
+      );
     }
 
     if (resume.userId !== userId) {
-      throw new HttpException(ERROR_MESSAGES.ACCESS_DENIED, HttpStatus.FORBIDDEN);
+      throw new HttpException(
+        ERROR_MESSAGES.ACCESS_DENIED,
+        HttpStatus.FORBIDDEN,
+      );
     }
 
     return resume;
   }
 
-  async updateResumeGitHubStats(resumeId: string, githubUsername: string, totalStars: number) {
+  async updateResumeGitHubStats(
+    resumeId: string,
+    githubUsername: string,
+    totalStars: number,
+  ) {
     return this.prisma.resume.update({
       where: { id: resumeId },
       data: {
@@ -54,7 +64,11 @@ export class GitHubDatabaseService {
         where: { resumeId, projectUrl: { contains: 'github.com' } },
       }),
       ...(contributions.length > 0
-        ? [this.prisma.openSourceContribution.createMany({ data: contributions })]
+        ? [
+            this.prisma.openSourceContribution.createMany({
+              data: contributions,
+            }),
+          ]
         : []),
       this.prisma.achievement.deleteMany({
         where: {

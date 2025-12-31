@@ -36,14 +36,14 @@ export class ResumeConfigRepository {
       throw new ForbiddenException(ERROR_MESSAGES.RESUME_NOT_FOUND);
     }
 
-    const base = (resume.activeTheme?.styleConfig || {}) as ResumeConfig;
-    const custom = (resume.customTheme || {}) as Partial<ResumeConfig>;
+    const base = (resume.activeTheme?.styleConfig ?? {}) as ResumeConfig;
+    const custom = (resume.customTheme ?? {}) as Partial<ResumeConfig>;
 
     return {
       ...base,
       ...custom,
-      sections: custom.sections || base.sections || [],
-      itemOverrides: custom.itemOverrides || {},
+      sections: custom.sections ?? base.sections,
+      itemOverrides: custom.itemOverrides ?? {},
     };
   }
 

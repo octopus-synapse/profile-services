@@ -48,7 +48,7 @@ function buildSwaggerConfig() {
     )
     .setLicense('MIT', 'https://opensource.org/licenses/MIT')
     .addServer(
-      `http://localhost:${process.env.PORT || 3001}`,
+      `http://localhost:${process.env.PORT ?? 3001}`,
       'Development Server',
     )
     .addBearerAuth(

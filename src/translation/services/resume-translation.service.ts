@@ -44,7 +44,7 @@ export class ResumeTranslationService {
     for (const field of TRANSLATABLE_FIELDS) {
       if (typeof result[field] === 'string' && result[field]) {
         const translation = await this.coreService.translate(
-          result[field] as string,
+          result[field],
           source,
           target,
         );

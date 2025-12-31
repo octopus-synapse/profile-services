@@ -42,7 +42,7 @@ export class DocxHeaderBuilder {
 
   createTitleParagraph(displayName: string | null): Paragraph {
     return new Paragraph({
-      text: displayName || 'Unnamed User',
+      text: displayName ?? 'Unnamed User',
       heading: HeadingLevel.TITLE,
       alignment: AlignmentType.CENTER,
     });
@@ -53,7 +53,7 @@ export class DocxHeaderBuilder {
       alignment: AlignmentType.CENTER,
       style: 'default',
       children: [
-        new TextRun(user.email || ''),
+        new TextRun(user.email ?? ''),
         ...(user.phone ? [new TextRun(` | ${user.phone}`)] : []),
       ],
     });
@@ -81,7 +81,7 @@ export class DocxHeaderBuilder {
 
   createSummaryParagraph(bio: string | null): Paragraph {
     return new Paragraph({
-      text: bio || '',
+      text: bio ?? '',
       style: 'default',
       thematicBreak: true,
     });

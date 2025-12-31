@@ -13,15 +13,14 @@ import type {
   SkillType,
 } from '../interfaces';
 import {
-  SKILL_CATEGORIES,
-  SKILL_TRANSLATIONS,
-  SKILL_COLORS,
+  STACKOVERFLOW_CATEGORIES,
+  STACKOVERFLOW_TRANSLATIONS,
+  STACKOVERFLOW_COLORS,
 } from '../constants';
 import {
   formatDisplayName,
   normalizeSlug,
-  isProgrammingLanguage,
-  shouldSkipTag,
+  shouldIncludeStackOverflowTag,
   getAliases,
   getKeywords,
 } from '../utils';
@@ -51,7 +50,7 @@ export class StackOverflowParserService {
           break;
         }
 
-        const data: StackOverflowResponse = await response.json();
+        const data = (await response.json()) as StackOverflowResponse;
         for (const tag of data.items) {
           allTags.push({ name: tag.name, count: tag.count });
         }
@@ -62,8 +61,9 @@ export class StackOverflowParserService {
 
       return this.parseTags(allTags);
     } catch (error) {
-      this.logger.error('Failed to fetch Stack Overflow tags', error);
-      throw error;
+      const err = error instanceof Error ? error : new Error(String(error));
+      this.logger.error('Failed to fetch Stack Overflow tags', err.message);
+      throw err;
     }
   }
 
@@ -73,16 +73,16 @@ export class StackOverflowParserService {
   private parseTags(tags: { name: string; count: number }[]): ParsedSkill[] {
     const parsed: ParsedSkill[] = [];
     const seenSlugs = new Set<string>();
-    const hasOwn = (obj: Record<string, unknown>, key: string) =>
-      Object.prototype.hasOwnProperty.call(obj, key);
+    const hasOwn = (obj: Record<string, unknown>, key: string): boolean => {
+      return Boolean(Object.prototype.hasOwnProperty.call(obj, key));
+    };
 
     for (const tag of tags) {
       const slug = normalizeSlug(tag.name);
       const tagLower = tag.name.toLowerCase();
 
       if (seenSlugs.has(slug)) continue;
-      if (isProgrammingLanguage(tag.name)) continue;
-      if (shouldSkipTag(tag.name)) continue;
+      if (!shouldIncludeStackOverflowTag(tag.name)) continue;
 
       const category = this.getCategory(tagLower, slug, hasOwn);
       seenSlugs.add(slug);
@@ -112,10 +112,12 @@ export class StackOverflowParserService {
     hasOwn: (obj: Record<string, unknown>, key: string) => boolean,
   ): { type: SkillType; niche: string | null } {
     return (
-      (hasOwn(SKILL_CATEGORIES, tagLower)
-        ? SKILL_CATEGORIES[tagLower]
-        : null) ||
-      (hasOwn(SKILL_CATEGORIES, slug) ? SKILL_CATEGORIES[slug] : null) || {
+      (hasOwn(STACKOVERFLOW_CATEGORIES, tagLower)
+        ? STACKOVERFLOW_CATEGORIES[tagLower]
+        : null) ??
+      (hasOwn(STACKOVERFLOW_CATEGORIES, slug)
+        ? STACKOVERFLOW_CATEGORIES[slug]
+        : null) ?? {
         type: 'OTHER' as SkillType,
         niche: null,
       }
@@ -129,10 +131,12 @@ export class StackOverflowParserService {
     hasOwn: (obj: Record<string, unknown>, key: string) => boolean,
   ): string {
     return (
-      (hasOwn(SKILL_TRANSLATIONS, tagLower)
-        ? SKILL_TRANSLATIONS[tagLower]
-        : null) ||
-      (hasOwn(SKILL_TRANSLATIONS, slug) ? SKILL_TRANSLATIONS[slug] : null) ||
+      (hasOwn(STACKOVERFLOW_TRANSLATIONS, tagLower)
+        ? STACKOVERFLOW_TRANSLATIONS[tagLower]
+        : null) ??
+      (hasOwn(STACKOVERFLOW_TRANSLATIONS, slug)
+        ? STACKOVERFLOW_TRANSLATIONS[slug]
+        : null) ??
       formatDisplayName(name)
     );
   }
@@ -143,8 +147,12 @@ export class StackOverflowParserService {
     hasOwn: (obj: Record<string, unknown>, key: string) => boolean,
   ): string | null {
     return (
-      (hasOwn(SKILL_COLORS, tagLower) ? SKILL_COLORS[tagLower] : null) ||
-      (hasOwn(SKILL_COLORS, slug) ? SKILL_COLORS[slug] : null) ||
+      (hasOwn(STACKOVERFLOW_COLORS, tagLower)
+        ? STACKOVERFLOW_COLORS[tagLower]
+        : null) ??
+      (hasOwn(STACKOVERFLOW_COLORS, slug)
+        ? STACKOVERFLOW_COLORS[slug]
+        : null) ??
       null
     );
   }
