@@ -39,6 +39,14 @@ export class EducationOnboardingService {
           return null;
         }
 
+        // Validate endDate is after startDate
+        if (endDate && endDate < startDate) {
+          this.logger.warn(
+            `Skipping education with end date before start date: ${edu.institution}`,
+          );
+          return null;
+        }
+
         return {
           resumeId,
           institution: edu.institution,

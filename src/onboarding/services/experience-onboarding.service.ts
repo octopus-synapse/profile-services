@@ -39,6 +39,14 @@ export class ExperienceOnboardingService {
           return null;
         }
 
+        // Validate endDate is after startDate
+        if (endDate && endDate < startDate) {
+          this.logger.warn(
+            `Skipping experience with end date before start date: ${exp.company}`,
+          );
+          return null;
+        }
+
         return {
           resumeId,
           company: exp.company,

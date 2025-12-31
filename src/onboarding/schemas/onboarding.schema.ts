@@ -66,7 +66,7 @@ const languageSchema = z.object({
 });
 
 const templateSelectionSchema = z.object({
-  template: z.string(),
+  template: z.literal('professional'),
   palette: z.string(),
 });
 
