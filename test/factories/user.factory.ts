@@ -7,36 +7,28 @@ import { User, UserRole } from '@prisma/client';
 
 export interface CreateMockUserOptions {
   id?: string;
-  email?: string;
-  name?: string;
-  username?: string;
+  email?: string | null;
+  name?: string | null;
+  username?: string | null;
   role?: UserRole;
   emailVerified?: Date | null;
   createdAt?: Date;
   updatedAt?: Date;
-  password?: string;
+  password?: string | null;
+  image?: string | null;
+  displayName?: string | null;
+  photoURL?: string | null;
+  usernameUpdatedAt?: Date | null;
   phone?: string | null;
   location?: string | null;
   bio?: string | null;
-  avatar?: string | null;
   website?: string | null;
   linkedin?: string | null;
   github?: string | null;
-  twitter?: string | null;
-  subtitle?: string | null;
-  pronouns?: string | null;
-  company?: string | null;
-  companyLogo?: string | null;
-  dateOfBirth?: Date | null;
-  nationality?: string | null;
-  introMessage?: string | null;
-  headline?: string | null;
-  availabilityStatus?: string | null;
-  portfolioUrl?: string | null;
-  cvFileUrl?: string | null;
-  mbtiType?: string | null;
-  preferredWorkStyle?: string | null;
-  communicationStyle?: string | null;
+  bannerColor?: string | null;
+  palette?: string | null;
+  hasCompletedOnboarding?: boolean;
+  onboardingCompletedAt?: Date | null;
 }
 
 const defaultUser: User = {
@@ -49,28 +41,20 @@ const defaultUser: User = {
   createdAt: new Date('2024-01-01'),
   updatedAt: new Date('2024-01-01'),
   password: 'hashed-password',
+  image: null,
+  displayName: null,
+  photoURL: null,
+  usernameUpdatedAt: null,
   phone: null,
   location: null,
   bio: null,
-  avatar: null,
   website: null,
   linkedin: null,
   github: null,
-  twitter: null,
-  subtitle: null,
-  pronouns: null,
-  company: null,
-  companyLogo: null,
-  dateOfBirth: null,
-  nationality: null,
-  introMessage: null,
-  headline: null,
-  availabilityStatus: null,
-  portfolioUrl: null,
-  cvFileUrl: null,
-  mbtiType: null,
-  preferredWorkStyle: null,
-  communicationStyle: null,
+  bannerColor: null,
+  palette: null,
+  hasCompletedOnboarding: false,
+  onboardingCompletedAt: null,
 };
 
 export function createMockUser(options: CreateMockUserOptions = {}): User {

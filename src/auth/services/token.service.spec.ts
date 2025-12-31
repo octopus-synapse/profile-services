@@ -51,14 +51,14 @@ describe('TokenService', () => {
       });
     });
 
-    it('should default hasCompletedOnboarding to false when null', () => {
-      const userWithNullOnboarding = {
+    it('should include hasCompletedOnboarding false when user has not completed', () => {
+      const userNotOnboarded = {
         ...mockUser,
-        hasCompletedOnboarding: null as unknown as boolean,
+        hasCompletedOnboarding: false,
       };
       jwtService.sign.mockReturnValue('token');
 
-      service.generateToken(userWithNullOnboarding);
+      service.generateToken(userNotOnboarded);
 
       expect(jwtService.sign).toHaveBeenCalledWith(
         expect.objectContaining({

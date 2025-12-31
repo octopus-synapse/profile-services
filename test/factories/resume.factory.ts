@@ -3,27 +3,47 @@
  * Creates mock Resume objects for testing with proper types
  */
 
-import { Resume, ResumeStatus, AtsOptimization } from '@prisma/client';
+import { Prisma, Resume } from '@prisma/client';
 
 export interface CreateMockResumeOptions {
   id?: string;
   userId?: string;
   title?: string;
   slug?: string;
-  status?: ResumeStatus;
   isPublic?: boolean;
-  themeId?: string | null;
-  language?: string | null;
+  template?: string;
+  language?: string;
+  primaryLanguage?: string;
+  contentPtBr?: Prisma.JsonValue;
+  contentEn?: Prisma.JsonValue;
+  techPersona?: string | null;
+  techArea?: string | null;
+  primaryStack?: string[];
+  experienceYears?: number | null;
+  fullName?: string | null;
   jobTitle?: string | null;
+  phone?: string | null;
+  emailContact?: string | null;
+  location?: string | null;
+  linkedin?: string | null;
+  github?: string | null;
+  website?: string | null;
   summary?: string | null;
-  summaryPtBr?: string | null;
-  atsOptimization?: AtsOptimization;
-  targetRole?: string | null;
-  yearsOfExperience?: number | null;
-  githubUsername?: string | null;
-  githubTotalStars?: number;
-  githubLastSyncedAt?: Date | null;
-  sectionOrder?: string[];
+  currentCompanyLogo?: string | null;
+  twitter?: string | null;
+  medium?: string | null;
+  devto?: string | null;
+  stackoverflow?: string | null;
+  kaggle?: string | null;
+  hackerrank?: string | null;
+  leetcode?: string | null;
+  accentColor?: string | null;
+  customTheme?: Prisma.JsonValue;
+  activeThemeId?: string | null;
+  profileViews?: number;
+  totalStars?: number;
+  totalCommits?: number;
+  publishedAt?: Date | null;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -33,20 +53,40 @@ const defaultResume: Resume = {
   userId: 'user-123',
   title: 'My Resume',
   slug: 'my-resume',
-  status: 'DRAFT',
   isPublic: false,
-  themeId: null,
-  language: 'en',
+  template: 'professional',
+  language: 'pt-br',
+  primaryLanguage: 'pt-br',
+  contentPtBr: null,
+  contentEn: null,
+  techPersona: null,
+  techArea: null,
+  primaryStack: [],
+  experienceYears: null,
+  fullName: null,
   jobTitle: null,
+  phone: null,
+  emailContact: null,
+  location: null,
+  linkedin: null,
+  github: null,
+  website: null,
   summary: null,
-  summaryPtBr: null,
-  atsOptimization: 'BALANCED',
-  targetRole: null,
-  yearsOfExperience: null,
-  githubUsername: null,
-  githubTotalStars: 0,
-  githubLastSyncedAt: null,
-  sectionOrder: [],
+  currentCompanyLogo: null,
+  twitter: null,
+  medium: null,
+  devto: null,
+  stackoverflow: null,
+  kaggle: null,
+  hackerrank: null,
+  leetcode: null,
+  accentColor: '#3B82F6',
+  customTheme: null,
+  activeThemeId: null,
+  profileViews: 0,
+  totalStars: 0,
+  totalCommits: 0,
+  publishedAt: null,
   createdAt: new Date('2024-01-01'),
   updatedAt: new Date('2024-01-01'),
 };
@@ -68,7 +108,7 @@ export function createMockPublicResume(
   return createMockResume({
     ...options,
     isPublic: true,
-    status: 'PUBLISHED',
+    publishedAt: new Date(),
   });
 }
 
@@ -128,13 +168,22 @@ export interface ResumeWithRelations extends Resume {
 export function createMockResumeWithRelations(
   options: Partial<ResumeWithRelations> = {},
 ): ResumeWithRelations {
+  const {
+    skills,
+    experiences,
+    educations,
+    projects,
+    languages,
+    certifications,
+    ...resumeOptions
+  } = options;
   return {
-    ...createMockResume(options),
-    skills: options.skills ?? [],
-    experiences: options.experiences ?? [],
-    educations: options.educations ?? [],
-    projects: options.projects ?? [],
-    languages: options.languages ?? [],
-    certifications: options.certifications ?? [],
+    ...createMockResume(resumeOptions as CreateMockResumeOptions),
+    skills: skills ?? [],
+    experiences: experiences ?? [],
+    educations: educations ?? [],
+    projects: projects ?? [],
+    languages: languages ?? [],
+    certifications: certifications ?? [],
   };
 }
