@@ -42,6 +42,7 @@ const defaultUser: User = {
   updatedAt: new Date('2024-01-01'),
   password: 'hashed-password',
   image: null,
+  primaryResumeId: null,
   displayName: null,
   photoURL: null,
   usernameUpdatedAt: null,
@@ -51,8 +52,6 @@ const defaultUser: User = {
   website: null,
   linkedin: null,
   github: null,
-  bannerColor: null,
-  palette: null,
   hasCompletedOnboarding: false,
   onboardingCompletedAt: null,
 };

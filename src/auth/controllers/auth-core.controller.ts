@@ -20,9 +20,15 @@ import {
 } from '@nestjs/swagger';
 import { Throttle, SkipThrottle } from '@nestjs/throttler';
 import { AuthService } from '../auth.service';
-import { SignupDto } from '../dto/signup.dto';
-import { LoginDto } from '../dto/login.dto';
-import { RefreshTokenDto } from '../dto/refresh-token.dto';
+import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
+import {
+  signupSchema,
+  SignupDto,
+  loginSchema,
+  LoginDto,
+  refreshTokenSchema,
+  RefreshTokenDto,
+} from '../schemas/auth.schemas';
 import { Public } from '../decorators/public.decorator';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -44,7 +50,9 @@ export class AuthCoreController {
   @ApiResponse({ status: 201, description: 'User successfully registered' })
   @ApiResponse({ status: 409, description: 'Email already registered' })
   @ApiResponse({ status: 400, description: 'Invalid input data' })
-  async signup(@Body() signupDto: SignupDto) {
+  async signup(
+    @Body(new ZodValidationPipe(signupSchema)) signupDto: SignupDto,
+  ) {
     return this.authService.signup(signupDto);
   }
 
@@ -57,7 +65,7 @@ export class AuthCoreController {
   @ApiOperation({ summary: 'Login with email and password' })
   @ApiResponse({ status: 200, description: 'Login successful' })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
-  async login(@Body() loginDto: LoginDto) {
+  async login(@Body(new ZodValidationPipe(loginSchema)) loginDto: LoginDto) {
     return this.authService.login(loginDto);
   }
 
@@ -68,7 +76,9 @@ export class AuthCoreController {
   @ApiOperation({ summary: 'Refresh JWT token using refresh token' })
   @ApiResponse({ status: 200, description: 'Token refreshed successfully' })
   @ApiResponse({ status: 401, description: 'Invalid refresh token' })
-  async refreshToken(@Body() dto: RefreshTokenDto) {
+  async refreshToken(
+    @Body(new ZodValidationPipe(refreshTokenSchema)) dto: RefreshTokenDto,
+  ) {
     return this.authService.refreshTokenWithToken(dto.refreshToken);
   }
 

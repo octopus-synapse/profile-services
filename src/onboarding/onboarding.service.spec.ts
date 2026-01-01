@@ -3,6 +3,7 @@ import { NotFoundException } from '@nestjs/common';
 import { OnboardingService } from './onboarding.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { AppLoggerService } from '../common/logger/logger.service';
+import { AuditLogService } from '../common/audit/audit-log.service';
 import { ResumeOnboardingService } from './services/resume-onboarding.service';
 import { SkillsOnboardingService } from './services/skills-onboarding.service';
 import { ExperienceOnboardingService } from './services/experience-onboarding.service';
@@ -65,6 +66,7 @@ describe('OnboardingService', () => {
     updateProgress: jest.fn(),
     markCompleted: jest.fn(),
     deleteProgress: jest.fn(),
+    deleteProgressWithTx: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -78,6 +80,15 @@ describe('OnboardingService', () => {
         {
           provide: AppLoggerService,
           useValue: mockLoggerService,
+        },
+        {
+          provide: AuditLogService,
+          useValue: {
+            log: jest.fn(),
+            logOnboardingCompleted: jest.fn(),
+            logUsernameChange: jest.fn(),
+            logUnauthorizedAccess: jest.fn(),
+          },
         },
         {
           provide: ResumeOnboardingService,
@@ -172,7 +183,7 @@ describe('OnboardingService', () => {
           { name: 'Spanish', level: 'intermediário' as const },
         ],
         templateSelection: {
-          template: 'professional' as const,
+          template: 'PROFESSIONAL' as const,
           palette: 'blue',
         },
       };
@@ -189,13 +200,19 @@ describe('OnboardingService', () => {
       };
 
       mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
-      mockResumeOnboardingService.upsertResumeWithTx.mockResolvedValue(mockResume);
+      mockResumeOnboardingService.upsertResumeWithTx.mockResolvedValue(
+        mockResume,
+      );
       mockSkillsOnboardingService.saveSkillsWithTx.mockResolvedValue(undefined);
       mockExperienceOnboardingService.saveExperiencesWithTx.mockResolvedValue(
         undefined,
       );
-      mockEducationOnboardingService.saveEducationWithTx.mockResolvedValue(undefined);
-      mockLanguagesOnboardingService.saveLanguagesWithTx.mockResolvedValue(undefined);
+      mockEducationOnboardingService.saveEducationWithTx.mockResolvedValue(
+        undefined,
+      );
+      mockLanguagesOnboardingService.saveLanguagesWithTx.mockResolvedValue(
+        undefined,
+      );
       mockTx.user.update.mockResolvedValue({
         ...mockUser,
         hasCompletedOnboarding: true,
@@ -218,11 +235,9 @@ describe('OnboardingService', () => {
         where: { id: userId },
       });
       expect(mockPrismaService.$transaction).toHaveBeenCalled();
-      expect(mockResumeOnboardingService.upsertResumeWithTx).toHaveBeenCalledWith(
-        mockTx,
-        userId,
-        onboardingData,
-      );
+      expect(
+        mockResumeOnboardingService.upsertResumeWithTx,
+      ).toHaveBeenCalledWith(mockTx, userId, onboardingData);
       expect(mockSkillsOnboardingService.saveSkillsWithTx).toHaveBeenCalledWith(
         mockTx,
         mockResume.id,
@@ -231,22 +246,17 @@ describe('OnboardingService', () => {
       expect(
         mockExperienceOnboardingService.saveExperiencesWithTx,
       ).toHaveBeenCalledWith(mockTx, mockResume.id, onboardingData);
-      expect(mockEducationOnboardingService.saveEducationWithTx).toHaveBeenCalledWith(
-        mockTx,
-        mockResume.id,
-        onboardingData,
-      );
-      expect(mockLanguagesOnboardingService.saveLanguagesWithTx).toHaveBeenCalledWith(
-        mockTx,
-        mockResume.id,
-        onboardingData,
-      );
+      expect(
+        mockEducationOnboardingService.saveEducationWithTx,
+      ).toHaveBeenCalledWith(mockTx, mockResume.id, onboardingData);
+      expect(
+        mockLanguagesOnboardingService.saveLanguagesWithTx,
+      ).toHaveBeenCalledWith(mockTx, mockResume.id, onboardingData);
       expect(mockTx.user.update).toHaveBeenCalledWith({
         where: { id: userId },
         data: {
           hasCompletedOnboarding: true,
           onboardingCompletedAt: expect.any(Date),
-          palette: onboardingData.templateSelection.palette,
           username: onboardingData.username,
         },
       });
@@ -280,7 +290,7 @@ describe('OnboardingService', () => {
           noSkills: true,
         },
         templateSelection: {
-          template: 'professional' as const,
+          template: 'PROFESSIONAL' as const,
           palette: 'blue',
         },
       };

@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AppLoggerService } from '../common/logger/logger.service';
+import { AuditLogService } from '../common/audit/audit-log.service';
 import type { Prisma } from '@prisma/client';
 import {
   ERROR_MESSAGES,
@@ -27,6 +28,7 @@ export class OnboardingService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly logger: AppLoggerService,
+    private readonly auditLog: AuditLogService,
     private readonly resumeService: ResumeOnboardingService,
     private readonly skillsService: SkillsOnboardingService,
     private readonly experienceService: ExperienceOnboardingService,
@@ -89,6 +91,13 @@ export class OnboardingService {
           // Delete onboarding progress within transaction for atomicity
           await this.progressService.deleteProgressWithTx(tx, userId);
 
+          // Audit log: Track onboarding completion
+          await this.auditLog.logOnboardingCompleted(
+            userId,
+            validatedData.username,
+            resume.id,
+          );
+
           this.logger.log(
             'Onboarding completed successfully',
             'OnboardingService',
@@ -108,7 +117,7 @@ export class OnboardingService {
           timeout: 30000, // 30 seconds timeout
         },
       )
-      .catch((error) => {
+      .catch((error: unknown) => {
         // If anything fails, don't delete progress so user can retry
         this.logger.error(
           'Onboarding completion failed, progress preserved',
@@ -122,8 +131,16 @@ export class OnboardingService {
 
         // Check for unique constraint violation on username
         if (
-          error?.code === 'P2002' &&
-          error?.meta?.target?.includes('username')
+          error &&
+          typeof error === 'object' &&
+          'code' in error &&
+          error.code === 'P2002' &&
+          'meta' in error &&
+          error.meta &&
+          typeof error.meta === 'object' &&
+          'target' in error.meta &&
+          Array.isArray(error.meta.target) &&
+          error.meta.target.includes('username')
         ) {
           this.logger.warn(
             'Username conflict detected during transaction',
@@ -192,7 +209,6 @@ export class OnboardingService {
       data: {
         hasCompletedOnboarding: true,
         onboardingCompletedAt: new Date(),
-        palette: data.templateSelection.palette,
         username: data.username,
       },
     });

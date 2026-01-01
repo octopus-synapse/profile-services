@@ -14,6 +14,7 @@ import { ExportModule } from './export/export.module';
 import { UploadModule } from './upload/upload.module';
 import { LoggerModule } from './common/logger/logger.module';
 import { CacheModule } from './common/cache/cache.module';
+import { AuditLogModule } from './common/audit/audit-log.module';
 import { GitHubModule } from './integrations/github/github.module';
 import { AdminModule } from './admin/admin.module';
 import { ThemesModule } from './themes/themes.module';
@@ -40,6 +41,7 @@ import { APP_CONSTANTS } from './common/constants/app.constants';
     ]),
     LoggerModule,
     CacheModule,
+    AuditLogModule,
     PrismaModule,
     AuthModule,
     UsersModule,

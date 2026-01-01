@@ -109,8 +109,8 @@ model OnboardingProgress {
   languages           Json?
   templateSelection   Json?
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
   expiresAt DateTime? // TTL: Auto-cleanup for abandoned sessions (30 days)
 
   @@index([userId])

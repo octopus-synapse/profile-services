@@ -3,7 +3,7 @@
  * Creates mock Resume objects for testing with proper types
  */
 
-import { Prisma, Resume } from '@prisma/client';
+import { Prisma, Resume, ResumeTemplate } from '@prisma/client';
 
 export interface CreateMockResumeOptions {
   id?: string;
@@ -11,7 +11,7 @@ export interface CreateMockResumeOptions {
   title?: string;
   slug?: string;
   isPublic?: boolean;
-  template?: string;
+  template?: ResumeTemplate;
   language?: string;
   primaryLanguage?: string;
   contentPtBr?: Prisma.JsonValue;
@@ -54,7 +54,7 @@ const defaultResume: Resume = {
   title: 'My Resume',
   slug: 'my-resume',
   isPublic: false,
-  template: 'professional',
+  template: 'PROFESSIONAL',
   language: 'pt-br',
   primaryLanguage: 'pt-br',
   contentPtBr: null,
@@ -94,12 +94,13 @@ const defaultResume: Resume = {
 export function createMockResume(
   options: CreateMockResumeOptions = {},
 ): Resume {
-  return {
+  const result: Resume = {
     ...defaultResume,
     ...options,
     createdAt: options.createdAt ?? defaultResume.createdAt,
     updatedAt: options.updatedAt ?? defaultResume.updatedAt,
   };
+  return result;
 }
 
 export function createMockPublicResume(
