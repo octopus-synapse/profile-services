@@ -49,6 +49,7 @@ export abstract class BaseSubResourceService<T, CreateDto, UpdateDto> {
   /**
    * Validates that the user owns the resume
    * Throws ForbiddenException if the user doesn't have access
+   * Logs unauthorized access attempts for security auditing
    */
   protected async validateResumeOwnership(
     resumeId: string,
@@ -56,6 +57,12 @@ export abstract class BaseSubResourceService<T, CreateDto, UpdateDto> {
   ): Promise<void> {
     const resume = await this.resumesRepository.findOne(resumeId, userId);
     if (!resume) {
+      // Security: Log unauthorized access attempts for audit trail
+      this.logger.warn(`Unauthorized ${this.entityName} access attempt`, {
+        userId,
+        resumeId,
+        timestamp: new Date().toISOString(),
+      });
       throw new ForbiddenException(ERROR_MESSAGES.RESUME_ACCESS_DENIED);
     }
   }

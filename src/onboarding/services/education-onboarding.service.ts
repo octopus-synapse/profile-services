@@ -3,6 +3,8 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { OnboardingData } from '../schemas/onboarding.schema';
 import { DateUtils } from '../../common/utils/date.utils';
 
+import type { Prisma } from '@prisma/client';
+
 @Injectable()
 export class EducationOnboardingService {
   private readonly logger = new Logger(EducationOnboardingService.name);
@@ -10,6 +12,14 @@ export class EducationOnboardingService {
   constructor(private readonly prisma: PrismaService) {}
 
   async saveEducation(resumeId: string, data: OnboardingData) {
+    return this.saveEducationWithTx(this.prisma, resumeId, data);
+  }
+
+  async saveEducationWithTx(
+    tx: Prisma.TransactionClient,
+    resumeId: string,
+    data: OnboardingData,
+  ) {
     const { educationStep } = data;
 
     if (
@@ -25,7 +35,7 @@ export class EducationOnboardingService {
       return;
     }
 
-    await this.prisma.education.deleteMany({ where: { resumeId } });
+    await tx.education.deleteMany({ where: { resumeId } });
 
     const validEducation = educationStep.education
       .map((edu) => {
@@ -63,7 +73,7 @@ export class EducationOnboardingService {
       const filteredEducation = validEducation.filter(
         (e): e is NonNullable<typeof e> => e !== null,
       );
-      await this.prisma.education.createMany({
+      await tx.education.createMany({
         data: filteredEducation,
       });
       this.logger.log(`Created ${validEducation.length} education entries`);

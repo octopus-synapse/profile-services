@@ -62,14 +62,17 @@ export class OnboardingProgressService {
     };
   }
 
-  private async validateUsernameUniqueness(username: string, userId: string): Promise<void> {
+  private async validateUsernameUniqueness(
+    username: string,
+    userId: string,
+  ): Promise<void> {
     const existingUser = await this.prisma.user.findUnique({
       where: { username },
       select: { id: true },
     });
 
     // Allow if it's the same user (user already has this username)
-    if (existingUser && existingUser.id === userId) {
+    if (existingUser?.id === userId) {
       return;
     }
 
@@ -107,6 +110,15 @@ export class OnboardingProgressService {
 
   async deleteProgress(userId: string) {
     await this.prisma.onboardingProgress.deleteMany({ where: { userId } });
+  }
+
+  /**
+   * Delete progress within a transaction (used by onboarding completion)
+   * @param tx Prisma transaction client
+   * @param userId User ID
+   */
+  async deleteProgressWithTx(tx: any, userId: string) {
+    await tx.onboardingProgress.deleteMany({ where: { userId } });
   }
 
   private buildProgressData(data: OnboardingProgressDto) {

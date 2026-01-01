@@ -15,6 +15,24 @@ export interface SendEmailOptions {
   text?: string;
 }
 
+interface SendGridErrorResponse {
+  body?: unknown;
+  statusCode?: number;
+}
+
+interface SendGridError extends Error {
+  response?: SendGridErrorResponse;
+}
+
+interface ErrorDetails extends Record<string, unknown> {
+  to: string;
+  subject: string;
+  from: string;
+  error: string;
+  sendgridError?: unknown;
+  statusCode?: number;
+}
+
 @Injectable()
 export class EmailSenderService {
   private readonly fromEmail: string;
@@ -37,10 +55,14 @@ export class EmailSenderService {
     if (apiKey) {
       sgMail.setApiKey(apiKey);
       this.isConfigured = true;
-      this.logger.log('SendGrid configured successfully', 'EmailSenderService', {
-        fromEmail: this.fromEmail,
-        hasApiKey: !!apiKey,
-      });
+      this.logger.log(
+        'SendGrid configured successfully',
+        'EmailSenderService',
+        {
+          fromEmail: this.fromEmail,
+          hasApiKey: !!apiKey,
+        },
+      );
     } else {
       this.isConfigured = false;
       this.logger.warn(
@@ -82,8 +104,9 @@ export class EmailSenderService {
         subject: options.subject,
       });
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      const errorDetails: any = {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      const errorDetails: ErrorDetails = {
         to: options.to,
         subject: options.subject,
         from: this.fromEmail,
@@ -92,7 +115,7 @@ export class EmailSenderService {
 
       // Add more details for SendGrid errors
       if (error instanceof Error && 'response' in error) {
-        const sgError = error as any;
+        const sgError = error as SendGridError;
         if (sgError.response?.body) {
           errorDetails.sendgridError = sgError.response.body;
         }

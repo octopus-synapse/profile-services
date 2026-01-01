@@ -3,13 +3,13 @@
 model Resume {
   id     String @id @default(cuid())
   userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User   @relation("UserResumes", fields: [userId], references: [id], onDelete: Cascade)
 
   title    String?
-  template String  @default("professional")
-  language String  @default("pt-br")
-  isPublic Boolean @default(false)
-  slug     String? @unique
+  template ResumeTemplate @default(PROFESSIONAL)
+  language String         @default("pt-br")
+  isPublic Boolean        @default(false)
+  slug     String?        @unique
 
   // Bilingual content
   contentPtBr     Json?

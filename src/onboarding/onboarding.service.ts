@@ -1,6 +1,11 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AppLoggerService } from '../common/logger/logger.service';
+import type { Prisma } from '@prisma/client';
 import {
   ERROR_MESSAGES,
   SUCCESS_MESSAGES,
@@ -38,55 +43,98 @@ export class OnboardingService {
     const validatedData = onboardingDataSchema.parse(data);
     const user = await this.findUser(userId);
 
-    // Validate username uniqueness before starting
-    await this.validateUsernameUniqueness(validatedData.username, userId);
+    // Use transaction to ensure atomicity
+    return await this.prisma
+      .$transaction(
+        async (tx) => {
+          // Create/update resume
+          const resume = await this.resumeService.upsertResumeWithTx(
+            tx,
+            userId,
+            validatedData,
+          );
 
-    try {
-      const resume = await this.resumeService.upsertResume(userId, validatedData);
+          this.logger.debug(
+            'Resume created/updated, processing sections',
+            'OnboardingService',
+            {
+              userId,
+              resumeId: resume.id,
+            },
+          );
 
-      this.logger.debug(
-        'Resume created/updated, processing sections',
-        'OnboardingService',
-        {
-          userId,
-          resumeId: resume.id,
+          // Save all sections in parallel
+          await Promise.all([
+            this.skillsService.saveSkillsWithTx(tx, resume.id, validatedData),
+            this.experienceService.saveExperiencesWithTx(
+              tx,
+              resume.id,
+              validatedData,
+            ),
+            this.educationService.saveEducationWithTx(
+              tx,
+              resume.id,
+              validatedData,
+            ),
+            this.languagesService.saveLanguagesWithTx(
+              tx,
+              resume.id,
+              validatedData,
+            ),
+          ]);
+
+          // Mark onboarding complete and update username
+          await this.markOnboardingCompleteWithTx(tx, user.id, validatedData);
+
+          // Delete onboarding progress within transaction for atomicity
+          await this.progressService.deleteProgressWithTx(tx, userId);
+
+          this.logger.log(
+            'Onboarding completed successfully',
+            'OnboardingService',
+            {
+              userId,
+              resumeId: resume.id,
+            },
+          );
+
+          return {
+            success: true,
+            resumeId: resume.id,
+            message: SUCCESS_MESSAGES.ONBOARDING_COMPLETED,
+          };
         },
-      );
+        {
+          timeout: 30000, // 30 seconds timeout
+        },
+      )
+      .catch((error) => {
+        // If anything fails, don't delete progress so user can retry
+        this.logger.error(
+          'Onboarding completion failed, progress preserved',
+          error instanceof Error ? error.stack : 'Unknown error',
+          'OnboardingService',
+          {
+            userId,
+            error: error instanceof Error ? error.message : 'Unknown error',
+          },
+        );
 
-      // Save all sections in parallel
-      await Promise.all([
-        this.skillsService.saveSkills(resume.id, validatedData),
-        this.experienceService.saveExperiences(resume.id, validatedData),
-        this.educationService.saveEducation(resume.id, validatedData),
-        this.languagesService.saveLanguages(resume.id, validatedData),
-      ]);
+        // Check for unique constraint violation on username
+        if (
+          error?.code === 'P2002' &&
+          error?.meta?.target?.includes('username')
+        ) {
+          this.logger.warn(
+            'Username conflict detected during transaction',
+            'OnboardingService',
+            { username: validatedData.username, userId },
+          );
+          throw new ConflictException(ERROR_MESSAGES.USERNAME_ALREADY_IN_USE);
+        }
 
-      // Mark onboarding complete and update username
-      await this.markOnboardingComplete(user.id, validatedData);
-
-      // Only delete progress after everything succeeds
-      await this.progressService.deleteProgress(userId);
-
-      this.logger.log('Onboarding completed successfully', 'OnboardingService', {
-        userId,
-        resumeId: resume.id,
+        throw error;
       });
-
-      return {
-        success: true,
-        resumeId: resume.id,
-        message: SUCCESS_MESSAGES.ONBOARDING_COMPLETED,
-      };
-    } catch (error) {
-      // If anything fails, don't delete progress so user can retry
-      this.logger.error(
-        'Onboarding completion failed, progress preserved',
-        error instanceof Error ? error.stack : 'Unknown error',
-        'OnboardingService',
-        { userId, error: error instanceof Error ? error.message : 'Unknown error' },
-      );
-      throw error;
-    }
   }
 
   async getOnboardingStatus(userId: string) {
@@ -131,7 +179,15 @@ export class OnboardingService {
   }
 
   private async markOnboardingComplete(userId: string, data: OnboardingData) {
-    await this.prisma.user.update({
+    return this.markOnboardingCompleteWithTx(this.prisma, userId, data);
+  }
+
+  private async markOnboardingCompleteWithTx(
+    tx: Prisma.TransactionClient,
+    userId: string,
+    data: OnboardingData,
+  ) {
+    await tx.user.update({
       where: { id: userId },
       data: {
         hasCompletedOnboarding: true,
@@ -142,28 +198,10 @@ export class OnboardingService {
     });
   }
 
-  private async validateUsernameUniqueness(
-    username: string,
-    userId: string,
-  ): Promise<void> {
-    const existingUser = await this.prisma.user.findUnique({
-      where: { username },
-      select: { id: true },
-    });
-
-    // Allow if it's the same user (user already has this username)
-    if (existingUser && existingUser.id === userId) {
-      return;
-    }
-
-    // Check if username is taken by another user
-    if (existingUser) {
-      this.logger.warn(
-        'Username already taken during onboarding completion',
-        'OnboardingService',
-        { username, userId },
-      );
-      throw new ConflictException(ERROR_MESSAGES.USERNAME_ALREADY_IN_USE);
-    }
-  }
+  /**
+   * Username uniqueness is now enforced by database unique constraint.
+   * This eliminates the TOCTOU race condition that existed with the previous
+   * check-then-update pattern. The database will atomically reject duplicate
+   * usernames during the transaction commit.
+   */
 }

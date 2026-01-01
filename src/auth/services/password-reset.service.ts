@@ -77,7 +77,7 @@ export class PasswordResetService {
     return {
       success: true,
       message: 'Password reset email sent',
-      emailSent: true,
+      emailSent,
       ...(process.env.NODE_ENV !== 'production' && { token }),
     };
   }

@@ -26,6 +26,7 @@ describe('OnboardingService', () => {
     onboardingProgress: {
       deleteMany: jest.fn(),
     },
+    $transaction: jest.fn(),
   };
 
   const mockLoggerService = {
@@ -37,22 +38,27 @@ describe('OnboardingService', () => {
 
   const mockResumeOnboardingService = {
     upsertResume: jest.fn(),
+    upsertResumeWithTx: jest.fn(),
   };
 
   const mockSkillsOnboardingService = {
     saveSkills: jest.fn(),
+    saveSkillsWithTx: jest.fn(),
   };
 
   const mockExperienceOnboardingService = {
     saveExperiences: jest.fn(),
+    saveExperiencesWithTx: jest.fn(),
   };
 
   const mockEducationOnboardingService = {
     saveEducation: jest.fn(),
+    saveEducationWithTx: jest.fn(),
   };
 
   const mockLanguagesOnboardingService = {
     saveLanguages: jest.fn(),
+    saveLanguagesWithTx: jest.fn(),
   };
 
   const mockOnboardingProgressService = {
@@ -173,18 +179,31 @@ describe('OnboardingService', () => {
 
       const mockUser = { id: userId, email: 'john@example.com' };
       const mockResume = { id: 'resume-123', userId };
+      const mockTx = {
+        resume: { findFirst: jest.fn(), upsert: jest.fn() },
+        skill: { deleteMany: jest.fn(), createMany: jest.fn() },
+        experience: { deleteMany: jest.fn(), createMany: jest.fn() },
+        education: { deleteMany: jest.fn(), createMany: jest.fn() },
+        language: { deleteMany: jest.fn(), createMany: jest.fn() },
+        user: { update: jest.fn() },
+      };
 
       mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
-      mockResumeOnboardingService.upsertResume.mockResolvedValue(mockResume);
-      mockSkillsOnboardingService.saveSkills.mockResolvedValue(undefined);
-      mockExperienceOnboardingService.saveExperiences.mockResolvedValue(
+      mockResumeOnboardingService.upsertResumeWithTx.mockResolvedValue(mockResume);
+      mockSkillsOnboardingService.saveSkillsWithTx.mockResolvedValue(undefined);
+      mockExperienceOnboardingService.saveExperiencesWithTx.mockResolvedValue(
         undefined,
       );
-      mockEducationOnboardingService.saveEducation.mockResolvedValue(undefined);
-      mockLanguagesOnboardingService.saveLanguages.mockResolvedValue(undefined);
-      mockPrismaService.user.update.mockResolvedValue({
+      mockEducationOnboardingService.saveEducationWithTx.mockResolvedValue(undefined);
+      mockLanguagesOnboardingService.saveLanguagesWithTx.mockResolvedValue(undefined);
+      mockTx.user.update.mockResolvedValue({
         ...mockUser,
         hasCompletedOnboarding: true,
+      });
+
+      // Mock $transaction to execute the callback with mockTx
+      mockPrismaService.$transaction.mockImplementation(async (callback) => {
+        return callback(mockTx);
       });
 
       const result = await service.completeOnboarding(userId, onboardingData);
@@ -198,26 +217,31 @@ describe('OnboardingService', () => {
       expect(mockPrismaService.user.findUnique).toHaveBeenCalledWith({
         where: { id: userId },
       });
-      expect(mockResumeOnboardingService.upsertResume).toHaveBeenCalledWith(
+      expect(mockPrismaService.$transaction).toHaveBeenCalled();
+      expect(mockResumeOnboardingService.upsertResumeWithTx).toHaveBeenCalledWith(
+        mockTx,
         userId,
         onboardingData,
       );
-      expect(mockSkillsOnboardingService.saveSkills).toHaveBeenCalledWith(
+      expect(mockSkillsOnboardingService.saveSkillsWithTx).toHaveBeenCalledWith(
+        mockTx,
         mockResume.id,
         onboardingData,
       );
       expect(
-        mockExperienceOnboardingService.saveExperiences,
-      ).toHaveBeenCalledWith(mockResume.id, onboardingData);
-      expect(mockEducationOnboardingService.saveEducation).toHaveBeenCalledWith(
+        mockExperienceOnboardingService.saveExperiencesWithTx,
+      ).toHaveBeenCalledWith(mockTx, mockResume.id, onboardingData);
+      expect(mockEducationOnboardingService.saveEducationWithTx).toHaveBeenCalledWith(
+        mockTx,
         mockResume.id,
         onboardingData,
       );
-      expect(mockLanguagesOnboardingService.saveLanguages).toHaveBeenCalledWith(
+      expect(mockLanguagesOnboardingService.saveLanguagesWithTx).toHaveBeenCalledWith(
+        mockTx,
         mockResume.id,
         onboardingData,
       );
-      expect(mockPrismaService.user.update).toHaveBeenCalledWith({
+      expect(mockTx.user.update).toHaveBeenCalledWith({
         where: { id: userId },
         data: {
           hasCompletedOnboarding: true,

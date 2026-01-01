@@ -3,6 +3,8 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { OnboardingData } from '../schemas/onboarding.schema';
 import { DateUtils } from '../../common/utils/date.utils';
 
+import type { Prisma } from '@prisma/client';
+
 @Injectable()
 export class ExperienceOnboardingService {
   private readonly logger = new Logger(ExperienceOnboardingService.name);
@@ -10,6 +12,14 @@ export class ExperienceOnboardingService {
   constructor(private readonly prisma: PrismaService) {}
 
   async saveExperiences(resumeId: string, data: OnboardingData) {
+    return this.saveExperiencesWithTx(this.prisma, resumeId, data);
+  }
+
+  async saveExperiencesWithTx(
+    tx: Prisma.TransactionClient,
+    resumeId: string,
+    data: OnboardingData,
+  ) {
     const { experiencesStep } = data;
 
     if (
@@ -25,7 +35,7 @@ export class ExperienceOnboardingService {
       return;
     }
 
-    await this.prisma.experience.deleteMany({ where: { resumeId } });
+    await tx.experience.deleteMany({ where: { resumeId } });
 
     const validExperiences = experiencesStep.experiences
       .map((exp) => {
@@ -66,7 +76,7 @@ export class ExperienceOnboardingService {
       const filteredExperiences = validExperiences.filter(
         (e): e is NonNullable<typeof e> => e !== null,
       );
-      await this.prisma.experience.createMany({
+      await tx.experience.createMany({
         data: filteredExperiences,
       });
       this.logger.log(`Created ${validExperiences.length} experiences`);

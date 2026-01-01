@@ -2,6 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { OnboardingData } from '../schemas/onboarding.schema';
 
+import type { Prisma } from '@prisma/client';
+
 @Injectable()
 export class LanguagesOnboardingService {
   private readonly logger = new Logger(LanguagesOnboardingService.name);
@@ -9,6 +11,14 @@ export class LanguagesOnboardingService {
   constructor(private readonly prisma: PrismaService) {}
 
   async saveLanguages(resumeId: string, data: OnboardingData) {
+    return this.saveLanguagesWithTx(this.prisma, resumeId, data);
+  }
+
+  async saveLanguagesWithTx(
+    tx: Prisma.TransactionClient,
+    resumeId: string,
+    data: OnboardingData,
+  ) {
     const { languages } = data;
 
     if (!languages?.length) {
@@ -16,9 +26,9 @@ export class LanguagesOnboardingService {
       return;
     }
 
-    await this.prisma.language.deleteMany({ where: { resumeId } });
+    await tx.language.deleteMany({ where: { resumeId } });
 
-    await this.prisma.language.createMany({
+    await tx.language.createMany({
       data: languages.map((lang, index) => ({
         resumeId,
         name: lang.name,

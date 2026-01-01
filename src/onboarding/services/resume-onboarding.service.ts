@@ -2,6 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { OnboardingData } from '../schemas/onboarding.schema';
 
+import type { Prisma } from '@prisma/client';
+
 @Injectable()
 export class ResumeOnboardingService {
   private readonly logger = new Logger(ResumeOnboardingService.name);
@@ -9,13 +11,21 @@ export class ResumeOnboardingService {
   constructor(private readonly prisma: PrismaService) {}
 
   async upsertResume(userId: string, data: OnboardingData) {
+    return this.upsertResumeWithTx(this.prisma, userId, data);
+  }
+
+  async upsertResumeWithTx(
+    tx: Prisma.TransactionClient,
+    userId: string,
+    data: OnboardingData,
+  ) {
     const { personalInfo, professionalProfile, templateSelection } = data;
 
-    const existingResume = await this.prisma.resume.findFirst({
+    const existingResume = await tx.resume.findFirst({
       where: { userId },
     });
 
-    const resume = await this.prisma.resume.upsert({
+    const resume = await tx.resume.upsert({
       where: { id: existingResume?.id ?? 'nonexistent' },
       update: {
         fullName: personalInfo.fullName,
