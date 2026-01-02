@@ -4,8 +4,10 @@ import {
   IsBoolean,
   MaxLength,
   IsUrl,
+  IsEnum,
 } from 'class-validator';
 import { STRING_LENGTH } from '../../common/constants/validation.constants';
+import { ResumeTemplate } from '@prisma/client';
 
 export class CreateResumeDto {
   @IsOptional()
@@ -14,8 +16,8 @@ export class CreateResumeDto {
   title?: string;
 
   @IsOptional()
-  @IsString()
-  template?: string;
+  @IsEnum(ResumeTemplate)
+  template?: ResumeTemplate;
 
   @IsOptional()
   @IsString()

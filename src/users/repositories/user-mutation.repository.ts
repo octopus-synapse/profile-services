@@ -75,10 +75,6 @@ export class UserMutationRepository {
 
   async updatePalette(userId: string, palette: string): Promise<void> {
     this.logger.log(`Updating palette for user: ${userId}`);
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { palette },
-    });
     await this.prisma.userPreferences.upsert({
       where: { userId },
       create: { userId, palette },
@@ -88,10 +84,6 @@ export class UserMutationRepository {
 
   async updateBannerColor(userId: string, bannerColor: string): Promise<void> {
     this.logger.log(`Updating banner color for user: ${userId}`);
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { bannerColor },
-    });
     await this.prisma.userPreferences.upsert({
       where: { userId },
       create: { userId, bannerColor },

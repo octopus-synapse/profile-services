@@ -14,6 +14,7 @@ import { ExportModule } from './export/export.module';
 import { UploadModule } from './upload/upload.module';
 import { LoggerModule } from './common/logger/logger.module';
 import { CacheModule } from './common/cache/cache.module';
+import { AuditLogModule } from './common/audit/audit-log.module';
 import { GitHubModule } from './integrations/github/github.module';
 import { AdminModule } from './admin/admin.module';
 import { ThemesModule } from './themes/themes.module';
@@ -22,6 +23,7 @@ import { TechSkillsModule } from './tech-skills/tech-skills.module';
 import { SpokenLanguagesModule } from './spoken-languages/spoken-languages.module';
 import { TranslationModule } from './translation/translation.module';
 import { HealthModule } from './health/health.module';
+import { ATSModule } from './ats/ats.module';
 import { validate } from './common/config/env.validation';
 import { APP_CONSTANTS } from './common/constants/app.constants';
 
@@ -40,6 +42,7 @@ import { APP_CONSTANTS } from './common/constants/app.constants';
     ]),
     LoggerModule,
     CacheModule,
+    AuditLogModule,
     PrismaModule,
     AuthModule,
     UsersModule,
@@ -55,6 +58,7 @@ import { APP_CONSTANTS } from './common/constants/app.constants';
     SpokenLanguagesModule,
     TranslationModule,
     HealthModule,
+    ATSModule,
   ],
   controllers: [AppController],
   providers: [

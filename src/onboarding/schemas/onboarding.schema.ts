@@ -55,10 +55,16 @@ const skillSchema = z.object({
   level: z.number().min(1).max(5).optional(),
 });
 
-const skillsStepSchema = z.object({
-  skills: z.array(skillSchema).optional(),
-  noSkills: z.boolean(),
-});
+const skillsStepSchema = z
+  .object({
+    skills: z.array(skillSchema).optional(),
+    noSkills: z.boolean(),
+  })
+  .refine((data) => data.noSkills || (data.skills && data.skills.length > 0), {
+    message:
+      'You must either provide at least one skill or mark "I have no skills"',
+    path: ['skills'],
+  });
 
 const languageSchema = z.object({
   name: z.string().min(1).max(50),
@@ -66,7 +72,15 @@ const languageSchema = z.object({
 });
 
 const templateSelectionSchema = z.object({
-  template: z.literal('professional'),
+  template: z.enum([
+    'PROFESSIONAL',
+    'CREATIVE',
+    'TECHNICAL',
+    'MINIMAL',
+    'MODERN',
+    'EXECUTIVE',
+    'ACADEMIC',
+  ]),
   palette: z.string(),
 });
 

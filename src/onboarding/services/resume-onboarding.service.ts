@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { OnboardingData } from '../schemas/onboarding.schema';
 
-import type { Prisma } from '@prisma/client';
+import type { Prisma, ResumeTemplate } from '@prisma/client';
 
 @Injectable()
 export class ResumeOnboardingService {
@@ -25,6 +25,8 @@ export class ResumeOnboardingService {
       where: { userId },
     });
 
+    const isFirstResume = !existingResume;
+
     const resume = await tx.resume.upsert({
       where: { id: existingResume?.id ?? 'nonexistent' },
       update: {
@@ -37,7 +39,7 @@ export class ResumeOnboardingService {
         linkedin: professionalProfile.linkedin,
         github: professionalProfile.github,
         website: professionalProfile.website,
-        template: templateSelection.template,
+        template: templateSelection.template as ResumeTemplate,
       },
       create: {
         userId,
@@ -50,9 +52,18 @@ export class ResumeOnboardingService {
         linkedin: professionalProfile.linkedin,
         github: professionalProfile.github,
         website: professionalProfile.website,
-        template: templateSelection.template,
+        template: templateSelection.template as ResumeTemplate,
       },
     });
+
+    // Set as primary resume if it's the first one created during onboarding
+    if (isFirstResume) {
+      await tx.user.update({
+        where: { id: userId },
+        data: { primaryResumeId: resume.id },
+      });
+      this.logger.log(`Set resume ${resume.id} as primary for user ${userId}`);
+    }
 
     this.logger.log(`Resume upserted: ${resume.id}`);
     return resume;

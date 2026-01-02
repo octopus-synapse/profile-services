@@ -8,6 +8,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { AppLoggerService } from '../../common/logger/logger.service';
 import { OnboardingProgressDto } from '../dto/onboarding.dto';
 import { ERROR_MESSAGES } from '../../common/constants/app.constants';
+import { Prisma } from '@prisma/client';
 
 const INITIAL_PROGRESS = {
   currentStep: 'welcome',
@@ -117,7 +118,10 @@ export class OnboardingProgressService {
    * @param tx Prisma transaction client
    * @param userId User ID
    */
-  async deleteProgressWithTx(tx: any, userId: string) {
+  async deleteProgressWithTx(
+    tx: Prisma.TransactionClient,
+    userId: string,
+  ): Promise<void> {
     await tx.onboardingProgress.deleteMany({ where: { userId } });
   }
 

@@ -27,7 +27,8 @@
     "prisma:studio": "prisma studio",
     "prisma:seed": "ts-node prisma/seed.ts",
     "db:setup": "prisma generate && prisma migrate deploy",
-    "db:reset": "prisma migrate reset --force"
+    "db:reset": "prisma migrate reset --force",
+    "schemas:export": "ts-node src/scripts/export-schemas.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.937.0",
@@ -46,6 +47,7 @@
     "@scalar/nestjs-api-reference": "^1.0.13",
     "@sendgrid/mail": "^8.1.6",
     "@types/multer": "^2.0.0",
+    "@types/pdf-parse": "^1.1.5",
     "@types/uuid": "^10.0.0",
     "axios": "^1.13.2",
     "bcryptjs": "^2.4.3",
@@ -56,10 +58,12 @@
     "iconv-lite": "^0.7.1",
     "ioredis": "^5.8.2",
     "js-yaml": "^4.1.1",
+    "mammoth": "^1.11.0",
     "multer": "^2.0.2",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
+    "pdf-parse": "^2.4.5",
     "puppeteer": "^24.25.0",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
