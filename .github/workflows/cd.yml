@@ -22,6 +22,7 @@ jobs:
       deploy-path: "/opt/profile-services"
       has-database: true
       required-env-vars: "DATABASE_URL,JWT_SECRET,SENDGRID_API_KEY,REDIS_HOST,MINIO_ENDPOINT"
+      docker-build-args: "GITHUB_TOKEN=${{ secrets.GH_PAT }}"
     secrets:
       SERVICE_PORT: ${{ secrets.BACKEND_PORT }}
       OCTOPUS_SSH_PRIVATE_KEY: ${{ secrets.OCTOPUS_SSH_PRIVATE_KEY }}
