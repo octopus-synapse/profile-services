@@ -1,6 +1,7 @@
 /**
  * DSL Controller
  * Endpoints for DSL compilation and preview
+ * Thin layer that delegates to DslRepository
  */
 
 import {
@@ -11,7 +12,6 @@ import {
   Param,
   Query,
   UseGuards,
-  BadRequestException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -22,20 +22,14 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { DslCompilerService } from './dsl-compiler.service';
-import { DslValidatorService } from './dsl-validator.service';
-import { PrismaService } from '../prisma/prisma.service';
+import { DslRepository } from './dsl.repository';
 
 type RenderTarget = 'html' | 'pdf';
 
 @ApiTags('dsl')
 @Controller('dsl')
 export class DslController {
-  constructor(
-    private compiler: DslCompilerService,
-    private validator: DslValidatorService,
-    private prisma: PrismaService,
-  ) {}
+  constructor(private readonly repository: DslRepository) {}
 
   /**
    * Validate DSL without compiling
@@ -44,11 +38,7 @@ export class DslController {
   @ApiOperation({ summary: 'Validate DSL schema' })
   @ApiBody({ description: 'DSL object to validate' })
   validate(@Body() body: unknown) {
-    const result = this.validator.validate(body);
-    return {
-      valid: result.valid,
-      errors: result.errors ?? null,
-    };
+    return this.repository.validate(body);
   }
 
   /**
@@ -63,15 +53,8 @@ export class DslController {
     @Body() body: unknown,
     @Query('target') target: RenderTarget = 'html',
   ) {
-    try {
-      const ast = this.compiler.compileFromRaw(body, target);
-      return { ast };
-    } catch (error) {
-      if (error instanceof BadRequestException) {
-        throw error;
-      }
-      throw new BadRequestException('Failed to compile DSL');
-    }
+    const ast = this.repository.preview(body, target);
+    return { ast };
   }
 
   /**
@@ -87,30 +70,7 @@ export class DslController {
     @Param('resumeId') resumeId: string,
     @Query('target') target: RenderTarget = 'html',
   ) {
-    // Fetch resume with theme
-    const resume = await this.prisma.resume.findFirst({
-      where: { id: resumeId, userId },
-      include: { activeTheme: true },
-    });
-
-    if (!resume) {
-      throw new BadRequestException('Resume not found');
-    }
-
-    // Build DSL from theme + customizations
-    const baseDsl = (resume.activeTheme?.styleConfig ?? {}) as Record<
-      string,
-      unknown
-    >;
-    const customDsl = (resume.customTheme ?? {}) as Record<string, unknown>;
-
-    // Merge: base theme + custom overrides
-    const mergedDsl = this.mergeDsl(baseDsl, customDsl);
-
-    // Compile
-    const ast = this.compiler.compileFromRaw(mergedDsl, target);
-
-    return { ast, resumeId };
+    return this.repository.render(resumeId, userId, target);
   }
 
   /**
@@ -123,57 +83,6 @@ export class DslController {
     @Param('slug') slug: string,
     @Query('target') target: RenderTarget = 'html',
   ) {
-    const resume = await this.prisma.resume.findFirst({
-      where: { slug, isPublic: true },
-      include: { activeTheme: true },
-    });
-
-    if (!resume) {
-      throw new BadRequestException('Resume not found or not public');
-    }
-
-    const baseDsl = (resume.activeTheme?.styleConfig ?? {}) as Record<
-      string,
-      unknown
-    >;
-    const customDsl = (resume.customTheme ?? {}) as Record<string, unknown>;
-    const mergedDsl = this.mergeDsl(baseDsl, customDsl);
-
-    const ast = this.compiler.compileFromRaw(mergedDsl, target);
-
-    return { ast, slug };
-  }
-
-  /**
-   * Deep merge two DSL objects
-   */
-  private mergeDsl(
-    base: Record<string, unknown>,
-    overrides: Record<string, unknown>,
-  ): Record<string, unknown> {
-    const result = { ...base };
-
-    for (const key of Object.keys(overrides)) {
-      const baseValue = base[key];
-      const overrideValue = overrides[key];
-
-      if (
-        typeof baseValue === 'object' &&
-        baseValue !== null &&
-        typeof overrideValue === 'object' &&
-        overrideValue !== null &&
-        !Array.isArray(baseValue) &&
-        !Array.isArray(overrideValue)
-      ) {
-        result[key] = this.mergeDsl(
-          baseValue as Record<string, unknown>,
-          overrideValue as Record<string, unknown>,
-        );
-      } else if (overrideValue !== undefined) {
-        result[key] = overrideValue;
-      }
-    }
-
-    return result;
+    return this.repository.renderPublic(slug, target);
   }
 }
