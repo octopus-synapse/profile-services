@@ -15,7 +15,7 @@ export interface ValidationIssue {
 export interface ValidationResult {
   passed: boolean;
   issues: ValidationIssue[];
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface SectionValidationResult extends ValidationResult {

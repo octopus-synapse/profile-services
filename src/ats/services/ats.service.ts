@@ -9,6 +9,7 @@ import { LayoutSafetyValidator } from '../validators/layout-safety.validator';
 import { GrammarValidator } from '../validators/grammar.validator';
 import { ValidationResponseDto, ValidateCVDto } from '../dto';
 import { AppLoggerService } from '../../common/logger/logger.service';
+import type { TextExtractionResult } from '../interfaces';
 
 @Injectable()
 export class ATSService {
@@ -33,12 +34,12 @@ export class ATSService {
       fileSize: file.size,
     });
 
-    const results: any = {};
+    const results: Partial<ValidationResponseDto['results']> = {};
 
     try {
       // Step 1: Validate file integrity (always run)
       this.logger.log('Validating file integrity', 'ATSService');
-      results.fileIntegrity = await this.fileIntegrityValidator.validate(file);
+      results.fileIntegrity = this.fileIntegrityValidator.validate(file);
 
       if (!results.fileIntegrity.passed) {
         this.logger.warn('File integrity check failed', 'ATSService');
@@ -47,16 +48,16 @@ export class ATSService {
 
       // Step 2: Extract text (always run)
       this.logger.log('Extracting text from document', 'ATSService');
-      results.textExtraction = await this.textExtractionService.extractText(
-        file,
-      );
+      results.textExtraction =
+        await this.textExtractionService.extractText(file);
 
       if (!results.textExtraction.passed) {
         this.logger.warn('Text extraction failed', 'ATSService');
         return new ValidationResponseDto(results);
       }
 
-      const extractedText = results.textExtraction.extractedText;
+      const extractedText = (results.textExtraction as TextExtractionResult)
+        .extractedText;
 
       // Step 3: Normalize encoding (always run)
       this.logger.log('Normalizing text encoding', 'ATSService');
@@ -84,15 +85,14 @@ export class ATSService {
         // Step 6: Check section order
         if (options.checkOrder !== false) {
           this.logger.log('Checking section order', 'ATSService');
-          results.sectionOrder =
-            this.sectionOrderValidator.validate(parsedCV);
+          results.sectionOrder = this.sectionOrderValidator.validate(parsedCV);
         }
       }
 
       // Step 7: Validate format (if enabled)
       if (options.checkFormat !== false) {
         this.logger.log('Validating document format', 'ATSService');
-        results.formatValidation = await this.formatValidator.validate(
+        results.formatValidation = this.formatValidator.validate(
           file,
           normalizedText,
         );
@@ -101,29 +101,30 @@ export class ATSService {
       // Step 8: Check layout safety (if enabled)
       if (options.checkLayout !== false) {
         this.logger.log('Checking layout safety', 'ATSService');
-        results.layout =
-          this.layoutSafetyValidator.validate(normalizedText);
+        results.layout = this.layoutSafetyValidator.validate(normalizedText);
       }
 
       // Step 9: Grammar and spelling check (if enabled)
       if (options.checkGrammar === true) {
         this.logger.log('Checking grammar and spelling', 'ATSService');
-        results.grammar = await this.grammarValidator.validate(normalizedText);
+        results.grammar = this.grammarValidator.validate(normalizedText);
       }
 
+      const fileIntegrityResult = results.fileIntegrity;
       this.logger.log('CV validation completed', 'ATSService', {
-        passed: results.fileIntegrity.passed,
+        passed: fileIntegrityResult?.passed ?? false,
         totalIssues: Object.values(results).reduce(
-          (sum: number, r: any) => sum + (r?.issues?.length || 0),
+          (sum, r) => sum + (r?.issues.length ?? 0),
           0,
         ),
       });
 
       return new ValidationResponseDto(results);
     } catch (error) {
-      this.logger.error('CV validation failed', error.stack, 'ATSService', {
+      const err = error as Error;
+      this.logger.error('CV validation failed', err.stack ?? '', 'ATSService', {
         fileName: file.originalname,
-        error: error.message,
+        error: err.message,
       });
 
       throw error;

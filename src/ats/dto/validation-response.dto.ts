@@ -1,4 +1,8 @@
-import { ValidationResult, ValidationIssue, ValidationSeverity } from '../interfaces';
+import {
+  ValidationResult,
+  ValidationIssue,
+  ValidationSeverity,
+} from '../interfaces';
 
 export class ValidationResponseDto {
   passed: boolean;
@@ -31,7 +35,7 @@ export class ValidationResponseDto {
   private collectIssues(): ValidationIssue[] {
     const allIssues: ValidationIssue[] = [];
     Object.values(this.results).forEach((result) => {
-      if (result && result.issues) {
+      if (result) {
         allIssues.push(...result.issues);
       }
     });

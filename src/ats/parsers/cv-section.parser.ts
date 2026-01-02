@@ -10,6 +10,10 @@ import {
 
 @Injectable()
 export class CVSectionParser {
+  private getSectionName(type: CVSectionType): string {
+    return CVSectionType[type] as string;
+  }
+
   private readonly SECTION_PATTERNS: Record<
     CVSectionType,
     { keywords: string[]; aliases: string[] }
@@ -84,13 +88,7 @@ export class CVSectionParser {
     },
     [CVSectionType.AWARDS]: {
       keywords: ['award', 'achievement', 'honor', 'recognition'],
-      aliases: [
-        'awards',
-        'honors',
-        'achievements',
-        'recognitions',
-        'prêmios',
-      ],
+      aliases: ['awards', 'honors', 'achievements', 'recognitions', 'prêmios'],
     },
     [CVSectionType.PUBLICATIONS]: {
       keywords: ['publication', 'paper', 'research'],
@@ -158,9 +156,9 @@ export class CVSectionParser {
         type: finalSection.type,
         title: finalSection.title,
         content: currentContent.join('\n').trim(),
-        startLine: finalSection.startLine!,
+        startLine: finalSection.startLine ?? 0,
         endLine: lines.length - 1,
-        order: finalSection.order!,
+        order: finalSection.order ?? 0,
       });
     }
 
@@ -179,7 +177,7 @@ export class CVSectionParser {
     const issues: ValidationIssue[] = [];
     const detectedSectionTypes = parsedCV.sections.map((s) => s.type);
     const detectedSections = Array.from(new Set(detectedSectionTypes)).map(
-      (type) => CVSectionType[type],
+      (type) => this.getSectionName(type),
     );
 
     // Check for mandatory sections
@@ -196,7 +194,7 @@ export class CVSectionParser {
     if (missingSections.length > 0) {
       issues.push({
         code: 'MISSING_MANDATORY_SECTIONS',
-        message: `Missing mandatory sections: ${missingSections.map((s) => CVSectionType[s]).join(', ')}`,
+        message: `Missing mandatory sections: ${missingSections.map((s) => this.getSectionName(s)).join(', ')}`,
         severity: ValidationSeverity.ERROR,
         suggestion:
           'Add these sections to improve ATS compatibility and provide complete information',
@@ -219,14 +217,14 @@ export class CVSectionParser {
     // Check for duplicate sections
     const sectionCounts = new Map<CVSectionType, number>();
     detectedSectionTypes.forEach((type) => {
-      sectionCounts.set(type, (sectionCounts.get(type) || 0) + 1);
+      sectionCounts.set(type, (sectionCounts.get(type) ?? 0) + 1);
     });
 
     sectionCounts.forEach((count, type) => {
       if (count > 1) {
         issues.push({
           code: 'DUPLICATE_SECTION',
-          message: `Section "${CVSectionType[type]}" appears ${count} times`,
+          message: `Section "${this.getSectionName(type)}" appears ${count} times`,
           severity: ValidationSeverity.WARNING,
           suggestion: 'Combine duplicate sections into one',
         });
@@ -245,11 +243,12 @@ export class CVSectionParser {
     }
 
     return {
-      passed: issues.filter((i) => i.severity === ValidationSeverity.ERROR)
-        .length === 0,
+      passed:
+        issues.filter((i) => i.severity === ValidationSeverity.ERROR).length ===
+        0,
       issues,
       detectedSections,
-      missingSections: missingSections.map((s) => CVSectionType[s]),
+      missingSections: missingSections.map((s) => this.getSectionName(s)),
       metadata: {
         totalSections: parsedCV.sections.length,
         uniqueSections: detectedSections.length,
@@ -301,7 +300,10 @@ export class CVSectionParser {
       }
     });
 
-    const finalMatch = bestMatch as { type: CVSectionType; confidence: number } | null;
+    const finalMatch = bestMatch as {
+      type: CVSectionType;
+      confidence: number;
+    } | null;
     if (!finalMatch) {
       return null;
     }

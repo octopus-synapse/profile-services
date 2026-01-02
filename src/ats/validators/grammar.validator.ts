@@ -9,21 +9,21 @@ import {
 export class GrammarValidator {
   // Common spelling mistakes and their corrections
   private readonly COMMON_MISTAKES: Record<string, string> = {
-    'recieve': 'receive',
-    'seperate': 'separate',
-    'definately': 'definitely',
-    'occured': 'occurred',
-    'untill': 'until',
-    'sucessful': 'successful',
-    'succesful': 'successful',
-    'experiance': 'experience',
-    'responsable': 'responsible',
-    'managment': 'management',
-    'acheive': 'achieve',
-    'acheivement': 'achievement',
-    'commited': 'committed',
-    'developement': 'development',
-    'enviroment': 'environment',
+    recieve: 'receive',
+    seperate: 'separate',
+    definately: 'definitely',
+    occured: 'occurred',
+    untill: 'until',
+    sucessful: 'successful',
+    succesful: 'successful',
+    experiance: 'experience',
+    responsable: 'responsible',
+    managment: 'management',
+    acheive: 'achieve',
+    acheivement: 'achievement',
+    commited: 'committed',
+    developement: 'development',
+    enviroment: 'environment',
   };
 
   // Patterns that suggest grammar issues
@@ -45,22 +45,22 @@ export class GrammarValidator {
     },
     {
       pattern: /\b(their|there|they're)\b/gi,
-      message: 'Check their/there/they\'re usage',
+      message: "Check their/there/they're usage",
       severity: ValidationSeverity.INFO,
     },
     {
       pattern: /\b(your|you're)\b/gi,
-      message: 'Check your/you\'re usage',
+      message: "Check your/you're usage",
       severity: ValidationSeverity.INFO,
     },
     {
       pattern: /\b(its|it's)\b/gi,
-      message: 'Check its/it\'s usage',
+      message: "Check its/it's usage",
       severity: ValidationSeverity.INFO,
     },
   ];
 
-  async validate(text: string): Promise<ValidationResult> {
+  validate(text: string): ValidationResult {
     const issues: ValidationIssue[] = [];
 
     // Check for common spelling mistakes
@@ -80,7 +80,9 @@ export class GrammarValidator {
     issues.push(...repetitionIssues);
 
     return {
-      passed: issues.filter(i => i.severity === ValidationSeverity.ERROR).length === 0,
+      passed:
+        issues.filter((i) => i.severity === ValidationSeverity.ERROR).length ===
+        0,
       issues,
       metadata: {
         totalIssues: issues.length,
@@ -92,10 +94,10 @@ export class GrammarValidator {
 
   private checkSpelling(text: string): ValidationIssue[] {
     const issues: ValidationIssue[] = [];
-    const words = text.toLowerCase().match(/\b\w+\b/g) || [];
+    const words = text.toLowerCase().match(/\b\w+\b/g) ?? [];
     const foundMistakes = new Set<string>();
 
-    words.forEach(word => {
+    words.forEach((word) => {
       if (this.COMMON_MISTAKES[word] && !foundMistakes.has(word)) {
         foundMistakes.add(word);
         issues.push({
@@ -121,7 +123,7 @@ export class GrammarValidator {
         issues.push({
           code: 'GRAMMAR_WARNING',
           message: uniqueMessage,
-          severity: severity as ValidationSeverity,
+          severity: severity,
           suggestion: 'Review and correct if necessary',
         });
       }
@@ -132,7 +134,7 @@ export class GrammarValidator {
 
   private checkStructure(text: string): ValidationIssue[] {
     const issues: ValidationIssue[] = [];
-    const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+    const sentences = text.split(/[.!?]+/).filter((s) => s.trim().length > 0);
 
     // Check for very long sentences (may be run-on sentences)
     sentences.forEach((sentence, index) => {
@@ -142,7 +144,8 @@ export class GrammarValidator {
           code: 'LONG_SENTENCE',
           message: `Sentence ${index + 1} is very long (${words.length} words)`,
           severity: ValidationSeverity.INFO,
-          suggestion: 'Consider breaking into shorter sentences for better readability',
+          suggestion:
+            'Consider breaking into shorter sentences for better readability',
         });
       }
     });
@@ -153,7 +156,8 @@ export class GrammarValidator {
         code: 'FEW_SENTENCES',
         message: 'Document contains very few sentences',
         severity: ValidationSeverity.WARNING,
-        suggestion: 'Ensure your CV has sufficient detail and complete sentences',
+        suggestion:
+          'Ensure your CV has sufficient detail and complete sentences',
       });
     }
 

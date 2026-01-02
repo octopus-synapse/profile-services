@@ -12,8 +12,26 @@ export class LayoutSafetyValidator {
 
   // Potentially problematic bullet characters
   private readonly UNSAFE_BULLETS = [
-    '●', '○', '◆', '◇', '■', '□', '▪', '▫', '★', '☆',
-    '►', '▼', '▲', '▶', '◀', '→', '⇒', '➔', '➢', '➤'
+    '●',
+    '○',
+    '◆',
+    '◇',
+    '■',
+    '□',
+    '▪',
+    '▫',
+    '★',
+    '☆',
+    '►',
+    '▼',
+    '▲',
+    '▶',
+    '◀',
+    '→',
+    '⇒',
+    '➔',
+    '➢',
+    '➤',
   ];
 
   validate(text: string): ValidationResult {
@@ -26,7 +44,8 @@ export class LayoutSafetyValidator {
         code: 'UNSAFE_BULLET_CHARACTERS',
         message: `Found ${unsafeBullets.length} unsafe bullet character(s): ${unsafeBullets.join(', ')}`,
         severity: ValidationSeverity.WARNING,
-        suggestion: 'Replace with standard bullets (-, *, •) for better ATS compatibility',
+        suggestion:
+          'Replace with standard bullets (-, *, •) for better ATS compatibility',
       });
     }
 
@@ -36,7 +55,8 @@ export class LayoutSafetyValidator {
         code: 'TEXT_IN_SHAPES',
         message: 'Document may contain text inside shapes or text boxes',
         severity: ValidationSeverity.WARNING,
-        suggestion: 'Move text out of shapes/boxes as ATS may not be able to read it',
+        suggestion:
+          'Move text out of shapes/boxes as ATS may not be able to read it',
       });
     }
 
@@ -67,12 +87,15 @@ export class LayoutSafetyValidator {
         code: 'HORIZONTAL_LINES_DETECTED',
         message: 'Document uses horizontal lines/separators',
         severity: ValidationSeverity.INFO,
-        suggestion: 'Some ATS may have issues with horizontal lines - use sparingly',
+        suggestion:
+          'Some ATS may have issues with horizontal lines - use sparingly',
       });
     }
 
     return {
-      passed: issues.filter(i => i.severity === ValidationSeverity.ERROR).length === 0,
+      passed:
+        issues.filter((i) => i.severity === ValidationSeverity.ERROR).length ===
+        0,
       issues,
       metadata: {
         unsafeBulletCount: unsafeBullets.length,
@@ -85,7 +108,7 @@ export class LayoutSafetyValidator {
   private detectUnsafeBullets(text: string): string[] {
     const found = new Set<string>();
 
-    this.UNSAFE_BULLETS.forEach(bullet => {
+    this.UNSAFE_BULLETS.forEach((bullet) => {
       if (text.includes(bullet)) {
         found.add(bullet);
       }
@@ -98,12 +121,12 @@ export class LayoutSafetyValidator {
     // Look for patterns that suggest text boxes or shapes
     // This is a simple heuristic and may not catch all cases
     const shapePatterns = [
-      /┌.*┐/,  // Box corners
-      /╔.*╗/,  // Double box corners
+      /┌.*┐/, // Box corners
+      /╔.*╗/, // Double box corners
       /\+[-=]+\+/, // ASCII boxes
     ];
 
-    return shapePatterns.some(pattern => pattern.test(text));
+    return shapePatterns.some((pattern) => pattern.test(text));
   }
 
   private detectMultiColumnLayout(text: string): boolean {
@@ -111,7 +134,7 @@ export class LayoutSafetyValidator {
     let suspiciousLines = 0;
 
     // Look for lines with large gaps (suggesting columns)
-    lines.forEach(line => {
+    lines.forEach((line) => {
       // If a line has 10+ consecutive spaces, it might be a column separator
       if (/\s{10,}/.test(line)) {
         suspiciousLines++;
@@ -130,13 +153,10 @@ export class LayoutSafetyValidator {
   private detectHorizontalLines(text: string): boolean {
     const lines = text.split('\n');
 
-    return lines.some(line => {
+    return lines.some((line) => {
       const trimmed = line.trim();
       // Check for lines made of repeated characters (-, =, _, etc.)
-      return (
-        /^[-=_*]{5,}$/.test(trimmed) ||
-        /^[─━═]{3,}$/.test(trimmed)
-      );
+      return /^[-=_*]{5,}$/.test(trimmed) || /^[─━═]{3,}$/.test(trimmed);
     });
   }
 }

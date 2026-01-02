@@ -1,10 +1,9 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import {
   ValidationResult,
   ValidationIssue,
   ValidationSeverity,
 } from '../interfaces';
-import * as fs from 'fs';
 import * as path from 'path';
 
 @Injectable()
@@ -17,11 +16,11 @@ export class FileIntegrityValidator {
   private readonly MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
   private readonly MIN_FILE_SIZE = 100; // 100 bytes
 
-  async validate(file: Express.Multer.File): Promise<ValidationResult> {
+  validate(file: Express.Multer.File): ValidationResult {
     const issues: ValidationIssue[] = [];
 
-    // Check if file exists and is not empty
-    if (!file || !file.buffer) {
+    // Check if buffer is not empty (file is always provided by Multer)
+    if (file.buffer.length === 0) {
       issues.push({
         code: 'FILE_MISSING',
         message: 'No file was provided',
@@ -77,7 +76,10 @@ export class FileIntegrityValidator {
     }
 
     // Validate file magic numbers (file signature)
-    const isValidSignature = this.validateFileSignature(file.buffer, fileExtension);
+    const isValidSignature = this.validateFileSignature(
+      file.buffer,
+      fileExtension,
+    );
     if (!isValidSignature) {
       issues.push({
         code: 'INVALID_FILE_SIGNATURE',
@@ -89,8 +91,9 @@ export class FileIntegrityValidator {
     }
 
     return {
-      passed: issues.filter((i) => i.severity === ValidationSeverity.ERROR)
-        .length === 0,
+      passed:
+        issues.filter((i) => i.severity === ValidationSeverity.ERROR).length ===
+        0,
       issues,
       metadata: {
         fileSize: file.size,
