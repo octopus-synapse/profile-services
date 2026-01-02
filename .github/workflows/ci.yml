@@ -20,4 +20,5 @@ jobs:
       has-smoke-tests: true
       build-output-dir: "dist"
       pre-test-script: "npm run db:setup"
-    secrets: inherit
+    secrets:
+      GITHUB_TOKEN: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
