@@ -23,6 +23,7 @@ import { TechSkillsModule } from './tech-skills/tech-skills.module';
 import { SpokenLanguagesModule } from './spoken-languages/spoken-languages.module';
 import { TranslationModule } from './translation/translation.module';
 import { HealthModule } from './health/health.module';
+import { ATSModule } from './ats/ats.module';
 import { validate } from './common/config/env.validation';
 import { APP_CONSTANTS } from './common/constants/app.constants';
 
@@ -57,6 +58,7 @@ import { APP_CONSTANTS } from './common/constants/app.constants';
     SpokenLanguagesModule,
     TranslationModule,
     HealthModule,
+    ATSModule,
   ],
   controllers: [AppController],
   providers: [
