@@ -6,6 +6,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
+import { Prisma } from '@prisma/client';
 import { AppModule } from '../../src/app.module';
 import { PrismaService } from '../../src/prisma/prisma.service';
 import { createMockResume } from '../factories/resume.factory';
@@ -28,22 +29,75 @@ describe('DSL Smoke Tests (e2e)', () => {
 
     prisma = app.get<PrismaService>(PrismaService);
 
-    // Create test user and authenticate
+    // Create test user with hashed password
+    // bcrypt hash for 'password'
+    const passwordHash =
+      '$2a$10$wziTKTFkXzbG64jFsH0.6Ocq2oGB5biff.ytUoXa14yegt5V8krm.';
     const user = await prisma.user.create({
-      data: createMockUser({ email: 'dsl-smoke@test.com' }),
+      data: createMockUser({
+        email: 'dsl-smoke@test.com',
+        password: passwordHash,
+      }),
     });
     userId = user.id;
 
-    // Get auth token (simplified - adjust to your auth flow)
+    // Get auth token
     const authResponse = await request(app.getHttpServer())
       .post('/auth/login')
       .send({ email: 'dsl-smoke@test.com', password: 'password' });
 
-    authToken = authResponse.body.accessToken;
+    authToken = authResponse.body.data.accessToken;
 
-    // Create test resume
+    // Create test resume with valid DSL
+    const validDsl = {
+      version: '1.0.0',
+      layout: {
+        type: 'single-column',
+        paperSize: 'a4',
+        margins: 'normal',
+        pageBreakBehavior: 'auto',
+      },
+      tokens: {
+        colors: {
+          colors: {
+            primary: '#0066cc',
+            secondary: '#666666',
+            background: '#ffffff',
+            surface: '#f9fafb',
+            text: {
+              primary: '#1a1a1a',
+              secondary: '#666666',
+              accent: '#0066cc',
+            },
+            border: '#e5e7eb',
+            divider: '#e5e7eb',
+          },
+          borderRadius: 'sm',
+          shadows: 'none',
+        },
+        typography: {
+          fontFamily: { heading: 'inter', body: 'inter' },
+          fontSize: 'base',
+          headingStyle: 'bold',
+        },
+        spacing: {
+          density: 'comfortable',
+          sectionGap: 'md',
+          itemGap: 'sm',
+          contentPadding: 'md',
+        },
+      },
+      sections: [],
+    };
+
+    const resumeData = createMockResume({ userId });
     const resume = await prisma.resume.create({
-      data: createMockResume({ userId }),
+      data: {
+        ...resumeData,
+        contentPtBr: resumeData.contentPtBr as Prisma.InputJsonValue,
+        contentEn: resumeData.contentEn as Prisma.InputJsonValue,
+        customTheme: validDsl as Prisma.InputJsonValue,
+      },
     });
     resumeId = resume.id;
   });
@@ -297,7 +351,7 @@ describe('DSL Smoke Tests (e2e)', () => {
 
       // Step 2: Preview (compile without persisting)
       const previewRes = await request(app.getHttpServer())
-        .post('/dsl/preview')
+        .post('/dsl/preview?target=html')
         .send(dsl);
 
       expect(previewRes.body.ast).toBeDefined();
@@ -305,8 +359,8 @@ describe('DSL Smoke Tests (e2e)', () => {
 
       // Step 3: Verify AST structure
       expect(ast.meta.version).toBe('1.0.0');
-      expect(ast.page.widthPx).toBeGreaterThan(0);
-      expect(ast.page.heightPx).toBeGreaterThan(0);
+      expect(ast.page.widthMm).toBeGreaterThan(0);
+      expect(ast.page.heightMm).toBeGreaterThan(0);
       expect(ast.page.columns).toBeInstanceOf(Array);
       expect(ast.sections).toBeInstanceOf(Array);
       expect(ast.globalStyles.background).toBeTruthy();

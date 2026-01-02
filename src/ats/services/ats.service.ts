@@ -110,12 +110,15 @@ export class ATSService {
         results.grammar = this.grammarValidator.validate(normalizedText);
       }
 
-      const fileIntegrityResult = results.fileIntegrity;
+      const allResults = Object.values(results).filter(Boolean);
+      const totalIssues = allResults.reduce(
+        (sum, r) => sum + r.issues.length,
+        0,
+      );
+
       this.logger.log('CV validation completed', 'ATSService', {
-        passed: fileIntegrityResult?.passed ?? false,
-        totalIssues: Object.values(results)
-          .filter((r): r is ValidationResult => r !== undefined)
-          .reduce((sum, r) => sum + r.issues.length, 0),
+        passed: results.fileIntegrity.passed,
+        totalIssues,
       });
 
       return new ValidationResponseDto(results);

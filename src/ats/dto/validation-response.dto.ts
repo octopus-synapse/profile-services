@@ -33,9 +33,7 @@ export class ValidationResponseDto {
   }
 
   private collectIssues(): ValidationIssue[] {
-    return Object.values(this.results)
-      .filter((result): result is ValidationResult => result !== undefined)
-      .flatMap((result) => result.issues);
+    return Object.values(this.results).flatMap((result) => result.issues);
   }
 
   private calculateSummary() {

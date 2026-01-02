@@ -48,7 +48,9 @@ export class DslValidatorService {
       });
     }
     if (!result.normalized) {
-      throw new BadRequestException('Validation succeeded but normalized DSL is missing');
+      throw new BadRequestException(
+        'Validation succeeded but normalized DSL is missing',
+      );
     }
     return result.normalized;
   }
