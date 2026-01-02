@@ -22,11 +22,10 @@ WORKDIR /app
 # Copy package files
 COPY package.json package-lock.json* ./
 
-# Accept build argument for GitHub token
-ARG GITHUB_TOKEN
-
-# Install dependencies with GitHub Packages authentication
-RUN if [ -n "$GITHUB_TOKEN" ]; then \
+# Install dependencies with GitHub Packages authentication using secrets
+RUN --mount=type=secret,id=github_token \
+    if [ -s /run/secrets/github_token ]; then \
+      GITHUB_TOKEN=$(cat /run/secrets/github_token) && \
       echo "//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}" > .npmrc && \
       echo "@octopus-synapse:registry=https://npm.pkg.github.com" >> .npmrc; \
     fi && \
