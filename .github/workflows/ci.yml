@@ -6,12 +6,12 @@ on:
   push:
     branches: [dev]
 
+permissions:
+  contents: read
+  packages: read
+
 jobs:
   ci:
-    permissions:
-      contents: read
-      actions: read
-      packages: read
     uses: octopus-synapse/octopus-workflows/.github/workflows/ci.yml@main
     with:
       node-version: "20"
