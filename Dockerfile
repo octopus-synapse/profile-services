@@ -22,8 +22,16 @@ WORKDIR /app
 # Copy package files
 COPY package.json package-lock.json* ./
 
-# Install dependencies
-RUN npm ci
+# Accept build argument for GitHub token
+ARG GITHUB_TOKEN
+
+# Install dependencies with GitHub Packages authentication
+RUN if [ -n "$GITHUB_TOKEN" ]; then \
+      echo "//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}" > .npmrc && \
+      echo "@octopus-synapse:registry=https://npm.pkg.github.com" >> .npmrc; \
+    fi && \
+    npm ci && \
+    rm -f .npmrc
 
 # ==================================
 # Stage 2: Builder
