@@ -20,7 +20,10 @@ export class EncodingNormalizerService {
     { char: '\u00AD', replacement: '', name: 'soft hyphen' },
   ];
 
-  normalizeText(text: string): { normalizedText: string; result: ValidationResult } {
+  normalizeText(text: string): {
+    normalizedText: string;
+    result: ValidationResult;
+  } {
     const issues: ValidationIssue[] = [];
     let normalizedText = text;
 
@@ -37,7 +40,7 @@ export class EncodingNormalizerService {
       try {
         const buffer = Buffer.from(text, 'binary');
         normalizedText = iconv.decode(buffer, 'utf8');
-      } catch (error) {
+      } catch {
         issues.push({
           code: 'ENCODING_FIX_FAILED',
           message: 'Could not automatically fix encoding issues',
@@ -65,8 +68,7 @@ export class EncodingNormalizerService {
         code: 'SPECIAL_CHARS_NORMALIZED',
         message: `Normalized ${foundProblematicChars.size} type(s) of special characters: ${Array.from(foundProblematicChars).join(', ')}`,
         severity: ValidationSeverity.INFO,
-        suggestion:
-          'These characters were replaced with ATS-safe equivalents',
+        suggestion: 'These characters were replaced with ATS-safe equivalents',
       });
     }
 
@@ -78,12 +80,11 @@ export class EncodingNormalizerService {
       '\uFEFF', // Zero-width no-break space
     ];
 
-    let hasZeroWidth = false;
+    const hasZeroWidth = zeroWidthChars.some((char) =>
+      normalizedText.includes(char),
+    );
     zeroWidthChars.forEach((char) => {
-      if (normalizedText.includes(char)) {
-        hasZeroWidth = true;
-        normalizedText = normalizedText.split(char).join('');
-      }
+      normalizedText = normalizedText.split(char).join('');
     });
 
     if (hasZeroWidth) {
@@ -96,6 +97,7 @@ export class EncodingNormalizerService {
     }
 
     // Check for control characters
+    // eslint-disable-next-line no-control-regex
     const controlCharPattern = /[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g;
     if (controlCharPattern.test(normalizedText)) {
       normalizedText = normalizedText.replace(controlCharPattern, '');
@@ -108,7 +110,8 @@ export class EncodingNormalizerService {
     }
 
     // Check for unusual whitespace
-    const unusualWhitespace = /[\x85\xA0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]/g;
+    const unusualWhitespace =
+      /[\x85\xA0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]/g;
     if (unusualWhitespace.test(normalizedText)) {
       normalizedText = normalizedText.replace(unusualWhitespace, ' ');
       issues.push({
@@ -119,7 +122,8 @@ export class EncodingNormalizerService {
     }
 
     // Check for accented characters (informational only, don't replace)
-    const accentedChars = /[àáâãäåèéêëìíîïòóôõöùúûüýÿñçÀÁÂÃÄÅÈÉÊËÌÍÎÏÒÓÔÕÖÙÚÛÜÝŸÑÇ]/g;
+    const accentedChars =
+      /[àáâãäåèéêëìíîïòóôõöùúûüýÿñçÀÁÂÃÄÅÈÉÊËÌÍÎÏÒÓÔÕÖÙÚÛÜÝŸÑÇ]/g;
     const accentedMatches = normalizedText.match(accentedChars);
     if (accentedMatches && accentedMatches.length > 0) {
       issues.push({
@@ -134,8 +138,9 @@ export class EncodingNormalizerService {
     return {
       normalizedText,
       result: {
-        passed: issues.filter((i) => i.severity === ValidationSeverity.ERROR)
-          .length === 0,
+        passed:
+          issues.filter((i) => i.severity === ValidationSeverity.ERROR)
+            .length === 0,
         issues,
         metadata: {
           originalLength: text.length,

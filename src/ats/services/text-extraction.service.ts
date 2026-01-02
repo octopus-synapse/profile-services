@@ -6,17 +6,22 @@ import {
 } from '../interfaces';
 import * as mammoth from 'mammoth';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const pdfParse = require('pdf-parse');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const pdfParse = require('pdf-parse') as (
+  buffer: Buffer,
+) => Promise<{ text: string; numpages: number }>;
+
+interface MammothResult {
+  value: string;
+  messages: Array<{ message: string }>;
+}
 
 @Injectable()
 export class TextExtractionService {
   private readonly MIN_WORD_COUNT = 50;
   private readonly MIN_TEXT_LENGTH = 100;
 
-  async extractText(
-    file: Express.Multer.File,
-  ): Promise<TextExtractionResult> {
+  async extractText(file: Express.Multer.File): Promise<TextExtractionResult> {
     const issues: ValidationIssue[] = [];
     let extractedText = '';
     let isImageBased = false;
@@ -93,8 +98,9 @@ export class TextExtractionService {
       }
 
       return {
-        passed: issues.filter((i) => i.severity === ValidationSeverity.ERROR)
-          .length === 0,
+        passed:
+          issues.filter((i) => i.severity === ValidationSeverity.ERROR)
+            .length === 0,
         issues,
         extractedText,
         wordCount,
@@ -102,9 +108,10 @@ export class TextExtractionService {
         isImageBased,
       };
     } catch (error) {
+      const err = error as Error;
       issues.push({
         code: 'EXTRACTION_FAILED',
-        message: `Text extraction failed: ${error.message}`,
+        message: `Text extraction failed: ${err.message}`,
         severity: ValidationSeverity.ERROR,
       });
 
@@ -119,9 +126,11 @@ export class TextExtractionService {
     }
   }
 
-  private async extractFromPDF(
-    buffer: Buffer,
-  ): Promise<{ text: string; isImageBased: boolean; issues?: ValidationIssue[] }> {
+  private async extractFromPDF(buffer: Buffer): Promise<{
+    text: string;
+    isImageBased: boolean;
+    issues?: ValidationIssue[];
+  }> {
     try {
       const data = await pdfParse(buffer);
       const text = data.text || '';
@@ -136,13 +145,14 @@ export class TextExtractionService {
         isImageBased,
       };
     } catch (error) {
+      const err = error as Error;
       return {
         text: '',
         isImageBased: false,
         issues: [
           {
             code: 'PDF_PARSE_ERROR',
-            message: `Failed to parse PDF: ${error.message}`,
+            message: `Failed to parse PDF: ${err.message}`,
             severity: ValidationSeverity.ERROR,
           },
         ],
@@ -154,7 +164,9 @@ export class TextExtractionService {
     buffer: Buffer,
   ): Promise<{ text: string; issues?: ValidationIssue[] }> {
     try {
-      const result = await mammoth.extractRawText({ buffer });
+      const result = (await mammoth.extractRawText({
+        buffer,
+      })) as MammothResult;
       return {
         text: result.value || '',
         issues: result.messages.map((msg) => ({
@@ -164,12 +176,13 @@ export class TextExtractionService {
         })),
       };
     } catch (error) {
+      const err = error as Error;
       return {
         text: '',
         issues: [
           {
             code: 'DOCX_PARSE_ERROR',
-            message: `Failed to parse DOCX: ${error.message}`,
+            message: `Failed to parse DOCX: ${err.message}`,
             severity: ValidationSeverity.ERROR,
           },
         ],
@@ -187,9 +200,6 @@ export class TextExtractionService {
   }
 
   private countWords(text: string): number {
-    return text
-      .split(/\s+/)
-      .filter((word) => word.length > 0)
-      .length;
+    return text.split(/\s+/).filter((word) => word.length > 0).length;
   }
 }

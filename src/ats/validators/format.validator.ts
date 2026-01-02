@@ -7,9 +7,15 @@ import {
 
 @Injectable()
 export class FormatValidator {
-  private readonly ATS_SAFE_FILE_TYPES = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+  private readonly ATS_SAFE_FILE_TYPES = [
+    'application/pdf',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  ];
 
-  async validate(file: Express.Multer.File, extractedText: string): Promise<FormatValidationResult> {
+  validate(
+    file: Express.Multer.File,
+    extractedText: string,
+  ): FormatValidationResult {
     const issues: ValidationIssue[] = [];
 
     // Check file type
@@ -27,9 +33,11 @@ export class FormatValidator {
     if (this.detectTables(extractedText)) {
       issues.push({
         code: 'TABLES_DETECTED',
-        message: 'Document may contain tables which can interfere with ATS parsing',
+        message:
+          'Document may contain tables which can interfere with ATS parsing',
         severity: ValidationSeverity.WARNING,
-        suggestion: 'Replace tables with simple text formatting for better ATS compatibility',
+        suggestion:
+          'Replace tables with simple text formatting for better ATS compatibility',
       });
     }
 
@@ -55,11 +63,16 @@ export class FormatValidator {
     }
 
     return {
-      passed: issues.filter(i => i.severity === ValidationSeverity.ERROR).length === 0,
+      passed:
+        issues.filter((i) => i.severity === ValidationSeverity.ERROR).length ===
+        0,
       issues,
       fileType: file.mimetype,
       fileSize: file.size,
-      isATSCompatible: isATSSafeType && issues.filter(i => i.severity === ValidationSeverity.ERROR).length === 0,
+      isATSCompatible:
+        isATSSafeType &&
+        issues.filter((i) => i.severity === ValidationSeverity.ERROR).length ===
+          0,
       metadata: {
         hasTable: this.detectTables(extractedText),
         hasMultiColumn: this.detectMultiColumn(extractedText),
@@ -74,7 +87,7 @@ export class FormatValidator {
     let pipeCount = 0;
     let tabCount = 0;
 
-    lines.forEach(line => {
+    lines.forEach((line) => {
       if (line.includes('|')) pipeCount++;
       if (line.includes('\t')) tabCount++;
     });
@@ -90,7 +103,7 @@ export class FormatValidator {
     const spacingPattern = /\s{10,}/;
     let suspiciousLines = 0;
 
-    lines.forEach(line => {
+    lines.forEach((line) => {
       if (spacingPattern.test(line)) {
         suspiciousLines++;
       }

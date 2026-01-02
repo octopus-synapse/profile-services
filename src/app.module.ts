@@ -24,6 +24,7 @@ import { SpokenLanguagesModule } from './spoken-languages/spoken-languages.modul
 import { TranslationModule } from './translation/translation.module';
 import { HealthModule } from './health/health.module';
 import { ATSModule } from './ats/ats.module';
+import { DslModule } from './dsl/dsl.module';
 import { validate } from './common/config/env.validation';
 import { APP_CONSTANTS } from './common/constants/app.constants';
 
@@ -59,6 +60,7 @@ import { APP_CONSTANTS } from './common/constants/app.constants';
     TranslationModule,
     HealthModule,
     ATSModule,
+    DslModule,
   ],
   controllers: [AppController],
   providers: [

@@ -62,7 +62,7 @@ export class ATSController {
   })
   @UseInterceptors(FileInterceptor('file'))
   async validateCV(
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile() file: Express.Multer.File | undefined,
     @Body() options: ValidateCVDto,
   ): Promise<ValidationResponseDto> {
     if (!file) {

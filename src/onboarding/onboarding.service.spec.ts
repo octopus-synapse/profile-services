@@ -258,6 +258,13 @@ describe('OnboardingService', () => {
           hasCompletedOnboarding: true,
           onboardingCompletedAt: expect.any(Date),
           username: onboardingData.username,
+          displayName: onboardingData.personalInfo.fullName,
+          phone: onboardingData.personalInfo.phone,
+          location: onboardingData.personalInfo.location,
+          bio: onboardingData.professionalProfile.summary,
+          linkedin: onboardingData.professionalProfile.linkedin,
+          github: onboardingData.professionalProfile.github,
+          website: onboardingData.professionalProfile.website,
         },
       });
       expect(logger.log).toHaveBeenCalledWith(

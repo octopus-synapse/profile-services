@@ -43,6 +43,7 @@
     "@nestjs/swagger": "^11.2.3",
     "@nestjs/terminus": "^11.0.0",
     "@nestjs/throttler": "^6.4.0",
+    "@octopus-synapse/profile-contracts": "^0.0.3",
     "@prisma/client": "^6.17.1",
     "@scalar/nestjs-api-reference": "^1.0.13",
     "@sendgrid/mail": "^8.1.6",
