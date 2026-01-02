@@ -164,8 +164,8 @@ export class DslCompilerService {
     tokens: ResolvedTokens,
   ): ResumeAst['page'] {
     const { layout } = dsl;
-    const paper = PAPER_SIZES[layout.paperSize] ?? PAPER_SIZES.a4;
-    const margin = MARGINS[layout.margins] ?? MARGINS.normal;
+    const paper = PAPER_SIZES[layout.paperSize];
+    const margin = MARGINS[layout.margins];
 
     // Determine columns based on layout type
     const columns = this.buildColumns(layout.type, layout.columnDistribution);

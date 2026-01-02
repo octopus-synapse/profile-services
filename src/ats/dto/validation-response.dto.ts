@@ -33,13 +33,9 @@ export class ValidationResponseDto {
   }
 
   private collectIssues(): ValidationIssue[] {
-    const allIssues: ValidationIssue[] = [];
-    Object.values(this.results).forEach((result) => {
-      if (result) {
-        allIssues.push(...result.issues);
-      }
-    });
-    return allIssues;
+    return Object.values(this.results)
+      .filter((result): result is ValidationResult => result !== undefined)
+      .flatMap((result) => result.issues);
   }
 
   private calculateSummary() {

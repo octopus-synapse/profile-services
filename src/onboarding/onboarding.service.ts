@@ -213,12 +213,12 @@ export class OnboardingService {
         username: data.username,
         // Sync profile data from onboarding to user table for settings
         displayName: data.personalInfo.fullName,
-        phone: data.personalInfo.phone || null,
-        location: data.personalInfo.location || null,
-        bio: data.professionalProfile.summary || null,
-        linkedin: data.professionalProfile.linkedin || null,
-        github: data.professionalProfile.github || null,
-        website: data.professionalProfile.website || null,
+        phone: data.personalInfo.phone ?? null,
+        location: data.personalInfo.location ?? null,
+        bio: data.professionalProfile.summary ?? null,
+        linkedin: data.professionalProfile.linkedin ?? null,
+        github: data.professionalProfile.github ?? null,
+        website: data.professionalProfile.website ?? null,
       },
     });
   }

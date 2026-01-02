@@ -66,7 +66,7 @@ describe('DslValidatorService', () => {
     });
 
     it('should return invalid for missing version', () => {
-      const { version, ...invalidDsl } = validDsl;
+      const { version: _version, ...invalidDsl } = validDsl;
       const result = service.validate(invalidDsl);
       expect(result.valid).toBe(false);
       expect(result.errors).toContain('version: Required');
@@ -91,7 +91,7 @@ describe('DslValidatorService', () => {
     });
 
     it('should return invalid for missing sections', () => {
-      const { sections, ...invalidDsl } = validDsl;
+      const { sections: _sections, ...invalidDsl } = validDsl;
       const result = service.validate(invalidDsl);
       expect(result.valid).toBe(false);
     });

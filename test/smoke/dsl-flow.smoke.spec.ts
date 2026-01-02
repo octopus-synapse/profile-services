@@ -6,10 +6,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { AppModule } from '../src/app.module';
-import { PrismaService } from '../src/prisma/prisma.service';
-import { createMockResume } from './factories/resume.factory';
-import { createMockUser } from './factories/user.factory';
+import { AppModule } from '../../src/app.module';
+import { PrismaService } from '../../src/prisma/prisma.service';
+import { createMockResume } from '../factories/resume.factory';
+import { createMockUser } from '../factories/user.factory';
 
 describe('DSL Smoke Tests (e2e)', () => {
   let app: INestApplication;

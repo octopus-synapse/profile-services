@@ -113,10 +113,9 @@ export class ATSService {
       const fileIntegrityResult = results.fileIntegrity;
       this.logger.log('CV validation completed', 'ATSService', {
         passed: fileIntegrityResult?.passed ?? false,
-        totalIssues: Object.values(results).reduce(
-          (sum, r) => sum + (r?.issues.length ?? 0),
-          0,
-        ),
+        totalIssues: Object.values(results)
+          .filter((r): r is ValidationResult => r !== undefined)
+          .reduce((sum, r) => sum + r.issues.length, 0),
       });
 
       return new ValidationResponseDto(results);
