@@ -1,6 +1,6 @@
 {
-  "name": "backend",
-  "version": "0.0.1",
+  "name": "@octopus-synapse/profile-services",
+  "version": "1.0.0",
   "description": "",
   "author": "",
   "private": true,
@@ -28,7 +28,8 @@
     "prisma:seed": "ts-node prisma/seed.ts",
     "db:setup": "prisma generate && prisma migrate deploy",
     "db:reset": "prisma migrate reset --force",
-    "schemas:export": "ts-node src/scripts/export-schemas.ts"
+    "schemas:export": "ts-node src/scripts/export-schemas.ts",
+    "prepare": "husky"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.937.0",
@@ -76,6 +77,8 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@commitlint/cli": "^20.3.0",
+    "@commitlint/config-conventional": "^20.3.0",
     "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^9.18.0",
     "@nestjs/cli": "^11.0.0",
@@ -96,6 +99,7 @@
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "^5.2.2",
     "globals": "^15.14.0",
+    "husky": "^9.1.7",
     "jest": "^29.7.0",
     "prettier": "^3.4.2",
     "prisma": "^6.17.1",
