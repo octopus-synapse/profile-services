@@ -15,7 +15,7 @@ import { Hackathon } from '@prisma/client';
 
 @ApiTags('resumes')
 @ApiBearerAuth('JWT-auth')
-@Controller('resumes/:resumeId/hackathons')
+@Controller('v1/resumes/:resumeId/hackathons')
 @UseGuards(JwtAuthGuard)
 export class HackathonController extends BaseSubResourceController<
   Hackathon,

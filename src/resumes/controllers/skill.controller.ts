@@ -38,7 +38,7 @@ import { ParseCuidPipe } from '../../common/pipes/parse-cuid.pipe';
 
 @ApiTags('resumes')
 @ApiBearerAuth('JWT-auth')
-@Controller('resumes/:resumeId/skills')
+@Controller('v1/resumes/:resumeId/skills')
 @UseGuards(JwtAuthGuard)
 export class SkillController extends BaseSubResourceController<
   Skill,

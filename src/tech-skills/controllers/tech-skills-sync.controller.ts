@@ -14,7 +14,7 @@ import { TechSkillsSyncService } from '../services/tech-skills-sync.service';
 import { InternalAuthGuard } from '../../mec-sync/guards/internal-auth.guard';
 import { Public } from '../../auth/decorators/public.decorator';
 
-@Controller('tech-skills')
+@Controller('v1/tech-skills')
 export class TechSkillsSyncController {
   constructor(private readonly syncService: TechSkillsSyncService) {}
 

@@ -25,7 +25,7 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { UserPayload } from '../interfaces/auth-request.interface';
 
 @ApiTags('auth')
-@Controller('auth')
+@Controller('v1/auth')
 export class AuthAccountController {
   constructor(private readonly authService: AuthService) {}
 

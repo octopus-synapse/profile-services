@@ -31,7 +31,7 @@ import {
 } from '../dto';
 
 @ApiTags('themes')
-@Controller('themes')
+@Controller('v1/themes')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class UserThemeController {

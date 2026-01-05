@@ -15,7 +15,7 @@ import { Achievement } from '@prisma/client';
 
 @ApiTags('resumes')
 @ApiBearerAuth('JWT-auth')
-@Controller('resumes/:resumeId/achievements')
+@Controller('v1/resumes/:resumeId/achievements')
 @UseGuards(JwtAuthGuard)
 export class AchievementController extends BaseSubResourceController<
   Achievement,

@@ -30,7 +30,7 @@ import {
 
 @ApiTags('resumes')
 @ApiBearerAuth('JWT-auth')
-@Controller('resumes')
+@Controller('v1/resumes')
 @UseGuards(JwtAuthGuard)
 export class ResumesController {
   constructor(private readonly resumesService: ResumesService) {}

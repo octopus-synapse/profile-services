@@ -25,7 +25,7 @@ class SectionBatchDto {
 }
 
 @ApiTags('resume-config')
-@Controller('resumes/:resumeId/config')
+@Controller('v1/resumes/:resumeId/config')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class SectionConfigController {

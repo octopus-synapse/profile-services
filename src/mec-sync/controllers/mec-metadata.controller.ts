@@ -11,7 +11,7 @@ import { CourseQueryService } from '../services/course-query.service';
 import { MecStatsService } from '../services/mec-stats.service';
 
 @ApiTags('mec-metadata')
-@Controller('mec')
+@Controller('v1/mec')
 export class MecMetadataController {
   constructor(
     private readonly institutionQuery: InstitutionQueryService,

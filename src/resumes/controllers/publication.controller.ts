@@ -15,7 +15,7 @@ import { Publication } from '@prisma/client';
 
 @ApiTags('resumes')
 @ApiBearerAuth('JWT-auth')
-@Controller('resumes/:resumeId/publications')
+@Controller('v1/resumes/:resumeId/publications')
 @UseGuards(JwtAuthGuard)
 export class PublicationController extends BaseSubResourceController<
   Publication,

@@ -15,7 +15,7 @@ import { BugBounty } from '@prisma/client';
 
 @ApiTags('resumes')
 @ApiBearerAuth('JWT-auth')
-@Controller('resumes/:resumeId/bug-bounties')
+@Controller('v1/resumes/:resumeId/bug-bounties')
 @UseGuards(JwtAuthGuard)
 export class BugBountyController extends BaseSubResourceController<
   BugBounty,

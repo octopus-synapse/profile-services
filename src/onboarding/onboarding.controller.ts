@@ -22,7 +22,7 @@ import { UserPayload } from '../auth/interfaces/auth-request.interface';
 
 @ApiTags('onboarding')
 @ApiBearerAuth('JWT-auth')
-@Controller('onboarding')
+@Controller('v1/onboarding')
 @UseGuards(JwtAuthGuard)
 export class OnboardingController {
   constructor(private readonly onboardingService: OnboardingService) {}

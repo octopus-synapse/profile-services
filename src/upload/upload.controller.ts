@@ -26,7 +26,7 @@ import { UserPayload } from '../auth/interfaces/auth-request.interface';
 
 @ApiTags('upload')
 @ApiBearerAuth('JWT-auth')
-@Controller('upload')
+@Controller('v1/upload')
 @UseGuards(JwtAuthGuard)
 export class UploadController {
   constructor(private readonly uploadService: UploadService) {}

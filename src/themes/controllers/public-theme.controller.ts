@@ -9,7 +9,7 @@ import { ThemeQueryService } from '../services';
 import { QueryThemesDto } from '../dto';
 
 @ApiTags('themes')
-@Controller('themes')
+@Controller('v1/themes')
 export class PublicThemeController {
   constructor(private queryService: ThemeQueryService) {}
 

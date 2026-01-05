@@ -57,6 +57,44 @@ The `.github/workflows/validate-contracts.yml` workflow blocks PRs containing:
 
 **📖 Read more:** [ADR-002: Use profile-contracts for Shared Validation](./docs/adr/002-use-profile-contracts.md)
 
+## API Versioning
+
+All API routes are versioned with a `/v1/` prefix to enable safe evolution and backward compatibility.
+
+### Route Structure
+
+```
+GET /api/v1/resumes
+POST /api/v1/auth/login
+GET /api/v1/users/me
+```
+
+### Version Policy
+
+- **v1**: Current stable API (production)
+- **v2**: Reserved for future breaking changes
+- **Deprecation Notice**: Minimum 6 months before removing any v1 endpoint
+
+### Breaking Changes
+
+Breaking changes require a new major version. Examples:
+
+- ❌ Renaming fields (`username` → `userName`)
+- ❌ Removing endpoints
+- ❌ Changing required fields
+- ❌ Modifying response structure
+
+✅ **Allowed in v1** (non-breaking):
+
+- Adding optional fields
+- Adding new endpoints
+- Expanding enum values
+- Improving error messages
+
+### Health Check Exception
+
+The `/api/health` endpoint remains unversioned for infrastructure monitoring compatibility.
+
 ## Prerequisites
 
 - Node.js 20+

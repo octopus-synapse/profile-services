@@ -26,7 +26,7 @@ import { Experience } from '@prisma/client';
  */
 @ApiTags('resumes')
 @ApiBearerAuth('JWT-auth')
-@Controller('resumes/:resumeId/experiences')
+@Controller('v1/resumes/:resumeId/experiences')
 @UseGuards(JwtAuthGuard)
 export class ExperienceController extends BaseSubResourceController<
   Experience,

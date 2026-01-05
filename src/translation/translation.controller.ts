@@ -15,7 +15,7 @@ import { TranslationService, TranslationLanguage } from './translation.service';
 import { TranslateTextDto, TranslateBatchDto } from './dto/translate.dto';
 
 @ApiTags('Translation')
-@Controller('translation')
+@Controller('v1/translation')
 export class TranslationController {
   constructor(private readonly translationService: TranslationService) {}
 

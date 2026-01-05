@@ -15,7 +15,7 @@ import { Certification } from '@prisma/client';
 
 @ApiTags('resumes')
 @ApiBearerAuth('JWT-auth')
-@Controller('resumes/:resumeId/certifications')
+@Controller('v1/resumes/:resumeId/certifications')
 @UseGuards(JwtAuthGuard)
 export class CertificationController extends BaseSubResourceController<
   Certification,
