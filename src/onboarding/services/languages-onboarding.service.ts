@@ -21,7 +21,7 @@ export class LanguagesOnboardingService {
   ) {
     const { languages } = data;
 
-    if (!languages?.length) {
+    if (!languages.length) {
       this.logger.log('No languages provided');
       return;
     }

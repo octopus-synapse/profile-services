@@ -21,8 +21,10 @@ export class SkillsOnboardingService {
   ) {
     const { skills, noSkills } = data;
 
-    if (noSkills || !skills?.length) {
-      this.logger.log(noSkills ? 'User selected noSkills' : 'No skills provided');
+    if (noSkills || !skills.length) {
+      this.logger.log(
+        noSkills ? 'User selected noSkills' : 'No skills provided',
+      );
       return;
     }
 

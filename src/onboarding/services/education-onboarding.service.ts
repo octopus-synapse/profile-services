@@ -22,7 +22,7 @@ export class EducationOnboardingService {
   ) {
     const { education, noEducation } = data;
 
-    if (noEducation || !education?.length) {
+    if (noEducation || !education.length) {
       this.logger.log(
         noEducation ? 'User selected noEducation' : 'No education provided',
       );

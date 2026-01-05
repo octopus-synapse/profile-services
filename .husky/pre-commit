@@ -1,1 +1,22 @@
-npm test
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "Running pre-commit checks..."
+
+# Type checking
+echo "Checking types..."
+npm run typecheck || exit 1
+
+# Linting
+echo "Running linter..."
+npm run lint || exit 1
+
+# Unit Tests
+echo "Running unit tests..."
+npm test || exit 1
+
+# Smoke Tests
+echo "Running smoke tests..."
+npm run test:smoke || exit 1
+
+echo "All pre-commit checks passed!"
