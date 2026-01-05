@@ -1,50 +1,56 @@
 name: Contract Enforcement
 
 on:
-    pull_request:
-        branches: [main]
-    push:
-        branches: [main]
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - '.github/workflows/validate-contracts.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - '.github/workflows/validate-contracts.yml'
 
 jobs:
-    check-duplication:
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v4
+  check-duplication:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-            - name: Check for duplicate validation schemas
-              run: |
-                  echo "::group::Checking for duplicate validation in backend"
+      - name: Check for duplicate validation schemas
+        run: |
+          echo "::group::Checking for duplicate validation in backend"
 
-                  # Check auth schemas (should use contracts)
-                  if grep -r "z\.string()\.email()" src/auth/ 2>/dev/null; then
-                    echo "::error::Found duplicate email validation in auth module"
-                    exit 1
-                  fi
+          # Check auth schemas (should use contracts)
+          if grep -r "z\.string()\.email()" src/auth/ 2>/dev/null; then
+            echo "::error::Found duplicate email validation in auth module"
+            exit 1
+          fi
 
-                  if grep -r "z\.object.*username.*email" src/auth/ 2>/dev/null | grep -v "from '@octopus-synapse/profile-contracts'"; then
-                    echo "::error::Found duplicate auth schemas (should import from contracts)"
-                    exit 1
-                  fi
+          if grep -r "z\.object.*username.*email" src/auth/ 2>/dev/null | grep -v "from '@octopus-synapse/profile-contracts'"; then
+            echo "::error::Found duplicate auth schemas (should import from contracts)"
+            exit 1
+          fi
 
-                  echo "::endgroup::"
-                  echo "✅ No duplicate validation logic found"
+          echo "::endgroup::"
+          echo "✅ No duplicate validation logic found"
 
-            - name: Verify contract imports
-              run: |
-                  echo "::group::Verifying backend uses contracts"
+      - name: Verify contract imports
+        run: |
+          echo "::group::Verifying backend uses contracts"
 
-                  # Backend auth module MUST import from contracts
-                  if ! grep -q "@octopus-synapse/profile-contracts" src/auth/schemas/auth.schemas.ts; then
-                    echo "::error::Backend auth schemas must import from profile-contracts"
-                    exit 1
-                  fi
+          # Backend auth module MUST import from contracts
+          if ! grep -q "@octopus-synapse/profile-contracts" src/auth/schemas/auth.schemas.ts; then
+            echo "::error::Backend auth schemas must import from profile-contracts"
+            exit 1
+          fi
 
-                  # Backend onboarding module MUST import from contracts
-                  if ! grep -q "@octopus-synapse/profile-contracts" src/onboarding/schemas/onboarding.schema.ts; then
-                    echo "::error::Backend onboarding schemas must import from profile-contracts"
-                    exit 1
-                  fi
+          # Backend onboarding module MUST import from contracts
+          if ! grep -q "@octopus-synapse/profile-contracts" src/onboarding/schemas/onboarding.schema.ts; then
+            echo "::error::Backend onboarding schemas must import from profile-contracts"
+            exit 1
+          fi
 
-                  echo "::endgroup::"
-                  echo "✅ All contract imports verified"
+          echo "::endgroup::"
+          echo "✅ All contract imports verified"
