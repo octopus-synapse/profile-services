@@ -5,7 +5,7 @@
 
 import { Injectable } from '@nestjs/common';
 import { AppLoggerService } from '../../common/logger/logger.service';
-import { TIME_MS } from '../../common/constants/app.constants';
+import { TIME_MS } from '../../common/constants/config';
 import { PUPPETEER_CONFIG } from '../constants';
 import type { Page } from 'puppeteer';
 

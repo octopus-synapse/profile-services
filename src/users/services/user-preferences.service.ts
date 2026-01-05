@@ -8,7 +8,7 @@ import { UsersRepository } from '../users.repository';
 import { UpdatePreferencesDto } from '../dto/update-preferences.dto';
 import { UpdateFullPreferencesDto } from '../dto/update-full-preferences.dto';
 import { AppLoggerService } from '../../common/logger/logger.service';
-import { ERROR_MESSAGES } from '../../common/constants/app.constants';
+import { ERROR_MESSAGES } from '../../common/constants/config';
 
 @Injectable()
 export class UserPreferencesService {

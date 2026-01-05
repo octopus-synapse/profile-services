@@ -4,13 +4,13 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - 'src/**'
-      - '.github/workflows/validate-contracts.yml'
+      - "src/**"
+      - ".github/workflows/validate-contracts.yml"
   push:
     branches: [main]
     paths:
-      - 'src/**'
-      - '.github/workflows/validate-contracts.yml'
+      - "src/**"
+      - ".github/workflows/validate-contracts.yml"
 
 jobs:
   check-duplication:

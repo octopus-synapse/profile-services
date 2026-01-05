@@ -26,7 +26,7 @@ import { HealthModule } from './health/health.module';
 import { ATSModule } from './ats/ats.module';
 import { DslModule } from './dsl/dsl.module';
 import { validate } from './common/config/env.validation';
-import { APP_CONSTANTS } from './common/constants/app.constants';
+import { APP_CONSTANTS } from './common/constants/config';
 
 @Module({
   imports: [

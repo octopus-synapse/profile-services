@@ -13,7 +13,7 @@ import { OnboardingProgressService } from './services/onboarding-progress.servic
 import {
   ERROR_MESSAGES,
   SUCCESS_MESSAGES,
-} from '../common/constants/app.constants';
+} from '../common/constants/config';
 
 describe('OnboardingService', () => {
   let service: OnboardingService;
