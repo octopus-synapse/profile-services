@@ -4,7 +4,7 @@
  */
 
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
 import * as request from 'supertest';
 import { Prisma } from '@prisma/client';
 import { AppModule } from '../../src/app.module';
@@ -25,6 +25,17 @@ describe('DSL Smoke Tests (e2e)', () => {
     }).compile();
 
     app = moduleFixture.createNestApplication();
+
+    // Apply same configuration as setup.ts
+    app.setGlobalPrefix('api');
+    app.useGlobalPipes(
+      new ValidationPipe({
+        whitelist: true,
+        transform: true,
+        forbidNonWhitelisted: true,
+      }),
+    );
+
     await app.init();
 
     prisma = app.get<PrismaService>(PrismaService);
@@ -43,7 +54,7 @@ describe('DSL Smoke Tests (e2e)', () => {
 
     // Get auth token
     const authResponse = await request(app.getHttpServer())
-      .post('/auth/login')
+      .post('/api/v1/auth/login')
       .send({ email: 'dsl-smoke@test.com', password: 'password' });
 
     authToken = authResponse.body.data.accessToken;
@@ -153,7 +164,7 @@ describe('DSL Smoke Tests (e2e)', () => {
       };
 
       return request(app.getHttpServer())
-        .post('/dsl/validate')
+        .post('/api/v1/dsl/validate')
         .send(validDsl)
         .expect(201)
         .expect((res) => {
@@ -169,7 +180,7 @@ describe('DSL Smoke Tests (e2e)', () => {
       };
 
       return request(app.getHttpServer())
-        .post('/dsl/validate')
+        .post('/api/v1/dsl/validate')
         .send(invalidDsl)
         .expect(201)
         .expect((res) => {
@@ -223,7 +234,7 @@ describe('DSL Smoke Tests (e2e)', () => {
       };
 
       return request(app.getHttpServer())
-        .post('/dsl/preview?target=html')
+        .post('/api/v1/dsl/preview?target=html')
         .send(validDsl)
         .expect(201)
         .expect((res) => {
@@ -240,7 +251,7 @@ describe('DSL Smoke Tests (e2e)', () => {
   describe('DSL Render Endpoint (Authenticated)', () => {
     it('should render resume AST for authenticated user', () => {
       return request(app.getHttpServer())
-        .get(`/dsl/render/${resumeId}?target=html`)
+        .get(`/api/v1/dsl/render/${resumeId}?target=html`)
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200)
         .expect((res) => {
@@ -255,13 +266,13 @@ describe('DSL Smoke Tests (e2e)', () => {
 
     it('should reject unauthenticated requests', () => {
       return request(app.getHttpServer())
-        .get(`/dsl/render/${resumeId}`)
+        .get(`/api/v1/dsl/render/${resumeId}`)
         .expect(401);
     });
 
     it('should return 400 for non-existent resume', () => {
       return request(app.getHttpServer())
-        .get('/dsl/render/non-existent-id')
+        .get('/api/v1/dsl/render/non-existent-id')
         .set('Authorization', `Bearer ${authToken}`)
         .expect(400);
     });
@@ -276,7 +287,7 @@ describe('DSL Smoke Tests (e2e)', () => {
       });
 
       return request(app.getHttpServer())
-        .get('/dsl/render/public/dsl-smoke-test?target=html')
+        .get('/api/v1/dsl/render/public/dsl-smoke-test?target=html')
         .expect(200)
         .expect((res) => {
           expect(res.body.ast).toBeDefined();
@@ -294,7 +305,7 @@ describe('DSL Smoke Tests (e2e)', () => {
       });
 
       return request(app.getHttpServer())
-        .get('/dsl/render/public/dsl-smoke-test')
+        .get('/api/v1/dsl/render/public/dsl-smoke-test')
         .expect(400);
     });
   });
@@ -344,14 +355,14 @@ describe('DSL Smoke Tests (e2e)', () => {
 
       // Step 1: Validate
       const validateRes = await request(app.getHttpServer())
-        .post('/dsl/validate')
+        .post('/api/v1/dsl/validate')
         .send(dsl);
 
       expect(validateRes.body.valid).toBe(true);
 
       // Step 2: Preview (compile without persisting)
       const previewRes = await request(app.getHttpServer())
-        .post('/dsl/preview?target=html')
+        .post('/api/v1/dsl/preview?target=html')
         .send(dsl);
 
       expect(previewRes.body.ast).toBeDefined();

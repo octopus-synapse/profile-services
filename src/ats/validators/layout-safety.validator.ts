@@ -37,7 +37,6 @@ export class LayoutSafetyValidator {
   validate(text: string): ValidationResult {
     const issues: ValidationIssue[] = [];
 
-    // Check for unsafe bullet characters
     const unsafeBullets = this.detectUnsafeBullets(text);
     if (unsafeBullets.length > 0) {
       issues.push({
@@ -49,7 +48,6 @@ export class LayoutSafetyValidator {
       });
     }
 
-    // Check for text in shapes/boxes (simple heuristic)
     if (this.detectTextInShapes(text)) {
       issues.push({
         code: 'TEXT_IN_SHAPES',
@@ -60,7 +58,6 @@ export class LayoutSafetyValidator {
       });
     }
 
-    // Check for multi-column layout indicators
     if (this.detectMultiColumnLayout(text)) {
       issues.push({
         code: 'MULTI_COLUMN_LAYOUT_DETECTED',
@@ -70,7 +67,6 @@ export class LayoutSafetyValidator {
       });
     }
 
-    // Check for excessive line breaks
     const excessiveBreaks = this.detectExcessiveLineBreaks(text);
     if (excessiveBreaks) {
       issues.push({
@@ -81,7 +77,6 @@ export class LayoutSafetyValidator {
       });
     }
 
-    // Check for horizontal lines/separators
     if (this.detectHorizontalLines(text)) {
       issues.push({
         code: 'HORIZONTAL_LINES_DETECTED',
@@ -118,8 +113,6 @@ export class LayoutSafetyValidator {
   }
 
   private detectTextInShapes(text: string): boolean {
-    // Look for patterns that suggest text boxes or shapes
-    // This is a simple heuristic and may not catch all cases
     const shapePatterns = [
       /┌.*┐/, // Box corners
       /╔.*╗/, // Double box corners
@@ -133,7 +126,6 @@ export class LayoutSafetyValidator {
     const lines = text.split('\n');
     let suspiciousLines = 0;
 
-    // Look for lines with large gaps (suggesting columns)
     lines.forEach((line) => {
       // If a line has 10+ consecutive spaces, it might be a column separator
       if (/\s{10,}/.test(line)) {
@@ -146,7 +138,6 @@ export class LayoutSafetyValidator {
   }
 
   private detectExcessiveLineBreaks(text: string): boolean {
-    // Check for more than 3 consecutive line breaks
     return /\n\s*\n\s*\n\s*\n/.test(text);
   }
 
@@ -155,7 +146,6 @@ export class LayoutSafetyValidator {
 
     return lines.some((line) => {
       const trimmed = line.trim();
-      // Check for lines made of repeated characters (-, =, _, etc.)
       return /^[-=_*]{5,}$/.test(trimmed) || /^[─━═]{3,}$/.test(trimmed);
     });
   }

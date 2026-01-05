@@ -7,7 +7,7 @@ describe('Auth Smoke Tests', () => {
 
   describe('POST /api/auth/signup', () => {
     it('should create a new user', async () => {
-      const res = await getRequest().post('/api/auth/signup').send({
+      const res = await getRequest().post('/api/v1/auth/signup').send({
         email: uniqueEmail,
         password: TEST_USER.password,
         name: TEST_USER.name,
@@ -28,7 +28,7 @@ describe('Auth Smoke Tests', () => {
     });
 
     it('should reject duplicate email', async () => {
-      const res = await getRequest().post('/api/auth/signup').send({
+      const res = await getRequest().post('/api/v1/auth/signup').send({
         email: uniqueEmail,
         password: TEST_USER.password,
         name: TEST_USER.name,
@@ -38,7 +38,7 @@ describe('Auth Smoke Tests', () => {
     });
 
     it('should reject invalid email format', async () => {
-      const res = await getRequest().post('/api/auth/signup').send({
+      const res = await getRequest().post('/api/v1/auth/signup').send({
         email: 'invalid-email',
         password: TEST_USER.password,
         name: TEST_USER.name,
@@ -49,7 +49,7 @@ describe('Auth Smoke Tests', () => {
 
     it('should reject weak password', async () => {
       const res = await getRequest()
-        .post('/api/auth/signup')
+        .post('/api/v1/auth/signup')
         .send({
           email: `weak-pass-${Date.now()}@test.com`,
           password: '123',
@@ -62,7 +62,7 @@ describe('Auth Smoke Tests', () => {
 
   describe('POST /api/auth/login', () => {
     it('should login with valid credentials', async () => {
-      const res = await getRequest().post('/api/auth/login').send({
+      const res = await getRequest().post('/api/v1/auth/login').send({
         email: uniqueEmail,
         password: TEST_USER.password,
       });
@@ -80,7 +80,7 @@ describe('Auth Smoke Tests', () => {
     });
 
     it('should reject invalid password', async () => {
-      const res = await getRequest().post('/api/auth/login').send({
+      const res = await getRequest().post('/api/v1/auth/login').send({
         email: uniqueEmail,
         password: 'wrong-password',
       });
@@ -89,7 +89,7 @@ describe('Auth Smoke Tests', () => {
     });
 
     it('should reject non-existent user', async () => {
-      const res = await getRequest().post('/api/auth/login').send({
+      const res = await getRequest().post('/api/v1/auth/login').send({
         email: 'nonexistent@test.com',
         password: TEST_USER.password,
       });
@@ -101,7 +101,7 @@ describe('Auth Smoke Tests', () => {
   describe('GET /api/auth/me', () => {
     it('should return current user info', async () => {
       const res = await getRequest()
-        .get('/api/auth/me')
+        .get('/api/v1/auth/me')
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(res.status).toBe(200);
@@ -112,14 +112,14 @@ describe('Auth Smoke Tests', () => {
     });
 
     it('should reject without token', async () => {
-      const res = await getRequest().get('/api/auth/me');
+      const res = await getRequest().get('/api/v1/auth/me');
 
       expect(res.status).toBe(401);
     });
 
     it('should reject invalid token', async () => {
       const res = await getRequest()
-        .get('/api/auth/me')
+        .get('/api/v1/auth/me')
         .set('Authorization', 'Bearer invalid-token');
 
       expect(res.status).toBe(401);
@@ -128,7 +128,7 @@ describe('Auth Smoke Tests', () => {
 
   describe('POST /api/auth/refresh', () => {
     it('should refresh tokens', async () => {
-      const res = await getRequest().post('/api/auth/refresh').send({
+      const res = await getRequest().post('/api/v1/auth/refresh').send({
         refreshToken,
       });
 
@@ -145,7 +145,7 @@ describe('Auth Smoke Tests', () => {
     });
 
     it('should reject invalid refresh token', async () => {
-      const res = await getRequest().post('/api/auth/refresh').send({
+      const res = await getRequest().post('/api/v1/auth/refresh').send({
         refreshToken: 'invalid-refresh-token',
       });
 
