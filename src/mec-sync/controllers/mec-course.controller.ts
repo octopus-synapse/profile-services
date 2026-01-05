@@ -10,7 +10,7 @@ import { CourseQueryService } from '../services/course-query.service';
 import { APP_CONSTANTS } from '../../common/constants/app.constants';
 
 @ApiTags('mec-courses')
-@Controller('mec/courses')
+@Controller('v1/mec/courses')
 export class MecCourseController {
   constructor(private readonly courseQuery: CourseQueryService) {}
 

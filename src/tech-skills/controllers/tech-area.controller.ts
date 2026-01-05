@@ -12,7 +12,7 @@ import type { TechAreaType } from '../interfaces';
 import type { TechAreaDto, TechNicheDto } from '../dtos';
 
 @ApiTags('tech-areas')
-@Controller('tech-areas')
+@Controller('v1/tech-areas')
 export class TechAreaController {
   constructor(
     private readonly areaQuery: TechAreaQueryService,

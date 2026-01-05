@@ -26,7 +26,7 @@ import { UserRole } from '../../common/enums/user-role.enum';
 
 @ApiTags('admin')
 @ApiBearerAuth('JWT-auth')
-@Controller('admin')
+@Controller('v1/admin')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.ADMIN)
 export class AdminResumesController {

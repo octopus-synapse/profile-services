@@ -36,7 +36,7 @@ import { UserPayload } from '../interfaces/auth-request.interface';
 import { APP_CONSTANTS } from '../../common/constants/app.constants';
 
 @ApiTags('auth')
-@Controller('auth')
+@Controller('v1/auth')
 export class AuthCoreController {
   constructor(private readonly authService: AuthService) {}
 

@@ -15,7 +15,7 @@ import { Language } from '@prisma/client';
 
 @ApiTags('resumes')
 @ApiBearerAuth('JWT-auth')
-@Controller('resumes/:resumeId/languages')
+@Controller('v1/resumes/:resumeId/languages')
 @UseGuards(JwtAuthGuard)
 export class LanguageController extends BaseSubResourceController<
   Language,

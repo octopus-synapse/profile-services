@@ -27,7 +27,7 @@ import { UserPayload } from '../../auth/interfaces/auth-request.interface';
 
 @ApiTags('users')
 @ApiBearerAuth('JWT-auth')
-@Controller('users')
+@Controller('v1/users')
 export class UsersPreferencesController {
   constructor(private readonly usersService: UsersService) {}
 

@@ -15,7 +15,7 @@ import { Recommendation } from '@prisma/client';
 
 @ApiTags('resumes')
 @ApiBearerAuth('JWT-auth')
-@Controller('resumes/:resumeId/recommendations')
+@Controller('v1/resumes/:resumeId/recommendations')
 @UseGuards(JwtAuthGuard)
 export class RecommendationController extends BaseSubResourceController<
   Recommendation,

@@ -8,7 +8,7 @@ import { TechSkillsQueryService } from '../services/tech-skills-query.service';
 import { Public } from '../../auth/decorators/public.decorator';
 import type { TechAreaType, SkillType } from '../interfaces';
 
-@Controller('tech-skills')
+@Controller('v1/tech-skills')
 export class TechSkillsQueryController {
   constructor(private readonly queryService: TechSkillsQueryService) {}
 

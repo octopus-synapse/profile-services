@@ -19,7 +19,7 @@ import { MecSyncOrchestratorService } from '../services/mec-sync.service';
 import { APP_CONSTANTS } from '../../common/constants/app.constants';
 
 @ApiTags('mec-internal')
-@Controller('mec/internal')
+@Controller('v1/mec/internal')
 export class MecSyncInternalController {
   constructor(private readonly syncOrchestrator: MecSyncOrchestratorService) {}
 

@@ -13,7 +13,7 @@ import type { SkillType } from '../interfaces';
 import type { TechSkillDto } from '../dtos';
 
 @ApiTags('tech-skills')
-@Controller('tech-skills')
+@Controller('v1/tech-skills')
 export class TechSkillController {
   constructor(
     private readonly skillQuery: SkillQueryService,

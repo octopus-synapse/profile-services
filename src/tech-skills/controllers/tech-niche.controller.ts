@@ -11,7 +11,7 @@ import { Public } from '../../auth/decorators/public.decorator';
 import type { TechNicheDto, TechSkillDto } from '../dtos';
 
 @ApiTags('tech-niches')
-@Controller('tech-niches')
+@Controller('v1/tech-niches')
 export class TechNicheController {
   constructor(
     private readonly nicheQuery: TechNicheQueryService,

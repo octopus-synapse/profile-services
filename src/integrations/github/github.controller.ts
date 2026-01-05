@@ -14,7 +14,7 @@ import { UserPayload } from '../../auth/interfaces/auth-request.interface';
 import { Public } from '../../auth/decorators/public.decorator';
 
 @ApiTags('github')
-@Controller('integrations/github')
+@Controller('v1/integrations/github')
 export class GitHubController {
   constructor(private readonly githubService: GitHubService) {}
 
