@@ -9,6 +9,7 @@ on:
 permissions:
   contents: read
   packages: read
+  pull-requests: write
 
 jobs:
   quality:
@@ -62,13 +63,46 @@ jobs:
           REDIS_PORT: 6379
           JWT_SECRET: test-secret
           NODE_ENV: test
-      - run: npm test -- --coverage
+      - run: npm test -- --coverage --json --outputFile=test-results.json
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
           REDIS_HOST: localhost
           REDIS_PORT: 6379
           JWT_SECRET: test-secret
           NODE_ENV: test
+
+      - name: Parse test results
+        id: parse
+        if: always()
+        run: |
+          if [ ! -f test-results.json ]; then
+            echo "summary=❌ Tests failed to run" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+          total_suites=$(jq '.numTotalTestSuites' test-results.json)
+          passed_suites=$(jq '.numPassedTestSuites' test-results.json)
+          total_tests=$(jq '.numTotalTests' test-results.json)
+          passed_tests=$(jq '.numPassedTests' test-results.json)
+
+          if [ "$(jq '.numFailedTests' test-results.json)" -eq "0" ]; then
+            icon="✅"
+          else
+            icon="❌"
+          fi
+
+          summary="${icon} **${passed_suites}/${total_suites}** test suites, **${passed_tests}/${total_tests}** tests passing"
+          echo "summary=$summary" >> $GITHUB_OUTPUT
+
+      - name: Comment PR
+        if: github.event_name == 'pull_request' && always()
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: unit-tests
+          message: |
+            ## Unit Tests
+
+            ${{ steps.parse.outputs.summary }}
 
   smoke-test:
     name: Smoke Tests
@@ -106,13 +140,46 @@ jobs:
           REDIS_PORT: 6379
           JWT_SECRET: test-secret
           NODE_ENV: test
-      - run: npm run test:smoke
+      - run: npm run test:smoke -- --json --outputFile=smoke-results.json
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
           REDIS_HOST: localhost
           REDIS_PORT: 6379
           JWT_SECRET: test-secret
           NODE_ENV: test
+
+      - name: Parse smoke test results
+        id: parse
+        if: always()
+        run: |
+          if [ ! -f smoke-results.json ]; then
+            echo "summary=❌ Smoke tests failed to run" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+          total_suites=$(jq '.numTotalTestSuites' smoke-results.json)
+          passed_suites=$(jq '.numPassedTestSuites' smoke-results.json)
+          total_tests=$(jq '.numTotalTests' smoke-results.json)
+          passed_tests=$(jq '.numPassedTests' smoke-results.json)
+
+          if [ "$(jq '.numFailedTests' smoke-results.json)" -eq "0" ]; then
+            icon="✅"
+          else
+            icon="❌"
+          fi
+
+          summary="${icon} **${passed_suites}/${total_suites}** test suites, **${passed_tests}/${total_tests}** tests passing"
+          echo "summary=$summary" >> $GITHUB_OUTPUT
+
+      - name: Comment PR
+        if: github.event_name == 'pull_request' && always()
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: smoke-tests
+          message: |
+            ## Smoke Tests
+
+            ${{ steps.parse.outputs.summary }}
 
   build:
     name: Build
