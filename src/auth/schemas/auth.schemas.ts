@@ -2,12 +2,15 @@
  * Auth Validation Schemas
  *
  * Uses @octopus-synapse/profile-contracts for domain validation.
- * Password validation is backend-only (authentication infrastructure concern).
+ * Password validation now shared between frontend and backend via contracts.
  */
 
 import { z } from 'zod';
-import { EmailSchema, FullNameSchema } from '@octopus-synapse/profile-contracts';
-import { PasswordSchema } from './password.schema';
+import {
+  EmailSchema,
+  FullNameSchema,
+  PasswordSchema,
+} from '@octopus-synapse/profile-contracts';
 
 // Login
 export const loginSchema = z.object({
