@@ -2,7 +2,7 @@
  * User & Preferences Validation Schemas
  *
  * Uses @octopus-synapse/profile-contracts for domain validation.
- * Preferences and password are backend-specific concerns.
+ * Preferences are backend-specific concerns.
  */
 
 import { z } from 'zod';
@@ -12,8 +12,8 @@ import {
   PhoneSchema,
   UserLocationSchema,
   SocialUrlSchema,
+  PasswordSchema,
 } from '@octopus-synapse/profile-contracts';
-import { PasswordSchema } from '../../auth/schemas/password.schema';
 
 // Update Profile
 export const updateProfileSchema = z.object({
