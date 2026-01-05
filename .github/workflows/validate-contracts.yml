@@ -1,0 +1,64 @@
+name: Contract Enforcement
+
+on:
+    pull_request:
+        branches: [main]
+    push:
+        branches: [main]
+
+jobs:
+    check-duplication:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Check for duplicate validation schemas
+              run: |
+                  echo "::group::Checking for duplicate validation in backend"
+                  
+                  # Check auth schemas (should use contracts)
+                  if grep -r "z\.string()\.email()" profile-services/src/auth/ 2>/dev/null; then
+                    echo "::error::Found duplicate email validation in auth module"
+                    exit 1
+                  fi
+                  
+                  if grep -r "z\.object.*username.*email" profile-services/src/auth/ 2>/dev/null | grep -v "from '@octopus-synapse/profile-contracts'"; then
+                    echo "::error::Found duplicate auth schemas (should import from contracts)"
+                    exit 1
+                  fi
+                  
+                  echo "::endgroup::"
+                  echo "::group::Checking for duplicate validation in frontend"
+                  
+                  # Check for hardcoded username validation (should use contracts or api-client)
+                  if grep -r "function validateUsername" profile-frontend/apps/web/src/ 2>/dev/null; then
+                    echo "::error::Found duplicate username validation function"
+                    exit 1
+                  fi
+                  
+                  if grep -r "USERNAME_REGEX.*=.*RegExp" profile-frontend/apps/web/src/ 2>/dev/null; then
+                    echo "::error::Found hardcoded username regex (should use contracts)"
+                    exit 1
+                  fi
+                  
+                  echo "::endgroup::"
+                  echo "✅ No duplicate validation logic found"
+
+            - name: Verify contract imports
+              run: |
+                  echo "::group::Verifying backend uses contracts"
+                  
+                  # Backend auth module MUST import from contracts
+                  if ! grep -q "@octopus-synapse/profile-contracts" profile-services/src/auth/schemas/auth.schemas.ts; then
+                    echo "::error::Backend auth schemas must import from profile-contracts"
+                    exit 1
+                  fi
+                  
+                  # Backend onboarding module MUST import from contracts
+                  if ! grep -q "@octopus-synapse/profile-contracts" profile-services/src/onboarding/schemas/onboarding.schema.ts; then
+                    echo "::error::Backend onboarding schemas must import from profile-contracts"
+                    exit 1
+                  fi
+                  
+                  echo "::endgroup::"
+                  echo "✅ All contract imports verified"

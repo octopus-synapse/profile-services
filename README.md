@@ -10,13 +10,44 @@ Backend API for the ProFile system - Professional resume and portfolio managemen
 - **Database**: PostgreSQL 16
 - **Cache**: Redis 7
 - **Authentication**: JWT + Passport
-- **Validation**: class-validator, Zod
+- **Validation**: Zod + **@octopus-synapse/profile-contracts** (single source of truth)
 - **Email**: SendGrid
 - **Storage**: MinIO (S3-compatible)
 - **Documentation**: Scalar API Reference (OpenAPI/Swagger)
 - **PDF Generation**: Puppeteer
 - **Document Processing**: docx
 - **Tests**: Jest
+
+## Contract-Driven Development
+
+This service follows a **contract-first approach** using `@octopus-synapse/profile-contracts`:
+
+### Validation Schema Strategy
+
+**✅ DO**: Import validation schemas from contracts
+```typescript
+import { RegisterSchema, LoginSchema } from '@octopus-synapse/profile-contracts';
+```
+
+**❌ DON'T**: Create duplicate Zod schemas
+```typescript
+// WRONG - creates duplication and drift
+const registerSchema = z.object({ ... });
+```
+
+### Enforced by CI
+
+The `.github/workflows/validate-contracts.yml` workflow blocks PRs containing:
+- Duplicate email/username validation
+- Local schema definitions that should use contracts
+- Missing contract imports in auth/onboarding modules
+
+### Why This Matters
+
+- **Single Source of Truth**: Validation rules defined once in contracts
+- **Zero Drift**: Frontend and backend always use identical validation
+- **Type Safety**: Shared TypeScript types across the entire stack
+- **Faster Development**: No duplicate maintenance burden
 
 ## Prerequisites
 
