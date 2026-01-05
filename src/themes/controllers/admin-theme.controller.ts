@@ -14,7 +14,7 @@ import { ThemeApprovalService, ThemeCrudService } from '../services';
 import { ReviewThemeDto } from '../dto';
 
 @ApiTags('themes-admin')
-@Controller('themes/admin')
+@Controller('v1/themes/admin')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.APPROVER, UserRole.ADMIN)
 @ApiBearerAuth()

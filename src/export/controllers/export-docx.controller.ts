@@ -26,7 +26,7 @@ import { AppLoggerService } from '../../common/logger/logger.service';
 
 @ApiTags('export')
 @ApiBearerAuth('JWT-auth')
-@Controller('export')
+@Controller('v1/export')
 export class ExportDocxController {
   constructor(
     private readonly resumeDOCXService: ResumeDOCXService,

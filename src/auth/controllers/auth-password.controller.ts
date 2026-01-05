@@ -31,7 +31,7 @@ import { UserPayload } from '../interfaces/auth-request.interface';
 import { APP_CONSTANTS } from '../../common/constants/app.constants';
 
 @ApiTags('auth')
-@Controller('auth')
+@Controller('v1/auth')
 export class AuthPasswordController {
   constructor(private readonly authService: AuthService) {}
 

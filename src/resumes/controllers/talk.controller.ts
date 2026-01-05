@@ -11,7 +11,7 @@ import { Talk } from '@prisma/client';
 
 @ApiTags('resumes')
 @ApiBearerAuth('JWT-auth')
-@Controller('resumes/:resumeId/talks')
+@Controller('v1/resumes/:resumeId/talks')
 @UseGuards(JwtAuthGuard)
 export class TalkController extends BaseSubResourceController<
   Talk,

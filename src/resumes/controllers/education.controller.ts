@@ -26,7 +26,7 @@ import { Education } from '@prisma/client';
  */
 @ApiTags('resumes')
 @ApiBearerAuth('JWT-auth')
-@Controller('resumes/:resumeId/education')
+@Controller('v1/resumes/:resumeId/education')
 @UseGuards(JwtAuthGuard)
 export class EducationController extends BaseSubResourceController<
   Education,

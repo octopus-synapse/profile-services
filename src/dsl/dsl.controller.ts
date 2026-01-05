@@ -27,7 +27,7 @@ import { DslRepository } from './dsl.repository';
 type RenderTarget = 'html' | 'pdf';
 
 @ApiTags('dsl')
-@Controller('dsl')
+@Controller('v1/dsl')
 export class DslController {
   constructor(private readonly repository: DslRepository) {}
 

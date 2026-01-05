@@ -15,7 +15,7 @@ import { Award } from '@prisma/client';
 
 @ApiTags('resumes')
 @ApiBearerAuth('JWT-auth')
-@Controller('resumes/:resumeId/awards')
+@Controller('v1/resumes/:resumeId/awards')
 @UseGuards(JwtAuthGuard)
 export class AwardController extends BaseSubResourceController<
   Award,

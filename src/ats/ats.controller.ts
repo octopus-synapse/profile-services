@@ -12,7 +12,7 @@ import { ATSService } from './services/ats.service';
 import { ValidateCVDto, ValidationResponseDto } from './dto';
 
 @ApiTags('ATS Validation')
-@Controller('ats')
+@Controller('v1/ats')
 export class ATSController {
   constructor(private readonly atsService: ATSService) {}
 

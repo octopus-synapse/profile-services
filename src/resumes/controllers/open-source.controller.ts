@@ -15,7 +15,7 @@ import { OpenSourceContribution } from '@prisma/client';
 
 @ApiTags('resumes')
 @ApiBearerAuth('JWT-auth')
-@Controller('resumes/:resumeId/open-sources')
+@Controller('v1/resumes/:resumeId/open-sources')
 @UseGuards(JwtAuthGuard)
 export class OpenSourceController extends BaseSubResourceController<
   OpenSourceContribution,

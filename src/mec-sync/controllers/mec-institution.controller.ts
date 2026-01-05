@@ -11,7 +11,7 @@ import { CourseQueryService } from '../services/course-query.service';
 import { APP_CONSTANTS } from '../../common/constants/app.constants';
 
 @ApiTags('mec-institutions')
-@Controller('mec/institutions')
+@Controller('v1/mec/institutions')
 export class MecInstitutionController {
   constructor(
     private readonly institutionQuery: InstitutionQueryService,

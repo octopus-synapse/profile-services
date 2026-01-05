@@ -7,7 +7,7 @@ import { Controller, Get, Query, Param } from '@nestjs/common';
 import { SpokenLanguagesService } from './services/spoken-languages.service';
 import { Public } from '../auth/decorators/public.decorator';
 
-@Controller('spoken-languages')
+@Controller('v1/spoken-languages')
 export class SpokenLanguagesController {
   constructor(
     private readonly spokenLanguagesService: SpokenLanguagesService,

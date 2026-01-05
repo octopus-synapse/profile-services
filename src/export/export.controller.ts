@@ -25,7 +25,7 @@ import { AppLoggerService } from '../common/logger/logger.service';
 
 @ApiTags('export')
 @ApiBearerAuth('JWT-auth')
-@Controller('export')
+@Controller('v1/export')
 export class ExportController {
   constructor(
     private readonly bannerCaptureService: BannerCaptureService,
