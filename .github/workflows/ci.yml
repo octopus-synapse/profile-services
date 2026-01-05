@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [main, dev]
   push:
-    branches: [dev]
+    branches: [main, dev]
 
 permissions:
   contents: read
@@ -94,13 +94,21 @@ jobs:
           summary="${icon} **${passed_suites}/${total_suites}** test suites, **${passed_tests}/${total_tests}** tests passing"
           echo "summary=$summary" >> $GITHUB_OUTPUT
 
+      - name: Find PR
+        if: always() && github.event_name == 'push'
+        id: find-pr
+        uses: jwalton/gh-find-current-pr@v1
+        with:
+          state: open
+
       - name: Comment PR
-        if: github.event_name == 'pull_request' && always()
+        if: always() && (github.event_name == 'pull_request' || steps.find-pr.outputs.pr)
         uses: marocchino/sticky-pull-request-comment@v2
         with:
-          header: unit-tests
+          header: unit-tests-${{ github.sha }}
+          number: ${{ github.event.pull_request.number || steps.find-pr.outputs.pr }}
           message: |
-            ## Unit Tests
+            ## Unit Tests — `${{ github.event.after || github.sha }}`
 
             ${{ steps.parse.outputs.summary }}
 
@@ -171,13 +179,21 @@ jobs:
           summary="${icon} **${passed_suites}/${total_suites}** test suites, **${passed_tests}/${total_tests}** tests passing"
           echo "summary=$summary" >> $GITHUB_OUTPUT
 
+      - name: Find PR
+        if: always() && github.event_name == 'push'
+        id: find-pr
+        uses: jwalton/gh-find-current-pr@v1
+        with:
+          state: open
+
       - name: Comment PR
-        if: github.event_name == 'pull_request' && always()
+        if: always() && (github.event_name == 'pull_request' || steps.find-pr.outputs.pr)
         uses: marocchino/sticky-pull-request-comment@v2
         with:
-          header: smoke-tests
+          header: smoke-tests-${{ github.sha }}
+          number: ${{ github.event.pull_request.number || steps.find-pr.outputs.pr }}
           message: |
-            ## Smoke Tests
+            ## Smoke Tests — `${{ github.event.after || github.sha }}`
 
             ${{ steps.parse.outputs.summary }}
 
