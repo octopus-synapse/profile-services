@@ -1,10 +1,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { S3UploadService } from '../common/services/s3-upload.service';
 import { AppLoggerService } from '../common/logger/logger.service';
-import {
-  APP_CONSTANTS,
-  ERROR_MESSAGES,
-} from '../common/constants/config';
+import { APP_CONSTANTS, ERROR_MESSAGES } from '../common/constants/config';
 import { v4 as uuidv4 } from 'uuid';
 
 export interface FileUpload {
@@ -92,11 +89,7 @@ export class UploadService {
       );
     }
 
-    if (
-      !this.allowedMimeTypes.includes(
-        file.mimetype as (typeof this.allowedMimeTypes)[number],
-      )
-    ) {
+    if (!this.allowedMimeTypes.includes(file.mimetype)) {
       throw new BadRequestException(
         `Invalid file type. Allowed types: ${this.allowedMimeTypes.join(', ')}`,
       );

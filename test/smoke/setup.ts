@@ -110,7 +110,7 @@ export async function createTestUserAndLogin(): Promise<{
   const req = getRequest();
 
   // Sign up
-  const signupRes = await req.post('/api/auth/signup').send({
+  const signupRes = await req.post('/api/v1/auth/signup').send({
     email: TEST_USER.email,
     password: TEST_USER.password,
     name: TEST_USER.name,
@@ -118,7 +118,7 @@ export async function createTestUserAndLogin(): Promise<{
 
   if (signupRes.status !== 201) {
     // User might already exist, try login
-    const loginRes = await req.post('/api/auth/login').send({
+    const loginRes = await req.post('/api/v1/auth/login').send({
       email: TEST_USER.email,
       password: TEST_USER.password,
     });
@@ -176,7 +176,7 @@ export async function cleanupTestData(): Promise<void> {
   if (testContext.resumeId && testContext.accessToken) {
     try {
       await getRequest()
-        .delete(`/api/resumes/${testContext.resumeId}`)
+        .delete(`/api/v1/resumes/${testContext.resumeId}`)
         .set(authHeader());
     } catch {
       // Ignore cleanup errors

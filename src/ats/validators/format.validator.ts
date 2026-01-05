@@ -18,7 +18,6 @@ export class FormatValidator {
   ): FormatValidationResult {
     const issues: ValidationIssue[] = [];
 
-    // Check file type
     const isATSSafeType = this.ATS_SAFE_FILE_TYPES.includes(file.mimetype);
     if (!isATSSafeType) {
       issues.push({
@@ -29,7 +28,6 @@ export class FormatValidator {
       });
     }
 
-    // Detect tables (simple heuristic)
     if (this.detectTables(extractedText)) {
       issues.push({
         code: 'TABLES_DETECTED',
@@ -41,7 +39,6 @@ export class FormatValidator {
       });
     }
 
-    // Detect columns (multi-column layout)
     if (this.detectMultiColumn(extractedText)) {
       issues.push({
         code: 'MULTI_COLUMN_LAYOUT',
@@ -51,7 +48,6 @@ export class FormatValidator {
       });
     }
 
-    // Check for excessive special formatting
     const specialCharCount = this.countSpecialFormatting(extractedText);
     if (specialCharCount > 50) {
       issues.push({
@@ -82,7 +78,6 @@ export class FormatValidator {
   }
 
   private detectTables(text: string): boolean {
-    // Look for patterns that suggest tables
     const lines = text.split('\n');
     let pipeCount = 0;
     let tabCount = 0;
@@ -99,7 +94,6 @@ export class FormatValidator {
   private detectMultiColumn(text: string): boolean {
     const lines = text.split('\n');
 
-    // Look for lines with excessive spacing (suggests columns)
     const spacingPattern = /\s{10,}/;
     let suspiciousLines = 0;
 
@@ -113,7 +107,6 @@ export class FormatValidator {
   }
 
   private countSpecialFormatting(text: string): number {
-    // Count bullets, arrows, and other special chars
     const specialChars = /[•●○◆◇■□▪▫★☆→←↑↓⇒⇐⇑⇓►▼▲▶◀]/g;
     const matches = text.match(specialChars);
     return matches ? matches.length : 0;

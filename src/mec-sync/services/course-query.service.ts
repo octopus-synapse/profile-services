@@ -12,10 +12,7 @@ import {
   MEC_CACHE_KEYS,
   MEC_CACHE_TTL,
 } from '../interfaces/mec-data.interface';
-import {
-  APP_CONSTANTS,
-  API_LIMITS,
-} from '../../common/constants/config';
+import { APP_CONSTANTS, API_LIMITS } from '../../common/constants/config';
 
 @Injectable()
 export class CourseQueryService {

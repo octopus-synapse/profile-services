@@ -19,7 +19,6 @@ export class FileIntegrityValidator {
   validate(file: Express.Multer.File): ValidationResult {
     const issues: ValidationIssue[] = [];
 
-    // Check if buffer is not empty (file is always provided by Multer)
     if (file.buffer.length === 0) {
       issues.push({
         code: 'FILE_MISSING',
@@ -29,7 +28,6 @@ export class FileIntegrityValidator {
       return { passed: false, issues };
     }
 
-    // Validate file size
     if (file.size === 0 || file.size < this.MIN_FILE_SIZE) {
       issues.push({
         code: 'FILE_EMPTY',
@@ -48,7 +46,6 @@ export class FileIntegrityValidator {
       });
     }
 
-    // Validate file type
     const fileExtension = path.extname(file.originalname).toLowerCase();
     const expectedMimeType = this.getMimeTypeFromExtension(fileExtension);
 
@@ -61,7 +58,6 @@ export class FileIntegrityValidator {
       });
     }
 
-    // Check for mime type mismatch
     if (
       expectedMimeType &&
       file.mimetype !== expectedMimeType &&
@@ -75,7 +71,6 @@ export class FileIntegrityValidator {
       });
     }
 
-    // Validate file magic numbers (file signature)
     const isValidSignature = this.validateFileSignature(
       file.buffer,
       fileExtension,
