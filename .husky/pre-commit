@@ -15,8 +15,7 @@ npm run lint || exit 1
 echo "Running unit tests..."
 npm test || exit 1
 
-# Smoke Tests
-echo "Running smoke tests..."
-npm run test:smoke || exit 1
+# Note: Smoke tests run only in CI to keep pre-commit fast
+# CI will run: npm run test:smoke
 
-echo "All pre-commit checks passed!"
+echo "✓ All pre-commit checks passed!"
