@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.0.0](https://github.com/octopus-synapse/profile-services/compare/v2.0.0...v3.0.0) (2026-01-05)
+
+
+### ⚠ BREAKING CHANGES
+
+* All API routes now require /v1/ prefix
+
+### Features
+
+* add API versioning with v1 prefix ([ad93e92](https://github.com/octopus-synapse/profile-services/commit/ad93e920a3a7b7c54048e402df9d7874410196a1)), closes [#26](https://github.com/octopus-synapse/profile-services/issues/26)
+
+
+### Bug Fixes
+
+* **tests:** update smoke tests for /v1/ API versioning ([8a73230](https://github.com/octopus-synapse/profile-services/commit/8a73230cf1f75f165803da39ffe900c13900b3c3))
+* use secrets instead of build-args for GitHub token in release workflow ([76d58a9](https://github.com/octopus-synapse/profile-services/commit/76d58a901c6a836e9b5c15b64615a48b6cb43ea4))
+
 ## [2.0.0](https://github.com/octopus-synapse/profile-services/compare/v1.0.0...v2.0.0) (2026-01-05)
 
 
