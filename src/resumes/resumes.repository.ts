@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Resume } from '@prisma/client';
 import { CreateResumeDto } from './dto/create-resume.dto';
@@ -53,11 +53,7 @@ export class ResumesRepository {
   ): Promise<Resume | null> {
     this.logger.log(`Updating resume: ${id}`);
 
-    // Verify ownership
-    const resume = await this.findOne(id, userId);
-    if (!resume) {
-      return null;
-    }
+    await this.ensureOwnership(id, userId);
 
     return await this.prisma.resume.update({
       where: { id },
@@ -68,17 +64,20 @@ export class ResumesRepository {
   async delete(id: string, userId: string): Promise<boolean> {
     this.logger.log(`Deleting resume: ${id}`);
 
-    // Verify ownership
-    const resume = await this.findOne(id, userId);
-    if (!resume) {
-      return false;
-    }
+    await this.ensureOwnership(id, userId);
 
     await this.prisma.resume.delete({
       where: { id },
     });
 
     return true;
+  }
+
+  private async ensureOwnership(id: string, userId: string): Promise<void> {
+    const resume = await this.findOne(id, userId);
+    if (!resume) {
+      throw new ForbiddenException('Access denied to resume');
+    }
   }
 
   async findByUserId(userId: string): Promise<Resume | null> {

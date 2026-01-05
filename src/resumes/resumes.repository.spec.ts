@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { ForbiddenException } from '@nestjs/common';
 import { ResumesRepository } from './resumes.repository';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateResumeDto } from './dto/create-resume.dto';
@@ -122,17 +123,16 @@ describe('ResumesRepository', () => {
       });
     });
 
-    it('should return null if resume is not found for the user', async () => {
+    it('should throw ForbiddenException if resume is not found for the user', async () => {
       const resumeId = '1';
       const userId = 'user1';
       const updateDto: UpdateResumeDto = { title: 'Updated Title' };
 
-      // Mock the ownership check to fail
       mockPrismaService.resume.findFirst.mockResolvedValue(null);
 
-      const result = await repository.update(resumeId, userId, updateDto);
-      expect(result).toBeNull();
-      expect(mockPrismaService.resume.update).not.toHaveBeenCalled();
+      await expect(
+        repository.update(resumeId, userId, updateDto),
+      ).rejects.toThrow(ForbiddenException);
     });
   });
 
@@ -158,16 +158,15 @@ describe('ResumesRepository', () => {
       });
     });
 
-    it('should return false if resume is not found for the user', async () => {
+    it('should throw ForbiddenException if resume is not found for the user', async () => {
       const resumeId = '1';
       const userId = 'user1';
 
-      // Mock the ownership check to fail
       mockPrismaService.resume.findFirst.mockResolvedValue(null);
 
-      const result = await repository.delete(resumeId, userId);
-      expect(result).toBe(false);
-      expect(mockPrismaService.resume.delete).not.toHaveBeenCalled();
+      await expect(
+        repository.delete(resumeId, userId),
+      ).rejects.toThrow(ForbiddenException);
     });
   });
 
