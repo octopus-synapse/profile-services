@@ -31,8 +31,8 @@ export class LanguagesOnboardingService {
     await tx.language.createMany({
       data: languages.map((lang, index) => ({
         resumeId,
-        name: lang.name,
-        level: lang.level,
+        name: lang.language,
+        level: lang.proficiency,
         order: index,
       })),
     });

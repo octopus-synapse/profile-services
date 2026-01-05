@@ -1,98 +1,15 @@
 /**
  * Onboarding Schema
- * Zod validation schemas for onboarding data
+ *
+ * Uses @octopus-synapse/profile-contracts for domain validation.
+ * Imports complete onboarding payload schema from contracts.
  */
 
-import { z } from 'zod';
+import {
+  OnboardingDataSchema,
+  type OnboardingData,
+} from '@octopus-synapse/profile-contracts';
 
-const personalInfoSchema = z.object({
-  fullName: z.string().min(2).max(100),
-  email: z.string().email(),
-  phone: z.string().optional(),
-  location: z.string().optional(),
-});
-
-const professionalProfileSchema = z.object({
-  jobTitle: z.string().min(2).max(100),
-  summary: z.string().min(10).max(2000),
-  linkedin: z.string().url().optional().or(z.literal('')),
-  github: z.string().url().optional().or(z.literal('')),
-  website: z.string().url().optional().or(z.literal('')),
-});
-
-const experienceSchema = z.object({
-  company: z.string().min(1).max(100),
-  position: z.string().min(1).max(100),
-  startDate: z.string(),
-  endDate: z.string().optional(),
-  isCurrent: z.boolean(),
-  description: z.string().max(2000).optional(),
-  location: z.string().optional(),
-});
-
-const experiencesStepSchema = z.object({
-  experiences: z.array(experienceSchema).optional(),
-  noExperience: z.boolean(),
-});
-
-const educationSchema = z.object({
-  institution: z.string().min(1).max(200),
-  degree: z.string().min(1).max(100),
-  field: z.string().min(1).max(100),
-  startDate: z.string(),
-  endDate: z.string().optional(),
-  isCurrent: z.boolean(),
-});
-
-const educationStepSchema = z.object({
-  education: z.array(educationSchema).optional(),
-  noEducation: z.boolean(),
-});
-
-const skillSchema = z.object({
-  name: z.string().min(1).max(50),
-  category: z.string().min(1).max(50),
-  level: z.number().min(1).max(5).optional(),
-});
-
-const skillsStepSchema = z
-  .object({
-    skills: z.array(skillSchema).optional(),
-    noSkills: z.boolean(),
-  })
-  .refine((data) => data.noSkills || (data.skills && data.skills.length > 0), {
-    message:
-      'You must either provide at least one skill or mark "I have no skills"',
-    path: ['skills'],
-  });
-
-const languageSchema = z.object({
-  name: z.string().min(1).max(50),
-  level: z.string(),
-});
-
-const templateSelectionSchema = z.object({
-  template: z.enum([
-    'PROFESSIONAL',
-    'CREATIVE',
-    'TECHNICAL',
-    'MINIMAL',
-    'MODERN',
-    'EXECUTIVE',
-    'ACADEMIC',
-  ]),
-  palette: z.string(),
-});
-
-export const onboardingDataSchema = z.object({
-  username: z.string().min(3).max(30),
-  personalInfo: personalInfoSchema,
-  professionalProfile: professionalProfileSchema,
-  skillsStep: skillsStepSchema,
-  experiencesStep: experiencesStepSchema.optional(),
-  educationStep: educationStepSchema.optional(),
-  languages: z.array(languageSchema).optional(),
-  templateSelection: templateSelectionSchema,
-});
-
-export type OnboardingData = z.infer<typeof onboardingDataSchema>;
+// Re-export from contracts as single source of truth
+export const onboardingDataSchema = OnboardingDataSchema;
+export type { OnboardingData };
