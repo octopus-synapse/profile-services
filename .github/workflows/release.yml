@@ -52,8 +52,8 @@ jobs:
                   tags: |
                       ghcr.io/${{ github.repository }}:${{ steps.version.outputs.version }}
                       ghcr.io/${{ github.repository }}:latest
-                  build-args: |
-                      GITHUB_TOKEN=${{ secrets.GH_PAT }}
+                  secrets: |
+                      github_token=${{ secrets.GH_PAT }}
 
             - name: Update release notes
               run: |
