@@ -8,7 +8,7 @@ import { UsersRepository } from '../users.repository';
 import { ResumesRepository } from '../../resumes/resumes.repository';
 import { UpdateProfileDto } from '../dto/update-profile.dto';
 import { AppLoggerService } from '../../common/logger/logger.service';
-import { ERROR_MESSAGES } from '../../common/constants/app.constants';
+import { ERROR_MESSAGES } from '../../common/constants/config';
 
 @Injectable()
 export class UserProfileService {

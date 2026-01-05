@@ -5,7 +5,7 @@
 
 import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
-import { APP_CONSTANTS } from '../../common/constants/app.constants';
+import { APP_CONSTANTS } from '../../common/constants/config';
 
 @Injectable()
 export class PasswordService {

@@ -11,7 +11,7 @@ import {
   TOKEN_EXPIRY,
   ERROR_MESSAGES,
   CRYPTO_CONSTANTS,
-} from '../../common/constants/app.constants';
+} from '../../common/constants/config';
 
 const RESET_TOKEN_PREFIX = 'reset:';
 

@@ -6,7 +6,7 @@
 import { Injectable, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
-import { ERROR_MESSAGES } from '../../common/constants/app.constants';
+import { ERROR_MESSAGES } from '../../common/constants/config';
 
 export interface ResumeConfig {
   sections: Array<{

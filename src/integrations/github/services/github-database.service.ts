@@ -6,7 +6,7 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { ERROR_MESSAGES } from '../../../common/constants/app.constants';
+import { ERROR_MESSAGES } from '../../../common/constants/config';
 
 @Injectable()
 export class GitHubDatabaseService {

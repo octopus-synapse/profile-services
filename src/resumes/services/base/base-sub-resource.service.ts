@@ -7,7 +7,7 @@ import {
   DataResponse,
   MessageResponse,
 } from '../../../common/dto/api-response.dto';
-import { ERROR_MESSAGES } from '../../../common/constants/app.constants';
+import { ERROR_MESSAGES } from '../../../common/constants/config';
 
 /**
  * Abstract base service for resume sub-resources

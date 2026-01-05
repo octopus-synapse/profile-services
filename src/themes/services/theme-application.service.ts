@@ -14,7 +14,7 @@ import { ThemeCrudService } from './theme-crud.service';
 import { ThemeQueryService } from './theme-query.service';
 import { deepMerge } from '../utils';
 import { ThemeStatus, Prisma } from '@prisma/client';
-import { ERROR_MESSAGES } from '../../common/constants/app.constants';
+import { ERROR_MESSAGES } from '../../common/constants/config';
 
 @Injectable()
 export class ThemeApplicationService {

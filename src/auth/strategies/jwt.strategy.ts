@@ -3,7 +3,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../prisma/prisma.service';
-import { ERROR_MESSAGES } from '../../common/constants/app.constants';
+import { ERROR_MESSAGES } from '../../common/constants/config';
 
 export interface JwtPayload {
   sub: string;

@@ -1,5 +1,5 @@
 import { PipeTransform, Injectable, BadRequestException } from '@nestjs/common';
-import { ERROR_MESSAGES } from '../constants/app.constants';
+import { ERROR_MESSAGES } from '../constants/config';
 
 /**
  * Validates that a string is a valid CUID (Collision-resistant Unique Identifier).

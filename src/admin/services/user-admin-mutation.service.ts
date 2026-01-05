@@ -15,7 +15,7 @@ import { UpdateUserDto } from '../dto/update-user.dto';
 import { AdminResetPasswordDto } from '../dto/reset-password.dto';
 import { UserRole } from '../../common/enums/user-role.enum';
 import { PasswordService } from '../../auth/services/password.service';
-import { ERROR_MESSAGES } from '../../common/constants/app.constants';
+import { ERROR_MESSAGES } from '../../common/constants/config';
 
 @Injectable()
 export class UserAdminMutationService {

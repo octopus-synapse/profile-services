@@ -5,7 +5,7 @@
 
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { APP_CONSTANTS } from '../../common/constants/app.constants';
+import { APP_CONSTANTS } from '../../common/constants/config';
 
 export interface SpokenLanguageDto {
   code: string;

@@ -16,7 +16,7 @@ import { ApiTags, ApiOperation, ApiQuery, ApiHeader } from '@nestjs/swagger';
 import { InternalAuthGuard } from '../guards/internal-auth.guard';
 import { Public } from '../../auth/decorators/public.decorator';
 import { MecSyncOrchestratorService } from '../services/mec-sync.service';
-import { APP_CONSTANTS } from '../../common/constants/app.constants';
+import { APP_CONSTANTS } from '../../common/constants/config';
 
 @ApiTags('mec-internal')
 @Controller('v1/mec/internal')

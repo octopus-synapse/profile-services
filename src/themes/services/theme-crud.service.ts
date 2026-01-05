@@ -12,7 +12,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { ThemeStatus, UserRole, Prisma } from '@prisma/client';
 import { CreateThemeDto, UpdateThemeDto } from '../dto';
 import { validateLayoutConfig, validateSectionsConfig } from '../validators';
-import { ERROR_MESSAGES } from '../../common/constants/app.constants';
+import { ERROR_MESSAGES } from '../../common/constants/config';
 
 @Injectable()
 export class ThemeCrudService {

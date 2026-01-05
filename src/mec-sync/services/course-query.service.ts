@@ -15,7 +15,7 @@ import {
 import {
   APP_CONSTANTS,
   API_LIMITS,
-} from '../../common/constants/app.constants';
+} from '../../common/constants/config';
 
 @Injectable()
 export class CourseQueryService {

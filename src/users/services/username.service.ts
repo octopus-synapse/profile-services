@@ -12,7 +12,7 @@ import {
 import { UsersRepository } from '../users.repository';
 import { UpdateUsernameDto } from '../dto/update-username.dto';
 import { AppLoggerService } from '../../common/logger/logger.service';
-import { ERROR_MESSAGES } from '../../common/constants/app.constants';
+import { ERROR_MESSAGES } from '../../common/constants/config';
 
 const USERNAME_UPDATE_COOLDOWN_DAYS = 30;
 

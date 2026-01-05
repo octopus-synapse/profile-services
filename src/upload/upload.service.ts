@@ -4,7 +4,7 @@ import { AppLoggerService } from '../common/logger/logger.service';
 import {
   APP_CONSTANTS,
   ERROR_MESSAGES,
-} from '../common/constants/app.constants';
+} from '../common/constants/config';
 import { v4 as uuidv4 } from 'uuid';
 
 export interface FileUpload {
