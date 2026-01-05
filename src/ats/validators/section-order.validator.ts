@@ -32,10 +32,8 @@ export class SectionOrderValidator {
   validate(parsedCV: ParsedCV): ValidationResult {
     const issues: ValidationIssue[] = [];
 
-    // Get sections in current order
     const currentOrder = parsedCV.sections.map((s) => s.type);
 
-    // Check if Experience comes before Education (common ATS preference)
     const expIndex = currentOrder.indexOf(CVSectionType.EXPERIENCE);
     const eduIndex = currentOrder.indexOf(CVSectionType.EDUCATION);
 
@@ -50,7 +48,6 @@ export class SectionOrderValidator {
       });
     }
 
-    // Check for logical flow violations
     const orderViolations = this.detectOrderViolations(currentOrder);
     if (orderViolations.length > 0) {
       orderViolations.forEach((violation) => {
@@ -58,7 +55,6 @@ export class SectionOrderValidator {
       });
     }
 
-    // Check if Summary comes early
     const summaryIndex = currentOrder.indexOf(CVSectionType.SUMMARY);
     if (summaryIndex > 2 && summaryIndex !== -1) {
       issues.push({
@@ -90,7 +86,6 @@ export class SectionOrderValidator {
   ): ValidationIssue[] {
     const violations: ValidationIssue[] = [];
 
-    // Check if References comes too early
     const refIndex = currentOrder.indexOf(CVSectionType.REFERENCES);
     if (refIndex !== -1 && refIndex < currentOrder.length - 2) {
       violations.push({
@@ -101,7 +96,6 @@ export class SectionOrderValidator {
       });
     }
 
-    // Check if Interests comes before Skills
     const interestsIndex = currentOrder.indexOf(CVSectionType.INTERESTS);
     const skillsIndex = currentOrder.indexOf(CVSectionType.SKILLS);
 

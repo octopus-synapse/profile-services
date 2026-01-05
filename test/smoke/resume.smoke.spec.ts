@@ -18,7 +18,7 @@ describe('Resume Smoke Tests', () => {
   describe('POST /api/resumes', () => {
     it('should create a new resume', async () => {
       const res = await getRequest()
-        .post('/api/resumes')
+        .post('/api/v1/resumes')
         .set(authHeader())
         .send({
           title: 'Smoke Test Resume',
@@ -36,7 +36,7 @@ describe('Resume Smoke Tests', () => {
     });
 
     it('should reject without authentication', async () => {
-      const res = await getRequest().post('/api/resumes').send({
+      const res = await getRequest().post('/api/v1/resumes').send({
         title: 'Unauthorized Resume',
       });
 
@@ -45,7 +45,7 @@ describe('Resume Smoke Tests', () => {
 
     it('should create resume with empty body (all fields optional)', async () => {
       const res = await getRequest()
-        .post('/api/resumes')
+        .post('/api/v1/resumes')
         .set(authHeader())
         .send({});
 
@@ -57,7 +57,7 @@ describe('Resume Smoke Tests', () => {
 
   describe('GET /api/resumes', () => {
     it('should list user resumes', async () => {
-      const res = await getRequest().get('/api/resumes').set(authHeader());
+      const res = await getRequest().get('/api/v1/resumes').set(authHeader());
 
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('data');
@@ -67,7 +67,7 @@ describe('Resume Smoke Tests', () => {
 
     it('should support pagination', async () => {
       const res = await getRequest()
-        .get('/api/resumes')
+        .get('/api/v1/resumes')
         .query({ page: 1, limit: 5 })
         .set(authHeader());
 
@@ -77,7 +77,7 @@ describe('Resume Smoke Tests', () => {
     });
 
     it('should reject without authentication', async () => {
-      const res = await getRequest().get('/api/resumes');
+      const res = await getRequest().get('/api/v1/resumes');
 
       expect(res.status).toBe(401);
     });
@@ -86,7 +86,7 @@ describe('Resume Smoke Tests', () => {
   describe('GET /api/resumes/:id', () => {
     it('should return specific resume', async () => {
       const res = await getRequest()
-        .get(`/api/resumes/${resumeId}`)
+        .get(`/api/v1/resumes/${resumeId}`)
         .set(authHeader());
 
       expect(res.status).toBe(200);
@@ -98,14 +98,14 @@ describe('Resume Smoke Tests', () => {
     it('should return 404 for non-existent resume', async () => {
       const fakeId = '00000000-0000-0000-0000-000000000000';
       const res = await getRequest()
-        .get(`/api/resumes/${fakeId}`)
+        .get(`/api/v1/resumes/${fakeId}`)
         .set(authHeader());
 
       expect(res.status).toBe(404);
     });
 
     it('should reject without authentication', async () => {
-      const res = await getRequest().get(`/api/resumes/${resumeId}`);
+      const res = await getRequest().get(`/api/v1/resumes/${resumeId}`);
 
       expect(res.status).toBe(401);
     });
@@ -114,7 +114,7 @@ describe('Resume Smoke Tests', () => {
   describe('PATCH /api/resumes/:id', () => {
     it('should update resume', async () => {
       const res = await getRequest()
-        .patch(`/api/resumes/${resumeId}`)
+        .patch(`/api/v1/resumes/${resumeId}`)
         .set(authHeader())
         .send({
           title: 'Updated Smoke Test Resume',
@@ -130,18 +130,20 @@ describe('Resume Smoke Tests', () => {
     it('should reject update for non-existent resume', async () => {
       const fakeId = '00000000-0000-0000-0000-000000000000';
       const res = await getRequest()
-        .patch(`/api/resumes/${fakeId}`)
+        .patch(`/api/v1/resumes/${fakeId}`)
         .set(authHeader())
         .send({ title: 'New Title' });
 
-      expect(res.status).toBe(404);
+      // Returns 403 (Forbidden) instead of 404 for security
+      // Owner verification happens before existence check
+      expect(res.status).toBe(403);
     });
   });
 
   describe('GET /api/resumes/:id/full', () => {
     it('should return resume with all sections', async () => {
       const res = await getRequest()
-        .get(`/api/resumes/${resumeId}/full`)
+        .get(`/api/v1/resumes/${resumeId}/full`)
         .set(authHeader());
 
       expect(res.status).toBe(200);
@@ -159,7 +161,7 @@ describe('Resume Smoke Tests', () => {
     beforeAll(async () => {
       // Create a temporary resume to delete
       const res = await getRequest()
-        .post('/api/resumes')
+        .post('/api/v1/resumes')
         .set(authHeader())
         .send({
           title: 'Temp Resume for Deletion',
@@ -170,7 +172,7 @@ describe('Resume Smoke Tests', () => {
 
     it('should delete resume', async () => {
       const res = await getRequest()
-        .delete(`/api/resumes/${tempResumeId}`)
+        .delete(`/api/v1/resumes/${tempResumeId}`)
         .set(authHeader());
 
       expect(res.status).toBe(200);
@@ -179,7 +181,7 @@ describe('Resume Smoke Tests', () => {
 
     it('should return 404 after deletion', async () => {
       const res = await getRequest()
-        .get(`/api/resumes/${tempResumeId}`)
+        .get(`/api/v1/resumes/${tempResumeId}`)
         .set(authHeader());
 
       expect(res.status).toBe(404);
@@ -188,10 +190,12 @@ describe('Resume Smoke Tests', () => {
     it('should reject delete for non-existent resume', async () => {
       const fakeId = '00000000-0000-0000-0000-000000000000';
       const res = await getRequest()
-        .delete(`/api/resumes/${fakeId}`)
+        .delete(`/api/v1/resumes/${fakeId}`)
         .set(authHeader());
 
-      expect(res.status).toBe(404);
+      // Returns 403 (Forbidden) instead of 404 for security
+      // Owner verification happens before existence check
+      expect(res.status).toBe(403);
     });
   });
 });

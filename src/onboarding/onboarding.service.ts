@@ -7,10 +7,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AppLoggerService } from '../common/logger/logger.service';
 import { AuditLogService } from '../common/audit/audit-log.service';
 import type { Prisma } from '@prisma/client';
-import {
-  ERROR_MESSAGES,
-  SUCCESS_MESSAGES,
-} from '../common/constants/config';
+import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '../common/constants/config';
 import {
   onboardingDataSchema,
   OnboardingData,

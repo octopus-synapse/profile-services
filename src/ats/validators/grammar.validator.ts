@@ -63,19 +63,15 @@ export class GrammarValidator {
   validate(text: string): ValidationResult {
     const issues: ValidationIssue[] = [];
 
-    // Check for common spelling mistakes
     const spellingIssues = this.checkSpelling(text);
     issues.push(...spellingIssues);
 
-    // Check for basic grammar patterns
     const grammarIssues = this.checkGrammar(text);
     issues.push(...grammarIssues);
 
-    // Check for sentence structure
     const structureIssues = this.checkStructure(text);
     issues.push(...structureIssues);
 
-    // Check for repeated words
     const repetitionIssues = this.checkRepeatedWords(text);
     issues.push(...repetitionIssues);
 
@@ -136,7 +132,6 @@ export class GrammarValidator {
     const issues: ValidationIssue[] = [];
     const sentences = text.split(/[.!?]+/).filter((s) => s.trim().length > 0);
 
-    // Check for very long sentences (may be run-on sentences)
     sentences.forEach((sentence, index) => {
       const words = sentence.trim().split(/\s+/);
       if (words.length > 40) {
@@ -150,7 +145,6 @@ export class GrammarValidator {
       }
     });
 
-    // Check for very short sections (might be incomplete)
     if (sentences.length < 3) {
       issues.push({
         code: 'FEW_SENTENCES',
@@ -167,7 +161,6 @@ export class GrammarValidator {
   private checkRepeatedWords(text: string): ValidationIssue[] {
     const issues: ValidationIssue[] = [];
 
-    // Check for repeated words (e.g., "the the")
     const repeatedPattern = /\b(\w+)\s+\1\b/gi;
     const matches = text.match(repeatedPattern);
 

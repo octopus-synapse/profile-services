@@ -222,7 +222,7 @@ describe('Sub-Resources Smoke Tests', () => {
     // Create a resume for testing sub-resources
     if (!testContext.resumeId) {
       const res = await getRequest()
-        .post('/api/resumes')
+        .post('/api/v1/resumes')
         .set(authHeader())
         .send({
           title: 'Sub-Resources Test Resume',
@@ -242,7 +242,7 @@ describe('Sub-Resources Smoke Tests', () => {
 
       it(`POST /api/resumes/:id/${endpoint} - should create ${name}`, async () => {
         const res = await getRequest()
-          .post(`/api/resumes/${resumeId}/${endpoint}`)
+          .post(`/api/v1/resumes/${resumeId}/${endpoint}`)
           .set(authHeader())
           .send(createPayload);
 
@@ -256,7 +256,7 @@ describe('Sub-Resources Smoke Tests', () => {
 
       it(`GET /api/resumes/:id/${endpoint} - should list ${name}`, async () => {
         const res = await getRequest()
-          .get(`/api/resumes/${resumeId}/${endpoint}`)
+          .get(`/api/v1/resumes/${resumeId}/${endpoint}`)
           .set(authHeader());
 
         expect(res.status).toBe(200);
@@ -271,7 +271,7 @@ describe('Sub-Resources Smoke Tests', () => {
         }
 
         const res = await getRequest()
-          .get(`/api/resumes/${resumeId}/${endpoint}/${itemId}`)
+          .get(`/api/v1/resumes/${resumeId}/${endpoint}/${itemId}`)
           .set(authHeader());
 
         expect(res.status).toBe(200);
@@ -286,7 +286,7 @@ describe('Sub-Resources Smoke Tests', () => {
         }
 
         const res = await getRequest()
-          .patch(`/api/resumes/${resumeId}/${endpoint}/${itemId}`)
+          .patch(`/api/v1/resumes/${resumeId}/${endpoint}/${itemId}`)
           .set(authHeader())
           .send(updatePayload);
 
@@ -301,7 +301,7 @@ describe('Sub-Resources Smoke Tests', () => {
         }
 
         const res = await getRequest()
-          .delete(`/api/resumes/${resumeId}/${endpoint}/${itemId}`)
+          .delete(`/api/v1/resumes/${resumeId}/${endpoint}/${itemId}`)
           .set(authHeader());
 
         expect(res.status).toBe(200);
@@ -312,7 +312,7 @@ describe('Sub-Resources Smoke Tests', () => {
   describe('Authorization checks', () => {
     it('should reject sub-resource access without auth', async () => {
       const res = await getRequest().get(
-        `/api/resumes/${resumeId}/experiences`,
+        `/api/v1/resumes/${resumeId}/experiences`,
       );
 
       expect(res.status).toBe(401);
@@ -321,7 +321,7 @@ describe('Sub-Resources Smoke Tests', () => {
     it('should reject sub-resource access for other user resume', async () => {
       const fakeResumeId = '00000000-0000-0000-0000-000000000000';
       const res = await getRequest()
-        .get(`/api/resumes/${fakeResumeId}/experiences`)
+        .get(`/api/v1/resumes/${fakeResumeId}/experiences`)
         .set(authHeader());
 
       // Could be 403 (forbidden) or 404 (not found)
