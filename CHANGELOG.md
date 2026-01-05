@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.1](https://github.com/octopus-synapse/profile-services/compare/v2.0.0...v2.0.1) (2026-01-05)
+
+
+### Bug Fixes
+
+* add API versioning with v1 prefix ([c93c2bf](https://github.com/octopus-synapse/profile-services/commit/c93c2bf368a2aa07d98b0a4d0c175fee7f0416e9)), closes [#26](https://github.com/octopus-synapse/profile-services/issues/26)
+* **ci:** add per-commit test summaries to PRs ([8b4b747](https://github.com/octopus-synapse/profile-services/commit/8b4b7471d15afd3691c1c950784ef36eff931524))
+* **ci:** add test summary comments to PRs ([61529fb](https://github.com/octopus-synapse/profile-services/commit/61529fb2c12d699846ad7db91e6ea3b5fe489e7f))
+* **tests:** update smoke tests for /v1/ API versioning ([3e0207d](https://github.com/octopus-synapse/profile-services/commit/3e0207d8fc48d8b22cef159332b0ee815765ce59))
+* use secrets instead of build-args for GitHub token in release workflow ([76d58a9](https://github.com/octopus-synapse/profile-services/commit/76d58a901c6a836e9b5c15b64615a48b6cb43ea4))
+
 ## [2.0.0](https://github.com/octopus-synapse/profile-services/compare/v1.0.0...v2.0.0) (2026-01-05)
 
 
