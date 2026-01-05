@@ -147,7 +147,7 @@ jobs:
           context: .
           push: false
           tags: profile-services:${{ github.sha }}
-          build-args: |
-            GITHUB_TOKEN=${{ secrets.GH_PAT }}
+          secrets: |
+            github_token=${{ secrets.GH_PAT }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

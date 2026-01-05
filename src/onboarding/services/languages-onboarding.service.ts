@@ -21,7 +21,7 @@ export class LanguagesOnboardingService {
   ) {
     const { languages } = data;
 
-    if (!languages?.length) {
+    if (!languages.length) {
       this.logger.log('No languages provided');
       return;
     }
@@ -31,8 +31,8 @@ export class LanguagesOnboardingService {
     await tx.language.createMany({
       data: languages.map((lang, index) => ({
         resumeId,
-        name: lang.name,
-        level: lang.level,
+        name: lang.language,
+        level: lang.proficiency,
         order: index,
       })),
     });

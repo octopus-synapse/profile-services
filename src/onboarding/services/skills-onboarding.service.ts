@@ -19,11 +19,11 @@ export class SkillsOnboardingService {
     resumeId: string,
     data: OnboardingData,
   ) {
-    const { skillsStep } = data;
+    const { skills, noSkills } = data;
 
-    if (skillsStep.noSkills || !skillsStep.skills?.length) {
+    if (noSkills || !skills.length) {
       this.logger.log(
-        skillsStep.noSkills ? 'User selected noSkills' : 'No skills provided',
+        noSkills ? 'User selected noSkills' : 'No skills provided',
       );
       return;
     }
@@ -31,15 +31,15 @@ export class SkillsOnboardingService {
     await tx.skill.deleteMany({ where: { resumeId } });
 
     await tx.skill.createMany({
-      data: skillsStep.skills.map((skill, index) => ({
+      data: skills.map((skill, index) => ({
         resumeId,
         name: skill.name,
-        category: skill.category,
-        level: skill.level,
+        category: skill.category ?? '',
+        level: null,
         order: index,
       })),
     });
 
-    this.logger.log(`Created ${skillsStep.skills.length} skills`);
+    this.logger.log(`Created ${skills.length} skills`);
   }
 }

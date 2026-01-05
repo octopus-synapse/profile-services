@@ -20,27 +20,21 @@ export class ExperienceOnboardingService {
     resumeId: string,
     data: OnboardingData,
   ) {
-    const { experiencesStep } = data;
+    const { experiences, noExperience } = data;
 
-    if (
-      !experiencesStep ||
-      experiencesStep.noExperience ||
-      !experiencesStep.experiences?.length
-    ) {
+    if (noExperience || !experiences.length) {
       this.logger.log(
-        experiencesStep?.noExperience
-          ? 'User selected noExperience'
-          : 'No experiences provided',
+        noExperience ? 'User selected noExperience' : 'No experiences provided',
       );
       return;
     }
 
     await tx.experience.deleteMany({ where: { resumeId } });
 
-    const validExperiences = experiencesStep.experiences
+    const validExperiences = experiences
       .map((exp) => {
         const startDate = DateUtils.toUTCDate(exp.startDate);
-        const endDate = exp.isCurrent ? null : DateUtils.toUTCDate(exp.endDate);
+        const endDate = exp.current ? null : DateUtils.toUTCDate(exp.endDate);
 
         if (!startDate) {
           this.logger.warn(
@@ -63,9 +57,9 @@ export class ExperienceOnboardingService {
           position: exp.position,
           startDate,
           endDate,
-          isCurrent: exp.isCurrent,
-          description: exp.description,
-          location: exp.location,
+          isCurrent: exp.current ?? false,
+          description: exp.description ?? '',
+          location: '',
           skills: [],
           order: 0,
         };

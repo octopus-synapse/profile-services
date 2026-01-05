@@ -20,27 +20,21 @@ export class EducationOnboardingService {
     resumeId: string,
     data: OnboardingData,
   ) {
-    const { educationStep } = data;
+    const { education, noEducation } = data;
 
-    if (
-      !educationStep ||
-      educationStep.noEducation ||
-      !educationStep.education?.length
-    ) {
+    if (noEducation || !education.length) {
       this.logger.log(
-        educationStep?.noEducation
-          ? 'User selected noEducation'
-          : 'No education provided',
+        noEducation ? 'User selected noEducation' : 'No education provided',
       );
       return;
     }
 
     await tx.education.deleteMany({ where: { resumeId } });
 
-    const validEducation = educationStep.education
+    const validEducation = education
       .map((edu) => {
         const startDate = DateUtils.toUTCDate(edu.startDate);
-        const endDate = edu.isCurrent ? null : DateUtils.toUTCDate(edu.endDate);
+        const endDate = edu.current ? null : DateUtils.toUTCDate(edu.endDate);
 
         if (!startDate) {
           this.logger.warn(
@@ -61,10 +55,10 @@ export class EducationOnboardingService {
           resumeId,
           institution: edu.institution,
           degree: edu.degree,
-          field: edu.field,
+          field: edu.field ?? '',
           startDate,
           endDate,
-          isCurrent: edu.isCurrent,
+          isCurrent: edu.current ?? false,
         };
       })
       .filter(Boolean);

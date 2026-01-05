@@ -1,61 +1,59 @@
 /**
  * Auth Validation Schemas
- * Centralized Zod schemas for authentication endpoints
+ *
+ * Uses @octopus-synapse/profile-contracts for domain validation.
+ * Password validation now shared between frontend and backend via contracts.
  */
 
 import { z } from 'zod';
+import {
+  EmailSchema,
+  FullNameSchema,
+  PasswordSchema,
+} from '@octopus-synapse/profile-contracts';
 
 // Login
 export const loginSchema = z.object({
-  email: z.string().email({ message: 'Invalid email format' }),
-  password: z
-    .string()
-    .min(6, { message: 'Password must be at least 6 characters' })
-    .max(100, { message: 'Password must not exceed 100 characters' }),
+  email: EmailSchema,
+  password: z.string().min(1, 'Password is required'),
 });
 
 export type LoginDto = z.infer<typeof loginSchema>;
 
 // Signup
 export const signupSchema = z.object({
-  name: z.string().min(2).max(100).optional(),
-  email: z.string().email(),
-  password: z
-    .string()
-    .min(6, { message: 'Password must be at least 6 characters' })
-    .max(100)
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, {
-      message: 'Password must contain uppercase, lowercase, and number',
-    }),
+  name: FullNameSchema.optional(),
+  email: EmailSchema,
+  password: PasswordSchema,
 });
 
 export type SignupDto = z.infer<typeof signupSchema>;
 
 // Refresh Token
 export const refreshTokenSchema = z.object({
-  refreshToken: z.string().min(1),
+  refreshToken: z.string().min(1, 'Refresh token is required'),
 });
 
 export type RefreshTokenDto = z.infer<typeof refreshTokenSchema>;
 
 // Change Email
 export const changeEmailSchema = z.object({
-  newEmail: z.string().email(),
-  password: z.string().min(6),
+  newEmail: EmailSchema,
+  password: z.string().min(1, 'Password is required'),
 });
 
 export type ChangeEmailDto = z.infer<typeof changeEmailSchema>;
 
 // Email Verification
 export const emailVerificationSchema = z.object({
-  token: z.string().min(1),
+  token: z.string().min(1, 'Verification token is required'),
 });
 
 export type EmailVerificationDto = z.infer<typeof emailVerificationSchema>;
 
 // Delete Account
 export const deleteAccountSchema = z.object({
-  password: z.string().min(1),
+  password: z.string().min(1, 'Password is required'),
   confirmation: z.literal('DELETE MY ACCOUNT'),
 });
 

@@ -1,33 +1,36 @@
 /**
  * User & Preferences Validation Schemas
- * Centralized Zod schemas for user management
+ *
+ * Uses @octopus-synapse/profile-contracts for domain validation.
+ * Preferences are backend-specific concerns.
  */
 
 import { z } from 'zod';
+import {
+  UsernameSchema,
+  FullNameSchema,
+  PhoneSchema,
+  UserLocationSchema,
+  SocialUrlSchema,
+  PasswordSchema,
+} from '@octopus-synapse/profile-contracts';
 
 // Update Profile
 export const updateProfileSchema = z.object({
-  displayName: z.string().min(2).max(100).optional(),
+  displayName: FullNameSchema.optional(),
   bio: z.string().max(500).optional(),
-  location: z.string().max(100).optional(),
-  phone: z.string().max(20).optional(),
-  website: z.string().url().optional().or(z.literal('')),
-  linkedin: z.string().url().optional().or(z.literal('')),
-  github: z.string().url().optional().or(z.literal('')),
+  location: UserLocationSchema.optional(),
+  phone: PhoneSchema.optional(),
+  website: SocialUrlSchema.optional(),
+  linkedin: SocialUrlSchema.optional(),
+  github: SocialUrlSchema.optional(),
 });
 
 export type UpdateProfileDto = z.infer<typeof updateProfileSchema>;
 
 // Update Username
 export const updateUsernameSchema = z.object({
-  username: z
-    .string()
-    .min(3, { message: 'Username must be at least 3 characters' })
-    .max(30, { message: 'Username must not exceed 30 characters' })
-    .regex(/^[a-zA-Z0-9_-]+$/, {
-      message:
-        'Username can only contain letters, numbers, hyphens, and underscores',
-    }),
+  username: UsernameSchema,
 });
 
 export type UpdateUsernameDto = z.infer<typeof updateUsernameSchema>;
@@ -56,13 +59,8 @@ export type UpdatePreferencesDto = z.infer<typeof updatePreferencesSchema>;
 
 // Change Password
 export const changePasswordSchema = z.object({
-  currentPassword: z.string().min(1),
-  newPassword: z
-    .string()
-    .min(6)
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, {
-      message: 'Password must contain uppercase, lowercase, and number',
-    }),
+  currentPassword: z.string().min(1, 'Current password is required'),
+  newPassword: PasswordSchema,
 });
 
 export type ChangePasswordDto = z.infer<typeof changePasswordSchema>;
