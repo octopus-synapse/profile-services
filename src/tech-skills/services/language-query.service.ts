@@ -7,7 +7,7 @@ import { Injectable } from '@nestjs/common';
 import * as crypto from 'crypto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CacheService } from '../../common/cache/cache.service';
-import { API_LIMITS } from '../../common/constants/app.constants';
+import { API_LIMITS } from '../../common/constants/config';
 import { TECH_SKILLS_CACHE_KEYS, TECH_SKILLS_CACHE_TTL } from '../interfaces';
 import type { ProgrammingLanguageDto } from '../dtos';
 

@@ -8,7 +8,7 @@ import { ApiTags, ApiOperation, ApiQuery, ApiParam } from '@nestjs/swagger';
 import { Public } from '../../auth/decorators/public.decorator';
 import { InstitutionQueryService } from '../services/institution-query.service';
 import { CourseQueryService } from '../services/course-query.service';
-import { APP_CONSTANTS } from '../../common/constants/app.constants';
+import { APP_CONSTANTS } from '../../common/constants/config';
 
 @ApiTags('mec-institutions')
 @Controller('v1/mec/institutions')

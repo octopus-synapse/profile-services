@@ -8,7 +8,7 @@ import { AppLoggerService } from '../../common/logger/logger.service';
 import {
   CRYPTO_CONSTANTS,
   API_LIMITS,
-} from '../../common/constants/app.constants';
+} from '../../common/constants/config';
 import { CloudflareHandlerService } from './cloudflare-handler.service';
 import type { Browser, Page } from 'puppeteer';
 import { MEC_CSV_URL, PUPPETEER_CONFIG, PUPPETEER_ARGS } from '../constants';

@@ -7,7 +7,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ThemeStatus, Prisma } from '@prisma/client';
 import { QueryThemesDto } from '../dto';
-import { APP_CONSTANTS } from '../../common/constants/app.constants';
+import { APP_CONSTANTS } from '../../common/constants/config';
 
 @Injectable()
 export class ThemeQueryService {

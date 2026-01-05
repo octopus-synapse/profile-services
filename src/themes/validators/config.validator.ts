@@ -3,7 +3,7 @@
  */
 
 import { BadRequestException } from '@nestjs/common';
-import { ERROR_MESSAGES } from '../../common/constants/app.constants';
+import { ERROR_MESSAGES } from '../../common/constants/config';
 
 const VALID_LAYOUT_TYPES = [
   'single-column',

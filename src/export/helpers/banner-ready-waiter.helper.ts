@@ -6,7 +6,7 @@
 import { Page } from 'puppeteer';
 import { Logger } from '@nestjs/common';
 import { TIMEOUT, DEBUG_PATH } from '../constants/ui.constants';
-import { API_LIMITS } from '../../common/constants/app.constants';
+import { API_LIMITS } from '../../common/constants/config';
 
 export class BannerReadyWaiter {
   private readonly logger = new Logger(BannerReadyWaiter.name);

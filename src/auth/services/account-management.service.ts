@@ -12,7 +12,7 @@ import {
 import { PrismaService } from '../../prisma/prisma.service';
 import { AppLoggerService } from '../../common/logger/logger.service';
 import { PasswordService } from './password.service';
-import { ERROR_MESSAGES } from '../../common/constants/app.constants';
+import { ERROR_MESSAGES } from '../../common/constants/config';
 import { ChangeEmailDto } from '../dto/change-email.dto';
 import { DeleteAccountDto } from '../dto/delete-account.dto';
 

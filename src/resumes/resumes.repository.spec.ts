@@ -164,9 +164,9 @@ describe('ResumesRepository', () => {
 
       mockPrismaService.resume.findFirst.mockResolvedValue(null);
 
-      await expect(
-        repository.delete(resumeId, userId),
-      ).rejects.toThrow(ForbiddenException);
+      await expect(repository.delete(resumeId, userId)).rejects.toThrow(
+        ForbiddenException,
+      );
     });
   });
 

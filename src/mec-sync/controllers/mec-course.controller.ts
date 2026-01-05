@@ -7,7 +7,7 @@ import { Controller, Get, Query, Param, ParseIntPipe } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiQuery, ApiParam } from '@nestjs/swagger';
 import { Public } from '../../auth/decorators/public.decorator';
 import { CourseQueryService } from '../services/course-query.service';
-import { APP_CONSTANTS } from '../../common/constants/app.constants';
+import { APP_CONSTANTS } from '../../common/constants/config';
 
 @ApiTags('mec-courses')
 @Controller('v1/mec/courses')

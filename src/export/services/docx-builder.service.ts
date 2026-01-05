@@ -7,7 +7,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Document, Packer } from 'docx';
 import { ResumesRepository } from '../../resumes/resumes.repository';
 import { UsersRepository } from '../../users/users.repository';
-import { ERROR_MESSAGES } from '../../common/constants/app.constants';
+import { ERROR_MESSAGES } from '../../common/constants/config';
 import { DocxSectionsService } from './docx-sections.service';
 import { DocxStylesService } from './docx-styles.service';
 import {
