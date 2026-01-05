@@ -25,11 +25,16 @@ This service follows a **contract-first approach** using `@octopus-synapse/profi
 ### Validation Schema Strategy
 
 **✅ DO**: Import validation schemas from contracts
+
 ```typescript
-import { RegisterSchema, LoginSchema } from '@octopus-synapse/profile-contracts';
+import {
+  RegisterSchema,
+  LoginSchema,
+} from '@octopus-synapse/profile-contracts';
 ```
 
 **❌ DON'T**: Create duplicate Zod schemas
+
 ```typescript
 // WRONG - creates duplication and drift
 const registerSchema = z.object({ ... });
@@ -38,6 +43,7 @@ const registerSchema = z.object({ ... });
 ### Enforced by CI
 
 The `.github/workflows/validate-contracts.yml` workflow blocks PRs containing:
+
 - Duplicate email/username validation
 - Local schema definitions that should use contracts
 - Missing contract imports in auth/onboarding modules
@@ -48,6 +54,8 @@ The `.github/workflows/validate-contracts.yml` workflow blocks PRs containing:
 - **Zero Drift**: Frontend and backend always use identical validation
 - **Type Safety**: Shared TypeScript types across the entire stack
 - **Faster Development**: No duplicate maintenance burden
+
+**📖 Read more:** [ADR-002: Use profile-contracts for Shared Validation](./docs/adr/002-use-profile-contracts.md)
 
 ## Prerequisites
 
