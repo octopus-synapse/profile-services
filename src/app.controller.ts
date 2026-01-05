@@ -4,6 +4,11 @@ import { Public } from './auth/decorators/public.decorator';
 import * as fs from 'fs';
 import * as path from 'path';
 
+interface PackageJson {
+  version: string;
+  dependencies: Record<string, string>;
+}
+
 interface DeploymentManifest {
   timestamp: string;
   environment: string;
@@ -55,29 +60,31 @@ export class AppController {
     // Read package.json for fallback version
     const packageJson = JSON.parse(
       fs.readFileSync(path.join(__dirname, '../package.json'), 'utf-8'),
-    );
+    ) as PackageJson;
 
     // Try to read deployment manifest
     let manifest: DeploymentManifest | null = null;
     try {
       const manifestPath = '/opt/deployment-manifest.json';
       if (fs.existsSync(manifestPath)) {
-        manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
+        manifest = JSON.parse(
+          fs.readFileSync(manifestPath, 'utf-8'),
+        ) as DeploymentManifest;
       }
-    } catch (error) {
+    } catch {
       // Manifest not available, use package.json only
     }
 
     return {
       service: 'profile-services',
-      version: manifest?.versions.services || `v${packageJson.version}`,
+      version: manifest?.versions.services ?? `v${packageJson.version}`,
       contracts_version:
-        manifest?.versions.contracts ||
+        manifest?.versions.contracts ??
         packageJson.dependencies['@octopus-synapse/profile-contracts'],
-      environment: manifest?.environment || 'development',
-      deployed_at: manifest?.timestamp || 'unknown',
-      git_tag: manifest?.git_tags.services || `v${packageJson.version}`,
-      is_rollback: manifest?.rollback || false,
+      environment: manifest?.environment ?? 'development',
+      deployed_at: manifest?.timestamp ?? 'unknown',
+      git_tag: manifest?.git_tags.services ?? `v${packageJson.version}`,
+      is_rollback: manifest?.rollback ?? false,
     };
   }
 }

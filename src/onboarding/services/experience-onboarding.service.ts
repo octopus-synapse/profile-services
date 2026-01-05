@@ -22,7 +22,7 @@ export class ExperienceOnboardingService {
   ) {
     const { experiences, noExperience } = data;
 
-    if (noExperience || !experiences?.length) {
+    if (noExperience || !experiences.length) {
       this.logger.log(
         noExperience ? 'User selected noExperience' : 'No experiences provided',
       );

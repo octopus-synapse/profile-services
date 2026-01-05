@@ -17,9 +17,9 @@ import { ApiProperty } from '@nestjs/swagger';
 
 import { PersonalInfoDto } from './personal-info.dto';
 import { ProfessionalProfileDto } from './professional-profile.dto';
-import { ExperienceDto, ExperiencesStepDto } from './experience.dto';
-import { EducationDto, EducationStepDto } from './education.dto';
-import { SkillDto, SkillsStepDto } from './skills.dto';
+import { ExperienceDto } from './experience.dto';
+import { EducationDto } from './education.dto';
+import { SkillDto } from './skills.dto';
 import {
   LanguageDto,
   ProjectDto,
@@ -33,9 +33,9 @@ import { IsBoolean } from 'class-validator';
 // Re-export all DTOs for backward compatibility
 export { PersonalInfoDto } from './personal-info.dto';
 export { ProfessionalProfileDto } from './professional-profile.dto';
-export { ExperienceDto, ExperiencesStepDto } from './experience.dto';
-export { EducationDto, EducationStepDto } from './education.dto';
-export { SkillDto, SkillsStepDto } from './skills.dto';
+export { ExperienceDto } from './experience.dto';
+export { EducationDto } from './education.dto';
+export { SkillDto } from './skills.dto';
 export {
   LanguageDto,
   ProjectDto,
