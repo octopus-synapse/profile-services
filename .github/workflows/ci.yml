@@ -13,189 +13,32 @@ permissions:
 
 jobs:
   quality:
-    name: Code Quality
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
-          registry-url: https://npm.pkg.github.com
-      - run: npm ci
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GH_PAT }}
-      - run: npm run lint
-      - run: npm run typecheck
+    uses: octopus-synapse/octopus-workflows/.github/workflows/quality-check.yml@main
+    with:
+      node-version: "20"
+      package-manager: "npm"
+    secrets: inherit
 
   test:
-    name: Tests
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: test_db
-        ports:
-          - 5432:5432
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
-        options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
-          registry-url: https://npm.pkg.github.com
-      - run: npm ci
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GH_PAT }}
-      - run: npm run db:setup
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
-          REDIS_HOST: localhost
-          REDIS_PORT: 6379
-          JWT_SECRET: test-secret
-          NODE_ENV: test
-      - run: npm test -- --coverage --json --outputFile=test-results.json
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
-          REDIS_HOST: localhost
-          REDIS_PORT: 6379
-          JWT_SECRET: test-secret
-          NODE_ENV: test
+    uses: octopus-synapse/octopus-workflows/.github/workflows/unit-tests.yml@main
+    with:
+      node-version: "20"
+      package-manager: "npm"
+      has-database: true
+      has-redis: true
+      pre-test-script: "npm run db:setup"
+    secrets: inherit
 
-      - name: Parse test results
-        id: parse
-        if: always()
-        run: |
-          if [ ! -f test-results.json ]; then
-            echo "summary=❌ Tests failed to run" >> $GITHUB_OUTPUT
-            exit 1
-          fi
-
-          total_suites=$(jq '.numTotalTestSuites' test-results.json)
-          passed_suites=$(jq '.numPassedTestSuites' test-results.json)
-          total_tests=$(jq '.numTotalTests' test-results.json)
-          passed_tests=$(jq '.numPassedTests' test-results.json)
-
-          if [ "$(jq '.numFailedTests' test-results.json)" -eq "0" ]; then
-            icon="✅"
-          else
-            icon="❌"
-          fi
-
-          summary="${icon} **${passed_suites}/${total_suites}** test suites, **${passed_tests}/${total_tests}** tests passing"
-          echo "summary=$summary" >> $GITHUB_OUTPUT
-
-      - name: Find PR
-        if: always() && github.event_name == 'push'
-        id: find-pr
-        uses: jwalton/gh-find-current-pr@v1
-        with:
-          state: open
-
-      - name: Comment PR
-        if: always() && (github.event_name == 'pull_request' || steps.find-pr.outputs.pr)
-        uses: marocchino/sticky-pull-request-comment@v2
-        with:
-          header: unit-tests-${{ github.sha }}
-          number: ${{ github.event.pull_request.number || steps.find-pr.outputs.pr }}
-          message: |
-            ## Unit Tests — `${{ github.event.after || github.sha }}`
-
-            ${{ steps.parse.outputs.summary }}
-
-  smoke-test:
-    name: Smoke Tests
-    runs-on: ubuntu-latest
+  smoke:
     needs: [test]
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: test_db
-        ports:
-          - 5432:5432
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
-        options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
-          registry-url: https://npm.pkg.github.com
-      - run: npm ci
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GH_PAT }}
-      - run: npm run db:setup
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
-          REDIS_HOST: localhost
-          REDIS_PORT: 6379
-          JWT_SECRET: test-secret
-          NODE_ENV: test
-      - run: npm run test:smoke -- --json --outputFile=smoke-results.json
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
-          REDIS_HOST: localhost
-          REDIS_PORT: 6379
-          JWT_SECRET: test-secret
-          NODE_ENV: test
-
-      - name: Parse smoke test results
-        id: parse
-        if: always()
-        run: |
-          if [ ! -f smoke-results.json ]; then
-            echo "summary=❌ Smoke tests failed to run" >> $GITHUB_OUTPUT
-            exit 1
-          fi
-
-          total_suites=$(jq '.numTotalTestSuites' smoke-results.json)
-          passed_suites=$(jq '.numPassedTestSuites' smoke-results.json)
-          total_tests=$(jq '.numTotalTests' smoke-results.json)
-          passed_tests=$(jq '.numPassedTests' smoke-results.json)
-
-          if [ "$(jq '.numFailedTests' smoke-results.json)" -eq "0" ]; then
-            icon="✅"
-          else
-            icon="❌"
-          fi
-
-          summary="${icon} **${passed_suites}/${total_suites}** test suites, **${passed_tests}/${total_tests}** tests passing"
-          echo "summary=$summary" >> $GITHUB_OUTPUT
-
-      - name: Find PR
-        if: always() && github.event_name == 'push'
-        id: find-pr
-        uses: jwalton/gh-find-current-pr@v1
-        with:
-          state: open
-
-      - name: Comment PR
-        if: always() && (github.event_name == 'pull_request' || steps.find-pr.outputs.pr)
-        uses: marocchino/sticky-pull-request-comment@v2
-        with:
-          header: smoke-tests-${{ github.sha }}
-          number: ${{ github.event.pull_request.number || steps.find-pr.outputs.pr }}
-          message: |
-            ## Smoke Tests — `${{ github.event.after || github.sha }}`
-
-            ${{ steps.parse.outputs.summary }}
+    uses: octopus-synapse/octopus-workflows/.github/workflows/smoke-tests.yml@main
+    with:
+      node-version: "20"
+      package-manager: "npm"
+      has-database: true
+      has-redis: true
+      pre-test-script: "npm run db:setup"
+    secrets: inherit
 
   build:
     name: Build
