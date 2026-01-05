@@ -144,46 +144,39 @@ describe('OnboardingService', () => {
           github: 'https://github.com/johndoe',
           website: 'https://johndoe.com',
         },
-        skillsStep: {
-          skills: [
-            { name: 'JavaScript', category: 'Frontend', level: 5 },
-            { name: 'Node.js', category: 'Backend', level: 4 },
-          ],
-          noSkills: false,
-        },
-        experiencesStep: {
-          experiences: [
-            {
-              company: 'Tech Corp',
-              position: 'Senior Developer',
-              startDate: '2020-01-01',
-              endDate: '2024-01-01',
-              isCurrent: false,
-              description: 'Building applications',
-              location: 'New York, NY',
-            },
-          ],
-          noExperience: false,
-        },
-        educationStep: {
-          education: [
-            {
-              institution: 'University',
-              degree: 'BSc',
-              field: 'Computer Science',
-              startDate: '2015-09-01',
-              endDate: '2019-06-01',
-              isCurrent: false,
-            },
-          ],
-          noEducation: false,
-        },
+        skills: [
+          { name: 'JavaScript', category: 'Frontend' },
+          { name: 'Node.js', category: 'Backend' },
+        ],
+        noSkills: false,
+        experiences: [
+          {
+            company: 'Tech Corp',
+            position: 'Senior Developer',
+            startDate: '2020-01',
+            endDate: '2024-01',
+            current: false,
+            description: 'Building applications',
+          },
+        ],
+        noExperience: false,
+        education: [
+          {
+            institution: 'University',
+            degree: 'BSc',
+            field: 'Computer Science',
+            startDate: '2015-09',
+            endDate: '2019-06',
+            current: false,
+          },
+        ],
+        noEducation: false,
         languages: [
-          { name: 'English', level: 'nativo' as const },
-          { name: 'Spanish', level: 'intermediário' as const },
+          { language: 'English', proficiency: 'NATIVE' as const },
+          { language: 'Spanish', proficiency: 'CONVERSATIONAL' as const },
         ],
         templateSelection: {
-          template: 'PROFESSIONAL' as const,
+          template: 'PROFESSIONAL',
           palette: 'blue',
         },
       };
@@ -292,12 +285,15 @@ describe('OnboardingService', () => {
           summary:
             'A passionate developer looking to make a difference in tech',
         },
-        skillsStep: {
-          skills: [],
-          noSkills: true,
-        },
+        skills: [],
+        noSkills: true,
+        experiences: [],
+        noExperience: true,
+        education: [],
+        noEducation: true,
+        languages: [],
         templateSelection: {
-          template: 'PROFESSIONAL' as const,
+          template: 'PROFESSIONAL',
           palette: 'blue',
         },
       };

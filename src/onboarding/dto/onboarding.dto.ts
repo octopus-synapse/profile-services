@@ -17,9 +17,9 @@ import { ApiProperty } from '@nestjs/swagger';
 
 import { PersonalInfoDto } from './personal-info.dto';
 import { ProfessionalProfileDto } from './professional-profile.dto';
-import { ExperiencesStepDto } from './experience.dto';
-import { EducationStepDto } from './education.dto';
-import { SkillsStepDto } from './skills.dto';
+import { ExperienceDto, ExperiencesStepDto } from './experience.dto';
+import { EducationDto, EducationStepDto } from './education.dto';
+import { SkillDto, SkillsStepDto } from './skills.dto';
 import {
   LanguageDto,
   ProjectDto,
@@ -28,6 +28,7 @@ import {
   InterestDto,
 } from './additional-profile.dto';
 import { TemplateSelectionDto } from './template-selection.dto';
+import { IsBoolean } from 'class-validator';
 
 // Re-export all DTOs for backward compatibility
 export { PersonalInfoDto } from './personal-info.dto';
@@ -45,10 +46,17 @@ export {
 export { TemplateSelectionDto } from './template-selection.dto';
 export { OnboardingProgressDto } from './onboarding-progress.dto';
 
+/**
+ * Onboarding DTO (HTTP Layer)
+ *
+ * Note: This DTO provides NestJS validation at the HTTP layer.
+ * The service layer additionally validates with Zod schemas from profile-contracts.
+ * TODO: Consider removing this duplication in favor of Zod-only validation.
+ */
 export class OnboardingDto {
   @ApiProperty({
     example: 'johndoe',
-    description: 'Unique username for profile URL',
+    description: 'Unique username for profile URL (lowercase only)',
   })
   @IsString()
   @MinLength(3)
@@ -65,22 +73,30 @@ export class OnboardingDto {
   @Type(() => ProfessionalProfileDto)
   professionalProfile: ProfessionalProfileDto;
 
-  @IsObject()
-  @ValidateNested()
-  @Type(() => SkillsStepDto)
-  skillsStep: SkillsStepDto;
+  // Note: Changed from skillsStep wrapper to direct array (matches profile-contracts)
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => SkillDto)
+  skills: SkillDto[];
 
-  @IsOptional()
-  @IsObject()
-  @ValidateNested()
-  @Type(() => ExperiencesStepDto)
-  experiencesStep?: ExperiencesStepDto;
+  @IsBoolean()
+  noSkills: boolean;
 
-  @IsOptional()
-  @IsObject()
-  @ValidateNested()
-  @Type(() => EducationStepDto)
-  educationStep?: EducationStepDto;
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ExperienceDto)
+  experiences: ExperienceDto[];
+
+  @IsBoolean()
+  noExperience: boolean;
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => EducationDto)
+  education: EducationDto[];
+
+  @IsBoolean()
+  noEducation: boolean;
 
   @IsOptional()
   @IsArray()
