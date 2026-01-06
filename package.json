@@ -20,6 +20,8 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "test:smoke": "jest --config ./test/jest-smoke.json",
+    "test:integration": "jest --config ./jest.integration.config.js",
+    "test:integration:watch": "jest --config ./jest.integration.config.js --watch",
     "test:fast": "jest --maxWorkers=50% --bail --silent",
     "test:changed": "jest --onlyChanged --bail --silent",
     "test:metrics": "jest --json --outputFile=test-metrics.json && node scripts/analyze-test-metrics.js",
