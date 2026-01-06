@@ -7,6 +7,13 @@ import {
 } from '../dto/experience.dto';
 import { PaginatedResult } from '../dto/pagination.dto';
 
+/**
+ * Ordering strategy: by user-defined order field (asc)
+ *
+ * Rationale: Experiences should be ordered as the user prefers,
+ * typically most recent first but allowing manual reordering via drag-and-drop.
+ * The order field provides explicit control over display sequence.
+ */
 @Injectable()
 export class ExperienceRepository {
   private readonly logger = new Logger(ExperienceRepository.name);
