@@ -3,7 +3,10 @@ import { TranslationService } from './translation.service';
 import { TranslationCoreService } from './services/translation-core.service';
 import { TranslationBatchService } from './services/translation-batch.service';
 import { ResumeTranslationService } from './services/resume-translation.service';
-import { TranslationResult, BatchTranslationResult } from './types/translation.types';
+import {
+  TranslationResult,
+  BatchTranslationResult,
+} from './types/translation.types';
 
 describe('TranslationService', () => {
   let service: TranslationService;
@@ -81,7 +84,11 @@ describe('TranslationService', () => {
       const result = await service.translatePtToEn('Olá mundo');
 
       expect(result).toEqual(mockResult);
-      expect(mockCoreService.translate).toHaveBeenCalledWith('Olá mundo', 'pt', 'en');
+      expect(mockCoreService.translate).toHaveBeenCalledWith(
+        'Olá mundo',
+        'pt',
+        'en',
+      );
     });
   });
 
@@ -98,7 +105,11 @@ describe('TranslationService', () => {
       const result = await service.translateEnToPt('Hello world');
 
       expect(result).toEqual(mockResult);
-      expect(mockCoreService.translate).toHaveBeenCalledWith('Hello world', 'en', 'pt');
+      expect(mockCoreService.translate).toHaveBeenCalledWith(
+        'Hello world',
+        'en',
+        'pt',
+      );
     });
   });
 
@@ -154,7 +165,11 @@ describe('TranslationService', () => {
       };
       mockBatchService.translateBatch.mockResolvedValue(mockResult);
 
-      const result = await service.translateBatch(['Hello', 'World'], 'en', 'pt');
+      const result = await service.translateBatch(
+        ['Hello', 'World'],
+        'en',
+        'pt',
+      );
 
       expect(result).toEqual(mockResult);
       expect(mockBatchService.translateBatch).toHaveBeenCalledWith(
@@ -193,7 +208,9 @@ describe('TranslationService', () => {
       const result = await service.translateResumeToEnglish(resumeData);
 
       expect(result).toEqual(translatedData);
-      expect(mockResumeService.translateToEnglish).toHaveBeenCalledWith(resumeData);
+      expect(mockResumeService.translateToEnglish).toHaveBeenCalledWith(
+        resumeData,
+      );
     });
 
     it('should handle complex resume structure', async () => {
@@ -203,9 +220,7 @@ describe('TranslationService', () => {
           profession: 'Engenheiro de Software',
         },
         skills: ['TypeScript', 'Node.js'],
-        experience: [
-          { company: 'Empresa A', role: 'Desenvolvedor' },
-        ],
+        experience: [{ company: 'Empresa A', role: 'Desenvolvedor' }],
       };
       const translatedResume = {
         personalInfo: {
@@ -213,9 +228,7 @@ describe('TranslationService', () => {
           profession: 'Software Engineer',
         },
         skills: ['TypeScript', 'Node.js'],
-        experience: [
-          { company: 'Empresa A', role: 'Developer' },
-        ],
+        experience: [{ company: 'Empresa A', role: 'Developer' }],
       };
       mockResumeService.translateToEnglish.mockResolvedValue(translatedResume);
 
@@ -240,7 +253,9 @@ describe('TranslationService', () => {
       const result = await service.translateResumeToPortuguese(resumeData);
 
       expect(result).toEqual(translatedData);
-      expect(mockResumeService.translateToPortuguese).toHaveBeenCalledWith(resumeData);
+      expect(mockResumeService.translateToPortuguese).toHaveBeenCalledWith(
+        resumeData,
+      );
     });
   });
 
