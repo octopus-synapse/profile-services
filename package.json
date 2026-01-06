@@ -14,12 +14,16 @@
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "typecheck": "tsc --noEmit",
-    "test": "jest",
+    "test": "jest --maxWorkers=50%",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "test:smoke": "jest --config ./test/jest-smoke.json",
+    "test:fast": "jest --maxWorkers=50% --bail --silent",
+    "test:changed": "jest --onlyChanged --bail --silent",
+    "test:metrics": "jest --json --outputFile=test-metrics.json && node scripts/analyze-test-metrics.js",
+    "test:watch:verbose": "jest --watch --verbose",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:migrate:deploy": "prisma migrate deploy",
@@ -127,6 +131,19 @@
       "**/*.(t|j)s"
     ],
     "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "coverageThreshold": {
+      "global": {
+        "branches": 60,
+        "functions": 60,
+        "lines": 60,
+        "statements": 60
+      }
+    },
+    "watchPathIgnorePatterns": [
+      "node_modules",
+      "dist",
+      "coverage"
+    ]
   }
 }
