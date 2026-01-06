@@ -4,6 +4,13 @@ import { Language } from '@prisma/client';
 import { CreateLanguageDto, UpdateLanguageDto } from '../dto/language.dto';
 import { PaginatedResult } from '../dto/pagination.dto';
 
+/**
+ * Ordering strategy: by user-defined order field (asc)
+ *
+ * Rationale: Languages should be ordered by proficiency or preference as the user decides.
+ * Unlike date-based entities, there is no natural chronological order for languages,
+ * so explicit user control via the order field is the most appropriate strategy.
+ */
 @Injectable()
 export class LanguageRepository {
   private readonly logger = new Logger(LanguageRepository.name);

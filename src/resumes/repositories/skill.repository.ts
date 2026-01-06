@@ -4,6 +4,14 @@ import { Skill } from '@prisma/client';
 import { CreateSkillDto, UpdateSkillDto } from '../dto/skill.dto';
 import { PaginatedResult } from '../dto/pagination.dto';
 
+/**
+ * Ordering strategy: by category ASC, then order ASC (grouped by category, user-defined within group)
+ *
+ * Rationale: Skills are logically grouped by category (e.g., "Frontend", "Backend", "DevOps").
+ * Primary sort by category keeps related skills together. Secondary sort by order field
+ * allows manual reordering within each category via drag-and-drop. This two-level hierarchy
+ * provides both logical grouping and user control.
+ */
 @Injectable()
 export class SkillRepository {
   private readonly logger = new Logger(SkillRepository.name);

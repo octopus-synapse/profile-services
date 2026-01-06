@@ -4,6 +4,14 @@ import { Education } from '@prisma/client';
 import { CreateEducationDto, UpdateEducationDto } from '../dto/education.dto';
 import { PaginatedResult } from '../dto/pagination.dto';
 
+/**
+ * Ordering strategy: by startDate DESC (most recent first)
+ *
+ * Rationale: Education entries are naturally chronological - most recent degrees
+ * should appear first. Unlike experiences, education ordering is date-driven
+ * rather than user-defined. Note: order field exists for future manual reordering
+ * capability but is not currently used in findAll queries.
+ */
 @Injectable()
 export class EducationRepository {
   private readonly logger = new Logger(EducationRepository.name);
