@@ -4,6 +4,7 @@ import {
   ValidationIssue,
   ValidationSeverity,
 } from '../interfaces';
+import { FORMAT_VALIDATION } from './constants';
 
 @Injectable()
 export class FormatValidator {
@@ -49,7 +50,7 @@ export class FormatValidator {
     }
 
     const specialCharCount = this.countSpecialFormatting(extractedText);
-    if (specialCharCount > 50) {
+    if (specialCharCount > FORMAT_VALIDATION.MAX_SPECIAL_CHAR_COUNT) {
       issues.push({
         code: 'EXCESSIVE_SPECIAL_FORMATTING',
         message: 'Document contains excessive special characters or formatting',
@@ -87,14 +88,18 @@ export class FormatValidator {
       if (line.includes('\t')) tabCount++;
     });
 
-    // If many lines have pipes or tabs, likely a table
-    return pipeCount > 3 || tabCount > 5;
+    return (
+      pipeCount > FORMAT_VALIDATION.TABLE_PIPE_THRESHOLD ||
+      tabCount > FORMAT_VALIDATION.TABLE_TAB_THRESHOLD
+    );
   }
 
   private detectMultiColumn(text: string): boolean {
     const lines = text.split('\n');
 
-    const spacingPattern = /\s{10,}/;
+    const spacingPattern = new RegExp(
+      `\\s{${FORMAT_VALIDATION.MULTI_COLUMN_SPACING},}`,
+    );
     let suspiciousLines = 0;
 
     lines.forEach((line) => {
@@ -103,7 +108,7 @@ export class FormatValidator {
       }
     });
 
-    return suspiciousLines > 5;
+    return suspiciousLines > FORMAT_VALIDATION.MULTI_COLUMN_LINE_THRESHOLD;
   }
 
   private countSpecialFormatting(text: string): number {
