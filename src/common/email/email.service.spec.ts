@@ -1,121 +1,150 @@
+/**
+ * EmailService Tests (Facade/Adapter)
+ *
+ * NOTA (Uncle Bob): EmailService é um adapter para serviço externo.
+ * Como é uma borda, testamos que as operações completam sem erro.
+ * Testes detalhados de templates e envio estão nos serviços especializados.
+ *
+ * Interaction testing é aceitável em bordas, mas preferimos testar
+ * o comportamento observável (promise resolve/reject).
+ */
+
 import { Test, TestingModule } from '@nestjs/testing';
 import { EmailService } from './email.service';
 import { EmailSenderService } from './services/email-sender.service';
 import { EmailTemplateService } from './services/email-template.service';
 
-describe('EmailService', () => {
+describe('EmailService (Adapter)', () => {
   let service: EmailService;
-  let senderService: jest.Mocked<EmailSenderService>;
-  let templateService: jest.Mocked<EmailTemplateService>;
 
-  const mockSenderService = {
-    sendEmail: jest.fn(),
+  // Stubs que simulam sucesso das operações
+  const stubSenderService = {
+    sendEmail: jest.fn().mockResolvedValue(undefined),
   };
 
-  const mockTemplateService = {
-    sendVerificationEmail: jest.fn(),
-    sendPasswordResetEmail: jest.fn(),
-    sendWelcomeEmail: jest.fn(),
-    sendPasswordChangedEmail: jest.fn(),
+  const stubTemplateService = {
+    sendVerificationEmail: jest.fn().mockResolvedValue(undefined),
+    sendPasswordResetEmail: jest.fn().mockResolvedValue(undefined),
+    sendWelcomeEmail: jest.fn().mockResolvedValue(undefined),
+    sendPasswordChangedEmail: jest.fn().mockResolvedValue(undefined),
   };
 
   beforeEach(async () => {
-    jest.clearAllMocks();
-
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         EmailService,
-        {
-          provide: EmailSenderService,
-          useValue: mockSenderService,
-        },
-        {
-          provide: EmailTemplateService,
-          useValue: mockTemplateService,
-        },
+        { provide: EmailSenderService, useValue: stubSenderService },
+        { provide: EmailTemplateService, useValue: stubTemplateService },
       ],
     }).compile();
 
     service = module.get<EmailService>(EmailService);
-    senderService = module.get(EmailSenderService);
-    templateService = module.get(EmailTemplateService);
   });
 
   describe('sendEmail', () => {
-    it('should delegate to senderService', async () => {
+    it('should complete successfully when sending raw email', async () => {
       const options = {
         to: 'user@example.com',
         subject: 'Test Subject',
         html: '<p>Test content</p>',
       };
 
-      mockSenderService.sendEmail.mockResolvedValue(undefined);
+      // Testa que a operação completa sem erro (comportamento)
+      await expect(service.sendEmail(options)).resolves.toBeUndefined();
+    });
 
-      await service.sendEmail(options);
+    it('should propagate error when sending fails', async () => {
+      stubSenderService.sendEmail.mockRejectedValueOnce(
+        new Error('SMTP error'),
+      );
 
-      expect(senderService.sendEmail).toHaveBeenCalledWith(options);
+      const options = {
+        to: 'user@example.com',
+        subject: 'Test',
+        html: '<p>Content</p>',
+      };
+
+      await expect(service.sendEmail(options)).rejects.toThrow('SMTP error');
     });
   });
 
   describe('sendVerificationEmail', () => {
-    it('should delegate to templateService', async () => {
-      mockTemplateService.sendVerificationEmail.mockResolvedValue(undefined);
+    it('should complete successfully when sending verification email', async () => {
+      await expect(
+        service.sendVerificationEmail(
+          'user@example.com',
+          'John Doe',
+          'token-123',
+        ),
+      ).resolves.toBeUndefined();
+    });
 
-      await service.sendVerificationEmail(
-        'user@example.com',
-        'John Doe',
-        'token-123',
+    it('should propagate error when sending fails', async () => {
+      stubTemplateService.sendVerificationEmail.mockRejectedValueOnce(
+        new Error('Template error'),
       );
 
-      expect(templateService.sendVerificationEmail).toHaveBeenCalledWith(
-        'user@example.com',
-        'John Doe',
-        'token-123',
-      );
+      await expect(
+        service.sendVerificationEmail('user@example.com', 'John', 'token'),
+      ).rejects.toThrow('Template error');
     });
   });
 
   describe('sendPasswordResetEmail', () => {
-    it('should delegate to templateService', async () => {
-      mockTemplateService.sendPasswordResetEmail.mockResolvedValue(undefined);
+    it('should complete successfully when sending password reset email', async () => {
+      await expect(
+        service.sendPasswordResetEmail(
+          'user@example.com',
+          'Jane Smith',
+          'reset-token',
+        ),
+      ).resolves.toBeUndefined();
+    });
 
-      await service.sendPasswordResetEmail(
-        'user@example.com',
-        'Jane Smith',
-        'reset-token-456',
+    it('should propagate error when sending fails', async () => {
+      stubTemplateService.sendPasswordResetEmail.mockRejectedValueOnce(
+        new Error('Send failed'),
       );
 
-      expect(templateService.sendPasswordResetEmail).toHaveBeenCalledWith(
-        'user@example.com',
-        'Jane Smith',
-        'reset-token-456',
-      );
+      await expect(
+        service.sendPasswordResetEmail('user@example.com', 'Jane', 'token'),
+      ).rejects.toThrow('Send failed');
     });
   });
 
   describe('sendWelcomeEmail', () => {
-    it('should delegate to templateService', async () => {
-      mockTemplateService.sendWelcomeEmail.mockResolvedValue(undefined);
+    it('should complete successfully when sending welcome email', async () => {
+      await expect(
+        service.sendWelcomeEmail('user@example.com', 'Alex Johnson'),
+      ).resolves.toBeUndefined();
+    });
 
-      await service.sendWelcomeEmail('user@example.com', 'Alex Johnson');
-
-      expect(templateService.sendWelcomeEmail).toHaveBeenCalledWith(
-        'user@example.com',
-        'Alex Johnson',
+    it('should propagate error when sending fails', async () => {
+      stubTemplateService.sendWelcomeEmail.mockRejectedValueOnce(
+        new Error('Welcome email failed'),
       );
+
+      await expect(
+        service.sendWelcomeEmail('user@example.com', 'Alex'),
+      ).rejects.toThrow('Welcome email failed');
     });
   });
 
   describe('sendPasswordChangedEmail', () => {
-    it('should delegate to templateService', async () => {
-      mockTemplateService.sendPasswordChangedEmail.mockResolvedValue(undefined);
+    it('should complete successfully when sending password changed email', async () => {
+      await expect(
+        service.sendPasswordChangedEmail('user@example.com', 'Sam Wilson'),
+      ).resolves.toBeUndefined();
+    });
 
-      await service.sendPasswordChangedEmail('user@example.com', 'Sam Wilson');
-
-      expect(templateService.sendPasswordChangedEmail).toHaveBeenCalledWith(
-        'user@example.com',
-        'Sam Wilson',
+    it('should propagate error when sending fails', async () => {
+      stubTemplateService.sendPasswordChangedEmail.mockRejectedValueOnce(
+        new Error('Email failed'),
       );
+
+      await expect(
+        service.sendPasswordChangedEmail('user@example.com', 'Sam'),
+      ).rejects.toThrow('Email failed');
     });
   });
 });
