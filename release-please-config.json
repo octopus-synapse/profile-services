@@ -1,10 +1,12 @@
 {
-  "release-type": "node",
-  "bump-minor-pre-major": true,
-  "bump-patch-for-minor-pre-major": false,
+  "release-type": "simple",
+  "bump-minor-pre-major": false,
+  "bump-patch-for-minor-pre-major": true,
+  "versioning": "always-bump-patch",
   "packages": {
     ".": {
-      "release-type": "node",
+      "release-type": "simple",
+      "versioning": "always-bump-patch",
       "changelog-sections": [
         { "type": "feat", "section": "Features", "hidden": false },
         { "type": "fix", "section": "Bug Fixes", "hidden": false },
