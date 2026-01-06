@@ -11,7 +11,6 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Request } from 'express';
 import { ERROR_MESSAGES } from '../../common/constants/config';
 
 const INTERNAL_TOKEN_HEADER = 'x-internal-token';
@@ -32,7 +31,9 @@ export class InternalAuthGuard implements CanActivate {
       );
     }
 
-    const request = context.switchToHttp().getRequest<Request>();
+    const request = context.switchToHttp().getRequest<{
+      headers: Record<string, string | string[] | undefined>;
+    }>();
     const providedToken = request.headers[INTERNAL_TOKEN_HEADER] as
       | string
       | undefined;

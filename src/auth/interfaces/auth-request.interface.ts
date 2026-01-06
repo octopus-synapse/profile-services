@@ -1,4 +1,7 @@
-import { Request } from 'express';
+/**
+ * Domain-level auth interfaces
+ * Note: We avoid importing Express to maintain domain purity
+ */
 
 export interface UserPayload {
   userId: string;
@@ -8,6 +11,7 @@ export interface UserPayload {
   hasCompletedOnboarding: boolean;
 }
 
-export interface AuthenticatedRequest extends Request {
+export interface AuthenticatedRequest {
   user: UserPayload;
+  // Extend with Request fields when needed at infrastructure layer
 }

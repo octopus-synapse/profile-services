@@ -1,6 +1,6 @@
 import { TechPersona } from './tech-persona.enum';
 import { PersonaConfig } from './persona-config.interface';
-import { TECH_PERSONAS } from './index';
+import { TECH_PERSONAS } from './persona.registry';
 
 /**
  * Get configuration for a specific persona
