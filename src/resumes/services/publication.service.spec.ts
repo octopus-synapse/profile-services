@@ -3,7 +3,10 @@ import { Logger } from '@nestjs/common';
 import { PublicationService } from './publication.service';
 import { PublicationRepository } from '../repositories/publication.repository';
 import { ResumesRepository } from '../resumes.repository';
-import { CreatePublicationDto, UpdatePublicationDto } from '../dto/publication.dto';
+import {
+  CreatePublicationDto,
+  UpdatePublicationDto,
+} from '../dto/publication.dto';
 
 describe('PublicationService', () => {
   let service: PublicationService;
@@ -82,7 +85,11 @@ describe('PublicationService', () => {
       const result = await service.listForResume('resume-123', 'user-123');
 
       expect(result).toEqual(paginatedResult);
-      expect(publicationRepository.findAll).toHaveBeenCalledWith('resume-123', 1, 20);
+      expect(publicationRepository.findAll).toHaveBeenCalledWith(
+        'resume-123',
+        1,
+        20,
+      );
     });
   });
 
@@ -94,7 +101,10 @@ describe('PublicationService', () => {
       const result = await service.getById('resume-123', 'pub-123', 'user-123');
 
       expect(result.data).toEqual(mockPublication);
-      expect(publicationRepository.findOne).toHaveBeenCalledWith('pub-123', 'resume-123');
+      expect(publicationRepository.findOne).toHaveBeenCalledWith(
+        'pub-123',
+        'resume-123',
+      );
     });
 
     it('should throw NotFoundException when not found', async () => {
@@ -120,10 +130,17 @@ describe('PublicationService', () => {
       resumesRepository.findOne.mockResolvedValue(mockResume as any);
       publicationRepository.create.mockResolvedValue(mockPublication);
 
-      const result = await service.addToResume('resume-123', 'user-123', createDto);
+      const result = await service.addToResume(
+        'resume-123',
+        'user-123',
+        createDto,
+      );
 
       expect(result.data).toEqual(mockPublication);
-      expect(publicationRepository.create).toHaveBeenCalledWith('resume-123', createDto);
+      expect(publicationRepository.create).toHaveBeenCalledWith(
+        'resume-123',
+        createDto,
+      );
     });
   });
 
@@ -160,10 +177,17 @@ describe('PublicationService', () => {
       resumesRepository.findOne.mockResolvedValue(mockResume as any);
       publicationRepository.delete.mockResolvedValue(true);
 
-      const result = await service.deleteById('resume-123', 'pub-123', 'user-123');
+      const result = await service.deleteById(
+        'resume-123',
+        'pub-123',
+        'user-123',
+      );
 
       expect(result.message).toBe('Publication deleted successfully');
-      expect(publicationRepository.delete).toHaveBeenCalledWith('pub-123', 'resume-123');
+      expect(publicationRepository.delete).toHaveBeenCalledWith(
+        'pub-123',
+        'resume-123',
+      );
     });
   });
 });

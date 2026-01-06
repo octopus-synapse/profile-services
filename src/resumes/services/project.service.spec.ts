@@ -88,7 +88,11 @@ describe('ProjectService', () => {
         'resume-123',
         'user-123',
       );
-      expect(projectRepository.findAll).toHaveBeenCalledWith('resume-123', 1, 20);
+      expect(projectRepository.findAll).toHaveBeenCalledWith(
+        'resume-123',
+        1,
+        20,
+      );
     });
   });
 
@@ -97,7 +101,11 @@ describe('ProjectService', () => {
       resumesRepository.findOne.mockResolvedValue(mockResume as any);
       projectRepository.findOne.mockResolvedValue(mockProject);
 
-      const result = await service.getById('resume-123', 'project-123', 'user-123');
+      const result = await service.getById(
+        'resume-123',
+        'project-123',
+        'user-123',
+      );
 
       expect(result.data).toEqual(mockProject);
       expect(projectRepository.findOne).toHaveBeenCalledWith(
@@ -127,10 +135,17 @@ describe('ProjectService', () => {
       resumesRepository.findOne.mockResolvedValue(mockResume as any);
       projectRepository.create.mockResolvedValue(mockProject);
 
-      const result = await service.addToResume('resume-123', 'user-123', createDto);
+      const result = await service.addToResume(
+        'resume-123',
+        'user-123',
+        createDto,
+      );
 
       expect(result.data).toEqual(mockProject);
-      expect(projectRepository.create).toHaveBeenCalledWith('resume-123', createDto);
+      expect(projectRepository.create).toHaveBeenCalledWith(
+        'resume-123',
+        createDto,
+      );
     });
   });
 
@@ -176,10 +191,17 @@ describe('ProjectService', () => {
       resumesRepository.findOne.mockResolvedValue(mockResume as any);
       projectRepository.delete.mockResolvedValue(true);
 
-      const result = await service.deleteById('resume-123', 'project-123', 'user-123');
+      const result = await service.deleteById(
+        'resume-123',
+        'project-123',
+        'user-123',
+      );
 
       expect(result.message).toBe('Project deleted successfully');
-      expect(projectRepository.delete).toHaveBeenCalledWith('project-123', 'resume-123');
+      expect(projectRepository.delete).toHaveBeenCalledWith(
+        'project-123',
+        'resume-123',
+      );
     });
 
     it('should throw NotFoundException when project not found', async () => {

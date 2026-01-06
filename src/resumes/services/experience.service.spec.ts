@@ -3,7 +3,10 @@ import { Logger } from '@nestjs/common';
 import { ExperienceService } from './experience.service';
 import { ExperienceRepository } from '../repositories/experience.repository';
 import { ResumesRepository } from '../resumes.repository';
-import { CreateExperienceDto, UpdateExperienceDto } from '../dto/experience.dto';
+import {
+  CreateExperienceDto,
+  UpdateExperienceDto,
+} from '../dto/experience.dto';
 
 describe('ExperienceService', () => {
   let service: ExperienceService;
@@ -82,7 +85,11 @@ describe('ExperienceService', () => {
       const result = await service.listForResume('resume-123', 'user-123');
 
       expect(result).toEqual(paginatedResult);
-      expect(experienceRepository.findAll).toHaveBeenCalledWith('resume-123', 1, 20);
+      expect(experienceRepository.findAll).toHaveBeenCalledWith(
+        'resume-123',
+        1,
+        20,
+      );
     });
   });
 
@@ -94,7 +101,10 @@ describe('ExperienceService', () => {
       const result = await service.getById('resume-123', 'exp-123', 'user-123');
 
       expect(result.data).toEqual(mockExperience);
-      expect(experienceRepository.findOne).toHaveBeenCalledWith('exp-123', 'resume-123');
+      expect(experienceRepository.findOne).toHaveBeenCalledWith(
+        'exp-123',
+        'resume-123',
+      );
     });
 
     it('should throw NotFoundException when not found', async () => {
@@ -118,10 +128,17 @@ describe('ExperienceService', () => {
       resumesRepository.findOne.mockResolvedValue(mockResume as any);
       experienceRepository.create.mockResolvedValue(mockExperience);
 
-      const result = await service.addToResume('resume-123', 'user-123', createDto);
+      const result = await service.addToResume(
+        'resume-123',
+        'user-123',
+        createDto,
+      );
 
       expect(result.data).toEqual(mockExperience);
-      expect(experienceRepository.create).toHaveBeenCalledWith('resume-123', createDto);
+      expect(experienceRepository.create).toHaveBeenCalledWith(
+        'resume-123',
+        createDto,
+      );
     });
   });
 
@@ -167,10 +184,17 @@ describe('ExperienceService', () => {
       resumesRepository.findOne.mockResolvedValue(mockResume as any);
       experienceRepository.delete.mockResolvedValue(true);
 
-      const result = await service.deleteById('resume-123', 'exp-123', 'user-123');
+      const result = await service.deleteById(
+        'resume-123',
+        'exp-123',
+        'user-123',
+      );
 
       expect(result.message).toBe('Experience deleted successfully');
-      expect(experienceRepository.delete).toHaveBeenCalledWith('exp-123', 'resume-123');
+      expect(experienceRepository.delete).toHaveBeenCalledWith(
+        'exp-123',
+        'resume-123',
+      );
     });
 
     it('should throw NotFoundException when not found', async () => {
