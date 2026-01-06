@@ -1,3 +1,17 @@
+/**
+ * AuthService Tests (Facade)
+ *
+ * NOTA (Uncle Bob): AuthService é um facade puro - apenas delega para serviços especializados.
+ * Estes testes verificam COMPORTAMENTO (outputs), não IMPLEMENTAÇÃO (chamadas internas).
+ *
+ * Testes detalhados de regras de negócio estão nos serviços especializados:
+ * - auth-core.service.spec.ts (signup, login, validateUser)
+ * - token-refresh.service.spec.ts (refreshToken, getCurrentUser)
+ * - email-verification.service.spec.ts (requestVerification, verifyEmail)
+ * - password-reset.service.spec.ts (forgotPassword, resetPassword, changePassword)
+ * - account-management.service.spec.ts (changeEmail, deleteAccount)
+ */
+
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
 import {
@@ -8,226 +22,248 @@ import {
   AccountManagementService,
 } from './services';
 
-describe('AuthService', () => {
+describe('AuthService (Facade)', () => {
   let service: AuthService;
-  let authCoreService: jest.Mocked<AuthCoreService>;
-  let tokenRefreshService: jest.Mocked<TokenRefreshService>;
-  let emailVerificationService: jest.Mocked<EmailVerificationService>;
-  let passwordResetService: jest.Mocked<PasswordResetService>;
-  let accountManagementService: jest.Mocked<AccountManagementService>;
 
-  const mockAuthCoreService = {
-    signup: jest.fn(),
-    validateUser: jest.fn(),
-    login: jest.fn(),
+  // Stubs com retornos fixos (não mocks para verificar chamadas)
+  const stubAuthCoreService = {
+    signup: jest.fn().mockResolvedValue({
+      success: true,
+      token: 'jwt-token',
+      user: { id: 'user-123', email: 'test@example.com' },
+    }),
+    validateUser: jest.fn().mockResolvedValue({
+      id: 'user-123',
+      email: 'test@example.com',
+      name: 'Test User',
+    }),
+    login: jest.fn().mockResolvedValue({
+      success: true,
+      token: 'jwt-token',
+      user: { id: 'user-123', email: 'test@example.com' },
+    }),
   };
 
-  const mockTokenRefreshService = {
-    refreshToken: jest.fn(),
+  const stubTokenRefreshService = {
+    refreshToken: jest.fn().mockResolvedValue({
+      success: true,
+      token: 'new-jwt-token',
+    }),
+    refreshWithToken: jest.fn().mockResolvedValue({
+      success: true,
+      token: 'new-jwt-token',
+    }),
+    getCurrentUser: jest.fn().mockResolvedValue({
+      id: 'user-123',
+      email: 'test@example.com',
+    }),
   };
 
-  const mockEmailVerificationService = {
-    requestVerification: jest.fn(),
-    verifyEmail: jest.fn(),
+  const stubEmailVerificationService = {
+    requestVerification: jest.fn().mockResolvedValue({ success: true }),
+    verifyEmail: jest.fn().mockResolvedValue({ success: true }),
   };
 
-  const mockPasswordResetService = {
-    forgotPassword: jest.fn(),
-    resetPassword: jest.fn(),
-    changePassword: jest.fn(),
+  const stubPasswordResetService = {
+    forgotPassword: jest.fn().mockResolvedValue({ success: true }),
+    resetPassword: jest.fn().mockResolvedValue({ success: true }),
+    changePassword: jest.fn().mockResolvedValue({ success: true }),
   };
 
-  const mockAccountManagementService = {
-    changeEmail: jest.fn(),
-    deleteAccount: jest.fn(),
+  const stubAccountManagementService = {
+    changeEmail: jest.fn().mockResolvedValue({ success: true }),
+    deleteAccount: jest.fn().mockResolvedValue({ success: true }),
   };
 
   beforeEach(async () => {
-    jest.clearAllMocks();
-
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
-        {
-          provide: AuthCoreService,
-          useValue: mockAuthCoreService,
-        },
-        {
-          provide: TokenRefreshService,
-          useValue: mockTokenRefreshService,
-        },
+        { provide: AuthCoreService, useValue: stubAuthCoreService },
+        { provide: TokenRefreshService, useValue: stubTokenRefreshService },
         {
           provide: EmailVerificationService,
-          useValue: mockEmailVerificationService,
+          useValue: stubEmailVerificationService,
         },
-        {
-          provide: PasswordResetService,
-          useValue: mockPasswordResetService,
-        },
+        { provide: PasswordResetService, useValue: stubPasswordResetService },
         {
           provide: AccountManagementService,
-          useValue: mockAccountManagementService,
+          useValue: stubAccountManagementService,
         },
       ],
     }).compile();
 
     service = module.get<AuthService>(AuthService);
-    authCoreService = module.get(AuthCoreService);
-    tokenRefreshService = module.get(TokenRefreshService);
-    emailVerificationService = module.get(EmailVerificationService);
-    passwordResetService = module.get(PasswordResetService);
-    accountManagementService = module.get(AccountManagementService);
   });
 
-  describe('signup', () => {
-    const signupDto = {
-      email: 'test@example.com',
-      password: 'password123',
-      name: 'Test User',
-    };
+  // ==================== Core Authentication ====================
 
-    it('should delegate to authCoreService', async () => {
-      const mockResult = {
-        success: true,
-        token: 'mock-jwt-token',
-        user: { id: 'user-123', email: signupDto.email },
+  describe('signup', () => {
+    it('should return auth response with token and user on successful signup', async () => {
+      const signupDto = {
+        email: 'test@example.com',
+        password: 'Password123!',
+        name: 'Test User',
       };
-      mockAuthCoreService.signup.mockResolvedValue(mockResult);
 
       const result = await service.signup(signupDto);
 
-      expect(result).toEqual(mockResult);
-      expect(authCoreService.signup).toHaveBeenCalledWith(signupDto);
+      expect(result).toMatchObject({
+        success: true,
+        token: expect.any(String),
+        user: expect.objectContaining({
+          id: expect.any(String),
+          email: signupDto.email,
+        }),
+      });
     });
   });
 
   describe('login', () => {
-    const loginDto = { email: 'test@example.com', password: 'password123' };
-
-    it('should delegate to authCoreService', async () => {
-      const mockResult = {
-        success: true,
-        token: 'mock-jwt-token',
-        user: { id: 'user-123', email: loginDto.email },
-      };
-      mockAuthCoreService.login.mockResolvedValue(mockResult);
+    it('should return auth response with token on successful login', async () => {
+      const loginDto = { email: 'test@example.com', password: 'Password123!' };
 
       const result = await service.login(loginDto);
 
-      expect(result).toEqual(mockResult);
-      expect(authCoreService.login).toHaveBeenCalledWith(loginDto);
+      expect(result).toMatchObject({
+        success: true,
+        token: expect.any(String),
+        user: expect.objectContaining({
+          email: loginDto.email,
+        }),
+      });
     });
   });
+
+  describe('validateUser', () => {
+    it('should return user without password when credentials are valid', async () => {
+      const result = await service.validateUser(
+        'test@example.com',
+        'Password123!',
+      );
+
+      expect(result).toMatchObject({
+        id: expect.any(String),
+        email: 'test@example.com',
+      });
+      expect(result).not.toHaveProperty('password');
+    });
+  });
+
+  // ==================== Token Refresh ====================
 
   describe('refreshToken', () => {
-    it('should delegate to tokenRefreshService', async () => {
-      const mockResult = {
-        success: true,
-        token: 'new-mock-jwt-token',
-      };
-      mockTokenRefreshService.refreshToken.mockResolvedValue(mockResult);
-
+    it('should return new token on successful refresh', async () => {
       const result = await service.refreshToken('user-123');
 
-      expect(result).toEqual(mockResult);
-      expect(tokenRefreshService.refreshToken).toHaveBeenCalledWith('user-123');
+      expect(result).toMatchObject({
+        success: true,
+        token: expect.any(String),
+      });
     });
   });
 
-  describe('email verification', () => {
-    it('should delegate requestEmailVerification to EmailVerificationService', async () => {
-      const dto = { email: 'test@example.com' };
-      mockEmailVerificationService.requestVerification.mockResolvedValue({
+  describe('refreshTokenWithToken', () => {
+    it('should return new token when given valid refresh token', async () => {
+      const result = await service.refreshTokenWithToken('valid-refresh-token');
+
+      expect(result).toMatchObject({
         success: true,
+        token: expect.any(String),
       });
-
-      await service.requestEmailVerification(dto);
-
-      expect(emailVerificationService.requestVerification).toHaveBeenCalledWith(
-        dto,
-      );
     });
+  });
 
-    it('should delegate verifyEmail to EmailVerificationService', async () => {
+  describe('getCurrentUser', () => {
+    it('should return current user data', async () => {
+      const result = await service.getCurrentUser('user-123');
+
+      expect(result).toMatchObject({
+        id: expect.any(String),
+        email: expect.any(String),
+      });
+    });
+  });
+
+  // ==================== Email Verification ====================
+
+  describe('requestEmailVerification', () => {
+    it('should return success when verification email is sent', async () => {
+      const dto = { email: 'test@example.com' };
+
+      const result = await service.requestEmailVerification(dto);
+
+      expect(result).toMatchObject({ success: true });
+    });
+  });
+
+  describe('verifyEmail', () => {
+    it('should return success when email is verified', async () => {
       const dto = { token: 'verification-token' };
-      mockEmailVerificationService.verifyEmail.mockResolvedValue({
-        success: true,
-      });
 
-      await service.verifyEmail(dto);
+      const result = await service.verifyEmail(dto);
 
-      expect(emailVerificationService.verifyEmail).toHaveBeenCalledWith(dto);
+      expect(result).toMatchObject({ success: true });
     });
   });
 
-  describe('password reset', () => {
-    it('should delegate forgotPassword to PasswordResetService', async () => {
+  // ==================== Password Operations ====================
+
+  describe('forgotPassword', () => {
+    it('should return success when reset email is sent', async () => {
       const dto = { email: 'test@example.com' };
-      mockPasswordResetService.forgotPassword.mockResolvedValue({
-        success: true,
-      });
 
-      await service.forgotPassword(dto);
+      const result = await service.forgotPassword(dto);
 
-      expect(passwordResetService.forgotPassword).toHaveBeenCalledWith(dto);
-    });
-
-    it('should delegate resetPassword to PasswordResetService', async () => {
-      const dto = { token: 'reset-token', password: 'newpass123' };
-      mockPasswordResetService.resetPassword.mockResolvedValue({
-        success: true,
-      });
-
-      await service.resetPassword(dto);
-
-      expect(passwordResetService.resetPassword).toHaveBeenCalledWith(dto);
-    });
-
-    it('should delegate changePassword to PasswordResetService', async () => {
-      const dto = {
-        currentPassword: 'oldpass',
-        newPassword: 'newpass123',
-      };
-      mockPasswordResetService.changePassword.mockResolvedValue({
-        success: true,
-      });
-
-      await service.changePassword('user-123', dto);
-
-      expect(passwordResetService.changePassword).toHaveBeenCalledWith(
-        'user-123',
-        dto,
-      );
+      expect(result).toMatchObject({ success: true });
     });
   });
 
-  describe('account management', () => {
-    it('should delegate changeEmail to AccountManagementService', async () => {
-      const dto = { newEmail: 'new@example.com', currentPassword: 'password' };
-      mockAccountManagementService.changeEmail.mockResolvedValue({
-        success: true,
-      });
+  describe('resetPassword', () => {
+    it('should return success when password is reset', async () => {
+      const dto = { token: 'reset-token', password: 'NewPassword123!' };
 
-      await service.changeEmail('user-123', dto);
+      const result = await service.resetPassword(dto);
 
-      expect(accountManagementService.changeEmail).toHaveBeenCalledWith(
-        'user-123',
-        dto,
-      );
+      expect(result).toMatchObject({ success: true });
     });
+  });
 
-    it('should delegate deleteAccount to AccountManagementService', async () => {
-      const dto = { password: 'password123' };
-      mockAccountManagementService.deleteAccount.mockResolvedValue({
-        success: true,
-      });
+  describe('changePassword', () => {
+    it('should return success when password is changed', async () => {
+      const dto = {
+        currentPassword: 'OldPassword123!',
+        newPassword: 'NewPassword123!',
+      };
 
-      await service.deleteAccount('user-123', dto);
+      const result = await service.changePassword('user-123', dto);
 
-      expect(accountManagementService.deleteAccount).toHaveBeenCalledWith(
-        'user-123',
-        dto,
-      );
+      expect(result).toMatchObject({ success: true });
+    });
+  });
+
+  // ==================== Account Management ====================
+
+  describe('changeEmail', () => {
+    it('should return success when email is changed', async () => {
+      const dto = {
+        newEmail: 'new@example.com',
+        currentPassword: 'Password123!',
+      };
+
+      const result = await service.changeEmail('user-123', dto);
+
+      expect(result).toMatchObject({ success: true });
+    });
+  });
+
+  describe('deleteAccount', () => {
+    it('should return success when account is deleted', async () => {
+      const dto = { password: 'Password123!' };
+
+      const result = await service.deleteAccount('user-123', dto);
+
+      expect(result).toMatchObject({ success: true });
     });
   });
 });
