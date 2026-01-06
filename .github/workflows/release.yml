@@ -1,75 +1,97 @@
 name: Release
 
 on:
-    push:
-        branches:
-            - main
+  push:
+    branches:
+      - main
 
 permissions:
-    contents: write
-    pull-requests: write
-    packages: write
+  contents: write
+  pull-requests: write
+  packages: write
 
 jobs:
-    release-please:
-        runs-on: ubuntu-latest
-        outputs:
-            release_created: ${{ steps.release.outputs.release_created }}
-            tag_name: ${{ steps.release.outputs.tag_name }}
-        steps:
-            - uses: googleapis/release-please-action@v4
-              id: release
-              with:
-                  token: ${{ secrets.GH_PAT }}
-                  release-type: node
+  # Gate: Wait for CI to pass before releasing
+  ci-gate:
+    name: CI Gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for CI - Unit Tests
+        uses: lewagon/wait-on-check-action@v1.3.4
+        with:
+          ref: ${{ github.sha }}
+          check-name: "Unit Tests"
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-interval: 10
 
-    build-and-push:
-        needs: release-please
-        if: ${{ needs.release-please.outputs.release_created }}
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v4
+      - name: Wait for CI - Build
+        uses: lewagon/wait-on-check-action@v1.3.4
+        with:
+          ref: ${{ github.sha }}
+          check-name: "Build"
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-interval: 10
 
-            - name: Log in to GitHub Container Registry
-              uses: docker/login-action@v3
-              with:
-                  registry: ghcr.io
-                  username: ${{ github.actor }}
-                  password: ${{ secrets.GITHUB_TOKEN }}
+  release-please:
+    needs: ci-gate
+    runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          token: ${{ secrets.GH_PAT }}
+          release-type: node
 
-            - name: Extract version from tag
-              id: version
-              run: |
-                  VERSION=${{ needs.release-please.outputs.tag_name }}
-                  echo "version=${VERSION}" >> $GITHUB_OUTPUT
-                  echo "version_no_v=${VERSION#v}" >> $GITHUB_OUTPUT
+  build-and-push:
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-            - name: Build and push Docker image
-              uses: docker/build-push-action@v5
-              with:
-                  context: .
-                  push: true
-                  tags: |
-                      ghcr.io/${{ github.repository }}:${{ steps.version.outputs.version }}
-                      ghcr.io/${{ github.repository }}:latest
-                  secrets: |
-                      github_token=${{ secrets.GH_PAT }}
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-            - name: Update release notes
-              run: |
-                  gh release edit ${{ needs.release-please.outputs.tag_name }} \
-                    --notes-file - <<EOF
-                  ## Docker Images
+      - name: Extract version from tag
+        id: version
+        run: |
+          VERSION=${{ needs.release-please.outputs.tag_name }}
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "version_no_v=${VERSION#v}" >> $GITHUB_OUTPUT
 
-                  \`\`\`bash
-                  docker pull ghcr.io/${{ github.repository }}:${{ steps.version.outputs.version }}
-                  docker pull ghcr.io/${{ github.repository }}:latest
-                  \`\`\`
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}:${{ steps.version.outputs.version }}
+            ghcr.io/${{ github.repository }}:latest
+          secrets: |
+            github_token=${{ secrets.GH_PAT }}
 
-                  **Note:** This release creates versioned artifacts but does NOT deploy to production.
-                  Production deployment occurs exclusively via global release orchestration.
+      - name: Update release notes
+        run: |
+          gh release edit ${{ needs.release-please.outputs.tag_name }} \
+            --notes-file - <<EOF
+          ## Docker Images
 
-                  $(gh release view ${{ needs.release-please.outputs.tag_name }} --json body -q .body)
-                  EOF
-              env:
-                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          \`\`\`bash
+          docker pull ghcr.io/${{ github.repository }}:${{ steps.version.outputs.version }}
+          docker pull ghcr.io/${{ github.repository }}:latest
+          \`\`\`
+
+          **Note:** This release creates versioned artifacts but does NOT deploy to production.
+          Production deployment occurs exclusively via global release orchestration.
+
+          $(gh release view ${{ needs.release-please.outputs.tag_name }} --json body -q .body)
+          EOF
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
