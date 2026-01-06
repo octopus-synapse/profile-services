@@ -66,39 +66,26 @@ export class S3UploadService {
       return null;
     }
 
-    try {
-      const command = new PutObjectCommand({
-        Bucket: this.bucket,
-        Key: key,
-        Body: file,
-        ContentType: contentType,
-        ACL: 'public-read',
-      });
+    const command = new PutObjectCommand({
+      Bucket: this.bucket,
+      Key: key,
+      Body: file,
+      ContentType: contentType,
+      ACL: 'public-read',
+    });
 
-      await this.client.send(command);
+    await this.client.send(command);
 
-      // Build MinIO URL
-      const endpoint = process.env.MINIO_ENDPOINT;
-      const url = `${endpoint}/${this.bucket}/${key}`;
+    // Build MinIO URL
+    const endpoint = process.env.MINIO_ENDPOINT;
+    const url = `${endpoint}/${this.bucket}/${key}`;
 
-      this.logger.log(
-        'File uploaded to MinIO successfully',
-        'S3UploadService',
-        {
-          key,
-          contentType,
-        },
-      );
+    this.logger.log('File uploaded to MinIO successfully', 'S3UploadService', {
+      key,
+      contentType,
+    });
 
-      return { url, key };
-    } catch (error) {
-      this.logger.error(
-        `Failed to upload file to MinIO: ${key}`,
-        error instanceof Error ? error.stack : undefined,
-        'S3UploadService',
-      );
-      throw error;
-    }
+    return { url, key };
   }
 
   async deleteFile(key: string): Promise<boolean> {
