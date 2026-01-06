@@ -15,32 +15,122 @@ jobs:
   # Quality checks (lint/typecheck) already run in pre-commit
   # No need to duplicate in CI - Kent Beck + Uncle Bob principle:
   # "Don't test the same thing twice in different places"
-  
+
   test:
-    uses: octopus-synapse/octopus-workflows/.github/workflows/unit-tests.yml@main
-    with:
-      node-version: "20"
-      package-manager: "npm"
-      has-database: true
-      has-redis: true
-      pre-test-script: "npm run db:setup"
-    secrets: inherit
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          registry-url: https://npm.pkg.github.com
+      
+      - name: Install dependencies
+        run: npm ci
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GH_PAT }}
+      
+      - name: Setup database
+        run: npm run db:setup
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          JWT_SECRET: test-secret
+          NODE_ENV: test
+      
+      - name: Run tests
+        run: npm test -- --json --outputFile=test-results.json
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          JWT_SECRET: test-secret
+          NODE_ENV: test
+      
+      - name: Run tests with coverage
+        if: always()
+        run: npm run test:cov
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          JWT_SECRET: test-secret
+          NODE_ENV: test
 
   smoke:
+    name: Smoke Tests
     needs: [test]
-    uses: octopus-synapse/octopus-workflows/.github/workflows/smoke-tests.yml@main
-    with:
-      node-version: "20"
-      package-manager: "npm"
-      has-database: true
-      has-redis: true
-      pre-test-script: "npm run db:setup"
-    secrets: inherit
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          registry-url: https://npm.pkg.github.com
+      
+      - name: Install dependencies
+        run: npm ci
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GH_PAT }}
+      
+      - name: Setup database
+        run: npm run db:setup
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          JWT_SECRET: test-secret
+          NODE_ENV: test
+      
+      - name: Run smoke tests
+        run: npm run test:smoke
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          JWT_SECRET: test-secret
+          NODE_ENV: test
 
   build:
     name: Build
     runs-on: ubuntu-latest
-    needs: [test]  # Removed 'quality' dependency
+    needs: [test] # Removed 'quality' dependency
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
