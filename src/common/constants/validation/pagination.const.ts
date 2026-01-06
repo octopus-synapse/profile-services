@@ -4,10 +4,17 @@
  * Default and limit values for paginated API responses.
  */
 export const PAGINATION = {
+  DEFAULT_PAGE: 1,
   DEFAULT_PAGE_SIZE: 20,
   MAX_PAGE_SIZE: 100,
   MIN_PAGE_SIZE: 5,
 } as const;
+
+/**
+ * Legacy alias for PAGINATION
+ * @deprecated Use PAGINATION instead
+ */
+export const PAGINATION_DEFAULTS = PAGINATION;
 
 /**
  * Cache TTL Constants

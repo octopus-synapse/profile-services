@@ -3,6 +3,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { Language } from '@prisma/client';
 import { CreateLanguageDto, UpdateLanguageDto } from '../dto/language.dto';
 import { PaginatedResult } from '../dto/pagination.dto';
+import { PAGINATION } from '../../common/constants/validation/pagination.const';
 
 /**
  * Ordering strategy: by user-defined order field (asc)
@@ -19,8 +20,8 @@ export class LanguageRepository {
 
   async findAll(
     resumeId: string,
-    page: number = 1,
-    limit: number = 20,
+    page: number = PAGINATION.DEFAULT_PAGE,
+    limit: number = PAGINATION.DEFAULT_PAGE_SIZE,
   ): Promise<PaginatedResult<Language>> {
     const skip = (page - 1) * limit;
 

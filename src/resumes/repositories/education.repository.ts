@@ -3,6 +3,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { Education } from '@prisma/client';
 import { CreateEducationDto, UpdateEducationDto } from '../dto/education.dto';
 import { PaginatedResult } from '../dto/pagination.dto';
+import { PAGINATION } from '../../common/constants/validation/pagination.const';
 
 /**
  * Ordering strategy: by startDate DESC (most recent first)
@@ -20,8 +21,8 @@ export class EducationRepository {
 
   async findAll(
     resumeId: string,
-    page: number = 1,
-    limit: number = 20,
+    page: number = PAGINATION.DEFAULT_PAGE,
+    limit: number = PAGINATION.DEFAULT_PAGE_SIZE,
   ): Promise<PaginatedResult<Education>> {
     const skip = (page - 1) * limit;
 
