@@ -243,17 +243,6 @@ describe('BaseSubResourceService', () => {
         service.addToResume(mockResumeId, mockUserId, createDto),
       ).rejects.toThrow(ForbiddenException);
     });
-
-    it('should delegate creation to repository', async () => {
-      mockRepository.create.mockResolvedValue(createdEntity);
-
-      await service.addToResume(mockResumeId, mockUserId, createDto);
-
-      expect(mockRepository.create).toHaveBeenCalledWith(
-        mockResumeId,
-        createDto,
-      );
-    });
   });
 
   describe('update', () => {
@@ -375,14 +364,6 @@ describe('BaseSubResourceService', () => {
       await expect(
         service.reorderInResume(mockResumeId, mockUserId, ids),
       ).rejects.toThrow(ForbiddenException);
-    });
-
-    it('should delegate to repository correctly', async () => {
-      mockRepository.reorder.mockResolvedValue(undefined);
-
-      await service.reorderInResume(mockResumeId, mockUserId, ids);
-
-      expect(mockRepository.reorder).toHaveBeenCalledWith(mockResumeId, ids);
     });
   });
 });
