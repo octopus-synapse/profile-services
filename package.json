@@ -124,15 +124,19 @@
       "json",
       "ts"
     ],
-    "rootDir": "src",
+    "rootDir": ".",
+    "roots": [
+      "<rootDir>/src",
+      "<rootDir>/test"
+    ],
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },
     "collectCoverageFrom": [
-      "**/*.(t|j)s"
+      "src/**/*.(t|j)s"
     ],
-    "coverageDirectory": "../coverage",
+    "coverageDirectory": "./coverage",
     "testEnvironment": "node",
     "coverageThreshold": {
       "global": {
@@ -149,6 +153,11 @@
     ],
     "transformIgnorePatterns": [
       "node_modules/(?!uuid)"
+    ],
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/test/integration/",
+      "/test/e2e/"
     ]
   }
 }
