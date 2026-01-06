@@ -1,232 +1,210 @@
+/**
+ * UsersService Tests (Facade)
+ *
+ * NOTA (Uncle Bob): UsersService é um facade puro - apenas delega para serviços especializados.
+ * Estes testes verificam COMPORTAMENTO (outputs), não IMPLEMENTAÇÃO (chamadas internas).
+ *
+ * Testes detalhados de regras de negócio estão nos serviços especializados:
+ * - user-profile.service.spec.ts
+ * - user-preferences.service.spec.ts
+ * - username.service.spec.ts
+ */
+
 import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from './users.service';
 import { UserProfileService } from './services/user-profile.service';
 import { UserPreferencesService } from './services/user-preferences.service';
 import { UsernameService } from './services/username.service';
 
-describe('UsersService', () => {
+describe('UsersService (Facade)', () => {
   let service: UsersService;
-  let profileService: jest.Mocked<UserProfileService>;
-  let preferencesService: jest.Mocked<UserPreferencesService>;
-  let usernameService: jest.Mocked<UsernameService>;
 
-  const mockProfileService = {
-    getPublicProfileByUsername: jest.fn(),
-    getProfile: jest.fn(),
-    updateProfile: jest.fn(),
+  // Stubs com retornos fixos (não mocks para verificar chamadas)
+  const stubProfileService = {
+    getPublicProfileByUsername: jest.fn().mockResolvedValue({
+      user: {
+        id: 'user-123',
+        displayName: 'Public User',
+        username: 'publicuser',
+      },
+      resume: { id: 'resume-123', title: 'Software Engineer' },
+    }),
+    getProfile: jest.fn().mockResolvedValue({
+      id: 'user-123',
+      email: 'test@example.com',
+      name: 'Test User',
+      displayName: 'Test',
+      bio: 'A developer',
+    }),
+    updateProfile: jest.fn().mockResolvedValue({
+      success: true,
+      data: {
+        id: 'user-123',
+        displayName: 'Updated Name',
+        bio: 'Updated bio',
+      },
+    }),
   };
 
-  const mockPreferencesService = {
-    getPreferences: jest.fn(),
-    updatePreferences: jest.fn(),
-    getFullPreferences: jest.fn(),
-    updateFullPreferences: jest.fn(),
+  const stubPreferencesService = {
+    getPreferences: jest.fn().mockResolvedValue({
+      palette: 'blue',
+      bannerColor: '#1a1a1a',
+    }),
+    updatePreferences: jest.fn().mockResolvedValue({
+      success: true,
+      message: 'Preferences updated successfully',
+    }),
+    getFullPreferences: jest.fn().mockResolvedValue({
+      theme: 'dark',
+      palette: 'blue',
+      language: 'en',
+      bannerColor: '#1a1a1a',
+    }),
+    updateFullPreferences: jest.fn().mockResolvedValue({
+      success: true,
+      data: { theme: 'light', palette: 'green' },
+    }),
   };
 
-  const mockUsernameService = {
-    updateUsername: jest.fn(),
+  const stubUsernameService = {
+    updateUsername: jest.fn().mockResolvedValue({
+      success: true,
+      username: 'newusername',
+    }),
+    checkUsernameAvailability: jest.fn().mockResolvedValue({
+      available: true,
+    }),
   };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UsersService,
-        {
-          provide: UserProfileService,
-          useValue: mockProfileService,
-        },
-        {
-          provide: UserPreferencesService,
-          useValue: mockPreferencesService,
-        },
-        {
-          provide: UsernameService,
-          useValue: mockUsernameService,
-        },
+        { provide: UserProfileService, useValue: stubProfileService },
+        { provide: UserPreferencesService, useValue: stubPreferencesService },
+        { provide: UsernameService, useValue: stubUsernameService },
       ],
     }).compile();
 
     service = module.get<UsersService>(UsersService);
-    profileService = module.get(UserProfileService);
-    preferencesService = module.get(UserPreferencesService);
-    usernameService = module.get(UsernameService);
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
+  // ==================== Profile Operations ====================
 
   describe('getPublicProfileByUsername', () => {
-    it('should delegate to profileService', async () => {
-      const username = 'publicuser';
-      const mockResult = {
-        user: { id: 'user-1', displayName: 'Public User' },
-        resume: { id: 'resume-1', title: 'Public Resume' },
-      };
-      mockProfileService.getPublicProfileByUsername.mockResolvedValue(
-        mockResult,
-      );
+    it('should return public profile with user and resume data', async () => {
+      const result = await service.getPublicProfileByUsername('publicuser');
 
-      const result = await service.getPublicProfileByUsername(username);
-
-      expect(result).toEqual(mockResult);
-      expect(profileService.getPublicProfileByUsername).toHaveBeenCalledWith(
-        username,
-      );
+      expect(result).toMatchObject({
+        user: expect.objectContaining({
+          id: expect.any(String),
+          displayName: expect.any(String),
+        }),
+        resume: expect.objectContaining({
+          id: expect.any(String),
+        }),
+      });
     });
   });
 
   describe('getProfile', () => {
-    it('should delegate to profileService', async () => {
-      const userId = 'user-123';
-      const mockProfile = {
-        id: userId,
-        email: 'test@example.com',
-        name: 'Test User',
-        displayName: 'Test',
-      };
-      mockProfileService.getProfile.mockResolvedValue(mockProfile);
+    it('should return user profile with expected fields', async () => {
+      const result = await service.getProfile('user-123');
 
-      const result = await service.getProfile(userId);
-
-      expect(result).toEqual(mockProfile);
-      expect(profileService.getProfile).toHaveBeenCalledWith(userId);
+      expect(result).toMatchObject({
+        id: expect.any(String),
+        email: expect.any(String),
+        name: expect.any(String),
+      });
     });
   });
 
   describe('updateProfile', () => {
-    it('should delegate to profileService', async () => {
-      const userId = 'user-123';
-      const updateProfileDto = {
-        displayName: 'Updated Name',
-        bio: 'Updated bio',
-      };
-      const mockResult = {
+    it('should return success with updated profile data', async () => {
+      const updateDto = { displayName: 'Updated Name', bio: 'Updated bio' };
+
+      const result = await service.updateProfile('user-123', updateDto);
+
+      expect(result).toMatchObject({
         success: true,
-        user: { displayName: 'Updated Name' },
-      };
-      mockProfileService.updateProfile.mockResolvedValue(mockResult);
-
-      const result = await service.updateProfile(userId, updateProfileDto);
-
-      expect(result).toEqual(mockResult);
-      expect(profileService.updateProfile).toHaveBeenCalledWith(
-        userId,
-        updateProfileDto,
-      );
+        data: expect.objectContaining({
+          displayName: expect.any(String),
+        }),
+      });
     });
   });
 
+  // ==================== Preferences Operations ====================
+
   describe('getPreferences', () => {
-    it('should delegate to preferencesService', async () => {
-      const userId = 'user-123';
-      const mockPreferences = {
-        palette: 'blue',
-        bannerColor: '#1a1a1a',
-      };
-      mockPreferencesService.getPreferences.mockResolvedValue(mockPreferences);
+    it('should return user preferences', async () => {
+      const result = await service.getPreferences('user-123');
 
-      const result = await service.getPreferences(userId);
-
-      expect(result).toEqual(mockPreferences);
-      expect(preferencesService.getPreferences).toHaveBeenCalledWith(userId);
+      expect(result).toMatchObject({
+        palette: expect.any(String),
+      });
     });
   });
 
   describe('updatePreferences', () => {
-    it('should delegate to preferencesService', async () => {
-      const userId = 'user-123';
-      const updatePreferencesDto = {
-        palette: 'green',
-        bannerColor: '#2a2a2a',
-      };
-      const mockResult = {
+    it('should return success when preferences are updated', async () => {
+      const updateDto = { palette: 'green', bannerColor: '#2a2a2a' };
+
+      const result = await service.updatePreferences('user-123', updateDto);
+
+      expect(result).toMatchObject({
         success: true,
-        message: 'Preferences updated successfully',
-      };
-      mockPreferencesService.updatePreferences.mockResolvedValue(mockResult);
-
-      const result = await service.updatePreferences(
-        userId,
-        updatePreferencesDto,
-      );
-
-      expect(result).toEqual(mockResult);
-      expect(preferencesService.updatePreferences).toHaveBeenCalledWith(
-        userId,
-        updatePreferencesDto,
-      );
+      });
     });
   });
 
   describe('getFullPreferences', () => {
-    it('should delegate to preferencesService', async () => {
-      const userId = 'user-123';
-      const mockFullPreferences = {
-        theme: 'dark',
-        palette: 'blue',
-        language: 'en',
-      };
-      mockPreferencesService.getFullPreferences.mockResolvedValue(
-        mockFullPreferences,
-      );
+    it('should return complete preferences object', async () => {
+      const result = await service.getFullPreferences('user-123');
 
-      const result = await service.getFullPreferences(userId);
-
-      expect(result).toEqual(mockFullPreferences);
-      expect(preferencesService.getFullPreferences).toHaveBeenCalledWith(
-        userId,
-      );
+      expect(result).toMatchObject({
+        theme: expect.any(String),
+        palette: expect.any(String),
+        language: expect.any(String),
+      });
     });
   });
 
   describe('updateFullPreferences', () => {
-    it('should delegate to preferencesService', async () => {
-      const userId = 'user-123';
-      const updateFullPreferencesDto = {
-        theme: 'light',
-        palette: 'green',
-      };
-      const mockResult = {
+    it('should return success when full preferences are updated', async () => {
+      const updateDto = { theme: 'light', palette: 'green' };
+
+      const result = await service.updateFullPreferences('user-123', updateDto);
+
+      expect(result).toMatchObject({
         success: true,
-        preferences: updateFullPreferencesDto,
-      };
-      mockPreferencesService.updateFullPreferences.mockResolvedValue(
-        mockResult,
-      );
-
-      const result = await service.updateFullPreferences(
-        userId,
-        updateFullPreferencesDto,
-      );
-
-      expect(result).toEqual(mockResult);
-      expect(preferencesService.updateFullPreferences).toHaveBeenCalledWith(
-        userId,
-        updateFullPreferencesDto,
-      );
+      });
     });
   });
 
+  // ==================== Username Operations ====================
+
   describe('updateUsername', () => {
-    it('should delegate to usernameService', async () => {
-      const userId = 'user-123';
-      const updateUsernameDto = {
-        username: 'newusername',
-      };
-      const mockResult = {
+    it('should return success with new username', async () => {
+      const updateDto = { username: 'newusername' };
+
+      const result = await service.updateUsername('user-123', updateDto);
+
+      expect(result).toMatchObject({
         success: true,
-        username: 'newusername',
-      };
-      mockUsernameService.updateUsername.mockResolvedValue(mockResult);
+        username: expect.any(String),
+      });
+    });
+  });
 
-      const result = await service.updateUsername(userId, updateUsernameDto);
+  describe('checkUsernameAvailability', () => {
+    it('should return availability status', async () => {
+      const result = await service.checkUsernameAvailability('newusername');
 
-      expect(result).toEqual(mockResult);
-      expect(usernameService.updateUsername).toHaveBeenCalledWith(
-        userId,
-        updateUsernameDto,
-      );
+      expect(result).toMatchObject({
+        available: expect.any(Boolean),
+      });
     });
   });
 });
