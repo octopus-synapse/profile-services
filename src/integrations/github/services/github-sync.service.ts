@@ -79,6 +79,7 @@ export class GitHubSyncService {
         },
       };
     } catch (error) {
+      // Error transformation - see ERROR_HANDLING_STRATEGY.md
       if (error instanceof HttpException) throw error;
       throw new HttpException(
         'Failed to sync GitHub data',

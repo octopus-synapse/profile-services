@@ -65,6 +65,7 @@ export class MecSyncOrchestratorService {
 
       return syncResult;
     } catch (error) {
+      // External I/O side-effects (DB update) - see ERROR_HANDLING_STRATEGY.md
       await this.syncHelper.handleSyncError(
         syncLog.id,
         error,

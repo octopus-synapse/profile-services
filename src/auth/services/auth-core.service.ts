@@ -31,56 +31,38 @@ export class AuthCoreService {
   ) {}
 
   async signup(dto: SignupDto) {
-    try {
-      const { email, password, name } = dto;
+    const { email, password, name } = dto;
 
-      await this.ensureEmailNotExists(email);
+    await this.ensureEmailNotExists(email);
 
-      const hashedPassword = await this.passwordService.hash(password);
+    const hashedPassword = await this.passwordService.hash(password);
 
-      const user = await this.prisma.user.create({
-        data: {
-          email,
-          name: name ?? email.split('@')[0],
-          password: hashedPassword,
-          hasCompletedOnboarding: false,
-        },
-      });
-
-      this.logger.log(`User registered successfully`, this.context, {
-        userId: user.id,
+    const user = await this.prisma.user.create({
+      data: {
         email,
-      });
+        name: name ?? email.split('@')[0],
+        password: hashedPassword,
+        hasCompletedOnboarding: false,
+      },
+    });
 
-      if (!user.email) {
-        throw new Error('User email is required after registration');
-      }
+    this.logger.log(`User registered successfully`, this.context, {
+      userId: user.id,
+      email,
+    });
 
-      const token = this.tokenService.generateToken({
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        hasCompletedOnboarding: user.hasCompletedOnboarding,
-      });
-
-      return this.buildAuthResponse(user, token);
-    } catch (error) {
-      // Re-throw known exceptions as-is
-      if (
-        error instanceof ConflictException ||
-        error instanceof UnauthorizedException
-      ) {
-        throw error;
-      }
-      // Log and re-throw other errors
-      this.logger.error(
-        'Signup error',
-        error instanceof Error ? error.stack : undefined,
-        this.context,
-        { email: dto.email },
-      );
-      throw error;
+    if (!user.email) {
+      throw new Error('User email is required after registration');
     }
+
+    const token = this.tokenService.generateToken({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      hasCompletedOnboarding: user.hasCompletedOnboarding,
+    });
+
+    return this.buildAuthResponse(user, token);
   }
 
   async validateUser(
@@ -115,44 +97,29 @@ export class AuthCoreService {
   }
 
   async login(dto: LoginDto) {
-    try {
-      const user = await this.validateUser(dto.email, dto.password);
+    const user = await this.validateUser(dto.email, dto.password);
 
-      if (!user) {
-        throw new UnauthorizedException(ERROR_MESSAGES.INVALID_CREDENTIALS);
-      }
-
-      if (!user.email) {
-        throw new UnauthorizedException(ERROR_MESSAGES.INVALID_CREDENTIALS);
-      }
-
-      const token = this.tokenService.generateToken({
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        hasCompletedOnboarding: user.hasCompletedOnboarding,
-      });
-
-      this.logger.log(`User logged in successfully`, this.context, {
-        userId: user.id,
-        email: user.email,
-      });
-
-      return this.buildAuthResponse(user, token);
-    } catch (error) {
-      // Re-throw UnauthorizedException as-is
-      if (error instanceof UnauthorizedException) {
-        throw error;
-      }
-      // Log and re-throw other errors
-      this.logger.error(
-        'Login error',
-        error instanceof Error ? error.stack : undefined,
-        this.context,
-        { email: dto.email },
-      );
-      throw error;
+    if (!user) {
+      throw new UnauthorizedException(ERROR_MESSAGES.INVALID_CREDENTIALS);
     }
+
+    if (!user.email) {
+      throw new UnauthorizedException(ERROR_MESSAGES.INVALID_CREDENTIALS);
+    }
+
+    const token = this.tokenService.generateToken({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      hasCompletedOnboarding: user.hasCompletedOnboarding,
+    });
+
+    this.logger.log(`User logged in successfully`, this.context, {
+      userId: user.id,
+      email: user.email,
+    });
+
+    return this.buildAuthResponse(user, token);
   }
 
   private async ensureEmailNotExists(email: string): Promise<void> {

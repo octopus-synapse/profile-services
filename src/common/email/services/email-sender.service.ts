@@ -15,24 +15,6 @@ export interface SendEmailOptions {
   text?: string;
 }
 
-interface SendGridErrorResponse {
-  body?: unknown;
-  statusCode?: number;
-}
-
-interface SendGridError extends Error {
-  response?: SendGridErrorResponse;
-}
-
-interface ErrorDetails extends Record<string, unknown> {
-  to: string;
-  subject: string;
-  from: string;
-  error: string;
-  sendgridError?: unknown;
-  statusCode?: number;
-}
-
 @Injectable()
 export class EmailSenderService {
   private readonly fromEmail: string;
@@ -85,63 +67,23 @@ export class EmailSenderService {
       return;
     }
 
-    try {
-      const msg = {
-        to: options.to,
-        from: {
-          email: this.fromEmail,
-          name: this.fromName,
-        },
-        subject: options.subject,
-        html: options.html,
-        text: options.text ?? this.stripHtml(options.html),
-      };
+    const msg = {
+      to: options.to,
+      from: {
+        email: this.fromEmail,
+        name: this.fromName,
+      },
+      subject: options.subject,
+      html: options.html,
+      text: options.text ?? this.stripHtml(options.html),
+    };
 
-      await sgMail.send(msg);
+    await sgMail.send(msg);
 
-      this.logger.log('Email sent successfully', 'EmailSenderService', {
-        to: options.to,
-        subject: options.subject,
-      });
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
-      const errorDetails: ErrorDetails = {
-        to: options.to,
-        subject: options.subject,
-        from: this.fromEmail,
-        error: errorMessage,
-      };
-
-      // Add more details for SendGrid errors
-      if (error instanceof Error && 'response' in error) {
-        const sgError = error as SendGridError;
-        if (sgError.response?.body) {
-          errorDetails.sendgridError = sgError.response.body;
-        }
-        if (sgError.response?.statusCode) {
-          errorDetails.statusCode = sgError.response.statusCode;
-        }
-      }
-
-      // Provide helpful error messages for common issues
-      if (errorMessage.includes('Forbidden') || errorMessage.includes('403')) {
-        this.logger.error(
-          'SendGrid Forbidden error. Common causes: 1) Invalid API key, 2) Email "from" not verified in SendGrid, 3) Domain not verified, 4) API key lacks send permissions',
-          error instanceof Error ? error.stack : 'Unknown error',
-          'EmailSenderService',
-          errorDetails,
-        );
-      } else {
-        this.logger.error(
-          'Failed to send email',
-          error instanceof Error ? error.stack : 'Unknown error',
-          'EmailSenderService',
-          errorDetails,
-        );
-      }
-      throw error;
-    }
+    this.logger.log('Email sent successfully', 'EmailSenderService', {
+      to: options.to,
+      subject: options.subject,
+    });
   }
 
   /**
