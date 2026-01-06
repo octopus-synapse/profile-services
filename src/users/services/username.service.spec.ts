@@ -63,11 +63,15 @@ describe('UsernameService', () => {
         userId,
         'newusername',
       );
-      expect(logger.debug).toHaveBeenCalledWith('Username updated', 'UsernameService', {
-        userId,
-        oldUsername: 'oldusername',
-        newUsername: 'newusername',
-      });
+      expect(logger.debug).toHaveBeenCalledWith(
+        'Username updated',
+        'UsernameService',
+        {
+          userId,
+          oldUsername: 'oldusername',
+          newUsername: 'newusername',
+        },
+      );
     });
 
     it('should normalize username to lowercase', async () => {
@@ -285,11 +289,15 @@ describe('UsernameService', () => {
       const userId = 'user-123';
       const updateDto = { username: 'newusername' };
       const mockUser = { id: userId, username: 'oldusername' };
-      const exactlyThirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      const exactlyThirtyDaysAgo = new Date(
+        Date.now() - 30 * 24 * 60 * 60 * 1000,
+      );
       const mockUpdatedUser = { id: userId, username: 'newusername' };
 
       usersRepository.getUser.mockResolvedValue(mockUser as any);
-      usersRepository.getLastUsernameUpdate.mockResolvedValue(exactlyThirtyDaysAgo);
+      usersRepository.getLastUsernameUpdate.mockResolvedValue(
+        exactlyThirtyDaysAgo,
+      );
       usersRepository.isUsernameTaken.mockResolvedValue(false);
       usersRepository.updateUsername.mockResolvedValue(mockUpdatedUser as any);
 
@@ -312,7 +320,9 @@ describe('UsernameService', () => {
       const result = await service.updateUsername(userId, updateDto);
 
       expect(result.success).toBe(true);
-      expect(usersRepository.getLastUsernameUpdate).toHaveBeenCalledWith(userId);
+      expect(usersRepository.getLastUsernameUpdate).toHaveBeenCalledWith(
+        userId,
+      );
     });
   });
 });

@@ -73,7 +73,9 @@ describe('EmailVerificationService', () => {
 
       expect(result.success).toBe(true);
       expect(result.message).toContain('Verification email sent');
-      expect(tokenService.createEmailVerificationToken).toHaveBeenCalledWith(dto.email);
+      expect(tokenService.createEmailVerificationToken).toHaveBeenCalledWith(
+        dto.email,
+      );
       expect(emailService.sendVerificationEmail).toHaveBeenCalledWith(
         dto.email,
         mockUser.name,
@@ -129,7 +131,9 @@ describe('EmailVerificationService', () => {
       const mockFindUnique = prismaService.user.findUnique as jest.Mock;
       mockFindUnique.mockResolvedValue(mockUser);
       tokenService.createEmailVerificationToken.mockResolvedValue(mockToken);
-      emailService.sendVerificationEmail.mockRejectedValue(new Error('SMTP error'));
+      emailService.sendVerificationEmail.mockRejectedValue(
+        new Error('SMTP error'),
+      );
 
       // Should not throw despite email failure
       await expect(service.requestVerification(dto)).resolves.not.toThrow();
@@ -217,7 +221,10 @@ describe('EmailVerificationService', () => {
         where: { email },
         data: { emailVerified: expect.any(Date) },
       });
-      expect(emailService.sendWelcomeEmail).toHaveBeenCalledWith(email, mockUser.name);
+      expect(emailService.sendWelcomeEmail).toHaveBeenCalledWith(
+        email,
+        mockUser.name,
+      );
       expect(logger.log).toHaveBeenCalled();
     });
 
@@ -283,7 +290,10 @@ describe('EmailVerificationService', () => {
 
       await service.verifyEmail(dto);
 
-      expect(emailService.sendWelcomeEmail).toHaveBeenCalledWith(email, 'Usuário');
+      expect(emailService.sendWelcomeEmail).toHaveBeenCalledWith(
+        email,
+        'Usuário',
+      );
     });
   });
 });
