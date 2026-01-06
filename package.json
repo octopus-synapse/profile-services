@@ -144,6 +144,9 @@
       "node_modules",
       "dist",
       "coverage"
+    ],
+    "transformIgnorePatterns": [
+      "node_modules/(?!uuid)"
     ]
   }
 }
