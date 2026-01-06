@@ -1,6 +1,6 @@
 {
   "name": "@octopus-synapse/profile-services",
-  "version": "1.0.3",
+  "version": "3.0.0",
   "description": "",
   "author": "",
   "private": true,
@@ -22,9 +22,8 @@
     "test:smoke": "jest --config ./test/jest-smoke.json",
     "test:integration": "jest --config ./jest.integration.config.js",
     "test:critical": "jest --config ./jest.critical.config.js",
-    "test:fast": "jest --maxWorkers=50% --bail",
-    "test:integration:watch": "jest --config ./jest.integration.config.js --watch",
     "test:fast": "jest --maxWorkers=50% --bail --silent",
+    "test:integration:watch": "jest --config ./jest.integration.config.js --watch",
     "test:changed": "jest --onlyChanged --bail --silent",
     "test:metrics": "jest --json --outputFile=test-metrics.json && node scripts/analyze-test-metrics.js",
     "test:watch:verbose": "jest --watch --verbose",
