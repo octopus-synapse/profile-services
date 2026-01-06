@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [3.0.0](https://github.com/octopus-synapse/profile-services/compare/v2.0.1...v3.0.0) (2026-01-06)
+
+
+### ⚠ BREAKING CHANGES
+
+* **testing:** Coverage below 60% now fails CI builds
+
+### Features
+
+* **testing:** implement Milestone 0 - Kent Beck + Uncle Bob testing infrastructure ([2a5095a](https://github.com/octopus-synapse/profile-services/commit/2a5095aaf2c2095ef22709d2beed903059296faa))
+
+
+### Bug Fixes
+
+* **ci:** use GH_PAT for GitHub Packages authentication ([675ecda](https://github.com/octopus-synapse/profile-services/commit/675ecda84411ca88c9c86390b18e512cb2a84204))
+* **release:** reset version to logical PATCH sequence 1.0.2 ([9f81397](https://github.com/octopus-synapse/profile-services/commit/9f81397bf64ab63f30fe0c4cfc5638cda8154c96))
+
 ## [2.0.1](https://github.com/octopus-synapse/profile-services/compare/v2.0.0...v2.0.1) (2026-01-05)
 
 
