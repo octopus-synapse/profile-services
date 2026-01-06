@@ -3,6 +3,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { Skill } from '@prisma/client';
 import { CreateSkillDto, UpdateSkillDto } from '../dto/skill.dto';
 import { PaginatedResult } from '../dto/pagination.dto';
+import { PAGINATION } from '../../common/constants/validation/pagination.const';
 
 /**
  * Ordering strategy: by category ASC, then order ASC (grouped by category, user-defined within group)
@@ -20,8 +21,8 @@ export class SkillRepository {
 
   async findAll(
     resumeId: string,
-    page: number = 1,
-    limit: number = 50,
+    page: number = PAGINATION.DEFAULT_PAGE,
+    limit: number = PAGINATION.DEFAULT_PAGE_SIZE,
     category?: string,
   ): Promise<PaginatedResult<Skill>> {
     const skip = (page - 1) * limit;
