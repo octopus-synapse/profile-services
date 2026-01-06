@@ -176,7 +176,10 @@ describe('AuthCoreService', () => {
       expect(logger.log).toHaveBeenCalledWith(
         'User registered successfully',
         'AuthCoreService',
-        expect.objectContaining({ userId: mockUser.id, email: signupDto.email }),
+        expect.objectContaining({
+          userId: mockUser.id,
+          email: signupDto.email,
+        }),
       );
     });
 
@@ -260,7 +263,6 @@ describe('AuthCoreService', () => {
     };
 
     it('should return auth response when credentials valid', async () => {
-      const { password: _, ...validUser } = mockUser;
       const token = 'jwt-token';
       const refreshToken = 'refresh-token';
 
