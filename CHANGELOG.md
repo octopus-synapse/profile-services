@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.1](https://github.com/octopus-synapse/profile-services/compare/v1.1.0...v1.1.1) (2026-01-06)
+
+
+### Bug Fixes
+
+* **auth:** minor test fixes after refactoring ([eb0938f](https://github.com/octopus-synapse/profile-services/commit/eb0938f03491f1f8f53b4255b6649014d860174c))
+
 ## [1.1.0](https://github.com/octopus-synapse/profile-services/compare/v1.0.0...v1.1.0) (2026-01-06)
 
 
