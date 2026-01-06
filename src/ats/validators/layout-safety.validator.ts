@@ -127,7 +127,9 @@ export class LayoutSafetyValidator {
     const lines = text.split('\n');
     let suspiciousLines = 0;
 
-    const spacingPattern = new RegExp(`\\s{${LAYOUT_VALIDATION.COLUMN_SEPARATOR_SPACING},}`);
+    const spacingPattern = new RegExp(
+      `\\s{${LAYOUT_VALIDATION.COLUMN_SEPARATOR_SPACING},}`,
+    );
 
     lines.forEach((line) => {
       if (spacingPattern.test(line)) {
@@ -135,11 +137,15 @@ export class LayoutSafetyValidator {
       }
     });
 
-    return suspiciousLines > lines.length * LAYOUT_VALIDATION.MULTI_COLUMN_PERCENTAGE;
+    return (
+      suspiciousLines > lines.length * LAYOUT_VALIDATION.MULTI_COLUMN_PERCENTAGE
+    );
   }
 
   private detectExcessiveLineBreaks(text: string): boolean {
-    const newlinePattern = '\\n\\s*'.repeat(LAYOUT_VALIDATION.EXCESSIVE_NEWLINES + 1);
+    const newlinePattern = '\\n\\s*'.repeat(
+      LAYOUT_VALIDATION.EXCESSIVE_NEWLINES + 1,
+    );
     return new RegExp(newlinePattern).test(text);
   }
 
@@ -148,8 +154,12 @@ export class LayoutSafetyValidator {
 
     return lines.some((line) => {
       const trimmed = line.trim();
-      const asciiPattern = new RegExp(`^[-=_*]{${LAYOUT_VALIDATION.HORIZONTAL_LINE_MIN_LENGTH},}$`);
-      const unicodePattern = new RegExp(`^[─━═]{${LAYOUT_VALIDATION.HORIZONTAL_LINE_UNICODE_MIN},}$`);
+      const asciiPattern = new RegExp(
+        `^[-=_*]{${LAYOUT_VALIDATION.HORIZONTAL_LINE_MIN_LENGTH},}$`,
+      );
+      const unicodePattern = new RegExp(
+        `^[─━═]{${LAYOUT_VALIDATION.HORIZONTAL_LINE_UNICODE_MIN},}$`,
+      );
       return asciiPattern.test(trimmed) || unicodePattern.test(trimmed);
     });
   }

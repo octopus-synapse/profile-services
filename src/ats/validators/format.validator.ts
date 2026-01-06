@@ -97,7 +97,9 @@ export class FormatValidator {
   private detectMultiColumn(text: string): boolean {
     const lines = text.split('\n');
 
-    const spacingPattern = new RegExp(`\\s{${FORMAT_VALIDATION.MULTI_COLUMN_SPACING},}`);
+    const spacingPattern = new RegExp(
+      `\\s{${FORMAT_VALIDATION.MULTI_COLUMN_SPACING},}`,
+    );
     let suspiciousLines = 0;
 
     lines.forEach((line) => {
