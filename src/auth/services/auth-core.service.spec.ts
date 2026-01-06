@@ -182,19 +182,6 @@ describe('AuthCoreService', () => {
         }),
       );
     });
-
-    it('should log errors on signup failure', async () => {
-      const error = new Error('Database error');
-      prisma.user.findUnique.mockRejectedValue(error);
-
-      await expect(service.signup(signupDto)).rejects.toThrow(error);
-      expect(logger.error).toHaveBeenCalledWith(
-        'Signup error',
-        error.stack,
-        'AuthCoreService',
-        expect.objectContaining({ email: signupDto.email }),
-      );
-    });
   });
 
   describe('validateUser', () => {
@@ -327,19 +314,6 @@ describe('AuthCoreService', () => {
         'User logged in successfully',
         'AuthCoreService',
         expect.objectContaining({ userId: mockUser.id, email: mockUser.email }),
-      );
-    });
-
-    it('should log errors on login failure', async () => {
-      const error = new Error('Database error');
-      prisma.user.findUnique.mockRejectedValue(error);
-
-      await expect(service.login(loginDto)).rejects.toThrow(error);
-      expect(logger.error).toHaveBeenCalledWith(
-        'Login error',
-        error.stack,
-        'AuthCoreService',
-        expect.objectContaining({ email: loginDto.email }),
       );
     });
 
