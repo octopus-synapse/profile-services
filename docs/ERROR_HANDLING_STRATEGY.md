@@ -211,6 +211,62 @@ it('should retry S3 upload on transient failure', async () => {
 
 ---
 
+## Implementation Status
+
+### ✅ Phase 1: Remove Re-throw Violations (Completed)
+
+**Files Refactored (6 violations removed):**
+- `auth-core.service.ts` - Removed try-catch from signup() and login()
+- `ats.service.ts` - Removed log-and-rethrow from validate()
+- `prisma.service.ts` - Removed try-catch from onModuleInit()
+- `s3-upload.service.ts` - Removed log-and-rethrow from uploadFile()
+- `email-sender.service.ts` - Removed log-and-rethrow from sendEmail()
+- `translation-core.service.ts` - Removed 2 valueless catchError operators
+
+**Tests Updated:**
+- Removed 2 implementation assertion tests from `auth-core.service.spec.ts`
+- Tests now assert observable behavior only, not logging calls
+
+### ✅ Phase 2: Document Legitimate Patterns (Completed)
+
+**Files Documented (5 legitimate patterns):**
+- `mec-sync.service.ts` - Side-effect error logging with finally cleanup
+- `onboarding.service.ts` - Prisma P2002 → ConflictException transformation
+- `dsl-validator.service.ts` - ZodError parsing fallback
+- `github.service.ts` - HTTP error transformation
+- `github-sync.service.ts` - HTTP error transformation
+
+**Verified Legitimate (I/O recovery):**
+- `cache-core.service.ts` - 5 try-catch blocks for Redis graceful degradation
+- `redis-connection.service.ts` - 2 try-catch blocks for connection/shutdown
+- `password-reset.service.ts` - Email enumeration prevention + I/O recovery
+- `email-verification.service.ts` - 2 I/O recovery blocks for email sending
+- `translation-core.service.ts` - 2 I/O recovery blocks (health check + translate)
+
+### ✅ Phase 3: Global Exception Filter (Completed)
+
+**Enhanced `AllExceptionsFilter`:**
+- Severity-based logging (error/warn/log for 5xx/4xx/2xx)
+- Request context tracking (userId, IP, method, path, timestamp)
+- Centralized error transformation and response formatting
+- All services now delegate logging to this filter
+
+### 📊 Results
+
+**Before:**
+- 38 try-catch blocks with mixed patterns
+- Duplicate logging across services
+- Tests coupled to implementation details
+
+**After:**
+- 6 violations removed
+- 16 legitimate patterns documented/verified
+- 1 centralized global exception filter
+- 706 tests passing (deleted 2 implementation tests, removed 2 error logging tests)
+- Predictable exception contract across all services
+
+---
+
 ## Metrics
 
 Track via global filter:
