@@ -1,0 +1,11 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "🧪 Pre-push checks (1-2min)..."
+
+# All unit tests (710 tests) with fast failure
+echo "  → Running full test suite (710 tests)..."
+npm run test:fast || exit 1
+
+echo "✅ Pre-push passed!"
+echo "💡 CI will run smoke tests + coverage on the server"
