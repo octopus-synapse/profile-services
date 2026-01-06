@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.0](https://github.com/octopus-synapse/profile-services/compare/v1.0.0...v1.1.0) (2026-01-06)
+
+
+### Features
+
+* add /api/version endpoint synchronized with deployment manifest ([c2e9cf2](https://github.com/octopus-synapse/profile-services/commit/c2e9cf245d62145d98b6ef69a116bd8385c47be2))
+* add release workflow with Docker versioning ([7f39656](https://github.com/octopus-synapse/profile-services/commit/7f3965605ffc2e0ff8e579909c6c7bccecfc87b3))
+* integrate profile-contracts for backend validation ([ad0456d](https://github.com/octopus-synapse/profile-services/commit/ad0456d8ca2e2c2779fd6667429a0b8a30805e36))
+* **testing:** implement Milestone 0 - Kent Beck + Uncle Bob testing infrastructure ([b8540b5](https://github.com/octopus-synapse/profile-services/commit/b8540b5d0ea713e42b0aaca92fdadf48d2b01c5b))
+
+
+### Bug Fixes
+
+* add API versioning with v1 prefix ([8779725](https://github.com/octopus-synapse/profile-services/commit/87797252224485ad05f70c1aa02f4445bc0af912)), closes [#26](https://github.com/octopus-synapse/profile-services/issues/26)
+* **ci:** add per-commit test summaries to PRs ([2b3d7b3](https://github.com/octopus-synapse/profile-services/commit/2b3d7b39950a6a2e9af281f1217bea44e0e9fc10))
+* **ci:** add test summary comments to PRs ([e4d0325](https://github.com/octopus-synapse/profile-services/commit/e4d03251888b1d962ca2c85ce70aa78aae719f76))
+* **ci:** use GH_PAT for GitHub Packages authentication ([d98d82a](https://github.com/octopus-synapse/profile-services/commit/d98d82ab522c16c551c98f7d26ed9316198f672a))
+* correct file paths in contract validation workflow ([0de4959](https://github.com/octopus-synapse/profile-services/commit/0de4959b858d78ca3086873eef6f5bb9a1e27287))
+* enforce CI checks in pre-commit and fix lint errors ([3cfe3d9](https://github.com/octopus-synapse/profile-services/commit/3cfe3d9ce680ac8e3baf01844f2f6265871a81c4))
+* **release:** align all version artifacts to v1.0.0 ([45b277a](https://github.com/octopus-synapse/profile-services/commit/45b277a1aa08df644cc908bbe0785cdc6975f168))
+* **release:** correct manifest and package version to 1.0.1 ([071ae4e](https://github.com/octopus-synapse/profile-services/commit/071ae4e378d5de09daa0cb85421f25c07b8bc5db))
+* **release:** reset version to logical PATCH sequence 1.0.2 ([93d9e38](https://github.com/octopus-synapse/profile-services/commit/93d9e388339e629546bd097eeea206a338ba9f67))
+* skip contract validation on release PRs ([510415f](https://github.com/octopus-synapse/profile-services/commit/510415f22fd5cb50573636ac8b9540333dc5dc8c))
+* **tests:** update smoke tests for /v1/ API versioning ([04f7437](https://github.com/octopus-synapse/profile-services/commit/04f7437f7c92d842d5d6671e4215aa36227917e3))
+* update onboarding DTOs and tests for contract structure ([b84748b](https://github.com/octopus-synapse/profile-services/commit/b84748b980952bd55eccea1c64ef38f3b7a5fa0c))
+* use secrets instead of build-args for Docker GitHub auth ([47a4d2f](https://github.com/octopus-synapse/profile-services/commit/47a4d2fe98764cae92c3b3be1bec33b5b8a4bb8c))
+* use secrets instead of build-args for GitHub token in release workflow ([4053c35](https://github.com/octopus-synapse/profile-services/commit/4053c353782a858eea133201c5003fe31f87f13e))
+
 ## [2.0.1](https://github.com/octopus-synapse/profile-services/compare/v2.0.0...v2.0.1) (2026-01-05)
 
 
