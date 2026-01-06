@@ -1,21 +1,19 @@
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
-echo "Running pre-commit checks..."
+echo "🔍 Pre-commit checks (< 10s)..."
 
-# Type checking
-echo "Checking types..."
+# 1. Lint (code style)
+echo "  → Linting..."
+npm run lint --silent || exit 1
+
+# 2. Type check (TypeScript syntax)
+echo "  → Type checking..."
 npm run typecheck || exit 1
 
-# Linting
-echo "Running linter..."
-npm run lint || exit 1
+# 3. Critical tests (core business logic)
+echo "  → Running 10 critical tests..."
+npm run test:critical || exit 1
 
-# Unit Tests
-echo "Running unit tests..."
-npm test || exit 1
-
-# Note: Smoke tests run only in CI to keep pre-commit fast
-# CI will run: npm run test:smoke
-
-echo "✓ All pre-commit checks passed!"
+echo "✅ Pre-commit passed!"
+echo "💡 Full test suite (710 tests) will run on pre-push"
