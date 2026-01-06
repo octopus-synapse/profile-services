@@ -87,7 +87,9 @@ describe('UserProfileService', () => {
 
       await expect(
         service.getPublicProfileByUsername('nonexistent'),
-      ).rejects.toThrow(new NotFoundException(ERROR_MESSAGES.PUBLIC_PROFILE_NOT_FOUND));
+      ).rejects.toThrow(
+        new NotFoundException(ERROR_MESSAGES.PUBLIC_PROFILE_NOT_FOUND),
+      );
 
       expect(resumesRepository.findByUserId).not.toHaveBeenCalled();
     });
@@ -105,7 +107,9 @@ describe('UserProfileService', () => {
 
       await expect(
         service.getPublicProfileByUsername('private-user'),
-      ).rejects.toThrow(new NotFoundException(ERROR_MESSAGES.PUBLIC_PROFILE_NOT_FOUND));
+      ).rejects.toThrow(
+        new NotFoundException(ERROR_MESSAGES.PUBLIC_PROFILE_NOT_FOUND),
+      );
 
       expect(resumesRepository.findByUserId).not.toHaveBeenCalled();
     });
@@ -121,7 +125,9 @@ describe('UserProfileService', () => {
 
       await expect(
         service.getPublicProfileByUsername('no-prefs-user'),
-      ).rejects.toThrow(new NotFoundException(ERROR_MESSAGES.PUBLIC_PROFILE_NOT_FOUND));
+      ).rejects.toThrow(
+        new NotFoundException(ERROR_MESSAGES.PUBLIC_PROFILE_NOT_FOUND),
+      );
     });
 
     it('should return profile with null resume when user has no resume', async () => {
@@ -192,7 +198,9 @@ describe('UserProfileService', () => {
       };
 
       usersRepository.getUser.mockResolvedValue(mockUser as any);
-      usersRepository.updateUserProfile.mockResolvedValue(mockUpdatedUser as any);
+      usersRepository.updateUserProfile.mockResolvedValue(
+        mockUpdatedUser as any,
+      );
 
       const result = await service.updateProfile(userId, updateDto);
 
@@ -205,7 +213,10 @@ describe('UserProfileService', () => {
           location: 'New York',
         },
       });
-      expect(usersRepository.updateUserProfile).toHaveBeenCalledWith(userId, updateDto);
+      expect(usersRepository.updateUserProfile).toHaveBeenCalledWith(
+        userId,
+        updateDto,
+      );
       expect(logger.debug).toHaveBeenCalledWith(
         'User profile updated',
         'UserProfileService',
@@ -237,7 +248,9 @@ describe('UserProfileService', () => {
       };
 
       usersRepository.getUser.mockResolvedValue(mockUser as any);
-      usersRepository.updateUserProfile.mockResolvedValue(mockUpdatedUser as any);
+      usersRepository.updateUserProfile.mockResolvedValue(
+        mockUpdatedUser as any,
+      );
 
       const result = await service.updateProfile(userId, updateDto);
 
@@ -260,7 +273,9 @@ describe('UserProfileService', () => {
       const mockUpdatedUser = { id: userId, ...updateDto };
 
       usersRepository.getUser.mockResolvedValue(mockUser as any);
-      usersRepository.updateUserProfile.mockResolvedValue(mockUpdatedUser as any);
+      usersRepository.updateUserProfile.mockResolvedValue(
+        mockUpdatedUser as any,
+      );
 
       const result = await service.updateProfile(userId, updateDto);
 
