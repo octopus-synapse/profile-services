@@ -6,8 +6,7 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
-import { firstValueFrom, catchError, timeout } from 'rxjs';
-import { AxiosError } from 'axios';
+import { firstValueFrom, timeout } from 'rxjs';
 import {
   TranslationLanguage,
   TranslationResult,
@@ -36,12 +35,9 @@ export class TranslationCoreService implements OnModuleInit {
   async checkServiceHealth(): Promise<boolean> {
     try {
       const response = await firstValueFrom(
-        this.httpService.get(`${this.libreTranslateUrl}/languages`).pipe(
-          timeout(5000),
-          catchError((error: AxiosError) => {
-            throw error;
-          }),
-        ),
+        this.httpService
+          .get(`${this.libreTranslateUrl}/languages`)
+          .pipe(timeout(5000)),
       );
       this.isServiceAvailable = response.status === 200;
       this.logger.log(
@@ -92,12 +88,7 @@ export class TranslationCoreService implements OnModuleInit {
             target: targetLanguage,
             format: 'text',
           })
-          .pipe(
-            timeout(15000),
-            catchError((error: AxiosError) => {
-              throw error;
-            }),
-          ),
+          .pipe(timeout(15000)),
       );
 
       const responseData = response.data as

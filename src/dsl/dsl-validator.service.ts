@@ -26,6 +26,7 @@ export class DslValidatorService {
       const normalized = ResumeDslSchema.parse(input);
       return { valid: true, normalized };
     } catch (error) {
+      // Parsing fallback - see ERROR_HANDLING_STRATEGY.md
       if (error instanceof ZodError) {
         return {
           valid: false,

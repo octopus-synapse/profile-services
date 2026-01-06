@@ -1,3 +1,9 @@
+/**
+ * Global Exception Filter
+ * Centralizes error logging and response transformation
+ * Follows ERROR_HANDLING_STRATEGY.md principles
+ */
+
 import {
   ExceptionFilter,
   Catch,
@@ -30,21 +36,46 @@ export class AllExceptionsFilter implements ExceptionFilter {
             message: 'Internal server error',
           };
 
-    const log = {
+    // Centralized logging based on severity
+    this.logException(exception, request, status);
+
+    response.status(status).json(message);
+  }
+
+  private logException(
+    exception: unknown,
+    request: Request,
+    status: number,
+  ): void {
+    const context = 'AllExceptionsFilter';
+    const errorMessage =
+      exception instanceof Error ? exception.message : String(exception);
+    const errorStack = exception instanceof Error ? exception.stack : undefined;
+
+    const metadata = {
       timestamp: new Date().toISOString(),
       path: request.url,
       method: request.method,
-      response: message,
-      stack: exception instanceof Error ? exception.stack : undefined,
+      statusCode: status,
+      userId: (request as { user?: { id?: string } }).user?.id,
+      ip: request.ip,
     };
 
-    this.logger.error(
-      'Unhandled Exception',
-      exception instanceof Error ? exception.stack : JSON.stringify(exception),
-      'ExceptionFilter',
-      log,
-    );
-
-    response.status(status).json(message);
+    // Log based on HTTP status severity
+    if (status >= 500) {
+      // Server errors - full stack trace
+      this.logger.error(
+        `Server Error: ${errorMessage}`,
+        errorStack,
+        context,
+        metadata,
+      );
+    } else if (status >= 400) {
+      // Client errors - warning level, no stack trace
+      this.logger.warn(`Client Error: ${errorMessage}`, context, metadata);
+    } else {
+      // Successful responses logged at info level
+      this.logger.log(`Request handled: ${errorMessage}`, context, metadata);
+    }
   }
 }

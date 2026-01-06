@@ -115,7 +115,7 @@ export class OnboardingService {
         },
       )
       .catch((error: unknown) => {
-        // If anything fails, don't delete progress so user can retry
+        // Transaction rollback with domain exception transformation - see ERROR_HANDLING_STRATEGY.md
         this.logger.error(
           'Onboarding completion failed, progress preserved',
           error instanceof Error ? error.stack : 'Unknown error',
@@ -126,7 +126,7 @@ export class OnboardingService {
           },
         );
 
-        // Check for unique constraint violation on username
+        // Transform Prisma unique constraint violation into domain exception
         if (
           error &&
           typeof error === 'object' &&
