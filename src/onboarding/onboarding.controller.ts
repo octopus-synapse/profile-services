@@ -3,6 +3,7 @@ import {
   Post,
   Get,
   Put,
+  Patch,
   Body,
   UseGuards,
   HttpCode,
@@ -15,10 +16,15 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { OnboardingService } from './onboarding.service';
-import { OnboardingDto, OnboardingProgressDto } from './dto/onboarding.dto';
+import { OnboardingProgressDto } from './dto/onboarding-progress.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { UserPayload } from '../auth/interfaces/auth-request.interface';
+import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
+import {
+  OnboardingDataSchema,
+  OnboardingData,
+} from '@octopus-synapse/profile-contracts';
 
 @ApiTags('onboarding')
 @ApiBearerAuth('JWT-auth')
@@ -46,7 +52,7 @@ export class OnboardingController {
   @ApiResponse({ status: 404, description: 'User not found' })
   async completeOnboarding(
     @CurrentUser() user: UserPayload,
-    @Body() data: OnboardingDto,
+    @Body(new ZodValidationPipe(OnboardingDataSchema)) data: OnboardingData,
   ) {
     return this.onboardingService.completeOnboarding(user.userId, data);
   }
