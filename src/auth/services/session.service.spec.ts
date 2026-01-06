@@ -27,10 +27,7 @@ describe('TokenService', () => {
     } as any;
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        TokenService,
-        { provide: JwtService, useValue: jwtService },
-      ],
+      providers: [TokenService, { provide: JwtService, useValue: jwtService }],
     }).compile();
 
     service = module.get<TokenService>(TokenService);
