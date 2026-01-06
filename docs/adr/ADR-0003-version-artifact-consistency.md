@@ -48,8 +48,7 @@ package.json "version": "1.0.0"
    - package.json MUST contain `"version": "X.Y.Z"`
 
 2. **Before next release:**
-   - Release-please PR updates package.json to next version
-   - Manifest stays at current version until release published
+   - Release-please PR updates package.json and manifest to next version
    - Tag created only when release published
 
 3. **Version format compliance:**
@@ -58,7 +57,14 @@ package.json "version": "1.0.0"
    - Git tags include `v` prefix
    - Manifest and package.json exclude `v` prefix
 
-4. **Tools MUST be version-agnostic:**
+4. **Semantic Versioning (Post-1.0.0):**
+   - `feat:` commits → **MINOR** bump (e.g., 1.0.0 → 1.1.0)
+   - `fix:` commits → **PATCH** bump (e.g., 1.1.0 → 1.1.1)
+   - `BREAKING CHANGE:` → **MAJOR** bump (e.g., 1.1.0 → 2.0.0)
+   - **Pre-1.0.0 only:** `always-bump-patch` kept all increments as PATCH
+   - **Post-1.0.0:** Conventional commits determine bump type (standard semver)
+
+5. **Tools MUST be version-agnostic:**
    - Use `sort -V` for version sorting (not lexicographic)
    - Use `${VERSION#v}` for prefix stripping (not regex)
    - Never hardcode version patterns (e.g., `v[0-9]\.`)
