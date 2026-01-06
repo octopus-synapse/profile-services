@@ -99,7 +99,11 @@ School 1
       });
 
       it('should handle whitespace-only input', () => {
-        const result = parser.parseCV('   \n\n   \n', 'ws.pdf', 'application/pdf');
+        const result = parser.parseCV(
+          '   \n\n   \n',
+          'ws.pdf',
+          'application/pdf',
+        );
 
         expect(result.sections).toHaveLength(0);
       });
@@ -635,4 +639,3 @@ Programming with enough content
     });
   });
 });
-

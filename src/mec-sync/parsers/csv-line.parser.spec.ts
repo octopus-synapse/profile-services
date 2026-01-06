@@ -279,4 +279,3 @@ describe('CSV Line Parser', () => {
     });
   });
 });
-

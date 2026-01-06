@@ -235,7 +235,7 @@ describe('Entity Normalizer', () => {
 
       it('should normalize course name with special characters', () => {
         const row = createMockRow({
-          NO_CURSO: "Análise e Desenvolvimento de Sistemas (Tecnólogo)",
+          NO_CURSO: 'Análise e Desenvolvimento de Sistemas (Tecnólogo)',
         });
 
         const result = normalizeCourse(row);
@@ -247,4 +247,3 @@ describe('Entity Normalizer', () => {
     });
   });
 });
-

@@ -274,4 +274,3 @@ describe('Onboarding Flow Integration', () => {
     });
   });
 });
-

@@ -242,14 +242,14 @@ describe('MEC Row Mapper', () => {
           ['NO_MUNICIPIO_IES', 1],
         ]);
         const values = [
-          "Universidade São Paulo - USP (Campus Ribeirão Preto)",
+          'Universidade São Paulo - USP (Campus Ribeirão Preto)',
           'Ribeirão Preto',
         ];
 
         const result = mapToMecRow(values, columnMap);
 
         expect(result.NO_IES).toBe(
-          "Universidade São Paulo - USP (Campus Ribeirão Preto)",
+          'Universidade São Paulo - USP (Campus Ribeirão Preto)',
         );
         expect(result.NO_MUNICIPIO_IES).toBe('Ribeirão Preto');
       });
@@ -344,4 +344,3 @@ describe('MEC Row Mapper', () => {
     });
   });
 });
-
