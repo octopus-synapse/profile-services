@@ -4,6 +4,7 @@ import {
   ValidationIssue,
   ValidationSeverity,
 } from '../interfaces';
+import { LAYOUT_VALIDATION } from './constants';
 
 @Injectable()
 export class LayoutSafetyValidator {
@@ -126,19 +127,26 @@ export class LayoutSafetyValidator {
     const lines = text.split('\n');
     let suspiciousLines = 0;
 
+    const spacingPattern = new RegExp(
+      `\\s{${LAYOUT_VALIDATION.COLUMN_SEPARATOR_SPACING},}`,
+    );
+
     lines.forEach((line) => {
-      // If a line has 10+ consecutive spaces, it might be a column separator
-      if (/\s{10,}/.test(line)) {
+      if (spacingPattern.test(line)) {
         suspiciousLines++;
       }
     });
 
-    // If more than 20% of lines have this pattern, likely multi-column
-    return suspiciousLines > lines.length * 0.2;
+    return (
+      suspiciousLines > lines.length * LAYOUT_VALIDATION.MULTI_COLUMN_PERCENTAGE
+    );
   }
 
   private detectExcessiveLineBreaks(text: string): boolean {
-    return /\n\s*\n\s*\n\s*\n/.test(text);
+    const newlinePattern = '\\n\\s*'.repeat(
+      LAYOUT_VALIDATION.EXCESSIVE_NEWLINES + 1,
+    );
+    return new RegExp(newlinePattern).test(text);
   }
 
   private detectHorizontalLines(text: string): boolean {
@@ -146,7 +154,13 @@ export class LayoutSafetyValidator {
 
     return lines.some((line) => {
       const trimmed = line.trim();
-      return /^[-=_*]{5,}$/.test(trimmed) || /^[─━═]{3,}$/.test(trimmed);
+      const asciiPattern = new RegExp(
+        `^[-=_*]{${LAYOUT_VALIDATION.HORIZONTAL_LINE_MIN_LENGTH},}$`,
+      );
+      const unicodePattern = new RegExp(
+        `^[─━═]{${LAYOUT_VALIDATION.HORIZONTAL_LINE_UNICODE_MIN},}$`,
+      );
+      return asciiPattern.test(trimmed) || unicodePattern.test(trimmed);
     });
   }
 }
