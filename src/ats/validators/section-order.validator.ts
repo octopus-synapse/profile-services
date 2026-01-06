@@ -13,8 +13,7 @@ export class SectionOrderValidator {
     return CVSectionType[type] as string;
   }
 
-  // Recommended section order for ATS
-  private readonly RECOMMENDED_ORDER: CVSectionType[] = [
+  private readonly ATS_RECOMMENDED_SECTION_ORDER: CVSectionType[] = [
     CVSectionType.PERSONAL_INFO,
     CVSectionType.SUMMARY,
     CVSectionType.EXPERIENCE,
@@ -74,7 +73,7 @@ export class SectionOrderValidator {
       issues,
       metadata: {
         currentOrder: currentOrder.map((type) => this.getSectionName(type)),
-        recommendedOrder: this.RECOMMENDED_ORDER.map((type) =>
+        recommendedOrder: this.ATS_RECOMMENDED_SECTION_ORDER.map((type) =>
           this.getSectionName(type),
         ),
       },

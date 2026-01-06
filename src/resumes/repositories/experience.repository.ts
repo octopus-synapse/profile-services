@@ -110,7 +110,6 @@ export class ExperienceRepository {
 
     if (result.count === 0) return null;
 
-    // Fetch and return the updated record
     return this.prisma.experience.findUnique({ where: { id } });
   }
 

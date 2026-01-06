@@ -8,11 +8,9 @@ import { LAYOUT_VALIDATION } from './constants';
 
 @Injectable()
 export class LayoutSafetyValidator {
-  // ATS-safe bullet characters
-  private readonly SAFE_BULLETS = ['-', '*', '•'];
+  private readonly ATS_SAFE_BULLETS = ['-', '*', '•'];
 
-  // Potentially problematic bullet characters
-  private readonly UNSAFE_BULLETS = [
+  private readonly ATS_UNSAFE_BULLETS = [
     '●',
     '○',
     '◆',
@@ -104,7 +102,7 @@ export class LayoutSafetyValidator {
   private detectUnsafeBullets(text: string): string[] {
     const found = new Set<string>();
 
-    this.UNSAFE_BULLETS.forEach((bullet) => {
+    this.ATS_UNSAFE_BULLETS.forEach((bullet) => {
       if (text.includes(bullet)) {
         found.add(bullet);
       }

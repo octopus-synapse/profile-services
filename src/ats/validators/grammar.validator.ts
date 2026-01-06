@@ -7,27 +7,26 @@ import {
 
 @Injectable()
 export class GrammarValidator {
-  // Common spelling mistakes and their corrections
-  private readonly COMMON_MISTAKES: Record<string, string> = {
-    recieve: 'receive',
-    seperate: 'separate',
-    definately: 'definitely',
-    occured: 'occurred',
-    untill: 'until',
-    sucessful: 'successful',
-    succesful: 'successful',
-    experiance: 'experience',
-    responsable: 'responsible',
-    managment: 'management',
-    acheive: 'achieve',
-    acheivement: 'achievement',
-    commited: 'committed',
-    developement: 'development',
-    enviroment: 'environment',
-  };
+  private readonly SPELLING_MISTAKES_WITH_CORRECTIONS: Record<string, string> =
+    {
+      recieve: 'receive',
+      seperate: 'separate',
+      definately: 'definitely',
+      occured: 'occurred',
+      untill: 'until',
+      sucessful: 'successful',
+      succesful: 'successful',
+      experiance: 'experience',
+      responsable: 'responsible',
+      managment: 'management',
+      acheive: 'achieve',
+      acheivement: 'achievement',
+      commited: 'committed',
+      developement: 'development',
+      enviroment: 'environment',
+    };
 
-  // Patterns that suggest grammar issues
-  private readonly GRAMMAR_PATTERNS = [
+  private readonly GRAMMAR_ISSUE_PATTERNS = [
     {
       pattern: /\b(a)\s+(aeiou)/gi,
       message: 'Possible article error: "a" before vowel sound',
@@ -94,13 +93,16 @@ export class GrammarValidator {
     const foundMistakes = new Set<string>();
 
     words.forEach((word) => {
-      if (this.COMMON_MISTAKES[word] && !foundMistakes.has(word)) {
+      if (
+        this.SPELLING_MISTAKES_WITH_CORRECTIONS[word] &&
+        !foundMistakes.has(word)
+      ) {
         foundMistakes.add(word);
         issues.push({
           code: 'SPELLING_ERROR',
           message: `Possible spelling mistake: "${word}"`,
           severity: ValidationSeverity.ERROR,
-          suggestion: `Did you mean "${this.COMMON_MISTAKES[word]}"?`,
+          suggestion: `Did you mean "${this.SPELLING_MISTAKES_WITH_CORRECTIONS[word]}"?`,
         });
       }
     });
@@ -111,10 +113,10 @@ export class GrammarValidator {
   private checkGrammar(text: string): ValidationIssue[] {
     const issues: ValidationIssue[] = [];
 
-    this.GRAMMAR_PATTERNS.forEach(({ pattern, message, severity }) => {
+    this.GRAMMAR_ISSUE_PATTERNS.forEach(({ pattern, message, severity }) => {
       const matches = text.match(pattern);
       if (matches && matches.length > 0) {
-        // Don't report the same issue multiple times
+        // Deduplicate: aggregate all matches into single issue to reduce noise
         const uniqueMessage = `${message} (${matches.length} occurrence${matches.length > 1 ? 's' : ''})`;
         issues.push({
           code: 'GRAMMAR_WARNING',
