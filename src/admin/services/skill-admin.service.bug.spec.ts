@@ -8,6 +8,7 @@
  * BUG-044: SkillAdmin Delete Has No Authorization Check
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { SkillAdminService } from './skill-admin.service';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -24,17 +25,17 @@ describe('SkillAdminService - BUG DETECTION', () => {
           .mockResolvedValue({ id: 'resume-1', userId: 'user-1' }),
       },
       skill: {
-        findFirst: jest.fn(),
-        findUnique: jest.fn(),
-        findMany: jest.fn(),
-        create: jest.fn(),
-        update: jest.fn(),
-        delete: jest.fn(),
+        findFirst: mock(),
+        findUnique: mock(),
+        findMany: mock(),
+        create: mock(),
+        update: mock(),
+        delete: mock(),
       },
       auditLog: {
-        create: jest.fn(),
+        create: mock(),
       },
-      $transaction: jest.fn(),
+      $transaction: mock(),
     };
 
     const module: TestingModule = await Test.createTestingModule({

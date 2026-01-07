@@ -3,6 +3,7 @@
  * Tests for reordering of sections and items
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { SectionOrderingService } from './section-ordering.service';
 import {
@@ -13,15 +14,15 @@ import { BadRequestException } from '@nestjs/common';
 
 // Mock the ordering utils - note: moveItem has a bug where normalizeOrders
 // re-sorts by order property, undoing the splice operation
-jest.mock('../utils', () => ({
-  moveItem: jest.fn((items, fromIdx, toIdx) => {
+// TODO: Bun native mock - jest.mock('../utils', () => ({
+  moveItem: mock((items, fromIdx, toIdx) => {
     const result = [...items];
     const [item] = result.splice(fromIdx, 1);
     result.splice(toIdx, 0, item);
     // Simulate normalizeOrders behavior
     return result.sort((a, b) => a.order - b.order);
   }),
-  normalizeOrders: jest.fn((items) =>
+  normalizeOrders: mock((items) =>
     items.map((item: { order: number }, idx: number) => ({
       ...item,
       order: idx,
@@ -32,8 +33,8 @@ jest.mock('../utils', () => ({
 describe('SectionOrderingService', () => {
   let service: SectionOrderingService;
   let repo: {
-    get: jest.Mock;
-    save: jest.Mock;
+    get: any;
+    save: any;
   };
 
   const mockConfig: ResumeConfig = {
@@ -52,12 +53,9 @@ describe('SectionOrderingService', () => {
     },
   };
 
-  beforeEach(async () => {
-    jest.clearAllMocks();
-
-    const mockRepo = {
-      get: jest.fn(),
-      save: jest.fn(),
+  beforeEach(async () => {const mockRepo = {
+      get: mock(),
+      save: mock(),
     };
 
     const module: TestingModule = await Test.createTestingModule({

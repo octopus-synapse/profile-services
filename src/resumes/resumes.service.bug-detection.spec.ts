@@ -7,6 +7,7 @@
  * EXPECTED: Some tests will FAIL - that's the point. They expose bugs.
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import {
   UnprocessableEntityException,
@@ -17,7 +18,7 @@ import { ResumesRepository } from './resumes.repository';
 
 describe('ResumesService - Bug Detection', () => {
   let service: ResumesService;
-  let mockRepository: jest.Mocked<ResumesRepository>;
+  let mockRepository: ResumesRepository;
 
   const mockResume = {
     id: 'resume-1',
@@ -27,12 +28,12 @@ describe('ResumesService - Bug Detection', () => {
 
   beforeEach(async () => {
     mockRepository = {
-      findAll: jest.fn().mockResolvedValue([]),
-      findOne: jest.fn().mockResolvedValue(mockResume),
-      create: jest.fn().mockResolvedValue(mockResume),
-      update: jest.fn().mockResolvedValue(mockResume),
-      delete: jest.fn().mockResolvedValue(true),
-      findByUserId: jest.fn().mockResolvedValue(mockResume),
+      findAll: mock().mockResolvedValue([]),
+      findOne: mock().mockResolvedValue(mockResume),
+      create: mock().mockResolvedValue(mockResume),
+      update: mock().mockResolvedValue(mockResume),
+      delete: mock().mockResolvedValue(true),
+      findByUserId: mock().mockResolvedValue(mockResume),
     } as any;
 
     const module: TestingModule = await Test.createTestingModule({

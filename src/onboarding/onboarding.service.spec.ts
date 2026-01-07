@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { OnboardingService } from './onboarding.service';
@@ -18,52 +19,52 @@ describe('OnboardingService', () => {
 
   const mockPrismaService = {
     user: {
-      findUnique: jest.fn(),
-      update: jest.fn(),
+      findUnique: mock(),
+      update: mock(),
     },
     onboardingProgress: {
-      deleteMany: jest.fn(),
+      deleteMany: mock(),
     },
-    $transaction: jest.fn(),
+    $transaction: mock(),
   };
 
   const mockLoggerService = {
-    log: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-    debug: jest.fn(),
+    log: mock(),
+    warn: mock(),
+    error: mock(),
+    debug: mock(),
   };
 
   const mockResumeOnboardingService = {
-    upsertResume: jest.fn(),
-    upsertResumeWithTx: jest.fn(),
+    upsertResume: mock(),
+    upsertResumeWithTx: mock(),
   };
 
   const mockSkillsOnboardingService = {
-    saveSkills: jest.fn(),
-    saveSkillsWithTx: jest.fn(),
+    saveSkills: mock(),
+    saveSkillsWithTx: mock(),
   };
 
   const mockExperienceOnboardingService = {
-    saveExperiences: jest.fn(),
-    saveExperiencesWithTx: jest.fn(),
+    saveExperiences: mock(),
+    saveExperiencesWithTx: mock(),
   };
 
   const mockEducationOnboardingService = {
-    saveEducation: jest.fn(),
-    saveEducationWithTx: jest.fn(),
+    saveEducation: mock(),
+    saveEducationWithTx: mock(),
   };
 
   const mockLanguagesOnboardingService = {
-    saveLanguages: jest.fn(),
-    saveLanguagesWithTx: jest.fn(),
+    saveLanguages: mock(),
+    saveLanguagesWithTx: mock(),
   };
 
   const mockOnboardingProgressService = {
-    updateProgress: jest.fn(),
-    markCompleted: jest.fn(),
-    deleteProgress: jest.fn(),
-    deleteProgressWithTx: jest.fn(),
+    updateProgress: mock(),
+    markCompleted: mock(),
+    deleteProgress: mock(),
+    deleteProgressWithTx: mock(),
   };
 
   beforeEach(async () => {
@@ -81,10 +82,10 @@ describe('OnboardingService', () => {
         {
           provide: AuditLogService,
           useValue: {
-            log: jest.fn(),
-            logOnboardingCompleted: jest.fn(),
-            logUsernameChange: jest.fn(),
-            logUnauthorizedAccess: jest.fn(),
+            log: mock(),
+            logOnboardingCompleted: mock(),
+            logUsernameChange: mock(),
+            logUnauthorizedAccess: mock(),
           },
         },
         {
@@ -118,9 +119,7 @@ describe('OnboardingService', () => {
     logger = module.get<AppLoggerService>(AppLoggerService);
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
+  afterEach(() => {});
 
   describe('completeOnboarding', () => {
     it('should successfully complete onboarding', async () => {
@@ -181,12 +180,12 @@ describe('OnboardingService', () => {
       const mockUser = { id: userId, email: 'john@example.com' };
       const mockResume = { id: 'resume-123', userId };
       const mockTx = {
-        resume: { findFirst: jest.fn(), upsert: jest.fn() },
-        skill: { deleteMany: jest.fn(), createMany: jest.fn() },
-        experience: { deleteMany: jest.fn(), createMany: jest.fn() },
-        education: { deleteMany: jest.fn(), createMany: jest.fn() },
-        language: { deleteMany: jest.fn(), createMany: jest.fn() },
-        user: { update: jest.fn() },
+        resume: { findFirst: mock(), upsert: mock() },
+        skill: { deleteMany: mock(), createMany: mock() },
+        experience: { deleteMany: mock(), createMany: mock() },
+        education: { deleteMany: mock(), createMany: mock() },
+        language: { deleteMany: mock(), createMany: mock() },
+        user: { update: mock() },
       };
 
       mockPrismaService.user.findUnique.mockResolvedValue(mockUser);

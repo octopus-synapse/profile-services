@@ -2,6 +2,7 @@
  * DSL Validator Service Tests
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException } from '@nestjs/common';
 import { DslValidatorService } from './dsl-validator.service';

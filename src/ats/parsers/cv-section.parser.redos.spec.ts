@@ -7,6 +7,7 @@
  * catastrophic backtracking on crafted input.
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { CVSectionParser } from './cv-section.parser';
 

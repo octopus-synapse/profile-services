@@ -5,6 +5,7 @@
  * BUG-052: Order Not Validated
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException } from '@nestjs/common';
 import { EducationService } from './education.service';
@@ -25,15 +26,15 @@ describe('EducationService - BUG DETECTION', () => {
   beforeEach(async () => {
     mockPrisma = {
       education: {
-        findMany: jest.fn().mockResolvedValue([]),
-        create: jest.fn(),
-        update: jest.fn(),
-        delete: jest.fn(),
+        findMany: mock().mockResolvedValue([]),
+        create: mock(),
+        update: mock(),
+        delete: mock(),
       },
     };
 
     mockResumesRepo = {
-      findOne: jest.fn().mockResolvedValue(mockResume),
+      findOne: mock().mockResolvedValue(mockResume),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -41,7 +42,7 @@ describe('EducationService - BUG DETECTION', () => {
         EducationService,
         { provide: PrismaService, useValue: mockPrisma },
         { provide: ResumesRepository, useValue: mockResumesRepo },
-        { provide: AppLoggerService, useValue: { log: jest.fn() } },
+        { provide: AppLoggerService, useValue: { log: mock() } },
       ],
     }).compile();
 

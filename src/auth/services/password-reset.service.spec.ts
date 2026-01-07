@@ -11,15 +11,15 @@ import { ERROR_MESSAGES } from '../../common/constants/config';
 
 describe('PasswordResetService', () => {
   let service: PasswordResetService;
-  let prismaService: jest.Mocked<PrismaService>;
-  let logger: jest.Mocked<AppLoggerService>;
-  let emailService: jest.Mocked<EmailService>;
-  let passwordService: jest.Mocked<PasswordService>;
-  let tokenService: jest.Mocked<VerificationTokenService>;
+  let prismaService: PrismaService;
+  let logger: AppLoggerService;
+  let emailService: EmailService;
+  let passwordService: PasswordService;
+  let tokenService: VerificationTokenService;
 
   beforeEach(async () => {
-    const mockFindUnique = jest.fn();
-    const mockUpdate = jest.fn();
+    const mockFindUnique = mock();
+    const mockUpdate = mock();
 
     prismaService = {
       user: {
@@ -29,25 +29,25 @@ describe('PasswordResetService', () => {
     } as any;
 
     logger = {
-      log: jest.fn(),
-      error: jest.fn(),
-      warn: jest.fn(),
-      debug: jest.fn(),
+      log: mock(),
+      error: mock(),
+      warn: mock(),
+      debug: mock(),
     } as any;
 
     emailService = {
-      sendPasswordResetEmail: jest.fn(),
-      sendWelcomeEmail: jest.fn(),
+      sendPasswordResetEmail: mock(),
+      sendWelcomeEmail: mock(),
     } as any;
 
     passwordService = {
-      hash: jest.fn(),
-      compare: jest.fn(),
+      hash: mock(),
+      compare: mock(),
     } as any;
 
     tokenService = {
-      createPasswordResetToken: jest.fn(),
-      validatePasswordResetToken: jest.fn(),
+      createPasswordResetToken: mock(),
+      validatePasswordResetToken: mock(),
     } as any;
 
     const module: TestingModule = await Test.createTestingModule({
@@ -70,7 +70,7 @@ describe('PasswordResetService', () => {
       const mockUser = { id: 'user-123', email: dto.email, name: 'John Doe' };
       const mockToken = 'reset-token-123';
 
-      const mockFindUnique = prismaService.user.findUnique as jest.Mock;
+      const mockFindUnique = prismaService.user.findUnique as any;
       mockFindUnique.mockResolvedValue(mockUser);
       tokenService.createPasswordResetToken.mockResolvedValue(mockToken);
       emailService.sendPasswordResetEmail.mockResolvedValue(undefined);
@@ -93,7 +93,7 @@ describe('PasswordResetService', () => {
     it('should return success without sending email when user does not exist', async () => {
       const dto = { email: 'nonexistent@example.com' };
 
-      const mockFindUnique = prismaService.user.findUnique as jest.Mock;
+      const mockFindUnique = prismaService.user.findUnique as any;
       mockFindUnique.mockResolvedValue(null);
 
       const result = await service.forgotPassword(dto);
@@ -110,7 +110,7 @@ describe('PasswordResetService', () => {
       const mockUser = { id: 'user-123', email: dto.email, name: 'John Doe' };
       const mockToken = 'reset-token-123';
 
-      const mockFindUnique = prismaService.user.findUnique as jest.Mock;
+      const mockFindUnique = prismaService.user.findUnique as any;
       mockFindUnique.mockResolvedValue(mockUser);
       tokenService.createPasswordResetToken.mockResolvedValue(mockToken);
       emailService.sendPasswordResetEmail.mockRejectedValue(
@@ -137,7 +137,7 @@ describe('PasswordResetService', () => {
       const mockUser = { id: 'user-123', email: dto.email, name: 'John Doe' };
       const mockToken = 'reset-token-123';
 
-      const mockFindUnique = prismaService.user.findUnique as jest.Mock;
+      const mockFindUnique = prismaService.user.findUnique as any;
       mockFindUnique.mockResolvedValue(mockUser);
       tokenService.createPasswordResetToken.mockResolvedValue(mockToken);
       emailService.sendPasswordResetEmail.mockResolvedValue(undefined);
@@ -157,7 +157,7 @@ describe('PasswordResetService', () => {
       const mockUser = { id: 'user-123', email: dto.email, name: 'John Doe' };
       const mockToken = 'reset-token-456';
 
-      const mockFindUnique = prismaService.user.findUnique as jest.Mock;
+      const mockFindUnique = prismaService.user.findUnique as any;
       mockFindUnique.mockResolvedValue(mockUser);
       tokenService.createPasswordResetToken.mockResolvedValue(mockToken);
       emailService.sendPasswordResetEmail.mockRejectedValue(
@@ -180,7 +180,7 @@ describe('PasswordResetService', () => {
 
       tokenService.validatePasswordResetToken.mockResolvedValue(email);
       passwordService.hash.mockResolvedValue(hashedPassword);
-      const mockUpdate = prismaService.user.update as jest.Mock;
+      const mockUpdate = prismaService.user.update as any;
       mockUpdate.mockResolvedValue({});
 
       const result = await service.resetPassword(dto);
@@ -225,8 +225,8 @@ describe('PasswordResetService', () => {
       };
       const hashedNewPassword = 'hashed-new-password';
 
-      const mockFindUnique = prismaService.user.findUnique as jest.Mock;
-      const mockUpdate = prismaService.user.update as jest.Mock;
+      const mockFindUnique = prismaService.user.findUnique as any;
+      const mockUpdate = prismaService.user.update as any;
       mockFindUnique.mockResolvedValue(mockUser);
       passwordService.compare.mockResolvedValue(true);
       passwordService.hash.mockResolvedValue(hashedNewPassword);
@@ -253,7 +253,7 @@ describe('PasswordResetService', () => {
         newPassword: 'NewPassword456',
       };
 
-      const mockFindUnique = prismaService.user.findUnique as jest.Mock;
+      const mockFindUnique = prismaService.user.findUnique as any;
       mockFindUnique.mockResolvedValue(null);
 
       await expect(service.changePassword(userId, dto)).rejects.toThrow(
@@ -268,7 +268,7 @@ describe('PasswordResetService', () => {
         newPassword: 'NewPassword456',
       };
 
-      const mockFindUnique = prismaService.user.findUnique as jest.Mock;
+      const mockFindUnique = prismaService.user.findUnique as any;
       mockFindUnique.mockResolvedValue({ id: userId, password: null });
 
       await expect(service.changePassword(userId, dto)).rejects.toThrow(
@@ -287,7 +287,7 @@ describe('PasswordResetService', () => {
         password: 'hashed-old-password',
       };
 
-      const mockFindUnique = prismaService.user.findUnique as jest.Mock;
+      const mockFindUnique = prismaService.user.findUnique as any;
       mockFindUnique.mockResolvedValue(mockUser);
       passwordService.compare.mockResolvedValue(false);
 

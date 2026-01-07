@@ -2,6 +2,7 @@
  * LanguageQueryService Tests
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { LanguageQueryService } from './language-query.service';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -37,24 +38,21 @@ describe('LanguageQueryService', () => {
 
   const stubPrisma = {
     programmingLanguage: {
-      findMany: jest.fn().mockResolvedValue(mockLanguagesFromDb),
+      findMany: mock().mockResolvedValue(mockLanguagesFromDb),
     },
-    $queryRaw: jest.fn().mockResolvedValue(mockLanguagesFromDb),
+    $queryRaw: mock().mockResolvedValue(mockLanguagesFromDb),
   };
 
   const stubCache = {
-    get: jest.fn((key: string) => Promise.resolve(cacheStore.get(key) ?? null)),
-    set: jest.fn((key: string, value: unknown) => {
+    get: mock((key: string) => Promise.resolve(cacheStore.get(key) ?? null)),
+    set: mock((key: string, value: unknown) => {
       cacheStore.set(key, value);
       return Promise.resolve();
     }),
   };
 
   beforeEach(async () => {
-    cacheStore.clear();
-    jest.clearAllMocks();
-
-    const module: TestingModule = await Test.createTestingModule({
+    cacheStore.clear();const module: TestingModule = await Test.createTestingModule({
       providers: [
         LanguageQueryService,
         { provide: PrismaService, useValue: stubPrisma },

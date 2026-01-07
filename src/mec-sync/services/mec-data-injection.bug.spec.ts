@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 /**
  * MEC Data Injection Bug Detection Tests
  *
@@ -21,7 +22,7 @@ describe('MEC Data Injection - BUG DETECTION', () => {
     maliciousValues.forEach((value, index) => {
       it(`should sanitize malicious value ${index + 1}`, () => {
         const mockRowProcessor = {
-          processRow: jest.fn().mockImplementation((row) => ({
+          processRow: mock().mockImplementation((row) => ({
             nome: row.NO_CURSO,
             sigla: row.SG_IES,
           })),

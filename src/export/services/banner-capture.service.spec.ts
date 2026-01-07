@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { BannerCaptureService } from './banner-capture.service';
@@ -14,8 +15,8 @@ import { VIEWPORT, TIMEOUT, DEFAULT } from '../constants/ui.constants';
 
 describe('BannerCaptureService', () => {
   let service: BannerCaptureService;
-  let browserManagerService: jest.Mocked<BrowserManagerService>;
-  let configService: jest.Mocked<ConfigService>;
+  let browserManagerService: BrowserManagerService;
+  let configService: ConfigService;
   let mockPage: MockPage;
   let mockBrowser: MockBrowser;
   let mockElementHandle: MockElementHandle;
@@ -25,8 +26,8 @@ describe('BannerCaptureService', () => {
   const originalConsoleWarn = console.warn;
 
   beforeAll(() => {
-    console.error = jest.fn();
-    console.warn = jest.fn();
+    console.error = mock();
+    console.warn = mock();
   });
 
   afterAll(() => {
@@ -48,13 +49,13 @@ describe('BannerCaptureService', () => {
         {
           provide: BrowserManagerService,
           useValue: {
-            getBrowser: jest.fn().mockResolvedValue(mockBrowser),
+            getBrowser: mock().mockResolvedValue(mockBrowser),
           },
         },
         {
           provide: ConfigService,
           useValue: {
-            get: jest.fn((key: string) => {
+            get: mock((key: string) => {
               if (key === 'FRONTEND_HOST') return 'localhost';
               if (key === 'FRONTEND_PORT') return 3000;
               return undefined;
@@ -69,9 +70,7 @@ describe('BannerCaptureService', () => {
     configService = module.get(ConfigService);
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
+  afterEach(() => {});
 
   describe('capture', () => {
     it('should capture banner screenshot with default parameters', async () => {
@@ -235,7 +234,7 @@ describe('BannerCaptureService', () => {
     });
 
     it('should use default host when not configured', async () => {
-      (configService.get as jest.Mock).mockImplementation((key: string) => {
+      (configService.get as any).mockImplementation((key: string) => {
         if (key === 'FRONTEND_HOST') return undefined;
         if (key === 'FRONTEND_PORT') return undefined;
         return undefined;

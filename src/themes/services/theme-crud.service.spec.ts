@@ -5,6 +5,7 @@
  * Uncle Bob: "Tests should be specifications in executable form."
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { ThemeCrudService } from './theme-crud.service';
@@ -33,12 +34,12 @@ describe('ThemeCrudService', () => {
   beforeEach(async () => {
     mockPrisma = {
       resumeTheme: {
-        count: jest.fn().mockResolvedValue(0),
-        create: jest.fn().mockResolvedValue(mockTheme),
-        update: jest.fn().mockResolvedValue(mockTheme),
-        findUnique: jest.fn().mockResolvedValue(mockTheme),
-        findMany: jest.fn().mockResolvedValue([]),
-        delete: jest.fn().mockResolvedValue(mockTheme),
+        count: mock().mockResolvedValue(0),
+        create: mock().mockResolvedValue(mockTheme),
+        update: mock().mockResolvedValue(mockTheme),
+        findUnique: mock().mockResolvedValue(mockTheme),
+        findMany: mock().mockResolvedValue([]),
+        delete: mock().mockResolvedValue(mockTheme),
       },
       user: {
         findUnique: jest

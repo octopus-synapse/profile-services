@@ -7,6 +7,7 @@
  * - Query normalização
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { SkillSearchService } from './skill-search.service';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -52,12 +53,12 @@ describe('SkillSearchService', () => {
   const cacheStore = new Map<string, unknown>();
 
   const stubPrisma = {
-    $queryRaw: jest.fn().mockResolvedValue(mockSkillsFromDb),
+    $queryRaw: mock().mockResolvedValue(mockSkillsFromDb),
   };
 
   const stubCache = {
-    get: jest.fn((key: string) => Promise.resolve(cacheStore.get(key) ?? null)),
-    set: jest.fn((key: string, value: unknown) => {
+    get: mock((key: string) => Promise.resolve(cacheStore.get(key) ?? null)),
+    set: mock((key: string, value: unknown) => {
       cacheStore.set(key, value);
       return Promise.resolve();
     }),

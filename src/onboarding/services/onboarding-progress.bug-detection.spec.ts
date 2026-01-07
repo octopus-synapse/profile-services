@@ -7,6 +7,7 @@
  * EXPECTED: Some tests will FAIL - that's the point. They expose bugs.
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException } from '@nestjs/common';
 import { OnboardingProgressService } from './onboarding-progress.service';
@@ -20,12 +21,12 @@ describe('OnboardingProgressService - Bug Detection', () => {
   beforeEach(async () => {
     mockPrisma = {
       onboardingProgress: {
-        findUnique: jest.fn(),
-        upsert: jest.fn(),
-        deleteMany: jest.fn(),
+        findUnique: mock(),
+        upsert: mock(),
+        deleteMany: mock(),
       },
       user: {
-        findUnique: jest.fn().mockResolvedValue(null),
+        findUnique: mock().mockResolvedValue(null),
       },
     };
 
@@ -35,7 +36,7 @@ describe('OnboardingProgressService - Bug Detection', () => {
         { provide: PrismaService, useValue: mockPrisma },
         {
           provide: AppLoggerService,
-          useValue: { debug: jest.fn(), log: jest.fn() },
+          useValue: { debug: mock(), log: mock() },
         },
       ],
     }).compile();

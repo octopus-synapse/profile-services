@@ -1,14 +1,15 @@
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ResumePDFService } from './resume-pdf.service';
 import { PdfGeneratorService } from './pdf-generator.service';
 
 describe('ResumePDFService', () => {
   let service: ResumePDFService;
-  let generatorService: jest.Mocked<PdfGeneratorService>;
+  let generatorService: PdfGeneratorService;
 
   beforeEach(async () => {
     const mockGeneratorService = {
-      generate: jest.fn().mockResolvedValue(Buffer.from('pdf-content')),
+      generate: mock().mockResolvedValue(Buffer.from('pdf-content')),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -25,9 +26,7 @@ describe('ResumePDFService', () => {
     generatorService = module.get(PdfGeneratorService);
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
+  afterEach(() => {});
 
   describe('generate', () => {
     it('should generate PDF for valid resume with default options', async () => {

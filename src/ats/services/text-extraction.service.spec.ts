@@ -5,13 +5,14 @@
  * Como depende de libs externas (pdf-parse, mammoth), mockamos.
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TextExtractionService } from './text-extraction.service';
 import { ValidationSeverity } from '../interfaces';
 
 // Mock pdf-parse and mammoth
-jest.mock('pdf-parse', () => {
-  return jest.fn().mockImplementation((buffer: Buffer) => {
+// TODO: Bun native mock - jest.mock('pdf-parse', () => {
+  return mock().mockImplementation((buffer: Buffer) => {
     // Check buffer content to determine mock response
     const bufferStr = buffer.toString();
     if (bufferStr.includes('error')) {
@@ -27,7 +28,7 @@ jest.mock('pdf-parse', () => {
   });
 });
 
-jest.mock('mammoth', () => ({
+// TODO: Bun native mock - jest.mock('mammoth', () => ({
   extractRawText: jest
     .fn()
     .mockImplementation(({ buffer }: { buffer: Buffer }) => {

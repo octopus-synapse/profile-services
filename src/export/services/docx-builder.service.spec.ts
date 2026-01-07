@@ -4,6 +4,7 @@
  * NOTA (Uncle Bob): Testes focam em comportamento observável.
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { DocxBuilderService } from './docx-builder.service';
@@ -39,27 +40,24 @@ describe('DocxBuilderService', () => {
   };
 
   const stubResumesRepository = {
-    findByUserId: jest.fn().mockResolvedValue(mockResume),
+    findByUserId: mock().mockResolvedValue(mockResume),
   };
 
   const stubUsersRepository = {
-    getUser: jest.fn().mockResolvedValue(mockUser),
+    getUser: mock().mockResolvedValue(mockUser),
   };
 
   const stubSectionsService = {
-    createMainSection: jest.fn().mockReturnValue(mockSection),
+    createMainSection: mock().mockReturnValue(mockSection),
   };
 
   const stubStylesService = {
-    getDocumentStyles: jest.fn().mockReturnValue({
+    getDocumentStyles: mock().mockReturnValue({
       default: { heading1: {}, normal: {} },
     }),
   };
 
-  beforeEach(async () => {
-    jest.clearAllMocks();
-
-    const module: TestingModule = await Test.createTestingModule({
+  beforeEach(async () => {const module: TestingModule = await Test.createTestingModule({
       providers: [
         DocxBuilderService,
         { provide: ResumesRepository, useValue: stubResumesRepository },

@@ -9,6 +9,7 @@
  * BUG-003: Race Condition - Resume limit check
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConflictException } from '@nestjs/common';
 import { UserAdminMutationService } from './user-admin-mutation.service';
@@ -22,12 +23,12 @@ describe('Race Condition Bug Detection', () => {
   beforeEach(async () => {
     mockPrisma = {
       user: {
-        findUnique: jest.fn(),
-        create: jest.fn(),
-        update: jest.fn(),
-        count: jest.fn(),
+        findUnique: mock(),
+        create: mock(),
+        update: mock(),
+        count: mock(),
       },
-      $transaction: jest.fn(),
+      $transaction: mock(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -36,7 +37,7 @@ describe('Race Condition Bug Detection', () => {
         { provide: PrismaService, useValue: mockPrisma },
         {
           provide: PasswordService,
-          useValue: { hash: jest.fn().mockResolvedValue('hashed') },
+          useValue: { hash: mock().mockResolvedValue('hashed') },
         },
       ],
     }).compile();

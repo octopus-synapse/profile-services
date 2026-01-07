@@ -2,6 +2,7 @@
  * UserAdminQueryService Tests
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { UserAdminQueryService } from './user-admin-query.service';
@@ -50,16 +51,13 @@ describe('UserAdminQueryService', () => {
 
   const stubPrisma = {
     user: {
-      findMany: jest.fn().mockResolvedValue(mockUsers),
-      count: jest.fn().mockResolvedValue(2),
-      findUnique: jest.fn().mockResolvedValue(mockUserDetail),
+      findMany: mock().mockResolvedValue(mockUsers),
+      count: mock().mockResolvedValue(2),
+      findUnique: mock().mockResolvedValue(mockUserDetail),
     },
   };
 
-  beforeEach(async () => {
-    jest.clearAllMocks();
-
-    const module: TestingModule = await Test.createTestingModule({
+  beforeEach(async () => {const module: TestingModule = await Test.createTestingModule({
       providers: [
         UserAdminQueryService,
         { provide: PrismaService, useValue: stubPrisma },

@@ -3,6 +3,7 @@
  * Tests for showing/hiding sections and items
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { SectionVisibilityService } from './section-visibility.service';
 import {
@@ -13,8 +14,8 @@ import {
 describe('SectionVisibilityService', () => {
   let service: SectionVisibilityService;
   let repo: {
-    get: jest.Mock;
-    save: jest.Mock;
+    get: any;
+    save: any;
   };
 
   const mockConfig: ResumeConfig = {
@@ -34,8 +35,8 @@ describe('SectionVisibilityService', () => {
 
   beforeEach(async () => {
     const mockRepo = {
-      get: jest.fn(),
-      save: jest.fn(),
+      get: mock(),
+      save: mock(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -49,9 +50,7 @@ describe('SectionVisibilityService', () => {
     repo = mockRepo;
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
+  afterEach(() => {});
 
   describe('toggleSection', () => {
     it('should hide a visible section', async () => {

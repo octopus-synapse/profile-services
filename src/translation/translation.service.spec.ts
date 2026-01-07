@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TranslationService } from './translation.service';
 import { TranslationCoreService } from './services/translation-core.service';
@@ -10,24 +11,24 @@ import {
 
 describe('TranslationService', () => {
   let service: TranslationService;
-  let mockCoreService: jest.Mocked<TranslationCoreService>;
-  let mockBatchService: jest.Mocked<TranslationBatchService>;
-  let mockResumeService: jest.Mocked<ResumeTranslationService>;
+  let mockCoreService: TranslationCoreService;
+  let mockBatchService: TranslationBatchService;
+  let mockResumeService: ResumeTranslationService;
 
   beforeEach(async () => {
     mockCoreService = {
-      checkServiceHealth: jest.fn(),
-      translate: jest.fn(),
-      isAvailable: jest.fn(),
+      checkServiceHealth: mock(),
+      translate: mock(),
+      isAvailable: mock(),
     } as any;
 
     mockBatchService = {
-      translateBatch: jest.fn(),
+      translateBatch: mock(),
     } as any;
 
     mockResumeService = {
-      translateToEnglish: jest.fn(),
-      translateToPortuguese: jest.fn(),
+      translateToEnglish: mock(),
+      translateToPortuguese: mock(),
     } as any;
 
     const module: TestingModule = await Test.createTestingModule({

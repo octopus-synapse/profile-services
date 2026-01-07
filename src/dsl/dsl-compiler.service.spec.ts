@@ -2,6 +2,7 @@
  * DSL Compiler Service Tests
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { DslCompilerService } from './dsl-compiler.service';
 import { DslValidatorService } from './dsl-validator.service';

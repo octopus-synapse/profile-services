@@ -7,6 +7,7 @@
  * BUG-006: No Theme Limit Enforcement (5 themes max)
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { UnprocessableEntityException } from '@nestjs/common';
 import { ThemeCrudService } from './theme-crud.service';
@@ -19,11 +20,11 @@ describe('ThemeCrudService - LIMIT BUG DETECTION', () => {
   let service: ThemeCrudService;
   let mockPrisma: {
     resumeTheme: {
-      create: jest.Mock;
-      count: jest.Mock;
-      findMany: jest.Mock;
+      create: any;
+      count: any;
+      findMany: any;
     };
-    user: { findUnique: jest.Mock };
+    user: { findUnique: any };
   };
 
   const mockThemeDto = {
@@ -36,11 +37,11 @@ describe('ThemeCrudService - LIMIT BUG DETECTION', () => {
   beforeEach(async () => {
     mockPrisma = {
       resumeTheme: {
-        create: jest.fn(),
-        count: jest.fn(),
-        findMany: jest.fn(),
+        create: mock(),
+        count: mock(),
+        findMany: mock(),
       },
-      user: { findUnique: jest.fn() },
+      user: { findUnique: mock() },
     };
 
     const module: TestingModule = await Test.createTestingModule({

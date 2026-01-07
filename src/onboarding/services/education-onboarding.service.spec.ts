@@ -7,6 +7,7 @@
  * - Comportamento quando noEducation=true
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { EducationOnboardingService } from './education-onboarding.service';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -20,11 +21,11 @@ describe('EducationOnboardingService', () => {
 
   const createFakePrisma = () => ({
     education: {
-      deleteMany: jest.fn(({ where }: { where: { resumeId: string } }) => {
+      deleteMany: mock(({ where }: { where: { resumeId: string } }) => {
         educationStore.set(where.resumeId, []);
         return Promise.resolve({ count: 0 });
       }),
-      createMany: jest.fn(({ data }: { data: any[] }) => {
+      createMany: mock(({ data }: { data: any[] }) => {
         const resumeId = data[0]?.resumeId;
         if (resumeId) {
           educationStore.set(resumeId, data);

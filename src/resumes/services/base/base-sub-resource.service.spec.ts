@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { ForbiddenException, Logger, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { BaseSubResourceService } from './base-sub-resource.service';
@@ -34,10 +35,10 @@ class TestSubResourceService extends BaseSubResourceService<
 
 describe('BaseSubResourceService', () => {
   let service: TestSubResourceService;
-  let mockRepository: jest.Mocked<
-    ISubResourceRepository<TestEntity, CreateTestDto, UpdateTestDto>
+  let mockRepository: 
+    ISubResourceRepository<TestEntity, CreateTestDto, UpdateTestDto
   >;
-  let mockResumesRepository: jest.Mocked<ResumesRepository>;
+  let mockResumesRepository: ResumesRepository;
 
   const mockUserId = 'user-123';
   const mockResumeId = 'resume-123';
@@ -59,16 +60,16 @@ describe('BaseSubResourceService', () => {
 
   beforeEach(async () => {
     mockRepository = {
-      findAll: jest.fn(),
-      findOne: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
-      reorder: jest.fn(),
+      findAll: mock(),
+      findOne: mock(),
+      create: mock(),
+      update: mock(),
+      delete: mock(),
+      reorder: mock(),
     };
 
     mockResumesRepository = {
-      findOne: jest.fn(),
+      findOne: mock(),
     } as any;
 
     const module: TestingModule = await Test.createTestingModule({
@@ -84,9 +85,7 @@ describe('BaseSubResourceService', () => {
     service = module.get<TestSubResourceService>(TestSubResourceService);
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
+  afterEach(() => {});
 
   describe('validateResumeOwnership', () => {
     it('should pass validation when user owns the resume', async () => {

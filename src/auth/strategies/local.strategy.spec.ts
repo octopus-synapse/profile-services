@@ -14,7 +14,7 @@ import { AuthService } from '../auth.service';
 
 describe('LocalStrategy', () => {
   let strategy: LocalStrategy;
-  let authService: { validateUser: jest.Mock };
+  let authService: { validateUser: any };
 
   const mockValidatedUser = {
     id: 'user-123',

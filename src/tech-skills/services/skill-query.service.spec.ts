@@ -2,6 +2,7 @@
  * SkillQueryService Tests
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { SkillQueryService } from './skill-query.service';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -39,24 +40,21 @@ describe('SkillQueryService', () => {
 
   const stubPrisma = {
     techSkill: {
-      findMany: jest.fn().mockResolvedValue(mockSkillsFromDb),
+      findMany: mock().mockResolvedValue(mockSkillsFromDb),
     },
-    $queryRaw: jest.fn().mockResolvedValue(mockSkillsFromDb),
+    $queryRaw: mock().mockResolvedValue(mockSkillsFromDb),
   };
 
   const stubCache = {
-    get: jest.fn((key: string) => Promise.resolve(cacheStore.get(key) ?? null)),
-    set: jest.fn((key: string, value: unknown) => {
+    get: mock((key: string) => Promise.resolve(cacheStore.get(key) ?? null)),
+    set: mock((key: string, value: unknown) => {
       cacheStore.set(key, value);
       return Promise.resolve();
     }),
   };
 
   beforeEach(async () => {
-    cacheStore.clear();
-    jest.clearAllMocks();
-
-    const module: TestingModule = await Test.createTestingModule({
+    cacheStore.clear();const module: TestingModule = await Test.createTestingModule({
       providers: [
         SkillQueryService,
         { provide: PrismaService, useValue: stubPrisma },

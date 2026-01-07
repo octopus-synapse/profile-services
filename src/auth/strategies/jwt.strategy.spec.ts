@@ -16,8 +16,8 @@ import { TokenBlacklistService } from '../services/token-blacklist.service';
 
 describe('JwtStrategy', () => {
   let strategy: JwtStrategy;
-  let prisma: { user: { findUnique: jest.Mock } };
-  let tokenBlacklist: { isRevoked: jest.Mock };
+  let prisma: { user: { findUnique: any } };
+  let tokenBlacklist: { isRevoked: any };
 
   const mockUser = {
     id: 'user-123',

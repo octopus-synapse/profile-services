@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Logger } from '@nestjs/common';
 import { PublicationService } from './publication.service';
@@ -10,8 +11,8 @@ import {
 
 describe('PublicationService', () => {
   let service: PublicationService;
-  let publicationRepository: jest.Mocked<PublicationRepository>;
-  let resumesRepository: jest.Mocked<ResumesRepository>;
+  let publicationRepository: PublicationRepository;
+  let resumesRepository: ResumesRepository;
 
   const mockResume = {
     id: 'resume-123',
@@ -37,16 +38,16 @@ describe('PublicationService', () => {
 
   beforeEach(async () => {
     const mockPublicationRepository = {
-      findAll: jest.fn(),
-      findOne: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
-      reorder: jest.fn(),
+      findAll: mock(),
+      findOne: mock(),
+      create: mock(),
+      update: mock(),
+      delete: mock(),
+      reorder: mock(),
     };
 
     const mockResumesRepository = {
-      findOne: jest.fn(),
+      findOne: mock(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -61,8 +62,8 @@ describe('PublicationService', () => {
     publicationRepository = module.get(PublicationRepository);
     resumesRepository = module.get(ResumesRepository);
 
-    jest.spyOn(Logger.prototype, 'log').mockImplementation();
-    jest.spyOn(Logger.prototype, 'warn').mockImplementation();
+    spyOn(Logger.prototype, 'log').mockImplementation();
+    spyOn(Logger.prototype, 'warn').mockImplementation();
   });
 
   describe('listForResume', () => {

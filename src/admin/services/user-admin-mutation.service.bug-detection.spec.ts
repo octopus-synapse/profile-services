@@ -8,6 +8,7 @@
  * EXPECTED: Some tests will FAIL - that's the point. They expose bugs.
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException } from '@nestjs/common';
 import { UserAdminMutationService } from './user-admin-mutation.service';
@@ -36,11 +37,11 @@ describe('UserAdminMutationService - Bug Detection', () => {
   beforeEach(async () => {
     mockPrisma = {
       user: {
-        findUnique: jest.fn().mockResolvedValue(adminUser),
-        create: jest.fn(),
-        update: jest.fn().mockResolvedValue(adminUser),
-        delete: jest.fn(),
-        count: jest.fn().mockResolvedValue(1),
+        findUnique: mock().mockResolvedValue(adminUser),
+        create: mock(),
+        update: mock().mockResolvedValue(adminUser),
+        delete: mock(),
+        count: mock().mockResolvedValue(1),
       },
     };
 
@@ -50,7 +51,7 @@ describe('UserAdminMutationService - Bug Detection', () => {
         { provide: PrismaService, useValue: mockPrisma },
         {
           provide: PasswordService,
-          useValue: { hash: jest.fn().mockResolvedValue('hashed') },
+          useValue: { hash: mock().mockResolvedValue('hashed') },
         },
       ],
     }).compile();
@@ -149,7 +150,7 @@ describe('UserAdminMutationService - Bug Detection', () => {
         ...regularUser,
         role: UserRole.ADMIN,
       });
-      mockPrisma.auditLog = { create: jest.fn() };
+      mockPrisma.auditLog = { create: mock() };
 
       await service.update('user-456', { role: UserRole.ADMIN });
 
@@ -172,7 +173,7 @@ describe('UserAdminMutationService - Bug Detection', () => {
         ...adminUser,
         role: UserRole.USER,
       });
-      mockPrisma.auditLog = { create: jest.fn() };
+      mockPrisma.auditLog = { create: mock() };
 
       await service.update('admin-123', { role: UserRole.USER });
 
@@ -194,7 +195,7 @@ describe('UserAdminMutationService - Bug Detection', () => {
 
     it('should create audit log for password reset', async () => {
       mockPrisma.user.findUnique.mockResolvedValue(regularUser);
-      mockPrisma.auditLog = { create: jest.fn() };
+      mockPrisma.auditLog = { create: mock() };
 
       await service.resetPassword('user-456', { newPassword: 'StrongP@ss1!' });
 

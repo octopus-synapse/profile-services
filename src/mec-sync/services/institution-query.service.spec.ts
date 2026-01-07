@@ -7,6 +7,7 @@
  * - Search functionality
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { InstitutionQueryService } from './institution-query.service';
 import { InstitutionRepository } from '../repositories';
@@ -41,32 +42,29 @@ describe('InstitutionQueryService', () => {
   const cacheStore = new Map<string, unknown>();
 
   const stubRepository = {
-    findAll: jest.fn().mockResolvedValue(mockInstitutions),
-    findByUf: jest.fn().mockImplementation((uf: string) => {
+    findAll: mock().mockResolvedValue(mockInstitutions),
+    findByUf: mock().mockImplementation((uf: string) => {
       return Promise.resolve(mockInstitutions.filter((i) => i.uf === uf));
     }),
-    findByCode: jest.fn().mockImplementation((code: number) => {
+    findByCode: mock().mockImplementation((code: number) => {
       return Promise.resolve(
         mockInstitutions.find((i) => i.codigoIes === code) ?? null,
       );
     }),
-    search: jest.fn().mockResolvedValue([mockInstitutions[0]]),
-    getDistinctUfs: jest.fn().mockResolvedValue(['SP', 'RJ', 'MG']),
+    search: mock().mockResolvedValue([mockInstitutions[0]]),
+    getDistinctUfs: mock().mockResolvedValue(['SP', 'RJ', 'MG']),
   };
 
   const stubCache = {
-    get: jest.fn((key: string) => Promise.resolve(cacheStore.get(key) ?? null)),
-    set: jest.fn((key: string, value: unknown) => {
+    get: mock((key: string) => Promise.resolve(cacheStore.get(key) ?? null)),
+    set: mock((key: string, value: unknown) => {
       cacheStore.set(key, value);
       return Promise.resolve();
     }),
   };
 
   beforeEach(async () => {
-    cacheStore.clear();
-    jest.clearAllMocks();
-
-    const module: TestingModule = await Test.createTestingModule({
+    cacheStore.clear();const module: TestingModule = await Test.createTestingModule({
       providers: [
         InstitutionQueryService,
         { provide: InstitutionRepository, useValue: stubRepository },

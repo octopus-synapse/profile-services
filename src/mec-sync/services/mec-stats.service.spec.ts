@@ -2,6 +2,7 @@
  * MecStatsService Tests
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { MecStatsService } from './mec-stats.service';
 import { InstitutionRepository, CourseRepository } from '../repositories';
@@ -10,8 +11,8 @@ describe('MecStatsService', () => {
   let service: MecStatsService;
 
   const stubInstitutionRepo = {
-    count: jest.fn().mockResolvedValue(2500),
-    countByUf: jest.fn().mockResolvedValue([
+    count: mock().mockResolvedValue(2500),
+    countByUf: mock().mockResolvedValue([
       { uf: 'SP', _count: 500 },
       { uf: 'RJ', _count: 300 },
       { uf: 'MG', _count: 250 },
@@ -19,18 +20,15 @@ describe('MecStatsService', () => {
   };
 
   const stubCourseRepo = {
-    count: jest.fn().mockResolvedValue(45000),
-    countByDegree: jest.fn().mockResolvedValue([
+    count: mock().mockResolvedValue(45000),
+    countByDegree: mock().mockResolvedValue([
       { grau: 'Bacharelado', _count: 20000 },
       { grau: 'Licenciatura', _count: 15000 },
       { grau: 'Tecnólogo', _count: 10000 },
     ]),
   };
 
-  beforeEach(async () => {
-    jest.clearAllMocks();
-
-    const module: TestingModule = await Test.createTestingModule({
+  beforeEach(async () => {const module: TestingModule = await Test.createTestingModule({
       providers: [
         MecStatsService,
         { provide: InstitutionRepository, useValue: stubInstitutionRepo },

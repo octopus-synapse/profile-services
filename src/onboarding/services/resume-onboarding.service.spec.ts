@@ -6,6 +6,7 @@
  * - Primary resume definido quando é o primeiro
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ResumeOnboardingService } from './resume-onboarding.service';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -21,13 +22,13 @@ describe('ResumeOnboardingService', () => {
 
   const createFakePrisma = () => ({
     resume: {
-      findFirst: jest.fn(({ where }: { where: { userId: string } }) => {
+      findFirst: mock(({ where }: { where: { userId: string } }) => {
         const resume = Array.from(resumeStore.values()).find(
           (r) => r.userId === where.userId,
         );
         return Promise.resolve(resume ?? null);
       }),
-      upsert: jest.fn(
+      upsert: mock(
         ({
           where,
           update,
@@ -50,7 +51,7 @@ describe('ResumeOnboardingService', () => {
       ),
     },
     user: {
-      update: jest.fn(
+      update: mock(
         ({
           where,
           data,

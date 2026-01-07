@@ -6,6 +6,7 @@
  * - Comportamento quando languages array vazio
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { LanguagesOnboardingService } from './languages-onboarding.service';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -19,11 +20,11 @@ describe('LanguagesOnboardingService', () => {
 
   const createFakePrisma = () => ({
     language: {
-      deleteMany: jest.fn(({ where }: { where: { resumeId: string } }) => {
+      deleteMany: mock(({ where }: { where: { resumeId: string } }) => {
         languageStore.set(where.resumeId, []);
         return Promise.resolve({ count: 0 });
       }),
-      createMany: jest.fn(({ data }: { data: any[] }) => {
+      createMany: mock(({ data }: { data: any[] }) => {
         const resumeId = data[0]?.resumeId;
         if (resumeId) {
           languageStore.set(resumeId, data);

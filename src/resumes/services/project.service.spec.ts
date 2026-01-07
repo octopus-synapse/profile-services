@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Logger } from '@nestjs/common';
 import { ProjectService } from './project.service';
@@ -7,8 +8,8 @@ import { CreateProjectDto, UpdateProjectDto } from '../dto/project.dto';
 
 describe('ProjectService', () => {
   let service: ProjectService;
-  let projectRepository: jest.Mocked<ProjectRepository>;
-  let resumesRepository: jest.Mocked<ResumesRepository>;
+  let projectRepository: ProjectRepository;
+  let resumesRepository: ResumesRepository;
 
   const mockResume = {
     id: 'resume-123',
@@ -35,16 +36,16 @@ describe('ProjectService', () => {
 
   beforeEach(async () => {
     const mockProjectRepository = {
-      findAll: jest.fn(),
-      findOne: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
-      reorder: jest.fn(),
+      findAll: mock(),
+      findOne: mock(),
+      create: mock(),
+      update: mock(),
+      delete: mock(),
+      reorder: mock(),
     };
 
     const mockResumesRepository = {
-      findOne: jest.fn(),
+      findOne: mock(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -60,8 +61,8 @@ describe('ProjectService', () => {
     resumesRepository = module.get(ResumesRepository);
 
     // Suppress logger output during tests
-    jest.spyOn(Logger.prototype, 'log').mockImplementation();
-    jest.spyOn(Logger.prototype, 'warn').mockImplementation();
+    spyOn(Logger.prototype, 'log').mockImplementation();
+    spyOn(Logger.prototype, 'warn').mockImplementation();
   });
 
   describe('listForResume', () => {

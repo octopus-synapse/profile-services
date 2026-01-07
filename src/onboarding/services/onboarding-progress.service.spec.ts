@@ -5,6 +5,7 @@
  * Uncle Bob: "Every test should tell a story of real system behavior."
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException, ConflictException } from '@nestjs/common';
 import { OnboardingProgressService } from './onboarding-progress.service';
@@ -37,12 +38,12 @@ describe('OnboardingProgressService', () => {
   beforeEach(async () => {
     mockPrisma = {
       onboardingProgress: {
-        findUnique: jest.fn().mockResolvedValue(null),
-        upsert: jest.fn().mockResolvedValue(mockProgress),
-        deleteMany: jest.fn().mockResolvedValue({ count: 1 }),
+        findUnique: mock().mockResolvedValue(null),
+        upsert: mock().mockResolvedValue(mockProgress),
+        deleteMany: mock().mockResolvedValue({ count: 1 }),
       },
       user: {
-        findUnique: jest.fn().mockResolvedValue(null),
+        findUnique: mock().mockResolvedValue(null),
       },
     };
 
@@ -52,7 +53,7 @@ describe('OnboardingProgressService', () => {
         { provide: PrismaService, useValue: mockPrisma },
         {
           provide: AppLoggerService,
-          useValue: { debug: jest.fn(), log: jest.fn() },
+          useValue: { debug: mock(), log: mock() },
         },
       ],
     }).compile();

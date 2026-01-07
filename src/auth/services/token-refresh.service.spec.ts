@@ -59,7 +59,7 @@ describe('TokenRefreshService', () => {
       const mockAccessToken = 'new-access-token';
       const mockRefreshToken = 'new-refresh-token';
 
-      const mockFindUnique = prismaService.user.findUnique as jest.Mock;
+      const mockFindUnique = prismaService.user.findUnique as any;
       mockFindUnique.mockResolvedValue(mockUser);
       tokenService.generateToken
         .mockReturnValueOnce(mockAccessToken)
@@ -83,7 +83,7 @@ describe('TokenRefreshService', () => {
     it('should throw UnauthorizedException when user not found', async () => {
       const userId = 'nonexistent-user';
 
-      const mockFindUnique = prismaService.user.findUnique as jest.Mock;
+      const mockFindUnique = prismaService.user.findUnique as any;
       mockFindUnique.mockResolvedValue(null);
 
       await expect(service.refreshToken(userId)).rejects.toThrow(
@@ -96,7 +96,7 @@ describe('TokenRefreshService', () => {
     it('should throw UnauthorizedException when user email is null', async () => {
       const userId = 'user-without-email';
 
-      const mockFindUnique = prismaService.user.findUnique as jest.Mock;
+      const mockFindUnique = prismaService.user.findUnique as any;
       mockFindUnique.mockResolvedValue({
         id: userId,
         email: null,
@@ -120,7 +120,7 @@ describe('TokenRefreshService', () => {
         hasCompletedOnboarding: true,
       };
 
-      const mockFindUnique = prismaService.user.findUnique as jest.Mock;
+      const mockFindUnique = prismaService.user.findUnique as any;
       mockFindUnique.mockResolvedValue(mockUser);
       tokenService.generateToken.mockReturnValue('token');
 
@@ -155,7 +155,7 @@ describe('TokenRefreshService', () => {
         role: mockUser.role,
         hasCompletedOnboarding: mockUser.hasCompletedOnboarding,
       } as any);
-      const mockFindUnique = prismaService.user.findUnique as jest.Mock;
+      const mockFindUnique = prismaService.user.findUnique as any;
       mockFindUnique.mockResolvedValue(mockUser);
       tokenService.generateToken
         .mockReturnValueOnce(mockAccessToken)
@@ -195,7 +195,7 @@ describe('TokenRefreshService', () => {
         role: 'USER',
         hasCompletedOnboarding: false,
       } as any);
-      const mockFindUnique = prismaService.user.findUnique as jest.Mock;
+      const mockFindUnique = prismaService.user.findUnique as any;
       mockFindUnique.mockResolvedValue(null);
 
       await expect(service.refreshWithToken(refreshToken)).rejects.toThrow(
@@ -230,7 +230,7 @@ describe('TokenRefreshService', () => {
         createdAt: new Date('2024-01-01'),
       };
 
-      const mockFindUnique = prismaService.user.findUnique as jest.Mock;
+      const mockFindUnique = prismaService.user.findUnique as any;
       mockFindUnique.mockResolvedValue(mockUser);
 
       const result = await service.getCurrentUser(userId);
@@ -255,7 +255,7 @@ describe('TokenRefreshService', () => {
     it('should throw UnauthorizedException when user not found', async () => {
       const userId = 'nonexistent';
 
-      const mockFindUnique = prismaService.user.findUnique as jest.Mock;
+      const mockFindUnique = prismaService.user.findUnique as any;
       mockFindUnique.mockResolvedValue(null);
 
       await expect(service.getCurrentUser(userId)).rejects.toThrow(
@@ -276,7 +276,7 @@ describe('TokenRefreshService', () => {
         createdAt: new Date(),
       };
 
-      const mockFindUnique = prismaService.user.findUnique as jest.Mock;
+      const mockFindUnique = prismaService.user.findUnique as any;
       mockFindUnique.mockResolvedValue(mockUser);
 
       const result = await service.getCurrentUser(userId);
@@ -299,7 +299,7 @@ describe('TokenRefreshService', () => {
         createdAt: new Date(),
       };
 
-      const mockFindUnique = prismaService.user.findUnique as jest.Mock;
+      const mockFindUnique = prismaService.user.findUnique as any;
       mockFindUnique.mockResolvedValue(mockUser);
 
       const result = await service.getCurrentUser(userId);

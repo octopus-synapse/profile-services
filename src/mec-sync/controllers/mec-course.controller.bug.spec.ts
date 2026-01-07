@@ -6,6 +6,7 @@
  * BUG-035: parseInt Without NaN Validation
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { MecCourseController } from './mec-course.controller';
 import { CourseQueryService } from '../services/course-query.service';
@@ -16,8 +17,8 @@ describe('MecCourseController - BUG DETECTION', () => {
 
   beforeEach(async () => {
     mockCourseQuery = {
-      search: jest.fn().mockResolvedValue([]),
-      getByCode: jest.fn().mockResolvedValue(null),
+      search: mock().mockResolvedValue([]),
+      getByCode: mock().mockResolvedValue(null),
     };
 
     const module: TestingModule = await Test.createTestingModule({

@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserPreferencesService } from './user-preferences.service';
 import { UsersRepository } from '../users.repository';
@@ -7,23 +8,23 @@ import { ERROR_MESSAGES } from '../../common/constants/config';
 
 describe('UserPreferencesService', () => {
   let service: UserPreferencesService;
-  let usersRepository: jest.Mocked<UsersRepository>;
-  let logger: jest.Mocked<AppLoggerService>;
+  let usersRepository: UsersRepository;
+  let logger: AppLoggerService;
 
   beforeEach(async () => {
     usersRepository = {
-      getUser: jest.fn(),
-      getUserPreferences: jest.fn(),
-      updateUserPreferences: jest.fn(),
-      getFullUserPreferences: jest.fn(),
-      upsertFullUserPreferences: jest.fn(),
+      getUser: mock(),
+      getUserPreferences: mock(),
+      updateUserPreferences: mock(),
+      getFullUserPreferences: mock(),
+      upsertFullUserPreferences: mock(),
     } as any;
 
     logger = {
-      debug: jest.fn(),
-      log: jest.fn(),
-      error: jest.fn(),
-      warn: jest.fn(),
+      debug: mock(),
+      log: mock(),
+      error: mock(),
+      warn: mock(),
     } as any;
 
     const module: TestingModule = await Test.createTestingModule({

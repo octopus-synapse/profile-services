@@ -3,6 +3,7 @@
  * Tests for theme submission and review workflow
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ThemeApprovalService } from './theme-approval.service';
 import { ThemeCrudService } from './theme-crud.service';
@@ -12,8 +13,8 @@ import { ThemeStatus, UserRole } from '@prisma/client';
 
 describe('ThemeApprovalService', () => {
   let service: ThemeApprovalService;
-  let prisma: jest.Mocked<PrismaService>;
-  let crud: jest.Mocked<ThemeCrudService>;
+  let prisma: PrismaService;
+  let crud: ThemeCrudService;
 
   const mockUser = {
     id: 'user-1',
@@ -57,18 +58,18 @@ describe('ThemeApprovalService', () => {
           provide: PrismaService,
           useValue: {
             resumeTheme: {
-              update: jest.fn(),
-              findMany: jest.fn(),
+              update: mock(),
+              findMany: mock(),
             },
             user: {
-              findUnique: jest.fn(),
+              findUnique: mock(),
             },
           },
         },
         {
           provide: ThemeCrudService,
           useValue: {
-            findOrFail: jest.fn(),
+            findOrFail: mock(),
           },
         },
       ],
@@ -79,15 +80,13 @@ describe('ThemeApprovalService', () => {
     crud = module.get(ThemeCrudService);
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
+  afterEach(() => {});
 
   describe('submitForApproval', () => {
     it('should submit PRIVATE theme → PENDING_APPROVAL', async () => {
       const privateTheme = createMockTheme({ status: ThemeStatus.PRIVATE });
-      (crud.findOrFail as jest.Mock).mockResolvedValue(privateTheme);
-      (prisma.resumeTheme.update as jest.Mock).mockResolvedValue({
+      (crud.findOrFail as any).mockResolvedValue(privateTheme);
+      (prisma.resumeTheme.update as any).mockResolvedValue({
         ...privateTheme,
         status: ThemeStatus.PENDING_APPROVAL,
       });
@@ -109,8 +108,8 @@ describe('ThemeApprovalService', () => {
         status: ThemeStatus.REJECTED,
         rejectionReason: 'Previous rejection reason',
       });
-      (crud.findOrFail as jest.Mock).mockResolvedValue(rejectedTheme);
-      (prisma.resumeTheme.update as jest.Mock).mockResolvedValue({
+      (crud.findOrFail as any).mockResolvedValue(rejectedTheme);
+      (prisma.resumeTheme.update as any).mockResolvedValue({
         ...rejectedTheme,
         status: ThemeStatus.PENDING_APPROVAL,
         rejectionReason: null,
@@ -124,7 +123,7 @@ describe('ThemeApprovalService', () => {
 
     it('should reject submission if not theme owner', async () => {
       const theme = createMockTheme({ authorId: 'other-user' });
-      (crud.findOrFail as jest.Mock).mockResolvedValue(theme);
+      (crud.findOrFail as any).mockResolvedValue(theme);
 
       await expect(
         service.submitForApproval('user-1', 'theme-1'),
@@ -136,7 +135,7 @@ describe('ThemeApprovalService', () => {
 
     it('should reject submission of already published theme', async () => {
       const publishedTheme = createMockTheme({ status: ThemeStatus.PUBLISHED });
-      (crud.findOrFail as jest.Mock).mockResolvedValue(publishedTheme);
+      (crud.findOrFail as any).mockResolvedValue(publishedTheme);
 
       await expect(
         service.submitForApproval('user-1', 'theme-1'),
@@ -150,7 +149,7 @@ describe('ThemeApprovalService', () => {
       const pendingTheme = createMockTheme({
         status: ThemeStatus.PENDING_APPROVAL,
       });
-      (crud.findOrFail as jest.Mock).mockResolvedValue(pendingTheme);
+      (crud.findOrFail as any).mockResolvedValue(pendingTheme);
 
       await expect(
         service.submitForApproval('user-1', 'theme-1'),
@@ -164,9 +163,9 @@ describe('ThemeApprovalService', () => {
         status: ThemeStatus.PENDING_APPROVAL,
         authorId: 'user-1', // Different from approver
       });
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockApprover);
-      (crud.findOrFail as jest.Mock).mockResolvedValue(pendingTheme);
-      (prisma.resumeTheme.update as jest.Mock).mockResolvedValue({
+      (prisma.user.findUnique as any).mockResolvedValue(mockApprover);
+      (crud.findOrFail as any).mockResolvedValue(pendingTheme);
+      (prisma.resumeTheme.update as any).mockResolvedValue({
         ...pendingTheme,
         status: ThemeStatus.PUBLISHED,
         approvedById: 'approver-1',
@@ -195,9 +194,9 @@ describe('ThemeApprovalService', () => {
         status: ThemeStatus.PENDING_APPROVAL,
         authorId: 'user-1',
       });
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockAdmin);
-      (crud.findOrFail as jest.Mock).mockResolvedValue(pendingTheme);
-      (prisma.resumeTheme.update as jest.Mock).mockResolvedValue({
+      (prisma.user.findUnique as any).mockResolvedValue(mockAdmin);
+      (crud.findOrFail as any).mockResolvedValue(pendingTheme);
+      (prisma.resumeTheme.update as any).mockResolvedValue({
         ...pendingTheme,
         status: ThemeStatus.PUBLISHED,
       });
@@ -214,9 +213,9 @@ describe('ThemeApprovalService', () => {
         status: ThemeStatus.PENDING_APPROVAL,
         authorId: 'user-1',
       });
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockApprover);
-      (crud.findOrFail as jest.Mock).mockResolvedValue(pendingTheme);
-      (prisma.resumeTheme.update as jest.Mock).mockResolvedValue({
+      (prisma.user.findUnique as any).mockResolvedValue(mockApprover);
+      (crud.findOrFail as any).mockResolvedValue(pendingTheme);
+      (prisma.resumeTheme.update as any).mockResolvedValue({
         ...pendingTheme,
         status: ThemeStatus.REJECTED,
         rejectionReason: 'Design needs improvement',
@@ -243,8 +242,8 @@ describe('ThemeApprovalService', () => {
         status: ThemeStatus.PENDING_APPROVAL,
         authorId: 'user-1',
       });
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockApprover);
-      (crud.findOrFail as jest.Mock).mockResolvedValue(pendingTheme);
+      (prisma.user.findUnique as any).mockResolvedValue(mockApprover);
+      (crud.findOrFail as any).mockResolvedValue(pendingTheme);
 
       await expect(
         service.review('approver-1', {
@@ -264,7 +263,7 @@ describe('ThemeApprovalService', () => {
 
   describe('review - access control', () => {
     it('should reject non-admin/non-approver approval attempts', async () => {
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockUser);
+      (prisma.user.findUnique as any).mockResolvedValue(mockUser);
 
       await expect(
         service.review('user-1', { themeId: 'theme-1', approved: true }),
@@ -279,8 +278,8 @@ describe('ThemeApprovalService', () => {
         status: ThemeStatus.PENDING_APPROVAL,
         authorId: 'approver-1', // Same as approver
       });
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockApprover);
-      (crud.findOrFail as jest.Mock).mockResolvedValue(pendingTheme);
+      (prisma.user.findUnique as any).mockResolvedValue(mockApprover);
+      (crud.findOrFail as any).mockResolvedValue(pendingTheme);
 
       await expect(
         service.review('approver-1', { themeId: 'theme-1', approved: true }),
@@ -295,8 +294,8 @@ describe('ThemeApprovalService', () => {
         status: ThemeStatus.PRIVATE,
         authorId: 'user-1',
       });
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockApprover);
-      (crud.findOrFail as jest.Mock).mockResolvedValue(privateTheme);
+      (prisma.user.findUnique as any).mockResolvedValue(mockApprover);
+      (crud.findOrFail as any).mockResolvedValue(privateTheme);
 
       await expect(
         service.review('approver-1', { themeId: 'theme-1', approved: true }),
@@ -311,8 +310,8 @@ describe('ThemeApprovalService', () => {
         status: ThemeStatus.PUBLISHED,
         authorId: 'user-1',
       });
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockApprover);
-      (crud.findOrFail as jest.Mock).mockResolvedValue(publishedTheme);
+      (prisma.user.findUnique as any).mockResolvedValue(mockApprover);
+      (crud.findOrFail as any).mockResolvedValue(publishedTheme);
 
       await expect(
         service.review('approver-1', { themeId: 'theme-1', approved: true }),
@@ -332,8 +331,8 @@ describe('ThemeApprovalService', () => {
           status: ThemeStatus.PENDING_APPROVAL,
         }),
       ];
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockApprover);
-      (prisma.resumeTheme.findMany as jest.Mock).mockResolvedValue(
+      (prisma.user.findUnique as any).mockResolvedValue(mockApprover);
+      (prisma.resumeTheme.findMany as any).mockResolvedValue(
         pendingThemes,
       );
 
@@ -348,7 +347,7 @@ describe('ThemeApprovalService', () => {
     });
 
     it('should reject non-approver access', async () => {
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockUser);
+      (prisma.user.findUnique as any).mockResolvedValue(mockUser);
 
       await expect(service.getPendingApprovals('user-1')).rejects.toThrow(
         ForbiddenException,
@@ -356,8 +355,8 @@ describe('ThemeApprovalService', () => {
     });
 
     it('should allow admin access', async () => {
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockAdmin);
-      (prisma.resumeTheme.findMany as jest.Mock).mockResolvedValue([]);
+      (prisma.user.findUnique as any).mockResolvedValue(mockAdmin);
+      (prisma.resumeTheme.findMany as any).mockResolvedValue([]);
 
       await expect(
         service.getPendingApprovals('admin-1'),
@@ -369,8 +368,8 @@ describe('ThemeApprovalService', () => {
     it('should complete: PRIVATE → submit → PENDING → approve → PUBLISHED', async () => {
       // Step 1: Submit
       const privateTheme = createMockTheme({ status: ThemeStatus.PRIVATE });
-      (crud.findOrFail as jest.Mock).mockResolvedValueOnce(privateTheme);
-      (prisma.resumeTheme.update as jest.Mock).mockResolvedValueOnce({
+      (crud.findOrFail as any).mockResolvedValueOnce(privateTheme);
+      (prisma.resumeTheme.update as any).mockResolvedValueOnce({
         ...privateTheme,
         status: ThemeStatus.PENDING_APPROVAL,
       });
@@ -382,9 +381,9 @@ describe('ThemeApprovalService', () => {
         status: ThemeStatus.PENDING_APPROVAL,
         authorId: 'user-1',
       });
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockApprover);
-      (crud.findOrFail as jest.Mock).mockResolvedValueOnce(pendingTheme);
-      (prisma.resumeTheme.update as jest.Mock).mockResolvedValueOnce({
+      (prisma.user.findUnique as any).mockResolvedValue(mockApprover);
+      (crud.findOrFail as any).mockResolvedValueOnce(pendingTheme);
+      (prisma.resumeTheme.update as any).mockResolvedValueOnce({
         ...pendingTheme,
         status: ThemeStatus.PUBLISHED,
       });
@@ -400,8 +399,8 @@ describe('ThemeApprovalService', () => {
     it('should complete: PRIVATE → submit → PENDING → reject → REJECTED → resubmit → PENDING', async () => {
       // Step 1: Submit
       const privateTheme = createMockTheme({ status: ThemeStatus.PRIVATE });
-      (crud.findOrFail as jest.Mock).mockResolvedValueOnce(privateTheme);
-      (prisma.resumeTheme.update as jest.Mock).mockResolvedValueOnce({
+      (crud.findOrFail as any).mockResolvedValueOnce(privateTheme);
+      (prisma.resumeTheme.update as any).mockResolvedValueOnce({
         ...privateTheme,
         status: ThemeStatus.PENDING_APPROVAL,
       });
@@ -413,9 +412,9 @@ describe('ThemeApprovalService', () => {
         status: ThemeStatus.PENDING_APPROVAL,
         authorId: 'user-1',
       });
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockApprover);
-      (crud.findOrFail as jest.Mock).mockResolvedValueOnce(pendingTheme);
-      (prisma.resumeTheme.update as jest.Mock).mockResolvedValueOnce({
+      (prisma.user.findUnique as any).mockResolvedValue(mockApprover);
+      (crud.findOrFail as any).mockResolvedValueOnce(pendingTheme);
+      (prisma.resumeTheme.update as any).mockResolvedValueOnce({
         ...pendingTheme,
         status: ThemeStatus.REJECTED,
         rejectionReason: 'Needs improvement',
@@ -432,8 +431,8 @@ describe('ThemeApprovalService', () => {
         status: ThemeStatus.REJECTED,
         rejectionReason: 'Needs improvement',
       });
-      (crud.findOrFail as jest.Mock).mockResolvedValueOnce(rejectedTheme);
-      (prisma.resumeTheme.update as jest.Mock).mockResolvedValueOnce({
+      (crud.findOrFail as any).mockResolvedValueOnce(rejectedTheme);
+      (prisma.resumeTheme.update as any).mockResolvedValueOnce({
         ...rejectedTheme,
         status: ThemeStatus.PENDING_APPROVAL,
         rejectionReason: null,

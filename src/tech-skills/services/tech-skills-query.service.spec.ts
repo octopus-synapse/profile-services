@@ -5,6 +5,7 @@
  * Testes verificam comportamento (outputs), não implementação.
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TechSkillsQueryService } from './tech-skills-query.service';
 import { TechAreaQueryService } from './area-query.service';
@@ -37,27 +38,27 @@ describe('TechSkillsQueryService (Facade)', () => {
   ];
 
   const stubAreaQuery = {
-    getAllAreas: jest.fn().mockResolvedValue(mockAreas),
+    getAllAreas: mock().mockResolvedValue(mockAreas),
   };
 
   const stubNicheQuery = {
-    getAllNiches: jest.fn().mockResolvedValue(mockNiches),
-    getNichesByArea: jest.fn().mockResolvedValue([mockNiches[0]]),
+    getAllNiches: mock().mockResolvedValue(mockNiches),
+    getNichesByArea: mock().mockResolvedValue([mockNiches[0]]),
   };
 
   const stubLanguageQuery = {
-    getAllLanguages: jest.fn().mockResolvedValue(mockLanguages),
-    searchLanguages: jest.fn().mockResolvedValue([mockLanguages[0]]),
+    getAllLanguages: mock().mockResolvedValue(mockLanguages),
+    searchLanguages: mock().mockResolvedValue([mockLanguages[0]]),
   };
 
   const stubSkillQuery = {
-    getAllSkills: jest.fn().mockResolvedValue(mockSkills),
-    getSkillsByNiche: jest.fn().mockResolvedValue([mockSkills[0]]),
-    getSkillsByType: jest.fn().mockResolvedValue([mockSkills[1]]),
+    getAllSkills: mock().mockResolvedValue(mockSkills),
+    getSkillsByNiche: mock().mockResolvedValue([mockSkills[0]]),
+    getSkillsByType: mock().mockResolvedValue([mockSkills[1]]),
   };
 
   const stubSkillSearch = {
-    searchSkills: jest.fn().mockResolvedValue([mockSkills[0]]),
+    searchSkills: mock().mockResolvedValue([mockSkills[0]]),
   };
 
   beforeEach(async () => {

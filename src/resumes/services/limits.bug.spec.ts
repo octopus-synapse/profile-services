@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 /**
  * Resource Limits Bug Detection Tests
  *
@@ -16,8 +17,8 @@ describe('Resource Limits - BUG DETECTION', () => {
      */
     it('should limit skills per resume', async () => {
       const mockSkillService = {
-        addToResume: jest.fn().mockResolvedValue({ id: 'skill-x' }),
-        getSkillCount: jest.fn(),
+        addToResume: mock().mockResolvedValue({ id: 'skill-x' }),
+        getSkillCount: mock(),
       };
 
       // Try to add 1000 skills
@@ -42,7 +43,7 @@ describe('Resource Limits - BUG DETECTION', () => {
      */
     it('should limit experiences per resume', async () => {
       const mockExperienceService = {
-        addToResume: jest.fn().mockResolvedValue({ id: 'exp-x' }),
+        addToResume: mock().mockResolvedValue({ id: 'exp-x' }),
       };
 
       // Try to add 500 experiences

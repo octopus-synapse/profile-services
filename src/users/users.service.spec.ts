@@ -10,6 +10,7 @@
  * - username.service.spec.ts
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from './users.service';
 import { UserProfileService } from './services/user-profile.service';
@@ -21,7 +22,7 @@ describe('UsersService (Facade)', () => {
 
   // Stubs com retornos fixos (não mocks para verificar chamadas)
   const stubProfileService = {
-    getPublicProfileByUsername: jest.fn().mockResolvedValue({
+    getPublicProfileByUsername: mock().mockResolvedValue({
       user: {
         id: 'user-123',
         displayName: 'Public User',
@@ -29,14 +30,14 @@ describe('UsersService (Facade)', () => {
       },
       resume: { id: 'resume-123', title: 'Software Engineer' },
     }),
-    getProfile: jest.fn().mockResolvedValue({
+    getProfile: mock().mockResolvedValue({
       id: 'user-123',
       email: 'test@example.com',
       name: 'Test User',
       displayName: 'Test',
       bio: 'A developer',
     }),
-    updateProfile: jest.fn().mockResolvedValue({
+    updateProfile: mock().mockResolvedValue({
       success: true,
       data: {
         id: 'user-123',
@@ -47,32 +48,32 @@ describe('UsersService (Facade)', () => {
   };
 
   const stubPreferencesService = {
-    getPreferences: jest.fn().mockResolvedValue({
+    getPreferences: mock().mockResolvedValue({
       palette: 'blue',
       bannerColor: '#1a1a1a',
     }),
-    updatePreferences: jest.fn().mockResolvedValue({
+    updatePreferences: mock().mockResolvedValue({
       success: true,
       message: 'Preferences updated successfully',
     }),
-    getFullPreferences: jest.fn().mockResolvedValue({
+    getFullPreferences: mock().mockResolvedValue({
       theme: 'dark',
       palette: 'blue',
       language: 'en',
       bannerColor: '#1a1a1a',
     }),
-    updateFullPreferences: jest.fn().mockResolvedValue({
+    updateFullPreferences: mock().mockResolvedValue({
       success: true,
       data: { theme: 'light', palette: 'green' },
     }),
   };
 
   const stubUsernameService = {
-    updateUsername: jest.fn().mockResolvedValue({
+    updateUsername: mock().mockResolvedValue({
       success: true,
       username: 'newusername',
     }),
-    checkUsernameAvailability: jest.fn().mockResolvedValue({
+    checkUsernameAvailability: mock().mockResolvedValue({
       available: true,
     }),
   };

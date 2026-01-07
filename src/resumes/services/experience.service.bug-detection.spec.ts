@@ -7,6 +7,7 @@
  * EXPECTED: Some tests will FAIL - that's the point. They expose bugs.
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException } from '@nestjs/common';
 import { ExperienceService } from './experience.service';
@@ -15,8 +16,8 @@ import { ResumesRepository } from '../resumes.repository';
 
 describe('ExperienceService - Bug Detection', () => {
   let service: ExperienceService;
-  let mockExperienceRepo: jest.Mocked<ExperienceRepository>;
-  let mockResumesRepo: jest.Mocked<ResumesRepository>;
+  let mockExperienceRepo: ExperienceRepository;
+  let mockResumesRepo: ResumesRepository;
 
   const mockResume = { id: 'resume-123', userId: 'user-123' };
   const mockExperience = {
@@ -32,22 +33,22 @@ describe('ExperienceService - Bug Detection', () => {
 
   beforeEach(async () => {
     mockExperienceRepo = {
-      findAll: jest.fn().mockResolvedValue({
+      findAll: mock().mockResolvedValue({
         data: [],
         total: 0,
         page: 1,
         limit: 20,
         totalPages: 0,
       }),
-      findOne: jest.fn().mockResolvedValue(mockExperience),
-      create: jest.fn().mockResolvedValue(mockExperience),
-      update: jest.fn().mockResolvedValue(mockExperience),
-      delete: jest.fn().mockResolvedValue(true),
-      reorder: jest.fn().mockResolvedValue(undefined),
+      findOne: mock().mockResolvedValue(mockExperience),
+      create: mock().mockResolvedValue(mockExperience),
+      update: mock().mockResolvedValue(mockExperience),
+      delete: mock().mockResolvedValue(true),
+      reorder: mock().mockResolvedValue(undefined),
     } as any;
 
     mockResumesRepo = {
-      findOne: jest.fn().mockResolvedValue(mockResume),
+      findOne: mock().mockResolvedValue(mockResume),
     } as any;
 
     const module: TestingModule = await Test.createTestingModule({

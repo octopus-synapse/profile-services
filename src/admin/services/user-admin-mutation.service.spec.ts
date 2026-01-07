@@ -2,6 +2,7 @@
  * UserAdminMutationService Tests
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import {
   NotFoundException,
@@ -33,22 +34,19 @@ describe('UserAdminMutationService', () => {
 
   const stubPrisma = {
     user: {
-      findUnique: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
-      count: jest.fn(),
+      findUnique: mock(),
+      create: mock(),
+      update: mock(),
+      delete: mock(),
+      count: mock(),
     },
   };
 
   const stubPasswordService = {
-    hash: jest.fn().mockResolvedValue('hashed-password'),
+    hash: mock().mockResolvedValue('hashed-password'),
   };
 
-  beforeEach(async () => {
-    jest.clearAllMocks();
-
-    const module: TestingModule = await Test.createTestingModule({
+  beforeEach(async () => {const module: TestingModule = await Test.createTestingModule({
       providers: [
         UserAdminMutationService,
         { provide: PrismaService, useValue: stubPrisma },

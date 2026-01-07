@@ -1,20 +1,21 @@
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { BrowserManagerService } from './browser-manager.service';
 import puppeteer, { Browser } from 'puppeteer';
 
-jest.mock('puppeteer');
+// TODO: Bun native mock - jest.mock('puppeteer');
 
 describe('BrowserManagerService', () => {
   let service: BrowserManagerService;
-  let mockBrowser: jest.Mocked<Browser>;
+  let mockBrowser: Browser;
 
   beforeEach(async () => {
     mockBrowser = {
-      newPage: jest.fn(),
-      close: jest.fn().mockResolvedValue(undefined),
-    } as unknown as jest.Mocked<Browser>;
+      newPage: mock(),
+      close: mock().mockResolvedValue(undefined),
+    } as unknown as any;
 
-    (puppeteer.launch as jest.Mock).mockResolvedValue(mockBrowser);
+    (puppeteer.launch as any).mockResolvedValue(mockBrowser);
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [BrowserManagerService],
@@ -23,9 +24,7 @@ describe('BrowserManagerService', () => {
     service = module.get<BrowserManagerService>(BrowserManagerService);
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
+  afterEach(() => {});
 
   describe('getBrowser', () => {
     it('should launch browser on first call', async () => {
@@ -49,7 +48,7 @@ describe('BrowserManagerService', () => {
 
     it('should handle browser launch failure', async () => {
       const error = new Error('Browser launch failed');
-      (puppeteer.launch as jest.Mock).mockRejectedValueOnce(error);
+      (puppeteer.launch as any).mockRejectedValueOnce(error);
 
       await expect(service.getBrowser()).rejects.toThrow(
         'Browser launch failed',

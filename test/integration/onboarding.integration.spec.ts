@@ -7,6 +7,7 @@
  * Kent Beck: "Integration tests are the safety net for refactoring"
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
@@ -31,7 +32,7 @@ describe('Onboarding Flow Integration', () => {
     })
       .overrideProvider('EmailSenderService')
       .useValue({
-        sendEmail: jest.fn().mockResolvedValue(true),
+        sendEmail: mock().mockResolvedValue(true),
         isConfigured: true,
       })
       .compile();

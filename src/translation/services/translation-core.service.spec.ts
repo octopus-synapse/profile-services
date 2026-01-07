@@ -8,6 +8,7 @@
  * 4. Service availability check
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TranslationCoreService } from './translation-core.service';
 import { HttpService } from '@nestjs/axios';
@@ -16,17 +17,17 @@ import { of, throwError } from 'rxjs';
 
 describe('TranslationCoreService', () => {
   let service: TranslationCoreService;
-  let httpService: jest.Mocked<HttpService>;
-  let configService: jest.Mocked<ConfigService>;
+  let httpService: HttpService;
+  let configService: ConfigService;
 
   beforeEach(async () => {
     httpService = {
-      post: jest.fn(),
-      get: jest.fn(),
+      post: mock(),
+      get: mock(),
     } as any;
 
     configService = {
-      get: jest.fn((key: string) => {
+      get: mock((key: string) => {
         if (key === 'LIBRETRANSLATE_URL') return 'http://localhost:5000';
         return undefined;
       }),

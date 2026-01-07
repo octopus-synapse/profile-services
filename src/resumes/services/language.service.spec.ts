@@ -5,6 +5,7 @@
  * Este spec testa configuração e instanciação do service.
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Logger } from '@nestjs/common';
 import { LanguageService } from './language.service';
@@ -15,16 +16,16 @@ describe('LanguageService', () => {
   let service: LanguageService;
 
   const mockLanguageRepository = {
-    findAll: jest.fn(),
-    findOne: jest.fn(),
-    create: jest.fn(),
-    update: jest.fn(),
-    delete: jest.fn(),
-    reorder: jest.fn(),
+    findAll: mock(),
+    findOne: mock(),
+    create: mock(),
+    update: mock(),
+    delete: mock(),
+    reorder: mock(),
   };
 
   const mockResumesRepository = {
-    findOne: jest.fn(),
+    findOne: mock(),
   };
 
   beforeEach(async () => {

@@ -70,8 +70,8 @@ describe('AccountManagementService', () => {
         role: 'USER',
       };
 
-      const mockFindUnique = prismaService.user.findUnique as jest.Mock;
-      const mockUpdate = prismaService.user.update as jest.Mock;
+      const mockFindUnique = prismaService.user.findUnique as any;
+      const mockUpdate = prismaService.user.update as any;
 
       mockFindUnique.mockResolvedValueOnce(mockUser as any);
       passwordService.compare.mockResolvedValue(true);
@@ -105,7 +105,7 @@ describe('AccountManagementService', () => {
         currentPassword: 'password',
       };
 
-      const mockFindUnique = prismaService.user.findUnique as jest.Mock;
+      const mockFindUnique = prismaService.user.findUnique as any;
       mockFindUnique.mockResolvedValue({
         id: userId,
         email: 'old@example.com',
@@ -133,8 +133,8 @@ describe('AccountManagementService', () => {
         role: 'USER',
       };
 
-      const mockFindUnique = prismaService.user.findUnique as jest.Mock;
-      const mockUpdate = prismaService.user.update as jest.Mock;
+      const mockFindUnique = prismaService.user.findUnique as any;
+      const mockUpdate = prismaService.user.update as any;
       mockFindUnique.mockResolvedValue(mockUser as any);
       passwordService.compare.mockResolvedValue(false);
 
@@ -158,8 +158,8 @@ describe('AccountManagementService', () => {
         role: 'USER',
       };
 
-      const mockFindUnique = prismaService.user.findUnique as jest.Mock;
-      const mockUpdate = prismaService.user.update as jest.Mock;
+      const mockFindUnique = prismaService.user.findUnique as any;
+      const mockUpdate = prismaService.user.update as any;
       mockFindUnique.mockResolvedValueOnce(mockUser as any);
       passwordService.compare.mockResolvedValue(true);
       mockFindUnique.mockResolvedValueOnce({
@@ -186,8 +186,8 @@ describe('AccountManagementService', () => {
         role: 'USER',
       };
 
-      const mockFindUnique = prismaService.user.findUnique as jest.Mock;
-      const mockUpdate = prismaService.user.update as jest.Mock;
+      const mockFindUnique = prismaService.user.findUnique as any;
+      const mockUpdate = prismaService.user.update as any;
       mockFindUnique.mockResolvedValueOnce(mockUser as any);
       passwordService.compare.mockResolvedValue(true);
       mockFindUnique.mockResolvedValueOnce(null);
@@ -216,8 +216,8 @@ describe('AccountManagementService', () => {
         role: 'USER',
       };
 
-      const mockFindUnique = prismaService.user.findUnique as jest.Mock;
-      const mockDelete = prismaService.user.delete as jest.Mock;
+      const mockFindUnique = prismaService.user.findUnique as any;
+      const mockDelete = prismaService.user.delete as any;
       mockFindUnique.mockResolvedValue(mockUser as any);
       passwordService.compare.mockResolvedValue(true);
       mockDelete.mockResolvedValue(mockUser as any);
@@ -250,9 +250,9 @@ describe('AccountManagementService', () => {
         role: 'ADMIN',
       };
 
-      const mockFindUnique = prismaService.user.findUnique as jest.Mock;
-      const mockCount = prismaService.user.count as jest.Mock;
-      const mockDelete = prismaService.user.delete as jest.Mock;
+      const mockFindUnique = prismaService.user.findUnique as any;
+      const mockCount = prismaService.user.count as any;
+      const mockDelete = prismaService.user.delete as any;
       mockFindUnique.mockResolvedValue(mockAdmin as any);
       passwordService.compare.mockResolvedValue(true);
       mockCount.mockResolvedValue(3); // 3 admins
@@ -274,8 +274,8 @@ describe('AccountManagementService', () => {
         role: 'ADMIN',
       };
 
-      const mockFindUnique = prismaService.user.findUnique as jest.Mock;
-      const mockCount = prismaService.user.count as jest.Mock;
+      const mockFindUnique = prismaService.user.findUnique as any;
+      const mockCount = prismaService.user.count as any;
       mockFindUnique.mockResolvedValue(mockAdmin as any);
       passwordService.compare.mockResolvedValue(true);
       mockCount.mockResolvedValue(1); // Only 1 admin
@@ -284,7 +284,7 @@ describe('AccountManagementService', () => {
         new BadRequestException(ERROR_MESSAGES.CANNOT_DELETE_LAST_ADMIN),
       );
 
-      const mockDelete = prismaService.user.delete as jest.Mock;
+      const mockDelete = prismaService.user.delete as any;
       expect(mockDelete).not.toHaveBeenCalled();
     });
 
@@ -292,7 +292,7 @@ describe('AccountManagementService', () => {
       const userId = 'user-123';
       const dto = { password: 'password' };
 
-      const mockFindUnique = prismaService.user.findUnique as jest.Mock;
+      const mockFindUnique = prismaService.user.findUnique as any;
       mockFindUnique.mockResolvedValue({
         id: userId,
         email: 'user@example.com',
@@ -304,7 +304,7 @@ describe('AccountManagementService', () => {
         new UnauthorizedException(ERROR_MESSAGES.INVALID_CREDENTIALS),
       );
 
-      const mockDelete = prismaService.user.delete as jest.Mock;
+      const mockDelete = prismaService.user.delete as any;
       expect(mockDelete).not.toHaveBeenCalled();
     });
 
@@ -318,7 +318,7 @@ describe('AccountManagementService', () => {
         role: 'USER',
       };
 
-      const mockFindUnique = prismaService.user.findUnique as jest.Mock;
+      const mockFindUnique = prismaService.user.findUnique as any;
       mockFindUnique.mockResolvedValue(mockUser as any);
       passwordService.compare.mockResolvedValue(false);
 
@@ -326,7 +326,7 @@ describe('AccountManagementService', () => {
         new UnauthorizedException(ERROR_MESSAGES.PASSWORD_INCORRECT),
       );
 
-      const mockDelete = prismaService.user.delete as jest.Mock;
+      const mockDelete = prismaService.user.delete as any;
       expect(mockDelete).not.toHaveBeenCalled();
     });
 
@@ -340,9 +340,9 @@ describe('AccountManagementService', () => {
         role: 'USER',
       };
 
-      const mockFindUnique = prismaService.user.findUnique as jest.Mock;
-      const mockDelete = prismaService.user.delete as jest.Mock;
-      const mockCount = prismaService.user.count as jest.Mock;
+      const mockFindUnique = prismaService.user.findUnique as any;
+      const mockDelete = prismaService.user.delete as any;
+      const mockCount = prismaService.user.count as any;
       mockFindUnique.mockResolvedValue(mockUser as any);
       passwordService.compare.mockResolvedValue(true);
       mockDelete.mockResolvedValue(mockUser as any);
@@ -361,7 +361,7 @@ describe('AccountManagementService', () => {
         currentPassword: 'password',
       };
 
-      const mockFindUnique = prismaService.user.findUnique as jest.Mock;
+      const mockFindUnique = prismaService.user.findUnique as any;
       mockFindUnique.mockResolvedValue(null);
 
       await expect(service.changeEmail(userId, dto)).rejects.toThrow(
@@ -373,7 +373,7 @@ describe('AccountManagementService', () => {
       const userId = 'nonexistent';
       const dto = { password: 'password' };
 
-      const mockFindUnique = prismaService.user.findUnique as jest.Mock;
+      const mockFindUnique = prismaService.user.findUnique as any;
       mockFindUnique.mockResolvedValue(null);
 
       await expect(service.deleteAccount(userId, dto)).rejects.toThrow(

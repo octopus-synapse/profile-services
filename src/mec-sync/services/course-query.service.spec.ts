@@ -2,6 +2,7 @@
  * CourseQueryService Tests
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { CourseQueryService } from './course-query.service';
 import { CourseRepository } from '../repositories';
@@ -34,31 +35,28 @@ describe('CourseQueryService', () => {
   const cacheStore = new Map<string, unknown>();
 
   const stubRepository = {
-    findByInstitution: jest.fn().mockResolvedValue(mockCourses),
-    findByCode: jest.fn().mockImplementation((code: number) => {
+    findByInstitution: mock().mockResolvedValue(mockCourses),
+    findByCode: mock().mockImplementation((code: number) => {
       return Promise.resolve(
         mockCourses.find((c) => c.codigoCurso === code) ?? null,
       );
     }),
-    search: jest.fn().mockResolvedValue([mockCourses[0]]),
+    search: mock().mockResolvedValue([mockCourses[0]]),
     getDistinctAreas: jest
       .fn()
       .mockResolvedValue(['Computação', 'Engenharia', 'Saúde']),
   };
 
   const stubCache = {
-    get: jest.fn((key: string) => Promise.resolve(cacheStore.get(key) ?? null)),
-    set: jest.fn((key: string, value: unknown) => {
+    get: mock((key: string) => Promise.resolve(cacheStore.get(key) ?? null)),
+    set: mock((key: string, value: unknown) => {
       cacheStore.set(key, value);
       return Promise.resolve();
     }),
   };
 
   beforeEach(async () => {
-    cacheStore.clear();
-    jest.clearAllMocks();
-
-    const module: TestingModule = await Test.createTestingModule({
+    cacheStore.clear();const module: TestingModule = await Test.createTestingModule({
       providers: [
         CourseQueryService,
         { provide: CourseRepository, useValue: stubRepository },

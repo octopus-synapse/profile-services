@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException } from '@nestjs/common';
 import { UploadService, FileUpload } from './upload.service';
@@ -7,8 +8,8 @@ import { APP_CONSTANTS, ERROR_MESSAGES } from '../common/constants/config';
 
 describe('UploadService', () => {
   let service: UploadService;
-  let mockS3Service: jest.Mocked<S3UploadService>;
-  let mockLogger: jest.Mocked<AppLoggerService>;
+  let mockS3Service: S3UploadService;
+  let mockLogger: AppLoggerService;
 
   const createMockFile = (overrides?: Partial<FileUpload>): FileUpload => ({
     buffer: Buffer.from('fake-image-data'),
@@ -20,18 +21,18 @@ describe('UploadService', () => {
 
   beforeEach(async () => {
     mockS3Service = {
-      uploadFile: jest.fn(),
-      deleteFile: jest.fn(),
+      uploadFile: mock(),
+      deleteFile: mock(),
       get isEnabled() {
         return true;
       },
     } as any;
 
     mockLogger = {
-      log: jest.fn(),
-      error: jest.fn(),
-      warn: jest.fn(),
-      debug: jest.fn(),
+      log: mock(),
+      error: mock(),
+      warn: mock(),
+      debug: mock(),
     } as any;
 
     const module: TestingModule = await Test.createTestingModule({
@@ -45,9 +46,7 @@ describe('UploadService', () => {
     service = module.get<UploadService>(UploadService);
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
+  afterEach(() => {});
 
   describe('uploadProfileImage', () => {
     const userId = 'user-123';
@@ -273,8 +272,8 @@ describe('UploadService', () => {
     it('should return false when S3 service is disabled', () => {
       // Arrange
       mockS3Service = {
-        uploadFile: jest.fn(),
-        deleteFile: jest.fn(),
+        uploadFile: mock(),
+        deleteFile: mock(),
         get isEnabled() {
           return false;
         },

@@ -5,6 +5,7 @@
  * BUG-059: Theme Style Config Not Validated for Size
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ThemeQueryService } from './theme-query.service';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -16,9 +17,9 @@ describe('ThemeQueryService - BUG DETECTION', () => {
   beforeEach(async () => {
     mockPrisma = {
       resumeTheme: {
-        findMany: jest.fn(),
-        findUnique: jest.fn(),
-        count: jest.fn(),
+        findMany: mock(),
+        findUnique: mock(),
+        count: mock(),
       },
     };
 

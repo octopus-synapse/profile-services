@@ -2,6 +2,7 @@
  * DSL Repository Tests
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException } from '@nestjs/common';
 import { DslRepository } from './dsl.repository';
@@ -59,23 +60,23 @@ describe('DslRepository', () => {
         {
           provide: DslCompilerService,
           useValue: {
-            compileFromRaw: jest.fn(),
-            compileForHtml: jest.fn(),
-            compileForPdf: jest.fn(),
+            compileFromRaw: mock(),
+            compileForHtml: mock(),
+            compileForPdf: mock(),
           },
         },
         {
           provide: DslValidatorService,
           useValue: {
-            validate: jest.fn(),
-            validateOrThrow: jest.fn(),
+            validate: mock(),
+            validateOrThrow: mock(),
           },
         },
         {
           provide: PrismaService,
           useValue: {
             resume: {
-              findFirst: jest.fn(),
+              findFirst: mock(),
             },
           },
         },
@@ -91,7 +92,7 @@ describe('DslRepository', () => {
   describe('preview', () => {
     it('should compile DSL for preview', () => {
       const mockDsl = { version: '1.0.0' };
-      jest.spyOn(compiler, 'compileFromRaw').mockReturnValue(mockAst as any);
+      spyOn(compiler, 'compileFromRaw').mockReturnValue(mockAst as any);
 
       const result = repository.preview(mockDsl, 'html');
 
@@ -104,7 +105,7 @@ describe('DslRepository', () => {
     it('should validate DSL', () => {
       const mockDsl = { version: '1.0.0' };
       const mockValidation = { valid: true, errors: null };
-      jest.spyOn(validator, 'validate').mockReturnValue(mockValidation as any);
+      spyOn(validator, 'validate').mockReturnValue(mockValidation as any);
 
       const result = repository.validate(mockDsl);
 
@@ -121,7 +122,7 @@ describe('DslRepository', () => {
       jest
         .spyOn(validator, 'validateOrThrow')
         .mockReturnValue(mockResume.activeTheme.styleConfig as any);
-      jest.spyOn(compiler, 'compileForHtml').mockReturnValue(mockAst as any);
+      spyOn(compiler, 'compileForHtml').mockReturnValue(mockAst as any);
 
       const result = await repository.render('resume-123', 'user-123', 'html');
 
@@ -136,7 +137,7 @@ describe('DslRepository', () => {
     });
 
     it('should throw if resume not found', async () => {
-      jest.spyOn(prisma.resume, 'findFirst').mockResolvedValue(null);
+      spyOn(prisma.resume, 'findFirst').mockResolvedValue(null);
 
       await expect(repository.render('resume-123', 'user-123')).rejects.toThrow(
         BadRequestException,
@@ -152,7 +153,7 @@ describe('DslRepository', () => {
       jest
         .spyOn(validator, 'validateOrThrow')
         .mockReturnValue(mockResume.activeTheme.styleConfig as any);
-      jest.spyOn(compiler, 'compileForHtml').mockReturnValue(mockAst as any);
+      spyOn(compiler, 'compileForHtml').mockReturnValue(mockAst as any);
 
       const result = await repository.renderPublic('john-doe', 'html');
 
@@ -167,7 +168,7 @@ describe('DslRepository', () => {
     });
 
     it('should throw if public resume not found', async () => {
-      jest.spyOn(prisma.resume, 'findFirst').mockResolvedValue(null);
+      spyOn(prisma.resume, 'findFirst').mockResolvedValue(null);
 
       await expect(repository.renderPublic('john-doe')).rejects.toThrow(
         BadRequestException,
@@ -196,7 +197,7 @@ describe('DslRepository', () => {
       jest
         .spyOn(validator, 'validateOrThrow')
         .mockImplementation((dsl) => dsl as any);
-      jest.spyOn(compiler, 'compileForHtml').mockReturnValue(mockAst as any);
+      spyOn(compiler, 'compileForHtml').mockReturnValue(mockAst as any);
 
       await repository.render('resume-123', 'user-123');
 

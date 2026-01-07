@@ -7,6 +7,7 @@
  * EXPECTED: Some tests will FAIL - that's the point. They expose bugs.
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import {
   BadRequestException,
@@ -33,12 +34,12 @@ describe('ThemeCrudService - Bug Detection', () => {
   beforeEach(async () => {
     mockPrisma = {
       resumeTheme: {
-        findUnique: jest.fn().mockResolvedValue(mockTheme),
-        findMany: jest.fn().mockResolvedValue([]),
-        create: jest.fn().mockResolvedValue(mockTheme),
-        update: jest.fn().mockResolvedValue(mockTheme),
-        delete: jest.fn().mockResolvedValue(mockTheme),
-        count: jest.fn().mockResolvedValue(0),
+        findUnique: mock().mockResolvedValue(mockTheme),
+        findMany: mock().mockResolvedValue([]),
+        create: mock().mockResolvedValue(mockTheme),
+        update: mock().mockResolvedValue(mockTheme),
+        delete: mock().mockResolvedValue(mockTheme),
+        count: mock().mockResolvedValue(0),
       },
       user: {
         findUnique: jest

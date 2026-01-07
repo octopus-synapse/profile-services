@@ -35,7 +35,7 @@ describe('VerificationTokenService', () => {
   describe('createEmailVerificationToken', () => {
     it('should create email verification token', async () => {
       const email = 'user@example.com';
-      const mockUpsert = prismaService.verificationToken.upsert as jest.Mock;
+      const mockUpsert = prismaService.verificationToken.upsert as any;
       mockUpsert.mockResolvedValue({});
 
       const token = await service.createEmailVerificationToken(email);
@@ -65,7 +65,7 @@ describe('VerificationTokenService', () => {
     it('should set expiry time correctly for email verification', async () => {
       const email = 'user@example.com';
       const beforeTime = Date.now();
-      const mockUpsert = prismaService.verificationToken.upsert as jest.Mock;
+      const mockUpsert = prismaService.verificationToken.upsert as any;
       mockUpsert.mockResolvedValue({});
 
       await service.createEmailVerificationToken(email);
@@ -84,7 +84,7 @@ describe('VerificationTokenService', () => {
 
     it('should upsert token to handle existing tokens', async () => {
       const email = 'existing@example.com';
-      const mockUpsert = prismaService.verificationToken.upsert as jest.Mock;
+      const mockUpsert = prismaService.verificationToken.upsert as any;
       mockUpsert.mockResolvedValue({});
 
       await service.createEmailVerificationToken(email);
@@ -101,7 +101,7 @@ describe('VerificationTokenService', () => {
   describe('createPasswordResetToken', () => {
     it('should create password reset token with prefix', async () => {
       const email = 'user@example.com';
-      const mockUpsert = prismaService.verificationToken.upsert as jest.Mock;
+      const mockUpsert = prismaService.verificationToken.upsert as any;
       mockUpsert.mockResolvedValue({});
 
       const token = await service.createPasswordResetToken(email);
@@ -130,7 +130,7 @@ describe('VerificationTokenService', () => {
     it('should set shorter expiry for password reset tokens', async () => {
       const email = 'user@example.com';
       const beforeTime = Date.now();
-      const mockUpsert = prismaService.verificationToken.upsert as jest.Mock;
+      const mockUpsert = prismaService.verificationToken.upsert as any;
       mockUpsert.mockResolvedValue({});
 
       await service.createPasswordResetToken(email);
@@ -159,8 +159,8 @@ describe('VerificationTokenService', () => {
       };
 
       const mockFindUnique = prismaService.verificationToken
-        .findUnique as jest.Mock;
-      const mockDelete = prismaService.verificationToken.delete as jest.Mock;
+        .findUnique as any;
+      const mockDelete = prismaService.verificationToken.delete as any;
       mockFindUnique.mockResolvedValue(mockToken);
       mockDelete.mockResolvedValue(mockToken);
 
@@ -174,7 +174,7 @@ describe('VerificationTokenService', () => {
       const token = 'nonexistent-token';
 
       const mockFindUnique = prismaService.verificationToken
-        .findUnique as jest.Mock;
+        .findUnique as any;
       mockFindUnique.mockResolvedValue(null);
 
       await expect(
@@ -193,8 +193,8 @@ describe('VerificationTokenService', () => {
       };
 
       const mockFindUnique = prismaService.verificationToken
-        .findUnique as jest.Mock;
-      const mockDelete = prismaService.verificationToken.delete as jest.Mock;
+        .findUnique as any;
+      const mockDelete = prismaService.verificationToken.delete as any;
       mockFindUnique.mockResolvedValue(mockToken);
       mockDelete.mockResolvedValue(mockToken);
 
@@ -215,8 +215,8 @@ describe('VerificationTokenService', () => {
       };
 
       const mockFindUnique = prismaService.verificationToken
-        .findUnique as jest.Mock;
-      const mockDelete = prismaService.verificationToken.delete as jest.Mock;
+        .findUnique as any;
+      const mockDelete = prismaService.verificationToken.delete as any;
       mockFindUnique.mockResolvedValue(mockToken);
       mockDelete.mockRejectedValue(new Error('Database error'));
 
@@ -237,8 +237,8 @@ describe('VerificationTokenService', () => {
       };
 
       const mockFindUnique = prismaService.verificationToken
-        .findUnique as jest.Mock;
-      const mockDelete = prismaService.verificationToken.delete as jest.Mock;
+        .findUnique as any;
+      const mockDelete = prismaService.verificationToken.delete as any;
       mockFindUnique.mockResolvedValue(mockToken);
       mockDelete.mockResolvedValue(mockToken);
 
@@ -257,7 +257,7 @@ describe('VerificationTokenService', () => {
       };
 
       const mockFindUnique = prismaService.verificationToken
-        .findUnique as jest.Mock;
+        .findUnique as any;
       mockFindUnique.mockResolvedValue(mockToken);
 
       await expect(service.validatePasswordResetToken(token)).rejects.toThrow(
@@ -269,7 +269,7 @@ describe('VerificationTokenService', () => {
       const token = 'nonexistent-reset-token';
 
       const mockFindUnique = prismaService.verificationToken
-        .findUnique as jest.Mock;
+        .findUnique as any;
       mockFindUnique.mockResolvedValue(null);
 
       await expect(service.validatePasswordResetToken(token)).rejects.toThrow(
@@ -286,8 +286,8 @@ describe('VerificationTokenService', () => {
       };
 
       const mockFindUnique = prismaService.verificationToken
-        .findUnique as jest.Mock;
-      const mockDelete = prismaService.verificationToken.delete as jest.Mock;
+        .findUnique as any;
+      const mockDelete = prismaService.verificationToken.delete as any;
       mockFindUnique.mockResolvedValue(mockToken);
       mockDelete.mockResolvedValue(mockToken);
 
@@ -306,8 +306,8 @@ describe('VerificationTokenService', () => {
       };
 
       const mockFindUnique = prismaService.verificationToken
-        .findUnique as jest.Mock;
-      const mockDelete = prismaService.verificationToken.delete as jest.Mock;
+        .findUnique as any;
+      const mockDelete = prismaService.verificationToken.delete as any;
       mockFindUnique.mockResolvedValue(mockToken);
       mockDelete.mockResolvedValue(mockToken);
 
@@ -320,7 +320,7 @@ describe('VerificationTokenService', () => {
   describe('token generation', () => {
     it('should generate different tokens on subsequent calls', async () => {
       const email = 'user@example.com';
-      const mockUpsert = prismaService.verificationToken.upsert as jest.Mock;
+      const mockUpsert = prismaService.verificationToken.upsert as any;
       mockUpsert.mockResolvedValue({});
 
       const token1 = await service.createEmailVerificationToken(email);
@@ -331,7 +331,7 @@ describe('VerificationTokenService', () => {
 
     it('should generate hex string tokens', async () => {
       const email = 'user@example.com';
-      const mockUpsert = prismaService.verificationToken.upsert as jest.Mock;
+      const mockUpsert = prismaService.verificationToken.upsert as any;
       mockUpsert.mockResolvedValue({});
 
       const token = await service.createEmailVerificationToken(email);

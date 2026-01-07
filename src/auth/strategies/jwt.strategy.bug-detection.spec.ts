@@ -17,7 +17,7 @@ import { UserRole } from '@prisma/client';
 
 describe('JwtStrategy - BUG DETECTION', () => {
   let strategy: JwtStrategy;
-  let mockPrisma: { user: { findUnique: jest.Mock } };
+  let mockPrisma: { user: { findUnique: any } };
 
   beforeEach(async () => {
     mockPrisma = {

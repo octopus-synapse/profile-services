@@ -8,6 +8,7 @@
  * BUG-018: No GitHub Account Uniqueness Check
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import {
   UnprocessableEntityException,
@@ -42,27 +43,27 @@ describe('GitHubSyncService - RATE LIMIT BUG DETECTION', () => {
 
   beforeEach(async () => {
     mockApiService = {
-      getUserProfile: jest.fn().mockResolvedValue(mockProfile),
-      getUserRepos: jest.fn().mockResolvedValue(mockRepos),
+      getUserProfile: mock().mockResolvedValue(mockProfile),
+      getUserRepos: mock().mockResolvedValue(mockRepos),
     };
 
     mockContributionService = {
-      processContributions: jest.fn().mockResolvedValue([]),
+      processContributions: mock().mockResolvedValue([]),
     };
 
     mockAchievementService = {
-      generateAchievements: jest.fn().mockReturnValue([]),
+      generateAchievements: mock().mockReturnValue([]),
     };
 
     mockDatabaseService = {
       verifyResumeOwnership: jest
         .fn()
         .mockResolvedValue({ github: 'testuser' }),
-      updateResumeGitHubStats: jest.fn().mockResolvedValue(undefined),
-      reconcileDbEntries: jest.fn().mockResolvedValue(undefined),
-      getSyncCountToday: jest.fn().mockResolvedValue(0),
-      recordSync: jest.fn().mockResolvedValue(undefined),
-      isGitHubAccountLinked: jest.fn().mockResolvedValue(false),
+      updateResumeGitHubStats: mock().mockResolvedValue(undefined),
+      reconcileDbEntries: mock().mockResolvedValue(undefined),
+      getSyncCountToday: mock().mockResolvedValue(0),
+      recordSync: mock().mockResolvedValue(undefined),
+      isGitHubAccountLinked: mock().mockResolvedValue(false),
     };
 
     const module: TestingModule = await Test.createTestingModule({

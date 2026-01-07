@@ -65,7 +65,7 @@ describe('EmailVerificationService', () => {
       };
       const mockToken = 'verification-token-123';
 
-      const mockFindUnique = prismaService.user.findUnique as jest.Mock;
+      const mockFindUnique = prismaService.user.findUnique as any;
       mockFindUnique.mockResolvedValue(mockUser);
       tokenService.createEmailVerificationToken.mockResolvedValue(mockToken);
       emailService.sendVerificationEmail.mockResolvedValue(undefined);
@@ -88,7 +88,7 @@ describe('EmailVerificationService', () => {
     it('should return success without sending email when user does not exist', async () => {
       const dto = { email: 'nonexistent@example.com' };
 
-      const mockFindUnique = prismaService.user.findUnique as jest.Mock;
+      const mockFindUnique = prismaService.user.findUnique as any;
       mockFindUnique.mockResolvedValue(null);
 
       const result = await service.requestVerification(dto);
@@ -108,7 +108,7 @@ describe('EmailVerificationService', () => {
         emailVerified: new Date('2024-01-01'),
       };
 
-      const mockFindUnique = prismaService.user.findUnique as jest.Mock;
+      const mockFindUnique = prismaService.user.findUnique as any;
       mockFindUnique.mockResolvedValue(mockUser);
 
       const result = await service.requestVerification(dto);
@@ -129,7 +129,7 @@ describe('EmailVerificationService', () => {
       };
       const mockToken = 'verification-token-123';
 
-      const mockFindUnique = prismaService.user.findUnique as jest.Mock;
+      const mockFindUnique = prismaService.user.findUnique as any;
       mockFindUnique.mockResolvedValue(mockUser);
       tokenService.createEmailVerificationToken.mockResolvedValue(mockToken);
       emailService.sendVerificationEmail.mockRejectedValue(
@@ -159,7 +159,7 @@ describe('EmailVerificationService', () => {
       };
       const mockToken = 'verification-token-123';
 
-      const mockFindUnique = prismaService.user.findUnique as jest.Mock;
+      const mockFindUnique = prismaService.user.findUnique as any;
       mockFindUnique.mockResolvedValue(mockUser);
       tokenService.createEmailVerificationToken.mockResolvedValue(mockToken);
       emailService.sendVerificationEmail.mockResolvedValue(undefined);
@@ -181,7 +181,7 @@ describe('EmailVerificationService', () => {
       };
       const mockToken = 'verification-token-123';
 
-      const mockFindUnique = prismaService.user.findUnique as jest.Mock;
+      const mockFindUnique = prismaService.user.findUnique as any;
       mockFindUnique.mockResolvedValue(mockUser);
       tokenService.createEmailVerificationToken.mockResolvedValue(mockToken);
       emailService.sendVerificationEmail.mockResolvedValue(undefined);
@@ -208,9 +208,9 @@ describe('EmailVerificationService', () => {
       };
 
       tokenService.validateEmailVerificationToken.mockResolvedValue(email);
-      const mockUpdate = prismaService.user.update as jest.Mock;
+      const mockUpdate = prismaService.user.update as any;
       mockUpdate.mockResolvedValue({ ...mockUser, emailVerified: new Date() });
-      const mockFindUnique = prismaService.user.findUnique as jest.Mock;
+      const mockFindUnique = prismaService.user.findUnique as any;
       mockFindUnique.mockResolvedValue(mockUser);
       emailService.sendWelcomeEmail.mockResolvedValue(undefined);
 
@@ -240,9 +240,9 @@ describe('EmailVerificationService', () => {
       };
 
       tokenService.validateEmailVerificationToken.mockResolvedValue(email);
-      const mockUpdate = prismaService.user.update as jest.Mock;
+      const mockUpdate = prismaService.user.update as any;
       mockUpdate.mockResolvedValue({ ...mockUser, emailVerified: new Date() });
-      const mockFindUnique = prismaService.user.findUnique as jest.Mock;
+      const mockFindUnique = prismaService.user.findUnique as any;
       mockFindUnique.mockResolvedValue(mockUser);
       emailService.sendWelcomeEmail.mockRejectedValue(new Error('SMTP error'));
 
@@ -261,9 +261,9 @@ describe('EmailVerificationService', () => {
       const email = 'user@example.com';
 
       tokenService.validateEmailVerificationToken.mockResolvedValue(email);
-      const mockUpdate = prismaService.user.update as jest.Mock;
+      const mockUpdate = prismaService.user.update as any;
       mockUpdate.mockResolvedValue({});
-      const mockFindUnique = prismaService.user.findUnique as jest.Mock;
+      const mockFindUnique = prismaService.user.findUnique as any;
       mockFindUnique.mockResolvedValue(null);
 
       const result = await service.verifyEmail(dto);
@@ -283,9 +283,9 @@ describe('EmailVerificationService', () => {
       };
 
       tokenService.validateEmailVerificationToken.mockResolvedValue(email);
-      const mockUpdate = prismaService.user.update as jest.Mock;
+      const mockUpdate = prismaService.user.update as any;
       mockUpdate.mockResolvedValue({ ...mockUser, emailVerified: new Date() });
-      const mockFindUnique = prismaService.user.findUnique as jest.Mock;
+      const mockFindUnique = prismaService.user.findUnique as any;
       mockFindUnique.mockResolvedValue(mockUser);
       emailService.sendWelcomeEmail.mockResolvedValue(undefined);
 

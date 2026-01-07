@@ -5,6 +5,7 @@
  * Como PDF generation envolve Puppeteer, usamos stubs para isolar.
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PdfGeneratorService } from './pdf-generator.service';
 import { BrowserManagerService } from './browser-manager.service';
@@ -14,45 +15,42 @@ describe('PdfGeneratorService', () => {
   let service: PdfGeneratorService;
 
   const mockPage = {
-    close: jest.fn().mockResolvedValue(undefined),
-    pdf: jest.fn().mockResolvedValue(Buffer.from('mock-pdf-content')),
-    evaluate: jest.fn().mockResolvedValue(297), // A4 height in mm
+    close: mock().mockResolvedValue(undefined),
+    pdf: mock().mockResolvedValue(Buffer.from('mock-pdf-content')),
+    evaluate: mock().mockResolvedValue(297), // A4 height in mm
   };
 
   const mockBrowser = {
-    newPage: jest.fn().mockResolvedValue(mockPage),
+    newPage: mock().mockResolvedValue(mockPage),
   };
 
   const mockPageSetup = {
-    setupPage: jest.fn().mockResolvedValue(undefined),
-    buildResumeUrl: jest.fn().mockReturnValue('http://localhost:3000/resume'),
-    navigateToPage: jest.fn().mockResolvedValue(undefined),
-    waitForResumeReady: jest.fn().mockResolvedValue(undefined),
+    setupPage: mock().mockResolvedValue(undefined),
+    buildResumeUrl: mock().mockReturnValue('http://localhost:3000/resume'),
+    navigateToPage: mock().mockResolvedValue(undefined),
+    waitForResumeReady: mock().mockResolvedValue(undefined),
   };
 
   const mockStyleExtractor = {
-    extractStyles: jest.fn().mockResolvedValue({ css: '', fonts: [] }),
-    renderCleanPage: jest.fn().mockResolvedValue(undefined),
+    extractStyles: mock().mockResolvedValue({ css: '', fonts: [] }),
+    renderCleanPage: mock().mockResolvedValue(undefined),
   };
 
   const stubBrowserManager = {
-    getBrowser: jest.fn().mockResolvedValue(mockBrowser),
+    getBrowser: mock().mockResolvedValue(mockBrowser),
   };
 
   const stubTemplateService = {
-    getPageSetup: jest.fn().mockReturnValue(mockPageSetup),
-    getStyleExtractor: jest.fn().mockReturnValue(mockStyleExtractor),
-    getPdfConfig: jest.fn().mockReturnValue({
+    getPageSetup: mock().mockReturnValue(mockPageSetup),
+    getStyleExtractor: mock().mockReturnValue(mockStyleExtractor),
+    getPdfConfig: mock().mockReturnValue({
       format: 'A4',
       printBackground: true,
       margin: { top: '10mm', bottom: '10mm', left: '10mm', right: '10mm' },
     }),
   };
 
-  beforeEach(async () => {
-    jest.clearAllMocks();
-
-    const module: TestingModule = await Test.createTestingModule({
+  beforeEach(async () => {const module: TestingModule = await Test.createTestingModule({
       providers: [
         PdfGeneratorService,
         { provide: BrowserManagerService, useValue: stubBrowserManager },

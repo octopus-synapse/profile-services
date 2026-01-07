@@ -7,6 +7,7 @@
  * BUG-038: Banner Capture logoUrl Not Validated (SSRF)
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PdfGeneratorService } from './pdf-generator.service';
 import { BrowserManagerService } from './browser-manager.service';
@@ -20,36 +21,36 @@ describe('PdfGeneratorService - BUG DETECTION', () => {
 
   beforeEach(async () => {
     mockPage = {
-      close: jest.fn(),
-      evaluate: jest.fn().mockResolvedValue(297), // A4 height
-      pdf: jest.fn().mockResolvedValue(Buffer.from('PDF content')),
-      $: jest.fn().mockResolvedValue({
-        screenshot: jest.fn().mockResolvedValue(Buffer.from('')),
+      close: mock(),
+      evaluate: mock().mockResolvedValue(297), // A4 height
+      pdf: mock().mockResolvedValue(Buffer.from('PDF content')),
+      $: mock().mockResolvedValue({
+        screenshot: mock().mockResolvedValue(Buffer.from('')),
       }),
-      goto: jest.fn(),
-      setViewport: jest.fn(),
+      goto: mock(),
+      setViewport: mock(),
     };
 
     mockBrowserManager = {
-      getBrowser: jest.fn().mockResolvedValue({
-        newPage: jest.fn().mockResolvedValue(mockPage),
+      getBrowser: mock().mockResolvedValue({
+        newPage: mock().mockResolvedValue(mockPage),
       }),
     };
 
     mockTemplateService = {
-      getPageSetup: jest.fn().mockReturnValue({
-        setupPage: jest.fn(),
+      getPageSetup: mock().mockReturnValue({
+        setupPage: mock(),
         buildResumeUrl: jest
           .fn()
           .mockReturnValue('http://localhost:3000/resume'),
-        navigateToPage: jest.fn(),
-        waitForResumeReady: jest.fn(),
+        navigateToPage: mock(),
+        waitForResumeReady: mock(),
       }),
-      getStyleExtractor: jest.fn().mockReturnValue({
-        extractStyles: jest.fn().mockResolvedValue({}),
-        renderCleanPage: jest.fn(),
+      getStyleExtractor: mock().mockReturnValue({
+        extractStyles: mock().mockResolvedValue({}),
+        renderCleanPage: mock(),
       }),
-      getPdfConfig: jest.fn().mockReturnValue({
+      getPdfConfig: mock().mockReturnValue({
         format: 'A4',
         printBackground: true,
       }),

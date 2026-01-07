@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { HttpException } from '@nestjs/common';
 import { GitHubService } from './github.service';
@@ -8,28 +9,25 @@ import {
 } from './services';
 
 const mockGitHubApiService = {
-  getUserProfile: jest.fn(),
-  getUserRepos: jest.fn(),
-  getRepoCommitCount: jest.fn(),
-  getRepoPullRequests: jest.fn(),
+  getUserProfile: mock(),
+  getUserRepos: mock(),
+  getRepoCommitCount: mock(),
+  getRepoPullRequests: mock(),
 };
 
 const mockGitHubSyncService = {
-  syncUserGitHub: jest.fn(),
+  syncUserGitHub: mock(),
 };
 
 const mockGitHubDatabaseService = {
-  saveContributions: jest.fn(),
-  saveAchievements: jest.fn(),
+  saveContributions: mock(),
+  saveAchievements: mock(),
 };
 
 describe('GitHubService', () => {
   let service: GitHubService;
 
-  beforeEach(async () => {
-    jest.clearAllMocks();
-
-    const module: TestingModule = await Test.createTestingModule({
+  beforeEach(async () => {const module: TestingModule = await Test.createTestingModule({
       providers: [
         GitHubService,
         {

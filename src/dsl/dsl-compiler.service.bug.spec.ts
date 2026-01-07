@@ -5,6 +5,7 @@
  * BUG-047: DSL Compiler No Input Size Limit
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { DslCompilerService } from './dsl-compiler.service';
 import { DslValidatorService } from './dsl-validator.service';
@@ -17,11 +18,11 @@ describe('DslCompilerService - BUG DETECTION', () => {
 
   beforeEach(async () => {
     mockValidator = {
-      validateOrThrow: jest.fn().mockImplementation((input) => input),
+      validateOrThrow: mock().mockImplementation((input) => input),
     };
 
     mockTokenResolver = {
-      resolve: jest.fn().mockReturnValue({
+      resolve: mock().mockReturnValue({
         colors: {
           background: '#fff',
           textPrimary: '#000',

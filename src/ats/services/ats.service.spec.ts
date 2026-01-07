@@ -5,6 +5,7 @@
  * Focus: What validation results are returned for different CV inputs.
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ATSService } from './ats.service';
 import { FileIntegrityValidator } from '../validators/file-integrity.validator';
@@ -33,49 +34,46 @@ describe('ATSService', () => {
     }) as Express.Multer.File;
 
   const mockFileIntegrityValidator = {
-    validate: jest.fn(),
+    validate: mock(),
   };
 
   const mockTextExtractionService = {
-    extractText: jest.fn(),
+    extractText: mock(),
   };
 
   const mockEncodingNormalizer = {
-    normalizeText: jest.fn(),
+    normalizeText: mock(),
   };
 
   const mockCvSectionParser = {
-    parseCV: jest.fn(),
-    validateSections: jest.fn(),
+    parseCV: mock(),
+    validateSections: mock(),
   };
 
   const mockFormatValidator = {
-    validate: jest.fn(),
+    validate: mock(),
   };
 
   const mockSectionOrderValidator = {
-    validate: jest.fn(),
+    validate: mock(),
   };
 
   const mockLayoutSafetyValidator = {
-    validate: jest.fn(),
+    validate: mock(),
   };
 
   const mockGrammarValidator = {
-    validate: jest.fn(),
+    validate: mock(),
   };
 
   const mockLogger = {
-    log: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
-    debug: jest.fn(),
+    log: mock(),
+    warn: mock(),
+    error: mock(),
+    debug: mock(),
   };
 
-  beforeEach(async () => {
-    jest.clearAllMocks();
-
-    const module: TestingModule = await Test.createTestingModule({
+  beforeEach(async () => {const module: TestingModule = await Test.createTestingModule({
       providers: [
         ATSService,
         {

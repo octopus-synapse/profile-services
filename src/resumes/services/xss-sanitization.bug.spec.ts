@@ -4,6 +4,7 @@
  * BUG-060: Text Fields Not Sanitized for XSS
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ResumesService } from '../resumes.service';
 import { ResumesRepository } from '../resumes.repository';
@@ -16,9 +17,9 @@ describe('XSS Sanitization - BUG DETECTION', () => {
 
   beforeEach(async () => {
     mockRepository = {
-      findAll: jest.fn().mockResolvedValue({ data: [], meta: { total: 0 } }),
-      create: jest.fn(),
-      update: jest.fn(),
+      findAll: mock().mockResolvedValue({ data: [], meta: { total: 0 } }),
+      create: mock(),
+      update: mock(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -28,7 +29,7 @@ describe('XSS Sanitization - BUG DETECTION', () => {
         { provide: PrismaService, useValue: {} },
         {
           provide: AppLoggerService,
-          useValue: { log: jest.fn(), debug: jest.fn() },
+          useValue: { log: mock(), debug: mock() },
         },
       ],
     }).compile();

@@ -8,6 +8,7 @@
  * - Efeitos de persistência (via stubs que simulam estado)
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ForbiddenException } from '@nestjs/common';
 import { ResumesRepository } from './resumes.repository';
@@ -27,13 +28,13 @@ describe('ResumesRepository', () => {
 
   const createFakePrismaService = () => ({
     resume: {
-      findMany: jest.fn(({ where }: { where: { userId: string } }) => {
+      findMany: mock(({ where }: { where: { userId: string } }) => {
         const resumes = Array.from(dataStore.values())
           .filter((r) => r.userId === where.userId)
           .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
         return Promise.resolve(resumes);
       }),
-      findFirst: jest.fn(
+      findFirst: mock(
         ({ where }: { where: { id?: string; userId: string } }) => {
           if (where.id) {
             const resume = dataStore.get(where.id);
@@ -49,7 +50,7 @@ describe('ResumesRepository', () => {
           return Promise.resolve(resume ?? null);
         },
       ),
-      create: jest.fn(
+      create: mock(
         ({
           data,
         }: {
@@ -64,7 +65,7 @@ describe('ResumesRepository', () => {
           return Promise.resolve(newResume);
         },
       ),
-      update: jest.fn(
+      update: mock(
         ({ where, data }: { where: { id: string }; data: UpdateResumeDto }) => {
           const resume = dataStore.get(where.id);
           if (!resume) return Promise.resolve(null);
@@ -73,7 +74,7 @@ describe('ResumesRepository', () => {
           return Promise.resolve(updated);
         },
       ),
-      delete: jest.fn(({ where }: { where: { id: string } }) => {
+      delete: mock(({ where }: { where: { id: string } }) => {
         const resume = dataStore.get(where.id);
         if (resume) {
           dataStore.delete(where.id);

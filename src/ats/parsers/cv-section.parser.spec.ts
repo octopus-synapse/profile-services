@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { CVSectionParser } from './cv-section.parser';
 import { CVSectionType, ValidationSeverity } from '../interfaces';
 

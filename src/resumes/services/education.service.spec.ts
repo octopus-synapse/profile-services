@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Logger } from '@nestjs/common';
 import { EducationService } from './education.service';
@@ -7,8 +8,8 @@ import { CreateEducationDto, UpdateEducationDto } from '../dto/education.dto';
 
 describe('EducationService', () => {
   let service: EducationService;
-  let educationRepository: jest.Mocked<EducationRepository>;
-  let resumesRepository: jest.Mocked<ResumesRepository>;
+  let educationRepository: EducationRepository;
+  let resumesRepository: ResumesRepository;
 
   const mockResume = {
     id: 'resume-123',
@@ -35,16 +36,16 @@ describe('EducationService', () => {
 
   beforeEach(async () => {
     const mockEducationRepository = {
-      findAll: jest.fn(),
-      findOne: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
-      reorder: jest.fn(),
+      findAll: mock(),
+      findOne: mock(),
+      create: mock(),
+      update: mock(),
+      delete: mock(),
+      reorder: mock(),
     };
 
     const mockResumesRepository = {
-      findOne: jest.fn(),
+      findOne: mock(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -59,8 +60,8 @@ describe('EducationService', () => {
     educationRepository = module.get(EducationRepository);
     resumesRepository = module.get(ResumesRepository);
 
-    jest.spyOn(Logger.prototype, 'log').mockImplementation();
-    jest.spyOn(Logger.prototype, 'warn').mockImplementation();
+    spyOn(Logger.prototype, 'log').mockImplementation();
+    spyOn(Logger.prototype, 'warn').mockImplementation();
   });
 
   describe('listForResume', () => {

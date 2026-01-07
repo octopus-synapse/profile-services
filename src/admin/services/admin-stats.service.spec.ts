@@ -2,21 +2,22 @@
  * Admin Stats Service Tests
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AdminStatsService } from './admin-stats.service';
 import { PrismaService } from '../../prisma/prisma.service';
 
 describe('AdminStatsService', () => {
   let service: AdminStatsService;
-  let prisma: jest.Mocked<PrismaService>;
+  let prisma: PrismaService;
 
   beforeEach(async () => {
     const mockPrismaService = {
       user: {
-        count: jest.fn(),
+        count: mock(),
       },
       resume: {
-        count: jest.fn(),
+        count: mock(),
       },
     };
 
@@ -33,13 +34,13 @@ describe('AdminStatsService', () => {
 
   describe('getStats', () => {
     it('should return correct statistics', async () => {
-      (prisma.user.count as jest.Mock)
+      (prisma.user.count as any)
         .mockResolvedValueOnce(100) // totalUsers
         .mockResolvedValueOnce(5) // totalAdmins
         .mockResolvedValueOnce(80) // usersWithOnboarding
         .mockResolvedValueOnce(15); // recentUsers
 
-      (prisma.resume.count as jest.Mock).mockResolvedValue(200);
+      (prisma.resume.count as any).mockResolvedValue(200);
 
       const result = await service.getStats();
 
@@ -58,13 +59,13 @@ describe('AdminStatsService', () => {
     });
 
     it('should filter admins correctly', async () => {
-      (prisma.user.count as jest.Mock).mockImplementation(
+      (prisma.user.count as any).mockImplementation(
         (args: { where?: { role?: string } }) => {
           if (args?.where?.role === 'ADMIN') return Promise.resolve(3);
           return Promise.resolve(50);
         },
       );
-      (prisma.resume.count as jest.Mock).mockResolvedValue(100);
+      (prisma.resume.count as any).mockResolvedValue(100);
 
       await service.getStats();
 

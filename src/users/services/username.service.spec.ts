@@ -5,6 +5,7 @@
  * Uncle Bob: "Test the system, not your imagination of the system."
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import {
   BadRequestException,
@@ -17,7 +18,7 @@ import { AppLoggerService } from '../../common/logger/logger.service';
 
 describe('UsernameService', () => {
   let service: UsernameService;
-  let mockUsersRepository: jest.Mocked<UsersRepository>;
+  let mockUsersRepository: UsersRepository;
 
   const mockUser = {
     id: 'user-123',
@@ -28,12 +29,12 @@ describe('UsernameService', () => {
 
   beforeEach(async () => {
     mockUsersRepository = {
-      getUser: jest.fn().mockResolvedValue(mockUser),
+      getUser: mock().mockResolvedValue(mockUser),
       updateUsername: jest
         .fn()
         .mockResolvedValue({ ...mockUser, username: 'newuser' }),
-      isUsernameTaken: jest.fn().mockResolvedValue(false),
-      getLastUsernameUpdate: jest.fn().mockResolvedValue(null),
+      isUsernameTaken: mock().mockResolvedValue(false),
+      getLastUsernameUpdate: mock().mockResolvedValue(null),
     } as any;
 
     const module: TestingModule = await Test.createTestingModule({
@@ -42,7 +43,7 @@ describe('UsernameService', () => {
         { provide: UsersRepository, useValue: mockUsersRepository },
         {
           provide: AppLoggerService,
-          useValue: { debug: jest.fn(), warn: jest.fn() },
+          useValue: { debug: mock(), warn: mock() },
         },
       ],
     }).compile();

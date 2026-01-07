@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException, ForbiddenException } from '@nestjs/common';
 import { AchievementService } from './achievement.service';
@@ -8,16 +9,16 @@ describe('AchievementService', () => {
   let service: AchievementService;
 
   const mockAchievementRepository = {
-    findAll: jest.fn(),
-    findOne: jest.fn(),
-    create: jest.fn(),
-    update: jest.fn(),
-    delete: jest.fn(),
-    reorder: jest.fn(),
+    findAll: mock(),
+    findOne: mock(),
+    create: mock(),
+    update: mock(),
+    delete: mock(),
+    reorder: mock(),
   };
 
   const mockResumesRepository = {
-    findOne: jest.fn(),
+    findOne: mock(),
   };
 
   beforeEach(async () => {
@@ -38,9 +39,7 @@ describe('AchievementService', () => {
     service = module.get<AchievementService>(AchievementService);
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
+  afterEach(() => {});
 
   describe('findAll', () => {
     it('should return paginated achievements for valid resume', async () => {

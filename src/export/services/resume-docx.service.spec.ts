@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { ResumeDOCXService } from './resume-docx.service';
@@ -5,10 +6,10 @@ import { DocxBuilderService } from './docx-builder.service';
 
 describe('ResumeDOCXService', () => {
   let service: ResumeDOCXService;
-  let builderService: jest.Mocked<DocxBuilderService>;
+  let builderService: DocxBuilderService;
 
   const mockBuilderService = {
-    generate: jest.fn(),
+    generate: mock(),
   };
 
   beforeEach(async () => {
@@ -26,9 +27,7 @@ describe('ResumeDOCXService', () => {
     builderService = module.get(DocxBuilderService);
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
+  afterEach(() => {});
 
   describe('generate', () => {
     it('should generate DOCX for complete resume', async () => {

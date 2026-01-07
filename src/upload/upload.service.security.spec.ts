@@ -10,6 +10,7 @@
  * BUG-027: No File Ownership Validation Before Delete
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException } from '@nestjs/common';
 import { UploadService, FileUpload } from './upload.service';
@@ -18,15 +19,15 @@ import { AppLoggerService } from '../common/logger/logger.service';
 
 describe('UploadService - SECURITY BUG DETECTION', () => {
   let service: UploadService;
-  let mockS3Service: { uploadFile: jest.Mock; deleteFile: jest.Mock };
+  let mockS3Service: { uploadFile: any; deleteFile: any };
 
   beforeEach(async () => {
     mockS3Service = {
-      uploadFile: jest.fn().mockResolvedValue({
+      uploadFile: mock().mockResolvedValue({
         url: 'http://example.com/file.jpg',
         key: 'file.jpg',
       }),
-      deleteFile: jest.fn().mockResolvedValue(true),
+      deleteFile: mock().mockResolvedValue(true),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -38,7 +39,7 @@ describe('UploadService - SECURITY BUG DETECTION', () => {
         },
         {
           provide: AppLoggerService,
-          useValue: { log: jest.fn(), warn: jest.fn() },
+          useValue: { log: mock(), warn: mock() },
         },
       ],
     }).compile();

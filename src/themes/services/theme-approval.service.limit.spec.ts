@@ -7,6 +7,7 @@
  * BUG-007: No Theme Resubmission Limit (max 2)
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException } from '@nestjs/common';
 import { ThemeApprovalService } from './theme-approval.service';
@@ -16,23 +17,23 @@ import { ThemeStatus, UserRole } from '@prisma/client';
 
 describe('ThemeApprovalService - RESUBMISSION LIMIT BUG DETECTION', () => {
   let service: ThemeApprovalService;
-  let mockCrud: { findOrFail: jest.Mock };
+  let mockCrud: { findOrFail: any };
   let mockPrisma: {
-    resumeTheme: { update: jest.Mock };
-    user: { findUnique: jest.Mock };
+    resumeTheme: { update: any };
+    user: { findUnique: any };
   };
 
   beforeEach(async () => {
     mockCrud = {
-      findOrFail: jest.fn(),
+      findOrFail: mock(),
     };
 
     mockPrisma = {
       resumeTheme: {
-        update: jest.fn(),
+        update: mock(),
       },
       user: {
-        findUnique: jest.fn(),
+        findUnique: mock(),
       },
     };
 

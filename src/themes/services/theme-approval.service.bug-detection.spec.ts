@@ -7,6 +7,7 @@
  * EXPECTED: Some tests will FAIL - that's the point. They expose bugs.
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { ThemeApprovalService } from './theme-approval.service';
@@ -36,16 +37,16 @@ describe('ThemeApprovalService - Bug Detection', () => {
   beforeEach(async () => {
     mockPrisma = {
       resumeTheme: {
-        update: jest.fn().mockResolvedValue(mockTheme),
-        findMany: jest.fn().mockResolvedValue([]),
+        update: mock().mockResolvedValue(mockTheme),
+        findMany: mock().mockResolvedValue([]),
       },
       user: {
-        findUnique: jest.fn().mockResolvedValue(approverUser),
+        findUnique: mock().mockResolvedValue(approverUser),
       },
     };
 
     mockCrud = {
-      findOrFail: jest.fn().mockResolvedValue(mockTheme),
+      findOrFail: mock().mockResolvedValue(mockTheme),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -243,7 +244,7 @@ describe('ThemeApprovalService - Bug Detection', () => {
    */
   describe('Audit trail', () => {
     beforeEach(() => {
-      mockPrisma.auditLog = { create: jest.fn() };
+      mockPrisma.auditLog = { create: mock() };
     });
 
     it('should create audit log when theme is submitted', async () => {

@@ -5,6 +5,7 @@
  * Tests for applying themes to resumes and managing customizations
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ThemeApplicationService } from './theme-application.service';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -14,28 +15,28 @@ import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { ThemeStatus, ThemeCategory } from '@prisma/client';
 
 // Mock deepMerge utility
-jest.mock('../utils', () => ({
-  deepMerge: jest.fn((base, overrides) => ({ ...base, ...overrides })),
+// TODO: Bun native mock - jest.mock('../utils', () => ({
+  deepMerge: mock((base, overrides) => ({ ...base, ...overrides })),
 }));
 
 describe('ThemeApplicationService', () => {
   let service: ThemeApplicationService;
   let prisma: {
     resume: {
-      findUnique: jest.Mock;
-      update: jest.Mock;
+      findUnique: any;
+      update: any;
     };
     resumeTheme: {
-      create: jest.Mock;
-      update: jest.Mock;
+      create: any;
+      update: any;
     };
-    $transaction: jest.Mock;
+    $transaction: any;
   };
   let crud: {
-    findOrFail: jest.Mock;
+    findOrFail: any;
   };
   let query: {
-    findOne: jest.Mock;
+    findOne: any;
   };
 
   const mockUser = {
@@ -74,22 +75,22 @@ describe('ThemeApplicationService', () => {
   beforeEach(async () => {
     const mockPrisma = {
       resume: {
-        findUnique: jest.fn(),
-        update: jest.fn(),
+        findUnique: mock(),
+        update: mock(),
       },
       resumeTheme: {
-        create: jest.fn(),
-        update: jest.fn(),
+        create: mock(),
+        update: mock(),
       },
-      $transaction: jest.fn(),
+      $transaction: mock(),
     };
 
     const mockCrud = {
-      findOrFail: jest.fn(),
+      findOrFail: mock(),
     };
 
     const mockQuery = {
-      findOne: jest.fn(),
+      findOne: mock(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -107,9 +108,7 @@ describe('ThemeApplicationService', () => {
     query = mockQuery;
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
+  afterEach(() => {});
 
   describe('applyToResume', () => {
     const applyDto = {

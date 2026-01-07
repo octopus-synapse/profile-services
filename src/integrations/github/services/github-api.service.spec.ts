@@ -5,18 +5,19 @@
  * Kent Beck: "Test the error paths as thoroughly as the happy paths."
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { GitHubApiService } from './github-api.service';
 
 // Mock global fetch
-const mockFetch = jest.fn();
+const mockFetch = mock();
 global.fetch = mockFetch;
 
 describe('GitHubApiService', () => {
   let service: GitHubApiService;
-  let mockConfigService: jest.Mocked<ConfigService>;
+  let mockConfigService: ConfigService;
 
   const mockGitHubUser = {
     login: 'testuser',
@@ -37,7 +38,7 @@ describe('GitHubApiService', () => {
     mockFetch.mockReset();
 
     mockConfigService = {
-      get: jest.fn().mockReturnValue('test-github-token'),
+      get: mock().mockReturnValue('test-github-token'),
     } as any;
 
     const module: TestingModule = await Test.createTestingModule({

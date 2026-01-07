@@ -5,6 +5,7 @@
  * BUG-048: GitHub API Token Exposed in Logs
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { GitHubApiService } from './github-api.service';
 import { ConfigService } from '@nestjs/config';
@@ -19,7 +20,7 @@ describe('GitHubApiService - BUG DETECTION', () => {
         {
           provide: ConfigService,
           useValue: {
-            get: jest.fn().mockReturnValue('ghp_secret_token'),
+            get: mock().mockReturnValue('ghp_secret_token'),
           },
         },
       ],

@@ -8,6 +8,7 @@
  * 4. Skills in experiences are entity references, not free text
  */
 
+import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ResumesService } from './resumes.service';
 import { ResumesRepository } from './resumes.repository';
@@ -18,7 +19,7 @@ import {
 
 describe('ResumesService', () => {
   let service: ResumesService;
-  let repository: jest.Mocked<ResumesRepository>;
+  let repository: ResumesRepository;
 
   const _MAX_RESUMES_PER_USER = 4; // Used in business logic, stored for reference
 
@@ -33,12 +34,12 @@ describe('ResumesService', () => {
 
   beforeEach(async () => {
     repository = {
-      findAll: jest.fn(),
-      findOne: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
-      findByUserId: jest.fn(),
+      findAll: mock(),
+      findOne: mock(),
+      create: mock(),
+      update: mock(),
+      delete: mock(),
+      findByUserId: mock(),
     } as any;
 
     const module: TestingModule = await Test.createTestingModule({
