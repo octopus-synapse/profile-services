@@ -201,7 +201,7 @@ describe('OnboardingProgressService', () => {
         const result = await service.getProgress('user-123');
 
         expect(result.currentStep).toBe('experience');
-        expect(result.completedSteps).toContain('welcome');
+        expect(result.completedSteps.includes('welcome')).toBe(true);
       });
 
       it('should return initial progress and delete if expired (>36h)', async () => {
@@ -234,7 +234,7 @@ describe('OnboardingProgressService', () => {
         const result = await service.getProgress('user-123');
 
         expect(result.currentStep).toBe('experience');
-        expect(mockPrisma.onboardingProgress.deleteMany).not.toHaveBeenCalled();
+        expect(mockPrisma.onboardingProgress.deleteMany.mock.calls.length).toBe(0);
       });
     });
   });

@@ -13,6 +13,7 @@ import { ConfigService } from '@nestjs/config';
 import { UnauthorizedException } from '@nestjs/common';
 import { JwtStrategy } from './jwt.strategy';
 import { PrismaService } from '../../prisma/prisma.service';
+import { TokenBlacklistService } from '../services/token-blacklist.service';
 import { UserRole } from '@prisma/client';
 
 describe('JwtStrategy - BUG DETECTION', () => {
@@ -30,6 +31,10 @@ describe('JwtStrategy - BUG DETECTION', () => {
       providers: [
         JwtStrategy,
         { provide: PrismaService, useValue: mockPrisma },
+        {
+          provide: TokenBlacklistService,
+          useValue: { addToBlacklist: mock(), revokeAllUserTokens: mock(), isTokenRevokedForUser: mock().mockResolvedValue(false), isBlacklisted: mock() },
+        },
         {
           provide: ConfigService,
           useValue: { get: mock().mockReturnValue('test-secret') },
@@ -64,7 +69,7 @@ describe('JwtStrategy - BUG DETECTION', () => {
       const payload = { sub: 'user-123', email: 'unverified@example.com' };
 
       // BUG: This should throw but doesn't!
-      await expect(strategy.validate(payload)).rejects.toThrow(
+      await expect(async () => await strategy.validate(payload)).toThrow(
         UnauthorizedException,
       );
     });

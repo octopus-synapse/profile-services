@@ -52,12 +52,12 @@ services:
   # ==================================
   backend:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: profile-services/Dockerfile
       target: deps
     container_name: profile-backend-dev
     restart: unless-stopped
-    command: sh -c "npx prisma generate && npx prisma migrate deploy && npm run start:dev"
+    command: sh -c "bunx prisma generate && bunx prisma migrate deploy && bun run start:dev"
     environment:
       NODE_ENV: development
       PORT: ${BACKEND_PORT:-3001}

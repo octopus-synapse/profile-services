@@ -92,7 +92,7 @@ describe('UserProfileService', () => {
         new NotFoundException(ERROR_MESSAGES.PUBLIC_PROFILE_NOT_FOUND),
       );
 
-      expect(resumesRepository.findByUserId).not.toHaveBeenCalled();
+      expect(resumesRepository.findByUserId.mock.calls.length).toBe(0);
     });
 
     it('should throw NotFoundException when profile visibility is private', async () => {
@@ -112,7 +112,7 @@ describe('UserProfileService', () => {
         new NotFoundException(ERROR_MESSAGES.PUBLIC_PROFILE_NOT_FOUND),
       );
 
-      expect(resumesRepository.findByUserId).not.toHaveBeenCalled();
+      expect(resumesRepository.findByUserId.mock.calls.length).toBe(0);
     });
 
     it('should throw NotFoundException when profile visibility is undefined', async () => {
@@ -175,7 +175,7 @@ describe('UserProfileService', () => {
     it('should throw NotFoundException when profile does not exist', async () => {
       usersRepository.getUserProfile.mockResolvedValue(null);
 
-      await expect(service.getProfile('nonexistent-id')).rejects.toThrow(
+      await expect(async () => await service.getProfile('nonexistent-id')).toThrow(
         new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND),
       );
     });
@@ -234,8 +234,8 @@ describe('UserProfileService', () => {
         service.updateProfile('nonexistent-id', updateDto),
       ).rejects.toThrow(new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND));
 
-      expect(usersRepository.updateUserProfile).not.toHaveBeenCalled();
-      expect(logger.debug).not.toHaveBeenCalled();
+      expect(usersRepository.updateUserProfile.mock.calls.length).toBe(0);
+      expect(logger.debug.mock.calls.length).toBe(0);
     });
 
     it('should handle partial profile updates', async () => {

@@ -207,7 +207,7 @@ describe('EducationOnboardingService', () => {
 
       await service.saveEducation('resume-1', data);
 
-      expect(fakePrisma.education.createMany).not.toHaveBeenCalled();
+      expect(fakePrisma.education.createMany.mock.calls.length).toBe(0);
     });
 
     it('should not save education when array is empty', async () => {
@@ -219,7 +219,7 @@ describe('EducationOnboardingService', () => {
 
       await service.saveEducation('resume-1', data);
 
-      expect(fakePrisma.education.createMany).not.toHaveBeenCalled();
+      expect(fakePrisma.education.createMany.mock.calls.length).toBe(0);
     });
 
     it('should allow empty field', async () => {

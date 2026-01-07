@@ -7,7 +7,15 @@
  * BUG-038: Banner Capture logoUrl Not Validated (SSRF)
  */
 
-import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
+import {
+  describe,
+  it,
+  expect,
+  beforeEach,
+  afterEach,
+  mock,
+  spyOn,
+} from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PdfGeneratorService } from './pdf-generator.service';
 import { BrowserManagerService } from './browser-manager.service';
@@ -40,9 +48,7 @@ describe('PdfGeneratorService - BUG DETECTION', () => {
     mockTemplateService = {
       getPageSetup: mock().mockReturnValue({
         setupPage: mock(),
-        buildResumeUrl: jest
-          .fn()
-          .mockReturnValue('http://localhost:3000/resume'),
+        buildResumeUrl: mock().mockReturnValue('http://localhost:3000/resume'),
         navigateToPage: mock(),
         waitForResumeReady: mock(),
       }),
@@ -77,23 +83,19 @@ describe('PdfGeneratorService - BUG DETECTION', () => {
       const neverResolves = new Promise(() => {}); // Never resolves!
       mockPage.evaluate.mockReturnValue(neverResolves);
 
-      const TIMEOUT_MS = 30000;
+      // Use a short timeout for testing
+      const TEST_TIMEOUT = 100;
 
       // BUG: This will hang forever without timeout!
+      // FIXED: Now we pass a timeout or use default
       const generatePromise = service.generate({
         palette: 'DEFAULT',
         lang: 'en',
+        timeout: TEST_TIMEOUT,
       });
 
       // Should reject after timeout
-      await expect(
-        Promise.race([
-          generatePromise,
-          new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('Timeout')), TIMEOUT_MS + 1000),
-          ),
-        ]),
-      ).rejects.toThrow('Timeout');
+      await expect(generatePromise).rejects.toThrow(/timed out/);
     });
 
     it('should cleanup page even on timeout', async () => {

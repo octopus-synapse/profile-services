@@ -3,7 +3,8 @@
  * Barrel export for all auth services
  */
 
-export { TokenService, JwtUserPayload, TokenPayload } from './token.service';
+export { TokenService } from './token.service';
+export type { JwtUserPayload, TokenPayload } from './token.service';
 export { PasswordService } from './password.service';
 export { VerificationTokenService } from './verification-token.service';
 export { EmailVerificationService } from './email-verification.service';

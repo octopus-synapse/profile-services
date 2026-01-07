@@ -5,7 +5,8 @@ import { describe, it, expect, beforeEach, afterEach, mock } from 'bun:test';
 
 import { Test, TestingModule } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
-import { TokenService, JwtUserPayload } from './token.service';
+import { TokenService } from './token.service';
+import type { JwtUserPayload } from './token.service';
 
 describe('TokenService', () => {
   let service: TokenService;

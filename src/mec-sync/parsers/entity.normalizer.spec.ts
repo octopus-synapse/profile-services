@@ -242,8 +242,8 @@ describe('Entity Normalizer', () => {
         const result = normalizeCourse(row);
 
         // normalizeText may change case, but should preserve accents
-        expect(result?.nome?.toLowerCase()).toContain('análise');
-        expect(result?.nome?.toLowerCase()).toContain('tecnólogo');
+        expect(result?.nome?.toLowerCase()).toInclude('análise');
+        expect(result?.nome?.toLowerCase()).toInclude('tecnólogo');
       });
     });
   });

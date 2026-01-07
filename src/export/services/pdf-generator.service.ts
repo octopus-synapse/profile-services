@@ -8,6 +8,7 @@ import { Page } from 'puppeteer';
 import { BrowserManagerService } from './browser-manager.service';
 import { PdfTemplateService } from './pdf-template.service';
 import { ResumePDFOptions } from '../helpers';
+import { TIMEOUT } from '../constants/ui.constants';
 
 @Injectable()
 export class PdfGeneratorService {
@@ -24,23 +25,40 @@ export class PdfGeneratorService {
   async generate(options: ResumePDFOptions = {}): Promise<Buffer> {
     const browser = await this.browserManager.getBrowser();
     const page = await browser.newPage();
+    const timeout = options.timeout ?? TIMEOUT.PAGE_LOAD;
 
     try {
-      const pageSetup = this.templateService.getPageSetup();
-      const styleExtractor = this.templateService.getStyleExtractor();
-
-      await pageSetup.setupPage(page);
-      const url = pageSetup.buildResumeUrl(options);
-      await pageSetup.navigateToPage(page, url);
-      await pageSetup.waitForResumeReady(page);
-
-      const styles = await styleExtractor.extractStyles(page);
-      await styleExtractor.renderCleanPage(page, url, styles);
-
-      return await this.generatePDF(page);
+      return await Promise.race([
+        this.generateContent(page, options),
+        new Promise<Buffer>((_, reject) =>
+          setTimeout(
+            () =>
+              reject(new Error(`PDF generation timed out after ${timeout}ms`)),
+            timeout,
+          ),
+        ),
+      ]);
     } finally {
       await page.close();
     }
+  }
+
+  private async generateContent(
+    page: Page,
+    options: ResumePDFOptions,
+  ): Promise<Buffer> {
+    const pageSetup = this.templateService.getPageSetup();
+    const styleExtractor = this.templateService.getStyleExtractor();
+
+    await pageSetup.setupPage(page);
+    const url = pageSetup.buildResumeUrl(options);
+    await pageSetup.navigateToPage(page, url);
+    await pageSetup.waitForResumeReady(page);
+
+    const styles = await styleExtractor.extractStyles(page);
+    await styleExtractor.renderCleanPage(page, url, styles);
+
+    return await this.generatePDF(page);
   }
 
   /**

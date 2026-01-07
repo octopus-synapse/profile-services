@@ -65,7 +65,7 @@ describe('EmailService (Adapter)', () => {
         html: '<p>Content</p>',
       };
 
-      await expect(service.sendEmail(options)).rejects.toThrow('SMTP error');
+      await expect(async () => await service.sendEmail(options)).toThrow('SMTP error');
     });
   });
 

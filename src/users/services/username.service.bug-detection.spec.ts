@@ -9,7 +9,15 @@
  * EXPECTED: Some tests will FAIL - that's the point. They expose bugs.
  */
 
-import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
+import {
+  describe,
+  it,
+  expect,
+  beforeEach,
+  afterEach,
+  mock,
+  spyOn,
+} from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException } from '@nestjs/common';
 import { UsernameService } from './username.service';
@@ -30,9 +38,10 @@ describe('UsernameService - Bug Detection', () => {
   beforeEach(async () => {
     mockUsersRepository = {
       getUser: mock().mockResolvedValue(mockUser),
-      updateUsername: jest
-        .fn()
-        .mockResolvedValue({ ...mockUser, username: 'newuser' }),
+      updateUsername: mock().mockResolvedValue({
+        ...mockUser,
+        username: 'newuser',
+      }),
       isUsernameTaken: mock().mockResolvedValue(false),
       getLastUsernameUpdate: mock().mockResolvedValue(null),
     } as any;
@@ -124,7 +133,7 @@ describe('UsernameService - Bug Detection', () => {
         await service.updateUsername('user-123', { username: 'admin' });
         fail('Should have thrown an exception');
       } catch (error) {
-        expect((error as Error).message.toLowerCase()).toContain('reserved');
+        expect((error as Error).message.toLowerCase()).toInclude('reserved');
       }
     });
   });
@@ -210,7 +219,7 @@ describe('UsernameService - Bug Detection', () => {
         fail('Should have thrown');
       } catch (error) {
         // Should say 10 days remaining (30 - 20 = 10)
-        expect((error as Error).message).toContain('10');
+        expect((error as Error).message).toInclude('10');
       }
     });
   });

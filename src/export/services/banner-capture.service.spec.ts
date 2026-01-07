@@ -1,4 +1,14 @@
-import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
+import {
+  describe,
+  it,
+  expect,
+  beforeEach,
+  afterEach,
+  beforeAll,
+  afterAll,
+  mock,
+  spyOn,
+} from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
 import { BannerCaptureService } from './banner-capture.service';
@@ -158,7 +168,7 @@ describe('BannerCaptureService', () => {
     it('should handle #banner not found', async () => {
       mockPage.$.mockResolvedValueOnce(null);
 
-      await expect(service.capture()).rejects.toThrow(
+      await expect(async () => await service.capture()).toThrow(
         'Banner element not found',
       );
       expect(mockPage.close).toHaveBeenCalledTimes(1);
@@ -167,7 +177,9 @@ describe('BannerCaptureService', () => {
     it('should close page on navigation error', async () => {
       mockPage.goto.mockRejectedValueOnce(new Error('Navigation failed'));
 
-      await expect(service.capture()).rejects.toThrow('Navigation failed');
+      await expect(async () => await service.capture()).toThrow(
+        'Navigation failed',
+      );
       expect(mockPage.close).toHaveBeenCalledTimes(1);
     });
 
@@ -176,7 +188,7 @@ describe('BannerCaptureService', () => {
         new Error('Timeout waiting for selector'),
       );
 
-      await expect(service.capture()).rejects.toThrow(
+      await expect(async () => await service.capture()).toThrow(
         'Timeout waiting for selector',
       );
       expect(mockPage.close).toHaveBeenCalledTimes(1);
@@ -196,16 +208,16 @@ describe('BannerCaptureService', () => {
         },
       );
 
-      await expect(service.capture(DEFAULT.PALETTE, logoUrl)).rejects.toThrow(
-        'Timeout waiting for logo',
-      );
+      await expect(
+        async () => await service.capture(DEFAULT.PALETTE, logoUrl),
+      ).toThrow('Timeout waiting for logo');
       expect(mockPage.close).toHaveBeenCalledTimes(1);
     });
 
     it('should take debug screenshot on navigation error', async () => {
       mockPage.goto.mockRejectedValueOnce(new Error('Navigation failed'));
 
-      await expect(service.capture()).rejects.toThrow();
+      await expect(async () => await service.capture()).toThrow();
 
       // Debug screenshot should be taken before throwing
       expect(mockPage.screenshot).toHaveBeenCalled();
@@ -216,7 +228,7 @@ describe('BannerCaptureService', () => {
         new Error('Selector timeout'),
       );
 
-      await expect(service.capture()).rejects.toThrow();
+      await expect(async () => await service.capture()).toThrow();
 
       // Multiple debug screenshots should be taken
       expect(mockPage.screenshot).toHaveBeenCalled();

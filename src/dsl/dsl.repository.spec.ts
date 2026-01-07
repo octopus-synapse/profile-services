@@ -2,7 +2,15 @@
  * DSL Repository Tests
  */
 
-import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
+import {
+  describe,
+  it,
+  expect,
+  beforeEach,
+  afterEach,
+  mock,
+  spyOn,
+} from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException } from '@nestjs/common';
 import { DslRepository } from './dsl.repository';
@@ -116,12 +124,10 @@ describe('DslRepository', () => {
 
   describe('render', () => {
     it('should render resume AST', async () => {
-      jest
-        .spyOn(prisma.resume, 'findFirst')
-        .mockResolvedValue(mockResume as any);
-      jest
-        .spyOn(validator, 'validateOrThrow')
-        .mockReturnValue(mockResume.activeTheme.styleConfig as any);
+      spyOn(prisma.resume, 'findFirst').mockResolvedValue(mockResume as any);
+      spyOn(validator, 'validateOrThrow').mockReturnValue(
+        mockResume.activeTheme.styleConfig as any,
+      );
       spyOn(compiler, 'compileForHtml').mockReturnValue(mockAst as any);
 
       const result = await repository.render('resume-123', 'user-123', 'html');
@@ -139,7 +145,7 @@ describe('DslRepository', () => {
     it('should throw if resume not found', async () => {
       spyOn(prisma.resume, 'findFirst').mockResolvedValue(null);
 
-      await expect(repository.render('resume-123', 'user-123')).rejects.toThrow(
+      await expect(async () => await repository.render('resume-123', 'user-123')).toThrow(
         BadRequestException,
       );
     });
@@ -147,12 +153,10 @@ describe('DslRepository', () => {
 
   describe('renderPublic', () => {
     it('should render public resume AST', async () => {
-      jest
-        .spyOn(prisma.resume, 'findFirst')
-        .mockResolvedValue(mockResume as any);
-      jest
-        .spyOn(validator, 'validateOrThrow')
-        .mockReturnValue(mockResume.activeTheme.styleConfig as any);
+      spyOn(prisma.resume, 'findFirst').mockResolvedValue(mockResume as any);
+      spyOn(validator, 'validateOrThrow').mockReturnValue(
+        mockResume.activeTheme.styleConfig as any,
+      );
       spyOn(compiler, 'compileForHtml').mockReturnValue(mockAst as any);
 
       const result = await repository.renderPublic('john-doe', 'html');
@@ -170,7 +174,7 @@ describe('DslRepository', () => {
     it('should throw if public resume not found', async () => {
       spyOn(prisma.resume, 'findFirst').mockResolvedValue(null);
 
-      await expect(repository.renderPublic('john-doe')).rejects.toThrow(
+      await expect(async () => await repository.renderPublic('john-doe')).toThrow(
         BadRequestException,
       );
     });
@@ -191,12 +195,12 @@ describe('DslRepository', () => {
         },
       };
 
-      jest
-        .spyOn(prisma.resume, 'findFirst')
-        .mockResolvedValue(resumeWithCustom as any);
-      jest
-        .spyOn(validator, 'validateOrThrow')
-        .mockImplementation((dsl) => dsl as any);
+      spyOn(prisma.resume, 'findFirst').mockResolvedValue(
+        resumeWithCustom as any,
+      );
+      spyOn(validator, 'validateOrThrow').mockImplementation(
+        (dsl) => dsl as any,
+      );
       spyOn(compiler, 'compileForHtml').mockReturnValue(mockAst as any);
 
       await repository.render('resume-123', 'user-123');

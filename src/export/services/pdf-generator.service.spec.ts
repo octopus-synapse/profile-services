@@ -97,7 +97,7 @@ describe('PdfGeneratorService', () => {
     it('should close page even on error', async () => {
       mockPage.pdf.mockRejectedValueOnce(new Error('PDF error'));
 
-      await expect(service.generate()).rejects.toThrow('PDF error');
+      await expect(async () => await service.generate()).toThrow('PDF error');
       expect(mockPage.close).toHaveBeenCalled();
     });
 

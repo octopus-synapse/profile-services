@@ -18,6 +18,7 @@ export interface ResumePDFOptions {
   lang?: string;
   bannerColor?: string;
   userId?: string;
+  timeout?: number;
 }
 
 export class PdfPageSetup {

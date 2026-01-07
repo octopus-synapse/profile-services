@@ -204,7 +204,7 @@ describe('CacheService (Adapter)', () => {
         const result = await service.getOrSet('cache-key', computeFn, 60);
 
         expect(result).toBe('cached-value');
-        expect(computeFn).not.toHaveBeenCalled();
+        expect(computeFn.mock.calls.length).toBe(0);
       });
     });
 

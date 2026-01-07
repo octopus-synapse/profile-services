@@ -93,7 +93,7 @@ describe('Architecture', () => {
 
         // madge exits with 0 if no circular deps found
         // Result should be empty or contain success message
-        expect(result.toLowerCase()).not.toContain('circular');
+        expect(result.toLowerCase()).not.toInclude('circular');
       } catch (error: any) {
         // If madge not installed, skip test
         if (error.message?.includes('command not found')) {

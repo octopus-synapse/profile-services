@@ -90,7 +90,7 @@ describe('GrammarValidator', () => {
         (i) => i.code === 'SPELLING_ERROR',
       );
       expect(spellingIssue).toBeDefined();
-      expect(spellingIssue?.suggestion).toContain('receive');
+      expect(spellingIssue?.suggestion.includes('receive')).toBe(true);
     });
 
     it('should not report duplicate spelling mistakes', () => {
@@ -227,7 +227,7 @@ describe('GrammarValidator', () => {
       );
       expect(longSentenceIssue).toBeDefined();
       expect(longSentenceIssue?.severity).toBe(ValidationSeverity.INFO);
-      expect(longSentenceIssue?.suggestion).toContain('shorter sentences');
+      expect(longSentenceIssue?.suggestion.includes('shorter sentences')).toBe(true);
     });
 
     it('should not flag reasonably sized sentences', () => {
@@ -290,7 +290,7 @@ describe('GrammarValidator', () => {
       );
       expect(repeatedIssue).toBeDefined();
       expect(repeatedIssue?.severity).toBe(ValidationSeverity.WARNING);
-      expect(repeatedIssue?.message).toContain('repeated word');
+      expect(repeatedIssue?.message.includes('repeated word')).toBe(true);
     });
 
     it('should not flag intentionally repeated words in different contexts', () => {

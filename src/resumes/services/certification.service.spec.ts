@@ -124,7 +124,7 @@ describe('CertificationService', () => {
       const result = await service.deleteById('resume-1', 'cert-1', 'user-1');
 
       expect(result.success).toBe(true);
-      expect(result.message).toContain('deleted');
+      expect(result.message.includes('deleted')).toBe(true);
     });
   });
 });

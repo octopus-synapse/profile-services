@@ -129,7 +129,7 @@ describe('SkillsOnboardingService', () => {
 
       await service.saveSkills('resume-1', data);
 
-      expect(fakePrisma.skill.createMany).not.toHaveBeenCalled();
+      expect(fakePrisma.skill.createMany.mock.calls.length).toBe(0);
     });
 
     it('should not save skills when skills array is empty', async () => {
@@ -141,7 +141,7 @@ describe('SkillsOnboardingService', () => {
 
       await service.saveSkills('resume-1', data);
 
-      expect(fakePrisma.skill.createMany).not.toHaveBeenCalled();
+      expect(fakePrisma.skill.createMany.mock.calls.length).toBe(0);
     });
 
     it('should replace existing skills', async () => {

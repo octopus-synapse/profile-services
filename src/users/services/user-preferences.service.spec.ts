@@ -62,7 +62,7 @@ describe('UserPreferencesService', () => {
     it('should throw NotFoundException when preferences do not exist', async () => {
       usersRepository.getUserPreferences.mockResolvedValue(null);
 
-      await expect(service.getPreferences('nonexistent-id')).rejects.toThrow(
+      await expect(async () => await service.getPreferences('nonexistent-id')).toThrow(
         new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND),
       );
     });
@@ -118,8 +118,8 @@ describe('UserPreferencesService', () => {
         service.updatePreferences('nonexistent-id', updateDto),
       ).rejects.toThrow(new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND));
 
-      expect(usersRepository.updateUserPreferences).not.toHaveBeenCalled();
-      expect(logger.debug).not.toHaveBeenCalled();
+      expect(usersRepository.updateUserPreferences.mock.calls.length).toBe(0);
+      expect(logger.debug.mock.calls.length).toBe(0);
     });
 
     it('should handle partial preference updates', async () => {
@@ -249,8 +249,8 @@ describe('UserPreferencesService', () => {
         service.updateFullPreferences('nonexistent-id', updateDto),
       ).rejects.toThrow(new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND));
 
-      expect(usersRepository.upsertFullUserPreferences).not.toHaveBeenCalled();
-      expect(logger.debug).not.toHaveBeenCalled();
+      expect(usersRepository.upsertFullUserPreferences.mock.calls.length).toBe(0);
+      expect(logger.debug.mock.calls.length).toBe(0);
     });
 
     it('should handle creation of new full preferences (upsert behavior)', async () => {

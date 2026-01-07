@@ -1,7 +1,7 @@
 # ==================================
 # Stage 1: Dependencies
 # ==================================
-FROM node:20-alpine AS deps
+FROM oven/bun:1.2.23-alpine AS deps
 
 # Install system dependencies including Chromium for Puppeteer
 RUN apk add --no-cache \
@@ -19,8 +19,12 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
 
 WORKDIR /app
 
+# Copy profile-contracts (local dependency)
+COPY profile-contracts /profile-contracts
+
 # Copy package files
-COPY package.json package-lock.json* ./
+COPY profile-services/package.json ./
+COPY profile-services/bun.lockb* ./
 
 # Install dependencies with GitHub Packages authentication using secrets
 RUN --mount=type=secret,id=github_token \
@@ -29,7 +33,7 @@ RUN --mount=type=secret,id=github_token \
       echo "//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}" > .npmrc && \
       echo "@octopus-synapse:registry=https://npm.pkg.github.com" >> .npmrc; \
     fi && \
-    npm ci && \
+    bun install && \
     rm -f .npmrc
 
 # ==================================
@@ -55,7 +59,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 
 # Copy source files
-COPY . .
+COPY profile-services/ .
 
 # Generate Prisma Client
 RUN npx prisma generate

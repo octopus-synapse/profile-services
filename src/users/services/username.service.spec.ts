@@ -5,7 +5,15 @@
  * Uncle Bob: "Test the system, not your imagination of the system."
  */
 
-import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
+import {
+  describe,
+  it,
+  expect,
+  beforeEach,
+  afterEach,
+  mock,
+  spyOn,
+} from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import {
   BadRequestException,
@@ -30,9 +38,10 @@ describe('UsernameService', () => {
   beforeEach(async () => {
     mockUsersRepository = {
       getUser: mock().mockResolvedValue(mockUser),
-      updateUsername: jest
-        .fn()
-        .mockResolvedValue({ ...mockUser, username: 'newuser' }),
+      updateUsername: mock().mockResolvedValue({
+        ...mockUser,
+        username: 'newuser',
+      }),
       isUsernameTaken: mock().mockResolvedValue(false),
       getLastUsernameUpdate: mock().mockResolvedValue(null),
     } as any;
@@ -68,7 +77,7 @@ describe('UsernameService', () => {
 
         expect(result.success).toBe(true);
         expect(result.message).toBe('Username unchanged');
-        expect(mockUsersRepository.updateUsername).not.toHaveBeenCalled();
+        expect(mockUsersRepository.updateUsername.mock.calls.length).toBe(0);
       });
     });
 
@@ -196,7 +205,7 @@ describe('UsernameService', () => {
           await service.updateUsername('user-123', { username: 'newuser' });
           fail('Should have thrown');
         } catch (error) {
-          expect((error as Error).message).toContain('10');
+          expect((error as Error).message).toInclude('10');
         }
       });
     });

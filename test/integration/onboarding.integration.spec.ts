@@ -131,7 +131,7 @@ describe('Onboarding Flow Integration', () => {
         .send({ username: 'admin' })
         .expect(400);
 
-      expect(response.body.message).toContain('reserved');
+      expect(response.body.message.includes('reserved')).toBe(true);
     });
   });
 
@@ -148,7 +148,7 @@ describe('Onboarding Flow Integration', () => {
 
       // Should either reject or proceed based on implementation
       // The test validates the behavior is consistent
-      expect([200, 400]).toContain(response.status);
+      expect([200, 400].includes(response.status)).toBe(true);
     });
   });
 

@@ -81,7 +81,7 @@ describe('DocxBuilderService', () => {
     it('should throw NotFoundException when user not found', async () => {
       stubUsersRepository.getUser.mockResolvedValueOnce(null);
 
-      await expect(service.generate('nonexistent')).rejects.toThrow(
+      await expect(async () => await service.generate('nonexistent')).toThrow(
         NotFoundException,
       );
     });
@@ -89,7 +89,7 @@ describe('DocxBuilderService', () => {
     it('should throw NotFoundException when resume not found', async () => {
       stubResumesRepository.findByUserId.mockResolvedValueOnce(null);
 
-      await expect(service.generate('user-1')).rejects.toThrow(
+      await expect(async () => await service.generate('user-1')).toThrow(
         NotFoundException,
       );
     });

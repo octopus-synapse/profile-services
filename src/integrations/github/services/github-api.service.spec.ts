@@ -111,7 +111,7 @@ describe('GitHubApiService', () => {
         statusText: 'Not Found',
       });
 
-      await expect(service.getUserProfile('nonexistent')).rejects.toThrow(
+      await expect(async () => await service.getUserProfile('nonexistent')).toThrow(
         new HttpException('GitHub resource not found', HttpStatus.NOT_FOUND),
       );
     });
@@ -123,7 +123,7 @@ describe('GitHubApiService', () => {
         statusText: 'Forbidden',
       });
 
-      await expect(service.getUserProfile('testuser')).rejects.toThrow(
+      await expect(async () => await service.getUserProfile('testuser')).toThrow(
         new HttpException(
           'GitHub API rate limit exceeded',
           HttpStatus.FORBIDDEN,
@@ -138,7 +138,7 @@ describe('GitHubApiService', () => {
         statusText: 'Internal Server Error',
       });
 
-      await expect(service.getUserProfile('testuser')).rejects.toThrow(
+      await expect(async () => await service.getUserProfile('testuser')).toThrow(
         HttpException,
       );
     });

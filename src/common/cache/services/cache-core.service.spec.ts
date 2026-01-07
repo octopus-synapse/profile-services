@@ -86,7 +86,7 @@ describe('CacheCoreService', () => {
       const result = await service.get('key');
 
       expect(result).toBeNull();
-      expect(mockClient.get).not.toHaveBeenCalled();
+      expect(mockClient.get.mock.calls.length).toBe(0);
     });
 
     it('should return null when client is null', async () => {
@@ -139,7 +139,7 @@ describe('CacheCoreService', () => {
 
       await service.set('key', 'value');
 
-      expect(mockClient.set).not.toHaveBeenCalled();
+      expect(mockClient.set.mock.calls.length).toBe(0);
     });
   });
 
@@ -169,7 +169,7 @@ describe('CacheCoreService', () => {
 
       await service.delete('key');
 
-      expect(mockClient.del).not.toHaveBeenCalled();
+      expect(mockClient.del.mock.calls.length).toBe(0);
     });
   });
 
@@ -189,7 +189,7 @@ describe('CacheCoreService', () => {
 
       await service.deletePattern('nonexistent:*');
 
-      expect(mockClient.del).not.toHaveBeenCalled();
+      expect(mockClient.del.mock.calls.length).toBe(0);
     });
 
     it('should log error on Redis failure', async () => {
@@ -209,7 +209,7 @@ describe('CacheCoreService', () => {
 
       await service.deletePattern('user:*');
 
-      expect(mockClient.keys).not.toHaveBeenCalled();
+      expect(mockClient.keys.mock.calls.length).toBe(0);
     });
   });
 
@@ -243,7 +243,7 @@ describe('CacheCoreService', () => {
 
       await service.flush();
 
-      expect(mockClient.flushdb).not.toHaveBeenCalled();
+      expect(mockClient.flushdb.mock.calls.length).toBe(0);
     });
   });
 

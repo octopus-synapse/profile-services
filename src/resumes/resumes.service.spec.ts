@@ -130,7 +130,7 @@ describe('ResumesService', () => {
     it('should throw NotFoundException for non-existent resume', async () => {
       repository.findOne.mockResolvedValue(null);
 
-      await expect(service.findOne('nonexistent', 'user-123')).rejects.toThrow(
+      await expect(async () => await service.findOne('nonexistent', 'user-123')).toThrow(
         NotFoundException,
       );
     });
@@ -153,7 +153,7 @@ describe('ResumesService', () => {
 
       const result = await service.remove('resume-1', 'user-123');
 
-      expect(result.message).toContain('deleted');
+      expect(result.message.includes('deleted')).toBe(true);
     });
   });
 
@@ -245,7 +245,7 @@ describe('isCurrent and endDate Validation', () => {
   it('should reject isCurrent=true with non-null endDate', () => {
     const result = validateCurrentEndDate(true, '2024-01-01');
     expect(result.valid).toBe(false);
-    expect(result.error).toContain('isCurrent');
+    expect(result.error.includes('isCurrent')).toBe(true);
   });
 
   it('should accept isCurrent=false with endDate set', () => {
@@ -299,7 +299,7 @@ describe('Skills Reference Validation', () => {
     const result = validateSkillReferences(skillIds, resumeSkills);
 
     expect(result.valid).toBe(false);
-    expect(result.invalidIds).toContain('nonexistent-skill');
+    expect(result.invalidIds.includes('nonexistent-skill')).toBe(true);
   });
 
   it('should accept empty skill references', () => {

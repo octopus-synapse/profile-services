@@ -260,7 +260,7 @@ describe('VerificationTokenService', () => {
         .findUnique as any;
       mockFindUnique.mockResolvedValue(mockToken);
 
-      await expect(service.validatePasswordResetToken(token)).rejects.toThrow(
+      await expect(async () => await service.validatePasswordResetToken(token)).toThrow(
         new BadRequestException(ERROR_MESSAGES.INVALID_RESET_TOKEN),
       );
     });
@@ -272,7 +272,7 @@ describe('VerificationTokenService', () => {
         .findUnique as any;
       mockFindUnique.mockResolvedValue(null);
 
-      await expect(service.validatePasswordResetToken(token)).rejects.toThrow(
+      await expect(async () => await service.validatePasswordResetToken(token)).toThrow(
         new BadRequestException(ERROR_MESSAGES.INVALID_RESET_TOKEN),
       );
     });
@@ -291,7 +291,7 @@ describe('VerificationTokenService', () => {
       mockFindUnique.mockResolvedValue(mockToken);
       mockDelete.mockResolvedValue(mockToken);
 
-      await expect(service.validatePasswordResetToken(token)).rejects.toThrow(
+      await expect(async () => await service.validatePasswordResetToken(token)).toThrow(
         new BadRequestException(ERROR_MESSAGES.TOKEN_EXPIRED),
       );
     });

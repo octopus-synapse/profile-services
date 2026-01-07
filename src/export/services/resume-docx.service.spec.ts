@@ -46,10 +46,10 @@ describe('ResumeDOCXService', () => {
         new NotFoundException('User not found'),
       );
 
-      await expect(service.generate('non-existent-user')).rejects.toThrow(
+      await expect(async () => await service.generate('non-existent-user')).toThrow(
         NotFoundException,
       );
-      await expect(service.generate('non-existent-user')).rejects.toThrow(
+      await expect(async () => await service.generate('non-existent-user')).toThrow(
         'User not found',
       );
     });
@@ -59,10 +59,10 @@ describe('ResumeDOCXService', () => {
         new NotFoundException('Resume not found for this user'),
       );
 
-      await expect(service.generate('user-123')).rejects.toThrow(
+      await expect(async () => await service.generate('user-123')).toThrow(
         NotFoundException,
       );
-      await expect(service.generate('user-123')).rejects.toThrow(
+      await expect(async () => await service.generate('user-123')).toThrow(
         'Resume not found for this user',
       );
     });
@@ -71,7 +71,7 @@ describe('ResumeDOCXService', () => {
       const error = new Error('Builder service error');
       mockBuilderService.generate.mockRejectedValue(error);
 
-      await expect(service.generate('user-123')).rejects.toThrow(
+      await expect(async () => await service.generate('user-123')).toThrow(
         'Builder service error',
       );
     });

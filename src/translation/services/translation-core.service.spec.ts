@@ -171,7 +171,7 @@ describe('TranslationCoreService', () => {
       expect(result.original).toBe('');
       expect(result.translated).toBe('');
       // Should not call API for empty text
-      expect(httpService.post).not.toHaveBeenCalled();
+      expect(httpService.post.mock.calls.length).toBe(0);
     });
 
     it('should return whitespace string as-is', async () => {
@@ -179,7 +179,7 @@ describe('TranslationCoreService', () => {
 
       expect(result.original).toBe('   ');
       expect(result.translated).toBe('   ');
-      expect(httpService.post).not.toHaveBeenCalled();
+      expect(httpService.post.mock.calls.length).toBe(0);
     });
   });
 

@@ -105,7 +105,7 @@ describe('CSV Line Parser', () => {
         const line = '"value\nwith\nnewlines",normal';
         const result = parseCsvLine(line);
 
-        expect(result[0]).toContain('\n');
+        expect(result[0].includes('\n')).toBe(true);
       });
 
       it('should handle unicode characters', () => {

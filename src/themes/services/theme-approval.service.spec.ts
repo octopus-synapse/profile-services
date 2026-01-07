@@ -349,7 +349,7 @@ describe('ThemeApprovalService', () => {
     it('should reject non-approver access', async () => {
       (prisma.user.findUnique as any).mockResolvedValue(mockUser);
 
-      await expect(service.getPendingApprovals('user-1')).rejects.toThrow(
+      await expect(async () => await service.getPendingApprovals('user-1')).toThrow(
         ForbiddenException,
       );
     });

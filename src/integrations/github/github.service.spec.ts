@@ -70,7 +70,7 @@ describe('GitHubService', () => {
         new HttpException('Not found', 404),
       );
 
-      await expect(service.getUserProfile('nonexistent')).rejects.toThrow(
+      await expect(async () => await service.getUserProfile('nonexistent')).toThrow(
         HttpException,
       );
     });

@@ -105,8 +105,8 @@ describe('ResumesService - Bug Detection', () => {
         fail('Should have thrown');
       } catch (error) {
         // Check for specific message per business rule
-        expect((error as Error).message).toContain('4');
-        expect((error as Error).message.toLowerCase()).toContain('limit');
+        expect((error as Error).message).toInclude('4');
+        expect((error as Error).message.toLowerCase()).toInclude('limit');
       }
     });
   });

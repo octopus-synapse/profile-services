@@ -70,9 +70,9 @@ Expert in distributed systems.
         const result = parser.parseCV(text, 'test.pdf', 'application/pdf');
 
         expect(result.sections).toHaveLength(1);
-        expect(result.sections[0].content).toContain('highly motivated');
-        expect(result.sections[0].content).toContain('clean code');
-        expect(result.sections[0].content).toContain('distributed systems');
+        expect(result.sections[0].content.includes('highly motivated')).toBe(true);
+        expect(result.sections[0].content.includes('clean code')).toBe(true);
+        expect(result.sections[0].content.includes('distributed systems')).toBe(true);
       });
 
       it('should track line numbers for sections', () => {
@@ -338,8 +338,8 @@ Developer @ Company™ – Built systems with 99.9% uptime
 
         const result = parser.parseCV(text, 'test.pdf', 'application/pdf');
 
-        expect(result.sections[0].content).toContain('99.9%');
-        expect(result.sections[0].content).toContain('$1M');
+        expect(result.sections[0].content.includes('99.9%')).toBe(true);
+        expect(result.sections[0].content.includes('$1M')).toBe(true);
       });
 
       it('should handle emoji in content', () => {
@@ -352,7 +352,7 @@ Skills
 
         const result = parser.parseCV(text, 'test.pdf', 'application/pdf');
 
-        expect(result.sections[0].content).toContain('🚀');
+        expect(result.sections[0].content.includes('🚀')).toBe(true);
       });
     });
   });
@@ -608,7 +608,7 @@ More random content here.
         const noSectionsIssue = result.issues.find(
           (i) => i.code === 'NO_SECTIONS_DETECTED',
         );
-        expect(noSectionsIssue?.suggestion).toContain('section headers');
+        expect(noSectionsIssue?.suggestion.includes('section headers')).toBe(true);
       });
     });
 

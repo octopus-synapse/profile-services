@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
+import { describe, it, expect, beforeAll } from 'bun:test';
 import {
   getRequest,
   testContext,
@@ -248,7 +248,7 @@ describe('Sub-Resources Smoke Tests', () => {
           .send(createPayload);
 
         // Accept both 200 and 201 as success
-        expect([200, 201]).toContain(res.status);
+        expect([200, 201].includes(res.status)).toBe(true);
         expect(res.body).toHaveProperty('data');
         expect(res.body.data).toHaveProperty('id');
 
@@ -326,7 +326,7 @@ describe('Sub-Resources Smoke Tests', () => {
         .set(authHeader());
 
       // Could be 403 (forbidden) or 404 (not found)
-      expect([403, 404]).toContain(res.status);
+      expect([403, 404].includes(res.status)).toBe(true);
     });
   });
 });

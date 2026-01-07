@@ -107,7 +107,7 @@ describe('Auth Flow Integration', () => {
         .send(testUser)
         .expect(409);
 
-      expect(duplicateResponse.body.message).toContain('already exists');
+      expect(duplicateResponse.body.message.includes('already exists')).toBe(true);
     });
 
     it('should reject invalid credentials on login', async () => {
@@ -126,7 +126,7 @@ describe('Auth Flow Integration', () => {
         })
         .expect(401);
 
-      expect(response.body.message).toContain('Invalid');
+      expect(response.body.message.includes('Invalid')).toBe(true);
     });
 
     it('should reject access to protected route without token', async () => {

@@ -116,8 +116,11 @@ export class DslCompilerService {
     _target: 'html' | 'pdf' = 'html',
     resumeData?: ResumeWithRelations,
   ): ResumeAst {
+    // 0. Migrate DSL to latest version
+    const migratedDsl = this.migrateDsl(dsl);
+
     // 1. Validate
-    const validatedDsl = this.validator.validateOrThrow(dsl);
+    const validatedDsl = this.validator.validateOrThrow(migratedDsl);
 
     // 2. Resolve tokens
     const resolvedTokens = this.tokenResolver.resolve(validatedDsl.tokens);

@@ -5,7 +5,15 @@
  * Uncle Bob: "Tests should be specifications in executable form."
  */
 
-import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
+import {
+  describe,
+  it,
+  expect,
+  beforeEach,
+  afterEach,
+  mock,
+  spyOn,
+} from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { ThemeCrudService } from './theme-crud.service';
@@ -42,9 +50,10 @@ describe('ThemeCrudService', () => {
         delete: mock().mockResolvedValue(mockTheme),
       },
       user: {
-        findUnique: jest
-          .fn()
-          .mockResolvedValue({ id: 'user-123', role: UserRole.USER }),
+        findUnique: mock().mockResolvedValue({
+          id: 'user-123',
+          role: UserRole.USER,
+        }),
       },
     };
 
@@ -168,7 +177,7 @@ describe('ThemeCrudService', () => {
     it('should reject deleting theme owned by different user', async () => {
       mockPrisma.resumeTheme.findUnique.mockResolvedValue(mockTheme);
 
-      await expect(service.delete('different-user', 'theme-1')).rejects.toThrow(
+      await expect(async () => await service.delete('different-user', 'theme-1')).toThrow(
         ForbiddenException,
       );
     });
@@ -179,7 +188,7 @@ describe('ThemeCrudService', () => {
         isSystemTheme: true,
       });
 
-      await expect(service.delete('user-123', 'theme-1')).rejects.toThrow(
+      await expect(async () => await service.delete('user-123', 'theme-1')).toThrow(
         ForbiddenException,
       );
     });
@@ -187,7 +196,7 @@ describe('ThemeCrudService', () => {
     it('should throw NotFoundException for non-existent theme', async () => {
       mockPrisma.resumeTheme.findUnique.mockResolvedValue(null);
 
-      await expect(service.delete('user-123', 'nonexistent')).rejects.toThrow(
+      await expect(async () => await service.delete('user-123', 'nonexistent')).toThrow(
         NotFoundException,
       );
     });
@@ -205,7 +214,7 @@ describe('ThemeCrudService', () => {
     it('should throw NotFoundException when not found', async () => {
       mockPrisma.resumeTheme.findUnique.mockResolvedValue(null);
 
-      await expect(service.findOrFail('nonexistent')).rejects.toThrow(
+      await expect(async () => await service.findOrFail('nonexistent')).toThrow(
         NotFoundException,
       );
     });

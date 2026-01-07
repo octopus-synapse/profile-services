@@ -136,7 +136,7 @@ describe('UserAdminQueryService', () => {
     it('should throw NotFoundException when user not found', async () => {
       stubPrisma.user.findUnique.mockResolvedValueOnce(null);
 
-      await expect(service.getById('nonexistent')).rejects.toThrow(
+      await expect(async () => await service.getById('nonexistent')).toThrow(
         NotFoundException,
       );
     });

@@ -19,7 +19,7 @@ import { SkillQueryService } from './skill-query.service';
 import { SkillSearchService } from './skill-search.service';
 
 // Re-export DTOs for backward compatibility
-export {
+export type {
   TechAreaDto,
   TechNicheDto,
   TechSkillDto,

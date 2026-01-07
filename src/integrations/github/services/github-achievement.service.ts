@@ -5,7 +5,7 @@
 
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { GitHubUser } from './github-api.service';
+import type { GitHubUser } from '../types/github.types';
 
 type GitHubAchievementInput = Prisma.AchievementCreateManyInput;
 

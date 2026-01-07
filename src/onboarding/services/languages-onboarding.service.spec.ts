@@ -114,7 +114,7 @@ describe('LanguagesOnboardingService', () => {
 
       await service.saveLanguages('resume-1', data);
 
-      expect(fakePrisma.language.createMany).not.toHaveBeenCalled();
+      expect(fakePrisma.language.createMany.mock.calls.length).toBe(0);
     });
 
     it('should replace existing languages', async () => {

@@ -140,9 +140,9 @@ describe('HealthController', () => {
       await controller.checkDatabase();
 
       expect(dbIndicator.isHealthy).toHaveBeenCalledWith('database');
-      expect(redisIndicator.isHealthy).not.toHaveBeenCalled();
-      expect(storageIndicator.isHealthy).not.toHaveBeenCalled();
-      expect(translateIndicator.isHealthy).not.toHaveBeenCalled();
+      expect(redisIndicator.isHealthy.mock.calls.length).toBe(0);
+      expect(storageIndicator.isHealthy.mock.calls.length).toBe(0);
+      expect(translateIndicator.isHealthy.mock.calls.length).toBe(0);
     });
   });
 
@@ -180,7 +180,7 @@ describe('HealthController', () => {
       await controller.checkRedis();
 
       expect(redisIndicator.isHealthy).toHaveBeenCalledWith('redis');
-      expect(dbIndicator.isHealthy).not.toHaveBeenCalled();
+      expect(dbIndicator.isHealthy.mock.calls.length).toBe(0);
     });
   });
 
@@ -218,7 +218,7 @@ describe('HealthController', () => {
       await controller.checkStorage();
 
       expect(storageIndicator.isHealthy).toHaveBeenCalledWith('storage');
-      expect(dbIndicator.isHealthy).not.toHaveBeenCalled();
+      expect(dbIndicator.isHealthy.mock.calls.length).toBe(0);
     });
   });
 
@@ -256,7 +256,7 @@ describe('HealthController', () => {
       await controller.checkTranslate();
 
       expect(translateIndicator.isHealthy).toHaveBeenCalledWith('translate');
-      expect(dbIndicator.isHealthy).not.toHaveBeenCalled();
+      expect(dbIndicator.isHealthy.mock.calls.length).toBe(0);
     });
   });
 

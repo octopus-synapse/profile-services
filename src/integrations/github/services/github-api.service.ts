@@ -5,14 +5,14 @@
 
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import {
+import type {
   GitHubUser,
   GitHubRepo,
   GitHubFetchOptions,
 } from '../types/github.types';
 
 // Re-export types for backward compatibility
-export { GitHubUser, GitHubRepo };
+export type { GitHubUser, GitHubRepo };
 
 @Injectable()
 export class GitHubApiService {

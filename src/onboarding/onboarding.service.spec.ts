@@ -1,4 +1,12 @@
-import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
+import {
+  describe,
+  it,
+  expect,
+  beforeEach,
+  afterEach,
+  mock,
+  spyOn,
+} from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { OnboardingService } from './onboarding.service';
@@ -151,7 +159,7 @@ describe('OnboardingService', () => {
             position: 'Senior Developer',
             startDate: '2020-01',
             endDate: '2024-01',
-            current: false,
+            isCurrent: false,
             description: 'Building applications',
           },
         ],
@@ -163,13 +171,14 @@ describe('OnboardingService', () => {
             field: 'Computer Science',
             startDate: '2015-09',
             endDate: '2019-06',
-            current: false,
+            isCurrent: false,
           },
         ],
         noEducation: false,
         languages: [
-          { language: 'English', proficiency: 'NATIVE' as const },
-          { language: 'Spanish', proficiency: 'CONVERSATIONAL' as const },
+          { name: 'English', level: 'NATIVE' as const },
+          // Using INTERMEDIATE as CONVERSATIONAL is not in the allowed values
+          { name: 'Spanish', level: 'INTERMEDIATE' as const },
         ],
         templateSelection: {
           template: 'PROFESSIONAL',
@@ -303,7 +312,9 @@ describe('OnboardingService', () => {
         service.completeOnboarding(userId, onboardingData),
       ).rejects.toThrow(ERROR_MESSAGES.USER_NOT_FOUND);
 
-      expect(mockResumeOnboardingService.upsertResume).not.toHaveBeenCalled();
+      expect(mockResumeOnboardingService.upsertResume.mock.calls.length).toBe(
+        0,
+      );
       expect(logger.warn).toHaveBeenCalled();
     });
 
@@ -367,12 +378,12 @@ describe('OnboardingService', () => {
       const userId = 'invalid-user';
       mockPrismaService.user.findUnique.mockResolvedValue(null);
 
-      await expect(service.getOnboardingStatus(userId)).rejects.toThrow(
-        NotFoundException,
-      );
-      await expect(service.getOnboardingStatus(userId)).rejects.toThrow(
-        ERROR_MESSAGES.USER_NOT_FOUND,
-      );
+      await expect(
+        async () => await service.getOnboardingStatus(userId),
+      ).toThrow(NotFoundException);
+      await expect(
+        async () => await service.getOnboardingStatus(userId),
+      ).toThrow(ERROR_MESSAGES.USER_NOT_FOUND);
     });
   });
 });

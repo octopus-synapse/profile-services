@@ -145,10 +145,10 @@ describe('AuthCoreService', () => {
       );
       prisma.user.create.mockRejectedValue(duplicateError);
 
-      await expect(service.signup(signupDto)).rejects.toThrow(
+      await expect(async () => await service.signup(signupDto)).toThrow(
         ConflictException,
       );
-      await expect(service.signup(signupDto)).rejects.toThrow(
+      await expect(async () => await service.signup(signupDto)).toThrow(
         ERROR_MESSAGES.EMAIL_ALREADY_EXISTS,
       );
       expect(logger.warn).toHaveBeenCalled();
@@ -162,7 +162,7 @@ describe('AuthCoreService', () => {
         email: null,
       });
 
-      await expect(service.signup(signupDto)).rejects.toThrow(
+      await expect(async () => await service.signup(signupDto)).toThrow(
         'User email is required after registration',
       );
     });
@@ -276,10 +276,10 @@ describe('AuthCoreService', () => {
     it('should throw UnauthorizedException when user not found', async () => {
       prisma.user.findUnique.mockResolvedValue(null);
 
-      await expect(service.login(loginDto)).rejects.toThrow(
+      await expect(async () => await service.login(loginDto)).toThrow(
         UnauthorizedException,
       );
-      await expect(service.login(loginDto)).rejects.toThrow(
+      await expect(async () => await service.login(loginDto)).toThrow(
         ERROR_MESSAGES.INVALID_CREDENTIALS,
       );
     });
@@ -288,10 +288,10 @@ describe('AuthCoreService', () => {
       prisma.user.findUnique.mockResolvedValue(mockUser);
       passwordService.compare.mockResolvedValue(false);
 
-      await expect(service.login(loginDto)).rejects.toThrow(
+      await expect(async () => await service.login(loginDto)).toThrow(
         UnauthorizedException,
       );
-      await expect(service.login(loginDto)).rejects.toThrow(
+      await expect(async () => await service.login(loginDto)).toThrow(
         ERROR_MESSAGES.INVALID_CREDENTIALS,
       );
     });
@@ -303,7 +303,7 @@ describe('AuthCoreService', () => {
       });
       passwordService.compare.mockResolvedValue(true);
 
-      await expect(service.login(loginDto)).rejects.toThrow(
+      await expect(async () => await service.login(loginDto)).toThrow(
         UnauthorizedException,
       );
     });

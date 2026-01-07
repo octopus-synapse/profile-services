@@ -10,14 +10,14 @@ import {
   TranslationBatchService,
   ResumeTranslationService,
 } from './services';
-import {
+import type {
   TranslationLanguage,
   TranslationResult,
   BatchTranslationResult,
 } from './types/translation.types';
 
 // Re-export types for backward compatibility
-export { TranslationLanguage, TranslationResult, BatchTranslationResult };
+export type { TranslationLanguage, TranslationResult, BatchTranslationResult };
 
 @Injectable()
 export class TranslationService implements OnModuleInit {

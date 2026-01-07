@@ -201,7 +201,7 @@ describe('ExperienceOnboardingService', () => {
 
       await service.saveExperiences('resume-1', data);
 
-      expect(fakePrisma.experience.createMany).not.toHaveBeenCalled();
+      expect(fakePrisma.experience.createMany.mock.calls.length).toBe(0);
     });
 
     it('should not save experiences when array is empty', async () => {
@@ -213,7 +213,7 @@ describe('ExperienceOnboardingService', () => {
 
       await service.saveExperiences('resume-1', data);
 
-      expect(fakePrisma.experience.createMany).not.toHaveBeenCalled();
+      expect(fakePrisma.experience.createMany.mock.calls.length).toBe(0);
     });
 
     it('should use empty string for missing description', async () => {

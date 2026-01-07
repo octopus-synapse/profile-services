@@ -253,7 +253,7 @@ describe('ResumesRepository', () => {
     });
 
     it('should throw ForbiddenException when resume does not exist', async () => {
-      await expect(repository.delete('non-existent', 'user-1')).rejects.toThrow(
+      await expect(async () => await repository.delete('non-existent', 'user-1')).toThrow(
         ForbiddenException,
       );
     });
@@ -266,7 +266,7 @@ describe('ResumesRepository', () => {
         updatedAt: new Date(),
       });
 
-      await expect(repository.delete('r1', 'user-2')).rejects.toThrow(
+      await expect(async () => await repository.delete('r1', 'user-2')).toThrow(
         ForbiddenException,
       );
     });

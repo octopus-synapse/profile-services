@@ -83,7 +83,7 @@ describe('ResumePDFService', () => {
       const error = new Error('PDF generation failed');
       generatorService.generate.mockRejectedValueOnce(error);
 
-      await expect(service.generate()).rejects.toThrow('PDF generation failed');
+      await expect(async () => await service.generate()).toThrow('PDF generation failed');
     });
   });
 });
