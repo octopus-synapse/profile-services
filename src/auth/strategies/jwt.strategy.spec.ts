@@ -11,10 +11,12 @@ import { ConfigService } from '@nestjs/config';
 import { UserRole } from '@prisma/client';
 import { JwtStrategy, JwtPayload } from './jwt.strategy';
 import { PrismaService } from '../../prisma/prisma.service';
+import { TokenBlacklistService } from '../services/token-blacklist.service';
 
 describe('JwtStrategy', () => {
   let strategy: JwtStrategy;
   let prisma: { user: { findUnique: jest.Mock } };
+  let tokenBlacklist: { isRevoked: jest.Mock };
 
   const mockUser = {
     id: 'user-123',
@@ -22,6 +24,7 @@ describe('JwtStrategy', () => {
     name: 'Test User',
     role: UserRole.USER,
     hasCompletedOnboarding: true,
+    emailVerified: true,
   };
 
   beforeEach(async () => {
@@ -29,6 +32,10 @@ describe('JwtStrategy', () => {
       user: {
         findUnique: jest.fn(),
       },
+    };
+
+    tokenBlacklist = {
+      isRevoked: jest.fn().mockResolvedValue(false),
     };
 
     const mockConfigService = {
@@ -43,6 +50,7 @@ describe('JwtStrategy', () => {
         JwtStrategy,
         { provide: PrismaService, useValue: prisma },
         { provide: ConfigService, useValue: mockConfigService },
+        { provide: TokenBlacklistService, useValue: tokenBlacklist },
       ],
     }).compile();
 
@@ -58,6 +66,7 @@ describe('JwtStrategy', () => {
         email: 'test@example.com',
         role: 'USER',
         hasCompletedOnboarding: true,
+        iat: Math.floor(Date.now() / 1000),
       };
 
       const result = await strategy.validate(payload);

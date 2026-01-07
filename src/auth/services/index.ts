@@ -11,3 +11,4 @@ export { PasswordResetService } from './password-reset.service';
 export { AccountManagementService } from './account-management.service';
 export { AuthCoreService } from './auth-core.service';
 export { TokenRefreshService } from './token-refresh.service';
+export { TokenBlacklistService } from './token-blacklist.service';

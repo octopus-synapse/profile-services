@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConflictException, UnauthorizedException } from '@nestjs/common';
-import { UserRole } from '@prisma/client';
+import { UserRole, Prisma } from '@prisma/client';
 import { AuthCoreService } from './auth-core.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AppLoggerService } from '../../common/logger/logger.service';
@@ -138,7 +138,11 @@ describe('AuthCoreService', () => {
     });
 
     it('should throw ConflictException when email already exists', async () => {
-      prisma.user.findUnique.mockResolvedValue(mockUser);
+      const duplicateError = new Prisma.PrismaClientKnownRequestError(
+        'Unique constraint failed',
+        { code: 'P2002', clientVersion: '5.0.0' },
+      );
+      prisma.user.create.mockRejectedValue(duplicateError);
 
       await expect(service.signup(signupDto)).rejects.toThrow(
         ConflictException,

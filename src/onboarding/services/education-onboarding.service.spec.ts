@@ -86,7 +86,7 @@ describe('EducationOnboardingService', () => {
             field: 'Computer Science',
             startDate: '2015-09-01',
             endDate: '2019-05-15',
-            current: false,
+            isCurrent: false,
           },
         ],
         noEducation: false,
@@ -116,7 +116,7 @@ describe('EducationOnboardingService', () => {
             degree: 'Master of Science',
             field: 'AI',
             startDate: '2022-09-01',
-            current: true,
+            isCurrent: true,
           },
         ],
         noEducation: false,
@@ -136,14 +136,16 @@ describe('EducationOnboardingService', () => {
           {
             institution: 'Valid University',
             degree: 'BS',
+            field: 'Computer Science',
             startDate: '2015-09-01',
-            current: true,
+            isCurrent: true,
           },
           {
             institution: 'Invalid University',
             degree: 'MS',
+            field: 'Computer Science',
             startDate: 'not-a-date',
-            current: true,
+            isCurrent: true,
           },
         ],
         noEducation: false,
@@ -163,16 +165,18 @@ describe('EducationOnboardingService', () => {
           {
             institution: 'Valid University',
             degree: 'BS',
+            field: 'Computer Science',
             startDate: '2015-09-01',
             endDate: '2019-05-01',
-            current: false,
+            isCurrent: false,
           },
           {
             institution: 'Invalid Dates University',
             degree: 'MS',
+            field: 'Computer Science',
             startDate: '2022-01-01',
             endDate: '2020-01-01', // Before start
-            current: false,
+            isCurrent: false,
           },
         ],
         noEducation: false,
@@ -192,8 +196,9 @@ describe('EducationOnboardingService', () => {
           {
             institution: 'Should Be Ignored',
             degree: 'PhD',
+            field: 'Computer Science',
             startDate: '2020-01-01',
-            current: true,
+            isCurrent: true,
           },
         ],
         noEducation: true,
@@ -216,16 +221,16 @@ describe('EducationOnboardingService', () => {
       expect(fakePrisma.education.createMany).not.toHaveBeenCalled();
     });
 
-    it('should use empty string for missing field', async () => {
+    it('should allow empty field', async () => {
       const data: OnboardingData = {
         ...createBaseOnboardingData(),
         education: [
           {
             institution: 'University',
             degree: 'Bachelor',
+            field: '',
             startDate: '2015-09-01',
-            current: true,
-            // no field
+            isCurrent: true,
           },
         ],
         noEducation: false,
@@ -245,9 +250,10 @@ describe('EducationOnboardingService', () => {
           {
             institution: 'Old University',
             degree: 'BS',
+            field: 'Computer Science',
             startDate: '2010-09-01',
             endDate: '2014-05-01',
-            current: false,
+            isCurrent: false,
           },
         ],
         noEducation: false,
@@ -261,8 +267,9 @@ describe('EducationOnboardingService', () => {
           {
             institution: 'New University',
             degree: 'MS',
+            field: 'Computer Science',
             startDate: '2020-09-01',
-            current: true,
+            isCurrent: true,
           },
         ],
         noEducation: false,

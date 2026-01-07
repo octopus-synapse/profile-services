@@ -28,6 +28,8 @@ export const ERROR_MESSAGES = {
   INVALID_VERIFICATION_TOKEN: 'Invalid or expired verification token',
   INVALID_RESET_TOKEN: 'Invalid or expired reset token',
   TOKEN_EXPIRED: 'Token has expired',
+  TOKEN_REVOKED: 'Token has been revoked',
+  EMAIL_NOT_VERIFIED: 'Please verify your email address before continuing',
 
   // Validation
   INVALID_EMAIL: 'Invalid email format',
@@ -54,6 +56,7 @@ export const ERROR_MESSAGES = {
   CAN_ONLY_DELETE_OWN_THEMES: 'Can only delete own themes',
   CAN_ONLY_EDIT_OWN_THEMES: 'Can only edit own themes',
   ONLY_ADMINS_CAN_EDIT_SYSTEM_THEMES: 'Only admins can edit system themes',
+  ONLY_ADMINS_CAN_DO_THIS: 'Only administrators can perform this action',
   CAN_ONLY_SUBMIT_OWN_THEMES: 'Can only submit own themes',
   THEME_MUST_BE_PRIVATE_OR_REJECTED: 'Theme must be private or rejected',
   THEME_NOT_PENDING_APPROVAL: 'Theme is not pending approval',
@@ -76,4 +79,22 @@ export const ERROR_MESSAGES = {
   // Server
   INTERNAL_SERVER_ERROR: 'Internal server error',
   SERVICE_UNAVAILABLE: 'Service temporarily unavailable',
+
+  // Distributed Lock (BUG-004)
+  DISTRIBUTED_LOCK_UNAVAILABLE:
+    'Distributed locking is unavailable. Critical operations cannot proceed.',
+  LOCK_ACQUISITION_FAILED: 'Could not acquire lock for operation',
+
+  // Rate Limiting
+  TOO_MANY_LOGIN_ATTEMPTS: 'Too many login attempts. Please try again later.',
+  TOO_MANY_PASSWORD_RESET_REQUESTS:
+    'Too many password reset requests. Please try again later.',
+  TOO_MANY_SYNC_REQUESTS:
+    'Daily sync limit reached. Please try again tomorrow.',
+
+  // Business Limits
+  THEME_LIMIT_REACHED: 'Maximum number of themes reached (5)',
+  SESSION_LIMIT_REACHED: 'Maximum number of active sessions reached (5)',
+  THEME_RESUBMISSION_LIMIT_REACHED:
+    'Theme has been rejected too many times. Maximum 2 resubmissions allowed.',
 } as const;

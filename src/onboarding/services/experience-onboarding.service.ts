@@ -34,7 +34,7 @@ export class ExperienceOnboardingService {
     const validExperiences = experiences
       .map((exp) => {
         const startDate = DateUtils.toUTCDate(exp.startDate);
-        const endDate = exp.current ? null : DateUtils.toUTCDate(exp.endDate);
+        const endDate = exp.isCurrent ? null : DateUtils.toUTCDate(exp.endDate);
 
         if (!startDate) {
           this.logger.warn(
@@ -57,7 +57,7 @@ export class ExperienceOnboardingService {
           position: exp.position,
           startDate,
           endDate,
-          isCurrent: exp.current ?? false,
+          isCurrent: exp.isCurrent ?? false,
           description: exp.description ?? '',
           location: '',
           skills: [],

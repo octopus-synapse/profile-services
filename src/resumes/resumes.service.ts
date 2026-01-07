@@ -4,6 +4,7 @@ import {
   Logger,
   UnprocessableEntityException,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { ResumesRepository } from './resumes.repository';
 import { CreateResumeDto } from './dto/create-resume.dto';
 import { UpdateResumeDto } from './dto/update-resume.dto';
@@ -19,19 +20,23 @@ export class ResumesService {
 
   constructor(private readonly resumesRepository: ResumesRepository) {}
 
+  /**
+   * BUG-015 FIX: Use proper database pagination instead of fetching all and slicing
+   */
   async findAll(userId: string, page?: number, limit?: number) {
     this.logger.log(`Finding all resumes for user: ${userId}`);
-    const resumes = await this.resumesRepository.findAll(userId);
 
-    // If pagination is requested, return paginated response
+    // If pagination is requested, use proper DB pagination
     if (page !== undefined && limit !== undefined) {
-      const total = resumes.length;
-      const startIndex = (page - 1) * limit;
-      const endIndex = startIndex + limit;
-      const paginatedResumes = resumes.slice(startIndex, endIndex);
+      const skip = (page - 1) * limit;
+      const [resumes, total] = await Promise.all([
+        this.resumesRepository.findAllPaginated(userId, skip, limit),
+        this.resumesRepository.count(userId),
+      ]);
+
       const totalPages = Math.ceil(total / limit);
 
-      return ApiResponseHelper.paginated(paginatedResumes, {
+      return ApiResponseHelper.paginated(resumes, {
         total,
         page,
         limit,
@@ -41,7 +46,8 @@ export class ResumesService {
       });
     }
 
-    // Otherwise return simple data wrapper
+    // Otherwise return all (for cases where we need full list)
+    const resumes = await this.resumesRepository.findAll(userId);
     return ApiResponseHelper.success(resumes);
   }
 

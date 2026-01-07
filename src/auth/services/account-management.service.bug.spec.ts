@@ -53,7 +53,10 @@ describe('AccountManagementService - BUG DETECTION', () => {
         AccountManagementService,
         { provide: PrismaService, useValue: mockPrisma },
         { provide: PasswordService, useValue: mockPasswordService },
-        { provide: AppLoggerService, useValue: { log: jest.fn(), warn: jest.fn() } },
+        {
+          provide: AppLoggerService,
+          useValue: { log: jest.fn(), warn: jest.fn() },
+        },
       ],
     }).compile();
 
@@ -73,7 +76,10 @@ describe('AccountManagementService - BUG DETECTION', () => {
       mockPrisma.user.findUnique
         .mockResolvedValueOnce(mockUser) // Find user with password
         .mockResolvedValueOnce(null); // Email not taken
-      mockPrisma.user.update.mockResolvedValue({ ...mockUser, email: 'new@example.com' });
+      mockPrisma.user.update.mockResolvedValue({
+        ...mockUser,
+        email: 'new@example.com',
+      });
 
       await service.changeEmail('user-123', {
         newEmail: 'new@example.com',
@@ -147,7 +153,10 @@ describe('AccountManagementService - BUG DETECTION', () => {
       mockPrisma.user.findUnique
         .mockResolvedValueOnce(mockUser)
         .mockResolvedValueOnce(null);
-      mockPrisma.user.update.mockResolvedValue({ ...mockUser, email: 'new@example.com' });
+      mockPrisma.user.update.mockResolvedValue({
+        ...mockUser,
+        email: 'new@example.com',
+      });
 
       await service.changeEmail('user-123', {
         newEmail: 'new@example.com',
@@ -161,4 +170,3 @@ describe('AccountManagementService - BUG DETECTION', () => {
     });
   });
 });
-

@@ -77,9 +77,9 @@ describe('LanguagesOnboardingService', () => {
       const data: OnboardingData = {
         ...createBaseOnboardingData(),
         languages: [
-          { language: 'English', proficiency: 'NATIVE' },
-          { language: 'Spanish', proficiency: 'PROFESSIONAL' },
-          { language: 'French', proficiency: 'CONVERSATIONAL' },
+          { name: 'English', level: 'NATIVE' },
+          { name: 'Spanish', level: 'INTERMEDIATE' },
+          { name: 'French', level: 'BASIC' },
         ],
       };
 
@@ -95,12 +95,12 @@ describe('LanguagesOnboardingService', () => {
       });
       expect(saved![1]).toMatchObject({
         name: 'Spanish',
-        level: 'PROFESSIONAL',
+        level: 'INTERMEDIATE',
         order: 1,
       });
       expect(saved![2]).toMatchObject({
         name: 'French',
-        level: 'CONVERSATIONAL',
+        level: 'BASIC',
         order: 2,
       });
     });
@@ -120,7 +120,7 @@ describe('LanguagesOnboardingService', () => {
       // First save
       const firstData: OnboardingData = {
         ...createBaseOnboardingData(),
-        languages: [{ language: 'German', proficiency: 'BASIC' }],
+        languages: [{ name: 'German', level: 'BASIC' }],
       };
       await service.saveLanguages('resume-1', firstData);
 
@@ -128,8 +128,8 @@ describe('LanguagesOnboardingService', () => {
       const secondData: OnboardingData = {
         ...createBaseOnboardingData(),
         languages: [
-          { language: 'Japanese', proficiency: 'CONVERSATIONAL' },
-          { language: 'Korean', proficiency: 'BASIC' },
+          { name: 'Japanese', level: 'BASIC' },
+          { name: 'Korean', level: 'BASIC' },
         ],
       };
       await service.saveLanguages('resume-1', secondData);
@@ -139,10 +139,10 @@ describe('LanguagesOnboardingService', () => {
       expect(saved!.map((l) => l.name)).toEqual(['Japanese', 'Korean']);
     });
 
-    it('should map language field to name in storage', async () => {
+    it('should map name field to name in storage', async () => {
       const data: OnboardingData = {
         ...createBaseOnboardingData(),
-        languages: [{ language: 'Portuguese', proficiency: 'NATIVE' }],
+        languages: [{ name: 'Portuguese', level: 'NATIVE' }],
       };
 
       await service.saveLanguages('resume-1', data);
@@ -151,22 +151,22 @@ describe('LanguagesOnboardingService', () => {
       expect(saved![0].name).toBe('Portuguese');
     });
 
-    it('should map proficiency field to level in storage', async () => {
+    it('should map level field to level in storage', async () => {
       const data: OnboardingData = {
         ...createBaseOnboardingData(),
-        languages: [{ language: 'Italian', proficiency: 'PROFESSIONAL' }],
+        languages: [{ name: 'Italian', level: 'INTERMEDIATE' }],
       };
 
       await service.saveLanguages('resume-1', data);
 
       const saved = languageStore.get('resume-1');
-      expect(saved![0].level).toBe('PROFESSIONAL');
+      expect(saved![0].level).toBe('INTERMEDIATE');
     });
 
     it('should handle single language', async () => {
       const data: OnboardingData = {
         ...createBaseOnboardingData(),
-        languages: [{ language: 'Mandarin', proficiency: 'NATIVE' }],
+        languages: [{ name: 'Mandarin', level: 'NATIVE' }],
       };
 
       await service.saveLanguages('resume-1', data);

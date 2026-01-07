@@ -165,19 +165,19 @@ describe('Token Revocation - BUG DETECTION', () => {
     it('should store session when logging in', () => {
       // When user logs in, session should be recorded
       // BUG: No session recording happens!
-      
+
       // Expected flow:
       // 1. User logs in
       // 2. Session created in DB with: userId, tokenId, device, ip, createdAt
       // 3. Session count checked against limit (5)
       // 4. If over limit, oldest session invalidated
-      
+
       expect(mockPrisma.session.create).toBeDefined();
     });
 
     it('should enforce session limit of 5', () => {
       const _userId = 'user-123';
-      
+
       // Simulate user has 5 sessions already
       mockPrisma.session.count.mockResolvedValue(5);
 

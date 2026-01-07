@@ -1,6 +1,8 @@
 /**
  * Auth Core Service
  * Single Responsibility: Core authentication operations (signup, login, token refresh)
+ *
+ * BUG-001 FIX: Uses Prisma transactions with unique constraints to prevent TOCTOU
  */
 
 import {
@@ -8,7 +10,7 @@ import {
   ConflictException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { User, UserRole } from '@prisma/client';
+import { User, UserRole, Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AppLoggerService } from '../../common/logger/logger.service';
 import { SignupDto } from '../dto/signup.dto';
@@ -33,18 +35,33 @@ export class AuthCoreService {
   async signup(dto: SignupDto) {
     const { email, password, name } = dto;
 
-    await this.ensureEmailNotExists(email);
-
     const hashedPassword = await this.passwordService.hash(password);
 
-    const user = await this.prisma.user.create({
-      data: {
-        email,
-        name: name ?? email.split('@')[0],
-        password: hashedPassword,
-        hasCompletedOnboarding: false,
-      },
-    });
+    // BUG-001 FIX: Use try-catch with Prisma unique constraint error handling
+    // instead of check-then-create (TOCTOU vulnerable)
+    let user: User;
+    try {
+      user = await this.prisma.user.create({
+        data: {
+          email,
+          name: name ?? email.split('@')[0],
+          password: hashedPassword,
+          hasCompletedOnboarding: false,
+        },
+      });
+    } catch (error) {
+      // Handle unique constraint violation (P2002)
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        this.logger.warn(`Signup attempt for existing email`, this.context, {
+          email,
+        });
+        throw new ConflictException(ERROR_MESSAGES.EMAIL_ALREADY_EXISTS);
+      }
+      throw error;
+    }
 
     this.logger.log(`User registered successfully`, this.context, {
       userId: user.id,
@@ -120,19 +137,6 @@ export class AuthCoreService {
     });
 
     return this.buildAuthResponse(user, token);
-  }
-
-  private async ensureEmailNotExists(email: string): Promise<void> {
-    const existingUser = await this.prisma.user.findUnique({
-      where: { email },
-    });
-
-    if (existingUser) {
-      this.logger.warn(`Signup attempt for existing email`, this.context, {
-        email,
-      });
-      throw new ConflictException(ERROR_MESSAGES.EMAIL_ALREADY_EXISTS);
-    }
   }
 
   private buildAuthResponse(

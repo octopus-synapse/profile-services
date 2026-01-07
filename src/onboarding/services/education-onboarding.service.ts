@@ -34,7 +34,7 @@ export class EducationOnboardingService {
     const validEducation = education
       .map((edu) => {
         const startDate = DateUtils.toUTCDate(edu.startDate);
-        const endDate = edu.current ? null : DateUtils.toUTCDate(edu.endDate);
+        const endDate = edu.isCurrent ? null : DateUtils.toUTCDate(edu.endDate);
 
         if (!startDate) {
           this.logger.warn(
@@ -58,7 +58,7 @@ export class EducationOnboardingService {
           field: edu.field ?? '',
           startDate,
           endDate,
-          isCurrent: edu.current ?? false,
+          isCurrent: edu.isCurrent ?? false,
         };
       })
       .filter(Boolean);

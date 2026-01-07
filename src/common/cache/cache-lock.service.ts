@@ -1,11 +1,24 @@
 /**
  * Cache Lock Service
  * Single Responsibility: Distributed locking operations
+ *
+ * BUG-004 FIX: When Redis is disabled, lock operations now throw errors
+ * instead of silently allowing operations to proceed unprotected.
  */
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { RedisConnectionService } from './redis-connection.service';
 import { AppLoggerService } from '../logger/logger.service';
+import { ERROR_MESSAGES } from '../constants/config';
+
+export interface LockOptions {
+  /**
+   * If true, allows operation to proceed without lock when Redis is unavailable.
+   * Use ONLY for non-critical operations where race conditions are acceptable.
+   * Default: false (strict mode - throws if Redis unavailable)
+   */
+  allowWithoutLock?: boolean;
+}
 
 @Injectable()
 export class CacheLockService {
@@ -17,10 +30,34 @@ export class CacheLockService {
   /**
    * Acquire a distributed lock using SETNX
    * Returns true if lock was acquired, false if already locked
+   *
+   * BUG-004 FIX: Now throws ServiceUnavailableException when Redis is disabled
+   * unless explicitly allowed via options.allowWithoutLock
    */
-  async acquireLock(key: string, ttl: number): Promise<boolean> {
+  async acquireLock(
+    key: string,
+    ttl: number,
+    options: LockOptions = {},
+  ): Promise<boolean> {
+    const { allowWithoutLock = false } = options;
+
     if (!this.redisConnection.isEnabled || !this.redisConnection.client) {
-      return true; // Allow operation if Redis is disabled
+      if (allowWithoutLock) {
+        this.logger.warn(
+          `Redis disabled, proceeding without lock: ${key}`,
+          'CacheLockService',
+        );
+        return true;
+      }
+      // BUG-004 FIX: Throw error instead of silently allowing
+      this.logger.error(
+        `Attempted to acquire lock without Redis: ${key}`,
+        undefined,
+        'CacheLockService',
+      );
+      throw new ServiceUnavailableException(
+        ERROR_MESSAGES.DISTRIBUTED_LOCK_UNAVAILABLE,
+      );
     }
 
     try {
@@ -80,5 +117,12 @@ export class CacheLockService {
       );
       return false;
     }
+  }
+
+  /**
+   * Check if Redis/distributed locking is available
+   */
+  isAvailable(): boolean {
+    return this.redisConnection.isEnabled && !!this.redisConnection.client;
   }
 }

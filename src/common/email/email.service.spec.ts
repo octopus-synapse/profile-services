@@ -9,6 +9,7 @@
  * o comportamento observável (promise resolve/reject).
  */
 
+import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { EmailService } from './email.service';
 import { EmailSenderService } from './services/email-sender.service';
@@ -19,14 +20,14 @@ describe('EmailService (Adapter)', () => {
 
   // Stubs que simulam sucesso das operações
   const stubSenderService = {
-    sendEmail: jest.fn().mockResolvedValue(undefined),
+    sendEmail: mock().mockResolvedValue(undefined),
   };
 
   const stubTemplateService = {
-    sendVerificationEmail: jest.fn().mockResolvedValue(undefined),
-    sendPasswordResetEmail: jest.fn().mockResolvedValue(undefined),
-    sendWelcomeEmail: jest.fn().mockResolvedValue(undefined),
-    sendPasswordChangedEmail: jest.fn().mockResolvedValue(undefined),
+    sendVerificationEmail: mock().mockResolvedValue(undefined),
+    sendPasswordResetEmail: mock().mockResolvedValue(undefined),
+    sendWelcomeEmail: mock().mockResolvedValue(undefined),
+    sendPasswordChangedEmail: mock().mockResolvedValue(undefined),
   };
 
   beforeEach(async () => {

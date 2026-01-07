@@ -1,6 +1,8 @@
 /**
  * Password Reset Service
  * Single Responsibility: Handle password reset and change flows
+ *
+ * BUG-056 FIX: Revokes all user tokens after password change
  */
 
 import {
@@ -13,6 +15,7 @@ import { AppLoggerService } from '../../common/logger/logger.service';
 import { EmailService } from '../../common/email/email.service';
 import { PasswordService } from './password.service';
 import { VerificationTokenService } from './verification-token.service';
+import { TokenBlacklistService } from './token-blacklist.service';
 import {
   ForgotPasswordDto,
   ResetPasswordDto,
@@ -30,6 +33,7 @@ export class PasswordResetService {
     private readonly emailService: EmailService,
     private readonly passwordService: PasswordService,
     private readonly tokenService: VerificationTokenService,
+    private readonly tokenBlacklist: TokenBlacklistService,
   ) {}
 
   async forgotPassword(dto: ForgotPasswordDto) {
@@ -115,6 +119,10 @@ export class PasswordResetService {
     const hashedPassword = await this.passwordService.hash(dto.newPassword);
 
     await this.updatePasswordById(userId, hashedPassword);
+
+    // BUG-056 FIX: Revoke all existing tokens after password change
+    // This ensures old sessions with the compromised password are invalidated
+    await this.tokenBlacklist.revokeAllUserTokens(userId);
 
     this.logger.log(`Password changed successfully`, this.context, { userId });
 

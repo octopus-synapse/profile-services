@@ -5,6 +5,7 @@
  * Audit é crítico para compliance, então testamos a criação de logs.
  */
 
+import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuditLogService } from './audit-log.service';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -18,7 +19,7 @@ describe('AuditLogService', () => {
 
   const stubPrisma = {
     auditLog: {
-      create: jest.fn().mockImplementation(({ data }) => {
+      create: mock().mockImplementation(({ data }) => {
         const log = {
           id: `log-${auditLogs.length + 1}`,
           ...data,
@@ -27,7 +28,7 @@ describe('AuditLogService', () => {
         auditLogs.push(log);
         return Promise.resolve(log);
       }),
-      findMany: jest.fn().mockImplementation(({ where }) => {
+      findMany: mock().mockImplementation(({ where }) => {
         return Promise.resolve(
           auditLogs.filter((log) => {
             if (where?.userId) return log.userId === where.userId;
@@ -36,19 +37,18 @@ describe('AuditLogService', () => {
           }),
         );
       }),
-      deleteMany: jest.fn().mockResolvedValue({ count: 5 }),
+      deleteMany: mock().mockResolvedValue({ count: 5 }),
     },
   };
 
   const stubLogger = {
-    debug: jest.fn(),
-    error: jest.fn(),
-    log: jest.fn(),
+    debug: mock(),
+    error: mock(),
+    log: mock(),
   };
 
   beforeEach(async () => {
     auditLogs.length = 0;
-    jest.clearAllMocks();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [

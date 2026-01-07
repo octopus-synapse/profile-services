@@ -1,0 +1,1267 @@
+bun test v1.2.23 (cf136713)
+
+src/app.controller.spec.ts:
+(pass) AppController > root > should return "Hello World!" [20.53ms]
+(pass) AppController > health > should return health status [5.20ms]
+(pass) AppController > version > should return version information [6.86ms]
+(pass) AppController > version > should use development environment when manifest not available [2.44ms]
+
+src/resumes/resumes.service.spec.ts:
+(pass) ResumesService > Resume Limit (Maximum 4) > should allow creating resume when under limit [3.49ms]
+(pass) ResumesService > Resume Limit (Maximum 4) > should reject creating 5th resume with error [3.79ms]
+(pass) ResumesService > Resume Limit (Maximum 4) > should show clear error message about 4 resume limit [3.99ms]
+(pass) ResumesService > Resume Limit (Maximum 4) > should allow creating exactly 4 resumes [2.75ms]
+(pass) ResumesService > Resume CRUD Operations > should return all resumes for a user [2.74ms]
+(pass) ResumesService > Resume CRUD Operations > should return resume by id if owned by user [2.78ms]
+(pass) ResumesService > Resume CRUD Operations > should throw NotFoundException for non-existent resume [2.00ms]
+(pass) ResumesService > Resume CRUD Operations > should update resume if owned by user [2.99ms]
+(pass) ResumesService > Resume CRUD Operations > should delete resume if owned by user [3.89ms]
+(pass) ResumesService > Remaining Slots > should correctly calculate remaining slots [2.91ms]
+(pass) ResumesService > Remaining Slots > should show 0 remaining when at limit [1.87ms]
+(pass) Experience Order Uniqueness > should reject creating experience with duplicate order [0.35ms]
+(pass) Experience Order Uniqueness > should allow creating experience with unique order [0.20ms]
+(pass) Experience Order Uniqueness > should auto-assign next order when not specified [0.19ms]
+(pass) isCurrent and endDate Validation > should accept isCurrent=true with endDate=null [0.15ms]
+(pass) isCurrent and endDate Validation > should reject isCurrent=true with non-null endDate [0.07ms]
+(pass) isCurrent and endDate Validation > should accept isCurrent=false with endDate set [0.04ms]
+(pass) isCurrent and endDate Validation > should accept isCurrent=false with endDate=null (left position) [0.07ms]
+(pass) Skills Reference Validation > should accept valid skill references [0.34ms]
+(pass) Skills Reference Validation > should reject invalid skill references [0.11ms]
+(pass) Skills Reference Validation > should accept empty skill references [0.07ms]
+
+src/resumes/resumes.service.bug-detection.spec.ts:
+(pass) ResumesService - Bug Detection > BUG #3: Resume limit should return HTTP 422 > should throw UnprocessableEntityException (422) when limit reached [3.32ms]
+(pass) ResumesService - Bug Detection > BUG #3: Resume limit should return HTTP 422 > should NOT throw BadRequestException (400) for limit error [2.62ms]
+(pass) ResumesService - Bug Detection > BUG #3: Resume limit should return HTTP 422 > should have exactly the message "O limite máximo de currículos é 4" (pt-BR) [2.56ms]
+(pass) ResumesService - Bug Detection > Resume limit boundary tests > should allow creating 4th resume (at limit) [1.75ms]
+(pass) ResumesService - Bug Detection > Resume limit boundary tests > should reject at exactly 4 existing resumes [1.40ms]
+
+src/resumes/resumes.repository.spec.ts:
+(pass) ResumesRepository > findAll > should return empty array when user has no resumes [4.81ms]
+(pass) ResumesRepository > findAll > should return all resumes for the user [3.08ms]
+(pass) ResumesRepository > findOne > should return resume when it exists and belongs to user [2.10ms]
+(pass) ResumesRepository > findOne > should return null when resume does not exist [1.65ms]
+(pass) ResumesRepository > findOne > should return null when resume belongs to another user [1.32ms]
+(pass) ResumesRepository > create > should create resume and return it with generated id [2.21ms]
+(pass) ResumesRepository > create > should persist resume to storage [1.73ms]
+(pass) ResumesRepository > update > should update resume when user owns it [2.17ms]
+(pass) ResumesRepository > update > should throw ForbiddenException when resume does not exist [1.76ms]
+(pass) ResumesRepository > update > should throw ForbiddenException when user does not own resume [1.66ms]
+(pass) ResumesRepository > delete > should delete resume and return true when user owns it [1.82ms]
+(pass) ResumesRepository > delete > should throw ForbiddenException when resume does not exist [1.42ms]
+(pass) ResumesRepository > delete > should throw ForbiddenException when user does not own resume [0.90ms]
+(pass) ResumesRepository > findByUserId > should return null when user has no resume [1.18ms]
+(pass) ResumesRepository > findByUserId > should return first resume for user [1.17ms]
+
+src/users/users.service.spec.ts:
+(pass) UsersService (Facade) > getPublicProfileByUsername > should return public profile with user and resume data [1.83ms]
+(pass) UsersService (Facade) > getProfile > should return user profile with expected fields [1.11ms]
+(pass) UsersService (Facade) > updateProfile > should return success with updated profile data [1.55ms]
+(pass) UsersService (Facade) > getPreferences > should return user preferences [1.73ms]
+(pass) UsersService (Facade) > updatePreferences > should return success when preferences are updated [1.95ms]
+(pass) UsersService (Facade) > getFullPreferences > should return complete preferences object [1.42ms]
+(pass) UsersService (Facade) > updateFullPreferences > should return success when full preferences are updated [0.94ms]
+(pass) UsersService (Facade) > updateUsername > should return success with new username [0.94ms]
+(pass) UsersService (Facade) > checkUsernameAvailability > should return availability status [0.88ms]
+
+src/upload/upload.service.spec.ts:
+(pass) UploadService > uploadProfileImage > should upload valid profile image and return result [3.03ms]
+(pass) UploadService > uploadProfileImage > should generate unique keys for multiple uploads [1.70ms]
+(pass) UploadService > uploadProfileImage > should preserve file extension in uploaded key [1.49ms]
+(pass) UploadService > uploadProfileImage > should throw BadRequestException when file size exceeds limit [1.32ms]
+(pass) UploadService > uploadProfileImage > should throw BadRequestException for invalid MIME type [1.27ms]
+(pass) UploadService > uploadProfileImage > should throw BadRequestException when S3 upload fails [1.19ms]
+(pass) UploadService > uploadCompanyLogo > should upload valid company logo and return result [2.90ms]
+(pass) UploadService > uploadCompanyLogo > should throw BadRequestException for oversized file [2.39ms]
+(pass) UploadService > uploadCompanyLogo > should throw BadRequestException when S3 upload fails [1.97ms]
+(pass) UploadService > deleteFile > should delete file successfully and log result [1.38ms]
+(pass) UploadService > deleteFile > should return false when deletion fails without throwing [1.11ms]
+(pass) UploadService > isServiceAvailable > should return true when S3 service is enabled [1.04ms]
+(pass) UploadService > isServiceAvailable > should return false when S3 service is disabled [1.04ms]
+(pass) UploadService > file validation > should accept all allowed MIME types [1.35ms]
+(pass) UploadService > file validation > should handle files at exact size limit [1.38ms]
+(pass) UploadService > file validation > should handle filenames with multiple dots correctly [1.38ms]
+(pass) UploadService > file validation > should convert extension to lowercase [2.43ms]
+
+src/upload/upload.service.security.spec.ts:
+(pass) UploadService - SECURITY BUG DETECTION > BUG-024: SVG XSS Prevention > should REJECT SVG files with embedded scripts [4.93ms]
+(pass) UploadService - SECURITY BUG DETECTION > BUG-024: SVG XSS Prevention > should REJECT SVG with event handlers [1.14ms]
+101 |       };
+102 | 
+103 |       // BUG: This should detect it's not a real JPEG!
+104 |       await expect(
+105 |         service.uploadProfileImage('user-123', spoofedFile),
+106 |       ).rejects.toThrow(BadRequestException);
+                      ^
+error: 
+
+Expected promise that rejects
+Received promise that resolved: Promise { <resolved> }
+
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/upload/upload.service.security.spec.ts:106:17)
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/upload/upload.service.security.spec.ts:94:53)
+(fail) UploadService - SECURITY BUG DETECTION > BUG-025: Magic Bytes Validation > should REJECT file with spoofed MIME type [1.72ms]
+115 |         size: 100,
+116 |       };
+117 | 
+118 |       await expect(
+119 |         service.uploadProfileImage('user-123', invalidJpeg),
+120 |       ).rejects.toThrow(BadRequestException);
+                      ^
+error: 
+
+Expected promise that rejects
+Received promise that resolved: Promise { <resolved> }
+
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/upload/upload.service.security.spec.ts:120:17)
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/upload/upload.service.security.spec.ts:109:53)
+(fail) UploadService - SECURITY BUG DETECTION > BUG-025: Magic Bytes Validation > should validate JPEG magic bytes (FFD8FF) [1.13ms]
+128 |         size: 100,
+129 |       };
+130 | 
+131 |       await expect(
+132 |         service.uploadProfileImage('user-123', invalidPng),
+133 |       ).rejects.toThrow(BadRequestException);
+                      ^
+error: 
+
+Expected promise that rejects
+Received promise that resolved: Promise { <resolved> }
+
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/upload/upload.service.security.spec.ts:133:17)
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/upload/upload.service.security.spec.ts:123:54)
+(fail) UploadService - SECURITY BUG DETECTION > BUG-025: Magic Bytes Validation > should validate PNG magic bytes (89504E47) [0.96ms]
+150 |       };
+151 | 
+152 |       // BUG: This extracts 'php' as extension but should reject!
+153 |       await expect(
+154 |         service.uploadProfileImage('user-123', doubleExtension),
+155 |       ).rejects.toThrow(BadRequestException);
+                      ^
+error: 
+
+Expected promise that rejects
+Received promise that resolved: Promise { <resolved> }
+
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/upload/upload.service.security.spec.ts:155:17)
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/upload/upload.service.security.spec.ts:144:65)
+(fail) UploadService - SECURITY BUG DETECTION > BUG-026: Extension Sanitization > should REJECT double extension attack (image.jpg.php) [1.25ms]
+163 |         size: 100,
+164 |       };
+165 | 
+166 |       await expect(
+167 |         service.uploadProfileImage('user-123', nullByteAttack),
+168 |       ).rejects.toThrow(BadRequestException);
+                      ^
+error: 
+
+Expected promise that rejects
+Received promise that resolved: Promise { <resolved> }
+
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/upload/upload.service.security.spec.ts:168:17)
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/upload/upload.service.security.spec.ts:158:61)
+(fail) UploadService - SECURITY BUG DETECTION > BUG-026: Extension Sanitization > should REJECT null byte attack (image.php%00.jpg) [2.25ms]
+176 |         size: 100,
+177 |       };
+178 | 
+179 |       await expect(
+180 |         service.uploadProfileImage('user-123', traversalAttack),
+181 |       ).rejects.toThrow(BadRequestException);
+                      ^
+error: 
+
+Expected promise that rejects
+Received promise that resolved: Promise { <resolved> }
+
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/upload/upload.service.security.spec.ts:181:17)
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/upload/upload.service.security.spec.ts:171:57)
+(fail) UploadService - SECURITY BUG DETECTION > BUG-026: Extension Sanitization > should REJECT directory traversal in filename [2.13ms]
+(pass) UploadService - SECURITY BUG DETECTION > BUG-027: File Ownership Validation > should REJECT deleting another users file [1.58ms]
+
+src/onboarding/onboarding.service.spec.ts:
+40 |         return {
+41 |             success: false,
+42 |             get error() {
+43 |                 if (this._error)
+44 |                     return this._error;
+45 |                 const error = new ZodError_js_1.ZodError(ctx.common.issues);
+                                   ^
+ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "undefined",
+    "path": [
+      "languages",
+      0,
+      "name"
+    ],
+    "message": "Required"
+  },
+  {
+    "expected": "'BASIC' | 'INTERMEDIATE' | 'ADVANCED' | 'FLUENT' | 'NATIVE'",
+    "received": "undefined",
+    "code": "invalid_type",
+    "path": [
+      "languages",
+      0,
+      "level"
+    ],
+    "message": "Required"
+  },
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "undefined",
+    "path": [
+      "languages",
+      1,
+      "name"
+    ],
+    "message": "Required"
+  },
+  {
+    "expected": "'BASIC' | 'INTERMEDIATE' | 'ADVANCED' | 'FLUENT' | 'NATIVE'",
+    "received": "undefined",
+    "code": "invalid_type",
+    "path": [
+      "languages",
+      1,
+      "level"
+    ],
+    "message": "Required"
+  }
+]
+    issues: [
+  [Object ...], [Object ...], [Object ...], [Object ...]
+],
+  addIssue: [Function],
+ addIssues: [Function],
+
+      at error (/home/ilelo/Documents/Projects/profile/profile-contracts/node_modules/zod/v3/types.cjs:45:31)
+      at parse (/home/ilelo/Documents/Projects/profile/profile-contracts/node_modules/zod/v3/types.cjs:120:15)
+      at completeOnboarding (/home/ilelo/Documents/Projects/profile/profile-services/src/onboarding/onboarding.service.ts:42:48)
+      at completeOnboarding (/home/ilelo/Documents/Projects/profile/profile-services/src/onboarding/onboarding.service.ts:37:28)
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/onboarding/onboarding.service.spec.ts:216:36)
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/onboarding/onboarding.service.spec.ts:126:51)
+(fail) OnboardingService > completeOnboarding > should successfully complete onboarding [4.68ms]
+(pass) OnboardingService > completeOnboarding > should throw NotFoundException if user does not exist [1.45ms]
+(pass) OnboardingService > completeOnboarding > should throw error if data validation fails [1.61ms]
+(pass) OnboardingService > getOnboardingStatus > should successfully get onboarding status [1.47ms]
+(pass) OnboardingService > getOnboardingStatus > should return incomplete status for user who has not completed onboarding [1.07ms]
+(pass) OnboardingService > getOnboardingStatus > should throw NotFoundException if user does not exist [1.08ms]
+
+src/auth/rate-limiting.bug.spec.ts:
+34 |         }
+35 |       }
+36 | 
+37 |       // BUG: No tracking of failed attempts!
+38 |       // Should call incrementFailedAttempts on each failure
+39 |       expect(mockLoginService.incrementFailedAttempts).toHaveBeenCalledTimes(5);
+                                                            ^
+error: expect(received).toHaveBeenCalledTimes(expected)
+
+Expected number of calls: 5
+Received number of calls: 0
+
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/auth/rate-limiting.bug.spec.ts:39:56)
+(fail) Rate Limiting - BUG DETECTION > BUG-010: Login Failed Attempts Not Tracked > should block IP after 5 failed login attempts [3.71ms]
+(pass) Rate Limiting - BUG DETECTION > BUG-010: Login Failed Attempts Not Tracked > should track failed attempts per IP, not per email [0.09ms]
+(pass) Rate Limiting - BUG DETECTION > BUG-010: Login Failed Attempts Not Tracked > should reset counter after successful login
+(pass) Rate Limiting - BUG DETECTION > BUG-032: Password Reset Email Bombing > should limit password reset requests per email [0.22ms]
+(pass) Rate Limiting - BUG DETECTION > BUG-032: Password Reset Email Bombing > should not reveal if email exists [0.03ms]
+(pass) Rate Limiting - BUG DETECTION > BUG-049: Verification Email Rate Limit > should limit verification emails per IP [0.01ms]
+(pass) Rate Limiting - BUG DETECTION > BUG-049: Verification Email Rate Limit > should limit total emails sent per timeframe
+
+src/auth/auth.service.spec.ts:
+
+# Unhandled error between tests
+-------------------------------
+1 | (function (entry, fetcher)
+              ^
+SyntaxError: export 'JwtUserPayload' not found in './token.service'
+      at loadAndEvaluateModule (1:11)
+      at link (1:11)
+      at link (1:11)
+      at linkAndEvaluateModule (1:11)
+      at loadAndEvaluateModule (2:1)
+      at processTicksAndRejections (7:39)
+-------------------------------
+
+
+src/dsl/dsl-compiler.service.spec.ts:
+(pass) DslCompilerService > should be defined [1.54ms]
+(pass) DslCompilerService > compileForHtml > should compile valid DSL to AST [2.87ms]
+(pass) DslCompilerService > compileForHtml > should resolve page dimensions for A4 [2.07ms]
+(pass) DslCompilerService > compileForHtml > should create two columns for two-column layout [2.10ms]
+(pass) DslCompilerService > compileForHtml > should place sections in correct columns [2.23ms]
+(pass) DslCompilerService > compileForHtml > should resolve typography tokens to concrete values [1.83ms]
+(pass) DslCompilerService > compileForHtml > should resolve spacing tokens with density factor [1.26ms]
+(pass) DslCompilerService > compileForHtml > should filter out hidden sections [1.08ms]
+(pass) DslCompilerService > compileForHtml > should sort sections by order [1.22ms]
+(pass) DslCompilerService > single-column layout > should create single column [1.38ms]
+(pass) DslCompilerService > compact density > should apply density factor to spacing [1.11ms]
+(pass) DslCompilerService > heading styles > should resolve underline heading style [1.01ms]
+(pass) DslCompilerService > heading styles > should resolve uppercase heading style [1.03ms]
+
+src/dsl/dsl-validator.service.spec.ts:
+(pass) DslValidatorService > should be defined [1.67ms]
+(pass) DslValidatorService > validate > should return valid for correct DSL [1.03ms]
+31 |         return {
+32 |           valid: false,
+33 |           errors: error.errors.map((e) => `${e.path.join('.')}: ${e.message}`),
+34 |         };
+35 |       }
+36 |       throw error;
+                 ^
+ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "string",
+    "received": "undefined",
+    "path": [
+      "version"
+    ],
+    "message": "Required"
+  }
+]
+      at validate (/home/ilelo/Documents/Projects/profile/profile-services/src/dsl/dsl-validator.service.ts:36:13)
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/dsl/dsl-validator.service.spec.ts:70:30)
+(fail) DslValidatorService > validate > should return invalid for missing version [1.14ms]
+31 |         return {
+32 |           valid: false,
+33 |           errors: error.errors.map((e) => `${e.path.join('.')}: ${e.message}`),
+34 |         };
+35 |       }
+36 |       throw error;
+                 ^
+ZodError: [
+  {
+    "received": "invalid-type",
+    "code": "invalid_enum_value",
+    "options": [
+      "single-column",
+      "two-column",
+      "sidebar-left",
+      "sidebar-right",
+      "magazine",
+      "compact"
+    ],
+    "path": [
+      "layout",
+      "type"
+    ],
+    "message": "Invalid enum value. Expected 'single-column' | 'two-column' | 'sidebar-left' | 'sidebar-right' | 'magazine' | 'compact', received 'invalid-type'"
+  }
+]
+      at validate (/home/ilelo/Documents/Projects/profile/profile-services/src/dsl/dsl-validator.service.ts:36:13)
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/dsl/dsl-validator.service.spec.ts:80:30)
+(fail) DslValidatorService > validate > should return invalid for wrong layout type [1.05ms]
+31 |         return {
+32 |           valid: false,
+33 |           errors: error.errors.map((e) => `${e.path.join('.')}: ${e.message}`),
+34 |         };
+35 |       }
+36 |       throw error;
+                 ^
+ZodError: [
+  {
+    "received": "b5",
+    "code": "invalid_enum_value",
+    "options": [
+      "a4",
+      "letter",
+      "legal"
+    ],
+    "path": [
+      "layout",
+      "paperSize"
+    ],
+    "message": "Invalid enum value. Expected 'a4' | 'letter' | 'legal', received 'b5'"
+  }
+]
+      at validate (/home/ilelo/Documents/Projects/profile/profile-services/src/dsl/dsl-validator.service.ts:36:13)
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/dsl/dsl-validator.service.spec.ts:89:30)
+(fail) DslValidatorService > validate > should return invalid for wrong paper size [1.05ms]
+31 |         return {
+32 |           valid: false,
+33 |           errors: error.errors.map((e) => `${e.path.join('.')}: ${e.message}`),
+34 |         };
+35 |       }
+36 |       throw error;
+                 ^
+ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "array",
+    "received": "undefined",
+    "path": [
+      "sections"
+    ],
+    "message": "Required"
+  }
+]
+      at validate (/home/ilelo/Documents/Projects/profile/profile-services/src/dsl/dsl-validator.service.ts:36:13)
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/dsl/dsl-validator.service.spec.ts:95:30)
+(fail) DslValidatorService > validate > should return invalid for missing sections [0.69ms]
+31 |         return {
+32 |           valid: false,
+33 |           errors: error.errors.map((e) => `${e.path.join('.')}: ${e.message}`),
+34 |         };
+35 |       }
+36 |       throw error;
+                 ^
+ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "boolean",
+    "received": "undefined",
+    "path": [
+      "sections",
+      0,
+      "visible"
+    ],
+    "message": "Required"
+  },
+  {
+    "code": "invalid_type",
+    "expected": "number",
+    "received": "undefined",
+    "path": [
+      "sections",
+      0,
+      "order"
+    ],
+    "message": "Required"
+  },
+  {
+    "expected": "'main' | 'sidebar' | 'full-width'",
+    "received": "undefined",
+    "code": "invalid_type",
+    "path": [
+      "sections",
+      0,
+      "column"
+    ],
+    "message": "Required"
+  }
+]
+      at validate (/home/ilelo/Documents/Projects/profile/profile-services/src/dsl/dsl-validator.service.ts:36:13)
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/dsl/dsl-validator.service.spec.ts:104:30)
+(fail) DslValidatorService > validate > should return invalid for malformed section [0.71ms]
+(pass) DslValidatorService > validateOrThrow > should return normalized DSL for valid input [0.70ms]
+113 |       expect(normalized.version).toBe('1.0.0');
+114 |     });
+115 | 
+116 |     it('should throw BadRequestException for invalid input', () => {
+117 |       const invalidDsl = { invalid: true };
+118 |       expect(() => service.validateOrThrow(invalidDsl)).toThrow(
+                                                              ^
+error: expect(received).toThrow(expected)
+
+Expected constructor: BadRequestException
+Received constructor: ZodError
+
+Received message: "[\n  {\n    \"code\": \"invalid_type\",\n    \"expected\": \"string\",\n    \"received\": \"undefined\",\n    \"path\": [\n      \"version\"\n    ],\n    \"message\": \"Required\"\n  },\n  {\n    \"code\": \"invalid_type\",\n    \"expected\": \"object\",\n    \"received\": \"undefined\",\n    \"path\": [\n      \"layout\"\n    ],\n    \"message\": \"Required\"\n  },\n  {\n    \"code\": \"invalid_type\",\n    \"expected\": \"object\",\n    \"received\": \"undefined\",\n    \"path\": [\n      \"tokens\"\n    ],\n    \"message\": \"Required\"\n  },\n  {\n    \"code\": \"invalid_type\",\n    \"expected\": \"array\",\n    \"received\": \"undefined\",\n    \"path\": [\n      \"sections\"\n    ],\n    \"message\": \"Required\"\n  }\n]"
+
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/dsl/dsl-validator.service.spec.ts:118:57)
+(fail) DslValidatorService > validateOrThrow > should throw BadRequestException for invalid input [0.74ms]
+(pass) DslValidatorService > isSupportedVersion > should return true for supported version [0.59ms]
+(pass) DslValidatorService > isSupportedVersion > should return false for unsupported version [0.48ms]
+
+src/dsl/dsl.repository.spec.ts:
+(pass) DslRepository > preview > should compile DSL for preview [2.20ms]
+(pass) DslRepository > validate > should validate DSL [0.99ms]
+(pass) DslRepository > render > should render resume AST [1.41ms]
+(pass) DslRepository > render > should throw if resume not found [0.78ms]
+(pass) DslRepository > renderPublic > should render public resume AST [0.81ms]
+(pass) DslRepository > renderPublic > should throw if public resume not found [0.60ms]
+(pass) DslRepository > mergeDsl > should deep merge DSL objects [0.77ms]
+
+src/dsl/dsl-compiler.service.bug.spec.ts:
+81 | 
+82 |       // BUG: No migration happens!
+83 |       // Old DSL should be automatically migrated to current version
+84 |       const result = service.compile(oldDsl as any);
+85 | 
+86 |       expect(result.meta.version).toBe('2.0'); // Should be migrated
+                                       ^
+error: expect(received).toBe(expected)
+
+Expected: "2.0"
+Received: "1.0"
+
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/dsl/dsl-compiler.service.bug.spec.ts:86:35)
+(fail) DslCompilerService - BUG DETECTION > BUG-017: Version Migration Not Implemented > should migrate DSL from v1 to v2 [2.63ms]
+(pass) DslCompilerService - BUG DETECTION > BUG-017: Version Migration Not Implemented > should handle version "1.0" documents [1.05ms]
+(pass) DslCompilerService - BUG DETECTION > BUG-047: No Input Size Limit > should reject excessively large DSL [0.98ms]
+(pass) DslCompilerService - BUG DETECTION > BUG-047: No Input Size Limit > should limit number of sections [1.02ms]
+(pass) DslCompilerService - BUG DETECTION > DSL Compilation Security > should not allow script injection in tokens [0.52ms]
+
+src/dsl/dsl-compiler-data.spec.ts:
+(pass) DslCompilerService - Data Mapping > should compile section data correctly [1.66ms]
+(pass) DslCompilerService - Data Mapping > should use placeholder data when resume is not provided [0.82ms]
+
+src/health/health.controller.spec.ts:
+
+# Unhandled error between tests
+-------------------------------
+1 | (function (entry, fetcher)
+              ^
+SyntaxError: export 'TranslationResult' not found in './types/translation.types'
+      at loadAndEvaluateModule (1:11)
+      at link (1:11)
+      at link (1:11)
+      at link (1:11)
+      at link (1:11)
+      at linkAndEvaluateModule (1:11)
+      at loadAndEvaluateModule (2:1)
+      at processTicksAndRejections (7:39)
+-------------------------------
+
+
+src/translation/translation.service.spec.ts:
+
+# Unhandled error between tests
+-------------------------------
+1 | (function (entry, fetcher)
+              ^
+SyntaxError: export 'TranslationResult' not found in './types/translation.types'
+      at loadAndEvaluateModule (1:11)
+      at link (1:11)
+      at link (1:11)
+      at link (1:11)
+      at link (1:11)
+      at linkAndEvaluateModule (1:11)
+      at loadAndEvaluateModule (2:1)
+      at processTicksAndRejections (7:39)
+-------------------------------
+
+
+src/common/email/email.service.spec.ts:
+(pass) EmailService (Adapter) > sendEmail > should complete successfully when sending raw email [1.36ms]
+(pass) EmailService (Adapter) > sendEmail > should propagate error when sending fails [0.85ms]
+(pass) EmailService (Adapter) > sendVerificationEmail > should complete successfully when sending verification email [0.85ms]
+(pass) EmailService (Adapter) > sendVerificationEmail > should propagate error when sending fails [0.80ms]
+(pass) EmailService (Adapter) > sendPasswordResetEmail > should complete successfully when sending password reset email [1.19ms]
+(pass) EmailService (Adapter) > sendPasswordResetEmail > should propagate error when sending fails [1.50ms]
+(pass) EmailService (Adapter) > sendWelcomeEmail > should complete successfully when sending welcome email [1.50ms]
+(pass) EmailService (Adapter) > sendWelcomeEmail > should propagate error when sending fails [1.34ms]
+(pass) EmailService (Adapter) > sendPasswordChangedEmail > should complete successfully when sending password changed email [1.07ms]
+(pass) EmailService (Adapter) > sendPasswordChangedEmail > should propagate error when sending fails [0.82ms]
+
+src/common/audit/audit-log.service.spec.ts:
+(pass) AuditLogService > log > should create audit log entry [1.80ms]
+(pass) AuditLogService > log > should extract request metadata when provided [0.96ms]
+(pass) AuditLogService > log > should not throw on prisma errors [0.97ms]
+(pass) AuditLogService > logUsernameChange > should log username change with before/after [0.87ms]
+(pass) AuditLogService > logResumeDeletion > should log resume deletion with data snapshot [1.58ms]
+(pass) AuditLogService > logVisibilityChange > should log visibility change [1.24ms]
+(pass) AuditLogService > logUnauthorizedAccess > should log unauthorized access attempt [1.08ms]
+(pass) AuditLogService > getUserLogs > should return logs for specific user [1.39ms]
+(pass) AuditLogService > cleanupOldLogs > should delete old logs and return count [1.50ms]
+
+src/common/cache/cache.service.spec.ts:
+(pass) CacheService (Adapter) > when Redis is enabled > should report enabled status [1.24ms]
+(pass) CacheService (Adapter) > when Redis is enabled > get/set operations > should return null for non-existent key [0.84ms]
+(pass) CacheService (Adapter) > when Redis is enabled > get/set operations > should return stored value after set [0.80ms]
+(pass) CacheService (Adapter) > when Redis is enabled > get/set operations > should return null after delete [0.86ms]
+(pass) CacheService (Adapter) > when Redis is enabled > deletePattern > should delete all keys matching pattern [1.11ms]
+(pass) CacheService (Adapter) > when Redis is enabled > flush > should clear all cached data [0.97ms]
+(pass) CacheService (Adapter) > when Redis is enabled > lock operations > should acquire lock when not locked [1.28ms]
+(pass) CacheService (Adapter) > when Redis is enabled > lock operations > should fail to acquire lock when already locked [1.25ms]
+(pass) CacheService (Adapter) > when Redis is enabled > lock operations > should allow acquire after release [1.27ms]
+(pass) CacheService (Adapter) > when Redis is enabled > lock operations > should report correct lock status [1.81ms]
+(pass) CacheService (Adapter) > when Redis is enabled > getOrSet (cache-aside pattern) > should compute and cache value on cache miss [1.46ms]
+(pass) CacheService (Adapter) > when Redis is enabled > getOrSet (cache-aside pattern) > should return cached value without computing on cache hit [0.84ms]
+(pass) CacheService (Adapter) > when Redis is enabled > onModuleDestroy > should complete cleanup without error [0.85ms]
+(pass) CacheService (Adapter) > when Redis is disabled > should report disabled status [1.68ms]
+(pass) CacheService (Adapter) > when Redis is disabled > should return null for get operations [1.54ms]
+
+src/common/cache/cache-lock.service.bug.spec.ts:
+53 |       this.logger.error(
+54 |         `Attempted to acquire lock without Redis: ${key}`,
+55 |         undefined,
+56 |         'CacheLockService',
+57 |       );
+58 |       throw new ServiceUnavailableException(
+                 ^
+ServiceUnavailableException: Distributed locking is unavailable. Critical operations cannot proceed.
+ response: {
+  message: "Distributed locking is unavailable. Critical operations cannot proceed.",
+  error: "Service Unavailable",
+  statusCode: 503,
+},
+   status: 503,
+  options: {},
+
+      at acquireLock (/home/ilelo/Documents/Projects/profile/profile-services/src/common/cache/cache-lock.service.ts:58:13)
+      at acquireLock (/home/ilelo/Documents/Projects/profile/profile-services/src/common/cache/cache-lock.service.ts:38:5)
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/common/cache/cache-lock.service.bug.spec.ts:62:36)
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/common/cache/cache-lock.service.bug.spec.ts:57:66)
+(fail) CacheLockService - BUG DETECTION > BUG-004: Lock Behavior When Redis Disabled > should NOT silently return true when Redis is disabled [2.03ms]
+53 |       this.logger.error(
+54 |         `Attempted to acquire lock without Redis: ${key}`,
+55 |         undefined,
+56 |         'CacheLockService',
+57 |       );
+58 |       throw new ServiceUnavailableException(
+                 ^
+ServiceUnavailableException: Distributed locking is unavailable. Critical operations cannot proceed.
+ response: {
+  message: "Distributed locking is unavailable. Critical operations cannot proceed.",
+  error: "Service Unavailable",
+  statusCode: 503,
+},
+   status: 503,
+  options: {},
+
+      at acquireLock (/home/ilelo/Documents/Projects/profile/profile-services/src/common/cache/cache-lock.service.ts:58:13)
+      at acquireLock (/home/ilelo/Documents/Projects/profile/profile-services/src/common/cache/cache-lock.service.ts:38:5)
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/common/cache/cache-lock.service.bug.spec.ts:75:21)
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/common/cache/cache-lock.service.bug.spec.ts:70:59)
+(fail) CacheLockService - BUG DETECTION > BUG-004: Lock Behavior When Redis Disabled > should log warning when operating without Redis [1.78ms]
+53 |       this.logger.error(
+54 |         `Attempted to acquire lock without Redis: ${key}`,
+55 |         undefined,
+56 |         'CacheLockService',
+57 |       );
+58 |       throw new ServiceUnavailableException(
+                 ^
+ServiceUnavailableException: Distributed locking is unavailable. Critical operations cannot proceed.
+ response: {
+  message: "Distributed locking is unavailable. Critical operations cannot proceed.",
+  error: "Service Unavailable",
+  statusCode: 503,
+},
+   status: 503,
+  options: {},
+
+      at acquireLock (/home/ilelo/Documents/Projects/profile/profile-services/src/common/cache/cache-lock.service.ts:58:13)
+      at acquireLock (/home/ilelo/Documents/Projects/profile/profile-services/src/common/cache/cache-lock.service.ts:38:5)
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/common/cache/cache-lock.service.bug.spec.ts:86:36)
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/common/cache/cache-lock.service.bug.spec.ts:81:52)
+(fail) CacheLockService - BUG DETECTION > BUG-004: Lock Behavior When Redis Disabled > should fail-safe for critical operations [1.07ms]
+(pass) CacheLockService - BUG DETECTION > Lock Acquisition Behavior > should properly acquire lock when Redis is available [1.36ms]
+(pass) CacheLockService - BUG DETECTION > Lock Acquisition Behavior > should return false when lock already held [0.92ms]
+(pass) CacheLockService - BUG DETECTION > Lock Acquisition Behavior > should handle Redis errors gracefully [1.29ms]
+53 |       this.logger.error(
+54 |         `Attempted to acquire lock without Redis: ${key}`,
+55 |         undefined,
+56 |         'CacheLockService',
+57 |       );
+58 |       throw new ServiceUnavailableException(
+                 ^
+ServiceUnavailableException: Distributed locking is unavailable. Critical operations cannot proceed.
+ response: {
+  message: "Distributed locking is unavailable. Critical operations cannot proceed.",
+  error: "Service Unavailable",
+  statusCode: 503,
+},
+   status: 503,
+  options: {},
+
+      at acquireLock (/home/ilelo/Documents/Projects/profile/profile-services/src/common/cache/cache-lock.service.ts:58:13)
+      at acquireLock (/home/ilelo/Documents/Projects/profile/profile-services/src/common/cache/cache-lock.service.ts:38:5)
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/common/cache/cache-lock.service.bug.spec.ts:145:37)
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/common/cache/cache-lock.service.bug.spec.ts:140:64)
+(fail) CacheLockService - BUG DETECTION > Alternative: In-Memory Fallback > should use in-memory fallback when Redis unavailable [1.00ms]
+
+src/common/cache/cache-redis.bug.spec.ts:
+63 | 
+64 |       // BUG: Error might be silently swallowed!
+65 |       const result = await cacheService.set('key', 'value');
+66 | 
+67 |       // Should indicate failure somehow
+68 |       expect(result).toBe(false); // Or throw
+                          ^
+error: expect(received).toBe(expected)
+
+Expected: false
+Received: undefined
+
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/common/cache/cache-redis.bug.spec.ts:68:22)
+(fail) Redis Cache - BUG DETECTION > BUG-054: Cache Set Without Error Handling > should report when cache set fails [1.65ms]
+74 |         .mockResolvedValueOnce('OK');
+75 | 
+76 |       await cacheService.set('key', 'value');
+77 | 
+78 |       // Should have retried
+79 |       expect(mockRedis.client.set).toHaveBeenCalledTimes(2);
+                                        ^
+error: expect(received).toHaveBeenCalledTimes(expected)
+
+Expected number of calls: 2
+Received number of calls: 1
+
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/common/cache/cache-redis.bug.spec.ts:79:36)
+(fail) Redis Cache - BUG DETECTION > BUG-054: Cache Set Without Error Handling > should retry on transient failures [0.85ms]
+(pass) Redis Cache - BUG DETECTION > BUG-050: Lock Not Released on Error > should release lock in finally block [0.94ms]
+(pass) Redis Cache - BUG DETECTION > BUG-050: Lock Not Released on Error > should have auto-release mechanism for stuck locks [0.67ms]
+(pass) Redis Cache - BUG DETECTION > BUG-050: Lock Not Released on Error > should provide withLock helper for safe usage [0.69ms]
+
+src/common/pipes/parse-cuid.pipe.bug.spec.ts:
+(pass) ParseCuidPipe - BUG DETECTION > BUG-036: Invalid IDs Pass Through > should REJECT invalid CUID format [0.47ms]
+45 |     it('should ACCEPT valid CUID format', () => {
+46 |       // Valid CUIDs: start with 'c', 25 chars, lowercase alphanumeric
+47 |       const validCuids = ['clh1234567890abcdefghij', 'cm3e7xyzabcdefghij12345'];
+48 | 
+49 |       for (const validId of validCuids) {
+50 |         expect(() => pipe.transform(validId)).not.toThrow();
+                                                       ^
+error: expect(received).not.toThrow()
+
+Error name: "BadRequestException"
+Error message: "Invalid ID format. Expected CUID format (e.g., 'clx1abc2def3ghi4jkl5mno6p')"
+
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/common/pipes/parse-cuid.pipe.bug.spec.ts:50:51)
+(fail) ParseCuidPipe - BUG DETECTION > BUG-036: Invalid IDs Pass Through > should ACCEPT valid CUID format [0.41ms]
+(pass) ParseCuidPipe - BUG DETECTION > BUG-036: Invalid IDs Pass Through > should throw on SQL injection attempts [0.15ms]
+(pass) ParseCuidPipe - BUG DETECTION > BUG-036: Invalid IDs Pass Through > should throw on path traversal attempts [0.05ms]
+24 |     // BUG-036 FIX: Reject invalid CUID format immediately
+25 |     // This prevents invalid IDs from reaching the database layer
+26 |     if (!this.cuidRegex.test(value)) {
+27 |       throw new BadRequestException(
+28 |         `Invalid ID format. Expected CUID format (e.g., 'clx1abc2def3ghi4jkl5mno6p')`,
+29 |       );
+           ^
+BadRequestException: Invalid ID format. Expected CUID format (e.g., 'clx1abc2def3ghi4jkl5mno6p')
+      at transform (/home/ilelo/Documents/Projects/profile/profile-services/src/common/pipes/parse-cuid.pipe.ts:29:7)
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/common/pipes/parse-cuid.pipe.bug.spec.ts:76:27)
+(fail) ParseCuidPipe - BUG DETECTION > Current Buggy Behavior (documenting) > currently allows invalid IDs through (THIS IS A BUG) [0.09ms]
+
+src/common/logger/logger.service.spec.ts:
+(pass) AppLoggerService > log > should log info message without throwing [7.71ms]
+(pass) AppLoggerService > log > should log with context [0.49ms]
+(pass) AppLoggerService > log > should log with metadata [0.37ms]
+2026-01-07 16:57:49 [Application] [31merror[39m: Error message
+(pass) AppLoggerService > error > should log error message without throwing [0.99ms]
+2026-01-07 16:57:49 [ErrorContext] [31merror[39m: Error message
+Stack trace here
+(pass) AppLoggerService > error > should log error with stack trace [0.69ms]
+2026-01-07 16:57:49 [Context] [31merror[39m: Error message {"code":"E001"}
+Stack
+(pass) AppLoggerService > error > should log error with metadata [0.55ms]
+(pass) AppLoggerService > warn > should log warning message without throwing [0.49ms]
+(pass) AppLoggerService > warn > should log warning with context and metadata [0.41ms]
+(pass) AppLoggerService > debug > should log debug message without throwing [0.53ms]
+(pass) AppLoggerService > debug > should log debug with context and metadata [0.62ms]
+(pass) AppLoggerService > verbose > should log verbose message without throwing [0.67ms]
+(pass) AppLoggerService > verbose > should use default context when set [0.49ms]
+(pass) AppLoggerService > setContext > should set context for subsequent logs [0.52ms]
+2026-01-07 16:57:50 [ErrorService] [31merror[39m: Error occurred {"errorCode":"E500"}
+(pass) AppLoggerService > errorWithMeta > should log error with metadata using default context [0.77ms]
+
+src/common/guards/roles.guard.spec.ts:
+(pass) RolesGuard > canActivate > should allow access when no roles are required [0.84ms]
+(pass) RolesGuard > canActivate > should allow access when user has required role [0.57ms]
+(pass) RolesGuard > canActivate > should deny access when user does not have required role [0.45ms]
+(pass) RolesGuard > canActivate > should deny access when user is not authenticated [0.45ms]
+(pass) RolesGuard > canActivate > should allow access when user has one of multiple allowed roles [0.48ms]
+(pass) RolesGuard > canActivate > should deny access when user role is not in allowed roles list [0.64ms]
+(pass) RolesGuard > canActivate > should check roles from handler metadata [0.82ms]
+(pass) RolesGuard > canActivate > should allow any authenticated user when roles array is empty [0.94ms]
+(pass) RolesGuard > canActivate > should handle null user in request [0.92ms]
+(pass) RolesGuard > role hierarchy > should not implicitly grant higher privileges to admins [0.43ms]
+(pass) RolesGuard > role hierarchy > should require exact role match [0.44ms]
+
+src/resumes/services/experience.service.bug-detection.spec.ts:
+(pass) ExperienceService - Bug Detection > BUG #4: isCurrent and endDate validation > should REJECT isCurrent=true with endDate set [1.45ms]
+ 96 |         isCurrent: false,
+ 97 |       };
+ 98 | 
+ 99 |       await expect(
+100 |         service.addToResume('resume-123', 'user-123', invalidDto as any),
+101 |       ).rejects.toThrow(BadRequestException);
+                      ^
+error: 
+
+Expected promise that rejects
+Received promise that resolved: Promise { <resolved> }
+
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/resumes/services/experience.service.bug-detection.spec.ts:101:17)
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/resumes/services/experience.service.bug-detection.spec.ts:89:71)
+(fail) ExperienceService - Bug Detection > BUG #4: isCurrent and endDate validation > should REJECT isCurrent=false with endDate=null (ambiguous) [0.98ms]
+(pass) ExperienceService - Bug Detection > BUG #4: isCurrent and endDate validation > should ACCEPT isCurrent=true with endDate=null [0.55ms]
+(pass) ExperienceService - Bug Detection > BUG #4: isCurrent and endDate validation > should ACCEPT isCurrent=false with valid endDate [0.56ms]
+(pass) ExperienceService - Bug Detection > BUG #4: isCurrent and endDate validation > should include "isCurrent" or "endDate" in error message [0.67ms]
+(pass) ExperienceService - Bug Detection > Date range validation > should REJECT endDate before startDate [0.61ms]
+(pass) ExperienceService - Bug Detection > Date range validation > should REJECT same startDate and endDate [0.59ms]
+216 |         order: 0, // Duplicate order!
+217 |       };
+218 | 
+219 |       await expect(
+220 |         service.addToResume('resume-123', 'user-123', duplicateOrderDto as any),
+221 |       ).rejects.toThrow(BadRequestException);
+                      ^
+error: 
+
+Expected promise that rejects
+Received promise that resolved: Promise { <resolved> }
+
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/resumes/services/experience.service.bug-detection.spec.ts:221:17)
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/resumes/services/experience.service.bug-detection.spec.ts:202:66)
+(fail) ExperienceService - Bug Detection > Order uniqueness validation > should REJECT creating experience with duplicate order [0.64ms]
+(pass) ExperienceService - Bug Detection > Order uniqueness validation > should ACCEPT experience with unique order [0.52ms]
+
+src/resumes/services/project.service.spec.ts:
+(pass) ProjectService > listForResume > should return paginated projects for resume [1.00ms]
+(pass) ProjectService > getById > should return single project [0.68ms]
+(pass) ProjectService > getById > should throw NotFoundException when project not found [0.58ms]
+(pass) ProjectService > addToResume > should create new project [0.52ms]
+(pass) ProjectService > updateById > should update existing project [0.63ms]
+(pass) ProjectService > updateById > should throw NotFoundException when project not found [0.49ms]
+(pass) ProjectService > deleteById > should delete project successfully [0.55ms]
+(pass) ProjectService > deleteById > should throw NotFoundException when project not found [0.48ms]
+
+src/resumes/services/bug-bounty.service.spec.ts:
+(pass) BugBountyService > should be defined [0.74ms]
+(pass) BugBountyService > should have correct entity name [0.49ms]
+(pass) BugBountyService > should have a logger instance [0.41ms]
+(pass) BugBountyService > CRUD operations > should list bug bounties for resume [0.58ms]
+(pass) BugBountyService > CRUD operations > should add bug bounty to resume [0.85ms]
+(pass) BugBountyService > CRUD operations > should delete bug bounty [0.90ms]
+
+src/resumes/services/education.service.bug.spec.ts:
+281 |         return this.lookupComponentInParentModules(dependencyContext, moduleRef, wrapper, contextId, inquirer, keyOrIndex);
+282 |     }
+283 |     async lookupComponentInParentModules(dependencyContext, moduleRef, wrapper, contextId = constants_2.STATIC_CONTEXT, inquirer, keyOrIndex) {
+284 |         const instanceWrapper = await this.lookupComponentInImports(moduleRef, dependencyContext.name, wrapper, [], contextId, inquirer, keyOrIndex);
+285 |         if ((0, shared_utils_1.isNil)(instanceWrapper)) {
+286 |             throw new unknown_dependencies_exception_1.UnknownDependenciesException(wrapper.name, dependencyContext, moduleRef, { id: wrapper.id });
+                        ^
+error: Nest can't resolve dependencies of the EducationService (?, ResumesRepository). Please make sure that the argument EducationRepository at index [0] is available in the RootTestModule context.
+
+Potential solutions:
+- Is RootTestModule a valid NestJS module?
+- If EducationRepository is a provider, is it part of the current RootTestModule?
+- If EducationRepository is exported from a separate @Module, is that module imported within RootTestModule?
+  @Module({
+    imports: [ /* the Module containing EducationRepository */ ]
+  })
+
+For more common dependency resolution issues, see: https://docs.nestjs.com/faq/common-errors
+      type: "EducationService",
+   context: {
+  index: 0,
+  dependencies: [
+    [class EducationRepository], [class ResumesRepository]
+  ],
+  name: [class EducationRepository],
+},
+  metadata: {
+  id: "daceea3aad9771cc57832",
+},
+ moduleRef: {
+  id: "34330c1e87daceea3aad9",
+},
+
+      at lookupComponentInParentModules (/home/ilelo/Documents/Projects/profile/profile-services/node_modules/@nestjs/core/injector/injector.js:286:19)
+(fail) EducationService - BUG DETECTION > BUG-019: Missing Date Validation > should REJECT isCurrent=true with endDate set [2.30ms]
+281 |         return this.lookupComponentInParentModules(dependencyContext, moduleRef, wrapper, contextId, inquirer, keyOrIndex);
+282 |     }
+283 |     async lookupComponentInParentModules(dependencyContext, moduleRef, wrapper, contextId = constants_2.STATIC_CONTEXT, inquirer, keyOrIndex) {
+284 |         const instanceWrapper = await this.lookupComponentInImports(moduleRef, dependencyContext.name, wrapper, [], contextId, inquirer, keyOrIndex);
+285 |         if ((0, shared_utils_1.isNil)(instanceWrapper)) {
+286 |             throw new unknown_dependencies_exception_1.UnknownDependenciesException(wrapper.name, dependencyContext, moduleRef, { id: wrapper.id });
+                        ^
+error: Nest can't resolve dependencies of the EducationService (?, ResumesRepository). Please make sure that the argument EducationRepository at index [0] is available in the RootTestModule context.
+
+Potential solutions:
+- Is RootTestModule a valid NestJS module?
+- If EducationRepository is a provider, is it part of the current RootTestModule?
+- If EducationRepository is exported from a separate @Module, is that module imported within RootTestModule?
+  @Module({
+    imports: [ /* the Module containing EducationRepository */ ]
+  })
+
+For more common dependency resolution issues, see: https://docs.nestjs.com/faq/common-errors
+      type: "EducationService",
+   context: {
+  index: 0,
+  dependencies: [
+    [class EducationRepository], [class ResumesRepository]
+  ],
+  name: [class EducationRepository],
+},
+  metadata: {
+  id: "50e53d29aa4332b34ab81",
+},
+ moduleRef: {
+  id: "cc5783265150e53d29aa4",
+},
+
+      at lookupComponentInParentModules (/home/ilelo/Documents/Projects/profile/profile-services/node_modules/@nestjs/core/injector/injector.js:286:19)
+(fail) EducationService - BUG DETECTION > BUG-019: Missing Date Validation > should REJECT endDate before startDate [0.66ms]
+281 |         return this.lookupComponentInParentModules(dependencyContext, moduleRef, wrapper, contextId, inquirer, keyOrIndex);
+282 |     }
+283 |     async lookupComponentInParentModules(dependencyContext, moduleRef, wrapper, contextId = constants_2.STATIC_CONTEXT, inquirer, keyOrIndex) {
+284 |         const instanceWrapper = await this.lookupComponentInImports(moduleRef, dependencyContext.name, wrapper, [], contextId, inquirer, keyOrIndex);
+285 |         if ((0, shared_utils_1.isNil)(instanceWrapper)) {
+286 |             throw new unknown_dependencies_exception_1.UnknownDependenciesException(wrapper.name, dependencyContext, moduleRef, { id: wrapper.id });
+                        ^
+error: Nest can't resolve dependencies of the EducationService (?, ResumesRepository). Please make sure that the argument EducationRepository at index [0] is available in the RootTestModule context.
+
+Potential solutions:
+- Is RootTestModule a valid NestJS module?
+- If EducationRepository is a provider, is it part of the current RootTestModule?
+- If EducationRepository is exported from a separate @Module, is that module imported within RootTestModule?
+  @Module({
+    imports: [ /* the Module containing EducationRepository */ ]
+  })
+
+For more common dependency resolution issues, see: https://docs.nestjs.com/faq/common-errors
+      type: "EducationService",
+   context: {
+  index: 0,
+  dependencies: [
+    [class EducationRepository], [class ResumesRepository]
+  ],
+  name: [class EducationRepository],
+},
+  metadata: {
+  id: "d86dc1d95230b7fa19cf9",
+},
+ moduleRef: {
+  id: "b34ab81979d86dc1d9523",
+},
+
+      at lookupComponentInParentModules (/home/ilelo/Documents/Projects/profile/profile-services/node_modules/@nestjs/core/injector/injector.js:286:19)
+(fail) EducationService - BUG DETECTION > BUG-019: Missing Date Validation > should REQUIRE endDate when isCurrent=false [0.54ms]
+281 |         return this.lookupComponentInParentModules(dependencyContext, moduleRef, wrapper, contextId, inquirer, keyOrIndex);
+282 |     }
+283 |     async lookupComponentInParentModules(dependencyContext, moduleRef, wrapper, contextId = constants_2.STATIC_CONTEXT, inquirer, keyOrIndex) {
+284 |         const instanceWrapper = await this.lookupComponentInImports(moduleRef, dependencyContext.name, wrapper, [], contextId, inquirer, keyOrIndex);
+285 |         if ((0, shared_utils_1.isNil)(instanceWrapper)) {
+286 |             throw new unknown_dependencies_exception_1.UnknownDependenciesException(wrapper.name, dependencyContext, moduleRef, { id: wrapper.id });
+                        ^
+error: Nest can't resolve dependencies of the EducationService (?, ResumesRepository). Please make sure that the argument EducationRepository at index [0] is available in the RootTestModule context.
+
+Potential solutions:
+- Is RootTestModule a valid NestJS module?
+- If EducationRepository is a provider, is it part of the current RootTestModule?
+- If EducationRepository is exported from a separate @Module, is that module imported within RootTestModule?
+  @Module({
+    imports: [ /* the Module containing EducationRepository */ ]
+  })
+
+For more common dependency resolution issues, see: https://docs.nestjs.com/faq/common-errors
+      type: "EducationService",
+   context: {
+  index: 0,
+  dependencies: [
+    [class EducationRepository], [class ResumesRepository]
+  ],
+  name: [class EducationRepository],
+},
+  metadata: {
+  id: "de6ebe7314255bdd5d646",
+},
+ moduleRef: {
+  id: "fa19cf9e3dde6ebe73142",
+},
+
+      at lookupComponentInParentModules (/home/ilelo/Documents/Projects/profile/profile-services/node_modules/@nestjs/core/injector/injector.js:286:19)
+(fail) EducationService - BUG DETECTION > BUG-052: Order Not Validated > should REJECT duplicate order values [0.53ms]
+
+src/resumes/services/certification.service.spec.ts:
+(pass) CertificationService > should be defined [0.58ms]
+(pass) CertificationService > should have correct entity name [0.49ms]
+(pass) CertificationService > should have a logger instance [0.44ms]
+(pass) CertificationService > CRUD operations (inherited from BaseSubResourceService) > should list certifications for resume [0.92ms]
+(pass) CertificationService > CRUD operations (inherited from BaseSubResourceService) > should get certification by id [1.05ms]
+(pass) CertificationService > CRUD operations (inherited from BaseSubResourceService) > should add certification to resume [0.83ms]
+(pass) CertificationService > CRUD operations (inherited from BaseSubResourceService) > should update certification [0.56ms]
+(pass) CertificationService > CRUD operations (inherited from BaseSubResourceService) > should delete certification [0.77ms]
+
+src/resumes/services/talk.service.spec.ts:
+(pass) TalkService > should be defined [0.79ms]
+(pass) TalkService > should have correct entity name [0.44ms]
+(pass) TalkService > should have a logger instance [0.40ms]
+(pass) TalkService > CRUD operations > should list talks for resume [0.50ms]
+(pass) TalkService > CRUD operations > should add talk to resume [0.53ms]
+(pass) TalkService > CRUD operations > should delete talk [0.49ms]
+
+src/resumes/services/language.service.spec.ts:
+(pass) LanguageService > should be defined [1.78ms]
+(pass) LanguageService > should have correct entity name [1.21ms]
+(pass) LanguageService > should have a logger instance [0.72ms]
+(pass) LanguageService > CRUD operations (inherited from BaseSubResourceService) > should list languages for resume [1.38ms]
+(pass) LanguageService > CRUD operations (inherited from BaseSubResourceService) > should add language to resume [1.20ms]
+(pass) LanguageService > CRUD operations (inherited from BaseSubResourceService) > should delete language [1.06ms]
+
+src/resumes/services/xss-sanitization.bug.spec.ts:
+72 | 
+73 |         const createdResume = mockRepository.create.mock.results[0].value;
+74 | 
+75 |         // BUG: XSS payload stored as-is!
+76 |         // Should be sanitized or escaped
+77 |         expect(createdResume.summary).not.toContain('<script');
+                                               ^
+error: Received value must be an array type, or both received and expected values must be strings.
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/resumes/services/xss-sanitization.bug.spec.ts:77:43)
+(fail) XSS Sanitization - BUG DETECTION > BUG-060: No XSS Sanitization > should sanitize XSS payload 1 in summary [1.23ms]
+72 | 
+73 |         const createdResume = mockRepository.create.mock.results[0].value;
+74 | 
+75 |         // BUG: XSS payload stored as-is!
+76 |         // Should be sanitized or escaped
+77 |         expect(createdResume.summary).not.toContain('<script');
+                                               ^
+error: Received value must be an array type, or both received and expected values must be strings.
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/resumes/services/xss-sanitization.bug.spec.ts:77:43)
+(fail) XSS Sanitization - BUG DETECTION > BUG-060: No XSS Sanitization > should sanitize XSS payload 2 in summary [0.76ms]
+72 | 
+73 |         const createdResume = mockRepository.create.mock.results[0].value;
+74 | 
+75 |         // BUG: XSS payload stored as-is!
+76 |         // Should be sanitized or escaped
+77 |         expect(createdResume.summary).not.toContain('<script');
+                                               ^
+error: Received value must be an array type, or both received and expected values must be strings.
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/resumes/services/xss-sanitization.bug.spec.ts:77:43)
+(fail) XSS Sanitization - BUG DETECTION > BUG-060: No XSS Sanitization > should sanitize XSS payload 3 in summary [0.59ms]
+72 | 
+73 |         const createdResume = mockRepository.create.mock.results[0].value;
+74 | 
+75 |         // BUG: XSS payload stored as-is!
+76 |         // Should be sanitized or escaped
+77 |         expect(createdResume.summary).not.toContain('<script');
+                                               ^
+error: Received value must be an array type, or both received and expected values must be strings.
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/resumes/services/xss-sanitization.bug.spec.ts:77:43)
+(fail) XSS Sanitization - BUG DETECTION > BUG-060: No XSS Sanitization > should sanitize XSS payload 4 in summary [0.58ms]
+72 | 
+73 |         const createdResume = mockRepository.create.mock.results[0].value;
+74 | 
+75 |         // BUG: XSS payload stored as-is!
+76 |         // Should be sanitized or escaped
+77 |         expect(createdResume.summary).not.toContain('<script');
+                                               ^
+error: Received value must be an array type, or both received and expected values must be strings.
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/resumes/services/xss-sanitization.bug.spec.ts:77:43)
+(fail) XSS Sanitization - BUG DETECTION > BUG-060: No XSS Sanitization > should sanitize XSS payload 5 in summary [0.66ms]
+72 | 
+73 |         const createdResume = mockRepository.create.mock.results[0].value;
+74 | 
+75 |         // BUG: XSS payload stored as-is!
+76 |         // Should be sanitized or escaped
+77 |         expect(createdResume.summary).not.toContain('<script');
+                                               ^
+error: Received value must be an array type, or both received and expected values must be strings.
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/resumes/services/xss-sanitization.bug.spec.ts:77:43)
+(fail) XSS Sanitization - BUG DETECTION > BUG-060: No XSS Sanitization > should sanitize XSS payload 6 in summary [0.62ms]
+72 | 
+73 |         const createdResume = mockRepository.create.mock.results[0].value;
+74 | 
+75 |         // BUG: XSS payload stored as-is!
+76 |         // Should be sanitized or escaped
+77 |         expect(createdResume.summary).not.toContain('<script');
+                                               ^
+error: Received value must be an array type, or both received and expected values must be strings.
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/resumes/services/xss-sanitization.bug.spec.ts:77:43)
+(fail) XSS Sanitization - BUG DETECTION > BUG-060: No XSS Sanitization > should sanitize XSS payload 7 in summary [0.70ms]
+72 | 
+73 |         const createdResume = mockRepository.create.mock.results[0].value;
+74 | 
+75 |         // BUG: XSS payload stored as-is!
+76 |         // Should be sanitized or escaped
+77 |         expect(createdResume.summary).not.toContain('<script');
+                                               ^
+error: Received value must be an array type, or both received and expected values must be strings.
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/resumes/services/xss-sanitization.bug.spec.ts:77:43)
+(fail) XSS Sanitization - BUG DETECTION > BUG-060: No XSS Sanitization > should sanitize XSS payload 8 in summary [0.69ms]
+72 | 
+73 |         const createdResume = mockRepository.create.mock.results[0].value;
+74 | 
+75 |         // BUG: XSS payload stored as-is!
+76 |         // Should be sanitized or escaped
+77 |         expect(createdResume.summary).not.toContain('<script');
+                                               ^
+error: Received value must be an array type, or both received and expected values must be strings.
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/resumes/services/xss-sanitization.bug.spec.ts:77:43)
+(fail) XSS Sanitization - BUG DETECTION > BUG-060: No XSS Sanitization > should sanitize XSS payload 9 in summary [0.65ms]
+72 | 
+73 |         const createdResume = mockRepository.create.mock.results[0].value;
+74 | 
+75 |         // BUG: XSS payload stored as-is!
+76 |         // Should be sanitized or escaped
+77 |         expect(createdResume.summary).not.toContain('<script');
+                                               ^
+error: Received value must be an array type, or both received and expected values must be strings.
+      at <anonymous> (/home/ilelo/Documents/Projects/profile/profile-services/src/resumes/services/xss-sanitization.bug.spec.ts:77:43)
+(fail) XSS Sanitization - BUG DETECTION > BUG-060: No XSS Sanitization > should sanitize XSS payload 10 in summary [0.77ms]
+(pass) XSS Sanitization - BUG DETECTION > BUG-060: No XSS Sanitization > should sanitize HTML in experience description [1.13ms]
+(pass) XSS Sanitization - BUG DETECTION > BUG-060: No XSS Sanitization > should sanitize HTML in project description [1.08ms]
+(pass) XSS Sanitization - BUG DETECTION > URL Validation > should reject javascript: URLs in project links [1.01ms]
+(pass) XSS Sanitization - BUG DETECTION > URL Validation > should reject data: URLs in image fields [0.92ms]
+
+src/resumes/services/hackathon.service.spec.ts:
+(pass) HackathonService > should be defined [0.69ms]
+(pass) HackathonService > should have correct entity name [0.42ms]
+(pass) HackathonService > should have a logger instance [0.41ms]
+(pass) HackathonService > CRUD operations > should list hackathons for resume [0.50ms]
+(pass) HackathonService > CRUD operations > should add hackathon to resume [0.58ms]
+(pass) HackathonService > CRUD operations > should delete hackathon [0.48ms]
+
+src/resumes/services/recommendation.service.spec.ts:
+(pass) RecommendationService > should be defined [1.32ms]
+(pass) RecommendationService > should have correct entity name [0.91ms]
+(pass) RecommendationService > should have a logger instance [0.69ms]
+(pass) RecommendationService > CRUD operations > should list recommendations for resume [0.73ms]
+(pass) RecommendationService > CRUD operations > should add recommendation to resume [0.97ms]
+(pass) RecommendationService > CRUD operations > should delete recommendation [1.02ms]
+
+src/resumes/services/education.service.spec.ts:
+(pass) EducationService > listForResume > should return paginated education entries [1.10ms]
+(pass) EducationService > getById > should return single education entry [0.60ms]
+(pass) EducationService > getById > should throw NotFoundException when not found [0.55ms]
+(pass) EducationService > addToResume > should create new education entry [0.67ms]
+(pass) EducationService > updateById > should update existing education entry [0.65ms]
+(pass) EducationService > deleteById > should delete education entry successfully [0.53ms]
+(pass) EducationService > reorder > should reorder education entries with custom message [0.55ms]
+
+src/resumes/services/experience.service.spec.ts:
+(pass) ExperienceService > listForResume > should return paginated experiences [1.41ms]
+(pass) ExperienceService > getById > should return single experience [1.02ms]
+(pass) ExperienceService > getById > should throw NotFoundException when not found [0.67ms]
+(pass) ExperienceService > addToResume > should create new experience [0.93ms]
+(pass) ExperienceService > updateById > should update existing experience [1.06ms]
+(pass) ExperienceService > updateById > should throw NotFoundException when not found [0.81ms]
+(pass) ExperienceService > deleteById > should delete experience successfully [0.71ms]
+(pass) ExperienceService > deleteById > should throw NotFoundException when not found [0.62ms]
+
+src/resumes/services/interest.service.spec.ts:
+(pass) InterestService > should be defined [0.84ms]
+(pass) InterestService > should have correct entity name [0.45ms]
+(pass) InterestService > should have a logger instance [0.40ms]
+(pass) InterestService > CRUD operations > should list interests for resume [0.57ms]
+(pass) InterestService > CRUD operations > should add interest to resume [0.51ms]
+(pass) InterestService > CRUD operations > should delete interest [0.51ms]
+
+src/resumes/services/publication.service.spec.ts:
+(pass) PublicationService > listForResume > should return paginated publications [2.21ms]
+(pass) PublicationService > getById > should return single publication [1.00ms]
+(pass) PublicationService > getById > should throw NotFoundException when not found [0.78ms]
+(pass) PublicationService > addToResume > should create new publication [0.85ms]
+(pass) PublicationService > updateById > should update existing publication [0.72ms]
+(pass) PublicationService > deleteById > should delete publication successfully [0.70ms]
+
+src/resumes/services/open-source.service.spec.ts:
+(pass) OpenSourceService > should be defined [1.07ms]
+(pass) OpenSourceService > should have correct entity name [0.65ms]
+(pass) OpenSourceService > should have a logger instance [0.66ms]
+(pass) OpenSourceService > CRUD operations > should list open source contributions for resume [1.51ms]
+(pass) OpenSourceService > CRUD operations > should add open source contribution to resume [1.16ms]
+(pass) OpenSourceService > CRUD operations > should delete open source contribution [1.38ms]
+
+src/resumes/services/achievement.service.spec.ts:
+(pass) AchievementService > findAll > should return paginated achievements for valid resume [0.82ms]
+(pass) AchievementService > findAll > should throw ForbiddenException if resume not found [0.68ms]
+(pass) AchievementService > findAll > should accept custom page and limit [0.52ms]
+(pass) AchievementService > findOne > should return achievement for valid resume and id [0.52ms]
+(pass) AchievementService > findOne > should throw NotFoundException if achievement not found [0.49ms]
+(pass) AchievementService > findOne > should throw ForbiddenException if resume not owned by user [0.52ms]
+(pass) AchievementService > create > should create achievement for valid resume [0.50ms]
+(pass) AchievementService > create > should throw ForbiddenException if resume not owned by user [0.48ms]
+(pass) AchievementService > update > should update achievement for valid resume and id [0.52ms]
+(pass) AchievementService > update > should throw NotFoundException if achievement not found [0.46ms]
+(pass) AchievementService > remove > should delete achievement for valid resume and id [0.47ms]
+(pass) AchievementService > remove > should throw NotFoundException if achievement not found [0.53ms]
+(pass) AchievementService > reorder > should reorder achievements for valid resume [1.08ms]
+(pass) AchievementService > reorder > should throw ForbiddenException if resume not owned by user [0.99ms]
+
+src/resumes/services/limits.bug.spec.ts:
+(pass) Resource Limits - BUG DETECTION > BUG-061: No Skills Limit > should limit skills per resume [0.89ms]
+(pass) Resource Limits - BUG DETECTION > BUG-062: No Experiences Limit > should limit experiences per resume [0.51ms]
+(pass) Resource Limits - BUG DETECTION > Other Missing Limits > should limit education entries [0.01ms]
+(pass) Resource Limits - BUG DETECTION > Other Missing Limits > should limit projects
+(pass) Resource Limits - BUG DETECTION > Other Missing Limits > should limit certifications [0.02ms]
+(pass) Resource Limits - BUG DETECTION > Other Missing Limits > should limit total resume size
+
+src/export/services/resume-docx.service.spec.ts:
+(pass) ResumeDOCXService > generate > should generate DOCX for complete resume [0.79ms]
+(pass) ResumeDOCXService > generate > should throw NotFoundException when user not found [0.59ms]
+(pass) ResumeDOCXService > generate > should throw NotFoundException when resume not found [0.59ms]
+(pass) ResumeDOCXService > generate > should handle errors from builder service [0.59ms]
+
+src/export/services/resume-pdf.service.spec.ts:
+(pass) ResumePDFService > generate > should generate PDF for valid resume with default options [0.76ms]
+(pass) ResumePDFService > generate > should use custom palette parameter [0.64ms]
+(pass) ResumePDFService > generate > should use custom language parameter [0.59ms]
+(pass) ResumePDFService > generate > should include bannerColor when provided [0.51ms]
+(pass) ResumePDFService > generate > should include userId when provided [0.80ms]
+(pass) ResumePDFService > generate > should pass through all options to generator [0.75ms]
+(pass) ResumePDFService > generate > should handle errors from generator [0.54ms]
+
+src/export/services/docx-builder.service.spec.ts:
+(pass) DocxBuilderService > generate > should return DOCX buffer [58.32ms]
+(pass) DocxBuilderService > generate > should throw NotFoundException when user not found [1.17ms]
+(pass) DocxBuilderService > generate > should throw NotFoundException when resume not found [0.91ms]
+(pass) DocxBuilderService > generate > should use sections service to create document structure [14.40ms]
+(pass) DocxBuilderService > generate > should apply document styles [14.23ms]
+
+src/export/services/browser-manager.service.spec.ts:
+
+# Unhandled error between tests
+-------------------------------
+1 | import { Test, TestingModule } from '@nestjs/testing';
+2 | import { BrowserManagerService } from './browser-manager.service';
+3 | import puppeteer, { Browser } from 'puppeteer';
+4 | 
+5 | jest.mock('puppeteer');
+         ^
+TypeError: mock(module, fn) requires a function
+      at /home/ilelo/Documents/Projects/profile/profile-services/src/export/services/browser-manager.service.spec.ts:5:6
+      at loadAndEvaluateModule (2:1)
+-------------------------------
+
+
+src/export/services/banner-capture.service.spec.ts:
+(pass) BannerCaptureService > capture > should capture banner screenshot with default parameters [1.78ms]
+(pass) BannerCaptureService > capture > should capture banner screenshot with custom palette [0.70ms]
+(pass) BannerCaptureService > capture > should include logo URL when provided [0.70ms]
+(pass) BannerCaptureService > capture > should apply correct viewport dimensions [0.72ms]
+(pass) BannerCaptureService > capture > should wait for code block rendering [0.64ms]
+(pass) BannerCaptureService > capture > should apply quality styles (antialiasing) [0.62ms]
+(pass) BannerCaptureService > capture > should close page on success [0.55ms]
+[31m[Nest] 174648  - [39m01/07/2026, 4:57:50 PM [31m  ERROR[39m [38;5;3m[BannerCaptureService] [39m[31m[BannerCapture] #banner not found![39m
+(pass) BannerCaptureService > error handling > should handle #banner not found [1.68ms]
+[31m[Nest] 174648  - [39m01/07/2026, 4:57:50 PM [31m  ERROR[39m [38;5;3m[BannerPageSetup] [39m[31m[BannerCapture] Error during page.goto:[39m
+[31m[Nest] 174648  - [39m01/07/2026, 4:57:50 PM [31m  ERROR[39m [38;5;3m[BannerPageSetup] [39mError: Navigation failed
+    at <anonymous> [90m(/home/ilelo/Documents/Projects/profile/profile-services/[39msrc/export/services/banner-capture.service.spec.ts:169:47[90m)[39m
+    at <anonymous> [90m(/home/ilelo/Documents/Projects/profile/profile-services/[39msrc/export/services/banner-capture.service.spec.ts:168:49[90m)[39m
+(pass) BannerCaptureService > error handling > should close page on navigation error [4.75ms]
+[31m[Nest] 174648  - [39m01/07/2026, 4:57:50 PM [31m  ERROR[39m [38;5;3m[BannerReadyWaiter] [39m[31m[BannerCapture] <body> HTML snippet:[39m
+<div id="banner"></div>
+(pass) BannerCaptureService > error handling > should close page on selector timeout [1.28ms]
+(pass) BannerCaptureService > error handling > should handle broken logo image (404) [1.08ms]
+[31m[Nest] 174648  - [39m01/07/2026, 4:57:50 PM [31m  ERROR[39m [38;5;3m[BannerPageSetup] [39m[31m[BannerCapture] Error during page.goto:[39m
+[31m[Nest] 174648  - [39m01/07/2026, 4:57:50 PM [31m  ERROR[39m [38;5;3m[BannerPageSetup] [39mError: Navigation failed
+    at <anonymous> [90m(/home/ilelo/Documents/Projects/profile/profile-services/[39msrc/export/services/banner-capture.service.spec.ts:207:47[90m)[39m
+    at <anonymous> [90m(/home/ilelo/Documents/Projects/profile/profile-services/[39msrc/export/services/banner-capture.service.spec.ts:206:60[90m)[39m
+(pass) BannerCaptureService > error handling > should take debug screenshot on navigation error [1.26ms]
+[31m[Nest] 174648  - [39m01/07/2026, 4:57:50 PM [31m  ERROR[39m [38;5;3m[BannerReadyWaiter] [39m[31m[BannerCapture] <body> HTML snippet:[39m
+<div id="banner"></div>
+(pass) BannerCaptureService > error handling > should take debug screenshot on selector wait error [0.92ms]
+(pass) BannerCaptureService > URL building > should use configured host and port [0.83ms]
+(pass) BannerCaptureService > URL building > should use default host when not configured [0.81ms]
+(pass) BannerCaptureService > URL building > should properly encode palette parameter [0.80ms]
+(pass) BannerCaptureService > URL building > should properly encode logo URL parameter [0.75ms]
+(pass) BannerCaptureService > banner element capture > should capture #banner element as PNG [0.74ms]
+(pass) BannerCaptureService > banner element capture > should return buffer from element screenshot [0.76ms]
+(pass) BannerCaptureService > wait for rendering > should wait for fonts to load [0.82ms]
+(pass) BannerCaptureService > wait for rendering > should wait for #banner selector [0.80ms]
+(pass) BannerCaptureService > wait for rendering > should wait for #company-logo when logo URL provided [1.69ms]
+(pass) BannerCaptureService > wait for rendering > should not wait for logo when no logo URL provided [1.51ms]
+
+src/export/services/pdf-generator.service.spec.ts:
+(pass) PdfGeneratorService > generate > should return PDF buffer [1.54ms]
+(pass) PdfGeneratorService > generate > should setup page before navigation [0.69ms]
+(pass) PdfGeneratorService > generate > should wait for resume to be ready [0.65ms]
+(pass) PdfGeneratorService > generate > should extract and apply styles [0.62ms]
+(pass) PdfGeneratorService > generate > should close page after generation [0.67ms]
+(pass) PdfGeneratorService > generate > should close page even on error [0.71ms]
+(pass) PdfGeneratorService > generate > should pass options to URL builder [0.61ms]
+
+src/export/services/pdf-generator.service.bug.spec.ts:

@@ -5,6 +5,7 @@
  * Kent Beck: "Test the error paths as thoroughly as the happy paths."
  */
 
+import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { CacheCoreService } from './cache-core.service';
 import { RedisConnectionService } from '../redis-connection.service';
@@ -13,24 +14,24 @@ import { AppLoggerService } from '../../logger/logger.service';
 describe('CacheCoreService', () => {
   let service: CacheCoreService;
   let mockClient: any;
-  let mockLogger: jest.Mocked<AppLoggerService>;
+  let mockLogger: AppLoggerService;
   let mockRedisConnection: any;
 
   beforeEach(async () => {
     mockClient = {
-      get: jest.fn(),
-      set: jest.fn(),
-      setex: jest.fn(),
-      del: jest.fn(),
-      keys: jest.fn(),
-      flushdb: jest.fn(),
+      get: mock(),
+      set: mock(),
+      setex: mock(),
+      del: mock(),
+      keys: mock(),
+      flushdb: mock(),
     };
 
     mockLogger = {
-      log: jest.fn(),
-      error: jest.fn(),
-      warn: jest.fn(),
-      debug: jest.fn(),
+      log: mock(),
+      error: mock(),
+      warn: mock(),
+      debug: mock(),
     } as any;
 
     mockRedisConnection = {

@@ -1,6 +1,8 @@
 /**
  * User Admin Mutation Service
  * Single Responsibility: Create, Update, Delete operations for admin user management
+ *
+ * BUG-001/002 FIX: Uses Prisma unique constraint errors instead of TOCTOU pattern
  */
 
 import {
@@ -9,6 +11,7 @@ import {
   ConflictException,
   BadRequestException,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
@@ -27,57 +30,84 @@ export class UserAdminMutationService {
   async create(dto: CreateUserDto) {
     const { email, password, name, role } = dto;
 
-    await this.ensureEmailNotExists(email);
-
     const hashedPassword = await this.passwordService.hash(password);
 
-    const user = await this.prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        name,
-        role: role ?? UserRole.USER,
-      },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true,
-        createdAt: true,
-      },
-    });
+    // BUG-001 FIX: Use try-catch with unique constraint instead of check-then-create
+    try {
+      const user = await this.prisma.user.create({
+        data: {
+          email,
+          password: hashedPassword,
+          name,
+          role: role ?? UserRole.USER,
+        },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true,
+          createdAt: true,
+        },
+      });
 
-    return { success: true, user, message: 'User created successfully' };
+      return { success: true, user, message: 'User created successfully' };
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new ConflictException(ERROR_MESSAGES.EMAIL_ALREADY_EXISTS);
+      }
+      throw error;
+    }
   }
 
   async update(id: string, dto: UpdateUserDto) {
     const user = await this.findUserOrThrow(id);
-    await this.ensureUniqueFields(dto, user);
 
     // BUG-016 FIX: Check if removing admin role from last admin
     if (dto.role !== undefined) {
       await this.preventLastAdminRoleRemoval(user.role as UserRole, dto.role);
     }
 
-    const updatedUser = await this.prisma.user.update({
-      where: { id },
-      data: dto,
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        username: true,
-        role: true,
-        hasCompletedOnboarding: true,
-        updatedAt: true,
-      },
-    });
+    // BUG-001/002 FIX: Use try-catch with unique constraint for email/username
+    try {
+      const updatedUser = await this.prisma.user.update({
+        where: { id },
+        data: dto,
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          username: true,
+          role: true,
+          hasCompletedOnboarding: true,
+          updatedAt: true,
+        },
+      });
 
-    return {
-      success: true,
-      user: updatedUser,
-      message: 'User updated successfully',
-    };
+      return {
+        success: true,
+        user: updatedUser,
+        message: 'User updated successfully',
+      };
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        // Determine which field caused the conflict
+        const target = error.meta?.target as string[] | undefined;
+        if (target?.includes('email')) {
+          throw new ConflictException(ERROR_MESSAGES.EMAIL_ALREADY_IN_USE);
+        }
+        if (target?.includes('username')) {
+          throw new ConflictException(ERROR_MESSAGES.USERNAME_ALREADY_IN_USE);
+        }
+        throw new ConflictException('A unique constraint was violated');
+      }
+      throw error;
+    }
   }
 
   async delete(id: string) {
@@ -108,36 +138,6 @@ export class UserAdminMutationService {
       throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
     }
     return user;
-  }
-
-  private async ensureEmailNotExists(email: string): Promise<void> {
-    const existingUser = await this.prisma.user.findUnique({
-      where: { email },
-    });
-    if (existingUser) {
-      throw new ConflictException(ERROR_MESSAGES.EMAIL_ALREADY_EXISTS);
-    }
-  }
-
-  private async ensureUniqueFields(
-    dto: UpdateUserDto,
-    currentUser: { email: string | null; username: string | null },
-  ): Promise<void> {
-    if (dto.email && dto.email !== currentUser.email) {
-      const existing = await this.prisma.user.findUnique({
-        where: { email: dto.email },
-      });
-      if (existing)
-        throw new ConflictException(ERROR_MESSAGES.EMAIL_ALREADY_IN_USE);
-    }
-
-    if (dto.username && dto.username !== currentUser.username) {
-      const existing = await this.prisma.user.findUnique({
-        where: { username: dto.username },
-      });
-      if (existing)
-        throw new ConflictException(ERROR_MESSAGES.USERNAME_ALREADY_IN_USE);
-    }
   }
 
   private async preventLastAdminDeletion(role: UserRole): Promise<void> {

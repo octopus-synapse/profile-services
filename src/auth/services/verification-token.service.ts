@@ -1,9 +1,11 @@
 /**
  * Verification Token Service
  * Single Responsibility: Create and validate verification tokens
+ *
+ * BUG-014 FIX: Now logs token deletion errors instead of silently ignoring
  */
 
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import * as crypto from 'crypto';
 import { PrismaService } from '../../prisma/prisma.service';
 import {
@@ -22,6 +24,8 @@ export interface VerificationResult {
 
 @Injectable()
 export class VerificationTokenService {
+  private readonly logger = new Logger(VerificationTokenService.name);
+
   constructor(private readonly prisma: PrismaService) {}
 
   async createEmailVerificationToken(email: string): Promise<string> {
@@ -119,9 +123,12 @@ export class VerificationTokenService {
 
   private validateExpiry(expires: Date, token: string): void {
     if (expires < new Date()) {
-      // Clean up expired token asynchronously
-      this.deleteToken(token).catch(() => {
-        // Ignore deletion errors
+      // BUG-014 FIX: Log deletion errors instead of silently ignoring
+      this.deleteToken(token).catch((error) => {
+        this.logger.warn(
+          `Failed to delete expired token: ${error.message}`,
+          'VerificationTokenService',
+        );
       });
       throw new BadRequestException(ERROR_MESSAGES.TOKEN_EXPIRED);
     }

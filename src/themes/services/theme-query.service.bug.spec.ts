@@ -102,4 +102,3 @@ describe('ThemeQueryService - BUG DETECTION', () => {
     });
   });
 });
-

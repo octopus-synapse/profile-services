@@ -9,6 +9,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { AppLoggerService } from '../../common/logger/logger.service';
 import { ERROR_MESSAGES } from '../../common/constants/config';
 import { TokenService } from './token.service';
+import { TokenBlacklistService } from './token-blacklist.service';
 
 interface UserForTokens {
   id: string;
@@ -26,6 +27,7 @@ export class TokenRefreshService {
     private readonly prisma: PrismaService,
     private readonly logger: AppLoggerService,
     private readonly tokenService: TokenService,
+    private readonly tokenBlacklist: TokenBlacklistService,
   ) {}
 
   async refreshToken(userId: string) {
@@ -36,6 +38,19 @@ export class TokenRefreshService {
   async refreshWithToken(refreshToken: string) {
     try {
       const decoded = this.tokenService.verifyToken(refreshToken);
+
+      // BUG-023/055/056/057 FIX: Do not allow refresh if user tokens were revoked
+      // iat is added by JwtService (seconds since epoch)
+      const decodedAny = decoded as unknown as { iat?: number };
+      const issuedAtMs = (decodedAny.iat ?? 0) * 1000;
+      const isRevoked = await this.tokenBlacklist.isTokenRevokedForUser(
+        decoded.sub,
+        issuedAtMs,
+      );
+      if (isRevoked) {
+        throw new UnauthorizedException(ERROR_MESSAGES.TOKEN_REVOKED);
+      }
+
       const user = await this.findUserById(decoded.sub);
       return this.generateTokensForUser(user);
     } catch {

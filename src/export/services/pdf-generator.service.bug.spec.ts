@@ -23,7 +23,9 @@ describe('PdfGeneratorService - BUG DETECTION', () => {
       close: jest.fn(),
       evaluate: jest.fn().mockResolvedValue(297), // A4 height
       pdf: jest.fn().mockResolvedValue(Buffer.from('PDF content')),
-      $: jest.fn().mockResolvedValue({ screenshot: jest.fn().mockResolvedValue(Buffer.from('')) }),
+      $: jest.fn().mockResolvedValue({
+        screenshot: jest.fn().mockResolvedValue(Buffer.from('')),
+      }),
       goto: jest.fn(),
       setViewport: jest.fn(),
     };
@@ -37,7 +39,9 @@ describe('PdfGeneratorService - BUG DETECTION', () => {
     mockTemplateService = {
       getPageSetup: jest.fn().mockReturnValue({
         setupPage: jest.fn(),
-        buildResumeUrl: jest.fn().mockReturnValue('http://localhost:3000/resume'),
+        buildResumeUrl: jest
+          .fn()
+          .mockReturnValue('http://localhost:3000/resume'),
         navigateToPage: jest.fn(),
         waitForResumeReady: jest.fn(),
       }),
@@ -75,7 +79,10 @@ describe('PdfGeneratorService - BUG DETECTION', () => {
       const TIMEOUT_MS = 30000;
 
       // BUG: This will hang forever without timeout!
-      const generatePromise = service.generate({ palette: 'DEFAULT', lang: 'en' });
+      const generatePromise = service.generate({
+        palette: 'DEFAULT',
+        lang: 'en',
+      });
 
       // Should reject after timeout
       await expect(
@@ -113,4 +120,3 @@ describe('PdfGeneratorService - BUG DETECTION', () => {
     });
   });
 });
-

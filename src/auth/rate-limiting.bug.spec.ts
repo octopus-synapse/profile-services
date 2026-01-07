@@ -22,7 +22,9 @@ describe('Rate Limiting - BUG DETECTION', () => {
       };
 
       // Simulate 5 failed attempts
-      mockLoginService.login.mockRejectedValue(new Error('Invalid credentials'));
+      mockLoginService.login.mockRejectedValue(
+        new Error('Invalid credentials'),
+      );
 
       for (let i = 0; i < 5; i++) {
         try {
@@ -94,4 +96,3 @@ describe('Rate Limiting - BUG DETECTION', () => {
     });
   });
 });
-

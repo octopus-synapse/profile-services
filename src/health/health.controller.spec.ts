@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { HealthController } from './health.controller';
 import { HealthCheckService, HealthCheckResult } from '@nestjs/terminus';
@@ -10,31 +11,31 @@ import {
 
 describe('HealthController', () => {
   let controller: HealthController;
-  let healthCheckService: jest.Mocked<HealthCheckService>;
-  let dbIndicator: jest.Mocked<DatabaseHealthIndicator>;
-  let redisIndicator: jest.Mocked<RedisHealthIndicator>;
-  let storageIndicator: jest.Mocked<StorageHealthIndicator>;
-  let translateIndicator: jest.Mocked<TranslateHealthIndicator>;
+  let healthCheckService: HealthCheckService;
+  let dbIndicator: DatabaseHealthIndicator;
+  let redisIndicator: RedisHealthIndicator;
+  let storageIndicator: StorageHealthIndicator;
+  let translateIndicator: TranslateHealthIndicator;
 
   beforeEach(async () => {
     healthCheckService = {
-      check: jest.fn(),
+      check: mock(),
     } as any;
 
     dbIndicator = {
-      isHealthy: jest.fn(),
+      isHealthy: mock(),
     } as any;
 
     redisIndicator = {
-      isHealthy: jest.fn(),
+      isHealthy: mock(),
     } as any;
 
     storageIndicator = {
-      isHealthy: jest.fn(),
+      isHealthy: mock(),
     } as any;
 
     translateIndicator = {
-      isHealthy: jest.fn(),
+      isHealthy: mock(),
     } as any;
 
     const module: TestingModule = await Test.createTestingModule({

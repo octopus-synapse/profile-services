@@ -5,6 +5,7 @@
  * Focus: Guard allows/denies access based on user roles.
  */
 
+import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Reflector } from '@nestjs/core';
 import { ExecutionContext } from '@nestjs/common';
@@ -14,7 +15,7 @@ import { ROLES_KEY } from '../decorators/roles.decorator';
 
 describe('RolesGuard', () => {
   let guard: RolesGuard;
-  let reflector: jest.Mocked<Reflector>;
+  let reflector: Reflector;
 
   const createMockExecutionContext = (user?: {
     role: UserRole;
@@ -24,14 +25,14 @@ describe('RolesGuard', () => {
       switchToHttp: () => ({
         getRequest: () => mockRequest,
       }),
-      getHandler: () => jest.fn(),
-      getClass: () => jest.fn(),
+      getHandler: () => mock(),
+      getClass: () => mock(),
     } as unknown as ExecutionContext;
   };
 
   beforeEach(async () => {
     reflector = {
-      getAllAndOverride: jest.fn(),
+      getAllAndOverride: mock(),
     } as any;
 
     const module: TestingModule = await Test.createTestingModule({
@@ -100,8 +101,8 @@ describe('RolesGuard', () => {
     });
 
     it('should check roles from handler metadata', () => {
-      const mockHandler = jest.fn();
-      const mockClass = jest.fn();
+      const mockHandler = mock();
+      const mockClass = mock();
       const context = {
         switchToHttp: () => ({
           getRequest: () => ({ user: { role: UserRole.USER } }),
@@ -137,8 +138,8 @@ describe('RolesGuard', () => {
         switchToHttp: () => ({
           getRequest: () => mockRequest,
         }),
-        getHandler: () => jest.fn(),
-        getClass: () => jest.fn(),
+        getHandler: () => mock(),
+        getClass: () => mock(),
       } as unknown as ExecutionContext;
 
       const result = guard.canActivate(context);

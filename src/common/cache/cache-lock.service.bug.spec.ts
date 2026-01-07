@@ -7,6 +7,7 @@
  * BUG-004: Distributed Lock Disabled Silently
  */
 
+import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { CacheLockService } from './cache-lock.service';
 import { RedisConnectionService } from './redis-connection.service';
@@ -20,8 +21,8 @@ describe('CacheLockService - BUG DETECTION', () => {
     mockRedisConnection = {
       isEnabled: true,
       client: {
-        set: jest.fn().mockResolvedValue('OK'),
-        del: jest.fn().mockResolvedValue(1),
+        set: mock().mockResolvedValue('OK'),
+        del: mock().mockResolvedValue(1),
       },
     };
 
@@ -31,7 +32,7 @@ describe('CacheLockService - BUG DETECTION', () => {
         { provide: RedisConnectionService, useValue: mockRedisConnection },
         {
           provide: AppLoggerService,
-          useValue: { log: jest.fn(), error: jest.fn(), warn: jest.fn() },
+          useValue: { log: mock(), error: mock(), warn: mock() },
         },
       ],
     }).compile();
@@ -70,7 +71,7 @@ describe('CacheLockService - BUG DETECTION', () => {
     it('should log warning when operating without Redis', async () => {
       mockRedisConnection.isEnabled = false;
       mockRedisConnection.client = null;
-      
+
       // Even if we allow operation without Redis, should at least warn
       await service.acquireLock('test-lock', 60);
 
@@ -143,14 +144,14 @@ describe('CacheLockService - BUG DETECTION', () => {
       // BUG: Both return true because there's no in-memory fallback!
       // First lock should succeed (in-memory)
       const result1 = await service.acquireLock('test-lock', 60);
-      
+
       // Second lock for same key should fail
       const result2 = await service.acquireLock('test-lock', 60);
 
       // With proper in-memory fallback:
       // expect(result1).toBe(true);
       // expect(result2).toBe(false);
-      
+
       // Current buggy behavior: both return true
       expect(result1).toBe(true);
       expect(result2).toBe(true); // BUG: Should be false!

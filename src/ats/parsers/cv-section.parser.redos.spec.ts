@@ -28,15 +28,19 @@ describe('CVSectionParser - ReDoS BUG DETECTION', () => {
      */
     it('should not hang on repeated section headers', async () => {
       // Craft input with many potential section matches
-      const maliciousInput = 'EXPERIENCE '.repeat(1000) + '\n' + 'a'.repeat(10000);
+      const maliciousInput =
+        'EXPERIENCE '.repeat(1000) + '\n' + 'a'.repeat(10000);
 
       const startTime = Date.now();
 
       // BUG: This could hang indefinitely!
-      const result = await Promise.race([
-        parser.parse(maliciousInput),
+      await Promise.race([
+        Promise.resolve(parser.parseCV(maliciousInput, 'cv.txt', 'text/plain')),
         new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('TIMEOUT - Possible ReDoS!')), 1000),
+          setTimeout(
+            () => reject(new Error('TIMEOUT - Possible ReDoS!')),
+            1000,
+          ),
         ),
       ]);
 
@@ -52,8 +56,8 @@ describe('CVSectionParser - ReDoS BUG DETECTION', () => {
 
       const startTime = Date.now();
 
-      const result = await Promise.race([
-        parser.parse(maliciousInput),
+      await Promise.race([
+        Promise.resolve(parser.parseCV(maliciousInput, 'cv.txt', 'text/plain')),
         new Promise((_, reject) =>
           setTimeout(() => reject(new Error('TIMEOUT')), 1000),
         ),
@@ -64,12 +68,13 @@ describe('CVSectionParser - ReDoS BUG DETECTION', () => {
 
     it('should not hang on overlapping patterns', async () => {
       // Long strings of characters that match multiple patterns
-      const maliciousInput = 'a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]';
+      const maliciousInput =
+        'a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]';
 
       const startTime = Date.now();
 
-      const result = await Promise.race([
-        parser.parse(maliciousInput),
+      await Promise.race([
+        Promise.resolve(parser.parseCV(maliciousInput, 'cv.txt', 'text/plain')),
         new Promise((_, reject) =>
           setTimeout(() => reject(new Error('TIMEOUT')), 1000),
         ),
@@ -86,4 +91,3 @@ describe('CVSectionParser - ReDoS BUG DETECTION', () => {
     });
   });
 });
-

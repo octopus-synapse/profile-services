@@ -5,6 +5,7 @@
  * que os métodos funcionam corretamente.
  */
 
+import { describe, it, expect, beforeEach } from 'bun:test';
 import { AppLoggerService } from './logger.service';
 
 describe('AppLoggerService', () => {

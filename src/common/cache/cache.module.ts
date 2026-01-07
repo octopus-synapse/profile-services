@@ -15,6 +15,6 @@ import { LoggerModule } from '../logger/logger.module';
     CachePatternsService,
     CacheService,
   ],
-  exports: [CacheService],
+  exports: [CacheService, RedisConnectionService, CacheLockService],
 })
 export class CacheModule {}

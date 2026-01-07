@@ -43,4 +43,3 @@ describe('CSRF Protection - BUG DETECTION', () => {
     });
   });
 });
-

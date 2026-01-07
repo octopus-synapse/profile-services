@@ -19,7 +19,9 @@ describe('SkillAdminService - BUG DETECTION', () => {
   beforeEach(async () => {
     mockPrisma = {
       resume: {
-        findUnique: jest.fn().mockResolvedValue({ id: 'resume-1', userId: 'user-1' }),
+        findUnique: jest
+          .fn()
+          .mockResolvedValue({ id: 'resume-1', userId: 'user-1' }),
       },
       skill: {
         findFirst: jest.fn(),
@@ -81,8 +83,14 @@ describe('SkillAdminService - BUG DETECTION', () => {
 
       // Execute concurrently
       const results = await Promise.all([
-        service.addToResume('resume-1', { name: 'TypeScript', category: 'Lang' }),
-        service.addToResume('resume-1', { name: 'JavaScript', category: 'Lang' }),
+        service.addToResume('resume-1', {
+          name: 'TypeScript',
+          category: 'Lang',
+        }),
+        service.addToResume('resume-1', {
+          name: 'JavaScript',
+          category: 'Lang',
+        }),
       ]);
 
       // BUG: Both got order 5! One should be 6
@@ -169,4 +177,3 @@ describe('SkillAdminService - BUG DETECTION', () => {
     });
   });
 });
-

@@ -24,6 +24,7 @@ model ResumeTheme {
   approvedBy      User?     @relation("ThemeApprover", fields: [approvedById], references: [id], onDelete: SetNull)
   approvedAt      DateTime?
   rejectionReason String?   @db.Text
+  rejectionCount  Int       @default(0) // BUG-007 FIX: Track rejection count for resubmission limit
 
   // Stats
   usageCount  Int    @default(0)

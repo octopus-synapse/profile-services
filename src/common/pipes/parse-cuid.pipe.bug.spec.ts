@@ -6,6 +6,7 @@
  * BUG-036: ParseCuidPipe Allows Invalid IDs Through
  */
 
+import { describe, it, expect, beforeEach } from 'bun:test';
 import { BadRequestException } from '@nestjs/common';
 import { ParseCuidPipe } from './parse-cuid.pipe';
 
@@ -44,10 +45,7 @@ describe('ParseCuidPipe - BUG DETECTION', () => {
 
     it('should ACCEPT valid CUID format', () => {
       // Valid CUIDs: start with 'c', 25 chars, lowercase alphanumeric
-      const validCuids = [
-        'clh1234567890abcdefghij',
-        'cm3e7xyzabcdefghij12345',
-      ];
+      const validCuids = ['clh1234567890abcdefghij', 'cm3e7xyzabcdefghij12345'];
 
       for (const validId of validCuids) {
         expect(() => pipe.transform(validId)).not.toThrow();
@@ -83,4 +81,3 @@ describe('ParseCuidPipe - BUG DETECTION', () => {
     });
   });
 });
-

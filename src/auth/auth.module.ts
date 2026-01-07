@@ -14,6 +14,7 @@ import { LocalStrategy } from './strategies/local.strategy';
 import { PrismaModule } from '../prisma/prisma.module';
 import { EmailModule } from '../common/email/email.module';
 import { LoggerModule } from '../common/logger/logger.module';
+import { CacheModule } from '../common/cache/cache.module';
 import {
   TokenService,
   PasswordService,
@@ -23,6 +24,7 @@ import {
   AccountManagementService,
   AuthCoreService,
   TokenRefreshService,
+  TokenBlacklistService,
 } from './services';
 
 @Module({
@@ -30,6 +32,7 @@ import {
     PrismaModule,
     EmailModule,
     LoggerModule,
+    CacheModule,
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -60,6 +63,7 @@ import {
     TokenService,
     PasswordService,
     VerificationTokenService,
+    TokenBlacklistService,
     // Feature services
     AuthCoreService,
     TokenRefreshService,
@@ -72,6 +76,12 @@ import {
     JwtStrategy,
     LocalStrategy,
   ],
-  exports: [AuthService, JwtModule, TokenService, PasswordService],
+  exports: [
+    AuthService,
+    JwtModule,
+    TokenService,
+    PasswordService,
+    TokenBlacklistService,
+  ],
 })
 export class AuthModule {}

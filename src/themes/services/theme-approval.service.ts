@@ -1,18 +1,24 @@
 /**
  * Theme Approval Service
  * Handles submission and review workflow for public themes
+ *
+ * BUG-007 FIX: Enforces max 2 resubmissions for rejected themes
  */
 
 import {
   Injectable,
   ForbiddenException,
   BadRequestException,
+  UnprocessableEntityException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ThemeStatus, UserRole } from '@prisma/client';
 import { ReviewThemeDto } from '../dto';
 import { ThemeCrudService } from './theme-crud.service';
 import { ERROR_MESSAGES } from '../../common/constants/config';
+
+/** Maximum number of times a theme can be resubmitted after rejection */
+const MAX_RESUBMISSIONS = 2;
 
 @Injectable()
 export class ThemeApprovalService {
@@ -36,6 +42,16 @@ export class ThemeApprovalService {
       throw new BadRequestException(
         ERROR_MESSAGES.THEME_MUST_BE_PRIVATE_OR_REJECTED,
       );
+    }
+
+    // BUG-007 FIX: Check resubmission count for rejected themes
+    if (theme.status === ThemeStatus.REJECTED) {
+      const rejectionCount = theme.rejectionCount ?? 0;
+      if (rejectionCount >= MAX_RESUBMISSIONS) {
+        throw new UnprocessableEntityException(
+          ERROR_MESSAGES.THEME_RESUBMISSION_LIMIT_REACHED,
+        );
+      }
     }
 
     return this.prisma.resumeTheme.update({
@@ -90,6 +106,7 @@ export class ThemeApprovalService {
       throw new BadRequestException(ERROR_MESSAGES.REJECTION_REASON_REQUIRED);
     }
 
+    // BUG-007 FIX: Increment rejection count on reject
     return this.prisma.resumeTheme.update({
       where: { id: themeId },
       data: {
@@ -97,6 +114,7 @@ export class ThemeApprovalService {
         approvedById: approverId,
         approvedAt: new Date(),
         rejectionReason: reason,
+        rejectionCount: { increment: 1 }, // BUG-007 FIX
       },
     });
   }

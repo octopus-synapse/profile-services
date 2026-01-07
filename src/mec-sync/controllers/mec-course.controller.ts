@@ -1,9 +1,18 @@
 /**
  * MEC Course Controller
  * Public API endpoints for MEC course queries
+ *
+ * BUG-035 FIX: Added parseInt validation with NaN handling
  */
 
-import { Controller, Get, Query, Param, ParseIntPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Query,
+  Param,
+  ParseIntPipe,
+  BadRequestException,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiQuery, ApiParam } from '@nestjs/swagger';
 import { Public } from '../../auth/decorators/public.decorator';
 import { CourseQueryService } from '../services/course-query.service';
@@ -23,9 +32,16 @@ export class MecCourseController {
     @Query('q') query: string,
     @Query('limit') limit?: string,
   ) {
-    const parsedLimit = limit
-      ? parseInt(limit, 10)
-      : APP_CONSTANTS.DEFAULT_PAGE_SIZE;
+    // BUG-035 FIX: Validate parseInt result
+    let parsedLimit = APP_CONSTANTS.DEFAULT_PAGE_SIZE;
+    if (limit) {
+      parsedLimit = parseInt(limit, 10);
+      if (isNaN(parsedLimit) || parsedLimit <= 0) {
+        throw new BadRequestException(
+          'Invalid limit parameter. Must be a positive number.',
+        );
+      }
+    }
     return this.courseQuery.search(query, parsedLimit);
   }
 

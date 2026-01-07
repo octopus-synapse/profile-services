@@ -6,6 +6,7 @@
  * Testes detalhados de implementação estão nos serviços especializados.
  */
 
+import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { CacheService } from './cache.service';
 import { CacheCoreService } from './services/cache-core.service';
@@ -21,42 +22,42 @@ describe('CacheService (Adapter)', () => {
 
   const createStubs = (enabled: boolean) => ({
     coreService: {
-      get: jest.fn((key: string) =>
+      get: mock((key: string) =>
         Promise.resolve(cacheStore.get(key) ?? null),
       ),
-      set: jest.fn((key: string, value: unknown) => {
+      set: mock((key: string, value: unknown) => {
         cacheStore.set(key, value);
         return Promise.resolve();
       }),
-      delete: jest.fn((key: string) => {
+      delete: mock((key: string) => {
         cacheStore.delete(key);
         return Promise.resolve();
       }),
-      deletePattern: jest.fn((pattern: string) => {
+      deletePattern: mock((pattern: string) => {
         const prefix = pattern.replace('*', '');
         for (const key of cacheStore.keys()) {
           if (key.startsWith(prefix)) cacheStore.delete(key);
         }
         return Promise.resolve();
       }),
-      flush: jest.fn(() => {
+      flush: mock(() => {
         cacheStore.clear();
         return Promise.resolve();
       }),
       isEnabled: enabled,
     },
     patternsService: {
-      acquireLock: jest.fn((key: string) => {
+      acquireLock: mock((key: string) => {
         if (lockStore.has(key)) return Promise.resolve(false);
         lockStore.add(key);
         return Promise.resolve(true);
       }),
-      releaseLock: jest.fn((key: string) => {
+      releaseLock: mock((key: string) => {
         lockStore.delete(key);
         return Promise.resolve();
       }),
-      isLocked: jest.fn((key: string) => Promise.resolve(lockStore.has(key))),
-      getOrSet: jest.fn(
+      isLocked: mock((key: string) => Promise.resolve(lockStore.has(key))),
+      getOrSet: mock(
         async <T>(key: string, computeFn: () => Promise<T>, _ttl?: number) => {
           const cached = cacheStore.get(key) as T | undefined;
           if (cached !== undefined) return cached;
@@ -67,7 +68,7 @@ describe('CacheService (Adapter)', () => {
       ),
     },
     redisConnection: {
-      onModuleDestroy: jest.fn().mockResolvedValue(undefined),
+      onModuleDestroy: mock().mockResolvedValue(undefined),
       client: null,
     },
   });
@@ -186,7 +187,7 @@ describe('CacheService (Adapter)', () => {
 
     describe('getOrSet (cache-aside pattern)', () => {
       it('should compute and cache value on cache miss', async () => {
-        const computeFn = jest.fn().mockResolvedValue('computed-value');
+        const computeFn = mock().mockResolvedValue('computed-value');
 
         const result = await service.getOrSet('cache-key', computeFn, 60);
 
@@ -195,7 +196,7 @@ describe('CacheService (Adapter)', () => {
       });
 
       it('should return cached value without computing on cache hit', async () => {
-        const computeFn = jest.fn().mockResolvedValue('new-value');
+        const computeFn = mock().mockResolvedValue('new-value');
 
         // Prime the cache
         await service.set('cache-key', 'cached-value');
@@ -220,7 +221,7 @@ describe('CacheService (Adapter)', () => {
     beforeEach(async () => {
       const stubs = createStubs(false);
       // Override get to always return null when disabled
-      stubs.coreService.get = jest.fn().mockResolvedValue(null);
+      stubs.coreService.get = mock().mockResolvedValue(null);
 
       const module: TestingModule = await Test.createTestingModule({
         providers: [

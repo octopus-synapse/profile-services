@@ -86,4 +86,29 @@ export class ResumesRepository {
       include: this.includeRelations,
     });
   }
+
+  /**
+   * BUG-015 FIX: Proper database pagination
+   */
+  async findAllPaginated(
+    userId: string,
+    skip: number,
+    take: number,
+  ): Promise<Resume[]> {
+    return await this.prisma.resume.findMany({
+      where: { userId },
+      orderBy: { updatedAt: 'desc' },
+      skip,
+      take,
+    });
+  }
+
+  /**
+   * BUG-015 FIX: Count for pagination
+   */
+  async count(userId: string): Promise<number> {
+    return await this.prisma.resume.count({
+      where: { userId },
+    });
+  }
 }

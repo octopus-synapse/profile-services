@@ -91,4 +91,3 @@ describe('MecCourseController - BUG DETECTION', () => {
     });
   });
 });
-
