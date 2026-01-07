@@ -13,7 +13,15 @@ export const ERROR_MESSAGES = {
   CURRENT_PASSWORD_INCORRECT: 'Current password is incorrect',
   EMAIL_ALREADY_IN_USE: 'Email already in use',
   USERNAME_ALREADY_IN_USE: 'Username is already taken',
+  USERNAME_MUST_BE_LOWERCASE: 'Username must contain only lowercase letters',
+  USERNAME_RESERVED: 'This username is reserved and cannot be used',
+  USERNAME_INVALID_FORMAT:
+    'Username must start with a letter and contain only lowercase letters, numbers, and underscores',
+  USERNAME_INVALID_UNDERSCORES:
+    'Username cannot have consecutive underscores or end with an underscore',
   CANNOT_DELETE_LAST_ADMIN: 'Cannot delete the last admin account',
+  CANNOT_REMOVE_LAST_ADMIN_ROLE:
+    'Cannot remove admin role from the last admin account',
   INVALID_INTERNAL_TOKEN: 'Invalid internal token',
 
   // Tokens

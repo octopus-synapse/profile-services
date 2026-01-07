@@ -54,6 +54,11 @@ export class UserAdminMutationService {
     const user = await this.findUserOrThrow(id);
     await this.ensureUniqueFields(dto, user);
 
+    // BUG-016 FIX: Check if removing admin role from last admin
+    if (dto.role !== undefined) {
+      await this.preventLastAdminRoleRemoval(user.role as UserRole, dto.role);
+    }
+
     const updatedUser = await this.prisma.user.update({
       where: { id },
       data: dto,
@@ -143,6 +148,30 @@ export class UserAdminMutationService {
     });
     if (adminCount <= 1) {
       throw new BadRequestException(ERROR_MESSAGES.CANNOT_DELETE_LAST_ADMIN);
+    }
+  }
+
+  /**
+   * BUG-016 FIX: Prevent removing admin role from the last admin via UPDATE.
+   * The rule is: if there's only one admin, they cannot change their own role.
+   */
+  private async preventLastAdminRoleRemoval(
+    currentRole: UserRole,
+    newRole: UserRole | null,
+  ): Promise<void> {
+    // Only check if user is currently admin and role is being changed
+    if (currentRole !== UserRole.ADMIN) return;
+    if (newRole === UserRole.ADMIN) return;
+
+    // Check if this is the last admin
+    const adminCount = await this.prisma.user.count({
+      where: { role: UserRole.ADMIN },
+    });
+
+    if (adminCount <= 1) {
+      throw new BadRequestException(
+        ERROR_MESSAGES.CANNOT_REMOVE_LAST_ADMIN_ROLE,
+      );
     }
   }
 }

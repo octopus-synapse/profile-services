@@ -2,7 +2,7 @@ import {
   Injectable,
   NotFoundException,
   Logger,
-  BadRequestException,
+  UnprocessableEntityException,
 } from '@nestjs/common';
 import { ResumesRepository } from './resumes.repository';
 import { CreateResumeDto } from './dto/create-resume.dto';
@@ -59,11 +59,11 @@ export class ResumesService {
   async create(userId: string, createResumeDto: CreateResumeDto) {
     this.logger.log(`Creating resume for user: ${userId}`);
 
-    // Check resume limit
+    // Check resume limit - BUG-006 FIX: Use 422 instead of 400
     const existingResumes = await this.resumesRepository.findAll(userId);
     if (existingResumes.length >= MAX_RESUMES_PER_USER) {
-      throw new BadRequestException(
-        `You can only create up to ${MAX_RESUMES_PER_USER} resumes. Please delete an existing resume to create a new one.`,
+      throw new UnprocessableEntityException(
+        `Resume limit reached. You can only create up to ${MAX_RESUMES_PER_USER} resumes. Please delete an existing resume to create a new one.`,
       );
     }
 

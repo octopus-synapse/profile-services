@@ -3,12 +3,19 @@
  * Single Responsibility: Manage onboarding progress (checkpoints)
  */
 
-import { Injectable, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AppLoggerService } from '../../common/logger/logger.service';
 import { OnboardingProgressDto } from '../dto/onboarding.dto';
 import { ERROR_MESSAGES } from '../../common/constants/config';
 import { Prisma } from '@prisma/client';
+
+/** Onboarding progress expires after 36 hours */
+const PROGRESS_EXPIRATION_HOURS = 36;
 
 const INITIAL_PROGRESS = {
   currentStep: 'welcome',
@@ -42,6 +49,9 @@ export class OnboardingProgressService {
         currentStep: data.currentStep,
       },
     );
+
+    // BUG-011, BUG-012, BUG-013 FIX: Validate flag + array combinations
+    this.validateFlagArrayConsistency(data);
 
     // Validate username uniqueness if provided
     if (data.username) {
@@ -89,6 +99,17 @@ export class OnboardingProgressService {
     });
 
     if (!progress) {
+      return INITIAL_PROGRESS;
+    }
+
+    // BUG-006 FIX: Check for expiration (36 hours)
+    if (this.isProgressExpired(progress.updatedAt)) {
+      this.logger.debug(
+        'Onboarding progress expired, deleting and returning initial',
+        'OnboardingProgressService',
+        { userId },
+      );
+      await this.deleteProgress(userId);
       return INITIAL_PROGRESS;
     }
 
@@ -141,5 +162,39 @@ export class OnboardingProgressService {
       languages: data.languages ?? undefined,
       templateSelection: data.templateSelection ?? undefined,
     };
+  }
+
+  /**
+   * BUG-011, BUG-012, BUG-013 FIX:
+   * Validates that if a "no" flag is true, the corresponding array must be empty.
+   * Data is FORBIDDEN, not ignored.
+   */
+  private validateFlagArrayConsistency(data: OnboardingProgressDto): void {
+    if (data.noExperience && data.experiences && data.experiences.length > 0) {
+      throw new BadRequestException(
+        'Cannot have experiences when noExperience is true. Either set noExperience to false or provide an empty experiences array.',
+      );
+    }
+
+    if (data.noEducation && data.education && data.education.length > 0) {
+      throw new BadRequestException(
+        'Cannot have education entries when noEducation is true. Either set noEducation to false or provide an empty education array.',
+      );
+    }
+
+    if (data.noSkills && data.skills && data.skills.length > 0) {
+      throw new BadRequestException(
+        'Cannot have skills when noSkills is true. Either set noSkills to false or provide an empty skills array.',
+      );
+    }
+  }
+
+  /**
+   * BUG-006 FIX: Check if progress has expired (36 hours).
+   */
+  private isProgressExpired(updatedAt: Date): boolean {
+    const hoursElapsed =
+      (Date.now() - updatedAt.getTime()) / (1000 * 60 * 60);
+    return hoursElapsed >= PROGRESS_EXPIRATION_HOURS;
   }
 }

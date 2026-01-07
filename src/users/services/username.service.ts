@@ -16,6 +16,50 @@ import { ERROR_MESSAGES } from '../../common/constants/config';
 
 const USERNAME_UPDATE_COOLDOWN_DAYS = 30;
 
+/**
+ * Reserved usernames that cannot be used by regular users.
+ * These are typically used for system routes, admin, or support purposes.
+ */
+const RESERVED_USERNAMES = new Set([
+  'admin',
+  'api',
+  'www',
+  'support',
+  'help',
+  'root',
+  'system',
+  'null',
+  'undefined',
+  'me',
+  'profile',
+  'settings',
+  'login',
+  'logout',
+  'register',
+  'signup',
+  'signin',
+  'auth',
+  'oauth',
+  'callback',
+  'webhook',
+  'webhooks',
+  'status',
+  'health',
+  'ping',
+  'static',
+  'assets',
+  'public',
+  'private',
+]);
+
+/**
+ * Regex for valid username format:
+ * - Must start with a lowercase letter
+ * - Can contain lowercase letters, numbers, and underscores
+ * - Must be 3-30 characters long
+ */
+const USERNAME_REGEX = /^[a-z][a-z0-9_]{2,29}$/;
+
 @Injectable()
 export class UsernameService {
   constructor(
@@ -29,7 +73,10 @@ export class UsernameService {
       throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
     }
 
-    const newUsername = updateUsernameDto.username.toLowerCase();
+    const newUsername = updateUsernameDto.username;
+
+    // BUG-001 FIX: REJECT uppercase usernames instead of converting
+    this.validateUsernameFormat(newUsername);
 
     if (user.username === newUsername) {
       return {
@@ -99,6 +146,37 @@ export class UsernameService {
     );
     if (isTaken) {
       throw new ConflictException(ERROR_MESSAGES.USERNAME_ALREADY_IN_USE);
+    }
+  }
+
+  /**
+   * Validates username format according to business rules:
+   * - Must be lowercase only (uppercase is REJECTED, not converted)
+   * - Cannot be a reserved username
+   * - Must match the required format pattern
+   * - Cannot have consecutive underscores or end with underscore
+   */
+  private validateUsernameFormat(username: string): void {
+    // BUG-001: REJECT uppercase usernames
+    if (username !== username.toLowerCase()) {
+      throw new BadRequestException(ERROR_MESSAGES.USERNAME_MUST_BE_LOWERCASE);
+    }
+
+    // BUG-002: Validate reserved usernames
+    if (RESERVED_USERNAMES.has(username.toLowerCase())) {
+      throw new BadRequestException(ERROR_MESSAGES.USERNAME_RESERVED);
+    }
+
+    // BUG-003: Validate format (starts with letter, lowercase only)
+    if (!USERNAME_REGEX.test(username)) {
+      throw new BadRequestException(ERROR_MESSAGES.USERNAME_INVALID_FORMAT);
+    }
+
+    // Additional check for consecutive underscores or trailing underscore
+    if (username.includes('__') || username.endsWith('_')) {
+      throw new BadRequestException(
+        ERROR_MESSAGES.USERNAME_INVALID_UNDERSCORES,
+      );
     }
   }
 }
