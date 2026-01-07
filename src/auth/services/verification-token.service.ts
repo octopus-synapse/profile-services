@@ -124,7 +124,7 @@ export class VerificationTokenService {
   private validateExpiry(expires: Date, token: string): void {
     if (expires < new Date()) {
       // BUG-014 FIX: Log deletion errors instead of silently ignoring
-      this.deleteToken(token).catch((error) => {
+      this.deleteToken(token).catch((error: Error) => {
         this.logger.warn(
           `Failed to delete expired token: ${error.message}`,
           'VerificationTokenService',

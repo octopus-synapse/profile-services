@@ -46,6 +46,7 @@ import {
   TokenResolverService,
   type ResolvedTokens,
 } from './token-resolver.service';
+import { DslMigrationService } from './migrators';
 
 export type ResumeWithRelations = Resume & {
   experiences: Experience[];
@@ -87,12 +88,26 @@ const COLUMN_DISTRIBUTIONS: Record<string, [number, number]> = {
   '70-30': [70, 30],
 };
 
+/** Current DSL version */
+const CURRENT_DSL_VERSION = '1.0.0';
+
 @Injectable()
 export class DslCompilerService {
   constructor(
     private validator: DslValidatorService,
     private tokenResolver: TokenResolverService,
+    private migrationService: DslMigrationService,
   ) {}
+
+  /**
+   * Migrate DSL to current version if needed
+   */
+  private migrateDsl(dsl: ResumeDsl): ResumeDsl {
+    if (dsl.version === CURRENT_DSL_VERSION) {
+      return dsl;
+    }
+    return this.migrationService.migrate(dsl, CURRENT_DSL_VERSION);
+  }
 
   /**
    * Compile DSL to AST for HTML rendering
