@@ -11,7 +11,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ResumesService } from './resumes.service';
 import { ResumesRepository } from './resumes.repository';
-import { NotFoundException, BadRequestException } from '@nestjs/common';
+import { NotFoundException, UnprocessableEntityException } from '@nestjs/common';
 
 describe('ResumesService', () => {
   let service: ResumesService;
@@ -73,7 +73,7 @@ describe('ResumesService', () => {
 
       await expect(
         service.create('user-123', { title: 'Fifth Resume' }),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow(UnprocessableEntityException);
     });
 
     it('should show clear error message about 4 resume limit', async () => {

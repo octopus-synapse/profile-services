@@ -84,9 +84,7 @@ export class ExperienceService extends BaseSubResourceService<
       const end = new Date(data.endDate);
 
       if (end < start) {
-        throw new BadRequestException(
-          'End date cannot be before start date.',
-        );
+        throw new BadRequestException('End date cannot be before start date.');
       }
 
       if (end.getTime() === start.getTime()) {

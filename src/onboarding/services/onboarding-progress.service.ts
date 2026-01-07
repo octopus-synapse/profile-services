@@ -193,8 +193,7 @@ export class OnboardingProgressService {
    * BUG-006 FIX: Check if progress has expired (36 hours).
    */
   private isProgressExpired(updatedAt: Date): boolean {
-    const hoursElapsed =
-      (Date.now() - updatedAt.getTime()) / (1000 * 60 * 60);
+    const hoursElapsed = (Date.now() - updatedAt.getTime()) / (1000 * 60 * 60);
     return hoursElapsed >= PROGRESS_EXPIRATION_HOURS;
   }
 }

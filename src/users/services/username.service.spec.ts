@@ -1,305 +1,262 @@
 /**
- * Username Service Tests
+ * Username Service Unit Tests
  *
- * Business Rules Tested:
- * 1. Cooldown: 30 days from last change (null = immediate allowed)
- * 2. Format: Lowercase only, uppercase rejected (not converted)
- * 3. Reserved: Configurable list of prohibited usernames
- * 4. Onboarding: First definition has no cooldown
+ * These tests verify the ACTUAL service behavior, not fake helper functions.
+ * Uncle Bob: "Test the system, not your imagination of the system."
  */
 
-describe('Username Business Rules', () => {
-  const USERNAME_COOLDOWN_DAYS = 30;
+import { Test, TestingModule } from '@nestjs/testing';
+import {
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
+import { UsernameService } from './username.service';
+import { UsersRepository } from '../users.repository';
+import { AppLoggerService } from '../../common/logger/logger.service';
 
-  describe('Cooldown Rules (30 days)', () => {
-    const canUpdateUsername = (usernameUpdatedAt: Date | null): boolean => {
-      // Rule: lastUsernameChangeAt === null → change allowed
-      if (usernameUpdatedAt === null) return true;
+describe('UsernameService', () => {
+  let service: UsernameService;
+  let mockUsersRepository: jest.Mocked<UsersRepository>;
 
-      // Rule: now - lastUsernameChangeAt >= 30 days → allowed
-      const cooldownMs = USERNAME_COOLDOWN_DAYS * 24 * 60 * 60 * 1000;
-      return Date.now() - usernameUpdatedAt.getTime() >= cooldownMs;
-    };
+  const mockUser = {
+    id: 'user-123',
+    email: 'test@example.com',
+    username: 'existinguser',
+    usernameUpdatedAt: null,
+  } as any;
 
-    const getRemainingCooldownDays = (usernameUpdatedAt: Date): number => {
-      const cooldownMs = USERNAME_COOLDOWN_DAYS * 24 * 60 * 60 * 1000;
-      const elapsed = Date.now() - usernameUpdatedAt.getTime();
-      const remaining = cooldownMs - elapsed;
-      return Math.ceil(remaining / (24 * 60 * 60 * 1000));
-    };
+  beforeEach(async () => {
+    mockUsersRepository = {
+      getUser: jest.fn().mockResolvedValue(mockUser),
+      updateUsername: jest.fn().mockResolvedValue({ ...mockUser, username: 'newuser' }),
+      isUsernameTaken: jest.fn().mockResolvedValue(false),
+      getLastUsernameUpdate: jest.fn().mockResolvedValue(null),
+    } as any;
 
-    it('should allow username change when never changed before (usernameUpdatedAt is null)', () => {
-      expect(canUpdateUsername(null)).toBe(true);
-    });
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        UsernameService,
+        { provide: UsersRepository, useValue: mockUsersRepository },
+        { provide: AppLoggerService, useValue: { debug: jest.fn(), warn: jest.fn() } },
+      ],
+    }).compile();
 
-    it('should allow username change after 30+ days from last change', () => {
-      const thirtyOneDaysAgo = new Date();
-      thirtyOneDaysAgo.setDate(thirtyOneDaysAgo.getDate() - 31);
-
-      expect(canUpdateUsername(thirtyOneDaysAgo)).toBe(true);
-    });
-
-    it('should reject username change within 30 days of last change', () => {
-      const fifteenDaysAgo = new Date();
-      fifteenDaysAgo.setDate(fifteenDaysAgo.getDate() - 15);
-
-      expect(canUpdateUsername(fifteenDaysAgo)).toBe(false);
-    });
-
-    it('should calculate remaining days correctly', () => {
-      const twentyDaysAgo = new Date();
-      twentyDaysAgo.setDate(twentyDaysAgo.getDate() - 20);
-
-      const remaining = getRemainingCooldownDays(twentyDaysAgo);
-      expect(remaining).toBe(10); // 30 - 20 = 10 days remaining
-    });
-
-    it('should allow change exactly on day 30', () => {
-      const exactlyThirtyDaysAgo = new Date();
-      exactlyThirtyDaysAgo.setDate(exactlyThirtyDaysAgo.getDate() - 30);
-
-      expect(canUpdateUsername(exactlyThirtyDaysAgo)).toBe(true);
-    });
-
-    it('should reject change on day 29', () => {
-      const twentyNineDaysAgo = new Date();
-      twentyNineDaysAgo.setDate(twentyNineDaysAgo.getDate() - 29);
-
-      expect(canUpdateUsername(twentyNineDaysAgo)).toBe(false);
-    });
+    service = module.get<UsernameService>(UsernameService);
   });
 
-  describe('Username Format (Lowercase Only)', () => {
-    const LOWERCASE_ONLY_REGEX = /^[a-z0-9_-]+$/;
+  describe('updateUsername', () => {
+    describe('User validation', () => {
+      it('should throw NotFoundException when user does not exist', async () => {
+        mockUsersRepository.getUser.mockResolvedValue(null);
 
-    const isValidUsernameFormat = (username: string): boolean => {
-      // Rule: Only lowercase letters are permitted
-      // Uppercase is REJECTED, not converted
-      return LOWERCASE_ONLY_REGEX.test(username);
-    };
+        await expect(
+          service.updateUsername('nonexistent', { username: 'newuser' }),
+        ).rejects.toThrow(NotFoundException);
+      });
 
-    it('should reject username with uppercase letters', () => {
-      expect(isValidUsernameFormat('JohnDoe')).toBe(false);
+      it('should return success when username is unchanged', async () => {
+        const result = await service.updateUsername('user-123', {
+          username: 'existinguser',
+        });
+
+        expect(result.success).toBe(true);
+        expect(result.message).toBe('Username unchanged');
+        expect(mockUsersRepository.updateUsername).not.toHaveBeenCalled();
+      });
     });
 
-    it('should reject username with mixed case', () => {
-      expect(isValidUsernameFormat('johnDoe')).toBe(false);
+    describe('Username format validation', () => {
+      it('should reject uppercase letters', async () => {
+        await expect(
+          service.updateUsername('user-123', { username: 'TestUser' }),
+        ).rejects.toThrow(BadRequestException);
+      });
+
+      it('should reject usernames starting with number', async () => {
+        await expect(
+          service.updateUsername('user-123', { username: '123user' }),
+        ).rejects.toThrow(BadRequestException);
+      });
+
+      it('should reject special characters', async () => {
+        await expect(
+          service.updateUsername('user-123', { username: 'user@name' }),
+        ).rejects.toThrow(BadRequestException);
+      });
+
+      it('should reject consecutive underscores', async () => {
+        await expect(
+          service.updateUsername('user-123', { username: 'user__name' }),
+        ).rejects.toThrow(BadRequestException);
+      });
+
+      it('should reject trailing underscore', async () => {
+        await expect(
+          service.updateUsername('user-123', { username: 'username_' }),
+        ).rejects.toThrow(BadRequestException);
+      });
+
+      it('should accept valid lowercase username', async () => {
+        const result = await service.updateUsername('user-123', {
+          username: 'validuser',
+        });
+        expect(result.success).toBe(true);
+      });
+
+      it('should accept username with numbers', async () => {
+        const result = await service.updateUsername('user-123', {
+          username: 'user123',
+        });
+        expect(result.success).toBe(true);
+      });
+
+      it('should accept username with single underscores', async () => {
+        const result = await service.updateUsername('user-123', {
+          username: 'user_name',
+        });
+        expect(result.success).toBe(true);
+      });
     });
 
-    it('should accept lowercase-only username', () => {
-      expect(isValidUsernameFormat('johndoe')).toBe(true);
+    describe('Reserved username validation', () => {
+      it('should reject "admin"', async () => {
+        await expect(
+          service.updateUsername('user-123', { username: 'admin' }),
+        ).rejects.toThrow(BadRequestException);
+      });
+
+      it('should reject "api"', async () => {
+        await expect(
+          service.updateUsername('user-123', { username: 'api' }),
+        ).rejects.toThrow(BadRequestException);
+      });
+
+      it('should reject "www"', async () => {
+        await expect(
+          service.updateUsername('user-123', { username: 'www' }),
+        ).rejects.toThrow(BadRequestException);
+      });
+
+      it('should reject "support"', async () => {
+        await expect(
+          service.updateUsername('user-123', { username: 'support' }),
+        ).rejects.toThrow(BadRequestException);
+      });
     });
 
-    it('should accept username with numbers', () => {
-      expect(isValidUsernameFormat('john123')).toBe(true);
+    describe('Cooldown validation', () => {
+      it('should allow when never changed before (null)', async () => {
+        mockUsersRepository.getLastUsernameUpdate.mockResolvedValue(null);
+
+        const result = await service.updateUsername('user-123', {
+          username: 'newuser',
+        });
+        expect(result.success).toBe(true);
+      });
+
+      it('should reject within 30 days of last change', async () => {
+        const fifteenDaysAgo = new Date(Date.now() - 15 * 24 * 60 * 60 * 1000);
+        mockUsersRepository.getLastUsernameUpdate.mockResolvedValue(fifteenDaysAgo);
+
+        await expect(
+          service.updateUsername('user-123', { username: 'newuser' }),
+        ).rejects.toThrow(BadRequestException);
+      });
+
+      it('should allow after 30 days', async () => {
+        const thirtyOneDaysAgo = new Date(Date.now() - 31 * 24 * 60 * 60 * 1000);
+        mockUsersRepository.getLastUsernameUpdate.mockResolvedValue(thirtyOneDaysAgo);
+
+        const result = await service.updateUsername('user-123', {
+          username: 'newuser',
+        });
+        expect(result.success).toBe(true);
+      });
+
+      it('should show remaining days in error message', async () => {
+        const twentyDaysAgo = new Date(Date.now() - 20 * 24 * 60 * 60 * 1000);
+        mockUsersRepository.getLastUsernameUpdate.mockResolvedValue(twentyDaysAgo);
+
+        try {
+          await service.updateUsername('user-123', { username: 'newuser' });
+          fail('Should have thrown');
+        } catch (error) {
+          expect((error as Error).message).toContain('10');
+        }
+      });
     });
 
-    it('should accept username with underscores', () => {
-      expect(isValidUsernameFormat('john_doe')).toBe(true);
+    describe('Username availability', () => {
+      it('should reject already taken username', async () => {
+        mockUsersRepository.isUsernameTaken.mockResolvedValue(true);
+
+        await expect(
+          service.updateUsername('user-123', { username: 'takenuser' }),
+        ).rejects.toThrow(ConflictException);
+      });
+
+      it('should accept available username', async () => {
+        mockUsersRepository.isUsernameTaken.mockResolvedValue(false);
+
+        const result = await service.updateUsername('user-123', {
+          username: 'availableuser',
+        });
+        expect(result.success).toBe(true);
+      });
     });
 
-    it('should accept username with hyphens', () => {
-      expect(isValidUsernameFormat('john-doe')).toBe(true);
-    });
+    describe('Successful update', () => {
+      it('should call repository with correct parameters', async () => {
+        await service.updateUsername('user-123', { username: 'newuser' });
 
-    it('should accept combined lowercase, numbers, underscores, hyphens', () => {
-      expect(isValidUsernameFormat('john_doe-123')).toBe(true);
-    });
-
-    it('should reject username with special characters', () => {
-      expect(isValidUsernameFormat('john@doe')).toBe(false);
-      expect(isValidUsernameFormat('john.doe')).toBe(false);
-      expect(isValidUsernameFormat('john doe')).toBe(false);
-    });
-
-    it('should reject username starting with number', () => {
-      // This depends on business rule - may or may not be allowed
-      // Assuming it's allowed based on regex
-      expect(isValidUsernameFormat('123john')).toBe(true);
-    });
-  });
-
-  describe('Username Length Validation', () => {
-    const MIN_LENGTH = 3;
-    const MAX_LENGTH = 50;
-
-    const isValidUsernameLength = (username: string): boolean => {
-      return username.length >= MIN_LENGTH && username.length <= MAX_LENGTH;
-    };
-
-    it('should reject username shorter than minimum', () => {
-      expect(isValidUsernameLength('ab')).toBe(false);
-    });
-
-    it('should accept username at minimum length', () => {
-      expect(isValidUsernameLength('abc')).toBe(true);
-    });
-
-    it('should accept username at maximum length', () => {
-      expect(isValidUsernameLength('a'.repeat(50))).toBe(true);
-    });
-
-    it('should reject username longer than maximum', () => {
-      expect(isValidUsernameLength('a'.repeat(51))).toBe(false);
-    });
-  });
-
-  describe('Reserved Usernames', () => {
-    // Rule: Reserved usernames from configurable list
-    const RESERVED_USERNAMES = new Set([
-      'admin',
-      'api',
-      'www',
-      'support',
-      'help',
-      'root',
-      'system',
-      'null',
-      'undefined',
-    ]);
-
-    const isReservedUsername = (username: string): boolean => {
-      return RESERVED_USERNAMES.has(username.toLowerCase());
-    };
-
-    it('should reject "admin" as reserved', () => {
-      expect(isReservedUsername('admin')).toBe(true);
-    });
-
-    it('should reject "api" as reserved', () => {
-      expect(isReservedUsername('api')).toBe(true);
-    });
-
-    it('should reject "www" as reserved', () => {
-      expect(isReservedUsername('www')).toBe(true);
-    });
-
-    it('should reject "support" as reserved', () => {
-      expect(isReservedUsername('support')).toBe(true);
-    });
-
-    it('should reject "help" as reserved', () => {
-      expect(isReservedUsername('help')).toBe(true);
-    });
-
-    it('should reject "root" as reserved', () => {
-      expect(isReservedUsername('root')).toBe(true);
-    });
-
-    it('should accept non-reserved username', () => {
-      expect(isReservedUsername('johndoe')).toBe(false);
-    });
-
-    it('should be case-insensitive for reserved check', () => {
-      expect(isReservedUsername('Admin')).toBe(true);
-      expect(isReservedUsername('ADMIN')).toBe(true);
-    });
-  });
-
-  describe('Username Availability', () => {
-    const isUsernameTaken = (
-      username: string,
-      existingUsernames: Map<string, string>,
-      excludeUserId?: string,
-    ): boolean => {
-      const ownerUserId = existingUsernames.get(username);
-      if (!ownerUserId) return false;
-      if (excludeUserId && ownerUserId === excludeUserId) return false;
-      return true;
-    };
-
-    it('should return true when username is taken', () => {
-      const existing = new Map([['johndoe', 'user-1']]);
-      expect(isUsernameTaken('johndoe', existing)).toBe(true);
-    });
-
-    it('should return false when username is available', () => {
-      const existing = new Map([['johndoe', 'user-1']]);
-      expect(isUsernameTaken('janedoe', existing)).toBe(false);
-    });
-
-    it('should return false when username belongs to excluded user', () => {
-      const existing = new Map([['johndoe', 'user-1']]);
-      expect(isUsernameTaken('johndoe', existing, 'user-1')).toBe(false);
-    });
-
-    it('should return true when username taken by different user than excluded', () => {
-      const existing = new Map([['johndoe', 'user-2']]);
-      expect(isUsernameTaken('johndoe', existing, 'user-1')).toBe(true);
-    });
-  });
-
-  describe('Complete Username Validation', () => {
-    interface ValidationResult {
-      valid: boolean;
-      errors: string[];
-    }
-
-    const RESERVED = new Set(['admin', 'api', 'www', 'support']);
-    const FORMAT_REGEX = /^[a-z0-9_-]+$/;
-    const MIN_LENGTH = 3;
-    const MAX_LENGTH = 50;
-
-    const validateUsername = (
-      username: string,
-      existingUsernames: Set<string>,
-    ): ValidationResult => {
-      const errors: string[] = [];
-
-      // Length check
-      if (username.length < MIN_LENGTH) {
-        errors.push(`Username must be at least ${MIN_LENGTH} characters`);
-      }
-      if (username.length > MAX_LENGTH) {
-        errors.push(`Username must be at most ${MAX_LENGTH} characters`);
-      }
-
-      // Format check (lowercase only)
-      if (!FORMAT_REGEX.test(username)) {
-        errors.push(
-          'Username can only contain lowercase letters, numbers, underscores, and hyphens',
+        expect(mockUsersRepository.updateUsername).toHaveBeenCalledWith(
+          'user-123',
+          'newuser',
         );
-      }
+      });
 
-      // Reserved check
-      if (RESERVED.has(username.toLowerCase())) {
-        errors.push('This username is reserved');
-      }
+      it('should return updated username', async () => {
+        mockUsersRepository.updateUsername.mockResolvedValue({
+          ...mockUser,
+          username: 'newuser',
+        } as any);
 
-      // Availability check
-      if (existingUsernames.has(username)) {
-        errors.push('Username is already taken');
-      }
+        const result = await service.updateUsername('user-123', {
+          username: 'newuser',
+        });
 
-      return {
-        valid: errors.length === 0,
-        errors,
-      };
-    };
+        expect(result.username).toBe('newuser');
+        expect(result.message).toBe('Username updated successfully');
+      });
+    });
+  });
 
-    it('should pass all validations for valid username', () => {
-      const result = validateUsername('johndoe', new Set());
-      expect(result.valid).toBe(true);
-      expect(result.errors).toHaveLength(0);
+  describe('checkUsernameAvailability', () => {
+    it('should return available=true when not taken', async () => {
+      mockUsersRepository.isUsernameTaken.mockResolvedValue(false);
+
+      const result = await service.checkUsernameAvailability('newuser');
+
+      expect(result.available).toBe(true);
+      expect(result.username).toBe('newuser');
     });
 
-    it('should return all applicable errors', () => {
-      const result = validateUsername('A', new Set(['a']));
-      expect(result.valid).toBe(false);
-      expect(result.errors.length).toBeGreaterThan(0);
+    it('should return available=false when taken', async () => {
+      mockUsersRepository.isUsernameTaken.mockResolvedValue(true);
+
+      const result = await service.checkUsernameAvailability('takenuser');
+
+      expect(result.available).toBe(false);
     });
 
-    it('should reject taken username', () => {
-      const existing = new Set(['johndoe']);
-      const result = validateUsername('johndoe', existing);
-      expect(result.valid).toBe(false);
-      expect(result.errors).toContain('Username is already taken');
-    });
+    it('should normalize username to lowercase', async () => {
+      await service.checkUsernameAvailability('TestUser');
 
-    it('should reject reserved username', () => {
-      const result = validateUsername('admin', new Set());
-      expect(result.valid).toBe(false);
-      expect(result.errors).toContain('This username is reserved');
+      expect(mockUsersRepository.isUsernameTaken).toHaveBeenCalledWith(
+        'testuser',
+        undefined,
+      );
     });
   });
 });
