@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach, mock } from 'bun:test';
 /**
  * Session & Token Management Tests
  *
@@ -17,13 +18,13 @@ import { UserRole } from '../../common/enums/user-role.enum';
 
 describe('TokenService', () => {
   let service: TokenService;
-  let jwtService: jest.Mocked<JwtService>;
+  let jwtService: JwtService;
 
   beforeEach(async () => {
     jwtService = {
-      sign: jest.fn().mockReturnValue('mock-token'),
-      verify: jest.fn(),
-      decode: jest.fn(),
+      sign: mock().mockReturnValue('mock-token'),
+      verify: mock(),
+      decode: mock(),
     } as any;
 
     const module: TestingModule = await Test.createTestingModule({

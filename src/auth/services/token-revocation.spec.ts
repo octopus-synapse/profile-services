@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach, mock } from 'bun:test';
 /**
  * Token Revocation Bug Detection Tests
  *
@@ -22,24 +23,24 @@ describe('Token Revocation - BUG DETECTION', () => {
   let refreshService: TokenRefreshService;
 
   const mockJwtService = {
-    sign: jest.fn().mockReturnValue('mock-token'),
-    verify: jest.fn(),
+    sign: mock().mockReturnValue('mock-token'),
+    verify: mock(),
   };
 
   const mockPrisma = {
     user: {
-      findUnique: jest.fn(),
+      findUnique: mock(),
     },
     session: {
-      findUnique: jest.fn(),
-      create: jest.fn(),
-      delete: jest.fn(),
-      deleteMany: jest.fn(),
-      count: jest.fn(),
+      findUnique: mock(),
+      create: mock(),
+      delete: mock(),
+      deleteMany: mock(),
+      count: mock(),
     },
     tokenBlacklist: {
-      create: jest.fn(),
-      findUnique: jest.fn(),
+      create: mock(),
+      findUnique: mock(),
     },
   };
 
@@ -53,7 +54,7 @@ describe('Token Revocation - BUG DETECTION', () => {
         {
           provide: ConfigService,
           useValue: {
-            get: jest.fn((key: string) => {
+            get: mock((key: string) => {
               if (key === 'JWT_EXPIRES_IN') return '15m';
               if (key === 'JWT_REFRESH_EXPIRES_IN') return '7d';
               return null;
@@ -62,7 +63,7 @@ describe('Token Revocation - BUG DETECTION', () => {
         },
         {
           provide: AppLoggerService,
-          useValue: { log: jest.fn(), warn: jest.fn() },
+          useValue: { log: mock(), warn: mock() },
         },
       ],
     }).compile();

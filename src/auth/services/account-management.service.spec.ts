@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AccountManagementService } from './account-management.service';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -12,15 +13,15 @@ import { ERROR_MESSAGES } from '../../common/constants/config';
 
 describe('AccountManagementService', () => {
   let service: AccountManagementService;
-  let prismaService: jest.Mocked<PrismaService>;
-  let logger: jest.Mocked<AppLoggerService>;
-  let passwordService: jest.Mocked<PasswordService>;
+  let prismaService: PrismaService;
+  let logger: AppLoggerService;
+  let passwordService: PasswordService;
 
   beforeEach(async () => {
-    const mockFindUnique = jest.fn();
-    const mockUpdate = jest.fn();
-    const mockDelete = jest.fn();
-    const mockCount = jest.fn();
+    const mockFindUnique = mock();
+    const mockUpdate = mock();
+    const mockDelete = mock();
+    const mockCount = mock();
 
     prismaService = {
       user: {
@@ -32,15 +33,15 @@ describe('AccountManagementService', () => {
     } as any;
 
     logger = {
-      log: jest.fn(),
-      debug: jest.fn(),
-      error: jest.fn(),
-      warn: jest.fn(),
+      log: mock(),
+      debug: mock(),
+      error: mock(),
+      warn: mock(),
     } as any;
 
     passwordService = {
-      compare: jest.fn(),
-      hash: jest.fn(),
+      compare: mock(),
+      hash: mock(),
     } as any;
 
     const module: TestingModule = await Test.createTestingModule({

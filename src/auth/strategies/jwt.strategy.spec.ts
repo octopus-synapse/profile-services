@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach, mock } from 'bun:test';
 /**
  * JwtStrategy Tests
  *
@@ -30,16 +31,16 @@ describe('JwtStrategy', () => {
   beforeEach(async () => {
     prisma = {
       user: {
-        findUnique: jest.fn(),
+        findUnique: mock(),
       },
     };
 
     tokenBlacklist = {
-      isRevoked: jest.fn().mockResolvedValue(false),
+      isRevoked: mock().mockResolvedValue(false),
     };
 
     const mockConfigService = {
-      get: jest.fn((key: string) => {
+      get: mock((key: string) => {
         if (key === 'JWT_SECRET') return 'test-secret-key';
         return null;
       }),
@@ -132,7 +133,7 @@ describe('JwtStrategy', () => {
   describe('constructor', () => {
     it('should throw error when JWT_SECRET is not configured', async () => {
       const mockConfigService = {
-        get: jest.fn().mockReturnValue(null),
+        get: mock().mockReturnValue(null),
       };
 
       await expect(

@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach, mock } from 'bun:test';
 /**
  * Password Change Bug Detection Tests
  *
@@ -13,14 +14,14 @@ describe('Password Change - BUG DETECTION', () => {
   beforeEach(async () => {
     mockPrisma = {
       user: {
-        findUnique: jest.fn(),
-        update: jest.fn(),
+        findUnique: mock(),
+        update: mock(),
       },
       session: {
-        deleteMany: jest.fn(),
+        deleteMany: mock(),
       },
       tokenBlacklist: {
-        createMany: jest.fn(),
+        createMany: mock(),
       },
     };
   });

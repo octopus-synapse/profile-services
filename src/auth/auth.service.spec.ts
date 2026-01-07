@@ -27,17 +27,17 @@ describe('AuthService (Facade)', () => {
 
   // Stubs com retornos fixos (não mocks para verificar chamadas)
   const stubAuthCoreService = {
-    signup: jest.fn().mockResolvedValue({
+    signup: mock().mockResolvedValue({
       success: true,
       token: 'jwt-token',
       user: { id: 'user-123', email: 'test@example.com' },
     }),
-    validateUser: jest.fn().mockResolvedValue({
+    validateUser: mock().mockResolvedValue({
       id: 'user-123',
       email: 'test@example.com',
       name: 'Test User',
     }),
-    login: jest.fn().mockResolvedValue({
+    login: mock().mockResolvedValue({
       success: true,
       token: 'jwt-token',
       user: { id: 'user-123', email: 'test@example.com' },
@@ -45,34 +45,34 @@ describe('AuthService (Facade)', () => {
   };
 
   const stubTokenRefreshService = {
-    refreshToken: jest.fn().mockResolvedValue({
+    refreshToken: mock().mockResolvedValue({
       success: true,
       token: 'new-jwt-token',
     }),
-    refreshWithToken: jest.fn().mockResolvedValue({
+    refreshWithToken: mock().mockResolvedValue({
       success: true,
       token: 'new-jwt-token',
     }),
-    getCurrentUser: jest.fn().mockResolvedValue({
+    getCurrentUser: mock().mockResolvedValue({
       id: 'user-123',
       email: 'test@example.com',
     }),
   };
 
   const stubEmailVerificationService = {
-    requestVerification: jest.fn().mockResolvedValue({ success: true }),
-    verifyEmail: jest.fn().mockResolvedValue({ success: true }),
+    requestVerification: mock().mockResolvedValue({ success: true }),
+    verifyEmail: mock().mockResolvedValue({ success: true }),
   };
 
   const stubPasswordResetService = {
-    forgotPassword: jest.fn().mockResolvedValue({ success: true }),
-    resetPassword: jest.fn().mockResolvedValue({ success: true }),
-    changePassword: jest.fn().mockResolvedValue({ success: true }),
+    forgotPassword: mock().mockResolvedValue({ success: true }),
+    resetPassword: mock().mockResolvedValue({ success: true }),
+    changePassword: mock().mockResolvedValue({ success: true }),
   };
 
   const stubAccountManagementService = {
-    changeEmail: jest.fn().mockResolvedValue({ success: true }),
-    deleteAccount: jest.fn().mockResolvedValue({ success: true }),
+    changeEmail: mock().mockResolvedValue({ success: true }),
+    deleteAccount: mock().mockResolvedValue({ success: true }),
   };
 
   beforeEach(async () => {

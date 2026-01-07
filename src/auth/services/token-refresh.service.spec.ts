@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TokenRefreshService } from './token-refresh.service';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -8,12 +9,12 @@ import { ERROR_MESSAGES } from '../../common/constants/config';
 
 describe('TokenRefreshService', () => {
   let service: TokenRefreshService;
-  let prismaService: jest.Mocked<PrismaService>;
-  let logger: jest.Mocked<AppLoggerService>;
-  let tokenService: jest.Mocked<TokenService>;
+  let prismaService: PrismaService;
+  let logger: AppLoggerService;
+  let tokenService: TokenService;
 
   beforeEach(async () => {
-    const mockFindUnique = jest.fn();
+    const mockFindUnique = mock();
 
     prismaService = {
       user: {
@@ -22,15 +23,15 @@ describe('TokenRefreshService', () => {
     } as any;
 
     logger = {
-      log: jest.fn(),
-      error: jest.fn(),
-      warn: jest.fn(),
-      debug: jest.fn(),
+      log: mock(),
+      error: mock(),
+      warn: mock(),
+      debug: mock(),
     } as any;
 
     tokenService = {
-      generateToken: jest.fn(),
-      verifyToken: jest.fn(),
+      generateToken: mock(),
+      verifyToken: mock(),
     } as any;
 
     const module: TestingModule = await Test.createTestingModule({

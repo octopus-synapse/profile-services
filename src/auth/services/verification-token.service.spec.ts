@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { VerificationTokenService } from './verification-token.service';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -6,12 +7,12 @@ import { ERROR_MESSAGES } from '../../common/constants/config';
 
 describe('VerificationTokenService', () => {
   let service: VerificationTokenService;
-  let prismaService: jest.Mocked<PrismaService>;
+  let prismaService: PrismaService;
 
   beforeEach(async () => {
-    const mockUpsert = jest.fn();
-    const mockFindUnique = jest.fn();
-    const mockDelete = jest.fn();
+    const mockUpsert = mock();
+    const mockFindUnique = mock();
+    const mockDelete = mock();
 
     prismaService = {
       verificationToken: {

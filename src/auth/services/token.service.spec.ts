@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach, mock } from 'bun:test';
 /**
  * Token Service Tests
  */
@@ -8,7 +9,7 @@ import { TokenService, JwtUserPayload } from './token.service';
 
 describe('TokenService', () => {
   let service: TokenService;
-  let jwtService: jest.Mocked<JwtService>;
+  let jwtService: JwtService;
 
   const mockUser: JwtUserPayload = {
     id: 'user-123',
@@ -19,9 +20,9 @@ describe('TokenService', () => {
 
   beforeEach(async () => {
     const mockJwtService = {
-      sign: jest.fn(),
-      verify: jest.fn(),
-      decode: jest.fn(),
+      sign: mock(),
+      verify: mock(),
+      decode: mock(),
     };
 
     const module: TestingModule = await Test.createTestingModule({

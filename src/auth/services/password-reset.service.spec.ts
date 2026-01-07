@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PasswordResetService } from './password-reset.service';
 import { PrismaService } from '../../prisma/prisma.service';

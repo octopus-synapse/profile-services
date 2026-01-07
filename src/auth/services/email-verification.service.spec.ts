@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { EmailVerificationService } from './email-verification.service';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -7,14 +8,14 @@ import { VerificationTokenService } from './verification-token.service';
 
 describe('EmailVerificationService', () => {
   let service: EmailVerificationService;
-  let prismaService: jest.Mocked<PrismaService>;
-  let logger: jest.Mocked<AppLoggerService>;
-  let emailService: jest.Mocked<EmailService>;
-  let tokenService: jest.Mocked<VerificationTokenService>;
+  let prismaService: PrismaService;
+  let logger: AppLoggerService;
+  let emailService: EmailService;
+  let tokenService: VerificationTokenService;
 
   beforeEach(async () => {
-    const mockFindUnique = jest.fn();
-    const mockUpdate = jest.fn();
+    const mockFindUnique = mock();
+    const mockUpdate = mock();
 
     prismaService = {
       user: {
@@ -24,20 +25,20 @@ describe('EmailVerificationService', () => {
     } as any;
 
     logger = {
-      log: jest.fn(),
-      error: jest.fn(),
-      warn: jest.fn(),
-      debug: jest.fn(),
+      log: mock(),
+      error: mock(),
+      warn: mock(),
+      debug: mock(),
     } as any;
 
     emailService = {
-      sendVerificationEmail: jest.fn(),
-      sendWelcomeEmail: jest.fn(),
+      sendVerificationEmail: mock(),
+      sendWelcomeEmail: mock(),
     } as any;
 
     tokenService = {
-      createEmailVerificationToken: jest.fn(),
-      validateEmailVerificationToken: jest.fn(),
+      createEmailVerificationToken: mock(),
+      validateEmailVerificationToken: mock(),
     } as any;
 
     const module: TestingModule = await Test.createTestingModule({

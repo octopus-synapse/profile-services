@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConflictException, UnauthorizedException } from '@nestjs/common';
 import { UserRole, Prisma } from '@prisma/client';
@@ -11,9 +12,9 @@ import { ERROR_MESSAGES } from '../../common/constants/config';
 describe('AuthCoreService', () => {
   let service: AuthCoreService;
   let prisma: any;
-  let logger: jest.Mocked<AppLoggerService>;
-  let tokenService: jest.Mocked<TokenService>;
-  let passwordService: jest.Mocked<PasswordService>;
+  let logger: AppLoggerService;
+  let tokenService: TokenService;
+  let passwordService: PasswordService;
 
   const mockUser = {
     id: 'user-123',
@@ -31,24 +32,24 @@ describe('AuthCoreService', () => {
   beforeEach(async () => {
     const mockPrisma = {
       user: {
-        findUnique: jest.fn(),
-        create: jest.fn(),
+        findUnique: mock(),
+        create: mock(),
       },
     };
 
     const mockLogger = {
-      log: jest.fn(),
-      warn: jest.fn(),
-      error: jest.fn(),
+      log: mock(),
+      warn: mock(),
+      error: mock(),
     };
 
     const mockTokenService = {
-      generateToken: jest.fn(),
+      generateToken: mock(),
     };
 
     const mockPasswordService = {
-      hash: jest.fn(),
-      compare: jest.fn(),
+      hash: mock(),
+      compare: mock(),
     };
 
     const module: TestingModule = await Test.createTestingModule({

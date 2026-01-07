@@ -14,11 +14,11 @@ describe('Rate Limiting - BUG DETECTION', () => {
      */
     it('should block IP after 5 failed login attempts', async () => {
       const mockLoginService = {
-        login: jest.fn(),
-        getFailedAttempts: jest.fn(),
-        incrementFailedAttempts: jest.fn(),
-        isIpBlocked: jest.fn(),
-        blockIp: jest.fn(),
+        login: mock(),
+        getFailedAttempts: mock(),
+        incrementFailedAttempts: mock(),
+        isIpBlocked: mock(),
+        blockIp: mock(),
       };
 
       // Simulate 5 failed attempts
@@ -60,7 +60,7 @@ describe('Rate Limiting - BUG DETECTION', () => {
      */
     it('should limit password reset requests per email', async () => {
       const mockPasswordResetService = {
-        requestReset: jest.fn().mockResolvedValue(true),
+        requestReset: mock().mockResolvedValue(true),
       };
 
       // Request reset 10 times for same email

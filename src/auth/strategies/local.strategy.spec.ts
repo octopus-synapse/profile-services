@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach, mock } from 'bun:test';
 /**
  * LocalStrategy Tests
  *
@@ -29,7 +30,7 @@ describe('LocalStrategy', () => {
 
   beforeEach(async () => {
     authService = {
-      validateUser: jest.fn(),
+      validateUser: mock(),
     };
 
     const module: TestingModule = await Test.createTestingModule({

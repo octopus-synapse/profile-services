@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach, mock } from 'bun:test';
 /**
  * JWT Strategy Bug Detection Tests
  *
@@ -21,7 +22,7 @@ describe('JwtStrategy - BUG DETECTION', () => {
   beforeEach(async () => {
     mockPrisma = {
       user: {
-        findUnique: jest.fn(),
+        findUnique: mock(),
       },
     };
 
@@ -31,7 +32,7 @@ describe('JwtStrategy - BUG DETECTION', () => {
         { provide: PrismaService, useValue: mockPrisma },
         {
           provide: ConfigService,
-          useValue: { get: jest.fn().mockReturnValue('test-secret') },
+          useValue: { get: mock().mockReturnValue('test-secret') },
         },
       ],
     }).compile();

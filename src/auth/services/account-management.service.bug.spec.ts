@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach, afterEach, mock } from 'bun:test';
 /**
  * Account Management Bug Detection Tests
  *
@@ -30,22 +31,22 @@ describe('AccountManagementService - BUG DETECTION', () => {
   beforeEach(async () => {
     mockPrisma = {
       user: {
-        findUnique: jest.fn(),
-        update: jest.fn(),
-        delete: jest.fn(),
-        count: jest.fn(),
+        findUnique: mock(),
+        update: mock(),
+        delete: mock(),
+        count: mock(),
       },
-      $transaction: jest.fn(),
+      $transaction: mock(),
       session: {
-        deleteMany: jest.fn(),
+        deleteMany: mock(),
       },
       tokenBlacklist: {
-        create: jest.fn(),
+        create: mock(),
       },
     };
 
     mockPasswordService = {
-      compare: jest.fn().mockResolvedValue(true),
+      compare: mock().mockResolvedValue(true),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -55,7 +56,7 @@ describe('AccountManagementService - BUG DETECTION', () => {
         { provide: PasswordService, useValue: mockPasswordService },
         {
           provide: AppLoggerService,
-          useValue: { log: jest.fn(), warn: jest.fn() },
+          useValue: { log: mock(), warn: mock() },
         },
       ],
     }).compile();
