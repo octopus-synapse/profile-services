@@ -1,0 +1,340 @@
+{
+  "metadata": {
+    "auditor": "Uncle Bob (sem café, de mau humor extremo)",
+    "date": "2026-01-07",
+    "severity_levels": ["CRITICAL", "HIGH", "MEDIUM", "LOW"],
+    "status_options": ["OPEN", "IN_PROGRESS", "FIXED", "WONT_FIX"],
+    "total_bugs": 32
+  },
+  "bugs": [
+    {
+      "id": "BUG-001",
+      "title": "Race Condition: Email uniqueness check (TOCTOU)",
+      "severity": "CRITICAL",
+      "status": "OPEN",
+      "files_related": [
+        "src/admin/services/user-admin-mutation.service.ts",
+        "src/auth/services/auth-core.service.ts"
+      ],
+      "description": "Classic Time-Of-Check-To-Time-Of-Use vulnerability. The `ensureEmailNotExists` method checks if email exists, then creates user. Between check and create, another request could register the same email, causing duplicate emails or database constraint violation. Must use database transaction with unique constraint handling or SELECT FOR UPDATE."
+    },
+    {
+      "id": "BUG-002",
+      "title": "Race Condition: Username uniqueness check (TOCTOU)",
+      "severity": "CRITICAL",
+      "status": "OPEN",
+      "files_related": [
+        "src/admin/services/user-admin-mutation.service.ts",
+        "src/users/services/username.service.ts"
+      ],
+      "description": "Same TOCTOU vulnerability for username uniqueness. Between `isUsernameTaken` check and update, another user could claim the same username."
+    },
+    {
+      "id": "BUG-003",
+      "title": "Race Condition: Resume limit check",
+      "severity": "HIGH",
+      "status": "OPEN",
+      "files_related": [
+        "src/resumes/resumes.service.ts"
+      ],
+      "description": "The `create` method checks resume count with `findAll`, then creates. Two concurrent requests could both see 3 resumes and both create, resulting in 5 resumes (exceeding the limit of 4). Must use transaction with count check or database-level constraint."
+    },
+    {
+      "id": "BUG-004",
+      "title": "Distributed Lock Disabled Silently",
+      "severity": "CRITICAL",
+      "status": "OPEN",
+      "files_related": [
+        "src/common/cache/cache-lock.service.ts"
+      ],
+      "description": "When Redis is disabled, `acquireLock` returns `true` (allowing operation) instead of throwing an error. This means all race condition protections are silently disabled when Redis is unavailable. Should throw an error or use a fallback in-memory lock."
+    },
+    {
+      "id": "BUG-005",
+      "title": "No Session Limit Enforcement (5 devices max)",
+      "severity": "HIGH",
+      "status": "OPEN",
+      "files_related": [
+        "src/auth/services/auth-core.service.ts",
+        "src/auth/services/token.service.ts"
+      ],
+      "description": "Business rule states max 5 active sessions per user, with oldest invalidated if exceeded. But NO session counting or invalidation logic exists. Login just creates tokens without checking existing sessions."
+    },
+    {
+      "id": "BUG-006",
+      "title": "No Theme Limit Enforcement (5 themes max)",
+      "severity": "HIGH",
+      "status": "OPEN",
+      "files_related": [
+        "src/themes/services/theme-crud.service.ts"
+      ],
+      "description": "Business rule states max 5 themes per user. But `ThemeCrudService.create` doesn't check theme count before creating. User can create unlimited themes."
+    },
+    {
+      "id": "BUG-007",
+      "title": "No Theme Resubmission Limit (max 2)",
+      "severity": "HIGH",
+      "status": "OPEN",
+      "files_related": [
+        "src/themes/services/theme-approval.service.ts"
+      ],
+      "description": "Business rule states rejected themes can be resubmitted maximum 2 times. But `submitForApproval` doesn't check rejection count. A theme can be resubmitted infinitely."
+    },
+    {
+      "id": "BUG-008",
+      "title": "No GitHub Sync Daily Limit (10 per day)",
+      "severity": "MEDIUM",
+      "status": "OPEN",
+      "files_related": [
+        "src/integrations/github/services/github-sync.service.ts"
+      ],
+      "description": "Business rule states 10 syncs per day per user. But GitHubSyncService has no rate limiting. User can sync unlimited times per day."
+    },
+    {
+      "id": "BUG-009",
+      "title": "No Email Verification Check in JWT Validation",
+      "severity": "CRITICAL",
+      "status": "OPEN",
+      "files_related": [
+        "src/auth/strategies/jwt.strategy.ts"
+      ],
+      "description": "Business rule states user must verify email to use the system. But JwtStrategy.validate() doesn't check `emailVerified`. Unverified users can use JWT tokens to access protected endpoints."
+    },
+    {
+      "id": "BUG-010",
+      "title": "No Login Rate Limiting by IP (5 attempts = 30-60 min block)",
+      "severity": "HIGH",
+      "status": "OPEN",
+      "files_related": [
+        "src/auth/controllers/auth-core.controller.ts",
+        "src/auth/services/auth-core.service.ts"
+      ],
+      "description": "Business rule: after 5 failed login attempts, block IP for 30-60 minutes. Current implementation uses @Throttle decorator but it's per-request, not tracking failed attempts specifically. Need failed attempt counter per IP."
+    },
+    {
+      "id": "BUG-011",
+      "title": "Experience Order Uniqueness Not Enforced",
+      "severity": "MEDIUM",
+      "status": "OPEN",
+      "files_related": [
+        "src/resumes/services/experience.service.ts"
+      ],
+      "description": "Business rule: two items cannot have the same `order` value in a section. ExperienceService validates dates but NOT order uniqueness. Multiple experiences can have the same order."
+    },
+    {
+      "id": "BUG-012",
+      "title": "No Audit Log for Critical Admin Actions",
+      "severity": "HIGH",
+      "status": "OPEN",
+      "files_related": [
+        "src/admin/services/user-admin-mutation.service.ts",
+        "src/themes/services/theme-approval.service.ts"
+      ],
+      "description": "Business rules require audit trail for: admin promotions, password resets, theme approvals/rejections. But these services don't create audit log entries."
+    },
+    {
+      "id": "BUG-013",
+      "title": "Admin Can Create Themes Without Pre-Approval Status",
+      "severity": "MEDIUM",
+      "status": "OPEN",
+      "files_related": [
+        "src/themes/services/theme-crud.service.ts"
+      ],
+      "description": "Business rule: admins can create themes directly approved. But ThemeCrudService.create always sets status to PRIVATE, even for admins. No `createAsAdmin` or preApproved flag."
+    },
+    {
+      "id": "BUG-014",
+      "title": "Silently Ignoring Token Deletion Errors",
+      "severity": "LOW",
+      "status": "OPEN",
+      "files_related": [
+        "src/auth/services/verification-token.service.ts"
+      ],
+      "description": "In `validateExpiry`, token deletion errors are caught and silently ignored: `.catch(() => {})`. Failed cleanup could lead to token accumulation. Should at least log the error."
+    },
+    {
+      "id": "BUG-015",
+      "title": "Pagination Fetches All Records Then Slices",
+      "severity": "MEDIUM",
+      "status": "OPEN",
+      "files_related": [
+        "src/resumes/resumes.service.ts"
+      ],
+      "description": "In `findAll`, when pagination is requested, the code first fetches ALL resumes with `findAll(userId)`, then slices in memory. This defeats the purpose of pagination and will cause memory issues with large datasets. Should use database-level LIMIT/OFFSET."
+    },
+    {
+      "id": "BUG-016",
+      "title": "Missing Password Strength Validation in PasswordService",
+      "severity": "MEDIUM",
+      "status": "OPEN",
+      "files_related": [
+        "src/auth/services/password.service.ts"
+      ],
+      "description": "PasswordService.hash accepts ANY string without validation. While DTOs have @Matches decorators for password patterns, PasswordService itself doesn't enforce it. Any internal call bypassing DTOs could create weak passwords."
+    },
+    {
+      "id": "BUG-017",
+      "title": "TODO: DSL Version Migration Not Implemented",
+      "severity": "MEDIUM",
+      "status": "OPEN",
+      "files_related": [
+        "src/dsl/dsl-validator.service.ts"
+      ],
+      "description": "Line 69 has 'TODO: Implement version migration logic'. This means DSL documents with old versions cannot be migrated to new versions, potentially breaking existing documents when schema evolves."
+    },
+    {
+      "id": "BUG-018",
+      "title": "No GitHub Account Uniqueness Check",
+      "severity": "MEDIUM",
+      "status": "OPEN",
+      "files_related": [
+        "src/integrations/github/services/github-sync.service.ts"
+      ],
+      "description": "Business rule: each GitHub account can only be linked to one system user. But no check prevents the same GitHub username from being linked to multiple user accounts."
+    },
+    {
+      "id": "BUG-019",
+      "title": "Education Service Missing Date Validation",
+      "severity": "MEDIUM",
+      "status": "OPEN",
+      "files_related": [
+        "src/resumes/services/education.service.ts"
+      ],
+      "description": "ExperienceService validates isCurrent/endDate and date ranges, but EducationService (which also has dates) has no such validation. Inconsistent validation across similar entities."
+    },
+    {
+      "id": "BUG-020",
+      "title": "Onboarding Progress Expiration May Leave Orphan Records",
+      "severity": "LOW",
+      "status": "OPEN",
+      "files_related": [
+        "src/onboarding/services/onboarding-progress.service.ts"
+      ],
+      "description": "When onboarding progress expires (36 hours), `getProgress` returns initial state but may not always delete the old record. Need to ensure cleanup happens consistently or have a scheduled job."
+    },
+    {
+      "id": "BUG-021",
+      "title": "No Transaction in Onboarding Completion",
+      "severity": "HIGH",
+      "status": "OPEN",
+      "files_related": [
+        "src/onboarding/onboarding.service.ts"
+      ],
+      "description": "While there IS a transaction (using `.catch`), the catch block transforms errors but the overall operation involves multiple steps that could partially fail. Need to verify atomicity of all onboarding completion steps."
+    },
+    {
+      "id": "BUG-022",
+      "title": "236 'as any' Casts in Production Code",
+      "severity": "LOW",
+      "status": "OPEN",
+      "files_related": [
+        "Multiple files across src/"
+      ],
+      "description": "There are 236 instances of 'as any' type assertions in the codebase. While most are in test files, any in production code bypasses TypeScript's type safety and could hide runtime errors. Should audit and fix production code casts."
+    },
+    {
+      "id": "BUG-023",
+      "title": "No Token Revocation/Blacklist - Cannot Logout",
+      "severity": "CRITICAL",
+      "status": "OPEN",
+      "files_related": [
+        "src/auth/services/token.service.ts",
+        "src/auth/services/token-refresh.service.ts",
+        "src/auth/strategies/jwt.strategy.ts"
+      ],
+      "description": "JWT tokens are stateless with no blacklist mechanism. Once issued, tokens are valid until expiry. There is NO logout endpoint, NO token revocation. If a token is compromised, it CANNOT be invalidated. This is a major security vulnerability."
+    },
+    {
+      "id": "BUG-024",
+      "title": "SVG Upload Allows XSS Attacks",
+      "severity": "HIGH",
+      "status": "OPEN",
+      "files_related": [
+        "src/upload/upload.service.ts",
+        "src/common/constants/validation/file-validation.const.ts"
+      ],
+      "description": "SVG files are in the allowed MIME types list. SVG files can contain embedded JavaScript and be used for XSS attacks when displayed in browsers. Either remove SVG from allowed types or sanitize SVG content before upload."
+    },
+    {
+      "id": "BUG-025",
+      "title": "No Magic Bytes Validation for Uploads",
+      "severity": "MEDIUM",
+      "status": "OPEN",
+      "files_related": [
+        "src/upload/upload.service.ts"
+      ],
+      "description": "File validation only checks MIME type from the request header, which can be easily spoofed. Should validate actual file content magic bytes to ensure the file is what it claims to be."
+    },
+    {
+      "id": "BUG-026",
+      "title": "File Extension Extracted Without Sanitization",
+      "severity": "MEDIUM",
+      "status": "OPEN",
+      "files_related": [
+        "src/upload/upload.service.ts"
+      ],
+      "description": "The `getFileExtension` method just splits on '.' and takes the last part. Filenames like 'image.jpg.php' or 'image%00.jpg' could bypass security. Should validate and sanitize the extension."
+    },
+    {
+      "id": "BUG-027",
+      "title": "No File Ownership Validation Before Delete",
+      "severity": "HIGH",
+      "status": "OPEN",
+      "files_related": [
+        "src/upload/upload.service.ts"
+      ],
+      "description": "The `deleteFile(key)` method accepts any key string without verifying the caller owns the file. A user could potentially delete another user's files by guessing or enumerating keys."
+    },
+    {
+      "id": "BUG-028",
+      "title": "Refresh Token Uses Same Secret as Access Token",
+      "severity": "HIGH",
+      "status": "OPEN",
+      "files_related": [
+        "src/auth/services/token.service.ts",
+        "src/auth/services/token-refresh.service.ts"
+      ],
+      "description": "Both access and refresh tokens use the same JWT_SECRET. Best practice is to use different secrets for different token types, so compromise of one doesn't compromise the other."
+    },
+    {
+      "id": "BUG-029",
+      "title": "No User Deletion Cascade Handling",
+      "severity": "MEDIUM",
+      "status": "OPEN",
+      "files_related": [
+        "src/admin/services/user-admin-mutation.service.ts"
+      ],
+      "description": "When deleting a user, the code just calls `prisma.user.delete`. No explicit handling of related data (resumes, themes, uploads, etc.). Relies entirely on database cascades which may not be configured correctly."
+    },
+    {
+      "id": "BUG-030",
+      "title": "Public Files Uploaded with ACL public-read",
+      "severity": "MEDIUM",
+      "status": "OPEN",
+      "files_related": [
+        "src/common/services/s3-upload.service.ts"
+      ],
+      "description": "All uploaded files are set to `ACL: 'public-read'`. While this may be intentional for profile images, it could expose sensitive files. Should have option for private uploads with signed URLs."
+    },
+    {
+      "id": "BUG-031",
+      "title": "GitHub Username Extraction Regex Not Robust",
+      "severity": "LOW",
+      "status": "OPEN",
+      "files_related": [
+        "src/integrations/github/services/github-sync.service.ts"
+      ],
+      "description": "The `extractUsername` method uses simple string replace to extract GitHub username from URL. Could fail with edge cases like query strings, fragments, or different URL formats."
+    },
+    {
+      "id": "BUG-032",
+      "title": "No Rate Limit on Password Reset Endpoint",
+      "severity": "HIGH",
+      "status": "OPEN",
+      "files_related": [
+        "src/auth/controllers/auth-password.controller.ts"
+      ],
+      "description": "While login has @Throttle, the forgotPassword endpoint could be abused for email bombing. Should have rate limiting per email address to prevent abuse."
+    }
+  ]
+}

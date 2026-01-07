@@ -29,7 +29,9 @@ describe('UsernameService', () => {
   beforeEach(async () => {
     mockUsersRepository = {
       getUser: jest.fn().mockResolvedValue(mockUser),
-      updateUsername: jest.fn().mockResolvedValue({ ...mockUser, username: 'newuser' }),
+      updateUsername: jest
+        .fn()
+        .mockResolvedValue({ ...mockUser, username: 'newuser' }),
       isUsernameTaken: jest.fn().mockResolvedValue(false),
       getLastUsernameUpdate: jest.fn().mockResolvedValue(null),
     } as any;
@@ -38,7 +40,10 @@ describe('UsernameService', () => {
       providers: [
         UsernameService,
         { provide: UsersRepository, useValue: mockUsersRepository },
-        { provide: AppLoggerService, useValue: { debug: jest.fn(), warn: jest.fn() } },
+        {
+          provide: AppLoggerService,
+          useValue: { debug: jest.fn(), warn: jest.fn() },
+        },
       ],
     }).compile();
 
@@ -157,7 +162,9 @@ describe('UsernameService', () => {
 
       it('should reject within 30 days of last change', async () => {
         const fifteenDaysAgo = new Date(Date.now() - 15 * 24 * 60 * 60 * 1000);
-        mockUsersRepository.getLastUsernameUpdate.mockResolvedValue(fifteenDaysAgo);
+        mockUsersRepository.getLastUsernameUpdate.mockResolvedValue(
+          fifteenDaysAgo,
+        );
 
         await expect(
           service.updateUsername('user-123', { username: 'newuser' }),
@@ -165,8 +172,12 @@ describe('UsernameService', () => {
       });
 
       it('should allow after 30 days', async () => {
-        const thirtyOneDaysAgo = new Date(Date.now() - 31 * 24 * 60 * 60 * 1000);
-        mockUsersRepository.getLastUsernameUpdate.mockResolvedValue(thirtyOneDaysAgo);
+        const thirtyOneDaysAgo = new Date(
+          Date.now() - 31 * 24 * 60 * 60 * 1000,
+        );
+        mockUsersRepository.getLastUsernameUpdate.mockResolvedValue(
+          thirtyOneDaysAgo,
+        );
 
         const result = await service.updateUsername('user-123', {
           username: 'newuser',
@@ -176,7 +187,9 @@ describe('UsernameService', () => {
 
       it('should show remaining days in error message', async () => {
         const twentyDaysAgo = new Date(Date.now() - 20 * 24 * 60 * 60 * 1000);
-        mockUsersRepository.getLastUsernameUpdate.mockResolvedValue(twentyDaysAgo);
+        mockUsersRepository.getLastUsernameUpdate.mockResolvedValue(
+          twentyDaysAgo,
+        );
 
         try {
           await service.updateUsername('user-123', { username: 'newuser' });
@@ -220,7 +233,7 @@ describe('UsernameService', () => {
         mockUsersRepository.updateUsername.mockResolvedValue({
           ...mockUser,
           username: 'newuser',
-        } as any);
+        });
 
         const result = await service.updateUsername('user-123', {
           username: 'newuser',

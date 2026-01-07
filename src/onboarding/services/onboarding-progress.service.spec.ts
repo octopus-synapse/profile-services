@@ -50,7 +50,10 @@ describe('OnboardingProgressService', () => {
       providers: [
         OnboardingProgressService,
         { provide: PrismaService, useValue: mockPrisma },
-        { provide: AppLoggerService, useValue: { debug: jest.fn(), log: jest.fn() } },
+        {
+          provide: AppLoggerService,
+          useValue: { debug: jest.fn(), log: jest.fn() },
+        },
       ],
     }).compile();
 
@@ -190,7 +193,9 @@ describe('OnboardingProgressService', () => {
           ...mockProgress,
           updatedAt: new Date(), // Just updated
         };
-        mockPrisma.onboardingProgress.findUnique.mockResolvedValue(freshProgress);
+        mockPrisma.onboardingProgress.findUnique.mockResolvedValue(
+          freshProgress,
+        );
 
         const result = await service.getProgress('user-123');
 
@@ -203,7 +208,9 @@ describe('OnboardingProgressService', () => {
           ...mockProgress,
           updatedAt: new Date(Date.now() - 40 * 60 * 60 * 1000), // 40 hours ago
         };
-        mockPrisma.onboardingProgress.findUnique.mockResolvedValue(expiredProgress);
+        mockPrisma.onboardingProgress.findUnique.mockResolvedValue(
+          expiredProgress,
+        );
 
         const result = await service.getProgress('user-123');
 
@@ -219,7 +226,9 @@ describe('OnboardingProgressService', () => {
           ...mockProgress,
           updatedAt: new Date(Date.now() - 35 * 60 * 60 * 1000), // 35 hours ago
         };
-        mockPrisma.onboardingProgress.findUnique.mockResolvedValue(almostExpired);
+        mockPrisma.onboardingProgress.findUnique.mockResolvedValue(
+          almostExpired,
+        );
 
         const result = await service.getProgress('user-123');
 

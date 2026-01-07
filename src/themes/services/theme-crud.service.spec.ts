@@ -41,7 +41,9 @@ describe('ThemeCrudService', () => {
         delete: jest.fn().mockResolvedValue(mockTheme),
       },
       user: {
-        findUnique: jest.fn().mockResolvedValue({ id: 'user-123', role: UserRole.USER }),
+        findUnique: jest
+          .fn()
+          .mockResolvedValue({ id: 'user-123', role: UserRole.USER }),
       },
     };
 
@@ -115,7 +117,10 @@ describe('ThemeCrudService', () => {
         ...mockTheme,
         isSystemTheme: true,
       });
-      mockPrisma.user.findUnique.mockResolvedValue({ id: 'admin', role: UserRole.ADMIN });
+      mockPrisma.user.findUnique.mockResolvedValue({
+        id: 'admin',
+        role: UserRole.ADMIN,
+      });
       mockPrisma.resumeTheme.update.mockResolvedValue(mockTheme);
 
       await expect(
@@ -128,7 +133,10 @@ describe('ThemeCrudService', () => {
         ...mockTheme,
         isSystemTheme: true,
       });
-      mockPrisma.user.findUnique.mockResolvedValue({ id: 'user', role: UserRole.USER });
+      mockPrisma.user.findUnique.mockResolvedValue({
+        id: 'user',
+        role: UserRole.USER,
+      });
 
       await expect(
         service.update('user', 'theme-1', { name: 'Hacked' }),
