@@ -1,9 +1,18 @@
-import { getRequest, testContext, TEST_USER } from './setup';
+import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
+import { getRequest, getApp, closeApp, testContext, TEST_USER } from './setup';
 
 describe('Auth Smoke Tests', () => {
   const uniqueEmail = `smoke-auth-${Date.now()}@test.com`;
   let accessToken: string;
   let refreshToken: string;
+
+  beforeAll(async () => {
+    await getApp();
+  });
+
+  afterAll(async () => {
+    await closeApp();
+  });
 
   describe('POST /api/auth/signup', () => {
     it('should create a new user', async () => {

@@ -7,6 +7,7 @@
  * Kent Beck: "Test behavior, not implementation"
  */
 
+import { describe, it, expect, beforeAll, afterAll, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';

@@ -1,5 +1,8 @@
+import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
 import {
   getRequest,
+  getApp,
+  closeApp,
   testContext,
   createTestUserAndLogin,
   authHeader,
@@ -9,10 +12,15 @@ describe('Resume Smoke Tests', () => {
   let resumeId: string;
 
   beforeAll(async () => {
+    await getApp();
     // Ensure we have an authenticated user
     if (!testContext.accessToken) {
       await createTestUserAndLogin();
     }
+  });
+
+  afterAll(async () => {
+    await closeApp();
   });
 
   describe('POST /api/resumes', () => {

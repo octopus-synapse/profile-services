@@ -110,6 +110,12 @@ import {
     BugBountyRepository,
     OpenSourceRepository,
   ],
-  exports: [ResumesService, ResumesRepository],
+  exports: [
+    ResumesService,
+    ResumesRepository,
+    // Export services needed by GraphQL module
+    ExperienceService,
+    EducationService,
+  ],
 })
 export class ResumesModule {}

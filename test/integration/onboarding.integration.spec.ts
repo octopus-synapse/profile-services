@@ -7,6 +7,7 @@
  * Kent Beck: "Integration tests are the safety net for refactoring"
  */
 
+import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';

@@ -1,3 +1,6 @@
 [test]
 # Test configuration for Bun - NestJS Services
 root = "./src"
+
+[install.scopes]
+"@octopus-synapse" = { token = "$BUN_AUTH_TOKEN", url = "https://npm.pkg.github.com" }
