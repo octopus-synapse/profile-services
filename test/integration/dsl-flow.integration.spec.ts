@@ -6,7 +6,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
-import * as request from 'supertest';
+import request from 'supertest';
 import { Prisma } from '@prisma/client';
 import { AppModule } from '../../src/app.module';
 import { PrismaService } from '../../src/prisma/prisma.service';
@@ -46,10 +46,13 @@ describe('DSL Smoke Tests (e2e)', () => {
     const passwordHash =
       '$2a$10$wziTKTFkXzbG64jFsH0.6Ocq2oGB5biff.ytUoXa14yegt5V8krm.';
     const user = await prisma.user.create({
-      data: createMockUser({
-        email: 'dsl-smoke@test.com',
-        password: passwordHash,
-      }),
+      data: {
+        ...createMockUser({
+          email: 'dsl-smoke@test.com',
+          password: passwordHash,
+        }),
+        emailVerified: new Date(), // Verify email for protected route access
+      },
     });
     userId = user.id;
 

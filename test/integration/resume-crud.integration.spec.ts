@@ -7,7 +7,16 @@
  * Kent Beck: "Test behavior, not implementation"
  */
 
-import { describe, it, expect, beforeAll, afterAll, mock } from 'bun:test';
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterAll,
+  beforeEach,
+  afterEach,
+  mock,
+} from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
@@ -21,7 +30,7 @@ describe('Resume CRUD Integration', () => {
   let userId: string;
 
   const testUser = {
-    email: 'resume-integration-test@example.com',
+    email: `resume-test-${Date.now()}@example.com`,
     password: 'SecurePass123!',
     name: 'Resume Test User',
   };
@@ -38,6 +47,7 @@ describe('Resume CRUD Integration', () => {
       .compile();
 
     app = moduleFixture.createNestApplication();
+    app.setGlobalPrefix('api');
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
     prisma = app.get<PrismaService>(PrismaService);
@@ -46,20 +56,30 @@ describe('Resume CRUD Integration', () => {
 
     // Create test user
     const signupResponse = await request(app.getHttpServer())
-      .post('/v1/auth/signup')
+      .post('/api/v1/auth/signup')
       .send(testUser)
       .expect(201);
 
     accessToken = signupResponse.body.data.accessToken;
     userId = signupResponse.body.data.user.id;
+
+    // Verify email to allow access to protected routes
+    await prisma.user.update({
+      where: { id: userId },
+      data: { emailVerified: new Date() },
+    });
   });
 
   afterAll(async () => {
     // Clean up test data
-    await prisma.resume.deleteMany({ where: { userId } });
-    await prisma.user.deleteMany({
-      where: { email: { contains: 'resume-integration-test' } },
-    });
+    try {
+      await prisma.resume.deleteMany({ where: { userId } });
+      await prisma.user.deleteMany({
+        where: { email: testUser.email },
+      });
+    } catch {
+      // Ignore cleanup errors
+    }
     await app.close();
   });
 
@@ -78,7 +98,7 @@ describe('Resume CRUD Integration', () => {
       };
 
       const response = await request(app.getHttpServer())
-        .post('/v1/resumes')
+        .post('/api/v1/resumes')
         .set('Authorization', `Bearer ${accessToken}`)
         .send(resumeData)
         .expect(201);
@@ -90,7 +110,7 @@ describe('Resume CRUD Integration', () => {
 
     it('should reject resume creation without authentication', async () => {
       await request(app.getHttpServer())
-        .post('/v1/resumes')
+        .post('/api/v1/resumes')
         .send({ title: 'Unauthorized Resume' })
         .expect(401);
     });
@@ -101,7 +121,7 @@ describe('Resume CRUD Integration', () => {
 
     beforeEach(async () => {
       const response = await request(app.getHttpServer())
-        .post('/v1/resumes')
+        .post('/api/v1/resumes')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           title: 'Test Resume for Retrieval',
@@ -114,7 +134,7 @@ describe('Resume CRUD Integration', () => {
 
     it('should retrieve own resume by ID', async () => {
       const response = await request(app.getHttpServer())
-        .get(`/v1/resumes/${resumeId}`)
+        .get(`/api/v1/resumes/${resumeId}`)
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
 
@@ -125,13 +145,13 @@ describe('Resume CRUD Integration', () => {
     it('should list all user resumes', async () => {
       // Create additional resume
       await request(app.getHttpServer())
-        .post('/v1/resumes')
+        .post('/api/v1/resumes')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({ title: 'Second Resume', fullName: 'Test' })
         .expect(201);
 
       const response = await request(app.getHttpServer())
-        .get('/v1/resumes')
+        .get('/api/v1/resumes')
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
 
@@ -144,7 +164,7 @@ describe('Resume CRUD Integration', () => {
 
     beforeEach(async () => {
       const response = await request(app.getHttpServer())
-        .post('/v1/resumes')
+        .post('/api/v1/resumes')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           title: 'Resume to Update',
@@ -163,7 +183,7 @@ describe('Resume CRUD Integration', () => {
       };
 
       const response = await request(app.getHttpServer())
-        .patch(`/v1/resumes/${resumeId}`)
+        .patch(`/api/v1/resumes/${resumeId}`)
         .set('Authorization', `Bearer ${accessToken}`)
         .send(updateData)
         .expect(200);
@@ -178,7 +198,7 @@ describe('Resume CRUD Integration', () => {
 
     beforeEach(async () => {
       const response = await request(app.getHttpServer())
-        .post('/v1/resumes')
+        .post('/api/v1/resumes')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           title: 'Resume to Delete',
@@ -191,13 +211,13 @@ describe('Resume CRUD Integration', () => {
 
     it('should delete own resume', async () => {
       await request(app.getHttpServer())
-        .delete(`/v1/resumes/${resumeId}`)
+        .delete(`/api/v1/resumes/${resumeId}`)
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
 
       // Verify deletion
       await request(app.getHttpServer())
-        .get(`/v1/resumes/${resumeId}`)
+        .get(`/api/v1/resumes/${resumeId}`)
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(404);
     });
@@ -207,7 +227,7 @@ describe('Resume CRUD Integration', () => {
     it('should allow creating up to 4 resumes', async () => {
       for (let i = 1; i <= 4; i++) {
         await request(app.getHttpServer())
-          .post('/v1/resumes')
+          .post('/api/v1/resumes')
           .set('Authorization', `Bearer ${accessToken}`)
           .send({
             title: `Resume ${i}`,
@@ -218,7 +238,7 @@ describe('Resume CRUD Integration', () => {
 
       // Verify all 4 exist
       const response = await request(app.getHttpServer())
-        .get('/v1/resumes')
+        .get('/api/v1/resumes')
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
 
@@ -229,7 +249,7 @@ describe('Resume CRUD Integration', () => {
       // Create 4 resumes
       for (let i = 1; i <= 4; i++) {
         await request(app.getHttpServer())
-          .post('/v1/resumes')
+          .post('/api/v1/resumes')
           .set('Authorization', `Bearer ${accessToken}`)
           .send({
             title: `Resume ${i}`,
@@ -240,7 +260,7 @@ describe('Resume CRUD Integration', () => {
 
       // Try to create 5th
       const response = await request(app.getHttpServer())
-        .post('/v1/resumes')
+        .post('/api/v1/resumes')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           title: 'Resume 5',
@@ -258,7 +278,7 @@ describe('Resume CRUD Integration', () => {
 
     beforeEach(async () => {
       const response = await request(app.getHttpServer())
-        .post('/v1/resumes')
+        .post('/api/v1/resumes')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           title: 'Public Resume Test',
@@ -273,14 +293,14 @@ describe('Resume CRUD Integration', () => {
     it('should toggle resume visibility', async () => {
       // Make public
       await request(app.getHttpServer())
-        .patch(`/v1/resumes/${resumeId}`)
+        .patch(`/api/v1/resumes/${resumeId}`)
         .set('Authorization', `Bearer ${accessToken}`)
         .send({ isPublic: true })
         .expect(200);
 
       // Verify it's public
       const response = await request(app.getHttpServer())
-        .get(`/v1/resumes/${resumeId}`)
+        .get(`/api/v1/resumes/${resumeId}`)
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
 

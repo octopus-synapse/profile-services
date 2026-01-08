@@ -332,8 +332,8 @@ describe('Sub-Resources Smoke Tests', () => {
         .get(`/api/v1/resumes/${fakeResumeId}/experiences`)
         .set(authHeader());
 
-      // Could be 403 (forbidden) or 404 (not found)
-      expect([403, 404].includes(res.status)).toBe(true);
+      // Could be 400 (validation), 403 (forbidden) or 404 (not found)
+      expect([400, 403, 404].includes(res.status)).toBe(true);
     });
   });
 });

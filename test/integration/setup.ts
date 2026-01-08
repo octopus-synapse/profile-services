@@ -15,9 +15,11 @@ import { join } from 'path';
 config({ path: join(__dirname, '..', '..', '.env.test'), override: false });
 
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
 import request, { Agent } from 'supertest';
 import { AppModule } from '../../src/app.module';
+import { ZodValidationPipe } from '../../src/common/pipes/zod-validation.pipe';
+import { PrismaService } from '../../src/prisma/prisma.service';
 
 // --- Test Constants ---
 
@@ -62,13 +64,7 @@ export async function getApp(): Promise<INestApplication> {
 
   appInstance = moduleFixture.createNestApplication();
   appInstance.setGlobalPrefix('api');
-  appInstance.useGlobalPipes(
-    new ValidationPipe({
-      transform: true,
-      whitelist: true,
-      forbidNonWhitelisted: true,
-    }),
-  );
+  appInstance.useGlobalPipes(new ZodValidationPipe());
 
   await appInstance.init();
   testContext.app = appInstance;
@@ -118,6 +114,13 @@ export async function createTestUserAndLogin(
     user: createdUser,
   } = signupResponse.body.data;
 
+  // Verify email to allow access to protected routes
+  const prisma = app.get<PrismaService>(PrismaService);
+  await prisma.user.update({
+    where: { id: createdUser.id },
+    data: { emailVerified: new Date() },
+  });
+
   testContext.accessToken = accessToken;
   testContext.refreshToken = refreshToken;
   testContext.userId = createdUser.id;
@@ -146,4 +149,29 @@ export async function closeApp(): Promise<void> {
     appInstance = null;
     testContext.app = null;
   }
+}
+
+/**
+ * Verifies a user's email directly in the database.
+ * This bypasses the email verification flow for integration tests.
+ */
+export async function verifyUserEmail(userId: string): Promise<void> {
+  if (!appInstance) {
+    throw new Error('App not initialized. Call getApp() first.');
+  }
+  const prisma = appInstance.get<PrismaService>(PrismaService);
+  await prisma.user.update({
+    where: { id: userId },
+    data: { emailVerified: new Date() },
+  });
+}
+
+/**
+ * Gets the PrismaService instance from the app.
+ */
+export function getPrisma(): PrismaService {
+  if (!appInstance) {
+    throw new Error('App not initialized. Call getApp() first.');
+  }
+  return appInstance.get<PrismaService>(PrismaService);
 }
