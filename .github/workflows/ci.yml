@@ -41,13 +41,6 @@ jobs:
         with:
           bun-version: latest
 
-      - name: Configure GitHub Packages registry
-        run: |
-          echo '@octopus-synapse:registry=https://npm.pkg.github.com' >> .npmrc
-          echo "//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}" >> .npmrc
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Install dependencies
         run: bun install --frozen-lockfile
         env:
@@ -81,13 +74,6 @@ jobs:
         with:
           bun-version: latest
 
-      - name: Configure GitHub Packages registry
-        run: |
-          echo '@octopus-synapse:registry=https://npm.pkg.github.com' >> .npmrc
-          echo "//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}" >> .npmrc
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Install dependencies
         run: bun install --frozen-lockfile
         env:
@@ -106,13 +92,6 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
-
-      - name: Configure GitHub Packages registry
-        run: |
-          echo '@octopus-synapse:registry=https://npm.pkg.github.com' >> .npmrc
-          echo "//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}" >> .npmrc
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
