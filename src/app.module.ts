@@ -25,6 +25,7 @@ import { TranslationModule } from './translation/translation.module';
 import { HealthModule } from './health/health.module';
 import { ATSModule } from './ats/ats.module';
 import { DslModule } from './dsl/dsl.module';
+import { GraphqlModule } from './graphql/graphql.module';
 import { validate } from './common/config/env.validation';
 import { APP_CONSTANTS } from './common/constants/config';
 
@@ -61,6 +62,7 @@ import { APP_CONSTANTS } from './common/constants/config';
     HealthModule,
     ATSModule,
     DslModule,
+    GraphqlModule,
   ],
   controllers: [AppController],
   providers: [
