@@ -19,6 +19,9 @@ jobs:
   integration:
     name: Integration Tests
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: profile-services
     services:
       postgres:
         image: postgres:16-alpine
@@ -36,12 +39,14 @@ jobs:
         options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
       - uses: actions/checkout@v4
+        with:
+          path: profile-services
 
       - name: Checkout profile-contracts
         uses: actions/checkout@v4
         with:
           repository: octopus-synapse/profile-contracts
-          path: ../profile-contracts
+          path: profile-contracts
           token: ${{ secrets.GH_PAT }}
 
       - uses: oven-sh/setup-bun@v2
@@ -72,14 +77,19 @@ jobs:
   lint:
     name: ESLint (Type-Aware)
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: profile-services
     steps:
       - uses: actions/checkout@v4
+        with:
+          path: profile-services
 
       - name: Checkout profile-contracts
         uses: actions/checkout@v4
         with:
           repository: octopus-synapse/profile-contracts
-          path: ../profile-contracts
+          path: profile-contracts
           token: ${{ secrets.GH_PAT }}
 
       - uses: oven-sh/setup-bun@v2
@@ -96,14 +106,19 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     needs: [integration, lint]
+    defaults:
+      run:
+        working-directory: profile-services
     steps:
       - uses: actions/checkout@v4
+        with:
+          path: profile-services
 
       - name: Checkout profile-contracts
         uses: actions/checkout@v4
         with:
           repository: octopus-synapse/profile-contracts
-          path: ../profile-contracts
+          path: profile-contracts
           token: ${{ secrets.GH_PAT }}
 
       - uses: oven-sh/setup-bun@v2
@@ -119,7 +134,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: build-artifacts
-          path: dist
+          path: profile-services/dist
           retention-days: 7
 
   docker-build:
@@ -128,10 +143,12 @@ jobs:
     needs: [build]
     steps:
       - uses: actions/checkout@v4
+        with:
+          path: profile-services
       - uses: docker/setup-buildx-action@v3
       - uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ./profile-services
           push: false
           tags: profile-services:${{ github.sha }}
           secrets: |
