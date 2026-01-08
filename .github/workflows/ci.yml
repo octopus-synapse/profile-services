@@ -37,14 +37,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Checkout profile-contracts
+        uses: actions/checkout@v4
+        with:
+          repository: octopus-synapse/profile-contracts
+          path: ../profile-contracts
+          token: ${{ secrets.GH_PAT }}
+
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
-        env:
-          BUN_AUTH_TOKEN: ${{ secrets.GH_PAT }}
 
       - name: Setup database
         run: bun run db:setup
@@ -70,14 +75,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Checkout profile-contracts
+        uses: actions/checkout@v4
+        with:
+          repository: octopus-synapse/profile-contracts
+          path: ../profile-contracts
+          token: ${{ secrets.GH_PAT }}
+
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
-        env:
-          BUN_AUTH_TOKEN: ${{ secrets.GH_PAT }}
 
       - name: Run ESLint
         run: bun run lint
@@ -89,14 +99,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Checkout profile-contracts
+        uses: actions/checkout@v4
+        with:
+          repository: octopus-synapse/profile-contracts
+          path: ../profile-contracts
+          token: ${{ secrets.GH_PAT }}
+
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
-        env:
-          BUN_AUTH_TOKEN: ${{ secrets.GH_PAT }}
 
       - name: Build
         run: bun run build
