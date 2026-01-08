@@ -12,10 +12,6 @@ permissions:
   pull-requests: write
 
 jobs:
-  # Pre-commit runs: unit tests, smoke tests, typecheck, oxlint
-  # CI runs: integration tests, ESLint (type-aware), build, docker
-  # Contract enforcement runs separately (validate-contracts.yml)
-
   integration:
     name: Integration Tests
     runs-on: ubuntu-latest
@@ -50,6 +46,16 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.2.23
+
+      - name: Debug directory structure
+        run: |
+          echo "=== GITHUB_WORKSPACE: $GITHUB_WORKSPACE ==="
+          echo "=== Workspace contents ==="
+          ls -la
+          echo "=== Services package.json dependency ==="
+          grep profile-contracts services/package.json || echo "not found"
+          echo "=== Profile-contracts contents ==="
+          ls -la profile-contracts/ || echo "profile-contracts not found"
 
       - name: Install dependencies
         working-directory: services
