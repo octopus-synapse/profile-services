@@ -57,6 +57,14 @@ jobs:
           echo "=== Profile-contracts contents ==="
           ls -la profile-contracts/ || echo "profile-contracts not found"
 
+      - name: Install contracts dependencies
+        working-directory: profile-contracts
+        run: bun install --frozen-lockfile
+
+      - name: Build contracts
+        working-directory: profile-contracts
+        run: bun run build
+
       - name: Install dependencies
         working-directory: services
         run: bun install --frozen-lockfile
@@ -101,6 +109,14 @@ jobs:
         with:
           bun-version: 1.2.23
 
+      - name: Install contracts dependencies
+        working-directory: profile-contracts
+        run: bun install --frozen-lockfile
+
+      - name: Build contracts
+        working-directory: profile-contracts
+        run: bun run build
+
       - name: Install dependencies
         working-directory: services
         run: bun install --frozen-lockfile
@@ -133,6 +149,14 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.2.23
+
+      - name: Install contracts dependencies
+        working-directory: profile-contracts
+        run: bun install --frozen-lockfile
+
+      - name: Build contracts
+        working-directory: profile-contracts
+        run: bun run build
 
       - name: Install dependencies
         working-directory: services
