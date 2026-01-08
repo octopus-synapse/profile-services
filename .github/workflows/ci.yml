@@ -56,7 +56,7 @@ jobs:
           NODE_ENV: test
 
       - name: Run integration tests
-        run: bun test:integration
+        run: bun test test/integration/
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
           REDIS_HOST: localhost

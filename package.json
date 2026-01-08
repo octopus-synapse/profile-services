@@ -23,7 +23,7 @@
     "test:debug": "bun test",
     "test:e2e": "jest --config test/jest-e2e.json --runInBand",
     "test:smoke": "bun test ./test/smoke",
-    "test:integration": "jest --config test/jest-integration.json --runInBand",
+    "test:integration": "bun test test/integration/",
     "test:arch": "bun test ./test/architecture",
     "test:critical": "bun test --test-name-pattern critical",
     "test:fast": "bun test --bail",
