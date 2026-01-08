@@ -15,8 +15,10 @@ export class GqlAuthGuard extends AuthGuard('jwt') {
   /**
    * Convert GraphQL execution context to HTTP context for passport
    */
-  getRequest(context: ExecutionContext) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getRequest(context: ExecutionContext): any {
     const ctx = GqlExecutionContext.create(context);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     return ctx.getContext().req;
   }
 }

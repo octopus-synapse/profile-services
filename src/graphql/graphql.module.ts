@@ -3,6 +3,7 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { join } from 'path';
+import { GraphQLError } from 'graphql';
 import { ResumeResolver } from './resolvers/resume.resolver';
 import { DataLoaderService } from './dataloaders/dataloader.service';
 import { ResumesModule } from '../resumes/resumes.module';
@@ -41,18 +42,23 @@ import { PrismaModule } from '../prisma/prisma.module';
           introspection: !isProduction, // Disable introspection in production
 
           // Context setup for DataLoader and authentication
-          context: ({ req }) => ({
-            req,
-            loaders: new DataLoaderService(req.prisma),
-          }),
+          /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access */
+          context: ({ req }: any) => {
+            const loaders = new DataLoaderService(req.prisma);
+            return {
+              req,
+              loaders,
+            };
+          },
+          /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access */
 
           // Format errors for better debugging (hide in production)
-          formatError: (error) => {
+          formatError: (error: GraphQLError) => {
             if (isProduction) {
               // Don't leak internal errors in production
               return {
                 message: error.message,
-                code: error.extensions?.code,
+                code: error.extensions.code,
               };
             }
             return error;
@@ -61,7 +67,8 @@ import { PrismaModule } from '../prisma/prisma.module';
           // CORS configuration
           cors: {
             origin:
-              configService.get('FRONTEND_URL') || 'http://localhost:3000',
+              configService.get<string>('FRONTEND_URL') ??
+              'http://localhost:3000',
             credentials: true,
           },
         };

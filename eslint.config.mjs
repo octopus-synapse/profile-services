@@ -110,8 +110,10 @@ export default tseslint.config(
       '**/*.spec.ts',
       '**/*.e2e-spec.ts',
       '**/*.smoke.spec.ts',
+      '**/*.test.ts', // Added: Covers __tests__/*.test.ts files
       'test/**/*.ts',
       '**/__mocks__/**/*.ts',
+      '**/__tests__/**/*.ts', // Added: Covers __tests__ directories
     ],
     rules: {
       // ═══════════════════════════════════════════════════════════════════
@@ -134,7 +136,7 @@ export default tseslint.config(
       '@typescript-eslint/require-await': 'off',
 
       // Relaxed for test patterns
-      '@typescript-eslint/unbound-method': 'off',
+      '@typescript-eslint/unbound-method': 'off', // Mocking often separates methods from objects
       '@typescript-eslint/no-base-to-string': 'off',
       '@typescript-eslint/restrict-template-expressions': 'off',
       '@typescript-eslint/no-require-imports': 'off',
@@ -150,9 +152,12 @@ export default tseslint.config(
         },
       ],
 
-      // Common test patterns
-      '@typescript-eslint/no-non-null-assertion': 'warn',
+      // Common test patterns - completely disabled for tests
+      '@typescript-eslint/no-non-null-assertion': 'off',
       '@typescript-eslint/ban-ts-comment': 'warn',
+      '@typescript-eslint/no-unnecessary-condition': 'off',
+      '@typescript-eslint/prefer-nullish-coalescing': 'off',
+      '@typescript-eslint/prefer-optional-chain': 'off',
     },
   },
 );

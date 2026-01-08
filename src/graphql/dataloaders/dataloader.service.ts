@@ -30,13 +30,13 @@ export class DataLoaderService {
         // Group by resumeId
         const experiencesByResumeId = new Map<string, Experience[]>();
         for (const exp of experiences) {
-          const existing = experiencesByResumeId.get(exp.resumeId) || [];
+          const existing = experiencesByResumeId.get(exp.resumeId) ?? [];
           existing.push(exp);
           experiencesByResumeId.set(exp.resumeId, existing);
         }
 
         // Return in same order as input keys
-        return resumeIds.map((id) => experiencesByResumeId.get(id) || []);
+        return resumeIds.map((id) => experiencesByResumeId.get(id) ?? []);
       },
     );
   }
@@ -54,12 +54,12 @@ export class DataLoaderService {
 
         const educationsByResumeId = new Map<string, Education[]>();
         for (const edu of educations) {
-          const existing = educationsByResumeId.get(edu.resumeId) || [];
+          const existing = educationsByResumeId.get(edu.resumeId) ?? [];
           existing.push(edu);
           educationsByResumeId.set(edu.resumeId, existing);
         }
 
-        return resumeIds.map((id) => educationsByResumeId.get(id) || []);
+        return resumeIds.map((id) => educationsByResumeId.get(id) ?? []);
       },
     );
   }
@@ -77,12 +77,12 @@ export class DataLoaderService {
 
         const skillsByResumeId = new Map<string, Skill[]>();
         for (const skill of skills) {
-          const existing = skillsByResumeId.get(skill.resumeId) || [];
+          const existing = skillsByResumeId.get(skill.resumeId) ?? [];
           existing.push(skill);
           skillsByResumeId.set(skill.resumeId, existing);
         }
 
-        return resumeIds.map((id) => skillsByResumeId.get(id) || []);
+        return resumeIds.map((id) => skillsByResumeId.get(id) ?? []);
       },
     );
   }

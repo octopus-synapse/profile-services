@@ -87,9 +87,7 @@ export class ZodValidationPipe implements PipeTransform {
    * Duck-type check for ZodError to handle multiple Zod package instances
    * in monorepo scenarios (profile-contracts vs profile-services)
    */
-  private isZodError(
-    error: unknown,
-  ): error is {
+  private isZodError(error: unknown): error is {
     errors: Array<{ path: string[]; code: string; message: string }>;
   } {
     return (

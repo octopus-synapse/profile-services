@@ -3,7 +3,6 @@ import { ResumeResolver } from '../resolvers/resume.resolver';
 import { ResumesRepository } from '../../resumes/resumes.repository';
 import { ExperienceService } from '../../resumes/services/experience.service';
 import { EducationService } from '../../resumes/services/education.service';
-import { DataLoaderService } from '../dataloaders/dataloader.service';
 import type { User, Resume, Experience } from '@prisma/client';
 
 /**
@@ -19,7 +18,7 @@ describe('ResumeResolver', () => {
   let resolver: ResumeResolver;
   let resumesRepository: jest.Mocked<ResumesRepository>;
   let experienceService: jest.Mocked<ExperienceService>;
-  let educationService: jest.Mocked<EducationService>;
+  let _educationService: jest.Mocked<EducationService>;
 
   const mockUser = {
     id: 'user-123',
