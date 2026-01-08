@@ -22,7 +22,7 @@ import { ChangeEmailDto } from '../dto/change-email.dto';
 import { DeleteAccountDto } from '../dto/delete-account.dto';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { UserPayload } from '../interfaces/auth-request.interface';
+import type { UserPayload } from '../interfaces/auth-request.interface';
 
 @ApiTags('auth')
 @Controller('v1/auth')

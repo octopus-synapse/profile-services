@@ -2,7 +2,7 @@
  * MecStatsService Tests
  */
 
-import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
+import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { MecStatsService } from './mec-stats.service';
 import { InstitutionRepository, CourseRepository } from '../repositories';
@@ -28,7 +28,8 @@ describe('MecStatsService', () => {
     ]),
   };
 
-  beforeEach(async () => {const module: TestingModule = await Test.createTestingModule({
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
       providers: [
         MecStatsService,
         { provide: InstitutionRepository, useValue: stubInstitutionRepo },

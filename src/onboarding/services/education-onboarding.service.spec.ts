@@ -7,11 +7,11 @@
  * - Comportamento quando noEducation=true
  */
 
-import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
+import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { EducationOnboardingService } from './education-onboarding.service';
 import { PrismaService } from '../../prisma/prisma.service';
-import { OnboardingData } from '../schemas/onboarding.schema';
+import type { OnboardingData } from '../schemas/onboarding.schema';
 
 describe('EducationOnboardingService', () => {
   let service: EducationOnboardingService;

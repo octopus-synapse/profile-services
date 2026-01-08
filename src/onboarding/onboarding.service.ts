@@ -10,7 +10,7 @@ import type { Prisma } from '@prisma/client';
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '../common/constants/config';
 import {
   onboardingDataSchema,
-  OnboardingData,
+  type OnboardingData,
 } from './schemas/onboarding.schema';
 import { ResumeOnboardingService } from './services/resume-onboarding.service';
 import { SkillsOnboardingService } from './services/skills-onboarding.service';

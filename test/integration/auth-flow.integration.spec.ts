@@ -8,7 +8,6 @@
  * Kent Beck: "Integration tests are the safety net for refactoring"
  */
 
-import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
@@ -107,7 +106,9 @@ describe('Auth Flow Integration', () => {
         .send(testUser)
         .expect(409);
 
-      expect(duplicateResponse.body.message.includes('already exists')).toBe(true);
+      expect(duplicateResponse.body.message.includes('already exists')).toBe(
+        true,
+      );
     });
 
     it('should reject invalid credentials on login', async () => {

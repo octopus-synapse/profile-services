@@ -3,7 +3,7 @@
  * Tests for merging nested config objects
  */
 
-import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
+import { describe, it, expect } from 'bun:test';
 import { deepMerge } from './deep-merge.util';
 
 describe('deepMerge', () => {

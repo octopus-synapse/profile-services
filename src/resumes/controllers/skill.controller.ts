@@ -33,7 +33,7 @@ import {
 } from './base/base-sub-resource.controller';
 import { Skill } from '@prisma/client';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { UserPayload } from '../../auth/interfaces/auth-request.interface';
+import type { UserPayload } from '../../auth/interfaces/auth-request.interface';
 import { ParseCuidPipe } from '../../common/pipes/parse-cuid.pipe';
 
 @ApiTags('resumes')

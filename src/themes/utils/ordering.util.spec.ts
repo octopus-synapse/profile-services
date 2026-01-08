@@ -3,7 +3,7 @@
  * Tests for section and item ordering functions
  */
 
-import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
+import { describe, it, expect } from 'bun:test';
 import {
   sortByOrder,
   normalizeOrders,

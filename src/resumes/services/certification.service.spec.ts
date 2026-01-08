@@ -7,7 +7,7 @@
  * e pode ser instanciado (teste de caracterização/integração leve).
  */
 
-import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
+import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Logger } from '@nestjs/common';
 import { CertificationService } from './certification.service';

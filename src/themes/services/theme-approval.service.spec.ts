@@ -3,7 +3,7 @@
  * Tests for theme submission and review workflow
  */
 
-import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
+import { describe, it, expect, beforeEach, afterEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ThemeApprovalService } from './theme-approval.service';
 import { ThemeCrudService } from './theme-crud.service';
@@ -332,9 +332,7 @@ describe('ThemeApprovalService', () => {
         }),
       ];
       (prisma.user.findUnique as any).mockResolvedValue(mockApprover);
-      (prisma.resumeTheme.findMany as any).mockResolvedValue(
-        pendingThemes,
-      );
+      (prisma.resumeTheme.findMany as any).mockResolvedValue(pendingThemes);
 
       const result = await service.getPendingApprovals('approver-1');
 
@@ -349,9 +347,9 @@ describe('ThemeApprovalService', () => {
     it('should reject non-approver access', async () => {
       (prisma.user.findUnique as any).mockResolvedValue(mockUser);
 
-      await expect(async () => await service.getPendingApprovals('user-1')).toThrow(
-        ForbiddenException,
-      );
+      await expect(
+        async () => await service.getPendingApprovals('user-1'),
+      ).toThrow(ForbiddenException);
     });
 
     it('should allow admin access', async () => {

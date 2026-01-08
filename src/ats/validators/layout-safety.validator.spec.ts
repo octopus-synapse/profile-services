@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
+import { describe, it, expect, beforeEach } from 'bun:test';
 import { LayoutSafetyValidator } from './layout-safety.validator';
 import { ValidationSeverity } from '../interfaces';
 
@@ -58,7 +58,9 @@ Company A | Senior Developer | 2020-2024
       const result = validator.validate(textWithUnsafeBullets);
 
       expect(result.issues[0].suggestion.includes('-, *, •')).toBe(true);
-      expect(result.issues[0].suggestion.includes('ATS compatibility')).toBe(true);
+      expect(result.issues[0].suggestion.includes('ATS compatibility')).toBe(
+        true,
+      );
     });
 
     it('should detect text inside shapes', () => {
@@ -73,7 +75,9 @@ Company A | Senior Developer | 2020-2024
       expect(result.issues.some((i) => i.code === 'TEXT_IN_SHAPES')).toBe(true);
       const shapeIssue = result.issues.find((i) => i.code === 'TEXT_IN_SHAPES');
       expect(shapeIssue?.severity).toBe(ValidationSeverity.WARNING);
-      expect(shapeIssue?.suggestion.includes('Move text out of shapes')).toBe(true);
+      expect(shapeIssue?.suggestion.includes('Move text out of shapes')).toBe(
+        true,
+      );
       expect(result.metadata?.hasTextInShapes).toBe(true);
     });
 
@@ -117,7 +121,9 @@ Skills: TypeScript          Location: Remote`;
         (i) => i.code === 'MULTI_COLUMN_LAYOUT_DETECTED',
       );
       expect(columnIssue?.severity).toBe(ValidationSeverity.WARNING);
-      expect(columnIssue?.suggestion.includes('single-column layout')).toBe(true);
+      expect(columnIssue?.suggestion.includes('single-column layout')).toBe(
+        true,
+      );
       expect(result.metadata?.hasMultiColumn).toBe(true);
     });
 

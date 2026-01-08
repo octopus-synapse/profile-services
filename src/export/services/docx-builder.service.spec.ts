@@ -4,7 +4,7 @@
  * NOTA (Uncle Bob): Testes focam em comportamento observável.
  */
 
-import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
+import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { DocxBuilderService } from './docx-builder.service';
@@ -57,7 +57,8 @@ describe('DocxBuilderService', () => {
     }),
   };
 
-  beforeEach(async () => {const module: TestingModule = await Test.createTestingModule({
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
       providers: [
         DocxBuilderService,
         { provide: ResumesRepository, useValue: stubResumesRepository },

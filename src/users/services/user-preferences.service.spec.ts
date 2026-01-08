@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
+import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserPreferencesService } from './user-preferences.service';
 import { UsersRepository } from '../users.repository';
@@ -62,9 +62,9 @@ describe('UserPreferencesService', () => {
     it('should throw NotFoundException when preferences do not exist', async () => {
       usersRepository.getUserPreferences.mockResolvedValue(null);
 
-      await expect(async () => await service.getPreferences('nonexistent-id')).toThrow(
-        new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND),
-      );
+      await expect(
+        async () => await service.getPreferences('nonexistent-id'),
+      ).toThrow(new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND));
     });
 
     it('should return empty preferences object when user exists but has no preferences', async () => {
@@ -249,7 +249,9 @@ describe('UserPreferencesService', () => {
         service.updateFullPreferences('nonexistent-id', updateDto),
       ).rejects.toThrow(new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND));
 
-      expect(usersRepository.upsertFullUserPreferences.mock.calls.length).toBe(0);
+      expect(usersRepository.upsertFullUserPreferences.mock.calls.length).toBe(
+        0,
+      );
       expect(logger.debug.mock.calls.length).toBe(0);
     });
 

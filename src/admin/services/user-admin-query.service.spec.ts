@@ -2,7 +2,7 @@
  * UserAdminQueryService Tests
  */
 
-import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
+import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { UserAdminQueryService } from './user-admin-query.service';
@@ -57,7 +57,8 @@ describe('UserAdminQueryService', () => {
     },
   };
 
-  beforeEach(async () => {const module: TestingModule = await Test.createTestingModule({
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
       providers: [
         UserAdminQueryService,
         { provide: PrismaService, useValue: stubPrisma },

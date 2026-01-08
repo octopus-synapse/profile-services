@@ -20,7 +20,7 @@ import { BannerCaptureService } from './services/banner-capture.service';
 import { ResumePDFService } from './services/resume-pdf.service';
 import { ResumeDOCXService } from './services/resume-docx.service';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { UserPayload } from '../auth/interfaces/auth-request.interface';
+import type { UserPayload } from '../auth/interfaces/auth-request.interface';
 import { AppLoggerService } from '../common/logger/logger.service';
 
 @ApiTags('export')

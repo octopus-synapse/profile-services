@@ -1,4 +1,3 @@
-import { describe, it, expect } from 'bun:test';
 import { getRequest, testContext, TEST_USER } from './setup';
 
 describe('Auth Smoke Tests', () => {

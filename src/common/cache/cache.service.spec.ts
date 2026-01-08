@@ -22,9 +22,7 @@ describe('CacheService (Adapter)', () => {
 
   const createStubs = (enabled: boolean) => ({
     coreService: {
-      get: mock((key: string) =>
-        Promise.resolve(cacheStore.get(key) ?? null),
-      ),
+      get: mock((key: string) => Promise.resolve(cacheStore.get(key) ?? null)),
       set: mock((key: string, value: unknown) => {
         cacheStore.set(key, value);
         return Promise.resolve();

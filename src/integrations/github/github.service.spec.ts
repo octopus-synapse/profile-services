@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
+import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { HttpException } from '@nestjs/common';
 import { GitHubService } from './github.service';
@@ -27,7 +27,8 @@ const mockGitHubDatabaseService = {
 describe('GitHubService', () => {
   let service: GitHubService;
 
-  beforeEach(async () => {const module: TestingModule = await Test.createTestingModule({
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
       providers: [
         GitHubService,
         {
@@ -70,9 +71,9 @@ describe('GitHubService', () => {
         new HttpException('Not found', 404),
       );
 
-      await expect(async () => await service.getUserProfile('nonexistent')).toThrow(
-        HttpException,
-      );
+      await expect(
+        async () => await service.getUserProfile('nonexistent'),
+      ).toThrow(HttpException);
     });
   });
 

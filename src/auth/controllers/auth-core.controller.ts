@@ -23,16 +23,18 @@ import { AuthService } from '../auth.service';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import {
   signupSchema,
-  SignupDto,
   loginSchema,
-  LoginDto,
   refreshTokenSchema,
+} from '../schemas/auth.schemas';
+import type {
+  SignupDto,
+  LoginDto,
   RefreshTokenDto,
 } from '../schemas/auth.schemas';
 import { Public } from '../decorators/public.decorator';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { UserPayload } from '../interfaces/auth-request.interface';
+import type { UserPayload } from '../interfaces/auth-request.interface';
 import { APP_CONSTANTS } from '../../common/constants/config';
 
 @ApiTags('auth')

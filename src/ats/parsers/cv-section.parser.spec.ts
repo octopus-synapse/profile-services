@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
+import { describe, it, expect, beforeEach } from 'bun:test';
 import { CVSectionParser } from './cv-section.parser';
 import { CVSectionType, ValidationSeverity } from '../interfaces';
 
@@ -70,9 +70,13 @@ Expert in distributed systems.
         const result = parser.parseCV(text, 'test.pdf', 'application/pdf');
 
         expect(result.sections).toHaveLength(1);
-        expect(result.sections[0].content.includes('highly motivated')).toBe(true);
+        expect(result.sections[0].content.includes('highly motivated')).toBe(
+          true,
+        );
         expect(result.sections[0].content.includes('clean code')).toBe(true);
-        expect(result.sections[0].content.includes('distributed systems')).toBe(true);
+        expect(result.sections[0].content.includes('distributed systems')).toBe(
+          true,
+        );
       });
 
       it('should track line numbers for sections', () => {
@@ -608,7 +612,9 @@ More random content here.
         const noSectionsIssue = result.issues.find(
           (i) => i.code === 'NO_SECTIONS_DETECTED',
         );
-        expect(noSectionsIssue?.suggestion.includes('section headers')).toBe(true);
+        expect(noSectionsIssue?.suggestion.includes('section headers')).toBe(
+          true,
+        );
       });
     });
 

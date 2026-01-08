@@ -5,7 +5,7 @@
  * Kent Beck: "Test the error paths as thoroughly as the happy paths."
  */
 
-import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
+import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -111,7 +111,9 @@ describe('GitHubApiService', () => {
         statusText: 'Not Found',
       });
 
-      await expect(async () => await service.getUserProfile('nonexistent')).toThrow(
+      await expect(
+        async () => await service.getUserProfile('nonexistent'),
+      ).toThrow(
         new HttpException('GitHub resource not found', HttpStatus.NOT_FOUND),
       );
     });
@@ -123,7 +125,9 @@ describe('GitHubApiService', () => {
         statusText: 'Forbidden',
       });
 
-      await expect(async () => await service.getUserProfile('testuser')).toThrow(
+      await expect(
+        async () => await service.getUserProfile('testuser'),
+      ).toThrow(
         new HttpException(
           'GitHub API rate limit exceeded',
           HttpStatus.FORBIDDEN,
@@ -138,9 +142,9 @@ describe('GitHubApiService', () => {
         statusText: 'Internal Server Error',
       });
 
-      await expect(async () => await service.getUserProfile('testuser')).toThrow(
-        HttpException,
-      );
+      await expect(
+        async () => await service.getUserProfile('testuser'),
+      ).toThrow(HttpException);
     });
   });
 

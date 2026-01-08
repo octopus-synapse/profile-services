@@ -5,17 +5,15 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import {
-  UserAdminQueryService,
-  GetAllUsersOptions,
-} from './user-admin-query.service';
+import { UserAdminQueryService } from './user-admin-query.service';
+import type { GetAllUsersOptions } from './user-admin-query.service';
 import { UserAdminMutationService } from './user-admin-mutation.service';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { AdminResetPasswordDto } from '../dto/reset-password.dto';
 
 // Re-export for backward compatibility
-export { GetAllUsersOptions };
+export type { GetAllUsersOptions };
 
 @Injectable()
 export class UserAdminService {

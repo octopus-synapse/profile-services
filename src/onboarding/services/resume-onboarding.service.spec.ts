@@ -6,11 +6,11 @@
  * - Primary resume definido quando é o primeiro
  */
 
-import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
+import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ResumeOnboardingService } from './resume-onboarding.service';
 import { PrismaService } from '../../prisma/prisma.service';
-import { OnboardingData } from '../schemas/onboarding.schema';
+import type { OnboardingData } from '../schemas/onboarding.schema';
 
 describe('ResumeOnboardingService', () => {
   let service: ResumeOnboardingService;

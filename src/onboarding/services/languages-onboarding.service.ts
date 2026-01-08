@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { OnboardingData } from '../schemas/onboarding.schema';
+import type { OnboardingData } from '../schemas/onboarding.schema';
 
 import type { Prisma } from '@prisma/client';
 

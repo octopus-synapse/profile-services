@@ -129,7 +129,7 @@ export class UploadService {
       'image/gif': ['gif'],
     };
 
-    const allowedExts = mimeToExt[file.mimetype] || [];
+    const allowedExts = mimeToExt[file.mimetype] ?? [];
     if (!allowedExts.includes(ext)) {
       throw new BadRequestException(
         `File extension .${ext} does not match file type ${file.mimetype}`,
@@ -138,7 +138,7 @@ export class UploadService {
   }
 
   private validateMagicBytes(file: FileUpload) {
-    if (!file.buffer || file.buffer.length < 4) {
+    if (file.buffer.length < 4) {
       throw new BadRequestException('Invalid file content');
     }
 

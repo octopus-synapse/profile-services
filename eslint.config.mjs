@@ -1,4 +1,15 @@
 // @ts-check
+/**
+ * ESLint Configuration - CI Only (Type-Aware Rules)
+ *
+ * This ESLint config is designed for CI pipeline ONLY.
+ * It focuses exclusively on type-aware rules that require TypeScript Program.
+ *
+ * Pre-commit uses oxlint for fast structural linting.
+ * ESLint in CI validates semantic/type-related issues.
+ *
+ * @see .oxlintrc.json for pre-commit lint rules
+ */
 import eslint from '@eslint/js';
 import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
 import globals from 'globals';
@@ -36,7 +47,8 @@ export default tseslint.config(
     },
   },
 
-  // Production code rules (STRICT - maximum rigor)
+  // Production code rules (TYPE-AWARE ONLY - oxlint handles structural lint)
+  // These rules REQUIRE TypeScript Program and cannot be validated by oxlint
   {
     files: ['src/**/*.ts'],
     ignores: [
@@ -46,18 +58,32 @@ export default tseslint.config(
       '**/__mocks__/**',
     ],
     rules: {
-      // Type safety - STRICT for production
+      // ═══════════════════════════════════════════════════════════════════
+      // TYPE-AWARE RULES (require TypeScript Program - CI only)
+      // oxlint cannot validate these - they need full type information
+      // ═══════════════════════════════════════════════════════════════════
+
+      // Unsafe type operations (needs type inference)
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-unsafe-assignment': 'error',
       '@typescript-eslint/no-unsafe-argument': 'error',
       '@typescript-eslint/no-unsafe-member-access': 'error',
       '@typescript-eslint/no-unsafe-call': 'error',
       '@typescript-eslint/no-unsafe-return': 'error',
+
+      // Promise handling (needs type inference)
       '@typescript-eslint/no-floating-promises': 'error',
       '@typescript-eslint/no-misused-promises': 'error',
+      '@typescript-eslint/require-await': 'error',
 
-      // Code quality - STRICT for production
+      // Method binding (needs type inference)
       '@typescript-eslint/unbound-method': 'error',
+
+      // Type coercion (needs type inference)
+      '@typescript-eslint/no-base-to-string': 'error',
+      '@typescript-eslint/restrict-template-expressions': 'error',
+
+      // Unused vars with type awareness
       '@typescript-eslint/no-unused-vars': [
         'error',
         {
@@ -66,12 +92,11 @@ export default tseslint.config(
           caughtErrorsIgnorePattern: '^_',
         },
       ],
-      '@typescript-eslint/require-await': 'error',
-      '@typescript-eslint/no-base-to-string': 'error',
-      '@typescript-eslint/restrict-template-expressions': 'error',
+
+      // Structural (kept for stricter CI validation)
       '@typescript-eslint/no-require-imports': 'error',
 
-      // Best practices - warnings for production
+      // Best practices (warnings)
       '@typescript-eslint/prefer-nullish-coalescing': 'warn',
       '@typescript-eslint/prefer-optional-chain': 'warn',
       '@typescript-eslint/no-unnecessary-condition': 'warn',
@@ -79,7 +104,7 @@ export default tseslint.config(
     },
   },
 
-  // Test files rules (RELAXED - pragmatic for testing)
+  // Test files rules (RELAXED - type-aware checks only)
   {
     files: [
       '**/*.spec.ts',
@@ -89,35 +114,45 @@ export default tseslint.config(
       '**/__mocks__/**/*.ts',
     ],
     rules: {
-      // Type safety - RELAXED for tests (mocks often use 'any')
+      // ═══════════════════════════════════════════════════════════════════
+      // TEST FILES - Relaxed type-aware rules
+      // Mocks and test utilities often need flexible typing
+      // ═══════════════════════════════════════════════════════════════════
+
+      // Disable strict type checks (mocks use 'any' frequently)
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-unsafe-assignment': 'off',
       '@typescript-eslint/no-unsafe-argument': 'off',
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-unsafe-call': 'off',
       '@typescript-eslint/no-unsafe-return': 'off',
-      '@typescript-eslint/no-floating-promises': 'warn', // Still warn, but not error
-      '@typescript-eslint/no-misused-promises': 'warn',
 
-      // Code quality - RELAXED for tests
-      '@typescript-eslint/unbound-method': 'off', // Jest mocks often trigger this
+      // Promise handling - warn only
+      '@typescript-eslint/no-floating-promises': 'warn',
+      '@typescript-eslint/no-misused-promises': 'warn',
+      '@typescript-eslint/await-thenable': 'off',
+      '@typescript-eslint/require-await': 'off',
+
+      // Relaxed for test patterns
+      '@typescript-eslint/unbound-method': 'off',
+      '@typescript-eslint/no-base-to-string': 'off',
+      '@typescript-eslint/restrict-template-expressions': 'off',
+      '@typescript-eslint/no-require-imports': 'off',
+      '@typescript-eslint/no-empty-function': 'off',
+
+      // Unused vars - warn with underscore pattern
       '@typescript-eslint/no-unused-vars': [
-        'warn', // Warn instead of error
+        'warn',
         {
           argsIgnorePattern: '^_',
           varsIgnorePattern: '^_',
           caughtErrorsIgnorePattern: '^_',
         },
       ],
-      '@typescript-eslint/require-await': 'off', // Test setup often doesn't need await
-      '@typescript-eslint/no-base-to-string': 'off', // Jest matchers often trigger this
-      '@typescript-eslint/restrict-template-expressions': 'off', // Test messages often use any
-      '@typescript-eslint/no-require-imports': 'off', // Some test utilities use require
 
-      // Test-specific relaxations
-      '@typescript-eslint/no-non-null-assertion': 'warn', // Common in tests
-      '@typescript-eslint/ban-ts-comment': 'warn', // Sometimes needed in tests
-      '@typescript-eslint/no-empty-function': 'off', // Mock functions are often empty
+      // Common test patterns
+      '@typescript-eslint/no-non-null-assertion': 'warn',
+      '@typescript-eslint/ban-ts-comment': 'warn',
     },
   },
 );

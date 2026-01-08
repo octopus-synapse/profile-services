@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
+import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { SpokenLanguagesService } from './spoken-languages.service';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -300,8 +300,7 @@ describe('SpokenLanguagesService', () => {
         nativeName: 'English',
       };
 
-      const mockFindUnique = prismaService.spokenLanguage
-        .findUnique as any;
+      const mockFindUnique = prismaService.spokenLanguage.findUnique as any;
       mockFindUnique.mockResolvedValue(mockLanguage);
 
       const result = await service.getByCode(code);
@@ -322,8 +321,7 @@ describe('SpokenLanguagesService', () => {
     it('should return null when language not found', async () => {
       const code = 'nonexistent';
 
-      const mockFindUnique = prismaService.spokenLanguage
-        .findUnique as any;
+      const mockFindUnique = prismaService.spokenLanguage.findUnique as any;
       mockFindUnique.mockResolvedValue(null);
 
       const result = await service.getByCode(code);
@@ -341,8 +339,7 @@ describe('SpokenLanguagesService', () => {
         nativeName: null,
       };
 
-      const mockFindUnique = prismaService.spokenLanguage
-        .findUnique as any;
+      const mockFindUnique = prismaService.spokenLanguage.findUnique as any;
       mockFindUnique.mockResolvedValue(mockLanguage);
 
       const result = await service.getByCode(code);
@@ -352,8 +349,7 @@ describe('SpokenLanguagesService', () => {
 
     it('should query by exact code', async () => {
       const code = 'pt-BR';
-      const mockFindUnique = prismaService.spokenLanguage
-        .findUnique as any;
+      const mockFindUnique = prismaService.spokenLanguage.findUnique as any;
       mockFindUnique.mockResolvedValue(null);
 
       await service.getByCode(code);

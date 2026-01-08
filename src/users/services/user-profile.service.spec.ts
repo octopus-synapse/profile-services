@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
+import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserProfileService } from './user-profile.service';
 import { UsersRepository } from '../users.repository';
@@ -175,9 +175,9 @@ describe('UserProfileService', () => {
     it('should throw NotFoundException when profile does not exist', async () => {
       usersRepository.getUserProfile.mockResolvedValue(null);
 
-      await expect(async () => await service.getProfile('nonexistent-id')).toThrow(
-        new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND),
-      );
+      await expect(
+        async () => await service.getProfile('nonexistent-id'),
+      ).toThrow(new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND));
     });
   });
 

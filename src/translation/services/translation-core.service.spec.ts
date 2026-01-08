@@ -8,7 +8,7 @@
  * 4. Service availability check
  */
 
-import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
+import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TranslationCoreService } from './translation-core.service';
 import { HttpService } from '@nestjs/axios';

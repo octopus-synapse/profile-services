@@ -7,7 +7,7 @@
 
 // Types and Enum
 export { TechPersona } from './tech-persona.enum';
-export { PersonaConfig } from './persona-config.interface';
+export type { PersonaConfig } from './persona-config.interface';
 
 // Individual Personas
 export { DEVOPS_PERSONA } from './devops.persona';

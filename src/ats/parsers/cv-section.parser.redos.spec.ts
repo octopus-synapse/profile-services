@@ -7,7 +7,7 @@
  * catastrophic backtracking on crafted input.
  */
 
-import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
+import { describe, it, expect, beforeEach } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { CVSectionParser } from './cv-section.parser';
 
@@ -85,7 +85,7 @@ describe('CVSectionParser - ReDoS BUG DETECTION', () => {
     });
 
     it('should limit input size', () => {
-      const hugeInput = 'x'.repeat(10_000_000); // 10MB
+      const _hugeInput = 'x'.repeat(10_000_000); // 10MB
 
       // BUG: No input size limit!
       // Should reject or truncate excessively large inputs

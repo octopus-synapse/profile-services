@@ -12,7 +12,7 @@
  * - account-management.service.spec.ts (changeEmail, deleteAccount)
  */
 
-import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
+import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
 import {

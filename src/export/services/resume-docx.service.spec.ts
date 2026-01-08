@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
+import { describe, it, expect, beforeEach, afterEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { ResumeDOCXService } from './resume-docx.service';
@@ -46,12 +46,12 @@ describe('ResumeDOCXService', () => {
         new NotFoundException('User not found'),
       );
 
-      await expect(async () => await service.generate('non-existent-user')).toThrow(
-        NotFoundException,
-      );
-      await expect(async () => await service.generate('non-existent-user')).toThrow(
-        'User not found',
-      );
+      await expect(
+        async () => await service.generate('non-existent-user'),
+      ).toThrow(NotFoundException);
+      await expect(
+        async () => await service.generate('non-existent-user'),
+      ).toThrow('User not found');
     });
 
     it('should throw NotFoundException when resume not found', async () => {

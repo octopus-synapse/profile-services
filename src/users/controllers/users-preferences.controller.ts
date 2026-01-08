@@ -23,7 +23,7 @@ import { UpdatePreferencesDto } from '../dto/update-preferences.dto';
 import { UpdateFullPreferencesDto } from '../dto/update-full-preferences.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { UserPayload } from '../../auth/interfaces/auth-request.interface';
+import type { UserPayload } from '../../auth/interfaces/auth-request.interface';
 
 @ApiTags('users')
 @ApiBearerAuth('JWT-auth')

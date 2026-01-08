@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, mock } from 'bun:test';
+import { describe, it, expect, beforeEach, mock } from 'bun:test';
 /**
  * JWT Strategy Bug Detection Tests
  *
@@ -33,7 +33,12 @@ describe('JwtStrategy - BUG DETECTION', () => {
         { provide: PrismaService, useValue: mockPrisma },
         {
           provide: TokenBlacklistService,
-          useValue: { addToBlacklist: mock(), revokeAllUserTokens: mock(), isTokenRevokedForUser: mock().mockResolvedValue(false), isBlacklisted: mock() },
+          useValue: {
+            addToBlacklist: mock(),
+            revokeAllUserTokens: mock(),
+            isTokenRevokedForUser: mock().mockResolvedValue(false),
+            isBlacklisted: mock(),
+          },
         },
         {
           provide: ConfigService,

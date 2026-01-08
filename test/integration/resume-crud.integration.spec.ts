@@ -7,7 +7,6 @@
  * Kent Beck: "Test behavior, not implementation"
  */
 
-import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
@@ -254,7 +253,7 @@ describe('Resume CRUD Integration', () => {
 
   describe('Resume Visibility', () => {
     let resumeId: string;
-    let resumeSlug: string;
+    let _resumeSlug: string;
 
     beforeEach(async () => {
       const response = await request(app.getHttpServer())
@@ -267,7 +266,7 @@ describe('Resume CRUD Integration', () => {
         .expect(201);
 
       resumeId = response.body.data.id;
-      resumeSlug = response.body.data.slug;
+      _resumeSlug = response.body.data.slug;
     });
 
     it('should toggle resume visibility', async () => {

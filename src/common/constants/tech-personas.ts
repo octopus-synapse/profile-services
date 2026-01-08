@@ -9,9 +9,8 @@
  */
 
 export {
-  // Enum & Types
+  // Enum
   TechPersona,
-  PersonaConfig,
   // Aggregated record
   TECH_PERSONAS,
   // Individual personas (for direct access if needed)
@@ -33,3 +32,6 @@ export {
   getAllPersonaIds,
   isValidPersona,
 } from './personas';
+
+// Type re-export
+export type { PersonaConfig } from './personas';

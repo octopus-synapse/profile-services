@@ -2,15 +2,7 @@
  * DSL Repository Tests
  */
 
-import {
-  describe,
-  it,
-  expect,
-  beforeEach,
-  afterEach,
-  mock,
-  spyOn,
-} from 'bun:test';
+import { describe, it, expect, beforeEach, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException } from '@nestjs/common';
 import { DslRepository } from './dsl.repository';
@@ -145,9 +137,9 @@ describe('DslRepository', () => {
     it('should throw if resume not found', async () => {
       spyOn(prisma.resume, 'findFirst').mockResolvedValue(null);
 
-      await expect(async () => await repository.render('resume-123', 'user-123')).toThrow(
-        BadRequestException,
-      );
+      await expect(
+        async () => await repository.render('resume-123', 'user-123'),
+      ).toThrow(BadRequestException);
     });
   });
 
@@ -174,9 +166,9 @@ describe('DslRepository', () => {
     it('should throw if public resume not found', async () => {
       spyOn(prisma.resume, 'findFirst').mockResolvedValue(null);
 
-      await expect(async () => await repository.renderPublic('john-doe')).toThrow(
-        BadRequestException,
-      );
+      await expect(
+        async () => await repository.renderPublic('john-doe'),
+      ).toThrow(BadRequestException);
     });
   });
 

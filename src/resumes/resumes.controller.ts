@@ -18,7 +18,7 @@ import { CreateResumeDto } from './dto/create-resume.dto';
 import { UpdateResumeDto } from './dto/update-resume.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { UserPayload } from '../auth/interfaces/auth-request.interface';
+import type { UserPayload } from '../auth/interfaces/auth-request.interface';
 import { ParseCuidPipe } from '../common/pipes/parse-cuid.pipe';
 import {
   ApiTags,

@@ -6,11 +6,11 @@
  * - Comportamento quando noSkills=true ou skills vazio
  */
 
-import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
+import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { SkillsOnboardingService } from './skills-onboarding.service';
 import { PrismaService } from '../../prisma/prisma.service';
-import { OnboardingData } from '../schemas/onboarding.schema';
+import type { OnboardingData } from '../schemas/onboarding.schema';
 
 describe('SkillsOnboardingService', () => {
   let service: SkillsOnboardingService;

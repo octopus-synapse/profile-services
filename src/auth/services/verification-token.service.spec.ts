@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, mock } from 'bun:test';
+import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { VerificationTokenService } from './verification-token.service';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -158,8 +158,7 @@ describe('VerificationTokenService', () => {
         expires: new Date(Date.now() + 60 * 60 * 1000), // 1 hour future
       };
 
-      const mockFindUnique = prismaService.verificationToken
-        .findUnique as any;
+      const mockFindUnique = prismaService.verificationToken.findUnique as any;
       const mockDelete = prismaService.verificationToken.delete as any;
       mockFindUnique.mockResolvedValue(mockToken);
       mockDelete.mockResolvedValue(mockToken);
@@ -173,8 +172,7 @@ describe('VerificationTokenService', () => {
     it('should throw BadRequestException for non-existent token', async () => {
       const token = 'nonexistent-token';
 
-      const mockFindUnique = prismaService.verificationToken
-        .findUnique as any;
+      const mockFindUnique = prismaService.verificationToken.findUnique as any;
       mockFindUnique.mockResolvedValue(null);
 
       await expect(
@@ -192,8 +190,7 @@ describe('VerificationTokenService', () => {
         expires: new Date(Date.now() - 60 * 1000), // 1 minute ago
       };
 
-      const mockFindUnique = prismaService.verificationToken
-        .findUnique as any;
+      const mockFindUnique = prismaService.verificationToken.findUnique as any;
       const mockDelete = prismaService.verificationToken.delete as any;
       mockFindUnique.mockResolvedValue(mockToken);
       mockDelete.mockResolvedValue(mockToken);
@@ -214,8 +211,7 @@ describe('VerificationTokenService', () => {
         expires: new Date(Date.now() - 60 * 1000),
       };
 
-      const mockFindUnique = prismaService.verificationToken
-        .findUnique as any;
+      const mockFindUnique = prismaService.verificationToken.findUnique as any;
       const mockDelete = prismaService.verificationToken.delete as any;
       mockFindUnique.mockResolvedValue(mockToken);
       mockDelete.mockRejectedValue(new Error('Database error'));
@@ -236,8 +232,7 @@ describe('VerificationTokenService', () => {
         expires: new Date(Date.now() + 60 * 60 * 1000),
       };
 
-      const mockFindUnique = prismaService.verificationToken
-        .findUnique as any;
+      const mockFindUnique = prismaService.verificationToken.findUnique as any;
       const mockDelete = prismaService.verificationToken.delete as any;
       mockFindUnique.mockResolvedValue(mockToken);
       mockDelete.mockResolvedValue(mockToken);
@@ -256,25 +251,23 @@ describe('VerificationTokenService', () => {
         expires: new Date(Date.now() + 60 * 60 * 1000),
       };
 
-      const mockFindUnique = prismaService.verificationToken
-        .findUnique as any;
+      const mockFindUnique = prismaService.verificationToken.findUnique as any;
       mockFindUnique.mockResolvedValue(mockToken);
 
-      await expect(async () => await service.validatePasswordResetToken(token)).toThrow(
-        new BadRequestException(ERROR_MESSAGES.INVALID_RESET_TOKEN),
-      );
+      await expect(
+        async () => await service.validatePasswordResetToken(token),
+      ).toThrow(new BadRequestException(ERROR_MESSAGES.INVALID_RESET_TOKEN));
     });
 
     it('should throw BadRequestException for null token', async () => {
       const token = 'nonexistent-reset-token';
 
-      const mockFindUnique = prismaService.verificationToken
-        .findUnique as any;
+      const mockFindUnique = prismaService.verificationToken.findUnique as any;
       mockFindUnique.mockResolvedValue(null);
 
-      await expect(async () => await service.validatePasswordResetToken(token)).toThrow(
-        new BadRequestException(ERROR_MESSAGES.INVALID_RESET_TOKEN),
-      );
+      await expect(
+        async () => await service.validatePasswordResetToken(token),
+      ).toThrow(new BadRequestException(ERROR_MESSAGES.INVALID_RESET_TOKEN));
     });
 
     it('should throw BadRequestException for expired reset token', async () => {
@@ -285,15 +278,14 @@ describe('VerificationTokenService', () => {
         expires: new Date(Date.now() - 60 * 1000),
       };
 
-      const mockFindUnique = prismaService.verificationToken
-        .findUnique as any;
+      const mockFindUnique = prismaService.verificationToken.findUnique as any;
       const mockDelete = prismaService.verificationToken.delete as any;
       mockFindUnique.mockResolvedValue(mockToken);
       mockDelete.mockResolvedValue(mockToken);
 
-      await expect(async () => await service.validatePasswordResetToken(token)).toThrow(
-        new BadRequestException(ERROR_MESSAGES.TOKEN_EXPIRED),
-      );
+      await expect(
+        async () => await service.validatePasswordResetToken(token),
+      ).toThrow(new BadRequestException(ERROR_MESSAGES.TOKEN_EXPIRED));
     });
 
     it('should extract email correctly from prefixed identifier', async () => {
@@ -305,8 +297,7 @@ describe('VerificationTokenService', () => {
         expires: new Date(Date.now() + 60 * 60 * 1000),
       };
 
-      const mockFindUnique = prismaService.verificationToken
-        .findUnique as any;
+      const mockFindUnique = prismaService.verificationToken.findUnique as any;
       const mockDelete = prismaService.verificationToken.delete as any;
       mockFindUnique.mockResolvedValue(mockToken);
       mockDelete.mockResolvedValue(mockToken);

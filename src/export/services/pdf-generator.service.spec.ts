@@ -5,7 +5,7 @@
  * Como PDF generation envolve Puppeteer, usamos stubs para isolar.
  */
 
-import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
+import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PdfGeneratorService } from './pdf-generator.service';
 import { BrowserManagerService } from './browser-manager.service';
@@ -50,7 +50,8 @@ describe('PdfGeneratorService', () => {
     }),
   };
 
-  beforeEach(async () => {const module: TestingModule = await Test.createTestingModule({
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
       providers: [
         PdfGeneratorService,
         { provide: BrowserManagerService, useValue: stubBrowserManager },

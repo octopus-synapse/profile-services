@@ -4,7 +4,7 @@
  * NOTA (Uncle Bob): TalkService estende BaseSubResourceService.
  */
 
-import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
+import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Logger } from '@nestjs/common';
 import { TalkService } from './talk.service';

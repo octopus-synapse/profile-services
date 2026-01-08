@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
+import { describe, it, expect, beforeEach } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { GrammarValidator } from './grammar.validator';
 import { ValidationSeverity } from '../interfaces';
@@ -227,7 +227,9 @@ describe('GrammarValidator', () => {
       );
       expect(longSentenceIssue).toBeDefined();
       expect(longSentenceIssue?.severity).toBe(ValidationSeverity.INFO);
-      expect(longSentenceIssue?.suggestion.includes('shorter sentences')).toBe(true);
+      expect(longSentenceIssue?.suggestion.includes('shorter sentences')).toBe(
+        true,
+      );
     });
 
     it('should not flag reasonably sized sentences', () => {

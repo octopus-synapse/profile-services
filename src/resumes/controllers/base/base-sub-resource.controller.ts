@@ -14,7 +14,7 @@ import {
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { CurrentUser } from '../../../common/decorators/current-user.decorator';
-import { UserPayload } from '../../../auth/interfaces/auth-request.interface';
+import type { UserPayload } from '../../../auth/interfaces/auth-request.interface';
 import { BaseSubResourceService } from '../../services/base/base-sub-resource.service';
 import { ReorderDto } from '../../dto/reorder.dto';
 import { ParseCuidPipe } from '../../../common/pipes/parse-cuid.pipe';

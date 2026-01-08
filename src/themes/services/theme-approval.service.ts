@@ -46,7 +46,7 @@ export class ThemeApprovalService {
 
     // BUG-007 FIX: Check resubmission count for rejected themes
     if (theme.status === ThemeStatus.REJECTED) {
-      const rejectionCount = theme.rejectionCount ?? 0;
+      const rejectionCount = theme.rejectionCount;
       if (rejectionCount >= MAX_RESUBMISSIONS) {
         throw new UnprocessableEntityException(
           ERROR_MESSAGES.THEME_RESUBMISSION_LIMIT_REACHED,

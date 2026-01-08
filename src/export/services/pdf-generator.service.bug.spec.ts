@@ -7,15 +7,7 @@
  * BUG-038: Banner Capture logoUrl Not Validated (SSRF)
  */
 
-import {
-  describe,
-  it,
-  expect,
-  beforeEach,
-  afterEach,
-  mock,
-  spyOn,
-} from 'bun:test';
+import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PdfGeneratorService } from './pdf-generator.service';
 import { BrowserManagerService } from './browser-manager.service';
@@ -112,7 +104,7 @@ describe('PdfGeneratorService - BUG DETECTION', () => {
   describe('BUG: Resource Exhaustion', () => {
     it('should limit concurrent PDF generations', async () => {
       // Simulate many concurrent requests
-      const promises = Array(100)
+      const _promises = Array(100)
         .fill(null)
         .map(() => service.generate({ palette: 'DEFAULT', lang: 'en' }));
 

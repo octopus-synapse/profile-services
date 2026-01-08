@@ -5,7 +5,7 @@
  * Uncle Bob: "Every test should tell a story of real system behavior."
  */
 
-import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
+import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException, ConflictException } from '@nestjs/common';
 import { OnboardingProgressService } from './onboarding-progress.service';
@@ -234,7 +234,9 @@ describe('OnboardingProgressService', () => {
         const result = await service.getProgress('user-123');
 
         expect(result.currentStep).toBe('experience');
-        expect(mockPrisma.onboardingProgress.deleteMany.mock.calls.length).toBe(0);
+        expect(mockPrisma.onboardingProgress.deleteMany.mock.calls.length).toBe(
+          0,
+        );
       });
     });
   });

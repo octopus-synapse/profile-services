@@ -21,7 +21,7 @@ import {
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { ResumeDOCXService } from '../services/resume-docx.service';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { UserPayload } from '../../auth/interfaces/auth-request.interface';
+import type { UserPayload } from '../../auth/interfaces/auth-request.interface';
 import { AppLoggerService } from '../../common/logger/logger.service';
 
 @ApiTags('export')

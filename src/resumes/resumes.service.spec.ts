@@ -8,7 +8,7 @@
  * 4. Skills in experiences are entity references, not free text
  */
 
-import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
+import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ResumesService } from './resumes.service';
 import { ResumesRepository } from './resumes.repository';
@@ -130,9 +130,9 @@ describe('ResumesService', () => {
     it('should throw NotFoundException for non-existent resume', async () => {
       repository.findOne.mockResolvedValue(null);
 
-      await expect(async () => await service.findOne('nonexistent', 'user-123')).toThrow(
-        NotFoundException,
-      );
+      await expect(
+        async () => await service.findOne('nonexistent', 'user-123'),
+      ).toThrow(NotFoundException);
     });
 
     it('should update resume if owned by user', async () => {

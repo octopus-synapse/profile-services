@@ -18,11 +18,11 @@ import { OnboardingService } from './onboarding.service';
 import { OnboardingProgressDto } from './dto/onboarding-progress.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
-import { UserPayload } from '../auth/interfaces/auth-request.interface';
+import type { UserPayload } from '../auth/interfaces/auth-request.interface';
 import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import {
   OnboardingDataSchema,
-  OnboardingData,
+  type OnboardingData,
 } from '@octopus-synapse/profile-contracts';
 
 @ApiTags('onboarding')

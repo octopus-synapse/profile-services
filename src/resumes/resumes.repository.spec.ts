@@ -8,7 +8,7 @@
  * - Efeitos de persistência (via stubs que simulam estado)
  */
 
-import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
+import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ForbiddenException } from '@nestjs/common';
 import { ResumesRepository } from './resumes.repository';
@@ -253,9 +253,9 @@ describe('ResumesRepository', () => {
     });
 
     it('should throw ForbiddenException when resume does not exist', async () => {
-      await expect(async () => await repository.delete('non-existent', 'user-1')).toThrow(
-        ForbiddenException,
-      );
+      await expect(
+        async () => await repository.delete('non-existent', 'user-1'),
+      ).toThrow(ForbiddenException);
     });
 
     it('should throw ForbiddenException when user does not own resume', async () => {

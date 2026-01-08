@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, mock, spyOn } from 'bun:test';
+import { describe, it, expect, beforeEach, afterEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ResumePDFService } from './resume-pdf.service';
 import { PdfGeneratorService } from './pdf-generator.service';
@@ -83,7 +83,9 @@ describe('ResumePDFService', () => {
       const error = new Error('PDF generation failed');
       generatorService.generate.mockRejectedValueOnce(error);
 
-      await expect(async () => await service.generate()).toThrow('PDF generation failed');
+      await expect(async () => await service.generate()).toThrow(
+        'PDF generation failed',
+      );
     });
   });
 });

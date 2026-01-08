@@ -27,7 +27,7 @@ import { UpdateUsernameDto } from '../dto/update-username.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { Public } from '../../auth/decorators/public.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { UserPayload } from '../../auth/interfaces/auth-request.interface';
+import type { UserPayload } from '../../auth/interfaces/auth-request.interface';
 
 @ApiTags('users')
 @ApiBearerAuth('JWT-auth')

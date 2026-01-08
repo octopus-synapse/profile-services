@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { OnboardingData } from '../schemas/onboarding.schema';
+import type { OnboardingData } from '../schemas/onboarding.schema';
 import { DateUtils } from '../../common/utils/date.utils';
 
 import type { Prisma } from '@prisma/client';
@@ -55,10 +55,10 @@ export class EducationOnboardingService {
           resumeId,
           institution: edu.institution,
           degree: edu.degree,
-          field: edu.field ?? '',
+          field: edu.field,
           startDate,
           endDate,
-          isCurrent: edu.isCurrent ?? false,
+          isCurrent: edu.isCurrent,
         };
       })
       .filter(Boolean);
