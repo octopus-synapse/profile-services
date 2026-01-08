@@ -162,6 +162,10 @@ jobs:
         working-directory: services
         run: bun install --frozen-lockfile
 
+      - name: Generate Prisma Client
+        working-directory: services
+        run: bunx prisma generate
+
       - name: Build
         working-directory: services
         run: bun run build

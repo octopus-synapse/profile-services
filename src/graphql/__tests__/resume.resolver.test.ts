@@ -67,7 +67,7 @@ describe('ResumeResolver', () => {
     resolver = module.get<ResumeResolver>(ResumeResolver);
     resumesRepository = module.get(ResumesRepository);
     experienceService = module.get(ExperienceService);
-    educationService = module.get(EducationService);
+    _educationService = module.get(EducationService);
   });
 
   describe('getResume', () => {
