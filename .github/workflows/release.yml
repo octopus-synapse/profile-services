@@ -9,52 +9,19 @@ permissions:
   contents: write
   pull-requests: write
   packages: write
-  checks: read
 
 jobs:
-  # Gate: Wait for CI to pass before releasing
-  ci-gate:
-    name: CI Gate
-    runs-on: ubuntu-latest
-    steps:
-      - name: Wait for CI - Integration Tests
-        uses: lewagon/wait-on-check-action@v1.3.4
-        with:
-          ref: ${{ github.sha }}
-          check-name: "Integration Tests"
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          wait-interval: 10
-
-      - name: Wait for CI - ESLint
-        uses: lewagon/wait-on-check-action@v1.3.4
-        with:
-          ref: ${{ github.sha }}
-          check-name: "ESLint (Type-Aware)"
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          wait-interval: 10
-
-      - name: Wait for CI - Build
-        uses: lewagon/wait-on-check-action@v1.3.4
-        with:
-          ref: ${{ github.sha }}
-          check-name: "Build"
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          wait-interval: 10
-
-      - name: Wait for CI - Docker Build
-        uses: lewagon/wait-on-check-action@v1.3.4
-        with:
-          ref: ${{ github.sha }}
-          check-name: "Docker Build"
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          wait-interval: 10
-
+  # ============================================
+  # Job 1: Release Please - Apenas gerencia PRs
+  # NÃO cria tags/releases automaticamente
+  # ============================================
   release-please:
-    needs: ci-gate
     runs-on: ubuntu-latest
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
+      version: ${{ steps.release.outputs.version }}
+      sha: ${{ steps.release.outputs.sha }}
     steps:
       - uses: googleapis/release-please-action@v4
         id: release
@@ -62,12 +29,26 @@ jobs:
           token: ${{ secrets.GH_PAT }}
           release-type: node
 
+  # ============================================
+  # Job 2: Build & Push Docker Image
+  # Só roda quando release-please cria release
+  # ============================================
   build-and-push:
     needs: release-please
-    if: ${{ needs.release-please.outputs.release_created }}
+    if: ${{ needs.release-please.outputs.release_created == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout profile-services
+        uses: actions/checkout@v4
+        with:
+          path: profile-services
+
+      - name: Checkout profile-contracts
+        uses: actions/checkout@v4
+        with:
+          repository: octopus-synapse/profile-contracts
+          path: profile-contracts
+          token: ${{ secrets.GH_PAT }}
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
@@ -79,7 +60,7 @@ jobs:
       - name: Extract version from tag
         id: version
         run: |
-          VERSION=${{ needs.release-please.outputs.tag_name }}
+          VERSION="${{ needs.release-please.outputs.tag_name }}"
           echo "version=${VERSION}" >> $GITHUB_OUTPUT
           echo "version_no_v=${VERSION#v}" >> $GITHUB_OUTPUT
 
@@ -87,6 +68,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
+          file: profile-services/Dockerfile
           push: true
           tags: |
             ghcr.io/${{ github.repository }}:${{ steps.version.outputs.version }}
@@ -94,21 +76,27 @@ jobs:
           secrets: |
             github_token=${{ secrets.GH_PAT }}
 
-      - name: Update release notes
-        run: |
-          gh release edit ${{ needs.release-please.outputs.tag_name }} \
-            --notes-file - <<EOF
-          ## Docker Images
-
-          \`\`\`bash
-          docker pull ghcr.io/${{ github.repository }}:${{ steps.version.outputs.version }}
-          docker pull ghcr.io/${{ github.repository }}:latest
-          \`\`\`
-
-          **Note:** This release creates versioned artifacts but does NOT deploy to production.
-          Production deployment occurs exclusively via global release orchestration.
-
-          $(gh release view ${{ needs.release-please.outputs.tag_name }} --json body -q .body)
-          EOF
+      - name: Update release notes with Docker info
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+        run: |
+          cd profile-services
+          
+          # Obter notas atuais
+          CURRENT_NOTES=$(gh release view "${{ needs.release-please.outputs.tag_name }}" --json body -q .body || echo "")
+          
+          # Atualizar com info do Docker
+          gh release edit "${{ needs.release-please.outputs.tag_name }}" \
+            --notes "## Docker Images
+
+\`\`\`bash
+docker pull ghcr.io/${{ github.repository }}:${{ steps.version.outputs.version }}
+docker pull ghcr.io/${{ github.repository }}:latest
+\`\`\`
+
+> **Note:** This release creates versioned artifacts but does NOT deploy to production.
+> Production deployment occurs exclusively via global release orchestration.
+
+---
+
+${CURRENT_NOTES}"
