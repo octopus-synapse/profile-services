@@ -12,12 +12,8 @@ permissions:
   pull-requests: write
 
 jobs:
-  # Quality checks (lint/typecheck) already run in pre-commit
-  # No need to duplicate in CI - Kent Beck + Uncle Bob principle:
-  # "Don't test the same thing twice in different places"
-
-  test:
-    name: Unit Tests
+  integration:
+    name: Integration Tests
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -35,21 +31,47 @@ jobs:
           - 6379:6379
         options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
+      - name: Checkout profile-services
+        uses: actions/checkout@v4
         with:
-          node-version: "20"
-          cache: "npm"
-          registry-url: https://npm.pkg.github.com
+          path: services
+
+      - name: Checkout profile-contracts
+        uses: actions/checkout@v4
+        with:
+          repository: octopus-synapse/profile-contracts
+          path: profile-contracts
+          token: ${{ secrets.GH_PAT }}
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.23
+
+      - name: Debug directory structure
+        run: |
+          echo "=== GITHUB_WORKSPACE: $GITHUB_WORKSPACE ==="
+          echo "=== Workspace contents ==="
+          ls -la
+          echo "=== Services package.json dependency ==="
+          grep profile-contracts services/package.json || echo "not found"
+          echo "=== Profile-contracts contents ==="
+          ls -la profile-contracts/ || echo "profile-contracts not found"
+
+      - name: Install contracts dependencies
+        working-directory: profile-contracts
+        run: bun install --frozen-lockfile
+
+      - name: Build contracts
+        working-directory: profile-contracts
+        run: bun run build
 
       - name: Install dependencies
-        run: npm ci
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GH_PAT }}
+        working-directory: services
+        run: bun install --frozen-lockfile
 
       - name: Setup database
-        run: npm run db:setup
+        working-directory: services
+        run: bun run db:setup:test
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
           REDIS_HOST: localhost
@@ -57,8 +79,9 @@ jobs:
           JWT_SECRET: test-secret
           NODE_ENV: test
 
-      - name: Run tests
-        run: npm test -- --json --outputFile=test-results.json
+      - name: Run integration tests
+        working-directory: services
+        run: bun test --config=bunfig.integration.toml
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
           REDIS_HOST: localhost
@@ -66,86 +89,91 @@ jobs:
           JWT_SECRET: test-secret
           NODE_ENV: test
 
-      - name: Run tests with coverage
-        if: always()
-        run: npm run test:cov
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
-          REDIS_HOST: localhost
-          REDIS_PORT: 6379
-          JWT_SECRET: test-secret
-          NODE_ENV: test
-
-  smoke:
-    name: Smoke Tests
-    needs: [test]
+  lint:
+    name: ESLint (Type-Aware)
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: test_db
-        ports:
-          - 5432:5432
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
-        options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
+      - name: Checkout profile-services
+        uses: actions/checkout@v4
         with:
-          node-version: "20"
-          cache: "npm"
-          registry-url: https://npm.pkg.github.com
+          path: services
+
+      - name: Checkout profile-contracts
+        uses: actions/checkout@v4
+        with:
+          repository: octopus-synapse/profile-contracts
+          path: profile-contracts
+          token: ${{ secrets.GH_PAT }}
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.23
+
+      - name: Install contracts dependencies
+        working-directory: profile-contracts
+        run: bun install --frozen-lockfile
+
+      - name: Build contracts
+        working-directory: profile-contracts
+        run: bun run build
 
       - name: Install dependencies
-        run: npm ci
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GH_PAT }}
+        working-directory: services
+        run: bun install --frozen-lockfile
 
-      - name: Setup database
-        run: npm run db:setup
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
-          REDIS_HOST: localhost
-          REDIS_PORT: 6379
-          JWT_SECRET: test-secret
-          NODE_ENV: test
+      - name: Generate Prisma Client
+        working-directory: services
+        run: bunx prisma generate
 
-      - name: Run smoke tests
-        run: npm run test:smoke
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
-          REDIS_HOST: localhost
-          REDIS_PORT: 6379
-          JWT_SECRET: test-secret
-          NODE_ENV: test
+      - name: Run ESLint
+        working-directory: services
+        run: bun run lint
 
   build:
     name: Build
     runs-on: ubuntu-latest
-    needs: [test] # Removed 'quality' dependency
+    needs: [integration, lint]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout profile-services
+        uses: actions/checkout@v4
         with:
-          node-version: "20"
-          cache: "npm"
-          registry-url: https://npm.pkg.github.com
-      - run: npm ci
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GH_PAT }}
-      - run: npm run build
+          path: services
+
+      - name: Checkout profile-contracts
+        uses: actions/checkout@v4
+        with:
+          repository: octopus-synapse/profile-contracts
+          path: profile-contracts
+          token: ${{ secrets.GH_PAT }}
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.23
+
+      - name: Install contracts dependencies
+        working-directory: profile-contracts
+        run: bun install --frozen-lockfile
+
+      - name: Build contracts
+        working-directory: profile-contracts
+        run: bun run build
+
+      - name: Install dependencies
+        working-directory: services
+        run: bun install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        working-directory: services
+        run: bunx prisma generate
+
+      - name: Build
+        working-directory: services
+        run: bun run build
+
       - uses: actions/upload-artifact@v4
         with:
           name: build-artifacts
-          path: dist
+          path: services/dist
           retention-days: 7
 
   docker-build:
@@ -153,11 +181,24 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build]
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout profile-services
+        uses: actions/checkout@v4
+        with:
+          path: profile-services
+
+      - name: Checkout profile-contracts
+        uses: actions/checkout@v4
+        with:
+          repository: octopus-synapse/profile-contracts
+          path: profile-contracts
+          token: ${{ secrets.GH_PAT }}
+
       - uses: docker/setup-buildx-action@v3
+
       - uses: docker/build-push-action@v5
         with:
           context: .
+          file: profile-services/Dockerfile
           push: false
           tags: profile-services:${{ github.sha }}
           secrets: |

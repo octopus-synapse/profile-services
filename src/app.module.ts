@@ -2,9 +2,9 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
-import { ThrottlerGuard } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { CustomThrottlerGuard } from './common/guards/custom-throttler.guard';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
@@ -25,6 +25,7 @@ import { TranslationModule } from './translation/translation.module';
 import { HealthModule } from './health/health.module';
 import { ATSModule } from './ats/ats.module';
 import { DslModule } from './dsl/dsl.module';
+import { GraphqlModule } from './graphql/graphql.module';
 import { validate } from './common/config/env.validation';
 import { APP_CONSTANTS } from './common/constants/config';
 
@@ -61,13 +62,14 @@ import { APP_CONSTANTS } from './common/constants/config';
     HealthModule,
     ATSModule,
     DslModule,
+    GraphqlModule,
   ],
   controllers: [AppController],
   providers: [
     AppService,
     {
       provide: APP_GUARD,
-      useClass: ThrottlerGuard,
+      useClass: CustomThrottlerGuard,
     },
   ],
 })

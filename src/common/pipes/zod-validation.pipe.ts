@@ -17,7 +17,7 @@ import {
   ArgumentMetadata,
   BadRequestException,
 } from '@nestjs/common';
-import { ZodSchema, ZodError } from 'zod';
+import { ZodSchema } from 'zod';
 
 /**
  * Metadata key for storing Zod schemas on DTOs
@@ -62,7 +62,9 @@ export class ZodValidationPipe implements PipeTransform {
     try {
       return schema.parse(value);
     } catch (error) {
-      if (error instanceof ZodError) {
+      // Use duck-typing instead of instanceof to handle multiple Zod copies
+      // (e.g., from profile-contracts vs profile-services node_modules)
+      if (this.isZodError(error)) {
         // Format Zod errors to match NestJS ValidationPipe format
         const formattedErrors = error.errors.map((err) => ({
           property: err.path.join('.'),
@@ -79,5 +81,22 @@ export class ZodValidationPipe implements PipeTransform {
       }
       throw error;
     }
+  }
+
+  /**
+   * Duck-type check for ZodError to handle multiple Zod package instances
+   * in monorepo scenarios (profile-contracts vs profile-services)
+   */
+  private isZodError(error: unknown): error is {
+    errors: Array<{ path: string[]; code: string; message: string }>;
+  } {
+    return (
+      error !== null &&
+      typeof error === 'object' &&
+      'errors' in error &&
+      Array.isArray((error as { errors: unknown }).errors) &&
+      'name' in error &&
+      (error as { name: string }).name === 'ZodError'
+    );
   }
 }

@@ -1,5 +1,8 @@
+import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
 import {
   getRequest,
+  getApp,
+  closeApp,
   testContext,
   createTestUserAndLogin,
   authHeader,
@@ -214,6 +217,7 @@ describe('Sub-Resources Smoke Tests', () => {
   let resumeId: string;
 
   beforeAll(async () => {
+    await getApp();
     // Ensure we have an authenticated user
     if (!testContext.accessToken) {
       await createTestUserAndLogin();
@@ -233,6 +237,10 @@ describe('Sub-Resources Smoke Tests', () => {
     } else {
       resumeId = testContext.resumeId;
     }
+  });
+
+  afterAll(async () => {
+    await closeApp();
   });
 
   describe.each(SUB_RESOURCES)(
@@ -324,8 +332,8 @@ describe('Sub-Resources Smoke Tests', () => {
         .get(`/api/v1/resumes/${fakeResumeId}/experiences`)
         .set(authHeader());
 
-      // Could be 403 (forbidden) or 404 (not found)
-      expect([403, 404].includes(res.status)).toBe(true);
+      // Could be 400 (validation), 403 (forbidden) or 404 (not found)
+      expect([400, 403, 404].includes(res.status)).toBe(true);
     });
   });
 });

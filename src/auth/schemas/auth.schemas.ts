@@ -1,33 +1,26 @@
 /**
  * Auth Validation Schemas
  *
- * Uses @octopus-synapse/profile-contracts for domain validation.
- * Password validation now shared between frontend and backend via contracts.
+ * Re-exports from @octopus-synapse/profile-contracts.
+ * Single source of truth for auth validation shared with frontend.
  */
 
 import { z } from 'zod';
 import {
+  LoginCredentialsSchema,
+  type LoginCredentials,
+  RegisterCredentialsSchema,
+  type RegisterCredentials,
   EmailSchema,
-  FullNameSchema,
-  PasswordSchema,
 } from '@octopus-synapse/profile-contracts';
 
-// Login
-export const loginSchema = z.object({
-  email: EmailSchema,
-  password: z.string().min(1, 'Password is required'),
-});
+// Login (re-export from contracts)
+export const loginSchema = LoginCredentialsSchema;
+export type LoginDto = LoginCredentials;
 
-export type LoginDto = z.infer<typeof loginSchema>;
-
-// Signup
-export const signupSchema = z.object({
-  name: FullNameSchema.optional(),
-  email: EmailSchema,
-  password: PasswordSchema,
-});
-
-export type SignupDto = z.infer<typeof signupSchema>;
+// Signup (re-export from contracts)
+export const signupSchema = RegisterCredentialsSchema;
+export type SignupDto = RegisterCredentials;
 
 // Refresh Token
 export const refreshTokenSchema = z.object({

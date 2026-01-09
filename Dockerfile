@@ -1,5 +1,25 @@
 # ==================================
-# Stage 1: Dependencies
+# Stage 1: Build Contracts
+# ==================================
+FROM oven/bun:1.2.23-alpine AS contracts-builder
+
+WORKDIR /contracts
+
+# Copy contracts package files
+COPY profile-contracts/package.json ./
+COPY profile-contracts/bun.lockb* ./
+
+# Install contracts dependencies
+RUN bun install --frozen-lockfile
+
+# Copy contracts source
+COPY profile-contracts/ .
+
+# Build contracts
+RUN bun run build
+
+# ==================================
+# Stage 2: Dependencies
 # ==================================
 FROM oven/bun:1.2.23-alpine AS deps
 
@@ -19,8 +39,8 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
 
 WORKDIR /app
 
-# Copy profile-contracts (local dependency)
-COPY profile-contracts /profile-contracts
+# Copy built contracts from contracts-builder stage
+COPY --from=contracts-builder /contracts /profile-contracts
 
 # Copy package files
 COPY profile-services/package.json ./
@@ -37,7 +57,7 @@ RUN --mount=type=secret,id=github_token \
     rm -f .npmrc
 
 # ==================================
-# Stage 2: Builder
+# Stage 3: Builder
 # ==================================
 FROM node:20-alpine AS builder
 
@@ -55,7 +75,10 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
 
 WORKDIR /app
 
-# Copy dependencies from deps stage
+# Copy built contracts to /profile-contracts (required for symlink in node_modules)
+COPY --from=contracts-builder /contracts /profile-contracts
+
+# Copy dependencies from deps stage (includes symlink to ../profile-contracts)
 COPY --from=deps /app/node_modules ./node_modules
 
 # Copy source files

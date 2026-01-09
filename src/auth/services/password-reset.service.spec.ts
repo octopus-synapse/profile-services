@@ -9,7 +9,7 @@
  * - BUG-056: Token revocation after password change
  */
 
-import { describe, it, expect, beforeEach, mock, spyOn } from 'bun:test';
+import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { PasswordResetService } from './password-reset.service';
@@ -19,7 +19,6 @@ import { EmailService } from '../../common/email/email.service';
 import { PasswordService } from './password.service';
 import { VerificationTokenService } from './verification-token.service';
 import { TokenBlacklistService } from './token-blacklist.service';
-import { ERROR_MESSAGES } from '../../common/constants/config';
 
 describe('PasswordResetService', () => {
   let service: PasswordResetService;

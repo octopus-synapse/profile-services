@@ -16,7 +16,6 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { AppLoggerService } from '../../common/logger/logger.service';
 import { TokenService } from './token.service';
 import { TokenBlacklistService } from './token-blacklist.service';
-import { ERROR_MESSAGES } from '../../common/constants/config';
 import { UserRole } from '@prisma/client';
 
 describe('TokenRefreshService', () => {
