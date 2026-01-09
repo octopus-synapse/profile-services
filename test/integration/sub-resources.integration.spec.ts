@@ -218,29 +218,23 @@ describe('Sub-Resources Smoke Tests', () => {
 
   beforeAll(async () => {
     await getApp();
-    // Ensure we have an authenticated user
-    if (!testContext.accessToken) {
-      await createTestUserAndLogin();
-    }
+    // Force a fresh user for this suite to avoid resume limit conflicts and shared state issues
+    await createTestUserAndLogin();
 
     // Create a resume for testing sub-resources
-    if (!testContext.resumeId) {
-      const res = await getRequest()
-        .post('/api/v1/resumes')
-        .set(authHeader())
-        .send({
-          title: 'Sub-Resources Test Resume',
-        });
+    const res = await getRequest()
+      .post('/api/v1/resumes')
+      .set(authHeader())
+      .send({
+        title: 'Sub-Resources Test Resume',
+      });
 
-      if (res.status !== 201) {
-        throw new Error(`Failed to create resume: ${JSON.stringify(res.body)}`);
-      }
-
-      resumeId = res.body.data.id;
-      testContext.resumeId = resumeId;
-    } else {
-      resumeId = testContext.resumeId;
+    if (res.status !== 201) {
+      throw new Error(`Failed to create resume: ${JSON.stringify(res.body)}`);
     }
+
+    resumeId = res.body.data.id;
+    testContext.resumeId = resumeId;
   });
 
   afterAll(async () => {
