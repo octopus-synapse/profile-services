@@ -5,118 +5,61 @@ import {
   CreateRecommendationDto,
   UpdateRecommendationDto,
 } from '../dto/recommendation.dto';
-import { PaginatedResult } from '../dto/pagination.dto';
+import {
+  BaseSubResourceRepository,
+  OrderByConfig,
+  buildUpdateData,
+  buildCreateData,
+} from './base';
 
+/**
+ * Repository for Recommendation entities
+ *
+ * Ordering strategy: User-defined (order field, ascending)
+ * Rationale: Recommendations have no natural chronological order - user control is most appropriate.
+ */
 @Injectable()
-export class RecommendationRepository {
-  private readonly logger = new Logger(RecommendationRepository.name);
+export class RecommendationRepository extends BaseSubResourceRepository<
+  Recommendation,
+  CreateRecommendationDto,
+  UpdateRecommendationDto
+> {
+  protected readonly logger = new Logger(RecommendationRepository.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(prisma: PrismaService) {
+    super(prisma);
+  }
 
-  async findAll(
+  protected getPrismaDelegate() {
+    return this.prisma.recommendation;
+  }
+
+  protected getOrderByConfig(): OrderByConfig {
+    return { type: 'user-defined' };
+  }
+
+  protected mapCreateDto(
     resumeId: string,
-    page: number = 1,
-    limit: number = 20,
-  ): Promise<PaginatedResult<Recommendation>> {
-    const skip = (page - 1) * limit;
-
-    const [data, total] = await Promise.all([
-      this.prisma.recommendation.findMany({
-        where: { resumeId },
-        orderBy: { order: 'asc' },
-        skip,
-        take: limit,
-      }),
-      this.prisma.recommendation.count({ where: { resumeId } }),
-    ]);
-
-    const totalPages = Math.ceil(total / limit);
-
-    return {
-      data,
-      meta: {
-        total,
-        page,
-        limit,
-        totalPages,
-        hasNextPage: page < totalPages,
-        hasPrevPage: page > 1,
-      },
-    };
-  }
-
-  async findOne(id: string, resumeId: string): Promise<Recommendation | null> {
-    return this.prisma.recommendation.findFirst({
-      where: { id, resumeId },
+    dto: CreateRecommendationDto,
+    order: number,
+  ) {
+    return buildCreateData({ resumeId, order: dto.order ?? order }, dto, {
+      author: 'string',
+      position: 'optional',
+      company: 'optional',
+      content: 'string',
+      date: 'date',
     });
   }
 
-  async create(
-    resumeId: string,
-    data: CreateRecommendationDto,
-  ): Promise<Recommendation> {
-    const maxOrder = await this.getMaxOrder(resumeId);
-
-    return this.prisma.recommendation.create({
-      data: {
-        resumeId,
-        author: data.author,
-        position: data.position,
-        company: data.company,
-        content: data.content,
-        date: data.date ? new Date(data.date) : null,
-        order: data.order ?? maxOrder + 1,
-      },
+  protected mapUpdateDto(dto: UpdateRecommendationDto) {
+    return buildUpdateData(dto, {
+      author: 'string',
+      position: 'optional',
+      company: 'optional',
+      content: 'string',
+      date: 'date',
+      order: 'number',
     });
-  }
-
-  async update(
-    id: string,
-    resumeId: string,
-    data: UpdateRecommendationDto,
-  ): Promise<Recommendation | null> {
-    const exists = await this.findOne(id, resumeId);
-    if (!exists) return null;
-
-    return this.prisma.recommendation.update({
-      where: { id },
-      data: {
-        ...(data.author && { author: data.author }),
-        ...(data.position !== undefined && { position: data.position }),
-        ...(data.company !== undefined && { company: data.company }),
-        ...(data.content && { content: data.content }),
-        ...(data.date !== undefined && {
-          date: data.date ? new Date(data.date) : null,
-        }),
-        ...(data.order !== undefined && { order: data.order }),
-      },
-    });
-  }
-
-  async delete(id: string, resumeId: string): Promise<boolean> {
-    const exists = await this.findOne(id, resumeId);
-    if (!exists) return false;
-
-    await this.prisma.recommendation.delete({ where: { id } });
-    return true;
-  }
-
-  async reorder(resumeId: string, ids: string[]): Promise<void> {
-    await this.prisma.$transaction(
-      ids.map((id, index) =>
-        this.prisma.recommendation.update({
-          where: { id },
-          data: { order: index },
-        }),
-      ),
-    );
-  }
-
-  private async getMaxOrder(resumeId: string): Promise<number> {
-    const result = await this.prisma.recommendation.aggregate({
-      where: { resumeId },
-      _max: { order: true },
-    });
-    return result._max.order ?? -1;
   }
 }

@@ -5,127 +5,67 @@ import {
   CreateAchievementDto,
   UpdateAchievementDto,
 } from '../dto/achievement.dto';
-import { PaginatedResult } from '../dto/pagination.dto';
-import { PAGINATION } from '../../common/constants/validation/pagination.const';
+import {
+  BaseSubResourceRepository,
+  OrderByConfig,
+  buildUpdateData,
+  buildCreateData,
+} from './base';
 
+/**
+ * Repository for Achievement entities
+ *
+ * Ordering strategy: User-defined (order field, ascending)
+ * Rationale: Achievements have no natural chronological order - user control is most appropriate.
+ */
 @Injectable()
-export class AchievementRepository {
-  private readonly logger = new Logger(AchievementRepository.name);
+export class AchievementRepository extends BaseSubResourceRepository<
+  Achievement,
+  CreateAchievementDto,
+  UpdateAchievementDto
+> {
+  protected readonly logger = new Logger(AchievementRepository.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(prisma: PrismaService) {
+    super(prisma);
+  }
 
-  async findAll(
+  protected getPrismaDelegate() {
+    return this.prisma.achievement;
+  }
+
+  protected getOrderByConfig(): OrderByConfig {
+    return { type: 'user-defined' };
+  }
+
+  protected mapCreateDto(
     resumeId: string,
-    page: number = PAGINATION.DEFAULT_PAGE,
-    limit: number = PAGINATION.DEFAULT_PAGE_SIZE,
-  ): Promise<PaginatedResult<Achievement>> {
-    const skip = (page - 1) * limit;
-
-    const [data, total] = await Promise.all([
-      this.prisma.achievement.findMany({
-        where: { resumeId },
-        orderBy: { order: 'asc' },
-        skip,
-        take: limit,
-      }),
-      this.prisma.achievement.count({ where: { resumeId } }),
-    ]);
-
-    const totalPages = Math.ceil(total / limit);
-
-    return {
-      data,
-      meta: {
-        total,
-        page,
-        limit,
-        totalPages,
-        hasNextPage: page < totalPages,
-        hasPrevPage: page > 1,
-      },
-    };
-  }
-
-  async findOne(id: string, resumeId: string): Promise<Achievement | null> {
-    return this.prisma.achievement.findFirst({
-      where: { id, resumeId },
+    dto: CreateAchievementDto,
+    order: number,
+  ) {
+    return buildCreateData({ resumeId, order: dto.order ?? order }, dto, {
+      type: 'string',
+      title: 'string',
+      description: 'optional',
+      badgeUrl: 'optional',
+      verificationUrl: 'optional',
+      achievedAt: 'date',
+      value: 'number',
+      rank: 'optional',
     });
   }
 
-  async create(
-    resumeId: string,
-    data: CreateAchievementDto,
-  ): Promise<Achievement> {
-    const maxOrder = await this.getMaxOrder(resumeId);
-
-    return this.prisma.achievement.create({
-      data: {
-        resumeId,
-        type: data.type,
-        title: data.title,
-        description: data.description,
-        badgeUrl: data.badgeUrl,
-        verificationUrl: data.verificationUrl,
-        achievedAt: new Date(data.achievedAt),
-        value: data.value,
-        rank: data.rank,
-        order: data.order ?? maxOrder + 1,
-      },
+  protected mapUpdateDto(dto: UpdateAchievementDto) {
+    return buildUpdateData(dto, {
+      type: 'string',
+      title: 'string',
+      description: 'optional',
+      badgeUrl: 'optional',
+      verificationUrl: 'optional',
+      achievedAt: 'date',
+      value: 'number',
+      rank: 'optional',
+      order: 'number',
     });
-  }
-
-  async update(
-    id: string,
-    resumeId: string,
-    data: UpdateAchievementDto,
-  ): Promise<Achievement | null> {
-    const exists = await this.findOne(id, resumeId);
-    if (!exists) return null;
-
-    return this.prisma.achievement.update({
-      where: { id },
-      data: {
-        ...(data.type && { type: data.type }),
-        ...(data.title && { title: data.title }),
-        ...(data.description !== undefined && {
-          description: data.description,
-        }),
-        ...(data.badgeUrl !== undefined && { badgeUrl: data.badgeUrl }),
-        ...(data.verificationUrl !== undefined && {
-          verificationUrl: data.verificationUrl,
-        }),
-        ...(data.achievedAt && { achievedAt: new Date(data.achievedAt) }),
-        ...(data.value !== undefined && { value: data.value }),
-        ...(data.rank !== undefined && { rank: data.rank }),
-        ...(data.order !== undefined && { order: data.order }),
-      },
-    });
-  }
-
-  async delete(id: string, resumeId: string): Promise<boolean> {
-    const exists = await this.findOne(id, resumeId);
-    if (!exists) return false;
-
-    await this.prisma.achievement.delete({ where: { id } });
-    return true;
-  }
-
-  async reorder(resumeId: string, ids: string[]): Promise<void> {
-    await this.prisma.$transaction(
-      ids.map((id, index) =>
-        this.prisma.achievement.update({
-          where: { id },
-          data: { order: index },
-        }),
-      ),
-    );
-  }
-
-  private async getMaxOrder(resumeId: string): Promise<number> {
-    const result = await this.prisma.achievement.aggregate({
-      where: { resumeId },
-      _max: { order: true },
-    });
-    return result._max.order ?? -1;
   }
 }

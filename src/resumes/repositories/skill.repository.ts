@@ -4,75 +4,110 @@ import { Skill } from '@prisma/client';
 import { CreateSkillDto, UpdateSkillDto } from '../dto/skill.dto';
 import { PaginatedResult } from '../dto/pagination.dto';
 import { PAGINATION } from '../../common/constants/validation/pagination.const';
+import {
+  BaseSubResourceRepository,
+  OrderByConfig,
+  FindAllFilters,
+  buildUpdateData,
+  buildCreateData,
+} from './base';
 
 /**
- * Ordering strategy: by category ASC, then order ASC (grouped by category, user-defined within group)
+ * Repository for Skill entities
  *
+ * Ordering strategy: Multi-field (category ASC, then order ASC)
  * Rationale: Skills are logically grouped by category (e.g., "Frontend", "Backend", "DevOps").
  * Primary sort by category keeps related skills together. Secondary sort by order field
  * allows manual reordering within each category via drag-and-drop. This two-level hierarchy
  * provides both logical grouping and user control.
  */
 @Injectable()
-export class SkillRepository {
-  private readonly logger = new Logger(SkillRepository.name);
+export class SkillRepository extends BaseSubResourceRepository<
+  Skill,
+  CreateSkillDto,
+  UpdateSkillDto
+> {
+  protected readonly logger = new Logger(SkillRepository.name);
+  private categoryFilter?: string; // Instance variable for category filtering
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(prisma: PrismaService) {
+    super(prisma);
+  }
 
+  protected getPrismaDelegate() {
+    return this.prisma.skill;
+  }
+
+  protected getOrderByConfig(): OrderByConfig {
+    return {
+      type: 'multiple',
+      fields: [
+        { field: 'category', direction: 'asc' },
+        { field: 'order', direction: 'asc' },
+      ],
+    };
+  }
+
+  /**
+   * Override to add category filtering support
+   */
+  protected getFindAllFilters(): FindAllFilters {
+    if (this.categoryFilter) {
+      return { category: this.categoryFilter };
+    }
+    return {};
+  }
+
+  /**
+   * Override to scope maxOrder by category
+   */
+  protected getMaxOrderScope(dto?: CreateSkillDto): Record<string, unknown> {
+    if (dto && 'category' in dto) {
+      return { category: dto.category };
+    }
+    return {};
+  }
+
+  /**
+   * Override findAll to accept optional category parameter
+   */
   async findAll(
     resumeId: string,
     page: number = PAGINATION.DEFAULT_PAGE,
     limit: number = PAGINATION.DEFAULT_PAGE_SIZE,
     category?: string,
   ): Promise<PaginatedResult<Skill>> {
-    const skip = (page - 1) * limit;
-    const where = { resumeId, ...(category && { category }) };
-
-    const [data, total] = await Promise.all([
-      this.prisma.skill.findMany({
-        where,
-        orderBy: [{ category: 'asc' }, { order: 'asc' }],
-        skip,
-        take: limit,
-      }),
-      this.prisma.skill.count({ where }),
-    ]);
-
-    const totalPages = Math.ceil(total / limit);
-
-    return {
-      data,
-      meta: {
-        total,
-        page,
-        limit,
-        totalPages,
-        hasNextPage: page < totalPages,
-        hasPrevPage: page > 1,
-      },
-    };
+    this.categoryFilter = category;
+    const result = await super.findAll(resumeId, page, limit);
+    this.categoryFilter = undefined; // Clean up
+    return result;
   }
 
-  async findOne(id: string, resumeId: string): Promise<Skill | null> {
-    return this.prisma.skill.findFirst({
-      where: { id, resumeId },
+  protected mapCreateDto(resumeId: string, dto: CreateSkillDto, order: number) {
+    return buildCreateData({ resumeId, order: dto.order ?? order }, dto, {
+      name: 'string',
+      category: 'string',
+      level: 'optional',
     });
   }
 
-  async create(resumeId: string, data: CreateSkillDto): Promise<Skill> {
-    const maxOrder = await this.getMaxOrder(resumeId, data.category);
-
-    return this.prisma.skill.create({
-      data: {
-        resumeId,
-        name: data.name,
-        category: data.category,
-        level: data.level,
-        order: data.order ?? maxOrder + 1,
-      },
+  protected mapUpdateDto(dto: UpdateSkillDto) {
+    return buildUpdateData(dto, {
+      name: 'string',
+      category: 'string',
+      level: 'optional',
+      order: 'number',
     });
   }
 
+  // ============================================================================
+  // SKILL-SPECIFIC METHODS (not in ISubResourceRepository interface)
+  // ============================================================================
+
+  /**
+   * Create multiple skills at once
+   * Special method for bulk skill import
+   */
   async createMany(
     resumeId: string,
     skills: CreateSkillDto[],
@@ -89,35 +124,10 @@ export class SkillRepository {
     return result.count;
   }
 
-  async update(
-    id: string,
-    resumeId: string,
-    data: UpdateSkillDto,
-  ): Promise<Skill | null> {
-    const updateData = {
-      ...(data.name && { name: data.name }),
-      ...(data.category && { category: data.category }),
-      ...(data.level !== undefined && { level: data.level }),
-      ...(data.order !== undefined && { order: data.order }),
-    };
-
-    const result = await this.prisma.skill.updateMany({
-      where: { id, resumeId },
-      data: updateData,
-    });
-
-    if (result.count === 0) return null;
-
-    return this.prisma.skill.findUnique({ where: { id } });
-  }
-
-  async delete(id: string, resumeId: string): Promise<boolean> {
-    const result = await this.prisma.skill.deleteMany({
-      where: { id, resumeId },
-    });
-    return result.count > 0;
-  }
-
+  /**
+   * Delete all skills in a specific category
+   * Useful for resetting/replacing entire skill categories
+   */
   async deleteByCategory(resumeId: string, category: string): Promise<number> {
     const result = await this.prisma.skill.deleteMany({
       where: { resumeId, category },
@@ -125,6 +135,10 @@ export class SkillRepository {
     return result.count;
   }
 
+  /**
+   * Get all unique skill categories for a resume
+   * Used for UI category filters and grouping
+   */
   async getCategories(resumeId: string): Promise<string[]> {
     const result = await this.prisma.skill.findMany({
       where: { resumeId },
@@ -132,27 +146,5 @@ export class SkillRepository {
       distinct: ['category'],
     });
     return result.map((r) => r.category);
-  }
-
-  async reorder(resumeId: string, ids: string[]): Promise<void> {
-    await this.prisma.$transaction(
-      ids.map((id, index) =>
-        this.prisma.skill.update({
-          where: { id },
-          data: { order: index },
-        }),
-      ),
-    );
-  }
-
-  private async getMaxOrder(
-    resumeId: string,
-    category: string,
-  ): Promise<number> {
-    const result = await this.prisma.skill.aggregate({
-      where: { resumeId, category },
-      _max: { order: true },
-    });
-    return result._max.order ?? -1;
   }
 }
