@@ -17,11 +17,19 @@ jobs:
     name: CI Gate
     runs-on: ubuntu-latest
     steps:
-      - name: Wait for CI - Unit Tests
+      - name: Wait for CI - Integration Tests
         uses: lewagon/wait-on-check-action@v1.3.4
         with:
           ref: ${{ github.sha }}
-          check-name: "Unit Tests"
+          check-name: "Integration Tests"
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-interval: 10
+
+      - name: Wait for CI - ESLint
+        uses: lewagon/wait-on-check-action@v1.3.4
+        with:
+          ref: ${{ github.sha }}
+          check-name: "ESLint (Type-Aware)"
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           wait-interval: 10
 
@@ -30,6 +38,14 @@ jobs:
         with:
           ref: ${{ github.sha }}
           check-name: "Build"
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          wait-interval: 10
+
+      - name: Wait for CI - Docker Build
+        uses: lewagon/wait-on-check-action@v1.3.4
+        with:
+          ref: ${{ github.sha }}
+          check-name: "Docker Build"
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           wait-interval: 10
 
