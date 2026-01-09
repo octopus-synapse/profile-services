@@ -12,9 +12,9 @@ import {
   Get,
   Delete,
   Req,
-  Res,
   HttpStatus,
   UseGuards,
+  Header,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -22,7 +22,6 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { Response } from 'express';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { SkipTosCheck } from '../decorators/skip-tos-check.decorator';
 import { GdprExportService } from '../services/gdpr-export.service';
@@ -46,6 +45,7 @@ export class GdprController {
 
   @Get('data-export')
   @SkipTosCheck() // Allow export even if ToS not accepted
+  @Header('Content-Type', 'application/json')
   @ApiOperation({
     summary: 'Export all user data (GDPR Right to Access)',
     description:
@@ -71,10 +71,7 @@ export class GdprController {
     },
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async exportUserData(
-    @Req() req: RequestWithUser,
-    @Res() res: Response,
-  ): Promise<void> {
+  async exportUserData(@Req() req: RequestWithUser) {
     const userId = req.user.id;
     const data = await this.exportService.exportUserData(
       userId,
@@ -87,11 +84,7 @@ export class GdprController {
       req as unknown as import('express').Request,
     );
 
-    // Set headers for file download
-    const filename = `gdpr-export-${userId}-${Date.now()}.json`;
-    res.setHeader('Content-Type', 'application/json');
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-    res.status(HttpStatus.OK).json(data);
+    return data;
   }
 
   @Delete('account')
