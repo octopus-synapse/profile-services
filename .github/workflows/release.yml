@@ -9,6 +9,7 @@ permissions:
   contents: write
   pull-requests: write
   packages: write
+  checks: read
 
 jobs:
   # Gate: Wait for CI to pass before releasing
