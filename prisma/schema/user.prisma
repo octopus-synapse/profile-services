@@ -39,6 +39,7 @@ model User {
   preferences        UserPreferences?
   onboardingProgress OnboardingProgress?
   auditLogs          AuditLog[]
+  consents           UserConsent[]       @relation("UserConsents")
 
   // Theme system
   createdThemes  ResumeTheme[] @relation("ThemeAuthor")
@@ -142,4 +143,25 @@ model AuditLog {
   @@index([action, createdAt])
   @@index([entityType, entityId])
   @@index([createdAt]) // For retention policy cleanup
+}
+
+// GDPR Compliance: Track ToS/Privacy Policy acceptance (#75)
+model UserConsent {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation("UserConsents", fields: [userId], references: [id], onDelete: Cascade)
+
+  documentType ConsentDocumentType
+  version      String // e.g., "1.0.0", "1.1.0"
+
+  acceptedAt DateTime @default(now())
+
+  // Audit trail for compliance
+  ipAddress String?
+  userAgent String?
+
+  @@unique([userId, documentType, version])
+  @@index([userId, documentType])
+  @@index([acceptedAt])
 }

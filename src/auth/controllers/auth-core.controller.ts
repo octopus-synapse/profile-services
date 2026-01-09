@@ -32,6 +32,7 @@ import type {
   RefreshTokenDto,
 } from '../schemas/auth.schemas';
 import { Public } from '../decorators/public.decorator';
+import { SkipTosCheck } from '../decorators/skip-tos-check.decorator';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { UserPayload } from '../interfaces/auth-request.interface';
@@ -86,6 +87,7 @@ export class AuthCoreController {
 
   @UseGuards(JwtAuthGuard)
   @SkipThrottle()
+  @SkipTosCheck() // Allow users to view their own info without ToS acceptance
   @Get('me')
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get current authenticated user info' })

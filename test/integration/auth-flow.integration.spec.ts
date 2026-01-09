@@ -23,6 +23,7 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '../../src/app.module';
 import { PrismaService } from '../../src/prisma/prisma.service';
+import { acceptTosWithPrisma } from './setup';
 
 describe('Auth Flow Integration', () => {
   let app: INestApplication;
@@ -39,6 +40,16 @@ describe('Auth Flow Integration', () => {
       where: { email },
       data: { emailVerified: new Date() },
     });
+  }
+
+  /**
+   * Helper to accept ToS for a user by email.
+   */
+  async function acceptTosForUserByEmail(email: string): Promise<void> {
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (user) {
+      await acceptTosWithPrisma(prisma, user.id);
+    }
   }
 
   beforeAll(async () => {
@@ -95,6 +106,7 @@ describe('Auth Flow Integration', () => {
 
       // Step 1.5: Verify email so we can access protected routes
       await verifyUserEmailInDb(testUser.email);
+      await acceptTosForUserByEmail(testUser.email);
 
       // Step 2: Login with same credentials
       const loginResponse = await request(app.getHttpServer())
@@ -189,6 +201,7 @@ describe('Auth Flow Integration', () => {
 
       // Verify email for protected route access
       await verifyUserEmailInDb(testUser.email);
+      await acceptTosForUserByEmail(testUser.email);
     });
 
     it('should refresh access token using refresh token', async () => {
@@ -308,6 +321,7 @@ describe('Auth Flow Integration', () => {
 
       // Verify email for protected route access
       await verifyUserEmailInDb(testUser.email);
+      await acceptTosForUserByEmail(testUser.email);
     });
 
     it('should change user password', async () => {

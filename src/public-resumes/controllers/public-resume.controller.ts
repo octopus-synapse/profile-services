@@ -9,9 +9,11 @@ import {
 } from '@nestjs/common';
 import { ResumeShareService } from '../services/resume-share.service';
 import { ShareAnalyticsService } from '../../share-analytics/services/share-analytics.service';
+import { Public } from '../../auth/decorators/public.decorator';
 import type { Request } from 'express';
 
 @Controller('v1/public/resumes')
+@Public() // Public endpoint - no auth required
 export class PublicResumeController {
   constructor(
     private readonly shareService: ResumeShareService,

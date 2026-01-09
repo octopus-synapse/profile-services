@@ -13,10 +13,8 @@ describe('Resume Smoke Tests', () => {
 
   beforeAll(async () => {
     await getApp();
-    // Ensure we have an authenticated user
-    if (!testContext.accessToken) {
-      await createTestUserAndLogin();
-    }
+    // Always create a fresh test user for this test suite
+    await createTestUserAndLogin();
   });
 
   afterAll(async () => {

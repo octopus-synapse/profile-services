@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import {
   AdminUsersController,
   AdminResumesController,
@@ -14,10 +14,11 @@ import {
   AdminStatsService,
   ResumeAdminService,
   SkillAdminService,
+  AuditService,
 } from './services';
 
 @Module({
-  imports: [PrismaModule, AuthModule],
+  imports: [PrismaModule, forwardRef(() => AuthModule)],
   controllers: [
     AdminUsersController,
     AdminResumesController,
@@ -31,7 +32,8 @@ import {
     AdminStatsService,
     ResumeAdminService,
     SkillAdminService,
+    AuditService,
   ],
-  exports: [AdminService],
+  exports: [AdminService, AuditService],
 })
 export class AdminModule {}

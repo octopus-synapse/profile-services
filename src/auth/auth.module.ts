@@ -1,20 +1,26 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
 import { AuthService } from './auth.service';
 import {
   AuthCoreController,
   AuthVerificationController,
   AuthPasswordController,
   AuthAccountController,
+  UserConsentController,
 } from './controllers';
+import { GdprController } from './controllers/gdpr.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { TosGuard } from './guards/tos.guard';
 import { PrismaModule } from '../prisma/prisma.module';
 import { EmailModule } from '../common/email/email.module';
 import { LoggerModule } from '../common/logger/logger.module';
 import { CacheModule } from '../common/cache/cache.module';
+import { AdminModule } from '../admin/admin.module';
 import {
   TokenService,
   PasswordService,
@@ -25,7 +31,11 @@ import {
   AuthCoreService,
   TokenRefreshService,
   TokenBlacklistService,
+  TosAcceptanceService,
 } from './services';
+import { GdprExportService } from './services/gdpr-export.service';
+import { GdprDeletionService } from './services/gdpr-deletion.service';
+import { AuditLogModule } from '../common/audit/audit-log.module';
 
 @Module({
   imports: [
@@ -33,6 +43,8 @@ import {
     EmailModule,
     LoggerModule,
     CacheModule,
+    AuditLogModule,
+    forwardRef(() => AdminModule),
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -57,6 +69,8 @@ import {
     AuthVerificationController,
     AuthPasswordController,
     AuthAccountController,
+    UserConsentController,
+    GdprController,
   ],
   providers: [
     // Core services
@@ -70,11 +84,25 @@ import {
     EmailVerificationService,
     PasswordResetService,
     AccountManagementService,
+    TosAcceptanceService,
+    // GDPR services (#69, #70)
+    GdprExportService,
+    GdprDeletionService,
     // Facade
     AuthService,
     // Strategies
     JwtStrategy,
     LocalStrategy,
+    // Global guards (GDPR compliance)
+    // Order matters! JwtAuthGuard must run before TosGuard
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: TosGuard,
+    },
   ],
   exports: [
     AuthService,
@@ -82,6 +110,8 @@ import {
     TokenService,
     PasswordService,
     TokenBlacklistService,
+    GdprDeletionService,
+    GdprExportService,
   ],
 })
 export class AuthModule {}

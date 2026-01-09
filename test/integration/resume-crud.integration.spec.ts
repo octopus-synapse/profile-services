@@ -22,6 +22,7 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '../../src/app.module';
 import { PrismaService } from '../../src/prisma/prisma.service';
+import { acceptTosWithPrisma } from './setup';
 
 describe('Resume CRUD Integration', () => {
   let app: INestApplication;
@@ -68,6 +69,9 @@ describe('Resume CRUD Integration', () => {
       where: { id: userId },
       data: { emailVerified: new Date() },
     });
+
+    // Accept ToS and Privacy Policy (GDPR compliance)
+    await acceptTosWithPrisma(prisma, userId);
   });
 
   afterAll(async () => {

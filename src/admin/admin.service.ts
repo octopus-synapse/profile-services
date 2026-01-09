@@ -16,6 +16,7 @@ import {
   CreateSkillData,
   UpdateSkillData,
 } from './services';
+import { GdprDeletionService } from '../auth/services/gdpr-deletion.service';
 
 @Injectable()
 export class AdminService {
@@ -24,6 +25,7 @@ export class AdminService {
     private readonly statsService: AdminStatsService,
     private readonly resumeAdminService: ResumeAdminService,
     private readonly skillAdminService: SkillAdminService,
+    private readonly gdprDeletionService: GdprDeletionService,
   ) {}
 
   // ==================== User Management ====================
@@ -44,8 +46,9 @@ export class AdminService {
     return this.userAdminService.update(id, updateUserDto);
   }
 
-  async deleteUser(id: string) {
-    return this.userAdminService.delete(id);
+  async deleteUser(id: string, requestingAdminId: string) {
+    // Use GDPR-compliant cascading deletion (#70)
+    return this.gdprDeletionService.deleteUserCompletely(id, requestingAdminId);
   }
 
   async resetUserPassword(id: string, dto: AdminResetPasswordDto) {

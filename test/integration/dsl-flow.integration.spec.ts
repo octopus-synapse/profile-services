@@ -12,6 +12,7 @@ import { AppModule } from '../../src/app.module';
 import { PrismaService } from '../../src/prisma/prisma.service';
 import { createMockResume } from '../factories/resume.factory';
 import { createMockUser } from '../factories/user.factory';
+import { acceptTosWithPrisma } from './setup';
 
 describe('DSL Smoke Tests (e2e)', () => {
   let app: INestApplication;
@@ -55,6 +56,9 @@ describe('DSL Smoke Tests (e2e)', () => {
       },
     });
     userId = user.id;
+
+    // Accept ToS for the user (GDPR compliance)
+    await acceptTosWithPrisma(prisma, userId);
 
     // Get auth token
     const authResponse = await request(app.getHttpServer())
