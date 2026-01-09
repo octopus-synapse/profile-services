@@ -27,7 +27,7 @@ jobs:
         id: release
         with:
           token: ${{ secrets.GH_PAT }}
-          release-type: node
+          # release-type é definido no release-please-config.json
 
   # ============================================
   # Job 2: Build & Push Docker Image
