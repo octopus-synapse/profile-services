@@ -38,10 +38,20 @@ export class ResumeVersionService {
       throw new NotFoundException('Resume not found');
     }
 
+    // Get next version number
+    const lastVersion = await this.prisma.resumeVersion.findFirst({
+      where: { resumeId },
+      orderBy: { versionNumber: 'desc' },
+      select: { versionNumber: true },
+    });
+
+    const versionNumber = (lastVersion?.versionNumber ?? 0) + 1;
+
     // Create version
     const version = await this.prisma.resumeVersion.create({
       data: {
         resumeId,
+        versionNumber,
         snapshot: resume as never,
         label,
       },
@@ -59,9 +69,10 @@ export class ResumeVersionService {
 
     return this.prisma.resumeVersion.findMany({
       where: { resumeId },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { versionNumber: 'desc' },
       select: {
         id: true,
+        versionNumber: true,
         label: true,
         createdAt: true,
       },
@@ -121,7 +132,7 @@ export class ResumeVersionService {
   private async cleanupOldVersions(resumeId: string) {
     const versions = await this.prisma.resumeVersion.findMany({
       where: { resumeId },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { versionNumber: 'desc' },
       select: { id: true },
     });
 

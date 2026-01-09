@@ -86,16 +86,85 @@ export class ShareAnalyticsService {
     });
 
     return {
+      shareId,
       totalViews: analytics.find((a) => a.event === 'VIEW')?._count.event ?? 0,
       totalDownloads:
         analytics.find((a) => a.event === 'DOWNLOAD')?._count.event ?? 0,
-      uniqueViews: uniqueViews.length,
+      uniqueVisitors: uniqueViews.length,
       byCountry: byCountry.map((c) => ({
         country: c.country,
         count: c._count.country,
       })),
       recentEvents,
     };
+  }
+
+  async getEvents(
+    shareId: string,
+    userId: string,
+    filters?: {
+      startDate?: Date;
+      endDate?: Date;
+      eventType?: 'VIEW' | 'DOWNLOAD';
+    },
+  ) {
+    // Verify ownership
+    const share = await this.prisma.resumeShare.findUnique({
+      where: { id: shareId },
+      include: { resume: { select: { userId: true } } },
+    });
+
+    if (!share) {
+      throw new ForbiddenException('Share not found');
+    }
+
+    if (share.resume.userId !== userId) {
+      throw new ForbiddenException('Not authorized');
+    }
+
+    const where: {
+      shareId: string;
+      createdAt?: { gte?: Date; lte?: Date };
+      event?: 'VIEW' | 'DOWNLOAD';
+    } = { shareId };
+
+    if (filters?.startDate || filters?.endDate) {
+      where.createdAt = {};
+      if (filters.startDate) {
+        where.createdAt.gte = filters.startDate;
+      }
+      if (filters.endDate) {
+        where.createdAt.lte = filters.endDate;
+      }
+    }
+
+    if (filters?.eventType) {
+      where.event = filters.eventType;
+    }
+
+    const events = await this.prisma.shareAnalytics.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      select: {
+        event: true,
+        ipHash: true,
+        userAgent: true,
+        referer: true,
+        country: true,
+        city: true,
+        createdAt: true,
+      },
+    });
+
+    return events.map((event) => ({
+      eventType: event.event,
+      ipAddress: event.ipHash,
+      userAgent: event.userAgent,
+      referrer: event.referer,
+      country: event.country,
+      city: event.city,
+      createdAt: event.createdAt,
+    }));
   }
 
   private anonymizeIP(ip: string): string {
