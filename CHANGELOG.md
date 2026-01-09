@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.1.0](https://github.com/octopus-synapse/profile-services/compare/v3.0.0...v3.1.0) (2026-01-09)
+
+
+### Features
+
+* Resume Sharing, Versioning & Analytics (Epic [#63](https://github.com/octopus-synapse/profile-services/issues/63)) ([#88](https://github.com/octopus-synapse/profile-services/issues/88)) ([a4b67cd](https://github.com/octopus-synapse/profile-services/commit/a4b67cdaf92e643ba8535ad35171997bcaac47bc))
+
 ## [3.0.0](https://github.com/octopus-synapse/profile-services/compare/v2.0.0...v3.0.0) (2026-01-09)
 
 
