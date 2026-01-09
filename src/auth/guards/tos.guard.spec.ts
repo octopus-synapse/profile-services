@@ -30,7 +30,10 @@ describe('TosGuard', () => {
     guard = module.get<TosGuard>(TosGuard);
   });
 
-  const createMockContext = (user?: any, isPublic = false): ExecutionContext => {
+  const createMockContext = (
+    user?: any,
+    isPublic = false,
+  ): ExecutionContext => {
     reflector.getAllAndOverride.mockReturnValue(isPublic);
 
     return {
@@ -76,7 +79,9 @@ describe('TosGuard', () => {
       tosService.hasAcceptedCurrentVersion.mockResolvedValue(false);
 
       // Act & Assert
-      await expect(guard.canActivate(context)).rejects.toThrow(ForbiddenException);
+      await expect(guard.canActivate(context)).rejects.toThrow(
+        ForbiddenException,
+      );
       await expect(guard.canActivate(context)).rejects.toThrow(
         'You must accept the Terms of Service to use this application',
       );
@@ -92,16 +97,18 @@ describe('TosGuard', () => {
 
       // Assert
       expect(result).toBe(true);
-      expect(tosService.hasAcceptedCurrentVersion).toHaveBeenCalledWith('user-456');
+      expect(tosService.hasAcceptedCurrentVersion).toHaveBeenCalledWith(
+        'user-456',
+      );
     });
 
     it('should check both ToS and Privacy Policy when configured', async () => {
       // Arrange
       const context = createMockContext({ id: 'user-789' }, false);
-      
+
       // First call for ToS
       tosService.hasAcceptedCurrentVersion
-        .mockResolvedValueOnce(true)  // ToS accepted
+        .mockResolvedValueOnce(true) // ToS accepted
         .mockResolvedValueOnce(false); // Privacy Policy not accepted
 
       // Act & Assert
@@ -146,7 +153,9 @@ describe('TosGuard', () => {
       tosService.hasAcceptedCurrentVersion.mockRejectedValue(serviceError);
 
       // Act & Assert
-      await expect(guard.canActivate(context)).rejects.toThrow('Database connection failed');
+      await expect(guard.canActivate(context)).rejects.toThrow(
+        'Database connection failed',
+      );
     });
   });
 });

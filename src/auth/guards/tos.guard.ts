@@ -11,11 +11,11 @@ import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 /**
  * Guard that enforces Terms of Service acceptance
  * Blocks API access for authenticated users who haven't accepted current ToS version
- * 
+ *
  * @example
  * // Applied globally in AuthModule
  * APP_GUARD provider with TosGuard
- * 
+ *
  * // Skip for specific routes
  * @Public()
  * @Get('health')
