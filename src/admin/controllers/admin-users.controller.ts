@@ -12,6 +12,7 @@ import {
   Body,
   Param,
   Query,
+  Req,
   UseGuards,
   HttpCode,
   HttpStatus,
@@ -90,11 +91,25 @@ export class AdminUsersController {
   }
 
   @Delete('users/:id')
-  @ApiOperation({ summary: 'Delete user (Admin only)' })
-  @ApiResponse({ status: 200, description: 'User deleted successfully' })
+  @ApiOperation({
+    summary: 'Delete user with cascading deletion (Admin only)',
+    description:
+      'GDPR-compliant deletion that removes all user data including resumes, consents, and audit logs.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'User and all related data deleted successfully',
+  })
   @ApiResponse({ status: 404, description: 'User not found' })
-  async deleteUser(@Param('id') id: string) {
-    return this.adminService.deleteUser(id);
+  @ApiResponse({
+    status: 400,
+    description: 'Cannot delete last admin account',
+  })
+  async deleteUser(
+    @Param('id') id: string,
+    @Req() req: { user: { id: string } },
+  ) {
+    return this.adminService.deleteUser(id, req.user.id);
   }
 
   @Post('users/:id/reset-password')

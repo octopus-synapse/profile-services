@@ -11,6 +11,7 @@ import {
   AuthAccountController,
   UserConsentController,
 } from './controllers';
+import { GdprController } from './controllers/gdpr.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
 import { TosGuard } from './guards/tos.guard';
@@ -31,6 +32,9 @@ import {
   TokenBlacklistService,
   TosAcceptanceService,
 } from './services';
+import { GdprExportService } from './services/gdpr-export.service';
+import { GdprDeletionService } from './services/gdpr-deletion.service';
+import { AuditLogModule } from '../common/audit/audit-log.module';
 
 @Module({
   imports: [
@@ -38,6 +42,7 @@ import {
     EmailModule,
     LoggerModule,
     CacheModule,
+    AuditLogModule,
     forwardRef(() => AdminModule),
     PassportModule,
     JwtModule.registerAsync({
@@ -64,6 +69,7 @@ import {
     AuthPasswordController,
     AuthAccountController,
     UserConsentController,
+    GdprController,
   ],
   providers: [
     // Core services
@@ -78,6 +84,9 @@ import {
     PasswordResetService,
     AccountManagementService,
     TosAcceptanceService,
+    // GDPR services (#69, #70)
+    GdprExportService,
+    GdprDeletionService,
     // Facade
     AuthService,
     // Strategies
@@ -95,6 +104,8 @@ import {
     TokenService,
     PasswordService,
     TokenBlacklistService,
+    GdprDeletionService,
+    GdprExportService,
   ],
 })
 export class AuthModule {}
