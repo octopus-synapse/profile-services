@@ -22,6 +22,7 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '../../src/app.module';
 import { PrismaService } from '../../src/prisma/prisma.service';
+import { acceptTosWithPrisma } from './setup';
 
 describe('Onboarding Flow Integration', () => {
   let app: INestApplication;
@@ -77,6 +78,9 @@ describe('Onboarding Flow Integration', () => {
       where: { id: userId },
       data: { emailVerified: new Date() },
     });
+
+    // Accept ToS (GDPR compliance)
+    await acceptTosWithPrisma(prisma, userId);
   });
 
   afterEach(async () => {

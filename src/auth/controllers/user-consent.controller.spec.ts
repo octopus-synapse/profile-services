@@ -36,7 +36,7 @@ describe('UserConsentController', () => {
       // Arrange
       const userId = 'user-123';
       const req = {
-        user: { id: userId },
+        user: { userId: userId },
         ip: '192.168.1.1',
         headers: { 'user-agent': 'Mozilla/5.0' },
       };
@@ -72,7 +72,7 @@ describe('UserConsentController', () => {
     it('should accept Privacy Policy', async () => {
       // Arrange
       const req = {
-        user: { id: 'user-456' },
+        user: { userId: 'user-456' },
         ip: '10.0.0.1',
         headers: { 'user-agent': 'Chrome/120.0' },
       };
@@ -98,7 +98,7 @@ describe('UserConsentController', () => {
     it('should use provided IP and user agent from DTO', async () => {
       // Arrange
       const req = {
-        user: { id: 'user-789' },
+        user: { userId: 'user-789' },
         ip: '127.0.0.1',
         headers: { 'user-agent': 'Default-Agent' },
       };
@@ -124,7 +124,7 @@ describe('UserConsentController', () => {
     it('should log acceptance in audit trail', async () => {
       // Arrange
       const req = {
-        user: { id: 'user-audit' },
+        user: { userId: 'user-audit' },
         ip: '1.2.3.4',
         headers: { 'user-agent': 'Agent' },
       };
@@ -153,7 +153,7 @@ describe('UserConsentController', () => {
     it('should return appropriate message for Marketing Consent', async () => {
       // Arrange
       const req = {
-        user: { id: 'user-marketing' },
+        user: { userId: 'user-marketing' },
         ip: '0.0.0.0',
         headers: { 'user-agent': 'Agent' },
       };
@@ -173,7 +173,7 @@ describe('UserConsentController', () => {
     it('should return consent history for authenticated user', async () => {
       // Arrange
       const userId = 'user-history';
-      const req = { user: { id: userId } };
+      const req = { user: { userId: userId } };
 
       const mockHistory = [
         {
@@ -202,7 +202,7 @@ describe('UserConsentController', () => {
 
     it('should return empty array when no consents exist', async () => {
       // Arrange
-      const req = { user: { id: 'user-new' } };
+      const req = { user: { userId: 'user-new' } };
       tosService.getAcceptanceHistory.mockResolvedValue([]);
 
       // Act
@@ -216,7 +216,7 @@ describe('UserConsentController', () => {
   describe('checkConsentStatus', () => {
     it('should return acceptance status for all document types', async () => {
       // Arrange
-      const req = { user: { id: 'user-check' } };
+      const req = { user: { userId: 'user-check' } };
 
       tosService.hasAcceptedCurrentVersion
         .mockResolvedValueOnce(true) // ToS
@@ -239,7 +239,7 @@ describe('UserConsentController', () => {
 
     it('should check all three consent types', async () => {
       // Arrange
-      const req = { user: { id: 'user-all-accepted' } };
+      const req = { user: { userId: 'user-all-accepted' } };
 
       tosService.hasAcceptedCurrentVersion
         .mockResolvedValueOnce(true)

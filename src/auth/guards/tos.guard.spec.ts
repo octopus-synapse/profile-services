@@ -62,7 +62,7 @@ describe('TosGuard', () => {
 
     it('should allow access to public routes even for authenticated users', async () => {
       // Arrange
-      const context = createMockContext({ id: 'user-123' }, true);
+      const context = createMockContext({ userId: 'user-123' }, true);
 
       // Act
       const result = await guard.canActivate(context);
@@ -75,7 +75,7 @@ describe('TosGuard', () => {
   describe('Protected routes', () => {
     it('should block access when user has not accepted ToS', async () => {
       // Arrange
-      const context = createMockContext({ id: 'user-123' }, false);
+      const context = createMockContext({ userId: 'user-123' }, false);
       tosService.hasAcceptedCurrentVersion
         .mockResolvedValueOnce(false) // ToS not accepted
         .mockResolvedValueOnce(true); // Privacy Policy accepted
@@ -94,7 +94,7 @@ describe('TosGuard', () => {
 
     it('should block access when user has not accepted Privacy Policy', async () => {
       // Arrange
-      const context = createMockContext({ id: 'user-123' }, false);
+      const context = createMockContext({ userId: 'user-123' }, false);
       tosService.hasAcceptedCurrentVersion
         .mockResolvedValueOnce(true) // ToS accepted
         .mockResolvedValueOnce(false); // Privacy Policy not accepted
@@ -113,7 +113,7 @@ describe('TosGuard', () => {
 
     it('should block access when user has not accepted both documents', async () => {
       // Arrange
-      const context = createMockContext({ id: 'user-123' }, false);
+      const context = createMockContext({ userId: 'user-123' }, false);
       tosService.hasAcceptedCurrentVersion
         .mockResolvedValueOnce(false) // ToS not accepted
         .mockResolvedValueOnce(false); // Privacy Policy not accepted
@@ -132,7 +132,7 @@ describe('TosGuard', () => {
 
     it('should allow access when user has accepted both documents', async () => {
       // Arrange
-      const context = createMockContext({ id: 'user-456' }, false);
+      const context = createMockContext({ userId: 'user-456' }, false);
       tosService.hasAcceptedCurrentVersion
         .mockResolvedValueOnce(true) // ToS accepted
         .mockResolvedValueOnce(true); // Privacy Policy accepted
@@ -154,7 +154,7 @@ describe('TosGuard', () => {
 
     it('should check both ToS and Privacy Policy when configured', async () => {
       // Arrange
-      const context = createMockContext({ id: 'user-789' }, false);
+      const context = createMockContext({ userId: 'user-789' }, false);
 
       // First call for ToS
       tosService.hasAcceptedCurrentVersion
@@ -188,7 +188,7 @@ describe('TosGuard', () => {
     it('should provide user ID to ToS service', async () => {
       // Arrange
       const userId = 'user-specific-123';
-      const context = createMockContext({ id: userId }, false);
+      const context = createMockContext({ userId }, false);
       tosService.hasAcceptedCurrentVersion.mockResolvedValue(true);
 
       // Act
@@ -210,7 +210,7 @@ describe('TosGuard', () => {
   describe('Error handling', () => {
     it('should propagate service errors', async () => {
       // Arrange
-      const context = createMockContext({ id: 'user-error' }, false);
+      const context = createMockContext({ userId: 'user-error' }, false);
       const serviceError = new Error('Database connection failed');
       tosService.hasAcceptedCurrentVersion.mockRejectedValue(serviceError);
 

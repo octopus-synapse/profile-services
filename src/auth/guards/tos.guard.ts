@@ -58,16 +58,16 @@ export class TosGuard implements CanActivate {
     // Get user from request (set by JWT auth guard)
     const request = context
       .switchToHttp()
-      .getRequest<{ user?: { id: string } }>();
+      .getRequest<{ user?: { userId: string } }>();
     const user = request.user;
 
     // If no user, let auth guard handle it
-    if (!user?.id) {
+    if (!user?.userId) {
       return true;
     }
 
     // Check if user has accepted current versions of required documents
-    const userId = user.id;
+    const userId = user.userId;
     const [hasAcceptedTos, hasAcceptedPrivacy] = await Promise.all([
       this.tosService.hasAcceptedCurrentVersion(userId, 'TERMS_OF_SERVICE'),
       this.tosService.hasAcceptedCurrentVersion(userId, 'PRIVACY_POLICY'),

@@ -12,7 +12,6 @@ import {
   Get,
   Delete,
   Req,
-  HttpStatus,
   UseGuards,
   Header,
 } from '@nestjs/common';
@@ -28,7 +27,7 @@ import { GdprExportService } from '../services/gdpr-export.service';
 import { GdprDeletionService } from '../services/gdpr-deletion.service';
 
 interface RequestWithUser {
-  user: { id: string };
+  user: { userId: string; email: string };
   ip?: string;
   headers: { [key: string]: string | string[] | undefined };
 }
@@ -72,7 +71,7 @@ export class GdprController {
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async exportUserData(@Req() req: RequestWithUser) {
-    const userId = req.user.id;
+    const userId = req.user.userId;
     const data = await this.exportService.exportUserData(
       userId,
       req as unknown as import('express').Request,
@@ -124,7 +123,7 @@ export class GdprController {
   @ApiResponse({ status: 400, description: 'Cannot delete last admin account' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async deleteAccount(@Req() req: RequestWithUser) {
-    const userId = req.user.id;
+    const userId = req.user.userId;
     return this.deletionService.requestSelfDeletion(
       userId,
       req as unknown as import('express').Request,

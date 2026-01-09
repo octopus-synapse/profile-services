@@ -23,7 +23,7 @@ import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { SkipTosCheck } from '../decorators/skip-tos-check.decorator';
 
 interface RequestWithUser extends Request {
-  user: { id: string; email: string };
+  user: { userId: string; email: string };
 }
 
 @ApiTags('User Consent')
@@ -72,7 +72,7 @@ export class UserConsentController {
     @Req() req: RequestWithUser,
     @Body() dto: AcceptConsentDto,
   ) {
-    const userId = req.user.id;
+    const userId = req.user.userId;
 
     // Extract IP and user agent from request if not provided in DTO
     const ipAddress = dto.ipAddress ?? req.ip ?? '';
@@ -146,7 +146,7 @@ export class UserConsentController {
     },
   })
   async getConsentHistory(@Req() req: RequestWithUser) {
-    const userId = req.user.id;
+    const userId = req.user.userId;
     return this.tosService.getAcceptanceHistory(userId);
   }
 
@@ -172,7 +172,7 @@ export class UserConsentController {
     },
   })
   async checkConsentStatus(@Req() req: RequestWithUser) {
-    const userId = req.user.id;
+    const userId = req.user.userId;
 
     const [tosAccepted, privacyPolicyAccepted, marketingConsentAccepted] =
       await Promise.all([

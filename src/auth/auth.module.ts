@@ -14,6 +14,7 @@ import {
 import { GdprController } from './controllers/gdpr.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { TosGuard } from './guards/tos.guard';
 import { PrismaModule } from '../prisma/prisma.module';
 import { EmailModule } from '../common/email/email.module';
@@ -93,6 +94,11 @@ import { AuditLogModule } from '../common/audit/audit-log.module';
     JwtStrategy,
     LocalStrategy,
     // Global guards (GDPR compliance)
+    // Order matters! JwtAuthGuard must run before TosGuard
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
     {
       provide: APP_GUARD,
       useClass: TosGuard,

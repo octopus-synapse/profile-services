@@ -107,9 +107,9 @@ export class AdminUsersController {
   })
   async deleteUser(
     @Param('id') id: string,
-    @Req() req: { user: { id: string } },
+    @Req() req: { user: { userId: string } },
   ) {
-    return this.adminService.deleteUser(id, req.user.id);
+    return this.adminService.deleteUser(id, req.user.userId);
   }
 
   @Post('users/:id/reset-password')

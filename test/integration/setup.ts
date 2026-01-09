@@ -128,6 +128,9 @@ export async function createTestUserAndLogin(
     data: { emailVerified: new Date() },
   });
 
+  // Accept ToS and Privacy Policy for GDPR compliance
+  await acceptTosForUser(createdUser.id);
+
   testContext.accessToken = accessToken;
   testContext.refreshToken = refreshToken;
   testContext.userId = createdUser.id;
@@ -174,6 +177,57 @@ export async function verifyUserEmail(userId: string): Promise<void> {
 }
 
 /**
+ * Accepts ToS and Privacy Policy for a user directly in the database.
+ * This bypasses the consent flow for integration tests (GDPR compliance).
+ */
+export async function acceptTosForUser(userId: string): Promise<void> {
+  if (!appInstance) {
+    throw new Error('App not initialized. Call getApp() first.');
+  }
+  const prisma = appInstance.get<PrismaService>(PrismaService);
+  const tosVersion = process.env.TOS_VERSION || '1.0.0';
+  const privacyPolicyVersion = process.env.PRIVACY_POLICY_VERSION || '1.0.0';
+
+  // Accept Terms of Service
+  await prisma.userConsent.upsert({
+    where: {
+      userId_documentType_version: {
+        userId,
+        documentType: 'TERMS_OF_SERVICE',
+        version: tosVersion,
+      },
+    },
+    update: {},
+    create: {
+      userId,
+      documentType: 'TERMS_OF_SERVICE',
+      version: tosVersion,
+      ipAddress: '127.0.0.1',
+      userAgent: 'Integration Test',
+    },
+  });
+
+  // Accept Privacy Policy
+  await prisma.userConsent.upsert({
+    where: {
+      userId_documentType_version: {
+        userId,
+        documentType: 'PRIVACY_POLICY',
+        version: privacyPolicyVersion,
+      },
+    },
+    update: {},
+    create: {
+      userId,
+      documentType: 'PRIVACY_POLICY',
+      version: privacyPolicyVersion,
+      ipAddress: '127.0.0.1',
+      userAgent: 'Integration Test',
+    },
+  });
+}
+
+/**
  * Gets the PrismaService instance from the app.
  */
 export function getPrisma(): PrismaService {
@@ -181,4 +235,54 @@ export function getPrisma(): PrismaService {
     throw new Error('App not initialized. Call getApp() first.');
   }
   return appInstance.get<PrismaService>(PrismaService);
+}
+
+/**
+ * Accepts ToS and Privacy Policy for a user using provided PrismaService.
+ * Use this when tests create their own app instance.
+ */
+export async function acceptTosWithPrisma(
+  prisma: PrismaService,
+  userId: string,
+): Promise<void> {
+  const tosVersion = process.env.TOS_VERSION || '1.0.0';
+  const privacyPolicyVersion = process.env.PRIVACY_POLICY_VERSION || '1.0.0';
+
+  // Accept Terms of Service
+  await prisma.userConsent.upsert({
+    where: {
+      userId_documentType_version: {
+        userId,
+        documentType: 'TERMS_OF_SERVICE',
+        version: tosVersion,
+      },
+    },
+    update: {},
+    create: {
+      userId,
+      documentType: 'TERMS_OF_SERVICE',
+      version: tosVersion,
+      ipAddress: '127.0.0.1',
+      userAgent: 'Integration Test',
+    },
+  });
+
+  // Accept Privacy Policy
+  await prisma.userConsent.upsert({
+    where: {
+      userId_documentType_version: {
+        userId,
+        documentType: 'PRIVACY_POLICY',
+        version: privacyPolicyVersion,
+      },
+    },
+    update: {},
+    create: {
+      userId,
+      documentType: 'PRIVACY_POLICY',
+      version: privacyPolicyVersion,
+      ipAddress: '127.0.0.1',
+      userAgent: 'Integration Test',
+    },
+  });
 }

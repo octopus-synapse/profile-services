@@ -21,6 +21,7 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { Public } from '../auth/decorators/public.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { DslRepository } from './dsl.repository';
 
@@ -34,6 +35,7 @@ export class DslController {
   /**
    * Validate DSL without compiling
    */
+  @Public()
   @Post('validate')
   @ApiOperation({ summary: 'Validate DSL schema' })
   @ApiBody({ description: 'DSL object to validate' })
@@ -45,6 +47,7 @@ export class DslController {
    * Preview: Compile DSL to AST without persisting
    * Used for live preview in the editor
    */
+  @Public()
   @Post('preview')
   @ApiOperation({ summary: 'Compile DSL to AST (preview, no persistence)' })
   @ApiQuery({ name: 'target', enum: ['html', 'pdf'], required: false })
@@ -76,6 +79,7 @@ export class DslController {
   /**
    * Public render (for shared/public resumes)
    */
+  @Public()
   @Get('render/public/:slug')
   @ApiOperation({ summary: 'Get compiled AST for a public resume' })
   @ApiQuery({ name: 'target', enum: ['html', 'pdf'], required: false })
