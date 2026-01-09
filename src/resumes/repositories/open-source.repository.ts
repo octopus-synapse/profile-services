@@ -5,136 +5,89 @@ import {
   CreateOpenSourceDto,
   UpdateOpenSourceDto,
 } from '../dto/open-source.dto';
-import { PaginatedResult } from '../dto/pagination.dto';
+import {
+  BaseSubResourceRepository,
+  OrderByConfig,
+  buildUpdateData,
+} from './base';
 
+/**
+ * Repository for OpenSourceContribution entities
+ *
+ * Ordering strategy: User-defined (order field, ascending)
+ * Rationale: Open source contributions have no natural chronological order - user control is most appropriate.
+ */
 @Injectable()
-export class OpenSourceRepository {
-  private readonly logger = new Logger(OpenSourceRepository.name);
+export class OpenSourceRepository extends BaseSubResourceRepository<
+  OpenSourceContribution,
+  CreateOpenSourceDto,
+  UpdateOpenSourceDto
+> {
+  protected readonly logger = new Logger(OpenSourceRepository.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(prisma: PrismaService) {
+    super(prisma);
+  }
 
-  async findAll(
+  protected getPrismaDelegate() {
+    return this.prisma.openSourceContribution;
+  }
+
+  protected getOrderByConfig(): OrderByConfig {
+    return { type: 'user-defined' };
+  }
+
+  protected mapCreateDto(
     resumeId: string,
-    page: number = 1,
-    limit: number = 20,
-  ): Promise<PaginatedResult<OpenSourceContribution>> {
-    const skip = (page - 1) * limit;
-
-    const [data, total] = await Promise.all([
-      this.prisma.openSourceContribution.findMany({
-        where: { resumeId },
-        orderBy: { order: 'asc' },
-        skip,
-        take: limit,
-      }),
-      this.prisma.openSourceContribution.count({ where: { resumeId } }),
-    ]);
-
-    const totalPages = Math.ceil(total / limit);
-
+    dto: CreateOpenSourceDto,
+    order: number,
+  ) {
     return {
-      data,
-      meta: {
-        total,
-        page,
-        limit,
-        totalPages,
-        hasNextPage: page < totalPages,
-        hasPrevPage: page > 1,
-      },
+      resumeId,
+      projectName: dto.projectName,
+      projectUrl: dto.projectUrl,
+      role: dto.role,
+      description: dto.description,
+      technologies: dto.technologies ?? [],
+      commits: dto.commits ?? 0,
+      prsCreated: dto.prsCreated ?? 0,
+      prsMerged: dto.prsMerged ?? 0,
+      issuesClosed: dto.issuesClosed ?? 0,
+      stars: dto.stars ?? 0,
+      startDate: new Date(dto.startDate),
+      endDate: dto.endDate ? new Date(dto.endDate) : null,
+      isCurrent: dto.isCurrent ?? false,
+      order: dto.order ?? order,
     };
   }
 
-  async findOne(
-    id: string,
-    resumeId: string,
-  ): Promise<OpenSourceContribution | null> {
-    return this.prisma.openSourceContribution.findFirst({
-      where: { id, resumeId },
+  protected mapUpdateDto(dto: UpdateOpenSourceDto) {
+    return buildUpdateData(dto, {
+      projectName: 'string',
+      projectUrl: 'string',
+      role: 'string',
+      description: 'optional',
+      technologies: 'array',
+      commits: 'number',
+      prsCreated: 'number',
+      prsMerged: 'number',
+      issuesClosed: 'number',
+      stars: 'number',
+      startDate: 'date',
+      endDate: 'nullableDate',
+      isCurrent: 'boolean',
+      order: 'number',
     });
   }
 
-  async create(
-    resumeId: string,
-    data: CreateOpenSourceDto,
-  ): Promise<OpenSourceContribution> {
-    const maxOrder = await this.getMaxOrder(resumeId);
+  // ============================================================================
+  // OPEN-SOURCE-SPECIFIC METHODS (not in ISubResourceRepository interface)
+  // ============================================================================
 
-    return this.prisma.openSourceContribution.create({
-      data: {
-        resumeId,
-        projectName: data.projectName,
-        projectUrl: data.projectUrl,
-        role: data.role,
-        description: data.description,
-        technologies: data.technologies ?? [],
-        commits: data.commits ?? 0,
-        prsCreated: data.prsCreated ?? 0,
-        prsMerged: data.prsMerged ?? 0,
-        issuesClosed: data.issuesClosed ?? 0,
-        stars: data.stars ?? 0,
-        startDate: new Date(data.startDate),
-        endDate: data.endDate ? new Date(data.endDate) : null,
-        isCurrent: data.isCurrent ?? false,
-        order: data.order ?? maxOrder + 1,
-      },
-    });
-  }
-
-  async update(
-    id: string,
-    resumeId: string,
-    data: UpdateOpenSourceDto,
-  ): Promise<OpenSourceContribution | null> {
-    const exists = await this.findOne(id, resumeId);
-    if (!exists) return null;
-
-    return this.prisma.openSourceContribution.update({
-      where: { id },
-      data: {
-        ...(data.projectName && { projectName: data.projectName }),
-        ...(data.projectUrl && { projectUrl: data.projectUrl }),
-        ...(data.role && { role: data.role }),
-        ...(data.description !== undefined && {
-          description: data.description,
-        }),
-        ...(data.technologies && { technologies: data.technologies }),
-        ...(data.commits !== undefined && { commits: data.commits }),
-        ...(data.prsCreated !== undefined && { prsCreated: data.prsCreated }),
-        ...(data.prsMerged !== undefined && { prsMerged: data.prsMerged }),
-        ...(data.issuesClosed !== undefined && {
-          issuesClosed: data.issuesClosed,
-        }),
-        ...(data.stars !== undefined && { stars: data.stars }),
-        ...(data.startDate && { startDate: new Date(data.startDate) }),
-        ...(data.endDate !== undefined && {
-          endDate: data.endDate ? new Date(data.endDate) : null,
-        }),
-        ...(data.isCurrent !== undefined && { isCurrent: data.isCurrent }),
-        ...(data.order !== undefined && { order: data.order }),
-      },
-    });
-  }
-
-  async delete(id: string, resumeId: string): Promise<boolean> {
-    const exists = await this.findOne(id, resumeId);
-    if (!exists) return false;
-
-    await this.prisma.openSourceContribution.delete({ where: { id } });
-    return true;
-  }
-
-  async reorder(resumeId: string, ids: string[]): Promise<void> {
-    await this.prisma.$transaction(
-      ids.map((id, index) =>
-        this.prisma.openSourceContribution.update({
-          where: { id },
-          data: { order: index },
-        }),
-      ),
-    );
-  }
-
+  /**
+   * Get aggregated statistics for all open source contributions
+   * Returns total commits, merged PRs, and stars across all contributions
+   */
   async getTotalStats(resumeId: string): Promise<{
     totalCommits: number;
     totalPRs: number;
@@ -153,13 +106,5 @@ export class OpenSourceRepository {
       totalPRs: result._sum.prsMerged ?? 0,
       totalStars: result._sum.stars ?? 0,
     };
-  }
-
-  private async getMaxOrder(resumeId: string): Promise<number> {
-    const result = await this.prisma.openSourceContribution.aggregate({
-      where: { resumeId },
-      _max: { order: true },
-    });
-    return result._max.order ?? -1;
   }
 }

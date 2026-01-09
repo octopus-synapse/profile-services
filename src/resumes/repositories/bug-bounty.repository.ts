@@ -2,135 +2,88 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { BugBounty } from '@prisma/client';
 import { CreateBugBountyDto, UpdateBugBountyDto } from '../dto/bug-bounty.dto';
-import { PaginatedResult } from '../dto/pagination.dto';
+import {
+  BaseSubResourceRepository,
+  OrderByConfig,
+  buildUpdateData,
+} from './base';
 
+/**
+ * Repository for BugBounty entities
+ *
+ * Ordering strategy: Date-based (reportedAt DESC, most recent first)
+ * Rationale: Bug bounties are chronological events - most recent reports should appear first.
+ */
 @Injectable()
-export class BugBountyRepository {
-  private readonly logger = new Logger(BugBountyRepository.name);
+export class BugBountyRepository extends BaseSubResourceRepository<
+  BugBounty,
+  CreateBugBountyDto,
+  UpdateBugBountyDto
+> {
+  protected readonly logger = new Logger(BugBountyRepository.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(prisma: PrismaService) {
+    super(prisma);
+  }
 
-  async findAll(
+  protected getPrismaDelegate() {
+    return this.prisma.bugBounty;
+  }
+
+  protected getOrderByConfig(): OrderByConfig {
+    return { type: 'date-desc', field: 'reportedAt' };
+  }
+
+  protected mapCreateDto(
     resumeId: string,
-    page: number = 1,
-    limit: number = 20,
-  ): Promise<PaginatedResult<BugBounty>> {
-    const skip = (page - 1) * limit;
-
-    const [data, total] = await Promise.all([
-      this.prisma.bugBounty.findMany({
-        where: { resumeId },
-        orderBy: { reportedAt: 'desc' },
-        skip,
-        take: limit,
-      }),
-      this.prisma.bugBounty.count({ where: { resumeId } }),
-    ]);
-
-    const totalPages = Math.ceil(total / limit);
-
+    dto: CreateBugBountyDto,
+    order: number,
+  ) {
     return {
-      data,
-      meta: {
-        total,
-        page,
-        limit,
-        totalPages,
-        hasNextPage: page < totalPages,
-        hasPrevPage: page > 1,
-      },
+      resumeId,
+      platform: dto.platform,
+      company: dto.company,
+      severity: dto.severity,
+      vulnerabilityType: dto.vulnerabilityType,
+      cveId: dto.cveId,
+      reward: dto.reward,
+      currency: dto.currency ?? 'USD',
+      reportUrl: dto.reportUrl,
+      reportedAt: new Date(dto.reportedAt),
+      resolvedAt: dto.resolvedAt ? new Date(dto.resolvedAt) : null,
+      order: dto.order ?? order,
     };
   }
 
-  async findOne(id: string, resumeId: string): Promise<BugBounty | null> {
-    return this.prisma.bugBounty.findFirst({
-      where: { id, resumeId },
+  protected mapUpdateDto(dto: UpdateBugBountyDto) {
+    return buildUpdateData(dto, {
+      platform: 'string',
+      company: 'string',
+      severity: 'string',
+      vulnerabilityType: 'string',
+      cveId: 'optional',
+      reward: 'number',
+      currency: 'string',
+      reportUrl: 'optional',
+      reportedAt: 'date',
+      resolvedAt: 'nullableDate',
+      order: 'number',
     });
   }
 
-  async create(resumeId: string, data: CreateBugBountyDto): Promise<BugBounty> {
-    const maxOrder = await this.getMaxOrder(resumeId);
+  // ============================================================================
+  // BUG-BOUNTY-SPECIFIC METHODS (not in ISubResourceRepository interface)
+  // ============================================================================
 
-    return this.prisma.bugBounty.create({
-      data: {
-        resumeId,
-        platform: data.platform,
-        company: data.company,
-        severity: data.severity,
-        vulnerabilityType: data.vulnerabilityType,
-        cveId: data.cveId,
-        reward: data.reward,
-        currency: data.currency ?? 'USD',
-        reportUrl: data.reportUrl,
-        reportedAt: new Date(data.reportedAt),
-        resolvedAt: data.resolvedAt ? new Date(data.resolvedAt) : null,
-        order: data.order ?? maxOrder + 1,
-      },
-    });
-  }
-
-  async update(
-    id: string,
-    resumeId: string,
-    data: UpdateBugBountyDto,
-  ): Promise<BugBounty | null> {
-    const exists = await this.findOne(id, resumeId);
-    if (!exists) return null;
-
-    return this.prisma.bugBounty.update({
-      where: { id },
-      data: {
-        ...(data.platform && { platform: data.platform }),
-        ...(data.company && { company: data.company }),
-        ...(data.severity && { severity: data.severity }),
-        ...(data.vulnerabilityType && {
-          vulnerabilityType: data.vulnerabilityType,
-        }),
-        ...(data.cveId !== undefined && { cveId: data.cveId }),
-        ...(data.reward !== undefined && { reward: data.reward }),
-        ...(data.currency && { currency: data.currency }),
-        ...(data.reportUrl !== undefined && { reportUrl: data.reportUrl }),
-        ...(data.reportedAt && { reportedAt: new Date(data.reportedAt) }),
-        ...(data.resolvedAt !== undefined && {
-          resolvedAt: data.resolvedAt ? new Date(data.resolvedAt) : null,
-        }),
-        ...(data.order !== undefined && { order: data.order }),
-      },
-    });
-  }
-
-  async delete(id: string, resumeId: string): Promise<boolean> {
-    const exists = await this.findOne(id, resumeId);
-    if (!exists) return false;
-
-    await this.prisma.bugBounty.delete({ where: { id } });
-    return true;
-  }
-
-  async reorder(resumeId: string, ids: string[]): Promise<void> {
-    await this.prisma.$transaction(
-      ids.map((id, index) =>
-        this.prisma.bugBounty.update({
-          where: { id },
-          data: { order: index },
-        }),
-      ),
-    );
-  }
-
+  /**
+   * Get total rewards earned across all bug bounties for a resume
+   * Returns sum of all reward amounts in their original currencies
+   */
   async getTotalRewards(resumeId: string): Promise<number> {
     const result = await this.prisma.bugBounty.aggregate({
       where: { resumeId },
       _sum: { reward: true },
     });
     return result._sum.reward ?? 0;
-  }
-
-  private async getMaxOrder(resumeId: string): Promise<number> {
-    const result = await this.prisma.bugBounty.aggregate({
-      where: { resumeId },
-      _max: { order: true },
-    });
-    return result._max.order ?? -1;
   }
 }

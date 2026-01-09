@@ -5,138 +5,69 @@ import {
   CreateExperienceDto,
   UpdateExperienceDto,
 } from '../dto/experience.dto';
-import { PaginatedResult } from '../dto/pagination.dto';
-import { PAGINATION } from '../../common/constants/validation/pagination.const';
+import {
+  BaseSubResourceRepository,
+  OrderByConfig,
+  buildUpdateData,
+  buildCreateData,
+} from './base';
 
 /**
- * Ordering strategy: by user-defined order field (asc)
+ * Repository for Experience entities
  *
+ * Ordering strategy: User-defined (order field, ascending)
  * Rationale: Experiences should be ordered as the user prefers,
  * typically most recent first but allowing manual reordering via drag-and-drop.
  * The order field provides explicit control over display sequence.
  */
 @Injectable()
-export class ExperienceRepository {
-  private readonly logger = new Logger(ExperienceRepository.name);
+export class ExperienceRepository extends BaseSubResourceRepository<
+  Experience,
+  CreateExperienceDto,
+  UpdateExperienceDto
+> {
+  protected readonly logger = new Logger(ExperienceRepository.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(prisma: PrismaService) {
+    super(prisma);
+  }
 
-  async findAll(
+  protected getPrismaDelegate() {
+    return this.prisma.experience;
+  }
+
+  protected getOrderByConfig(): OrderByConfig {
+    return { type: 'user-defined' };
+  }
+
+  protected mapCreateDto(
     resumeId: string,
-    page: number = PAGINATION.DEFAULT_PAGE,
-    limit: number = PAGINATION.DEFAULT_PAGE_SIZE,
-  ): Promise<PaginatedResult<Experience>> {
-    const skip = (page - 1) * limit;
-
-    const [data, total] = await Promise.all([
-      this.prisma.experience.findMany({
-        where: { resumeId },
-        orderBy: { order: 'asc' },
-        skip,
-        take: limit,
-      }),
-      this.prisma.experience.count({ where: { resumeId } }),
-    ]);
-
-    const totalPages = Math.ceil(total / limit);
-
-    return {
-      data,
-      meta: {
-        total,
-        page,
-        limit,
-        totalPages,
-        hasNextPage: page < totalPages,
-        hasPrevPage: page > 1,
-      },
-    };
-  }
-
-  async findOne(id: string, resumeId: string): Promise<Experience | null> {
-    return this.prisma.experience.findFirst({
-      where: { id, resumeId },
+    dto: CreateExperienceDto,
+    order: number,
+  ) {
+    return buildCreateData({ resumeId, order: dto.order ?? order }, dto, {
+      company: 'string',
+      position: 'string',
+      startDate: 'date',
+      endDate: { type: 'nullableDate' },
+      isCurrent: { type: 'boolean', default: false },
+      location: 'optional',
+      description: 'optional',
+      skills: { type: 'array', default: [] },
     });
   }
 
-  async create(
-    resumeId: string,
-    data: CreateExperienceDto,
-  ): Promise<Experience> {
-    const maxOrder = await this.getMaxOrder(resumeId);
-
-    return this.prisma.experience.create({
-      data: {
-        resumeId,
-        company: data.company,
-        position: data.position,
-        startDate: new Date(data.startDate),
-        endDate: data.endDate ? new Date(data.endDate) : null,
-        isCurrent: data.isCurrent ?? false,
-        location: data.location,
-        description: data.description,
-        skills: data.skills ?? [],
-        order: data.order ?? maxOrder + 1,
-      },
+  protected mapUpdateDto(dto: UpdateExperienceDto) {
+    return buildUpdateData(dto, {
+      company: 'string',
+      position: 'string',
+      startDate: 'date',
+      endDate: 'nullableDate',
+      isCurrent: 'boolean',
+      location: 'optional',
+      description: 'optional',
+      skills: 'array',
+      order: 'number',
     });
-  }
-
-  async update(
-    id: string,
-    resumeId: string,
-    data: UpdateExperienceDto,
-  ): Promise<Experience | null> {
-    // Use updateMany to avoid N+1 query and handle non-existent records
-    const updateData = {
-      ...(data.company && { company: data.company }),
-      ...(data.position && { position: data.position }),
-      ...(data.startDate && { startDate: new Date(data.startDate) }),
-      ...(data.endDate !== undefined && {
-        endDate: data.endDate ? new Date(data.endDate) : null,
-      }),
-      ...(data.isCurrent !== undefined && { isCurrent: data.isCurrent }),
-      ...(data.location !== undefined && { location: data.location }),
-      ...(data.description !== undefined && {
-        description: data.description,
-      }),
-      ...(data.skills && { skills: data.skills }),
-      ...(data.order !== undefined && { order: data.order }),
-    };
-
-    const result = await this.prisma.experience.updateMany({
-      where: { id, resumeId },
-      data: updateData,
-    });
-
-    if (result.count === 0) return null;
-
-    return this.prisma.experience.findUnique({ where: { id } });
-  }
-
-  async delete(id: string, resumeId: string): Promise<boolean> {
-    // Use deleteMany to avoid N+1 query - single query handles both check and delete
-    const result = await this.prisma.experience.deleteMany({
-      where: { id, resumeId },
-    });
-    return result.count > 0;
-  }
-
-  async reorder(resumeId: string, ids: string[]): Promise<void> {
-    await this.prisma.$transaction(
-      ids.map((id, index) =>
-        this.prisma.experience.update({
-          where: { id },
-          data: { order: index },
-        }),
-      ),
-    );
-  }
-
-  private async getMaxOrder(resumeId: string): Promise<number> {
-    const result = await this.prisma.experience.aggregate({
-      where: { resumeId },
-      _max: { order: true },
-    });
-    return result._max.order ?? -1;
   }
 }
