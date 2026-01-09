@@ -77,7 +77,7 @@ export class ResumeVersionService {
       where: { id: versionId },
     });
 
-    if (!version || version.resumeId !== resumeId) {
+    if (!version?.resumeId || version.resumeId !== resumeId) {
       throw new NotFoundException('Version not found');
     }
 
@@ -88,7 +88,12 @@ export class ResumeVersionService {
     const snapshot = version.snapshot as Record<string, unknown>;
 
     // Update resume with snapshot data (excluding relations)
-    const { id, userId: _userId, createdAt, ...resumeData } = snapshot;
+    const {
+      id: _id,
+      userId: _userId,
+      createdAt: _createdAt,
+      ...resumeData
+    } = snapshot;
 
     await this.prisma.resume.update({
       where: { id: resumeId },

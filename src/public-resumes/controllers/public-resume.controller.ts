@@ -52,8 +52,9 @@ export class PublicResumeController {
     }
 
     // Track view event
+    const forwarded = req.headers['x-forwarded-for'];
     const ip =
-      (req.headers['x-forwarded-for'] as string)?.split(',')[0] ??
+      (typeof forwarded === 'string' ? forwarded.split(',')[0] : null) ??
       req.socket.remoteAddress ??
       'unknown';
 

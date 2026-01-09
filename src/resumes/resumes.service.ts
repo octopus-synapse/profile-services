@@ -82,9 +82,9 @@ export class ResumesService {
 
   async update(id: string, userId: string, updateResumeDto: UpdateResumeDto) {
     this.logger.log(`Updating resume: ${id} for user: ${userId}`);
-    
+
     // Create snapshot before update
-    void this.versionService.createSnapshot(id).catch((err) => {
+    void this.versionService.createSnapshot(id).catch((err: Error) => {
       this.logger.error(`Failed to create version snapshot: ${err.message}`);
     });
 
