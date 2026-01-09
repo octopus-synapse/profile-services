@@ -10,6 +10,7 @@
 
 import { config } from 'dotenv';
 import { join } from 'path';
+import { randomUUID } from 'crypto';
 
 // Load test environment BEFORE importing AppModule
 config({ path: join(__dirname, '..', '..', '.env.test'), override: false });
@@ -23,8 +24,12 @@ import { PrismaService } from '../../src/prisma/prisma.service';
 
 // --- Test Constants ---
 
+function uniqueTestEmail(prefix: string): string {
+  return `${prefix}-${randomUUID()}@example.com`;
+}
+
 export const TEST_USER = {
-  email: `integration-test-${Date.now()}@example.com`,
+  email: uniqueTestEmail('integration-test'),
   password: 'SecurePass123!',
   name: 'Integration Test User',
 };
@@ -95,7 +100,7 @@ export async function createTestUserAndLogin(
   const agent = request(app.getHttpServer());
 
   const user = {
-    email: customUser?.email || `test-${Date.now()}@example.com`,
+    email: customUser?.email || uniqueTestEmail('test'),
     password: customUser?.password || TEST_USER.password,
     name: customUser?.name || TEST_USER.name,
   };
@@ -104,7 +109,9 @@ export async function createTestUserAndLogin(
 
   if (signupResponse.status !== 201) {
     throw new Error(
-      `Failed to create test user: ${JSON.stringify(signupResponse.body)}`,
+      `Failed to create test user (status=${signupResponse.status}): ${JSON.stringify(
+        signupResponse.body,
+      )}`,
     );
   }
 
