@@ -78,6 +78,8 @@ model Resume {
   openSource      OpenSourceContribution[]
   bugBounties     BugBounty[]
   hackathons      Hackathon[]
+  shares          ResumeShare[]            @relation("ResumeShares")
+  versions        ResumeVersion[]          @relation("ResumeVersions")
 
   @@index([userId])
   @@index([slug])

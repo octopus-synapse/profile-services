@@ -9,6 +9,7 @@ import { CreateResumeDto } from './dto/create-resume.dto';
 import { UpdateResumeDto } from './dto/update-resume.dto';
 import { ApiResponseHelper } from '../common/dto/api-response.dto';
 import { ERROR_MESSAGES } from '../common/constants/config';
+import { ResumeVersionService } from '../resume-versions/services/resume-version.service';
 
 /** Maximum number of resumes a user can create */
 const MAX_RESUMES_PER_USER = 4;
@@ -17,7 +18,10 @@ const MAX_RESUMES_PER_USER = 4;
 export class ResumesService {
   private readonly logger = new Logger(ResumesService.name);
 
-  constructor(private readonly resumesRepository: ResumesRepository) {}
+  constructor(
+    private readonly resumesRepository: ResumesRepository,
+    private readonly versionService: ResumeVersionService,
+  ) {}
 
   /**
    * BUG-015 FIX: Use proper database pagination instead of fetching all and slicing
@@ -78,6 +82,12 @@ export class ResumesService {
 
   async update(id: string, userId: string, updateResumeDto: UpdateResumeDto) {
     this.logger.log(`Updating resume: ${id} for user: ${userId}`);
+    
+    // Create snapshot before update
+    void this.versionService.createSnapshot(id).catch((err) => {
+      this.logger.error(`Failed to create version snapshot: ${err.message}`);
+    });
+
     const resume = await this.resumesRepository.update(
       id,
       userId,

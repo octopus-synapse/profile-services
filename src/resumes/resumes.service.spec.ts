@@ -12,6 +12,7 @@ import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ResumesService } from './resumes.service';
 import { ResumesRepository } from './resumes.repository';
+import { ResumeVersionService } from '../resume-versions/services/resume-version.service';
 import {
   NotFoundException,
   UnprocessableEntityException,
@@ -20,6 +21,7 @@ import {
 describe('ResumesService', () => {
   let service: ResumesService;
   let repository: ResumesRepository;
+  let versionService: ResumeVersionService;
 
   const _MAX_RESUMES_PER_USER = 4; // Used in business logic, stored for reference
 
@@ -42,10 +44,15 @@ describe('ResumesService', () => {
       findByUserId: mock(),
     } as any;
 
+    versionService = {
+      createSnapshot: mock(() => Promise.resolve()),
+    } as any;
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ResumesService,
         { provide: ResumesRepository, useValue: repository },
+        { provide: ResumeVersionService, useValue: versionService },
       ],
     }).compile();
 
