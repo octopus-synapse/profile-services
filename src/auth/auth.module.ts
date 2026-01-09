@@ -2,19 +2,23 @@ import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
 import { AuthService } from './auth.service';
 import {
   AuthCoreController,
   AuthVerificationController,
   AuthPasswordController,
   AuthAccountController,
+  UserConsentController,
 } from './controllers';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
+import { TosGuard } from './guards/tos.guard';
 import { PrismaModule } from '../prisma/prisma.module';
 import { EmailModule } from '../common/email/email.module';
 import { LoggerModule } from '../common/logger/logger.module';
 import { CacheModule } from '../common/cache/cache.module';
+import { AdminModule } from '../admin/admin.module';
 import {
   TokenService,
   PasswordService,
@@ -25,6 +29,7 @@ import {
   AuthCoreService,
   TokenRefreshService,
   TokenBlacklistService,
+  TosAcceptanceService,
 } from './services';
 
 @Module({
@@ -33,6 +38,7 @@ import {
     EmailModule,
     LoggerModule,
     CacheModule,
+    AdminModule,
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -57,6 +63,7 @@ import {
     AuthVerificationController,
     AuthPasswordController,
     AuthAccountController,
+    UserConsentController,
   ],
   providers: [
     // Core services
@@ -70,11 +77,17 @@ import {
     EmailVerificationService,
     PasswordResetService,
     AccountManagementService,
+    TosAcceptanceService,
     // Facade
     AuthService,
     // Strategies
     JwtStrategy,
     LocalStrategy,
+    // Global guards (GDPR compliance)
+    {
+      provide: APP_GUARD,
+      useClass: TosGuard,
+    },
   ],
   exports: [
     AuthService,

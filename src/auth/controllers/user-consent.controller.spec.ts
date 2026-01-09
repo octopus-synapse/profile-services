@@ -138,12 +138,16 @@ describe('UserConsentController', () => {
       await controller.acceptConsent(req, dto);
 
       // Assert
-      expect(auditService.log).toHaveBeenCalledWith('user-audit', 'TOS_ACCEPTED', {
-        entityType: 'UserConsent',
-        entityId: 'consent-audit',
-        ipAddress: '1.2.3.4',
-        userAgent: 'Agent',
-      });
+      expect(auditService.log).toHaveBeenCalledWith(
+        'user-audit',
+        'TOS_ACCEPTED',
+        {
+          entityType: 'UserConsent',
+          entityId: 'consent-audit',
+          ipAddress: '1.2.3.4',
+          userAgent: 'Agent',
+        },
+      );
     });
 
     it('should return appropriate message for Marketing Consent', async () => {

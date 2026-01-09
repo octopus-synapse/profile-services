@@ -13,3 +13,4 @@ export { AccountManagementService } from './account-management.service';
 export { AuthCoreService } from './auth-core.service';
 export { TokenRefreshService } from './token-refresh.service';
 export { TokenBlacklistService } from './token-blacklist.service';
+export { TosAcceptanceService } from './tos-acceptance.service';

@@ -11,3 +11,4 @@ export { AdminStatsService } from './admin-stats.service';
 export { ResumeAdminService } from './resume-admin.service';
 export { SkillAdminService } from './skill-admin.service';
 export type { CreateSkillData, UpdateSkillData } from './skill-admin.service';
+export { AuditService } from './audit.service';
