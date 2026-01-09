@@ -76,21 +76,66 @@ describe('TosGuard', () => {
     it('should block access when user has not accepted ToS', async () => {
       // Arrange
       const context = createMockContext({ id: 'user-123' }, false);
-      tosService.hasAcceptedCurrentVersion.mockResolvedValue(false);
+      tosService.hasAcceptedCurrentVersion
+        .mockResolvedValueOnce(false) // ToS not accepted
+        .mockResolvedValueOnce(true); // Privacy Policy accepted
 
       // Act & Assert
-      await expect(guard.canActivate(context)).rejects.toThrow(
-        ForbiddenException,
-      );
-      await expect(guard.canActivate(context)).rejects.toThrow(
-        'You must accept the Terms of Service to use this application',
-      );
+      try {
+        await guard.canActivate(context);
+        throw new Error('Expected ForbiddenException to be thrown');
+      } catch (error) {
+        expect(error).toBeInstanceOf(ForbiddenException);
+        expect((error as ForbiddenException).message).toBe(
+          'You must accept the Terms of Service to use this application. Please visit /api/v1/users/me/accept-consent to continue.',
+        );
+      }
     });
 
-    it('should allow access when user has accepted ToS', async () => {
+    it('should block access when user has not accepted Privacy Policy', async () => {
+      // Arrange
+      const context = createMockContext({ id: 'user-123' }, false);
+      tosService.hasAcceptedCurrentVersion
+        .mockResolvedValueOnce(true) // ToS accepted
+        .mockResolvedValueOnce(false); // Privacy Policy not accepted
+
+      // Act & Assert
+      try {
+        await guard.canActivate(context);
+        throw new Error('Expected ForbiddenException to be thrown');
+      } catch (error) {
+        expect(error).toBeInstanceOf(ForbiddenException);
+        expect((error as ForbiddenException).message).toBe(
+          'You must accept the Privacy Policy to use this application. Please visit /api/v1/users/me/accept-consent to continue.',
+        );
+      }
+    });
+
+    it('should block access when user has not accepted both documents', async () => {
+      // Arrange
+      const context = createMockContext({ id: 'user-123' }, false);
+      tosService.hasAcceptedCurrentVersion
+        .mockResolvedValueOnce(false) // ToS not accepted
+        .mockResolvedValueOnce(false); // Privacy Policy not accepted
+
+      // Act & Assert
+      try {
+        await guard.canActivate(context);
+        throw new Error('Expected ForbiddenException to be thrown');
+      } catch (error) {
+        expect(error).toBeInstanceOf(ForbiddenException);
+        expect((error as ForbiddenException).message).toBe(
+          'You must accept the Terms of Service and Privacy Policy to use this application. Please visit /api/v1/users/me/accept-consent to continue.',
+        );
+      }
+    });
+
+    it('should allow access when user has accepted both documents', async () => {
       // Arrange
       const context = createMockContext({ id: 'user-456' }, false);
-      tosService.hasAcceptedCurrentVersion.mockResolvedValue(true);
+      tosService.hasAcceptedCurrentVersion
+        .mockResolvedValueOnce(true) // ToS accepted
+        .mockResolvedValueOnce(true); // Privacy Policy accepted
 
       // Act
       const result = await guard.canActivate(context);
@@ -99,6 +144,11 @@ describe('TosGuard', () => {
       expect(result).toBe(true);
       expect(tosService.hasAcceptedCurrentVersion).toHaveBeenCalledWith(
         'user-456',
+        'TERMS_OF_SERVICE',
+      );
+      expect(tosService.hasAcceptedCurrentVersion).toHaveBeenCalledWith(
+        'user-456',
+        'PRIVACY_POLICY',
       );
     });
 
@@ -112,10 +162,15 @@ describe('TosGuard', () => {
         .mockResolvedValueOnce(false); // Privacy Policy not accepted
 
       // Act & Assert
-      // This test assumes future implementation will check both documents
-      // For now, we only check ToS
-      const result = await guard.canActivate(context);
-      expect(result).toBe(true);
+      try {
+        await guard.canActivate(context);
+        throw new Error('Expected ForbiddenException to be thrown');
+      } catch (error) {
+        expect(error).toBeInstanceOf(ForbiddenException);
+        expect((error as ForbiddenException).message).toBe(
+          'You must accept the Privacy Policy to use this application. Please visit /api/v1/users/me/accept-consent to continue.',
+        );
+      }
     });
 
     it('should allow access without user (unauthenticated) for non-public routes', async () => {
@@ -140,8 +195,15 @@ describe('TosGuard', () => {
       await guard.canActivate(context);
 
       // Assert
-      expect(tosService.hasAcceptedCurrentVersion).toHaveBeenCalledWith(userId);
-      expect(tosService.hasAcceptedCurrentVersion).toHaveBeenCalledTimes(1);
+      expect(tosService.hasAcceptedCurrentVersion).toHaveBeenCalledWith(
+        userId,
+        'TERMS_OF_SERVICE',
+      );
+      expect(tosService.hasAcceptedCurrentVersion).toHaveBeenCalledWith(
+        userId,
+        'PRIVACY_POLICY',
+      );
+      expect(tosService.hasAcceptedCurrentVersion).toHaveBeenCalledTimes(2);
     });
   });
 

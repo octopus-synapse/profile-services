@@ -7,6 +7,7 @@ import {
 import { Reflector } from '@nestjs/core';
 import { TosAcceptanceService } from '../services/tos-acceptance.service';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
+import { SKIP_TOS_CHECK_KEY } from '../decorators/skip-tos-check.decorator';
 
 /**
  * Guard that enforces Terms of Service acceptance
@@ -16,10 +17,15 @@ import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
  * // Applied globally in AuthModule
  * APP_GUARD provider with TosGuard
  *
- * // Skip for specific routes
+ * // Skip for specific routes (also skips auth)
  * @Public()
  * @Get('health')
  * healthCheck() { ... }
+ *
+ * // Skip ToS check but keep auth requirement
+ * @SkipTosCheck()
+ * @Get('consent-status')
+ * getConsentStatus() { ... }
  */
 @Injectable()
 export class TosGuard implements CanActivate {
@@ -39,24 +45,42 @@ export class TosGuard implements CanActivate {
       return true;
     }
 
-    // Get user from request (set by JWT auth guard)
-    const request = context.switchToHttp().getRequest();
-    const user = request.user;
+    // Check if route explicitly skips ToS check (but still requires auth)
+    const skipTosCheck = this.reflector.getAllAndOverride<boolean>(
+      SKIP_TOS_CHECK_KEY,
+      [context.getHandler(), context.getClass()],
+    );
 
-    // If no user, let auth guard handle it
-    if (!user || !user.id) {
+    if (skipTosCheck) {
       return true;
     }
 
-    // Check if user has accepted current ToS version
-    const hasAccepted = await this.tosService.hasAcceptedCurrentVersion(
-      user.id,
-    );
+    // Get user from request (set by JWT auth guard)
+    const request = context
+      .switchToHttp()
+      .getRequest<{ user?: { id: string } }>();
+    const user = request.user;
 
-    if (!hasAccepted) {
+    // If no user, let auth guard handle it
+    if (!user?.id) {
+      return true;
+    }
+
+    // Check if user has accepted current versions of required documents
+    const userId = user.id;
+    const [hasAcceptedTos, hasAcceptedPrivacy] = await Promise.all([
+      this.tosService.hasAcceptedCurrentVersion(userId, 'TERMS_OF_SERVICE'),
+      this.tosService.hasAcceptedCurrentVersion(userId, 'PRIVACY_POLICY'),
+    ]);
+
+    if (!hasAcceptedTos || !hasAcceptedPrivacy) {
+      const missing: string[] = []; // ← TIPO EXPLÍCITO AQUI
+      if (!hasAcceptedTos) missing.push('Terms of Service');
+      if (!hasAcceptedPrivacy) missing.push('Privacy Policy');
+
       throw new ForbiddenException(
-        'You must accept the Terms of Service to use this application. ' +
-          'Please visit /api/v1/users/me/accept-terms to continue.',
+        `You must accept the ${missing.join(' and ')} to use this application. ` +
+          'Please visit /api/v1/users/me/accept-consent to continue.',
       );
     }
 

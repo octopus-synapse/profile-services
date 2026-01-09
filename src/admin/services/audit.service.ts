@@ -15,11 +15,11 @@ export class AuditService {
    * Minimal implementation to unblock #75
    * Will be expanded in #71 with IP tracking, user agent, metadata, etc.
    */
-  async log(
+  log(
     userId: string,
     action: AuditAction,
     metadata?: Record<string, unknown>,
-  ): Promise<void> {
+  ): void {
     // Stub implementation - just log for now
     // Full implementation in #71 will persist to AuditLog model
     console.log(`[AUDIT] User ${userId} performed ${action}`, metadata);

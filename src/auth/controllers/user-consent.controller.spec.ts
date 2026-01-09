@@ -38,7 +38,7 @@ describe('UserConsentController', () => {
       const req = {
         user: { id: userId },
         ip: '192.168.1.1',
-        get: mock(() => 'Mozilla/5.0'),
+        headers: { 'user-agent': 'Mozilla/5.0' },
       };
       const dto = { documentType: 'TERMS_OF_SERVICE' as const };
 
@@ -74,7 +74,7 @@ describe('UserConsentController', () => {
       const req = {
         user: { id: 'user-456' },
         ip: '10.0.0.1',
-        get: mock(() => 'Chrome/120.0'),
+        headers: { 'user-agent': 'Chrome/120.0' },
       };
       const dto = { documentType: 'PRIVACY_POLICY' as const };
 
@@ -100,7 +100,7 @@ describe('UserConsentController', () => {
       const req = {
         user: { id: 'user-789' },
         ip: '127.0.0.1',
-        get: mock(() => 'Default-Agent'),
+        headers: { 'user-agent': 'Default-Agent' },
       };
       const dto = {
         documentType: 'TERMS_OF_SERVICE' as const,
@@ -126,7 +126,7 @@ describe('UserConsentController', () => {
       const req = {
         user: { id: 'user-audit' },
         ip: '1.2.3.4',
-        get: mock(() => 'Agent'),
+        headers: { 'user-agent': 'Agent' },
       };
       const dto = { documentType: 'TERMS_OF_SERVICE' as const };
 
@@ -155,7 +155,7 @@ describe('UserConsentController', () => {
       const req = {
         user: { id: 'user-marketing' },
         ip: '0.0.0.0',
-        get: mock(() => 'Agent'),
+        headers: { 'user-agent': 'Agent' },
       };
       const dto = { documentType: 'MARKETING_CONSENT' as const };
 
@@ -228,9 +228,11 @@ describe('UserConsentController', () => {
 
       // Assert
       expect(result).toEqual({
-        termsOfService: true,
-        privacyPolicy: false,
-        marketingConsent: false,
+        tosAccepted: true,
+        privacyPolicyAccepted: false,
+        marketingConsentAccepted: false,
+        latestTosVersion: '1.0.0',
+        latestPrivacyPolicyVersion: '1.0.0',
       });
       expect(tosService.hasAcceptedCurrentVersion).toHaveBeenCalledTimes(3);
     });
@@ -248,9 +250,9 @@ describe('UserConsentController', () => {
       const result = await controller.checkConsentStatus(req);
 
       // Assert
-      expect(result.termsOfService).toBe(true);
-      expect(result.privacyPolicy).toBe(true);
-      expect(result.marketingConsent).toBe(true);
+      expect(result.tosAccepted).toBe(true);
+      expect(result.privacyPolicyAccepted).toBe(true);
+      expect(result.marketingConsentAccepted).toBe(true);
     });
   });
 });

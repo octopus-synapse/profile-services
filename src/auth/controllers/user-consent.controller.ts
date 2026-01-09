@@ -15,14 +15,19 @@ import {
   ApiBearerAuth,
   ApiBody,
 } from '@nestjs/swagger';
+import { Request } from 'express';
 import { TosAcceptanceService } from '../services/tos-acceptance.service';
 import { AuditService } from '../../admin/services/audit.service';
 import { AcceptConsentDto } from '../dto/accept-consent.dto';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
-import { Public } from '../decorators/public.decorator';
+import { SkipTosCheck } from '../decorators/skip-tos-check.decorator';
+
+interface RequestWithUser extends Request {
+  user: { id: string; email: string };
+}
 
 @ApiTags('User Consent')
-@Controller('users/me')
+@Controller('v1/users/me')
 @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class UserConsentController {
@@ -33,6 +38,7 @@ export class UserConsentController {
 
   @Post('accept-consent')
   @HttpCode(HttpStatus.CREATED)
+  @SkipTosCheck() // Allow access to accept ToS without having accepted it
   @ApiOperation({
     summary: 'Accept Terms of Service or Privacy Policy',
     description:
@@ -62,13 +68,15 @@ export class UserConsentController {
     status: 401,
     description: 'Unauthorized - Invalid or missing JWT token',
   })
-  @Public() // Allow access without ToS acceptance (to accept ToS itself)
-  async acceptConsent(@Req() req: any, @Body() dto: AcceptConsentDto) {
+  async acceptConsent(
+    @Req() req: RequestWithUser,
+    @Body() dto: AcceptConsentDto,
+  ) {
     const userId = req.user.id;
 
     // Extract IP and user agent from request if not provided in DTO
-    const ipAddress = dto.ipAddress || req.ip;
-    const userAgent = dto.userAgent || req.get('user-agent');
+    const ipAddress = dto.ipAddress ?? req.ip ?? '';
+    const userAgent = dto.userAgent ?? req.headers['user-agent'] ?? '';
 
     // Record acceptance
     const consent = await this.tosService.recordAcceptance(userId, {
@@ -85,7 +93,7 @@ export class UserConsentController {
           ? 'PRIVACY_POLICY_ACCEPTED'
           : 'TOS_ACCEPTED'; // Fallback for MARKETING_CONSENT
 
-    await this.auditService.log(userId, auditAction as any, {
+    this.auditService.log(userId, auditAction, {
       entityType: 'UserConsent',
       entityId: consent.id,
       ipAddress,
@@ -108,6 +116,7 @@ export class UserConsentController {
 
   @Get('consent-history')
   @HttpCode(HttpStatus.OK)
+  @SkipTosCheck() // Allow access without ToS acceptance (to view consent history)
   @ApiOperation({
     summary: 'Get consent acceptance history',
     description: 'Retrieves all consent records for the authenticated user',
@@ -136,13 +145,14 @@ export class UserConsentController {
       ],
     },
   })
-  async getConsentHistory(@Req() req: any) {
+  async getConsentHistory(@Req() req: RequestWithUser) {
     const userId = req.user.id;
     return this.tosService.getAcceptanceHistory(userId);
   }
 
   @Get('consent-status')
   @HttpCode(HttpStatus.OK)
+  @SkipTosCheck() // Allow checking status without ToS acceptance
   @ApiOperation({
     summary: 'Check consent acceptance status',
     description:
@@ -153,28 +163,35 @@ export class UserConsentController {
     description: 'Consent status retrieved successfully',
     schema: {
       example: {
-        termsOfService: true,
-        privacyPolicy: true,
-        marketingConsent: false,
+        tosAccepted: true,
+        privacyPolicyAccepted: true,
+        marketingConsentAccepted: false,
+        latestTosVersion: '1.0.0',
+        latestPrivacyPolicyVersion: '1.0.0',
       },
     },
   })
-  @Public() // Allow checking status without ToS acceptance
-  async checkConsentStatus(@Req() req: any) {
+  async checkConsentStatus(@Req() req: RequestWithUser) {
     const userId = req.user.id;
 
-    const [termsOfService, privacyPolicy, marketingConsent] = await Promise.all(
-      [
+    const [tosAccepted, privacyPolicyAccepted, marketingConsentAccepted] =
+      await Promise.all([
         this.tosService.hasAcceptedCurrentVersion(userId, 'TERMS_OF_SERVICE'),
         this.tosService.hasAcceptedCurrentVersion(userId, 'PRIVACY_POLICY'),
         this.tosService.hasAcceptedCurrentVersion(userId, 'MARKETING_CONSENT'),
-      ],
-    );
+      ]);
+
+    // Get current versions from environment
+    const latestTosVersion = process.env.TOS_VERSION ?? '1.0.0';
+    const latestPrivacyPolicyVersion =
+      process.env.PRIVACY_POLICY_VERSION ?? '1.0.0';
 
     return {
-      termsOfService,
-      privacyPolicy,
-      marketingConsent,
+      tosAccepted,
+      privacyPolicyAccepted,
+      marketingConsentAccepted,
+      latestTosVersion,
+      latestPrivacyPolicyVersion,
     };
   }
 }
