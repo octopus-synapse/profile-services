@@ -3,6 +3,7 @@ import { ResumesService } from './resumes.service';
 import { ResumesController } from './resumes.controller';
 import { ResumesRepository } from './resumes.repository';
 import { PrismaModule } from '../prisma/prisma.module';
+import { ResumeVersionsModule } from '../resume-versions/resume-versions.module';
 import {
   // Controllers
   ExperienceController,
@@ -55,7 +56,7 @@ import {
 } from './module-imports';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, ResumeVersionsModule],
   controllers: [
     ResumesController,
     ExperienceController,

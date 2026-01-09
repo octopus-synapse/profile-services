@@ -26,6 +26,9 @@ import { HealthModule } from './health/health.module';
 import { ATSModule } from './ats/ats.module';
 import { DslModule } from './dsl/dsl.module';
 import { GraphqlModule } from './graphql/graphql.module';
+import { PublicResumesModule } from './public-resumes/public-resumes.module';
+import { ResumeVersionsModule } from './resume-versions/resume-versions.module';
+import { ShareAnalyticsModule } from './share-analytics/share-analytics.module';
 import { validate } from './common/config/env.validation';
 import { APP_CONSTANTS } from './common/constants/config';
 
@@ -63,6 +66,9 @@ import { APP_CONSTANTS } from './common/constants/config';
     ATSModule,
     DslModule,
     GraphqlModule,
+    PublicResumesModule,
+    ResumeVersionsModule,
+    ShareAnalyticsModule,
   ],
   controllers: [AppController],
   providers: [

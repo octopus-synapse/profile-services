@@ -1,0 +1,18 @@
+// Resume Version - Snapshot history for rollback
+
+model ResumeVersion {
+  id            String   @id @default(cuid())
+  resumeId      String
+  resume        Resume   @relation("ResumeVersions", fields: [resumeId], references: [id], onDelete: Cascade)
+  
+  versionNumber Int      // Sequential version number per resume
+  snapshot      Json     // Full resume state
+  label         String?  // Optional version label
+  
+  createdAt     DateTime @default(now())
+  
+  @@index([resumeId])
+  @@index([createdAt])
+  @@unique([resumeId, versionNumber])
+  @@map("resume_versions")
+}

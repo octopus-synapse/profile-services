@@ -15,10 +15,12 @@ import {
 } from '@nestjs/common';
 import { ResumesService } from './resumes.service';
 import { ResumesRepository } from './resumes.repository';
+import { ResumeVersionService } from '../resume-versions/services/resume-version.service';
 
 describe('ResumesService - Bug Detection', () => {
   let service: ResumesService;
   let mockRepository: ResumesRepository;
+  let mockVersionService: ResumeVersionService;
 
   const mockResume = {
     id: 'resume-1',
@@ -36,10 +38,15 @@ describe('ResumesService - Bug Detection', () => {
       findByUserId: mock().mockResolvedValue(mockResume),
     } as any;
 
+    mockVersionService = {
+      createSnapshot: mock(() => Promise.resolve()),
+    } as any;
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ResumesService,
         { provide: ResumesRepository, useValue: mockRepository },
+        { provide: ResumeVersionService, useValue: mockVersionService },
       ],
     }).compile();
 
