@@ -75,11 +75,11 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
 
 WORKDIR /app
 
-# Copy dependencies from deps stage
-COPY --from=deps /app/node_modules ./node_modules
+# Copy built contracts to /profile-contracts (required for symlink in node_modules)
+COPY --from=contracts-builder /contracts /profile-contracts
 
-# Copy built contracts directly into node_modules
-COPY --from=contracts-builder /contracts ./node_modules/@octopus-synapse/profile-contracts
+# Copy dependencies from deps stage (includes symlink to ../profile-contracts)
+COPY --from=deps /app/node_modules ./node_modules
 
 # Copy source files
 COPY profile-services/ .
