@@ -232,6 +232,10 @@ describe('Sub-Resources Smoke Tests', () => {
           title: 'Sub-Resources Test Resume',
         });
 
+      if (res.status !== 201) {
+        throw new Error(`Failed to create resume: ${JSON.stringify(res.body)}`);
+      }
+
       resumeId = res.body.data.id;
       testContext.resumeId = resumeId;
     } else {

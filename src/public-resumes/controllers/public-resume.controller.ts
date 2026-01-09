@@ -58,7 +58,7 @@ export class PublicResumeController {
       req.socket.remoteAddress ??
       'unknown';
 
-    void this.analyticsService.trackEvent({
+    await this.analyticsService.trackEvent({
       shareId: share.id,
       event: 'VIEW',
       ip,

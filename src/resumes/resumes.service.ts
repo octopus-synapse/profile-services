@@ -84,9 +84,13 @@ export class ResumesService {
     this.logger.log(`Updating resume: ${id} for user: ${userId}`);
 
     // Create snapshot before update
-    void this.versionService.createSnapshot(id).catch((err: Error) => {
-      this.logger.error(`Failed to create version snapshot: ${err.message}`);
-    });
+    try {
+      await this.versionService.createSnapshot(id);
+    } catch (err) {
+      this.logger.error(
+        `Failed to create version snapshot: ${(err as Error).message}`,
+      );
+    }
 
     const resume = await this.resumesRepository.update(
       id,
