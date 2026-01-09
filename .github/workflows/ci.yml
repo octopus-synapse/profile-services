@@ -6,6 +6,11 @@ on:
     paths-ignore:
       - "CHANGELOG.md"
       - "package.json"
+  push:
+    branches: [main, dev]
+    paths-ignore:
+      - "CHANGELOG.md"
+      - "package.json"
 
 permissions:
   contents: read
@@ -13,8 +18,37 @@ permissions:
   pull-requests: write
 
 jobs:
+  # ============================================
+  # Detecta se é merge de PR (redundante) ou push direto (necessário)
+  # ============================================
+  check-trigger:
+    name: Check if CI should run
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.check.outputs.result }}
+    steps:
+      - id: check
+        run: |
+          # Se for PR, sempre roda
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "result=true" >> $GITHUB_OUTPUT
+            echo "✅ Running CI for PR"
+            exit 0
+          fi
+
+          # Se for push, verifica se NÃO é merge de PR
+          if ! echo "${{ github.event.head_commit.message }}" | grep -qE "^Merge pull request|^Merge branch"; then
+            echo "result=true" >> $GITHUB_OUTPUT
+            echo "✅ Running CI for direct push to ${{ github.ref_name }}"
+          else
+            echo "result=false" >> $GITHUB_OUTPUT
+            echo "⏭️  Skipping CI - already ran on PR #$(echo "${{ github.event.head_commit.message }}" | grep -oP '#\K\d+')"
+          fi
+
   integration:
     name: Integration Tests
+    needs: check-trigger
+    if: ${{ needs.check-trigger.outputs.should_run == 'true' }}
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -92,6 +126,8 @@ jobs:
 
   hook-compliance:
     name: Verify Pre-Commit Hooks Ran
+    needs: check-trigger
+    if: ${{ needs.check-trigger.outputs.should_run == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout profile-services
@@ -143,6 +179,8 @@ jobs:
 
   lint:
     name: ESLint (Type-Aware)
+    needs: check-trigger
+    if: ${{ needs.check-trigger.outputs.should_run == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout profile-services
