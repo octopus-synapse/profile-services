@@ -39,11 +39,13 @@ export class TalkRepository extends BaseSubResourceRepository<
     return buildCreateData({ resumeId, order: dto.order ?? order }, dto, {
       title: 'string',
       event: 'string',
+      eventType: 'string',
       location: 'optional',
       date: 'date',
       description: 'optional',
       slidesUrl: 'optional',
       videoUrl: 'optional',
+      attendees: 'number',
     });
   }
 
@@ -51,11 +53,13 @@ export class TalkRepository extends BaseSubResourceRepository<
     return buildUpdateData(dto, {
       title: 'string',
       event: 'string',
+      eventType: 'string',
       location: 'optional',
       date: 'date',
       description: 'optional',
       slidesUrl: 'optional',
       videoUrl: 'optional',
+      attendees: 'number',
       order: 'number',
     });
   }

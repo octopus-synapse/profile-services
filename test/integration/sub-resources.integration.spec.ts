@@ -114,7 +114,7 @@ const SUB_RESOURCES: SubResourceConfig[] = [
     createPayload: {
       title: 'Test Conference Talk',
       event: 'Tech Conference 2023',
-      eventType: 'Conference',
+      eventType: 'conference',
       date: '2023-06-15',
     },
     updatePayload: {
@@ -173,7 +173,7 @@ const SUB_RESOURCES: SubResourceConfig[] = [
     name: 'achievements',
     endpoint: 'achievements',
     createPayload: {
-      type: 'Award',
+      type: 'custom',
       title: 'Test Achievement',
       description: 'Achieved something great',
       achievedAt: '2023-01-01',

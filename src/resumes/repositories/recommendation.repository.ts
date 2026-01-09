@@ -44,23 +44,21 @@ export class RecommendationRepository extends BaseSubResourceRepository<
     order: number,
   ) {
     return buildCreateData({ resumeId, order: dto.order ?? order }, dto, {
-      recommenderName: 'string',
-      recommenderTitle: 'string',
-      recommenderCompany: 'optional',
-      relationship: 'string',
-      text: 'optional',
-      linkedinUrl: 'optional',
+      author: 'string',
+      position: 'optional',
+      company: 'optional',
+      content: 'string',
+      date: 'date',
     });
   }
 
   protected mapUpdateDto(dto: UpdateRecommendationDto) {
     return buildUpdateData(dto, {
-      recommenderName: 'string',
-      recommenderTitle: 'string',
-      recommenderCompany: 'optional',
-      relationship: 'string',
-      text: 'optional',
-      linkedinUrl: 'optional',
+      author: 'string',
+      position: 'optional',
+      company: 'optional',
+      content: 'string',
+      date: 'date',
       order: 'number',
     });
   }

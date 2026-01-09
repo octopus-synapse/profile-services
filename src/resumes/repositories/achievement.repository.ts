@@ -44,15 +44,27 @@ export class AchievementRepository extends BaseSubResourceRepository<
     order: number,
   ) {
     return buildCreateData({ resumeId, order: dto.order ?? order }, dto, {
+      type: 'string',
       title: 'string',
       description: 'optional',
+      badgeUrl: 'optional',
+      verificationUrl: 'optional',
+      achievedAt: 'date',
+      value: 'number',
+      rank: 'optional',
     });
   }
 
   protected mapUpdateDto(dto: UpdateAchievementDto) {
     return buildUpdateData(dto, {
+      type: 'string',
       title: 'string',
       description: 'optional',
+      badgeUrl: 'optional',
+      verificationUrl: 'optional',
+      achievedAt: 'date',
+      value: 'number',
+      rank: 'optional',
       order: 'number',
     });
   }

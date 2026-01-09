@@ -42,12 +42,14 @@ export class InterestRepository extends BaseSubResourceRepository<
   ) {
     return buildCreateData({ resumeId, order: dto.order ?? order }, dto, {
       name: 'string',
+      description: 'optional',
     });
   }
 
   protected mapUpdateDto(dto: UpdateInterestDto) {
     return buildUpdateData(dto, {
       name: 'string',
+      description: 'optional',
       order: 'number',
     });
   }

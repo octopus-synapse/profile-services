@@ -43,12 +43,15 @@ export class HackathonRepository extends BaseSubResourceRepository<
     return buildCreateData({ resumeId, order: dto.order ?? order }, dto, {
       name: 'string',
       organizer: 'string',
-      location: 'optional',
-      date: 'date',
-      achievement: 'optional',
+      position: 'optional',
+      projectName: 'string',
       description: 'optional',
-      projectUrl: 'optional',
       technologies: { type: 'array', default: [] },
+      teamSize: 'number',
+      demoUrl: 'optional',
+      repoUrl: 'optional',
+      date: 'date',
+      prize: 'optional',
     });
   }
 
@@ -56,12 +59,15 @@ export class HackathonRepository extends BaseSubResourceRepository<
     return buildUpdateData(dto, {
       name: 'string',
       organizer: 'string',
-      location: 'optional',
-      date: 'date',
-      achievement: 'optional',
+      position: 'optional',
+      projectName: 'string',
       description: 'optional',
-      projectUrl: 'optional',
       technologies: 'array',
+      teamSize: 'number',
+      demoUrl: 'optional',
+      repoUrl: 'optional',
+      date: 'date',
+      prize: 'optional',
       order: 'number',
     });
   }
