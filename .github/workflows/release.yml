@@ -81,22 +81,13 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_PAT }}
         run: |
           cd profile-services
-          
-          # Obter notas atuais
-          CURRENT_NOTES=$(gh release view "${{ needs.release-please.outputs.tag_name }}" --json body -q .body || echo "")
-          
-          # Atualizar com info do Docker
           gh release edit "${{ needs.release-please.outputs.tag_name }}" \
             --notes "## Docker Images
 
-\`\`\`bash
-docker pull ghcr.io/${{ github.repository }}:${{ steps.version.outputs.version }}
-docker pull ghcr.io/${{ github.repository }}:latest
-\`\`\`
+          \`\`\`bash
+          docker pull ghcr.io/${{ github.repository }}:${{ steps.version.outputs.version }}
+          docker pull ghcr.io/${{ github.repository }}:latest
+          \`\`\`
 
-> **Note:** This release creates versioned artifacts but does NOT deploy to production.
-> Production deployment occurs exclusively via global release orchestration.
-
----
-
-${CURRENT_NOTES}"
+          > **Note:** This release creates versioned artifacts but does NOT deploy to production.
+          > Production deployment occurs exclusively via global release orchestration."
