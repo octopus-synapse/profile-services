@@ -1,5 +1,16 @@
 # Changelog
 
+## [5.0.0](https://github.com/octopus-synapse/profile-services/compare/profile-services-v4.0.0...profile-services-v5.0.0) (2026-01-09)
+
+
+### ⚠ BREAKING CHANGES
+
+* Global JwtAuthGuard is now applied before TosGuard
+
+### Features
+
+* gdpr compliance ([#92](https://github.com/octopus-synapse/profile-services/issues/92)) ([f89f18c](https://github.com/octopus-synapse/profile-services/commit/f89f18c6ba55e4a491f5322a5fe3b7052dcc5d8e))
+
 ## [4.0.0](https://github.com/octopus-synapse/profile-services/compare/profile-services-v3.1.0...profile-services-v4.0.0) (2026-01-09)
 
 
