@@ -3,8 +3,14 @@ name: CI
 on:
   pull_request:
     branches: [main, dev]
+    paths-ignore:
+      - "CHANGELOG.md"
+      - "package.json"
   push:
     branches: [main, dev]
+    paths-ignore:
+      - "CHANGELOG.md"
+      - "package.json"
 
 permissions:
   contents: read
@@ -89,6 +95,57 @@ jobs:
           JWT_SECRET: test-secret
           NODE_ENV: test
 
+  hook-compliance:
+    name: Verify Pre-Commit Hooks Ran
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout profile-services
+        uses: actions/checkout@v4
+        with:
+          path: services
+
+      - name: Checkout profile-contracts
+        uses: actions/checkout@v4
+        with:
+          repository: octopus-synapse/profile-contracts
+          path: profile-contracts
+          token: ${{ secrets.GH_PAT }}
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.23
+
+      - name: Install contracts dependencies
+        working-directory: profile-contracts
+        run: bun install --frozen-lockfile
+
+      - name: Build contracts
+        working-directory: profile-contracts
+        run: bun run build
+
+      - name: Install dependencies
+        working-directory: services
+        run: bun install --frozen-lockfile
+
+      - name: Generate Prisma Client
+        working-directory: services
+        run: bunx prisma generate
+
+      - name: Check if pre-commit hooks were bypassed
+        working-directory: services
+        run: |
+          echo "🔍 Verificando se pre-commit foi executado..."
+
+          # Roda lint - se falhar, pre-commit foi ignorado
+          if ! bun run lint; then
+            echo "❌ LINT FALHOU - alguém usou --no-verify"
+            echo "Pre-commit hooks devem ser executados antes do commit."
+            echo "Se você precisa emergencialmente pular hooks, o CI vai pegar de qualquer forma."
+            exit 1
+          fi
+
+          echo "✅ Pre-commit hooks foram executados corretamente"
+
   lint:
     name: ESLint (Type-Aware)
     runs-on: ubuntu-latest
@@ -132,7 +189,7 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
-    needs: [integration, lint]
+    needs: [integration, hook-compliance, lint]
     steps:
       - name: Checkout profile-services
         uses: actions/checkout@v4
