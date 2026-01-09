@@ -215,16 +215,18 @@ const SUB_RESOURCES: SubResourceConfig[] = [
 
 describe('Sub-Resources Smoke Tests', () => {
   let resumeId: string;
+  let accessToken: string;
 
   beforeAll(async () => {
     await getApp();
-    // Force a fresh user for this suite to avoid resume limit conflicts and shared state issues
-    await createTestUserAndLogin();
+    // Use a suite-local token to avoid races with other integration files mutating testContext
+    const login = await createTestUserAndLogin();
+    accessToken = login.accessToken;
 
     // Create a resume for testing sub-resources
     const res = await getRequest()
       .post('/api/v1/resumes')
-      .set(authHeader())
+      .set(authHeader(accessToken))
       .send({
         title: 'Sub-Resources Test Resume',
       });
@@ -249,7 +251,7 @@ describe('Sub-Resources Smoke Tests', () => {
       it(`POST /api/resumes/:id/${endpoint} - should create ${name}`, async () => {
         const res = await getRequest()
           .post(`/api/v1/resumes/${resumeId}/${endpoint}`)
-          .set(authHeader())
+          .set(authHeader(accessToken))
           .send(createPayload);
 
         // Accept both 200 and 201 as success
@@ -263,7 +265,7 @@ describe('Sub-Resources Smoke Tests', () => {
       it(`GET /api/resumes/:id/${endpoint} - should list ${name}`, async () => {
         const res = await getRequest()
           .get(`/api/v1/resumes/${resumeId}/${endpoint}`)
-          .set(authHeader());
+          .set(authHeader(accessToken));
 
         expect(res.status).toBe(200);
         expect(res.body).toHaveProperty('data');
@@ -278,7 +280,7 @@ describe('Sub-Resources Smoke Tests', () => {
 
         const res = await getRequest()
           .get(`/api/v1/resumes/${resumeId}/${endpoint}/${itemId}`)
-          .set(authHeader());
+          .set(authHeader(accessToken));
 
         expect(res.status).toBe(200);
         expect(res.body).toHaveProperty('data');
@@ -293,7 +295,7 @@ describe('Sub-Resources Smoke Tests', () => {
 
         const res = await getRequest()
           .patch(`/api/v1/resumes/${resumeId}/${endpoint}/${itemId}`)
-          .set(authHeader())
+          .set(authHeader(accessToken))
           .send(updatePayload);
 
         expect(res.status).toBe(200);
@@ -308,7 +310,7 @@ describe('Sub-Resources Smoke Tests', () => {
 
         const res = await getRequest()
           .delete(`/api/v1/resumes/${resumeId}/${endpoint}/${itemId}`)
-          .set(authHeader());
+          .set(authHeader(accessToken));
 
         expect(res.status).toBe(200);
       });
@@ -328,7 +330,7 @@ describe('Sub-Resources Smoke Tests', () => {
       const fakeResumeId = '00000000-0000-0000-0000-000000000000';
       const res = await getRequest()
         .get(`/api/v1/resumes/${fakeResumeId}/experiences`)
-        .set(authHeader());
+        .set(authHeader(accessToken));
 
       // Could be 400 (validation), 403 (forbidden) or 404 (not found)
       expect([400, 403, 404].includes(res.status)).toBe(true);
