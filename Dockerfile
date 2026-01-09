@@ -75,11 +75,11 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
 
 WORKDIR /app
 
-# Copy built contracts
-COPY --from=contracts-builder /contracts /profile-contracts
-
 # Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
+
+# Copy built contracts directly into node_modules
+COPY --from=contracts-builder /contracts ./node_modules/@octopus-synapse/profile-contracts
 
 # Copy source files
 COPY profile-services/ .
@@ -136,9 +136,6 @@ RUN chown -R nestjs:nodejs /app
 
 # Switch to nestjs user
 USER nestjs
-
-# Copy built contracts for runtime
-COPY --from=contracts-builder /contracts /profile-contracts
 
 # Expose backend port
 ARG PORT=3001
