@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.1.0](https://github.com/octopus-synapse/profile-services/compare/profile-services-v5.0.0...profile-services-v5.1.0) (2026-01-10)
+
+
+### Features
+
+* **#65:** Resume Analytics & Insights Module ([#94](https://github.com/octopus-synapse/profile-services/issues/94)) ([5510067](https://github.com/octopus-synapse/profile-services/commit/5510067e3a7ffdab063ba0f9b5561fd19fdf054b))
+
 ## [5.0.0](https://github.com/octopus-synapse/profile-services/compare/profile-services-v4.0.0...profile-services-v5.0.0) (2026-01-09)
 
 
