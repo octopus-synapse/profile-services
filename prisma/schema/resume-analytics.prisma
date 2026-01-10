@@ -1,0 +1,54 @@
+// Resume Analytics - Track ATS scores, keywords, and benchmarks
+
+model ResumeAnalytics {
+  id        String   @id @default(cuid())
+  resumeId  String
+  resume    Resume   @relation("ResumeAnalytics", fields: [resumeId], references: [id], onDelete: Cascade)
+  
+  // Scores
+  atsScore          Int      // 0-100
+  keywordScore      Int      // 0-100
+  completenessScore Int      // 0-100
+  
+  // Industry benchmarking
+  industryRank    Int?
+  totalInIndustry Int?
+  
+  // Keyword analysis
+  topKeywords     String[]
+  missingKeywords String[]
+  
+  // Improvement tracking
+  improvementSuggestions String[]
+  
+  createdAt DateTime @default(now())
+  
+  @@index([resumeId])
+  @@index([createdAt])
+  @@map("resume_analytics")
+}
+
+model ResumeViewEvent {
+  id        String   @id @default(cuid())
+  resumeId  String
+  resume    Resume   @relation("ResumeViews", fields: [resumeId], references: [id], onDelete: Cascade)
+  
+  // Anonymized tracking (GDPR)
+  ipHash    String   // SHA-256 hashed IP
+  userAgent String?
+  referer   String?
+  
+  // Geo data
+  country   String?  // ISO 3166-1 alpha-2
+  city      String?
+  
+  // Traffic source
+  source    String   @default("direct") // linkedin, github, google, direct, etc.
+  
+  createdAt DateTime @default(now())
+  
+  @@index([resumeId])
+  @@index([createdAt])
+  @@index([source])
+  @@map("resume_view_events")
+}

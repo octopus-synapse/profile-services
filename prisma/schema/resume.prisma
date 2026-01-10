@@ -80,6 +80,8 @@ model Resume {
   hackathons      Hackathon[]
   shares          ResumeShare[]            @relation("ResumeShares")
   versions        ResumeVersion[]          @relation("ResumeVersions")
+  analytics       ResumeAnalytics[]        @relation("ResumeAnalytics")
+  viewEvents      ResumeViewEvent[]        @relation("ResumeViews")
 
   @@index([userId])
   @@index([slug])
