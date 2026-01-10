@@ -29,6 +29,7 @@ import { GraphqlModule } from './graphql/graphql.module';
 import { PublicResumesModule } from './public-resumes/public-resumes.module';
 import { ResumeVersionsModule } from './resume-versions/resume-versions.module';
 import { ShareAnalyticsModule } from './share-analytics/share-analytics.module';
+import { ResumeAnalyticsModule } from './resume-analytics/resume-analytics.module';
 import { validate } from './common/config/env.validation';
 import { APP_CONSTANTS } from './common/constants/config';
 
@@ -69,6 +70,7 @@ import { APP_CONSTANTS } from './common/constants/config';
     PublicResumesModule,
     ResumeVersionsModule,
     ShareAnalyticsModule,
+    ResumeAnalyticsModule,
   ],
   controllers: [AppController],
   providers: [
