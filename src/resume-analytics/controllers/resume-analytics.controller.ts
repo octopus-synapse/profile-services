@@ -76,9 +76,9 @@ export class ResumeAnalyticsController {
   ): Promise<AppApiResponse> {
     await this.analyticsService.trackView({
       resumeId,
-      ip: req.ip || '0.0.0.0',
+      ip: req.ip ?? '0.0.0.0',
       userAgent: req.headers['user-agent'],
-      referer: req.headers['referer'] as string | undefined,
+      referer: req.headers['referer'],
     });
 
     return ApiResponseHelper.message('View tracked successfully');

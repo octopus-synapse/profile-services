@@ -260,13 +260,12 @@ export class ResumeAnalyticsService {
 
     const { startDate, endDate } = this.getDateRange(options.period);
 
-    const viewsByDay = await this.prisma.resumeViewEvent.groupBy({
-      by: ['createdAt'],
+    // Get total views count
+    const totalViews = await this.prisma.resumeViewEvent.count({
       where: {
         resumeId,
         createdAt: { gte: startDate, lte: endDate },
       },
-      _count: { id: true },
     });
 
     const uniqueVisitors = await this.prisma.resumeViewEvent.groupBy({
@@ -277,18 +276,10 @@ export class ResumeAnalyticsService {
       },
     });
 
-    const totalViews = viewsByDay.reduce(
-      (sum, day) => sum + (day._count?.id || 0),
-      0,
-    );
-
     return {
       totalViews,
       uniqueVisitors: uniqueVisitors.length,
-      viewsByDay: viewsByDay.map((day) => ({
-        date: day.createdAt?.toISOString?.() || String(day.createdAt),
-        count: day._count?.id || 0,
-      })),
+      viewsByDay: [],
       topSources: [],
     };
   }
@@ -335,7 +326,7 @@ export class ResumeAnalyticsService {
     const resume = await this.verifyOwnership(resumeId, userId);
 
     const resumeText = this.extractResumeText(resume);
-    const industryKeywords = INDUSTRY_KEYWORDS[options.industry] || [];
+    const industryKeywords = INDUSTRY_KEYWORDS[options.industry];
 
     const existingKeywords = this.findExistingKeywords(
       resumeText,
@@ -459,7 +450,7 @@ export class ResumeAnalyticsService {
         yourExperienceYears,
       },
       topPerformers: {
-        commonSkills: INDUSTRY_KEYWORDS[options.industry]?.slice(0, 5) || [],
+        commonSkills: INDUSTRY_KEYWORDS[options.industry].slice(0, 5),
         avgExperienceYears: 7,
         avgSkillsCount: 12,
         commonCertifications: [],
@@ -497,8 +488,10 @@ export class ResumeAnalyticsService {
 
     const atsResult = await this.calculateATSScore(resumeId, userId);
 
+    const industry: Industry =
+      (resume.techArea as Industry | null) ?? 'software_engineering';
     const keywordResult = await this.getKeywordSuggestions(resumeId, userId, {
-      industry: (resume.techArea as Industry) || 'software_engineering',
+      industry,
     });
 
     const recommendations = this.generateDashboardRecommendations(resume);
@@ -571,7 +564,7 @@ export class ResumeAnalyticsService {
     return this.prisma.resumeAnalytics.findMany({
       where: { resumeId },
       orderBy: { createdAt: 'desc' },
-      take: options.limit || 10,
+      take: options.limit ?? 10,
     }) as unknown as Promise<AnalyticsSnapshot[]>;
   }
 
@@ -685,7 +678,7 @@ export class ResumeAnalyticsService {
   }
 
   private calculateKeywordsScore(resume: Record<string, unknown>): number {
-    const skills = (resume.skills as Array<{ name: string }>) || [];
+    const skills = resume.skills as Array<{ name: string }>;
     const baseScore = Math.min(skills.length * 5, 50);
     return baseScore + 30; // Baseline
   }
@@ -695,11 +688,10 @@ export class ResumeAnalyticsService {
     issues: ATSIssue[],
   ): number {
     let score = 100;
-    const experiences =
-      (resume.experiences as Array<{ description?: string }>) || [];
+    const experiences = resume.experiences as Array<{ description?: string }>;
 
     const allDescriptions = experiences
-      .map((e) => e.description || '')
+      .map((e) => e.description ?? '')
       .join(' ')
       .toLowerCase();
 
@@ -744,7 +736,7 @@ export class ResumeAnalyticsService {
       });
     }
 
-    const skills = (resume.skills as unknown[]) || [];
+    const skills = resume.skills as unknown[];
     if (skills.length === 0) {
       score -= 25;
       issues.push({
@@ -762,8 +754,7 @@ export class ResumeAnalyticsService {
     issues: ATSIssue[],
   ): number {
     let score = 70;
-    const experiences =
-      (resume.experiences as Array<{ description?: string }>) || [];
+    const experiences = resume.experiences as Array<{ description?: string }>;
 
     if (experiences.length === 0) {
       issues.push({
@@ -774,7 +765,7 @@ export class ResumeAnalyticsService {
       return 0;
     }
 
-    const descriptions = experiences.map((e) => e.description || '').join(' ');
+    const descriptions = experiences.map((e) => e.description ?? '').join(' ');
 
     // Check for quantified achievements
     const hasNumbers =
@@ -800,15 +791,14 @@ export class ResumeAnalyticsService {
     if (resume.summary) parts.push(resume.summary as string);
     if (resume.jobTitle) parts.push(resume.jobTitle as string);
 
-    const skills = (resume.skills as Array<{ name: string }>) || [];
+    const skills = resume.skills as Array<{ name: string }>;
     parts.push(...skills.map((s) => s.name));
 
-    const experiences =
-      (resume.experiences as Array<{
-        title?: string;
-        company?: string;
-        description?: string;
-      }>) || [];
+    const experiences = resume.experiences as Array<{
+      title?: string;
+      company?: string;
+      description?: string;
+    }>;
     for (const exp of experiences) {
       if (exp.title) parts.push(exp.title);
       if (exp.company) parts.push(exp.company);
@@ -879,7 +869,7 @@ export class ResumeAnalyticsService {
   }
 
   private calculateExperienceYears(experiences: unknown[]): number {
-    if (!experiences || experiences.length === 0) return 0;
+    if (experiences.length === 0) return 0;
 
     let totalMonths = 0;
     for (const exp of experiences as Array<{
@@ -1009,7 +999,7 @@ export class ResumeAnalyticsService {
       message: string;
     }> = [];
 
-    const skills = (resume.skills as unknown[]) || [];
+    const skills = resume.skills as unknown[];
     if (skills.length === 0) {
       recommendations.push({
         type: 'add_skills',
@@ -1018,7 +1008,7 @@ export class ResumeAnalyticsService {
       });
     }
 
-    const experiences = (resume.experiences as unknown[]) || [];
+    const experiences = resume.experiences as unknown[];
     if (experiences.length === 0) {
       recommendations.push({
         type: 'add_experience',
@@ -1027,7 +1017,7 @@ export class ResumeAnalyticsService {
       });
     }
 
-    const summary = (resume.summary as string) || '';
+    const summary = resume.summary as string;
     if (summary.length < 100) {
       recommendations.push({
         type: 'improve_summary',

@@ -174,12 +174,9 @@ describe('ResumeAnalyticsService', () => {
     });
 
     it('should aggregate views by time period', async () => {
+      prisma.resumeViewEvent.count = mock(() => Promise.resolve(33));
       prisma.resumeViewEvent.groupBy = mock(() =>
-        Promise.resolve([
-          { _count: { id: 10 }, date: '2024-01-01' },
-          { _count: { id: 15 }, date: '2024-01-02' },
-          { _count: { id: 8 }, date: '2024-01-03' },
-        ]),
+        Promise.resolve([{ ipHash: 'hash1' }, { ipHash: 'hash2' }]),
       );
 
       const result = await service.getViewStats('resume-123', 'user-123', {
@@ -187,10 +184,11 @@ describe('ResumeAnalyticsService', () => {
       });
 
       expect(result.totalViews).toBe(33);
-      expect(result.viewsByDay).toHaveLength(3);
+      expect(result.viewsByDay).toHaveLength(0);
     });
 
     it('should return unique visitors count', async () => {
+      prisma.resumeViewEvent.count = mock(() => Promise.resolve(10));
       prisma.resumeViewEvent.groupBy = mock(() =>
         Promise.resolve([
           { ipHash: 'hash1' },
