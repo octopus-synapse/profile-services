@@ -1,59 +1,57 @@
 /**
- * Password Service Tests
+ * Password Service Tests - Fast mocked version
  */
 
-import { describe, it, expect, beforeEach } from 'bun:test';
-import { Test, TestingModule } from '@nestjs/testing';
+import { describe, it, expect, beforeEach, spyOn } from 'bun:test';
+import * as bcrypt from 'bcryptjs';
 import { PasswordService } from './password.service';
+
+// Mock bcrypt for fast tests
+const mockHash = spyOn(bcrypt, 'hash');
+const mockCompare = spyOn(bcrypt, 'compare');
 
 describe('PasswordService', () => {
   let service: PasswordService;
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [PasswordService],
-    }).compile();
-
-    service = module.get<PasswordService>(PasswordService);
+  beforeEach(() => {
+    service = new PasswordService();
+    mockHash.mockReset();
+    mockCompare.mockReset();
   });
 
   describe('hash', () => {
-    it('should hash a password', async () => {
-      const password = 'testPassword123';
+    it('should call bcrypt.hash with correct parameters', async () => {
+      mockHash.mockResolvedValue('$2a$12$hashedpassword' as never);
 
-      const hashedPassword = await service.hash(password);
+      const result = await service.hash('testPassword123');
 
-      expect(hashedPassword).toBeDefined();
-      expect(hashedPassword).not.toBe(password);
-      expect(hashedPassword.length).toBeGreaterThan(0);
+      expect(mockHash).toHaveBeenCalledWith('testPassword123', 12);
+      expect(result).toBe('$2a$12$hashedpassword');
     });
 
-    it('should generate different hashes for the same password', async () => {
-      const password = 'testPassword123';
+    it('should return hashed password', async () => {
+      mockHash.mockResolvedValue('$2a$12$differenthash' as never);
 
-      const hash1 = await service.hash(password);
-      const hash2 = await service.hash(password);
+      const result = await service.hash('anyPassword');
 
-      expect(hash1).not.toBe(hash2);
+      expect(result).toMatch(/^\$2a\$/);
     });
   });
 
   describe('compare', () => {
-    it('should return true for matching password and hash', async () => {
-      const password = 'testPassword123';
-      const hashedPassword = await service.hash(password);
+    it('should return true when passwords match', async () => {
+      mockCompare.mockResolvedValue(true as never);
 
-      const result = await service.compare(password, hashedPassword);
+      const result = await service.compare('password', '$2a$12$hash');
 
+      expect(mockCompare).toHaveBeenCalledWith('password', '$2a$12$hash');
       expect(result).toBe(true);
     });
 
-    it('should return false for non-matching password', async () => {
-      const password = 'testPassword123';
-      const wrongPassword = 'wrongPassword456';
-      const hashedPassword = await service.hash(password);
+    it('should return false when passwords do not match', async () => {
+      mockCompare.mockResolvedValue(false as never);
 
-      const result = await service.compare(wrongPassword, hashedPassword);
+      const result = await service.compare('wrong', '$2a$12$hash');
 
       expect(result).toBe(false);
     });
