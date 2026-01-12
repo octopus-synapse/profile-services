@@ -1,6 +1,10 @@
 [test]
 # Test configuration for Bun - NestJS Services
 root = "./src"
+# Increase parallelism (default: CPU cores)
+# concurrency = 8  # Uncomment to override
+# Preload common test setup (optional, enable if you measure overhead)
+# preload = ["./test/setup.ts"]
 
 [install.scopes]
 "@octopus-synapse" = { token = "$BUN_AUTH_TOKEN", url = "https://npm.pkg.github.com" }

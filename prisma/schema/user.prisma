@@ -52,6 +52,11 @@ model User {
   blockedUsers                BlockedUser[]  @relation("Blocker")
   blockedByUsers              BlockedUser[]  @relation("Blocked")
 
+  // Social features
+  followers  Follow[]   @relation("Following")
+  following  Follow[]   @relation("Followers")
+  activities Activity[] @relation("UserActivities")
+
   @@index([username])
   @@index([email])
   @@index([role])

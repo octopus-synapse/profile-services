@@ -79,6 +79,96 @@ describe('Smoke Tests - Application Bootstrap', () => {
       const { UsersService } = await import('../../src/users/users.service');
       expect(UsersService).toBeDefined();
     });
+
+    it('should import CacheService', async () => {
+      const { CacheService } = await import(
+        '../../src/common/cache/cache.service'
+      );
+      expect(CacheService).toBeDefined();
+    });
+
+    it('should import CacheInvalidationService', async () => {
+      const { CacheInvalidationService } = await import(
+        '../../src/common/cache/services/cache-invalidation.service'
+      );
+      expect(CacheInvalidationService).toBeDefined();
+    });
+
+    it('should import CacheWarmingService', async () => {
+      const { CacheWarmingService } = await import(
+        '../../src/common/cache/services/cache-warming.service'
+      );
+      expect(CacheWarmingService).toBeDefined();
+    });
+  });
+
+  describe('Cache Decorators', () => {
+    it('should import @Cacheable decorator', async () => {
+      const { Cacheable, buildCacheKey } = await import(
+        '../../src/common/cache/decorators/cacheable.decorator'
+      );
+      expect(Cacheable).toBeDefined();
+      expect(buildCacheKey).toBeDefined();
+    });
+
+    it('should import @CacheInvalidate decorator', async () => {
+      const { CacheInvalidate } = await import(
+        '../../src/common/cache/decorators/cache-invalidate.decorator'
+      );
+      expect(CacheInvalidate).toBeDefined();
+    });
+
+    it('should build cache key correctly', async () => {
+      const { buildCacheKey } = await import(
+        '../../src/common/cache/decorators/cacheable.decorator'
+      );
+      const key = buildCacheKey('user:{0}:profile', ['user-123']);
+      expect(key).toBe('user:user-123:profile');
+    });
+  });
+
+  describe('Social Module Imports', () => {
+    it('should import SocialModule', async () => {
+      const { SocialModule } = await import('../../src/social/social.module');
+      expect(SocialModule).toBeDefined();
+    });
+
+    it('should import FollowService', async () => {
+      const { FollowService } = await import(
+        '../../src/social/services/follow.service'
+      );
+      expect(FollowService).toBeDefined();
+    });
+
+    it('should import ActivityService', async () => {
+      const { ActivityService } = await import(
+        '../../src/social/services/activity.service'
+      );
+      expect(ActivityService).toBeDefined();
+    });
+
+    it('should import FollowController', async () => {
+      const { FollowController } = await import(
+        '../../src/social/controllers/follow.controller'
+      );
+      expect(FollowController).toBeDefined();
+    });
+
+    it('should import ActivityController', async () => {
+      const { ActivityController } = await import(
+        '../../src/social/controllers/activity.controller'
+      );
+      expect(ActivityController).toBeDefined();
+    });
+
+    it('should export all social features from index', async () => {
+      const social = await import('../../src/social');
+      expect(social.SocialModule).toBeDefined();
+      expect(social.FollowService).toBeDefined();
+      expect(social.ActivityService).toBeDefined();
+      expect(social.FollowController).toBeDefined();
+      expect(social.ActivityController).toBeDefined();
+    });
   });
 
   describe('External Dependencies', () => {

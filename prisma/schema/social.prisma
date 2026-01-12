@@ -1,0 +1,30 @@
+// Social Features Schema - Follow and Activity models
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  follower    User     @relation("Followers", fields: [followerId], references: [id], onDelete: Cascade)
+  followingId String
+  following   User     @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+  @@index([createdAt])
+}
+
+model Activity {
+  id         String       @id @default(cuid())
+  userId     String
+  user       User         @relation("UserActivities", fields: [userId], references: [id], onDelete: Cascade)
+  type       ActivityType
+  metadata   Json?
+  entityId   String? // ID of related entity (resume, theme, etc.)
+  entityType String? // Type of related entity
+  createdAt  DateTime     @default(now())
+
+  @@index([userId, createdAt])
+  @@index([type, createdAt])
+  @@index([entityId])
+}
