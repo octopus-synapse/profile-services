@@ -1,7 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { BugBounty } from '@prisma/client';
-import { CreateBugBountyDto, UpdateBugBountyDto } from '../dto/bug-bounty.dto';
+import type {
+  CreateBugBounty,
+  UpdateBugBounty,
+} from '@octopus-synapse/profile-contracts';
 import {
   BaseSubResourceRepository,
   OrderByConfig,
@@ -17,8 +20,8 @@ import {
 @Injectable()
 export class BugBountyRepository extends BaseSubResourceRepository<
   BugBounty,
-  CreateBugBountyDto,
-  UpdateBugBountyDto
+  CreateBugBounty,
+  UpdateBugBounty
 > {
   protected readonly logger = new Logger(BugBountyRepository.name);
 
@@ -34,11 +37,7 @@ export class BugBountyRepository extends BaseSubResourceRepository<
     return { type: 'date-desc', field: 'reportedAt' };
   }
 
-  protected mapCreateDto(
-    resumeId: string,
-    dto: CreateBugBountyDto,
-    order: number,
-  ) {
+  protected mapCreate(resumeId: string, dto: CreateBugBounty, order: number) {
     return {
       resumeId,
       platform: dto.platform,
@@ -55,7 +54,7 @@ export class BugBountyRepository extends BaseSubResourceRepository<
     };
   }
 
-  protected mapUpdateDto(dto: UpdateBugBountyDto) {
+  protected mapUpdate(dto: UpdateBugBounty) {
     return buildUpdateData(dto, {
       platform: 'string',
       company: 'string',

@@ -25,9 +25,11 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { AdminService } from '../admin.service';
-import { CreateUserDto } from '../dto/create-user.dto';
-import { UpdateUserDto } from '../dto/update-user.dto';
-import { AdminResetPasswordDto } from '../dto/reset-password.dto';
+import type {
+  AdminCreateUser,
+  AdminUpdateUser,
+  AdminResetPassword,
+} from '@octopus-synapse/profile-contracts';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -75,8 +77,8 @@ export class AdminUsersController {
   @ApiOperation({ summary: 'Create new user (Admin only)' })
   @ApiResponse({ status: 201, description: 'User created successfully' })
   @ApiResponse({ status: 409, description: 'Email already exists' })
-  async createUser(@Body() createUserDto: CreateUserDto) {
-    return this.adminService.createUser(createUserDto);
+  async createUser(@Body() createUser: AdminCreateUser) {
+    return this.adminService.createUser(createUser);
   }
 
   @Patch('users/:id')
@@ -85,9 +87,9 @@ export class AdminUsersController {
   @ApiResponse({ status: 404, description: 'User not found' })
   async updateUser(
     @Param('id') id: string,
-    @Body() updateUserDto: UpdateUserDto,
+    @Body() updateUser: AdminUpdateUser,
   ) {
-    return this.adminService.updateUser(id, updateUserDto);
+    return this.adminService.updateUser(id, updateUser);
   }
 
   @Delete('users/:id')
@@ -118,7 +120,7 @@ export class AdminUsersController {
   @ApiResponse({ status: 404, description: 'User not found' })
   async resetUserPassword(
     @Param('id') id: string,
-    @Body() dto: AdminResetPasswordDto,
+    @Body() dto: AdminResetPassword,
   ) {
     return this.adminService.resetUserPassword(id, dto);
   }

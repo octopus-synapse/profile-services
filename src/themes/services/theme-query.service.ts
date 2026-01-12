@@ -6,20 +6,20 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ThemeStatus, Prisma } from '@prisma/client';
-import { QueryThemesDto } from '../dto';
-import { APP_CONSTANTS } from '../../common/constants/config';
+import type { QueryThemes } from '@octopus-synapse/profile-contracts';
+import { APP_CONFIG } from '@octopus-synapse/profile-contracts';
 
 @Injectable()
 export class ThemeQueryService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll(query: QueryThemesDto, userId?: string) {
+  async findAll(query: QueryThemes, userId?: string) {
     const where = this.buildWhereClause(query, userId);
     const {
       sortBy = 'createdAt',
       sortDir = 'desc',
       page = 1,
-      limit = APP_CONSTANTS.DEFAULT_PAGE_SIZE,
+      limit = APP_CONFIG.DEFAULT_PAGE_SIZE,
     } = query;
 
     const [data, total] = await Promise.all([
@@ -59,7 +59,7 @@ export class ThemeQueryService {
     return theme;
   }
 
-  async getPopular(limit: number = APP_CONSTANTS.SEARCH_AUTOCOMPLETE_LIMIT) {
+  async getPopular(limit: number = APP_CONFIG.SEARCH_AUTOCOMPLETE_LIMIT) {
     return this.prisma.resumeTheme.findMany({
       where: { status: ThemeStatus.PUBLISHED },
       orderBy: [{ usageCount: 'desc' }, { rating: 'desc' }],
@@ -83,7 +83,7 @@ export class ThemeQueryService {
   }
 
   private buildWhereClause(
-    query: QueryThemesDto,
+    query: QueryThemes,
     userId?: string,
   ): Prisma.ResumeThemeWhereInput {
     const where: Prisma.ResumeThemeWhereInput = {};

@@ -16,7 +16,7 @@ import { ApiTags, ApiOperation, ApiQuery, ApiHeader } from '@nestjs/swagger';
 import { InternalAuthGuard } from '../guards/internal-auth.guard';
 import { Public } from '../../auth/decorators/public.decorator';
 import { MecSyncOrchestratorService } from '../services/mec-sync.service';
-import { APP_CONSTANTS } from '../../common/constants/config';
+import { APP_CONFIG } from '@octopus-synapse/profile-contracts';
 
 @ApiTags('mec-internal')
 @Controller('v1/mec/internal')
@@ -68,7 +68,7 @@ export class MecSyncInternalController {
   async getSyncHistory(@Query('limit') limit?: string) {
     const parsedLimit = limit
       ? parseInt(limit, 10)
-      : APP_CONSTANTS.SEARCH_AUTOCOMPLETE_LIMIT;
+      : APP_CONFIG.SEARCH_AUTOCOMPLETE_LIMIT;
     const history = await this.syncOrchestrator.getSyncHistory(parsedLimit);
     return { history };
   }

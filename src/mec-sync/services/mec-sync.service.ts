@@ -17,7 +17,7 @@ import {
   MEC_CACHE_KEYS,
   MEC_CACHE_TTL,
 } from '../interfaces/mec-data.interface';
-import { APP_CONSTANTS } from '../../common/constants/config';
+import { APP_CONFIG } from '@octopus-synapse/profile-contracts';
 
 @Injectable()
 export class MecSyncOrchestratorService {
@@ -120,9 +120,7 @@ export class MecSyncOrchestratorService {
     return this.syncLogRepo.findLast();
   }
 
-  async getSyncHistory(
-    limit: number = APP_CONSTANTS.SEARCH_AUTOCOMPLETE_LIMIT,
-  ) {
+  async getSyncHistory(limit: number = APP_CONFIG.SEARCH_AUTOCOMPLETE_LIMIT) {
     return this.syncLogRepo.findHistory(limit);
   }
 }

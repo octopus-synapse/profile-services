@@ -18,8 +18,10 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { AuthService } from '../auth.service';
-import { ChangeEmailDto } from '../dto/change-email.dto';
-import { DeleteAccountDto } from '../dto/delete-account.dto';
+import type {
+  ChangeEmail,
+  DeleteAccount,
+} from '@octopus-synapse/profile-contracts';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { UserPayload } from '../interfaces/auth-request.interface';
@@ -39,7 +41,7 @@ export class AuthAccountController {
   @ApiResponse({ status: 409, description: 'Email already in use' })
   async changeEmail(
     @CurrentUser() user: UserPayload,
-    @Body() dto: ChangeEmailDto,
+    @Body() dto: ChangeEmail,
   ) {
     return this.authService.changeEmail(user.userId, dto);
   }
@@ -53,7 +55,7 @@ export class AuthAccountController {
   @ApiResponse({ status: 401, description: 'Password is incorrect' })
   async deleteAccount(
     @CurrentUser() user: UserPayload,
-    @Body() dto: DeleteAccountDto,
+    @Body() dto: DeleteAccount,
   ) {
     return this.authService.deleteAccount(user.userId, dto);
   }

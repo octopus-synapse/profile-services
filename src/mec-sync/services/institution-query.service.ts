@@ -7,15 +7,15 @@ import { Injectable } from '@nestjs/common';
 import { CacheService } from '../../common/cache/cache.service';
 import { InstitutionRepository } from '../repositories';
 import {
-  InstitutionDto,
-  InstitutionWithCoursesDto,
-  CourseBasicDto,
-} from '../dto';
+  Institution,
+  InstitutionWithCourses,
+  CourseBasic,
+} from '@octopus-synapse/profile-contracts';
 import {
   MEC_CACHE_KEYS,
   MEC_CACHE_TTL,
 } from '../interfaces/mec-data.interface';
-import { APP_CONSTANTS } from '../../common/constants/config';
+import { APP_CONFIG } from '@octopus-synapse/profile-contracts';
 
 @Injectable()
 export class InstitutionQueryService {
@@ -24,8 +24,8 @@ export class InstitutionQueryService {
     private readonly cache: CacheService,
   ) {}
 
-  async listAll(): Promise<InstitutionDto[]> {
-    const cached = await this.cache.get<InstitutionDto[]>(
+  async listAll(): Promise<Institution[]> {
+    const cached = await this.cache.get<Institution[]>(
       MEC_CACHE_KEYS.INSTITUTIONS_LIST,
     );
     if (cached) return cached;
@@ -41,11 +41,11 @@ export class InstitutionQueryService {
     return institutions;
   }
 
-  async listByState(uf: string): Promise<InstitutionDto[]> {
+  async listByState(uf: string): Promise<Institution[]> {
     const normalizedUf = uf.toUpperCase();
     const cacheKey = `${MEC_CACHE_KEYS.INSTITUTIONS_BY_UF}${normalizedUf}`;
 
-    const cached = await this.cache.get<InstitutionDto[]>(cacheKey);
+    const cached = await this.cache.get<Institution[]>(cacheKey);
     if (cached) return cached;
 
     const institutions = await this.repository.findByUf(normalizedUf);
@@ -59,9 +59,7 @@ export class InstitutionQueryService {
     return institutions;
   }
 
-  async getByCode(
-    codigoIes: number,
-  ): Promise<InstitutionWithCoursesDto | null> {
+  async getByCode(codigoIes: number): Promise<InstitutionWithCourses | null> {
     const institution = await this.repository.findByCode(codigoIes);
     if (!institution) return null;
 
@@ -74,14 +72,14 @@ export class InstitutionQueryService {
       municipio: institution.municipio,
       categoria: institution.categoria,
       organizacao: institution.organizacao,
-      courses: institution.courses as CourseBasicDto[],
+      courses: institution.courses as CourseBasic[],
     };
   }
 
   async search(
     query: string,
-    limit: number = APP_CONSTANTS.DEFAULT_PAGE_SIZE,
-  ): Promise<InstitutionDto[]> {
+    limit: number = APP_CONFIG.DEFAULT_PAGE_SIZE,
+  ): Promise<Institution[]> {
     const normalizedQuery = query.toLowerCase().trim();
 
     if (normalizedQuery.length < 2) {

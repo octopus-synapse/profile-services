@@ -1,4 +1,4 @@
-import { PaginatedResult } from '../dto/pagination.dto';
+import type { PaginatedResult } from '@octopus-synapse/profile-contracts';
 
 /**
  * Generic interface for sub-resource repositories
@@ -6,10 +6,10 @@ import { PaginatedResult } from '../dto/pagination.dto';
  * must implement this interface to work with BaseSubResourceService
  *
  * @template T - The entity type (e.g., Experience, Education)
- * @template CreateDto - DTO for creating the entity
- * @template UpdateDto - DTO for updating the entity
+ * @template Create - DTO for creating the entity
+ * @template Update - DTO for updating the entity
  */
-export interface ISubResourceRepository<T, CreateDto, UpdateDto> {
+export interface ISubResourceRepository<T, Create, Update> {
   /**
    * Find all entities for a resume with pagination
    */
@@ -27,12 +27,12 @@ export interface ISubResourceRepository<T, CreateDto, UpdateDto> {
   /**
    * Create a new entity for a resume
    */
-  create(resumeId: string, data: CreateDto): Promise<T>;
+  create(resumeId: string, data: Create): Promise<T>;
 
   /**
    * Update an existing entity
    */
-  update(id: string, resumeId: string, data: UpdateDto): Promise<T | null>;
+  update(id: string, resumeId: string, data: Update): Promise<T | null>;
 
   /**
    * Delete an entity

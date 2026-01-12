@@ -3,9 +3,9 @@ import { OpenSourceContribution } from '@prisma/client';
 import { OpenSourceRepository } from '../repositories/open-source.repository';
 import { ResumesRepository } from '../resumes.repository';
 import {
-  CreateOpenSourceDto,
-  UpdateOpenSourceDto,
-} from '../dto/open-source.dto';
+  CreateOpenSource,
+  UpdateOpenSource,
+} from '@octopus-synapse/profile-contracts';
 import {
   ApiResponseHelper,
   ApiResponse,
@@ -16,8 +16,8 @@ import { BaseSubResourceService } from './base';
 @Injectable()
 export class OpenSourceService extends BaseSubResourceService<
   OpenSourceContribution,
-  CreateOpenSourceDto,
-  UpdateOpenSourceDto
+  CreateOpenSource,
+  UpdateOpenSource
 > {
   protected readonly entityName = 'Open source contribution';
   protected readonly logger = new Logger(OpenSourceService.name);

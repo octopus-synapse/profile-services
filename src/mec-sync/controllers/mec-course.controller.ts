@@ -16,7 +16,7 @@ import {
 import { ApiTags, ApiOperation, ApiQuery, ApiParam } from '@nestjs/swagger';
 import { Public } from '../../auth/decorators/public.decorator';
 import { CourseQueryService } from '../services/course-query.service';
-import { APP_CONSTANTS } from '../../common/constants/config';
+import { APP_CONFIG } from '@octopus-synapse/profile-contracts';
 
 @ApiTags('mec-courses')
 @Controller('v1/mec/courses')
@@ -33,7 +33,7 @@ export class MecCourseController {
     @Query('limit') limit?: string,
   ) {
     // BUG-035 FIX: Validate parseInt result
-    let parsedLimit = APP_CONSTANTS.DEFAULT_PAGE_SIZE;
+    let parsedLimit: number = APP_CONFIG.DEFAULT_PAGE_SIZE;
     if (limit) {
       parsedLimit = parseInt(limit, 10);
       if (isNaN(parsedLimit) || parsedLimit <= 0) {

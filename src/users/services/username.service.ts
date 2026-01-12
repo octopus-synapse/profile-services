@@ -10,9 +10,9 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { UsersRepository } from '../users.repository';
-import { UpdateUsernameDto } from '../dto/update-username.dto';
+import type { UpdateUsername } from '@octopus-synapse/profile-contracts';
 import { AppLoggerService } from '../../common/logger/logger.service';
-import { ERROR_MESSAGES } from '../../common/constants/config';
+import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
 
 const USERNAME_UPDATE_COOLDOWN_DAYS = 30;
 
@@ -67,13 +67,13 @@ export class UsernameService {
     private readonly logger: AppLoggerService,
   ) {}
 
-  async updateUsername(userId: string, updateUsernameDto: UpdateUsernameDto) {
+  async updateUsername(userId: string, updateUsername: UpdateUsername) {
     const user = await this.usersRepository.getUser(userId);
     if (!user) {
       throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
     }
 
-    const newUsername = updateUsernameDto.username;
+    const { username: newUsername } = updateUsername;
 
     // BUG-001 FIX: REJECT uppercase usernames instead of converting
     this.validateUsernameFormat(newUsername);

@@ -9,7 +9,10 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiConsumes, ApiBody } from '@nestjs/swagger';
 import { ATSService } from './services/ats.service';
-import { ValidateCVDto, ValidationResponseDto } from './dto';
+import type {
+  ValidateCV,
+  Validation,
+} from '@octopus-synapse/profile-contracts';
 
 @ApiTags('ATS Validation')
 @Controller('v1/ats')
@@ -63,8 +66,8 @@ export class ATSController {
   @UseInterceptors(FileInterceptor('file'))
   async validateCV(
     @UploadedFile() file: Express.Multer.File | undefined,
-    @Body() options: ValidateCVDto,
-  ): Promise<ValidationResponseDto> {
+    @Body() options: ValidateCV,
+  ): Promise<Validation> {
     if (!file) {
       throw new BadRequestException('No file uploaded');
     }

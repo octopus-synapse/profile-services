@@ -20,23 +20,21 @@ import {
 } from '@nestjs/swagger';
 import { Throttle, SkipThrottle } from '@nestjs/throttler';
 import { AuthService } from '../auth.service';
-import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import {
-  signupSchema,
-  loginSchema,
-  refreshTokenSchema,
-} from '../schemas/auth.schemas';
-import type {
-  SignupDto,
-  LoginDto,
-  RefreshTokenDto,
-} from '../schemas/auth.schemas';
+  LoginCredentialsSchema,
+  RegisterCredentialsSchema,
+  RefreshTokenSchema,
+  type LoginCredentials,
+  type RegisterCredentials,
+  type RefreshToken,
+  RATE_LIMIT_CONFIG,
+} from '@octopus-synapse/profile-contracts';
+import { createZodPipe } from '../../common/validation/zod-validation.pipe';
 import { Public } from '../decorators/public.decorator';
 import { SkipTosCheck } from '../decorators/skip-tos-check.decorator';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { UserPayload } from '../interfaces/auth-request.interface';
-import { APP_CONSTANTS } from '../../common/constants/config';
 
 @ApiTags('auth')
 @Controller('v1/auth')
@@ -46,7 +44,10 @@ export class AuthCoreController {
   @Public()
   @Post('signup')
   @Throttle({
-    default: { ttl: 60000, limit: APP_CONSTANTS.AUTH_RATE_LIMIT_MAX_REQUESTS },
+    default: {
+      ttl: RATE_LIMIT_CONFIG.TTL_MS,
+      limit: RATE_LIMIT_CONFIG.AUTH_MAX_REQUESTS,
+    },
   })
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Register a new user' })
@@ -54,22 +55,27 @@ export class AuthCoreController {
   @ApiResponse({ status: 409, description: 'Email already registered' })
   @ApiResponse({ status: 400, description: 'Invalid input data' })
   async signup(
-    @Body(new ZodValidationPipe(signupSchema)) signupDto: SignupDto,
+    @Body(createZodPipe(RegisterCredentialsSchema)) dto: RegisterCredentials,
   ) {
-    return this.authService.signup(signupDto);
+    return this.authService.signup(dto);
   }
 
   @Public()
   @Post('login')
   @Throttle({
-    default: { ttl: 60000, limit: APP_CONSTANTS.AUTH_RATE_LIMIT_MAX_REQUESTS },
+    default: {
+      ttl: RATE_LIMIT_CONFIG.TTL_MS,
+      limit: RATE_LIMIT_CONFIG.AUTH_MAX_REQUESTS,
+    },
   })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Login with email and password' })
   @ApiResponse({ status: 200, description: 'Login successful' })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
-  async login(@Body(new ZodValidationPipe(loginSchema)) loginDto: LoginDto) {
-    return this.authService.login(loginDto);
+  async login(
+    @Body(createZodPipe(LoginCredentialsSchema)) dto: LoginCredentials,
+  ) {
+    return this.authService.login(dto);
   }
 
   @Public()
@@ -80,7 +86,7 @@ export class AuthCoreController {
   @ApiResponse({ status: 200, description: 'Token refreshed successfully' })
   @ApiResponse({ status: 401, description: 'Invalid refresh token' })
   async refreshToken(
-    @Body(new ZodValidationPipe(refreshTokenSchema)) dto: RefreshTokenDto,
+    @Body(createZodPipe(RefreshTokenSchema)) dto: RefreshToken,
   ) {
     return this.authService.refreshTokenWithToken(dto.refreshToken);
   }

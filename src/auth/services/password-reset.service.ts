@@ -16,12 +16,12 @@ import { EmailService } from '../../common/email/email.service';
 import { PasswordService } from './password.service';
 import { VerificationTokenService } from './verification-token.service';
 import { TokenBlacklistService } from './token-blacklist.service';
-import {
-  ForgotPasswordDto,
-  ResetPasswordDto,
-  ChangePasswordDto,
-} from '../dto/verification.dto';
-import { ERROR_MESSAGES } from '../../common/constants/config';
+import type {
+  ForgotPassword,
+  ResetPassword,
+  ChangePassword,
+} from '@octopus-synapse/profile-contracts';
+import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
 
 @Injectable()
 export class PasswordResetService {
@@ -36,7 +36,7 @@ export class PasswordResetService {
     private readonly tokenBlacklist: TokenBlacklistService,
   ) {}
 
-  async forgotPassword(dto: ForgotPasswordDto) {
+  async forgotPassword(dto: ForgotPassword) {
     const user = await this.findUserByEmail(dto.email);
 
     // Always return success to prevent email enumeration
@@ -86,7 +86,7 @@ export class PasswordResetService {
     };
   }
 
-  async resetPassword(dto: ResetPasswordDto) {
+  async resetPassword(dto: ResetPassword) {
     const email = await this.tokenService.validatePasswordResetToken(dto.token);
 
     const hashedPassword = await this.passwordService.hash(dto.password);
@@ -98,7 +98,7 @@ export class PasswordResetService {
     return this.buildSuccessResponse('Password reset successfully');
   }
 
-  async changePassword(userId: string, dto: ChangePasswordDto) {
+  async changePassword(userId: string, dto: ChangePassword) {
     const user = await this.findUserById(userId);
 
     if (!user?.password) {

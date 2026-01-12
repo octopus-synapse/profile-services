@@ -5,7 +5,7 @@
 
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { CourseDto } from '../dto';
+import { Course } from '@octopus-synapse/profile-contracts';
 import { NormalizedCourse } from '../interfaces/mec-data.interface';
 import { BATCH_SIZE } from '../constants';
 
@@ -13,7 +13,7 @@ import { BATCH_SIZE } from '../constants';
 export class CourseRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findByInstitution(codigoIes: number): Promise<CourseDto[]> {
+  async findByInstitution(codigoIes: number): Promise<Course[]> {
     const courses = await this.prisma.mecCourse.findMany({
       where: { codigoIes, isActive: true },
       orderBy: { nome: 'asc' },
@@ -24,10 +24,10 @@ export class CourseRepository {
       },
     });
 
-    return courses.map((course) => this.mapToDto(course));
+    return courses.map((course) => this.mapTo(course));
   }
 
-  async findByCode(codigoCurso: number): Promise<CourseDto | null> {
+  async findByCode(codigoCurso: number): Promise<Course | null> {
     const course = await this.prisma.mecCourse.findUnique({
       where: { codigoCurso },
       include: {
@@ -37,10 +37,10 @@ export class CourseRepository {
       },
     });
 
-    return course ? this.mapToDto(course) : null;
+    return course ? this.mapTo(course) : null;
   }
 
-  async search(query: string, limit: number): Promise<CourseDto[]> {
+  async search(query: string, limit: number): Promise<Course[]> {
     const courses = await this.prisma.$queryRaw<
       Array<{
         id: string;
@@ -142,7 +142,7 @@ export class CourseRepository {
     return inserted;
   }
 
-  private mapToDto(course: {
+  private mapTo(course: {
     id: string;
     codigoCurso: number;
     nome: string;
@@ -150,7 +150,7 @@ export class CourseRepository {
     modalidade: string | null;
     areaConhecimento: string | null;
     institution: { nome: string; sigla: string | null; uf: string };
-  }): CourseDto {
+  }): Course {
     return {
       id: course.id,
       codigoCurso: course.codigoCurso,

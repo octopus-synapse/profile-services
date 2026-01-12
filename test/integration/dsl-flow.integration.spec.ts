@@ -5,7 +5,7 @@
 
 import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { Prisma } from '@prisma/client';
 import { AppModule } from '../../src/app.module';
@@ -30,13 +30,7 @@ describe('DSL Smoke Tests (e2e)', () => {
 
     // Apply same configuration as setup.ts
     app.setGlobalPrefix('api');
-    app.useGlobalPipes(
-      new ValidationPipe({
-        whitelist: true,
-        transform: true,
-        forbidNonWhitelisted: true,
-      }),
-    );
+    // Validation is handled by ZodValidationPipe at controller level
 
     await app.init();
 

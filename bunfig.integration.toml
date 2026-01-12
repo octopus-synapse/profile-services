@@ -1,6 +1,7 @@
 [test]
 # Configuration for integration tests
 root = "./test/integration"
+preload = ["./test/preload.ts"]
 
 [install.scopes]
 "@octopus-synapse" = { token = "$BUN_AUTH_TOKEN", url = "https://npm.pkg.github.com" }

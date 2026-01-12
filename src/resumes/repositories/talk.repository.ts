@@ -1,7 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Talk } from '@prisma/client';
-import { CreateTalkDto, UpdateTalkDto } from '../dto/talk.dto';
+import type {
+  CreateTalk,
+  UpdateTalk,
+} from '@octopus-synapse/profile-contracts';
 import {
   BaseSubResourceRepository,
   OrderByConfig,
@@ -18,8 +21,8 @@ import {
 @Injectable()
 export class TalkRepository extends BaseSubResourceRepository<
   Talk,
-  CreateTalkDto,
-  UpdateTalkDto
+  CreateTalk,
+  UpdateTalk
 > {
   protected readonly logger = new Logger(TalkRepository.name);
 
@@ -35,7 +38,7 @@ export class TalkRepository extends BaseSubResourceRepository<
     return { type: 'date-desc', field: 'date' };
   }
 
-  protected mapCreateDto(resumeId: string, dto: CreateTalkDto, order: number) {
+  protected mapCreate(resumeId: string, dto: CreateTalk, order: number) {
     return buildCreateData({ resumeId, order: dto.order ?? order }, dto, {
       title: 'string',
       event: 'string',
@@ -49,7 +52,7 @@ export class TalkRepository extends BaseSubResourceRepository<
     });
   }
 
-  protected mapUpdateDto(dto: UpdateTalkDto) {
+  protected mapUpdate(dto: UpdateTalk) {
     return buildUpdateData(dto, {
       title: 'string',
       event: 'string',

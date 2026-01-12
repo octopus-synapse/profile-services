@@ -5,7 +5,7 @@
 
 import type { TechAreaType } from '../interfaces';
 
-export interface TechNicheDto {
+export interface TechNiche {
   id: string;
   slug: string;
   nameEn: string;

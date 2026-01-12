@@ -11,7 +11,10 @@ import { ExperienceOnboardingService } from './services/experience-onboarding.se
 import { EducationOnboardingService } from './services/education-onboarding.service';
 import { LanguagesOnboardingService } from './services/languages-onboarding.service';
 import { OnboardingProgressService } from './services/onboarding-progress.service';
-import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '../common/constants/config';
+import {
+  ERROR_MESSAGES,
+  SUCCESS_MESSAGES,
+} from '@octopus-synapse/profile-contracts';
 
 describe('OnboardingService', () => {
   let service: OnboardingService;

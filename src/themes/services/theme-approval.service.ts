@@ -13,9 +13,9 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ThemeStatus, UserRole } from '@prisma/client';
-import { ReviewThemeDto } from '../dto';
+import type { ReviewTheme } from '@octopus-synapse/profile-contracts';
 import { ThemeCrudService } from './theme-crud.service';
-import { ERROR_MESSAGES } from '../../common/constants/config';
+import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
 
 /** Maximum number of times a theme can be resubmitted after rejection */
 const MAX_RESUBMISSIONS = 2;
@@ -60,7 +60,7 @@ export class ThemeApprovalService {
     });
   }
 
-  async review(approverId: string, dto: ReviewThemeDto) {
+  async review(approverId: string, dto: ReviewTheme) {
     await this.assertIsApprover(approverId);
 
     const theme = await this.crud.findOrFail(dto.themeId);

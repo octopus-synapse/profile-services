@@ -4,7 +4,7 @@ import { UserPreferencesService } from './user-preferences.service';
 import { UsersRepository } from '../users.repository';
 import { AppLoggerService } from '../../common/logger/logger.service';
 import { NotFoundException } from '@nestjs/common';
-import { ERROR_MESSAGES } from '../../common/constants/config';
+import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
 
 describe('UserPreferencesService', () => {
   let service: UserPreferencesService;

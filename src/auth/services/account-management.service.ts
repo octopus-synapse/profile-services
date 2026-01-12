@@ -18,9 +18,11 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { AppLoggerService } from '../../common/logger/logger.service';
 import { PasswordService } from './password.service';
 import { TokenBlacklistService } from './token-blacklist.service';
-import { ERROR_MESSAGES } from '../../common/constants/config';
-import { ChangeEmailDto } from '../dto/change-email.dto';
-import { DeleteAccountDto } from '../dto/delete-account.dto';
+import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
+import type {
+  ChangeEmail,
+  DeleteAccount,
+} from '@octopus-synapse/profile-contracts';
 
 @Injectable()
 export class AccountManagementService {
@@ -33,7 +35,7 @@ export class AccountManagementService {
     private readonly tokenBlacklist: TokenBlacklistService,
   ) {}
 
-  async changeEmail(userId: string, dto: ChangeEmailDto) {
+  async changeEmail(userId: string, dto: ChangeEmail) {
     const { newEmail, currentPassword } = dto;
 
     const user = await this.findUserWithPassword(userId);
@@ -70,7 +72,7 @@ export class AccountManagementService {
     };
   }
 
-  async deleteAccount(userId: string, dto: DeleteAccountDto) {
+  async deleteAccount(userId: string, dto: DeleteAccount) {
     const { password } = dto;
 
     const user = await this.findUserWithPassword(userId);

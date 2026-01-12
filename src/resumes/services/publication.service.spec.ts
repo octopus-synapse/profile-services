@@ -4,10 +4,7 @@ import { Logger } from '@nestjs/common';
 import { PublicationService } from './publication.service';
 import { PublicationRepository } from '../repositories/publication.repository';
 import { ResumesRepository } from '../resumes.repository';
-import {
-  CreatePublicationDto,
-  UpdatePublicationDto,
-} from '../dto/publication.dto';
+import { CreatePublicationDto, UpdatePublicationDto } from '../dto';
 
 describe('PublicationService', () => {
   let service: PublicationService;

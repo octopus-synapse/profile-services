@@ -1,7 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Interest } from '@prisma/client';
-import { CreateInterestDto, UpdateInterestDto } from '../dto/interest.dto';
+import type {
+  CreateInterest,
+  UpdateInterest,
+} from '@octopus-synapse/profile-contracts';
 import {
   BaseSubResourceRepository,
   OrderByConfig,
@@ -18,8 +21,8 @@ import {
 @Injectable()
 export class InterestRepository extends BaseSubResourceRepository<
   Interest,
-  CreateInterestDto,
-  UpdateInterestDto
+  CreateInterest,
+  UpdateInterest
 > {
   protected readonly logger = new Logger(InterestRepository.name);
 
@@ -35,18 +38,14 @@ export class InterestRepository extends BaseSubResourceRepository<
     return { type: 'user-defined' };
   }
 
-  protected mapCreateDto(
-    resumeId: string,
-    dto: CreateInterestDto,
-    order: number,
-  ) {
+  protected mapCreate(resumeId: string, dto: CreateInterest, order: number) {
     return buildCreateData({ resumeId, order: dto.order ?? order }, dto, {
       name: 'string',
       description: 'optional',
     });
   }
 
-  protected mapUpdateDto(dto: UpdateInterestDto) {
+  protected mapUpdate(dto: UpdateInterest) {
     return buildUpdateData(dto, {
       name: 'string',
       description: 'optional',

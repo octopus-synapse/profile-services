@@ -7,12 +7,12 @@ import { Injectable } from '@nestjs/common';
 import * as crypto from 'crypto';
 import { CacheService } from '../../common/cache/cache.service';
 import { CourseRepository } from '../repositories';
-import { CourseDto } from '../dto';
+import { Course } from '@octopus-synapse/profile-contracts';
 import {
   MEC_CACHE_KEYS,
   MEC_CACHE_TTL,
 } from '../interfaces/mec-data.interface';
-import { APP_CONSTANTS, API_LIMITS } from '../../common/constants/config';
+import { APP_CONFIG, API_LIMITS } from '@octopus-synapse/profile-contracts';
 
 @Injectable()
 export class CourseQueryService {
@@ -21,10 +21,10 @@ export class CourseQueryService {
     private readonly cache: CacheService,
   ) {}
 
-  async listByInstitution(codigoIes: number): Promise<CourseDto[]> {
+  async listByInstitution(codigoIes: number): Promise<Course[]> {
     const cacheKey = `${MEC_CACHE_KEYS.COURSES_BY_IES}${codigoIes}`;
 
-    const cached = await this.cache.get<CourseDto[]>(cacheKey);
+    const cached = await this.cache.get<Course[]>(cacheKey);
     if (cached) return cached;
 
     const courses = await this.repository.findByInstitution(codigoIes);
@@ -34,14 +34,14 @@ export class CourseQueryService {
     return courses;
   }
 
-  async getByCode(codigoCurso: number): Promise<CourseDto | null> {
+  async getByCode(codigoCurso: number): Promise<Course | null> {
     return this.repository.findByCode(codigoCurso);
   }
 
   async search(
     query: string,
-    limit: number = APP_CONSTANTS.DEFAULT_PAGE_SIZE,
-  ): Promise<CourseDto[]> {
+    limit: number = APP_CONFIG.DEFAULT_PAGE_SIZE,
+  ): Promise<Course[]> {
     const normalizedQuery = query.toLowerCase().trim();
 
     if (normalizedQuery.length < 2) {
@@ -50,7 +50,7 @@ export class CourseQueryService {
 
     const cacheKey = this.buildSearchCacheKey(normalizedQuery);
 
-    const cached = await this.cache.get<CourseDto[]>(cacheKey);
+    const cached = await this.cache.get<Course[]>(cacheKey);
     if (cached) return cached;
 
     const courses = await this.repository.search(normalizedQuery, limit);

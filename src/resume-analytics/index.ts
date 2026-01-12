@@ -1,23 +1,26 @@
 export * from './resume-analytics.module';
 export * from './services';
 export * from './controllers';
-export {
-  ViewStatsQueryDto,
-  KeywordOptionsDto,
-  JobMatchDto,
-  BenchmarkOptionsDto,
-  HistoryQueryDto,
-  ViewStatsResponseDto,
-  ATSScoreResponseDto,
-  KeywordSuggestionsResponseDto,
-  JobMatchResponseDto,
-  BenchmarkResponseDto,
-  DashboardResponseDto,
-  SnapshotResponseDto,
-  ScoreProgressionResponseDto,
-} from './dto';
+
+// Re-export contract types with `export type` for isolatedModules
 export type {
-  TrackViewDto,
+  ViewStatsQuery,
+  KeywordOptions,
+  JobMatch,
+  BenchmarkOptions,
+  HistoryQuery,
+  ViewStatsResponse,
+  ATSScoreResponse,
+  KeywordSuggestionsResponse,
+  JobMatchResponse,
+  BenchmarkResponse,
+  DashboardResponse,
+  SnapshotResponse,
+  ScoreProgressionResponse,
+} from '@octopus-synapse/profile-contracts';
+
+export type {
+  TrackView,
   ViewStatsOptions,
   ViewStats,
   ATSScoreResult,

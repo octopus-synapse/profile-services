@@ -5,10 +5,12 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { ResumesRepository } from './resumes.repository';
-import { CreateResumeDto } from './dto/create-resume.dto';
-import { UpdateResumeDto } from './dto/update-resume.dto';
+import type {
+  CreateResume,
+  UpdateResume,
+} from '@octopus-synapse/profile-contracts';
 import { ApiResponseHelper } from '../common/dto/api-response.dto';
-import { ERROR_MESSAGES } from '../common/constants/config';
+import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
 import { ResumeVersionService } from '../resume-versions/services/resume-version.service';
 
 /** Maximum number of resumes a user can create */
@@ -65,7 +67,7 @@ export class ResumesService {
     return ApiResponseHelper.success(resume);
   }
 
-  async create(userId: string, createResumeDto: CreateResumeDto) {
+  async create(userId: string, createResume: CreateResume) {
     this.logger.log(`Creating resume for user: ${userId}`);
 
     // Check resume limit - BUG-006 FIX: Use 422 instead of 400
@@ -76,11 +78,11 @@ export class ResumesService {
       );
     }
 
-    const resume = await this.resumesRepository.create(userId, createResumeDto);
+    const resume = await this.resumesRepository.create(userId, createResume);
     return ApiResponseHelper.success(resume);
   }
 
-  async update(id: string, userId: string, updateResumeDto: UpdateResumeDto) {
+  async update(id: string, userId: string, updateResume: UpdateResume) {
     this.logger.log(`Updating resume: ${id} for user: ${userId}`);
 
     // Create snapshot before update
@@ -95,7 +97,7 @@ export class ResumesService {
     const resume = await this.resumesRepository.update(
       id,
       userId,
-      updateResumeDto,
+      updateResume,
     );
 
     if (!resume) {

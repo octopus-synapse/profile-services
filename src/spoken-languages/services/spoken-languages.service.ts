@@ -5,9 +5,9 @@
 
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { APP_CONSTANTS } from '../../common/constants/config';
+import { APP_CONFIG } from '@octopus-synapse/profile-contracts';
 
-export interface SpokenLanguageDto {
+export interface SpokenLanguage {
   code: string;
   nameEn: string;
   namePtBr: string;
@@ -22,7 +22,7 @@ export class SpokenLanguagesService {
   /**
    * Get all active spoken languages ordered by order field
    */
-  async getAll(): Promise<SpokenLanguageDto[]> {
+  async getAll(): Promise<SpokenLanguage[]> {
     const languages = await this.prisma.spokenLanguage.findMany({
       where: { isActive: true },
       orderBy: { order: 'asc' },
@@ -43,8 +43,8 @@ export class SpokenLanguagesService {
    */
   async search(
     query: string,
-    limit: number = APP_CONSTANTS.SEARCH_AUTOCOMPLETE_LIMIT,
-  ): Promise<SpokenLanguageDto[]> {
+    limit: number = APP_CONFIG.SEARCH_AUTOCOMPLETE_LIMIT,
+  ): Promise<SpokenLanguage[]> {
     const languages = await this.prisma.spokenLanguage.findMany({
       where: {
         isActive: true,
@@ -72,7 +72,7 @@ export class SpokenLanguagesService {
   /**
    * Get a single language by code
    */
-  async getByCode(code: string): Promise<SpokenLanguageDto | null> {
+  async getByCode(code: string): Promise<SpokenLanguage | null> {
     return this.prisma.spokenLanguage.findUnique({
       where: { code },
       select: {

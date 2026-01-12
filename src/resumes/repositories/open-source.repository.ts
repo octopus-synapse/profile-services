@@ -2,9 +2,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { OpenSourceContribution } from '@prisma/client';
 import {
-  CreateOpenSourceDto,
-  UpdateOpenSourceDto,
-} from '../dto/open-source.dto';
+  CreateOpenSource,
+  UpdateOpenSource,
+} from '@octopus-synapse/profile-contracts';
 import {
   BaseSubResourceRepository,
   OrderByConfig,
@@ -20,8 +20,8 @@ import {
 @Injectable()
 export class OpenSourceRepository extends BaseSubResourceRepository<
   OpenSourceContribution,
-  CreateOpenSourceDto,
-  UpdateOpenSourceDto
+  CreateOpenSource,
+  UpdateOpenSource
 > {
   protected readonly logger = new Logger(OpenSourceRepository.name);
 
@@ -37,11 +37,7 @@ export class OpenSourceRepository extends BaseSubResourceRepository<
     return { type: 'user-defined' };
   }
 
-  protected mapCreateDto(
-    resumeId: string,
-    dto: CreateOpenSourceDto,
-    order: number,
-  ) {
+  protected mapCreate(resumeId: string, dto: CreateOpenSource, order: number) {
     return {
       resumeId,
       projectName: dto.projectName,
@@ -61,7 +57,7 @@ export class OpenSourceRepository extends BaseSubResourceRepository<
     };
   }
 
-  protected mapUpdateDto(dto: UpdateOpenSourceDto) {
+  protected mapUpdate(dto: UpdateOpenSource) {
     return buildUpdateData(dto, {
       projectName: 'string',
       projectUrl: 'string',

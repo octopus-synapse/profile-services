@@ -2,9 +2,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Recommendation } from '@prisma/client';
 import {
-  CreateRecommendationDto,
-  UpdateRecommendationDto,
-} from '../dto/recommendation.dto';
+  CreateRecommendation,
+  UpdateRecommendation,
+} from '@octopus-synapse/profile-contracts';
 import {
   BaseSubResourceRepository,
   OrderByConfig,
@@ -21,8 +21,8 @@ import {
 @Injectable()
 export class RecommendationRepository extends BaseSubResourceRepository<
   Recommendation,
-  CreateRecommendationDto,
-  UpdateRecommendationDto
+  CreateRecommendation,
+  UpdateRecommendation
 > {
   protected readonly logger = new Logger(RecommendationRepository.name);
 
@@ -38,9 +38,9 @@ export class RecommendationRepository extends BaseSubResourceRepository<
     return { type: 'user-defined' };
   }
 
-  protected mapCreateDto(
+  protected mapCreate(
     resumeId: string,
-    dto: CreateRecommendationDto,
+    dto: CreateRecommendation,
     order: number,
   ) {
     return buildCreateData({ resumeId, order: dto.order ?? order }, dto, {
@@ -52,7 +52,7 @@ export class RecommendationRepository extends BaseSubResourceRepository<
     });
   }
 
-  protected mapUpdateDto(dto: UpdateRecommendationDto) {
+  protected mapUpdate(dto: UpdateRecommendation) {
     return buildUpdateData(dto, {
       author: 'string',
       position: 'optional',

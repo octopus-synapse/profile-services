@@ -18,7 +18,7 @@ import {
   mock,
 } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '../../src/app.module';
 import { PrismaService } from '../../src/prisma/prisma.service';
@@ -49,7 +49,7 @@ describe('Resume CRUD Integration', () => {
 
     app = moduleFixture.createNestApplication();
     app.setGlobalPrefix('api');
-    app.useGlobalPipes(new ValidationPipe({ transform: true }));
+    // Validation is handled by ZodValidationPipe at controller level
 
     prisma = app.get<PrismaService>(PrismaService);
 

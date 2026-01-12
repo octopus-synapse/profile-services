@@ -6,11 +6,12 @@
 import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
+import { RATE_LIMIT_CONFIG } from '@octopus-synapse/profile-contracts';
 import { AuthService } from '../auth.service';
-import {
-  RequestVerificationDto,
-  VerifyEmailDto,
-} from '../dto/verification.dto';
+import type {
+  RequestVerification,
+  EmailVerification as VerifyEmail,
+} from '@octopus-synapse/profile-contracts';
 import { Public } from '../decorators/public.decorator';
 
 @ApiTags('auth')
@@ -20,12 +21,12 @@ export class AuthVerificationController {
 
   @Public()
   @Post('verify-email/request')
-  @Throttle({ default: { ttl: 60000, limit: 3 } })
+  @Throttle({ default: { ttl: RATE_LIMIT_CONFIG.TTL_MS, limit: 3 } })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Request email verification' })
   @ApiResponse({ status: 200, description: 'Verification email sent' })
   @ApiResponse({ status: 429, description: 'Too many requests' })
-  async requestEmailVerification(@Body() dto: RequestVerificationDto) {
+  async requestEmailVerification(@Body() dto: RequestVerification) {
     return this.authService.requestEmailVerification(dto);
   }
 
@@ -35,7 +36,7 @@ export class AuthVerificationController {
   @ApiOperation({ summary: 'Verify email with token' })
   @ApiResponse({ status: 200, description: 'Email verified successfully' })
   @ApiResponse({ status: 400, description: 'Invalid or expired token' })
-  async verifyEmail(@Body() dto: VerifyEmailDto) {
+  async verifyEmail(@Body() dto: VerifyEmail) {
     return this.authService.verifyEmail(dto);
   }
 }

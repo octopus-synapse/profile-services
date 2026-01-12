@@ -19,7 +19,7 @@ import {
 import { PrismaService } from '../../prisma/prisma.service';
 import { createHash } from 'crypto';
 import type {
-  TrackViewDto,
+  TrackView,
   ViewStatsOptions,
   ViewStats,
   ATSScoreResult,
@@ -228,7 +228,7 @@ export class ResumeAnalyticsService {
     return { resumeId };
   }
 
-  async trackView(dto: TrackViewDto): Promise<void> {
+  async trackView(dto: TrackView): Promise<void> {
     const ipHash = this.anonymizeIP(dto.ip);
     const source = this.detectSource(dto.referer);
 

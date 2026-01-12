@@ -3,16 +3,16 @@ import { Publication } from '@prisma/client';
 import { PublicationRepository } from '../repositories/publication.repository';
 import { ResumesRepository } from '../resumes.repository';
 import {
-  CreatePublicationDto,
-  UpdatePublicationDto,
-} from '../dto/publication.dto';
+  CreatePublication,
+  UpdatePublication,
+} from '@octopus-synapse/profile-contracts';
 import { BaseSubResourceService } from './base';
 
 @Injectable()
 export class PublicationService extends BaseSubResourceService<
   Publication,
-  CreatePublicationDto,
-  UpdatePublicationDto
+  CreatePublication,
+  UpdatePublication
 > {
   protected readonly entityName = 'Publication';
   protected readonly logger = new Logger(PublicationService.name);

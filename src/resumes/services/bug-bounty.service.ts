@@ -2,7 +2,10 @@ import { Injectable, Logger } from '@nestjs/common';
 import { BugBounty } from '@prisma/client';
 import { BugBountyRepository } from '../repositories/bug-bounty.repository';
 import { ResumesRepository } from '../resumes.repository';
-import { CreateBugBountyDto, UpdateBugBountyDto } from '../dto/bug-bounty.dto';
+import {
+  CreateBugBounty,
+  UpdateBugBounty,
+} from '@octopus-synapse/profile-contracts';
 import {
   ApiResponseHelper,
   ApiResponse,
@@ -13,8 +16,8 @@ import { BaseSubResourceService } from './base';
 @Injectable()
 export class BugBountyService extends BaseSubResourceService<
   BugBounty,
-  CreateBugBountyDto,
-  UpdateBugBountyDto
+  CreateBugBounty,
+  UpdateBugBounty
 > {
   protected readonly entityName = 'Bug bounty';
   protected readonly logger = new Logger(BugBountyService.name);

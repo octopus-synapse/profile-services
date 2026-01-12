@@ -7,7 +7,10 @@ import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { Education } from '@prisma/client';
 import { EducationRepository } from '../repositories/education.repository';
 import { ResumesRepository } from '../resumes.repository';
-import { CreateEducationDto, UpdateEducationDto } from '../dto/education.dto';
+import {
+  CreateEducation,
+  UpdateEducation,
+} from '@octopus-synapse/profile-contracts';
 import { BaseSubResourceService } from './base';
 import {
   ApiResponseHelper,
@@ -18,8 +21,8 @@ import {
 @Injectable()
 export class EducationService extends BaseSubResourceService<
   Education,
-  CreateEducationDto,
-  UpdateEducationDto
+  CreateEducation,
+  UpdateEducation
 > {
   protected readonly entityName = 'Education';
   protected readonly logger = new Logger(EducationService.name);
@@ -37,7 +40,7 @@ export class EducationService extends BaseSubResourceService<
   override async addToResume(
     resumeId: string,
     userId: string,
-    entityData: CreateEducationDto,
+    entityData: CreateEducation,
   ): Promise<DataResponse<Education>> {
     this.validateEducationDates(entityData);
     return super.addToResume(resumeId, userId, entityData);
@@ -50,10 +53,10 @@ export class EducationService extends BaseSubResourceService<
     resumeId: string,
     entityId: string,
     userId: string,
-    updateData: UpdateEducationDto,
+    updateData: UpdateEducation,
   ): Promise<DataResponse<Education>> {
     if (
-      updateData.isCurrent !== undefined ||
+      updateData.current !== undefined ||
       updateData.endDate !== undefined ||
       updateData.startDate !== undefined
     ) {
@@ -82,16 +85,16 @@ export class EducationService extends BaseSubResourceService<
    * Consistent with ExperienceService validation
    *
    * Rules:
-   * - If isCurrent=true → endDate MUST be null/undefined
+   * - If current=true → endDate MUST be null/undefined
    * - endDate cannot be before startDate
    */
   private validateEducationDates(
-    data: CreateEducationDto | UpdateEducationDto,
+    data: CreateEducation | UpdateEducation,
   ): void {
-    // isCurrent=true with endDate is invalid
-    if (data.isCurrent === true && data.endDate) {
+    // current=true with endDate is invalid
+    if (data.current === true && data.endDate) {
       throw new BadRequestException(
-        'Current education cannot have an end date. Either set isCurrent to false or remove endDate.',
+        'Current education cannot have an end date. Either set current to false or remove endDate.',
       );
     }
 

@@ -7,9 +7,9 @@ import { Injectable } from '@nestjs/common';
 import * as crypto from 'crypto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CacheService } from '../../common/cache/cache.service';
-import { API_LIMITS } from '../../common/constants/config';
+import { API_LIMITS } from '@octopus-synapse/profile-contracts';
 import { TECH_SKILLS_CACHE_KEYS, TECH_SKILLS_CACHE_TTL } from '../interfaces';
-import type { ProgrammingLanguageDto } from '../dtos';
+import type { ProgrammingLanguage } from '../dtos';
 
 @Injectable()
 export class LanguageQueryService {
@@ -21,10 +21,10 @@ export class LanguageQueryService {
   /**
    * Get all programming languages
    */
-  async getAllLanguages(): Promise<ProgrammingLanguageDto[]> {
+  async getAllLanguages(): Promise<ProgrammingLanguage[]> {
     const cacheKey = TECH_SKILLS_CACHE_KEYS.LANGUAGES_LIST;
 
-    const cached = await this.cache.get<ProgrammingLanguageDto[]>(cacheKey);
+    const cached = await this.cache.get<ProgrammingLanguage[]>(cacheKey);
     if (cached) return cached;
 
     const languages = await this.prisma.programmingLanguage.findMany({
@@ -59,7 +59,7 @@ export class LanguageQueryService {
   async searchLanguages(
     query: string,
     limit = 20,
-  ): Promise<ProgrammingLanguageDto[]> {
+  ): Promise<ProgrammingLanguage[]> {
     const normalizedQuery = query.toLowerCase().trim();
     if (normalizedQuery.length < 1) return [];
 
@@ -70,10 +70,10 @@ export class LanguageQueryService {
       .slice(0, API_LIMITS.MAX_SUGGESTIONS);
     const cacheKey = `${TECH_SKILLS_CACHE_KEYS.SKILLS_SEARCH}${queryHash}`;
 
-    const cached = await this.cache.get<ProgrammingLanguageDto[]>(cacheKey);
+    const cached = await this.cache.get<ProgrammingLanguage[]>(cacheKey);
     if (cached) return cached;
 
-    const languages = await this.prisma.$queryRaw<ProgrammingLanguageDto[]>`
+    const languages = await this.prisma.$queryRaw<ProgrammingLanguage[]>`
       SELECT 
         id, slug, "nameEn", "namePtBr", color, website,
         aliases, "fileExtensions", paradigms, typing, popularity

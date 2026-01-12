@@ -2,16 +2,15 @@ import { Controller, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { ExperienceService } from '../services/experience.service';
-import {
-  CreateExperienceDto,
-  UpdateExperienceDto,
-  ExperienceResponseDto,
-} from '../dto/experience.dto';
+import type {
+  CreateExperience,
+  UpdateExperience,
+} from '@octopus-synapse/profile-contracts';
 import {
   BaseSubResourceController,
   SubResourceControllerConfig,
 } from './base/base-sub-resource.controller';
-import { Experience } from '@prisma/client';
+import type { Experience } from '@prisma/client';
 
 /**
  * Controller for managing resume experiences
@@ -30,21 +29,18 @@ import { Experience } from '@prisma/client';
 @UseGuards(JwtAuthGuard)
 export class ExperienceController extends BaseSubResourceController<
   Experience,
-  CreateExperienceDto,
-  UpdateExperienceDto,
-  ExperienceResponseDto
+  CreateExperience,
+  UpdateExperience,
+  Experience
 > {
   protected readonly config: SubResourceControllerConfig<
     Experience,
-    CreateExperienceDto,
-    UpdateExperienceDto,
-    ExperienceResponseDto
+    CreateExperience,
+    UpdateExperience,
+    Experience
   > = {
     entityName: 'experience',
     entityPluralName: 'experiences',
-    responseDtoClass: ExperienceResponseDto,
-    createDtoClass: CreateExperienceDto,
-    updateDtoClass: UpdateExperienceDto,
   };
 
   constructor(experienceService: ExperienceService) {

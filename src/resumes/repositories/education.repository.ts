@@ -1,7 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Education } from '@prisma/client';
-import { CreateEducationDto, UpdateEducationDto } from '../dto/education.dto';
+import type {
+  CreateEducation,
+  UpdateEducation,
+} from '@octopus-synapse/profile-contracts';
 import {
   BaseSubResourceRepository,
   OrderByConfig,
@@ -21,8 +24,8 @@ import {
 @Injectable()
 export class EducationRepository extends BaseSubResourceRepository<
   Education,
-  CreateEducationDto,
-  UpdateEducationDto
+  CreateEducation,
+  UpdateEducation
 > {
   protected readonly logger = new Logger(EducationRepository.name);
 
@@ -38,11 +41,7 @@ export class EducationRepository extends BaseSubResourceRepository<
     return { type: 'date-desc', field: 'startDate' };
   }
 
-  protected mapCreateDto(
-    resumeId: string,
-    dto: CreateEducationDto,
-    order: number,
-  ) {
+  protected mapCreate(resumeId: string, dto: CreateEducation, order: number) {
     return buildCreateData({ resumeId, order: dto.order ?? order }, dto, {
       institution: 'string',
       degree: 'string',
@@ -56,7 +55,7 @@ export class EducationRepository extends BaseSubResourceRepository<
     });
   }
 
-  protected mapUpdateDto(dto: UpdateEducationDto) {
+  protected mapUpdate(dto: UpdateEducation) {
     return buildUpdateData(dto, {
       institution: 'string',
       degree: 'string',

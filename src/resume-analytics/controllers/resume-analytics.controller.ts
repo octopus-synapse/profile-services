@@ -38,22 +38,22 @@ import {
   ApiResponseHelper,
   ApiResponse as AppApiResponse,
 } from '../../common/dto';
-import {
-  TrackViewDto,
-  ViewStatsQueryDto,
-  KeywordOptionsDto,
-  JobMatchDto,
-  BenchmarkOptionsDto,
-  HistoryQueryDto,
-  ViewStatsResponseDto,
-  ATSScoreResponseDto,
-  KeywordSuggestionsResponseDto,
-  JobMatchResponseDto,
-  BenchmarkResponseDto,
-  DashboardResponseDto,
-  SnapshotResponseDto,
-  ScoreProgressionResponseDto,
-} from '../dto';
+import type {
+  TrackView,
+  ViewStatsQuery,
+  KeywordOptions,
+  JobMatch,
+  BenchmarkOptions,
+  HistoryQuery,
+  ViewStatsResponse,
+  ATSScoreResponse,
+  KeywordSuggestionsResponse,
+  JobMatchResponse,
+  BenchmarkResponse,
+  DashboardResponse,
+  SnapshotResponse,
+  ScoreProgressionResponse,
+} from '@octopus-synapse/profile-contracts';
 
 interface AuthUser {
   id: string;
@@ -71,7 +71,7 @@ export class ResumeAnalyticsController {
   @SwaggerResponse({ status: 200, description: 'View tracked successfully' })
   async trackView(
     @Param('resumeId') resumeId: string,
-    @Body() _dto: TrackViewDto,
+    @Body() _dto: TrackView,
     @Req() req: Request,
   ): Promise<AppApiResponse> {
     await this.analyticsService.trackView({
@@ -89,19 +89,19 @@ export class ResumeAnalyticsController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get view statistics' })
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
-  @SwaggerResponse({ status: 200, type: ViewStatsResponseDto })
+  @SwaggerResponse({ status: 200, description: 'View statistics retrieved' })
   async getViewStats(
     @Param('resumeId') resumeId: string,
-    @Query() query: ViewStatsQueryDto,
+    @Query() query: ViewStatsQuery,
     @CurrentUser() user: AuthUser,
-  ): Promise<AppApiResponse<ViewStatsResponseDto>> {
+  ): Promise<AppApiResponse<ViewStatsResponse>> {
     const stats = await this.analyticsService.getViewStats(
       resumeId,
       user.id,
       query,
     );
 
-    return ApiResponseHelper.success(stats as ViewStatsResponseDto);
+    return ApiResponseHelper.success(stats as ViewStatsResponse);
   }
 
   @Get(':resumeId/ats-score')
@@ -109,17 +109,17 @@ export class ResumeAnalyticsController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Calculate ATS compatibility score' })
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
-  @SwaggerResponse({ status: 200, type: ATSScoreResponseDto })
+  @SwaggerResponse({ status: 200, description: 'ATS score calculated' })
   async getATSScore(
     @Param('resumeId') resumeId: string,
     @CurrentUser() user: AuthUser,
-  ): Promise<AppApiResponse<ATSScoreResponseDto>> {
+  ): Promise<AppApiResponse<ATSScoreResponse>> {
     const score = await this.analyticsService.calculateATSScore(
       resumeId,
       user.id,
     );
 
-    return ApiResponseHelper.success(score as ATSScoreResponseDto);
+    return ApiResponseHelper.success(score as ATSScoreResponse);
   }
 
   @Get(':resumeId/keywords')
@@ -127,21 +127,22 @@ export class ResumeAnalyticsController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get keyword optimization suggestions' })
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
-  @SwaggerResponse({ status: 200, type: KeywordSuggestionsResponseDto })
+  @SwaggerResponse({
+    status: 200,
+    description: 'Keyword suggestions retrieved',
+  })
   async getKeywordSuggestions(
     @Param('resumeId') resumeId: string,
-    @Query() options: KeywordOptionsDto,
+    @Query() options: KeywordOptions,
     @CurrentUser() user: AuthUser,
-  ): Promise<AppApiResponse<KeywordSuggestionsResponseDto>> {
+  ): Promise<AppApiResponse<KeywordSuggestionsResponse>> {
     const suggestions = await this.analyticsService.getKeywordSuggestions(
       resumeId,
       user.id,
       options,
     );
 
-    return ApiResponseHelper.success(
-      suggestions as KeywordSuggestionsResponseDto,
-    );
+    return ApiResponseHelper.success(suggestions as KeywordSuggestionsResponse);
   }
 
   @Post(':resumeId/match-job')
@@ -149,19 +150,19 @@ export class ResumeAnalyticsController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Match resume against job description' })
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
-  @SwaggerResponse({ status: 200, type: JobMatchResponseDto })
+  @SwaggerResponse({ status: 200, description: 'Job match calculated' })
   async matchJob(
     @Param('resumeId') resumeId: string,
-    @Body() dto: JobMatchDto,
+    @Body() dto: JobMatch,
     @CurrentUser() user: AuthUser,
-  ): Promise<AppApiResponse<JobMatchResponseDto>> {
+  ): Promise<AppApiResponse<JobMatchResponse>> {
     const match = await this.analyticsService.matchJobDescription(
       resumeId,
       user.id,
       dto.jobDescription,
     );
 
-    return ApiResponseHelper.success(match as JobMatchResponseDto);
+    return ApiResponseHelper.success(match as JobMatchResponse);
   }
 
   @Get(':resumeId/benchmark')
@@ -169,19 +170,19 @@ export class ResumeAnalyticsController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get industry benchmark comparison' })
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
-  @SwaggerResponse({ status: 200, type: BenchmarkResponseDto })
+  @SwaggerResponse({ status: 200, description: 'Benchmark data retrieved' })
   async getBenchmark(
     @Param('resumeId') resumeId: string,
-    @Query() options: BenchmarkOptionsDto,
+    @Query() options: BenchmarkOptions,
     @CurrentUser() user: AuthUser,
-  ): Promise<AppApiResponse<BenchmarkResponseDto>> {
+  ): Promise<AppApiResponse<BenchmarkResponse>> {
     const benchmark = await this.analyticsService.getIndustryBenchmark(
       resumeId,
       user.id,
       options,
     );
 
-    return ApiResponseHelper.success(benchmark as BenchmarkResponseDto);
+    return ApiResponseHelper.success(benchmark as BenchmarkResponse);
   }
 
   @Get(':resumeId/dashboard')
@@ -189,17 +190,17 @@ export class ResumeAnalyticsController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get complete analytics dashboard' })
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
-  @SwaggerResponse({ status: 200, type: DashboardResponseDto })
+  @SwaggerResponse({ status: 200, description: 'Dashboard data retrieved' })
   async getDashboard(
     @Param('resumeId') resumeId: string,
     @CurrentUser() user: AuthUser,
-  ): Promise<AppApiResponse<DashboardResponseDto>> {
+  ): Promise<AppApiResponse<DashboardResponse>> {
     const dashboard = await this.analyticsService.getDashboard(
       resumeId,
       user.id,
     );
 
-    return ApiResponseHelper.success(dashboard as DashboardResponseDto);
+    return ApiResponseHelper.success(dashboard as DashboardResponse);
   }
 
   @Post(':resumeId/snapshot')
@@ -207,17 +208,17 @@ export class ResumeAnalyticsController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Save analytics snapshot for tracking progress' })
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
-  @SwaggerResponse({ status: 201, type: SnapshotResponseDto })
+  @SwaggerResponse({ status: 201, description: 'Snapshot created' })
   async createSnapshot(
     @Param('resumeId') resumeId: string,
     @CurrentUser() user: AuthUser,
-  ): Promise<AppApiResponse<SnapshotResponseDto>> {
+  ): Promise<AppApiResponse<SnapshotResponse>> {
     const snapshot = await this.analyticsService.saveSnapshot(
       resumeId,
       user.id,
     );
 
-    return ApiResponseHelper.success(snapshot as SnapshotResponseDto);
+    return ApiResponseHelper.success(snapshot as SnapshotResponse);
   }
 
   @Get(':resumeId/history')
@@ -225,19 +226,19 @@ export class ResumeAnalyticsController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get analytics history' })
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
-  @SwaggerResponse({ status: 200, type: [SnapshotResponseDto] })
+  @SwaggerResponse({ status: 200, description: 'History retrieved' })
   async getHistory(
     @Param('resumeId') resumeId: string,
-    @Query() query: HistoryQueryDto,
+    @Query() query: HistoryQuery,
     @CurrentUser() user: AuthUser,
-  ): Promise<AppApiResponse<SnapshotResponseDto[]>> {
+  ): Promise<AppApiResponse<SnapshotResponse[]>> {
     const history = await this.analyticsService.getHistory(
       resumeId,
       user.id,
       query,
     );
 
-    return ApiResponseHelper.success(history as SnapshotResponseDto[]);
+    return ApiResponseHelper.success(history as SnapshotResponse[]);
   }
 
   @Get(':resumeId/progression')
@@ -245,18 +246,16 @@ export class ResumeAnalyticsController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get score progression over time' })
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
-  @SwaggerResponse({ status: 200, type: ScoreProgressionResponseDto })
+  @SwaggerResponse({ status: 200, description: 'Score progression retrieved' })
   async getProgression(
     @Param('resumeId') resumeId: string,
     @CurrentUser() user: AuthUser,
-  ): Promise<AppApiResponse<ScoreProgressionResponseDto>> {
+  ): Promise<AppApiResponse<ScoreProgressionResponse>> {
     const progression = await this.analyticsService.getScoreProgression(
       resumeId,
       user.id,
     );
 
-    return ApiResponseHelper.success(
-      progression as ScoreProgressionResponseDto,
-    );
+    return ApiResponseHelper.success(progression as ScoreProgressionResponse);
   }
 }

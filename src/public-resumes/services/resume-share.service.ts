@@ -4,7 +4,7 @@ import { CacheCoreService } from '../../common/cache/services/cache-core.service
 import { nanoid } from 'nanoid';
 import * as bcrypt from 'bcryptjs';
 
-interface CreateShareDto {
+interface CreateShare {
   resumeId: string;
   slug?: string;
   password?: string;
@@ -20,7 +20,7 @@ export class ResumeShareService {
     private readonly cache: CacheCoreService,
   ) {}
 
-  async createShare(dto: CreateShareDto) {
+  async createShare(dto: CreateShare) {
     const slug = dto.slug ?? this.generateSlug();
 
     // Validate custom slug

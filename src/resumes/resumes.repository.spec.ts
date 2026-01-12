@@ -13,8 +13,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ForbiddenException } from '@nestjs/common';
 import { ResumesRepository } from './resumes.repository';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateResumeDto } from './dto/create-resume.dto';
-import { UpdateResumeDto } from './dto/update-resume.dto';
+import type {
+  CreateResume,
+  UpdateResume,
+} from '@octopus-synapse/profile-contracts';
 
 describe('ResumesRepository', () => {
   let repository: ResumesRepository;
@@ -66,7 +68,7 @@ describe('ResumesRepository', () => {
         },
       ),
       update: mock(
-        ({ where, data }: { where: { id: string }; data: UpdateResumeDto }) => {
+        ({ where, data }: { where: { id: string }; data: UpdateResume }) => {
           const resume = dataStore.get(where.id);
           if (!resume) return Promise.resolve(null);
           const updated = { ...resume, ...data, updatedAt: new Date() };
@@ -177,7 +179,7 @@ describe('ResumesRepository', () => {
 
   describe('create', () => {
     it('should create resume and return it with generated id', async () => {
-      const createDto: CreateResumeDto = { title: 'New Resume' };
+      const createDto: CreateResume = { title: 'New Resume' };
 
       const result = await repository.create('user-1', createDto);
 

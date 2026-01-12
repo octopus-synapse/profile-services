@@ -19,16 +19,16 @@ import {
 } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import { AuthService } from '../auth.service';
-import {
-  ForgotPasswordDto,
-  ResetPasswordDto,
-  ChangePasswordDto,
-} from '../dto/verification.dto';
+import type {
+  ResetPasswordRequest as ForgotPassword,
+  NewPassword as ResetPassword,
+  ChangePassword,
+} from '@octopus-synapse/profile-contracts';
 import { Public } from '../decorators/public.decorator';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { UserPayload } from '../interfaces/auth-request.interface';
-import { APP_CONSTANTS } from '../../common/constants/config';
+import { RATE_LIMIT_CONFIG } from '@octopus-synapse/profile-contracts';
 
 @ApiTags('auth')
 @Controller('v1/auth')
@@ -37,25 +37,28 @@ export class AuthPasswordController {
 
   @Public()
   @Post('forgot-password')
-  @Throttle({ default: { ttl: 60000, limit: 3 } })
+  @Throttle({ default: { ttl: RATE_LIMIT_CONFIG.TTL_MS, limit: 3 } })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Request password reset' })
   @ApiResponse({ status: 200, description: 'Password reset email sent' })
   @ApiResponse({ status: 429, description: 'Too many requests' })
-  async forgotPassword(@Body() dto: ForgotPasswordDto) {
+  async forgotPassword(@Body() dto: ForgotPassword) {
     return this.authService.forgotPassword(dto);
   }
 
   @Public()
   @Post('reset-password')
   @Throttle({
-    default: { ttl: 60000, limit: APP_CONSTANTS.AUTH_RATE_LIMIT_MAX_REQUESTS },
+    default: {
+      ttl: RATE_LIMIT_CONFIG.TTL_MS,
+      limit: RATE_LIMIT_CONFIG.AUTH_MAX_REQUESTS,
+    },
   })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Reset password with token' })
   @ApiResponse({ status: 200, description: 'Password reset successfully' })
   @ApiResponse({ status: 400, description: 'Invalid or expired token' })
-  async resetPassword(@Body() dto: ResetPasswordDto) {
+  async resetPassword(@Body() dto: ResetPassword) {
     return this.authService.resetPassword(dto);
   }
 
@@ -68,7 +71,7 @@ export class AuthPasswordController {
   @ApiResponse({ status: 401, description: 'Current password is incorrect' })
   async changePassword(
     @CurrentUser() user: UserPayload,
-    @Body() dto: ChangePasswordDto,
+    @Body() dto: ChangePassword,
   ) {
     return this.authService.changePassword(user.userId, dto);
   }

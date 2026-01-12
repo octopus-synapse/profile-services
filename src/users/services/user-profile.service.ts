@@ -6,9 +6,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { UsersRepository } from '../users.repository';
 import { ResumesRepository } from '../../resumes/resumes.repository';
-import { UpdateProfileDto } from '../dto/update-profile.dto';
+import type { UpdateUser as UpdateProfile } from '@octopus-synapse/profile-contracts';
 import { AppLoggerService } from '../../common/logger/logger.service';
-import { ERROR_MESSAGES } from '../../common/constants/config';
+import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
 
 @Injectable()
 export class UserProfileService {
@@ -51,7 +51,7 @@ export class UserProfileService {
     return profile;
   }
 
-  async updateProfile(userId: string, updateProfileDto: UpdateProfileDto) {
+  async updateProfile(userId: string, updateProfile: UpdateProfile) {
     const user = await this.usersRepository.getUser(userId);
     if (!user) {
       throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
@@ -59,7 +59,7 @@ export class UserProfileService {
 
     const updatedUser = await this.usersRepository.updateUserProfile(
       userId,
-      updateProfileDto,
+      updateProfile,
     );
 
     this.logger.debug(`User profile updated`, 'UserProfileService', { userId });

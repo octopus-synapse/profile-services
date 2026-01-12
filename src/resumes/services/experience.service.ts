@@ -2,18 +2,18 @@ import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { Experience } from '@prisma/client';
 import { ExperienceRepository } from '../repositories/experience.repository';
 import { ResumesRepository } from '../resumes.repository';
-import {
-  CreateExperienceDto,
-  UpdateExperienceDto,
-} from '../dto/experience.dto';
+import type {
+  CreateExperience,
+  UpdateExperience,
+} from '@octopus-synapse/profile-contracts';
 import { BaseSubResourceService } from './base';
 import { DataResponse } from '../../common/dto/api-response.dto';
 
 @Injectable()
 export class ExperienceService extends BaseSubResourceService<
   Experience,
-  CreateExperienceDto,
-  UpdateExperienceDto
+  CreateExperience,
+  UpdateExperience
 > {
   protected readonly entityName = 'Experience';
   protected readonly logger = new Logger(ExperienceService.name);
@@ -33,7 +33,7 @@ export class ExperienceService extends BaseSubResourceService<
   override async addToResume(
     resumeId: string,
     userId: string,
-    entityData: CreateExperienceDto,
+    entityData: CreateExperience,
   ): Promise<DataResponse<Experience>> {
     this.validateExperienceDates(entityData);
     return super.addToResume(resumeId, userId, entityData);
@@ -46,11 +46,11 @@ export class ExperienceService extends BaseSubResourceService<
     resumeId: string,
     entityId: string,
     userId: string,
-    updateData: UpdateExperienceDto,
+    updateData: UpdateExperience,
   ): Promise<DataResponse<Experience>> {
     // Only validate if date-related fields are being updated
     if (
-      updateData.isCurrent !== undefined ||
+      updateData.current !== undefined ||
       updateData.endDate !== undefined ||
       updateData.startDate !== undefined
     ) {
@@ -60,21 +60,21 @@ export class ExperienceService extends BaseSubResourceService<
   }
 
   /**
-   * BUG-007 FIX: Validate isCurrent and endDate relationship.
+   * BUG-007 FIX: Validate current and endDate relationship.
    * BUG-009 FIX: Validate date ranges.
    *
    * Rules:
-   * - If isCurrent=true → endDate MUST be null/undefined
-   * - If isCurrent=false → endDate SHOULD be set (warning only for now)
+   * - If current=true → endDate MUST be null/undefined
+   * - If current=false → endDate SHOULD be set (warning only for now)
    * - endDate cannot be before startDate
    */
   private validateExperienceDates(
-    data: CreateExperienceDto | UpdateExperienceDto,
+    data: CreateExperience | UpdateExperience,
   ): void {
-    // BUG-007: isCurrent=true with endDate is invalid
-    if (data.isCurrent === true && data.endDate) {
+    // BUG-007: current=true with endDate is invalid
+    if (data.current === true && data.endDate) {
       throw new BadRequestException(
-        'Current position cannot have an end date. Either set isCurrent to false or remove endDate.',
+        'Current position cannot have an end date. Either set current to false or remove endDate.',
       );
     }
 

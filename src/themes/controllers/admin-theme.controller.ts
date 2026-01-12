@@ -11,7 +11,7 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { UserRole } from '../../common/enums/user-role.enum';
 import { ThemeApprovalService, ThemeCrudService } from '../services';
-import { ReviewThemeDto } from '../dto';
+import type { ReviewTheme } from '@octopus-synapse/profile-contracts';
 
 @ApiTags('themes-admin')
 @Controller('v1/themes/admin')
@@ -32,7 +32,7 @@ export class AdminThemeController {
 
   @Post('review')
   @ApiOperation({ summary: 'Review theme' })
-  review(@CurrentUser('userId') userId: string, @Body() dto: ReviewThemeDto) {
+  review(@CurrentUser('userId') userId: string, @Body() dto: ReviewTheme) {
     return this.approvalService.review(userId, dto);
   }
 

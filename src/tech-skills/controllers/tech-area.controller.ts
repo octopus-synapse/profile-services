@@ -9,7 +9,7 @@ import { TechAreaQueryService } from '../services/area-query.service';
 import { TechSkillsQueryService } from '../services/tech-skills-query.service';
 import { Public } from '../../auth/decorators/public.decorator';
 import type { TechAreaType } from '../interfaces';
-import type { TechAreaDto, TechNicheDto } from '../dtos';
+import type { TechArea, TechNiche } from '../dtos';
 
 @ApiTags('tech-areas')
 @Controller('v1/tech-areas')
@@ -24,7 +24,7 @@ export class TechAreaController {
   @Public()
   @ApiOperation({ summary: 'Get all tech areas' })
   @ApiResponse({ status: 200, description: 'List of tech areas' })
-  async getAreas(): Promise<TechAreaDto[]> {
+  async getAreas(): Promise<TechArea[]> {
     return this.areaQuery.getAllAreas();
   }
 
@@ -35,7 +35,7 @@ export class TechAreaController {
   @ApiResponse({ status: 200, description: 'List of niches for the area' })
   async getNichesByArea(
     @Param('areaType') areaType: TechAreaType,
-  ): Promise<TechNicheDto[]> {
+  ): Promise<TechNiche[]> {
     return this.queryService.getNichesByArea(areaType);
   }
 }

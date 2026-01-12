@@ -9,12 +9,15 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { ApplyThemeToResumeDto, ForkThemeDto } from '../dto';
+import type {
+  ApplyThemeToResume,
+  ForkTheme,
+} from '@octopus-synapse/profile-contracts';
 import { ThemeCrudService } from './theme-crud.service';
 import { ThemeQueryService } from './theme-query.service';
 import { deepMerge } from '../utils';
 import { ThemeStatus, Prisma } from '@prisma/client';
-import { ERROR_MESSAGES } from '../../common/constants/config';
+import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
 
 @Injectable()
 export class ThemeApplicationService {
@@ -24,7 +27,7 @@ export class ThemeApplicationService {
     private query: ThemeQueryService,
   ) {}
 
-  async applyToResume(userId: string, dto: ApplyThemeToResumeDto) {
+  async applyToResume(userId: string, dto: ApplyThemeToResume) {
     const resume = await this.prisma.resume.findUnique({
       where: { id: dto.resumeId },
     });
@@ -58,7 +61,7 @@ export class ThemeApplicationService {
     return { success: true };
   }
 
-  async fork(userId: string, dto: ForkThemeDto) {
+  async fork(userId: string, dto: ForkTheme) {
     const original = await this.crud.findOrFail(dto.themeId);
 
     // Can fork published or own themes

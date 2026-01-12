@@ -1,9 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Skill } from '@prisma/client';
-import { CreateSkillDto, UpdateSkillDto } from '../dto/skill.dto';
-import { PaginatedResult } from '../dto/pagination.dto';
-import { PAGINATION } from '../../common/constants/validation/pagination.const';
+import type {
+  CreateSkill,
+  UpdateSkill,
+} from '@octopus-synapse/profile-contracts';
+import type { PaginatedResult } from '@octopus-synapse/profile-contracts';
+import {
+  PAGINATION,
+  SkillLevelToNumeric,
+} from '@octopus-synapse/profile-contracts';
 import {
   BaseSubResourceRepository,
   OrderByConfig,
@@ -24,8 +30,8 @@ import {
 @Injectable()
 export class SkillRepository extends BaseSubResourceRepository<
   Skill,
-  CreateSkillDto,
-  UpdateSkillDto
+  CreateSkill,
+  UpdateSkill
 > {
   protected readonly logger = new Logger(SkillRepository.name);
   private categoryFilter?: string; // Instance variable for category filtering
@@ -61,7 +67,7 @@ export class SkillRepository extends BaseSubResourceRepository<
   /**
    * Override to scope maxOrder by category
    */
-  protected getMaxOrderScope(dto?: CreateSkillDto): Record<string, unknown> {
+  protected getMaxOrderScope(dto?: CreateSkill): Record<string, unknown> {
     if (dto && 'category' in dto) {
       return { category: dto.category };
     }
@@ -83,7 +89,7 @@ export class SkillRepository extends BaseSubResourceRepository<
     return result;
   }
 
-  protected mapCreateDto(resumeId: string, dto: CreateSkillDto, order: number) {
+  protected mapCreate(resumeId: string, dto: CreateSkill, order: number) {
     return buildCreateData({ resumeId, order: dto.order ?? order }, dto, {
       name: 'string',
       category: 'string',
@@ -91,7 +97,7 @@ export class SkillRepository extends BaseSubResourceRepository<
     });
   }
 
-  protected mapUpdateDto(dto: UpdateSkillDto) {
+  protected mapUpdate(dto: UpdateSkill) {
     return buildUpdateData(dto, {
       name: 'string',
       category: 'string',
@@ -108,16 +114,13 @@ export class SkillRepository extends BaseSubResourceRepository<
    * Create multiple skills at once
    * Special method for bulk skill import
    */
-  async createMany(
-    resumeId: string,
-    skills: CreateSkillDto[],
-  ): Promise<number> {
+  async createMany(resumeId: string, skills: CreateSkill[]): Promise<number> {
     const result = await this.prisma.skill.createMany({
       data: skills.map((skill, index) => ({
         resumeId,
         name: skill.name,
-        category: skill.category,
-        level: skill.level,
+        category: skill.category ?? 'General',
+        level: skill.level ? SkillLevelToNumeric[skill.level] : null,
         order: skill.order ?? index,
       })),
     });

@@ -4,7 +4,7 @@
  */
 
 import type { SkillType } from '../interfaces';
-import type { TechSkillDto, TechSkillRawQueryResult } from '../dtos';
+import type { TechSkill, TechSkillRawQueryResult } from '../dtos';
 
 /** Prisma skill with niche relation */
 export interface PrismaSkillWithNiche {
@@ -24,7 +24,7 @@ export interface PrismaSkillWithNiche {
 /**
  * Map Prisma skills to DTO format
  */
-export function mapSkillsToDto(skills: PrismaSkillWithNiche[]): TechSkillDto[] {
+export function mapSkillsTo(skills: PrismaSkillWithNiche[]): TechSkill[] {
   return skills.map((s) => ({
     id: s.id,
     slug: s.slug,
@@ -43,9 +43,7 @@ export function mapSkillsToDto(skills: PrismaSkillWithNiche[]): TechSkillDto[] {
 /**
  * Map raw SQL query results to DTO format
  */
-export function mapRawSkillsToDto(
-  skills: TechSkillRawQueryResult[],
-): TechSkillDto[] {
+export function mapRawSkillsTo(skills: TechSkillRawQueryResult[]): TechSkill[] {
   return skills.map((s) => ({
     id: s.id,
     slug: s.slug,

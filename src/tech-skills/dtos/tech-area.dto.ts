@@ -5,7 +5,7 @@
 
 import type { TechAreaType } from '../interfaces';
 
-export interface TechAreaDto {
+export interface TechArea {
   id: string;
   type: TechAreaType;
   nameEn: string;

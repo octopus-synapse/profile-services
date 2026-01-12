@@ -19,8 +19,10 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { UsersService } from '../users.service';
-import { UpdatePreferencesDto } from '../dto/update-preferences.dto';
-import { UpdateFullPreferencesDto } from '../dto/update-full-preferences.dto';
+import type {
+  UpdatePreferences,
+  UpdateFullPreferences,
+} from '@octopus-synapse/profile-contracts';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { UserPayload } from '../../auth/interfaces/auth-request.interface';
@@ -57,12 +59,9 @@ export class UsersPreferencesController {
   @ApiResponse({ status: 400, description: 'Invalid input data' })
   async updatePreferences(
     @CurrentUser() user: UserPayload,
-    @Body() updatePreferencesDto: UpdatePreferencesDto,
+    @Body() updatePreferences: UpdatePreferences,
   ) {
-    return this.usersService.updatePreferences(
-      user.userId,
-      updatePreferencesDto,
-    );
+    return this.usersService.updatePreferences(user.userId, updatePreferences);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -90,11 +89,11 @@ export class UsersPreferencesController {
   @ApiResponse({ status: 400, description: 'Invalid input data' })
   async updateFullPreferences(
     @CurrentUser() user: UserPayload,
-    @Body() updateFullPreferencesDto: UpdateFullPreferencesDto,
+    @Body() updateFullPreferences: UpdateFullPreferences,
   ) {
     return this.usersService.updateFullPreferences(
       user.userId,
-      updateFullPreferencesDto,
+      updateFullPreferences,
     );
   }
 }

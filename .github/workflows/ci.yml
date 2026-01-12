@@ -82,7 +82,7 @@ jobs:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
           REDIS_HOST: localhost
           REDIS_PORT: 6379
-          JWT_SECRET: test-secret
+          JWT_SECRET: test-secret-key-for-integration-tests-min-32-chars
           NODE_ENV: test
 
       - name: Run integration tests
@@ -92,7 +92,7 @@ jobs:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
           REDIS_HOST: localhost
           REDIS_PORT: 6379
-          JWT_SECRET: test-secret
+          JWT_SECRET: test-secret-key-for-integration-tests-min-32-chars
           NODE_ENV: test
 
   hook-compliance:

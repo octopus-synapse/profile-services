@@ -13,7 +13,7 @@
  */
 
 export * from './mec-sync.module';
-export * from './dto';
+export * from '@octopus-synapse/profile-contracts';
 export * from './services/institution-query.service';
 export * from './services/course-query.service';
 export * from './services/mec-stats.service';

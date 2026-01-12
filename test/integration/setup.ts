@@ -19,7 +19,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request, { Agent } from 'supertest';
 import { AppModule } from '../../src/app.module';
-import { ZodValidationPipe } from '../../src/common/pipes/zod-validation.pipe';
 import { PrismaService } from '../../src/prisma/prisma.service';
 
 // --- Test Constants ---
@@ -69,7 +68,8 @@ export async function getApp(): Promise<INestApplication> {
 
   appInstance = moduleFixture.createNestApplication();
   appInstance.setGlobalPrefix('api');
-  appInstance.useGlobalPipes(new ZodValidationPipe());
+  // Validation is handled by ZodValidationPipe at controller level
+  // No global ValidationPipe needed (avoids class-validator dependency)
 
   await appInstance.init();
   testContext.app = appInstance;

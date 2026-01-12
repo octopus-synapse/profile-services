@@ -1,0 +1,86 @@
+/**
+ * Chat System Schema
+ *
+ * Real-time messaging between users for professional networking.
+ * - 1-on-1 conversations
+ * - Message history
+ * - Read receipts
+ * - User blocking
+ */
+
+model Conversation {
+  id           String   @id @default(cuid())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Participants (always 2 users for 1-on-1)
+  participant1Id String
+  participant2Id String
+  participant1   User   @relation("ConversationParticipant1", fields: [participant1Id], references: [id], onDelete: Cascade)
+  participant2   User   @relation("ConversationParticipant2", fields: [participant2Id], references: [id], onDelete: Cascade)
+
+  // Last message metadata (denormalized for performance)
+  lastMessageContent String?
+  lastMessageAt      DateTime?
+  lastMessageSenderId String?
+
+  // Messages
+  messages Message[]
+
+  // Indexes
+  @@unique([participant1Id, participant2Id])
+  @@index([participant1Id])
+  @@index([participant2Id])
+  @@index([lastMessageAt])
+  @@map("conversations")
+}
+
+model Message {
+  id             String   @id @default(cuid())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Content
+  content        String   @db.Text
+
+  // Relations
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  senderId       String
+  sender         User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+
+  // Read receipts
+  isRead         Boolean  @default(false)
+  readAt         DateTime?
+
+  // Soft delete
+  isDeleted      Boolean  @default(false)
+  deletedAt      DateTime?
+
+  // Indexes
+  @@index([conversationId, createdAt])
+  @@index([senderId])
+  @@index([isRead])
+  @@map("messages")
+}
+
+model BlockedUser {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  // Blocker and blocked user
+  blockerId String
+  blockedId String
+  blocker   User   @relation("Blocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked   User   @relation("Blocked", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  // Metadata
+  reason    String?  @db.Text
+
+  // Unique constraint: can't block same user twice
+  @@unique([blockerId, blockedId])
+  @@index([blockerId])
+  @@index([blockedId])
+  @@map("blocked_users")
+}

@@ -7,10 +7,10 @@ import { Injectable } from '@nestjs/common';
 import * as crypto from 'crypto';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CacheService } from '../../common/cache/cache.service';
-import { API_LIMITS } from '../../common/constants/config';
+import { API_LIMITS } from '@octopus-synapse/profile-contracts';
 import { TECH_SKILLS_CACHE_KEYS, TECH_SKILLS_CACHE_TTL } from '../interfaces';
-import type { TechSkillDto, TechSkillRawQueryResult } from '../dtos';
-import { mapRawSkillsToDto } from '../utils';
+import type { TechSkill, TechSkillRawQueryResult } from '../dtos';
+import { mapRawSkillsTo } from '../utils';
 
 @Injectable()
 export class SkillSearchService {
@@ -20,17 +20,17 @@ export class SkillSearchService {
   ) {}
 
   /** Search skills with accent-insensitive matching */
-  async searchSkills(query: string, limit = 20): Promise<TechSkillDto[]> {
+  async searchSkills(query: string, limit = 20): Promise<TechSkill[]> {
     const normalizedQuery = query.toLowerCase().trim();
     if (normalizedQuery.length < 1) return [];
 
     const cacheKey = this.buildCacheKey(normalizedQuery);
 
-    const cached = await this.cache.get<TechSkillDto[]>(cacheKey);
+    const cached = await this.cache.get<TechSkill[]>(cacheKey);
     if (cached) return cached;
 
     const skills = await this.executeSearchQuery(normalizedQuery, limit);
-    const result = mapRawSkillsToDto(skills);
+    const result = mapRawSkillsTo(skills);
 
     await this.cache.set(cacheKey, result, TECH_SKILLS_CACHE_TTL.SKILLS_SEARCH);
     return result;

@@ -4,10 +4,7 @@ import { Logger } from '@nestjs/common';
 import { ExperienceService } from './experience.service';
 import { ExperienceRepository } from '../repositories/experience.repository';
 import { ResumesRepository } from '../resumes.repository';
-import {
-  CreateExperienceDto,
-  UpdateExperienceDto,
-} from '../dto/experience.dto';
+import { CreateExperienceDto, UpdateExperienceDto } from '../dto';
 
 describe('ExperienceService', () => {
   let service: ExperienceService;

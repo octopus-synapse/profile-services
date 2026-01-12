@@ -18,9 +18,14 @@ import {
 import { Request } from 'express';
 import { TosAcceptanceService } from '../services/tos-acceptance.service';
 import { AuditService } from '../../admin/services/audit.service';
-import { AcceptConsentDto } from '../dto/accept-consent.dto';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { SkipTosCheck } from '../decorators/skip-tos-check.decorator';
+import {
+  AcceptConsentSchema,
+  type AcceptConsent,
+} from '@octopus-synapse/profile-contracts';
+import { createZodPipe } from '../../common/validation/zod-validation.pipe';
+import { AuditAction } from '@prisma/client';
 
 interface RequestWithUser extends Request {
   user: { userId: string; email: string };
@@ -45,7 +50,20 @@ export class UserConsentController {
       'Records user acceptance of legal documents with IP and user agent for audit trail. ' +
       'Required before accessing protected API endpoints.',
   })
-  @ApiBody({ type: AcceptConsentDto })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['documentType'],
+      properties: {
+        documentType: {
+          type: 'string',
+          enum: ['TERMS_OF_SERVICE', 'PRIVACY_POLICY', 'MARKETING_CONSENT'],
+        },
+        ipAddress: { type: 'string' },
+        userAgent: { type: 'string' },
+      },
+    },
+  })
   @ApiResponse({
     status: 201,
     description: 'Consent recorded successfully',
@@ -70,7 +88,7 @@ export class UserConsentController {
   })
   async acceptConsent(
     @Req() req: RequestWithUser,
-    @Body() dto: AcceptConsentDto,
+    @Body(createZodPipe(AcceptConsentSchema)) dto: AcceptConsent,
   ) {
     const userId = req.user.userId;
 
@@ -86,12 +104,12 @@ export class UserConsentController {
     });
 
     // Log to audit trail
-    const auditAction =
+    const auditAction: AuditAction =
       dto.documentType === 'TERMS_OF_SERVICE'
-        ? 'TOS_ACCEPTED'
+        ? AuditAction.TOS_ACCEPTED
         : dto.documentType === 'PRIVACY_POLICY'
-          ? 'PRIVACY_POLICY_ACCEPTED'
-          : 'TOS_ACCEPTED'; // Fallback for MARKETING_CONSENT
+          ? AuditAction.PRIVACY_POLICY_ACCEPTED
+          : AuditAction.TOS_ACCEPTED; // Fallback for MARKETING_CONSENT
 
     this.auditService.log(userId, auditAction, {
       entityType: 'UserConsent',
