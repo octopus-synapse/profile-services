@@ -8,9 +8,11 @@ import { Injectable } from '@nestjs/common';
 import { UserAdminQueryService } from './user-admin-query.service';
 import type { GetAllUsersOptions } from './user-admin-query.service';
 import { UserAdminMutationService } from './user-admin-mutation.service';
-import { CreateUserDto } from '../dto/create-user.dto';
-import { UpdateUserDto } from '../dto/update-user.dto';
-import { AdminResetPasswordDto } from '../dto/reset-password.dto';
+import type {
+  AdminCreateUser,
+  AdminUpdateUser,
+  AdminResetPassword,
+} from '@octopus-synapse/profile-contracts';
 
 // Re-export for backward compatibility
 export type { GetAllUsersOptions };
@@ -34,11 +36,11 @@ export class UserAdminService {
 
   // ==================== Mutation Operations ====================
 
-  async create(dto: CreateUserDto) {
+  async create(dto: AdminCreateUser) {
     return this.mutationService.create(dto);
   }
 
-  async update(id: string, dto: UpdateUserDto) {
+  async update(id: string, dto: AdminUpdateUser) {
     return this.mutationService.update(id, dto);
   }
 
@@ -46,7 +48,7 @@ export class UserAdminService {
     return this.mutationService.delete(id);
   }
 
-  async resetPassword(id: string, dto: AdminResetPasswordDto) {
+  async resetPassword(id: string, dto: AdminResetPassword) {
     return this.mutationService.resetPassword(id, dto);
   }
 }

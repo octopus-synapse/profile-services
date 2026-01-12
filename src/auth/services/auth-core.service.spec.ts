@@ -7,7 +7,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { AppLoggerService } from '../../common/logger/logger.service';
 import { TokenService } from './token.service';
 import { PasswordService } from './password.service';
-import { ERROR_MESSAGES } from '../../common/constants/config';
+import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
 
 describe('AuthCoreService', () => {
   let service: AuthCoreService;

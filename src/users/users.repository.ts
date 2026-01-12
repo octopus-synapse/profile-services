@@ -6,9 +6,11 @@
 
 import { Injectable } from '@nestjs/common';
 import { User, UserPreferences } from '@prisma/client';
-import { UpdateProfileDto } from './dto/update-profile.dto';
-import { UpdatePreferencesDto } from './dto/update-preferences.dto';
-import { UpdateFullPreferencesDto } from './dto/update-full-preferences.dto';
+import type {
+  UpdateProfile,
+  UpdatePreferences,
+  UpdateFullPreferences,
+} from '@octopus-synapse/profile-contracts';
 import { UserQueryRepository, UserMutationRepository } from './repositories';
 
 @Injectable()
@@ -80,21 +82,21 @@ export class UsersRepository {
 
   async updateUserProfile(
     userId: string,
-    profile: UpdateProfileDto,
+    profile: UpdateProfile,
   ): Promise<User> {
     return this.mutationRepo.updateUserProfile(userId, profile);
   }
 
   async updateUserPreferences(
     userId: string,
-    preferences: UpdatePreferencesDto,
+    preferences: UpdatePreferences,
   ): Promise<void> {
     return this.mutationRepo.updateUserPreferences(userId, preferences);
   }
 
   async upsertFullUserPreferences(
     userId: string,
-    preferences: UpdateFullPreferencesDto,
+    preferences: UpdateFullPreferences,
   ): Promise<UserPreferences> {
     return this.mutationRepo.upsertFullUserPreferences(userId, preferences);
   }

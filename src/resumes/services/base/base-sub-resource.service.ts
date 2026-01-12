@@ -1,13 +1,13 @@
 import { ForbiddenException, Logger, NotFoundException } from '@nestjs/common';
 import { ResumesRepository } from '../../resumes.repository';
-import { ISubResourceRepository } from '../../interfaces/base-sub-resource.interface';
-import { PaginatedResult } from '../../dto/pagination.dto';
+import type { ISubResourceRepository } from '../../interfaces/base-sub-resource.interface';
+import type { PaginatedResult } from '@octopus-synapse/profile-contracts';
 import {
   ApiResponseHelper,
   DataResponse,
   MessageResponse,
 } from '../../../common/dto/api-response.dto';
-import { ERROR_MESSAGES } from '../../../common/constants/config';
+import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
 
 /**
  * Abstract base service for resume sub-resources
@@ -21,10 +21,10 @@ import { ERROR_MESSAGES } from '../../../common/constants/config';
  * - DIP: Depends on ISubResourceRepository abstraction
  *
  * @template T - The entity type (e.g., Experience, Education)
- * @template CreateDto - DTO for creating the entity
- * @template UpdateDto - DTO for updating the entity
+ * @template Create - DTO for creating the entity
+ * @template Update - DTO for updating the entity
  */
-export abstract class BaseSubResourceService<T, CreateDto, UpdateDto> {
+export abstract class BaseSubResourceService<T, Create, Update> {
   /**
    * The name of the entity for error messages and logging
    * Must be implemented by concrete classes
@@ -38,11 +38,7 @@ export abstract class BaseSubResourceService<T, CreateDto, UpdateDto> {
   protected abstract readonly logger: Logger;
 
   constructor(
-    protected readonly repository: ISubResourceRepository<
-      T,
-      CreateDto,
-      UpdateDto
-    >,
+    protected readonly repository: ISubResourceRepository<T, Create, Update>,
     protected readonly resumesRepository: ResumesRepository,
   ) {}
 
@@ -103,7 +99,7 @@ export abstract class BaseSubResourceService<T, CreateDto, UpdateDto> {
   async addToResume(
     resumeId: string,
     userId: string,
-    entityData: CreateDto,
+    entityData: Create,
   ): Promise<DataResponse<T>> {
     await this.validateResumeOwnership(resumeId, userId);
     this.logger.log(`Creating ${this.entityName} for resume: ${resumeId}`);
@@ -119,7 +115,7 @@ export abstract class BaseSubResourceService<T, CreateDto, UpdateDto> {
     resumeId: string,
     entityId: string,
     userId: string,
-    updateData: UpdateDto,
+    updateData: Update,
   ): Promise<DataResponse<T>> {
     await this.validateResumeOwnership(resumeId, userId);
     const entity = await this.repository.update(entityId, resumeId, updateData);

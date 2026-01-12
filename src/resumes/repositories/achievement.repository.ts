@@ -2,9 +2,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Achievement } from '@prisma/client';
 import {
-  CreateAchievementDto,
-  UpdateAchievementDto,
-} from '../dto/achievement.dto';
+  CreateAchievement,
+  UpdateAchievement,
+} from '@octopus-synapse/profile-contracts';
 import {
   BaseSubResourceRepository,
   OrderByConfig,
@@ -21,8 +21,8 @@ import {
 @Injectable()
 export class AchievementRepository extends BaseSubResourceRepository<
   Achievement,
-  CreateAchievementDto,
-  UpdateAchievementDto
+  CreateAchievement,
+  UpdateAchievement
 > {
   protected readonly logger = new Logger(AchievementRepository.name);
 
@@ -38,11 +38,7 @@ export class AchievementRepository extends BaseSubResourceRepository<
     return { type: 'user-defined' };
   }
 
-  protected mapCreateDto(
-    resumeId: string,
-    dto: CreateAchievementDto,
-    order: number,
-  ) {
+  protected mapCreate(resumeId: string, dto: CreateAchievement, order: number) {
     return buildCreateData({ resumeId, order: dto.order ?? order }, dto, {
       type: 'string',
       title: 'string',
@@ -55,7 +51,7 @@ export class AchievementRepository extends BaseSubResourceRepository<
     });
   }
 
-  protected mapUpdateDto(dto: UpdateAchievementDto) {
+  protected mapUpdate(dto: UpdateAchievement) {
     return buildUpdateData(dto, {
       type: 'string',
       title: 'string',

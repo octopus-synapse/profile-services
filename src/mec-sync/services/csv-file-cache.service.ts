@@ -5,7 +5,7 @@
 
 import { Injectable } from '@nestjs/common';
 import { AppLoggerService } from '../../common/logger/logger.service';
-import { TIME_MS } from '../../common/constants/config';
+import { TIME_MS } from '@octopus-synapse/profile-contracts';
 import * as fs from 'fs';
 import * as path from 'path';
 import { LOCAL_CSV_PATH, CACHE_VALIDITY_DAYS } from '../constants';

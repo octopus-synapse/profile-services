@@ -12,7 +12,10 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { TranslationService, TranslationLanguage } from './translation.service';
-import { TranslateTextDto, TranslateBatchDto } from './dto/translate.dto';
+import type {
+  TranslateText,
+  TranslateBatch,
+} from '@octopus-synapse/profile-contracts';
 
 @ApiTags('Translation')
 @Controller('v1/translation')
@@ -36,7 +39,7 @@ export class TranslationController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Translate a single text' })
   @ApiResponse({ status: 200, description: 'Translation result' })
-  async translateText(@Body() dto: TranslateTextDto) {
+  async translateText(@Body() dto: TranslateText) {
     const result = await this.translationService.translate(
       dto.text,
       dto.sourceLanguage as TranslationLanguage,
@@ -50,7 +53,7 @@ export class TranslationController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Translate multiple texts in batch' })
   @ApiResponse({ status: 200, description: 'Batch translation results' })
-  async translateBatch(@Body() dto: TranslateBatchDto) {
+  async translateBatch(@Body() dto: TranslateBatch) {
     const result = await this.translationService.translateBatch(
       dto.texts,
       dto.sourceLanguage as TranslationLanguage,

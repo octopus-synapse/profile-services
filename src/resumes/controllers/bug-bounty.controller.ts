@@ -2,16 +2,15 @@ import { Controller, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { BugBountyService } from '../services/bug-bounty.service';
-import {
-  CreateBugBountyDto,
-  UpdateBugBountyDto,
-  BugBountyResponseDto,
-} from '../dto/bug-bounty.dto';
+import type {
+  CreateBugBounty,
+  UpdateBugBounty,
+} from '@octopus-synapse/profile-contracts';
 import {
   BaseSubResourceController,
   SubResourceControllerConfig,
 } from './base/base-sub-resource.controller';
-import { BugBounty } from '@prisma/client';
+import type { BugBounty } from '@prisma/client';
 
 @ApiTags('resumes')
 @ApiBearerAuth('JWT-auth')
@@ -19,21 +18,18 @@ import { BugBounty } from '@prisma/client';
 @UseGuards(JwtAuthGuard)
 export class BugBountyController extends BaseSubResourceController<
   BugBounty,
-  CreateBugBountyDto,
-  UpdateBugBountyDto,
-  BugBountyResponseDto
+  CreateBugBounty,
+  UpdateBugBounty,
+  BugBounty
 > {
   protected readonly config: SubResourceControllerConfig<
     BugBounty,
-    CreateBugBountyDto,
-    UpdateBugBountyDto,
-    BugBountyResponseDto
+    CreateBugBounty,
+    UpdateBugBounty,
+    BugBounty
   > = {
     entityName: 'bug bounty',
     entityPluralName: 'bug bounties',
-    responseDtoClass: BugBountyResponseDto,
-    createDtoClass: CreateBugBountyDto,
-    updateDtoClass: UpdateBugBountyDto,
   };
 
   constructor(bugBountyService: BugBountyService) {

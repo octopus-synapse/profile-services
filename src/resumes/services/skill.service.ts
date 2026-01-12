@@ -1,13 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Skill } from '@prisma/client';
+import type { Skill } from '@prisma/client';
 import { SkillRepository } from '../repositories/skill.repository';
 import { ResumesRepository } from '../resumes.repository';
 import {
-  CreateSkillDto,
-  UpdateSkillDto,
-  BulkCreateSkillsDto,
-} from '../dto/skill.dto';
-import { PaginatedResult } from '../dto/pagination.dto';
+  CreateSkill,
+  UpdateSkill,
+  type BulkCreateSkills,
+} from '@octopus-synapse/profile-contracts';
+import type { PaginatedResult } from '@octopus-synapse/profile-contracts';
 import {
   ApiResponseHelper,
   ApiResponse,
@@ -17,8 +17,8 @@ import { BaseSubResourceService } from './base';
 @Injectable()
 export class SkillService extends BaseSubResourceService<
   Skill,
-  CreateSkillDto,
-  UpdateSkillDto
+  CreateSkill,
+  UpdateSkill
 > {
   protected readonly entityName = 'Skill';
   protected readonly logger = new Logger(SkillService.name);
@@ -50,7 +50,7 @@ export class SkillService extends BaseSubResourceService<
   async createMany(
     resumeId: string,
     userId: string,
-    data: BulkCreateSkillsDto,
+    data: BulkCreateSkills,
   ): Promise<ApiResponse<{ count: number }>> {
     await this.validateResumeOwnership(resumeId, userId);
     this.logger.log(

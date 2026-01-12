@@ -3,7 +3,7 @@
  * Data transfer object for programming languages
  */
 
-export interface ProgrammingLanguageDto {
+export interface ProgrammingLanguage {
   id: string;
   slug: string;
   nameEn: string;

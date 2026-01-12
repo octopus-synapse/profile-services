@@ -1,8 +1,8 @@
 import { Logger } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { ISubResourceRepository } from '../../interfaces/base-sub-resource.interface';
-import { PaginatedResult } from '../../dto/pagination.dto';
-import { PAGINATION } from '../../../common/constants/validation/pagination.const';
+import type { PaginatedResult } from '@octopus-synapse/profile-contracts';
+import { PAGINATION } from '@octopus-synapse/profile-contracts';
 
 /**
  * Prisma delegate type - represents any Prisma model delegate
@@ -51,15 +51,15 @@ export type FindAllFilters = Record<string, unknown>;
  * Concrete repositories must implement:
  * - getPrismaDelegate() - Returns the specific Prisma delegate (e.g., prisma.experience)
  * - getOrderByConfig() - Defines ordering strategy for findAll()
- * - mapCreateDto() - Maps CreateDto to Prisma create data
- * - mapUpdateDto() - Maps UpdateDto to Prisma update data
+ * - mapCreate() - Maps Create to Prisma create data
+ * - mapUpdate() - Maps Update to Prisma update data
  *
  * @template T - Entity type (e.g., Experience, Education)
- * @template CreateDto - DTO for creating the entity
- * @template UpdateDto - DTO for updating the entity
+ * @template Create - DTO for creating the entity
+ * @template Update - DTO for updating the entity
  */
-export abstract class BaseSubResourceRepository<T, CreateDto, UpdateDto>
-  implements ISubResourceRepository<T, CreateDto, UpdateDto>
+export abstract class BaseSubResourceRepository<T, Create, Update>
+  implements ISubResourceRepository<T, Create, Update>
 {
   /**
    * Logger instance - concrete classes must override with their own name
@@ -110,11 +110,11 @@ export abstract class BaseSubResourceRepository<T, CreateDto, UpdateDto>
   protected abstract getOrderByConfig(): OrderByConfig;
 
   /**
-   * Maps CreateDto to Prisma create data object
+   * Maps Create to Prisma create data object
    * Must be implemented by concrete classes
    *
    * @example
-   * protected mapCreateDto(resumeId: string, dto: CreateExperienceDto, order: number) {
+   * protected mapCreate(resumeId: string, dto: CreateExperience, order: number) {
    *   return {
    *     resumeId,
    *     company: dto.company,
@@ -129,18 +129,18 @@ export abstract class BaseSubResourceRepository<T, CreateDto, UpdateDto>
    *   };
    * }
    */
-  protected abstract mapCreateDto(
+  protected abstract mapCreate(
     resumeId: string,
-    dto: CreateDto,
+    dto: Create,
     order: number,
   ): Record<string, unknown>;
 
   /**
-   * Maps UpdateDto to Prisma update data object
+   * Maps Update to Prisma update data object
    * Must be implemented by concrete classes
    *
    * @example
-   * protected mapUpdateDto(dto: UpdateExperienceDto) {
+   * protected mapUpdate(dto: UpdateExperience) {
    *   return {
    *     ...(dto.company && { company: dto.company }),
    *     ...(dto.position && { position: dto.position }),
@@ -156,7 +156,7 @@ export abstract class BaseSubResourceRepository<T, CreateDto, UpdateDto>
    *   };
    * }
    */
-  protected abstract mapUpdateDto(dto: UpdateDto): Record<string, unknown>;
+  protected abstract mapUpdate(dto: Update): Record<string, unknown>;
 
   /**
    * Optional: Allows concrete classes to add additional filters to findAll
@@ -172,7 +172,7 @@ export abstract class BaseSubResourceRepository<T, CreateDto, UpdateDto>
    * Default implementation returns empty object
    * Override in SkillRepository to scope by category
    */
-  protected getMaxOrderScope(_dto?: CreateDto): Record<string, unknown> {
+  protected getMaxOrderScope(_dto?: Create): Record<string, unknown> {
     return {};
   }
 
@@ -211,10 +211,7 @@ export abstract class BaseSubResourceRepository<T, CreateDto, UpdateDto>
    * Get maximum order value for a resume
    * 95% identical - supports optional scoping (e.g., by category for Skills)
    */
-  protected async getMaxOrder(
-    resumeId: string,
-    dto?: CreateDto,
-  ): Promise<number> {
+  protected async getMaxOrder(resumeId: string, dto?: Create): Promise<number> {
     const delegate = this.getPrismaDelegate();
     const additionalScope = this.getMaxOrderScope(dto);
 
@@ -307,13 +304,9 @@ export abstract class BaseSubResourceRepository<T, CreateDto, UpdateDto>
    * Update an entity by ID
    * 70% reusable - uses standardized updateMany approach + entity-specific mapping
    */
-  async update(
-    id: string,
-    resumeId: string,
-    data: UpdateDto,
-  ): Promise<T | null> {
+  async update(id: string, resumeId: string, data: Update): Promise<T | null> {
     const delegate = this.getPrismaDelegate();
-    const updateData = this.mapUpdateDto(data);
+    const updateData = this.mapUpdate(data);
 
     const result = await delegate.updateMany({
       where: { id, resumeId },
@@ -329,10 +322,10 @@ export abstract class BaseSubResourceRepository<T, CreateDto, UpdateDto>
    * Create a new entity for a resume
    * 70% reusable - structure identical, field mapping entity-specific
    */
-  async create(resumeId: string, data: CreateDto): Promise<T> {
+  async create(resumeId: string, data: Create): Promise<T> {
     const maxOrder = await this.getMaxOrder(resumeId, data);
     const delegate = this.getPrismaDelegate();
-    const createData = this.mapCreateDto(resumeId, data, maxOrder + 1);
+    const createData = this.mapCreate(resumeId, data, maxOrder + 1);
 
     return delegate.create({ data: createData });
   }

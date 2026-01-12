@@ -4,7 +4,7 @@
  */
 
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
-import { API_LIMITS } from '../../../common/constants/config';
+import { API_LIMITS } from '@octopus-synapse/profile-contracts';
 import { GitHubApiService } from './github-api.service';
 import { GitHubContributionService } from './github-contribution.service';
 import { GitHubAchievementService } from './github-achievement.service';

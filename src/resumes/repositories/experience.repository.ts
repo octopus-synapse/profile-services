@@ -1,10 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Experience } from '@prisma/client';
-import {
-  CreateExperienceDto,
-  UpdateExperienceDto,
-} from '../dto/experience.dto';
+import type {
+  CreateExperience,
+  UpdateExperience,
+} from '@octopus-synapse/profile-contracts';
 import {
   BaseSubResourceRepository,
   OrderByConfig,
@@ -23,8 +23,8 @@ import {
 @Injectable()
 export class ExperienceRepository extends BaseSubResourceRepository<
   Experience,
-  CreateExperienceDto,
-  UpdateExperienceDto
+  CreateExperience,
+  UpdateExperience
 > {
   protected readonly logger = new Logger(ExperienceRepository.name);
 
@@ -40,11 +40,7 @@ export class ExperienceRepository extends BaseSubResourceRepository<
     return { type: 'user-defined' };
   }
 
-  protected mapCreateDto(
-    resumeId: string,
-    dto: CreateExperienceDto,
-    order: number,
-  ) {
+  protected mapCreate(resumeId: string, dto: CreateExperience, order: number) {
     return buildCreateData({ resumeId, order: dto.order ?? order }, dto, {
       company: 'string',
       position: 'string',
@@ -57,7 +53,7 @@ export class ExperienceRepository extends BaseSubResourceRepository<
     });
   }
 
-  protected mapUpdateDto(dto: UpdateExperienceDto) {
+  protected mapUpdate(dto: UpdateExperience) {
     return buildUpdateData(dto, {
       company: 'string',
       position: 'string',

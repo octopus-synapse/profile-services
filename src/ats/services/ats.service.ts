@@ -7,9 +7,18 @@ import { FormatValidator } from '../validators/format.validator';
 import { SectionOrderValidator } from '../validators/section-order.validator';
 import { LayoutSafetyValidator } from '../validators/layout-safety.validator';
 import { GrammarValidator } from '../validators/grammar.validator';
-import { ValidationResponseDto, ValidateCVDto } from '../dto';
+import type {
+  Validation,
+  ValidateCV,
+  ValidationIssue,
+} from '@octopus-synapse/profile-contracts';
 import { AppLoggerService } from '../../common/logger/logger.service';
-import type { TextExtractionResult } from '../interfaces';
+import type {
+  TextExtractionResult,
+  ValidationResult,
+  ValidationIssue as InternalValidationIssue,
+  ValidationSeverity,
+} from '../interfaces';
 
 @Injectable()
 export class ATSService {
@@ -27,14 +36,14 @@ export class ATSService {
 
   async validateCV(
     file: Express.Multer.File,
-    options: ValidateCVDto = {},
-  ): Promise<ValidationResponseDto> {
+    options: ValidateCV = {},
+  ): Promise<Validation> {
     this.logger.log('Starting CV validation', 'ATSService', {
       fileName: file.originalname,
       fileSize: file.size,
     });
 
-    const results: Partial<ValidationResponseDto['results']> = {};
+    const results: Record<string, ValidationResult> = {};
 
     // Step 1: Validate file integrity (always run)
     this.logger.log('Validating file integrity', 'ATSService');
@@ -42,7 +51,7 @@ export class ATSService {
 
     if (!results.fileIntegrity.passed) {
       this.logger.warn('File integrity check failed', 'ATSService');
-      return new ValidationResponseDto(results);
+      return this.buildValidationResponse(results, file);
     }
 
     // Step 2: Extract text (always run)
@@ -51,7 +60,7 @@ export class ATSService {
 
     if (!results.textExtraction.passed) {
       this.logger.warn('Text extraction failed', 'ATSService');
-      return new ValidationResponseDto(results);
+      return this.buildValidationResponse(results, file);
     }
 
     const extractedText = (results.textExtraction as TextExtractionResult)
@@ -115,6 +124,49 @@ export class ATSService {
       totalIssues,
     });
 
-    return new ValidationResponseDto(results);
+    return this.buildValidationResponse(results, file);
+  }
+
+  private buildValidationResponse(
+    results: Record<string, ValidationResult>,
+    file: Express.Multer.File,
+  ): Validation {
+    const allResults = Object.values(results).filter(Boolean);
+    const allIssues = allResults.flatMap((r) => r.issues ?? []);
+    const allPassed = allResults.every((r) => r.passed);
+    const score = allPassed ? 100 : Math.max(0, 100 - allIssues.length * 5);
+
+    return {
+      isValid: allPassed,
+      score,
+      issues: this.mapIssuesToContract(allIssues),
+      suggestions: [],
+      metadata: {
+        fileName: file.originalname,
+        fileType: file.mimetype,
+        fileSize: file.size,
+        analyzedAt: new Date().toISOString(),
+      },
+    };
+  }
+
+  private mapIssuesToContract(
+    issues: InternalValidationIssue[],
+  ): ValidationIssue[] {
+    const severityToType: Record<
+      ValidationSeverity,
+      'error' | 'warning' | 'suggestion'
+    > = {
+      error: 'error',
+      warning: 'warning',
+      info: 'suggestion',
+    };
+
+    return issues.map((issue) => ({
+      type: severityToType[issue.severity] ?? 'error',
+      category: issue.code,
+      message: issue.message,
+      location: issue.location,
+    }));
   }
 }

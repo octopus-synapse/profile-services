@@ -23,12 +23,12 @@ import {
   ThemeQueryService,
   ThemeApplicationService,
 } from '../services';
-import {
-  CreateThemeDto,
-  UpdateThemeDto,
-  ForkThemeDto,
-  ApplyThemeToResumeDto,
-} from '../dto';
+import type {
+  CreateTheme,
+  UpdateTheme,
+  ForkTheme,
+  ApplyThemeToResume,
+} from '@octopus-synapse/profile-contracts';
 
 @ApiTags('themes')
 @Controller('v1/themes')
@@ -49,7 +49,7 @@ export class UserThemeController {
 
   @Post()
   @ApiOperation({ summary: 'Create theme' })
-  create(@CurrentUser('userId') userId: string, @Body() dto: CreateThemeDto) {
+  create(@CurrentUser('userId') userId: string, @Body() dto: CreateTheme) {
     return this.crudService.create(userId, dto);
   }
 
@@ -58,7 +58,7 @@ export class UserThemeController {
   update(
     @CurrentUser('userId') userId: string,
     @Param('id') id: string,
-    @Body() dto: UpdateThemeDto,
+    @Body() dto: UpdateTheme,
   ) {
     return this.crudService.update(userId, id, dto);
   }
@@ -72,7 +72,7 @@ export class UserThemeController {
 
   @Post('fork')
   @ApiOperation({ summary: 'Fork a theme' })
-  fork(@CurrentUser('userId') userId: string, @Body() dto: ForkThemeDto) {
+  fork(@CurrentUser('userId') userId: string, @Body() dto: ForkTheme) {
     return this.appService.fork(userId, dto);
   }
 
@@ -80,7 +80,7 @@ export class UserThemeController {
   @ApiOperation({ summary: 'Apply theme to resume' })
   apply(
     @CurrentUser('userId') userId: string,
-    @Body() dto: ApplyThemeToResumeDto,
+    @Body() dto: ApplyThemeToResume,
   ) {
     return this.appService.applyToResume(userId, dto);
   }

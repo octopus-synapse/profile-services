@@ -2,16 +2,15 @@ import { Controller, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { InterestService } from '../services/interest.service';
-import {
-  CreateInterestDto,
-  UpdateInterestDto,
-  InterestResponseDto,
-} from '../dto/interest.dto';
+import type {
+  CreateInterest,
+  UpdateInterest,
+} from '@octopus-synapse/profile-contracts';
 import {
   BaseSubResourceController,
   SubResourceControllerConfig,
 } from './base/base-sub-resource.controller';
-import { Interest } from '@prisma/client';
+import type { Interest } from '@prisma/client';
 
 @ApiTags('resumes')
 @ApiBearerAuth('JWT-auth')
@@ -19,21 +18,18 @@ import { Interest } from '@prisma/client';
 @UseGuards(JwtAuthGuard)
 export class InterestController extends BaseSubResourceController<
   Interest,
-  CreateInterestDto,
-  UpdateInterestDto,
-  InterestResponseDto
+  CreateInterest,
+  UpdateInterest,
+  Interest
 > {
   protected readonly config: SubResourceControllerConfig<
     Interest,
-    CreateInterestDto,
-    UpdateInterestDto,
-    InterestResponseDto
+    CreateInterest,
+    UpdateInterest,
+    Interest
   > = {
     entityName: 'interest',
     entityPluralName: 'interests',
-    responseDtoClass: InterestResponseDto,
-    createDtoClass: CreateInterestDto,
-    updateDtoClass: UpdateInterestDto,
   };
 
   constructor(interestService: InterestService) {

@@ -8,10 +8,10 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { AppLoggerService } from '../../common/logger/logger.service';
 import { EmailService } from '../../common/email/email.service';
 import { VerificationTokenService } from './verification-token.service';
-import {
-  RequestVerificationDto,
-  VerifyEmailDto,
-} from '../dto/verification.dto';
+import type {
+  RequestVerification,
+  VerifyEmail,
+} from '@octopus-synapse/profile-contracts';
 
 @Injectable()
 export class EmailVerificationService {
@@ -24,7 +24,7 @@ export class EmailVerificationService {
     private readonly tokenService: VerificationTokenService,
   ) {}
 
-  async requestVerification(dto: RequestVerificationDto) {
+  async requestVerification(dto: RequestVerification) {
     const user = await this.findUserByEmail(dto.email);
 
     if (!user) {
@@ -55,7 +55,7 @@ export class EmailVerificationService {
     };
   }
 
-  async verifyEmail(dto: VerifyEmailDto) {
+  async verifyEmail(dto: VerifyEmail) {
     const email = await this.tokenService.validateEmailVerificationToken(
       dto.token,
     );

@@ -11,8 +11,8 @@ import {
   TECH_SKILLS_CACHE_TTL,
   type SkillType,
 } from '../interfaces';
-import type { TechSkillDto } from '../dtos';
-import { mapSkillsToDto } from '../utils';
+import type { TechSkill } from '../dtos';
+import { mapSkillsTo } from '../utils';
 
 const NICHE_SELECT = { slug: true, nameEn: true, namePtBr: true } as const;
 
@@ -24,10 +24,10 @@ export class SkillQueryService {
   ) {}
 
   /** Get all skills */
-  async getAllSkills(): Promise<TechSkillDto[]> {
+  async getAllSkills(): Promise<TechSkill[]> {
     const cacheKey = TECH_SKILLS_CACHE_KEYS.SKILLS_LIST;
 
-    const cached = await this.cache.get<TechSkillDto[]>(cacheKey);
+    const cached = await this.cache.get<TechSkill[]>(cacheKey);
     if (cached) return cached;
 
     const skills = await this.prisma.techSkill.findMany({
@@ -36,16 +36,16 @@ export class SkillQueryService {
       include: { niche: { select: NICHE_SELECT } },
     });
 
-    const result = mapSkillsToDto(skills);
+    const result = mapSkillsTo(skills);
     await this.cache.set(cacheKey, result, TECH_SKILLS_CACHE_TTL.SKILLS_LIST);
     return result;
   }
 
   /** Get skills by niche slug */
-  async getSkillsByNiche(nicheSlug: string): Promise<TechSkillDto[]> {
+  async getSkillsByNiche(nicheSlug: string): Promise<TechSkill[]> {
     const cacheKey = `${TECH_SKILLS_CACHE_KEYS.SKILLS_BY_NICHE}${nicheSlug}`;
 
-    const cached = await this.cache.get<TechSkillDto[]>(cacheKey);
+    const cached = await this.cache.get<TechSkill[]>(cacheKey);
     if (cached) return cached;
 
     const skills = await this.prisma.techSkill.findMany({
@@ -54,7 +54,7 @@ export class SkillQueryService {
       include: { niche: { select: NICHE_SELECT } },
     });
 
-    const result = mapSkillsToDto(skills);
+    const result = mapSkillsTo(skills);
     await this.cache.set(
       cacheKey,
       result,
@@ -64,7 +64,7 @@ export class SkillQueryService {
   }
 
   /** Get skills by type */
-  async getSkillsByType(type: SkillType, limit = 50): Promise<TechSkillDto[]> {
+  async getSkillsByType(type: SkillType, limit = 50): Promise<TechSkill[]> {
     const skills = await this.prisma.techSkill.findMany({
       where: { isActive: true, type },
       take: limit,
@@ -72,6 +72,6 @@ export class SkillQueryService {
       include: { niche: { select: NICHE_SELECT } },
     });
 
-    return mapSkillsToDto(skills);
+    return mapSkillsTo(skills);
   }
 }

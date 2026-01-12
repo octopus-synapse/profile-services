@@ -12,7 +12,7 @@ import {
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { ResumeShareService } from '../services/resume-share.service';
 
-interface CreateShareDto {
+interface CreateShare {
   resumeId: string;
   slug?: string;
   password?: string;
@@ -26,7 +26,7 @@ export class ShareManagementController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  async createShare(@Body() dto: CreateShareDto) {
+  async createShare(@Body() dto: CreateShare) {
     // Verify user owns the resume
     const share = await this.shareService.createShare({
       ...dto,

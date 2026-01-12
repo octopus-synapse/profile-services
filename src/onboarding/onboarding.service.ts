@@ -7,7 +7,10 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AppLoggerService } from '../common/logger/logger.service';
 import { AuditLogService } from '../common/audit/audit-log.service';
 import type { Prisma } from '@prisma/client';
-import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '../common/constants/config';
+import {
+  ERROR_MESSAGES,
+  SUCCESS_MESSAGES,
+} from '@octopus-synapse/profile-contracts';
 import {
   onboardingDataSchema,
   type OnboardingData,
@@ -18,7 +21,7 @@ import { ExperienceOnboardingService } from './services/experience-onboarding.se
 import { EducationOnboardingService } from './services/education-onboarding.service';
 import { LanguagesOnboardingService } from './services/languages-onboarding.service';
 import { OnboardingProgressService } from './services/onboarding-progress.service';
-import { OnboardingProgressDto } from './dto/onboarding.dto';
+import type { OnboardingProgress } from '@octopus-synapse/profile-contracts';
 
 @Injectable()
 export class OnboardingService {
@@ -165,7 +168,7 @@ export class OnboardingService {
     };
   }
 
-  async saveProgress(userId: string, data: OnboardingProgressDto) {
+  async saveProgress(userId: string, data: OnboardingProgress) {
     return this.progressService.saveProgress(userId, data);
   }
 

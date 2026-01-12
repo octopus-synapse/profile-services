@@ -1,7 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Language } from '@prisma/client';
-import { CreateLanguageDto, UpdateLanguageDto } from '../dto/language.dto';
+import type {
+  CreateLanguage,
+  UpdateLanguage,
+} from '@octopus-synapse/profile-contracts';
 import {
   BaseSubResourceRepository,
   OrderByConfig,
@@ -20,8 +23,8 @@ import {
 @Injectable()
 export class LanguageRepository extends BaseSubResourceRepository<
   Language,
-  CreateLanguageDto,
-  UpdateLanguageDto
+  CreateLanguage,
+  UpdateLanguage
 > {
   protected readonly logger = new Logger(LanguageRepository.name);
 
@@ -37,11 +40,7 @@ export class LanguageRepository extends BaseSubResourceRepository<
     return { type: 'user-defined' };
   }
 
-  protected mapCreateDto(
-    resumeId: string,
-    dto: CreateLanguageDto,
-    order: number,
-  ) {
+  protected mapCreate(resumeId: string, dto: CreateLanguage, order: number) {
     return buildCreateData({ resumeId, order: dto.order ?? order }, dto, {
       name: 'string',
       level: 'string',
@@ -49,7 +48,7 @@ export class LanguageRepository extends BaseSubResourceRepository<
     });
   }
 
-  protected mapUpdateDto(dto: UpdateLanguageDto) {
+  protected mapUpdate(dto: UpdateLanguage) {
     return buildUpdateData(dto, {
       name: 'string',
       level: 'string',

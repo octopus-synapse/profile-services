@@ -11,5 +11,7 @@ import {
 } from '@octopus-synapse/profile-contracts';
 
 // Re-export from contracts as single source of truth
-export const onboardingDataSchema = OnboardingDataSchema;
+// Type annotation prevents TypeScript from inferring Zod types
+export const onboardingDataSchema: typeof OnboardingDataSchema =
+  OnboardingDataSchema;
 export type { OnboardingData };

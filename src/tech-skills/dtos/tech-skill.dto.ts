@@ -5,13 +5,13 @@
 
 import type { SkillType } from '../interfaces';
 
-export interface NicheReferenceDto {
+export interface NicheReference {
   slug: string;
   nameEn: string;
   namePtBr: string;
 }
 
-export interface TechSkillDto {
+export interface TechSkill {
   id: string;
   slug: string;
   nameEn: string;
@@ -22,7 +22,7 @@ export interface TechSkillDto {
   website: string | null;
   aliases: string[];
   popularity: number;
-  niche: NicheReferenceDto | null;
+  niche: NicheReference | null;
 }
 
 /**

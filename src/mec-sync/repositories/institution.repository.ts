@@ -5,7 +5,7 @@
 
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { InstitutionDto } from '../dto';
+import { Institution } from '@octopus-synapse/profile-contracts';
 import { NormalizedInstitution } from '../interfaces/mec-data.interface';
 import { BATCH_SIZE } from '../constants';
 
@@ -24,7 +24,7 @@ const INSTITUTION_SELECT = {
 export class InstitutionRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll(): Promise<InstitutionDto[]> {
+  async findAll(): Promise<Institution[]> {
     return this.prisma.mecInstitution.findMany({
       where: { isActive: true },
       orderBy: [{ uf: 'asc' }, { nome: 'asc' }],
@@ -32,7 +32,7 @@ export class InstitutionRepository {
     });
   }
 
-  async findByUf(uf: string): Promise<InstitutionDto[]> {
+  async findByUf(uf: string): Promise<Institution[]> {
     return this.prisma.mecInstitution.findMany({
       where: { uf: uf.toUpperCase(), isActive: true },
       orderBy: { nome: 'asc' },
@@ -60,8 +60,8 @@ export class InstitutionRepository {
     });
   }
 
-  async search(query: string, limit: number): Promise<InstitutionDto[]> {
-    return this.prisma.$queryRaw<InstitutionDto[]>`
+  async search(query: string, limit: number): Promise<Institution[]> {
+    return this.prisma.$queryRaw<Institution[]>`
       SELECT 
         id, "codigoIes", nome, sigla, uf, municipio, categoria, organizacao
       FROM "MecInstitution"

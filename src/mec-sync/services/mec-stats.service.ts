@@ -5,7 +5,7 @@
 
 import { Injectable } from '@nestjs/common';
 import { InstitutionRepository, CourseRepository } from '../repositories';
-import { MecStatsDto } from '../dto';
+import { MecStats } from '@octopus-synapse/profile-contracts';
 
 @Injectable()
 export class MecStatsService {
@@ -14,7 +14,7 @@ export class MecStatsService {
     private readonly courseRepo: CourseRepository,
   ) {}
 
-  async getStats(): Promise<MecStatsDto> {
+  async getStats(): Promise<MecStats> {
     const [totalInstitutions, totalCourses, coursesByDegree, institutionsByUf] =
       await Promise.all([
         this.institutionRepo.count(),

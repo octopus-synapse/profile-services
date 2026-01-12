@@ -10,8 +10,8 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AppLoggerService } from '../../common/logger/logger.service';
-import { OnboardingProgressDto } from '../dto/onboarding.dto';
-import { ERROR_MESSAGES } from '../../common/constants/config';
+import type { OnboardingProgress } from '@octopus-synapse/profile-contracts';
+import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
 import { Prisma } from '@prisma/client';
 
 /** Onboarding progress expires after 36 hours */
@@ -40,7 +40,7 @@ export class OnboardingProgressService {
     private readonly logger: AppLoggerService,
   ) {}
 
-  async saveProgress(userId: string, data: OnboardingProgressDto) {
+  async saveProgress(userId: string, data: OnboardingProgress) {
     this.logger.debug(
       'Saving onboarding progress',
       'OnboardingProgressService',
@@ -146,7 +146,7 @@ export class OnboardingProgressService {
     await tx.onboardingProgress.deleteMany({ where: { userId } });
   }
 
-  private buildProgressData(data: OnboardingProgressDto) {
+  private buildProgressData(data: OnboardingProgress) {
     return {
       currentStep: data.currentStep,
       completedSteps: data.completedSteps,
@@ -169,7 +169,7 @@ export class OnboardingProgressService {
    * Validates that if a "no" flag is true, the corresponding array must be empty.
    * Data is FORBIDDEN, not ignored.
    */
-  private validateFlagArrayConsistency(data: OnboardingProgressDto): void {
+  private validateFlagArrayConsistency(data: OnboardingProgress): void {
     if (data.noExperience && data.experiences && data.experiences.length > 0) {
       throw new BadRequestException(
         'Cannot have experiences when noExperience is true. Either set noExperience to false or provide an empty experiences array.',

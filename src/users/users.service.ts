@@ -7,10 +7,12 @@ import { Injectable } from '@nestjs/common';
 import { UserProfileService } from './services/user-profile.service';
 import { UserPreferencesService } from './services/user-preferences.service';
 import { UsernameService } from './services/username.service';
-import { UpdateProfileDto } from './dto/update-profile.dto';
-import { UpdatePreferencesDto } from './dto/update-preferences.dto';
-import { UpdateFullPreferencesDto } from './dto/update-full-preferences.dto';
-import { UpdateUsernameDto } from './dto/update-username.dto';
+import type {
+  UpdateProfile,
+  UpdatePreferences,
+  UpdateFullPreferences,
+  UpdateUsername,
+} from '@octopus-synapse/profile-contracts';
 
 @Injectable()
 export class UsersService {
@@ -29,8 +31,8 @@ export class UsersService {
     return this.profileService.getProfile(userId);
   }
 
-  async updateProfile(userId: string, updateProfileDto: UpdateProfileDto) {
-    return this.profileService.updateProfile(userId, updateProfileDto);
+  async updateProfile(userId: string, updateProfile: UpdateProfile) {
+    return this.profileService.updateProfile(userId, updateProfile);
   }
 
   // Preferences operations
@@ -40,12 +42,9 @@ export class UsersService {
 
   async updatePreferences(
     userId: string,
-    updatePreferencesDto: UpdatePreferencesDto,
+    updatePreferences: UpdatePreferences,
   ) {
-    return this.preferencesService.updatePreferences(
-      userId,
-      updatePreferencesDto,
-    );
+    return this.preferencesService.updatePreferences(userId, updatePreferences);
   }
 
   async getFullPreferences(userId: string) {
@@ -54,17 +53,17 @@ export class UsersService {
 
   async updateFullPreferences(
     userId: string,
-    updateFullPreferencesDto: UpdateFullPreferencesDto,
+    updateFullPreferences: UpdateFullPreferences,
   ) {
     return this.preferencesService.updateFullPreferences(
       userId,
-      updateFullPreferencesDto,
+      updateFullPreferences,
     );
   }
 
   // Username operations
-  async updateUsername(userId: string, updateUsernameDto: UpdateUsernameDto) {
-    return this.usernameService.updateUsername(userId, updateUsernameDto);
+  async updateUsername(userId: string, updateUsername: UpdateUsername) {
+    return this.usernameService.updateUsername(userId, updateUsername);
   }
 
   async checkUsernameAvailability(username: string, userId?: string) {

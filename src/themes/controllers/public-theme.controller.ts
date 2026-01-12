@@ -6,7 +6,7 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { ThemeQueryService } from '../services';
-import { QueryThemesDto } from '../dto';
+import type { QueryThemes } from '@octopus-synapse/profile-contracts';
 
 @ApiTags('themes')
 @Controller('v1/themes')
@@ -15,7 +15,7 @@ export class PublicThemeController {
 
   @Get()
   @ApiOperation({ summary: 'List published themes' })
-  findAll(@Query() query: QueryThemesDto) {
+  findAll(@Query() query: QueryThemes) {
     return this.queryService.findAll(query);
   }
 

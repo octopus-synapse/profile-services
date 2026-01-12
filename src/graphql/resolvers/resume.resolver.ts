@@ -24,7 +24,7 @@ import { ResumesRepository } from '../../resumes/resumes.repository';
 import { ExperienceService } from '../../resumes/services/experience.service';
 import { EducationService } from '../../resumes/services/education.service';
 import type { User } from '@prisma/client';
-import type { DataLoaderService } from '../dataloaders/dataloader.service';
+import { DataLoaderService } from '../dataloaders/dataloader.service';
 
 /**
  * GraphQL Resolver for Resume queries and mutations
@@ -186,10 +186,12 @@ export class ResumeResolver {
     this.logger.log(
       `[GraphQL] Adding education to resume ${resumeId} for user ${user.id}`,
     );
+    // TODO: Migrate EducationService to use profile-contracts types
+    // Currently using cast due to legacy class-validator DTO mismatch
     const response = await this.educationService.addToResume(
       resumeId,
       user.id,
-      input,
+      input as Parameters<typeof this.educationService.addToResume>[2],
     );
     return response.data as EducationModel;
   }

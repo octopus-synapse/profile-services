@@ -228,7 +228,7 @@ describe('SpokenLanguagesService', () => {
 
       expect(mockFindMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          take: 10, // APP_CONSTANTS.SEARCH_AUTOCOMPLETE_LIMIT default
+          take: 10, // APP_CONFIG.SEARCH_AUTOCOMPLETE_LIMIT default
         }),
       );
     });

@@ -6,7 +6,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { UserRole } from '../../common/enums/user-role.enum';
-import { TIME_MS } from '../../common/constants/config';
+import { TIME_MS } from '@octopus-synapse/profile-contracts';
 
 const DAYS_FOR_RECENT = 7;
 

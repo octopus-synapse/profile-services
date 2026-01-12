@@ -3,16 +3,16 @@ import { Recommendation } from '@prisma/client';
 import { RecommendationRepository } from '../repositories/recommendation.repository';
 import { ResumesRepository } from '../resumes.repository';
 import {
-  CreateRecommendationDto,
-  UpdateRecommendationDto,
-} from '../dto/recommendation.dto';
+  CreateRecommendation,
+  UpdateRecommendation,
+} from '@octopus-synapse/profile-contracts';
 import { BaseSubResourceService } from './base';
 
 @Injectable()
 export class RecommendationService extends BaseSubResourceService<
   Recommendation,
-  CreateRecommendationDto,
-  UpdateRecommendationDto
+  CreateRecommendation,
+  UpdateRecommendation
 > {
   protected readonly entityName = 'Recommendation';
   protected readonly logger = new Logger(RecommendationService.name);

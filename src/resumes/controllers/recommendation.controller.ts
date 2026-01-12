@@ -2,16 +2,15 @@ import { Controller, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RecommendationService } from '../services/recommendation.service';
-import {
-  CreateRecommendationDto,
-  UpdateRecommendationDto,
-  RecommendationResponseDto,
-} from '../dto/recommendation.dto';
+import type {
+  CreateRecommendation,
+  UpdateRecommendation,
+} from '@octopus-synapse/profile-contracts';
 import {
   BaseSubResourceController,
   SubResourceControllerConfig,
 } from './base/base-sub-resource.controller';
-import { Recommendation } from '@prisma/client';
+import type { Recommendation } from '@prisma/client';
 
 @ApiTags('resumes')
 @ApiBearerAuth('JWT-auth')
@@ -19,21 +18,18 @@ import { Recommendation } from '@prisma/client';
 @UseGuards(JwtAuthGuard)
 export class RecommendationController extends BaseSubResourceController<
   Recommendation,
-  CreateRecommendationDto,
-  UpdateRecommendationDto,
-  RecommendationResponseDto
+  CreateRecommendation,
+  UpdateRecommendation,
+  Recommendation
 > {
   protected readonly config: SubResourceControllerConfig<
     Recommendation,
-    CreateRecommendationDto,
-    UpdateRecommendationDto,
-    RecommendationResponseDto
+    CreateRecommendation,
+    UpdateRecommendation,
+    Recommendation
   > = {
     entityName: 'recommendation',
     entityPluralName: 'recommendations',
-    responseDtoClass: RecommendationResponseDto,
-    createDtoClass: CreateRecommendationDto,
-    updateDtoClass: UpdateRecommendationDto,
   };
 
   constructor(recommendationService: RecommendationService) {

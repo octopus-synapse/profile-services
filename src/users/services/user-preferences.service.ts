@@ -5,10 +5,12 @@
 
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { UsersRepository } from '../users.repository';
-import { UpdatePreferencesDto } from '../dto/update-preferences.dto';
-import { UpdateFullPreferencesDto } from '../dto/update-full-preferences.dto';
+import {
+  UpdatePreferences,
+  UpdateFullPreferences,
+} from '@octopus-synapse/profile-contracts';
 import { AppLoggerService } from '../../common/logger/logger.service';
-import { ERROR_MESSAGES } from '../../common/constants/config';
+import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
 
 @Injectable()
 export class UserPreferencesService {
@@ -29,17 +31,14 @@ export class UserPreferencesService {
 
   async updatePreferences(
     userId: string,
-    updatePreferencesDto: UpdatePreferencesDto,
+    updatePreferences: UpdatePreferences,
   ) {
     const user = await this.usersRepository.getUser(userId);
     if (!user) {
       throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
     }
 
-    await this.usersRepository.updateUserPreferences(
-      userId,
-      updatePreferencesDto,
-    );
+    await this.usersRepository.updateUserPreferences(userId, updatePreferences);
 
     this.logger.debug(`User preferences updated`, 'UserPreferencesService', {
       userId,
@@ -60,7 +59,7 @@ export class UserPreferencesService {
 
   async updateFullPreferences(
     userId: string,
-    updateFullPreferencesDto: UpdateFullPreferencesDto,
+    updateFullPreferences: UpdateFullPreferences,
   ) {
     const user = await this.usersRepository.getUser(userId);
     if (!user) {
@@ -69,7 +68,7 @@ export class UserPreferencesService {
 
     const preferences = await this.usersRepository.upsertFullUserPreferences(
       userId,
-      updateFullPreferencesDto,
+      updateFullPreferences,
     );
 
     this.logger.debug(

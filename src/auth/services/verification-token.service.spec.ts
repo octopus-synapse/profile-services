@@ -3,7 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { VerificationTokenService } from './verification-token.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { BadRequestException } from '@nestjs/common';
-import { ERROR_MESSAGES } from '../../common/constants/config';
+import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
 
 describe('VerificationTokenService', () => {
   let service: VerificationTokenService;
@@ -65,19 +65,32 @@ describe('VerificationTokenService', () => {
     it('should set expiry time correctly for email verification', async () => {
       const email = 'user@example.com';
       const beforeTime = Date.now();
-      const mockUpsert = prismaService.verificationToken.upsert as any;
-      mockUpsert.mockResolvedValue({});
+      let capturedArgs: any;
+
+      // Replace mock with a function that captures arguments
+      (prismaService.verificationToken.upsert as any) = async (args: any) => {
+        capturedArgs = args;
+        return {};
+      };
 
       await service.createEmailVerificationToken(email);
 
-      const callArgs = mockUpsert.mock.calls[0][0];
-      const expiryTime = callArgs.create.expires.getTime();
       const afterTime = Date.now();
 
       // Should be at least 23 hours in future (allowing for execution time)
       const minExpiry = beforeTime + 23 * 60 * 60 * 1000;
       const maxExpiry = afterTime + 25 * 60 * 60 * 1000;
 
+      expect(capturedArgs).toBeDefined();
+      expect(capturedArgs.create).toBeDefined();
+      expect(capturedArgs.create.expires).toBeDefined();
+
+      // The expires should be a Date object - check its validity
+      const expires = capturedArgs.create.expires;
+      const expiryTime =
+        expires instanceof Date ? expires.getTime() : Number(expires);
+      expect(typeof expiryTime).toBe('number');
+      expect(Number.isNaN(expiryTime)).toBe(false);
       expect(expiryTime).toBeGreaterThan(minExpiry);
       expect(expiryTime).toBeLessThan(maxExpiry);
     });
@@ -130,19 +143,25 @@ describe('VerificationTokenService', () => {
     it('should set shorter expiry for password reset tokens', async () => {
       const email = 'user@example.com';
       const beforeTime = Date.now();
-      const mockUpsert = prismaService.verificationToken.upsert as any;
-      mockUpsert.mockResolvedValue({});
+      let capturedArgs: any;
+
+      // Replace mock with a function that captures arguments
+      (prismaService.verificationToken.upsert as any) = async (args: any) => {
+        capturedArgs = args;
+        return {};
+      };
 
       await service.createPasswordResetToken(email);
 
-      const callArgs = mockUpsert.mock.calls[0][0];
-      const expiryTime = callArgs.create.expires.getTime();
       const afterTime = Date.now();
 
       // Should be ~1 hour in future
       const minExpiry = beforeTime + 50 * 60 * 1000; // 50 minutes
       const maxExpiry = afterTime + 70 * 60 * 1000; // 70 minutes
 
+      expect(capturedArgs).toBeDefined();
+      expect(capturedArgs.create.expires).toBeInstanceOf(Date);
+      const expiryTime = capturedArgs.create.expires.getTime();
       expect(expiryTime).toBeGreaterThan(minExpiry);
       expect(expiryTime).toBeLessThan(maxExpiry);
     });

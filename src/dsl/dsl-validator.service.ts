@@ -1,6 +1,8 @@
 /**
  * DSL Validator Service
  * Validates Resume DSL using Zod schemas from @octopus-synapse/profile-contracts
+ *
+ * IMPORTANT: No direct imports from 'zod' - all validation comes from contracts.
  */
 
 import { Injectable, BadRequestException } from '@nestjs/common';
@@ -8,7 +10,6 @@ import {
   ResumeDslSchema,
   type ResumeDsl,
 } from '@octopus-synapse/profile-contracts';
-import { ZodError } from 'zod';
 
 export interface ValidationResult {
   valid: boolean;
@@ -20,21 +21,22 @@ export interface ValidationResult {
 export class DslValidatorService {
   /**
    * Validate a DSL object against the schema
+   * Uses safeParse to avoid needing to import ZodError directly
    */
   validate(input: unknown): ValidationResult {
-    try {
-      const normalized = ResumeDslSchema.parse(input);
-      return { valid: true, normalized };
-    } catch (error) {
-      // Parsing fallback - see ERROR_HANDLING_STRATEGY.md
-      if (error instanceof ZodError) {
-        return {
-          valid: false,
-          errors: error.errors.map((e) => `${e.path.join('.')}: ${e.message}`),
-        };
-      }
-      throw error;
+    const result = ResumeDslSchema.safeParse(input);
+
+    if (result.success) {
+      return { valid: true, normalized: result.data };
     }
+
+    // Convert Zod errors to string array without importing ZodError
+    return {
+      valid: false,
+      errors: result.error.errors.map(
+        (err) => `${err.path.join('.')}: ${err.message}`,
+      ),
+    };
   }
 
   /**

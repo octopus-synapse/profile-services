@@ -8,7 +8,7 @@ import { ApiTags, ApiOperation, ApiQuery, ApiParam } from '@nestjs/swagger';
 import { Public } from '../../auth/decorators/public.decorator';
 import { InstitutionQueryService } from '../services/institution-query.service';
 import { CourseQueryService } from '../services/course-query.service';
-import { APP_CONSTANTS } from '../../common/constants/config';
+import { APP_CONFIG } from '@octopus-synapse/profile-contracts';
 
 @ApiTags('mec-institutions')
 @Controller('v1/mec/institutions')
@@ -39,7 +39,7 @@ export class MecInstitutionController {
   ) {
     const parsedLimit = limit
       ? parseInt(limit, 10)
-      : APP_CONSTANTS.DEFAULT_PAGE_SIZE;
+      : APP_CONFIG.DEFAULT_PAGE_SIZE;
     return this.institutionQuery.search(query, parsedLimit);
   }
 

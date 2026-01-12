@@ -3,7 +3,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { createHash } from 'crypto';
 import type { AnalyticsEvent } from '@prisma/client';
 
-interface TrackEventDto {
+interface TrackEvent {
   shareId: string;
   event: AnalyticsEvent;
   ip: string;
@@ -17,7 +17,7 @@ interface TrackEventDto {
 export class ShareAnalyticsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async trackEvent(dto: TrackEventDto) {
+  async trackEvent(dto: TrackEvent) {
     // Anonymize IP (GDPR compliance)
     const ipHash = this.anonymizeIP(dto.ip);
 

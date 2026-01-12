@@ -1,8 +1,36 @@
 import { Injectable, Logger, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Resume } from '@prisma/client';
-import { CreateResumeDto } from './dto/create-resume.dto';
-import { UpdateResumeDto } from './dto/update-resume.dto';
+import {
+  type CreateResume,
+  type UpdateResume,
+} from '@octopus-synapse/profile-contracts';
+
+/**
+ * Repository-level DTO types.
+ * Excludes nested relations which are handled separately by sub-resource repositories.
+ * The API layer (CreateResume/UpdateResume) may include relations for convenience,
+ * but the repository deals with flat resume data only.
+ */
+type CreateResumeData = Omit<
+  CreateResume,
+  | 'experiences'
+  | 'educations'
+  | 'skills'
+  | 'languages'
+  | 'certifications'
+  | 'projects'
+>;
+
+type UpdateResumeData = Omit<
+  UpdateResume,
+  | 'experiences'
+  | 'educations'
+  | 'skills'
+  | 'languages'
+  | 'certifications'
+  | 'projects'
+>;
 
 @Injectable()
 export class ResumesRepository {
@@ -36,7 +64,7 @@ export class ResumesRepository {
     });
   }
 
-  async create(userId: string, data: CreateResumeDto): Promise<Resume> {
+  async create(userId: string, data: CreateResumeData): Promise<Resume> {
     this.logger.log(`Creating resume for user: ${userId}`);
     return await this.prisma.resume.create({
       data: {
@@ -49,7 +77,7 @@ export class ResumesRepository {
   async update(
     id: string,
     userId: string,
-    data: UpdateResumeDto,
+    data: UpdateResumeData,
   ): Promise<Resume | null> {
     this.logger.log(`Updating resume: ${id}`);
 

@@ -4,7 +4,7 @@ import { Logger } from '@nestjs/common';
 import { EducationService } from './education.service';
 import { EducationRepository } from '../repositories/education.repository';
 import { ResumesRepository } from '../resumes.repository';
-import { CreateEducationDto, UpdateEducationDto } from '../dto/education.dto';
+import { CreateEducationDto, UpdateEducationDto } from '../dto';
 
 describe('EducationService', () => {
   let service: EducationService;

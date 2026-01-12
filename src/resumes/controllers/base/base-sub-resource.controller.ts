@@ -10,15 +10,16 @@ import {
   HttpStatus,
   ParseIntPipe,
   DefaultValuePipe,
-  Type,
 } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import type { UserPayload } from '../../../auth/interfaces/auth-request.interface';
 import { BaseSubResourceService } from '../../services/base/base-sub-resource.service';
-import { ReorderDto } from '../../dto/reorder.dto';
+import type {
+  ReorderItems,
+  PaginatedResult,
+} from '@octopus-synapse/profile-contracts';
 import { ParseCuidPipe } from '../../../common/pipes/parse-cuid.pipe';
-import { PaginatedResult } from '../../dto/pagination.dto';
 import {
   DataResponse,
   MessageResponse,
@@ -29,20 +30,14 @@ import {
  */
 export interface SubResourceControllerConfig<
   _Entity,
-  CreateDto,
-  UpdateDto,
-  ResponseDto,
+  _Create,
+  _Update,
+  _Response,
 > {
   /** The name of the entity (singular, e.g., 'experience', 'education') */
   entityName: string;
   /** The plural name for API descriptions (e.g., 'experiences', 'education entries') */
   entityPluralName: string;
-  /** The response DTO class for Swagger documentation */
-  responseDtoClass: Type<ResponseDto>;
-  /** The create DTO class for Swagger documentation */
-  createDtoClass: Type<CreateDto>;
-  /** The update DTO class for Swagger documentation */
-  updateDtoClass: Type<UpdateDto>;
 }
 
 /**
@@ -62,29 +57,25 @@ export interface SubResourceControllerConfig<
  * - OCP: Open for extension through inheritance
  *
  * @template Entity - The entity type
- * @template CreateDto - DTO for creating the entity
- * @template UpdateDto - DTO for updating the entity
- * @template ResponseDto - DTO for API responses
+ * @template Create - DTO for creating the entity
+ * @template Update - DTO for updating the entity
+ * @template Response - DTO for API responses
  */
 export abstract class BaseSubResourceController<
   Entity,
-  CreateDto,
-  UpdateDto,
-  ResponseDto,
+  Create,
+  Update,
+  Response,
 > {
   protected abstract readonly config: SubResourceControllerConfig<
     Entity,
-    CreateDto,
-    UpdateDto,
-    ResponseDto
+    Create,
+    Update,
+    Response
   >;
 
   constructor(
-    protected readonly service: BaseSubResourceService<
-      Entity,
-      CreateDto,
-      UpdateDto
-    >,
+    protected readonly service: BaseSubResourceService<Entity, Create, Update>,
   ) {}
 
   @Get()
@@ -125,7 +116,7 @@ export abstract class BaseSubResourceController<
   async add(
     @Param('resumeId', ParseCuidPipe) resumeId: string,
     @CurrentUser() user: UserPayload,
-    @Body() createDto: CreateDto,
+    @Body() createDto: Create,
   ): Promise<DataResponse<Entity>> {
     return this.service.addToResume(resumeId, user.userId, createDto);
   }
@@ -140,7 +131,7 @@ export abstract class BaseSubResourceController<
     @Param('resumeId', ParseCuidPipe) resumeId: string,
     @Param('id', ParseCuidPipe) entityId: string,
     @CurrentUser() user: UserPayload,
-    @Body() updateDto: UpdateDto,
+    @Body() updateDto: Update,
   ): Promise<DataResponse<Entity>> {
     return this.service.updateById(resumeId, entityId, user.userId, updateDto);
   }
@@ -168,7 +159,7 @@ export abstract class BaseSubResourceController<
   async reorder(
     @Param('resumeId', ParseCuidPipe) resumeId: string,
     @CurrentUser() user: UserPayload,
-    @Body() reorderDto: ReorderDto,
+    @Body() reorderDto: ReorderItems,
   ): Promise<MessageResponse> {
     return this.service.reorderInResume(resumeId, user.userId, reorderDto.ids);
   }

@@ -2,16 +2,15 @@ import { Controller, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { EducationService } from '../services/education.service';
-import {
-  CreateEducationDto,
-  UpdateEducationDto,
-  EducationResponseDto,
-} from '../dto/education.dto';
+import type {
+  CreateEducation,
+  UpdateEducation,
+} from '@octopus-synapse/profile-contracts';
 import {
   BaseSubResourceController,
   SubResourceControllerConfig,
 } from './base/base-sub-resource.controller';
-import { Education } from '@prisma/client';
+import type { Education } from '@prisma/client';
 
 /**
  * Controller for managing resume education entries
@@ -30,21 +29,18 @@ import { Education } from '@prisma/client';
 @UseGuards(JwtAuthGuard)
 export class EducationController extends BaseSubResourceController<
   Education,
-  CreateEducationDto,
-  UpdateEducationDto,
-  EducationResponseDto
+  CreateEducation,
+  UpdateEducation,
+  Education
 > {
   protected readonly config: SubResourceControllerConfig<
     Education,
-    CreateEducationDto,
-    UpdateEducationDto,
-    EducationResponseDto
+    CreateEducation,
+    UpdateEducation,
+    Education
   > = {
     entityName: 'education',
     entityPluralName: 'education entries',
-    responseDtoClass: EducationResponseDto,
-    createDtoClass: CreateEducationDto,
-    updateDtoClass: UpdateEducationDto,
   };
 
   constructor(educationService: EducationService) {

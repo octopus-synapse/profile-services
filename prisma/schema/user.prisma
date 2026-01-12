@@ -45,6 +45,13 @@ model User {
   createdThemes  ResumeTheme[] @relation("ThemeAuthor")
   approvedThemes ResumeTheme[] @relation("ThemeApprover")
 
+  // Chat system
+  conversationsAsParticipant1 Conversation[] @relation("ConversationParticipant1")
+  conversationsAsParticipant2 Conversation[] @relation("ConversationParticipant2")
+  sentMessages                Message[]      @relation("SentMessages")
+  blockedUsers                BlockedUser[]  @relation("Blocker")
+  blockedByUsers              BlockedUser[]  @relation("Blocked")
+
   @@index([username])
   @@index([email])
   @@index([role])

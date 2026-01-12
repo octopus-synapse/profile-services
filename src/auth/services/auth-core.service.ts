@@ -13,9 +13,9 @@ import {
 import { User, UserRole, Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AppLoggerService } from '../../common/logger/logger.service';
-import { SignupDto } from '../dto/signup.dto';
-import { LoginDto } from '../dto/login.dto';
-import { ERROR_MESSAGES } from '../../common/constants/config';
+import type { RegisterCredentials as Signup } from '@octopus-synapse/profile-contracts';
+import type { LoginCredentials as Login } from '@octopus-synapse/profile-contracts';
+import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
 import { TokenService } from './token.service';
 import { PasswordService } from './password.service';
 
@@ -32,7 +32,7 @@ export class AuthCoreService {
     private readonly passwordService: PasswordService,
   ) {}
 
-  async signup(dto: SignupDto) {
+  async signup(dto: Signup) {
     const { email, password, name } = dto;
 
     const hashedPassword = await this.passwordService.hash(password);
@@ -113,7 +113,7 @@ export class AuthCoreService {
     return result;
   }
 
-  async login(dto: LoginDto) {
+  async login(dto: Login) {
     const user = await this.validateUser(dto.email, dto.password);
 
     if (!user) {

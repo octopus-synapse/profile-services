@@ -15,15 +15,15 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { OnboardingService } from './onboarding.service';
-import { OnboardingProgressDto } from './dto/onboarding-progress.dto';
+import type { OnboardingProgress } from '@octopus-synapse/profile-contracts';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { UserPayload } from '../auth/interfaces/auth-request.interface';
-import { ZodValidationPipe } from '../common/pipes/zod-validation.pipe';
 import {
   OnboardingDataSchema,
   type OnboardingData,
 } from '@octopus-synapse/profile-contracts';
+import { createZodPipe } from '../common/validation/zod-validation.pipe';
 
 @ApiTags('onboarding')
 @ApiBearerAuth('JWT-auth')
@@ -51,7 +51,7 @@ export class OnboardingController {
   @ApiResponse({ status: 404, description: 'User not found' })
   async completeOnboarding(
     @CurrentUser() user: UserPayload,
-    @Body(new ZodValidationPipe(OnboardingDataSchema)) data: OnboardingData,
+    @Body(createZodPipe(OnboardingDataSchema)) data: OnboardingData,
   ) {
     return this.onboardingService.completeOnboarding(user.userId, data);
   }
@@ -119,7 +119,7 @@ export class OnboardingController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async saveProgress(
     @CurrentUser() user: UserPayload,
-    @Body() data: OnboardingProgressDto,
+    @Body() data: OnboardingProgress,
   ) {
     return this.onboardingService.saveProgress(user.userId, data);
   }

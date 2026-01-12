@@ -2,16 +2,15 @@ import { Controller, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { HackathonService } from '../services/hackathon.service';
-import {
-  CreateHackathonDto,
-  UpdateHackathonDto,
-  HackathonResponseDto,
-} from '../dto/hackathon.dto';
+import type {
+  CreateHackathon,
+  UpdateHackathon,
+} from '@octopus-synapse/profile-contracts';
 import {
   BaseSubResourceController,
   SubResourceControllerConfig,
 } from './base/base-sub-resource.controller';
-import { Hackathon } from '@prisma/client';
+import type { Hackathon } from '@prisma/client';
 
 @ApiTags('resumes')
 @ApiBearerAuth('JWT-auth')
@@ -19,21 +18,18 @@ import { Hackathon } from '@prisma/client';
 @UseGuards(JwtAuthGuard)
 export class HackathonController extends BaseSubResourceController<
   Hackathon,
-  CreateHackathonDto,
-  UpdateHackathonDto,
-  HackathonResponseDto
+  CreateHackathon,
+  UpdateHackathon,
+  Hackathon
 > {
   protected readonly config: SubResourceControllerConfig<
     Hackathon,
-    CreateHackathonDto,
-    UpdateHackathonDto,
-    HackathonResponseDto
+    CreateHackathon,
+    UpdateHackathon,
+    Hackathon
   > = {
     entityName: 'hackathon',
     entityPluralName: 'hackathons',
-    responseDtoClass: HackathonResponseDto,
-    createDtoClass: CreateHackathonDto,
-    updateDtoClass: UpdateHackathonDto,
   };
 
   constructor(hackathonService: HackathonService) {

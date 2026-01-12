@@ -28,7 +28,7 @@ export type FieldConfig = Record<string, FieldType>;
  *
  * @example
  * ```typescript
- * protected mapUpdateDto(dto: UpdateProjectDto) {
+ * protected mapUpdate(dto: UpdateProject) {
  *   return buildUpdateData(dto, {
  *     name: 'string',
  *     description: 'optional',
@@ -106,7 +106,7 @@ export function buildUpdateData<T extends object>(
  *
  * @example
  * ```typescript
- * protected mapCreateDto(resumeId: string, dto: CreateProjectDto, order: number) {
+ * protected mapCreate(resumeId: string, dto: CreateProject, order: number) {
  *   return buildCreateData(
  *     { resumeId, order: dto.order ?? order },
  *     dto,

@@ -8,7 +8,7 @@ import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { TechNicheQueryService } from '../services/niche-query.service';
 import { TechSkillsQueryService } from '../services/tech-skills-query.service';
 import { Public } from '../../auth/decorators/public.decorator';
-import type { TechNicheDto, TechSkillDto } from '../dtos';
+import type { TechNiche, TechSkill } from '../dtos';
 
 @ApiTags('tech-niches')
 @Controller('v1/tech-niches')
@@ -23,7 +23,7 @@ export class TechNicheController {
   @Public()
   @ApiOperation({ summary: 'Get all tech niches' })
   @ApiResponse({ status: 200, description: 'List of tech niches' })
-  async getNiches(): Promise<TechNicheDto[]> {
+  async getNiches(): Promise<TechNiche[]> {
     return this.nicheQuery.getAllNiches();
   }
 
@@ -34,7 +34,7 @@ export class TechNicheController {
   @ApiResponse({ status: 200, description: 'List of skills for the niche' })
   async getSkillsByNiche(
     @Param('nicheSlug') nicheSlug: string,
-  ): Promise<TechSkillDto[]> {
+  ): Promise<TechSkill[]> {
     return this.queryService.getSkillsByNiche(nicheSlug);
   }
 }

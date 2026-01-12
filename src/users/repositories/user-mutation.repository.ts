@@ -6,9 +6,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { User, UserPreferences } from '@prisma/client';
-import { UpdateProfileDto } from '../dto/update-profile.dto';
-import { UpdatePreferencesDto } from '../dto/update-preferences.dto';
-import { UpdateFullPreferencesDto } from '../dto/update-full-preferences.dto';
+import {
+  UpdateProfile,
+  UpdatePreferences,
+  type UpdateFullPreferences,
+} from '@octopus-synapse/profile-contracts';
 
 @Injectable()
 export class UserMutationRepository {
@@ -41,7 +43,7 @@ export class UserMutationRepository {
 
   async updateUserProfile(
     userId: string,
-    profile: UpdateProfileDto,
+    profile: UpdateProfile,
   ): Promise<User> {
     this.logger.log(`Updating profile for user: ${userId}`);
     return await this.prisma.user.update({
@@ -52,7 +54,7 @@ export class UserMutationRepository {
 
   async updateUserPreferences(
     userId: string,
-    preferences: UpdatePreferencesDto,
+    preferences: UpdatePreferences,
   ): Promise<void> {
     this.logger.log(`Updating preferences for user: ${userId}`);
     await this.prisma.user.update({
@@ -63,7 +65,7 @@ export class UserMutationRepository {
 
   async upsertFullUserPreferences(
     userId: string,
-    preferences: UpdateFullPreferencesDto,
+    preferences: UpdateFullPreferences,
   ): Promise<UserPreferences> {
     this.logger.log(`Upserting full preferences for user: ${userId}`);
     return await this.prisma.userPreferences.upsert({

@@ -13,9 +13,9 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { ThemeStatus, UserRole, Prisma } from '@prisma/client';
-import { CreateThemeDto, UpdateThemeDto } from '../dto';
+import { CreateTheme, UpdateTheme } from '@octopus-synapse/profile-contracts';
 import { validateLayoutConfig, validateSectionsConfig } from '../validators';
-import { ERROR_MESSAGES } from '../../common/constants/config';
+import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
 
 /** Maximum themes a user can create */
 const MAX_THEMES_PER_USER = 5;
@@ -24,7 +24,7 @@ const MAX_THEMES_PER_USER = 5;
 export class ThemeCrudService {
   constructor(private prisma: PrismaService) {}
 
-  async create(userId: string, dto: CreateThemeDto) {
+  async create(userId: string, dto: CreateTheme) {
     this.validateConfig(dto.styleConfig);
 
     // BUG-006 FIX: Check theme limit before creating
@@ -52,7 +52,7 @@ export class ThemeCrudService {
     });
   }
 
-  async update(userId: string, themeId: string, dto: UpdateThemeDto) {
+  async update(userId: string, themeId: string, dto: UpdateTheme) {
     const theme = await this.findOrFail(themeId);
     await this.assertCanEdit(theme, userId);
 
@@ -143,7 +143,7 @@ export class ThemeCrudService {
   /**
    * BUG-013 FIX: Admin can create themes directly as PUBLISHED
    */
-  async createAsAdmin(adminId: string, dto: CreateThemeDto) {
+  async createAsAdmin(adminId: string, dto: CreateTheme) {
     await this.assertIsAdmin(adminId);
     this.validateConfig(dto.styleConfig);
 
@@ -166,7 +166,7 @@ export class ThemeCrudService {
 
   private async assertIsAdmin(userId: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user || user.role !== UserRole.ADMIN) {
+    if (user?.role !== UserRole.ADMIN) {
       throw new ForbiddenException(ERROR_MESSAGES.ONLY_ADMINS_CAN_DO_THIS);
     }
   }

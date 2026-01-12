@@ -5,7 +5,7 @@
  * Defines contracts for analytics data structures.
  */
 
-export interface TrackViewDto {
+export interface TrackView {
   resumeId: string;
   ip: string;
   userAgent?: string;

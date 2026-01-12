@@ -22,8 +22,10 @@ import {
   ApiQuery,
 } from '@nestjs/swagger';
 import { UsersService } from '../users.service';
-import { UpdateProfileDto } from '../dto/update-profile.dto';
-import { UpdateUsernameDto } from '../dto/update-username.dto';
+import type {
+  UpdateUser as UpdateProfile,
+  UpdateUsername,
+} from '@octopus-synapse/profile-contracts';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { Public } from '../../auth/decorators/public.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -67,9 +69,9 @@ export class UsersProfileController {
   @ApiResponse({ status: 400, description: 'Invalid input data' })
   async updateProfile(
     @CurrentUser() user: UserPayload,
-    @Body() updateProfileDto: UpdateProfileDto,
+    @Body() updateProfile: UpdateProfile,
   ) {
-    return this.usersService.updateProfile(user.userId, updateProfileDto);
+    return this.usersService.updateProfile(user.userId, updateProfile);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -96,9 +98,9 @@ export class UsersProfileController {
   @ApiResponse({ status: 409, description: 'Username already taken' })
   async updateUsername(
     @CurrentUser() user: UserPayload,
-    @Body() updateUsernameDto: UpdateUsernameDto,
+    @Body() updateUsername: UpdateUsername,
   ) {
-    return this.usersService.updateUsername(user.userId, updateUsernameDto);
+    return this.usersService.updateUsername(user.userId, updateUsername);
   }
 
   @UseGuards(JwtAuthGuard)

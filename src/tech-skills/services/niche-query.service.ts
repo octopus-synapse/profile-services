@@ -11,7 +11,7 @@ import {
   TECH_SKILLS_CACHE_TTL,
   type TechAreaType,
 } from '../interfaces';
-import type { TechNicheDto } from '../dtos';
+import type { TechNiche } from '../dtos';
 
 @Injectable()
 export class TechNicheQueryService {
@@ -23,10 +23,10 @@ export class TechNicheQueryService {
   /**
    * Get all niches
    */
-  async getAllNiches(): Promise<TechNicheDto[]> {
+  async getAllNiches(): Promise<TechNiche[]> {
     const cacheKey = TECH_SKILLS_CACHE_KEYS.NICHES_LIST;
 
-    const cached = await this.cache.get<TechNicheDto[]>(cacheKey);
+    const cached = await this.cache.get<TechNiche[]>(cacheKey);
     if (cached) return cached;
 
     const niches = await this.prisma.techNiche.findMany({
@@ -37,7 +37,7 @@ export class TechNicheQueryService {
       },
     });
 
-    const result: TechNicheDto[] = niches.map((n) => ({
+    const result: TechNiche[] = niches.map((n) => ({
       id: n.id,
       slug: n.slug,
       nameEn: n.nameEn,
@@ -57,10 +57,10 @@ export class TechNicheQueryService {
   /**
    * Get niches by area type
    */
-  async getNichesByArea(areaType: TechAreaType): Promise<TechNicheDto[]> {
+  async getNichesByArea(areaType: TechAreaType): Promise<TechNiche[]> {
     const cacheKey = `${TECH_SKILLS_CACHE_KEYS.SKILLS_BY_AREA}${areaType}`;
 
-    const cached = await this.cache.get<TechNicheDto[]>(cacheKey);
+    const cached = await this.cache.get<TechNiche[]>(cacheKey);
     if (cached) return cached;
 
     const niches = await this.prisma.techNiche.findMany({
@@ -74,7 +74,7 @@ export class TechNicheQueryService {
       },
     });
 
-    const result: TechNicheDto[] = niches.map((n) => ({
+    const result: TechNiche[] = niches.map((n) => ({
       id: n.id,
       slug: n.slug,
       nameEn: n.nameEn,

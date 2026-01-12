@@ -30,8 +30,9 @@ import { PublicResumesModule } from './public-resumes/public-resumes.module';
 import { ResumeVersionsModule } from './resume-versions/resume-versions.module';
 import { ShareAnalyticsModule } from './share-analytics/share-analytics.module';
 import { ResumeAnalyticsModule } from './resume-analytics/resume-analytics.module';
+import { ChatModule } from './chat/chat.module';
 import { validate } from './common/config/env.validation';
-import { APP_CONSTANTS } from './common/constants/config';
+import { RATE_LIMIT_CONFIG } from '@octopus-synapse/profile-contracts';
 
 @Module({
   imports: [
@@ -42,8 +43,8 @@ import { APP_CONSTANTS } from './common/constants/config';
     }),
     ThrottlerModule.forRoot([
       {
-        ttl: APP_CONSTANTS.RATE_LIMIT_TTL * 1000,
-        limit: APP_CONSTANTS.RATE_LIMIT_MAX_REQUESTS,
+        ttl: RATE_LIMIT_CONFIG.TTL_MS,
+        limit: RATE_LIMIT_CONFIG.MAX_REQUESTS,
       },
     ]),
     LoggerModule,
@@ -71,6 +72,7 @@ import { APP_CONSTANTS } from './common/constants/config';
     ResumeVersionsModule,
     ShareAnalyticsModule,
     ResumeAnalyticsModule,
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [

@@ -3,16 +3,16 @@ import { Certification } from '@prisma/client';
 import { CertificationRepository } from '../repositories/certification.repository';
 import { ResumesRepository } from '../resumes.repository';
 import {
-  CreateCertificationDto,
-  UpdateCertificationDto,
-} from '../dto/certification.dto';
+  CreateCertification,
+  UpdateCertification,
+} from '@octopus-synapse/profile-contracts';
 import { BaseSubResourceService } from './base';
 
 @Injectable()
 export class CertificationService extends BaseSubResourceService<
   Certification,
-  CreateCertificationDto,
-  UpdateCertificationDto
+  CreateCertification,
+  UpdateCertification
 > {
   protected readonly entityName = 'Certification';
   protected readonly logger = new Logger(CertificationService.name);

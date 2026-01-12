@@ -13,12 +13,14 @@ import {
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
-import { CreateUserDto } from '../dto/create-user.dto';
-import { UpdateUserDto } from '../dto/update-user.dto';
-import { AdminResetPasswordDto } from '../dto/reset-password.dto';
+import type {
+  AdminCreateUser,
+  AdminUpdateUser,
+  AdminResetPassword,
+} from '@octopus-synapse/profile-contracts';
 import { UserRole } from '../../common/enums/user-role.enum';
 import { PasswordService } from '../../auth/services/password.service';
-import { ERROR_MESSAGES } from '../../common/constants/config';
+import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
 
 @Injectable()
 export class UserAdminMutationService {
@@ -27,7 +29,7 @@ export class UserAdminMutationService {
     private readonly passwordService: PasswordService,
   ) {}
 
-  async create(dto: CreateUserDto) {
+  async create(dto: AdminCreateUser) {
     const { email, password, name, role } = dto;
 
     const hashedPassword = await this.passwordService.hash(password);
@@ -62,12 +64,15 @@ export class UserAdminMutationService {
     }
   }
 
-  async update(id: string, dto: UpdateUserDto) {
+  async update(id: string, dto: AdminUpdateUser) {
     const user = await this.findUserOrThrow(id);
 
     // BUG-016 FIX: Check if removing admin role from last admin
     if (dto.role !== undefined) {
-      await this.preventLastAdminRoleRemoval(user.role as UserRole, dto.role);
+      await this.preventLastAdminRoleRemoval(
+        user.role as UserRole,
+        dto.role as UserRole,
+      );
     }
 
     // BUG-001/002 FIX: Use try-catch with unique constraint for email/username
@@ -119,7 +124,7 @@ export class UserAdminMutationService {
     return { success: true, message: 'User deleted successfully' };
   }
 
-  async resetPassword(id: string, dto: AdminResetPasswordDto) {
+  async resetPassword(id: string, dto: AdminResetPassword) {
     await this.findUserOrThrow(id);
 
     const hashedPassword = await this.passwordService.hash(dto.newPassword);

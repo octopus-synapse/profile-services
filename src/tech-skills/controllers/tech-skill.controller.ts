@@ -10,7 +10,7 @@ import { SkillSearchService } from '../services/skill-search.service';
 import { TechSkillsQueryService } from '../services/tech-skills-query.service';
 import { Public } from '../../auth/decorators/public.decorator';
 import type { SkillType } from '../interfaces';
-import type { TechSkillDto } from '../dtos';
+import type { TechSkill } from '../dtos';
 
 @ApiTags('tech-skills')
 @Controller('v1/tech-skills')
@@ -26,7 +26,7 @@ export class TechSkillController {
   @Public()
   @ApiOperation({ summary: 'Get all tech skills' })
   @ApiResponse({ status: 200, description: 'List of tech skills' })
-  async getSkills(): Promise<TechSkillDto[]> {
+  async getSkills(): Promise<TechSkill[]> {
     return this.skillQuery.getAllSkills();
   }
 
@@ -38,7 +38,7 @@ export class TechSkillController {
   async searchSkills(
     @Query('q') query: string,
     @Query('limit') limit?: string,
-  ): Promise<TechSkillDto[]> {
+  ): Promise<TechSkill[]> {
     return this.skillSearch.searchSkills(
       query,
       limit ? parseInt(limit, 10) : 20,
@@ -53,7 +53,7 @@ export class TechSkillController {
   async getSkillsByType(
     @Param('type') type: SkillType,
     @Query('limit') limit?: string,
-  ): Promise<TechSkillDto[]> {
+  ): Promise<TechSkill[]> {
     return this.queryService.getSkillsByType(
       type,
       limit ? parseInt(limit, 10) : 50,

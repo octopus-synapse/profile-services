@@ -4,9 +4,11 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { AdminResetPasswordDto } from './dto/reset-password.dto';
+import type {
+  AdminCreateUser,
+  AdminUpdateUser,
+  AdminResetPassword,
+} from '@octopus-synapse/profile-contracts';
 import {
   UserAdminService,
   GetAllUsersOptions,
@@ -38,12 +40,12 @@ export class AdminService {
     return this.userAdminService.getById(id);
   }
 
-  async createUser(createUserDto: CreateUserDto) {
-    return this.userAdminService.create(createUserDto);
+  async createUser(createUser: AdminCreateUser) {
+    return this.userAdminService.create(createUser);
   }
 
-  async updateUser(id: string, updateUserDto: UpdateUserDto) {
-    return this.userAdminService.update(id, updateUserDto);
+  async updateUser(id: string, updateUser: AdminUpdateUser) {
+    return this.userAdminService.update(id, updateUser);
   }
 
   async deleteUser(id: string, requestingAdminId: string) {
@@ -51,7 +53,7 @@ export class AdminService {
     return this.gdprDeletionService.deleteUserCompletely(id, requestingAdminId);
   }
 
-  async resetUserPassword(id: string, dto: AdminResetPasswordDto) {
+  async resetUserPassword(id: string, dto: AdminResetPassword) {
     return this.userAdminService.resetPassword(id, dto);
   }
 

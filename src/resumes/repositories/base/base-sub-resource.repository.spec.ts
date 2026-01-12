@@ -1,4 +1,5 @@
 import { Logger } from '@nestjs/common';
+import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { PrismaService } from '../../../prisma/prisma.service';
 import {
   BaseSubResourceRepository,
@@ -45,7 +46,7 @@ class TestRepository extends BaseSubResourceRepository<
     return this.orderByConfig;
   }
 
-  protected mapCreateDto(resumeId: string, dto: CreateTestDto, order: number) {
+  protected mapCreate(resumeId: string, dto: CreateTestDto, order: number) {
     return {
       resumeId,
       name: dto.name,
@@ -53,7 +54,7 @@ class TestRepository extends BaseSubResourceRepository<
     };
   }
 
-  protected mapUpdateDto(dto: UpdateTestDto) {
+  protected mapUpdate(dto: UpdateTestDto) {
     return {
       ...(dto.name && { name: dto.name }),
       ...(dto.order !== undefined && { order: dto.order }),
@@ -81,21 +82,21 @@ describe('BaseSubResourceRepository', () => {
 
   beforeEach(() => {
     mockPrismaDelegate = {
-      findFirst: jest.fn(),
-      findUnique: jest.fn(),
-      findMany: jest.fn(),
-      count: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-      updateMany: jest.fn(),
-      deleteMany: jest.fn(),
-      aggregate: jest.fn(),
-      $transaction: jest.fn(),
+      findFirst: mock(),
+      findUnique: mock(),
+      findMany: mock(),
+      count: mock(),
+      create: mock(),
+      update: mock(),
+      updateMany: mock(),
+      deleteMany: mock(),
+      aggregate: mock(),
+      $transaction: mock(),
     };
 
     prismaService = {
       testEntity: mockPrismaDelegate,
-      $transaction: jest.fn((operations) => {
+      $transaction: mock((operations) => {
         if (typeof operations === 'function') {
           return operations(mockPrismaDelegate);
         }

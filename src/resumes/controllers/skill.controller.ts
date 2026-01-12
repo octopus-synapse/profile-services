@@ -21,17 +21,16 @@ import {
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { SkillService } from '../services/skill.service';
-import {
-  CreateSkillDto,
-  UpdateSkillDto,
-  SkillResponseDto,
-  BulkCreateSkillsDto,
-} from '../dto/skill.dto';
+import type {
+  CreateSkill,
+  UpdateSkill,
+  BulkCreateSkills,
+} from '@octopus-synapse/profile-contracts';
 import {
   BaseSubResourceController,
   SubResourceControllerConfig,
 } from './base/base-sub-resource.controller';
-import { Skill } from '@prisma/client';
+import type { Skill } from '@prisma/client';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import type { UserPayload } from '../../auth/interfaces/auth-request.interface';
 import { ParseCuidPipe } from '../../common/pipes/parse-cuid.pipe';
@@ -42,21 +41,18 @@ import { ParseCuidPipe } from '../../common/pipes/parse-cuid.pipe';
 @UseGuards(JwtAuthGuard)
 export class SkillController extends BaseSubResourceController<
   Skill,
-  CreateSkillDto,
-  UpdateSkillDto,
-  SkillResponseDto
+  CreateSkill,
+  UpdateSkill,
+  Skill
 > {
   protected readonly config: SubResourceControllerConfig<
     Skill,
-    CreateSkillDto,
-    UpdateSkillDto,
-    SkillResponseDto
+    CreateSkill,
+    UpdateSkill,
+    Skill
   > = {
     entityName: 'skill',
     entityPluralName: 'skills',
-    responseDtoClass: SkillResponseDto,
-    createDtoClass: CreateSkillDto,
-    updateDtoClass: UpdateSkillDto,
   };
 
   constructor(private readonly skillService: SkillService) {
@@ -97,7 +93,7 @@ export class SkillController extends BaseSubResourceController<
   async createBulk(
     @Param('resumeId', ParseCuidPipe) resumeId: string,
     @CurrentUser() user: UserPayload,
-    @Body() bulkDto: BulkCreateSkillsDto,
+    @Body() bulkDto: BulkCreateSkills,
   ) {
     return this.skillService.createMany(resumeId, user.userId, bulkDto);
   }

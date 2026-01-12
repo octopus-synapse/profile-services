@@ -9,18 +9,18 @@ import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { SectionVisibilityService, SectionOrderingService } from '../services';
 
-class SectionToggleDto {
+class SectionToggle {
   visible: boolean;
 }
-class SectionReorderDto {
+class SectionReorder {
   order: number;
 }
-class SectionItemDto {
+class SectionItem {
   itemId: string;
   visible?: boolean;
   order?: number;
 }
-class SectionBatchDto {
+class SectionBatch {
   sections: Array<{ id: string; visible?: boolean; order?: number }>;
 }
 
@@ -40,7 +40,7 @@ export class SectionConfigController {
     @CurrentUser('userId') userId: string,
     @Param('resumeId') resumeId: string,
     @Param('sectionId') sectionId: string,
-    @Body() dto: SectionToggleDto,
+    @Body() dto: SectionToggle,
   ) {
     return this.visibility.toggleSection(
       userId,
@@ -56,7 +56,7 @@ export class SectionConfigController {
     @CurrentUser('userId') userId: string,
     @Param('resumeId') resumeId: string,
     @Param('sectionId') sectionId: string,
-    @Body() dto: SectionReorderDto,
+    @Body() dto: SectionReorder,
   ) {
     return this.ordering.reorderSection(userId, resumeId, sectionId, dto.order);
   }
@@ -67,7 +67,7 @@ export class SectionConfigController {
     @CurrentUser('userId') userId: string,
     @Param('resumeId') resumeId: string,
     @Param('sectionId') sectionId: string,
-    @Body() dto: SectionItemDto,
+    @Body() dto: SectionItem,
   ) {
     return this.visibility.toggleItem(
       userId,
@@ -84,7 +84,7 @@ export class SectionConfigController {
     @CurrentUser('userId') userId: string,
     @Param('resumeId') resumeId: string,
     @Param('sectionId') sectionId: string,
-    @Body() dto: SectionItemDto,
+    @Body() dto: SectionItem,
   ) {
     return this.ordering.reorderItem(
       userId,
@@ -100,7 +100,7 @@ export class SectionConfigController {
   batchUpdate(
     @CurrentUser('userId') userId: string,
     @Param('resumeId') resumeId: string,
-    @Body() dto: SectionBatchDto,
+    @Body() dto: SectionBatch,
   ) {
     return this.ordering.batchUpdate(userId, resumeId, dto.sections);
   }

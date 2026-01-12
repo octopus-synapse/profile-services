@@ -4,7 +4,7 @@ import { Logger } from '@nestjs/common';
 import { ProjectService } from './project.service';
 import { ProjectRepository } from '../repositories/project.repository';
 import { ResumesRepository } from '../resumes.repository';
-import { CreateProjectDto, UpdateProjectDto } from '../dto/project.dto';
+import { CreateProjectDto, UpdateProjectDto } from '../dto';
 
 describe('ProjectService', () => {
   let service: ProjectService;

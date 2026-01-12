@@ -1,7 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Award } from '@prisma/client';
-import { CreateAwardDto, UpdateAwardDto } from '../dto/award.dto';
+import type {
+  CreateAward,
+  UpdateAward,
+} from '@octopus-synapse/profile-contracts';
 import {
   BaseSubResourceRepository,
   OrderByConfig,
@@ -18,8 +21,8 @@ import {
 @Injectable()
 export class AwardRepository extends BaseSubResourceRepository<
   Award,
-  CreateAwardDto,
-  UpdateAwardDto
+  CreateAward,
+  UpdateAward
 > {
   protected readonly logger = new Logger(AwardRepository.name);
 
@@ -35,7 +38,7 @@ export class AwardRepository extends BaseSubResourceRepository<
     return { type: 'date-desc', field: 'date' };
   }
 
-  protected mapCreateDto(resumeId: string, dto: CreateAwardDto, order: number) {
+  protected mapCreate(resumeId: string, dto: CreateAward, order: number) {
     return buildCreateData({ resumeId, order: dto.order ?? order }, dto, {
       title: 'string',
       issuer: 'string',
@@ -44,7 +47,7 @@ export class AwardRepository extends BaseSubResourceRepository<
     });
   }
 
-  protected mapUpdateDto(dto: UpdateAwardDto) {
+  protected mapUpdate(dto: UpdateAward) {
     return buildUpdateData(dto, {
       title: 'string',
       issuer: 'string',

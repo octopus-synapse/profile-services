@@ -6,17 +6,17 @@
 
 import { Injectable } from '@nestjs/common';
 import { User } from '@prisma/client';
-import { SignupDto } from './dto/signup.dto';
-import { LoginDto } from './dto/login.dto';
-import {
-  RequestVerificationDto,
-  VerifyEmailDto,
-  ForgotPasswordDto,
-  ResetPasswordDto,
-  ChangePasswordDto,
-} from './dto/verification.dto';
-import { ChangeEmailDto } from './dto/change-email.dto';
-import { DeleteAccountDto } from './dto/delete-account.dto';
+import type {
+  RegisterCredentials,
+  LoginCredentials,
+  RequestVerification,
+  EmailVerification,
+  ResetPasswordRequest,
+  NewPassword,
+  ChangePassword,
+  ChangeEmail,
+  DeleteAccount,
+} from '@octopus-synapse/profile-contracts';
 import {
   AuthCoreService,
   TokenRefreshService,
@@ -39,7 +39,7 @@ export class AuthService {
 
   // ==================== Core Authentication ====================
 
-  async signup(dto: SignupDto) {
+  async signup(dto: RegisterCredentials) {
     return this.authCoreService.signup(dto);
   }
 
@@ -50,7 +50,7 @@ export class AuthService {
     return this.authCoreService.validateUser(email, password);
   }
 
-  async login(dto: LoginDto) {
+  async login(dto: LoginCredentials) {
     return this.authCoreService.login(dto);
   }
 
@@ -68,35 +68,35 @@ export class AuthService {
 
   // ==================== Email Verification ====================
 
-  async requestEmailVerification(dto: RequestVerificationDto) {
+  async requestEmailVerification(dto: RequestVerification) {
     return this.emailVerificationService.requestVerification(dto);
   }
 
-  async verifyEmail(dto: VerifyEmailDto) {
+  async verifyEmail(dto: EmailVerification) {
     return this.emailVerificationService.verifyEmail(dto);
   }
 
   // ==================== Password Operations ====================
 
-  async forgotPassword(dto: ForgotPasswordDto) {
+  async forgotPassword(dto: ResetPasswordRequest) {
     return this.passwordResetService.forgotPassword(dto);
   }
 
-  async resetPassword(dto: ResetPasswordDto) {
+  async resetPassword(dto: NewPassword) {
     return this.passwordResetService.resetPassword(dto);
   }
 
-  async changePassword(userId: string, dto: ChangePasswordDto) {
+  async changePassword(userId: string, dto: ChangePassword) {
     return this.passwordResetService.changePassword(userId, dto);
   }
 
   // ==================== Account Management ====================
 
-  async changeEmail(userId: string, dto: ChangeEmailDto) {
+  async changeEmail(userId: string, dto: ChangeEmail) {
     return this.accountManagementService.changeEmail(userId, dto);
   }
 
-  async deleteAccount(userId: string, dto: DeleteAccountDto) {
+  async deleteAccount(userId: string, dto: DeleteAccount) {
     return this.accountManagementService.deleteAccount(userId, dto);
   }
 }

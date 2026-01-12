@@ -14,8 +14,10 @@ import {
   DefaultValuePipe,
 } from '@nestjs/common';
 import { ResumesService } from './resumes.service';
-import { CreateResumeDto } from './dto/create-resume.dto';
-import { UpdateResumeDto } from './dto/update-resume.dto';
+import type {
+  CreateResume,
+  UpdateResume,
+} from '@octopus-synapse/profile-contracts';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { UserPayload } from '../auth/interfaces/auth-request.interface';
@@ -95,9 +97,9 @@ export class ResumesController {
   @ApiResponse({ status: 201, description: 'Resume created' })
   async create(
     @CurrentUser() user: UserPayload,
-    @Body() createResumeDto: CreateResumeDto,
+    @Body() createResume: CreateResume,
   ) {
-    return this.resumesService.create(user.userId, createResumeDto);
+    return this.resumesService.create(user.userId, createResume);
   }
 
   @Patch(':id')
@@ -109,9 +111,9 @@ export class ResumesController {
   async update(
     @Param('id', ParseCuidPipe) id: string,
     @CurrentUser() user: UserPayload,
-    @Body() updateResumeDto: UpdateResumeDto,
+    @Body() updateResume: UpdateResume,
   ) {
-    return this.resumesService.update(id, user.userId, updateResumeDto);
+    return this.resumesService.update(id, user.userId, updateResume);
   }
 
   @Delete(':id')

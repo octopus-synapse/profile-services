@@ -1,7 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Hackathon } from '@prisma/client';
-import { CreateHackathonDto, UpdateHackathonDto } from '../dto/hackathon.dto';
+import type {
+  CreateHackathon,
+  UpdateHackathon,
+} from '@octopus-synapse/profile-contracts';
 import {
   BaseSubResourceRepository,
   OrderByConfig,
@@ -18,8 +21,8 @@ import {
 @Injectable()
 export class HackathonRepository extends BaseSubResourceRepository<
   Hackathon,
-  CreateHackathonDto,
-  UpdateHackathonDto
+  CreateHackathon,
+  UpdateHackathon
 > {
   protected readonly logger = new Logger(HackathonRepository.name);
 
@@ -35,11 +38,7 @@ export class HackathonRepository extends BaseSubResourceRepository<
     return { type: 'date-desc', field: 'date' };
   }
 
-  protected mapCreateDto(
-    resumeId: string,
-    dto: CreateHackathonDto,
-    order: number,
-  ) {
+  protected mapCreate(resumeId: string, dto: CreateHackathon, order: number) {
     return buildCreateData({ resumeId, order: dto.order ?? order }, dto, {
       name: 'string',
       organizer: 'string',
@@ -55,7 +54,7 @@ export class HackathonRepository extends BaseSubResourceRepository<
     });
   }
 
-  protected mapUpdateDto(dto: UpdateHackathonDto) {
+  protected mapUpdate(dto: UpdateHackathon) {
     return buildUpdateData(dto, {
       name: 'string',
       organizer: 'string',

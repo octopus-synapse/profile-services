@@ -2,16 +2,15 @@ import { Controller, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { OpenSourceService } from '../services/open-source.service';
-import {
-  CreateOpenSourceDto,
-  UpdateOpenSourceDto,
-  OpenSourceResponseDto,
-} from '../dto/open-source.dto';
+import type {
+  CreateOpenSource,
+  UpdateOpenSource,
+} from '@octopus-synapse/profile-contracts';
 import {
   BaseSubResourceController,
   SubResourceControllerConfig,
 } from './base/base-sub-resource.controller';
-import { OpenSourceContribution } from '@prisma/client';
+import type { OpenSourceContribution } from '@prisma/client';
 
 @ApiTags('resumes')
 @ApiBearerAuth('JWT-auth')
@@ -19,21 +18,18 @@ import { OpenSourceContribution } from '@prisma/client';
 @UseGuards(JwtAuthGuard)
 export class OpenSourceController extends BaseSubResourceController<
   OpenSourceContribution,
-  CreateOpenSourceDto,
-  UpdateOpenSourceDto,
-  OpenSourceResponseDto
+  CreateOpenSource,
+  UpdateOpenSource,
+  OpenSourceContribution
 > {
   protected readonly config: SubResourceControllerConfig<
     OpenSourceContribution,
-    CreateOpenSourceDto,
-    UpdateOpenSourceDto,
-    OpenSourceResponseDto
+    CreateOpenSource,
+    UpdateOpenSource,
+    OpenSourceContribution
   > = {
     entityName: 'open source contribution',
     entityPluralName: 'open source contributions',
-    responseDtoClass: OpenSourceResponseDto,
-    createDtoClass: CreateOpenSourceDto,
-    updateDtoClass: UpdateOpenSourceDto,
   };
 
   constructor(openSourceService: OpenSourceService) {

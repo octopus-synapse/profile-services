@@ -2,12 +2,15 @@ import { Controller, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { TalkService } from '../services/talk.service';
-import { CreateTalkDto, UpdateTalkDto, TalkResponseDto } from '../dto/talk.dto';
+import type {
+  CreateTalk,
+  UpdateTalk,
+} from '@octopus-synapse/profile-contracts';
 import {
   BaseSubResourceController,
   SubResourceControllerConfig,
 } from './base/base-sub-resource.controller';
-import { Talk } from '@prisma/client';
+import type { Talk } from '@prisma/client';
 
 @ApiTags('resumes')
 @ApiBearerAuth('JWT-auth')
@@ -15,21 +18,18 @@ import { Talk } from '@prisma/client';
 @UseGuards(JwtAuthGuard)
 export class TalkController extends BaseSubResourceController<
   Talk,
-  CreateTalkDto,
-  UpdateTalkDto,
-  TalkResponseDto
+  CreateTalk,
+  UpdateTalk,
+  Talk
 > {
   protected readonly config: SubResourceControllerConfig<
     Talk,
-    CreateTalkDto,
-    UpdateTalkDto,
-    TalkResponseDto
+    CreateTalk,
+    UpdateTalk,
+    Talk
   > = {
     entityName: 'talk',
     entityPluralName: 'talks',
-    responseDtoClass: TalkResponseDto,
-    createDtoClass: CreateTalkDto,
-    updateDtoClass: UpdateTalkDto,
   };
 
   constructor(talkService: TalkService) {

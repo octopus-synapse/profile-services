@@ -4,17 +4,20 @@
 
 """Input for creating education entry"""
 input CreateEducationInput {
+  """Currently studying"""
+  current: Boolean! = false
+
   """Degree obtained"""
   degree: String!
 
   """Program description"""
   description: String
 
-  """End date (ISO 8601)"""
+  """End date (YYYY-MM or YYYY-MM-DD)"""
   endDate: String
 
   """Field of study"""
-  field: String!
+  field: String
 
   """GPA or grade"""
   gpa: String
@@ -22,32 +25,32 @@ input CreateEducationInput {
   """Institution name"""
   institution: String!
 
-  """Currently studying"""
-  isCurrent: Boolean!
-
   """Institution location"""
   location: String
 
   """Display order"""
   order: Int
 
-  """Start date (ISO 8601)"""
+  """Start date (YYYY-MM or YYYY-MM-DD)"""
   startDate: String!
 }
 
 """Input for creating work experience"""
 input CreateExperienceInput {
+  """Key achievements in this role"""
+  achievements: [String!] = []
+
   """Company name"""
   company: String!
+
+  """Currently working here"""
+  current: Boolean! = false
 
   """Job description"""
   description: String
 
-  """End date (ISO 8601)"""
+  """End date (YYYY-MM or YYYY-MM-DD)"""
   endDate: String
-
-  """Currently working here"""
-  isCurrent: Boolean!
 
   """Work location"""
   location: String
@@ -61,7 +64,7 @@ input CreateExperienceInput {
   """Skills used in this role"""
   skills: [String!] = []
 
-  """Start date (ISO 8601)"""
+  """Start date (YYYY-MM or YYYY-MM-DD)"""
   startDate: String!
 }
 
@@ -270,17 +273,20 @@ type SkillModel {
 
 """Input for updating work experience"""
 input UpdateExperienceInput {
+  """Key achievements in this role"""
+  achievements: [String!]
+
   """Company name"""
   company: String
+
+  """Currently working here"""
+  current: Boolean
 
   """Job description"""
   description: String
 
-  """End date (ISO 8601)"""
+  """End date (YYYY-MM or YYYY-MM-DD)"""
   endDate: String
-
-  """Currently working here"""
-  isCurrent: Boolean
 
   """Work location"""
   location: String
@@ -294,6 +300,6 @@ input UpdateExperienceInput {
   """Skills used in this role"""
   skills: [String!]
 
-  """Start date (ISO 8601)"""
+  """Start date (YYYY-MM or YYYY-MM-DD)"""
   startDate: String
 }

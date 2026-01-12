@@ -5,7 +5,7 @@ import { UsersRepository } from '../users.repository';
 import { ResumesRepository } from '../../resumes/resumes.repository';
 import { AppLoggerService } from '../../common/logger/logger.service';
 import { NotFoundException } from '@nestjs/common';
-import { ERROR_MESSAGES } from '../../common/constants/config';
+import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
 
 describe('UserProfileService', () => {
   let service: UserProfileService;

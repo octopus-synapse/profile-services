@@ -7,7 +7,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CacheService } from '../../common/cache/cache.service';
 import { TECH_SKILLS_CACHE_KEYS, TECH_SKILLS_CACHE_TTL } from '../interfaces';
-import type { TechAreaDto } from '../dtos';
+import type { TechArea } from '../dtos';
 
 @Injectable()
 export class TechAreaQueryService {
@@ -19,10 +19,10 @@ export class TechAreaQueryService {
   /**
    * Get all tech areas
    */
-  async getAllAreas(): Promise<TechAreaDto[]> {
+  async getAllAreas(): Promise<TechArea[]> {
     const cacheKey = TECH_SKILLS_CACHE_KEYS.AREAS_LIST;
 
-    const cached = await this.cache.get<TechAreaDto[]>(cacheKey);
+    const cached = await this.cache.get<TechArea[]>(cacheKey);
     if (cached) return cached;
 
     const areas = await this.prisma.techArea.findMany({
@@ -42,6 +42,6 @@ export class TechAreaQueryService {
     });
 
     await this.cache.set(cacheKey, areas, TECH_SKILLS_CACHE_TTL.AREAS_LIST);
-    return areas as TechAreaDto[];
+    return areas as TechArea[];
   }
 }
