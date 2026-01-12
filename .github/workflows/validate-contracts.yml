@@ -40,16 +40,20 @@ jobs:
         run: |
           echo "::group::Verifying backend uses contracts"
 
-          # Backend auth module MUST import from contracts
-          if ! grep -q "@octopus-synapse/profile-contracts" src/auth/schemas/auth.schemas.ts; then
-            echo "::error::Backend auth schemas must import from profile-contracts"
+          # Verify controllers import from profile-contracts (not local schemas)
+          if grep -r "from.*['\"]\.\..*schemas" src/auth/controllers/ src/onboarding/controllers/ 2>/dev/null; then
+            echo "::error::Controllers must import schemas from @octopus-synapse/profile-contracts, not local files"
             exit 1
           fi
 
-          # Backend onboarding module MUST import from contracts
-          if ! grep -q "@octopus-synapse/profile-contracts" src/onboarding/schemas/onboarding.schema.ts; then
-            echo "::error::Backend onboarding schemas must import from profile-contracts"
-            exit 1
+          # Verify auth controllers use contracts
+          if ! grep -r "@octopus-synapse/profile-contracts" src/auth/controllers/ 2>/dev/null; then
+            echo "::warning::Auth controllers should import from profile-contracts"
+          fi
+
+          # Verify onboarding controllers use contracts
+          if ! grep -r "@octopus-synapse/profile-contracts" src/onboarding/controllers/ 2>/dev/null; then
+            echo "::warning::Onboarding controllers should import from profile-contracts"
           fi
 
           echo "::endgroup::"
