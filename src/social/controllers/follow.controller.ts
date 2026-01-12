@@ -64,7 +64,7 @@ export class FollowController {
         .logFollowedUser(
           user.userId,
           targetUserId,
-          follow.following.name || follow.following.username || 'User',
+          follow.following.name ?? follow.following.username ?? 'User',
         )
         .catch(() => {
           // Ignore activity logging errors

@@ -14,7 +14,7 @@ import { FollowService } from '../../social/services/follow.service';
 import { ActivityService } from '../../social/services/activity.service';
 import { SocialModule } from '../../social/social.module';
 import { PrismaModule } from '../../common/prisma/prisma.module';
-import { ConflictException, BadRequestException } from '@nestjs/common';
+import { BadRequestException } from '@nestjs/common';
 
 // Skip integration tests in CI unless database is available
 const describeIntegration =

@@ -14,7 +14,7 @@
  * - Handles cache failures gracefully (falls back to method call)
  */
 
-import { describe, it, expect, beforeEach, mock, spyOn } from 'bun:test';
+import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Injectable } from '@nestjs/common';
 import { Cacheable, buildCacheKey } from './cacheable.decorator';
@@ -62,8 +62,8 @@ class TestService {
 
   @Cacheable({ key: 'analytics:{userId}:{period}', ttl: 3600 })
   async getAnalytics(
-    userId: string,
-    period: string,
+    _userId: string,
+    _period: string,
   ): Promise<{ views: number }> {
     this.callCount++;
     return { views: 100 };

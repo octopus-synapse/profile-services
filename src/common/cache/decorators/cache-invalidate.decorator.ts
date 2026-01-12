@@ -116,7 +116,7 @@ export function CacheInvalidate(
       }
 
       // Call original method
-      const result = await originalMethod.apply(this, args);
+      const result: unknown = await originalMethod.apply(this, args);
 
       // Invalidate after (default)
       if (timing === 'after') {
@@ -124,7 +124,7 @@ export function CacheInvalidate(
       }
 
       return result;
-    } as unknown as T;
+    } as T;
 
     return descriptor;
   };

@@ -39,6 +39,25 @@ export interface CacheableOptions {
 // --- Key Builder ---
 
 /**
+ * Safely stringify a value for use in cache keys.
+ * Handles objects, primitives, null, and undefined.
+ */
+function stringifyValue(value: unknown): string {
+  if (value === null || value === undefined) {
+    return 'undefined';
+  }
+  if (typeof value === 'object') {
+    return JSON.stringify(value);
+  }
+  // Primitives: string, number, boolean, bigint, symbol
+  if (typeof value === 'string') {
+    return value;
+  }
+  // Use template literal for numeric/boolean types
+  return `${value as string | number | boolean | bigint}`;
+}
+
+/**
  * Builds cache key by interpolating placeholders with argument values.
  *
  * @param pattern - Key pattern with placeholders ({0}, {name}, {obj.prop})
@@ -71,7 +90,7 @@ export function buildCacheKey(pattern: string, args: unknown[]): string {
             ...propertyPath,
           ]);
           if (directValue !== undefined) {
-            return String(directValue);
+            return stringifyValue(directValue);
           }
         }
       }
@@ -82,7 +101,7 @@ export function buildCacheKey(pattern: string, args: unknown[]): string {
       if (!isNaN(argIndex) && argIndex < args.length) {
         const value = getNestedValue(args[argIndex], propertyPath);
         if (value !== undefined) {
-          return String(value);
+          return stringifyValue(value);
         }
       }
 
@@ -92,7 +111,7 @@ export function buildCacheKey(pattern: string, args: unknown[]): string {
           const objArg = arg as Record<string, unknown>;
           const value = getNestedValue(objArg, propertyPath);
           if (value !== undefined) {
-            return String(value);
+            return stringifyValue(value);
           }
         }
       }
@@ -120,7 +139,8 @@ export function buildCacheKey(pattern: string, args: unknown[]): string {
     }
 
     // Final fallback: return undefined string
-    return String(args[positionalCounter++] ?? 'undefined');
+    const fallbackValue = args[positionalCounter++];
+    return stringifyValue(fallbackValue);
   });
 }
 
@@ -193,14 +213,14 @@ export function Cacheable(options: CacheableOptions): MethodDecorator {
 
       // If no cache service, just call the original method
       if (!cacheService) {
-        return originalMethod.apply(this, args);
+        return originalMethod.apply(this, args) as unknown;
       }
 
       const cacheKey = buildCacheKey(options.key, args);
 
       try {
         // Try cache first
-        const cached = await cacheService.get(cacheKey);
+        const cached: unknown = await cacheService.get(cacheKey);
         if (cached !== null && cached !== undefined) {
           return cached;
         }
@@ -209,7 +229,7 @@ export function Cacheable(options: CacheableOptions): MethodDecorator {
       }
 
       // Call original method
-      const result = await originalMethod.apply(this, args);
+      const result: unknown = await originalMethod.apply(this, args);
 
       // Cache the result (fire-and-forget, don't fail on cache write errors)
       try {

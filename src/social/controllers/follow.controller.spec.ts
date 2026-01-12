@@ -11,11 +11,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { FollowController } from './follow.controller';
 import { FollowService } from '../services/follow.service';
 import { ActivityService } from '../services/activity.service';
-import {
-  BadRequestException,
-  ConflictException,
-  NotFoundException,
-} from '@nestjs/common';
+import { ConflictException } from '@nestjs/common';
 
 // --- Mocks ---
 

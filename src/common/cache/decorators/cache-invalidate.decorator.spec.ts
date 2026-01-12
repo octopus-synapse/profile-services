@@ -64,7 +64,7 @@ class TestService {
   }
 
   @CacheInvalidate({ patterns: ['analytics:*:{0}'] })
-  async clearAnalytics(userId: string): Promise<void> {
+  async clearAnalytics(_userId: string): Promise<void> {
     this.callCount++;
   }
 
@@ -78,7 +78,7 @@ class TestService {
     keys: ['user:{0}:data'],
     patterns: ['user:{0}:analytics:*'],
   })
-  async clearUserData(userId: string): Promise<void> {
+  async clearUserData(_userId: string): Promise<void> {
     this.callCount++;
   }
 }

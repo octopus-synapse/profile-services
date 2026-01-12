@@ -168,7 +168,7 @@ export class CacheWarmingService {
         take: 1,
       });
 
-      const user = users[0];
+      const user = users[0] as (typeof users)[0] | undefined;
       if (user) {
         await this.cache.set(
           `user:${userId}:profile`,
