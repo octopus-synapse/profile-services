@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.2.0](https://github.com/octopus-synapse/profile-services/compare/profile-services-v5.1.0...profile-services-v5.2.0) (2026-01-12)
+
+
+### Features
+
+* **chat:** implement real-time messaging system ([#108](https://github.com/octopus-synapse/profile-services/issues/108)) ([#112](https://github.com/octopus-synapse/profile-services/issues/112)) ([785d124](https://github.com/octopus-synapse/profile-services/commit/785d12458633e0e08c7eaef1760d6bb94b120b20))
+
 ## [5.1.0](https://github.com/octopus-synapse/profile-services/compare/profile-services-v5.0.0...profile-services-v5.1.0) (2026-01-10)
 
 
