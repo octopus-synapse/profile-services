@@ -19,10 +19,20 @@ export class ConversationRepository {
       },
       include: {
         participant1: {
-          select: { id: true, displayName: true, photoURL: true, username: true },
+          select: {
+            id: true,
+            displayName: true,
+            photoURL: true,
+            username: true,
+          },
         },
         participant2: {
-          select: { id: true, displayName: true, photoURL: true, username: true },
+          select: {
+            id: true,
+            displayName: true,
+            photoURL: true,
+            username: true,
+          },
         },
       },
     });
@@ -33,10 +43,20 @@ export class ConversationRepository {
       data: { participant1Id, participant2Id },
       include: {
         participant1: {
-          select: { id: true, displayName: true, photoURL: true, username: true },
+          select: {
+            id: true,
+            displayName: true,
+            photoURL: true,
+            username: true,
+          },
         },
         participant2: {
-          select: { id: true, displayName: true, photoURL: true, username: true },
+          select: {
+            id: true,
+            displayName: true,
+            photoURL: true,
+            username: true,
+          },
         },
       },
     });
@@ -50,10 +70,20 @@ export class ConversationRepository {
       where: { id: conversationId },
       include: {
         participant1: {
-          select: { id: true, displayName: true, photoURL: true, username: true },
+          select: {
+            id: true,
+            displayName: true,
+            photoURL: true,
+            username: true,
+          },
         },
         participant2: {
-          select: { id: true, displayName: true, photoURL: true, username: true },
+          select: {
+            id: true,
+            displayName: true,
+            photoURL: true,
+            username: true,
+          },
         },
       },
     });
@@ -80,10 +110,20 @@ export class ConversationRepository {
       orderBy: { lastMessageAt: { sort: 'desc', nulls: 'last' } },
       include: {
         participant1: {
-          select: { id: true, displayName: true, photoURL: true, username: true },
+          select: {
+            id: true,
+            displayName: true,
+            photoURL: true,
+            username: true,
+          },
         },
         participant2: {
-          select: { id: true, displayName: true, photoURL: true, username: true },
+          select: {
+            id: true,
+            displayName: true,
+            photoURL: true,
+            username: true,
+          },
         },
       },
     });
@@ -118,7 +158,10 @@ export class ConversationRepository {
   /**
    * Check if user is participant in conversation.
    */
-  async isParticipant(conversationId: string, userId: string): Promise<boolean> {
+  async isParticipant(
+    conversationId: string,
+    userId: string,
+  ): Promise<boolean> {
     const conversation = await this.prisma.conversation.findFirst({
       where: {
         id: conversationId,

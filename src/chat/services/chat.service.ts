@@ -4,6 +4,7 @@ import {
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 import { ConversationRepository } from '../repositories/conversation.repository';
 import { MessageRepository } from '../repositories/message.repository';
 import { BlockedUserRepository } from '../repositories/blocked-user.repository';
@@ -16,6 +17,23 @@ import type {
   PaginatedMessagesResponse,
   PaginatedConversationsResponse,
 } from '@octopus-synapse/profile-contracts';
+
+type MessageWithSender = Prisma.MessageGetPayload<{
+  include: {
+    sender: { select: { id: true; displayName: true; photoURL: true } };
+  };
+}>;
+
+type ConversationWithParticipants = Prisma.ConversationGetPayload<{
+  include: {
+    participant1: {
+      select: { id: true; displayName: true; photoURL: true; username: true };
+    };
+    participant2: {
+      select: { id: true; displayName: true; photoURL: true; username: true };
+    };
+  };
+}>;
 
 @Injectable()
 export class ChatService {
@@ -142,7 +160,7 @@ export class ChatService {
     );
 
     return {
-      messages: result.messages.map(this.mapMessageToResponse),
+      messages: result.messages.map((msg) => this.mapMessageToResponse(msg)),
       nextCursor: result.nextCursor,
       hasMore: result.hasMore,
     };
@@ -251,7 +269,7 @@ export class ChatService {
   /**
    * Map database message to response DTO.
    */
-  private mapMessageToResponse(message: any): MessageResponse {
+  private mapMessageToResponse(message: MessageWithSender): MessageResponse {
     return {
       id: message.id,
       conversationId: message.conversationId,
@@ -272,7 +290,7 @@ export class ChatService {
    * Map database conversation to response DTO.
    */
   private mapConversationToResponse(
-    conversation: any,
+    conversation: ConversationWithParticipants,
     currentUserId: string,
     unreadCount: number,
   ): ConversationResponse {
@@ -292,8 +310,10 @@ export class ChatService {
       lastMessage: conversation.lastMessageContent
         ? {
             content: conversation.lastMessageContent,
-            senderId: conversation.lastMessageSenderId,
-            createdAt: conversation.lastMessageAt.toISOString(),
+            senderId: conversation.lastMessageSenderId ?? '',
+            createdAt:
+              conversation.lastMessageAt?.toISOString() ??
+              new Date().toISOString(),
             isRead: unreadCount === 0,
           }
         : null,

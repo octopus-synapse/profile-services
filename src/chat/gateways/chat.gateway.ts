@@ -19,6 +19,13 @@ import type {
   WsTypingEvent,
 } from '@octopus-synapse/profile-contracts';
 
+interface JwtPayload {
+  sub: string;
+  email: string;
+  iat?: number;
+  exp?: number;
+}
+
 type AuthenticatedSocket = Socket & { userId: string };
 
 @WebSocketGateway({
@@ -58,20 +65,24 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         return;
       }
 
-      const payload = await this.jwtService.verifyAsync(token);
+      const payload = await this.jwtService.verifyAsync<JwtPayload>(token);
       const userId = payload.sub;
 
       // Store user info on socket
-      (client as AuthenticatedSocket).userId = userId;
+      const authenticatedSocket = client as AuthenticatedSocket;
+      authenticatedSocket.userId = userId;
 
       // Track socket
       if (!this.userSockets.has(userId)) {
         this.userSockets.set(userId, new Set());
       }
-      this.userSockets.get(userId)!.add(client.id);
+      const userSocketSet = this.userSockets.get(userId);
+      if (userSocketSet) {
+        userSocketSet.add(client.id);
+      }
 
       // Join user's personal room
-      client.join(`user:${userId}`);
+      await client.join(`user:${userId}`);
 
       // Join rooms for all conversations
       const { conversations } = await this.conversationRepo.findByUserId(
@@ -79,14 +90,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         { limit: 100 },
       );
       for (const conv of conversations) {
-        client.join(`conversation:${conv.id}`);
+        await client.join(`conversation:${conv.id}`);
       }
 
       // Notify others that user is online
-      this.broadcastUserStatus(userId, true);
+      void this.broadcastUserStatus(userId, true);
 
       this.logger.log(`User ${userId} connected (socket: ${client.id})`);
-    } catch (error) {
+    } catch (_error) {
       this.logger.warn(`Connection rejected: Invalid token`);
       client.disconnect();
     }
@@ -95,7 +106,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   /**
    * Handle WebSocket disconnection.
    */
-  async handleDisconnect(client: AuthenticatedSocket) {
+  handleDisconnect(client: AuthenticatedSocket) {
     const userId = client.userId;
     if (!userId) return;
 
@@ -106,7 +117,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       if (sockets.size === 0) {
         this.userSockets.delete(userId);
         // User has no more connections - notify others
-        this.broadcastUserStatus(userId, false);
+        void this.broadcastUserStatus(userId, false);
       }
     }
 
@@ -132,20 +143,24 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       );
 
       // Broadcast to conversation room
-      this.server.to(`conversation:${data.conversationId}`).emit('message:new', {
-        id: message.id,
-        conversationId: message.conversationId,
-        senderId: message.senderId,
-        content: message.content,
-        createdAt: message.createdAt,
-        isRead: message.isRead,
-      });
+      this.server
+        .to(`conversation:${data.conversationId}`)
+        .emit('message:new', {
+          id: message.id,
+          conversationId: message.conversationId,
+          senderId: message.senderId,
+          content: message.content,
+          createdAt: message.createdAt,
+          isRead: message.isRead,
+        });
 
       // Also emit to sender for confirmation
       return { success: true, message };
     } catch (error) {
-      this.logger.error(`Failed to send message: ${error.message}`);
-      return { success: false, error: error.message };
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      this.logger.error(`Failed to send message: ${errorMessage}`);
+      return { success: false, error: errorMessage };
     }
   }
 
@@ -178,7 +193,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
    * Handle typing stop.
    */
   @SubscribeMessage('typing:stop')
-  async handleTypingStop(
+  handleTypingStop(
     @ConnectedSocket() client: AuthenticatedSocket,
     @MessageBody() data: { conversationId: string },
   ) {
@@ -202,7 +217,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const userId = client.userId;
 
     try {
-      await this.chatService.markConversationAsRead(userId, data.conversationId);
+      await this.chatService.markConversationAsRead(
+        userId,
+        data.conversationId,
+      );
 
       // Notify other participant about read receipts
       client.to(`conversation:${data.conversationId}`).emit('messages:read', {
@@ -213,7 +231,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       return { success: true };
     } catch (error) {
-      return { success: false, error: error.message };
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      return { success: false, error: errorMessage };
     }
   }
 
@@ -235,7 +255,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return { success: false, error: 'Not a participant' };
     }
 
-    client.join(`conversation:${data.conversationId}`);
+    await client.join(`conversation:${data.conversationId}`);
     return { success: true };
   }
 
@@ -243,11 +263,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
    * Leave a conversation room.
    */
   @SubscribeMessage('conversation:leave')
-  handleLeaveConversation(
+  async handleLeaveConversation(
     @ConnectedSocket() client: AuthenticatedSocket,
     @MessageBody() data: { conversationId: string },
   ) {
-    client.leave(`conversation:${data.conversationId}`);
+    await client.leave(`conversation:${data.conversationId}`);
     return { success: true };
   }
 
@@ -272,13 +292,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
    * Check if a user is currently online.
    */
   isUserOnline(userId: string): boolean {
-    return this.userSockets.has(userId) && this.userSockets.get(userId)!.size > 0;
+    const userSocketSet = this.userSockets.get(userId);
+    return userSocketSet ? userSocketSet.size > 0 : false;
   }
 
   /**
    * Send notification to a specific user.
    */
-  notifyUser(userId: string, event: string, data: any) {
+  notifyUser(userId: string, event: string, data: unknown) {
     this.server.to(`user:${userId}`).emit(event, data);
   }
 
@@ -291,8 +312,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return authHeader.slice(7);
     }
 
-    const token = client.handshake.auth?.token;
-    if (token) return token;
+    const auth = client.handshake.auth as Record<string, unknown> | undefined;
+    const token = auth?.token;
+    if (typeof token === 'string') return token;
 
     const queryToken = client.handshake.query?.token;
     if (typeof queryToken === 'string') return queryToken;

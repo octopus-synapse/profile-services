@@ -480,7 +480,7 @@ describe('ToS Acceptance Flow Integration', () => {
         .send({ documentType: 'INVALID_TYPE' })
         .expect(400);
 
-      expect(response.body.message).toBeDefined();
+      expect(response.body.error.message).toBeDefined();
     });
 
     it('should require authentication for all consent endpoints', async () => {
@@ -513,7 +513,7 @@ describe('ToS Acceptance Flow Integration', () => {
         .send({})
         .expect(400);
 
-      expect(response.body.message).toBeDefined();
+      expect(response.body.error.message).toBeDefined();
     });
   });
 });

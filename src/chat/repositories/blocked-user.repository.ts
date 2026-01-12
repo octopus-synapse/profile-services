@@ -24,7 +24,12 @@ export class BlockedUserRepository {
       },
       include: {
         blocked: {
-          select: { id: true, displayName: true, photoURL: true, username: true },
+          select: {
+            id: true,
+            displayName: true,
+            photoURL: true,
+            username: true,
+          },
         },
       },
     });
@@ -77,7 +82,12 @@ export class BlockedUserRepository {
       orderBy: { createdAt: 'desc' },
       include: {
         blocked: {
-          select: { id: true, displayName: true, photoURL: true, username: true },
+          select: {
+            id: true,
+            displayName: true,
+            photoURL: true,
+            username: true,
+          },
         },
       },
     });

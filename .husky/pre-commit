@@ -10,8 +10,6 @@
 # - Integration tests (for profile-services)
 # - E2E tests (for profile-frontend)
 
-. "$(dirname "$0")/_/husky.sh"
-
 echo "Pre-commit checks (fast feedback loop)..."
 echo ""
 

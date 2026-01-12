@@ -17,7 +17,6 @@ import {
   SendMessageToConversationSchema,
   GetMessagesQuerySchema,
   GetConversationsQuerySchema,
-  MarkConversationReadSchema,
 } from '@octopus-synapse/profile-contracts';
 import type { AuthenticatedRequest } from '../../auth/interfaces/auth-request.interface';
 
@@ -32,7 +31,8 @@ export class ChatController {
   @ApiOperation({ summary: 'Send a message to a user' })
   async sendMessage(
     @Req() req: AuthenticatedRequest,
-    @Body(createZodPipe(SendMessageSchema)) dto: ReturnType<typeof SendMessageSchema.parse>,
+    @Body(createZodPipe(SendMessageSchema))
+    dto: ReturnType<typeof SendMessageSchema.parse>,
   ) {
     return this.chatService.sendMessage(req.user.userId, dto);
   }
@@ -42,7 +42,9 @@ export class ChatController {
   async sendMessageToConversation(
     @Req() req: AuthenticatedRequest,
     @Param('conversationId') conversationId: string,
-    @Body(createZodPipe(SendMessageToConversationSchema.pick({ content: true })))
+    @Body(
+      createZodPipe(SendMessageToConversationSchema.pick({ content: true })),
+    )
     dto: { content: string },
   ) {
     return this.chatService.sendMessageToConversation(
@@ -92,7 +94,10 @@ export class ChatController {
     @Req() req: AuthenticatedRequest,
     @Param('conversationId') conversationId: string,
   ) {
-    return this.chatService.markConversationAsRead(req.user.userId, conversationId);
+    return this.chatService.markConversationAsRead(
+      req.user.userId,
+      conversationId,
+    );
   }
 
   @Get('unread')

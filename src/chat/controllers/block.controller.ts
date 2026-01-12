@@ -28,7 +28,8 @@ export class BlockController {
   @ApiOperation({ summary: 'Block a user' })
   async blockUser(
     @Req() req: AuthenticatedRequest,
-    @Body(createZodPipe(BlockUserSchema)) dto: ReturnType<typeof BlockUserSchema.parse>,
+    @Body(createZodPipe(BlockUserSchema))
+    dto: ReturnType<typeof BlockUserSchema.parse>,
   ) {
     return this.blockService.blockUser(req.user.userId, dto);
   }
@@ -55,7 +56,10 @@ export class BlockController {
     @Req() req: AuthenticatedRequest,
     @Param('userId') userId: string,
   ) {
-    const isBlocked = await this.blockService.isBlocked(req.user.userId, userId);
+    const isBlocked = await this.blockService.isBlocked(
+      req.user.userId,
+      userId,
+    );
     return { isBlocked };
   }
 }

@@ -47,7 +47,10 @@ export class BlockService {
    * Unblock a user.
    */
   async unblockUser(blockerId: string, blockedId: string): Promise<void> {
-    const isBlocked = await this.blockedUserRepo.isBlocked(blockerId, blockedId);
+    const isBlocked = await this.blockedUserRepo.isBlocked(
+      blockerId,
+      blockedId,
+    );
     if (!isBlocked) {
       throw new NotFoundException('User is not blocked');
     }

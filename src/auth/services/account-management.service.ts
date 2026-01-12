@@ -19,7 +19,10 @@ import { AppLoggerService } from '../../common/logger/logger.service';
 import { PasswordService } from './password.service';
 import { TokenBlacklistService } from './token-blacklist.service';
 import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
-import type { ChangeEmail, DeleteAccount } from '@octopus-synapse/profile-contracts';
+import type {
+  ChangeEmail,
+  DeleteAccount,
+} from '@octopus-synapse/profile-contracts';
 
 @Injectable()
 export class AccountManagementService {

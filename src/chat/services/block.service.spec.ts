@@ -53,7 +53,11 @@ describe('BlockService', () => {
       expect(result).toBeDefined();
       expect(result.user.id).toBe('user2');
       expect(result.reason).toBe('spam');
-      expect(blockedUserRepo.block).toHaveBeenCalledWith('user1', 'user2', 'spam');
+      expect(blockedUserRepo.block).toHaveBeenCalledWith(
+        'user1',
+        'user2',
+        'spam',
+      );
     });
 
     it('should throw BadRequestException when blocking yourself', async () => {

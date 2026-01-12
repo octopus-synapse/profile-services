@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ForbiddenException, NotFoundException, BadRequestException } from '@nestjs/common';
+import { ForbiddenException, BadRequestException } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { ConversationRepository } from '../repositories/conversation.repository';
 import { MessageRepository } from '../repositories/message.repository';
@@ -11,8 +11,18 @@ describe('ChatService', () => {
   let messageRepo: jest.Mocked<MessageRepository>;
   let blockedUserRepo: jest.Mocked<BlockedUserRepository>;
 
-  const mockUser1 = { id: 'user1', displayName: 'User 1', photoURL: null, username: 'user1' };
-  const mockUser2 = { id: 'user2', displayName: 'User 2', photoURL: null, username: 'user2' };
+  const mockUser1 = {
+    id: 'user1',
+    displayName: 'User 1',
+    photoURL: null,
+    username: 'user1',
+  };
+  const mockUser2 = {
+    id: 'user2',
+    displayName: 'User 2',
+    photoURL: null,
+    username: 'user2',
+  };
 
   const mockConversation = {
     id: 'conv1',
@@ -90,8 +100,14 @@ describe('ChatService', () => {
 
       expect(result).toBeDefined();
       expect(result.content).toBe('Hello!');
-      expect(blockedUserRepo.isBlockedBetween).toHaveBeenCalledWith('user1', 'user2');
-      expect(conversationRepo.findOrCreate).toHaveBeenCalledWith('user1', 'user2');
+      expect(blockedUserRepo.isBlockedBetween).toHaveBeenCalledWith(
+        'user1',
+        'user2',
+      );
+      expect(conversationRepo.findOrCreate).toHaveBeenCalledWith(
+        'user1',
+        'user2',
+      );
       expect(messageRepo.create).toHaveBeenCalled();
     });
 
@@ -99,7 +115,10 @@ describe('ChatService', () => {
       blockedUserRepo.isBlockedBetween.mockResolvedValue(true);
 
       await expect(
-        service.sendMessage('user1', { recipientId: 'user2', content: 'Hello!' }),
+        service.sendMessage('user1', {
+          recipientId: 'user2',
+          content: 'Hello!',
+        }),
       ).rejects.toThrow(ForbiddenException);
     });
 
@@ -107,7 +126,10 @@ describe('ChatService', () => {
       blockedUserRepo.isBlockedBetween.mockResolvedValue(false);
 
       await expect(
-        service.sendMessage('user1', { recipientId: 'user1', content: 'Hello!' }),
+        service.sendMessage('user1', {
+          recipientId: 'user1',
+          content: 'Hello!',
+        }),
       ).rejects.toThrow(BadRequestException);
     });
   });
@@ -120,7 +142,11 @@ describe('ChatService', () => {
       messageRepo.create.mockResolvedValue(mockMessage);
       conversationRepo.updateLastMessage.mockResolvedValue(mockConversation);
 
-      const result = await service.sendMessageToConversation('user1', 'conv1', 'Hello!');
+      const result = await service.sendMessageToConversation(
+        'user1',
+        'conv1',
+        'Hello!',
+      );
 
       expect(result).toBeDefined();
       expect(result.content).toBe('Hello!');
