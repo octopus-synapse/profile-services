@@ -1,0 +1,43 @@
+// Resume Import Models
+
+model ResumeImport {
+  id           String       @id @default(cuid())
+  userId       String
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  source       ImportSource
+  status       ImportStatus @default(PENDING)
+  fileUrl      String?
+  fileName     String?
+  rawData      Json?
+  mappedData   Json?
+  errors       Json[]
+  errorMessage String?      @db.Text
+  resumeId     String?      @unique
+  resume       Resume?      @relation(fields: [resumeId], references: [id], onDelete: SetNull)
+  metadata     Json?
+  startedAt    DateTime?
+  completedAt  DateTime?
+  createdAt    DateTime     @default(now())
+
+  @@index([userId, status])
+  @@index([userId, createdAt])
+}
+
+enum ImportSource {
+  LINKEDIN
+  PDF
+  DOCX
+  JSON
+  GITHUB
+}
+
+enum ImportStatus {
+  PENDING
+  PROCESSING
+  MAPPING
+  VALIDATING
+  IMPORTING
+  COMPLETED
+  FAILED
+  PARTIAL
+}
