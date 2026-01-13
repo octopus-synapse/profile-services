@@ -162,7 +162,7 @@ export interface ResumeImportWithDetails {
   status: ImportStatus;
   fileUrl: string | null;
   fileName: string | null;
-  rawData: unknown | null;
+  rawData: unknown;
   mappedData: ParsedResumeData | null;
   errors: string[];
   resumeId: string | null;

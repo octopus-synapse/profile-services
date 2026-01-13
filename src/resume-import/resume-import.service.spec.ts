@@ -12,7 +12,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ResumeImportService } from './resume-import.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { AppLoggerService } from '../common/logger/logger.service';
-import type { JsonResumeSchema, ParsedResumeData } from './resume-import.types';
+import type { JsonResumeSchema } from './resume-import.types';
 
 describe('ResumeImportService', () => {
   let service: ResumeImportService;

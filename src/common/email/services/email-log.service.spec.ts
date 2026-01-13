@@ -11,7 +11,6 @@ import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { EmailLogService } from './email-log.service';
 import { PrismaService } from '../../../prisma/prisma.service';
-import type { EmailStatus } from '@prisma/client';
 
 describe('EmailLogService', () => {
   let service: EmailLogService;
