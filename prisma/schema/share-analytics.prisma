@@ -1,19 +1,19 @@
 // Share Analytics - Track views and downloads
 
 model ShareAnalytics {
-  id        String   @id @default(cuid())
-  shareId   String
-  share     ResumeShare @relation(fields: [shareId], references: [id], onDelete: Cascade)
-  
+  id      String      @id @default(cuid())
+  shareId String
+  share   ResumeShare @relation(fields: [shareId], references: [id], onDelete: Cascade)
+
   event     AnalyticsEvent
-  ipHash    String   // Anonymized IP (SHA-256)
+  ipHash    String // Anonymized IP (SHA-256)
   userAgent String?
   referer   String?
-  country   String?  // ISO 3166-1 alpha-2
+  country   String? // ISO 3166-1 alpha-2
   city      String?
-  
+
   createdAt DateTime @default(now())
-  
+
   @@index([shareId])
   @@index([createdAt])
   @@index([event])

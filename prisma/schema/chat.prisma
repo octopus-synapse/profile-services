@@ -1,6 +1,5 @@
 /**
  * Chat System Schema
- *
  * Real-time messaging between users for professional networking.
  * - 1-on-1 conversations
  * - Message history
@@ -9,9 +8,9 @@
  */
 
 model Conversation {
-  id           String   @id @default(cuid())
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Participants (always 2 users for 1-on-1)
   participant1Id String
@@ -20,8 +19,8 @@ model Conversation {
   participant2   User   @relation("ConversationParticipant2", fields: [participant2Id], references: [id], onDelete: Cascade)
 
   // Last message metadata (denormalized for performance)
-  lastMessageContent String?
-  lastMessageAt      DateTime?
+  lastMessageContent  String?
+  lastMessageAt       DateTime?
   lastMessageSenderId String?
 
   // Messages
@@ -36,27 +35,27 @@ model Conversation {
 }
 
 model Message {
-  id             String   @id @default(cuid())
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Content
-  content        String   @db.Text
+  content String @db.Text
 
   // Relations
   conversationId String
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
-  senderId       String
-  sender         User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  senderId String
+  sender   User   @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
 
   // Read receipts
-  isRead         Boolean  @default(false)
-  readAt         DateTime?
+  isRead Boolean   @default(false)
+  readAt DateTime?
 
   // Soft delete
-  isDeleted      Boolean  @default(false)
-  deletedAt      DateTime?
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
 
   // Indexes
   @@index([conversationId, createdAt])
@@ -76,7 +75,7 @@ model BlockedUser {
   blocked   User   @relation("Blocked", fields: [blockedId], references: [id], onDelete: Cascade)
 
   // Metadata
-  reason    String?  @db.Text
+  reason String? @db.Text
 
   // Unique constraint: can't block same user twice
   @@unique([blockerId, blockedId])

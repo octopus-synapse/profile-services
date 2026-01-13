@@ -16,11 +16,13 @@ import {
 import { ResumesService } from './resumes.service';
 import { ResumesRepository } from './resumes.repository';
 import { ResumeVersionService } from '../resume-versions/services/resume-version.service';
+import { CacheInvalidationService } from '../common/cache/services/cache-invalidation.service';
 
 describe('ResumesService - Bug Detection', () => {
   let service: ResumesService;
   let mockRepository: ResumesRepository;
   let mockVersionService: ResumeVersionService;
+  let mockCacheInvalidation: CacheInvalidationService;
 
   const mockResume = {
     id: 'resume-1',
@@ -42,11 +44,16 @@ describe('ResumesService - Bug Detection', () => {
       createSnapshot: mock(() => Promise.resolve()),
     } as any;
 
+    mockCacheInvalidation = {
+      invalidateResume: mock(() => Promise.resolve()),
+    } as any;
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ResumesService,
         { provide: ResumesRepository, useValue: mockRepository },
         { provide: ResumeVersionService, useValue: mockVersionService },
+        { provide: CacheInvalidationService, useValue: mockCacheInvalidation },
       ],
     }).compile();
 
