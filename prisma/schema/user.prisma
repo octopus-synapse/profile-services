@@ -57,6 +57,16 @@ model User {
   following  Follow[]   @relation("Followers")
   activities Activity[] @relation("UserActivities")
 
+  // Two-Factor Authentication
+  twoFactorAuth       TwoFactorAuth?
+  twoFactorBackupCodes TwoFactorBackupCode[]
+
+  // Email logging
+  emailLogs EmailLog[]
+
+  // Resume imports
+  resumeImports ResumeImport[]
+
   @@index([username])
   @@index([email])
   @@index([role])
@@ -84,6 +94,9 @@ model UserPreferences {
   resumeExpiryAlerts Boolean @default(true)
   weeklyDigest       Boolean @default(false)
   marketingEmails    Boolean @default(false)
+  emailMilestones    Boolean @default(true)
+  emailShareExpiring Boolean @default(true)
+  digestFrequency    DigestFrequency @default(WEEKLY)
 
   // Privacy
   profileVisibility      String  @default("private")

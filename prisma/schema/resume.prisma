@@ -82,6 +82,7 @@ model Resume {
   versions        ResumeVersion[]          @relation("ResumeVersions")
   analytics       ResumeAnalytics[]        @relation("ResumeAnalytics")
   viewEvents      ResumeViewEvent[]        @relation("ResumeViews")
+  import          ResumeImport?
 
   @@index([userId])
   @@index([slug])

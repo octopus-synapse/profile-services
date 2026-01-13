@@ -1,0 +1,33 @@
+// Email Notification Models
+
+model EmailLog {
+  id        String      @id @default(cuid())
+  userId    String?
+  user      User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  to        String
+  subject   String
+  template  String
+  status    EmailStatus @default(PENDING)
+  sentAt    DateTime?
+  failedAt  DateTime?
+  error     String?
+  metadata  Json?
+  createdAt DateTime    @default(now())
+
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+}
+
+enum EmailStatus {
+  PENDING
+  SENT
+  FAILED
+  BOUNCED
+}
+
+enum DigestFrequency {
+  DAILY
+  WEEKLY
+  MONTHLY
+  NEVER
+}
