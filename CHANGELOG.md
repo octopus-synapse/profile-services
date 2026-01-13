@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.4.0](https://github.com/octopus-synapse/profile-services/compare/profile-services-v5.3.0...profile-services-v5.4.0) (2026-01-13)
+
+
+### Features
+
+* **security:** implement rate limiting, 2FA, email logging, and resume import ([#116](https://github.com/octopus-synapse/profile-services/issues/116)) ([481893d](https://github.com/octopus-synapse/profile-services/commit/481893dad1fd6fe3713c072b6eb9d3a6b215f594))
+
 ## [5.3.0](https://github.com/octopus-synapse/profile-services/compare/profile-services-v5.2.0...profile-services-v5.3.0) (2026-01-13)
 
 
