@@ -66,7 +66,10 @@ describeIntegration('Social Integration Tests', () => {
     it('should return empty followers for new user', async () => {
       const userId = 'new-user-123';
 
-      const result = await followService.getFollowers(userId, { page: 1, limit: 10 });
+      const result = await followService.getFollowers(userId, {
+        page: 1,
+        limit: 10,
+      });
 
       expect(result.data).toEqual([]);
       expect(result.total).toBe(0);
@@ -75,7 +78,10 @@ describeIntegration('Social Integration Tests', () => {
     it('should return empty following for new user', async () => {
       const userId = 'new-user-123';
 
-      const result = await followService.getFollowing(userId, { page: 1, limit: 10 });
+      const result = await followService.getFollowing(userId, {
+        page: 1,
+        limit: 10,
+      });
 
       expect(result.data).toEqual([]);
       expect(result.total).toBe(0);
@@ -95,7 +101,10 @@ describeIntegration('Social Integration Tests', () => {
     it('should return empty feed for new user', async () => {
       const userId = 'new-user-123';
 
-      const result = await activityService.getFeed(userId, { page: 1, limit: 10 });
+      const result = await activityService.getFeed(userId, {
+        page: 1,
+        limit: 10,
+      });
 
       expect(result.data).toEqual([]);
       expect(result.total).toBe(0);
@@ -104,7 +113,10 @@ describeIntegration('Social Integration Tests', () => {
     it('should return empty activities for new user', async () => {
       const userId = 'new-user-123';
 
-      const result = await activityService.getUserActivities(userId, { page: 1, limit: 10 });
+      const result = await activityService.getUserActivities(userId, {
+        page: 1,
+        limit: 10,
+      });
 
       expect(result.data).toEqual([]);
       expect(result.total).toBe(0);
