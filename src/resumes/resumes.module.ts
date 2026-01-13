@@ -4,6 +4,7 @@ import { ResumesController } from './resumes.controller';
 import { ResumesRepository } from './resumes.repository';
 import { PrismaModule } from '../prisma/prisma.module';
 import { ResumeVersionsModule } from '../resume-versions/resume-versions.module';
+import { CacheModule } from '../common/cache/cache.module';
 import {
   // Controllers
   ExperienceController,
@@ -56,7 +57,7 @@ import {
 } from './module-imports';
 
 @Module({
-  imports: [PrismaModule, ResumeVersionsModule],
+  imports: [PrismaModule, ResumeVersionsModule, CacheModule],
   controllers: [
     ResumesController,
     ExperienceController,

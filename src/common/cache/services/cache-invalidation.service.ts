@@ -39,9 +39,11 @@ export class CacheInvalidationService {
       this.safeDelete(`resume:${resumeId}`),
       this.safeDelete(`user:${userId}:resumes`),
       this.safeDeletePattern(`analytics:*:${resumeId}`),
+      // Public resume cache uses resumeId as key
+      this.safeDelete(`public:resume:${resumeId}`),
     ];
 
-    // Only invalidate public cache if slug exists
+    // Also invalidate by slug if available
     if (slug) {
       operations.push(this.safeDelete(`public:resume:${slug}`));
     }

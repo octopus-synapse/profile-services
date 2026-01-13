@@ -8,7 +8,13 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
-import { getApp, closeApp, createTestUserAndLogin, getRequest } from './setup';
+import {
+  getApp,
+  closeApp,
+  createTestUserAndLogin,
+  getRequest,
+  getPrisma,
+} from './setup';
 
 describe('Cache Integration', () => {
   let accessToken: string;
@@ -58,15 +64,15 @@ describe('Cache Integration', () => {
         return;
       }
 
-      // First, make the resume public with a slug
+      // Create a share (public resumes require a ResumeShare entry)
+      const prisma = getPrisma();
       slug = `cache-test-${Date.now()}`;
-      await getRequest()
-        .patch(`/api/v1/resumes/${resumeId}`)
-        .set('Authorization', `Bearer ${accessToken}`)
-        .send({
-          isPublic: true,
+      await prisma.resumeShare.create({
+        data: {
+          resumeId,
           slug,
-        });
+        },
+      });
 
       // First fetch (cache miss - should hit database)
       const firstFetch = await getRequest().get(
@@ -74,7 +80,7 @@ describe('Cache Integration', () => {
       );
 
       expect(firstFetch.status).toBe(200);
-      expect(firstFetch.body.data).toHaveProperty('slug', slug);
+      expect(firstFetch.body.resume).toHaveProperty('id', resumeId);
 
       // Second fetch (should potentially hit cache)
       const secondFetch = await getRequest().get(
@@ -82,7 +88,7 @@ describe('Cache Integration', () => {
       );
 
       expect(secondFetch.status).toBe(200);
-      expect(secondFetch.body.data).toHaveProperty('slug', slug);
+      expect(secondFetch.body.resume).toHaveProperty('id', resumeId);
     });
 
     it('should invalidate cache on resume update', async () => {
@@ -105,7 +111,7 @@ describe('Cache Integration', () => {
       const fetchRes = await getRequest().get(`/api/v1/public/resumes/${slug}`);
 
       expect(fetchRes.status).toBe(200);
-      expect(fetchRes.body.data.jobTitle).toBe('Senior Software Engineer');
+      expect(fetchRes.body.resume.jobTitle).toBe('Senior Software Engineer');
     });
   });
 

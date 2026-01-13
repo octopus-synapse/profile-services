@@ -13,6 +13,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ResumesService } from './resumes.service';
 import { ResumesRepository } from './resumes.repository';
 import { ResumeVersionService } from '../resume-versions/services/resume-version.service';
+import { CacheInvalidationService } from '../common/cache/services/cache-invalidation.service';
 import {
   NotFoundException,
   UnprocessableEntityException,
@@ -22,6 +23,7 @@ describe('ResumesService', () => {
   let service: ResumesService;
   let repository: ResumesRepository;
   let versionService: ResumeVersionService;
+  let cacheInvalidation: CacheInvalidationService;
 
   const _MAX_RESUMES_PER_USER = 4; // Used in business logic, stored for reference
 
@@ -48,11 +50,16 @@ describe('ResumesService', () => {
       createSnapshot: mock(() => Promise.resolve()),
     } as any;
 
+    cacheInvalidation = {
+      invalidateResume: mock(() => Promise.resolve()),
+    } as any;
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ResumesService,
         { provide: ResumesRepository, useValue: repository },
         { provide: ResumeVersionService, useValue: versionService },
+        { provide: CacheInvalidationService, useValue: cacheInvalidation },
       ],
     }).compile();
 

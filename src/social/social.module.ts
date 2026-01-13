@@ -12,6 +12,7 @@
 
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '../prisma/prisma.module';
+import { LoggerModule } from '../common/logger/logger.module';
 
 // Services
 import { FollowService } from './services/follow.service';
@@ -22,7 +23,7 @@ import { FollowController } from './controllers/follow.controller';
 import { ActivityController } from './controllers/activity.controller';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, LoggerModule],
   controllers: [FollowController, ActivityController],
   providers: [FollowService, ActivityService],
   exports: [FollowService, ActivityService],

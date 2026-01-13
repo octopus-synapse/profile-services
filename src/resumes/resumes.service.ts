@@ -12,6 +12,7 @@ import type {
 import { ApiResponseHelper } from '../common/dto/api-response.dto';
 import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
 import { ResumeVersionService } from '../resume-versions/services/resume-version.service';
+import { CacheInvalidationService } from '../common/cache/services/cache-invalidation.service';
 
 /** Maximum number of resumes a user can create */
 const MAX_RESUMES_PER_USER = 4;
@@ -23,6 +24,7 @@ export class ResumesService {
   constructor(
     private readonly resumesRepository: ResumesRepository,
     private readonly versionService: ResumeVersionService,
+    private readonly cacheInvalidation: CacheInvalidationService,
   ) {}
 
   /**
@@ -103,6 +105,17 @@ export class ResumesService {
     if (!resume) {
       throw new NotFoundException(ERROR_MESSAGES.RESUME_NOT_FOUND);
     }
+
+    // Invalidate cache (fire-and-forget)
+    this.cacheInvalidation
+      .invalidateResume({
+        resumeId: id,
+        slug: resume.slug ?? undefined,
+        userId,
+      })
+      .catch((err: Error) =>
+        this.logger.error(`Failed to invalidate cache: ${err.message}`),
+      );
 
     return ApiResponseHelper.success(resume);
   }

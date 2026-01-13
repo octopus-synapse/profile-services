@@ -9,11 +9,11 @@
 
 import { describe, it, expect, beforeEach } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
-import { PrismaService } from '../../common/prisma/prisma.service';
-import { FollowService } from '../../social/services/follow.service';
-import { ActivityService } from '../../social/services/activity.service';
-import { SocialModule } from '../../social/social.module';
-import { PrismaModule } from '../../common/prisma/prisma.module';
+import { PrismaService } from '../../src/prisma/prisma.service';
+import { FollowService } from '../../src/social/services/follow.service';
+import { ActivityService } from '../../src/social/services/activity.service';
+import { SocialModule } from '../../src/social/social.module';
+import { PrismaModule } from '../../src/prisma/prisma.module';
 import { BadRequestException } from '@nestjs/common';
 
 // Skip integration tests in CI unless database is available
@@ -66,7 +66,7 @@ describeIntegration('Social Integration Tests', () => {
     it('should return empty followers for new user', async () => {
       const userId = 'new-user-123';
 
-      const result = await followService.getFollowers(userId);
+      const result = await followService.getFollowers(userId, { page: 1, limit: 10 });
 
       expect(result.data).toEqual([]);
       expect(result.total).toBe(0);
@@ -75,7 +75,7 @@ describeIntegration('Social Integration Tests', () => {
     it('should return empty following for new user', async () => {
       const userId = 'new-user-123';
 
-      const result = await followService.getFollowing(userId);
+      const result = await followService.getFollowing(userId, { page: 1, limit: 10 });
 
       expect(result.data).toEqual([]);
       expect(result.total).toBe(0);
@@ -95,7 +95,7 @@ describeIntegration('Social Integration Tests', () => {
     it('should return empty feed for new user', async () => {
       const userId = 'new-user-123';
 
-      const result = await activityService.getFeed(userId);
+      const result = await activityService.getFeed(userId, { page: 1, limit: 10 });
 
       expect(result.data).toEqual([]);
       expect(result.total).toBe(0);
@@ -104,7 +104,7 @@ describeIntegration('Social Integration Tests', () => {
     it('should return empty activities for new user', async () => {
       const userId = 'new-user-123';
 
-      const result = await activityService.getUserActivities(userId);
+      const result = await activityService.getUserActivities(userId, { page: 1, limit: 10 });
 
       expect(result.data).toEqual([]);
       expect(result.total).toBe(0);
@@ -112,9 +112,8 @@ describeIntegration('Social Integration Tests', () => {
 
     it('should delete old activities without error', async () => {
       // Should not throw even with empty data
-      await expect(
-        activityService.deleteOldActivities(30),
-      ).resolves.not.toThrow();
+      const count = await activityService.deleteOldActivities(30);
+      expect(count).toBeGreaterThanOrEqual(0);
     });
   });
 });
