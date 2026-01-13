@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.3.0](https://github.com/octopus-synapse/profile-services/compare/profile-services-v5.2.0...profile-services-v5.3.0) (2026-01-13)
+
+
+### Features
+
+* **cache,social:** implement advanced caching and social features ([#114](https://github.com/octopus-synapse/profile-services/issues/114)) ([7c9e40c](https://github.com/octopus-synapse/profile-services/commit/7c9e40c2ff70ddbfb971ea1db26725476df53ca3))
+
 ## [5.2.0](https://github.com/octopus-synapse/profile-services/compare/profile-services-v5.1.0...profile-services-v5.2.0) (2026-01-12)
 
 
