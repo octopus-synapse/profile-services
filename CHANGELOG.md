@@ -1,5 +1,12 @@
 # Changelog
 
+## [5.4.1](https://github.com/octopus-synapse/profile-services/compare/profile-services-v5.4.0...profile-services-v5.4.1) (2026-01-14)
+
+
+### Bug Fixes
+
+* lint fixes, remove fallbacks, and CollaboratorRole from contracts ([#118](https://github.com/octopus-synapse/profile-services/issues/118)) ([9687cf6](https://github.com/octopus-synapse/profile-services/commit/9687cf6706ddd9948fd763b9457d49038a677c81))
+
 ## [5.4.0](https://github.com/octopus-synapse/profile-services/compare/profile-services-v5.3.0...profile-services-v5.4.0) (2026-01-13)
 
 
