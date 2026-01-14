@@ -49,7 +49,7 @@ export class ExportMultiFormatController {
     @Res() res?: Response,
   ): Promise<void> {
     const json = await this.resumeJsonService.exportAsJson(resumeId, {
-      format: format || 'jsonresume',
+      format: format ?? 'jsonresume',
     });
 
     if (res) {
@@ -81,7 +81,7 @@ export class ExportMultiFormatController {
     @Res() res?: Response,
   ): Promise<void> {
     const latex = await this.resumeLatexService.exportAsLatex(resumeId, {
-      template: template || 'simple',
+      template: template ?? 'simple',
     });
 
     if (res) {

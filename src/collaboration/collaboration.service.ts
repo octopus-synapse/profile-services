@@ -15,16 +15,11 @@ import {
   NotFoundException,
   ConflictException,
 } from '@nestjs/common';
+import {
+  CollaboratorRole,
+  canRoleEdit,
+} from '@octopus-synapse/profile-contracts';
 import { PrismaService } from '../prisma/prisma.service';
-
-/**
- * Collaborator role enum
- */
-export enum CollaboratorRole {
-  VIEWER = 'VIEWER',
-  EDITOR = 'EDITOR',
-  ADMIN = 'ADMIN',
-}
 
 /**
  * Invite collaborator params
@@ -33,7 +28,7 @@ export interface InviteCollaboratorParams {
   resumeId: string;
   inviterId: string;
   inviteeId: string;
-  role: keyof typeof CollaboratorRole;
+  role: CollaboratorRole;
 }
 
 /**
@@ -43,7 +38,7 @@ export interface UpdateRoleParams {
   resumeId: string;
   requesterId: string;
   targetUserId: string;
-  newRole: keyof typeof CollaboratorRole;
+  newRole: CollaboratorRole;
 }
 
 /**
@@ -302,7 +297,6 @@ export class CollaborationService {
       return false;
     }
 
-    // EDITOR and ADMIN can edit
-    return collaborator.role === 'EDITOR' || collaborator.role === 'ADMIN';
+    return canRoleEdit(collaborator.role as CollaboratorRole);
   }
 }

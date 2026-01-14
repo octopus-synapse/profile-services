@@ -31,24 +31,22 @@ import {
 } from '@nestjs/swagger';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import type { UserPayload } from '../auth/interfaces/auth-request.interface';
-import {
-  CollaborationService,
-  CollaboratorRole,
-} from './collaboration.service';
+import { CollaborationService } from './collaboration.service';
+import { CollaboratorRole } from '@octopus-synapse/profile-contracts';
 
 /**
  * Invite DTO
  */
 class InviteCollaboratorDto {
   userId!: string;
-  role!: keyof typeof CollaboratorRole;
+  role!: CollaboratorRole;
 }
 
 /**
  * Update role DTO
  */
 class UpdateRoleDto {
-  role!: keyof typeof CollaboratorRole;
+  role!: CollaboratorRole;
 }
 
 @ApiTags('Collaboration')

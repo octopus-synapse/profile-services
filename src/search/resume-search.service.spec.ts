@@ -184,7 +184,7 @@ describe('ResumeSearchService', () => {
     });
 
     it('should limit suggestions', async () => {
-      const result = await service.suggest('dev', 5);
+      await service.suggest('dev', 5);
 
       expect(mockPrismaService.$queryRaw).toHaveBeenCalled();
     });

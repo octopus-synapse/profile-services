@@ -56,9 +56,13 @@ export class ResumeLatexService {
   }
 
   private generateSimpleTemplate(resume: ResumeWithRelations): string {
-    const name = this.escapeLatex(resume.user?.name ?? 'Unknown');
-    const email = this.escapeLatex(resume.user?.email ?? '');
-    const phone = this.escapeLatex(resume.user?.phone ?? '');
+    const name = this.escapeLatex(
+      resume.user.name ?? resume.fullName ?? 'Unknown',
+    );
+    const email = this.escapeLatex(
+      resume.user.email ?? resume.emailContact ?? '',
+    );
+    const phone = this.escapeLatex(resume.user.phone ?? resume.phone ?? '');
     const title = this.escapeLatex(resume.jobTitle ?? resume.title ?? '');
 
     let latex = `\\documentclass[11pt,a4paper]{article}
@@ -139,8 +143,12 @@ ${description}\\\\[0.5em]
   }
 
   private generateModerncvTemplate(resume: ResumeWithRelations): string {
-    const name = this.escapeLatex(resume.user?.name ?? 'Unknown');
-    const email = this.escapeLatex(resume.user?.email ?? '');
+    const name = this.escapeLatex(
+      resume.user.name ?? resume.fullName ?? 'Unknown',
+    );
+    const email = this.escapeLatex(
+      resume.user.email ?? resume.emailContact ?? '',
+    );
     const title = this.escapeLatex(resume.jobTitle ?? resume.title ?? '');
 
     let latex = `\\documentclass[11pt,a4paper,sans]{moderncv}

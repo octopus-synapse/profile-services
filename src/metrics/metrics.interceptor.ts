@@ -13,28 +13,31 @@ interface HttpError {
   status?: number;
 }
 
+interface RequestWithRoute extends Request {
+  route: { path: string };
+}
+
 @Injectable()
 export class MetricsInterceptor implements NestInterceptor {
   constructor(private readonly metricsService: MetricsService) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
-    const request = context.switchToHttp().getRequest<Request>();
+    const request = context.switchToHttp().getRequest<RequestWithRoute>();
     const method = request.method;
-    const route = request.route?.path ?? request.url;
+    const route = request.route.path;
 
     const endTimer = this.metricsService.startApiTimer({
       method,
       route,
-      status: '200', // Will be updated in tap
+      status: '200',
     });
 
     return next.handle().pipe(
       tap({
         next: () => {
           const response = context.switchToHttp().getResponse<Response>();
-          const statusCode = response.statusCode?.toString() ?? '200';
+          const statusCode = response.statusCode.toString();
 
-          // Record with actual status
           this.metricsService.observeApiLatency(endTimer(), {
             method,
             route,
@@ -42,7 +45,7 @@ export class MetricsInterceptor implements NestInterceptor {
           });
         },
         error: (error: HttpError) => {
-          const statusCode = error.status?.toString() ?? '500';
+          const statusCode = (error.status ?? 500).toString();
 
           this.metricsService.observeApiLatency(endTimer(), {
             method,
