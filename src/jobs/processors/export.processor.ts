@@ -56,7 +56,9 @@ export class ExportProcessor extends WorkerHost {
   async process(job: Job<ExportJobData>): Promise<ExportResult> {
     const { type, resumeId, userId } = job.data;
 
-    this.logger.log(`Processing export job ${job.id}: ${type} for resume ${resumeId}`);
+    this.logger.log(
+      `Processing export job ${job.id}: ${type} for resume ${resumeId}`,
+    );
 
     try {
       await job.updateProgress(10);
@@ -108,8 +110,7 @@ export class ExportProcessor extends WorkerHost {
     } catch (error) {
       this.logger.error(`Export job ${job.id} failed:`, error);
 
-      const isFinalAttempt =
-        job.attemptsMade >= (job.opts.attempts ?? 3);
+      const isFinalAttempt = job.attemptsMade >= (job.opts.attempts ?? 3);
 
       if (isFinalAttempt) {
         await this.notificationService.create({

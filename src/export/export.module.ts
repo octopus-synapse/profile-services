@@ -3,6 +3,7 @@ import {
   ExportBannerController,
   ExportPdfController,
   ExportDocxController,
+  ExportMultiFormatController,
 } from './controllers';
 import { BannerCaptureService } from './services/banner-capture.service';
 import { ResumePDFService } from './services/resume-pdf.service';
@@ -13,6 +14,8 @@ import { DocxSectionsService } from './services/docx-sections.service';
 import { DocxStylesService } from './services/docx-styles.service';
 import { PdfGeneratorService } from './services/pdf-generator.service';
 import { PdfTemplateService } from './services/pdf-template.service';
+import { ResumeJsonService } from './services/resume-json.service';
+import { ResumeLatexService } from './services/resume-latex.service';
 import { ResumesModule } from '../resumes/resumes.module';
 import { UsersModule } from '../users/users.module';
 import { LoggerModule } from '../common/logger/logger.module';
@@ -23,6 +26,7 @@ import { LoggerModule } from '../common/logger/logger.module';
     ExportBannerController,
     ExportPdfController,
     ExportDocxController,
+    ExportMultiFormatController,
   ],
   providers: [
     BannerCaptureService,
@@ -34,12 +38,16 @@ import { LoggerModule } from '../common/logger/logger.module';
     DocxStylesService,
     PdfGeneratorService,
     PdfTemplateService,
+    ResumeJsonService,
+    ResumeLatexService,
   ],
   exports: [
     BannerCaptureService,
     ResumePDFService,
     BrowserManagerService,
     ResumeDOCXService,
+    ResumeJsonService,
+    ResumeLatexService,
   ],
 })
 export class ExportModule {}

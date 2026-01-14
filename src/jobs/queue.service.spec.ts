@@ -14,9 +14,7 @@ describe('QueueService', () => {
 
   beforeEach(() => {
     mockExportQueue = {
-      add: mock(() =>
-        Promise.resolve({ id: 'job-123', name: 'generate-pdf' }),
-      ),
+      add: mock(() => Promise.resolve({ id: 'job-123', name: 'generate-pdf' })),
       getJob: mock(() =>
         Promise.resolve({
           id: 'job-123',
@@ -36,10 +34,10 @@ describe('QueueService', () => {
 
     service = new QueueService(
       mockExportQueue as unknown as Parameters<
-        typeof QueueService.prototype['constructor']
+        (typeof QueueService.prototype)['constructor']
       >[0],
       mockEmailQueue as unknown as Parameters<
-        typeof QueueService.prototype['constructor']
+        (typeof QueueService.prototype)['constructor']
       >[1],
     );
   });

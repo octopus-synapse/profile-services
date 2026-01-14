@@ -11,14 +11,10 @@ describe('ExportProcessor', () => {
 
   beforeEach(() => {
     mockResumePdfService = {
-      generate: mock(() =>
-        Promise.resolve(Buffer.from('pdf-content')),
-      ),
+      generate: mock(() => Promise.resolve(Buffer.from('pdf-content'))),
     };
     mockResumeDocxService = {
-      generate: mock(() =>
-        Promise.resolve(Buffer.from('docx-content')),
-      ),
+      generate: mock(() => Promise.resolve(Buffer.from('docx-content'))),
     };
     mockNotificationService = {
       create: mock(() => Promise.resolve({ id: 'notification-123' })),
@@ -31,28 +27,29 @@ describe('ExportProcessor', () => {
 
     processor = new ExportProcessor(
       mockResumePdfService as unknown as Parameters<
-        typeof ExportProcessor.prototype['constructor']
+        (typeof ExportProcessor.prototype)['constructor']
       >[0],
       mockResumeDocxService as unknown as Parameters<
-        typeof ExportProcessor.prototype['constructor']
+        (typeof ExportProcessor.prototype)['constructor']
       >[1],
       mockNotificationService as unknown as Parameters<
-        typeof ExportProcessor.prototype['constructor']
+        (typeof ExportProcessor.prototype)['constructor']
       >[2],
       mockUploadService as unknown as Parameters<
-        typeof ExportProcessor.prototype['constructor']
+        (typeof ExportProcessor.prototype)['constructor']
       >[3],
     );
   });
 
   describe('process', () => {
-    const createMockJob = (data: Record<string, unknown>): Job => ({
-      id: 'job-123',
-      data,
-      attemptsMade: 0,
-      opts: { attempts: 3 },
-      updateProgress: mock(() => Promise.resolve()),
-    }) as unknown as Job;
+    const createMockJob = (data: Record<string, unknown>): Job =>
+      ({
+        id: 'job-123',
+        data,
+        attemptsMade: 0,
+        opts: { attempts: 3 },
+        updateProgress: mock(() => Promise.resolve()),
+      }) as unknown as Job;
 
     describe('PDF Export', () => {
       it('should generate PDF and upload', async () => {
@@ -64,7 +61,9 @@ describe('ExportProcessor', () => {
 
         const result = await processor.process(job);
 
-        expect(mockResumePdfService.generate).toHaveBeenCalledWith('resume-123');
+        expect(mockResumePdfService.generate).toHaveBeenCalledWith(
+          'resume-123',
+        );
         expect(mockUploadService.uploadBuffer).toHaveBeenCalled();
         expect(result).toEqual({
           downloadUrl: 'https://storage.example.com/file.pdf',
@@ -111,7 +110,9 @@ describe('ExportProcessor', () => {
 
         const result = await processor.process(job);
 
-        expect(mockResumeDocxService.generate).toHaveBeenCalledWith('resume-123');
+        expect(mockResumeDocxService.generate).toHaveBeenCalledWith(
+          'resume-123',
+        );
         expect(result).toEqual({
           downloadUrl: 'https://storage.example.com/file.pdf',
         });
@@ -132,7 +133,9 @@ describe('ExportProcessor', () => {
           Promise.reject(new Error('Generation failed')),
         );
 
-        await expect(processor.process(job)).rejects.toThrow('Generation failed');
+        await expect(processor.process(job)).rejects.toThrow(
+          'Generation failed',
+        );
 
         expect(mockNotificationService.create).toHaveBeenCalledWith(
           expect.objectContaining({

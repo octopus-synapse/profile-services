@@ -73,7 +73,10 @@ export class QueueService {
     };
   }
 
-  async queueEmail(data: EmailJobData, options?: JobOptions): Promise<JobResult> {
+  async queueEmail(
+    data: EmailJobData,
+    options?: JobOptions,
+  ): Promise<JobResult> {
     const job = await this.emailQueue.add('send-email', data, {
       ...DEFAULT_JOB_OPTIONS,
       ...options,
