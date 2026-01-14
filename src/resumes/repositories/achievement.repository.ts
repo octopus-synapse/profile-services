@@ -39,7 +39,7 @@ export class AchievementRepository extends BaseSubResourceRepository<
   }
 
   protected mapCreate(resumeId: string, dto: CreateAchievement, order: number) {
-    return buildCreateData({ resumeId, order: dto.order ?? order }, dto, {
+    return buildCreateData({ resumeId, order: order }, dto, {
       type: 'string',
       title: 'string',
       description: 'optional',

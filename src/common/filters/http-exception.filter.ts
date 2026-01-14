@@ -14,7 +14,7 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { AppLoggerService } from '../logger/logger.service';
 import { ERROR_CODES } from '@octopus-synapse/profile-contracts';
 
@@ -115,7 +115,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
       if (typeof response === 'string') {
         message = response;
-      } else if (response && typeof response === 'object') {
+      } else {
         const payload = response as Record<string, unknown>;
 
         // Allow explicitly provided contract shape to pass through

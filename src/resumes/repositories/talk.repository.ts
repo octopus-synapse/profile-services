@@ -39,7 +39,7 @@ export class TalkRepository extends BaseSubResourceRepository<
   }
 
   protected mapCreate(resumeId: string, dto: CreateTalk, order: number) {
-    return buildCreateData({ resumeId, order: dto.order ?? order }, dto, {
+    return buildCreateData({ resumeId, order: order }, dto, {
       title: 'string',
       event: 'string',
       eventType: 'string',

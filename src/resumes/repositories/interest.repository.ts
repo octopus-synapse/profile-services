@@ -39,7 +39,7 @@ export class InterestRepository extends BaseSubResourceRepository<
   }
 
   protected mapCreate(resumeId: string, dto: CreateInterest, order: number) {
-    return buildCreateData({ resumeId, order: dto.order ?? order }, dto, {
+    return buildCreateData({ resumeId, order: order }, dto, {
       name: 'string',
       description: 'optional',
     });

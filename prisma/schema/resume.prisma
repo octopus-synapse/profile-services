@@ -83,6 +83,7 @@ model Resume {
   analytics       ResumeAnalytics[]        @relation("ResumeAnalytics")
   viewEvents      ResumeViewEvent[]        @relation("ResumeViews")
   import          ResumeImport?
+  collaborators   ResumeCollaborator[]     @relation("ResumeCollaborators")
 
   @@index([userId])
   @@index([slug])

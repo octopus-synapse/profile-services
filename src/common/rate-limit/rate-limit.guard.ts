@@ -17,7 +17,7 @@ import {
   SetMetadata,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { RateLimitService } from './rate-limit.service';
 import type {
   RateLimitOptions,

@@ -15,7 +15,7 @@ import {
   ApiBearerAuth,
   ApiBody,
 } from '@nestjs/swagger';
-import { Request } from 'express';
+import type { Request } from 'express';
 import { TosAcceptanceService } from '../services/tos-acceptance.service';
 import { AuditService } from '../../admin/services/audit.service';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';

@@ -120,7 +120,7 @@ export class SkillRepository extends BaseSubResourceRepository<
         resumeId,
         name: skill.name,
         category: skill.category ?? 'General',
-        level: skill.level ? SkillLevelToNumeric[skill.level] : null,
+        level: SkillLevelToNumeric[skill.level],
         order: skill.order ?? index,
       })),
     });

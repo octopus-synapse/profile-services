@@ -132,7 +132,7 @@ export class ATSService {
     file: Express.Multer.File,
   ): Validation {
     const allResults = Object.values(results).filter(Boolean);
-    const allIssues = allResults.flatMap((r) => r.issues ?? []);
+    const allIssues = allResults.flatMap((r) => r.issues);
     const allPassed = allResults.every((r) => r.passed);
     const score = allPassed ? 100 : Math.max(0, 100 - allIssues.length * 5);
 
@@ -163,7 +163,7 @@ export class ATSService {
     };
 
     return issues.map((issue) => ({
-      type: severityToType[issue.severity] ?? 'error',
+      type: severityToType[issue.severity],
       category: issue.code,
       message: issue.message,
       location: issue.location,

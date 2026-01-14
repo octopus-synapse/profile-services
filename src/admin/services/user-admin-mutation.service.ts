@@ -41,7 +41,7 @@ export class UserAdminMutationService {
           email,
           password: hashedPassword,
           name,
-          role: role ?? UserRole.USER,
+          role,
         },
         select: {
           id: true,

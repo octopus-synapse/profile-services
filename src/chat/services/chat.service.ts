@@ -263,7 +263,7 @@ export class ChatService {
       userId,
       otherUserId,
     );
-    return conversation?.id ?? null;
+    return conversation.id;
   }
 
   /**
