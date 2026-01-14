@@ -4,18 +4,23 @@ import {
   ExecutionContext,
   CallHandler,
 } from '@nestjs/common';
+import { Request, Response } from 'express';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { MetricsService } from './metrics.service';
+
+interface HttpError {
+  status?: number;
+}
 
 @Injectable()
 export class MetricsInterceptor implements NestInterceptor {
   constructor(private readonly metricsService: MetricsService) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<Request>();
     const method = request.method;
-    const route = request.route?.path || request.url;
+    const route = request.route?.path ?? request.url;
 
     const endTimer = this.metricsService.startApiTimer({
       method,
@@ -26,8 +31,8 @@ export class MetricsInterceptor implements NestInterceptor {
     return next.handle().pipe(
       tap({
         next: () => {
-          const response = context.switchToHttp().getResponse();
-          const statusCode = response.statusCode?.toString() || '200';
+          const response = context.switchToHttp().getResponse<Response>();
+          const statusCode = response.statusCode?.toString() ?? '200';
 
           // Record with actual status
           this.metricsService.observeApiLatency(endTimer(), {
@@ -36,8 +41,8 @@ export class MetricsInterceptor implements NestInterceptor {
             status: statusCode,
           });
         },
-        error: (error) => {
-          const statusCode = error.status?.toString() || '500';
+        error: (error: HttpError) => {
+          const statusCode = error.status?.toString() ?? '500';
 
           this.metricsService.observeApiLatency(endTimer(), {
             method,

@@ -78,7 +78,15 @@ describe('SearchController', () => {
     });
 
     it('should parse pagination params', async () => {
-      await controller.search('developer', undefined, undefined, undefined, undefined, '2', '10');
+      await controller.search(
+        'developer',
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        '2',
+        '10',
+      );
 
       expect(mockSearchService.search).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -117,7 +125,10 @@ describe('SearchController', () => {
     it('should respect limit parameter', async () => {
       await controller.similar('resume-1', '10');
 
-      expect(mockSearchService.findSimilar).toHaveBeenCalledWith('resume-1', 10);
+      expect(mockSearchService.findSimilar).toHaveBeenCalledWith(
+        'resume-1',
+        10,
+      );
     });
   });
 });

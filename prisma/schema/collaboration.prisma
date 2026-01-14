@@ -1,0 +1,23 @@
+// Resume Collaboration - Multi-user editing support
+
+enum CollaboratorRole {
+  VIEWER
+  EDITOR
+  ADMIN
+}
+
+model ResumeCollaborator {
+  id        String           @id @default(cuid())
+  resumeId  String
+  resume    Resume           @relation("ResumeCollaborators", fields: [resumeId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User             @relation("UserCollaborations", fields: [userId], references: [id], onDelete: Cascade)
+  role      CollaboratorRole @default(VIEWER)
+  invitedBy String
+  invitedAt DateTime         @default(now())
+  joinedAt  DateTime?
+
+  @@unique([resumeId, userId])
+  @@index([resumeId])
+  @@index([userId])
+}

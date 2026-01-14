@@ -67,6 +67,9 @@ model User {
   // Resume imports
   resumeImports ResumeImport[]
 
+  // Resume collaborations
+  collaborations ResumeCollaborator[] @relation("UserCollaborations")
+
   @@index([username])
   @@index([email])
   @@index([role])

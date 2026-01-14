@@ -33,6 +33,7 @@ import { ResumeAnalyticsModule } from './resume-analytics/resume-analytics.modul
 import { ChatModule } from './chat/chat.module';
 import { MetricsModule } from './metrics/metrics.module';
 import { SearchModule } from './search/search.module';
+import { CollaborationModule } from './collaboration/collaboration.module';
 import { validate } from './common/config/env.validation';
 import { RATE_LIMIT_CONFIG } from '@octopus-synapse/profile-contracts';
 
@@ -77,6 +78,7 @@ import { RATE_LIMIT_CONFIG } from '@octopus-synapse/profile-contracts';
     ChatModule,
     MetricsModule,
     SearchModule,
+    CollaborationModule,
   ],
   controllers: [AppController],
   providers: [
