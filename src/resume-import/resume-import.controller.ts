@@ -85,7 +85,7 @@ export class ResumeImportController {
     status: HttpStatus.OK,
     description: 'Parsed resume data',
   })
-  async parseJson(@Body() dto: ImportJsonDto): Promise<ParsedResumeData> {
+  parseJson(@Body() dto: ImportJsonDto): ParsedResumeData {
     return this.importService.parseJsonResume(dto.data);
   }
 
@@ -158,10 +158,6 @@ export class ResumeImportController {
    * Validate JSON Resume basic structure
    */
   private validateJsonResume(data: JsonResumeSchema): void {
-    if (!data || typeof data !== 'object') {
-      throw new BadRequestException('Invalid JSON data');
-    }
-
     // JSON Resume requires at least basics section with a name
     if (!data.basics || typeof data.basics !== 'object') {
       throw new BadRequestException('Missing basics section');

@@ -38,7 +38,7 @@ export class ResumeLatexService {
       throw new NotFoundException('Resume not found');
     }
 
-    const template = options.template || 'simple';
+    const template = options.template;
 
     if (template === 'moderncv') {
       return this.generateModerncvTemplate(resume);
@@ -56,9 +56,9 @@ export class ResumeLatexService {
   }
 
   private generateSimpleTemplate(resume: ResumeWithRelations): string {
-    const name = this.escapeLatex(resume.user?.name ?? '');
-    const email = this.escapeLatex(resume.user?.email ?? '');
-    const phone = this.escapeLatex(resume.user?.phone ?? '');
+    const name = this.escapeLatex(resume.user.name ?? 'Unknown');
+    const email = this.escapeLatex(resume.user.email ?? '');
+    const phone = this.escapeLatex(resume.user.phone ?? '');
     const title = this.escapeLatex(resume.jobTitle ?? resume.title ?? '');
 
     let latex = `\\documentclass[11pt,a4paper]{article}
@@ -87,8 +87,8 @@ ${email}${phone ? ` \\textbar{} ${phone}` : ''}
       latex += `\\section*{Experience}
 `;
       for (const exp of resume.experiences) {
-        const position = this.escapeLatex(exp.position ?? '');
-        const company = this.escapeLatex(exp.company ?? '');
+        const position = this.escapeLatex(exp.position);
+        const company = this.escapeLatex(exp.company);
         const startDate = this.formatDate(exp.startDate);
         const endDate = exp.isCurrent
           ? 'Present'
@@ -108,8 +108,8 @@ ${description}\\\\[0.5em]
 \\section*{Education}
 `;
       for (const edu of resume.education) {
-        const degree = this.escapeLatex(edu.degree ?? '');
-        const institution = this.escapeLatex(edu.institution ?? '');
+        const degree = this.escapeLatex(edu.degree);
+        const institution = this.escapeLatex(edu.institution);
         const startDate = this.formatDate(edu.startDate);
         const endDate = this.formatDate(edu.endDate);
 
@@ -139,8 +139,8 @@ ${description}\\\\[0.5em]
   }
 
   private generateModerncvTemplate(resume: ResumeWithRelations): string {
-    const name = this.escapeLatex(resume.user?.name ?? '');
-    const email = this.escapeLatex(resume.user?.email ?? '');
+    const name = this.escapeLatex(resume.user.name ?? 'Unknown');
+    const email = this.escapeLatex(resume.user.email ?? '');
     const title = this.escapeLatex(resume.jobTitle ?? resume.title ?? '');
 
     let latex = `\\documentclass[11pt,a4paper,sans]{moderncv}

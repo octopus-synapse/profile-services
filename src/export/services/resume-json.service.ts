@@ -116,10 +116,10 @@ export class ResumeJsonService {
       $schema:
         'https://raw.githubusercontent.com/jsonresume/resume-schema/v1.0.0/schema.json',
       basics: {
-        name: resume.user?.name ?? '',
-        label: resume.jobTitle ?? resume.title ?? '',
-        email: resume.user?.email ?? undefined,
-        phone: resume.user?.phone ?? undefined,
+        name: resume.user.name ?? 'Unknown',
+        label: resume.jobTitle ?? resume.title ?? 'Professional',
+        email: resume.user.email ?? undefined,
+        phone: resume.user.phone ?? undefined,
         summary: resume.summary ?? undefined,
       },
       work: resume.experiences.map((exp) => ({
@@ -128,14 +128,14 @@ export class ResumeJsonService {
         startDate: this.formatDate(exp.startDate),
         endDate: exp.isCurrent ? undefined : this.formatDate(exp.endDate),
         summary: exp.description ?? undefined,
-        highlights: exp.skills ?? [],
+        highlights: exp.skills,
       })),
       education: resume.education.map((edu) => ({
         institution: edu.institution,
         studyType: edu.degree,
         startDate: this.formatDate(edu.startDate),
         endDate: this.formatDate(edu.endDate),
-        area: edu.field ?? undefined,
+        area: edu.field,
       })),
       skills: resume.skills.map((skill) => ({
         name: skill.name,
@@ -149,7 +149,7 @@ export class ResumeJsonService {
       projects: resume.openSource.map((contrib) => ({
         name: contrib.projectName,
         description: contrib.description ?? '',
-        url: contrib.projectUrl ?? undefined,
+        url: contrib.projectUrl,
       })),
     };
   }
@@ -163,8 +163,8 @@ export class ResumeJsonService {
         title: resume.title,
         slug: resume.slug,
         user: {
-          name: resume.user?.name,
-          email: resume.user?.email,
+          name: resume.user.name,
+          email: resume.user.email,
         },
         experiences: resume.experiences,
         education: resume.education,

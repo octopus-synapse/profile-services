@@ -115,7 +115,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
       if (typeof response === 'string') {
         message = response;
-      } else if (response && typeof response === 'object') {
+      } else {
         const payload = response as Record<string, unknown>;
 
         // Allow explicitly provided contract shape to pass through

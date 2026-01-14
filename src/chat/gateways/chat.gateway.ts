@@ -31,7 +31,7 @@ type AuthenticatedSocket = Socket & { userId: string };
 @WebSocketGateway({
   namespace: '/chat',
   cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: process.env.FRONTEND_URL,
     credentials: true,
   },
 })
@@ -316,7 +316,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const token = auth?.token;
     if (typeof token === 'string') return token;
 
-    const queryToken = client.handshake.query?.token;
+    const queryToken = client.handshake.query.token;
     if (typeof queryToken === 'string') return queryToken;
 
     return null;
