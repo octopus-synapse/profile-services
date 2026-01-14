@@ -14,7 +14,7 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import { AppLoggerService } from '../logger/logger.service';
 import { ERROR_CODES } from '@octopus-synapse/profile-contracts';
 
