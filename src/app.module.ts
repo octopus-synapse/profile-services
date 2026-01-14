@@ -31,6 +31,7 @@ import { ResumeVersionsModule } from './resume-versions/resume-versions.module';
 import { ShareAnalyticsModule } from './share-analytics/share-analytics.module';
 import { ResumeAnalyticsModule } from './resume-analytics/resume-analytics.module';
 import { ChatModule } from './chat/chat.module';
+import { MetricsModule } from './metrics/metrics.module';
 import { validate } from './common/config/env.validation';
 import { RATE_LIMIT_CONFIG } from '@octopus-synapse/profile-contracts';
 
@@ -73,6 +74,7 @@ import { RATE_LIMIT_CONFIG } from '@octopus-synapse/profile-contracts';
     ShareAnalyticsModule,
     ResumeAnalyticsModule,
     ChatModule,
+    MetricsModule,
   ],
   controllers: [AppController],
   providers: [
