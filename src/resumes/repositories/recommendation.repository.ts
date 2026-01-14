@@ -43,7 +43,7 @@ export class RecommendationRepository extends BaseSubResourceRepository<
     dto: CreateRecommendation,
     order: number,
   ) {
-    return buildCreateData({ resumeId, order: dto.order ?? order }, dto, {
+    return buildCreateData({ resumeId, order: order }, dto, {
       author: 'string',
       position: 'optional',
       company: 'optional',

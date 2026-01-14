@@ -190,7 +190,7 @@ export class MetricsService implements OnModuleInit {
 
     if (!labels) {
       // Return sum of all values if no labels specified
-      return values.reduce((acc, v) => acc + (v.value ?? 0), 0);
+      return values.reduce((acc, v) => acc + v.value, 0);
     }
 
     // Find matching entry by labels

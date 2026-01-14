@@ -52,8 +52,8 @@ export class OpenSourceRepository extends BaseSubResourceRepository<
       stars: dto.stars ?? 0,
       startDate: new Date(dto.startDate),
       endDate: dto.endDate ? new Date(dto.endDate) : null,
-      isCurrent: dto.isCurrent ?? false,
-      order: dto.order ?? order,
+      isCurrent: dto.isCurrent,
+      order: order,
     };
   }
 

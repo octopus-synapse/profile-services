@@ -39,7 +39,7 @@ export class AwardRepository extends BaseSubResourceRepository<
   }
 
   protected mapCreate(resumeId: string, dto: CreateAward, order: number) {
-    return buildCreateData({ resumeId, order: dto.order ?? order }, dto, {
+    return buildCreateData({ resumeId, order: order }, dto, {
       title: 'string',
       issuer: 'string',
       date: 'date',

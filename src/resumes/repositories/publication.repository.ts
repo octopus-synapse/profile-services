@@ -39,7 +39,7 @@ export class PublicationRepository extends BaseSubResourceRepository<
   }
 
   protected mapCreate(resumeId: string, dto: CreatePublication, order: number) {
-    return buildCreateData({ resumeId, order: dto.order ?? order }, dto, {
+    return buildCreateData({ resumeId, order: order }, dto, {
       title: 'string',
       publisher: 'string',
       publicationType: 'string',

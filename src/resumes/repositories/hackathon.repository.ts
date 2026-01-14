@@ -39,7 +39,7 @@ export class HackathonRepository extends BaseSubResourceRepository<
   }
 
   protected mapCreate(resumeId: string, dto: CreateHackathon, order: number) {
-    return buildCreateData({ resumeId, order: dto.order ?? order }, dto, {
+    return buildCreateData({ resumeId, order: order }, dto, {
       name: 'string',
       organizer: 'string',
       position: 'optional',

@@ -5,6 +5,7 @@
  */
 
 export { ResumeImportModule } from './resume-import.module';
+export { ResumeImportController } from './resume-import.controller';
 export { ResumeImportService } from './resume-import.service';
 export type {
   JsonResumeSchema,

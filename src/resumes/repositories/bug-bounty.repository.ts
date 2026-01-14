@@ -46,11 +46,11 @@ export class BugBountyRepository extends BaseSubResourceRepository<
       vulnerabilityType: dto.vulnerabilityType,
       cveId: dto.cveId,
       reward: dto.reward,
-      currency: dto.currency ?? 'USD',
+      currency: dto.currency,
       reportUrl: dto.reportUrl,
       reportedAt: new Date(dto.reportedAt),
       resolvedAt: dto.resolvedAt ? new Date(dto.resolvedAt) : null,
-      order: dto.order ?? order,
+      order: order,
     };
   }
 

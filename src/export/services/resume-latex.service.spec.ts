@@ -10,8 +10,12 @@ describe('ResumeLatexService', () => {
   const mockResume = {
     id: 'resume-123',
     userId: 'user-456',
-    titleEn: 'Software Engineer',
+    title: 'My Resume',
+    jobTitle: 'Software Engineer',
     slug: 'john-doe',
+    isPublic: true,
+    createdAt: new Date('2024-01-01'),
+    updatedAt: new Date('2024-06-01'),
     user: {
       id: 'user-456',
       name: 'John Doe',
@@ -21,26 +25,27 @@ describe('ResumeLatexService', () => {
     experiences: [
       {
         id: 'exp-1',
-        titleEn: 'Senior Developer',
-        companyEn: 'Tech Corp',
+        position: 'Senior Developer',
+        company: 'Tech Corp',
         startDate: new Date('2020-01-01'),
         endDate: null,
-        isPresent: true,
-        descriptionEn: 'Building awesome stuff with React & Node.js',
+        isCurrent: true,
+        description: 'Building awesome stuff',
+        skills: ['TypeScript', 'React'],
       },
     ],
     education: [
       {
         id: 'edu-1',
-        degreeEn: 'B.S. Computer Science',
-        institutionEn: 'MIT',
+        degree: 'Computer Science',
+        institution: 'MIT',
         startDate: new Date('2015-01-01'),
         endDate: new Date('2019-01-01'),
       },
     ],
     skills: [
-      { id: 'skill-1', nameEn: 'TypeScript', level: 'EXPERT' },
-      { id: 'skill-2', nameEn: 'C++', level: 'ADVANCED' },
+      { id: 'skill-1', name: 'TypeScript', level: 4 },
+      { id: 'skill-2', name: 'Node.js', level: 3 },
     ],
   };
 
@@ -88,21 +93,37 @@ describe('ResumeLatexService', () => {
       const result = await service.exportAsLatex('resume-123');
 
       expect(result).toContain('TypeScript');
+      expect(result).toContain('Node.js');
     });
 
     it('should escape special LaTeX characters', async () => {
+      // Mock with special characters
+      const resumeWithSpecialChars = {
+        ...mockResume,
+        experiences: [
+          {
+            ...mockResume.experiences[0],
+            company: 'Tech & Co',
+            description: '100% awesome',
+          },
+        ],
+      };
+      mockPrismaService.resume.findUnique = mock(() =>
+        Promise.resolve(resumeWithSpecialChars),
+      );
+
       const result = await service.exportAsLatex('resume-123');
 
       // & should be escaped as \&
       expect(result).toContain('\\&');
-      // C++ doesn't need escaping, should remain as is
-      expect(result).toContain('C++');
+      // % should be escaped as \%
+      expect(result).toContain('\\%');
     });
 
     it('should throw NotFoundException when resume not found', async () => {
       mockPrismaService.resume.findUnique = mock(() => Promise.resolve(null));
 
-      await expect(service.exportAsLatex('non-existent')).rejects.toThrow(
+      await expect(service.exportAsLatex('unknown')).rejects.toThrow(
         'Resume not found',
       );
     });
@@ -110,10 +131,10 @@ describe('ResumeLatexService', () => {
 
   describe('exportAsBuffer', () => {
     it('should return LaTeX as Buffer', async () => {
-      const buffer = await service.exportAsBuffer('resume-123');
+      const result = await service.exportAsBuffer('resume-123');
 
-      expect(buffer).toBeInstanceOf(Buffer);
-      expect(buffer.toString()).toContain('\\documentclass');
+      expect(result).toBeInstanceOf(Buffer);
+      expect(result.toString()).toContain('\\documentclass');
     });
   });
 
@@ -124,12 +145,13 @@ describe('ResumeLatexService', () => {
       });
 
       expect(result).toContain('moderncv');
+      expect(result).toContain('\\makecvtitle');
     });
 
     it('should support simple template by default', async () => {
       const result = await service.exportAsLatex('resume-123');
 
-      expect(result).toContain('article');
+      expect(result).toContain('\\documentclass[11pt,a4paper]{article}');
     });
   });
 });
