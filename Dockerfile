@@ -70,7 +70,8 @@ RUN apk add --no-cache \
     ca-certificates \
     ttf-freefont \
     curl \
-    unzip
+    unzip \
+    bash
 
 # Install Bun
 RUN curl -fsSL https://bun.sh/install | bash && \
@@ -115,7 +116,8 @@ RUN apk add --no-cache \
     ttf-freefont \
     tini \
     curl \
-    unzip
+    unzip \
+    bash
 
 # Install Bun
 RUN curl -fsSL https://bun.sh/install | bash && \
