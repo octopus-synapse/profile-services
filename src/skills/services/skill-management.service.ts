@@ -15,17 +15,17 @@ import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
 // Types
 // ============================================================================
 
-export interface CreateSkillInput {
+export type CreateSkillInput = {
   name: string;
   category: string;
   level?: number;
-}
+};
 
-export interface UpdateSkillInput {
+export type UpdateSkillInput = {
   name?: string;
   category?: string;
   level?: number;
-}
+};
 
 // ============================================================================
 // Service
