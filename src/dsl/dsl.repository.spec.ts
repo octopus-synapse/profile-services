@@ -110,9 +110,9 @@ describe('DslRepository', () => {
 
   describe('render', () => {
     it('should render resume AST', async () => {
-      spyOn(prisma.resume, 'findFirst').mockResolvedValue(mockResume as any);
+      spyOn(prisma.resume, 'findFirst').mockResolvedValue(mockResume);
       spyOn(validator, 'validateOrThrow').mockReturnValue(
-        mockResume.activeTheme.styleConfig as any,
+        mockResume.activeTheme.styleConfig,
       );
       spyOn(compiler, 'compileForHtml').mockReturnValue(mockAst as any);
 
@@ -139,9 +139,9 @@ describe('DslRepository', () => {
 
   describe('renderPublic', () => {
     it('should render public resume AST', async () => {
-      spyOn(prisma.resume, 'findFirst').mockResolvedValue(mockResume as any);
+      spyOn(prisma.resume, 'findFirst').mockResolvedValue(mockResume);
       spyOn(validator, 'validateOrThrow').mockReturnValue(
-        mockResume.activeTheme.styleConfig as any,
+        mockResume.activeTheme.styleConfig,
       );
       spyOn(compiler, 'compileForHtml').mockReturnValue(mockAst as any);
 
@@ -181,9 +181,7 @@ describe('DslRepository', () => {
         },
       };
 
-      spyOn(prisma.resume, 'findFirst').mockResolvedValue(
-        resumeWithCustom as any,
-      );
+      spyOn(prisma.resume, 'findFirst').mockResolvedValue(resumeWithCustom);
       spyOn(validator, 'validateOrThrow').mockImplementation(
         (dsl) => dsl as any,
       );

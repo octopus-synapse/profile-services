@@ -25,7 +25,18 @@ describe('ResumeShareService', () => {
   let prisma: PrismaService;
   let cache: CacheCoreService;
 
-  const mockResume = createMockResume({ id: 'resume-123', userId: 'user-123', title: 'Software Engineer Resume', experiences: [], education: [], skills: [], languages: [], projects: [], certifications: [], awards: [] });
+  const mockResume = createMockResume({
+    id: 'resume-123',
+    userId: 'user-123',
+    title: 'Software Engineer Resume',
+    experiences: [],
+    education: [],
+    skills: [],
+    languages: [],
+    projects: [],
+    certifications: [],
+    awards: [],
+  });
 
   const mockShare = {
     id: 'share-123',

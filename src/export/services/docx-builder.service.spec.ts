@@ -23,7 +23,17 @@ describe('DocxBuilderService', () => {
     email: 'john@example.com',
   };
 
-  const mockResume = createMockResume({ id: 'resume-1', userId: 'user-1', fullName: 'John Doe', jobTitle: 'Software Engineer', experiences: [], education: [], skills: [], projects: [], languages: [] });
+  const mockResume = createMockResume({
+    id: 'resume-1',
+    userId: 'user-1',
+    fullName: 'John Doe',
+    jobTitle: 'Software Engineer',
+    experiences: [],
+    education: [],
+    skills: [],
+    projects: [],
+    languages: [],
+  });
 
   const mockSection = {
     properties: {},

@@ -32,7 +32,11 @@ describe('CollaborationService', () => {
     };
   };
 
-  const mockResume = createMockResume({ id: 'resume-1', userId: 'owner-1', title: 'Test Resume' });
+  const mockResume = createMockResume({
+    id: 'resume-1',
+    userId: 'owner-1',
+    title: 'Test Resume',
+  });
 
   const mockCollaborator = {
     id: 'collab-1',
