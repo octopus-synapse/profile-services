@@ -37,19 +37,19 @@ export class EducationService extends BaseSubResourceService<
   /**
    * BUG-019 FIX: Override to add education-specific date validation
    */
-  override async addToResume(
+  override async addEntityToResume(
     resumeId: string,
     userId: string,
     entityData: CreateEducation,
   ): Promise<DataResponse<Education>> {
     this.validateEducationDates(entityData);
-    return super.addToResume(resumeId, userId, entityData);
+    return super.addEntityToResume(resumeId, userId, entityData);
   }
 
   /**
    * BUG-019 FIX: Override to add date validation on update
    */
-  override async updateById(
+  override async updateEntityByIdForResume(
     resumeId: string,
     entityId: string,
     userId: string,
@@ -62,19 +62,24 @@ export class EducationService extends BaseSubResourceService<
     ) {
       this.validateEducationDates(updateData);
     }
-    return super.updateById(resumeId, entityId, userId, updateData);
+    return super.updateEntityByIdForResume(
+      resumeId,
+      entityId,
+      userId,
+      updateData,
+    );
   }
 
   /**
    * Override reorder to use "Education entries" instead of "Educations"
    */
-  async reorder(
+  async reorderEntitiesInResume(
     resumeId: string,
     userId: string,
-    ids: string[],
+    entityIds: string[],
   ): Promise<MessageResponse> {
     await this.validateResumeOwnership(resumeId, userId);
-    await this.repository.reorder(resumeId, ids);
+    await this.repository.reorderEntitiesForResume(resumeId, entityIds);
     return ApiResponseHelper.message(
       'Education entries reordered successfully',
     );

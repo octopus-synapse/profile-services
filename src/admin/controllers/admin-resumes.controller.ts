@@ -36,16 +36,16 @@ export class AdminResumesController {
   @ApiOperation({ summary: 'Get all resumes for a user (Admin only)' })
   @ApiResponse({ status: 200, description: 'Resumes retrieved successfully' })
   @ApiResponse({ status: 404, description: 'User not found' })
-  async getUserResumes(@Param('userId') userId: string) {
-    return this.adminService.getUserResumes(userId);
+  async findAllResumesForUser(@Param('userId') userId: string) {
+    return this.adminService.findAllResumesForUser(userId);
   }
 
   @Get('resumes/:resumeId')
   @ApiOperation({ summary: 'Get resume by ID with all details (Admin only)' })
   @ApiResponse({ status: 200, description: 'Resume retrieved successfully' })
   @ApiResponse({ status: 404, description: 'Resume not found' })
-  async getResumeById(@Param('resumeId') resumeId: string) {
-    return this.adminService.getResumeById(resumeId);
+  async getResumeByIdWithDetails(@Param('resumeId') resumeId: string) {
+    return this.adminService.findResumeByIdForAdmin(resumeId);
   }
 
   @Delete('resumes/:resumeId')
@@ -53,7 +53,7 @@ export class AdminResumesController {
   @ApiOperation({ summary: 'Delete resume (Admin only)' })
   @ApiResponse({ status: 200, description: 'Resume deleted successfully' })
   @ApiResponse({ status: 404, description: 'Resume not found' })
-  async deleteResume(@Param('resumeId') resumeId: string) {
-    return this.adminService.deleteResume(resumeId);
+  async deleteResumeForAdmin(@Param('resumeId') resumeId: string) {
+    return this.adminService.deleteResumeForAdmin(resumeId);
   }
 }

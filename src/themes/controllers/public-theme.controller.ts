@@ -15,25 +15,25 @@ export class PublicThemeController {
 
   @Get()
   @ApiOperation({ summary: 'List published themes' })
-  findAll(@Query() query: QueryThemes) {
-    return this.queryService.findAll(query);
+  findAllThemesWithPagination(@Query() queryOptions: QueryThemes) {
+    return this.queryService.findAllThemesWithPagination(queryOptions);
   }
 
   @Get('popular')
   @ApiOperation({ summary: 'Get popular themes' })
-  getPopular(@Query('limit') limit?: number) {
-    return this.queryService.getPopular(limit);
+  findPopularThemes(@Query('limit') limit?: number) {
+    return this.queryService.findPopularThemes(limit);
   }
 
   @Get('system')
   @ApiOperation({ summary: 'Get system themes' })
-  getSystemThemes() {
-    return this.queryService.getSystemThemes();
+  findAllSystemThemes() {
+    return this.queryService.findAllSystemThemes();
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get theme by ID' })
-  findOne(@Param('id') id: string) {
-    return this.queryService.findOne(id);
+  findThemeById(@Param('id') themeId: string) {
+    return this.queryService.findThemeById(themeId);
   }
 }

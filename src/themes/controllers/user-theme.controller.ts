@@ -43,37 +43,48 @@ export class UserThemeController {
 
   @Get('me')
   @ApiOperation({ summary: 'Get my themes' })
-  getMyThemes(@CurrentUser('userId') userId: string) {
-    return this.queryService.getMyThemes(userId);
+  getAllThemesByUser(@CurrentUser('userId') userId: string) {
+    return this.queryService.findAllThemesByUser(userId);
   }
 
   @Post()
   @ApiOperation({ summary: 'Create theme' })
-  create(@CurrentUser('userId') userId: string, @Body() dto: CreateTheme) {
-    return this.crudService.create(userId, dto);
+  createThemeForUser(
+    @CurrentUser('userId') userId: string,
+    @Body() themeData: CreateTheme,
+  ) {
+    return this.crudService.createThemeForUser(userId, themeData);
   }
 
   @Put(':id')
   @ApiOperation({ summary: 'Update theme' })
-  update(
+  updateThemeForUser(
     @CurrentUser('userId') userId: string,
-    @Param('id') id: string,
-    @Body() dto: UpdateTheme,
+    @Param('id') themeId: string,
+    @Body() updateThemeData: UpdateTheme,
   ) {
-    return this.crudService.update(userId, id, dto);
+    return this.crudService.updateThemeForUser(
+      userId,
+      themeId,
+      updateThemeData,
+    );
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete theme' })
-  delete(@CurrentUser('userId') userId: string, @Param('id') id: string) {
-    return this.crudService.delete(userId, id);
+  deleteThemeForUser(
+    @CurrentUser('userId') userId: string,
+    @Param('id') themeId: string,
+  ) {
+    return this.crudService.deleteThemeForUser(userId, themeId);
   }
 
   @Post('fork')
   @ApiOperation({ summary: 'Fork a theme' })
-  fork(@CurrentUser('userId') userId: string, @Body() dto: ForkTheme) {
-    return this.appService.fork(userId, dto);
+  async fork(@CurrentUser('userId') userId: string, @Body() dto: ForkTheme) {
+    const forkedTheme = await this.appService.forkThemeForUser(userId, dto);
+    return forkedTheme;
   }
 
   @Post('apply')

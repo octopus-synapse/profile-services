@@ -23,45 +23,45 @@ export interface UpdateSkillData {
 export class SkillAdminService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getByResume(resumeId: string) {
+  async findAllSkillsForResume(resumeId: string) {
     await this.ensureResumeExists(resumeId);
 
-    const skills = await this.prisma.skill.findMany({
+    const resumeSkills = await this.prisma.skill.findMany({
       where: { resumeId },
       orderBy: [{ category: 'asc' }, { order: 'asc' }],
     });
 
-    return { skills };
+    return { skills: resumeSkills };
   }
 
-  async addToResume(resumeId: string, data: CreateSkillData) {
+  async addSkillToResume(resumeId: string, skillData: CreateSkillData) {
     await this.ensureResumeExists(resumeId);
 
-    const order = await this.getNextOrder(resumeId);
+    const nextOrderValue = await this.getNextOrderValue(resumeId);
 
-    const skill = await this.prisma.skill.create({
+    const createdSkill = await this.prisma.skill.create({
       data: {
         resumeId,
-        name: data.name,
-        category: data.category,
-        level: data.level,
-        order,
+        name: skillData.name,
+        category: skillData.category,
+        level: skillData.level,
+        order: nextOrderValue,
       },
     });
 
     return {
       success: true,
-      skill,
+      skill: createdSkill,
       message: 'Skill added successfully',
     };
   }
 
-  async update(skillId: string, data: UpdateSkillData) {
+  async updateSkill(skillId: string, updateSkillData: UpdateSkillData) {
     await this.ensureSkillExists(skillId);
 
     const updatedSkill = await this.prisma.skill.update({
       where: { id: skillId },
-      data,
+      data: updateSkillData,
     });
 
     return {
@@ -71,7 +71,7 @@ export class SkillAdminService {
     };
   }
 
-  async delete(skillId: string) {
+  async deleteSkill(skillId: string) {
     await this.ensureSkillExists(skillId);
 
     await this.prisma.skill.delete({ where: { id: skillId } });
@@ -82,29 +82,29 @@ export class SkillAdminService {
     };
   }
 
-  private async getNextOrder(resumeId: string): Promise<number> {
-    const lastSkill = await this.prisma.skill.findFirst({
+  private async getNextOrderValue(resumeId: string): Promise<number> {
+    const lastSkillInResume = await this.prisma.skill.findFirst({
       where: { resumeId },
       orderBy: { order: 'desc' },
     });
 
-    return (lastSkill?.order ?? -1) + 1;
+    return (lastSkillInResume?.order ?? -1) + 1;
   }
 
   private async ensureResumeExists(resumeId: string): Promise<void> {
-    const resume = await this.prisma.resume.findUnique({
+    const existingResume = await this.prisma.resume.findUnique({
       where: { id: resumeId },
     });
-    if (!resume) {
+    if (!existingResume) {
       throw new NotFoundException(ERROR_MESSAGES.RESUME_NOT_FOUND);
     }
   }
 
   private async ensureSkillExists(skillId: string): Promise<void> {
-    const skill = await this.prisma.skill.findUnique({
+    const existingSkill = await this.prisma.skill.findUnique({
       where: { id: skillId },
     });
-    if (!skill) {
+    if (!existingSkill) {
       throw new NotFoundException(ERROR_MESSAGES.SKILL_NOT_FOUND);
     }
   }

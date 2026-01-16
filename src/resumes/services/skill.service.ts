@@ -33,7 +33,7 @@ export class SkillService extends BaseSubResourceService<
   /**
    * Override findAll to support category filter and higher default limit
    */
-  async findAll(
+  async findAllSkillsForResume(
     resumeId: string,
     userId: string,
     page: number = 1,
@@ -41,7 +41,12 @@ export class SkillService extends BaseSubResourceService<
     category?: string,
   ): Promise<PaginatedResult<Skill>> {
     await this.validateResumeOwnership(resumeId, userId);
-    return this.skillRepository.findAll(resumeId, page, limit, category);
+    return this.skillRepository.findAllSkillsForResume(
+      resumeId,
+      page,
+      limit,
+      category,
+    );
   }
 
   /**

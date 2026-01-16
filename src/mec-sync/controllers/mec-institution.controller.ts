@@ -22,10 +22,10 @@ export class MecInstitutionController {
   @Public()
   @ApiOperation({ summary: 'List institutions' })
   @ApiQuery({ name: 'uf', required: false, description: 'Filter by state' })
-  async listInstitutions(@Query('uf') uf?: string) {
-    return uf
-      ? this.institutionQuery.listByState(uf)
-      : this.institutionQuery.listAll();
+  async listInstitutions(@Query('uf') stateCode?: string) {
+    return stateCode
+      ? this.institutionQuery.listInstitutionsByState(stateCode)
+      : this.institutionQuery.listAllActiveInstitutions();
   }
 
   @Get('search')
@@ -33,33 +33,36 @@ export class MecInstitutionController {
   @ApiOperation({ summary: 'Search institutions' })
   @ApiQuery({ name: 'q', required: true })
   @ApiQuery({ name: 'limit', required: false, type: Number })
-  async searchInstitutions(
-    @Query('q') query: string,
+  async searchInstitutionsByName(
+    @Query('q') searchQuery: string,
     @Query('limit') limit?: string,
   ) {
     const parsedLimit = limit
       ? parseInt(limit, 10)
       : APP_CONFIG.DEFAULT_PAGE_SIZE;
-    return this.institutionQuery.search(query, parsedLimit);
+    return this.institutionQuery.searchInstitutionsByName(
+      searchQuery,
+      parsedLimit,
+    );
   }
 
   @Get(':codigoIes')
   @Public()
   @ApiOperation({ summary: 'Get institution by MEC code' })
   @ApiParam({ name: 'codigoIes', type: Number })
-  async getInstitutionByCode(
+  async getInstitutionByCodeWithCourses(
     @Param('codigoIes', ParseIntPipe) codigoIes: number,
   ) {
-    return this.institutionQuery.getByCode(codigoIes);
+    return this.institutionQuery.findInstitutionByCodeWithCourses(codigoIes);
   }
 
   @Get(':codigoIes/courses')
   @Public()
   @ApiOperation({ summary: 'Get courses by institution' })
   @ApiParam({ name: 'codigoIes', type: Number })
-  async listCoursesByInstitution(
+  async listCoursesByInstitutionCode(
     @Param('codigoIes', ParseIntPipe) codigoIes: number,
   ) {
-    return this.courseQuery.listByInstitution(codigoIes);
+    return this.courseQuery.listCoursesByInstitutionCode(codigoIes);
   }
 }

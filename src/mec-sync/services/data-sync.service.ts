@@ -30,9 +30,10 @@ export class DataSyncService {
       this.context,
     );
 
-    const existingCodes = await this.institutionRepo.getExistingCodes();
+    const existingInstitutionCodes =
+      await this.institutionRepo.findAllExistingInstitutionCodes();
     const newInstitutions = institutions.filter(
-      (i) => !existingCodes.has(i.codigoIes),
+      (institution) => !existingInstitutionCodes.has(institution.codigoIes),
     );
 
     if (newInstitutions.length === 0) {
@@ -40,10 +41,14 @@ export class DataSyncService {
       return { inserted: 0, updated: 0 };
     }
 
-    const inserted = await this.institutionRepo.bulkCreate(newInstitutions);
-    this.logger.log(`Inserted ${inserted} new institutions`, this.context);
+    const insertedInstitutionCount =
+      await this.institutionRepo.bulkCreateInstitutions(newInstitutions);
+    this.logger.log(
+      `Inserted ${insertedInstitutionCount} new institutions`,
+      this.context,
+    );
 
-    return { inserted, updated: 0 };
+    return { inserted: insertedInstitutionCount, updated: 0 };
   }
 
   async syncCourses(
@@ -54,11 +59,13 @@ export class DataSyncService {
       this.context,
     );
 
-    const existingCodes = await this.courseRepo.getExistingCodes();
-    const validIesCodes = await this.institutionRepo.getExistingCodes();
+    const existingCourseCodes =
+      await this.courseRepo.findAllExistingCourseCodes();
+    const validInstitutionCodes =
+      await this.institutionRepo.findAllExistingInstitutionCodes();
 
     const newCourses = parseResult.courses.filter(
-      (c) => !existingCodes.has(c.codigoCurso),
+      (course) => !existingCourseCodes.has(course.codigoCurso),
     );
 
     if (newCourses.length === 0) {
@@ -66,13 +73,16 @@ export class DataSyncService {
       return { inserted: 0, updated: 0 };
     }
 
-    const inserted = await this.courseRepo.bulkCreate(
+    const insertedCourseCount = await this.courseRepo.bulkCreateCourses(
       newCourses,
-      validIesCodes,
+      validInstitutionCodes,
     );
-    this.logger.log(`Inserted ${inserted} new courses`, this.context);
+    this.logger.log(
+      `Inserted ${insertedCourseCount} new courses`,
+      this.context,
+    );
 
-    return { inserted, updated: 0 };
+    return { inserted: insertedCourseCount, updated: 0 };
   }
 
   async invalidateCaches(): Promise<void> {

@@ -89,6 +89,8 @@ describe('BaseSubResourceRepository', () => {
       create: mock(),
       update: mock(),
       updateMany: mock(),
+      updateEntityForResume: mock(),
+      updateEntityForResumeMany: mock(),
       deleteMany: mock(),
       aggregate: mock(),
       $transaction: mock(),
@@ -107,7 +109,7 @@ describe('BaseSubResourceRepository', () => {
     repository = new TestRepository(prismaService);
   });
 
-  describe('findOne', () => {
+  describe('findEntityByIdAndResumeId', () => {
     it('should find an entity by id and resumeId', async () => {
       const mockEntity: TestEntity = {
         id: '1',
@@ -119,7 +121,10 @@ describe('BaseSubResourceRepository', () => {
 
       mockPrismaDelegate.findFirst.mockResolvedValue(mockEntity);
 
-      const result = await repository.findOne('1', 'resume-1');
+      const result = await repository.findEntityByIdAndResumeId(
+        '1',
+        'resume-1',
+      );
 
       expect(result).toEqual(mockEntity);
       expect(mockPrismaDelegate.findFirst).toHaveBeenCalledWith({
@@ -130,13 +135,16 @@ describe('BaseSubResourceRepository', () => {
     it('should return null if entity not found', async () => {
       mockPrismaDelegate.findFirst.mockResolvedValue(null);
 
-      const result = await repository.findOne('1', 'resume-1');
+      const result = await repository.findEntityByIdAndResumeId(
+        '1',
+        'resume-1',
+      );
 
       expect(result).toBeNull();
     });
   });
 
-  describe('findAll', () => {
+  describe('findAllEntitiesForResume', () => {
     it('should return paginated results with user-defined ordering', async () => {
       const mockEntities: TestEntity[] = [
         {
@@ -158,7 +166,11 @@ describe('BaseSubResourceRepository', () => {
       mockPrismaDelegate.findMany.mockResolvedValue(mockEntities);
       mockPrismaDelegate.count.mockResolvedValue(2);
 
-      const result = await repository.findAll('resume-1', 1, 20);
+      const result = await repository.findAllEntitiesForResume(
+        'resume-1',
+        1,
+        20,
+      );
 
       expect(result.data).toEqual(mockEntities);
       expect(result.meta).toEqual({
@@ -186,7 +198,7 @@ describe('BaseSubResourceRepository', () => {
       mockPrismaDelegate.findMany.mockResolvedValue([]);
       mockPrismaDelegate.count.mockResolvedValue(0);
 
-      await dateRepo.findAll('resume-1', 1, 20);
+      await dateRepo.findAllEntitiesForResume('resume-1', 1, 20);
 
       expect(mockPrismaDelegate.findMany).toHaveBeenCalledWith({
         where: { resumeId: 'resume-1' },
@@ -208,7 +220,7 @@ describe('BaseSubResourceRepository', () => {
       mockPrismaDelegate.findMany.mockResolvedValue([]);
       mockPrismaDelegate.count.mockResolvedValue(0);
 
-      await multiRepo.findAll('resume-1', 1, 20);
+      await multiRepo.findAllEntitiesForResume('resume-1', 1, 20);
 
       expect(mockPrismaDelegate.findMany).toHaveBeenCalledWith({
         where: { resumeId: 'resume-1' },
@@ -222,7 +234,11 @@ describe('BaseSubResourceRepository', () => {
       mockPrismaDelegate.findMany.mockResolvedValue([]);
       mockPrismaDelegate.count.mockResolvedValue(45);
 
-      const result = await repository.findAll('resume-1', 2, 20);
+      const result = await repository.findAllEntitiesForResume(
+        'resume-1',
+        2,
+        20,
+      );
 
       expect(result.meta).toEqual({
         total: 45,
@@ -251,7 +267,7 @@ describe('BaseSubResourceRepository', () => {
       });
       mockPrismaDelegate.create.mockResolvedValue(mockCreated);
 
-      const result = await repository.create('resume-1', dto);
+      const result = await repository.createEntityForResume('resume-1', dto);
 
       expect(result).toEqual(mockCreated);
       expect(mockPrismaDelegate.aggregate).toHaveBeenCalledWith({
@@ -275,7 +291,7 @@ describe('BaseSubResourceRepository', () => {
       });
       mockPrismaDelegate.create.mockResolvedValue({} as TestEntity);
 
-      await repository.create('resume-1', dto);
+      await repository.createEntityForResume('resume-1', dto);
 
       expect(mockPrismaDelegate.create).toHaveBeenCalledWith({
         data: expect.objectContaining({ order: 5 }),
@@ -288,7 +304,7 @@ describe('BaseSubResourceRepository', () => {
       });
       mockPrismaDelegate.create.mockResolvedValue({} as TestEntity);
 
-      await repository.create('resume-1', { name: 'First' });
+      await repository.createEntityForResume('resume-1', { name: 'First' });
 
       expect(mockPrismaDelegate.create).toHaveBeenCalledWith({
         data: expect.objectContaining({ order: 0 }),
@@ -296,8 +312,8 @@ describe('BaseSubResourceRepository', () => {
     });
   });
 
-  describe('update', () => {
-    it('should update an entity using updateMany', async () => {
+  describe('updateEntityForResume', () => {
+    it('should updateEntityForResume an entity using updateEntityForResumeMany', async () => {
       const dto: UpdateTestDto = { name: 'Updated' };
       const mockUpdated: TestEntity = {
         id: '1',
@@ -310,7 +326,11 @@ describe('BaseSubResourceRepository', () => {
       mockPrismaDelegate.updateMany.mockResolvedValue({ count: 1 });
       mockPrismaDelegate.findUnique.mockResolvedValue(mockUpdated);
 
-      const result = await repository.update('1', 'resume-1', dto);
+      const result = await repository.updateEntityForResume(
+        '1',
+        'resume-1',
+        dto,
+      );
 
       expect(result).toEqual(mockUpdated);
       expect(mockPrismaDelegate.updateMany).toHaveBeenCalledWith({
@@ -322,7 +342,9 @@ describe('BaseSubResourceRepository', () => {
     it('should return null if entity not found', async () => {
       mockPrismaDelegate.updateMany.mockResolvedValue({ count: 0 });
 
-      const result = await repository.update('1', 'resume-1', { name: 'Test' });
+      const result = await repository.updateEntityForResume('1', 'resume-1', {
+        name: 'Test',
+      });
 
       expect(result).toBeNull();
     });
@@ -332,7 +354,7 @@ describe('BaseSubResourceRepository', () => {
     it('should delete an entity using deleteMany', async () => {
       mockPrismaDelegate.deleteMany.mockResolvedValue({ count: 1 });
 
-      const result = await repository.delete('1', 'resume-1');
+      const result = await repository.deleteEntityForResume('1', 'resume-1');
 
       expect(result).toBe(true);
       expect(mockPrismaDelegate.deleteMany).toHaveBeenCalledWith({
@@ -343,14 +365,14 @@ describe('BaseSubResourceRepository', () => {
     it('should return false if entity not found', async () => {
       mockPrismaDelegate.deleteMany.mockResolvedValue({ count: 0 });
 
-      const result = await repository.delete('1', 'resume-1');
+      const result = await repository.deleteEntityForResume('1', 'resume-1');
 
       expect(result).toBe(false);
     });
   });
 
-  describe('reorder', () => {
-    it('should reorder entities in a transaction', async () => {
+  describe('reorderEntitiesForResume', () => {
+    it('should reorderEntitiesForResume entities in a transaction', async () => {
       const ids = ['1', '2', '3'];
 
       mockPrismaDelegate.update.mockResolvedValue({});
@@ -363,7 +385,7 @@ describe('BaseSubResourceRepository', () => {
         return Promise.all(fn);
       });
 
-      await repository.reorder('resume-1', ids);
+      await repository.reorderEntitiesForResume('resume-1', ids);
 
       expect(prismaService.$transaction).toHaveBeenCalled();
       expect(mockPrismaDelegate.update).toHaveBeenCalledTimes(3);

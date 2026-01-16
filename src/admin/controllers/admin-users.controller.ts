@@ -50,13 +50,13 @@ export class AdminUsersController {
   @ApiQuery({ name: 'search', required: false, type: String })
   @ApiQuery({ name: 'role', required: false, enum: UserRole })
   @ApiResponse({ status: 200, description: 'Users retrieved successfully' })
-  async getAllUsers(
+  async findAllUsersWithPagination(
     @Query('page') page?: number,
     @Query('limit') limit?: number,
     @Query('search') search?: string,
     @Query('role') role?: UserRole,
   ) {
-    return this.adminService.getAllUsers({
+    return this.adminService.findAllUsersWithPagination({
       page: page ? Number(page) : 1,
       limit: limit ? Number(limit) : 20,
       search,
@@ -68,8 +68,8 @@ export class AdminUsersController {
   @ApiOperation({ summary: 'Get user by ID with full details (Admin only)' })
   @ApiResponse({ status: 200, description: 'User retrieved successfully' })
   @ApiResponse({ status: 404, description: 'User not found' })
-  async getUserById(@Param('id') id: string) {
-    return this.adminService.getUserById(id);
+  async getUserByIdWithDetails(@Param('id') userId: string) {
+    return this.adminService.findUserByIdWithDetails(userId);
   }
 
   @Post('users')
@@ -77,19 +77,19 @@ export class AdminUsersController {
   @ApiOperation({ summary: 'Create new user (Admin only)' })
   @ApiResponse({ status: 201, description: 'User created successfully' })
   @ApiResponse({ status: 409, description: 'Email already exists' })
-  async createUser(@Body() createUser: AdminCreateUser) {
-    return this.adminService.createUser(createUser);
+  async createUserAccount(@Body() createUserData: AdminCreateUser) {
+    return this.adminService.createUserAccount(createUserData);
   }
 
   @Patch('users/:id')
   @ApiOperation({ summary: 'Update user (Admin only)' })
   @ApiResponse({ status: 200, description: 'User updated successfully' })
   @ApiResponse({ status: 404, description: 'User not found' })
-  async updateUser(
-    @Param('id') id: string,
-    @Body() updateUser: AdminUpdateUser,
+  async updateUserAccount(
+    @Param('id') userId: string,
+    @Body() updateUserData: AdminUpdateUser,
   ) {
-    return this.adminService.updateUser(id, updateUser);
+    return this.adminService.updateUserAccount(userId, updateUserData);
   }
 
   @Delete('users/:id')
@@ -107,11 +107,11 @@ export class AdminUsersController {
     status: 400,
     description: 'Cannot delete last admin account',
   })
-  async deleteUser(
-    @Param('id') id: string,
+  async deleteUserAccount(
+    @Param('id') userId: string,
     @Req() req: { user: { userId: string } },
   ) {
-    return this.adminService.deleteUser(id, req.user.userId);
+    return this.adminService.deleteUserAccount(userId, req.user.userId);
   }
 
   @Post('users/:id/reset-password')
@@ -119,16 +119,16 @@ export class AdminUsersController {
   @ApiResponse({ status: 200, description: 'Password reset successfully' })
   @ApiResponse({ status: 404, description: 'User not found' })
   async resetUserPassword(
-    @Param('id') id: string,
-    @Body() dto: AdminResetPassword,
+    @Param('id') userId: string,
+    @Body() resetPasswordData: AdminResetPassword,
   ) {
-    return this.adminService.resetUserPassword(id, dto);
+    return this.adminService.resetUserPassword(userId, resetPasswordData);
   }
 
   @Get('stats')
   @ApiOperation({ summary: 'Get platform statistics (Admin only)' })
   @ApiResponse({ status: 200, description: 'Statistics retrieved' })
-  async getStats() {
-    return this.adminService.getStats();
+  async getPlatformStatistics() {
+    return this.adminService.getPlatformStatistics();
   }
 }

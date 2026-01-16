@@ -21,34 +21,34 @@ export class UsersRepository {
   ) {}
 
   // Query operations
-  async getUser(userId: string): Promise<User | null> {
-    return this.queryRepo.getUser(userId);
+  async findUserById(userId: string): Promise<User | null> {
+    return this.queryRepo.findUserById(userId);
   }
 
-  async getUserWithPreferences(
+  async findUserWithPreferencesById(
     userId: string,
   ): Promise<(User & { preferences: UserPreferences | null }) | null> {
-    return this.queryRepo.getUserWithPreferences(userId);
+    return this.queryRepo.findUserWithPreferencesById(userId);
   }
 
-  async findByUsername(
+  async findUserByUsername(
     username: string,
   ): Promise<(User & { preferences: UserPreferences | null }) | null> {
-    return this.queryRepo.findByUsername(username);
+    return this.queryRepo.findUserByUsername(username);
   }
 
-  async getUserProfile(userId: string): Promise<Partial<User> | null> {
-    return this.queryRepo.getUserProfile(userId);
+  async findUserProfileById(userId: string): Promise<Partial<User> | null> {
+    return this.queryRepo.findUserProfileById(userId);
   }
 
-  async getUserPreferences(userId: string): Promise<Partial<User> | null> {
-    return this.queryRepo.getUserPreferences(userId);
+  async findUserPreferencesById(userId: string): Promise<Partial<User> | null> {
+    return this.queryRepo.findUserPreferencesById(userId);
   }
 
-  async getFullUserPreferences(
+  async findFullUserPreferencesByUserId(
     userId: string,
   ): Promise<UserPreferences | null> {
-    return this.queryRepo.getFullUserPreferences(userId);
+    return this.queryRepo.findFullUserPreferencesByUserId(userId);
   }
 
   async isUsernameTaken(
@@ -58,26 +58,29 @@ export class UsersRepository {
     return this.queryRepo.isUsernameTaken(username, excludeUserId);
   }
 
-  async getLastUsernameUpdate(userId: string): Promise<Date | null> {
-    return this.queryRepo.getLastUsernameUpdate(userId);
+  async findLastUsernameUpdateByUserId(userId: string): Promise<Date | null> {
+    return this.queryRepo.findLastUsernameUpdateByUserId(userId);
   }
 
   // Mutation operations
-  async createUser(userData: {
+  async createUserAccount(userData: {
     id: string;
     email: string;
     displayName?: string;
     photoURL?: string;
   }): Promise<User> {
-    return this.mutationRepo.createUser(userData);
+    return this.mutationRepo.createUserAccount(userData);
   }
 
-  async updateUser(userId: string, userData: Partial<User>): Promise<User> {
-    return this.mutationRepo.updateUser(userId, userData);
+  async updateUserAccount(
+    userId: string,
+    userData: Partial<User>,
+  ): Promise<User> {
+    return this.mutationRepo.updateUserAccount(userId, userData);
   }
 
-  async deleteUser(userId: string): Promise<void> {
-    return this.mutationRepo.deleteUser(userId);
+  async deleteUserAccount(userId: string): Promise<void> {
+    return this.mutationRepo.deleteUserAccount(userId);
   }
 
   async updateUserProfile(

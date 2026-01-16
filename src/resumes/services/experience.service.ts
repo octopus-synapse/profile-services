@@ -30,19 +30,19 @@ export class ExperienceService extends BaseSubResourceService<
    * BUG-007: isCurrent/endDate validation
    * BUG-009: Date range validation
    */
-  override async addToResume(
+  override async addEntityToResume(
     resumeId: string,
     userId: string,
     entityData: CreateExperience,
   ): Promise<DataResponse<Experience>> {
     this.validateExperienceDates(entityData);
-    return super.addToResume(resumeId, userId, entityData);
+    return super.addEntityToResume(resumeId, userId, entityData);
   }
 
   /**
    * Override to add experience-specific validation on update
    */
-  override async updateById(
+  override async updateEntityByIdForResume(
     resumeId: string,
     entityId: string,
     userId: string,
@@ -56,7 +56,12 @@ export class ExperienceService extends BaseSubResourceService<
     ) {
       this.validateExperienceDates(updateData);
     }
-    return super.updateById(resumeId, entityId, userId, updateData);
+    return super.updateEntityByIdForResume(
+      resumeId,
+      entityId,
+      userId,
+      updateData,
+    );
   }
 
   /**

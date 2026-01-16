@@ -50,49 +50,56 @@ export class ResumesRepository {
 
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll(userId: string): Promise<Resume[]> {
+  async findAllUserResumes(userId: string): Promise<Resume[]> {
     return await this.prisma.resume.findMany({
       where: { userId },
       orderBy: { updatedAt: 'desc' },
     });
   }
 
-  async findOne(id: string, userId: string): Promise<Resume | null> {
+  async findResumeByIdAndUserId(
+    id: string,
+    userId: string,
+  ): Promise<Resume | null> {
     return await this.prisma.resume.findFirst({
       where: { id, userId },
       include: this.includeRelations,
     });
   }
 
-  async create(userId: string, data: CreateResumeData): Promise<Resume> {
+  async createResumeForUser(
+    userId: string,
+    resumeCreationData: CreateResumeData,
+  ): Promise<Resume> {
     this.logger.log(`Creating resume for user: ${userId}`);
+    const resumeData = {
+      userId,
+      ...resumeCreationData,
+    };
     return await this.prisma.resume.create({
-      data: {
-        userId,
-        ...data,
-      },
+      data: resumeData,
     });
   }
 
-  async update(
+  async updateResumeForUser(
     id: string,
     userId: string,
-    data: UpdateResumeData,
+    resumeUpdateData: UpdateResumeData,
   ): Promise<Resume | null> {
     this.logger.log(`Updating resume: ${id}`);
 
-    await this.ensureOwnership(id, userId);
+    await this.ensureResumeOwnership(id, userId);
 
     return await this.prisma.resume.update({
       where: { id },
-      data,
+      data: resumeUpdateData,
     });
   }
 
-  async delete(id: string, userId: string): Promise<boolean> {
+  async deleteResumeForUser(id: string, userId: string): Promise<boolean> {
     this.logger.log(`Deleting resume: ${id}`);
 
-    await this.ensureOwnership(id, userId);
+    await this.ensureResumeOwnership(id, userId);
 
     await this.prisma.resume.delete({
       where: { id },
@@ -101,14 +108,17 @@ export class ResumesRepository {
     return true;
   }
 
-  private async ensureOwnership(id: string, userId: string): Promise<void> {
-    const resume = await this.findOne(id, userId);
+  private async ensureResumeOwnership(
+    id: string,
+    userId: string,
+  ): Promise<void> {
+    const resume = await this.findResumeByIdAndUserId(id, userId);
     if (!resume) {
       throw new ForbiddenException('Access denied to resume');
     }
   }
 
-  async findByUserId(userId: string): Promise<Resume | null> {
+  async findResumeByUserId(userId: string): Promise<Resume | null> {
     return await this.prisma.resume.findFirst({
       where: { userId },
       include: this.includeRelations,
@@ -118,7 +128,7 @@ export class ResumesRepository {
   /**
    * BUG-015 FIX: Proper database pagination
    */
-  async findAllPaginated(
+  async findAllUserResumesPaginated(
     userId: string,
     skip: number,
     take: number,
@@ -134,7 +144,7 @@ export class ResumesRepository {
   /**
    * BUG-015 FIX: Count for pagination
    */
-  async count(userId: string): Promise<number> {
+  async countUserResumes(userId: string): Promise<number> {
     return await this.prisma.resume.count({
       where: { userId },
     });

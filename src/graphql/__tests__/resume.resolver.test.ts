@@ -43,16 +43,16 @@ describe('ResumeResolver', () => {
         {
           provide: ResumesRepository,
           useValue: {
-            findOne: jest.fn(),
-            findAll: jest.fn(),
+            findResumeByIdAndUserId: jest.fn(),
+            findAllUserResumes: jest.fn(),
           },
         },
         {
           provide: ExperienceService,
           useValue: {
-            addToResume: jest.fn(),
-            updateById: jest.fn(),
-            deleteById: jest.fn(),
+            addEntityToResume: jest.fn(),
+            updateEntityByIdForResume: jest.fn(),
+            deleteEntityByIdForResume: jest.fn(),
           },
         },
         {
@@ -72,12 +72,12 @@ describe('ResumeResolver', () => {
 
   describe('getResume', () => {
     it('should return a resume by ID', async () => {
-      resumesRepository.findOne.mockResolvedValue(mockResume);
+      resumesRepository.findResumeByIdAndUserId.mockResolvedValue(mockResume);
 
       const result = await resolver.getResume('resume-123', mockUser);
 
       expect(result).toEqual(mockResume);
-      expect(resumesRepository.findOne).toHaveBeenCalledWith(
+      expect(resumesRepository.findResumeByIdAndUserId).toHaveBeenCalledWith(
         'resume-123',
         'user-123',
       );
@@ -87,12 +87,14 @@ describe('ResumeResolver', () => {
   describe('getMyResumes', () => {
     it('should return all resumes for current user', async () => {
       const resumes = [mockResume];
-      resumesRepository.findAll.mockResolvedValue(resumes);
+      resumesRepository.findAllUserResumes.mockResolvedValue(resumes);
 
       const result = await resolver.getMyResumes(mockUser);
 
       expect(result).toEqual(resumes);
-      expect(resumesRepository.findAll).toHaveBeenCalledWith('user-123');
+      expect(resumesRepository.findAllUserResumes).toHaveBeenCalledWith(
+        'user-123',
+      );
     });
   });
 
@@ -122,7 +124,7 @@ describe('ResumeResolver', () => {
         updatedAt: new Date(),
       } as Experience;
 
-      experienceService.addToResume.mockResolvedValue({
+      experienceService.addEntityToResume.mockResolvedValue({
         success: true,
         data: mockExperience,
       });
@@ -134,7 +136,7 @@ describe('ResumeResolver', () => {
       );
 
       expect(result).toEqual(mockExperience);
-      expect(experienceService.addToResume).toHaveBeenCalledWith(
+      expect(experienceService.addEntityToResume).toHaveBeenCalledWith(
         'resume-123',
         'user-123',
         input,
@@ -144,7 +146,7 @@ describe('ResumeResolver', () => {
 
   describe('deleteExperience', () => {
     it('should delete experience and return true', async () => {
-      experienceService.deleteById.mockResolvedValue({
+      experienceService.deleteEntityByIdForResume.mockResolvedValue({
         success: true,
         message: 'Deleted',
       });
@@ -156,7 +158,7 @@ describe('ResumeResolver', () => {
       );
 
       expect(result).toBe(true);
-      expect(experienceService.deleteById).toHaveBeenCalledWith(
+      expect(experienceService.deleteEntityByIdForResume).toHaveBeenCalledWith(
         'resume-123',
         'exp-123',
         'user-123',

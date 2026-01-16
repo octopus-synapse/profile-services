@@ -32,12 +32,14 @@ describe('ResumesService - Bug Detection', () => {
 
   beforeEach(async () => {
     mockRepository = {
-      findAll: mock().mockResolvedValue([]),
-      findOne: mock().mockResolvedValue(mockResume),
-      create: mock().mockResolvedValue(mockResume),
-      update: mock().mockResolvedValue(mockResume),
-      delete: mock().mockResolvedValue(true),
-      findByUserId: mock().mockResolvedValue(mockResume),
+      findAllUserResumes: mock().mockResolvedValue([]),
+      findResumeByIdAndUserId: mock().mockResolvedValue(mockResume),
+      createResumeForUser: mock().mockResolvedValue(mockResume),
+      updateResumeForUser: mock().mockResolvedValue(mockResume),
+      deleteResumeForUser: mock().mockResolvedValue(true),
+      findResumeByUserId: mock().mockResolvedValue(mockResume),
+      findAllUserResumesPaginated: mock().mockResolvedValue([]),
+      countUserResumes: mock().mockResolvedValue(0),
     } as any;
 
     mockVersionService = {
@@ -74,7 +76,7 @@ describe('ResumesService - Bug Detection', () => {
   describe('BUG #3: Resume limit should return HTTP 422', () => {
     it('should throw UnprocessableEntityException (422) when limit reached', async () => {
       // User already has 4 resumes
-      mockRepository.findAll.mockResolvedValue([
+      mockRepository.findAllUserResumes.mockResolvedValue([
         { id: '1' },
         { id: '2' },
         { id: '3' },
@@ -83,12 +85,14 @@ describe('ResumesService - Bug Detection', () => {
 
       // Trying to create 5th should throw 422
       await expect(
-        service.create('user-123', { title: 'Fifth Resume' } as any),
+        service.createResumeForUser('user-123', {
+          title: 'Fifth Resume',
+        } as any),
       ).rejects.toThrow(UnprocessableEntityException);
     });
 
     it('should NOT throw BadRequestException (400) for limit error', async () => {
-      mockRepository.findAll.mockResolvedValue([
+      mockRepository.findAllUserResumes.mockResolvedValue([
         { id: '1' },
         { id: '2' },
         { id: '3' },
@@ -97,7 +101,9 @@ describe('ResumesService - Bug Detection', () => {
 
       // This exposes the bug: it currently throws BadRequestException
       try {
-        await service.create('user-123', { title: 'Fifth Resume' } as any);
+        await service.createResumeForUser('user-123', {
+          title: 'Fifth Resume',
+        } as any);
         fail('Should have thrown an exception');
       } catch (error) {
         // Bug: this will fail because error IS BadRequestException
@@ -107,7 +113,7 @@ describe('ResumesService - Bug Detection', () => {
     });
 
     it('should have exactly the message "O limite máximo de currículos é 4" (pt-BR)', async () => {
-      mockRepository.findAll.mockResolvedValue([
+      mockRepository.findAllUserResumes.mockResolvedValue([
         { id: '1' },
         { id: '2' },
         { id: '3' },
@@ -115,7 +121,9 @@ describe('ResumesService - Bug Detection', () => {
       ] as any);
 
       try {
-        await service.create('user-123', { title: 'Fifth Resume' } as any);
+        await service.createResumeForUser('user-123', {
+          title: 'Fifth Resume',
+        } as any);
         fail('Should have thrown');
       } catch (error) {
         // Check for specific message per business rule
@@ -130,20 +138,20 @@ describe('ResumesService - Bug Detection', () => {
    */
   describe('Resume limit boundary tests', () => {
     it('should allow creating 4th resume (at limit)', async () => {
-      mockRepository.findAll.mockResolvedValue([
+      mockRepository.findAllUserResumes.mockResolvedValue([
         { id: '1' },
         { id: '2' },
         { id: '3' },
       ] as any);
 
-      const result = await service.create('user-123', {
+      const result = await service.createResumeForUser('user-123', {
         title: 'Fourth Resume',
       } as any);
       expect(result.success).toBe(true);
     });
 
     it('should reject at exactly 4 existing resumes', async () => {
-      mockRepository.findAll.mockResolvedValue([
+      mockRepository.findAllUserResumes.mockResolvedValue([
         { id: '1' },
         { id: '2' },
         { id: '3' },
@@ -151,7 +159,7 @@ describe('ResumesService - Bug Detection', () => {
       ] as any);
 
       await expect(
-        service.create('user-123', { title: 'Fifth' } as any),
+        service.createResumeForUser('user-123', { title: 'Fifth' } as any),
       ).rejects.toThrow();
     });
   });

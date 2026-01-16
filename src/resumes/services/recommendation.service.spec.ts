@@ -15,16 +15,16 @@ describe('RecommendationService', () => {
   let service: RecommendationService;
 
   const mockRecommendationRepository = {
-    findAll: mock(),
-    findOne: mock(),
-    create: mock(),
-    update: mock(),
-    delete: mock(),
-    reorder: mock(),
+    findAllEntitiesForResume: mock(),
+    findResumeByIdAndUserId: mock(),
+    createEntityForResume: mock(),
+    updateEntityForResume: mock(),
+    deleteEntityForResume: mock(),
+    reorderEntitiesForResume: mock(),
   };
 
   const mockResumesRepository = {
-    findOne: mock(),
+    findResumeByIdAndUserId: mock(),
   };
 
   beforeEach(async () => {
@@ -66,17 +66,26 @@ describe('RecommendationService', () => {
     };
 
     beforeEach(() => {
-      mockResumesRepository.findOne.mockResolvedValue(mockResume);
-      mockRecommendationRepository.findAll.mockResolvedValue({
+      mockResumesRepository.findResumeByIdAndUserId.mockResolvedValue(
+        mockResume,
+      );
+      mockRecommendationRepository.findAllEntitiesForResume.mockResolvedValue({
         data: [mockRecommendation],
         meta: { page: 1, limit: 20, total: 1, totalPages: 1 },
       });
-      mockRecommendationRepository.create.mockResolvedValue(mockRecommendation);
-      mockRecommendationRepository.delete.mockResolvedValue(true);
+      mockRecommendationRepository.createEntityForResume.mockResolvedValue(
+        mockRecommendation,
+      );
+      mockRecommendationRepository.deleteEntityForResume.mockResolvedValue(
+        true,
+      );
     });
 
     it('should list recommendations for resume', async () => {
-      const result = await service.listForResume('resume-1', 'user-1');
+      const result = await service.listAllEntitiesForResume(
+        'resume-1',
+        'user-1',
+      );
 
       expect(result.data).toHaveLength(1);
       expect(result.data[0]).toMatchObject({
@@ -92,13 +101,21 @@ describe('RecommendationService', () => {
         content: 'Highly recommended.',
       };
 
-      const result = await service.addToResume('resume-1', 'user-1', createDto);
+      const result = await service.addEntityToResume(
+        'resume-1',
+        'user-1',
+        createDto,
+      );
 
       expect(result.success).toBe(true);
     });
 
     it('should delete recommendation', async () => {
-      const result = await service.deleteById('resume-1', 'rec-1', 'user-1');
+      const result = await service.deleteEntityByIdForResume(
+        'resume-1',
+        'rec-1',
+        'user-1',
+      );
 
       expect(result.success).toBe(true);
     });

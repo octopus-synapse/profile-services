@@ -90,7 +90,12 @@ export abstract class BaseSubResourceController<
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
   ): Promise<PaginatedResult<Entity>> {
-    return this.service.listForResume(resumeId, user.userId, page, limit);
+    return this.service.listAllEntitiesForResume(
+      resumeId,
+      user.userId,
+      page,
+      limit,
+    );
   }
 
   @Get(':id')
@@ -104,7 +109,7 @@ export abstract class BaseSubResourceController<
     @Param('id', ParseCuidPipe) entityId: string,
     @CurrentUser() user: UserPayload,
   ): Promise<DataResponse<Entity>> {
-    return this.service.getById(resumeId, entityId, user.userId);
+    return this.service.getEntityByIdForResume(resumeId, entityId, user.userId);
   }
 
   @Post()
@@ -118,7 +123,7 @@ export abstract class BaseSubResourceController<
     @CurrentUser() user: UserPayload,
     @Body() createDto: Create,
   ): Promise<DataResponse<Entity>> {
-    return this.service.addToResume(resumeId, user.userId, createDto);
+    return this.service.addEntityToResume(resumeId, user.userId, createDto);
   }
 
   @Patch(':id')
@@ -133,7 +138,12 @@ export abstract class BaseSubResourceController<
     @CurrentUser() user: UserPayload,
     @Body() updateDto: Update,
   ): Promise<DataResponse<Entity>> {
-    return this.service.updateById(resumeId, entityId, user.userId, updateDto);
+    return this.service.updateEntityByIdForResume(
+      resumeId,
+      entityId,
+      user.userId,
+      updateDto,
+    );
   }
 
   @Delete(':id')
@@ -148,7 +158,11 @@ export abstract class BaseSubResourceController<
     @Param('id', ParseCuidPipe) entityId: string,
     @CurrentUser() user: UserPayload,
   ): Promise<MessageResponse> {
-    return this.service.deleteById(resumeId, entityId, user.userId);
+    return this.service.deleteEntityByIdForResume(
+      resumeId,
+      entityId,
+      user.userId,
+    );
   }
 
   @Post('reorder')
@@ -161,6 +175,10 @@ export abstract class BaseSubResourceController<
     @CurrentUser() user: UserPayload,
     @Body() reorderDto: ReorderItems,
   ): Promise<MessageResponse> {
-    return this.service.reorderInResume(resumeId, user.userId, reorderDto.ids);
+    return this.service.reorderEntitiesInResume(
+      resumeId,
+      user.userId,
+      reorderDto.ids,
+    );
   }
 }

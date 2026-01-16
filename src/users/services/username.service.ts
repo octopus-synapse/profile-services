@@ -68,8 +68,8 @@ export class UsernameService {
   ) {}
 
   async updateUsername(userId: string, updateUsername: UpdateUsername) {
-    const user = await this.usersRepository.getUser(userId);
-    if (!user) {
+    const existingUser = await this.usersRepository.findUserById(userId);
+    if (!existingUser) {
       throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
     }
 
@@ -78,11 +78,11 @@ export class UsernameService {
     // BUG-001 FIX: REJECT uppercase usernames instead of converting
     this.validateUsernameFormat(newUsername);
 
-    if (user.username === newUsername) {
+    if (existingUser.username === newUsername) {
       return {
         success: true,
         message: 'Username unchanged',
-        username: user.username,
+        username: existingUser.username,
       };
     }
 
@@ -96,7 +96,7 @@ export class UsernameService {
 
     this.logger.debug(`Username updated`, 'UsernameService', {
       userId,
-      oldUsername: user.username,
+      oldUsername: existingUser.username,
       newUsername,
     });
 
@@ -121,11 +121,12 @@ export class UsernameService {
   }
 
   private async checkCooldownPeriod(userId: string): Promise<void> {
-    const lastUpdate = await this.usersRepository.getLastUsernameUpdate(userId);
-    if (!lastUpdate) return;
+    const lastUsernameUpdate =
+      await this.usersRepository.findLastUsernameUpdateByUserId(userId);
+    if (!lastUsernameUpdate) return;
 
     const daysSinceLastUpdate = Math.floor(
-      (Date.now() - lastUpdate.getTime()) / (1000 * 60 * 60 * 24),
+      (Date.now() - lastUsernameUpdate.getTime()) / (1000 * 60 * 60 * 24),
     );
 
     if (daysSinceLastUpdate < USERNAME_UPDATE_COOLDOWN_DAYS) {

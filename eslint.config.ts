@@ -19,7 +19,7 @@ export default tseslint.config(
   // Global ignores
   {
     ignores: [
-      'eslint.config.mjs',
+      'eslint.config.ts',
       'dist/**',
       'node_modules/**',
       'coverage/**',

@@ -77,16 +77,20 @@ export class SkillRepository extends BaseSubResourceRepository<
   /**
    * Override findAll to accept optional category parameter
    */
-  async findAll(
+  async findAllSkillsForResume(
     resumeId: string,
     page: number = PAGINATION.DEFAULT_PAGE,
     limit: number = PAGINATION.DEFAULT_PAGE_SIZE,
     category?: string,
   ): Promise<PaginatedResult<Skill>> {
     this.categoryFilter = category;
-    const result = await super.findAll(resumeId, page, limit);
+    const paginatedSkills = await super.findAllEntitiesForResume(
+      resumeId,
+      page,
+      limit,
+    );
     this.categoryFilter = undefined; // Clean up
-    return result;
+    return paginatedSkills;
   }
 
   protected mapCreate(resumeId: string, dto: CreateSkill, order: number) {

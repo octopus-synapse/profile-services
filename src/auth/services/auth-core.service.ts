@@ -32,22 +32,23 @@ export class AuthCoreService {
     private readonly passwordService: PasswordService,
   ) {}
 
-  async signup(dto: Signup) {
-    const { email, password, name } = dto;
+  async signup(registerCredentials: Signup) {
+    const { email, password, name } = registerCredentials;
 
     const hashedPassword = await this.passwordService.hash(password);
 
     // BUG-001 FIX: Use try-catch with Prisma unique constraint error handling
     // instead of check-then-create (TOCTOU vulnerable)
-    let user: User;
+    let createdUser: User;
     try {
-      user = await this.prisma.user.create({
-        data: {
-          email,
-          name: name ?? email.split('@')[0],
-          password: hashedPassword,
-          hasCompletedOnboarding: false,
-        },
+      const userCreationData = {
+        email,
+        name: name ?? email.split('@')[0],
+        password: hashedPassword,
+        hasCompletedOnboarding: false,
+      };
+      createdUser = await this.prisma.user.create({
+        data: userCreationData,
       });
     } catch (error) {
       // Handle unique constraint violation (P2002)
@@ -64,31 +65,32 @@ export class AuthCoreService {
     }
 
     this.logger.log(`User registered successfully`, this.context, {
-      userId: user.id,
+      userId: createdUser.id,
       email,
     });
 
-    if (!user.email) {
+    if (!createdUser.email) {
       throw new Error('User email is required after registration');
     }
 
-    const token = this.tokenService.generateToken({
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      hasCompletedOnboarding: user.hasCompletedOnboarding,
-    });
+    const accessTokenPayload = {
+      id: createdUser.id,
+      email: createdUser.email,
+      role: createdUser.role,
+      hasCompletedOnboarding: createdUser.hasCompletedOnboarding,
+    };
+    const accessToken = this.tokenService.generateToken(accessTokenPayload);
 
-    return this.buildAuthResponse(user, token);
+    return this.buildAuthResponse(createdUser, accessToken);
   }
 
   async validateUser(
     email: string,
     password: string,
   ): Promise<ValidatedUser | null> {
-    const user = await this.prisma.user.findUnique({ where: { email } });
+    const foundUser = await this.prisma.user.findUnique({ where: { email } });
 
-    if (!user?.password) {
+    if (!foundUser?.password) {
       this.logger.warn(`Failed login attempt - user not found`, this.context, {
         email,
       });
@@ -97,7 +99,7 @@ export class AuthCoreService {
 
     const isPasswordValid = await this.passwordService.compare(
       password,
-      user.password,
+      foundUser.password,
     );
 
     if (!isPasswordValid) {
@@ -109,38 +111,43 @@ export class AuthCoreService {
       return null;
     }
 
-    const { password: _, ...result } = user;
-    return result;
+    const { password: _passwordField, ...validatedUserWithoutPassword } =
+      foundUser;
+    return validatedUserWithoutPassword;
   }
 
-  async login(dto: Login) {
-    const user = await this.validateUser(dto.email, dto.password);
+  async login(loginCredentials: Login) {
+    const validatedUser = await this.validateUser(
+      loginCredentials.email,
+      loginCredentials.password,
+    );
 
-    if (!user) {
+    if (!validatedUser) {
       throw new UnauthorizedException(ERROR_MESSAGES.INVALID_CREDENTIALS);
     }
 
-    if (!user.email) {
+    if (!validatedUser.email) {
       throw new UnauthorizedException(ERROR_MESSAGES.INVALID_CREDENTIALS);
     }
 
-    const token = this.tokenService.generateToken({
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      hasCompletedOnboarding: user.hasCompletedOnboarding,
-    });
+    const accessTokenPayload = {
+      id: validatedUser.id,
+      email: validatedUser.email,
+      role: validatedUser.role,
+      hasCompletedOnboarding: validatedUser.hasCompletedOnboarding,
+    };
+    const accessToken = this.tokenService.generateToken(accessTokenPayload);
 
     this.logger.log(`User logged in successfully`, this.context, {
-      userId: user.id,
-      email: user.email,
+      userId: validatedUser.id,
+      email: validatedUser.email,
     });
 
-    return this.buildAuthResponse(user, token);
+    return this.buildAuthResponse(validatedUser, accessToken);
   }
 
   private buildAuthResponse(
-    user: {
+    authenticatedUser: {
       id: string;
       email: string | null;
       name: string | null;
@@ -149,9 +156,9 @@ export class AuthCoreService {
       image?: string | null;
       hasCompletedOnboarding: boolean;
     },
-    token: string,
+    accessToken: string,
   ) {
-    if (!user.email) {
+    if (!authenticatedUser.email) {
       throw new Error('User email is required for token generation');
     }
 
@@ -159,29 +166,34 @@ export class AuthCoreService {
     // In production, use a separate refresh token with longer expiry
     // Ensure role is UserRole type for token generation
     const userRole: UserRole =
-      typeof user.role === 'string' ? user.role : user.role;
-    const refreshToken = this.tokenService.generateToken({
-      id: user.id,
-      email: user.email,
+      typeof authenticatedUser.role === 'string'
+        ? authenticatedUser.role
+        : authenticatedUser.role;
+    const refreshTokenPayload = {
+      id: authenticatedUser.id,
+      email: authenticatedUser.email,
       role: userRole,
-      hasCompletedOnboarding: user.hasCompletedOnboarding,
-    });
+      hasCompletedOnboarding: authenticatedUser.hasCompletedOnboarding,
+    };
+    const refreshToken = this.tokenService.generateToken(refreshTokenPayload);
+
+    const authResponseData = {
+      accessToken,
+      refreshToken,
+      user: {
+        id: authenticatedUser.id,
+        email: authenticatedUser.email,
+        name: authenticatedUser.name,
+        role: authenticatedUser.role,
+        username: authenticatedUser.username ?? null,
+        image: authenticatedUser.image ?? null,
+        hasCompletedOnboarding: authenticatedUser.hasCompletedOnboarding,
+      },
+    };
 
     return {
       success: true,
-      data: {
-        accessToken: token,
-        refreshToken,
-        user: {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-          username: user.username ?? null,
-          image: user.image ?? null,
-          hasCompletedOnboarding: user.hasCompletedOnboarding,
-        },
-      },
+      data: authResponseData,
     };
   }
 }

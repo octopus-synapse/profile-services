@@ -24,72 +24,79 @@ export class InstitutionQueryService {
     private readonly cache: CacheService,
   ) {}
 
-  async listAll(): Promise<Institution[]> {
-    const cached = await this.cache.get<Institution[]>(
+  async listAllActiveInstitutions(): Promise<Institution[]> {
+    const cachedInstitutions = await this.cache.get<Institution[]>(
       MEC_CACHE_KEYS.INSTITUTIONS_LIST,
     );
-    if (cached) return cached;
+    if (cachedInstitutions) return cachedInstitutions;
 
-    const institutions = await this.repository.findAll();
+    const activeInstitutions =
+      await this.repository.findAllActiveInstitutions();
 
     await this.cache.set(
       MEC_CACHE_KEYS.INSTITUTIONS_LIST,
-      institutions,
+      activeInstitutions,
       MEC_CACHE_TTL.INSTITUTIONS_LIST,
     );
 
-    return institutions;
+    return activeInstitutions;
   }
 
-  async listByState(uf: string): Promise<Institution[]> {
+  async listInstitutionsByState(uf: string): Promise<Institution[]> {
     const normalizedUf = uf.toUpperCase();
     const cacheKey = `${MEC_CACHE_KEYS.INSTITUTIONS_BY_UF}${normalizedUf}`;
 
-    const cached = await this.cache.get<Institution[]>(cacheKey);
-    if (cached) return cached;
+    const cachedInstitutions = await this.cache.get<Institution[]>(cacheKey);
+    if (cachedInstitutions) return cachedInstitutions;
 
-    const institutions = await this.repository.findByUf(normalizedUf);
+    const institutionsInState =
+      await this.repository.findInstitutionsByUf(normalizedUf);
 
     await this.cache.set(
       cacheKey,
-      institutions,
+      institutionsInState,
       MEC_CACHE_TTL.INSTITUTIONS_BY_UF,
     );
 
-    return institutions;
+    return institutionsInState;
   }
 
-  async getByCode(codigoIes: number): Promise<InstitutionWithCourses | null> {
-    const institution = await this.repository.findByCode(codigoIes);
-    if (!institution) return null;
+  async findInstitutionByCodeWithCourses(
+    codigoIes: number,
+  ): Promise<InstitutionWithCourses | null> {
+    const foundInstitution =
+      await this.repository.findInstitutionByCode(codigoIes);
+    if (!foundInstitution) return null;
 
     return {
-      id: institution.id,
-      codigoIes: institution.codigoIes,
-      nome: institution.nome,
-      sigla: institution.sigla,
-      uf: institution.uf,
-      municipio: institution.municipio,
-      categoria: institution.categoria,
-      organizacao: institution.organizacao,
-      courses: institution.courses as CourseBasic[],
+      id: foundInstitution.id,
+      codigoIes: foundInstitution.codigoIes,
+      nome: foundInstitution.nome,
+      sigla: foundInstitution.sigla,
+      uf: foundInstitution.uf,
+      municipio: foundInstitution.municipio,
+      categoria: foundInstitution.categoria,
+      organizacao: foundInstitution.organizacao,
+      courses: foundInstitution.courses as CourseBasic[],
     };
   }
 
-  async search(
-    query: string,
+  async searchInstitutionsByName(
+    searchQuery: string,
     limit: number = APP_CONFIG.DEFAULT_PAGE_SIZE,
   ): Promise<Institution[]> {
-    const normalizedQuery = query.toLowerCase().trim();
+    const normalizedQuery = searchQuery.toLowerCase().trim();
 
     if (normalizedQuery.length < 2) {
       return [];
     }
 
-    return this.repository.search(normalizedQuery, limit);
+    const searchResult = await this.repository.search(normalizedQuery, limit);
+    const institutions: Institution[] = searchResult;
+    return institutions;
   }
 
-  async getStateList(): Promise<string[]> {
-    return this.repository.getDistinctUfs();
+  async findAllStateCodes(): Promise<string[]> {
+    return this.repository.findAllDistinctUfs();
   }
 }

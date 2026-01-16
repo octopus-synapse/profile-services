@@ -28,7 +28,7 @@ export class ThemeApprovalService {
   ) {}
 
   async submitForApproval(userId: string, themeId: string) {
-    const theme = await this.crud.findOrFail(themeId);
+    const theme = await this.crud.findThemeByIdOrThrow(themeId);
 
     if (theme.authorId !== userId) {
       throw new ForbiddenException(ERROR_MESSAGES.CAN_ONLY_SUBMIT_OWN_THEMES);
@@ -63,7 +63,7 @@ export class ThemeApprovalService {
   async review(approverId: string, dto: ReviewTheme) {
     await this.assertIsApprover(approverId);
 
-    const theme = await this.crud.findOrFail(dto.themeId);
+    const theme = await this.crud.findThemeByIdOrThrow(dto.themeId);
 
     if (theme.status !== ThemeStatus.PENDING_APPROVAL) {
       throw new BadRequestException(ERROR_MESSAGES.THEME_NOT_PENDING_APPROVAL);

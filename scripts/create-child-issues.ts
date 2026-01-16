@@ -4,12 +4,22 @@
  * Run after epics are created (#63-#68)
  */
 
-const { execSync } = require('child_process');
+import { execSync } from 'child_process';
 
-const REPO = 'octopus-synapse/profile-services';
+const REPOSITORY = 'octopus-synapse/profile-services';
 
-// Epic mapping
-const EPICS = {
+interface EpicMapping {
+  readonly SHARING: number;
+  readonly EXPORT: number;
+  readonly ANALYTICS: number;
+  readonly AI: number;
+  readonly GRAPHQL: number;
+  readonly OBSERVABILITY: number;
+  readonly GDPR: number;
+  readonly MARKETPLACE: number;
+}
+
+const EPIC_MAPPING: EpicMapping = {
   SHARING: 63,
   EXPORT: 64,
   ANALYTICS: 65,
@@ -20,29 +30,49 @@ const EPICS = {
   MARKETPLACE: 70, // Will create manually if needed
 };
 
-function createIssue(title, labels, milestone, body, epic) {
-  const bodyWithEpic = `Part of #${epic}\n\n${body}`;
-  const cmd = `gh issue create --repo ${REPO} --title "${title}" --label "${labels}" --milestone "${milestone}" --body "${bodyWithEpic}"`;
-
+function executeCommand(command: string): string | null {
   try {
-    const result = execSync(cmd, { encoding: 'utf8' });
-    const match = result.match(/issues\/(\d+)/);
-    console.log(`✅ #${match[1]}: ${title}`);
-    return match[1];
-  } catch (err) {
-    console.error(`❌ Failed: ${title}`);
+    const result = execSync(command, { encoding: 'utf8' });
+    return result;
+  } catch (error) {
+    console.error(
+      `❌ Failed: ${error instanceof Error ? error.message : String(error)}`,
+    );
     return null;
   }
 }
 
-console.log('🚀 Creating GDPR Compliance issues (CRITICAL)...\n');
+function createGitHubIssue(
+  title: string,
+  labels: string,
+  milestone: string,
+  body: string,
+  epicNumber: number,
+): string | null {
+  const bodyWithEpic = `Part of #${epicNumber}\n\n${body}`;
+  const command = `gh issue create --repo ${REPOSITORY} --title "${title}" --label "${labels}" --milestone "${milestone}" --body "${bodyWithEpic}"`;
 
-// GDPR - Most Critical
-createIssue(
-  'Implement GDPR data export (Right to Access)',
-  'compliance,security,backend',
-  'Q1 2026 - Foundation & Compliance',
-  `## Description
+  const result = executeCommand(command);
+  if (result) {
+    const match = result.match(/issues\/(\d+)/);
+    if (match) {
+      console.log(`✅ #${match[1]}: ${title}`);
+      return match[1];
+    }
+  }
+  return null;
+}
+
+function createGdprComplianceIssues(): void {
+  console.log('🚀 Creating GDPR Compliance issues (CRITICAL)...\n');
+
+  const gdprEpicNumber = 61; // Using old GDPR epic number
+
+  createGitHubIssue(
+    'Implement GDPR data export (Right to Access)',
+    'compliance,security,backend',
+    'Q1 2026 - Foundation & Compliance',
+    `## Description
 Allow users to export all their data in machine-readable format (GDPR Article 15).
 
 ## Tasks
@@ -62,14 +92,14 @@ Allow users to export all their data in machine-readable format (GDPR Article 15
 
 ## Estimated Time
 4 days`,
-  61, // Using old GDPR epic number
-);
+    gdprEpicNumber,
+  );
 
-createIssue(
-  'Implement cascading user deletion (Right to be Forgotten)',
-  'compliance,security,backend',
-  'Q1 2026 - Foundation & Compliance',
-  `## Description
+  createGitHubIssue(
+    'Implement cascading user deletion (Right to be Forgotten)',
+    'compliance,security,backend',
+    'Q1 2026 - Foundation & Compliance',
+    `## Description
 Complete user account deletion with cascading effects (GDPR Article 17).
 
 ## Tasks
@@ -90,14 +120,14 @@ Complete user account deletion with cascading effects (GDPR Article 17).
 
 ## Estimated Time
 6 days`,
-  61,
-);
+    gdprEpicNumber,
+  );
 
-createIssue(
-  'Implement comprehensive audit logging',
-  'compliance,security,backend',
-  'Q1 2026 - Foundation & Compliance',
-  `## Description
+  createGitHubIssue(
+    'Implement comprehensive audit logging',
+    'compliance,security,backend',
+    'Q1 2026 - Foundation & Compliance',
+    `## Description
 Track who did what and when for security and compliance.
 
 ## Tasks
@@ -120,14 +150,14 @@ Track who did what and when for security and compliance.
 
 ## Estimated Time
 5 days`,
-  61,
-);
+    gdprEpicNumber,
+  );
 
-createIssue(
-  'Track ToS acceptance with versioning',
-  'compliance,legal,backend',
-  'Q1 2026 - Foundation & Compliance',
-  `## Description
+  createGitHubIssue(
+    'Track ToS acceptance with versioning',
+    'compliance,legal,backend',
+    'Q1 2026 - Foundation & Compliance',
+    `## Description
 Track when users accepted which version of ToS/Privacy Policy.
 
 ## Tasks
@@ -145,16 +175,18 @@ Track when users accepted which version of ToS/Privacy Policy.
 
 ## Estimated Time
 3 days`,
-  61,
-);
+    gdprEpicNumber,
+  );
+}
 
-console.log('\n🚀 Creating Resume Sharing issues...\n');
+function createResumeSharingIssues(): void {
+  console.log('\n🚀 Creating Resume Sharing issues...\n');
 
-createIssue(
-  'Implement public resume sharing with custom slugs',
-  'feature,backend',
-  'Q1 2026 - Foundation & Compliance',
-  `## Description
+  createGitHubIssue(
+    'Implement public resume sharing with custom slugs',
+    'feature,backend',
+    'Q1 2026 - Foundation & Compliance',
+    `## Description
 Allow users to generate public links for resumes with optional custom slugs.
 
 ## Tasks
@@ -172,14 +204,14 @@ Allow users to generate public links for resumes with optional custom slugs.
 
 ## Estimated Time
 5 days`,
-  EPICS.SHARING,
-);
+    EPIC_MAPPING.SHARING,
+  );
 
-createIssue(
-  'Implement resume versioning with rollback',
-  'feature,backend',
-  'Q1 2026 - Foundation & Compliance',
-  `## Description
+  createGitHubIssue(
+    'Implement resume versioning with rollback',
+    'feature,backend',
+    'Q1 2026 - Foundation & Compliance',
+    `## Description
 Store resume snapshots on every save and allow rollback.
 
 ## Tasks
@@ -198,14 +230,14 @@ Store resume snapshots on every save and allow rollback.
 
 ## Estimated Time
 8 days`,
-  EPICS.SHARING,
-);
+    EPIC_MAPPING.SHARING,
+  );
 
-createIssue(
-  'Track analytics for shared resumes',
-  'feature,analytics,backend',
-  'Q1 2026 - Foundation & Compliance',
-  `## Description
+  createGitHubIssue(
+    'Track analytics for shared resumes',
+    'feature,analytics,backend',
+    'Q1 2026 - Foundation & Compliance',
+    `## Description
 Track views and downloads for shared resumes.
 
 ## Tasks
@@ -223,10 +255,18 @@ Track views and downloads for shared resumes.
 
 ## Estimated Time
 3 days`,
-  EPICS.SHARING,
-);
+    EPIC_MAPPING.SHARING,
+  );
+}
 
-console.log('\n✅ Child issues created!');
-console.log(
-  '\nNext: Run this script again with more issue groups or create remaining issues manually.',
-);
+function main(): void {
+  createGdprComplianceIssues();
+  createResumeSharingIssues();
+
+  console.log('\n✅ Child issues created!');
+  console.log(
+    '\nNext: Run this script again with more issue groups or create remaining issues manually.',
+  );
+}
+
+main();

@@ -36,16 +36,16 @@ describe('ProjectService', () => {
 
   beforeEach(async () => {
     const mockProjectRepository = {
-      findAll: mock(),
-      findOne: mock(),
-      create: mock(),
-      update: mock(),
-      delete: mock(),
-      reorder: mock(),
+      findAllEntitiesForResume: mock(),
+      findEntityByIdAndResumeId: mock(),
+      createEntityForResume: mock(),
+      updateEntityForResume: mock(),
+      deleteEntityForResume: mock(),
+      reorderEntitiesForResume: mock(),
     };
 
     const mockResumesRepository = {
-      findOne: mock(),
+      findResumeByIdAndUserId: mock(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -65,7 +65,7 @@ describe('ProjectService', () => {
     spyOn(Logger.prototype, 'warn').mockImplementation();
   });
 
-  describe('listForResume', () => {
+  describe('listAllEntitiesForResume', () => {
     it('should return paginated projects for resume', async () => {
       const paginatedResult = {
         data: [mockProject],
@@ -79,17 +79,24 @@ describe('ProjectService', () => {
         },
       };
 
-      resumesRepository.findOne.mockResolvedValue(mockResume as any);
-      projectRepository.findAll.mockResolvedValue(paginatedResult);
+      resumesRepository.findResumeByIdAndUserId.mockResolvedValue(
+        mockResume as any,
+      );
+      projectRepository.findAllEntitiesForResume.mockResolvedValue(
+        paginatedResult,
+      );
 
-      const result = await service.listForResume('resume-123', 'user-123');
-
-      expect(result).toEqual(paginatedResult);
-      expect(resumesRepository.findOne).toHaveBeenCalledWith(
+      const result = await service.listAllEntitiesForResume(
         'resume-123',
         'user-123',
       );
-      expect(projectRepository.findAll).toHaveBeenCalledWith(
+
+      expect(result).toEqual(paginatedResult);
+      expect(resumesRepository.findResumeByIdAndUserId).toHaveBeenCalledWith(
+        'resume-123',
+        'user-123',
+      );
+      expect(projectRepository.findAllEntitiesForResume).toHaveBeenCalledWith(
         'resume-123',
         1,
         20,
@@ -97,30 +104,36 @@ describe('ProjectService', () => {
     });
   });
 
-  describe('getById', () => {
+  describe('getEntityByIdForResume', () => {
     it('should return single project', async () => {
-      resumesRepository.findOne.mockResolvedValue(mockResume as any);
-      projectRepository.findOne.mockResolvedValue(mockProject);
+      resumesRepository.findResumeByIdAndUserId.mockResolvedValue(
+        mockResume as any,
+      );
+      projectRepository.findEntityByIdAndResumeId.mockResolvedValue(
+        mockProject,
+      );
 
-      const result = await service.getById(
+      const result = await service.getEntityByIdForResume(
         'resume-123',
         'project-123',
         'user-123',
       );
 
       expect(result.data).toEqual(mockProject);
-      expect(projectRepository.findOne).toHaveBeenCalledWith(
+      expect(projectRepository.findEntityByIdAndResumeId).toHaveBeenCalledWith(
         'project-123',
         'resume-123',
       );
     });
 
     it('should throw NotFoundException when project not found', async () => {
-      resumesRepository.findOne.mockResolvedValue(mockResume as any);
-      projectRepository.findOne.mockResolvedValue(null);
+      resumesRepository.findResumeByIdAndUserId.mockResolvedValue(
+        mockResume as any,
+      );
+      projectRepository.findEntityByIdAndResumeId.mockResolvedValue(null);
 
       await expect(
-        service.getById('resume-123', 'invalid-id', 'user-123'),
+        service.getEntityByIdForResume('resume-123', 'invalid-id', 'user-123'),
       ).rejects.toThrow('Project not found');
     });
   });
@@ -133,36 +146,40 @@ describe('ProjectService', () => {
         startDate: '2023-01-01',
       };
 
-      resumesRepository.findOne.mockResolvedValue(mockResume as any);
-      projectRepository.create.mockResolvedValue(mockProject);
+      resumesRepository.findResumeByIdAndUserId.mockResolvedValue(
+        mockResume as any,
+      );
+      projectRepository.createEntityForResume.mockResolvedValue(mockProject);
 
-      const result = await service.addToResume(
+      const result = await service.addEntityToResume(
         'resume-123',
         'user-123',
         createDto,
       );
 
       expect(result.data).toEqual(mockProject);
-      expect(projectRepository.create).toHaveBeenCalledWith(
+      expect(projectRepository.createEntityForResume).toHaveBeenCalledWith(
         'resume-123',
         createDto,
       );
     });
   });
 
-  describe('updateById', () => {
+  describe('updateEntityByIdForResume', () => {
     it('should update existing project', async () => {
       const updateDto: UpdateProjectDto = {
         name: 'Updated Project Name',
       };
 
-      resumesRepository.findOne.mockResolvedValue(mockResume as any);
-      projectRepository.update.mockResolvedValue({
+      resumesRepository.findResumeByIdAndUserId.mockResolvedValue(
+        mockResume as any,
+      );
+      projectRepository.updateEntityForResume.mockResolvedValue({
         ...mockProject,
         name: updateDto.name!,
       } as any);
 
-      const result = await service.updateById(
+      const result = await service.updateEntityByIdForResume(
         'resume-123',
         'project-123',
         'user-123',
@@ -170,7 +187,7 @@ describe('ProjectService', () => {
       );
 
       expect(result.data!.name).toBe(updateDto.name);
-      expect(projectRepository.update).toHaveBeenCalledWith(
+      expect(projectRepository.updateEntityForResume).toHaveBeenCalledWith(
         'project-123',
         'resume-123',
         updateDto,
@@ -178,39 +195,54 @@ describe('ProjectService', () => {
     });
 
     it('should throw NotFoundException when project not found', async () => {
-      resumesRepository.findOne.mockResolvedValue(mockResume as any);
-      projectRepository.update.mockResolvedValue(null);
+      resumesRepository.findResumeByIdAndUserId.mockResolvedValue(
+        mockResume as any,
+      );
+      projectRepository.updateEntityForResume.mockResolvedValue(null);
 
       await expect(
-        service.updateById('resume-123', 'invalid-id', 'user-123', {}),
+        service.updateEntityByIdForResume(
+          'resume-123',
+          'invalid-id',
+          'user-123',
+          {},
+        ),
       ).rejects.toThrow('Project not found');
     });
   });
 
-  describe('deleteById', () => {
+  describe('deleteEntityByIdForResume', () => {
     it('should delete project successfully', async () => {
-      resumesRepository.findOne.mockResolvedValue(mockResume as any);
-      projectRepository.delete.mockResolvedValue(true);
+      resumesRepository.findResumeByIdAndUserId.mockResolvedValue(
+        mockResume as any,
+      );
+      projectRepository.deleteEntityForResume.mockResolvedValue(true);
 
-      const result = await service.deleteById(
+      const result = await service.deleteEntityByIdForResume(
         'resume-123',
         'project-123',
         'user-123',
       );
 
       expect(result.message).toBe('Project deleted successfully');
-      expect(projectRepository.delete).toHaveBeenCalledWith(
+      expect(projectRepository.deleteEntityForResume).toHaveBeenCalledWith(
         'project-123',
         'resume-123',
       );
     });
 
     it('should throw NotFoundException when project not found', async () => {
-      resumesRepository.findOne.mockResolvedValue(mockResume as any);
-      projectRepository.delete.mockResolvedValue(false);
+      resumesRepository.findResumeByIdAndUserId.mockResolvedValue(
+        mockResume as any,
+      );
+      projectRepository.deleteEntityForResume.mockResolvedValue(false);
 
       await expect(
-        service.deleteById('resume-123', 'invalid-id', 'user-123'),
+        service.deleteEntityByIdForResume(
+          'resume-123',
+          'invalid-id',
+          'user-123',
+        ),
       ).rejects.toThrow('Project not found');
     });
   });

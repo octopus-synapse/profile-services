@@ -57,7 +57,7 @@ describe('SpokenLanguagesService', () => {
       const mockFindMany = prismaService.spokenLanguage.findMany as any;
       mockFindMany.mockResolvedValue(mockLanguages);
 
-      const result = await service.getAll();
+      const result = await service.findAllActiveLanguages();
 
       expect(result).toEqual(mockLanguages);
       expect(mockFindMany).toHaveBeenCalledWith({
@@ -77,7 +77,7 @@ describe('SpokenLanguagesService', () => {
       const mockFindMany = prismaService.spokenLanguage.findMany as any;
       mockFindMany.mockResolvedValue([]);
 
-      await service.getAll();
+      await service.findAllActiveLanguages();
 
       expect(mockFindMany).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -90,7 +90,7 @@ describe('SpokenLanguagesService', () => {
       const mockFindMany = prismaService.spokenLanguage.findMany as any;
       mockFindMany.mockResolvedValue([]);
 
-      const result = await service.getAll();
+      const result = await service.findAllActiveLanguages();
 
       expect(result).toEqual([]);
     });
@@ -109,7 +109,7 @@ describe('SpokenLanguagesService', () => {
       const mockFindMany = prismaService.spokenLanguage.findMany as any;
       mockFindMany.mockResolvedValue(mockLanguages);
 
-      const result = await service.getAll();
+      const result = await service.findAllActiveLanguages();
 
       expect(result[0].nativeName).toBeNull();
     });
@@ -131,7 +131,7 @@ describe('SpokenLanguagesService', () => {
       const mockFindMany = prismaService.spokenLanguage.findMany as any;
       mockFindMany.mockResolvedValue(mockLanguages);
 
-      const result = await service.search(query);
+      const result = await service.searchLanguagesByName(query);
 
       expect(result).toEqual(mockLanguages);
       expect(mockFindMany).toHaveBeenCalledWith(
@@ -160,7 +160,7 @@ describe('SpokenLanguagesService', () => {
       const mockFindMany = prismaService.spokenLanguage.findMany as any;
       mockFindMany.mockResolvedValue(mockLanguages);
 
-      await service.search(query);
+      await service.searchLanguagesByName(query);
 
       expect(mockFindMany).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -178,7 +178,7 @@ describe('SpokenLanguagesService', () => {
       const mockFindMany = prismaService.spokenLanguage.findMany as any;
       mockFindMany.mockResolvedValue([]);
 
-      await service.search(query);
+      await service.searchLanguagesByName(query);
 
       expect(mockFindMany).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -206,7 +206,7 @@ describe('SpokenLanguagesService', () => {
       const mockFindMany = prismaService.spokenLanguage.findMany as any;
       mockFindMany.mockResolvedValue(mockLanguages);
 
-      await service.search(query);
+      await service.searchLanguagesByName(query);
 
       expect(mockFindMany).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -224,7 +224,7 @@ describe('SpokenLanguagesService', () => {
       const mockFindMany = prismaService.spokenLanguage.findMany as any;
       mockFindMany.mockResolvedValue([]);
 
-      await service.search(query);
+      await service.searchLanguagesByName(query);
 
       expect(mockFindMany).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -239,7 +239,7 @@ describe('SpokenLanguagesService', () => {
       const mockFindMany = prismaService.spokenLanguage.findMany as any;
       mockFindMany.mockResolvedValue([]);
 
-      await service.search(query, customLimit);
+      await service.searchLanguagesByName(query, customLimit);
 
       expect(mockFindMany).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -253,7 +253,7 @@ describe('SpokenLanguagesService', () => {
       const mockFindMany = prismaService.spokenLanguage.findMany as any;
       mockFindMany.mockResolvedValue([]);
 
-      await service.search(query);
+      await service.searchLanguagesByName(query);
 
       expect(mockFindMany).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -267,7 +267,7 @@ describe('SpokenLanguagesService', () => {
       const mockFindMany = prismaService.spokenLanguage.findMany as any;
       mockFindMany.mockResolvedValue([]);
 
-      await service.search(query);
+      await service.searchLanguagesByName(query);
 
       expect(mockFindMany).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -283,7 +283,7 @@ describe('SpokenLanguagesService', () => {
       const mockFindMany = prismaService.spokenLanguage.findMany as any;
       mockFindMany.mockResolvedValue([]);
 
-      const result = await service.search(query);
+      const result = await service.searchLanguagesByName(query);
 
       expect(result).toEqual([]);
     });
@@ -303,7 +303,7 @@ describe('SpokenLanguagesService', () => {
       const mockFindUnique = prismaService.spokenLanguage.findUnique as any;
       mockFindUnique.mockResolvedValue(mockLanguage);
 
-      const result = await service.getByCode(code);
+      const result = await service.findLanguageByCode(code);
 
       expect(result).toEqual(mockLanguage);
       expect(mockFindUnique).toHaveBeenCalledWith({
@@ -324,7 +324,7 @@ describe('SpokenLanguagesService', () => {
       const mockFindUnique = prismaService.spokenLanguage.findUnique as any;
       mockFindUnique.mockResolvedValue(null);
 
-      const result = await service.getByCode(code);
+      const result = await service.findLanguageByCode(code);
 
       expect(result).toBeNull();
     });
@@ -342,7 +342,7 @@ describe('SpokenLanguagesService', () => {
       const mockFindUnique = prismaService.spokenLanguage.findUnique as any;
       mockFindUnique.mockResolvedValue(mockLanguage);
 
-      const result = await service.getByCode(code);
+      const result = await service.findLanguageByCode(code);
 
       expect(result?.nativeName).toBeNull();
     });
@@ -352,7 +352,7 @@ describe('SpokenLanguagesService', () => {
       const mockFindUnique = prismaService.spokenLanguage.findUnique as any;
       mockFindUnique.mockResolvedValue(null);
 
-      await service.getByCode(code);
+      await service.findLanguageByCode(code);
 
       expect(mockFindUnique).toHaveBeenCalledWith(
         expect.objectContaining({

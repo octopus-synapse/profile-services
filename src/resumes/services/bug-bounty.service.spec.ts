@@ -15,16 +15,16 @@ describe('BugBountyService', () => {
   let service: BugBountyService;
 
   const mockBugBountyRepository = {
-    findAll: mock(),
-    findOne: mock(),
-    create: mock(),
-    update: mock(),
-    delete: mock(),
-    reorder: mock(),
+    findAllEntitiesForResume: mock(),
+    findResumeByIdAndUserId: mock(),
+    createEntityForResume: mock(),
+    updateEntityForResume: mock(),
+    deleteEntityForResume: mock(),
+    reorderEntitiesForResume: mock(),
   };
 
   const mockResumesRepository = {
-    findOne: mock(),
+    findResumeByIdAndUserId: mock(),
   };
 
   beforeEach(async () => {
@@ -65,17 +65,24 @@ describe('BugBountyService', () => {
     };
 
     beforeEach(() => {
-      mockResumesRepository.findOne.mockResolvedValue(mockResume);
-      mockBugBountyRepository.findAll.mockResolvedValue({
+      mockResumesRepository.findResumeByIdAndUserId.mockResolvedValue(
+        mockResume,
+      );
+      mockBugBountyRepository.findAllEntitiesForResume.mockResolvedValue({
         data: [mockBugBounty],
         meta: { page: 1, limit: 20, total: 1, totalPages: 1 },
       });
-      mockBugBountyRepository.create.mockResolvedValue(mockBugBounty);
-      mockBugBountyRepository.delete.mockResolvedValue(true);
+      mockBugBountyRepository.createEntityForResume.mockResolvedValue(
+        mockBugBounty,
+      );
+      mockBugBountyRepository.deleteEntityForResume.mockResolvedValue(true);
     });
 
     it('should list bug bounties for resume', async () => {
-      const result = await service.listForResume('resume-1', 'user-1');
+      const result = await service.listAllEntitiesForResume(
+        'resume-1',
+        'user-1',
+      );
 
       expect(result.data).toHaveLength(1);
       expect(result.data[0]).toMatchObject({
@@ -93,13 +100,21 @@ describe('BugBountyService', () => {
         reportedAt: '2024-01-15',
       };
 
-      const result = await service.addToResume('resume-1', 'user-1', createDto);
+      const result = await service.addEntityToResume(
+        'resume-1',
+        'user-1',
+        createDto,
+      );
 
       expect(result.success).toBe(true);
     });
 
     it('should delete bug bounty', async () => {
-      const result = await service.deleteById('resume-1', 'bb-1', 'user-1');
+      const result = await service.deleteEntityByIdForResume(
+        'resume-1',
+        'bb-1',
+        'user-1',
+      );
 
       expect(result.success).toBe(true);
     });

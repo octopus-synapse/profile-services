@@ -39,8 +39,8 @@ export class AdminSkillsController {
   @ApiOperation({ summary: 'Get all skills for a resume (Admin only)' })
   @ApiResponse({ status: 200, description: 'Skills retrieved successfully' })
   @ApiResponse({ status: 404, description: 'Resume not found' })
-  async getResumeSkills(@Param('resumeId') resumeId: string) {
-    return this.adminService.getResumeSkills(resumeId);
+  async findAllSkillsForResume(@Param('resumeId') resumeId: string) {
+    return this.adminService.findAllSkillsForResume(resumeId);
   }
 
   @Post('resumes/:resumeId/skills')
@@ -61,9 +61,10 @@ export class AdminSkillsController {
   @ApiResponse({ status: 404, description: 'Skill not found' })
   async updateSkill(
     @Param('skillId') skillId: string,
-    @Body() skillData: { name?: string; category?: string; level?: number },
+    @Body()
+    updateSkillData: { name?: string; category?: string; level?: number },
   ) {
-    return this.adminService.updateSkill(skillId, skillData);
+    return this.adminService.updateSkill(skillId, updateSkillData);
   }
 
   @Delete('skills/:skillId')

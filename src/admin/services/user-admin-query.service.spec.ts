@@ -70,7 +70,10 @@ describe('UserAdminQueryService', () => {
 
   describe('getAll', () => {
     it('should return paginated users list', async () => {
-      const result = await service.getAll({ page: 1, limit: 10 });
+      const result = await service.findAllUsersWithPagination({
+        page: 1,
+        limit: 10,
+      });
 
       expect(result.users).toHaveLength(2);
       expect(result.pagination).toMatchObject({
@@ -82,7 +85,11 @@ describe('UserAdminQueryService', () => {
     });
 
     it('should filter by search term', async () => {
-      await service.getAll({ page: 1, limit: 10, search: 'admin' });
+      await service.findAllUsersWithPagination({
+        page: 1,
+        limit: 10,
+        search: 'admin',
+      });
 
       expect(stubPrisma.user.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -96,7 +103,11 @@ describe('UserAdminQueryService', () => {
     });
 
     it('should filter by role', async () => {
-      await service.getAll({ page: 1, limit: 10, role: UserRole.ADMIN });
+      await service.findAllUsersWithPagination({
+        page: 1,
+        limit: 10,
+        role: UserRole.ADMIN,
+      });
 
       expect(stubPrisma.user.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -110,7 +121,10 @@ describe('UserAdminQueryService', () => {
     it('should calculate correct pagination', async () => {
       stubPrisma.user.count.mockResolvedValueOnce(25);
 
-      const result = await service.getAll({ page: 2, limit: 10 });
+      const result = await service.findAllUsersWithPagination({
+        page: 2,
+        limit: 10,
+      });
 
       expect(result.pagination.totalPages).toBe(3);
     });
@@ -118,7 +132,7 @@ describe('UserAdminQueryService', () => {
 
   describe('getById', () => {
     it('should return user without password', async () => {
-      const result = await service.getById('user-1');
+      const result = await service.findUserByIdWithDetails('user-1');
 
       expect(result).toMatchObject({
         id: 'user-1',
@@ -128,7 +142,7 @@ describe('UserAdminQueryService', () => {
     });
 
     it('should include resumes and preferences', async () => {
-      const result = await service.getById('user-1');
+      const result = await service.findUserByIdWithDetails('user-1');
 
       expect(result.resumes).toBeDefined();
       expect(result.preferences).toBeDefined();
@@ -137,9 +151,9 @@ describe('UserAdminQueryService', () => {
     it('should throw NotFoundException when user not found', async () => {
       stubPrisma.user.findUnique.mockResolvedValueOnce(null);
 
-      await expect(async () => await service.getById('nonexistent')).toThrow(
-        NotFoundException,
-      );
+      await expect(
+        async () => await service.findUserByIdWithDetails('nonexistent'),
+      ).toThrow(NotFoundException);
     });
   });
 });

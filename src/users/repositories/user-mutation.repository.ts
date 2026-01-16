@@ -18,26 +18,29 @@ export class UserMutationRepository {
 
   constructor(private readonly prisma: PrismaService) {}
 
-  async createUser(userData: {
+  async createUserAccount(userData: {
     id: string;
     email: string;
     displayName?: string;
     photoURL?: string;
   }): Promise<User> {
-    this.logger.log(`Creating user: ${userData.email}`);
+    this.logger.log(`Creating user account: ${userData.email}`);
     return await this.prisma.user.create({ data: userData });
   }
 
-  async updateUser(userId: string, userData: Partial<User>): Promise<User> {
-    this.logger.log(`Updating user: ${userId}`);
+  async updateUserAccount(
+    userId: string,
+    userData: Partial<User>,
+  ): Promise<User> {
+    this.logger.log(`Updating user account: ${userId}`);
     return await this.prisma.user.update({
       where: { id: userId },
       data: userData,
     });
   }
 
-  async deleteUser(userId: string): Promise<void> {
-    this.logger.log(`Deleting user: ${userId}`);
+  async deleteUserAccount(userId: string): Promise<void> {
+    this.logger.log(`Deleting user account: ${userId}`);
     await this.prisma.user.delete({ where: { id: userId } });
   }
 

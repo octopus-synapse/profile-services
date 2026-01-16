@@ -38,12 +38,14 @@ describe('ResumesService', () => {
 
   beforeEach(async () => {
     repository = {
-      findAll: mock(),
-      findOne: mock(),
-      create: mock(),
-      update: mock(),
-      delete: mock(),
-      findByUserId: mock(),
+      findAllUserResumes: mock(),
+      findResumeByIdAndUserId: mock(),
+      createResumeForUser: mock(),
+      updateResumeForUser: mock(),
+      deleteResumeForUser: mock(),
+      findResumeByUserId: mock(),
+      findAllUserResumesPaginated: mock(),
+      countUserResumes: mock(),
     } as any;
 
     versionService = {
@@ -68,21 +70,23 @@ describe('ResumesService', () => {
 
   describe('Resume Limit (Maximum 4)', () => {
     it('should allow creating resume when under limit', async () => {
-      repository.findAll.mockResolvedValue([
+      repository.findAllUserResumes.mockResolvedValue([
         mockResume,
         mockResume,
         mockResume,
       ] as any); // 3 existing
-      repository.create.mockResolvedValue(mockResume as any);
+      repository.createResumeForUser.mockResolvedValue(mockResume as any);
 
-      const result = await service.create('user-123', { title: 'New Resume' });
+      const result = await service.createResumeForUser('user-123', {
+        title: 'New Resume',
+      });
 
       expect(result.data).toBeDefined();
     });
 
     it('should reject creating 5th resume with error', async () => {
       // 4 existing resumes
-      repository.findAll.mockResolvedValue([
+      repository.findAllUserResumes.mockResolvedValue([
         mockResume,
         mockResume,
         mockResume,
@@ -90,12 +94,12 @@ describe('ResumesService', () => {
       ] as any);
 
       await expect(
-        service.create('user-123', { title: 'Fifth Resume' }),
+        service.createResumeForUser('user-123', { title: 'Fifth Resume' }),
       ).rejects.toThrow(UnprocessableEntityException);
     });
 
     it('should show clear error message about 4 resume limit', async () => {
-      repository.findAll.mockResolvedValue([
+      repository.findAllUserResumes.mockResolvedValue([
         mockResume,
         mockResume,
         mockResume,
@@ -103,19 +107,19 @@ describe('ResumesService', () => {
       ] as any);
 
       await expect(
-        service.create('user-123', { title: 'Fifth Resume' }),
+        service.createResumeForUser('user-123', { title: 'Fifth Resume' }),
       ).rejects.toThrow(/4.*resumes/i);
     });
 
     it('should allow creating exactly 4 resumes', async () => {
-      repository.findAll.mockResolvedValue([
+      repository.findAllUserResumes.mockResolvedValue([
         mockResume,
         mockResume,
         mockResume,
       ] as any);
-      repository.create.mockResolvedValue(mockResume as any);
+      repository.createResumeForUser.mockResolvedValue(mockResume as any);
 
-      const result = await service.create('user-123', {
+      const result = await service.createResumeForUser('user-123', {
         title: 'Fourth Resume',
       });
 
@@ -126,36 +130,40 @@ describe('ResumesService', () => {
   describe('Resume CRUD Operations', () => {
     it('should return all resumes for a user', async () => {
       const resumes = [mockResume, { ...mockResume, id: 'resume-2' }];
-      repository.findAll.mockResolvedValue(resumes as any);
+      repository.findAllUserResumes.mockResolvedValue(resumes as any);
 
-      const result = await service.findAll('user-123');
+      const result = await service.findAllUserResumes('user-123');
 
       expect(result.data).toHaveLength(2);
     });
 
     it('should return resume by id if owned by user', async () => {
-      repository.findOne.mockResolvedValue(mockResume as any);
+      repository.findResumeByIdAndUserId.mockResolvedValue(mockResume as any);
 
-      const result = await service.findOne('resume-1', 'user-123');
+      const result = await service.findResumeByIdForUser(
+        'resume-1',
+        'user-123',
+      );
 
       expect(result.data?.id).toBe('resume-1');
     });
 
     it('should throw NotFoundException for non-existent resume', async () => {
-      repository.findOne.mockResolvedValue(null);
+      repository.findResumeByIdAndUserId.mockResolvedValue(null);
 
       await expect(
-        async () => await service.findOne('nonexistent', 'user-123'),
+        async () =>
+          await service.findResumeByIdForUser('nonexistent', 'user-123'),
       ).toThrow(NotFoundException);
     });
 
     it('should update resume if owned by user', async () => {
-      repository.update.mockResolvedValue({
+      repository.updateResumeForUser.mockResolvedValue({
         ...mockResume,
         title: 'Updated Title',
       } as any);
 
-      const result = await service.update('resume-1', 'user-123', {
+      const result = await service.updateResumeForUser('resume-1', 'user-123', {
         title: 'Updated Title',
       });
 
@@ -163,9 +171,9 @@ describe('ResumesService', () => {
     });
 
     it('should delete resume if owned by user', async () => {
-      repository.delete.mockResolvedValue(true);
+      repository.deleteResumeForUser.mockResolvedValue(true);
 
-      const result = await service.remove('resume-1', 'user-123');
+      const result = await service.deleteResumeForUser('resume-1', 'user-123');
 
       expect(result.message.includes('deleted')).toBe(true);
     });
@@ -173,7 +181,10 @@ describe('ResumesService', () => {
 
   describe('Remaining Slots', () => {
     it('should correctly calculate remaining slots', async () => {
-      repository.findAll.mockResolvedValue([mockResume, mockResume] as any);
+      repository.findAllUserResumes.mockResolvedValue([
+        mockResume,
+        mockResume,
+      ] as any);
 
       const slots = await service.getRemainingSlots('user-123');
 
@@ -183,7 +194,7 @@ describe('ResumesService', () => {
     });
 
     it('should show 0 remaining when at limit', async () => {
-      repository.findAll.mockResolvedValue([
+      repository.findAllUserResumes.mockResolvedValue([
         mockResume,
         mockResume,
         mockResume,

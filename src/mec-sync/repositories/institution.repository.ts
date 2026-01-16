@@ -24,7 +24,7 @@ const INSTITUTION_SELECT = {
 export class InstitutionRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll(): Promise<Institution[]> {
+  async findAllActiveInstitutions(): Promise<Institution[]> {
     return this.prisma.mecInstitution.findMany({
       where: { isActive: true },
       orderBy: [{ uf: 'asc' }, { nome: 'asc' }],
@@ -32,7 +32,7 @@ export class InstitutionRepository {
     });
   }
 
-  async findByUf(uf: string): Promise<Institution[]> {
+  async findInstitutionsByUf(uf: string): Promise<Institution[]> {
     return this.prisma.mecInstitution.findMany({
       where: { uf: uf.toUpperCase(), isActive: true },
       orderBy: { nome: 'asc' },
@@ -40,7 +40,7 @@ export class InstitutionRepository {
     });
   }
 
-  async findByCode(codigoIes: number) {
+  async findInstitutionByCode(codigoIes: number) {
     return this.prisma.mecInstitution.findUnique({
       where: { codigoIes },
       include: {
@@ -75,7 +75,14 @@ export class InstitutionRepository {
     `;
   }
 
-  async getDistinctUfs(): Promise<string[]> {
+  async searchInstitutionsByName(
+    query: string,
+    limit: number,
+  ): Promise<Institution[]> {
+    return this.search(query, limit);
+  }
+
+  async findAllDistinctUfs(): Promise<string[]> {
     const ufs = await this.prisma.mecInstitution.findMany({
       where: { isActive: true },
       select: { uf: true },
@@ -85,7 +92,7 @@ export class InstitutionRepository {
     return ufs.map((u) => u.uf);
   }
 
-  async countByUf() {
+  async countByUf(): Promise<Array<{ uf: string; _count: number }>> {
     return this.prisma.mecInstitution.groupBy({
       by: ['uf'],
       where: { isActive: true },
@@ -94,40 +101,55 @@ export class InstitutionRepository {
     });
   }
 
-  async count(): Promise<number> {
+  async countInstitutionsByUf(): Promise<
+    Array<{ uf: string; _count: number }>
+  > {
+    return this.countByUf();
+  }
+
+  async countActiveInstitutions(): Promise<number> {
     return this.prisma.mecInstitution.count({ where: { isActive: true } });
   }
 
-  async getExistingCodes(): Promise<Set<number>> {
+  async findAllExistingInstitutionCodes(): Promise<Set<number>> {
     const existing = await this.prisma.mecInstitution.findMany({
       select: { codigoIes: true },
     });
     return new Set(existing.map((i) => i.codigoIes));
   }
 
-  async bulkCreate(institutions: NormalizedInstitution[]): Promise<number> {
-    let inserted = 0;
+  async bulkCreateInstitutions(
+    normalizedInstitutions: NormalizedInstitution[],
+  ): Promise<number> {
+    let insertedInstitutionCount = 0;
 
-    for (let i = 0; i < institutions.length; i += BATCH_SIZE) {
-      const batch = institutions.slice(i, i + BATCH_SIZE);
+    for (
+      let batchIndex = 0;
+      batchIndex < normalizedInstitutions.length;
+      batchIndex += BATCH_SIZE
+    ) {
+      const institutionBatch = normalizedInstitutions.slice(
+        batchIndex,
+        batchIndex + BATCH_SIZE,
+      );
 
       await this.prisma.mecInstitution.createMany({
-        data: batch.map((inst) => ({
-          codigoIes: inst.codigoIes,
-          nome: inst.nome,
-          sigla: inst.sigla,
-          organizacao: inst.organizacao,
-          categoria: inst.categoria,
-          uf: inst.uf,
-          municipio: inst.municipio,
-          codigoMunicipio: inst.codigoMunicipio,
+        data: institutionBatch.map((institution) => ({
+          codigoIes: institution.codigoIes,
+          nome: institution.nome,
+          sigla: institution.sigla,
+          organizacao: institution.organizacao,
+          categoria: institution.categoria,
+          uf: institution.uf,
+          municipio: institution.municipio,
+          codigoMunicipio: institution.codigoMunicipio,
         })),
         skipDuplicates: true,
       });
 
-      inserted += batch.length;
+      insertedInstitutionCount += institutionBatch.length;
     }
 
-    return inserted;
+    return insertedInstitutionCount;
   }
 }

@@ -4,37 +4,62 @@
  * Creates all remaining child issues and updates epics
  */
 
-const { execSync } = require('child_process');
-const REPO = 'octopus-synapse/profile-services';
+import { execSync } from 'child_process';
 
-function exec(cmd) {
+const REPOSITORY = 'octopus-synapse/profile-services';
+
+interface EpicNumbers {
+  readonly EXPORT: number;
+  readonly ANALYTICS: number;
+  readonly AI: number;
+  readonly OBSERVABILITY: number;
+}
+
+const EPIC_NUMBERS: EpicNumbers = {
+  EXPORT: 64,
+  ANALYTICS: 65,
+  AI: 66,
+  OBSERVABILITY: 68,
+};
+
+function executeCommand(command: string): string | null {
   try {
-    return execSync(cmd, { encoding: 'utf8', stdio: 'pipe' });
-  } catch (err) {
-    console.error(`❌ ${err.message}`);
+    return execSync(command, { encoding: 'utf8', stdio: 'pipe' });
+  } catch (error) {
+    console.error(
+      `❌ ${error instanceof Error ? error.message : String(error)}`,
+    );
     return null;
   }
 }
 
-function createIssue(title, labels, milestone, body, epic) {
-  const bodyWithEpic = `Part of #${epic}\n\n${body}`;
-  const cmd = `gh issue create --repo ${REPO} --title "${title}" --label "${labels}" --milestone "${milestone}" --body "${bodyWithEpic}"`;
+function createGitHubIssue(
+  title: string,
+  labels: string,
+  milestone: string,
+  body: string,
+  epicNumber: number,
+): string | null {
+  const bodyWithEpic = `Part of #${epicNumber}\n\n${body}`;
+  const command = `gh issue create --repo ${REPOSITORY} --title "${title}" --label "${labels}" --milestone "${milestone}" --body "${bodyWithEpic}"`;
 
-  const result = exec(cmd);
+  const result = executeCommand(command);
   if (result) {
     const match = result.match(/issues\/(\d+)/);
-    console.log(`✅ #${match[1]}: ${title}`);
-    return match[1];
+    if (match) {
+      console.log(`✅ #${match[1]}: ${title}`);
+      return match[1];
+    }
   }
   return null;
 }
 
-console.log('🚀 Creating Multi-Format Export issues...\n');
+function createMultiFormatExportIssues(): string[] {
+  console.log('🚀 Creating Multi-Format Export issues...\n');
 
-const exportIssues = [];
+  const createdIssueNumbers: string[] = [];
 
-exportIssues.push(
-  createIssue(
+  const docxExportIssueNumber = createGitHubIssue(
     'Implement Microsoft Word (.docx) export',
     'feature,backend',
     'Q1 2026 - Foundation & Compliance',
@@ -58,12 +83,13 @@ Export resumes to .docx format using docx library.
 
 ## Estimated Time
 7 days`,
-    64,
-  ),
-);
+    EPIC_NUMBERS.EXPORT,
+  );
+  if (docxExportIssueNumber) {
+    createdIssueNumbers.push(docxExportIssueNumber);
+  }
 
-exportIssues.push(
-  createIssue(
+  const latexExportIssueNumber = createGitHubIssue(
     'Implement LaTeX export for academic users',
     'feature,backend',
     'Q1 2026 - Foundation & Compliance',
@@ -85,12 +111,13 @@ Export resumes to LaTeX format using moderncv template.
 
 ## Estimated Time
 5 days`,
-    64,
-  ),
-);
+    EPIC_NUMBERS.EXPORT,
+  );
+  if (latexExportIssueNumber) {
+    createdIssueNumbers.push(latexExportIssueNumber);
+  }
 
-exportIssues.push(
-  createIssue(
+  const jsonExportIssueNumber = createGitHubIssue(
     'Implement JSON export for GDPR compliance',
     'feature,compliance,backend',
     'Q1 2026 - Foundation & Compliance',
@@ -112,12 +139,13 @@ Export user data in machine-readable JSON format (GDPR requirement).
 
 ## Estimated Time
 2 days`,
-    64,
-  ),
-);
+    EPIC_NUMBERS.EXPORT,
+  );
+  if (jsonExportIssueNumber) {
+    createdIssueNumbers.push(jsonExportIssueNumber);
+  }
 
-exportIssues.push(
-  createIssue(
+  const exportQueueIssueNumber = createGitHubIssue(
     'Implement async export queue with BullMQ',
     'technical-debt,performance,backend',
     'Q1 2026 - Foundation & Compliance',
@@ -141,16 +169,21 @@ Move all export operations to background queue to prevent request timeouts.
 
 ## Estimated Time
 5 days`,
-    64,
-  ),
-);
+    EPIC_NUMBERS.EXPORT,
+  );
+  if (exportQueueIssueNumber) {
+    createdIssueNumbers.push(exportQueueIssueNumber);
+  }
 
-console.log('\n🚀 Creating Resume Analytics issues...\n');
+  return createdIssueNumbers;
+}
 
-const analyticsIssues = [];
+function createResumeAnalyticsIssues(): string[] {
+  console.log('\n🚀 Creating Resume Analytics issues...\n');
 
-analyticsIssues.push(
-  createIssue(
+  const createdIssueNumbers: string[] = [];
+
+  const analyticsTrackingIssueNumber = createGitHubIssue(
     'Implement comprehensive analytics tracking',
     'feature,analytics,backend',
     'Q2 2026 - Differentiation & Analytics',
@@ -173,12 +206,13 @@ Track all resume interactions with detailed analytics.
 
 ## Estimated Time
 6 days`,
-    65,
-  ),
-);
+    EPIC_NUMBERS.ANALYTICS,
+  );
+  if (analyticsTrackingIssueNumber) {
+    createdIssueNumbers.push(analyticsTrackingIssueNumber);
+  }
 
-analyticsIssues.push(
-  createIssue(
+  const atsScoreIssueNumber = createGitHubIssue(
     'Calculate ATS-friendliness score',
     'feature,analytics,ai,backend',
     'Q2 2026 - Differentiation & Analytics',
@@ -204,12 +238,13 @@ Analyze resume and provide ATS compatibility score with actionable suggestions.
 
 ## Estimated Time
 8 days`,
-    65,
-  ),
-);
+    EPIC_NUMBERS.ANALYTICS,
+  );
+  if (atsScoreIssueNumber) {
+    createdIssueNumbers.push(atsScoreIssueNumber);
+  }
 
-analyticsIssues.push(
-  createIssue(
+  const keywordSuggestionsIssueNumber = createGitHubIssue(
     'AI-powered keyword suggestions',
     'feature,ai,backend',
     'Q2 2026 - Differentiation & Analytics',
@@ -228,16 +263,21 @@ Suggest relevant keywords based on industry and job title.
 
 ## Estimated Time
 7 days`,
-    65,
-  ),
-);
+    EPIC_NUMBERS.ANALYTICS,
+  );
+  if (keywordSuggestionsIssueNumber) {
+    createdIssueNumbers.push(keywordSuggestionsIssueNumber);
+  }
 
-console.log('\n🚀 Creating AI Features issues...\n');
+  return createdIssueNumbers;
+}
 
-const aiIssues = [];
+function createAiFeaturesIssues(): string[] {
+  console.log('\n🚀 Creating AI Features issues...\n');
 
-aiIssues.push(
-  createIssue(
+  const createdIssueNumbers: string[] = [];
+
+  const aiReviewIssueNumber = createGitHubIssue(
     'Implement AI-powered resume review',
     'feature,ai,backend',
     'Q2 2026 - Differentiation & Analytics',
@@ -264,12 +304,13 @@ Use GPT-4 to provide personalized resume improvement suggestions.
 
 ## Estimated Time
 8 days`,
-    66,
-  ),
-);
+    EPIC_NUMBERS.AI,
+  );
+  if (aiReviewIssueNumber) {
+    createdIssueNumbers.push(aiReviewIssueNumber);
+  }
 
-aiIssues.push(
-  createIssue(
+  const linkedinImportIssueNumber = createGitHubIssue(
     'Auto-fill resume from LinkedIn',
     'feature,integration,ai,backend',
     'Q2 2026 - Differentiation & Analytics',
@@ -292,16 +333,21 @@ LinkedIn official API has limited data access. May need browser automation (Pupp
 
 ## Estimated Time
 10 days`,
-    66,
-  ),
-);
+    EPIC_NUMBERS.AI,
+  );
+  if (linkedinImportIssueNumber) {
+    createdIssueNumbers.push(linkedinImportIssueNumber);
+  }
 
-console.log('\n🚀 Creating Observability issues...\n');
+  return createdIssueNumbers;
+}
 
-const obsIssues = [];
+function createObservabilityIssues(): string[] {
+  console.log('\n🚀 Creating Observability issues...\n');
 
-obsIssues.push(
-  createIssue(
+  const createdIssueNumbers: string[] = [];
+
+  const structuredLoggingIssueNumber = createGitHubIssue(
     'Implement structured JSON logging',
     'technical-debt,backend',
     'Q1 2026 - Foundation & Compliance',
@@ -319,12 +365,13 @@ Replace unstructured logs with JSON format for better searchability.
 
 ## Estimated Time
 4 days`,
-    68,
-  ),
-);
+    EPIC_NUMBERS.OBSERVABILITY,
+  );
+  if (structuredLoggingIssueNumber) {
+    createdIssueNumbers.push(structuredLoggingIssueNumber);
+  }
 
-obsIssues.push(
-  createIssue(
+  const openTelemetryIssueNumber = createGitHubIssue(
     'Implement OpenTelemetry tracing',
     'technical-debt,backend',
     'Q1 2026 - Foundation & Compliance',
@@ -342,12 +389,13 @@ Add distributed tracing to track request flow across services.
 
 ## Estimated Time
 6 days`,
-    68,
-  ),
-);
+    EPIC_NUMBERS.OBSERVABILITY,
+  );
+  if (openTelemetryIssueNumber) {
+    createdIssueNumbers.push(openTelemetryIssueNumber);
+  }
 
-obsIssues.push(
-  createIssue(
+  const metricsTrackingIssueNumber = createGitHubIssue(
     'Implement business metrics tracking',
     'technical-debt,backend',
     'Q1 2026 - Foundation & Compliance',
@@ -366,12 +414,13 @@ Track custom metrics for business KPIs.
 
 ## Estimated Time
 3 days`,
-    68,
-  ),
-);
+    EPIC_NUMBERS.OBSERVABILITY,
+  );
+  if (metricsTrackingIssueNumber) {
+    createdIssueNumbers.push(metricsTrackingIssueNumber);
+  }
 
-obsIssues.push(
-  createIssue(
+  const alertingIssueNumber = createGitHubIssue(
     'Configure production alerting',
     'technical-debt,backend',
     'Q1 2026 - Foundation & Compliance',
@@ -395,25 +444,46 @@ Set up alerts for critical failures and anomalies.
 
 ## Estimated Time
 3 days`,
-    68,
-  ),
-);
+    EPIC_NUMBERS.OBSERVABILITY,
+  );
+  if (alertingIssueNumber) {
+    createdIssueNumbers.push(alertingIssueNumber);
+  }
 
-// Update epics with child issues
-console.log('\n📝 Updating epic task lists...\n');
+  return createdIssueNumbers;
+}
 
-const exportList = exportIssues
-  .filter(Boolean)
-  .map((n) => `- [ ] #${n}`)
-  .join('\\n');
-exec(`gh issue edit 64 --repo ${REPO} --body "## Goal
+function updateEpicWithChildIssues(
+  epicNumber: number,
+  issueNumbers: string[],
+  epicBody: string,
+): void {
+  const issueList = issueNumbers
+    .filter(Boolean)
+    .map((issueNumber) => `- [ ] #${issueNumber}`)
+    .join('\\n');
+
+  const fullEpicBody = `${epicBody}\n\n## Child Issues\n${issueList}`;
+  const command = `gh issue edit ${epicNumber} --repo ${REPOSITORY} --body "${fullEpicBody}"`;
+  executeCommand(command);
+}
+
+function main(): void {
+  const exportIssueNumbers = createMultiFormatExportIssues();
+  const analyticsIssueNumbers = createResumeAnalyticsIssues();
+  const aiIssueNumbers = createAiFeaturesIssues();
+  const observabilityIssueNumbers = createObservabilityIssues();
+
+  console.log('\n📝 Updating epic task lists...\n');
+
+  updateEpicWithChildIssues(
+    EPIC_NUMBERS.EXPORT,
+    exportIssueNumbers,
+    `## Goal
 Support multiple export formats beyond PDF to increase resume versatility.
 
 ## Priority
 High
-
-## Child Issues
-${exportList}
 
 ## Acceptance Criteria
 - [ ] DOCX export (Microsoft Word)
@@ -422,20 +492,17 @@ ${exportList}
 - [ ] Export queue system (async processing)
 
 ## Estimated Effort
-19 development days across 4 issues"`);
+19 development days across 4 issues`,
+  );
 
-const analyticsList = analyticsIssues
-  .filter(Boolean)
-  .map((n) => `- [ ] #${n}`)
-  .join('\\n');
-exec(`gh issue edit 65 --repo ${REPO} --body "## Goal
+  updateEpicWithChildIssues(
+    EPIC_NUMBERS.ANALYTICS,
+    analyticsIssueNumbers,
+    `## Goal
 Provide data-driven insights to help users optimize their resumes.
 
 ## Priority
 High
-
-## Child Issues
-${analyticsList}
 
 ## Acceptance Criteria
 - [ ] View/download tracking
@@ -444,20 +511,17 @@ ${analyticsList}
 - [ ] Industry benchmarking
 
 ## Estimated Effort
-21 development days across 3 issues"`);
+21 development days across 3 issues`,
+  );
 
-const aiList = aiIssues
-  .filter(Boolean)
-  .map((n) => `- [ ] #${n}`)
-  .join('\\n');
-exec(`gh issue edit 66 --repo ${REPO} --body "## Goal
+  updateEpicWithChildIssues(
+    EPIC_NUMBERS.AI,
+    aiIssueNumbers,
+    `## Goal
 Integrate AI capabilities to provide intelligent resume suggestions and optimizations.
 
 ## Priority
 High
-
-## Child Issues
-${aiList}
 
 ## Acceptance Criteria
 - [ ] GPT-4 resume review
@@ -470,20 +534,17 @@ ${aiList}
 
 ## Cost Considerations
 - Implement rate limiting (3 reviews/day for free users)
-- Monitor OpenAI API usage"`);
+- Monitor OpenAI API usage`,
+  );
 
-const obsList = obsIssues
-  .filter(Boolean)
-  .map((n) => `- [ ] #${n}`)
-  .join('\\n');
-exec(`gh issue edit 68 --repo ${REPO} --body "## Goal
+  updateEpicWithChildIssues(
+    EPIC_NUMBERS.OBSERVABILITY,
+    observabilityIssueNumbers,
+    `## Goal
 Improve monitoring, logging, and performance bottlenecks.
 
 ## Priority
 High
-
-## Child Issues
-${obsList}
 
 ## Acceptance Criteria
 - [ ] Structured logging (JSON)
@@ -493,11 +554,15 @@ ${obsList}
 - [ ] Performance dashboards
 
 ## Estimated Effort
-16 development days across 4 issues"`);
+16 development days across 4 issues`,
+  );
 
-console.log('\n✅ All issues created and epics updated!');
-console.log('\n📊 Summary:');
-console.log(`- Export: ${exportIssues.filter(Boolean).length} issues`);
-console.log(`- Analytics: ${analyticsIssues.filter(Boolean).length} issues`);
-console.log(`- AI: ${aiIssues.filter(Boolean).length} issues`);
-console.log(`- Observability: ${obsIssues.filter(Boolean).length} issues`);
+  console.log('\n✅ All issues created and epics updated!');
+  console.log('\n📊 Summary:');
+  console.log(`- Export: ${exportIssueNumbers.length} issues`);
+  console.log(`- Analytics: ${analyticsIssueNumbers.length} issues`);
+  console.log(`- AI: ${aiIssueNumbers.length} issues`);
+  console.log(`- Observability: ${observabilityIssueNumbers.length} issues`);
+}
+
+main();

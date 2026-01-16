@@ -3,37 +3,49 @@
  * Create GraphQL Migration child issues
  */
 
-const { execSync } = require('child_process');
-const REPO = 'octopus-synapse/profile-services';
+import { execSync } from 'child_process';
 
-function exec(cmd) {
+const REPOSITORY = 'octopus-synapse/profile-services';
+const GRAPHQL_EPIC_NUMBER = 67;
+
+function executeCommand(command: string): string | null {
   try {
-    return execSync(cmd, { encoding: 'utf8', stdio: 'pipe' });
-  } catch (err) {
-    console.error(`❌ ${err.message}`);
+    return execSync(command, { encoding: 'utf8', stdio: 'pipe' });
+  } catch (error) {
+    console.error(
+      `❌ ${error instanceof Error ? error.message : String(error)}`,
+    );
     return null;
   }
 }
 
-function createIssue(title, labels, milestone, body, epic) {
-  const bodyWithEpic = `Part of #${epic}\n\n${body}`;
-  const cmd = `gh issue create --repo ${REPO} --title "${title}" --label "${labels}" --milestone "${milestone}" --body "${bodyWithEpic}"`;
+function createGitHubIssue(
+  title: string,
+  labels: string,
+  milestone: string,
+  body: string,
+  epicNumber: number,
+): string | null {
+  const bodyWithEpic = `Part of #${epicNumber}\n\n${body}`;
+  const command = `gh issue create --repo ${REPOSITORY} --title "${title}" --label "${labels}" --milestone "${milestone}" --body "${bodyWithEpic}"`;
 
-  const result = exec(cmd);
+  const result = executeCommand(command);
   if (result) {
     const match = result.match(/issues\/(\d+)/);
-    console.log(`✅ #${match[1]}: ${title}`);
-    return match[1];
+    if (match) {
+      console.log(`✅ #${match[1]}: ${title}`);
+      return match[1];
+    }
   }
   return null;
 }
 
-console.log('🚀 Creating GraphQL Migration issues...\n');
+function createGraphQLIssues(): string[] {
+  console.log('🚀 Creating GraphQL Migration issues...\n');
 
-const graphqlIssues = [];
+  const createdIssueNumbers: string[] = [];
 
-graphqlIssues.push(
-  createIssue(
+  const schemaDesignIssueNumber = createGitHubIssue(
     'Design GraphQL schema with Code-First approach',
     'graphql,backend',
     'Q3 2026 - Platform & Marketplace',
@@ -57,12 +69,13 @@ Design GraphQL schema using NestJS Code-First approach with GraphQL decorators.
 
 ## Estimated Time
 4 days`,
-    67,
-  ),
-);
+    GRAPHQL_EPIC_NUMBER,
+  );
+  if (schemaDesignIssueNumber) {
+    createdIssueNumbers.push(schemaDesignIssueNumber);
+  }
 
-graphqlIssues.push(
-  createIssue(
+  const dataLoaderIssueNumber = createGitHubIssue(
     'Implement DataLoader for N+1 query optimization',
     'graphql,performance,backend',
     'Q3 2026 - Platform & Marketplace',
@@ -86,12 +99,13 @@ Prevent N+1 queries in GraphQL resolvers using DataLoader pattern.
 
 ## Estimated Time
 5 days`,
-    67,
-  ),
-);
+    GRAPHQL_EPIC_NUMBER,
+  );
+  if (dataLoaderIssueNumber) {
+    createdIssueNumbers.push(dataLoaderIssueNumber);
+  }
 
-graphqlIssues.push(
-  createIssue(
+  const playgroundIssueNumber = createGitHubIssue(
     'Set up GraphQL Playground and documentation',
     'graphql,backend',
     'Q3 2026 - Platform & Marketplace',
@@ -110,25 +124,31 @@ Configure GraphQL Playground and auto-generate API documentation.
 
 ## Estimated Time
 3 days`,
-    67,
-  ),
-);
+    GRAPHQL_EPIC_NUMBER,
+  );
+  if (playgroundIssueNumber) {
+    createdIssueNumbers.push(playgroundIssueNumber);
+  }
 
-// Update epic #67 with child issues
-console.log('\n📝 Updating GraphQL epic task list...\n');
+  return createdIssueNumbers;
+}
 
-const graphqlList = graphqlIssues
-  .filter(Boolean)
-  .map((n) => `- [ ] #${n}`)
-  .join('\\n');
-exec(`gh issue edit 67 --repo ${REPO} --body "## Goal
+function updateGraphQLEpic(issueNumbers: string[]): void {
+  console.log('\n📝 Updating GraphQL epic task list...\n');
+
+  const issueList = issueNumbers
+    .filter(Boolean)
+    .map((issueNumber) => `- [ ] #${issueNumber}`)
+    .join('\\n');
+
+  const epicBody = `## Goal
 Migrate from REST to GraphQL API for more flexible data fetching and better developer experience.
 
 ## Priority
 Medium
 
 ## Child Issues
-${graphqlList}
+${issueList}
 
 ## Acceptance Criteria
 - [ ] GraphQL schema design (Code-First)
@@ -143,7 +163,18 @@ ${graphqlList}
 ## Migration Strategy
 - Run REST and GraphQL in parallel (no breaking changes)
 - Deprecate REST endpoints gradually
-- Target: Q4 2026 for full REST deprecation"`);
+- Target: Q4 2026 for full REST deprecation`;
 
-console.log('\n✅ GraphQL issues created and epic updated!');
-console.log(`\n📊 Created ${graphqlIssues.filter(Boolean).length} issues`);
+  const command = `gh issue edit ${GRAPHQL_EPIC_NUMBER} --repo ${REPOSITORY} --body "${epicBody}"`;
+  executeCommand(command);
+}
+
+function main(): void {
+  const createdIssueNumbers = createGraphQLIssues();
+  updateGraphQLEpic(createdIssueNumbers);
+
+  console.log('\n✅ GraphQL issues created and epic updated!');
+  console.log(`\n📊 Created ${createdIssueNumbers.length} issues`);
+}
+
+main();

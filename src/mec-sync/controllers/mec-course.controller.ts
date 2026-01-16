@@ -28,8 +28,8 @@ export class MecCourseController {
   @ApiOperation({ summary: 'Search courses' })
   @ApiQuery({ name: 'q', required: true })
   @ApiQuery({ name: 'limit', required: false, type: Number })
-  async searchCourses(
-    @Query('q') query: string,
+  async searchCoursesByName(
+    @Query('q') searchQuery: string,
     @Query('limit') limit?: string,
   ) {
     // BUG-035 FIX: Validate parseInt result
@@ -42,7 +42,7 @@ export class MecCourseController {
         );
       }
     }
-    return this.courseQuery.search(query, parsedLimit);
+    return this.courseQuery.searchCoursesByName(searchQuery, parsedLimit);
   }
 
   @Get(':codigoCurso')
@@ -52,6 +52,6 @@ export class MecCourseController {
   async getCourseByCode(
     @Param('codigoCurso', ParseIntPipe) codigoCurso: number,
   ) {
-    return this.courseQuery.getByCode(codigoCurso);
+    return this.courseQuery.findCourseByCode(codigoCurso);
   }
 }

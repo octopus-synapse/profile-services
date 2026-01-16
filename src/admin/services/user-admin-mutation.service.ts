@@ -29,20 +29,21 @@ export class UserAdminMutationService {
     private readonly passwordService: PasswordService,
   ) {}
 
-  async create(dto: AdminCreateUser) {
-    const { email, password, name, role } = dto;
+  async createUserAccount(createUserData: AdminCreateUser) {
+    const { email, password, name, role } = createUserData;
 
     const hashedPassword = await this.passwordService.hash(password);
 
     // BUG-001 FIX: Use try-catch with unique constraint instead of check-then-create
     try {
-      const user = await this.prisma.user.create({
-        data: {
-          email,
-          password: hashedPassword,
-          name,
-          role,
-        },
+      const userCreationData = {
+        email,
+        password: hashedPassword,
+        name,
+        role,
+      };
+      const createdUser = await this.prisma.user.create({
+        data: userCreationData,
         select: {
           id: true,
           email: true,
@@ -52,7 +53,11 @@ export class UserAdminMutationService {
         },
       });
 
-      return { success: true, user, message: 'User created successfully' };
+      return {
+        success: true,
+        user: createdUser,
+        message: 'User created successfully',
+      };
     } catch (error) {
       if (
         error instanceof Prisma.PrismaClientKnownRequestError &&
@@ -64,22 +69,22 @@ export class UserAdminMutationService {
     }
   }
 
-  async update(id: string, dto: AdminUpdateUser) {
-    const user = await this.findUserOrThrow(id);
+  async updateUserAccount(userId: string, updateUserData: AdminUpdateUser) {
+    const existingUser = await this.findUserByIdOrThrow(userId);
 
     // BUG-016 FIX: Check if removing admin role from last admin
-    if (dto.role !== undefined) {
+    if (updateUserData.role !== undefined) {
       await this.preventLastAdminRoleRemoval(
-        user.role as UserRole,
-        dto.role as UserRole,
+        existingUser.role as UserRole,
+        updateUserData.role as UserRole,
       );
     }
 
     // BUG-001/002 FIX: Use try-catch with unique constraint for email/username
     try {
       const updatedUser = await this.prisma.user.update({
-        where: { id },
-        data: dto,
+        where: { id: userId },
+        data: updateUserData,
         select: {
           id: true,
           email: true,
@@ -102,11 +107,11 @@ export class UserAdminMutationService {
         error.code === 'P2002'
       ) {
         // Determine which field caused the conflict
-        const target = error.meta?.target as string[] | undefined;
-        if (target?.includes('email')) {
+        const conflictTarget = error.meta?.target as string[] | undefined;
+        if (conflictTarget?.includes('email')) {
           throw new ConflictException(ERROR_MESSAGES.EMAIL_ALREADY_IN_USE);
         }
-        if (target?.includes('username')) {
+        if (conflictTarget?.includes('username')) {
           throw new ConflictException(ERROR_MESSAGES.USERNAME_ALREADY_IN_USE);
         }
         throw new ConflictException('A unique constraint was violated');
@@ -115,34 +120,41 @@ export class UserAdminMutationService {
     }
   }
 
-  async delete(id: string) {
-    const user = await this.findUserOrThrow(id);
-    await this.preventLastAdminDeletion(user.role as UserRole);
+  async deleteUserAccount(userId: string) {
+    const existingUser = await this.findUserByIdOrThrow(userId);
+    await this.preventLastAdminDeletion(existingUser.role as UserRole);
 
-    await this.prisma.user.delete({ where: { id } });
+    await this.prisma.user.delete({ where: { id: userId } });
 
     return { success: true, message: 'User deleted successfully' };
   }
 
-  async resetPassword(id: string, dto: AdminResetPassword) {
-    await this.findUserOrThrow(id);
+  async resetUserPassword(
+    userId: string,
+    resetPasswordData: AdminResetPassword,
+  ) {
+    await this.findUserByIdOrThrow(userId);
 
-    const hashedPassword = await this.passwordService.hash(dto.newPassword);
+    const hashedPassword = await this.passwordService.hash(
+      resetPasswordData.newPassword,
+    );
 
     await this.prisma.user.update({
-      where: { id },
+      where: { id: userId },
       data: { password: hashedPassword },
     });
 
     return { success: true, message: 'Password reset successfully' };
   }
 
-  private async findUserOrThrow(id: string) {
-    const user = await this.prisma.user.findUnique({ where: { id } });
-    if (!user) {
+  private async findUserByIdOrThrow(userId: string) {
+    const foundUser = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+    if (!foundUser) {
       throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
     }
-    return user;
+    return foundUser;
   }
 
   private async preventLastAdminDeletion(role: UserRole): Promise<void> {

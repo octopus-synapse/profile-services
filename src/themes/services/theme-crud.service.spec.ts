@@ -61,7 +61,7 @@ describe('ThemeCrudService', () => {
 
   describe('create', () => {
     it('should create theme successfully', async () => {
-      const result = await service.create('user-123', {
+      const result = await service.createThemeForUser('user-123', {
         name: 'New Theme',
         category: 'PROFESSIONAL' as any,
         styleConfig: { layout: { type: 'single-column' } },
@@ -82,7 +82,7 @@ describe('ThemeCrudService', () => {
 
     it('should validate layout config if provided', async () => {
       // This would test that validateConfig is called
-      await service.create('user-123', {
+      await service.createThemeForUser('user-123', {
         name: 'Theme with Config',
         styleConfig: { layout: { type: 'single-column' } },
       } as any);
@@ -99,7 +99,7 @@ describe('ThemeCrudService', () => {
         name: 'Updated Name',
       });
 
-      const result = await service.update('user-123', 'theme-1', {
+      const result = await service.updateThemeForUser('user-123', 'theme-1', {
         name: 'Updated Name',
       });
 
@@ -110,7 +110,9 @@ describe('ThemeCrudService', () => {
       mockPrisma.resumeTheme.findUnique.mockResolvedValue(mockTheme);
 
       await expect(
-        service.update('different-user', 'theme-1', { name: 'Hacked' }),
+        service.updateThemeForUser('different-user', 'theme-1', {
+          name: 'Hacked',
+        }),
       ).rejects.toThrow(ForbiddenException);
     });
 
@@ -126,7 +128,7 @@ describe('ThemeCrudService', () => {
       mockPrisma.resumeTheme.update.mockResolvedValue(mockTheme);
 
       await expect(
-        service.update('admin', 'theme-1', { name: 'Updated' }),
+        service.updateThemeForUser('admin', 'theme-1', { name: 'Updated' }),
       ).resolves.toBeDefined();
     });
 
@@ -141,7 +143,7 @@ describe('ThemeCrudService', () => {
       });
 
       await expect(
-        service.update('user', 'theme-1', { name: 'Hacked' }),
+        service.updateThemeForUser('user', 'theme-1', { name: 'Hacked' }),
       ).rejects.toThrow(ForbiddenException);
     });
 
@@ -149,7 +151,7 @@ describe('ThemeCrudService', () => {
       mockPrisma.resumeTheme.findUnique.mockResolvedValue(null);
 
       await expect(
-        service.update('user-123', 'nonexistent', { name: 'Test' }),
+        service.updateThemeForUser('user-123', 'nonexistent', { name: 'Test' }),
       ).rejects.toThrow(NotFoundException);
     });
   });
@@ -159,7 +161,7 @@ describe('ThemeCrudService', () => {
       mockPrisma.resumeTheme.findUnique.mockResolvedValue(mockTheme);
       mockPrisma.resumeTheme.delete.mockResolvedValue(mockTheme);
 
-      await service.delete('user-123', 'theme-1');
+      await service.deleteThemeForUser('user-123', 'theme-1');
 
       expect(mockPrisma.resumeTheme.delete).toHaveBeenCalledWith({
         where: { id: 'theme-1' },
@@ -170,7 +172,8 @@ describe('ThemeCrudService', () => {
       mockPrisma.resumeTheme.findUnique.mockResolvedValue(mockTheme);
 
       await expect(
-        async () => await service.delete('different-user', 'theme-1'),
+        async () =>
+          await service.deleteThemeForUser('different-user', 'theme-1'),
       ).toThrow(ForbiddenException);
     });
 
@@ -181,7 +184,7 @@ describe('ThemeCrudService', () => {
       });
 
       await expect(
-        async () => await service.delete('user-123', 'theme-1'),
+        async () => await service.deleteThemeForUser('user-123', 'theme-1'),
       ).toThrow(ForbiddenException);
     });
 
@@ -189,7 +192,7 @@ describe('ThemeCrudService', () => {
       mockPrisma.resumeTheme.findUnique.mockResolvedValue(null);
 
       await expect(
-        async () => await service.delete('user-123', 'nonexistent'),
+        async () => await service.deleteThemeForUser('user-123', 'nonexistent'),
       ).toThrow(NotFoundException);
     });
   });
@@ -198,7 +201,7 @@ describe('ThemeCrudService', () => {
     it('should return theme when found', async () => {
       mockPrisma.resumeTheme.findUnique.mockResolvedValue(mockTheme);
 
-      const result = await service.findOrFail('theme-1');
+      const result = await service.findThemeByIdOrThrow('theme-1');
 
       expect(result).toEqual(mockTheme);
     });
@@ -206,9 +209,9 @@ describe('ThemeCrudService', () => {
     it('should throw NotFoundException when not found', async () => {
       mockPrisma.resumeTheme.findUnique.mockResolvedValue(null);
 
-      await expect(async () => await service.findOrFail('nonexistent')).toThrow(
-        NotFoundException,
-      );
+      await expect(
+        async () => await service.findThemeByIdOrThrow('nonexistent'),
+      ).toThrow(NotFoundException);
     });
   });
 });

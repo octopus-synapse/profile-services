@@ -29,13 +29,13 @@ describe('UsernameService', () => {
 
   beforeEach(async () => {
     mockUsersRepository = {
-      getUser: mock().mockResolvedValue(mockUser),
+      findUserById: mock().mockResolvedValue(mockUser),
       updateUsername: mock().mockResolvedValue({
         ...mockUser,
         username: 'newuser',
       }),
       isUsernameTaken: mock().mockResolvedValue(false),
-      getLastUsernameUpdate: mock().mockResolvedValue(null),
+      findLastUsernameUpdateByUserId: mock().mockResolvedValue(null),
     } as any;
 
     const module: TestingModule = await Test.createTestingModule({
@@ -55,7 +55,7 @@ describe('UsernameService', () => {
   describe('updateUsername', () => {
     describe('User validation', () => {
       it('should throw NotFoundException when user does not exist', async () => {
-        mockUsersRepository.getUser.mockResolvedValue(null);
+        mockUsersRepository.findUserById.mockResolvedValue(null);
 
         await expect(
           service.updateUsername('nonexistent', { username: 'newuser' }),
@@ -154,7 +154,9 @@ describe('UsernameService', () => {
 
     describe('Cooldown validation', () => {
       it('should allow when never changed before (null)', async () => {
-        mockUsersRepository.getLastUsernameUpdate.mockResolvedValue(null);
+        mockUsersRepository.findLastUsernameUpdateByUserId.mockResolvedValue(
+          null,
+        );
 
         const result = await service.updateUsername('user-123', {
           username: 'newuser',
@@ -164,7 +166,7 @@ describe('UsernameService', () => {
 
       it('should reject within 30 days of last change', async () => {
         const fifteenDaysAgo = new Date(Date.now() - 15 * 24 * 60 * 60 * 1000);
-        mockUsersRepository.getLastUsernameUpdate.mockResolvedValue(
+        mockUsersRepository.findLastUsernameUpdateByUserId.mockResolvedValue(
           fifteenDaysAgo,
         );
 
@@ -177,7 +179,7 @@ describe('UsernameService', () => {
         const thirtyOneDaysAgo = new Date(
           Date.now() - 31 * 24 * 60 * 60 * 1000,
         );
-        mockUsersRepository.getLastUsernameUpdate.mockResolvedValue(
+        mockUsersRepository.findLastUsernameUpdateByUserId.mockResolvedValue(
           thirtyOneDaysAgo,
         );
 
@@ -189,7 +191,7 @@ describe('UsernameService', () => {
 
       it('should show remaining days in error message', async () => {
         const twentyDaysAgo = new Date(Date.now() - 20 * 24 * 60 * 60 * 1000);
-        mockUsersRepository.getLastUsernameUpdate.mockResolvedValue(
+        mockUsersRepository.findLastUsernameUpdateByUserId.mockResolvedValue(
           twentyDaysAgo,
         );
 

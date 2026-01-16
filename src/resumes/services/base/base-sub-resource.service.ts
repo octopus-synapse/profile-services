@@ -51,7 +51,10 @@ export abstract class BaseSubResourceService<T, Create, Update> {
     resumeId: string,
     userId: string,
   ): Promise<void> {
-    const resume = await this.resumesRepository.findOne(resumeId, userId);
+    const resume = await this.resumesRepository.findResumeByIdAndUserId(
+      resumeId,
+      userId,
+    );
     if (!resume) {
       // Security: Log unauthorized access attempts for audit trail
       this.logger.warn(`Unauthorized ${this.entityName} access attempt`, {
@@ -66,78 +69,91 @@ export abstract class BaseSubResourceService<T, Create, Update> {
   /**
    * List all entities for a resume with pagination
    */
-  async listForResume(
+  async listAllEntitiesForResume(
     resumeId: string,
     userId: string,
     page: number = 1,
     limit: number = 20,
   ): Promise<PaginatedResult<T>> {
     await this.validateResumeOwnership(resumeId, userId);
-    return this.repository.findAll(resumeId, page, limit);
+    return this.repository.findAllEntitiesForResume(resumeId, page, limit);
   }
 
   /**
    * Get a single entity by its ID
    * Throws NotFoundException if not found
    */
-  async getById(
+  async getEntityByIdForResume(
     resumeId: string,
     entityId: string,
     userId: string,
   ): Promise<DataResponse<T>> {
     await this.validateResumeOwnership(resumeId, userId);
-    const entity = await this.repository.findOne(entityId, resumeId);
-    if (!entity) {
+    const foundEntity = await this.repository.findEntityByIdAndResumeId(
+      entityId,
+      resumeId,
+    );
+    if (!foundEntity) {
       throw new NotFoundException(`${this.entityName} not found`);
     }
-    return ApiResponseHelper.success(entity);
+    return ApiResponseHelper.success(foundEntity);
   }
 
   /**
    * Add a new entity to the resume
    */
-  async addToResume(
+  async addEntityToResume(
     resumeId: string,
     userId: string,
     entityData: Create,
   ): Promise<DataResponse<T>> {
     await this.validateResumeOwnership(resumeId, userId);
     this.logger.log(`Creating ${this.entityName} for resume: ${resumeId}`);
-    const entity = await this.repository.create(resumeId, entityData);
-    return ApiResponseHelper.success(entity);
+    const createdEntity = await this.repository.createEntityForResume(
+      resumeId,
+      entityData,
+    );
+    return ApiResponseHelper.success(createdEntity);
   }
 
   /**
    * Update an existing entity by its ID
    * Throws NotFoundException if not found
    */
-  async updateById(
+  async updateEntityByIdForResume(
     resumeId: string,
     entityId: string,
     userId: string,
     updateData: Update,
   ): Promise<DataResponse<T>> {
     await this.validateResumeOwnership(resumeId, userId);
-    const entity = await this.repository.update(entityId, resumeId, updateData);
-    if (!entity) {
+    const updatedEntity = await this.repository.updateEntityForResume(
+      entityId,
+      resumeId,
+      updateData,
+    );
+    if (!updatedEntity) {
       throw new NotFoundException(`${this.entityName} not found`);
     }
     this.logger.log(`Updated ${this.entityName}: ${entityId}`);
-    return ApiResponseHelper.success(entity);
+    return ApiResponseHelper.success(updatedEntity);
   }
 
   /**
    * Delete an entity by its ID
    * Throws NotFoundException if not found
    */
-  async deleteById(
+  async deleteEntityByIdForResume(
     resumeId: string,
     entityId: string,
     userId: string,
   ): Promise<MessageResponse> {
     await this.validateResumeOwnership(resumeId, userId);
-    const deleted = await this.repository.delete(entityId, resumeId);
-    if (!deleted) {
+    const wasEntityDeleted = await this.repository.deleteEntityForResume(
+      entityId,
+      resumeId,
+    );
+    if (!wasEntityDeleted) {
       throw new NotFoundException(`${this.entityName} not found`);
     }
     this.logger.log(`Deleted ${this.entityName}: ${entityId}`);
@@ -147,13 +163,13 @@ export abstract class BaseSubResourceService<T, Create, Update> {
   /**
    * Reorder entities within a resume
    */
-  async reorderInResume(
+  async reorderEntitiesInResume(
     resumeId: string,
     userId: string,
     entityIds: string[],
   ): Promise<MessageResponse> {
     await this.validateResumeOwnership(resumeId, userId);
-    await this.repository.reorder(resumeId, entityIds);
+    await this.repository.reorderEntitiesForResume(resumeId, entityIds);
     return ApiResponseHelper.message(
       `${this.entityName}s reordered successfully`,
     );

@@ -11,13 +11,13 @@ import { User, UserPreferences } from '@prisma/client';
 export class UserQueryRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getUser(userId: string): Promise<User | null> {
+  async findUserById(userId: string): Promise<User | null> {
     return await this.prisma.user.findUnique({
       where: { id: userId },
     });
   }
 
-  async getUserWithPreferences(
+  async findUserWithPreferencesById(
     userId: string,
   ): Promise<(User & { preferences: UserPreferences | null }) | null> {
     return await this.prisma.user.findUnique({
@@ -26,7 +26,7 @@ export class UserQueryRepository {
     });
   }
 
-  async findByUsername(
+  async findUserByUsername(
     username: string,
   ): Promise<(User & { preferences: UserPreferences | null }) | null> {
     return await this.prisma.user.findUnique({
@@ -35,7 +35,7 @@ export class UserQueryRepository {
     });
   }
 
-  async getUserProfile(userId: string): Promise<Partial<User> | null> {
+  async findUserProfileById(userId: string): Promise<Partial<User> | null> {
     return await this.prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -53,7 +53,7 @@ export class UserQueryRepository {
     });
   }
 
-  async getUserPreferences(userId: string): Promise<Partial<User> | null> {
+  async findUserPreferencesById(userId: string): Promise<Partial<User> | null> {
     return await this.prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -63,7 +63,7 @@ export class UserQueryRepository {
     });
   }
 
-  async getFullUserPreferences(
+  async findFullUserPreferencesByUserId(
     userId: string,
   ): Promise<UserPreferences | null> {
     return await this.prisma.userPreferences.findUnique({
@@ -75,21 +75,21 @@ export class UserQueryRepository {
     username: string,
     excludeUserId?: string,
   ): Promise<boolean> {
-    const user = await this.prisma.user.findUnique({
+    const existingUser = await this.prisma.user.findUnique({
       where: { username },
       select: { id: true },
     });
 
-    if (!user) return false;
-    if (excludeUserId && user.id === excludeUserId) return false;
+    if (!existingUser) return false;
+    if (excludeUserId && existingUser.id === excludeUserId) return false;
     return true;
   }
 
-  async getLastUsernameUpdate(userId: string): Promise<Date | null> {
-    const user = await this.prisma.user.findUnique({
+  async findLastUsernameUpdateByUserId(userId: string): Promise<Date | null> {
+    const foundUser = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { usernameUpdatedAt: true },
     });
-    return user?.usernameUpdatedAt ?? null;
+    return foundUser?.usernameUpdatedAt ?? null;
   }
 }

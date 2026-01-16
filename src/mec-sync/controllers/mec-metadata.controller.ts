@@ -22,21 +22,21 @@ export class MecMetadataController {
   @Get('ufs')
   @Public()
   @ApiOperation({ summary: 'List all states (UFs)' })
-  async listStates() {
-    return this.institutionQuery.getStateList();
+  async listAllStateCodes() {
+    return this.institutionQuery.findAllStateCodes();
   }
 
   @Get('areas')
   @Public()
   @ApiOperation({ summary: 'List knowledge areas' })
-  async listKnowledgeAreas() {
-    return this.courseQuery.getKnowledgeAreas();
+  async listAllKnowledgeAreas() {
+    return this.courseQuery.findAllKnowledgeAreas();
   }
 
   @Get('stats')
   @Public()
   @ApiOperation({ summary: 'Get MEC statistics' })
-  async getStats() {
-    return this.statsService.getStats();
+  async getMecStatistics() {
+    return this.statsService.getMecStatistics();
   }
 }

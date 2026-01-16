@@ -13,7 +13,7 @@ import { BATCH_SIZE } from '../constants';
 export class CourseRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findByInstitution(codigoIes: number): Promise<Course[]> {
+  async findCoursesByInstitutionCode(codigoIes: number): Promise<Course[]> {
     const courses = await this.prisma.mecCourse.findMany({
       where: { codigoIes, isActive: true },
       orderBy: { nome: 'asc' },
@@ -27,7 +27,7 @@ export class CourseRepository {
     return courses.map((course) => this.mapTo(course));
   }
 
-  async findByCode(codigoCurso: number): Promise<Course | null> {
+  async findCourseByCode(codigoCurso: number): Promise<Course | null> {
     const course = await this.prisma.mecCourse.findUnique({
       where: { codigoCurso },
       include: {
@@ -40,7 +40,7 @@ export class CourseRepository {
     return course ? this.mapTo(course) : null;
   }
 
-  async search(query: string, limit: number): Promise<Course[]> {
+  async searchCoursesByName(query: string, limit: number): Promise<Course[]> {
     const courses = await this.prisma.$queryRaw<
       Array<{
         id: string;
@@ -80,7 +80,7 @@ export class CourseRepository {
     }));
   }
 
-  async getDistinctAreas(): Promise<string[]> {
+  async findAllDistinctKnowledgeAreas(): Promise<string[]> {
     const areas = await this.prisma.mecCourse.findMany({
       where: { isActive: true, areaConhecimento: { not: null } },
       select: { areaConhecimento: true },
@@ -93,7 +93,9 @@ export class CourseRepository {
       .filter((a): a is string => a !== null);
   }
 
-  async countByDegree() {
+  async countCoursesByDegree(): Promise<
+    Array<{ grau: string | null; _count: number }>
+  > {
     return this.prisma.mecCourse.groupBy({
       by: ['grau'],
       where: { isActive: true },
@@ -105,25 +107,38 @@ export class CourseRepository {
     return this.prisma.mecCourse.count({ where: { isActive: true } });
   }
 
-  async getExistingCodes(): Promise<Set<number>> {
+  async countActiveCourses(): Promise<number> {
+    return this.count();
+  }
+
+  async findAllExistingCourseCodes(): Promise<Set<number>> {
     const existing = await this.prisma.mecCourse.findMany({
       select: { codigoCurso: true },
     });
     return new Set(existing.map((c) => c.codigoCurso));
   }
 
-  async bulkCreate(
-    courses: NormalizedCourse[],
-    validIesCodes: Set<number>,
+  async bulkCreateCourses(
+    normalizedCourses: NormalizedCourse[],
+    validInstitutionCodes: Set<number>,
   ): Promise<number> {
-    const validCourses = courses.filter((c) => validIesCodes.has(c.codigoIes));
-    let inserted = 0;
+    const validCoursesForInstitutions = normalizedCourses.filter((course) =>
+      validInstitutionCodes.has(course.codigoIes),
+    );
+    let insertedCourseCount = 0;
 
-    for (let i = 0; i < validCourses.length; i += BATCH_SIZE) {
-      const batch = validCourses.slice(i, i + BATCH_SIZE);
+    for (
+      let batchIndex = 0;
+      batchIndex < validCoursesForInstitutions.length;
+      batchIndex += BATCH_SIZE
+    ) {
+      const courseBatch = validCoursesForInstitutions.slice(
+        batchIndex,
+        batchIndex + BATCH_SIZE,
+      );
 
       await this.prisma.mecCourse.createMany({
-        data: batch.map((course) => ({
+        data: courseBatch.map((course) => ({
           codigoCurso: course.codigoCurso,
           codigoIes: course.codigoIes,
           nome: course.nome,
@@ -136,10 +151,10 @@ export class CourseRepository {
         skipDuplicates: true,
       });
 
-      inserted += batch.length;
+      insertedCourseCount += courseBatch.length;
     }
 
-    return inserted;
+    return insertedCourseCount;
   }
 
   private mapTo(course: {

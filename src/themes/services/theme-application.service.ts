@@ -27,33 +27,36 @@ export class ThemeApplicationService {
     private query: ThemeQueryService,
   ) {}
 
-  async applyToResume(userId: string, dto: ApplyThemeToResume) {
-    const resume = await this.prisma.resume.findUnique({
-      where: { id: dto.resumeId },
+  async applyToResume(userId: string, applyThemeData: ApplyThemeToResume) {
+    const existingResume = await this.prisma.resume.findUnique({
+      where: { id: applyThemeData.resumeId },
     });
 
-    if (resume?.userId !== userId) {
+    if (existingResume?.userId !== userId) {
       throw new ForbiddenException(ERROR_MESSAGES.RESUME_ACCESS_DENIED);
     }
 
     // Verify theme access
-    const theme = await this.query.findOne(dto.themeId, userId);
-    if (!theme) {
+    const selectedTheme = await this.query.findThemeById(
+      applyThemeData.themeId,
+      userId,
+    );
+    if (!selectedTheme) {
       throw new NotFoundException(ERROR_MESSAGES.THEME_ACCESS_DENIED);
     }
 
     // Apply theme and increment usage
     await this.prisma.$transaction([
       this.prisma.resume.update({
-        where: { id: dto.resumeId },
+        where: { id: applyThemeData.resumeId },
         data: {
-          activeThemeId: dto.themeId,
-          customTheme: (dto.customizations ??
+          activeThemeId: applyThemeData.themeId,
+          customTheme: (applyThemeData.customizations ??
             Prisma.JsonNull) as Prisma.InputJsonValue,
         },
       }),
       this.prisma.resumeTheme.update({
-        where: { id: dto.themeId },
+        where: { id: applyThemeData.themeId },
         data: { usageCount: { increment: 1 } },
       }),
     ]);
@@ -61,53 +64,60 @@ export class ThemeApplicationService {
     return { success: true };
   }
 
-  async fork(userId: string, dto: ForkTheme) {
-    const original = await this.crud.findOrFail(dto.themeId);
+  async forkThemeForUser(userId: string, forkThemeData: ForkTheme) {
+    const originalTheme = await this.crud.findThemeByIdOrThrow(
+      forkThemeData.themeId,
+    );
 
     // Can fork published or own themes
     if (
-      original.status !== ThemeStatus.PUBLISHED &&
-      original.authorId !== userId
+      originalTheme.status !== ThemeStatus.PUBLISHED &&
+      originalTheme.authorId !== userId
     ) {
       throw new ForbiddenException(ERROR_MESSAGES.CANNOT_FORK_THEME);
     }
 
+    const forkedThemeData = {
+      name: forkThemeData.name,
+      description: `Forked from ${originalTheme.name}`,
+      category: originalTheme.category,
+      tags: originalTheme.tags,
+      styleConfig: originalTheme.styleConfig as Prisma.InputJsonValue,
+      parentThemeId: originalTheme.id,
+      authorId: userId,
+      status: ThemeStatus.PRIVATE,
+    };
+
     return this.prisma.resumeTheme.create({
-      data: {
-        name: dto.name,
-        description: `Forked from ${original.name}`,
-        category: original.category,
-        tags: original.tags,
-        styleConfig: original.styleConfig as Prisma.InputJsonValue,
-        parentThemeId: original.id,
-        authorId: userId,
-        status: ThemeStatus.PRIVATE,
-      },
+      data: forkedThemeData,
     });
   }
 
   async getResolvedConfig(resumeId: string, userId: string) {
-    const resume = await this.prisma.resume.findUnique({
+    const existingResume = await this.prisma.resume.findUnique({
       where: { id: resumeId },
       include: { activeTheme: true },
     });
 
-    if (!resume || resume.userId !== userId) {
+    if (!existingResume || existingResume.userId !== userId) {
       throw new ForbiddenException(ERROR_MESSAGES.RESUME_NOT_FOUND);
     }
 
-    if (!resume.activeTheme) {
+    if (!existingResume.activeTheme) {
       return null;
     }
 
-    const baseConfig = resume.activeTheme.styleConfig as Record<
+    const baseThemeConfig = existingResume.activeTheme.styleConfig as Record<
       string,
       unknown
     >;
-    const overrides = resume.customTheme as Record<string, unknown> | null;
+    const customThemeOverrides = existingResume.customTheme as Record<
+      string,
+      unknown
+    > | null;
 
-    if (!overrides) return baseConfig;
+    if (!customThemeOverrides) return baseThemeConfig;
 
-    return deepMerge(baseConfig, overrides);
+    return deepMerge(baseThemeConfig, customThemeOverrides);
   }
 }

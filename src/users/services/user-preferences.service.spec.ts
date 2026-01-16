@@ -13,10 +13,10 @@ describe('UserPreferencesService', () => {
 
   beforeEach(async () => {
     usersRepository = {
-      getUser: mock(),
-      getUserPreferences: mock(),
+      findUserById: mock(),
+      findUserPreferencesById: mock(),
       updateUserPreferences: mock(),
-      getFullUserPreferences: mock(),
+      findFullUserPreferencesByUserId: mock(),
       upsertFullUserPreferences: mock(),
     } as any;
 
@@ -47,20 +47,20 @@ describe('UserPreferencesService', () => {
         emailNotifications: true,
       };
 
-      usersRepository.getUserPreferences.mockResolvedValue(
+      usersRepository.findUserPreferencesById.mockResolvedValue(
         mockPreferences as any,
       );
 
       const result = await service.getPreferences('user-123');
 
       expect(result).toEqual(mockPreferences);
-      expect(usersRepository.getUserPreferences).toHaveBeenCalledWith(
+      expect(usersRepository.findUserPreferencesById).toHaveBeenCalledWith(
         'user-123',
       );
     });
 
     it('should throw NotFoundException when preferences do not exist', async () => {
-      usersRepository.getUserPreferences.mockResolvedValue(null);
+      usersRepository.findUserPreferencesById.mockResolvedValue(null);
 
       await expect(
         async () => await service.getPreferences('nonexistent-id'),
@@ -70,7 +70,7 @@ describe('UserPreferencesService', () => {
     it('should return empty preferences object when user exists but has no preferences', async () => {
       const mockPreferences = {};
 
-      usersRepository.getUserPreferences.mockResolvedValue(
+      usersRepository.findUserPreferencesById.mockResolvedValue(
         mockPreferences as any,
       );
 
@@ -89,7 +89,7 @@ describe('UserPreferencesService', () => {
       };
       const mockUser = { id: userId, username: 'johndoe' };
 
-      usersRepository.getUser.mockResolvedValue(mockUser as any);
+      usersRepository.findUserById.mockResolvedValue(mockUser as any);
       usersRepository.updateUserPreferences.mockResolvedValue(undefined);
 
       const result = await service.updatePreferences(userId, updateDto);
@@ -112,7 +112,7 @@ describe('UserPreferencesService', () => {
     it('should throw NotFoundException when user does not exist', async () => {
       const updateDto = { palette: 'green' };
 
-      usersRepository.getUser.mockResolvedValue(null);
+      usersRepository.findUserById.mockResolvedValue(null);
 
       await expect(
         service.updatePreferences('nonexistent-id', updateDto),
@@ -127,7 +127,7 @@ describe('UserPreferencesService', () => {
       const updateDto = { displayName: 'New Display Name' };
       const mockUser = { id: userId };
 
-      usersRepository.getUser.mockResolvedValue(mockUser as any);
+      usersRepository.findUserById.mockResolvedValue(mockUser as any);
       usersRepository.updateUserPreferences.mockResolvedValue(undefined);
 
       const result = await service.updatePreferences(userId, updateDto);
@@ -149,7 +149,7 @@ describe('UserPreferencesService', () => {
       };
       const mockUser = { id: userId };
 
-      usersRepository.getUser.mockResolvedValue(mockUser as any);
+      usersRepository.findUserById.mockResolvedValue(mockUser as any);
       usersRepository.updateUserPreferences.mockResolvedValue(undefined);
 
       await service.updatePreferences(userId, updateDto);
@@ -172,20 +172,20 @@ describe('UserPreferencesService', () => {
         twoFactorEnabled: true,
       };
 
-      usersRepository.getFullUserPreferences.mockResolvedValue(
+      usersRepository.findFullUserPreferencesByUserId.mockResolvedValue(
         mockFullPreferences as any,
       );
 
       const result = await service.getFullPreferences('user-123');
 
       expect(result).toEqual(mockFullPreferences);
-      expect(usersRepository.getFullUserPreferences).toHaveBeenCalledWith(
-        'user-123',
-      );
+      expect(
+        usersRepository.findFullUserPreferencesByUserId,
+      ).toHaveBeenCalledWith('user-123');
     });
 
     it('should return empty object when full preferences do not exist', async () => {
-      usersRepository.getFullUserPreferences.mockResolvedValue(null);
+      usersRepository.findFullUserPreferencesByUserId.mockResolvedValue(null);
 
       const result = await service.getFullPreferences('user-123');
 
@@ -193,7 +193,7 @@ describe('UserPreferencesService', () => {
     });
 
     it('should return empty object when full preferences are undefined', async () => {
-      usersRepository.getFullUserPreferences.mockResolvedValue(
+      usersRepository.findFullUserPreferencesByUserId.mockResolvedValue(
         undefined as any,
       );
 
@@ -218,7 +218,7 @@ describe('UserPreferencesService', () => {
         marketingEmails: true,
       };
 
-      usersRepository.getUser.mockResolvedValue(mockUser as any);
+      usersRepository.findUserById.mockResolvedValue(mockUser as any);
       usersRepository.upsertFullUserPreferences.mockResolvedValue(
         mockUpdatedPreferences as any,
       );
@@ -243,7 +243,7 @@ describe('UserPreferencesService', () => {
     it('should throw NotFoundException when user does not exist', async () => {
       const updateDto = { theme: 'dark' };
 
-      usersRepository.getUser.mockResolvedValue(null);
+      usersRepository.findUserById.mockResolvedValue(null);
 
       await expect(
         service.updateFullPreferences('nonexistent-id', updateDto),
@@ -264,7 +264,7 @@ describe('UserPreferencesService', () => {
       const mockUser = { id: userId };
       const mockNewPreferences = updateDto;
 
-      usersRepository.getUser.mockResolvedValue(mockUser as any);
+      usersRepository.findUserById.mockResolvedValue(mockUser as any);
       usersRepository.upsertFullUserPreferences.mockResolvedValue(
         mockNewPreferences as any,
       );
@@ -289,7 +289,7 @@ describe('UserPreferencesService', () => {
       };
       const mockUser = { id: userId };
 
-      usersRepository.getUser.mockResolvedValue(mockUser as any);
+      usersRepository.findUserById.mockResolvedValue(mockUser as any);
       usersRepository.upsertFullUserPreferences.mockResolvedValue(
         updateDto as any,
       );

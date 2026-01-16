@@ -36,16 +36,16 @@ describe('EducationService', () => {
 
   beforeEach(async () => {
     const mockEducationRepository = {
-      findAll: mock(),
-      findOne: mock(),
-      create: mock(),
-      update: mock(),
-      delete: mock(),
-      reorder: mock(),
+      findAllEntitiesForResume: mock(),
+      findEntityByIdAndResumeId: mock(),
+      createEntityForResume: mock(),
+      updateEntityForResume: mock(),
+      deleteEntityForResume: mock(),
+      reorderEntitiesForResume: mock(),
     };
 
     const mockResumesRepository = {
-      findOne: mock(),
+      findResumeByIdAndUserId: mock(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -64,7 +64,7 @@ describe('EducationService', () => {
     spyOn(Logger.prototype, 'warn').mockImplementation();
   });
 
-  describe('listForResume', () => {
+  describe('listAllEntitiesForResume', () => {
     it('should return paginated education entries', async () => {
       const paginatedResult = {
         data: [mockEducation],
@@ -78,13 +78,20 @@ describe('EducationService', () => {
         },
       };
 
-      resumesRepository.findOne.mockResolvedValue(mockResume as any);
-      educationRepository.findAll.mockResolvedValue(paginatedResult);
+      resumesRepository.findResumeByIdAndUserId.mockResolvedValue(
+        mockResume as any,
+      );
+      educationRepository.findAllEntitiesForResume.mockResolvedValue(
+        paginatedResult,
+      );
 
-      const result = await service.listForResume('resume-123', 'user-123');
+      const result = await service.listAllEntitiesForResume(
+        'resume-123',
+        'user-123',
+      );
 
       expect(result).toEqual(paginatedResult);
-      expect(educationRepository.findAll).toHaveBeenCalledWith(
+      expect(educationRepository.findAllEntitiesForResume).toHaveBeenCalledWith(
         'resume-123',
         1,
         20,
@@ -94,29 +101,38 @@ describe('EducationService', () => {
 
   describe('getById', () => {
     it('should return single education entry', async () => {
-      resumesRepository.findOne.mockResolvedValue(mockResume as any);
-      educationRepository.findOne.mockResolvedValue(mockEducation);
+      resumesRepository.findResumeByIdAndUserId.mockResolvedValue(
+        mockResume as any,
+      );
+      educationRepository.findEntityByIdAndResumeId.mockResolvedValue(
+        mockEducation,
+      );
 
-      const result = await service.getById('resume-123', 'edu-123', 'user-123');
+      const result = await service.getEntityByIdForResume(
+        'resume-123',
+        'edu-123',
+        'user-123',
+      );
 
       expect(result.data).toEqual(mockEducation);
-      expect(educationRepository.findOne).toHaveBeenCalledWith(
-        'edu-123',
-        'resume-123',
-      );
+      expect(
+        educationRepository.findEntityByIdAndResumeId,
+      ).toHaveBeenCalledWith('edu-123', 'resume-123');
     });
 
     it('should throw NotFoundException when not found', async () => {
-      resumesRepository.findOne.mockResolvedValue(mockResume as any);
-      educationRepository.findOne.mockResolvedValue(null);
+      resumesRepository.findResumeByIdAndUserId.mockResolvedValue(
+        mockResume as any,
+      );
+      educationRepository.findEntityByIdAndResumeId.mockResolvedValue(null);
 
       await expect(
-        service.getById('resume-123', 'invalid-id', 'user-123'),
+        service.getEntityByIdForResume('resume-123', 'invalid-id', 'user-123'),
       ).rejects.toThrow('Education not found');
     });
   });
 
-  describe('addToResume', () => {
+  describe('addEntityToResume', () => {
     it('should create new education entry', async () => {
       const createDto: CreateEducationDto = {
         institution: 'Harvard',
@@ -125,36 +141,42 @@ describe('EducationService', () => {
         startDate: '2022-09-01',
       };
 
-      resumesRepository.findOne.mockResolvedValue(mockResume as any);
-      educationRepository.create.mockResolvedValue(mockEducation);
+      resumesRepository.findResumeByIdAndUserId.mockResolvedValue(
+        mockResume as any,
+      );
+      educationRepository.createEntityForResume.mockResolvedValue(
+        mockEducation,
+      );
 
-      const result = await service.addToResume(
+      const result = await service.addEntityToResume(
         'resume-123',
         'user-123',
         createDto,
       );
 
       expect(result.data).toEqual(mockEducation);
-      expect(educationRepository.create).toHaveBeenCalledWith(
+      expect(educationRepository.createEntityForResume).toHaveBeenCalledWith(
         'resume-123',
         createDto,
       );
     });
   });
 
-  describe('updateById', () => {
+  describe('updateEntityByIdForResume', () => {
     it('should update existing education entry', async () => {
       const updateDto: UpdateEducationDto = {
         gpa: '4.0',
       };
 
-      resumesRepository.findOne.mockResolvedValue(mockResume as any);
-      educationRepository.update.mockResolvedValue({
+      resumesRepository.findResumeByIdAndUserId.mockResolvedValue(
+        mockResume as any,
+      );
+      educationRepository.updateEntityForResume.mockResolvedValue({
         ...mockEducation,
         gpa: updateDto.gpa!,
       } as any);
 
-      const result = await service.updateById(
+      const result = await service.updateEntityByIdForResume(
         'resume-123',
         'edu-123',
         'user-123',
@@ -162,7 +184,7 @@ describe('EducationService', () => {
       );
 
       expect(result.data!.gpa).toBe(updateDto.gpa);
-      expect(educationRepository.update).toHaveBeenCalledWith(
+      expect(educationRepository.updateEntityForResume).toHaveBeenCalledWith(
         'edu-123',
         'resume-123',
         updateDto,
@@ -172,17 +194,19 @@ describe('EducationService', () => {
 
   describe('deleteById', () => {
     it('should delete education entry successfully', async () => {
-      resumesRepository.findOne.mockResolvedValue(mockResume as any);
-      educationRepository.delete.mockResolvedValue(true);
+      resumesRepository.findResumeByIdAndUserId.mockResolvedValue(
+        mockResume as any,
+      );
+      educationRepository.deleteEntityForResume.mockResolvedValue(true);
 
-      const result = await service.deleteById(
+      const result = await service.deleteEntityByIdForResume(
         'resume-123',
         'edu-123',
         'user-123',
       );
 
       expect(result.message).toBe('Education deleted successfully');
-      expect(educationRepository.delete).toHaveBeenCalledWith(
+      expect(educationRepository.deleteEntityForResume).toHaveBeenCalledWith(
         'edu-123',
         'resume-123',
       );
@@ -191,19 +215,22 @@ describe('EducationService', () => {
 
   describe('reorder', () => {
     it('should reorder education entries with custom message', async () => {
-      resumesRepository.findOne.mockResolvedValue(mockResume as any);
-      educationRepository.reorder.mockResolvedValue();
+      resumesRepository.findResumeByIdAndUserId.mockResolvedValue(
+        mockResume as any,
+      );
+      educationRepository.reorderEntitiesForResume.mockResolvedValue();
 
-      const result = await service.reorder('resume-123', 'user-123', [
-        'edu-1',
-        'edu-2',
-      ]);
+      const result = await service.reorderEntitiesInResume(
+        'resume-123',
+        'user-123',
+        ['edu-1', 'edu-2'],
+      );
 
       expect(result.message).toBe('Education entries reordered successfully');
-      expect(educationRepository.reorder).toHaveBeenCalledWith('resume-123', [
-        'edu-1',
-        'edu-2',
-      ]);
+      expect(educationRepository.reorderEntitiesForResume).toHaveBeenCalledWith(
+        'resume-123',
+        ['edu-1', 'edu-2'],
+      );
     });
   });
 });

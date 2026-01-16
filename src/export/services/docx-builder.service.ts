@@ -54,12 +54,12 @@ export class DocxBuilderService {
    * Load user and resume data
    */
   private async loadUserAndResume(userId: string) {
-    const user = await this.usersRepository.getUser(userId);
+    const user = await this.usersRepository.findUserById(userId);
     if (!user) {
       throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
     }
 
-    const resumeData = await this.resumesRepository.findByUserId(userId);
+    const resumeData = await this.resumesRepository.findResumeByUserId(userId);
     if (!resumeData) {
       throw new NotFoundException(ERROR_MESSAGES.RESUME_NOT_FOUND_FOR_USER);
     }

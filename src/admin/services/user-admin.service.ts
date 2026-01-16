@@ -26,29 +26,32 @@ export class UserAdminService {
 
   // ==================== Query Operations ====================
 
-  async getAll(options: GetAllUsersOptions) {
-    return this.queryService.getAll(options);
+  async findAllUsersWithPagination(queryOptions: GetAllUsersOptions) {
+    return this.queryService.findAllUsersWithPagination(queryOptions);
   }
 
-  async getById(id: string) {
-    return this.queryService.getById(id);
+  async findUserByIdWithDetails(userId: string) {
+    return this.queryService.findUserByIdWithDetails(userId);
   }
 
   // ==================== Mutation Operations ====================
 
-  async create(dto: AdminCreateUser) {
-    return this.mutationService.create(dto);
+  async createUserAccount(createUserData: AdminCreateUser) {
+    return this.mutationService.createUserAccount(createUserData);
   }
 
-  async update(id: string, dto: AdminUpdateUser) {
-    return this.mutationService.update(id, dto);
+  async updateUserAccount(userId: string, updateUserData: AdminUpdateUser) {
+    return this.mutationService.updateUserAccount(userId, updateUserData);
   }
 
-  async delete(id: string) {
-    return this.mutationService.delete(id);
+  async deleteUserAccount(userId: string) {
+    return this.mutationService.deleteUserAccount(userId);
   }
 
-  async resetPassword(id: string, dto: AdminResetPassword) {
-    return this.mutationService.resetPassword(id, dto);
+  async resetUserPassword(
+    userId: string,
+    resetPasswordData: AdminResetPassword,
+  ) {
+    return this.mutationService.resetUserPassword(userId, resetPasswordData);
   }
 }

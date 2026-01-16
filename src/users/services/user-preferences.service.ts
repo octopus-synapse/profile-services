@@ -20,21 +20,22 @@ export class UserPreferencesService {
   ) {}
 
   async getPreferences(userId: string) {
-    const preferences = await this.usersRepository.getUserPreferences(userId);
+    const userPreferences =
+      await this.usersRepository.findUserPreferencesById(userId);
 
-    if (!preferences) {
+    if (!userPreferences) {
       throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
     }
 
-    return preferences;
+    return userPreferences;
   }
 
   async updatePreferences(
     userId: string,
     updatePreferences: UpdatePreferences,
   ) {
-    const user = await this.usersRepository.getUser(userId);
-    if (!user) {
+    const existingUser = await this.usersRepository.findUserById(userId);
+    if (!existingUser) {
       throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
     }
 
@@ -51,18 +52,18 @@ export class UserPreferencesService {
   }
 
   async getFullPreferences(userId: string) {
-    const preferences =
-      await this.usersRepository.getFullUserPreferences(userId);
+    const fullUserPreferences =
+      await this.usersRepository.findFullUserPreferencesByUserId(userId);
 
-    return preferences ?? {};
+    return fullUserPreferences ?? {};
   }
 
   async updateFullPreferences(
     userId: string,
     updateFullPreferences: UpdateFullPreferences,
   ) {
-    const user = await this.usersRepository.getUser(userId);
-    if (!user) {
+    const existingUser = await this.usersRepository.findUserById(userId);
+    if (!existingUser) {
       throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
     }
 

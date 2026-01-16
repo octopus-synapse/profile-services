@@ -44,7 +44,7 @@ export class OpenSourceRepository extends BaseSubResourceRepository<
       projectUrl: dto.projectUrl,
       role: dto.role,
       description: dto.description,
-      technologies: dto.technologies ?? [],
+      technologies: dto.technologies,
       commits: dto.commits ?? 0,
       prsCreated: dto.prsCreated ?? 0,
       prsMerged: dto.prsMerged ?? 0,

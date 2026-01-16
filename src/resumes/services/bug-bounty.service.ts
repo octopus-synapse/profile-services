@@ -38,7 +38,7 @@ export class BugBountyService extends BaseSubResourceService<
     ids: string[],
   ): Promise<MessageResponse> {
     await this.validateResumeOwnership(resumeId, userId);
-    await this.repository.reorder(resumeId, ids);
+    await this.repository.reorderEntitiesForResume(resumeId, ids);
     return ApiResponseHelper.message('Bug bounties reordered successfully');
   }
 

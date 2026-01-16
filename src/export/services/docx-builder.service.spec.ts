@@ -40,11 +40,11 @@ describe('DocxBuilderService', () => {
   };
 
   const stubResumesRepository = {
-    findByUserId: mock().mockResolvedValue(mockResume),
+    findResumeByUserId: mock().mockResolvedValue(mockResume),
   };
 
   const stubUsersRepository = {
-    getUser: mock().mockResolvedValue(mockUser),
+    findUserById: mock().mockResolvedValue(mockUser),
   };
 
   const stubSectionsService = {
@@ -80,7 +80,7 @@ describe('DocxBuilderService', () => {
     });
 
     it('should throw NotFoundException when user not found', async () => {
-      stubUsersRepository.getUser.mockResolvedValueOnce(null);
+      stubUsersRepository.findUserById.mockResolvedValueOnce(null);
 
       await expect(async () => await service.generate('nonexistent')).toThrow(
         NotFoundException,
@@ -88,7 +88,7 @@ describe('DocxBuilderService', () => {
     });
 
     it('should throw NotFoundException when resume not found', async () => {
-      stubResumesRepository.findByUserId.mockResolvedValueOnce(null);
+      stubResumesRepository.findResumeByUserId.mockResolvedValueOnce(null);
 
       await expect(async () => await service.generate('user-1')).toThrow(
         NotFoundException,

@@ -18,16 +18,16 @@ describe('CertificationService', () => {
   let service: CertificationService;
 
   const mockCertificationRepository = {
-    findAll: mock(),
-    findOne: mock(),
-    create: mock(),
-    update: mock(),
-    delete: mock(),
-    reorder: mock(),
+    findAllEntitiesForResume: mock(),
+    findEntityByIdAndResumeId: mock(),
+    createEntityForResume: mock(),
+    updateEntityForResume: mock(),
+    deleteEntityForResume: mock(),
+    reorderEntitiesForResume: mock(),
   };
 
   const mockResumesRepository = {
-    findOne: mock(),
+    findResumeByIdAndUserId: mock(),
   };
 
   beforeEach(async () => {
@@ -70,19 +70,30 @@ describe('CertificationService', () => {
     };
 
     beforeEach(() => {
-      mockResumesRepository.findOne.mockResolvedValue(mockResume);
-      mockCertificationRepository.findAll.mockResolvedValue({
+      mockResumesRepository.findResumeByIdAndUserId.mockResolvedValue(
+        mockResume,
+      );
+      mockCertificationRepository.findAllEntitiesForResume.mockResolvedValue({
         data: [mockCertification],
         meta: { page: 1, limit: 20, total: 1, totalPages: 1 },
       });
-      mockCertificationRepository.findOne.mockResolvedValue(mockCertification);
-      mockCertificationRepository.create.mockResolvedValue(mockCertification);
-      mockCertificationRepository.update.mockResolvedValue(mockCertification);
-      mockCertificationRepository.delete.mockResolvedValue(true);
+      mockCertificationRepository.findEntityByIdAndResumeId.mockResolvedValue(
+        mockCertification,
+      );
+      mockCertificationRepository.createEntityForResume.mockResolvedValue(
+        mockCertification,
+      );
+      mockCertificationRepository.updateEntityForResume.mockResolvedValue(
+        mockCertification,
+      );
+      mockCertificationRepository.deleteEntityForResume.mockResolvedValue(true);
     });
 
     it('should list certifications for resume', async () => {
-      const result = await service.listForResume('resume-1', 'user-1');
+      const result = await service.listAllEntitiesForResume(
+        'resume-1',
+        'user-1',
+      );
 
       expect(result.data).toHaveLength(1);
       expect(result.data[0]).toMatchObject({
@@ -92,7 +103,11 @@ describe('CertificationService', () => {
     });
 
     it('should get certification by id', async () => {
-      const result = await service.getById('resume-1', 'cert-1', 'user-1');
+      const result = await service.getEntityByIdForResume(
+        'resume-1',
+        'cert-1',
+        'user-1',
+      );
 
       expect(result.success).toBe(true);
       expect(result.data).toMatchObject({
@@ -107,21 +122,34 @@ describe('CertificationService', () => {
         issueDate: '2023-01-15',
       };
 
-      const result = await service.addToResume('resume-1', 'user-1', createDto);
+      const result = await service.addEntityToResume(
+        'resume-1',
+        'user-1',
+        createDto,
+      );
 
       expect(result.success).toBe(true);
     });
 
     it('should update certification', async () => {
-      const result = await service.updateById('resume-1', 'cert-1', 'user-1', {
-        name: 'Updated Certification',
-      });
+      const result = await service.updateEntityByIdForResume(
+        'resume-1',
+        'cert-1',
+        'user-1',
+        {
+          name: 'Updated Certification',
+        },
+      );
 
       expect(result.success).toBe(true);
     });
 
     it('should delete certification', async () => {
-      const result = await service.deleteById('resume-1', 'cert-1', 'user-1');
+      const result = await service.deleteEntityByIdForResume(
+        'resume-1',
+        'cert-1',
+        'user-1',
+      );
 
       expect(result.success).toBe(true);
       expect(result.message.includes('deleted')).toBe(true);

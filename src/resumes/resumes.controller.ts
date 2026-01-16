@@ -40,12 +40,12 @@ export class ResumesController {
   @Get()
   @ApiOperation({ summary: 'Get all resumes for current user' })
   @ApiResponse({ status: 200, description: 'List of resumes' })
-  async findAll(
+  async getAllUserResumes(
     @CurrentUser() user: UserPayload,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page?: number,
     @Query('limit', new DefaultValuePipe(50), ParseIntPipe) limit?: number,
   ) {
-    return this.resumesService.findAll(user.userId, page, limit);
+    return this.resumesService.findAllUserResumes(user.userId, page, limit);
   }
 
   @Get('slots')
@@ -71,11 +71,11 @@ export class ResumesController {
   @ApiParam({ name: 'id', description: 'Resume ID' })
   @ApiResponse({ status: 200, description: 'Resume with all sections' })
   @ApiResponse({ status: 404, description: 'Resume not found' })
-  async findFull(
+  async getResumeByIdWithAllSections(
     @Param('id', ParseCuidPipe) id: string,
     @CurrentUser() user: UserPayload,
   ) {
-    return this.resumesService.findOne(id, user.userId);
+    return this.resumesService.findResumeByIdForUser(id, user.userId);
   }
 
   @Get(':id')
@@ -84,22 +84,22 @@ export class ResumesController {
   @ApiResponse({ status: 200, description: 'Resume found' })
   @ApiResponse({ status: 404, description: 'Resume not found' })
   @ApiResponse({ status: 400, description: 'Invalid resume ID format' })
-  async findOne(
+  async getResumeByIdForUser(
     @Param('id', ParseCuidPipe) id: string,
     @CurrentUser() user: UserPayload,
   ) {
-    return this.resumesService.findOne(id, user.userId);
+    return this.resumesService.findResumeByIdForUser(id, user.userId);
   }
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new resume' })
   @ApiResponse({ status: 201, description: 'Resume created' })
-  async create(
+  async createResumeForUser(
     @CurrentUser() user: UserPayload,
     @Body() createResume: CreateResume,
   ) {
-    return this.resumesService.create(user.userId, createResume);
+    return this.resumesService.createResumeForUser(user.userId, createResume);
   }
 
   @Patch(':id')
@@ -108,12 +108,16 @@ export class ResumesController {
   @ApiParam({ name: 'id', description: 'Resume ID' })
   @ApiResponse({ status: 200, description: 'Resume updated' })
   @ApiResponse({ status: 404, description: 'Resume not found' })
-  async update(
+  async updateResumeForUser(
     @Param('id', ParseCuidPipe) id: string,
     @CurrentUser() user: UserPayload,
     @Body() updateResume: UpdateResume,
   ) {
-    return this.resumesService.update(id, user.userId, updateResume);
+    return this.resumesService.updateResumeForUser(
+      id,
+      user.userId,
+      updateResume,
+    );
   }
 
   @Delete(':id')
@@ -122,10 +126,10 @@ export class ResumesController {
   @ApiParam({ name: 'id', description: 'Resume ID' })
   @ApiResponse({ status: 200, description: 'Resume deleted' })
   @ApiResponse({ status: 404, description: 'Resume not found' })
-  async remove(
+  async deleteResumeForUser(
     @Param('id', ParseCuidPipe) id: string,
     @CurrentUser() user: UserPayload,
   ) {
-    return this.resumesService.remove(id, user.userId);
+    return this.resumesService.deleteResumeForUser(id, user.userId);
   }
 }

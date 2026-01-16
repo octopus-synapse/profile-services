@@ -14,41 +14,47 @@ const DAYS_FOR_RECENT = 7;
 export class AdminStatsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getStats() {
+  async getPlatformStatistics() {
     const [
-      totalUsers,
-      totalAdmins,
-      totalResumes,
-      usersWithOnboarding,
-      recentUsers,
+      totalUserCount,
+      totalAdminCount,
+      totalResumeCount,
+      usersWithCompletedOnboardingCount,
+      recentSignupsCount,
     ] = await Promise.all([
       this.prisma.user.count(),
       this.prisma.user.count({ where: { role: UserRole.ADMIN } }),
       this.prisma.resume.count(),
       this.prisma.user.count({ where: { hasCompletedOnboarding: true } }),
-      this.getRecentUsersCount(),
+      this.countRecentUserSignups(),
     ]);
 
+    const userStatistics = {
+      total: totalUserCount,
+      admins: totalAdminCount,
+      regular: totalUserCount - totalAdminCount,
+      withOnboarding: usersWithCompletedOnboardingCount,
+      recentSignups: recentSignupsCount,
+    };
+
+    const resumeStatistics = {
+      total: totalResumeCount,
+    };
+
     return {
-      users: {
-        total: totalUsers,
-        admins: totalAdmins,
-        regular: totalUsers - totalAdmins,
-        withOnboarding: usersWithOnboarding,
-        recentSignups: recentUsers,
-      },
-      resumes: {
-        total: totalResumes,
-      },
+      users: userStatistics,
+      resumes: resumeStatistics,
     };
   }
 
-  private async getRecentUsersCount(): Promise<number> {
-    const recentDate = new Date(Date.now() - DAYS_FOR_RECENT * TIME_MS.DAY);
+  private async countRecentUserSignups(): Promise<number> {
+    const recentSignupDate = new Date(
+      Date.now() - DAYS_FOR_RECENT * TIME_MS.DAY,
+    );
 
     return this.prisma.user.count({
       where: {
-        createdAt: { gte: recentDate },
+        createdAt: { gte: recentSignupDate },
       },
     });
   }

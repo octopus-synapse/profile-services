@@ -67,14 +67,14 @@ export class SkillController extends BaseSubResourceController<
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiQuery({ name: 'category', required: false, type: String })
   @ApiResponse({ status: 200, description: 'List of skills' })
-  async findAll(
+  async findAllSkillsForResume(
     @Param('resumeId', ParseCuidPipe) resumeId: string,
     @CurrentUser() user: UserPayload,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(50), ParseIntPipe) limit: number,
     @Query('category') category?: string,
   ) {
-    return this.skillService.findAll(
+    return this.skillService.findAllSkillsForResume(
       resumeId,
       user.userId,
       page,

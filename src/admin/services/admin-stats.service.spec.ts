@@ -42,7 +42,7 @@ describe('AdminStatsService', () => {
 
       (prisma.resume.count as any).mockResolvedValue(200);
 
-      const result = await service.getStats();
+      const result = await service.getPlatformStatistics();
 
       expect(result).toEqual({
         users: {
@@ -67,7 +67,7 @@ describe('AdminStatsService', () => {
       );
       (prisma.resume.count as any).mockResolvedValue(100);
 
-      await service.getStats();
+      await service.getPlatformStatistics();
 
       expect(prisma.user.count).toHaveBeenCalledWith({
         where: { role: 'ADMIN' },

@@ -29,13 +29,13 @@ describe('UsernameService - Bug Detection', () => {
 
   beforeEach(async () => {
     mockUsersRepository = {
-      getUser: mock().mockResolvedValue(mockUser),
+      findUserById: mock().mockResolvedValue(mockUser),
       updateUsername: mock().mockResolvedValue({
         ...mockUser,
         username: 'newuser',
       }),
       isUsernameTaken: mock().mockResolvedValue(false),
-      getLastUsernameUpdate: mock().mockResolvedValue(null),
+      findLastUsernameUpdateByUserId: mock().mockResolvedValue(null),
     } as any;
 
     const module: TestingModule = await Test.createTestingModule({
@@ -179,7 +179,7 @@ describe('UsernameService - Bug Detection', () => {
   describe('Cooldown edge cases', () => {
     it('should REJECT at exactly 29 days (boundary test)', async () => {
       const twentyNineDaysAgo = new Date(Date.now() - 29 * 24 * 60 * 60 * 1000);
-      mockUsersRepository.getLastUsernameUpdate.mockResolvedValue(
+      mockUsersRepository.findLastUsernameUpdateByUserId.mockResolvedValue(
         twentyNineDaysAgo,
       );
 
@@ -190,7 +190,7 @@ describe('UsernameService - Bug Detection', () => {
 
     it('should ACCEPT at exactly 30 days (boundary test)', async () => {
       const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-      mockUsersRepository.getLastUsernameUpdate.mockResolvedValue(
+      mockUsersRepository.findLastUsernameUpdateByUserId.mockResolvedValue(
         thirtyDaysAgo,
       );
 
@@ -202,7 +202,7 @@ describe('UsernameService - Bug Detection', () => {
 
     it('should show correct remaining days in error message', async () => {
       const twentyDaysAgo = new Date(Date.now() - 20 * 24 * 60 * 60 * 1000);
-      mockUsersRepository.getLastUsernameUpdate.mockResolvedValue(
+      mockUsersRepository.findLastUsernameUpdateByUserId.mockResolvedValue(
         twentyDaysAgo,
       );
 

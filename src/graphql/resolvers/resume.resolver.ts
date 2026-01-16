@@ -55,7 +55,10 @@ export class ResumeResolver {
     @CurrentUser() user: User,
   ): Promise<ResumeModel> {
     this.logger.log(`[GraphQL] Fetching resume ${id} for user ${user.id}`);
-    const resume = await this.resumesRepository.findOne(id, user.id);
+    const resume = await this.resumesRepository.findResumeByIdAndUserId(
+      id,
+      user.id,
+    );
     return resume as ResumeModel;
   }
 
@@ -68,7 +71,7 @@ export class ResumeResolver {
   })
   async getMyResumes(@CurrentUser() user: User): Promise<ResumeModel[]> {
     this.logger.log(`[GraphQL] Fetching resumes for user ${user.id}`);
-    const resumes = await this.resumesRepository.findAll(user.id);
+    const resumes = await this.resumesRepository.findAllUserResumes(user.id);
     return resumes as ResumeModel[];
   }
 
@@ -126,7 +129,7 @@ export class ResumeResolver {
     this.logger.log(
       `[GraphQL] Adding experience to resume ${resumeId} for user ${user.id}`,
     );
-    const response = await this.experienceService.addToResume(
+    const response = await this.experienceService.addEntityToResume(
       resumeId,
       user.id,
       input,
@@ -147,7 +150,7 @@ export class ResumeResolver {
     this.logger.log(
       `[GraphQL] Updating experience ${experienceId} for user ${user.id}`,
     );
-    const response = await this.experienceService.updateById(
+    const response = await this.experienceService.updateEntityByIdForResume(
       resumeId,
       experienceId,
       user.id,
@@ -168,7 +171,11 @@ export class ResumeResolver {
     this.logger.log(
       `[GraphQL] Deleting experience ${experienceId} for user ${user.id}`,
     );
-    await this.experienceService.deleteById(resumeId, experienceId, user.id);
+    await this.experienceService.deleteEntityByIdForResume(
+      resumeId,
+      experienceId,
+      user.id,
+    );
     return true;
   }
 
@@ -188,10 +195,10 @@ export class ResumeResolver {
     );
     // TODO: Migrate EducationService to use profile-contracts types
     // Currently using cast due to legacy class-validator DTO mismatch
-    const response = await this.educationService.addToResume(
+    const response = await this.educationService.addEntityToResume(
       resumeId,
       user.id,
-      input as Parameters<typeof this.educationService.addToResume>[2],
+      input as Parameters<typeof this.educationService.addEntityToResume>[2],
     );
     return response.data as EducationModel;
   }

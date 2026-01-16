@@ -106,7 +106,7 @@ describe('ResumesRepository', () => {
 
   describe('findAll', () => {
     it('should return empty array when user has no resumes', async () => {
-      const result = await repository.findAll('user-1');
+      const result = await repository.findAllUserResumes('user-1');
 
       expect(result).toEqual([]);
     });
@@ -132,7 +132,7 @@ describe('ResumesRepository', () => {
         updatedAt: new Date(),
       });
 
-      const result = await repository.findAll('user-1');
+      const result = await repository.findAllUserResumes('user-1');
 
       expect(result).toHaveLength(2);
       expect(result.every((r) => r.userId === 'user-1')).toBe(true);
@@ -148,7 +148,7 @@ describe('ResumesRepository', () => {
         updatedAt: new Date(),
       });
 
-      const result = await repository.findOne('r1', 'user-1');
+      const result = await repository.findResumeByIdAndUserId('r1', 'user-1');
 
       expect(result).toMatchObject({
         id: 'r1',
@@ -158,7 +158,10 @@ describe('ResumesRepository', () => {
     });
 
     it('should return null when resume does not exist', async () => {
-      const result = await repository.findOne('non-existent', 'user-1');
+      const result = await repository.findResumeByIdAndUserId(
+        'non-existent',
+        'user-1',
+      );
 
       expect(result).toBeNull();
     });
@@ -171,7 +174,7 @@ describe('ResumesRepository', () => {
         updatedAt: new Date(),
       });
 
-      const result = await repository.findOne('r1', 'user-2');
+      const result = await repository.findResumeByIdAndUserId('r1', 'user-2');
 
       expect(result).toBeNull();
     });
@@ -181,7 +184,7 @@ describe('ResumesRepository', () => {
     it('should create resume and return it with generated id', async () => {
       const createDto: CreateResume = { title: 'New Resume' };
 
-      const result = await repository.create('user-1', createDto);
+      const result = await repository.createResumeForUser('user-1', createDto);
 
       expect(result).toMatchObject({
         id: expect.any(String),
@@ -191,9 +194,11 @@ describe('ResumesRepository', () => {
     });
 
     it('should persist resume to storage', async () => {
-      await repository.create('user-1', { title: 'Persisted Resume' });
+      await repository.createResumeForUser('user-1', {
+        title: 'Persisted Resume',
+      });
 
-      const allResumes = await repository.findAll('user-1');
+      const allResumes = await repository.findAllUserResumes('user-1');
 
       expect(allResumes).toHaveLength(1);
       expect(allResumes[0].title).toBe('Persisted Resume');
@@ -209,7 +214,7 @@ describe('ResumesRepository', () => {
         updatedAt: new Date(),
       });
 
-      const result = await repository.update('r1', 'user-1', {
+      const result = await repository.updateResumeForUser('r1', 'user-1', {
         title: 'Updated',
       });
 
@@ -221,7 +226,9 @@ describe('ResumesRepository', () => {
 
     it('should throw ForbiddenException when resume does not exist', async () => {
       await expect(
-        repository.update('non-existent', 'user-1', { title: 'New' }),
+        repository.updateResumeForUser('non-existent', 'user-1', {
+          title: 'New',
+        }),
       ).rejects.toThrow(ForbiddenException);
     });
 
@@ -234,7 +241,7 @@ describe('ResumesRepository', () => {
       });
 
       await expect(
-        repository.update('r1', 'user-2', { title: 'Stolen' }),
+        repository.updateResumeForUser('r1', 'user-2', { title: 'Stolen' }),
       ).rejects.toThrow(ForbiddenException);
     });
   });
@@ -248,7 +255,7 @@ describe('ResumesRepository', () => {
         updatedAt: new Date(),
       });
 
-      const result = await repository.delete('r1', 'user-1');
+      const result = await repository.deleteResumeForUser('r1', 'user-1');
 
       expect(result).toBe(true);
       expect(dataStore.has('r1')).toBe(false);
@@ -256,7 +263,8 @@ describe('ResumesRepository', () => {
 
     it('should throw ForbiddenException when resume does not exist', async () => {
       await expect(
-        async () => await repository.delete('non-existent', 'user-1'),
+        async () =>
+          await repository.deleteResumeForUser('non-existent', 'user-1'),
       ).toThrow(ForbiddenException);
     });
 
@@ -268,15 +276,15 @@ describe('ResumesRepository', () => {
         updatedAt: new Date(),
       });
 
-      await expect(async () => await repository.delete('r1', 'user-2')).toThrow(
-        ForbiddenException,
-      );
+      await expect(
+        async () => await repository.deleteResumeForUser('r1', 'user-2'),
+      ).toThrow(ForbiddenException);
     });
   });
 
   describe('findByUserId', () => {
     it('should return null when user has no resume', async () => {
-      const result = await repository.findByUserId('user-without-resume');
+      const result = await repository.findResumeByUserId('user-without-resume');
 
       expect(result).toBeNull();
     });
@@ -289,7 +297,7 @@ describe('ResumesRepository', () => {
         updatedAt: new Date(),
       });
 
-      const result = await repository.findByUserId('user-1');
+      const result = await repository.findResumeByUserId('user-1');
 
       expect(result).toMatchObject({
         id: 'r1',

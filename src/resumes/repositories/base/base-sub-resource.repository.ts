@@ -184,10 +184,13 @@ export abstract class BaseSubResourceRepository<T, Create, Update>
    * Find a single entity by ID within a resume
    * 100% identical across all 15 repositories
    */
-  async findOne(id: string, resumeId: string): Promise<T | null> {
+  async findEntityByIdAndResumeId(
+    entityId: string,
+    resumeId: string,
+  ): Promise<T | null> {
     const delegate = this.getPrismaDelegate();
     return delegate.findFirst({
-      where: { id, resumeId },
+      where: { id: entityId, resumeId },
     });
   }
 
@@ -195,12 +198,15 @@ export abstract class BaseSubResourceRepository<T, Create, Update>
    * Reorder entities within a resume
    * 100% identical across 13 repositories (2 don't support reordering)
    */
-  async reorder(resumeId: string, ids: string[]): Promise<void> {
+  async reorderEntitiesForResume(
+    resumeId: string,
+    entityIds: string[],
+  ): Promise<void> {
     const delegate = this.getPrismaDelegate();
     await this.prisma.$transaction(async () => {
-      for (let index = 0; index < ids.length; index++) {
+      for (let index = 0; index < entityIds.length; index++) {
         await delegate.update({
-          where: { id: ids[index] },
+          where: { id: entityIds[index] },
           data: { order: index },
         });
       }
@@ -231,7 +237,7 @@ export abstract class BaseSubResourceRepository<T, Create, Update>
    * Find all entities for a resume with pagination
    * 85% reusable - ordering strategy configured by concrete class
    */
-  async findAll(
+  async findAllEntitiesForResume(
     resumeId: string,
     page: number = PAGINATION.DEFAULT_PAGE,
     limit: number = PAGINATION.DEFAULT_PAGE_SIZE,
@@ -292,41 +298,51 @@ export abstract class BaseSubResourceRepository<T, Create, Update>
    * Delete an entity by ID
    * 85% reusable - standardized on deleteMany approach (best practice)
    */
-  async delete(id: string, resumeId: string): Promise<boolean> {
+  async deleteEntityForResume(
+    entityId: string,
+    resumeId: string,
+  ): Promise<boolean> {
     const delegate = this.getPrismaDelegate();
-    const result = await delegate.deleteMany({
-      where: { id, resumeId },
+    const deleteResult = await delegate.deleteMany({
+      where: { id: entityId, resumeId },
     });
-    return result.count > 0;
+    return deleteResult.count > 0;
   }
 
   /**
    * Update an entity by ID
    * 70% reusable - uses standardized updateMany approach + entity-specific mapping
    */
-  async update(id: string, resumeId: string, data: Update): Promise<T | null> {
+  async updateEntityForResume(
+    entityId: string,
+    resumeId: string,
+    updateData: Update,
+  ): Promise<T | null> {
     const delegate = this.getPrismaDelegate();
-    const updateData = this.mapUpdate(data);
+    const mappedUpdateData = this.mapUpdate(updateData);
 
-    const result = await delegate.updateMany({
-      where: { id, resumeId },
-      data: updateData,
+    const updateResult = await delegate.updateMany({
+      where: { id: entityId, resumeId },
+      data: mappedUpdateData,
     });
 
-    if (result.count === 0) return null;
+    if (updateResult.count === 0) return null;
 
-    return delegate.findUnique({ where: { id } });
+    return delegate.findUnique({ where: { id: entityId } });
   }
 
   /**
    * Create a new entity for a resume
    * 70% reusable - structure identical, field mapping entity-specific
    */
-  async create(resumeId: string, data: Create): Promise<T> {
-    const maxOrder = await this.getMaxOrder(resumeId, data);
+  async createEntityForResume(
+    resumeId: string,
+    entityData: Create,
+  ): Promise<T> {
+    const maxOrder = await this.getMaxOrder(resumeId, entityData);
     const delegate = this.getPrismaDelegate();
-    const createData = this.mapCreate(resumeId, data, maxOrder + 1);
+    const mappedCreateData = this.mapCreate(resumeId, entityData, maxOrder + 1);
 
-    return delegate.create({ data: createData });
+    return delegate.create({ data: mappedCreateData });
   }
 }

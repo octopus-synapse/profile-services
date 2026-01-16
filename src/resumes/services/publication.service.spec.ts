@@ -35,16 +35,16 @@ describe('PublicationService', () => {
 
   beforeEach(async () => {
     const mockPublicationRepository = {
-      findAll: mock(),
-      findOne: mock(),
-      create: mock(),
-      update: mock(),
-      delete: mock(),
-      reorder: mock(),
+      findAllEntitiesForResume: mock(),
+      findEntityByIdAndResumeId: mock(),
+      createEntityForResume: mock(),
+      updateEntityForResume: mock(),
+      deleteEntityForResume: mock(),
+      reorderEntitiesForResume: mock(),
     };
 
     const mockResumesRepository = {
-      findOne: mock(),
+      findResumeByIdAndUserId: mock(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -63,7 +63,7 @@ describe('PublicationService', () => {
     spyOn(Logger.prototype, 'warn').mockImplementation();
   });
 
-  describe('listForResume', () => {
+  describe('listAllEntitiesForResume', () => {
     it('should return paginated publications', async () => {
       const paginatedResult = {
         data: [mockPublication],
@@ -77,40 +77,54 @@ describe('PublicationService', () => {
         },
       };
 
-      resumesRepository.findOne.mockResolvedValue(mockResume as any);
-      publicationRepository.findAll.mockResolvedValue(paginatedResult);
+      resumesRepository.findResumeByIdAndUserId.mockResolvedValue(
+        mockResume as any,
+      );
+      publicationRepository.findAllEntitiesForResume.mockResolvedValue(
+        paginatedResult,
+      );
 
-      const result = await service.listForResume('resume-123', 'user-123');
+      const result = await service.listAllEntitiesForResume(
+        'resume-123',
+        'user-123',
+      );
 
       expect(result).toEqual(paginatedResult);
-      expect(publicationRepository.findAll).toHaveBeenCalledWith(
-        'resume-123',
-        1,
-        20,
-      );
+      expect(
+        publicationRepository.findAllEntitiesForResume,
+      ).toHaveBeenCalledWith('resume-123', 1, 20);
     });
   });
 
-  describe('getById', () => {
+  describe('getEntityByIdForResume', () => {
     it('should return single publication', async () => {
-      resumesRepository.findOne.mockResolvedValue(mockResume as any);
-      publicationRepository.findOne.mockResolvedValue(mockPublication);
+      resumesRepository.findResumeByIdAndUserId.mockResolvedValue(
+        mockResume as any,
+      );
+      publicationRepository.findEntityByIdAndResumeId.mockResolvedValue(
+        mockPublication,
+      );
 
-      const result = await service.getById('resume-123', 'pub-123', 'user-123');
+      const result = await service.getEntityByIdForResume(
+        'resume-123',
+        'pub-123',
+        'user-123',
+      );
 
       expect(result.data).toEqual(mockPublication);
-      expect(publicationRepository.findOne).toHaveBeenCalledWith(
-        'pub-123',
-        'resume-123',
-      );
+      expect(
+        publicationRepository.findEntityByIdAndResumeId,
+      ).toHaveBeenCalledWith('pub-123', 'resume-123');
     });
 
     it('should throw NotFoundException when not found', async () => {
-      resumesRepository.findOne.mockResolvedValue(mockResume as any);
-      publicationRepository.findOne.mockResolvedValue(null);
+      resumesRepository.findResumeByIdAndUserId.mockResolvedValue(
+        mockResume as any,
+      );
+      publicationRepository.findEntityByIdAndResumeId.mockResolvedValue(null);
 
       await expect(
-        service.getById('resume-123', 'invalid-id', 'user-123'),
+        service.getEntityByIdForResume('resume-123', 'invalid-id', 'user-123'),
       ).rejects.toThrow('Publication not found');
     });
   });
@@ -125,36 +139,42 @@ describe('PublicationService', () => {
         publishedAt: '2023-12-01',
       };
 
-      resumesRepository.findOne.mockResolvedValue(mockResume as any);
-      publicationRepository.create.mockResolvedValue(mockPublication);
+      resumesRepository.findResumeByIdAndUserId.mockResolvedValue(
+        mockResume as any,
+      );
+      publicationRepository.createEntityForResume.mockResolvedValue(
+        mockPublication,
+      );
 
-      const result = await service.addToResume(
+      const result = await service.addEntityToResume(
         'resume-123',
         'user-123',
         createDto,
       );
 
       expect(result.data).toEqual(mockPublication);
-      expect(publicationRepository.create).toHaveBeenCalledWith(
+      expect(publicationRepository.createEntityForResume).toHaveBeenCalledWith(
         'resume-123',
         createDto,
       );
     });
   });
 
-  describe('updateById', () => {
+  describe('updateEntityByIdForResume', () => {
     it('should update existing publication', async () => {
       const updateDto: UpdatePublicationDto = {
         url: 'https://updated-url.com',
       };
 
-      resumesRepository.findOne.mockResolvedValue(mockResume as any);
-      publicationRepository.update.mockResolvedValue({
+      resumesRepository.findResumeByIdAndUserId.mockResolvedValue(
+        mockResume as any,
+      );
+      publicationRepository.updateEntityForResume.mockResolvedValue({
         ...mockPublication,
         url: updateDto.url!,
       } as any);
 
-      const result = await service.updateById(
+      const result = await service.updateEntityByIdForResume(
         'resume-123',
         'pub-123',
         'user-123',
@@ -162,7 +182,7 @@ describe('PublicationService', () => {
       );
 
       expect(result.data!.url).toBe(updateDto.url);
-      expect(publicationRepository.update).toHaveBeenCalledWith(
+      expect(publicationRepository.updateEntityForResume).toHaveBeenCalledWith(
         'pub-123',
         'resume-123',
         updateDto,
@@ -170,19 +190,21 @@ describe('PublicationService', () => {
     });
   });
 
-  describe('deleteById', () => {
+  describe('deleteEntityByIdForResume', () => {
     it('should delete publication successfully', async () => {
-      resumesRepository.findOne.mockResolvedValue(mockResume as any);
-      publicationRepository.delete.mockResolvedValue(true);
+      resumesRepository.findResumeByIdAndUserId.mockResolvedValue(
+        mockResume as any,
+      );
+      publicationRepository.deleteEntityForResume.mockResolvedValue(true);
 
-      const result = await service.deleteById(
+      const result = await service.deleteEntityByIdForResume(
         'resume-123',
         'pub-123',
         'user-123',
       );
 
       expect(result.message).toBe('Publication deleted successfully');
-      expect(publicationRepository.delete).toHaveBeenCalledWith(
+      expect(publicationRepository.deleteEntityForResume).toHaveBeenCalledWith(
         'pub-123',
         'resume-123',
       );

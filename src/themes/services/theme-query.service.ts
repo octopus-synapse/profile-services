@@ -13,18 +13,21 @@ import { APP_CONFIG } from '@octopus-synapse/profile-contracts';
 export class ThemeQueryService {
   constructor(private prisma: PrismaService) {}
 
-  async findAll(query: QueryThemes, userId?: string) {
-    const where = this.buildWhereClause(query, userId);
+  async findAllThemesWithPagination(
+    queryOptions: QueryThemes,
+    userId?: string,
+  ) {
+    const whereClause = this.buildWhereClause(queryOptions, userId);
     const {
       sortBy = 'createdAt',
       sortDir = 'desc',
       page = 1,
       limit = APP_CONFIG.DEFAULT_PAGE_SIZE,
-    } = query;
+    } = queryOptions;
 
-    const [data, total] = await Promise.all([
+    const [paginatedThemes, totalThemeCount] = await Promise.all([
       this.prisma.resumeTheme.findMany({
-        where,
+        where: whereClause,
         orderBy: { [sortBy]: sortDir },
         skip: (page - 1) * limit,
         take: limit,
@@ -33,33 +36,45 @@ export class ThemeQueryService {
           _count: { select: { resumes: true, forks: true } },
         },
       }),
-      this.prisma.resumeTheme.count({ where }),
+      this.prisma.resumeTheme.count({ where: whereClause }),
     ]);
 
+    const paginationMetadata = {
+      total: totalThemeCount,
+      page,
+      limit,
+      totalPages: Math.ceil(totalThemeCount / limit),
+    };
+
     return {
-      data,
-      meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+      data: paginatedThemes,
+      meta: paginationMetadata,
     };
   }
 
-  async findOne(id: string, userId?: string) {
-    const theme = await this.prisma.resumeTheme.findUnique({
-      where: { id },
+  async findThemeById(themeId: string, userId?: string) {
+    const foundTheme = await this.prisma.resumeTheme.findUnique({
+      where: { id: themeId },
       include: {
         author: { select: { id: true, name: true, username: true } },
         _count: { select: { resumes: true, forks: true } },
       },
     });
 
-    if (!theme) return null;
-    if (theme.status !== ThemeStatus.PUBLISHED && theme.authorId !== userId) {
+    if (!foundTheme) return null;
+    if (
+      foundTheme.status !== ThemeStatus.PUBLISHED &&
+      foundTheme.authorId !== userId
+    ) {
       return null;
     }
 
-    return theme;
+    return foundTheme;
   }
 
-  async getPopular(limit: number = APP_CONFIG.SEARCH_AUTOCOMPLETE_LIMIT) {
+  async findPopularThemes(
+    limit: number = APP_CONFIG.SEARCH_AUTOCOMPLETE_LIMIT,
+  ) {
     return this.prisma.resumeTheme.findMany({
       where: { status: ThemeStatus.PUBLISHED },
       orderBy: [{ usageCount: 'desc' }, { rating: 'desc' }],
@@ -68,14 +83,14 @@ export class ThemeQueryService {
     });
   }
 
-  async getSystemThemes() {
+  async findAllSystemThemes() {
     return this.prisma.resumeTheme.findMany({
       where: { isSystemTheme: true },
       orderBy: { name: 'asc' },
     });
   }
 
-  async getMyThemes(userId: string) {
+  async findAllThemesByUser(userId: string) {
     return this.prisma.resumeTheme.findMany({
       where: { authorId: userId },
       orderBy: { updatedAt: 'desc' },

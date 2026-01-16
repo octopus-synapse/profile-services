@@ -27,8 +27,8 @@ export class SpokenLanguagesController {
    */
   @Public()
   @Get()
-  async getAll() {
-    return this.spokenLanguagesService.getAll();
+  async findAllActiveLanguages() {
+    return this.spokenLanguagesService.findAllActiveLanguages();
   }
 
   /**
@@ -36,7 +36,10 @@ export class SpokenLanguagesController {
    */
   @Public()
   @Get('search')
-  async search(@Query('q') query: string, @Query('limit') limit?: string) {
+  async searchLanguagesByName(
+    @Query('q') searchQuery: string,
+    @Query('limit') limit?: string,
+  ) {
     // BUG-035 FIX: Validate parseInt result
     let parsedLimit = 10;
     if (limit) {
@@ -47,7 +50,10 @@ export class SpokenLanguagesController {
         );
       }
     }
-    return this.spokenLanguagesService.search(query || '', parsedLimit);
+    return this.spokenLanguagesService.searchLanguagesByName(
+      searchQuery || '',
+      parsedLimit,
+    );
   }
 
   /**
@@ -55,7 +61,7 @@ export class SpokenLanguagesController {
    */
   @Public()
   @Get(':code')
-  async getByCode(@Param('code') code: string) {
-    return this.spokenLanguagesService.getByCode(code);
+  async findLanguageByCode(@Param('code') languageCode: string) {
+    return this.spokenLanguagesService.findLanguageByCode(languageCode);
   }
 }

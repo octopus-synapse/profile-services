@@ -19,30 +19,34 @@ export class UserProfileService {
   ) {}
 
   async getPublicProfileByUsername(username: string) {
-    const user = await this.usersRepository.findByUsername(username);
+    const foundUser = await this.usersRepository.findUserByUsername(username);
 
-    if (!user || user.preferences?.profileVisibility !== 'public') {
+    if (!foundUser || foundUser.preferences?.profileVisibility !== 'public') {
       throw new NotFoundException(ERROR_MESSAGES.PUBLIC_PROFILE_NOT_FOUND);
     }
 
-    const resume = await this.resumesRepository.findByUserId(user.id);
+    const userResume = await this.resumesRepository.findResumeByUserId(
+      foundUser.id,
+    );
 
-    return {
+    const publicProfileData = {
       user: {
-        displayName: user.displayName,
-        photoURL: user.photoURL,
-        bio: user.bio,
-        location: user.location,
-        website: user.website,
-        linkedin: user.linkedin,
-        github: user.github,
+        displayName: foundUser.displayName,
+        photoURL: foundUser.photoURL,
+        bio: foundUser.bio,
+        location: foundUser.location,
+        website: foundUser.website,
+        linkedin: foundUser.linkedin,
+        github: foundUser.github,
       },
-      resume,
+      resume: userResume,
     };
+
+    return publicProfileData;
   }
 
   async getProfile(userId: string) {
-    const profile = await this.usersRepository.getUserProfile(userId);
+    const profile = await this.usersRepository.findUserProfileById(userId);
 
     if (!profile) {
       throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
@@ -51,31 +55,33 @@ export class UserProfileService {
     return profile;
   }
 
-  async updateProfile(userId: string, updateProfile: UpdateProfile) {
-    const user = await this.usersRepository.getUser(userId);
-    if (!user) {
+  async updateProfile(userId: string, profileUpdateData: UpdateProfile) {
+    const existingUser = await this.usersRepository.findUserById(userId);
+    if (!existingUser) {
       throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
     }
 
-    const updatedUser = await this.usersRepository.updateUserProfile(
+    const updatedUserProfile = await this.usersRepository.updateUserProfile(
       userId,
-      updateProfile,
+      profileUpdateData,
     );
 
     this.logger.debug(`User profile updated`, 'UserProfileService', { userId });
 
-    return {
+    const updatedProfileResponse = {
       success: true,
       user: {
-        displayName: updatedUser.displayName,
-        photoURL: updatedUser.photoURL,
-        bio: updatedUser.bio,
-        location: updatedUser.location,
-        phone: updatedUser.phone,
-        website: updatedUser.website,
-        linkedin: updatedUser.linkedin,
-        github: updatedUser.github,
+        displayName: updatedUserProfile.displayName,
+        photoURL: updatedUserProfile.photoURL,
+        bio: updatedUserProfile.bio,
+        location: updatedUserProfile.location,
+        phone: updatedUserProfile.phone,
+        website: updatedUserProfile.website,
+        linkedin: updatedUserProfile.linkedin,
+        github: updatedUserProfile.github,
       },
     };
+
+    return updatedProfileResponse;
   }
 }

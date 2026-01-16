@@ -15,16 +15,16 @@ describe('HackathonService', () => {
   let service: HackathonService;
 
   const mockHackathonRepository = {
-    findAll: mock(),
-    findOne: mock(),
-    create: mock(),
-    update: mock(),
-    delete: mock(),
-    reorder: mock(),
+    findAllEntitiesForResume: mock(),
+    findResumeByIdAndUserId: mock(),
+    createEntityForResume: mock(),
+    updateEntityForResume: mock(),
+    deleteEntityForResume: mock(),
+    reorderEntitiesForResume: mock(),
   };
 
   const mockResumesRepository = {
-    findOne: mock(),
+    findResumeByIdAndUserId: mock(),
   };
 
   beforeEach(async () => {
@@ -64,17 +64,24 @@ describe('HackathonService', () => {
     };
 
     beforeEach(() => {
-      mockResumesRepository.findOne.mockResolvedValue(mockResume);
-      mockHackathonRepository.findAll.mockResolvedValue({
+      mockResumesRepository.findResumeByIdAndUserId.mockResolvedValue(
+        mockResume,
+      );
+      mockHackathonRepository.findAllEntitiesForResume.mockResolvedValue({
         data: [mockHackathon],
         meta: { page: 1, limit: 20, total: 1, totalPages: 1 },
       });
-      mockHackathonRepository.create.mockResolvedValue(mockHackathon);
-      mockHackathonRepository.delete.mockResolvedValue(true);
+      mockHackathonRepository.createEntityForResume.mockResolvedValue(
+        mockHackathon,
+      );
+      mockHackathonRepository.deleteEntityForResume.mockResolvedValue(true);
     });
 
     it('should list hackathons for resume', async () => {
-      const result = await service.listForResume('resume-1', 'user-1');
+      const result = await service.listAllEntitiesForResume(
+        'resume-1',
+        'user-1',
+      );
 
       expect(result.data).toHaveLength(1);
       expect(result.data[0]).toMatchObject({
@@ -92,13 +99,21 @@ describe('HackathonService', () => {
         date: '2024-01-20',
       };
 
-      const result = await service.addToResume('resume-1', 'user-1', createDto);
+      const result = await service.addEntityToResume(
+        'resume-1',
+        'user-1',
+        createDto,
+      );
 
       expect(result.success).toBe(true);
     });
 
     it('should delete hackathon', async () => {
-      const result = await service.deleteById('resume-1', 'hack-1', 'user-1');
+      const result = await service.deleteEntityByIdForResume(
+        'resume-1',
+        'hack-1',
+        'user-1',
+      );
 
       expect(result.success).toBe(true);
     });

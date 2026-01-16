@@ -35,16 +35,16 @@ describe('ExperienceService', () => {
 
   beforeEach(async () => {
     const mockExperienceRepository = {
-      findAll: mock(),
-      findOne: mock(),
-      create: mock(),
-      update: mock(),
-      delete: mock(),
-      reorder: mock(),
+      findAllEntitiesForResume: mock(),
+      findEntityByIdAndResumeId: mock(),
+      createEntityForResume: mock(),
+      updateEntityForResume: mock(),
+      deleteEntityForResume: mock(),
+      reorderEntitiesForResume: mock(),
     };
 
     const mockResumesRepository = {
-      findOne: mock(),
+      findResumeByIdAndUserId: mock(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -77,40 +77,54 @@ describe('ExperienceService', () => {
         },
       };
 
-      resumesRepository.findOne.mockResolvedValue(mockResume as any);
-      experienceRepository.findAll.mockResolvedValue(paginatedResult);
+      resumesRepository.findResumeByIdAndUserId.mockResolvedValue(
+        mockResume as any,
+      );
+      experienceRepository.findAllEntitiesForResume.mockResolvedValue(
+        paginatedResult,
+      );
 
-      const result = await service.listForResume('resume-123', 'user-123');
+      const result = await service.listAllEntitiesForResume(
+        'resume-123',
+        'user-123',
+      );
 
       expect(result).toEqual(paginatedResult);
-      expect(experienceRepository.findAll).toHaveBeenCalledWith(
-        'resume-123',
-        1,
-        20,
-      );
+      expect(
+        experienceRepository.findAllEntitiesForResume,
+      ).toHaveBeenCalledWith('resume-123', 1, 20);
     });
   });
 
   describe('getById', () => {
     it('should return single experience', async () => {
-      resumesRepository.findOne.mockResolvedValue(mockResume as any);
-      experienceRepository.findOne.mockResolvedValue(mockExperience);
+      resumesRepository.findResumeByIdAndUserId.mockResolvedValue(
+        mockResume as any,
+      );
+      experienceRepository.findEntityByIdAndResumeId.mockResolvedValue(
+        mockExperience,
+      );
 
-      const result = await service.getById('resume-123', 'exp-123', 'user-123');
+      const result = await service.getEntityByIdForResume(
+        'resume-123',
+        'exp-123',
+        'user-123',
+      );
 
       expect(result.data).toEqual(mockExperience);
-      expect(experienceRepository.findOne).toHaveBeenCalledWith(
-        'exp-123',
-        'resume-123',
-      );
+      expect(
+        experienceRepository.findEntityByIdAndResumeId,
+      ).toHaveBeenCalledWith('exp-123', 'resume-123');
     });
 
     it('should throw NotFoundException when not found', async () => {
-      resumesRepository.findOne.mockResolvedValue(mockResume as any);
-      experienceRepository.findOne.mockResolvedValue(null);
+      resumesRepository.findResumeByIdAndUserId.mockResolvedValue(
+        mockResume as any,
+      );
+      experienceRepository.findEntityByIdAndResumeId.mockResolvedValue(null);
 
       await expect(
-        service.getById('resume-123', 'invalid-id', 'user-123'),
+        service.getEntityByIdForResume('resume-123', 'invalid-id', 'user-123'),
       ).rejects.toThrow('Experience not found');
     });
   });
@@ -123,17 +137,21 @@ describe('ExperienceService', () => {
         startDate: '2023-01-01',
       };
 
-      resumesRepository.findOne.mockResolvedValue(mockResume as any);
-      experienceRepository.create.mockResolvedValue(mockExperience);
+      resumesRepository.findResumeByIdAndUserId.mockResolvedValue(
+        mockResume as any,
+      );
+      experienceRepository.createEntityForResume.mockResolvedValue(
+        mockExperience,
+      );
 
-      const result = await service.addToResume(
+      const result = await service.addEntityToResume(
         'resume-123',
         'user-123',
         createDto,
       );
 
       expect(result.data).toEqual(mockExperience);
-      expect(experienceRepository.create).toHaveBeenCalledWith(
+      expect(experienceRepository.createEntityForResume).toHaveBeenCalledWith(
         'resume-123',
         createDto,
       );
@@ -146,13 +164,15 @@ describe('ExperienceService', () => {
         position: 'Lead Developer',
       };
 
-      resumesRepository.findOne.mockResolvedValue(mockResume as any);
-      experienceRepository.update.mockResolvedValue({
+      resumesRepository.findResumeByIdAndUserId.mockResolvedValue(
+        mockResume as any,
+      );
+      experienceRepository.updateEntityForResume.mockResolvedValue({
         ...mockExperience,
         position: updateDto.position!,
       } as any);
 
-      const result = await service.updateById(
+      const result = await service.updateEntityByIdForResume(
         'resume-123',
         'exp-123',
         'user-123',
@@ -160,7 +180,7 @@ describe('ExperienceService', () => {
       );
 
       expect(result.data!.position).toBe(updateDto.position);
-      expect(experienceRepository.update).toHaveBeenCalledWith(
+      expect(experienceRepository.updateEntityForResume).toHaveBeenCalledWith(
         'exp-123',
         'resume-123',
         updateDto,
@@ -168,39 +188,54 @@ describe('ExperienceService', () => {
     });
 
     it('should throw NotFoundException when not found', async () => {
-      resumesRepository.findOne.mockResolvedValue(mockResume as any);
-      experienceRepository.update.mockResolvedValue(null);
+      resumesRepository.findResumeByIdAndUserId.mockResolvedValue(
+        mockResume as any,
+      );
+      experienceRepository.updateEntityForResume.mockResolvedValue(null);
 
       await expect(
-        service.updateById('resume-123', 'invalid-id', 'user-123', {}),
+        service.updateEntityByIdForResume(
+          'resume-123',
+          'invalid-id',
+          'user-123',
+          {},
+        ),
       ).rejects.toThrow('Experience not found');
     });
   });
 
   describe('deleteById', () => {
     it('should delete experience successfully', async () => {
-      resumesRepository.findOne.mockResolvedValue(mockResume as any);
-      experienceRepository.delete.mockResolvedValue(true);
+      resumesRepository.findResumeByIdAndUserId.mockResolvedValue(
+        mockResume as any,
+      );
+      experienceRepository.deleteEntityForResume.mockResolvedValue(true);
 
-      const result = await service.deleteById(
+      const result = await service.deleteEntityByIdForResume(
         'resume-123',
         'exp-123',
         'user-123',
       );
 
       expect(result.message).toBe('Experience deleted successfully');
-      expect(experienceRepository.delete).toHaveBeenCalledWith(
+      expect(experienceRepository.deleteEntityForResume).toHaveBeenCalledWith(
         'exp-123',
         'resume-123',
       );
     });
 
     it('should throw NotFoundException when not found', async () => {
-      resumesRepository.findOne.mockResolvedValue(mockResume as any);
-      experienceRepository.delete.mockResolvedValue(false);
+      resumesRepository.findResumeByIdAndUserId.mockResolvedValue(
+        mockResume as any,
+      );
+      experienceRepository.deleteEntityForResume.mockResolvedValue(false);
 
       await expect(
-        service.deleteById('resume-123', 'invalid-id', 'user-123'),
+        service.deleteEntityByIdForResume(
+          'resume-123',
+          'invalid-id',
+          'user-123',
+        ),
       ).rejects.toThrow('Experience not found');
     });
   });

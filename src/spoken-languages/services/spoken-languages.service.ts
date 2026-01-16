@@ -22,8 +22,8 @@ export class SpokenLanguagesService {
   /**
    * Get all active spoken languages ordered by order field
    */
-  async getAll(): Promise<SpokenLanguage[]> {
-    const languages = await this.prisma.spokenLanguage.findMany({
+  async findAllActiveLanguages(): Promise<SpokenLanguage[]> {
+    const activeLanguages = await this.prisma.spokenLanguage.findMany({
       where: { isActive: true },
       orderBy: { order: 'asc' },
       select: {
@@ -35,24 +35,24 @@ export class SpokenLanguagesService {
       },
     });
 
-    return languages;
+    return activeLanguages;
   }
 
   /**
    * Search spoken languages by name (in any supported language)
    */
-  async search(
-    query: string,
+  async searchLanguagesByName(
+    searchQuery: string,
     limit: number = APP_CONFIG.SEARCH_AUTOCOMPLETE_LIMIT,
   ): Promise<SpokenLanguage[]> {
-    const languages = await this.prisma.spokenLanguage.findMany({
+    const matchingLanguages = await this.prisma.spokenLanguage.findMany({
       where: {
         isActive: true,
         OR: [
-          { nameEn: { contains: query, mode: 'insensitive' } },
-          { namePtBr: { contains: query, mode: 'insensitive' } },
-          { nameEs: { contains: query, mode: 'insensitive' } },
-          { nativeName: { contains: query, mode: 'insensitive' } },
+          { nameEn: { contains: searchQuery, mode: 'insensitive' } },
+          { namePtBr: { contains: searchQuery, mode: 'insensitive' } },
+          { nameEs: { contains: searchQuery, mode: 'insensitive' } },
+          { nativeName: { contains: searchQuery, mode: 'insensitive' } },
         ],
       },
       orderBy: { order: 'asc' },
@@ -66,13 +66,13 @@ export class SpokenLanguagesService {
       },
     });
 
-    return languages;
+    return matchingLanguages;
   }
 
   /**
    * Get a single language by code
    */
-  async getByCode(code: string): Promise<SpokenLanguage | null> {
+  async findLanguageByCode(code: string): Promise<SpokenLanguage | null> {
     return this.prisma.spokenLanguage.findUnique({
       where: { code },
       select: {

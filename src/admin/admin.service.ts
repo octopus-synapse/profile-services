@@ -32,66 +32,72 @@ export class AdminService {
 
   // ==================== User Management ====================
 
-  async getAllUsers(options: GetAllUsersOptions) {
-    return this.userAdminService.getAll(options);
+  async findAllUsersWithPagination(queryOptions: GetAllUsersOptions) {
+    return this.userAdminService.findAllUsersWithPagination(queryOptions);
   }
 
-  async getUserById(id: string) {
-    return this.userAdminService.getById(id);
+  async findUserByIdWithDetails(userId: string) {
+    return this.userAdminService.findUserByIdWithDetails(userId);
   }
 
-  async createUser(createUser: AdminCreateUser) {
-    return this.userAdminService.create(createUser);
+  async createUserAccount(createUserData: AdminCreateUser) {
+    return this.userAdminService.createUserAccount(createUserData);
   }
 
-  async updateUser(id: string, updateUser: AdminUpdateUser) {
-    return this.userAdminService.update(id, updateUser);
+  async updateUserAccount(userId: string, updateUserData: AdminUpdateUser) {
+    return this.userAdminService.updateUserAccount(userId, updateUserData);
   }
 
-  async deleteUser(id: string, requestingAdminId: string) {
+  async deleteUserAccount(userId: string, requestingAdminId: string) {
     // Use GDPR-compliant cascading deletion (#70)
-    return this.gdprDeletionService.deleteUserCompletely(id, requestingAdminId);
+    return this.gdprDeletionService.deleteUserCompletely(
+      userId,
+      requestingAdminId,
+    );
   }
 
-  async resetUserPassword(id: string, dto: AdminResetPassword) {
-    return this.userAdminService.resetPassword(id, dto);
+  async resetUserPassword(
+    userId: string,
+    resetPasswordData: AdminResetPassword,
+  ) {
+    return this.userAdminService.resetUserPassword(userId, resetPasswordData);
   }
 
   // ==================== Stats ====================
 
-  async getStats() {
-    return this.statsService.getStats();
+  async getPlatformStatistics() {
+    return this.statsService.getPlatformStatistics();
   }
 
   // ==================== Resume Management ====================
 
-  async getUserResumes(userId: string) {
-    return this.resumeAdminService.getUserResumes(userId);
+  async findAllResumesForUser(userId: string) {
+    return this.resumeAdminService.findAllResumesForUser(userId);
   }
 
-  async getResumeById(resumeId: string) {
-    return this.resumeAdminService.getById(resumeId);
+  async findResumeByIdForAdmin(resumeId: string) {
+    return this.resumeAdminService.findResumeByIdForAdmin(resumeId);
   }
 
-  async deleteResume(resumeId: string) {
-    return this.resumeAdminService.delete(resumeId);
+  async deleteResumeForAdmin(resumeId: string) {
+    return this.resumeAdminService.deleteResumeForAdmin(resumeId);
   }
 
   // ==================== Skills Management ====================
 
-  async getResumeSkills(resumeId: string) {
-    return this.skillAdminService.getByResume(resumeId);
+  async findAllSkillsForResume(resumeId: string) {
+    return this.skillAdminService.findAllSkillsForResume(resumeId);
   }
 
-  async addSkillToResume(resumeId: string, data: CreateSkillData) {
-    return this.skillAdminService.addToResume(resumeId, data);
+  async addSkillToResume(resumeId: string, skillData: CreateSkillData) {
+    return this.skillAdminService.addSkillToResume(resumeId, skillData);
   }
 
-  async updateSkill(skillId: string, data: UpdateSkillData) {
-    return this.skillAdminService.update(skillId, data);
+  async updateSkill(skillId: string, updateSkillData: UpdateSkillData) {
+    return this.skillAdminService.updateSkill(skillId, updateSkillData);
   }
 
   async deleteSkill(skillId: string) {
-    return this.skillAdminService.delete(skillId);
+    return this.skillAdminService.deleteSkill(skillId);
   }
 }

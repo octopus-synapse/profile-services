@@ -37,32 +37,39 @@ const USER_LIST_SELECT = {
 export class UserAdminQueryService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getAll(options: GetAllUsersOptions) {
-    const { page, limit, search, role } = options;
-    const skip = (page - 1) * limit;
+  async findAllUsersWithPagination(queryOptions: GetAllUsersOptions) {
+    const { page, limit, search, role } = queryOptions;
+    const skipCount = (page - 1) * limit;
 
-    const where = this.buildWhereClause(search, role);
+    const whereClause = this.buildWhereClause(search, role);
 
-    const [users, total] = await Promise.all([
+    const [paginatedUsers, totalUserCount] = await Promise.all([
       this.prisma.user.findMany({
-        where,
-        skip,
+        where: whereClause,
+        skip: skipCount,
         take: limit,
         select: USER_LIST_SELECT,
         orderBy: { createdAt: 'desc' },
       }),
-      this.prisma.user.count({ where }),
+      this.prisma.user.count({ where: whereClause }),
     ]);
 
+    const paginationMetadata = {
+      page,
+      limit,
+      total: totalUserCount,
+      totalPages: Math.ceil(totalUserCount / limit),
+    };
+
     return {
-      users,
-      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+      users: paginatedUsers,
+      pagination: paginationMetadata,
     };
   }
 
-  async getById(id: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { id },
+  async findUserByIdWithDetails(userId: string) {
+    const foundUser = await this.prisma.user.findUnique({
+      where: { id: userId },
       include: {
         resumes: {
           select: {
@@ -81,12 +88,11 @@ export class UserAdminQueryService {
       },
     });
 
-    if (!user) {
+    if (!foundUser) {
       throw new NotFoundException('User not found');
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, ...userWithoutPassword } = user;
+    const { password: _passwordField, ...userWithoutPassword } = foundUser;
     return userWithoutPassword;
   }
 

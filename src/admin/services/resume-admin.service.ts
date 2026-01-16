@@ -11,10 +11,10 @@ import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
 export class ResumeAdminService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getUserResumes(userId: string) {
+  async findAllResumesForUser(userId: string) {
     await this.ensureUserExists(userId);
 
-    const resumes = await this.prisma.resume.findMany({
+    const userResumes = await this.prisma.resume.findMany({
       where: { userId },
       include: {
         skills: true,
@@ -33,11 +33,11 @@ export class ResumeAdminService {
       orderBy: { updatedAt: 'desc' },
     });
 
-    return { resumes };
+    return { resumes: userResumes };
   }
 
-  async getById(resumeId: string) {
-    const resume = await this.prisma.resume.findUnique({
+  async findResumeByIdForAdmin(resumeId: string) {
+    const foundResume = await this.prisma.resume.findUnique({
       where: { id: resumeId },
       include: {
         user: {
@@ -57,14 +57,14 @@ export class ResumeAdminService {
       },
     });
 
-    if (!resume) {
+    if (!foundResume) {
       throw new NotFoundException('Resume not found');
     }
 
-    return resume;
+    return foundResume;
   }
 
-  async delete(resumeId: string) {
+  async deleteResumeForAdmin(resumeId: string) {
     await this.ensureResumeExists(resumeId);
 
     await this.prisma.resume.delete({ where: { id: resumeId } });
@@ -76,17 +76,19 @@ export class ResumeAdminService {
   }
 
   private async ensureUserExists(userId: string): Promise<void> {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) {
+    const existingUser = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+    if (!existingUser) {
       throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
     }
   }
 
   private async ensureResumeExists(resumeId: string): Promise<void> {
-    const resume = await this.prisma.resume.findUnique({
+    const existingResume = await this.prisma.resume.findUnique({
       where: { id: resumeId },
     });
-    if (!resume) {
+    if (!existingResume) {
       throw new NotFoundException(ERROR_MESSAGES.RESUME_NOT_FOUND);
     }
   }
