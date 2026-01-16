@@ -1,14 +1,22 @@
 import { Injectable, Logger } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import type { OnboardingData } from '../schemas/onboarding.schema';
+import { BaseOnboardingService } from './base-onboarding.service';
 
-import type { Prisma } from '@prisma/client';
+type LanguageInput = OnboardingData['languages'][number];
+type LanguageCreate = Prisma.LanguageCreateManyInput;
 
 @Injectable()
-export class LanguagesOnboardingService {
-  private readonly logger = new Logger(LanguagesOnboardingService.name);
+export class LanguagesOnboardingService extends BaseOnboardingService<
+  LanguageInput,
+  LanguageCreate
+> {
+  protected readonly logger = new Logger(LanguagesOnboardingService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {
+    super();
+  }
 
   async saveLanguages(resumeId: string, data: OnboardingData) {
     return this.saveLanguagesWithTx(this.prisma, resumeId, data);
@@ -19,24 +27,46 @@ export class LanguagesOnboardingService {
     resumeId: string,
     data: OnboardingData,
   ) {
-    const { languages } = data;
+    return this.saveWithTransaction(tx, resumeId, data);
+  }
 
-    if (!languages.length) {
-      this.logger.log('No languages provided');
-      return;
-    }
+  protected extractItems(data: OnboardingData): LanguageInput[] {
+    return data.languages;
+  }
 
+  // Languages has no noData flag - return null
+  protected getNoDataFlag(): null {
+    return null;
+  }
+
+  protected getSkipMessage(): string {
+    return 'No languages provided';
+  }
+
+  protected async deleteExisting(
+    tx: Prisma.TransactionClient,
+    resumeId: string,
+  ): Promise<void> {
     await tx.language.deleteMany({ where: { resumeId } });
+  }
 
-    await tx.language.createMany({
-      data: languages.map((lang, index) => ({
-        resumeId,
-        name: lang.name,
-        level: lang.level,
-        order: index,
-      })),
-    });
+  protected transformItems(items: LanguageInput[], resumeId: string): LanguageCreate[] {
+    return items.map((lang, index) => ({
+      resumeId,
+      name: lang.name,
+      level: lang.level,
+      order: index,
+    }));
+  }
 
-    this.logger.log(`Created ${languages.length} languages`);
+  protected async createMany(
+    tx: Prisma.TransactionClient,
+    items: LanguageCreate[],
+  ): Promise<void> {
+    await tx.language.createMany({ data: items });
+  }
+
+  protected getSuccessMessage(count: number): string {
+    return `Created ${count} languages`;
   }
 }

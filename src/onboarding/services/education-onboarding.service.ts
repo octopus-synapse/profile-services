@@ -1,15 +1,23 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
-import type { OnboardingData } from '../schemas/onboarding.schema';
-import { DateUtils } from '../../common/utils/date.utils';
-
 import type { Prisma } from '@prisma/client';
+import { PrismaService } from '../../prisma/prisma.service';
+import { DateUtils } from '../../common/utils/date.utils';
+import type { OnboardingData } from '../schemas/onboarding.schema';
+import { BaseOnboardingService } from './base-onboarding.service';
+
+type EducationInput = OnboardingData['education'][number];
+type EducationCreate = Prisma.EducationCreateManyInput;
 
 @Injectable()
-export class EducationOnboardingService {
-  private readonly logger = new Logger(EducationOnboardingService.name);
+export class EducationOnboardingService extends BaseOnboardingService<
+  EducationInput,
+  EducationCreate
+> {
+  protected readonly logger = new Logger(EducationOnboardingService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {
+    super();
+  }
 
   async saveEducation(resumeId: string, data: OnboardingData) {
     return this.saveEducationWithTx(this.prisma, resumeId, data);
@@ -20,57 +28,73 @@ export class EducationOnboardingService {
     resumeId: string,
     data: OnboardingData,
   ) {
-    const { education, noEducation } = data;
+    return this.saveWithTransaction(tx, resumeId, data);
+  }
 
-    if (noEducation || !education.length) {
-      this.logger.log(
-        noEducation ? 'User selected noEducation' : 'No education provided',
-      );
-      return;
-    }
+  protected extractItems(data: OnboardingData): EducationInput[] {
+    return data.education;
+  }
 
+  protected getNoDataFlag(data: OnboardingData): boolean {
+    return data.noEducation ?? false;
+  }
+
+  protected getSkipMessage(noDataFlag: boolean | null): string {
+    return noDataFlag ? 'User selected noEducation' : 'No education provided';
+  }
+
+  protected async deleteExisting(
+    tx: Prisma.TransactionClient,
+    resumeId: string,
+  ): Promise<void> {
     await tx.education.deleteMany({ where: { resumeId } });
+  }
 
-    const validEducation = education
-      .map((edu) => {
-        const startDate = DateUtils.toUTCDate(edu.startDate);
-        const endDate = edu.isCurrent ? null : DateUtils.toUTCDate(edu.endDate);
+  protected transformItems(
+    items: EducationInput[],
+    resumeId: string,
+  ): EducationCreate[] {
+    return items
+      .map((edu) => this.mapEducation(edu, resumeId))
+      .filter((e): e is EducationCreate => e !== null);
+  }
 
-        if (!startDate) {
-          this.logger.warn(
-            `Skipping education with invalid start date: ${edu.institution}`,
-          );
-          return null;
-        }
+  private mapEducation(
+    edu: EducationInput,
+    resumeId: string,
+  ): EducationCreate | null {
+    const startDate = DateUtils.toUTCDate(edu.startDate);
+    const endDate = edu.isCurrent ? null : DateUtils.toUTCDate(edu.endDate);
 
-        // Validate endDate is after startDate
-        if (endDate && endDate < startDate) {
-          this.logger.warn(
-            `Skipping education with end date before start date: ${edu.institution}`,
-          );
-          return null;
-        }
-
-        return {
-          resumeId,
-          institution: edu.institution,
-          degree: edu.degree,
-          field: edu.field,
-          startDate,
-          endDate,
-          isCurrent: edu.isCurrent,
-        };
-      })
-      .filter(Boolean);
-
-    if (validEducation.length > 0) {
-      const filteredEducation = validEducation.filter(
-        (e): e is NonNullable<typeof e> => e !== null,
-      );
-      await tx.education.createMany({
-        data: filteredEducation,
-      });
-      this.logger.log(`Created ${validEducation.length} education entries`);
+    if (!startDate) {
+      this.logger.warn(`Skipping education with invalid start date: ${edu.institution}`);
+      return null;
     }
+
+    if (endDate && endDate < startDate) {
+      this.logger.warn(`Skipping education with end date before start date: ${edu.institution}`);
+      return null;
+    }
+
+    return {
+      resumeId,
+      institution: edu.institution,
+      degree: edu.degree,
+      field: edu.field,
+      startDate,
+      endDate,
+      isCurrent: edu.isCurrent,
+    };
+  }
+
+  protected async createMany(
+    tx: Prisma.TransactionClient,
+    items: EducationCreate[],
+  ): Promise<void> {
+    await tx.education.createMany({ data: items });
+  }
+
+  protected getSuccessMessage(count: number): string {
+    return `Created ${count} education entries`;
   }
 }
