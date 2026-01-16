@@ -6,6 +6,7 @@
 
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
+import type { Prisma } from '@prisma/client';
 import { Group, type GroupId } from '../../domain/entities/group.entity';
 import type { RoleId } from '../../domain/entities/role.entity';
 import type { PermissionId } from '../../domain/entities/permission.entity';
@@ -92,7 +93,12 @@ export class GroupRepository implements IGroupRepository {
       }
       visited.add(currentId);
 
-      const group = await this.prisma.group.findUnique({
+      const group: Prisma.GroupGetPayload<{
+        include: {
+          roles: { select: { roleId: true } };
+          permissions: { select: { permissionId: true } };
+        };
+      }> | null = await this.prisma.group.findUnique({
         where: { id: currentId },
         include: {
           roles: { select: { roleId: true } },
@@ -109,7 +115,10 @@ export class GroupRepository implements IGroupRepository {
         ancestors.push(this.toDomain(group));
       }
 
-      currentId = group.parentId ?? null;
+      if (!group.parentId) {
+        break;
+      }
+      currentId = group.parentId;
     }
 
     return ancestors;
@@ -124,9 +133,9 @@ export class GroupRepository implements IGroupRepository {
     const visited = new Set<string>();
 
     while (queue.length > 0) {
-      const currentId = queue.shift()!;
+      const currentId = queue.shift();
 
-      if (visited.has(currentId)) {
+      if (!currentId || visited.has(currentId)) {
         continue;
       }
       visited.add(currentId);

@@ -206,10 +206,10 @@ export class UserManagementService {
 
   async deleteUser(userId: string, requesterId: string) {
     await this.ensureUserExists(userId);
-    await this.preventSelfDeletion(userId, requesterId);
+    this.preventSelfDeletion(userId, requesterId);
 
     // Check if user is last with 'user:delete' permission (prevents lockout)
-    this.preventLastPrivilegedUserDeletion(userId);
+    await this.preventLastPrivilegedUserDeletion(userId);
 
     await this.prisma.user.delete({ where: { id: userId } });
 

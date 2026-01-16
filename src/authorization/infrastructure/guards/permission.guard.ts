@@ -235,14 +235,14 @@ export class PermissionGuard implements CanActivate {
     }
 
     if (multiplePermissions && multiplePermissions.length > 0) {
-      const strategy =
-        this.reflector.getAllAndOverride<PermissionStrategy>(
-          PERMISSION_STRATEGY_KEY,
-          [context.getHandler(), context.getClass()],
-        ) || 'all';
+      const strategy = this.reflector.getAllAndOverride<PermissionStrategy>(
+        PERMISSION_STRATEGY_KEY,
+        [context.getHandler(), context.getClass()],
+      );
 
+      const effectiveStrategy = strategy;
       const hasPermission =
-        strategy === 'all'
+        effectiveStrategy === 'all'
           ? await this.authService.hasAllPermissions(
               user.id,
               multiplePermissions,
