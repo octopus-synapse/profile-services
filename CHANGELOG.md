@@ -1,5 +1,12 @@
 # Changelog
 
+## [6.0.1](https://github.com/octopus-synapse/profile-services/compare/profile-services-v6.0.0...profile-services-v6.0.1) (2026-01-16)
+
+
+### Code Refactoring
+
+* tests are using mock resume factory now ([60d1aa4](https://github.com/octopus-synapse/profile-services/commit/60d1aa413519cb323a8f9243891235f97965edb8))
+
 ## [6.0.0](https://github.com/octopus-synapse/profile-services/compare/profile-services-v5.5.0...profile-services-v6.0.0) (2026-01-16)
 
 
