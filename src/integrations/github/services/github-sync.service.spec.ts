@@ -10,6 +10,7 @@
  */
 
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { createMockResume } from '../../../../test/factories/resume.factory';
 import { Test, TestingModule } from '@nestjs/testing';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { GitHubSyncService } from './github-sync.service';
@@ -65,11 +66,7 @@ describe('GitHubSyncService', () => {
     },
   ];
 
-  const mockResume = {
-    id: 'resume-123',
-    userId: 'user-123',
-    github: 'https://github.com/testuser',
-  };
+  const mockResume = createMockResume({ id: 'resume-123', userId: 'user-123', github: 'https://github.com/testuser' });
 
   beforeEach(async () => {
     fakeApiService = {

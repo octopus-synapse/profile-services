@@ -19,7 +19,7 @@
     "test": "bun test",
     "test:unit": "bun test",
     "test:watch": "bun test --watch",
-    "test:cov": "bun test --coverage",
+    "test:coverage": "bun test --coverage",
     "test:debug": "bun test",
     "test:e2e": "jest --config test/jest-e2e.json --runInBand",
     "test:smoke": "bun test ./test/smoke",

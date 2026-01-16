@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, mock, spyOn } from 'bun:test';
+import { createMockResume } from '../../../test/factories/resume.factory';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Logger } from '@nestjs/common';
 import { PublicationService } from './publication.service';
@@ -11,11 +12,7 @@ describe('PublicationService', () => {
   let publicationRepository: PublicationRepository;
   let resumesRepository: ResumesRepository;
 
-  const mockResume = {
-    id: 'resume-123',
-    userId: 'user-123',
-    title: 'Test Resume',
-  };
+  const mockResume = createMockResume({ id: 'resume-123', userId: 'user-123' });
 
   const mockPublication = {
     id: 'pub-123',

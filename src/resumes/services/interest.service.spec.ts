@@ -5,6 +5,7 @@
  */
 
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { createMockResume } from '../../../test/factories/resume.factory';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Logger } from '@nestjs/common';
 import { InterestService } from './interest.service';
@@ -52,7 +53,7 @@ describe('InterestService', () => {
   });
 
   describe('CRUD operations', () => {
-    const mockResume = { id: 'resume-1', userId: 'user-1' };
+    const mockResume = createMockResume({ id: 'resume-1', userId: 'user-1' });
     const mockInterest = {
       id: 'interest-1',
       resumeId: 'resume-1',

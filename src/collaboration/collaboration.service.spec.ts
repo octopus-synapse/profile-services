@@ -7,6 +7,7 @@
  */
 
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { createMockResume } from '../../test/factories/resume.factory';
 import { Test, TestingModule } from '@nestjs/testing';
 import { CollaborationService } from './collaboration.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -31,11 +32,7 @@ describe('CollaborationService', () => {
     };
   };
 
-  const mockResume = {
-    id: 'resume-1',
-    userId: 'owner-1',
-    title: 'Test Resume',
-  };
+  const mockResume = createMockResume({ id: 'resume-1', userId: 'owner-1', title: 'Test Resume' });
 
   const mockCollaborator = {
     id: 'collab-1',

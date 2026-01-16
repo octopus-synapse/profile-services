@@ -9,6 +9,7 @@
  */
 
 import { describe, it, expect, beforeEach, mock, spyOn } from 'bun:test';
+import { createMockResume } from '../../../test/factories/resume.factory';
 import * as bcrypt from 'bcryptjs';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ResumeShareService } from './resume-share.service';
@@ -24,18 +25,7 @@ describe('ResumeShareService', () => {
   let prisma: PrismaService;
   let cache: CacheCoreService;
 
-  const mockResume = {
-    id: 'resume-123',
-    userId: 'user-123',
-    title: 'Software Engineer Resume',
-    experiences: [],
-    education: [],
-    skills: [],
-    languages: [],
-    projects: [],
-    certifications: [],
-    awards: [],
-  };
+  const mockResume = createMockResume({ id: 'resume-123', userId: 'user-123', title: 'Software Engineer Resume', experiences: [], education: [], skills: [], languages: [], projects: [], certifications: [], awards: [] });
 
   const mockShare = {
     id: 'share-123',

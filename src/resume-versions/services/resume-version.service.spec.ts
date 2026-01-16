@@ -9,6 +9,7 @@
  */
 
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { createMockResume } from '../../../test/factories/resume.factory';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ResumeVersionService } from './resume-version.service';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -18,26 +19,7 @@ describe('ResumeVersionService', () => {
   let service: ResumeVersionService;
   let prisma: PrismaService;
 
-  const mockResume = {
-    id: 'resume-123',
-    userId: 'user-123',
-    title: 'Software Engineer Resume',
-    experiences: [],
-    education: [],
-    skills: [],
-    languages: [],
-    projects: [],
-    certifications: [],
-    awards: [],
-    recommendations: [],
-    interests: [],
-    achievements: [],
-    publications: [],
-    talks: [],
-    openSource: [],
-    bugBounties: [],
-    hackathons: [],
-  };
+  const mockResume = createMockResume({ id: 'resume-123', userId: 'user-123', title: 'Software Engineer Resume', experiences: [], education: [], skills: [], languages: [], projects: [], certifications: [], awards: [], recommendations: [], interests: [], achievements: [], publications: [], talks: [], openSource: [], bugBounties: [], hackathons: [] });
 
   const mockVersion = {
     id: 'version-123',

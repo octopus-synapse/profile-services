@@ -5,6 +5,7 @@
  */
 
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { createMockResume } from '../../../test/factories/resume.factory';
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { DocxBuilderService } from './docx-builder.service';
@@ -22,17 +23,7 @@ describe('DocxBuilderService', () => {
     email: 'john@example.com',
   };
 
-  const mockResume = {
-    id: 'resume-1',
-    userId: 'user-1',
-    fullName: 'John Doe',
-    jobTitle: 'Software Engineer',
-    experiences: [],
-    education: [],
-    skills: [],
-    projects: [],
-    languages: [],
-  };
+  const mockResume = createMockResume({ id: 'resume-1', userId: 'user-1', fullName: 'John Doe', jobTitle: 'Software Engineer', experiences: [], education: [], skills: [], projects: [], languages: [] });
 
   const mockSection = {
     properties: {},

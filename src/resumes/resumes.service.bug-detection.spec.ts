@@ -8,6 +8,7 @@
  */
 
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { createMockResume } from '../../test/factories/resume.factory';
 import { Test, TestingModule } from '@nestjs/testing';
 import {
   UnprocessableEntityException,
@@ -24,11 +25,7 @@ describe('ResumesService - Bug Detection', () => {
   let mockVersionService: ResumeVersionService;
   let mockCacheInvalidation: CacheInvalidationService;
 
-  const mockResume = {
-    id: 'resume-1',
-    userId: 'user-123',
-    title: 'Test Resume',
-  };
+  const mockResume = createMockResume({ id: 'resume-1', userId: 'user-123', title: 'Test Resume' });
 
   beforeEach(async () => {
     mockRepository = {
