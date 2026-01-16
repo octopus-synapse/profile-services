@@ -1,5 +1,16 @@
 # Changelog
 
+## [6.0.0](https://github.com/octopus-synapse/profile-services/compare/profile-services-v5.5.0...profile-services-v6.0.0) (2026-01-16)
+
+
+### ⚠ BREAKING CHANGES
+
+* Replace role-based access control with permission-based authorization
+
+### Features
+
+* implement RBAC authorization system ([#123](https://github.com/octopus-synapse/profile-services/issues/123)) ([c3a20f4](https://github.com/octopus-synapse/profile-services/commit/c3a20f4e0777b7f9edcb13e79a84991e20703ccb))
+
 ## [5.5.0](https://github.com/octopus-synapse/profile-services/compare/profile-services-v5.4.1...profile-services-v5.5.0) (2026-01-16)
 
 
