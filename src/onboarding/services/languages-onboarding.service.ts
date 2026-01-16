@@ -50,7 +50,10 @@ export class LanguagesOnboardingService extends BaseOnboardingService<
     await tx.language.deleteMany({ where: { resumeId } });
   }
 
-  protected transformItems(items: LanguageInput[], resumeId: string): LanguageCreate[] {
+  protected transformItems(
+    items: LanguageInput[],
+    resumeId: string,
+  ): LanguageCreate[] {
     return items.map((lang, index) => ({
       resumeId,
       name: lang.name,

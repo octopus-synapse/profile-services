@@ -36,11 +36,13 @@ export class ExperienceOnboardingService extends BaseOnboardingService<
   }
 
   protected getNoDataFlag(data: OnboardingData): boolean {
-    return data.noExperience ?? false;
+    return data.noExperience;
   }
 
   protected getSkipMessage(noDataFlag: boolean | null): string {
-    return noDataFlag ? 'User selected noExperience' : 'No experiences provided';
+    return noDataFlag
+      ? 'User selected noExperience'
+      : 'No experiences provided';
   }
 
   protected async deleteExisting(
@@ -67,12 +69,16 @@ export class ExperienceOnboardingService extends BaseOnboardingService<
     const endDate = exp.isCurrent ? null : DateUtils.toUTCDate(exp.endDate);
 
     if (!startDate) {
-      this.logger.warn(`Skipping experience with invalid start date: ${exp.company}`);
+      this.logger.warn(
+        `Skipping experience with invalid start date: ${exp.company}`,
+      );
       return null;
     }
 
     if (endDate && endDate < startDate) {
-      this.logger.warn(`Skipping experience with end date before start date: ${exp.company}`);
+      this.logger.warn(
+        `Skipping experience with end date before start date: ${exp.company}`,
+      );
       return null;
     }
 

@@ -35,7 +35,7 @@ export class SkillsOnboardingService extends BaseOnboardingService<
   }
 
   protected getNoDataFlag(data: OnboardingData): boolean {
-    return data.noSkills ?? false;
+    return data.noSkills;
   }
 
   protected getSkipMessage(noDataFlag: boolean | null): string {
@@ -49,7 +49,10 @@ export class SkillsOnboardingService extends BaseOnboardingService<
     await tx.skill.deleteMany({ where: { resumeId } });
   }
 
-  protected transformItems(items: SkillInput[], resumeId: string): SkillCreate[] {
+  protected transformItems(
+    items: SkillInput[],
+    resumeId: string,
+  ): SkillCreate[] {
     return items.map((skill, index) => ({
       resumeId,
       name: skill.name,

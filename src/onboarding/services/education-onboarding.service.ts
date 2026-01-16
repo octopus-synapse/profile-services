@@ -36,7 +36,7 @@ export class EducationOnboardingService extends BaseOnboardingService<
   }
 
   protected getNoDataFlag(data: OnboardingData): boolean {
-    return data.noEducation ?? false;
+    return data.noEducation;
   }
 
   protected getSkipMessage(noDataFlag: boolean | null): string {
@@ -67,12 +67,16 @@ export class EducationOnboardingService extends BaseOnboardingService<
     const endDate = edu.isCurrent ? null : DateUtils.toUTCDate(edu.endDate);
 
     if (!startDate) {
-      this.logger.warn(`Skipping education with invalid start date: ${edu.institution}`);
+      this.logger.warn(
+        `Skipping education with invalid start date: ${edu.institution}`,
+      );
       return null;
     }
 
     if (endDate && endDate < startDate) {
-      this.logger.warn(`Skipping education with end date before start date: ${edu.institution}`);
+      this.logger.warn(
+        `Skipping education with end date before start date: ${edu.institution}`,
+      );
       return null;
     }
 

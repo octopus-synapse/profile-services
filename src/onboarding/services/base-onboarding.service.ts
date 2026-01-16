@@ -85,7 +85,10 @@ export abstract class BaseOnboardingService<TInput, TCreate> {
    * Transform and validate input items to Prisma create format.
    * Filters out invalid items (nulls).
    */
-  protected abstract transformItems(items: TInput[], resumeId: string): TCreate[];
+  protected abstract transformItems(
+    items: TInput[],
+    resumeId: string,
+  ): TCreate[];
 
   /**
    * Create many records in database.
