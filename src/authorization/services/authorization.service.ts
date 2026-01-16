@@ -12,7 +12,7 @@
  * - Provides simple API for guards and controllers
  */
 
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PermissionResolverService } from '../domain/services/permission-resolver.service';
 import {
   UserAuthContext,
@@ -225,7 +225,7 @@ export class AuthorizationService {
   private cacheContext(userId: UserId, context: UserAuthContext): void {
     // Enforce max cache size (LRU-like eviction)
     if (this.cache.size >= MAX_CACHE_SIZE) {
-      const oldestKey = this.cache.keys().next().value;
+      const oldestKey = this.cache.keys().next().value as UserId | undefined;
       if (oldestKey) {
         this.cache.delete(oldestKey);
       }

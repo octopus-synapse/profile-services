@@ -10,10 +10,7 @@
 import { Controller, Get, Post, Body, Param, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
-import {
-  PermissionGuard,
-  RequirePermission,
-} from '../../authorization';
+import { PermissionGuard, RequirePermission } from '../../authorization';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { ThemeApprovalService, ThemeCrudService } from '../services';
 import type { ReviewTheme } from '@octopus-synapse/profile-contracts';

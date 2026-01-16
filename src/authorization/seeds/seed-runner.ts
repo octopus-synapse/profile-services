@@ -10,8 +10,6 @@ import {
   SYSTEM_PERMISSIONS,
   SYSTEM_ROLES,
   SYSTEM_GROUPS,
-  type RoleDefinition,
-  type GroupDefinition,
 } from './authorization.seed';
 
 const prisma = new PrismaClient();
@@ -201,11 +199,11 @@ export async function seedAuthorization(): Promise<void> {
 
 // Run directly if called as script
 if (require.main === module) {
-  seedAuthorization()
+  void seedAuthorization()
     .then(() => prisma.$disconnect())
     .catch((error) => {
       console.error(error);
-      prisma.$disconnect();
+      void prisma.$disconnect();
       process.exit(1);
     });
 }

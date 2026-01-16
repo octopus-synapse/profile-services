@@ -12,7 +12,7 @@
  * so this should be refreshed when needed.
  */
 
-import type { Permission, PermissionId } from './permission.entity';
+import type { Permission } from './permission.entity';
 import type { RoleId } from './role.entity';
 import type { GroupId } from './group.entity';
 

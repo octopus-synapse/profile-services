@@ -10,7 +10,7 @@
  * This follows the Aggregate pattern - Role is the aggregate root.
  */
 
-import type { Permission, PermissionId } from './permission.entity';
+import type { PermissionId } from './permission.entity';
 
 /**
  * Unique identifier for a Role

@@ -3,7 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { GdprDeletionService } from './gdpr-deletion.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditLogService } from '../../common/audit/audit-log.service';
-import { NotFoundException, BadRequestException } from '@nestjs/common';
+import { NotFoundException } from '@nestjs/common';
 
 describe('GdprDeletionService', () => {
   let service: GdprDeletionService;

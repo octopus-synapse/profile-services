@@ -21,24 +21,6 @@ describe('ThemeApprovalService', () => {
   let crud: ThemeCrudService;
   let authorizationService: { hasPermission: ReturnType<typeof mock> };
 
-  const mockUser = {
-    id: 'user-1',
-    email: 'test@example.com',
-    name: 'Test User',
-  };
-
-  const mockApprover = {
-    id: 'approver-1',
-    email: 'approver@example.com',
-    name: 'Approver User',
-  };
-
-  const mockAdmin = {
-    id: 'admin-1',
-    email: 'admin@example.com',
-    name: 'Admin User',
-  };
-
   const createMockTheme = (overrides = {}) => ({
     id: 'theme-1',
     name: 'Test Theme',

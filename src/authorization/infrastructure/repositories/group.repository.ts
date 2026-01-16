@@ -109,7 +109,7 @@ export class GroupRepository implements IGroupRepository {
         ancestors.push(this.toDomain(group));
       }
 
-      currentId = group.parentId;
+      currentId = group.parentId ?? null;
     }
 
     return ancestors;

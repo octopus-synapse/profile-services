@@ -239,7 +239,7 @@ export class PermissionGuard implements CanActivate {
         this.reflector.getAllAndOverride<PermissionStrategy>(
           PERMISSION_STRATEGY_KEY,
           [context.getHandler(), context.getClass()],
-        ) ?? 'all';
+        ) || 'all';
 
       const hasPermission =
         strategy === 'all'

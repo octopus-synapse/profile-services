@@ -6,11 +6,7 @@
  * with proper cascading deletion of related entities
  */
 
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AuditLogService } from '../../common/audit/audit-log.service';
 import { AuditAction } from '@prisma/client';
