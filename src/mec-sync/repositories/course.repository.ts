@@ -96,11 +96,15 @@ export class CourseRepository {
   async countCoursesByDegree(): Promise<
     Array<{ grau: string | null; _count: number }>
   > {
-    return this.prisma.mecCourse.groupBy({
+    const result = await this.prisma.mecCourse.groupBy({
       by: ['grau'],
       where: { isActive: true },
-      _count: true,
+      _count: { _all: true },
     });
+    return result.map((r) => ({
+      grau: r.grau,
+      _count: r._count._all,
+    }));
   }
 
   async count(): Promise<number> {

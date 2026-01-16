@@ -1,0 +1,293 @@
+# Prometheus Alert Rules for ProFile Services
+#
+# Critical Thresholds (from Issue #82):
+#   - Error rate > 1%
+#   - P95 latency > 2s
+#   - Export queue depth > 100
+#   - Database connection pool exhaustion
+#   - Redis unavailability
+
+groups:
+  # ==========================================================================
+  # Service Health Alerts
+  # ==========================================================================
+  - name: service_health
+    rules:
+      # Service completely down
+      - alert: ServiceDown
+        expr: up{job="profile-services"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: profile-services
+        annotations:
+          summary: "ProFile service is down"
+          description: "The ProFile backend service has been unreachable for more than 1 minute."
+          runbook_url: "https://github.com/octopus-synapse/profile-services/blob/main/docs/runbooks/service-down.md"
+
+      # High error rate (> 1%)
+      - alert: HighErrorRate
+        expr: |
+          (
+            sum(rate(http_requests_total{job="profile-services", status=~"5.."}[5m]))
+            /
+            sum(rate(http_requests_total{job="profile-services"}[5m]))
+          ) * 100 > 1
+        for: 2m
+        labels:
+          severity: critical
+          service: profile-services
+        annotations:
+          summary: "High error rate detected ({{ $value | printf \"%.2f\" }}%)"
+          description: "Error rate has exceeded 1% threshold for more than 2 minutes. Current rate: {{ $value | printf \"%.2f\" }}%"
+          runbook_url: "https://github.com/octopus-synapse/profile-services/blob/main/docs/runbooks/high-error-rate.md"
+
+      # Warning for elevated error rate (> 0.5%)
+      - alert: ElevatedErrorRate
+        expr: |
+          (
+            sum(rate(http_requests_total{job="profile-services", status=~"5.."}[5m]))
+            /
+            sum(rate(http_requests_total{job="profile-services"}[5m]))
+          ) * 100 > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          service: profile-services
+        annotations:
+          summary: "Elevated error rate ({{ $value | printf \"%.2f\" }}%)"
+          description: "Error rate is above 0.5%. Monitor for potential escalation."
+          runbook_url: "https://github.com/octopus-synapse/profile-services/blob/main/docs/runbooks/high-error-rate.md"
+
+  # ==========================================================================
+  # Latency Alerts
+  # ==========================================================================
+  - name: latency
+    rules:
+      # P95 latency > 2 seconds
+      - alert: HighP95Latency
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(http_request_duration_seconds_bucket{job="profile-services"}[5m])) by (le)
+          ) > 2
+        for: 3m
+        labels:
+          severity: critical
+          service: profile-services
+        annotations:
+          summary: "P95 latency exceeds 2 seconds ({{ $value | printf \"%.2f\" }}s)"
+          description: "95th percentile latency has exceeded 2 seconds for more than 3 minutes."
+          runbook_url: "https://github.com/octopus-synapse/profile-services/blob/main/docs/runbooks/high-latency.md"
+
+      # P95 latency warning (> 1 second)
+      - alert: ElevatedP95Latency
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(http_request_duration_seconds_bucket{job="profile-services"}[5m])) by (le)
+          ) > 1
+        for: 5m
+        labels:
+          severity: warning
+          service: profile-services
+        annotations:
+          summary: "P95 latency above 1 second ({{ $value | printf \"%.2f\" }}s)"
+          description: "95th percentile latency is elevated. May impact user experience."
+          runbook_url: "https://github.com/octopus-synapse/profile-services/blob/main/docs/runbooks/high-latency.md"
+
+      # Slow endpoint detection
+      - alert: SlowEndpoint
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(http_request_duration_seconds_bucket{job="profile-services"}[5m])) by (le, route)
+          ) > 3
+        for: 5m
+        labels:
+          severity: warning
+          service: profile-services
+        annotations:
+          summary: "Slow endpoint detected: {{ $labels.route }}"
+          description: "Endpoint {{ $labels.route }} P95 latency is {{ $value | printf \"%.2f\" }}s"
+          runbook_url: "https://github.com/octopus-synapse/profile-services/blob/main/docs/runbooks/slow-endpoint.md"
+
+  # ==========================================================================
+  # Queue Alerts (PDF Export, etc.)
+  # ==========================================================================
+  - name: queues
+    rules:
+      # Export queue depth > 100
+      - alert: HighExportQueueDepth
+        expr: profile_export_queue_depth > 100
+        for: 5m
+        labels:
+          severity: critical
+          service: profile-services
+        annotations:
+          summary: "Export queue depth exceeds 100 ({{ $value }})"
+          description: "PDF export queue has {{ $value }} pending jobs. Processing may be backlogged."
+          runbook_url: "https://github.com/octopus-synapse/profile-services/blob/main/docs/runbooks/queue-backlog.md"
+
+      # Warning for growing queue (> 50)
+      - alert: GrowingExportQueue
+        expr: profile_export_queue_depth > 50
+        for: 10m
+        labels:
+          severity: warning
+          service: profile-services
+        annotations:
+          summary: "Export queue growing ({{ $value }} jobs)"
+          description: "Export queue has been above 50 jobs for 10 minutes. May need attention."
+          runbook_url: "https://github.com/octopus-synapse/profile-services/blob/main/docs/runbooks/queue-backlog.md"
+
+      # Queue processing stalled
+      - alert: QueueProcessingStalled
+        expr: |
+          increase(profile_exports_processed_total[10m]) == 0
+          and profile_export_queue_depth > 0
+        for: 5m
+        labels:
+          severity: critical
+          service: profile-services
+        annotations:
+          summary: "Export queue processing has stalled"
+          description: "No exports processed in 10 minutes while queue has {{ $value }} jobs."
+          runbook_url: "https://github.com/octopus-synapse/profile-services/blob/main/docs/runbooks/queue-stalled.md"
+
+  # ==========================================================================
+  # Database Alerts
+  # ==========================================================================
+  - name: database
+    rules:
+      # Connection pool exhaustion
+      - alert: DatabaseConnectionPoolExhausted
+        expr: |
+          (
+            pg_stat_activity_count{datname="profile_dev"}
+            /
+            pg_settings_max_connections
+          ) > 0.9
+        for: 2m
+        labels:
+          severity: critical
+          service: profile-services
+        annotations:
+          summary: "Database connection pool near exhaustion ({{ $value | printf \"%.0f\" }}%)"
+          description: "Connection pool is at {{ $value | printf \"%.0f\" }}% capacity. Service may become unavailable."
+          runbook_url: "https://github.com/octopus-synapse/profile-services/blob/main/docs/runbooks/db-connections.md"
+
+      # High connection usage warning
+      - alert: HighDatabaseConnections
+        expr: |
+          (
+            pg_stat_activity_count{datname="profile_dev"}
+            /
+            pg_settings_max_connections
+          ) > 0.7
+        for: 5m
+        labels:
+          severity: warning
+          service: profile-services
+        annotations:
+          summary: "High database connection usage ({{ $value | printf \"%.0f\" }}%)"
+          description: "Connection pool at {{ $value | printf \"%.0f\" }}%. Monitor for potential exhaustion."
+          runbook_url: "https://github.com/octopus-synapse/profile-services/blob/main/docs/runbooks/db-connections.md"
+
+      # Slow queries
+      - alert: SlowDatabaseQueries
+        expr: |
+          rate(pg_stat_statements_seconds_total{datname="profile_dev"}[5m])
+          /
+          rate(pg_stat_statements_calls_total{datname="profile_dev"}[5m]) > 1
+        for: 5m
+        labels:
+          severity: warning
+          service: profile-services
+        annotations:
+          summary: "Slow database queries detected"
+          description: "Average query time exceeds 1 second. May indicate missing indexes or inefficient queries."
+          runbook_url: "https://github.com/octopus-synapse/profile-services/blob/main/docs/runbooks/slow-queries.md"
+
+  # ==========================================================================
+  # Redis Alerts
+  # ==========================================================================
+  - name: redis
+    rules:
+      # Redis unavailable
+      - alert: RedisUnavailable
+        expr: redis_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: profile-services
+        annotations:
+          summary: "Redis is unavailable"
+          description: "Redis has been down for more than 1 minute. Caching and sessions affected."
+          runbook_url: "https://github.com/octopus-synapse/profile-services/blob/main/docs/runbooks/redis-down.md"
+
+      # High Redis memory usage
+      - alert: HighRedisMemory
+        expr: |
+          redis_memory_used_bytes / redis_memory_max_bytes > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          service: profile-services
+        annotations:
+          summary: "Redis memory usage high ({{ $value | printf \"%.0f\" }}%)"
+          description: "Redis is using {{ $value | printf \"%.0f\" }}% of available memory."
+          runbook_url: "https://github.com/octopus-synapse/profile-services/blob/main/docs/runbooks/redis-memory.md"
+
+      # Redis connection issues
+      - alert: RedisConnectionErrors
+        expr: increase(redis_rejected_connections_total[5m]) > 0
+        for: 2m
+        labels:
+          severity: warning
+          service: profile-services
+        annotations:
+          summary: "Redis rejecting connections"
+          description: "Redis has rejected {{ $value }} connections in the last 5 minutes."
+          runbook_url: "https://github.com/octopus-synapse/profile-services/blob/main/docs/runbooks/redis-connections.md"
+
+  # ==========================================================================
+  # Resource Alerts
+  # ==========================================================================
+  - name: resources
+    rules:
+      # High CPU usage
+      - alert: HighCPUUsage
+        expr: |
+          (1 - avg(rate(node_cpu_seconds_total{mode="idle"}[5m]))) * 100 > 80
+        for: 10m
+        labels:
+          severity: warning
+          service: profile-services
+        annotations:
+          summary: "High CPU usage ({{ $value | printf \"%.0f\" }}%)"
+          description: "CPU usage has been above 80% for 10 minutes."
+          runbook_url: "https://github.com/octopus-synapse/profile-services/blob/main/docs/runbooks/high-cpu.md"
+
+      # High memory usage
+      - alert: HighMemoryUsage
+        expr: |
+          (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+          service: profile-services
+        annotations:
+          summary: "High memory usage ({{ $value | printf \"%.0f\" }}%)"
+          description: "Memory usage is at {{ $value | printf \"%.0f\" }}%."
+          runbook_url: "https://github.com/octopus-synapse/profile-services/blob/main/docs/runbooks/high-memory.md"
+
+      # Disk space low
+      - alert: LowDiskSpace
+        expr: |
+          (1 - (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"})) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+          service: profile-services
+        annotations:
+          summary: "Low disk space ({{ $value | printf \"%.0f\" }}% used)"
+          description: "Disk usage is at {{ $value | printf \"%.0f\" }}%."
+          runbook_url: "https://github.com/octopus-synapse/profile-services/blob/main/docs/runbooks/low-disk.md"

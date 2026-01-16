@@ -1,14 +1,22 @@
 import { Injectable, Logger } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import type { OnboardingData } from '../schemas/onboarding.schema';
+import { BaseOnboardingService } from './base-onboarding.service';
 
-import type { Prisma } from '@prisma/client';
+type SkillInput = OnboardingData['skills'][number];
+type SkillCreate = Prisma.SkillCreateManyInput;
 
 @Injectable()
-export class SkillsOnboardingService {
-  private readonly logger = new Logger(SkillsOnboardingService.name);
+export class SkillsOnboardingService extends BaseOnboardingService<
+  SkillInput,
+  SkillCreate
+> {
+  protected readonly logger = new Logger(SkillsOnboardingService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {
+    super();
+  }
 
   async saveSkills(resumeId: string, data: OnboardingData) {
     return this.saveSkillsWithTx(this.prisma, resumeId, data);
@@ -19,27 +27,49 @@ export class SkillsOnboardingService {
     resumeId: string,
     data: OnboardingData,
   ) {
-    const { skills, noSkills } = data;
+    return this.saveWithTransaction(tx, resumeId, data);
+  }
 
-    if (noSkills || !skills.length) {
-      this.logger.log(
-        noSkills ? 'User selected noSkills' : 'No skills provided',
-      );
-      return;
-    }
+  protected extractItems(data: OnboardingData): SkillInput[] {
+    return data.skills;
+  }
 
+  protected getNoDataFlag(data: OnboardingData): boolean {
+    return data.noSkills;
+  }
+
+  protected getSkipMessage(noDataFlag: boolean | null): string {
+    return noDataFlag ? 'User selected noSkills' : 'No skills provided';
+  }
+
+  protected async deleteExisting(
+    tx: Prisma.TransactionClient,
+    resumeId: string,
+  ): Promise<void> {
     await tx.skill.deleteMany({ where: { resumeId } });
+  }
 
-    await tx.skill.createMany({
-      data: skills.map((skill, index) => ({
-        resumeId,
-        name: skill.name,
-        category: skill.category ?? '',
-        level: null,
-        order: index,
-      })),
-    });
+  protected transformItems(
+    items: SkillInput[],
+    resumeId: string,
+  ): SkillCreate[] {
+    return items.map((skill, index) => ({
+      resumeId,
+      name: skill.name,
+      category: skill.category ?? '',
+      level: null,
+      order: index,
+    }));
+  }
 
-    this.logger.log(`Created ${skills.length} skills`);
+  protected async createMany(
+    tx: Prisma.TransactionClient,
+    items: SkillCreate[],
+  ): Promise<void> {
+    await tx.skill.createMany({ data: items });
+  }
+
+  protected getSuccessMessage(count: number): string {
+    return `Created ${count} skills`;
   }
 }

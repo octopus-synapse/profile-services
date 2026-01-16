@@ -93,12 +93,16 @@ export class InstitutionRepository {
   }
 
   async countByUf(): Promise<Array<{ uf: string; _count: number }>> {
-    return this.prisma.mecInstitution.groupBy({
+    const result = await this.prisma.mecInstitution.groupBy({
       by: ['uf'],
       where: { isActive: true },
-      _count: true,
+      _count: { _all: true },
       orderBy: { uf: 'asc' },
     });
+    return result.map((r) => ({
+      uf: r.uf,
+      _count: r._count._all,
+    }));
   }
 
   async countInstitutionsByUf(): Promise<
