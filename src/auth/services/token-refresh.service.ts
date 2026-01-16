@@ -1,10 +1,12 @@
 /**
  * Token Refresh Service
  * Single Responsibility: Handle token refresh operations
+ *
+ * Note: Role-based authorization has been replaced with permission-based.
+ * JWT tokens no longer contain role information.
  */
 
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { UserRole } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AppLoggerService } from '../../common/logger/logger.service';
 import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
@@ -15,7 +17,6 @@ interface UserForTokens {
   id: string;
   email: string;
   name: string | null;
-  role: UserRole;
   hasCompletedOnboarding: boolean;
 }
 
@@ -67,7 +68,6 @@ export class TokenRefreshService {
         email: true,
         name: true,
         username: true,
-        role: true,
         image: true,
         hasCompletedOnboarding: true,
         createdAt: true,
@@ -91,7 +91,6 @@ export class TokenRefreshService {
         id: true,
         email: true,
         name: true,
-        role: true,
         hasCompletedOnboarding: true,
       },
     });
@@ -107,7 +106,6 @@ export class TokenRefreshService {
       id: user.id,
       email: user.email,
       name: user.name,
-      role: user.role,
       hasCompletedOnboarding: user.hasCompletedOnboarding,
     };
   }
@@ -116,7 +114,6 @@ export class TokenRefreshService {
     const accessToken = this.tokenService.generateToken({
       id: user.id,
       email: user.email,
-      role: user.role,
       hasCompletedOnboarding: user.hasCompletedOnboarding,
     });
 
@@ -125,7 +122,6 @@ export class TokenRefreshService {
     const refreshToken = this.tokenService.generateToken({
       id: user.id,
       email: user.email,
-      role: user.role,
       hasCompletedOnboarding: user.hasCompletedOnboarding,
     });
 

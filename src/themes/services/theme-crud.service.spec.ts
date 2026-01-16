@@ -10,11 +10,13 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { ThemeCrudService } from './theme-crud.service';
 import { PrismaService } from '../../prisma/prisma.service';
-import { ThemeStatus, UserRole } from '@prisma/client';
+import { AuthorizationService } from '../../authorization';
+import { ThemeStatus } from '@prisma/client';
 
 describe('ThemeCrudService', () => {
   let service: ThemeCrudService;
   let mockPrisma: any;
+  let mockAuthorizationService: any;
 
   const mockTheme = {
     id: 'theme-1',
@@ -44,15 +46,19 @@ describe('ThemeCrudService', () => {
       user: {
         findUnique: mock().mockResolvedValue({
           id: 'user-123',
-          role: UserRole.USER,
         }),
       },
+    };
+
+    mockAuthorizationService = {
+      hasPermission: mock().mockResolvedValue(false),
     };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ThemeCrudService,
         { provide: PrismaService, useValue: mockPrisma },
+        { provide: AuthorizationService, useValue: mockAuthorizationService },
       ],
     }).compile();
 
@@ -116,15 +122,12 @@ describe('ThemeCrudService', () => {
       ).rejects.toThrow(ForbiddenException);
     });
 
-    it('should allow admin to update system theme', async () => {
+    it('should allow user with theme:manage permission to update system theme', async () => {
       mockPrisma.resumeTheme.findUnique.mockResolvedValue({
         ...mockTheme,
         isSystemTheme: true,
       });
-      mockPrisma.user.findUnique.mockResolvedValue({
-        id: 'admin',
-        role: UserRole.ADMIN,
-      });
+      mockAuthorizationService.hasPermission.mockResolvedValue(true);
       mockPrisma.resumeTheme.update.mockResolvedValue(mockTheme);
 
       await expect(
@@ -132,15 +135,12 @@ describe('ThemeCrudService', () => {
       ).resolves.toBeDefined();
     });
 
-    it('should reject non-admin updating system theme', async () => {
+    it('should reject user without theme:manage permission updating system theme', async () => {
       mockPrisma.resumeTheme.findUnique.mockResolvedValue({
         ...mockTheme,
         isSystemTheme: true,
       });
-      mockPrisma.user.findUnique.mockResolvedValue({
-        id: 'user',
-        role: UserRole.USER,
-      });
+      mockAuthorizationService.hasPermission.mockResolvedValue(false);
 
       await expect(
         service.updateThemeForUser('user', 'theme-1', { name: 'Hacked' }),

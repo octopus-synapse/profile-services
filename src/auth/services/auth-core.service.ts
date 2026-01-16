@@ -3,6 +3,10 @@
  * Single Responsibility: Core authentication operations (signup, login, token refresh)
  *
  * BUG-001 FIX: Uses Prisma transactions with unique constraints to prevent TOCTOU
+ *
+ * Note: Role-based authorization has been replaced with permission-based.
+ * JWT tokens no longer contain role information. Permissions are resolved
+ * dynamically via AuthorizationService.
  */
 
 import {
@@ -10,7 +14,7 @@ import {
   ConflictException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { User, UserRole, Prisma } from '@prisma/client';
+import { User, Prisma } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AppLoggerService } from '../../common/logger/logger.service';
 import type { RegisterCredentials as Signup } from '@octopus-synapse/profile-contracts';
@@ -76,7 +80,6 @@ export class AuthCoreService {
     const accessTokenPayload = {
       id: createdUser.id,
       email: createdUser.email,
-      role: createdUser.role,
       hasCompletedOnboarding: createdUser.hasCompletedOnboarding,
     };
     const accessToken = this.tokenService.generateToken(accessTokenPayload);
@@ -133,7 +136,6 @@ export class AuthCoreService {
     const accessTokenPayload = {
       id: validatedUser.id,
       email: validatedUser.email,
-      role: validatedUser.role,
       hasCompletedOnboarding: validatedUser.hasCompletedOnboarding,
     };
     const accessToken = this.tokenService.generateToken(accessTokenPayload);
@@ -151,7 +153,6 @@ export class AuthCoreService {
       id: string;
       email: string | null;
       name: string | null;
-      role: UserRole;
       username?: string | null;
       image?: string | null;
       hasCompletedOnboarding: boolean;
@@ -164,15 +165,9 @@ export class AuthCoreService {
 
     // Generate refresh token (for simplicity, using same token generation)
     // In production, use a separate refresh token with longer expiry
-    // Ensure role is UserRole type for token generation
-    const userRole: UserRole =
-      typeof authenticatedUser.role === 'string'
-        ? authenticatedUser.role
-        : authenticatedUser.role;
     const refreshTokenPayload = {
       id: authenticatedUser.id,
       email: authenticatedUser.email,
-      role: userRole,
       hasCompletedOnboarding: authenticatedUser.hasCompletedOnboarding,
     };
     const refreshToken = this.tokenService.generateToken(refreshTokenPayload);
@@ -184,7 +179,6 @@ export class AuthCoreService {
         id: authenticatedUser.id,
         email: authenticatedUser.email,
         name: authenticatedUser.name,
-        role: authenticatedUser.role,
         username: authenticatedUser.username ?? null,
         image: authenticatedUser.image ?? null,
         hasCompletedOnboarding: authenticatedUser.hasCompletedOnboarding,

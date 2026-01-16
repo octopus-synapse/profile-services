@@ -5,6 +5,9 @@ import { ResumesRepository } from './resumes.repository';
 import { PrismaModule } from '../prisma/prisma.module';
 import { ResumeVersionsModule } from '../resume-versions/resume-versions.module';
 import { CacheModule } from '../common/cache/cache.module';
+import { AuthorizationModule } from '../authorization';
+import { ResumeManagementService } from './services/resume-management.service';
+import { ResumeManagementController } from './controllers/resume-management.controller';
 import {
   // Controllers
   ExperienceController,
@@ -57,9 +60,15 @@ import {
 } from './module-imports';
 
 @Module({
-  imports: [PrismaModule, ResumeVersionsModule, CacheModule],
+  imports: [
+    PrismaModule,
+    ResumeVersionsModule,
+    CacheModule,
+    AuthorizationModule,
+  ],
   controllers: [
     ResumesController,
+    ResumeManagementController,
     ExperienceController,
     EducationController,
     SkillController,
@@ -79,6 +88,7 @@ import {
   providers: [
     ResumesService,
     ResumesRepository,
+    ResumeManagementService,
     // Sub-resource Services
     ExperienceService,
     EducationService,
@@ -115,6 +125,7 @@ import {
   exports: [
     ResumesService,
     ResumesRepository,
+    ResumeManagementService,
     // Export services needed by GraphQL module
     ExperienceService,
     EducationService,

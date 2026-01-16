@@ -20,7 +20,8 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { EmailModule } from '../common/email/email.module';
 import { LoggerModule } from '../common/logger/logger.module';
 import { CacheModule } from '../common/cache/cache.module';
-import { AdminModule } from '../admin/admin.module';
+import { AuditLogModule } from '../common/audit/audit-log.module';
+import { UsersModule } from '../users/users.module';
 import {
   TokenService,
   PasswordService,
@@ -35,7 +36,6 @@ import {
 } from './services';
 import { GdprExportService } from './services/gdpr-export.service';
 import { GdprDeletionService } from './services/gdpr-deletion.service';
-import { AuditLogModule } from '../common/audit/audit-log.module';
 
 @Module({
   imports: [
@@ -44,7 +44,7 @@ import { AuditLogModule } from '../common/audit/audit-log.module';
     LoggerModule,
     CacheModule,
     AuditLogModule,
-    forwardRef(() => AdminModule),
+    forwardRef(() => UsersModule),
     PassportModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],

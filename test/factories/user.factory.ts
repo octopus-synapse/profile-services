@@ -1,16 +1,18 @@
 /**
  * User Test Factory
  * Creates mock User objects for testing with proper types
+ *
+ * Note: User model no longer has a 'role' field.
+ * Authorization is handled via the RBAC system (UserRoleAssignment, etc.)
  */
 
-import { User, UserRole } from '@prisma/client';
+import { User } from '@prisma/client';
 
 export interface CreateMockUserOptions {
   id?: string;
   email?: string | null;
   name?: string | null;
   username?: string | null;
-  role?: UserRole;
   emailVerified?: Date | null;
   createdAt?: Date;
   updatedAt?: Date;
@@ -25,8 +27,6 @@ export interface CreateMockUserOptions {
   website?: string | null;
   linkedin?: string | null;
   github?: string | null;
-  bannerColor?: string | null;
-  palette?: string | null;
   hasCompletedOnboarding?: boolean;
   onboardingCompletedAt?: Date | null;
 }
@@ -36,7 +36,6 @@ const defaultUser: User = {
   email: 'test@example.com',
   name: 'Test User',
   username: 'testuser',
-  role: 'USER',
   emailVerified: null,
   createdAt: new Date('2024-01-01'),
   updatedAt: new Date('2024-01-01'),
@@ -65,10 +64,15 @@ export function createMockUser(options: CreateMockUserOptions = {}): User {
   };
 }
 
+/**
+ * Creates a mock user that would have admin permissions.
+ * Note: The actual admin permissions come from UserRoleAssignment,
+ * not from a 'role' field on the User model.
+ */
 export function createMockAdmin(options: CreateMockUserOptions = {}): User {
   return createMockUser({
     ...options,
-    role: 'ADMIN',
+    id: options.id ?? 'admin-user-123',
   });
 }
 

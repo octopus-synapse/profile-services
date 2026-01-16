@@ -3,6 +3,9 @@
  * Handles submission and review workflow for public themes
  *
  * BUG-007 FIX: Enforces max 2 resubmissions for rejected themes
+ *
+ * Authorization: Uses permission-based access control.
+ * Required permission: theme:approve
  */
 
 import {
@@ -12,10 +15,11 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { ThemeStatus, UserRole } from '@prisma/client';
+import { ThemeStatus } from '@prisma/client';
 import type { ReviewTheme } from '@octopus-synapse/profile-contracts';
 import { ThemeCrudService } from './theme-crud.service';
 import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
+import { AuthorizationService } from '../../authorization';
 
 /** Maximum number of times a theme can be resubmitted after rejection */
 const MAX_RESUBMISSIONS = 2;
@@ -25,6 +29,7 @@ export class ThemeApprovalService {
   constructor(
     private prisma: PrismaService,
     private crud: ThemeCrudService,
+    private authorizationService: AuthorizationService,
   ) {}
 
   async submitForApproval(userId: string, themeId: string) {
@@ -120,10 +125,13 @@ export class ThemeApprovalService {
   }
 
   private async assertIsApprover(userId: string) {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    const validRoles: UserRole[] = [UserRole.APPROVER, UserRole.ADMIN];
+    const hasPermission = await this.authorizationService.hasPermission(
+      userId,
+      'theme',
+      'approve',
+    );
 
-    if (!user || !validRoles.includes(user.role)) {
+    if (!hasPermission) {
       throw new ForbiddenException('Only approvers can perform this action');
     }
   }

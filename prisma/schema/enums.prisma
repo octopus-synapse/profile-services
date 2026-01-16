@@ -1,10 +1,6 @@
 // Enums shared across models
-
-enum UserRole {
-  USER
-  ADMIN
-  APPROVER
-}
+// Note: UserRole enum has been removed in favor of dynamic RBAC system
+// See: src/authorization/ for the new permission system
 
 enum ThemeStatus {
   DRAFT

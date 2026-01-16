@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserConsentController } from './user-consent.controller';
 import { TosAcceptanceService } from '../services/tos-acceptance.service';
-import { AuditService } from '../../admin/services/audit.service';
+import { AuditLogService } from '../../common/audit/audit-log.service';
 
 describe('UserConsentController', () => {
   let controller: UserConsentController;
@@ -24,7 +24,7 @@ describe('UserConsentController', () => {
       controllers: [UserConsentController],
       providers: [
         { provide: TosAcceptanceService, useValue: tosService },
-        { provide: AuditService, useValue: auditService },
+        { provide: AuditLogService, useValue: auditService },
       ],
     }).compile();
 
@@ -141,12 +141,10 @@ describe('UserConsentController', () => {
       expect(auditService.log).toHaveBeenCalledWith(
         'user-audit',
         'TOS_ACCEPTED',
-        {
-          entityType: 'UserConsent',
-          entityId: 'consent-audit',
-          ipAddress: '1.2.3.4',
-          userAgent: 'Agent',
-        },
+        'UserConsent',
+        'consent-audit',
+        undefined,
+        req,
       );
     });
 

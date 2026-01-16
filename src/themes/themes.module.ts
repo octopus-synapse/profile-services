@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '../prisma/prisma.module';
+import { AuthorizationModule } from '../authorization';
 import {
   PublicThemeController,
   UserThemeController,
-  AdminThemeController,
+  ThemeApprovalController,
   SectionConfigController,
 } from './controllers';
 import {
@@ -17,11 +18,11 @@ import {
 } from './services';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, AuthorizationModule],
   controllers: [
     PublicThemeController,
     UserThemeController,
-    AdminThemeController,
+    ThemeApprovalController,
     SectionConfigController,
   ],
   providers: [

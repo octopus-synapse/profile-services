@@ -14,7 +14,6 @@ import { UnauthorizedException } from '@nestjs/common';
 import { JwtStrategy } from './jwt.strategy';
 import { PrismaService } from '../../prisma/prisma.service';
 import { TokenBlacklistService } from '../services/token-blacklist.service';
-import { UserRole } from '@prisma/client';
 
 describe('JwtStrategy - BUG DETECTION', () => {
   let strategy: JwtStrategy;
@@ -65,7 +64,6 @@ describe('JwtStrategy - BUG DETECTION', () => {
         id: 'user-123',
         email: 'unverified@example.com',
         name: 'Unverified User',
-        role: UserRole.USER,
         hasCompletedOnboarding: true,
         emailVerified: null, // NOT VERIFIED!
       };
@@ -84,7 +82,6 @@ describe('JwtStrategy - BUG DETECTION', () => {
         id: 'user-123',
         email: 'verified@example.com',
         name: 'Verified User',
-        role: UserRole.USER,
         hasCompletedOnboarding: true,
         emailVerified: new Date(), // VERIFIED!
       };
@@ -101,7 +98,6 @@ describe('JwtStrategy - BUG DETECTION', () => {
         id: 'user-123',
         email: 'test@example.com',
         name: 'Test',
-        role: UserRole.USER,
         hasCompletedOnboarding: true,
         emailVerified: new Date(),
       });

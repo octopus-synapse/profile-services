@@ -14,7 +14,6 @@ import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
 import { TokenService } from './token.service';
-import { UserRole } from '../../common/enums/user-role.enum';
 
 describe('TokenService', () => {
   let service: TokenService;
@@ -39,7 +38,6 @@ describe('TokenService', () => {
       const user = {
         id: 'user-123',
         email: 'test@example.com',
-        role: UserRole.USER,
         hasCompletedOnboarding: true,
       };
 
@@ -48,7 +46,6 @@ describe('TokenService', () => {
       expect(jwtService.sign).toHaveBeenCalledWith({
         sub: 'user-123',
         email: 'test@example.com',
-        role: UserRole.USER,
         hasCompletedOnboarding: true,
       });
     });
@@ -57,7 +54,6 @@ describe('TokenService', () => {
       const user = {
         id: 'user-123',
         email: null as any,
-        role: UserRole.USER,
         hasCompletedOnboarding: false,
       };
 
@@ -70,10 +66,9 @@ describe('TokenService', () => {
       const expectedPayload = {
         sub: 'user-123',
         email: 'test@example.com',
-        role: UserRole.USER,
         hasCompletedOnboarding: true,
       };
-      jwtService.verify.mockReturnValue(expectedPayload);
+      (jwtService.verify as any).mockReturnValue(expectedPayload);
 
       const result = service.verifyToken('valid-token');
 

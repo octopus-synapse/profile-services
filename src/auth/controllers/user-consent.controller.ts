@@ -17,7 +17,7 @@ import {
 } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { TosAcceptanceService } from '../services/tos-acceptance.service';
-import { AuditService } from '../../admin/services/audit.service';
+import { AuditLogService } from '../../common/audit/audit-log.service';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { SkipTosCheck } from '../decorators/skip-tos-check.decorator';
 import {
@@ -38,7 +38,7 @@ interface RequestWithUser extends Request {
 export class UserConsentController {
   constructor(
     private readonly tosService: TosAcceptanceService,
-    private readonly auditService: AuditService,
+    private readonly auditService: AuditLogService,
   ) {}
 
   @Post('accept-consent')
@@ -111,12 +111,14 @@ export class UserConsentController {
           ? AuditAction.PRIVACY_POLICY_ACCEPTED
           : AuditAction.TOS_ACCEPTED; // Fallback for MARKETING_CONSENT
 
-    this.auditService.log(userId, auditAction, {
-      entityType: 'UserConsent',
-      entityId: consent.id,
-      ipAddress,
-      userAgent,
-    });
+    await this.auditService.log(
+      userId,
+      auditAction,
+      'UserConsent',
+      consent.id,
+      undefined,
+      req,
+    );
 
     // Return user-friendly message
     const documentName =

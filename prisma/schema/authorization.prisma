@@ -1,0 +1,234 @@
+// Authorization Models
+// Dynamic RBAC (Role-Based Access Control) with Group Inheritance
+//
+// Design Principles:
+// - SRP: Each model has a single, clear responsibility
+// - OCP: New permissions/roles/groups can be added without code changes
+// - DIP: Domain does not depend on this schema; repositories abstract it
+
+/// Permission defines a single atomic action on a resource.
+/// Example: "resume:create", "user:delete", "theme:approve"
+model Permission {
+  id String @id @default(cuid())
+
+  /// Resource being accessed (e.g., "resume", "user", "theme")
+  resource String
+
+  /// Action being performed (e.g., "create", "read", "update", "delete", "approve")
+  action String
+
+  /// Human-readable description of what this permission allows
+  description String?
+
+  /// Whether this permission is a system permission (cannot be deleted)
+  isSystem Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  roles  RolePermission[]
+  groups GroupPermission[]
+  users  UserPermission[]
+
+  @@unique([resource, action])
+  @@index([resource])
+  @@index([action])
+}
+
+/// Role is a named collection of permissions.
+/// Roles can be assigned to users or groups.
+model Role {
+  id String @id @default(cuid())
+
+  /// Unique role name (e.g., "content_moderator", "resume_reviewer")
+  name String @unique
+
+  /// Human-readable display name
+  displayName String
+
+  /// Description of what this role represents
+  description String?
+
+  /// Whether this is a system role (cannot be deleted)
+  isSystem Boolean @default(false)
+
+  /// Priority for conflict resolution (higher = more precedence)
+  priority Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  permissions RolePermission[]
+  users       UserRoleAssignment[]
+  groups      GroupRole[]
+
+  @@index([name])
+  @@index([priority])
+}
+
+/// Group allows hierarchical organization of roles.
+/// Groups can inherit from other groups (tree structure).
+model Group {
+  id String @id @default(cuid())
+
+  /// Unique group name (e.g., "engineering", "content_team")
+  name String @unique
+
+  /// Human-readable display name
+  displayName String
+
+  /// Description of this group's purpose
+  description String?
+
+  /// Whether this is a system group (cannot be deleted)
+  isSystem Boolean @default(false)
+
+  /// Parent group for inheritance (nullable for root groups)
+  parentId String?
+  parent   Group?  @relation("GroupHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+  children Group[] @relation("GroupHierarchy")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  roles       GroupRole[]
+  permissions GroupPermission[]
+  users       UserGroup[]
+
+  @@index([name])
+  @@index([parentId])
+}
+
+// ============================================================================
+// Junction Tables (Many-to-Many Relationships)
+// ============================================================================
+
+/// Assigns permissions to roles
+model RolePermission {
+  id           String @id @default(cuid())
+  roleId       String
+  permissionId String
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  /// Who assigned this permission
+  assignedBy String?
+  assignedAt DateTime @default(now())
+
+  @@unique([roleId, permissionId])
+  @@index([roleId])
+  @@index([permissionId])
+}
+
+/// Assigns roles to groups
+model GroupRole {
+  id      String @id @default(cuid())
+  groupId String
+  roleId  String
+
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  role  Role  @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  /// Who assigned this role
+  assignedBy String?
+  assignedAt DateTime @default(now())
+
+  @@unique([groupId, roleId])
+  @@index([groupId])
+  @@index([roleId])
+}
+
+/// Direct permissions on groups (in addition to role-based)
+model GroupPermission {
+  id           String @id @default(cuid())
+  groupId      String
+  permissionId String
+
+  group      Group      @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  /// Who assigned this permission
+  assignedBy String?
+  assignedAt DateTime @default(now())
+
+  @@unique([groupId, permissionId])
+  @@index([groupId])
+  @@index([permissionId])
+}
+
+/// Assigns roles to users
+model UserRoleAssignment {
+  id     String @id @default(cuid())
+  userId String
+  roleId String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  /// Who assigned this role
+  assignedBy String?
+  assignedAt DateTime @default(now())
+
+  /// Optional expiration for temporary roles
+  expiresAt DateTime?
+
+  @@unique([userId, roleId])
+  @@index([userId])
+  @@index([roleId])
+  @@index([expiresAt])
+}
+
+/// Assigns groups to users
+model UserGroup {
+  id      String @id @default(cuid())
+  userId  String
+  groupId String
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  /// Who assigned this group membership
+  assignedBy String?
+  assignedAt DateTime @default(now())
+
+  /// Optional expiration for temporary membership
+  expiresAt DateTime?
+
+  @@unique([userId, groupId])
+  @@index([userId])
+  @@index([groupId])
+  @@index([expiresAt])
+}
+
+/// Direct permissions on users (overrides, exceptions)
+model UserPermission {
+  id           String @id @default(cuid())
+  userId       String
+  permissionId String
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  /// Grant (true) or deny (false) - allows explicit denials
+  granted Boolean @default(true)
+
+  /// Who assigned this permission
+  assignedBy String?
+  assignedAt DateTime @default(now())
+
+  /// Optional expiration
+  expiresAt DateTime?
+
+  /// Reason for this direct assignment
+  reason String?
+
+  @@unique([userId, permissionId])
+  @@index([userId])
+  @@index([permissionId])
+  @@index([granted])
+  @@index([expiresAt])
+}
