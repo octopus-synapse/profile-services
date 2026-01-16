@@ -68,7 +68,14 @@ RUN apk add --no-cache \
     freetype \
     harfbuzz \
     ca-certificates \
-    ttf-freefont
+    ttf-freefont \
+    curl \
+    unzip
+
+# Install Bun
+RUN curl -fsSL https://bun.sh/install | bash && \
+    ln -s /root/.bun/bin/bun /usr/local/bin/bun && \
+    ln -s /root/.bun/bin/bunx /usr/local/bin/bunx
 
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
@@ -85,13 +92,13 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY profile-services/ .
 
 # Generate Prisma Client
-RUN npx prisma generate
+RUN bunx prisma generate
 
 # Build NestJS application
-RUN npm run build
+RUN bun run build
 
-# Clean up dev dependencies
-RUN npm prune --production
+# Clean up dev dependencies (reinstall with production flag)
+RUN bun install --production --frozen-lockfile
 
 # ==================================
 # Stage 3: Runner (Production)
@@ -106,7 +113,14 @@ RUN apk add --no-cache \
     harfbuzz \
     ca-certificates \
     ttf-freefont \
-    tini
+    tini \
+    curl \
+    unzip
+
+# Install Bun
+RUN curl -fsSL https://bun.sh/install | bash && \
+    ln -s /root/.bun/bin/bun /usr/local/bin/bun && \
+    ln -s /root/.bun/bin/bunx /usr/local/bin/bunx
 
 WORKDIR /app
 
@@ -128,8 +142,8 @@ COPY --from=builder /app/data ./dist/data
 COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder /app/tsconfig.json ./tsconfig.json
 
-# Install Prisma CLI and ts-node for migrations
-RUN npm install -g prisma@6.17.1 ts-node typescript
+# Install Prisma CLI globally using Bun (no need for ts-node/typescript)
+RUN bun install -g prisma@6.17.1
 
 # Change ownership to nestjs user
 RUN chown -R nestjs:nodejs /app
