@@ -9,6 +9,7 @@
  */
 
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { createMockResume } from '../../test/factories/resume.factory';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ResumesService } from './resumes.service';
 import { ResumesRepository } from './resumes.repository';
@@ -27,14 +28,7 @@ describe('ResumesService', () => {
 
   const _MAX_RESUMES_PER_USER = 4; // Used in business logic, stored for reference
 
-  const mockResume = {
-    id: 'resume-1',
-    userId: 'user-123',
-    title: 'Software Engineer',
-    summary: 'Experienced developer',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
+  const mockResume = createMockResume({ id: 'resume-1', userId: 'user-123', title: 'Software Engineer', summary: 'Experienced developer', createdAt: new Date(), updatedAt: new Date() });
 
   beforeEach(async () => {
     repository = {

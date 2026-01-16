@@ -3,6 +3,7 @@
  */
 
 import { describe, it, expect, beforeEach, mock, spyOn } from 'bun:test';
+import { createMockResume } from '../../test/factories/resume.factory';
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException } from '@nestjs/common';
 import { DslRepository } from './dsl.repository';
@@ -17,10 +18,13 @@ describe('DslRepository', () => {
   let prisma: PrismaService;
 
   const mockResume = {
-    id: 'resume-123',
-    userId: 'user-123',
-    slug: 'john-doe',
-    isPublic: true,
+    ...createMockResume({
+      id: 'resume-123',
+      userId: 'user-123',
+      slug: 'john-doe',
+      isPublic: true,
+      customTheme: {},
+    }),
     activeTheme: {
       styleConfig: {
         version: '1.0.0',
@@ -29,17 +33,7 @@ describe('DslRepository', () => {
         sections: [],
       },
     },
-    customTheme: {},
-    experiences: [],
-    education: [],
-    skills: [],
-    languages: [],
-    projects: [],
-    certifications: [],
-    awards: [],
-    recommendations: [],
-    interests: [],
-  };
+  } as any;
 
   const mockAst = {
     meta: { version: '1.0.0', generatedAt: '2026-01-02T12:00:00.000Z' },

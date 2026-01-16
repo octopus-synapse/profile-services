@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, mock } from 'bun:test';
+import { createMockResume } from '../../test/factories/resume.factory';
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotFoundException } from '@nestjs/common';
 import { OnboardingService } from './onboarding.service';
@@ -182,7 +183,7 @@ describe('OnboardingService', () => {
       };
 
       const mockUser = { id: userId, email: 'john@example.com' };
-      const mockResume = { id: 'resume-123', userId };
+      const mockResume = createMockResume({ id: 'resume-123', userId });
       const mockTx = {
         resume: { findFirst: mock(), upsert: mock() },
         skill: { deleteMany: mock(), createMany: mock() },

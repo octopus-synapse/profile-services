@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { createMockResume } from '../../../test/factories/resume.factory';
 import { Test, TestingModule } from '@nestjs/testing';
 import { UserProfileService } from './user-profile.service';
 import { UsersRepository } from '../users.repository';
@@ -60,7 +61,7 @@ describe('UserProfileService', () => {
           profileVisibility: 'public',
         },
       };
-      const mockResume = { id: 'resume-123', title: 'My Resume' };
+      const mockResume = createMockResume({ id: 'resume-123', title: 'My Resume' });
 
       usersRepository.findUserByUsername.mockResolvedValue(mockUser as any);
       resumesRepository.findResumeByUserId.mockResolvedValue(mockResume as any);

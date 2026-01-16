@@ -12,6 +12,7 @@
  */
 
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { createMockResume } from '../../../test/factories/resume.factory';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ResumeAnalyticsService } from './resume-analytics.service';
 import { PrismaService } from '../../prisma/prisma.service';
@@ -22,13 +23,17 @@ describe('ResumeAnalyticsService', () => {
   let prisma: PrismaService;
 
   const mockResume = {
-    id: 'resume-123',
-    userId: 'user-123',
-    title: 'Senior Software Engineer',
-    summary: 'Experienced developer with 10 years in React and TypeScript',
-    jobTitle: 'Senior Software Engineer',
+    ...createMockResume({
+      id: 'resume-123',
+      userId: 'user-123',
+      title: 'Senior Software Engineer',
+      summary: 'Experienced developer with 10 years in React and TypeScript',
+      jobTitle: 'Senior Software Engineer',
+      profileViews: 150,
+      createdAt: new Date('2024-01-01'),
+      updatedAt: new Date('2024-06-01'),
+    }),
     skills: [
-      { name: 'TypeScript', category: 'LANGUAGE' },
       { name: 'React', category: 'FRAMEWORK' },
       { name: 'Node.js', category: 'RUNTIME' },
     ],
@@ -42,10 +47,7 @@ describe('ResumeAnalyticsService', () => {
         isCurrent: true,
       },
     ],
-    profileViews: 150,
-    createdAt: new Date('2024-01-01'),
-    updatedAt: new Date('2024-06-01'),
-  };
+  } as any;
 
   const mockAnalyticsSnapshot = {
     id: 'snapshot-123',

@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { createMockResume } from '../../../test/factories/resume.factory';
 import { ResumeLatexService } from './resume-latex.service';
 
 describe('ResumeLatexService', () => {
@@ -8,16 +9,17 @@ describe('ResumeLatexService', () => {
   };
 
   const mockResume = {
-    id: 'resume-123',
-    userId: 'user-456',
-    title: 'My Resume',
-    jobTitle: 'Software Engineer',
-    slug: 'john-doe',
-    isPublic: true,
-    createdAt: new Date('2024-01-01'),
-    updatedAt: new Date('2024-06-01'),
-    user: {
+    ...createMockResume({
       id: 'user-456',
+      userId: 'user-456',
+      title: 'My Resume',
+      jobTitle: 'Software Engineer',
+      slug: 'john-doe',
+      isPublic: true,
+      createdAt: new Date('2024-01-01'),
+      updatedAt: new Date('2024-06-01'),
+    }),
+    user: {
       name: 'John Doe',
       email: 'john@example.com',
       phone: '+1234567890',
@@ -47,7 +49,7 @@ describe('ResumeLatexService', () => {
       { id: 'skill-1', name: 'TypeScript', level: 4 },
       { id: 'skill-2', name: 'Node.js', level: 3 },
     ],
-  };
+  } as any;
 
   beforeEach(() => {
     mockPrismaService = {
