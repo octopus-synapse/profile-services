@@ -11,7 +11,7 @@ async function main() {
 
   // Check if admin already exists
   let admin = await prisma.user.findFirst({
-    where: { role: 'ADMIN' },
+    where: { email: process.env.ADMIN_EMAIL || 'admin@example.com' },
   });
 
   if (!admin) {
@@ -27,7 +27,6 @@ async function main() {
         email: adminEmail,
         password: hashedPassword,
         name: adminName,
-        role: 'ADMIN',
         emailVerified: new Date(),
       },
     });

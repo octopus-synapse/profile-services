@@ -16,7 +16,6 @@ import { PrismaService } from '../../prisma/prisma.service';
 import { AppLoggerService } from '../../common/logger/logger.service';
 import { TokenService } from './token.service';
 import { TokenBlacklistService } from './token-blacklist.service';
-import { UserRole } from '@prisma/client';
 
 describe('TokenRefreshService', () => {
   let service: TokenRefreshService;
@@ -44,7 +43,6 @@ describe('TokenRefreshService', () => {
     email: 'test@example.com',
     name: 'Test User',
     username: 'testuser',
-    role: UserRole.USER,
     image: null,
     hasCompletedOnboarding: true,
     createdAt: new Date(),

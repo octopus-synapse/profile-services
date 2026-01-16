@@ -43,7 +43,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         id: true,
         email: true,
         name: true,
-        role: true,
         hasCompletedOnboarding: true,
         emailVerified: true, // BUG-009 FIX: Include emailVerified
       },
@@ -73,7 +72,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       userId: user.id,
       email: user.email,
       name: user.name,
-      role: user.role,
       hasCompletedOnboarding: user.hasCompletedOnboarding,
     };
   }

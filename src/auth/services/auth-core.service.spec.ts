@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConflictException, UnauthorizedException } from '@nestjs/common';
-import { UserRole, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { AuthCoreService } from './auth-core.service';
 import { PrismaService } from '../../prisma/prisma.service';
 import { AppLoggerService } from '../../common/logger/logger.service';
@@ -21,7 +21,6 @@ describe('AuthCoreService', () => {
     email: 'test@example.com',
     name: 'Test User',
     password: 'hashed-password',
-    role: UserRole.USER,
     username: null,
     image: null,
     hasCompletedOnboarding: false,
@@ -332,34 +331,31 @@ describe('AuthCoreService', () => {
       expect(tokenService.generateToken).toHaveBeenCalledWith({
         id: mockUser.id,
         email: mockUser.email,
-        role: mockUser.role,
         hasCompletedOnboarding: mockUser.hasCompletedOnboarding,
       });
     });
 
     it('should include all user fields in response', async () => {
-      const adminUser = {
+      const userWithAllFields = {
         ...mockUser,
-        role: UserRole.ADMIN,
         username: 'testuser',
         image: 'avatar.jpg',
         hasCompletedOnboarding: true,
       };
 
-      prisma.user.findUnique.mockResolvedValue(adminUser);
+      prisma.user.findUnique.mockResolvedValue(userWithAllFields);
       passwordService.compare.mockResolvedValue(true);
       tokenService.generateToken.mockReturnValue('token');
 
       const result = await service.login(loginDto);
 
       expect(result.data.user).toEqual({
-        id: adminUser.id,
-        email: adminUser.email,
-        name: adminUser.name,
-        role: adminUser.role,
-        username: adminUser.username,
-        image: adminUser.image,
-        hasCompletedOnboarding: adminUser.hasCompletedOnboarding,
+        id: userWithAllFields.id,
+        email: userWithAllFields.email,
+        name: userWithAllFields.name,
+        username: userWithAllFields.username,
+        image: userWithAllFields.image,
+        hasCompletedOnboarding: userWithAllFields.hasCompletedOnboarding,
       });
     });
   });

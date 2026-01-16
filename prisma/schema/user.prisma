@@ -7,7 +7,6 @@ model User {
   emailVerified DateTime?
   image         String?
   password      String?
-  role          UserRole  @default(USER)
 
   accounts Account[]
   sessions Session[]
@@ -58,7 +57,7 @@ model User {
   activities Activity[] @relation("UserActivities")
 
   // Two-Factor Authentication
-  twoFactorAuth       TwoFactorAuth?
+  twoFactorAuth        TwoFactorAuth?
   twoFactorBackupCodes TwoFactorBackupCode[]
 
   // Email logging
@@ -70,9 +69,13 @@ model User {
   // Resume collaborations
   collaborations ResumeCollaborator[] @relation("UserCollaborations")
 
+  // Dynamic RBAC Authorization System
+  userRoles       UserRoleAssignment[]
+  userGroups      UserGroup[]
+  userPermissions UserPermission[]
+
   @@index([username])
   @@index([email])
-  @@index([role])
   @@index([hasCompletedOnboarding])
   @@index([primaryResumeId])
 }
@@ -93,12 +96,12 @@ model UserPreferences {
   timezone   String @default("UTC")
 
   // Notifications
-  emailNotifications Boolean @default(true)
-  resumeExpiryAlerts Boolean @default(true)
-  weeklyDigest       Boolean @default(false)
-  marketingEmails    Boolean @default(false)
-  emailMilestones    Boolean @default(true)
-  emailShareExpiring Boolean @default(true)
+  emailNotifications Boolean         @default(true)
+  resumeExpiryAlerts Boolean         @default(true)
+  weeklyDigest       Boolean         @default(false)
+  marketingEmails    Boolean         @default(false)
+  emailMilestones    Boolean         @default(true)
+  emailShareExpiring Boolean         @default(true)
   digestFrequency    DigestFrequency @default(WEEKLY)
 
   // Privacy

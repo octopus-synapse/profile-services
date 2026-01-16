@@ -1,21 +1,23 @@
 /**
  * Token Service
  * Single Responsibility: JWT token generation and validation
+ *
+ * Note: JWT payload does NOT contain role/permissions.
+ * Permissions are resolved dynamically via AuthorizationService.
  */
 
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { User } from '@prisma/client';
 
-export type JwtUserPayload = Pick<
-  User,
-  'id' | 'email' | 'role' | 'hasCompletedOnboarding'
->;
+export interface JwtUserPayload {
+  id: string;
+  email: string;
+  hasCompletedOnboarding: boolean;
+}
 
 export interface TokenPayload {
   sub: string;
   email: string;
-  role: string;
   hasCompletedOnboarding: boolean;
 }
 
@@ -31,7 +33,6 @@ export class TokenService {
     const payload: TokenPayload = {
       sub: user.id,
       email: user.email,
-      role: user.role,
       hasCompletedOnboarding: user.hasCompletedOnboarding,
     };
 

@@ -78,7 +78,6 @@ export class AccountManagementService {
     const user = await this.findUserWithPassword(userId);
 
     await this.validatePassword(user, password);
-    await this.preventLastAdminDeletion(user.role);
 
     // BUG-055 FIX: Revoke all tokens BEFORE deleting account
     // This ensures any existing tokens become invalid immediately
@@ -97,7 +96,7 @@ export class AccountManagementService {
   private async findUserWithPassword(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, email: true, password: true, role: true },
+      select: { id: true, email: true, password: true },
     });
 
     if (!user?.password) {
@@ -115,18 +114,6 @@ export class AccountManagementService {
 
     if (!isValid) {
       throw new UnauthorizedException(ERROR_MESSAGES.PASSWORD_INCORRECT);
-    }
-  }
-
-  private async preventLastAdminDeletion(role: string): Promise<void> {
-    if (role !== 'ADMIN') return;
-
-    const adminCount = await this.prisma.user.count({
-      where: { role: 'ADMIN' },
-    });
-
-    if (adminCount <= 1) {
-      throw new BadRequestException(ERROR_MESSAGES.CANNOT_DELETE_LAST_ADMIN);
     }
   }
 }

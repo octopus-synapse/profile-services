@@ -1,6 +1,9 @@
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
 /**
  * Token Service Tests
+ *
+ * Note: JWT tokens no longer contain role information.
+ * Permissions are resolved dynamically via AuthorizationService.
  */
 
 import { Test, TestingModule } from '@nestjs/testing';
@@ -15,7 +18,6 @@ describe('TokenService', () => {
   const mockUser: JwtUserPayload = {
     id: 'user-123',
     email: 'test@example.com',
-    role: 'USER',
     hasCompletedOnboarding: true,
   };
 
@@ -48,7 +50,6 @@ describe('TokenService', () => {
       expect(jwtService.sign).toHaveBeenCalledWith({
         sub: mockUser.id,
         email: mockUser.email,
-        role: mockUser.role,
         hasCompletedOnboarding: mockUser.hasCompletedOnboarding,
       });
     });
@@ -75,7 +76,6 @@ describe('TokenService', () => {
       const mockPayload = {
         sub: mockUser.id,
         email: mockUser.email,
-        role: mockUser.role,
         hasCompletedOnboarding: true,
       };
       jwtService.verify.mockReturnValue(mockPayload);

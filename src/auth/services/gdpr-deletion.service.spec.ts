@@ -106,29 +106,12 @@ describe('GdprDeletionService', () => {
       ).rejects.toThrow(NotFoundException);
     });
 
-    it('should prevent last admin from self-deletion', async () => {
+    it('should delete user completely when requested', async () => {
       // Arrange
       prisma.user.findUnique.mockResolvedValue({
-        id: 'admin-123',
-        email: 'admin@example.com',
-        role: 'ADMIN',
+        id: 'user-123',
+        email: 'user@example.com',
       });
-      prisma.user.count.mockResolvedValue(1);
-
-      // Act & Assert
-      await expect(
-        service.deleteUserCompletely('admin-123', 'admin-123'),
-      ).rejects.toThrow(BadRequestException);
-    });
-
-    it('should allow admin deletion if not the last admin', async () => {
-      // Arrange
-      prisma.user.findUnique.mockResolvedValue({
-        id: 'admin-123',
-        email: 'admin@example.com',
-        role: 'ADMIN',
-      });
-      prisma.user.count.mockResolvedValue(2);
       prisma.resume.findMany.mockResolvedValue([]);
       prisma.$transaction.mockImplementation(
         async (callback: (tx: unknown) => Promise<unknown>) => {

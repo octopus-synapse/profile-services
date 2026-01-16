@@ -8,7 +8,6 @@ import { describe, it, expect, beforeEach, mock } from 'bun:test';
 
 import { Test, TestingModule } from '@nestjs/testing';
 import { UnauthorizedException } from '@nestjs/common';
-import { UserRole } from '@prisma/client';
 import { LocalStrategy } from './local.strategy';
 import { AuthService } from '../auth.service';
 
@@ -20,7 +19,6 @@ describe('LocalStrategy', () => {
     id: 'user-123',
     email: 'test@example.com',
     name: 'Test User',
-    role: UserRole.USER,
     hasCompletedOnboarding: true,
     createdAt: new Date(),
     updatedAt: new Date(),

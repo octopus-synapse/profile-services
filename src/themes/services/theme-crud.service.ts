@@ -3,6 +3,9 @@
  * Handles basic create, read, update, delete operations for themes
  *
  * BUG-006 FIX: Enforces max 5 themes per user limit
+ *
+ * Authorization: Uses permission-based access control.
+ * Required permissions: theme:manage for admin operations
  */
 
 import {
@@ -12,17 +15,21 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
-import { ThemeStatus, UserRole, Prisma } from '@prisma/client';
+import { ThemeStatus, Prisma } from '@prisma/client';
 import { CreateTheme, UpdateTheme } from '@octopus-synapse/profile-contracts';
 import { validateLayoutConfig, validateSectionsConfig } from '../validators';
 import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
+import { AuthorizationService } from '../../authorization';
 
 /** Maximum themes a user can create */
 const MAX_THEMES_PER_USER = 5;
 
 @Injectable()
 export class ThemeCrudService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private authorizationService: AuthorizationService,
+  ) {}
 
   async createThemeForUser(userId: string, themeData: CreateTheme) {
     this.validateConfig(themeData.styleConfig);
@@ -182,10 +189,12 @@ export class ThemeCrudService {
   }
 
   private async assertIsAdmin(userId: string) {
-    const foundUser = await this.prisma.user.findUnique({
-      where: { id: userId },
-    });
-    if (foundUser?.role !== UserRole.ADMIN) {
+    const hasPermission = await this.authorizationService.hasPermission(
+      userId,
+      'theme',
+      'manage',
+    );
+    if (!hasPermission) {
       throw new ForbiddenException(ERROR_MESSAGES.ONLY_ADMINS_CAN_DO_THIS);
     }
   }
@@ -200,10 +209,12 @@ export class ThemeCrudService {
     userId: string,
   ) {
     if (theme.isSystemTheme) {
-      const foundUser = await this.prisma.user.findUnique({
-        where: { id: userId },
-      });
-      if (foundUser?.role !== UserRole.ADMIN) {
+      const hasPermission = await this.authorizationService.hasPermission(
+        userId,
+        'theme',
+        'manage',
+      );
+      if (!hasPermission) {
         throw new ForbiddenException(
           ERROR_MESSAGES.ONLY_ADMINS_CAN_EDIT_SYSTEM_THEMES,
         );

@@ -20,7 +20,6 @@ export interface GdprExportData {
     email: string | null;
     name: string | null;
     username: string | null;
-    role: string;
     hasCompletedOnboarding: boolean;
     createdAt: string;
     updatedAt: string;
@@ -79,7 +78,6 @@ export class GdprExportService {
         email: true,
         name: true,
         username: true,
-        role: true,
         hasCompletedOnboarding: true,
         createdAt: true,
         updatedAt: true,

@@ -16,7 +16,9 @@ import { LoggerModule } from './common/logger/logger.module';
 import { CacheModule } from './common/cache/cache.module';
 import { AuditLogModule } from './common/audit/audit-log.module';
 import { GitHubModule } from './integrations/github/github.module';
-import { AdminModule } from './admin/admin.module';
+import { AuthorizationModule } from './authorization';
+import { PlatformModule } from './common/platform.module';
+import { SkillsManagementModule } from './skills/skills-management.module';
 import { ThemesModule } from './themes/themes.module';
 import { MecSyncModule } from './mec-sync/mec-sync.module';
 import { TechSkillsModule } from './tech-skills/tech-skills.module';
@@ -54,6 +56,7 @@ import { RATE_LIMIT_CONFIG } from '@octopus-synapse/profile-contracts';
     CacheModule,
     AuditLogModule,
     PrismaModule,
+    AuthorizationModule,
     AuthModule,
     UsersModule,
     ResumesModule,
@@ -61,7 +64,8 @@ import { RATE_LIMIT_CONFIG } from '@octopus-synapse/profile-contracts';
     ExportModule,
     UploadModule,
     GitHubModule,
-    AdminModule,
+    PlatformModule,
+    SkillsManagementModule,
     ThemesModule,
     MecSyncModule,
     TechSkillsModule,
