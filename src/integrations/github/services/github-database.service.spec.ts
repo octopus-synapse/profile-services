@@ -33,7 +33,11 @@ describe('GitHubDatabaseService', () => {
     $transaction: ReturnType<typeof mock>;
   };
 
-  const mockResume = createMockResume({ id: 'resume-123', userId: 'user-123', github: 'https://github.com/testuser' });
+  const mockResume = createMockResume({
+    id: 'resume-123',
+    userId: 'user-123',
+    github: 'https://github.com/testuser',
+  });
 
   beforeEach(async () => {
     fakePrisma = {

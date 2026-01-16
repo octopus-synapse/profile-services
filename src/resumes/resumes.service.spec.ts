@@ -28,7 +28,14 @@ describe('ResumesService', () => {
 
   const _MAX_RESUMES_PER_USER = 4; // Used in business logic, stored for reference
 
-  const mockResume = createMockResume({ id: 'resume-1', userId: 'user-123', title: 'Software Engineer', summary: 'Experienced developer', createdAt: new Date(), updatedAt: new Date() });
+  const mockResume = createMockResume({
+    id: 'resume-1',
+    userId: 'user-123',
+    title: 'Software Engineer',
+    summary: 'Experienced developer',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
 
   beforeEach(async () => {
     repository = {

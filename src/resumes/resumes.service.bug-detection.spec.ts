@@ -25,7 +25,11 @@ describe('ResumesService - Bug Detection', () => {
   let mockVersionService: ResumeVersionService;
   let mockCacheInvalidation: CacheInvalidationService;
 
-  const mockResume = createMockResume({ id: 'resume-1', userId: 'user-123', title: 'Test Resume' });
+  const mockResume = createMockResume({
+    id: 'resume-1',
+    userId: 'user-123',
+    title: 'Test Resume',
+  });
 
   beforeEach(async () => {
     mockRepository = {

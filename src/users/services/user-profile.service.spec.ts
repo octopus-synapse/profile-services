@@ -61,7 +61,10 @@ describe('UserProfileService', () => {
           profileVisibility: 'public',
         },
       };
-      const mockResume = createMockResume({ id: 'resume-123', title: 'My Resume' });
+      const mockResume = createMockResume({
+        id: 'resume-123',
+        title: 'My Resume',
+      });
 
       usersRepository.findUserByUsername.mockResolvedValue(mockUser as any);
       resumesRepository.findResumeByUserId.mockResolvedValue(mockResume as any);
