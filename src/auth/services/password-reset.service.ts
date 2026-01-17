@@ -5,12 +5,8 @@
  * BUG-056 FIX: Revokes all user tokens after password change
  */
 
-import {
-  Injectable,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import { Injectable } from '@nestjs/common';
+import { AuthUserRepository } from '../repositories';
 import { AppLoggerService } from '../../common/logger/logger.service';
 import { EmailService } from '../../common/email/email.service';
 import { PasswordService } from './password.service';
@@ -21,14 +17,18 @@ import type {
   ResetPassword,
   ChangePassword,
 } from '@octopus-synapse/profile-contracts';
-import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
+import {
+  ERROR_MESSAGES,
+  UserNotFoundError,
+  AuthenticationError,
+} from '@octopus-synapse/profile-contracts';
 
 @Injectable()
 export class PasswordResetService {
   private readonly context = 'PasswordReset';
 
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly userRepository: AuthUserRepository,
     private readonly logger: AppLoggerService,
     private readonly emailService: EmailService,
     private readonly passwordService: PasswordService,
@@ -102,7 +102,7 @@ export class PasswordResetService {
     const user = await this.findUserById(userId);
 
     if (!user?.password) {
-      throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
+      throw new UserNotFoundError(userId);
     }
 
     const isCurrentPasswordValid = await this.passwordService.compare(
@@ -111,9 +111,7 @@ export class PasswordResetService {
     );
 
     if (!isCurrentPasswordValid) {
-      throw new UnauthorizedException(
-        ERROR_MESSAGES.CURRENT_PASSWORD_INCORRECT,
-      );
+      throw new AuthenticationError(ERROR_MESSAGES.CURRENT_PASSWORD_INCORRECT);
     }
 
     const hashedPassword = await this.passwordService.hash(dto.newPassword);
@@ -134,34 +132,36 @@ export class PasswordResetService {
   }
 
   private async findUserByEmail(email: string) {
-    return this.prisma.user.findUnique({
-      where: { email },
-      select: { id: true, email: true, name: true },
-    });
+    const user = await this.userRepository.findByEmail(email);
+    if (!user) return null;
+    return { id: user.id, email: user.email, name: user.name };
   }
 
   private async findUserById(userId: string) {
-    return this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { id: true, email: true, name: true, password: true },
-    });
+    const user = await this.userRepository.findById(userId);
+    if (!user) return null;
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      password: user.password,
+    };
   }
 
+  // NOTE: AuthUserRepository needs updatePasswordByEmail method
+  // For now, we find by email then update by id
   private async updatePassword(email: string, password: string): Promise<void> {
-    await this.prisma.user.update({
-      where: { email },
-      data: { password },
-    });
+    const user = await this.userRepository.findByEmail(email);
+    if (user) {
+      await this.userRepository.updatePassword(user.id, password);
+    }
   }
 
   private async updatePasswordById(
     userId: string,
     password: string,
   ): Promise<void> {
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { password },
-    });
+    await this.userRepository.updatePassword(userId, password);
   }
 
   private async sendPasswordResetEmail(

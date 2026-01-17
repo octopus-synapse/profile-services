@@ -12,10 +12,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { CollaborationService } from './collaboration.service';
 import { PrismaService } from '../prisma/prisma.service';
 import {
-  ForbiddenException,
-  NotFoundException,
-  ConflictException,
-} from '@nestjs/common';
+  ResourceNotFoundError,
+  ResourceOwnershipError,
+  PermissionDeniedError,
+  DuplicateResourceError,
+} from '@octopus-synapse/profile-contracts';
 
 describe('CollaborationService', () => {
   let service: CollaborationService;
@@ -87,7 +88,7 @@ describe('CollaborationService', () => {
       expect(mockPrismaService.resumeCollaborator.create).toHaveBeenCalled();
     });
 
-    it('should throw ForbiddenException if not owner', async () => {
+    it('should throw ResourceOwnershipError if not owner', async () => {
       mockPrismaService.resume.findUnique = mock(() =>
         Promise.resolve({ ...mockResume, userId: 'other-owner' }),
       );
@@ -99,10 +100,10 @@ describe('CollaborationService', () => {
           inviteeId: 'user-2',
           role: 'EDITOR',
         }),
-      ).rejects.toThrow(ForbiddenException);
+      ).rejects.toThrow(ResourceOwnershipError);
     });
 
-    it('should throw ConflictException if already a collaborator', async () => {
+    it('should throw DuplicateResourceError if already a collaborator', async () => {
       mockPrismaService.resumeCollaborator.findFirst = mock(() =>
         Promise.resolve(mockCollaborator),
       );
@@ -114,10 +115,10 @@ describe('CollaborationService', () => {
           inviteeId: 'user-2',
           role: 'EDITOR',
         }),
-      ).rejects.toThrow(ConflictException);
+      ).rejects.toThrow(DuplicateResourceError);
     });
 
-    it('should throw NotFoundException if resume not found', async () => {
+    it('should throw ResourceNotFoundError if resume not found', async () => {
       mockPrismaService.resume.findUnique = mock(() => Promise.resolve(null));
 
       await expect(
@@ -127,7 +128,7 @@ describe('CollaborationService', () => {
           inviteeId: 'user-2',
           role: 'EDITOR',
         }),
-      ).rejects.toThrow(NotFoundException);
+      ).rejects.toThrow(ResourceNotFoundError);
     });
   });
 
@@ -140,7 +141,7 @@ describe('CollaborationService', () => {
       expect(mockPrismaService.resumeCollaborator.findMany).toHaveBeenCalled();
     });
 
-    it('should throw ForbiddenException if not owner or collaborator', async () => {
+    it('should throw PermissionDeniedError if not owner or collaborator', async () => {
       mockPrismaService.resume.findUnique = mock(() =>
         Promise.resolve({ ...mockResume, userId: 'other-owner' }),
       );
@@ -150,7 +151,7 @@ describe('CollaborationService', () => {
 
       await expect(
         service.getCollaborators('resume-1', 'random-user'),
-      ).rejects.toThrow(ForbiddenException);
+      ).rejects.toThrow(PermissionDeniedError);
     });
   });
 
@@ -167,7 +168,7 @@ describe('CollaborationService', () => {
       expect(mockPrismaService.resumeCollaborator.update).toHaveBeenCalled();
     });
 
-    it('should throw ForbiddenException if not owner', async () => {
+    it('should throw ResourceOwnershipError if not owner', async () => {
       mockPrismaService.resume.findUnique = mock(() =>
         Promise.resolve({ ...mockResume, userId: 'other-owner' }),
       );
@@ -179,7 +180,7 @@ describe('CollaborationService', () => {
           targetUserId: 'user-2',
           newRole: 'ADMIN',
         }),
-      ).rejects.toThrow(ForbiddenException);
+      ).rejects.toThrow(ResourceOwnershipError);
     });
   });
 

@@ -12,7 +12,7 @@
 
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestException } from '@nestjs/common';
+import { DomainValidationError } from '@octopus-synapse/profile-contracts';
 import { UploadService, FileUpload } from './upload.service';
 import { S3UploadService } from '../common/services/s3-upload.service';
 import { AppLoggerService } from '../common/logger/logger.service';
@@ -68,7 +68,7 @@ describe('UploadService - SECURITY BUG DETECTION', () => {
       // BUG: This should throw but doesn't!
       await expect(
         service.uploadProfileImage('user-123', maliciousSvg),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow(DomainValidationError);
     });
 
     it('should REJECT SVG with event handlers', async () => {
@@ -81,7 +81,7 @@ describe('UploadService - SECURITY BUG DETECTION', () => {
 
       await expect(
         service.uploadProfileImage('user-123', maliciousSvg),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow(DomainValidationError);
     });
   });
 
@@ -104,7 +104,7 @@ describe('UploadService - SECURITY BUG DETECTION', () => {
       // BUG: This should detect it's not a real JPEG!
       await expect(
         service.uploadProfileImage('user-123', spoofedFile),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow(DomainValidationError);
     });
 
     it('should validate JPEG magic bytes (FFD8FF)', async () => {
@@ -118,7 +118,7 @@ describe('UploadService - SECURITY BUG DETECTION', () => {
 
       await expect(
         service.uploadProfileImage('user-123', invalidJpeg),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow(DomainValidationError);
     });
 
     it('should validate PNG magic bytes (89504E47)', async () => {
@@ -131,7 +131,7 @@ describe('UploadService - SECURITY BUG DETECTION', () => {
 
       await expect(
         service.uploadProfileImage('user-123', invalidPng),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow(DomainValidationError);
     });
   });
 
@@ -153,7 +153,7 @@ describe('UploadService - SECURITY BUG DETECTION', () => {
       // BUG: This extracts 'php' as extension but should reject!
       await expect(
         service.uploadProfileImage('user-123', doubleExtension),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow(DomainValidationError);
     });
 
     it('should REJECT null byte attack (image.php%00.jpg)', async () => {
@@ -166,7 +166,7 @@ describe('UploadService - SECURITY BUG DETECTION', () => {
 
       await expect(
         service.uploadProfileImage('user-123', nullByteAttack),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow(DomainValidationError);
     });
 
     it('should REJECT directory traversal in filename', async () => {
@@ -179,7 +179,7 @@ describe('UploadService - SECURITY BUG DETECTION', () => {
 
       await expect(
         service.uploadProfileImage('user-123', traversalAttack),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow(DomainValidationError);
     });
   });
 

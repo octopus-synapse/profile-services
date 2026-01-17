@@ -7,7 +7,7 @@ import { Injectable } from '@nestjs/common';
 import {
   ResumeConfigRepository,
   ResumeConfig,
-} from './resume-config.repository';
+} from '../repositories/resume-config.repository';
 
 @Injectable()
 export class SectionVisibilityService {

@@ -1,12 +1,13 @@
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { Test, TestingModule } from '@nestjs/testing';
+import { ResumeNotFoundError } from '@octopus-synapse/profile-contracts';
 import { createMockResume } from '../../../test/factories/resume.factory';
 import { ResumeJsonService } from './resume-json.service';
+import { ExportRepository } from '../repositories/export.repository';
 
 describe('ResumeJsonService', () => {
   let service: ResumeJsonService;
-  let mockPrismaService: {
-    resume: { findUnique: ReturnType<typeof mock> };
-  };
+  let mockRepository: ExportRepository;
 
   const mockResume = {
     ...createMockResume({
@@ -66,14 +67,21 @@ describe('ResumeJsonService', () => {
     certifications: [],
   } as any;
 
-  beforeEach(() => {
-    mockPrismaService = {
-      resume: {
-        findUnique: mock(() => Promise.resolve(mockResume)),
-      },
-    };
+  beforeEach(async () => {
+    const mockFindResumeForJsonExport = mock(() => Promise.resolve(mockResume));
 
-    service = new ResumeJsonService(mockPrismaService as any);
+    mockRepository = {
+      findResumeForJsonExport: mockFindResumeForJsonExport,
+    } as ExportRepository;
+
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        ResumeJsonService,
+        { provide: ExportRepository, useValue: mockRepository },
+      ],
+    }).compile();
+
+    service = module.get<ResumeJsonService>(ResumeJsonService);
   });
 
   describe('exportAsJson', () => {
@@ -119,11 +127,13 @@ describe('ResumeJsonService', () => {
       expect(result.skills[0].name).toBe('TypeScript');
     });
 
-    it('should throw NotFoundException when resume not found', async () => {
-      mockPrismaService.resume.findUnique = mock(() => Promise.resolve(null));
+    it('should throw ResumeNotFoundError when resume not found', async () => {
+      (
+        mockRepository.findResumeForJsonExport as ReturnType<typeof mock>
+      ).mockResolvedValue(null);
 
       await expect(service.exportAsJson('unknown')).rejects.toThrow(
-        'Resume not found',
+        ResumeNotFoundError,
       );
     });
   });

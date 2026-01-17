@@ -7,9 +7,12 @@
  * Single Responsibility: CRUD operations on skills requiring 'skill:*' permissions.
  */
 
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
-import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
+import { Injectable } from '@nestjs/common';
+import {
+  ResumeNotFoundError,
+  ResourceNotFoundError,
+} from '@octopus-synapse/profile-contracts';
+import { SkillManagementRepository } from '../repositories';
 
 // ============================================================================
 // Types
@@ -33,7 +36,7 @@ export class UpdateSkillInput {
 
 @Injectable()
 export class SkillManagementService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly repository: SkillManagementRepository) {}
 
   // ============================================================================
   // Query Operations (require 'skill:read' or 'skill:manage')
@@ -45,10 +48,7 @@ export class SkillManagementService {
   async listSkillsForResume(resumeId: string) {
     await this.ensureResumeExists(resumeId);
 
-    const skills = await this.prisma.skill.findMany({
-      where: { resumeId },
-      orderBy: [{ category: 'asc' }, { order: 'asc' }],
-    });
+    const skills = await this.repository.findAllByResumeId(resumeId);
 
     return { skills };
   }
@@ -65,14 +65,12 @@ export class SkillManagementService {
 
     const nextOrder = await this.getNextOrderValue(resumeId);
 
-    const skill = await this.prisma.skill.create({
-      data: {
-        resumeId,
-        name: data.name,
-        category: data.category,
-        level: data.level,
-        order: nextOrder,
-      },
+    const skill = await this.repository.create({
+      resumeId,
+      name: data.name,
+      category: data.category,
+      level: data.level,
+      order: nextOrder,
     });
 
     return {
@@ -88,10 +86,7 @@ export class SkillManagementService {
   async updateSkill(skillId: string, data: UpdateSkillInput) {
     await this.ensureSkillExists(skillId);
 
-    const skill = await this.prisma.skill.update({
-      where: { id: skillId },
-      data,
-    });
+    const skill = await this.repository.update(skillId, data);
 
     return {
       success: true,
@@ -106,7 +101,7 @@ export class SkillManagementService {
   async deleteSkill(skillId: string) {
     await this.ensureSkillExists(skillId);
 
-    await this.prisma.skill.delete({ where: { id: skillId } });
+    await this.repository.delete(skillId);
 
     return {
       success: true,
@@ -119,33 +114,24 @@ export class SkillManagementService {
   // ============================================================================
 
   private async getNextOrderValue(resumeId: string): Promise<number> {
-    const lastSkill = await this.prisma.skill.findFirst({
-      where: { resumeId },
-      orderBy: { order: 'desc' },
-    });
+    const lastSkill = await this.repository.findLastByOrder(resumeId);
 
     return (lastSkill?.order ?? -1) + 1;
   }
 
   private async ensureResumeExists(resumeId: string): Promise<void> {
-    const resume = await this.prisma.resume.findUnique({
-      where: { id: resumeId },
-      select: { id: true },
-    });
+    const resume = await this.repository.findResumeById(resumeId);
 
     if (!resume) {
-      throw new NotFoundException(ERROR_MESSAGES.RESUME_NOT_FOUND);
+      throw new ResumeNotFoundError(resumeId);
     }
   }
 
   private async ensureSkillExists(skillId: string): Promise<void> {
-    const skill = await this.prisma.skill.findUnique({
-      where: { id: skillId },
-      select: { id: true },
-    });
+    const skill = await this.repository.findById(skillId);
 
     if (!skill) {
-      throw new NotFoundException(ERROR_MESSAGES.SKILL_NOT_FOUND);
+      throw new ResourceNotFoundError('skill', skillId);
     }
   }
 }

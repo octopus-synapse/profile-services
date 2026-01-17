@@ -16,12 +16,14 @@ import { PdfGeneratorService } from './services/pdf-generator.service';
 import { PdfTemplateService } from './services/pdf-template.service';
 import { ResumeJsonService } from './services/resume-json.service';
 import { ResumeLatexService } from './services/resume-latex.service';
+import { ExportRepository } from './repositories/export.repository';
 import { ResumesModule } from '../resumes/resumes.module';
 import { UsersModule } from '../users/users.module';
 import { LoggerModule } from '../common/logger/logger.module';
+import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
-  imports: [ResumesModule, UsersModule, LoggerModule],
+  imports: [ResumesModule, UsersModule, LoggerModule, PrismaModule],
   controllers: [
     ExportBannerController,
     ExportPdfController,
@@ -29,6 +31,7 @@ import { LoggerModule } from '../common/logger/logger.module';
     ExportMultiFormatController,
   ],
   providers: [
+    ExportRepository,
     BannerCaptureService,
     ResumePDFService,
     BrowserManagerService,

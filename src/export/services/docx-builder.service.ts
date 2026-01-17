@@ -3,11 +3,14 @@
  * Orchestrates DOCX document generation
  */
 
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Document, Packer } from 'docx';
 import { ResumesRepository } from '../../resumes/resumes.repository';
 import { UsersRepository } from '../../users/users.repository';
-import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
+import {
+  ResumeNotFoundError,
+  UserNotFoundError,
+} from '@octopus-synapse/profile-contracts';
 import { DocxSectionsService } from './docx-sections.service';
 import { DocxStylesService } from './docx-styles.service';
 import {
@@ -56,12 +59,12 @@ export class DocxBuilderService {
   private async loadUserAndResume(userId: string) {
     const user = await this.usersRepository.findUserById(userId);
     if (!user) {
-      throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
+      throw new UserNotFoundError(userId);
     }
 
     const resumeData = await this.resumesRepository.findResumeByUserId(userId);
     if (!resumeData) {
-      throw new NotFoundException(ERROR_MESSAGES.RESUME_NOT_FOUND_FOR_USER);
+      throw new ResumeNotFoundError(userId);
     }
 
     const resume = resumeData as FullResume;

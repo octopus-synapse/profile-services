@@ -12,6 +12,7 @@ import {
   TechNicheController,
   TechSkillController,
 } from './controllers';
+import { TechSkillsRepository } from './repositories';
 import { TechSkillsSyncService } from './services/tech-skills-sync.service';
 import { TechSkillsQueryService } from './services/tech-skills-query.service';
 import { TechAreaQueryService } from './services/area-query.service';
@@ -38,6 +39,8 @@ import { InternalAuthGuard } from '../mec-sync/guards/internal-auth.guard';
     TechSkillController,
   ],
   providers: [
+    // Repository
+    TechSkillsRepository,
     // Sync services
     TechAreasSyncService,
     TechNichesSyncService,

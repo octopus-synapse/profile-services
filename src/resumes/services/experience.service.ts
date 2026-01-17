@@ -1,4 +1,4 @@
-import { Injectable, Logger, BadRequestException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Experience } from '@prisma/client';
 import { ExperienceRepository } from '../repositories/experience.repository';
 import { ResumesRepository } from '../resumes.repository';
@@ -6,6 +6,7 @@ import type {
   CreateExperience,
   UpdateExperience,
 } from '@octopus-synapse/profile-contracts';
+import { BusinessRuleError } from '@octopus-synapse/profile-contracts';
 import { BaseSubResourceService } from './base';
 import { DataResponse } from '../../common/dto/api-response.dto';
 
@@ -78,7 +79,7 @@ export class ExperienceService extends BaseSubResourceService<
   ): void {
     // BUG-007: current=true with endDate is invalid
     if (data.current === true && data.endDate) {
-      throw new BadRequestException(
+      throw new BusinessRuleError(
         'Current position cannot have an end date. Either set current to false or remove endDate.',
       );
     }
@@ -89,11 +90,11 @@ export class ExperienceService extends BaseSubResourceService<
       const end = new Date(data.endDate);
 
       if (end < start) {
-        throw new BadRequestException('End date cannot be before start date.');
+        throw new BusinessRuleError('End date cannot be before start date.');
       }
 
       if (end.getTime() === start.getTime()) {
-        throw new BadRequestException(
+        throw new BusinessRuleError(
           'End date cannot be the same as start date.',
         );
       }

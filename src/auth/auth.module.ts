@@ -36,6 +36,13 @@ import {
 } from './services';
 import { GdprExportService } from './services/gdpr-export.service';
 import { GdprDeletionService } from './services/gdpr-deletion.service';
+import {
+  AuthUserRepository,
+  VerificationTokenRepository,
+  TwoFactorAuthRepository,
+  UserConsentRepository,
+  GdprRepository,
+} from './repositories';
 
 @Module({
   imports: [
@@ -73,6 +80,12 @@ import { GdprDeletionService } from './services/gdpr-deletion.service';
     GdprController,
   ],
   providers: [
+    // Repositories (infrastructure layer)
+    AuthUserRepository,
+    VerificationTokenRepository,
+    TwoFactorAuthRepository,
+    UserConsentRepository,
+    GdprRepository,
     // Core services
     TokenService,
     PasswordService,

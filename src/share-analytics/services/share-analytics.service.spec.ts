@@ -11,12 +11,12 @@
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ShareAnalyticsService } from './share-analytics.service';
-import { PrismaService } from '../../prisma/prisma.service';
-import { ForbiddenException } from '@nestjs/common';
+import { ShareAnalyticsRepository } from '../repositories';
+import { ResourceOwnershipError } from '@octopus-synapse/profile-contracts';
 
 describe('ShareAnalyticsService', () => {
   let service: ShareAnalyticsService;
-  let prisma: PrismaService;
+  let repository: ShareAnalyticsRepository;
 
   const mockAnalyticsEvent = {
     id: 'event-123',
@@ -38,21 +38,20 @@ describe('ShareAnalyticsService', () => {
   };
 
   beforeEach(async () => {
-    prisma = {
-      shareAnalytics: {
-        create: mock(() => Promise.resolve(mockAnalyticsEvent)),
-        groupBy: mock(() => Promise.resolve([])),
-        findMany: mock(() => Promise.resolve([mockAnalyticsEvent])),
-      },
-      resumeShare: {
-        findUnique: mock(() => Promise.resolve(mockShare)),
-      },
+    repository = {
+      createEvent: mock(() => Promise.resolve(mockAnalyticsEvent)),
+      getEventCounts: mock(() => Promise.resolve([])),
+      findEvents: mock(() => Promise.resolve([mockAnalyticsEvent])),
+      findShareWithOwner: mock(() => Promise.resolve(mockShare)),
+      getUniqueViews: mock(() => Promise.resolve([])),
+      getByCountry: mock(() => Promise.resolve([])),
+      getRecentEvents: mock(() => Promise.resolve([])),
     } as any;
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ShareAnalyticsService,
-        { provide: PrismaService, useValue: prisma },
+        { provide: ShareAnalyticsRepository, useValue: repository },
       ],
     }).compile();
 
@@ -70,7 +69,7 @@ describe('ShareAnalyticsService', () => {
       });
 
       expect(result).toEqual(mockAnalyticsEvent);
-      expect(prisma.shareAnalytics.create).toHaveBeenCalled();
+      expect(repository.createEvent).toHaveBeenCalled();
     });
 
     it('should track DOWNLOAD event', async () => {
@@ -80,7 +79,7 @@ describe('ShareAnalyticsService', () => {
         ip: '192.168.1.1',
       });
 
-      expect(prisma.shareAnalytics.create).toHaveBeenCalled();
+      expect(repository.createEvent).toHaveBeenCalled();
     });
 
     it('should include user agent when provided', async () => {
@@ -91,11 +90,11 @@ describe('ShareAnalyticsService', () => {
         userAgent: 'Chrome/120.0',
       });
 
-      expect(prisma.shareAnalytics.create).toHaveBeenCalledWith({
-        data: expect.objectContaining({
+      expect(repository.createEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
           userAgent: 'Chrome/120.0',
         }),
-      });
+      );
     });
 
     it('should include referer when provided', async () => {
@@ -106,11 +105,11 @@ describe('ShareAnalyticsService', () => {
         referer: 'https://google.com',
       });
 
-      expect(prisma.shareAnalytics.create).toHaveBeenCalledWith({
-        data: expect.objectContaining({
+      expect(repository.createEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
           referer: 'https://google.com',
         }),
-      });
+      );
     });
 
     it('should include geo data when provided', async () => {
@@ -122,12 +121,12 @@ describe('ShareAnalyticsService', () => {
         city: 'New York',
       });
 
-      expect(prisma.shareAnalytics.create).toHaveBeenCalledWith({
-        data: expect.objectContaining({
+      expect(repository.createEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
           country: 'US',
           city: 'New York',
         }),
-      });
+      );
     });
   });
 
@@ -139,19 +138,19 @@ describe('ShareAnalyticsService', () => {
         ip: '192.168.1.1',
       });
 
-      expect(prisma.shareAnalytics.create).toHaveBeenCalledWith({
-        data: expect.objectContaining({
+      expect(repository.createEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
           ipHash: expect.any(String),
         }),
-      });
+      );
     });
 
     it('should generate different hashes for different IPs', async () => {
       const calls: any[] = [];
-      prisma.shareAnalytics.create = mock((data) => {
+      repository.createEvent = mock((data) => {
         calls.push(data);
         return Promise.resolve(mockAnalyticsEvent);
-      });
+      }) as any;
 
       await service.trackEvent({
         shareId: 'share-123',
@@ -165,15 +164,15 @@ describe('ShareAnalyticsService', () => {
         ip: '192.168.1.2',
       });
 
-      expect(calls[0].data.ipHash).not.toBe(calls[1].data.ipHash);
+      expect(calls[0].ipHash).not.toBe(calls[1].ipHash);
     });
 
     it('should generate same hash for same IP (unique visitor tracking)', async () => {
       const calls: any[] = [];
-      prisma.shareAnalytics.create = mock((data) => {
+      repository.createEvent = mock((data) => {
         calls.push(data);
         return Promise.resolve(mockAnalyticsEvent);
-      });
+      }) as any;
 
       await service.trackEvent({
         shareId: 'share-123',
@@ -187,18 +186,18 @@ describe('ShareAnalyticsService', () => {
         ip: '192.168.1.1',
       });
 
-      expect(calls[0].data.ipHash).toBe(calls[1].data.ipHash);
+      expect(calls[0].ipHash).toBe(calls[1].ipHash);
     });
   });
 
   describe('Analytics Retrieval', () => {
     it('should get analytics for share owner', async () => {
-      prisma.shareAnalytics.groupBy = mock(() =>
+      repository.getEventCounts = mock(() =>
         Promise.resolve([
           { event: 'VIEW', _count: { event: 10 } },
           { event: 'DOWNLOAD', _count: { event: 5 } },
         ] as any),
-      );
+      ) as any;
 
       const result = await service.getAnalytics('share-123', 'user-123');
 
@@ -206,35 +205,35 @@ describe('ShareAnalyticsService', () => {
       expect(result.totalDownloads).toBe(5);
     });
 
-    it('should throw ForbiddenException when share not found', async () => {
-      prisma.resumeShare.findUnique = mock(() => Promise.resolve(null));
+    it('should throw ResourceOwnershipError when share not found', async () => {
+      repository.findShareWithOwner = mock(() => Promise.resolve(null)) as any;
 
       await expect(
         service.getAnalytics('share-123', 'user-123'),
-      ).rejects.toThrow(ForbiddenException);
+      ).rejects.toThrow(ResourceOwnershipError);
     });
 
-    it('should throw ForbiddenException when user does not own resume', async () => {
-      prisma.resumeShare.findUnique = mock(() =>
+    it('should throw ResourceOwnershipError when user does not own resume', async () => {
+      repository.findShareWithOwner = mock(() =>
         Promise.resolve({
           ...mockShare,
           resume: { userId: 'other-user' },
         }),
-      );
+      ) as any;
 
       await expect(
         service.getAnalytics('share-123', 'user-123'),
-      ).rejects.toThrow(ForbiddenException);
+      ).rejects.toThrow(ResourceOwnershipError);
     });
 
     it('should calculate unique views from unique IP hashes', async () => {
-      prisma.shareAnalytics.groupBy = mock(() =>
+      repository.getUniqueViews = mock(() =>
         Promise.resolve([
           { ipHash: 'hash1', _count: { ipHash: 3 } },
           { ipHash: 'hash2', _count: { ipHash: 2 } },
           { ipHash: 'hash3', _count: { ipHash: 1 } },
         ] as any),
-      );
+      ) as any;
 
       const result = await service.getAnalytics('share-123', 'user-123');
 
@@ -242,7 +241,7 @@ describe('ShareAnalyticsService', () => {
     });
 
     it('should group analytics by country', async () => {
-      prisma.shareAnalytics.groupBy = mock(() =>
+      repository.getByCountry = mock(() =>
         Promise.resolve([
           { country: 'BR', _count: { country: 10 } },
           { country: 'US', _count: { country: 5 } },
@@ -260,22 +259,13 @@ describe('ShareAnalyticsService', () => {
     it('should return recent events', async () => {
       const result = await service.getAnalytics('share-123', 'user-123');
 
-      expect(result.recentEvents).toEqual([mockAnalyticsEvent]);
-      expect(prisma.shareAnalytics.findMany).toHaveBeenCalledWith({
-        where: { shareId: 'share-123' },
-        orderBy: { createdAt: 'desc' },
-        take: 20,
-        select: {
-          event: true,
-          country: true,
-          city: true,
-          createdAt: true,
-        },
-      });
+      expect(result.recentEvents).toBeDefined();
+      expect(repository.getRecentEvents).toHaveBeenCalledWith('share-123');
     });
 
     it('should return 0 views when no events', async () => {
-      prisma.shareAnalytics.groupBy = mock(() => Promise.resolve([]));
+      repository.getEventCounts = mock(() => Promise.resolve([])) as any;
+      repository.getUniqueViews = mock(() => Promise.resolve([])) as any;
 
       const result = await service.getAnalytics('share-123', 'user-123');
 

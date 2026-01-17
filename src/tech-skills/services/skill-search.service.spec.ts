@@ -10,7 +10,7 @@
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { SkillSearchService } from './skill-search.service';
-import { PrismaService } from '../../prisma/prisma.service';
+import { TechSkillsRepository } from '../repositories';
 import { CacheService } from '../../common/cache/cache.service';
 
 describe('SkillSearchService', () => {
@@ -52,8 +52,8 @@ describe('SkillSearchService', () => {
   // In-memory cache
   const cacheStore = new Map<string, unknown>();
 
-  const stubPrisma = {
-    $queryRaw: mock().mockResolvedValue(mockSkillsFromDb),
+  const mockTechSkillsRepo = {
+    searchSkillsRaw: mock(() => Promise.resolve(mockSkillsFromDb)),
   };
 
   const stubCache = {
@@ -70,7 +70,7 @@ describe('SkillSearchService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         SkillSearchService,
-        { provide: PrismaService, useValue: stubPrisma },
+        { provide: TechSkillsRepository, useValue: mockTechSkillsRepo },
         { provide: CacheService, useValue: stubCache },
       ],
     }).compile();

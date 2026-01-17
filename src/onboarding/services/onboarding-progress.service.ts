@@ -3,15 +3,14 @@
  * Single Responsibility: Manage onboarding progress (checkpoints)
  */
 
-import {
-  Injectable,
-  ConflictException,
-  BadRequestException,
-} from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import { Injectable } from '@nestjs/common';
 import { AppLoggerService } from '../../common/logger/logger.service';
+import { OnboardingRepository } from '../repositories';
 import type { OnboardingProgress } from '@octopus-synapse/profile-contracts';
-import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
+import {
+  UsernameConflictError,
+  BusinessRuleError,
+} from '@octopus-synapse/profile-contracts';
 import { Prisma } from '@prisma/client';
 
 /** Onboarding progress expires after 36 hours */
@@ -36,7 +35,7 @@ const INITIAL_PROGRESS = {
 @Injectable()
 export class OnboardingProgressService {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly repository: OnboardingRepository,
     private readonly logger: AppLoggerService,
   ) {}
 
@@ -60,11 +59,10 @@ export class OnboardingProgressService {
 
     const progressData = this.buildProgressData(data);
 
-    const progress = await this.prisma.onboardingProgress.upsert({
-      where: { userId },
-      update: progressData,
-      create: { userId, ...progressData },
-    });
+    const progress = await this.repository.upsertOnboardingProgress(
+      userId,
+      progressData,
+    );
 
     return {
       success: true,
@@ -77,10 +75,7 @@ export class OnboardingProgressService {
     username: string,
     userId: string,
   ): Promise<void> {
-    const existingUser = await this.prisma.user.findUnique({
-      where: { username },
-      select: { id: true },
-    });
+    const existingUser = await this.repository.findUserByUsername(username);
 
     // Allow if it's the same user (user already has this username)
     if (existingUser?.id === userId) {
@@ -89,14 +84,12 @@ export class OnboardingProgressService {
 
     // Check if username is taken by another user
     if (existingUser) {
-      throw new ConflictException(ERROR_MESSAGES.USERNAME_ALREADY_IN_USE);
+      throw new UsernameConflictError(username);
     }
   }
 
   async getProgress(userId: string) {
-    const progress = await this.prisma.onboardingProgress.findUnique({
-      where: { userId },
-    });
+    const progress = await this.repository.findOnboardingProgress(userId);
 
     if (!progress) {
       return INITIAL_PROGRESS;
@@ -131,7 +124,7 @@ export class OnboardingProgressService {
   }
 
   async deleteProgress(userId: string) {
-    await this.prisma.onboardingProgress.deleteMany({ where: { userId } });
+    await this.repository.deleteOnboardingProgress(userId);
   }
 
   /**
@@ -143,7 +136,7 @@ export class OnboardingProgressService {
     tx: Prisma.TransactionClient,
     userId: string,
   ): Promise<void> {
-    await tx.onboardingProgress.deleteMany({ where: { userId } });
+    await this.repository.deleteOnboardingProgressWithTx(tx, userId);
   }
 
   private buildProgressData(data: OnboardingProgress) {
@@ -171,19 +164,19 @@ export class OnboardingProgressService {
    */
   private validateFlagArrayConsistency(data: OnboardingProgress): void {
     if (data.noExperience && data.experiences && data.experiences.length > 0) {
-      throw new BadRequestException(
+      throw new BusinessRuleError(
         'Cannot have experiences when noExperience is true. Either set noExperience to false or provide an empty experiences array.',
       );
     }
 
     if (data.noEducation && data.education && data.education.length > 0) {
-      throw new BadRequestException(
+      throw new BusinessRuleError(
         'Cannot have education entries when noEducation is true. Either set noEducation to false or provide an empty education array.',
       );
     }
 
     if (data.noSkills && data.skills && data.skills.length > 0) {
-      throw new BadRequestException(
+      throw new BusinessRuleError(
         'Cannot have skills when noSkills is true. Either set noSkills to false or provide an empty skills array.',
       );
     }

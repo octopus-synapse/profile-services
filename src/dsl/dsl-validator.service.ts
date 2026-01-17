@@ -5,9 +5,10 @@
  * IMPORTANT: No direct imports from 'zod' - all validation comes from contracts.
  */
 
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import {
   ResumeDslSchema,
+  DomainValidationError,
   type ResumeDsl,
 } from '@octopus-synapse/profile-contracts';
 
@@ -45,14 +46,15 @@ export class DslValidatorService {
   validateOrThrow(input: unknown): ResumeDsl {
     const result = this.validate(input);
     if (!result.valid) {
-      throw new BadRequestException({
-        message: 'Invalid DSL',
-        errors: result.errors,
-      });
+      throw new DomainValidationError(
+        `Invalid DSL: ${result.errors?.join(', ')}`,
+        { field: 'dsl' },
+      );
     }
     if (!result.normalized) {
-      throw new BadRequestException(
+      throw new DomainValidationError(
         'Validation succeeded but normalized DSL is missing',
+        { field: 'dsl' },
       );
     }
     return result.normalized;

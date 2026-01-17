@@ -9,7 +9,7 @@
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ResumeOnboardingService } from './resume-onboarding.service';
-import { PrismaService } from '../../prisma/prisma.service';
+import { OnboardingRepository } from '../repositories/onboarding.repository';
 import type { OnboardingData } from '../schemas/onboarding.schema';
 
 describe('ResumeOnboardingService', () => {
@@ -20,55 +20,96 @@ describe('ResumeOnboardingService', () => {
   const userStore = new Map<string, any>();
   let idCounter = 1;
 
-  const createFakePrisma = () => ({
-    resume: {
-      findFirst: mock(({ where }: { where: { userId: string } }) => {
-        const resume = Array.from(resumeStore.values()).find(
-          (r) => r.userId === where.userId,
-        );
-        return Promise.resolve(resume ?? null);
-      }),
-      upsert: mock(
-        ({
-          where,
-          update,
-          create,
-        }: {
-          where: { id: string };
-          update: any;
-          create: any;
-        }) => {
-          const existing = resumeStore.get(where.id);
+  const createMockRepository = () => {
+    const mockClient = {
+      resume: {
+        findFirst: mock(({ where }: { where: { userId: string } }) => {
+          const resume = Array.from(resumeStore.values()).find(
+            (r) => r.userId === where.userId,
+          );
+          return Promise.resolve(resume ?? null);
+        }),
+        upsert: mock(
+          ({
+            where,
+            update,
+            create,
+          }: {
+            where: { id: string };
+            update: any;
+            create: any;
+          }) => {
+            const existing = resumeStore.get(where.id);
+            if (existing) {
+              const updated = { ...existing, ...update };
+              resumeStore.set(where.id, updated);
+              return Promise.resolve(updated);
+            }
+            const newResume = { id: `resume-${idCounter++}`, ...create };
+            resumeStore.set(newResume.id, newResume);
+            return Promise.resolve(newResume);
+          },
+        ),
+      },
+      user: {
+        update: mock(
+          ({
+            where,
+            data,
+          }: {
+            where: { id: string };
+            data: { primaryResumeId: string };
+          }) => {
+            const user = userStore.get(where.id) ?? { id: where.id };
+            const updated = { ...user, ...data };
+            userStore.set(where.id, updated);
+            return Promise.resolve(updated);
+          },
+        ),
+      },
+    };
+
+    const mockUpsertResume = mock(
+      (tx: any, existingResumeId: string | null, userId: string, data: any) => {
+        if (existingResumeId) {
+          const existing = resumeStore.get(existingResumeId);
           if (existing) {
-            const updated = { ...existing, ...update };
-            resumeStore.set(where.id, updated);
+            const updated = { ...existing, ...data };
+            resumeStore.set(existingResumeId, updated);
             return Promise.resolve(updated);
           }
-          const newResume = { id: `resume-${idCounter++}`, ...create };
-          resumeStore.set(newResume.id, newResume);
-          return Promise.resolve(newResume);
-        },
-      ),
-    },
-    user: {
-      update: mock(
-        ({
-          where,
-          data,
-        }: {
-          where: { id: string };
-          data: { primaryResumeId: string };
-        }) => {
-          const user = userStore.get(where.id) ?? { id: where.id };
-          const updated = { ...user, ...data };
-          userStore.set(where.id, updated);
-          return Promise.resolve(updated);
-        },
-      ),
-    },
-  });
+        }
+        const newResume = { id: `resume-${idCounter++}`, userId, ...data };
+        resumeStore.set(newResume.id, newResume);
+        return Promise.resolve(newResume);
+      },
+    );
 
-  let fakePrisma: ReturnType<typeof createFakePrisma>;
+    const mockFindFirstResumeByUserId = mock((tx: any, userId: string) => {
+      const resume = Array.from(resumeStore.values()).find(
+        (r) => r.userId === userId,
+      );
+      return Promise.resolve(resume ?? null);
+    });
+
+    const mockSetUserPrimaryResume = mock(
+      (tx: any, userId: string, resumeId: string) => {
+        const user = userStore.get(userId) ?? { id: userId };
+        const updated = { ...user, primaryResumeId: resumeId };
+        userStore.set(userId, updated);
+        return Promise.resolve(updated);
+      },
+    );
+
+    return {
+      getClient: mock(() => mockClient),
+      findFirstResumeByUserId: mockFindFirstResumeByUserId,
+      upsertResume: mockUpsertResume,
+      setUserPrimaryResume: mockSetUserPrimaryResume,
+    };
+  };
+
+  let mockRepository: ReturnType<typeof createMockRepository>;
 
   const createValidOnboardingData = (
     overrides: Partial<OnboardingData> = {},
@@ -105,12 +146,12 @@ describe('ResumeOnboardingService', () => {
     resumeStore.clear();
     userStore.clear();
     idCounter = 1;
-    fakePrisma = createFakePrisma();
+    mockRepository = createMockRepository();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ResumeOnboardingService,
-        { provide: PrismaService, useValue: fakePrisma },
+        { provide: OnboardingRepository, useValue: mockRepository },
       ],
     }).compile();
 

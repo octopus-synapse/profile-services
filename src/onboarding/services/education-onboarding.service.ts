@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
-import { PrismaService } from '../../prisma/prisma.service';
+import { OnboardingRepository } from '../repositories';
 import { DateUtils } from '../../common/utils/date.utils';
 import type { OnboardingData } from '../schemas/onboarding.schema';
 import { BaseOnboardingService } from './base-onboarding.service';
@@ -15,12 +15,16 @@ export class EducationOnboardingService extends BaseOnboardingService<
 > {
   protected readonly logger = new Logger(EducationOnboardingService.name);
 
-  constructor(private readonly prisma: PrismaService) {
+  constructor(private readonly repository: OnboardingRepository) {
     super();
   }
 
   async saveEducation(resumeId: string, data: OnboardingData) {
-    return this.saveEducationWithTx(this.prisma, resumeId, data);
+    return this.saveEducationWithTx(
+      this.repository.getClient(),
+      resumeId,
+      data,
+    );
   }
 
   async saveEducationWithTx(
@@ -47,7 +51,7 @@ export class EducationOnboardingService extends BaseOnboardingService<
     tx: Prisma.TransactionClient,
     resumeId: string,
   ): Promise<void> {
-    await tx.education.deleteMany({ where: { resumeId } });
+    await this.repository.deleteEducationByResumeId(tx, resumeId);
   }
 
   protected transformItems(
@@ -95,7 +99,7 @@ export class EducationOnboardingService extends BaseOnboardingService<
     tx: Prisma.TransactionClient,
     items: EducationCreate[],
   ): Promise<void> {
-    await tx.education.createMany({ data: items });
+    await this.repository.createManyEducation(tx, items);
   }
 
   protected getSuccessMessage(count: number): string {

@@ -4,22 +4,20 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
 import { CacheService } from '../../common/cache/cache.service';
 import {
   TECH_SKILLS_CACHE_KEYS,
   TECH_SKILLS_CACHE_TTL,
   type SkillType,
 } from '../interfaces';
+import { TechSkillsRepository } from '../repositories';
 import type { TechSkill } from '../dtos';
 import { mapSkillsTo } from '../utils';
-
-const NICHE_SELECT = { slug: true, nameEn: true, namePtBr: true } as const;
 
 @Injectable()
 export class SkillQueryService {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly techSkillsRepo: TechSkillsRepository,
     private readonly cache: CacheService,
   ) {}
 
@@ -30,11 +28,7 @@ export class SkillQueryService {
     const cached = await this.cache.get<TechSkill[]>(cacheKey);
     if (cached) return cached;
 
-    const skills = await this.prisma.techSkill.findMany({
-      where: { isActive: true },
-      orderBy: { popularity: 'desc' },
-      include: { niche: { select: NICHE_SELECT } },
-    });
+    const skills = await this.techSkillsRepo.findAllActiveSkillsWithNiche();
 
     const result = mapSkillsTo(skills);
     await this.cache.set(cacheKey, result, TECH_SKILLS_CACHE_TTL.SKILLS_LIST);
@@ -48,11 +42,8 @@ export class SkillQueryService {
     const cached = await this.cache.get<TechSkill[]>(cacheKey);
     if (cached) return cached;
 
-    const skills = await this.prisma.techSkill.findMany({
-      where: { isActive: true, niche: { slug: nicheSlug } },
-      orderBy: { popularity: 'desc' },
-      include: { niche: { select: NICHE_SELECT } },
-    });
+    const skills =
+      await this.techSkillsRepo.findActiveSkillsByNicheSlug(nicheSlug);
 
     const result = mapSkillsTo(skills);
     await this.cache.set(
@@ -65,12 +56,10 @@ export class SkillQueryService {
 
   /** Get skills by type */
   async getSkillsByType(type: SkillType, limit = 50): Promise<TechSkill[]> {
-    const skills = await this.prisma.techSkill.findMany({
-      where: { isActive: true, type },
-      take: limit,
-      orderBy: { popularity: 'desc' },
-      include: { niche: { select: NICHE_SELECT } },
-    });
+    const skills = await this.techSkillsRepo.findActiveSkillsByType(
+      type,
+      limit,
+    );
 
     return mapSkillsTo(skills);
   }

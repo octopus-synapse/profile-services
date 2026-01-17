@@ -6,8 +6,12 @@
  * JWT tokens no longer contain role information.
  */
 
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import { Injectable } from '@nestjs/common';
+import {
+  AuthenticationError,
+  InvalidTokenError,
+} from '@octopus-synapse/profile-contracts';
+import { AuthUserRepository } from '../repositories';
 import { AppLoggerService } from '../../common/logger/logger.service';
 import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
 import { TokenService } from './token.service';
@@ -25,7 +29,7 @@ export class TokenRefreshService {
   private readonly context = 'TokenRefreshService';
 
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly userRepository: AuthUserRepository,
     private readonly logger: AppLoggerService,
     private readonly tokenService: TokenService,
     private readonly tokenBlacklist: TokenBlacklistService,
@@ -49,57 +53,46 @@ export class TokenRefreshService {
         issuedAtMs,
       );
       if (isRevoked) {
-        throw new UnauthorizedException(ERROR_MESSAGES.TOKEN_REVOKED);
+        throw new InvalidTokenError('revoked');
       }
 
       const user = await this.findUserById(decoded.sub);
       return this.generateTokensForUser(user);
     } catch {
       this.logger.warn(`Invalid refresh token`, this.context);
-      throw new UnauthorizedException(ERROR_MESSAGES.UNAUTHORIZED);
+      throw new InvalidTokenError('refresh token invalid or expired');
     }
   }
 
   async getCurrentUser(userId: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        username: true,
-        image: true,
-        hasCompletedOnboarding: true,
-        createdAt: true,
-      },
-    });
+    const user = await this.userRepository.findById(userId);
 
     if (!user) {
-      throw new UnauthorizedException(ERROR_MESSAGES.USER_NOT_FOUND);
+      throw new AuthenticationError(ERROR_MESSAGES.USER_NOT_FOUND);
     }
 
     return {
       success: true,
-      data: user,
+      data: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        username: user.username,
+        image: user.image,
+        hasCompletedOnboarding: user.hasCompletedOnboarding,
+        createdAt: user.createdAt,
+      },
     };
   }
 
   private async findUserById(userId: string): Promise<UserForTokens> {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        hasCompletedOnboarding: true,
-      },
-    });
+    const user = await this.userRepository.findById(userId);
 
     if (!user?.email) {
       this.logger.warn(`Token refresh failed - user not found`, this.context, {
         userId,
       });
-      throw new UnauthorizedException(ERROR_MESSAGES.USER_NOT_FOUND);
+      throw new AuthenticationError(ERROR_MESSAGES.USER_NOT_FOUND);
     }
 
     return {

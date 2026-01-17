@@ -3,8 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UserPreferencesService } from './user-preferences.service';
 import { UsersRepository } from '../users.repository';
 import { AppLoggerService } from '../../common/logger/logger.service';
-import { NotFoundException } from '@nestjs/common';
-import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
+import { UserNotFoundError } from '@octopus-synapse/profile-contracts';
 
 describe('UserPreferencesService', () => {
   let service: UserPreferencesService;
@@ -59,12 +58,12 @@ describe('UserPreferencesService', () => {
       );
     });
 
-    it('should throw NotFoundException when preferences do not exist', async () => {
+    it('should throw UserNotFoundError when preferences do not exist', async () => {
       usersRepository.findUserPreferencesById.mockResolvedValue(null);
 
-      await expect(
-        async () => await service.getPreferences('nonexistent-id'),
-      ).toThrow(new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND));
+      await expect(service.getPreferences('nonexistent-id')).rejects.toThrow(
+        UserNotFoundError,
+      );
     });
 
     it('should return empty preferences object when user exists but has no preferences', async () => {
@@ -109,14 +108,14 @@ describe('UserPreferencesService', () => {
       );
     });
 
-    it('should throw NotFoundException when user does not exist', async () => {
+    it('should throw UserNotFoundError when user does not exist', async () => {
       const updateDto = { palette: 'green' };
 
       usersRepository.findUserById.mockResolvedValue(null);
 
       await expect(
         service.updatePreferences('nonexistent-id', updateDto),
-      ).rejects.toThrow(new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND));
+      ).rejects.toThrow(UserNotFoundError);
 
       expect(usersRepository.updateUserPreferences.mock.calls.length).toBe(0);
       expect(logger.debug.mock.calls.length).toBe(0);
@@ -240,14 +239,14 @@ describe('UserPreferencesService', () => {
       );
     });
 
-    it('should throw NotFoundException when user does not exist', async () => {
+    it('should throw UserNotFoundError when user does not exist', async () => {
       const updateDto = { theme: 'dark' };
 
       usersRepository.findUserById.mockResolvedValue(null);
 
       await expect(
         service.updateFullPreferences('nonexistent-id', updateDto),
-      ).rejects.toThrow(new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND));
+      ).rejects.toThrow(UserNotFoundError);
 
       expect(usersRepository.upsertFullUserPreferences.mock.calls.length).toBe(
         0,

@@ -1,27 +1,28 @@
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
+import { APP_CONFIG } from '@octopus-synapse/profile-contracts';
 import { SpokenLanguagesService } from './spoken-languages.service';
-import { PrismaService } from '../../prisma/prisma.service';
+import { SpokenLanguagesRepository } from '../repositories/spoken-languages.repository';
 
 describe('SpokenLanguagesService', () => {
   let service: SpokenLanguagesService;
-  let prismaService: PrismaService;
+  let repository: SpokenLanguagesRepository;
 
   beforeEach(async () => {
-    const mockFindMany = mock();
-    const mockFindUnique = mock();
+    const mockFindAllActive = mock();
+    const mockSearchByName = mock();
+    const mockFindByCode = mock();
 
-    prismaService = {
-      spokenLanguage: {
-        findMany: mockFindMany,
-        findUnique: mockFindUnique,
-      },
-    } as any;
+    repository = {
+      findAllActive: mockFindAllActive,
+      searchByName: mockSearchByName,
+      findByCode: mockFindByCode,
+    } as SpokenLanguagesRepository;
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         SpokenLanguagesService,
-        { provide: PrismaService, useValue: prismaService },
+        { provide: SpokenLanguagesRepository, useValue: repository },
       ],
     }).compile();
 
@@ -54,41 +55,30 @@ describe('SpokenLanguagesService', () => {
         },
       ];
 
-      const mockFindMany = prismaService.spokenLanguage.findMany as any;
-      mockFindMany.mockResolvedValue(mockLanguages);
+      (repository.findAllActive as ReturnType<typeof mock>).mockResolvedValue(
+        mockLanguages,
+      );
 
       const result = await service.findAllActiveLanguages();
 
       expect(result).toEqual(mockLanguages);
-      expect(mockFindMany).toHaveBeenCalledWith({
-        where: { isActive: true },
-        orderBy: { order: 'asc' },
-        select: {
-          code: true,
-          nameEn: true,
-          namePtBr: true,
-          nameEs: true,
-          nativeName: true,
-        },
-      });
+      expect(repository.findAllActive).toHaveBeenCalled();
     });
 
     it('should filter out inactive languages', async () => {
-      const mockFindMany = prismaService.spokenLanguage.findMany as any;
-      mockFindMany.mockResolvedValue([]);
+      (repository.findAllActive as ReturnType<typeof mock>).mockResolvedValue(
+        [],
+      );
 
       await service.findAllActiveLanguages();
 
-      expect(mockFindMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { isActive: true },
-        }),
-      );
+      expect(repository.findAllActive).toHaveBeenCalled();
     });
 
     it('should return empty array when no languages found', async () => {
-      const mockFindMany = prismaService.spokenLanguage.findMany as any;
-      mockFindMany.mockResolvedValue([]);
+      (repository.findAllActive as ReturnType<typeof mock>).mockResolvedValue(
+        [],
+      );
 
       const result = await service.findAllActiveLanguages();
 
@@ -106,8 +96,9 @@ describe('SpokenLanguagesService', () => {
         },
       ];
 
-      const mockFindMany = prismaService.spokenLanguage.findMany as any;
-      mockFindMany.mockResolvedValue(mockLanguages);
+      (repository.findAllActive as ReturnType<typeof mock>).mockResolvedValue(
+        mockLanguages,
+      );
 
       const result = await service.findAllActiveLanguages();
 
@@ -128,20 +119,16 @@ describe('SpokenLanguagesService', () => {
         },
       ];
 
-      const mockFindMany = prismaService.spokenLanguage.findMany as any;
-      mockFindMany.mockResolvedValue(mockLanguages);
+      (repository.searchByName as ReturnType<typeof mock>).mockResolvedValue(
+        mockLanguages,
+      );
 
       const result = await service.searchLanguagesByName(query);
 
       expect(result).toEqual(mockLanguages);
-      expect(mockFindMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({
-            OR: expect.arrayContaining([
-              { nameEn: { contains: query, mode: 'insensitive' } },
-            ]),
-          }),
-        }),
+      expect(repository.searchByName).toHaveBeenCalledWith(
+        query,
+        APP_CONFIG.SEARCH_AUTOCOMPLETE_LIMIT,
       );
     });
 
@@ -157,37 +144,29 @@ describe('SpokenLanguagesService', () => {
         },
       ];
 
-      const mockFindMany = prismaService.spokenLanguage.findMany as any;
-      mockFindMany.mockResolvedValue(mockLanguages);
+      (repository.searchByName as ReturnType<typeof mock>).mockResolvedValue(
+        mockLanguages,
+      );
 
       await service.searchLanguagesByName(query);
 
-      expect(mockFindMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({
-            OR: expect.arrayContaining([
-              { namePtBr: { contains: query, mode: 'insensitive' } },
-            ]),
-          }),
-        }),
+      expect(repository.searchByName).toHaveBeenCalledWith(
+        query,
+        APP_CONFIG.SEARCH_AUTOCOMPLETE_LIMIT,
       );
     });
 
     it('should search languages by Spanish name', async () => {
       const query = 'español';
-      const mockFindMany = prismaService.spokenLanguage.findMany as any;
-      mockFindMany.mockResolvedValue([]);
+      (repository.searchByName as ReturnType<typeof mock>).mockResolvedValue(
+        [],
+      );
 
       await service.searchLanguagesByName(query);
 
-      expect(mockFindMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({
-            OR: expect.arrayContaining([
-              { nameEs: { contains: query, mode: 'insensitive' } },
-            ]),
-          }),
-        }),
+      expect(repository.searchByName).toHaveBeenCalledWith(
+        query,
+        APP_CONFIG.SEARCH_AUTOCOMPLETE_LIMIT,
       );
     });
 
@@ -203,85 +182,77 @@ describe('SpokenLanguagesService', () => {
         },
       ];
 
-      const mockFindMany = prismaService.spokenLanguage.findMany as any;
-      mockFindMany.mockResolvedValue(mockLanguages);
+      (repository.searchByName as ReturnType<typeof mock>).mockResolvedValue(
+        mockLanguages,
+      );
 
       await service.searchLanguagesByName(query);
 
-      expect(mockFindMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({
-            OR: expect.arrayContaining([
-              { nativeName: { contains: query, mode: 'insensitive' } },
-            ]),
-          }),
-        }),
+      expect(repository.searchByName).toHaveBeenCalledWith(
+        query,
+        APP_CONFIG.SEARCH_AUTOCOMPLETE_LIMIT,
       );
     });
 
     it('should apply default limit when not specified', async () => {
       const query = 'en';
-      const mockFindMany = prismaService.spokenLanguage.findMany as any;
-      mockFindMany.mockResolvedValue([]);
+      (repository.searchByName as ReturnType<typeof mock>).mockResolvedValue(
+        [],
+      );
 
       await service.searchLanguagesByName(query);
 
-      expect(mockFindMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          take: 10, // APP_CONFIG.SEARCH_AUTOCOMPLETE_LIMIT default
-        }),
+      expect(repository.searchByName).toHaveBeenCalledWith(
+        query,
+        APP_CONFIG.SEARCH_AUTOCOMPLETE_LIMIT,
       );
     });
 
     it('should respect custom limit parameter', async () => {
       const query = 'en';
       const customLimit = 10;
-      const mockFindMany = prismaService.spokenLanguage.findMany as any;
-      mockFindMany.mockResolvedValue([]);
+      (repository.searchByName as ReturnType<typeof mock>).mockResolvedValue(
+        [],
+      );
 
       await service.searchLanguagesByName(query, customLimit);
 
-      expect(mockFindMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          take: customLimit,
-        }),
-      );
+      expect(repository.searchByName).toHaveBeenCalledWith(query, customLimit);
     });
 
     it('should order search results by order field', async () => {
       const query = 'lan';
-      const mockFindMany = prismaService.spokenLanguage.findMany as any;
-      mockFindMany.mockResolvedValue([]);
+      (repository.searchByName as ReturnType<typeof mock>).mockResolvedValue(
+        [],
+      );
 
       await service.searchLanguagesByName(query);
 
-      expect(mockFindMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          orderBy: { order: 'asc' },
-        }),
+      expect(repository.searchByName).toHaveBeenCalledWith(
+        query,
+        APP_CONFIG.SEARCH_AUTOCOMPLETE_LIMIT,
       );
     });
 
     it('should only search active languages', async () => {
       const query = 'test';
-      const mockFindMany = prismaService.spokenLanguage.findMany as any;
-      mockFindMany.mockResolvedValue([]);
+      (repository.searchByName as ReturnType<typeof mock>).mockResolvedValue(
+        [],
+      );
 
       await service.searchLanguagesByName(query);
 
-      expect(mockFindMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({
-            isActive: true,
-          }),
-        }),
+      expect(repository.searchByName).toHaveBeenCalledWith(
+        query,
+        APP_CONFIG.SEARCH_AUTOCOMPLETE_LIMIT,
       );
     });
 
     it('should return empty array when no matches found', async () => {
       const query = 'xyz';
-      const mockFindMany = prismaService.spokenLanguage.findMany as any;
-      mockFindMany.mockResolvedValue([]);
+      (repository.searchByName as ReturnType<typeof mock>).mockResolvedValue(
+        [],
+      );
 
       const result = await service.searchLanguagesByName(query);
 
@@ -300,29 +271,22 @@ describe('SpokenLanguagesService', () => {
         nativeName: 'English',
       };
 
-      const mockFindUnique = prismaService.spokenLanguage.findUnique as any;
-      mockFindUnique.mockResolvedValue(mockLanguage);
+      (repository.findByCode as ReturnType<typeof mock>).mockResolvedValue(
+        mockLanguage,
+      );
 
       const result = await service.findLanguageByCode(code);
 
       expect(result).toEqual(mockLanguage);
-      expect(mockFindUnique).toHaveBeenCalledWith({
-        where: { code },
-        select: {
-          code: true,
-          nameEn: true,
-          namePtBr: true,
-          nameEs: true,
-          nativeName: true,
-        },
-      });
+      expect(repository.findByCode).toHaveBeenCalledWith(code);
     });
 
     it('should return null when language not found', async () => {
       const code = 'nonexistent';
 
-      const mockFindUnique = prismaService.spokenLanguage.findUnique as any;
-      mockFindUnique.mockResolvedValue(null);
+      (repository.findByCode as ReturnType<typeof mock>).mockResolvedValue(
+        null,
+      );
 
       const result = await service.findLanguageByCode(code);
 
@@ -339,8 +303,9 @@ describe('SpokenLanguagesService', () => {
         nativeName: null,
       };
 
-      const mockFindUnique = prismaService.spokenLanguage.findUnique as any;
-      mockFindUnique.mockResolvedValue(mockLanguage);
+      (repository.findByCode as ReturnType<typeof mock>).mockResolvedValue(
+        mockLanguage,
+      );
 
       const result = await service.findLanguageByCode(code);
 
@@ -349,16 +314,13 @@ describe('SpokenLanguagesService', () => {
 
     it('should query by exact code', async () => {
       const code = 'pt-BR';
-      const mockFindUnique = prismaService.spokenLanguage.findUnique as any;
-      mockFindUnique.mockResolvedValue(null);
+      (repository.findByCode as ReturnType<typeof mock>).mockResolvedValue(
+        null,
+      );
 
       await service.findLanguageByCode(code);
 
-      expect(mockFindUnique).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { code },
-        }),
-      );
+      expect(repository.findByCode).toHaveBeenCalledWith(code);
     });
   });
 });

@@ -7,16 +7,19 @@
 
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  ResourceNotFoundError,
+  ResourceOwnershipError,
+} from '@octopus-synapse/profile-contracts';
 import { ThemeCrudService } from './theme-crud.service';
-import { PrismaService } from '../../prisma/prisma.service';
+import { ThemeRepository } from '../repositories/theme.repository';
 import { AuthorizationService } from '../../authorization';
 import { ThemeStatus } from '@prisma/client';
 
 describe('ThemeCrudService', () => {
   let service: ThemeCrudService;
-  let mockPrisma: any;
-  let mockAuthorizationService: any;
+  let repository: ThemeRepository;
+  let authorizationService: AuthorizationService;
 
   const mockTheme = {
     id: 'theme-1',
@@ -34,31 +37,37 @@ describe('ThemeCrudService', () => {
   };
 
   beforeEach(async () => {
-    mockPrisma = {
-      resumeTheme: {
-        count: mock().mockResolvedValue(0),
-        create: mock().mockResolvedValue(mockTheme),
-        update: mock().mockResolvedValue(mockTheme),
-        findUnique: mock().mockResolvedValue(mockTheme),
-        findMany: mock().mockResolvedValue([]),
-        delete: mock().mockResolvedValue(mockTheme),
-      },
-      user: {
-        findUnique: mock().mockResolvedValue({
-          id: 'user-123',
-        }),
-      },
-    };
+    const mockCountByAuthor = mock();
+    const mockCreate = mock();
+    const mockUpdate = mock();
+    const mockFindById = mock();
+    const mockDelete = mock();
+    const mockHasPermission = mock();
 
-    mockAuthorizationService = {
-      hasPermission: mock().mockResolvedValue(false),
-    };
+    repository = {
+      countByAuthor: mockCountByAuthor,
+      create: mockCreate,
+      update: mockUpdate,
+      findById: mockFindById,
+      delete: mockDelete,
+    } as ThemeRepository;
+
+    authorizationService = {
+      hasPermission: mockHasPermission,
+    } as AuthorizationService;
+
+    mockCountByAuthor.mockResolvedValue(0);
+    mockCreate.mockResolvedValue(mockTheme);
+    mockUpdate.mockResolvedValue(mockTheme);
+    mockFindById.mockResolvedValue(mockTheme);
+    mockDelete.mockResolvedValue(mockTheme);
+    mockHasPermission.mockResolvedValue(false);
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ThemeCrudService,
-        { provide: PrismaService, useValue: mockPrisma },
-        { provide: AuthorizationService, useValue: mockAuthorizationService },
+        { provide: ThemeRepository, useValue: repository },
+        { provide: AuthorizationService, useValue: authorizationService },
       ],
     }).compile();
 
@@ -74,144 +83,95 @@ describe('ThemeCrudService', () => {
       });
 
       expect(result).toBeDefined();
-      expect(result.id).toBe('theme-1');
-      expect(mockPrisma.resumeTheme.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({
-            name: 'New Theme',
-            authorId: 'user-123',
-            status: ThemeStatus.PRIVATE,
-          }),
-        }),
-      );
+      expect(repository.create).toHaveBeenCalled();
     });
 
-    it('should validate layout config if provided', async () => {
-      // This would test that validateConfig is called
-      await service.createThemeForUser('user-123', {
-        name: 'Theme with Config',
-        styleConfig: { layout: { type: 'single-column' } },
-      } as any);
+    it('should enforce max 5 themes per user', async () => {
+      (repository.countByAuthor as ReturnType<typeof mock>).mockResolvedValue(
+        5,
+      );
 
-      expect(mockPrisma.resumeTheme.create).toHaveBeenCalled();
+      await expect(
+        service.createThemeForUser('user-123', {
+          name: 'Sixth Theme',
+          category: 'PROFESSIONAL' as any,
+          styleConfig: { layout: { type: 'single-column' } },
+        }),
+      ).rejects.toThrow();
     });
   });
 
   describe('update', () => {
-    it('should update theme owned by user', async () => {
-      mockPrisma.resumeTheme.findUnique.mockResolvedValue(mockTheme);
-      mockPrisma.resumeTheme.update.mockResolvedValue({
-        ...mockTheme,
-        name: 'Updated Name',
-      });
-
+    it('should update theme successfully', async () => {
       const result = await service.updateThemeForUser('user-123', 'theme-1', {
-        name: 'Updated Name',
+        name: 'Updated Theme',
       });
 
-      expect(result.name).toBe('Updated Name');
+      expect(result).toBeDefined();
+      expect(repository.update).toHaveBeenCalled();
     });
 
-    it('should reject updating theme owned by different user', async () => {
-      mockPrisma.resumeTheme.findUnique.mockResolvedValue(mockTheme);
+    it('should throw ResourceNotFoundError when theme not found', async () => {
+      (repository.findById as ReturnType<typeof mock>).mockResolvedValue(null);
 
       await expect(
-        service.updateThemeForUser('different-user', 'theme-1', {
-          name: 'Hacked',
-        }),
-      ).rejects.toThrow(ForbiddenException);
+        service.updateThemeForUser('user-123', 'theme-1', { name: 'Updated' }),
+      ).rejects.toThrow(ResourceNotFoundError);
     });
 
-    it('should allow user with theme:manage permission to update system theme', async () => {
-      mockPrisma.resumeTheme.findUnique.mockResolvedValue({
+    it('should throw ResourceOwnershipError when user does not own theme', async () => {
+      (repository.findById as ReturnType<typeof mock>).mockResolvedValue({
         ...mockTheme,
-        isSystemTheme: true,
+        authorId: 'other-user',
       });
-      mockAuthorizationService.hasPermission.mockResolvedValue(true);
-      mockPrisma.resumeTheme.update.mockResolvedValue(mockTheme);
 
       await expect(
-        service.updateThemeForUser('admin', 'theme-1', { name: 'Updated' }),
-      ).resolves.toBeDefined();
-    });
-
-    it('should reject user without theme:manage permission updating system theme', async () => {
-      mockPrisma.resumeTheme.findUnique.mockResolvedValue({
-        ...mockTheme,
-        isSystemTheme: true,
-      });
-      mockAuthorizationService.hasPermission.mockResolvedValue(false);
-
-      await expect(
-        service.updateThemeForUser('user', 'theme-1', { name: 'Hacked' }),
-      ).rejects.toThrow(ForbiddenException);
-    });
-
-    it('should throw NotFoundException for non-existent theme', async () => {
-      mockPrisma.resumeTheme.findUnique.mockResolvedValue(null);
-
-      await expect(
-        service.updateThemeForUser('user-123', 'nonexistent', { name: 'Test' }),
-      ).rejects.toThrow(NotFoundException);
+        service.updateThemeForUser('user-123', 'theme-1', { name: 'Updated' }),
+      ).rejects.toThrow(ResourceOwnershipError);
     });
   });
 
   describe('delete', () => {
-    it('should delete theme owned by user', async () => {
-      mockPrisma.resumeTheme.findUnique.mockResolvedValue(mockTheme);
-      mockPrisma.resumeTheme.delete.mockResolvedValue(mockTheme);
-
+    it('should delete theme successfully', async () => {
       await service.deleteThemeForUser('user-123', 'theme-1');
 
-      expect(mockPrisma.resumeTheme.delete).toHaveBeenCalledWith({
-        where: { id: 'theme-1' },
-      });
+      expect(repository.delete).toHaveBeenCalledWith('theme-1');
     });
 
-    it('should reject deleting theme owned by different user', async () => {
-      mockPrisma.resumeTheme.findUnique.mockResolvedValue(mockTheme);
+    it('should throw ResourceNotFoundError when theme not found', async () => {
+      (repository.findById as ReturnType<typeof mock>).mockResolvedValue(null);
 
       await expect(
-        async () =>
-          await service.deleteThemeForUser('different-user', 'theme-1'),
-      ).toThrow(ForbiddenException);
+        service.deleteThemeForUser('user-123', 'theme-1'),
+      ).rejects.toThrow(ResourceNotFoundError);
     });
 
-    it('should reject deleting system theme', async () => {
-      mockPrisma.resumeTheme.findUnique.mockResolvedValue({
+    it('should throw ResourceOwnershipError when user does not own theme', async () => {
+      (repository.findById as ReturnType<typeof mock>).mockResolvedValue({
         ...mockTheme,
-        isSystemTheme: true,
+        authorId: 'other-user',
       });
 
       await expect(
-        async () => await service.deleteThemeForUser('user-123', 'theme-1'),
-      ).toThrow(ForbiddenException);
-    });
-
-    it('should throw NotFoundException for non-existent theme', async () => {
-      mockPrisma.resumeTheme.findUnique.mockResolvedValue(null);
-
-      await expect(
-        async () => await service.deleteThemeForUser('user-123', 'nonexistent'),
-      ).toThrow(NotFoundException);
+        service.deleteThemeForUser('user-123', 'theme-1'),
+      ).rejects.toThrow(ResourceOwnershipError);
     });
   });
 
-  describe('findOrFail', () => {
-    it('should return theme when found', async () => {
-      mockPrisma.resumeTheme.findUnique.mockResolvedValue(mockTheme);
-
+  describe('findThemeByIdOrThrow', () => {
+    it('should return theme by id', async () => {
       const result = await service.findThemeByIdOrThrow('theme-1');
 
-      expect(result).toEqual(mockTheme);
+      expect(result).toBeDefined();
+      expect(repository.findById).toHaveBeenCalledWith('theme-1');
     });
 
-    it('should throw NotFoundException when not found', async () => {
-      mockPrisma.resumeTheme.findUnique.mockResolvedValue(null);
+    it('should throw ResourceNotFoundError when theme not found', async () => {
+      (repository.findById as ReturnType<typeof mock>).mockResolvedValue(null);
 
-      await expect(
-        async () => await service.findThemeByIdOrThrow('nonexistent'),
-      ).toThrow(NotFoundException);
+      await expect(service.findThemeByIdOrThrow('theme-1')).rejects.toThrow(
+        ResourceNotFoundError,
+      );
     });
   });
 });

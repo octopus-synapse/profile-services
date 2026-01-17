@@ -9,7 +9,7 @@
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { SkillsOnboardingService } from './skills-onboarding.service';
-import { PrismaService } from '../../prisma/prisma.service';
+import { OnboardingRepository } from '../repositories/onboarding.repository';
 import type { OnboardingData } from '../schemas/onboarding.schema';
 
 describe('SkillsOnboardingService', () => {
@@ -18,23 +18,40 @@ describe('SkillsOnboardingService', () => {
   // In-memory store
   const skillStore = new Map<string, any[]>();
 
-  const createFakePrisma = () => ({
-    skill: {
-      deleteMany: mock(({ where }: { where: { resumeId: string } }) => {
-        skillStore.set(where.resumeId, []);
+  const createMockRepository = () => {
+    const mockGetClient = mock(() => ({
+      skill: {
+        deleteMany: mock(({ where }: { where: { resumeId: string } }) => {
+          skillStore.set(where.resumeId, []);
+          return Promise.resolve({ count: 0 });
+        }),
+        createMany: mock(({ data }: { data: any[] }) => {
+          const resumeId = data[0]?.resumeId;
+          if (resumeId) {
+            skillStore.set(resumeId, data);
+          }
+          return Promise.resolve({ count: data.length });
+        }),
+      },
+    }));
+
+    return {
+      getClient: mockGetClient,
+      deleteSkillsByResumeId: mock((tx: any, resumeId: string) => {
+        skillStore.set(resumeId, []);
         return Promise.resolve({ count: 0 });
       }),
-      createMany: mock(({ data }: { data: any[] }) => {
+      createManySkills: mock((tx: any, data: any[]) => {
         const resumeId = data[0]?.resumeId;
         if (resumeId) {
           skillStore.set(resumeId, data);
         }
         return Promise.resolve({ count: data.length });
       }),
-    },
-  });
+    };
+  };
 
-  let fakePrisma: ReturnType<typeof createFakePrisma>;
+  let mockRepository: ReturnType<typeof createMockRepository>;
 
   const createBaseOnboardingData = (): Omit<
     OnboardingData,
@@ -61,12 +78,27 @@ describe('SkillsOnboardingService', () => {
 
   beforeEach(async () => {
     skillStore.clear();
-    fakePrisma = createFakePrisma();
+    mockRepository = createMockRepository();
+    (mockRepository.getClient as ReturnType<typeof mock>).mockReturnValue({
+      skill: {
+        deleteMany: mock(({ where }: { where: { resumeId: string } }) => {
+          skillStore.set(where.resumeId, []);
+          return Promise.resolve({ count: 0 });
+        }),
+        createMany: mock(({ data }: { data: any[] }) => {
+          const resumeId = data[0]?.resumeId;
+          if (resumeId) {
+            skillStore.set(resumeId, data);
+          }
+          return Promise.resolve({ count: data.length });
+        }),
+      },
+    });
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         SkillsOnboardingService,
-        { provide: PrismaService, useValue: fakePrisma },
+        { provide: OnboardingRepository, useValue: mockRepository },
       ],
     }).compile();
 
@@ -129,7 +161,7 @@ describe('SkillsOnboardingService', () => {
 
       await service.saveSkills('resume-1', data);
 
-      expect(fakePrisma.skill.createMany.mock.calls.length).toBe(0);
+      expect(skillStore.get('resume-1')).toBeUndefined();
     });
 
     it('should not save skills when skills array is empty', async () => {
@@ -141,7 +173,7 @@ describe('SkillsOnboardingService', () => {
 
       await service.saveSkills('resume-1', data);
 
-      expect(fakePrisma.skill.createMany.mock.calls.length).toBe(0);
+      expect(skillStore.get('resume-1')).toBeUndefined();
     });
 
     it('should replace existing skills', async () => {

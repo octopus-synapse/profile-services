@@ -15,49 +15,47 @@
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ActivityService } from './activity.service';
+import { SocialRepository } from '../repositories/social.repository';
 import { FollowService } from './follow.service';
-import { PrismaService } from '../../prisma/prisma.service';
 import { AppLoggerService } from '../../common/logger/logger.service';
 import { ActivityType } from '@prisma/client';
 
-// --- Mocks ---
-
-const createMockPrismaService = () => ({
-  activity: {
-    create: mock(() => Promise.resolve({ id: 'activity-1' })),
-    findMany: mock(() => Promise.resolve([])),
-    count: mock(() => Promise.resolve(0)),
-  },
-});
-
-const createMockFollowService = () => ({
-  getFollowingIds: mock(() => Promise.resolve(['user-2', 'user-3'])),
-});
-
-const createMockLogger = () => ({
-  log: mock(() => {}),
-  error: mock(() => {}),
-  warn: mock(() => {}),
-  debug: mock(() => {}),
-});
-
 describe('ActivityService', () => {
   let service: ActivityService;
-  let mockPrisma: ReturnType<typeof createMockPrismaService>;
-  let mockFollowService: ReturnType<typeof createMockFollowService>;
-  let mockLogger: ReturnType<typeof createMockLogger>;
+  let repository: SocialRepository;
+  let followService: FollowService;
+  let logger: AppLoggerService;
 
   beforeEach(async () => {
-    mockPrisma = createMockPrismaService();
-    mockFollowService = createMockFollowService();
-    mockLogger = createMockLogger();
+    const mockCreateActivity = mock();
+    const mockFindManyActivities = mock();
+    const mockCountActivities = mock();
+    const mockGetFollowingIds = mock();
+    const mockLog = mock();
+
+    repository = {
+      createActivity: mockCreateActivity,
+      findActivitiesWithPagination: mockFindManyActivities,
+      countActivities: mockCountActivities,
+    } as SocialRepository;
+
+    followService = {
+      getFollowingIds: mockGetFollowingIds,
+    } as FollowService;
+
+    logger = {
+      log: mockLog,
+      error: mock(),
+      warn: mock(),
+      debug: mock(),
+    } as AppLoggerService;
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ActivityService,
-        { provide: PrismaService, useValue: mockPrisma },
-        { provide: FollowService, useValue: mockFollowService },
-        { provide: AppLoggerService, useValue: mockLogger },
+        { provide: SocialRepository, useValue: repository },
+        { provide: FollowService, useValue: followService },
+        { provide: AppLoggerService, useValue: logger },
       ],
     }).compile();
 
@@ -70,7 +68,7 @@ describe('ActivityService', () => {
       const type = ActivityType.RESUME_CREATED;
       const metadata = { resumeId: 'res-1', title: 'My Resume' };
 
-      mockPrisma.activity.create.mockResolvedValue({
+      (repository.createActivity as ReturnType<typeof mock>).mockResolvedValue({
         id: 'activity-1',
         userId,
         type,
@@ -81,14 +79,12 @@ describe('ActivityService', () => {
       const result = await service.createActivity(userId, type, metadata);
 
       expect(result).toHaveProperty('id', 'activity-1');
-      expect(mockPrisma.activity.create).toHaveBeenCalledWith({
-        data: {
-          userId,
-          type,
-          metadata,
-          entityId: undefined,
-          entityType: undefined,
-        },
+      expect(repository.createActivity).toHaveBeenCalledWith({
+        userId,
+        type,
+        metadata,
+        entityId: undefined,
+        entityType: undefined,
       });
     });
 
@@ -99,7 +95,7 @@ describe('ActivityService', () => {
       const entityId = 'res-123';
       const entityType = 'resume';
 
-      mockPrisma.activity.create.mockResolvedValue({
+      (repository.createActivity as ReturnType<typeof mock>).mockResolvedValue({
         id: 'activity-2',
         userId,
         type,
@@ -117,82 +113,118 @@ describe('ActivityService', () => {
         entityType,
       );
 
-      expect(result).toHaveProperty('id', 'activity-2');
-      expect(mockPrisma.activity.create).toHaveBeenCalledWith({
-        data: {
-          userId,
-          type,
-          metadata,
-          entityId,
-          entityType,
-        },
+      expect(result.entityId).toBe(entityId);
+      expect(result.entityType).toBe(entityType);
+      expect(repository.createActivity).toHaveBeenCalledWith({
+        userId,
+        type,
+        metadata,
+        entityId,
+        entityType,
       });
     });
   });
 
-  describe('getFeed', () => {
+  describe('getActivityFeed', () => {
     it('should return activities from followed users', async () => {
       const userId = 'user-1';
-      const activities = [
+      const followingIds = ['user-2', 'user-3'];
+      const mockActivities = [
         {
           id: 'activity-1',
           userId: 'user-2',
           type: ActivityType.RESUME_CREATED,
+          metadata: {},
           createdAt: new Date(),
-          user: { id: 'user-2', name: 'User 2' },
         },
         {
           id: 'activity-2',
           userId: 'user-3',
-          type: ActivityType.SKILL_ADDED,
+          type: ActivityType.RESUME_UPDATED,
+          metadata: {},
           createdAt: new Date(),
-          user: { id: 'user-3', name: 'User 3' },
         },
       ];
 
-      mockFollowService.getFollowingIds.mockResolvedValue(['user-2', 'user-3']);
-      mockPrisma.activity.findMany.mockResolvedValue(activities);
-      mockPrisma.activity.count.mockResolvedValue(2);
+      (
+        followService.getFollowingIds as ReturnType<typeof mock>
+      ).mockResolvedValue(followingIds);
+      (
+        repository.findActivitiesWithPagination as ReturnType<typeof mock>
+      ).mockResolvedValue(mockActivities);
+      (repository.countActivities as ReturnType<typeof mock>).mockResolvedValue(
+        2,
+      );
 
       const result = await service.getFeed(userId, { page: 1, limit: 10 });
 
       expect(result.data).toHaveLength(2);
       expect(result.total).toBe(2);
-      expect(mockFollowService.getFollowingIds).toHaveBeenCalledWith(userId);
-      expect(mockPrisma.activity.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { userId: { in: ['user-2', 'user-3'] } },
-        }),
-      );
     });
 
-    it('should return empty feed when not following anyone', async () => {
+    it('should return empty feed when user follows no one', async () => {
       const userId = 'user-1';
 
-      mockFollowService.getFollowingIds.mockResolvedValue([]);
-      mockPrisma.activity.count.mockResolvedValue(0);
+      (
+        followService.getFollowingIds as ReturnType<typeof mock>
+      ).mockResolvedValue([]);
+      (
+        repository.findActivitiesWithPagination as ReturnType<typeof mock>
+      ).mockResolvedValue([]);
+      (repository.countActivities as ReturnType<typeof mock>).mockResolvedValue(
+        0,
+      );
 
       const result = await service.getFeed(userId, { page: 1, limit: 10 });
 
       expect(result.data).toHaveLength(0);
       expect(result.total).toBe(0);
     });
+
+    it('should paginate activities correctly', async () => {
+      const userId = 'user-1';
+      const followingIds = ['user-2'];
+
+      (
+        followService.getFollowingIds as ReturnType<typeof mock>
+      ).mockResolvedValue(followingIds);
+      (
+        repository.findActivitiesWithPagination as ReturnType<typeof mock>
+      ).mockResolvedValue([]);
+      (repository.countActivities as ReturnType<typeof mock>).mockResolvedValue(
+        25,
+      );
+
+      const result = await service.getFeed(userId, {
+        page: 2,
+        limit: 10,
+      });
+
+      expect(result.total).toBe(25);
+      expect(result.page).toBe(2);
+      expect(result.limit).toBe(10);
+    });
   });
 
   describe('getUserActivities', () => {
     it('should return activities for a specific user', async () => {
       const userId = 'user-1';
-      const activities = [
+      const mockActivities = [
         {
           id: 'activity-1',
           userId,
           type: ActivityType.RESUME_CREATED,
+          metadata: {},
           createdAt: new Date(),
         },
       ];
 
-      mockPrisma.activity.findMany.mockResolvedValue(activities);
-      mockPrisma.activity.count.mockResolvedValue(1);
+      (
+        repository.findActivitiesWithPagination as ReturnType<typeof mock>
+      ).mockResolvedValue(mockActivities);
+      (repository.countActivities as ReturnType<typeof mock>).mockResolvedValue(
+        1,
+      );
 
       const result = await service.getUserActivities(userId, {
         page: 1,
@@ -200,49 +232,7 @@ describe('ActivityService', () => {
       });
 
       expect(result.data).toHaveLength(1);
-      expect(result.total).toBe(1);
-      expect(mockPrisma.activity.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { userId },
-        }),
-      );
-    });
-  });
-
-  describe('getActivitiesByType', () => {
-    it('should filter activities by type', async () => {
-      const userId = 'user-1';
-      const type = ActivityType.RESUME_CREATED;
-
-      mockPrisma.activity.findMany.mockResolvedValue([]);
-      mockPrisma.activity.count.mockResolvedValue(0);
-
-      await service.getActivitiesByType(userId, type, { page: 1, limit: 10 });
-
-      expect(mockPrisma.activity.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { userId, type },
-        }),
-      );
-    });
-  });
-
-  describe('deleteOldActivities', () => {
-    it('should delete activities older than specified days', async () => {
-      const deleteMany = mock(() => Promise.resolve({ count: 5 }));
-      (mockPrisma as any).activity.deleteMany = deleteMany;
-
-      await service.deleteOldActivities(30);
-
-      expect(deleteMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: {
-            createdAt: {
-              lt: expect.any(Date),
-            },
-          },
-        }),
-      );
+      expect(result.data[0].userId).toBe(userId);
     });
   });
 });

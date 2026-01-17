@@ -24,7 +24,7 @@ export interface ResumeConfig {
 
 @Injectable()
 export class ResumeConfigRepository {
-  constructor(private prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async get(userId: string, resumeId: string): Promise<ResumeConfig> {
     const resume = await this.prisma.resume.findUnique({

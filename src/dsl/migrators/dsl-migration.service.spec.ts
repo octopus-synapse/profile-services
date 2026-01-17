@@ -4,10 +4,12 @@
 
 import { describe, it, expect, beforeEach } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestException } from '@nestjs/common';
 import { DslMigrationService } from './dsl-migration.service';
 import type { DslMigrator } from './base.migrator';
-import type { ResumeDsl } from '@octopus-synapse/profile-contracts';
+import {
+  DomainValidationError,
+  type ResumeDsl,
+} from '@octopus-synapse/profile-contracts';
 
 describe('DslMigrationService', () => {
   let service: DslMigrationService;
@@ -100,7 +102,7 @@ describe('DslMigrationService', () => {
 
     it('should throw if no migrator found', () => {
       expect(() => service.migrate(mockDslV1, '3.0.0')).toThrow(
-        BadRequestException,
+        DomainValidationError,
       );
     });
 
@@ -121,7 +123,7 @@ describe('DslMigrationService', () => {
       service.registerMigrators([circularMigrator]);
 
       expect(() => service.migrate(mockDslV1, '2.0.0')).toThrow(
-        BadRequestException,
+        DomainValidationError,
       );
     });
 
@@ -135,7 +137,7 @@ describe('DslMigrationService', () => {
       service.registerMigrators([badMigrator]);
 
       expect(() => service.migrate(mockDslV1, '2.0.0')).toThrow(
-        BadRequestException,
+        DomainValidationError,
       );
     });
   });
@@ -176,7 +178,7 @@ describe('DslMigrationService', () => {
 
     it('should throw if no path exists', () => {
       expect(() => service.getMigrationPath('1.0.0', '4.0.0')).toThrow(
-        BadRequestException,
+        DomainValidationError,
       );
     });
   });

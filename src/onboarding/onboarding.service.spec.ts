@@ -1,9 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, mock } from 'bun:test';
 import { createMockResume } from '../../test/factories/resume.factory';
 import { Test, TestingModule } from '@nestjs/testing';
-import { NotFoundException } from '@nestjs/common';
 import { OnboardingService } from './onboarding.service';
-import { PrismaService } from '../prisma/prisma.service';
+import { OnboardingRepository } from './repositories';
 import { AppLoggerService } from '../common/logger/logger.service';
 import { AuditLogService } from '../common/audit/audit-log.service';
 import { ResumeOnboardingService } from './services/resume-onboarding.service';
@@ -13,23 +12,20 @@ import { EducationOnboardingService } from './services/education-onboarding.serv
 import { LanguagesOnboardingService } from './services/languages-onboarding.service';
 import { OnboardingProgressService } from './services/onboarding-progress.service';
 import {
-  ERROR_MESSAGES,
   SUCCESS_MESSAGES,
+  UserNotFoundError,
 } from '@octopus-synapse/profile-contracts';
 
 describe('OnboardingService', () => {
   let service: OnboardingService;
   let logger: AppLoggerService;
 
-  const mockPrismaService = {
-    user: {
-      findUnique: mock(),
-      update: mock(),
-    },
-    onboardingProgress: {
-      deleteMany: mock(),
-    },
-    $transaction: mock(),
+  const mockOnboardingRepository = {
+    findUserById: mock(),
+    findUserByUsername: mock(),
+    findUserOnboardingStatus: mock(),
+    updateUserOnboardingComplete: mock(),
+    transaction: mock((fn: (tx: unknown) => Promise<unknown>) => fn({})),
   };
 
   const mockLoggerService = {
@@ -76,8 +72,8 @@ describe('OnboardingService', () => {
       providers: [
         OnboardingService,
         {
-          provide: PrismaService,
-          useValue: mockPrismaService,
+          provide: OnboardingRepository,
+          useValue: mockOnboardingRepository,
         },
         {
           provide: AppLoggerService,
@@ -193,7 +189,7 @@ describe('OnboardingService', () => {
         user: { update: mock() },
       };
 
-      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+      mockOnboardingRepository.findUserById.mockResolvedValue(mockUser);
       mockResumeOnboardingService.upsertResumeWithTx.mockResolvedValue(
         mockResume,
       );
@@ -207,13 +203,18 @@ describe('OnboardingService', () => {
       mockLanguagesOnboardingService.saveLanguagesWithTx.mockResolvedValue(
         undefined,
       );
-      mockTx.user.update.mockResolvedValue({
+      mockOnboardingRepository.updateUserOnboardingComplete.mockResolvedValue({
         ...mockUser,
         hasCompletedOnboarding: true,
       });
+      mockOnboardingProgressService.deleteProgressWithTx.mockResolvedValue(
+        undefined,
+      );
 
       // Mock $transaction to execute the callback with mockTx
-      mockPrismaService.$transaction.mockImplementation(async (callback) => {
+      (
+        mockOnboardingRepository.transaction as ReturnType<typeof mock>
+      ).mockImplementation(async (callback) => {
         return callback(mockTx);
       });
 
@@ -225,10 +226,10 @@ describe('OnboardingService', () => {
         message: SUCCESS_MESSAGES.ONBOARDING_COMPLETED,
       });
 
-      expect(mockPrismaService.user.findUnique).toHaveBeenCalledWith({
-        where: { id: userId },
-      });
-      expect(mockPrismaService.$transaction).toHaveBeenCalled();
+      expect(mockOnboardingRepository.findUserById).toHaveBeenCalledWith(
+        userId,
+      );
+      expect(mockOnboardingRepository.transaction).toHaveBeenCalled();
       expect(
         mockResumeOnboardingService.upsertResumeWithTx,
       ).toHaveBeenCalledWith(mockTx, userId, onboardingData);
@@ -246,20 +247,17 @@ describe('OnboardingService', () => {
       expect(
         mockLanguagesOnboardingService.saveLanguagesWithTx,
       ).toHaveBeenCalledWith(mockTx, mockResume.id, onboardingData);
-      expect(mockTx.user.update).toHaveBeenCalledWith({
-        where: { id: userId },
-        data: {
-          hasCompletedOnboarding: true,
-          onboardingCompletedAt: expect.any(Date),
-          username: onboardingData.username,
-          displayName: onboardingData.personalInfo.fullName,
-          phone: onboardingData.personalInfo.phone,
-          location: onboardingData.personalInfo.location,
-          bio: onboardingData.professionalProfile.summary,
-          linkedin: onboardingData.professionalProfile.linkedin,
-          github: onboardingData.professionalProfile.github,
-          website: onboardingData.professionalProfile.website,
-        },
+      expect(
+        mockOnboardingRepository.updateUserOnboardingComplete,
+      ).toHaveBeenCalledWith(mockTx, userId, {
+        username: onboardingData.username,
+        displayName: onboardingData.personalInfo.fullName,
+        phone: onboardingData.personalInfo.phone,
+        location: onboardingData.personalInfo.location,
+        bio: onboardingData.professionalProfile.summary,
+        linkedin: onboardingData.professionalProfile.linkedin,
+        github: onboardingData.professionalProfile.github,
+        website: onboardingData.professionalProfile.website,
       });
       expect(logger.log).toHaveBeenCalledWith(
         'Onboarding process started',
@@ -273,7 +271,7 @@ describe('OnboardingService', () => {
       );
     });
 
-    it('should throw NotFoundException if user does not exist', async () => {
+    it('should throw UserNotFoundError if user does not exist', async () => {
       const userId = 'invalid-user';
       const onboardingData = {
         username: 'johndoe',
@@ -299,14 +297,11 @@ describe('OnboardingService', () => {
         },
       };
 
-      mockPrismaService.user.findUnique.mockResolvedValue(null);
+      mockOnboardingRepository.findUserById.mockResolvedValue(null);
 
       await expect(
         service.completeOnboarding(userId, onboardingData),
-      ).rejects.toThrow(NotFoundException);
-      await expect(
-        service.completeOnboarding(userId, onboardingData),
-      ).rejects.toThrow(ERROR_MESSAGES.USER_NOT_FOUND);
+      ).rejects.toThrow(UserNotFoundError);
 
       expect(mockResumeOnboardingService.upsertResume.mock.calls.length).toBe(
         0,
@@ -335,7 +330,9 @@ describe('OnboardingService', () => {
         onboardingCompletedAt: completedAt,
       };
 
-      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+      mockOnboardingRepository.findUserOnboardingStatus.mockResolvedValue(
+        mockUser,
+      );
 
       const result = await service.getOnboardingStatus(userId);
 
@@ -344,13 +341,9 @@ describe('OnboardingService', () => {
         onboardingCompletedAt: completedAt,
       });
 
-      expect(mockPrismaService.user.findUnique).toHaveBeenCalledWith({
-        where: { id: userId },
-        select: {
-          hasCompletedOnboarding: true,
-          onboardingCompletedAt: true,
-        },
-      });
+      expect(
+        mockOnboardingRepository.findUserOnboardingStatus,
+      ).toHaveBeenCalledWith(userId);
     });
 
     it('should return incomplete status for user who has not completed onboarding', async () => {
@@ -360,7 +353,9 @@ describe('OnboardingService', () => {
         onboardingCompletedAt: null,
       };
 
-      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+      mockOnboardingRepository.findUserOnboardingStatus.mockResolvedValue(
+        mockUser,
+      );
 
       const result = await service.getOnboardingStatus(userId);
 
@@ -370,16 +365,13 @@ describe('OnboardingService', () => {
       });
     });
 
-    it('should throw NotFoundException if user does not exist', async () => {
+    it('should throw UserNotFoundError if user does not exist', async () => {
       const userId = 'invalid-user';
-      mockPrismaService.user.findUnique.mockResolvedValue(null);
+      mockOnboardingRepository.findUserOnboardingStatus.mockResolvedValue(null);
 
-      await expect(
-        async () => await service.getOnboardingStatus(userId),
-      ).toThrow(NotFoundException);
-      await expect(
-        async () => await service.getOnboardingStatus(userId),
-      ).toThrow(ERROR_MESSAGES.USER_NOT_FOUND);
+      await expect(service.getOnboardingStatus(userId)).rejects.toThrow(
+        UserNotFoundError,
+      );
     });
   });
 });

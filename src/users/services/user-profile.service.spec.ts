@@ -5,8 +5,10 @@ import { UserProfileService } from './user-profile.service';
 import { UsersRepository } from '../users.repository';
 import { ResumesRepository } from '../../resumes/resumes.repository';
 import { AppLoggerService } from '../../common/logger/logger.service';
-import { NotFoundException } from '@nestjs/common';
-import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
+import {
+  ResourceNotFoundError,
+  UserNotFoundError,
+} from '@octopus-synapse/profile-contracts';
 
 describe('UserProfileService', () => {
   let service: UserProfileService;
@@ -91,19 +93,17 @@ describe('UserProfileService', () => {
       );
     });
 
-    it('should throw NotFoundException when user does not exist', async () => {
+    it('should throw ResourceNotFoundError when user does not exist', async () => {
       usersRepository.findUserByUsername.mockResolvedValue(null);
 
       await expect(
         service.getPublicProfileByUsername('nonexistent'),
-      ).rejects.toThrow(
-        new NotFoundException(ERROR_MESSAGES.PUBLIC_PROFILE_NOT_FOUND),
-      );
+      ).rejects.toThrow(ResourceNotFoundError);
 
       expect(resumesRepository.findResumeByUserId.mock.calls.length).toBe(0);
     });
 
-    it('should throw NotFoundException when profile visibility is private', async () => {
+    it('should throw ResourceNotFoundError when profile visibility is private', async () => {
       const mockUser = {
         id: 'user-123',
         username: 'private-user',
@@ -116,14 +116,12 @@ describe('UserProfileService', () => {
 
       await expect(
         service.getPublicProfileByUsername('private-user'),
-      ).rejects.toThrow(
-        new NotFoundException(ERROR_MESSAGES.PUBLIC_PROFILE_NOT_FOUND),
-      );
+      ).rejects.toThrow(ResourceNotFoundError);
 
       expect(resumesRepository.findResumeByUserId.mock.calls.length).toBe(0);
     });
 
-    it('should throw NotFoundException when profile visibility is undefined', async () => {
+    it('should throw ResourceNotFoundError when profile visibility is undefined', async () => {
       const mockUser = {
         id: 'user-123',
         username: 'no-prefs-user',
@@ -134,9 +132,7 @@ describe('UserProfileService', () => {
 
       await expect(
         service.getPublicProfileByUsername('no-prefs-user'),
-      ).rejects.toThrow(
-        new NotFoundException(ERROR_MESSAGES.PUBLIC_PROFILE_NOT_FOUND),
-      );
+      ).rejects.toThrow(ResourceNotFoundError);
     });
 
     it('should return profile with null resume when user has no resume', async () => {
@@ -182,12 +178,12 @@ describe('UserProfileService', () => {
       );
     });
 
-    it('should throw NotFoundException when profile does not exist', async () => {
+    it('should throw UserNotFoundError when profile does not exist', async () => {
       usersRepository.findUserProfileById.mockResolvedValue(null);
 
-      await expect(
-        async () => await service.getProfile('nonexistent-id'),
-      ).toThrow(new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND));
+      await expect(service.getProfile('nonexistent-id')).rejects.toThrow(
+        UserNotFoundError,
+      );
     });
   });
 
@@ -235,14 +231,14 @@ describe('UserProfileService', () => {
       );
     });
 
-    it('should throw NotFoundException when user does not exist', async () => {
+    it('should throw UserNotFoundError when user does not exist', async () => {
       const updateDto = { displayName: 'New Name' };
 
       usersRepository.findUserById.mockResolvedValue(null);
 
       await expect(
         service.updateProfile('nonexistent-id', updateDto),
-      ).rejects.toThrow(new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND));
+      ).rejects.toThrow(UserNotFoundError);
 
       expect(usersRepository.updateUserProfile.mock.calls.length).toBe(0);
       expect(logger.debug.mock.calls.length).toBe(0);

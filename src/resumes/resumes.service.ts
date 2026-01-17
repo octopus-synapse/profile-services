@@ -1,6 +1,5 @@
 import {
   Injectable,
-  NotFoundException,
   Logger,
   UnprocessableEntityException,
 } from '@nestjs/common';
@@ -10,7 +9,7 @@ import type {
   UpdateResume,
 } from '@octopus-synapse/profile-contracts';
 import { ApiResponseHelper } from '../common/dto/api-response.dto';
-import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
+import { ResumeNotFoundError } from '@octopus-synapse/profile-contracts';
 import { ResumeVersionService } from '../resume-versions/services/resume-version.service';
 import { CacheInvalidationService } from '../common/cache/services/cache-invalidation.service';
 
@@ -73,7 +72,7 @@ export class ResumesService {
     );
 
     if (!foundResume) {
-      throw new NotFoundException('Resume not found');
+      throw new ResumeNotFoundError(id);
     }
 
     return ApiResponseHelper.success(foundResume);
@@ -121,7 +120,7 @@ export class ResumesService {
     );
 
     if (!updatedResume) {
-      throw new NotFoundException(ERROR_MESSAGES.RESUME_NOT_FOUND);
+      throw new ResumeNotFoundError(id);
     }
 
     // Invalidate cache (fire-and-forget)
@@ -146,7 +145,7 @@ export class ResumesService {
     );
 
     if (!wasResumeDeleted) {
-      throw new NotFoundException(ERROR_MESSAGES.RESUME_NOT_FOUND);
+      throw new ResumeNotFoundError(id);
     }
 
     return ApiResponseHelper.message('Resume deleted successfully');

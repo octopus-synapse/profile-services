@@ -7,11 +7,12 @@ import { Module } from '@nestjs/common';
 import { PrismaModule } from '../prisma/prisma.module';
 import { SpokenLanguagesController } from './spoken-languages.controller';
 import { SpokenLanguagesService } from './services/spoken-languages.service';
+import { SpokenLanguagesRepository } from './repositories';
 
 @Module({
   imports: [PrismaModule],
   controllers: [SpokenLanguagesController],
-  providers: [SpokenLanguagesService],
+  providers: [SpokenLanguagesService, SpokenLanguagesRepository],
   exports: [SpokenLanguagesService],
 })
 export class SpokenLanguagesModule {}

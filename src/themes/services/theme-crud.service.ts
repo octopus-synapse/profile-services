@@ -8,18 +8,18 @@
  * Required permissions: theme:manage for admin operations
  */
 
-import {
-  Injectable,
-  NotFoundException,
-  ForbiddenException,
-  UnprocessableEntityException,
-} from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import { Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { ThemeStatus, Prisma } from '@prisma/client';
 import { CreateTheme, UpdateTheme } from '@octopus-synapse/profile-contracts';
+import {
+  ResourceNotFoundError,
+  ResourceOwnershipError,
+  PermissionDeniedError,
+} from '@octopus-synapse/profile-contracts';
 import { validateLayoutConfig, validateSectionsConfig } from '../validators';
 import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
 import { AuthorizationService } from '../../authorization';
+import { ThemeRepository } from '../repositories';
 
 /** Maximum themes a user can create */
 const MAX_THEMES_PER_USER = 5;
@@ -27,17 +27,15 @@ const MAX_THEMES_PER_USER = 5;
 @Injectable()
 export class ThemeCrudService {
   constructor(
-    private prisma: PrismaService,
-    private authorizationService: AuthorizationService,
+    private readonly themeRepository: ThemeRepository,
+    private readonly authorizationService: AuthorizationService,
   ) {}
 
   async createThemeForUser(userId: string, themeData: CreateTheme) {
     this.validateConfig(themeData.styleConfig);
 
     // BUG-006 FIX: Check theme limit before creating
-    const existingThemeCount = await this.prisma.resumeTheme.count({
-      where: { authorId: userId },
-    });
+    const existingThemeCount = await this.themeRepository.countByAuthor(userId);
 
     if (existingThemeCount >= MAX_THEMES_PER_USER) {
       throw new UnprocessableEntityException(
@@ -56,9 +54,7 @@ export class ThemeCrudService {
       status: ThemeStatus.PRIVATE,
     };
 
-    return this.prisma.resumeTheme.create({
-      data: themeCreationData,
-    });
+    return this.themeRepository.create(themeCreationData);
   }
 
   async updateThemeForUser(
@@ -67,7 +63,7 @@ export class ThemeCrudService {
     updateThemeData: UpdateTheme,
   ) {
     const existingTheme = await this.findThemeByIdOrThrow(themeId);
-    await this.assertCanEdit(existingTheme, userId);
+    await this.assertCanEdit(existingTheme, userId, themeId);
 
     if (updateThemeData.styleConfig) {
       this.validateConfig(updateThemeData.styleConfig);
@@ -81,31 +77,27 @@ export class ThemeCrudService {
       styleConfig: updateThemeData.styleConfig as Prisma.InputJsonValue,
     };
 
-    return this.prisma.resumeTheme.update({
-      where: { id: themeId },
-      data: themeUpdateData,
-    });
+    return this.themeRepository.update(themeId, themeUpdateData);
   }
 
   async deleteThemeForUser(userId: string, themeId: string) {
     const existingTheme = await this.findThemeByIdOrThrow(themeId);
 
     if (existingTheme.isSystemTheme) {
-      throw new ForbiddenException(ERROR_MESSAGES.CANNOT_DELETE_SYSTEM_THEMES);
+      throw new PermissionDeniedError(
+        ERROR_MESSAGES.CANNOT_DELETE_SYSTEM_THEMES,
+      );
     }
     if (existingTheme.authorId !== userId) {
-      throw new ForbiddenException(ERROR_MESSAGES.CAN_ONLY_DELETE_OWN_THEMES);
+      throw new ResourceOwnershipError('theme', themeId);
     }
 
-    return this.prisma.resumeTheme.delete({ where: { id: themeId } });
+    return this.themeRepository.delete(themeId);
   }
 
   async findThemeByIdOrThrow(themeId: string) {
-    const foundTheme = await this.prisma.resumeTheme.findUnique({
-      where: { id: themeId },
-    });
-    if (!foundTheme)
-      throw new NotFoundException(ERROR_MESSAGES.THEME_NOT_FOUND);
+    const foundTheme = await this.themeRepository.findById(themeId);
+    if (!foundTheme) throw new ResourceNotFoundError('theme', themeId);
     return foundTheme;
   }
 
@@ -117,7 +109,7 @@ export class ThemeCrudService {
     const existingTheme = await this.findThemeByIdOrThrow(themeId);
 
     if (existingTheme.authorId !== userId) {
-      throw new ForbiddenException(ERROR_MESSAGES.CAN_ONLY_SUBMIT_OWN_THEMES);
+      throw new ResourceOwnershipError('theme', themeId);
     }
 
     const validStatuses: ThemeStatus[] = [
@@ -125,14 +117,14 @@ export class ThemeCrudService {
       ThemeStatus.REJECTED,
     ];
     if (!validStatuses.includes(existingTheme.status)) {
-      throw new ForbiddenException(
+      throw new PermissionDeniedError(
         ERROR_MESSAGES.THEME_MUST_BE_PRIVATE_OR_REJECTED,
       );
     }
 
-    return this.prisma.resumeTheme.update({
-      where: { id: themeId },
-      data: { status: ThemeStatus.PENDING_APPROVAL, rejectionReason: null },
+    return this.themeRepository.update(themeId, {
+      status: ThemeStatus.PENDING_APPROVAL,
+      rejectionReason: null,
     });
   }
 
@@ -148,17 +140,16 @@ export class ThemeCrudService {
     const existingTheme = await this.findThemeByIdOrThrow(themeId);
 
     if (existingTheme.status !== ThemeStatus.PENDING_APPROVAL) {
-      throw new ForbiddenException(ERROR_MESSAGES.THEME_NOT_PENDING_APPROVAL);
+      throw new PermissionDeniedError(
+        ERROR_MESSAGES.THEME_NOT_PENDING_APPROVAL,
+      );
     }
 
-    return this.prisma.resumeTheme.update({
-      where: { id: themeId },
-      data: {
-        status: ThemeStatus.REJECTED,
-        rejectionReason: rejectionReason,
-        approvedById: adminId,
-        approvedAt: new Date(),
-      },
+    return this.themeRepository.update(themeId, {
+      status: ThemeStatus.REJECTED,
+      rejectionReason: rejectionReason,
+      approvedById: adminId,
+      approvedAt: new Date(),
     });
   }
 
@@ -183,9 +174,7 @@ export class ThemeCrudService {
       publishedAt: new Date(),
     };
 
-    return this.prisma.resumeTheme.create({
-      data: adminThemeCreationData,
-    });
+    return this.themeRepository.create(adminThemeCreationData);
   }
 
   private async assertIsAdmin(userId: string) {
@@ -195,7 +184,7 @@ export class ThemeCrudService {
       'manage',
     );
     if (!hasPermission) {
-      throw new ForbiddenException(ERROR_MESSAGES.ONLY_ADMINS_CAN_DO_THIS);
+      throw new PermissionDeniedError(ERROR_MESSAGES.ONLY_ADMINS_CAN_DO_THIS);
     }
   }
 
@@ -207,6 +196,7 @@ export class ThemeCrudService {
   private async assertCanEdit(
     theme: { authorId: string; isSystemTheme: boolean },
     userId: string,
+    themeId: string,
   ) {
     if (theme.isSystemTheme) {
       const hasPermission = await this.authorizationService.hasPermission(
@@ -215,12 +205,12 @@ export class ThemeCrudService {
         'manage',
       );
       if (!hasPermission) {
-        throw new ForbiddenException(
+        throw new PermissionDeniedError(
           ERROR_MESSAGES.ONLY_ADMINS_CAN_EDIT_SYSTEM_THEMES,
         );
       }
     } else if (theme.authorId !== userId) {
-      throw new ForbiddenException(ERROR_MESSAGES.CAN_ONLY_EDIT_OWN_THEMES);
+      throw new ResourceOwnershipError('theme', themeId);
     }
   }
 }

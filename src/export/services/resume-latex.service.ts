@@ -1,41 +1,27 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-import { PrismaService } from '../../prisma/prisma.service';
+import { Injectable } from '@nestjs/common';
+import { ResumeNotFoundError } from '@octopus-synapse/profile-contracts';
+import {
+  ExportRepository,
+  ResumeWithRelations,
+} from '../repositories/export.repository';
 
 export interface LatexExportOptions {
   template?: 'simple' | 'moderncv';
   language?: 'en' | 'pt';
 }
 
-type ResumeWithRelations = Prisma.ResumeGetPayload<{
-  include: {
-    user: true;
-    experiences: true;
-    education: true;
-    skills: true;
-  };
-}>;
-
 @Injectable()
 export class ResumeLatexService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly repository: ExportRepository) {}
 
   async exportAsLatex(
     resumeId: string,
     options: LatexExportOptions = {},
   ): Promise<string> {
-    const resume = await this.prisma.resume.findUnique({
-      where: { id: resumeId },
-      include: {
-        user: true,
-        experiences: { orderBy: { startDate: 'desc' } },
-        education: { orderBy: { startDate: 'desc' } },
-        skills: true,
-      },
-    });
+    const resume = await this.repository.findResumeForLatexExport(resumeId);
 
     if (!resume) {
-      throw new NotFoundException('Resume not found');
+      throw new ResumeNotFoundError(resumeId);
     }
 
     const template = options.template ?? 'simple';

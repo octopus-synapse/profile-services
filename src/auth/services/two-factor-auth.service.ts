@@ -8,15 +8,15 @@
  * Kent Beck: "Make the happy path obvious, make errors explicit"
  */
 
+import { Injectable } from '@nestjs/common';
 import {
-  Injectable,
-  ConflictException,
-  NotFoundException,
-} from '@nestjs/common';
+  ResourceNotFoundError,
+  DuplicateResourceError,
+} from '@octopus-synapse/profile-contracts';
 import * as speakeasy from 'speakeasy';
 import * as QRCode from 'qrcode';
 import * as bcrypt from 'bcryptjs';
-import { PrismaService } from '../../prisma/prisma.service';
+import { TwoFactorAuthRepository, AuthUserRepository } from '../repositories';
 import { AppLoggerService } from '../../common/logger/logger.service';
 
 interface SetupResult {
@@ -45,7 +45,8 @@ export class TwoFactorAuthService {
   private readonly context = 'TwoFactorAuthService';
 
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly twoFactorRepository: TwoFactorAuthRepository,
+    private readonly userRepository: AuthUserRepository,
     private readonly logger: AppLoggerService,
   ) {}
 
@@ -55,19 +56,14 @@ export class TwoFactorAuthService {
    */
   async setup(userId: string): Promise<SetupResult> {
     // Check if 2FA is already enabled
-    const existing = await this.prisma.twoFactorAuth.findUnique({
-      where: { userId },
-    });
+    const existing = await this.twoFactorRepository.findByUserId(userId);
 
     if (existing?.enabled) {
-      throw new ConflictException('2FA is already enabled');
+      throw new DuplicateResourceError('TwoFactorAuth', 'userId', userId);
     }
 
     // Get user email for QR code label
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { email: true },
-    });
+    const user = await this.userRepository.findById(userId);
 
     // Generate TOTP secret
     const secret = speakeasy.generateSecret({
@@ -81,18 +77,9 @@ export class TwoFactorAuthService {
 
     // Save or update the 2FA record (not enabled yet)
     if (existing) {
-      await this.prisma.twoFactorAuth.update({
-        where: { userId },
-        data: { secret: secret.base32 },
-      });
+      await this.twoFactorRepository.updateSecret(userId, secret.base32);
     } else {
-      await this.prisma.twoFactorAuth.create({
-        data: {
-          userId,
-          secret: secret.base32,
-          enabled: false,
-        },
-      });
+      await this.twoFactorRepository.create(userId, secret.base32);
     }
 
     this.logger.log('2FA setup initiated', this.context, { userId });
@@ -109,12 +96,10 @@ export class TwoFactorAuthService {
    * Generates backup codes upon successful verification.
    */
   async verifyAndEnable(userId: string, token: string): Promise<VerifyResult> {
-    const twoFactorAuth = await this.prisma.twoFactorAuth.findUnique({
-      where: { userId },
-    });
+    const twoFactorAuth = await this.twoFactorRepository.findByUserId(userId);
 
     if (!twoFactorAuth) {
-      throw new NotFoundException('2FA setup not found');
+      throw new ResourceNotFoundError('2FA setup', userId);
     }
 
     const isValid = speakeasy.totp.verify({
@@ -132,10 +117,7 @@ export class TwoFactorAuthService {
     }
 
     // Enable 2FA
-    await this.prisma.twoFactorAuth.update({
-      where: { userId },
-      data: { enabled: true },
-    });
+    await this.twoFactorRepository.enable(userId);
 
     // Generate backup codes
     const backupCodes = await this.generateBackupCodes(userId);
@@ -152,9 +134,7 @@ export class TwoFactorAuthService {
    * Validates a TOTP token for login.
    */
   async validateToken(userId: string, token: string): Promise<boolean> {
-    const twoFactorAuth = await this.prisma.twoFactorAuth.findUnique({
-      where: { userId },
-    });
+    const twoFactorAuth = await this.twoFactorRepository.findByUserId(userId);
 
     if (!twoFactorAuth?.enabled) {
       return false;
@@ -169,10 +149,7 @@ export class TwoFactorAuthService {
 
     if (isValid) {
       // Update last used timestamp
-      await this.prisma.twoFactorAuth.update({
-        where: { userId },
-        data: { lastUsedAt: new Date() },
-      });
+      await this.twoFactorRepository.updateLastUsed(userId);
     }
 
     return isValid;
@@ -183,23 +160,14 @@ export class TwoFactorAuthService {
    * Removes the secret and all backup codes.
    */
   async disable(userId: string): Promise<void> {
-    const twoFactorAuth = await this.prisma.twoFactorAuth.findUnique({
-      where: { userId },
-    });
+    const twoFactorAuth = await this.twoFactorRepository.findByUserId(userId);
 
     if (!twoFactorAuth) {
-      throw new NotFoundException('2FA is not enabled');
+      throw new ResourceNotFoundError('2FA configuration', userId);
     }
 
-    // Delete backup codes first
-    await this.prisma.twoFactorBackupCode.deleteMany({
-      where: { userId },
-    });
-
-    // Delete 2FA record
-    await this.prisma.twoFactorAuth.delete({
-      where: { userId },
-    });
+    // Delete 2FA record (cascade deletes backup codes)
+    await this.twoFactorRepository.delete(userId);
 
     this.logger.log('2FA disabled', this.context, { userId });
   }
@@ -208,10 +176,7 @@ export class TwoFactorAuthService {
    * Checks if 2FA is enabled for a user.
    */
   async isEnabled(userId: string): Promise<boolean> {
-    const twoFactorAuth = await this.prisma.twoFactorAuth.findUnique({
-      where: { userId },
-      select: { enabled: true },
-    });
+    const twoFactorAuth = await this.twoFactorRepository.findByUserId(userId);
 
     return twoFactorAuth?.enabled ?? false;
   }
@@ -222,10 +187,8 @@ export class TwoFactorAuthService {
    * Returns plain text codes (only shown once).
    */
   async generateBackupCodes(userId: string): Promise<string[]> {
-    // Delete existing backup codes
-    await this.prisma.twoFactorBackupCode.deleteMany({
-      where: { userId },
-    });
+    // Delete existing backup codes first
+    await this.twoFactorRepository.deleteBackupCodes(userId);
 
     const codes: string[] = [];
     const hashPromises: Promise<{ codeHash: string }>[] = [];
@@ -238,14 +201,11 @@ export class TwoFactorAuthService {
 
     const hashedCodes = await Promise.all(hashPromises);
 
-    // Store hashed codes
-    await this.prisma.twoFactorBackupCode.createMany({
-      data: hashedCodes.map((hash) => ({
-        userId,
-        codeHash: hash.codeHash,
-        used: false,
-      })),
-    });
+    // Create new backup codes
+    await this.twoFactorRepository.createBackupCodes(
+      userId,
+      hashedCodes.map((hash) => hash.codeHash),
+    );
 
     this.logger.log('Backup codes generated', this.context, {
       userId,
@@ -260,9 +220,8 @@ export class TwoFactorAuthService {
    * Marks the code as used if valid.
    */
   async validateBackupCode(userId: string, code: string): Promise<boolean> {
-    const backupCodes = await this.prisma.twoFactorBackupCode.findMany({
-      where: { userId, used: false },
-    });
+    const backupCodes =
+      await this.twoFactorRepository.getUnusedBackupCodes(userId);
 
     if (backupCodes.length === 0) {
       return false;
@@ -273,10 +232,7 @@ export class TwoFactorAuthService {
 
       if (isValid) {
         // Mark as used
-        await this.prisma.twoFactorBackupCode.update({
-          where: { id: backupCode.id },
-          data: { used: true, usedAt: new Date() },
-        });
+        await this.twoFactorRepository.markBackupCodeUsed(backupCode.id);
 
         this.logger.log('Backup code used', this.context, { userId });
 
@@ -291,10 +247,7 @@ export class TwoFactorAuthService {
    * Gets the 2FA status for a user.
    */
   async getStatus(userId: string): Promise<TwoFactorStatus> {
-    const twoFactorAuth = await this.prisma.twoFactorAuth.findUnique({
-      where: { userId },
-      select: { enabled: true, lastUsedAt: true },
-    });
+    const twoFactorAuth = await this.twoFactorRepository.findByUserId(userId);
 
     if (!twoFactorAuth) {
       return {
@@ -304,10 +257,8 @@ export class TwoFactorAuthService {
       };
     }
 
-    const backupCodes = await this.prisma.twoFactorBackupCode.findMany({
-      where: { userId, used: false },
-      select: { id: true },
-    });
+    const backupCodes =
+      await this.twoFactorRepository.getUnusedBackupCodes(userId);
 
     return {
       enabled: twoFactorAuth.enabled,

@@ -12,12 +12,16 @@ import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { createMockResume } from '../../../test/factories/resume.factory';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ResumeVersionService } from './resume-version.service';
-import { PrismaService } from '../../prisma/prisma.service';
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
+import { ResumeVersionRepository } from '../repositories/resume-version.repository';
+import {
+  ResumeNotFoundError,
+  ResourceNotFoundError,
+  ResourceOwnershipError,
+} from '@octopus-synapse/profile-contracts';
 
 describe('ResumeVersionService', () => {
   let service: ResumeVersionService;
-  let prisma: PrismaService;
+  let repository: ResumeVersionRepository;
 
   const mockResume = createMockResume({
     id: 'resume-123',
@@ -50,25 +54,40 @@ describe('ResumeVersionService', () => {
   };
 
   beforeEach(async () => {
-    prisma = {
-      resume: {
-        findUnique: mock(() => Promise.resolve(mockResume)),
-        update: mock(() => Promise.resolve(mockResume)),
-      },
-      resumeVersion: {
-        create: mock(() => Promise.resolve(mockVersion)),
-        findUnique: mock(() => Promise.resolve(mockVersion)),
-        findFirst: mock(() => Promise.resolve({ versionNumber: 1 })),
-        findMany: mock(() => Promise.resolve([mockVersion])),
-        deleteMany: mock(() => Promise.resolve({ count: 5 })),
-        count: mock(() => Promise.resolve(5)),
-      },
-    } as any;
+    const mockFindResumeWithAllRelations = mock();
+    const mockFindLastVersion = mock();
+    const mockCreate = mock();
+    const mockFindAllByResumeId = mock();
+    const mockFindById = mock();
+    const mockUpdateResume = mock();
+    const mockFindResumeOwner = mock();
+    const mockDeleteOldVersions = mock();
+
+    repository = {
+      findResumeWithAllRelations: mockFindResumeWithAllRelations,
+      findLastVersion: mockFindLastVersion,
+      create: mockCreate,
+      findAllByResumeId: mockFindAllByResumeId,
+      findById: mockFindById,
+      updateResume: mockUpdateResume,
+      findResumeOwner: mockFindResumeOwner,
+      deleteOldVersions: mockDeleteOldVersions,
+    } as ResumeVersionRepository;
+
+    // Set default mocks
+    mockFindResumeWithAllRelations.mockResolvedValue(mockResume);
+    mockFindLastVersion.mockResolvedValue({ versionNumber: 1 });
+    mockCreate.mockResolvedValue(mockVersion);
+    mockFindAllByResumeId.mockResolvedValue([mockVersion]);
+    mockFindById.mockResolvedValue(mockVersion);
+    mockUpdateResume.mockResolvedValue(mockResume);
+    mockFindResumeOwner.mockResolvedValue({ userId: 'user-123' });
+    mockDeleteOldVersions.mockResolvedValue(undefined);
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ResumeVersionService,
-        { provide: PrismaService, useValue: prisma },
+        { provide: ResumeVersionRepository, useValue: repository },
       ],
     }).compile();
 
@@ -80,14 +99,9 @@ describe('ResumeVersionService', () => {
       const result = await service.createSnapshot('resume-123');
 
       expect(result).toEqual(mockVersion);
-      expect(prisma.resume.findUnique).toHaveBeenCalledWith({
-        where: { id: 'resume-123' },
-        include: expect.objectContaining({
-          experiences: true,
-          education: true,
-          skills: true,
-        }),
-      });
+      expect(repository.findResumeWithAllRelations).toHaveBeenCalledWith(
+        'resume-123',
+      );
     });
 
     it('should create snapshot with custom label', async () => {
@@ -99,18 +113,20 @@ describe('ResumeVersionService', () => {
       expect(result).toEqual(mockVersion);
     });
 
-    it('should throw NotFoundException when resume not found', async () => {
-      prisma.resume.findUnique = mock(() => Promise.resolve(null));
+    it('should throw ResumeNotFoundError when resume not found', async () => {
+      (
+        repository.findResumeWithAllRelations as ReturnType<typeof mock>
+      ).mockResolvedValue(null);
 
       await expect(service.createSnapshot('resume-123')).rejects.toThrow(
-        NotFoundException,
+        ResumeNotFoundError,
       );
     });
 
     it('should cleanup old versions after creating snapshot', async () => {
       await service.createSnapshot('resume-123');
 
-      expect(prisma.resumeVersion.findMany).toHaveBeenCalled();
+      expect(repository.deleteOldVersions).toHaveBeenCalled();
     });
   });
 
@@ -119,34 +135,27 @@ describe('ResumeVersionService', () => {
       const result = await service.getVersions('resume-123', 'user-123');
 
       expect(result).toEqual([mockVersion]);
-      expect(prisma.resumeVersion.findMany).toHaveBeenCalledWith({
-        where: { resumeId: 'resume-123' },
-        orderBy: { versionNumber: 'desc' },
-        select: {
-          id: true,
-          versionNumber: true,
-          label: true,
-          createdAt: true,
-        },
-      });
+      expect(repository.findAllByResumeId).toHaveBeenCalledWith('resume-123');
     });
 
-    it('should throw ForbiddenException when user does not own resume', async () => {
-      prisma.resume.findUnique = mock(() =>
-        Promise.resolve({ ...mockResume, userId: 'other-user' }),
+    it('should throw ResourceOwnershipError when user does not own resume', async () => {
+      (repository.findResumeOwner as ReturnType<typeof mock>).mockResolvedValue(
+        { userId: 'other-user' },
       );
 
       await expect(
         service.getVersions('resume-123', 'user-123'),
-      ).rejects.toThrow(ForbiddenException);
+      ).rejects.toThrow(ResourceOwnershipError);
     });
 
-    it('should throw NotFoundException when resume not found', async () => {
-      prisma.resume.findUnique = mock(() => Promise.resolve(null));
+    it('should throw ResumeNotFoundError when resume not found', async () => {
+      (repository.findResumeOwner as ReturnType<typeof mock>).mockResolvedValue(
+        null,
+      );
 
       await expect(
         service.getVersions('resume-123', 'user-123'),
-      ).rejects.toThrow(NotFoundException);
+      ).rejects.toThrow(ResumeNotFoundError);
     });
   });
 
@@ -165,91 +174,53 @@ describe('ResumeVersionService', () => {
     it('should create snapshot before restoring', async () => {
       await service.restoreVersion('resume-123', 'version-123', 'user-123');
 
-      // First call is for snapshot, second for restore
-      expect(prisma.resume.findUnique).toHaveBeenCalled();
+      expect(repository.findResumeWithAllRelations).toHaveBeenCalled();
     });
 
-    it('should throw NotFoundException when version not found', async () => {
-      prisma.resumeVersion.findUnique = mock(() => Promise.resolve(null));
+    it('should throw ResourceNotFoundError when version not found', async () => {
+      (repository.findById as ReturnType<typeof mock>).mockResolvedValue(null);
 
       await expect(
         service.restoreVersion('resume-123', 'version-123', 'user-123'),
-      ).rejects.toThrow(NotFoundException);
+      ).rejects.toThrow(ResourceNotFoundError);
     });
 
-    it('should throw NotFoundException when version belongs to different resume', async () => {
-      prisma.resumeVersion.findUnique = mock(() =>
-        Promise.resolve({ ...mockVersion, resumeId: 'other-resume' }),
+    it('should throw ResourceNotFoundError when version belongs to different resume', async () => {
+      (repository.findById as ReturnType<typeof mock>).mockResolvedValue({
+        ...mockVersion,
+        resumeId: 'other-resume',
+      });
+
+      await expect(
+        service.restoreVersion('resume-123', 'version-123', 'user-123'),
+      ).rejects.toThrow(ResourceNotFoundError);
+    });
+
+    it('should throw ResourceOwnershipError when user does not own resume', async () => {
+      (repository.findResumeOwner as ReturnType<typeof mock>).mockResolvedValue(
+        { userId: 'other-user' },
       );
 
       await expect(
         service.restoreVersion('resume-123', 'version-123', 'user-123'),
-      ).rejects.toThrow(NotFoundException);
-    });
-
-    it('should throw ForbiddenException when user does not own resume', async () => {
-      prisma.resume.findUnique = mock(() =>
-        Promise.resolve({ ...mockResume, userId: 'other-user' }),
-      );
-
-      await expect(
-        service.restoreVersion('resume-123', 'version-123', 'user-123'),
-      ).rejects.toThrow(ForbiddenException);
+      ).rejects.toThrow(ResourceOwnershipError);
     });
   });
 
   describe('Version Cleanup (Max 30)', () => {
     it('should keep only last 30 versions', async () => {
-      const versions = Array.from({ length: 35 }, (_, i) => ({
-        id: `version-${i}`,
-        resumeId: 'resume-123',
-        snapshot: mockResume,
-        label: null,
-        createdAt: new Date(),
-      }));
-
-      prisma.resumeVersion.findMany = mock(() => Promise.resolve(versions));
-
       await service.createSnapshot('resume-123');
 
-      expect(prisma.resumeVersion.deleteMany).toHaveBeenCalledWith({
-        where: {
-          id: { in: expect.arrayContaining([]) },
-        },
-      });
+      expect(repository.deleteOldVersions).toHaveBeenCalledWith(
+        'resume-123',
+        30,
+      );
     });
 
-    it('should not delete when less than 30 versions', async () => {
-      const versions = Array.from({ length: 10 }, (_, i) => ({
-        id: `version-${i}`,
-        resumeId: 'resume-123',
-        snapshot: mockResume,
-        label: null,
-        createdAt: new Date(),
-      }));
-
-      prisma.resumeVersion.findMany = mock(() => Promise.resolve(versions));
-
+    it('should cleanup old versions after creating snapshot', async () => {
       await service.createSnapshot('resume-123');
 
-      expect(prisma.resumeVersion.deleteMany).not.toHaveBeenCalled();
-    });
-
-    it('should delete oldest versions first', async () => {
-      const versions = Array.from({ length: 35 }, (_, i) => ({
-        id: `version-${i}`,
-        resumeId: 'resume-123',
-        snapshot: mockResume,
-        label: null,
-        createdAt: new Date(Date.now() - i * 1000),
-      }));
-
-      prisma.resumeVersion.findMany = mock(() => Promise.resolve(versions));
-
-      await service.createSnapshot('resume-123');
-
-      // Should delete versions 30-34 (oldest 5)
-      expect(prisma.resumeVersion.deleteMany).toHaveBeenCalled();
+      expect(repository.deleteOldVersions).toHaveBeenCalled();
     });
   });
 });

@@ -6,10 +6,11 @@
  * with proper cascading deletion of related entities
  */
 
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import { Injectable } from '@nestjs/common';
+import { UserNotFoundError } from '@octopus-synapse/profile-contracts';
 import { AuditLogService } from '../../common/audit/audit-log.service';
 import { AuditAction } from '@prisma/client';
+import { AuthUserRepository, GdprRepository } from '../repositories';
 import type { Request } from 'express';
 
 export interface DeletionResult {
@@ -35,7 +36,8 @@ export interface DeletionResult {
 @Injectable()
 export class GdprDeletionService {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly userRepo: AuthUserRepository,
+    private readonly gdprRepo: GdprRepository,
     private readonly auditLog: AuditLogService,
   ) {}
 
@@ -49,81 +51,17 @@ export class GdprDeletionService {
     request?: Request,
   ): Promise<DeletionResult> {
     // Verify user exists
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { id: true, email: true },
-    });
+    const user = await this.userRepo.findByIdWithEmail(userId);
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new UserNotFoundError(userId);
     }
 
     // Get all resume IDs for this user (needed for cascading)
-    const resumeIds = await this.prisma.resume
-      .findMany({
-        where: { userId },
-        select: { id: true },
-      })
-      .then((resumes) => resumes.map((r) => r.id));
+    const resumeIds = await this.gdprRepo.findUserResumeIds(userId);
 
     // Execute cascading deletion in a transaction
-    const result = await this.prisma.$transaction(async (tx) => {
-      // 1. Delete all resume sub-resources first
-      const [
-        experiences,
-        education,
-        skills,
-        projects,
-        certifications,
-        languages,
-        openSource,
-      ] = await Promise.all([
-        tx.experience.deleteMany({ where: { resumeId: { in: resumeIds } } }),
-        tx.education.deleteMany({ where: { resumeId: { in: resumeIds } } }),
-        tx.skill.deleteMany({ where: { resumeId: { in: resumeIds } } }),
-        tx.project.deleteMany({ where: { resumeId: { in: resumeIds } } }),
-        tx.certification.deleteMany({ where: { resumeId: { in: resumeIds } } }),
-        tx.language.deleteMany({ where: { resumeId: { in: resumeIds } } }),
-        tx.openSourceContribution.deleteMany({
-          where: { resumeId: { in: resumeIds } },
-        }),
-      ]);
-
-      // 2. Delete resume versions and shares
-      const [resumeVersions, resumeShares] = await Promise.all([
-        tx.resumeVersion.deleteMany({ where: { resumeId: { in: resumeIds } } }),
-        tx.resumeShare.deleteMany({
-          where: { resumeId: { in: resumeIds } },
-        }),
-      ]);
-
-      // 3. Delete resumes
-      const resumes = await tx.resume.deleteMany({ where: { userId } });
-
-      // 4. Delete user consents
-      const consents = await tx.userConsent.deleteMany({ where: { userId } });
-
-      // 5. Delete audit logs (user has right to have logs deleted too)
-      const auditLogs = await tx.auditLog.deleteMany({ where: { userId } });
-
-      // 6. Finally, delete the user
-      await tx.user.delete({ where: { id: userId } });
-
-      return {
-        resumes: resumes.count,
-        experiences: experiences.count,
-        education: education.count,
-        skills: skills.count,
-        projects: projects.count,
-        certifications: certifications.count,
-        languages: languages.count,
-        openSource: openSource.count,
-        consents: consents.count,
-        auditLogs: auditLogs.count,
-        resumeVersions: resumeVersions.count,
-        resumeShares: resumeShares.count,
-      };
-    });
+    const result = await this.gdprRepo.deleteUserWithCascade(userId, resumeIds);
 
     // Log the deletion (to a separate system log, not user's audit log)
     // This is logged under the requesting user's ID for accountability

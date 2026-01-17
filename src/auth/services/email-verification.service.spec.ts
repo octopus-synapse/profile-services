@@ -12,18 +12,16 @@
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { EmailVerificationService } from './email-verification.service';
-import { PrismaService } from '../../prisma/prisma.service';
+import { AuthUserRepository } from '../repositories';
 import { AppLoggerService } from '../../common/logger/logger.service';
 import { EmailService } from '../../common/email/email.service';
 import { VerificationTokenService } from './verification-token.service';
 
 describe('EmailVerificationService', () => {
   let service: EmailVerificationService;
-  let fakePrisma: {
-    user: {
-      findUnique: ReturnType<typeof mock>;
-      update: ReturnType<typeof mock>;
-    };
+  let userRepo: {
+    findByEmailForVerification: ReturnType<typeof mock>;
+    markEmailVerifiedByEmail: ReturnType<typeof mock>;
   };
   let fakeEmailService: {
     sendVerificationEmail: ReturnType<typeof mock>;
@@ -51,11 +49,9 @@ describe('EmailVerificationService', () => {
   };
 
   beforeEach(async () => {
-    fakePrisma = {
-      user: {
-        findUnique: mock(() => null),
-        update: mock(() => ({})),
-      },
+    userRepo = {
+      findByEmailForVerification: mock(() => null),
+      markEmailVerifiedByEmail: mock(() => Promise.resolve()),
     };
 
     fakeEmailService = {
@@ -80,7 +76,7 @@ describe('EmailVerificationService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         EmailVerificationService,
-        { provide: PrismaService, useValue: fakePrisma },
+        { provide: AuthUserRepository, useValue: userRepo },
         { provide: AppLoggerService, useValue: fakeLogger },
         { provide: EmailService, useValue: fakeEmailService },
         { provide: VerificationTokenService, useValue: fakeTokenService },
@@ -92,7 +88,7 @@ describe('EmailVerificationService', () => {
 
   describe('requestVerification', () => {
     it('should return success when user does not exist (anti-enumeration)', async () => {
-      fakePrisma.user.findUnique.mockReturnValue(null);
+      userRepo.findByEmailForVerification.mockReturnValue(null);
 
       const result = await service.requestVerification({
         email: 'unknown@test.com',
@@ -106,7 +102,7 @@ describe('EmailVerificationService', () => {
     });
 
     it('should return success when email is already verified', async () => {
-      fakePrisma.user.findUnique.mockReturnValue(verifiedUser);
+      userRepo.findByEmailForVerification.mockReturnValue(verifiedUser);
 
       const result = await service.requestVerification({
         email: verifiedUser.email,
@@ -120,7 +116,7 @@ describe('EmailVerificationService', () => {
     });
 
     it('should create token and send email for unverified user', async () => {
-      fakePrisma.user.findUnique.mockReturnValue(testUser);
+      userRepo.findByEmailForVerification.mockReturnValue(testUser);
 
       const result = await service.requestVerification({
         email: testUser.email,
@@ -141,7 +137,7 @@ describe('EmailVerificationService', () => {
       const originalEnv = process.env.NODE_ENV;
       process.env.NODE_ENV = 'development';
 
-      fakePrisma.user.findUnique.mockReturnValue(testUser);
+      userRepo.findByEmailForVerification.mockReturnValue(testUser);
 
       const result = await service.requestVerification({
         email: testUser.email,
@@ -153,7 +149,7 @@ describe('EmailVerificationService', () => {
     });
 
     it('should not throw when email sending fails (logs error)', async () => {
-      fakePrisma.user.findUnique.mockReturnValue(testUser);
+      userRepo.findByEmailForVerification.mockReturnValue(testUser);
       fakeEmailService.sendVerificationEmail.mockRejectedValue(
         new Error('SMTP error'),
       );
@@ -170,7 +166,7 @@ describe('EmailVerificationService', () => {
 
   describe('verifyEmail', () => {
     it('should validate token and mark email as verified', async () => {
-      fakePrisma.user.findUnique.mockReturnValue(testUser);
+      userRepo.findByEmailForVerification.mockReturnValue(testUser);
 
       const result = await service.verifyEmail({ token: 'valid-token' });
 
@@ -178,14 +174,13 @@ describe('EmailVerificationService', () => {
       expect(
         fakeTokenService.validateEmailVerificationToken,
       ).toHaveBeenCalledWith('valid-token');
-      expect(fakePrisma.user.update).toHaveBeenCalledWith({
-        where: { email: 'test@example.com' },
-        data: { emailVerified: expect.any(Date) },
-      });
+      expect(userRepo.markEmailVerifiedByEmail).toHaveBeenCalledWith(
+        'test@example.com',
+      );
     });
 
     it('should send welcome email after verification', async () => {
-      fakePrisma.user.findUnique.mockReturnValue(testUser);
+      userRepo.findByEmailForVerification.mockReturnValue(testUser);
 
       await service.verifyEmail({ token: 'valid-token' });
 
@@ -196,7 +191,7 @@ describe('EmailVerificationService', () => {
     });
 
     it('should not throw when welcome email fails (logs error)', async () => {
-      fakePrisma.user.findUnique.mockReturnValue(testUser);
+      userRepo.findByEmailForVerification.mockReturnValue(testUser);
       fakeEmailService.sendWelcomeEmail.mockRejectedValue(
         new Error('SMTP error'),
       );

@@ -3,12 +3,15 @@
  * Handles profile-related operations
  */
 
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { UsersRepository } from '../users.repository';
 import { ResumesRepository } from '../../resumes/resumes.repository';
 import type { UpdateUser as UpdateProfile } from '@octopus-synapse/profile-contracts';
 import { AppLoggerService } from '../../common/logger/logger.service';
-import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
+import {
+  ResourceNotFoundError,
+  UserNotFoundError,
+} from '@octopus-synapse/profile-contracts';
 
 @Injectable()
 export class UserProfileService {
@@ -22,7 +25,7 @@ export class UserProfileService {
     const foundUser = await this.usersRepository.findUserByUsername(username);
 
     if (!foundUser || foundUser.preferences?.profileVisibility !== 'public') {
-      throw new NotFoundException(ERROR_MESSAGES.PUBLIC_PROFILE_NOT_FOUND);
+      throw new ResourceNotFoundError('Public profile', username);
     }
 
     const userResume = await this.resumesRepository.findResumeByUserId(
@@ -49,7 +52,7 @@ export class UserProfileService {
     const profile = await this.usersRepository.findUserProfileById(userId);
 
     if (!profile) {
-      throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
+      throw new UserNotFoundError(userId);
     }
 
     return profile;
@@ -58,7 +61,7 @@ export class UserProfileService {
   async updateProfile(userId: string, profileUpdateData: UpdateProfile) {
     const existingUser = await this.usersRepository.findUserById(userId);
     if (!existingUser) {
-      throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
+      throw new UserNotFoundError(userId);
     }
 
     const updatedUserProfile = await this.usersRepository.updateUserProfile(

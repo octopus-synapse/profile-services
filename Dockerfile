@@ -70,14 +70,16 @@ RUN apk add --no-cache \
     ca-certificates \
     ttf-freefont \
     curl \
-    unzip
+    unzip \
+    bash
 
 # Install Bun
 RUN curl -fsSL https://bun.sh/install | bash && \
     ln -s /root/.bun/bin/bun /usr/local/bin/bun && \
     ln -s /root/.bun/bin/bunx /usr/local/bin/bunx
 
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+ENV PATH="/root/.bun/bin:${PATH}" \
+    PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
 WORKDIR /app
@@ -92,7 +94,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY profile-services/ .
 
 # Generate Prisma Client
-RUN bunx prisma generate
+RUN bun x prisma generate
 
 # Build NestJS application
 RUN bun run build
@@ -115,12 +117,15 @@ RUN apk add --no-cache \
     ttf-freefont \
     tini \
     curl \
-    unzip
+    unzip \
+    bash
 
 # Install Bun
 RUN curl -fsSL https://bun.sh/install | bash && \
     ln -s /root/.bun/bin/bun /usr/local/bin/bun && \
     ln -s /root/.bun/bin/bunx /usr/local/bin/bunx
+
+ENV PATH="/root/.bun/bin:${PATH}"
 
 WORKDIR /app
 

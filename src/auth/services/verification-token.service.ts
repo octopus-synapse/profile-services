@@ -5,15 +5,15 @@
  * BUG-014 FIX: Now logs token deletion errors instead of silently ignoring
  */
 
-import { Injectable, BadRequestException, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { InvalidTokenError } from '@octopus-synapse/profile-contracts';
 import * as crypto from 'crypto';
-import { PrismaService } from '../../prisma/prisma.service';
 import {
   TIME_MS,
   TOKEN_EXPIRY,
-  ERROR_MESSAGES,
   CRYPTO_CONSTANTS,
 } from '@octopus-synapse/profile-contracts';
+import { VerificationTokenRepository } from '../repositories';
 
 const RESET_TOKEN_PREFIX = 'reset:';
 
@@ -26,7 +26,7 @@ export interface VerificationResult {
 export class VerificationTokenService {
   private readonly logger = new Logger(VerificationTokenService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly tokenRepo: VerificationTokenRepository) {}
 
   async createEmailVerificationToken(email: string): Promise<string> {
     const token = this.generateToken();
@@ -51,7 +51,7 @@ export class VerificationTokenService {
     const verificationToken = await this.findToken(token);
 
     if (!verificationToken) {
-      throw new BadRequestException(ERROR_MESSAGES.INVALID_VERIFICATION_TOKEN);
+      throw new InvalidTokenError('verification token not found');
     }
 
     this.validateExpiry(verificationToken.expires, token);
@@ -66,7 +66,7 @@ export class VerificationTokenService {
     const verificationToken = await this.findToken(token);
 
     if (!verificationToken?.identifier.startsWith(RESET_TOKEN_PREFIX)) {
-      throw new BadRequestException(ERROR_MESSAGES.INVALID_RESET_TOKEN);
+      throw new InvalidTokenError('password reset token not found or invalid');
     }
 
     this.validateExpiry(verificationToken.expires, token);
@@ -90,35 +90,15 @@ export class VerificationTokenService {
     token: string,
     expires: Date,
   ): Promise<void> {
-    await this.prisma.verificationToken.upsert({
-      where: {
-        identifier_token: {
-          identifier,
-          token,
-        },
-      },
-      update: {
-        token,
-        expires,
-      },
-      create: {
-        identifier,
-        token,
-        expires,
-      },
-    });
+    await this.tokenRepo.upsert({ identifier, token, expires });
   }
 
   private async findToken(token: string) {
-    return this.prisma.verificationToken.findUnique({
-      where: { token },
-    });
+    return this.tokenRepo.findByToken(token);
   }
 
   private async deleteToken(token: string): Promise<void> {
-    await this.prisma.verificationToken.delete({
-      where: { token },
-    });
+    await this.tokenRepo.deleteByToken(token);
   }
 
   private validateExpiry(expires: Date, token: string): void {
@@ -130,7 +110,7 @@ export class VerificationTokenService {
           'VerificationTokenService',
         );
       });
-      throw new BadRequestException(ERROR_MESSAGES.TOKEN_EXPIRED);
+      throw new InvalidTokenError('expired');
     }
   }
 }

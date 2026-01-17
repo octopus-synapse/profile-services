@@ -4,19 +4,19 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
 import { CacheService } from '../../common/cache/cache.service';
 import {
   TECH_SKILLS_CACHE_KEYS,
   TECH_SKILLS_CACHE_TTL,
   type TechAreaType,
 } from '../interfaces';
+import { TechSkillsRepository } from '../repositories';
 import type { TechNiche } from '../dtos';
 
 @Injectable()
 export class TechNicheQueryService {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly techSkillsRepo: TechSkillsRepository,
     private readonly cache: CacheService,
   ) {}
 
@@ -29,13 +29,7 @@ export class TechNicheQueryService {
     const cached = await this.cache.get<TechNiche[]>(cacheKey);
     if (cached) return cached;
 
-    const niches = await this.prisma.techNiche.findMany({
-      where: { isActive: true },
-      orderBy: [{ area: { order: 'asc' } }, { order: 'asc' }],
-      include: {
-        area: { select: { type: true } },
-      },
-    });
+    const niches = await this.techSkillsRepo.findAllActiveNichesWithArea();
 
     const result: TechNiche[] = niches.map((n) => ({
       id: n.id,
@@ -63,16 +57,8 @@ export class TechNicheQueryService {
     const cached = await this.cache.get<TechNiche[]>(cacheKey);
     if (cached) return cached;
 
-    const niches = await this.prisma.techNiche.findMany({
-      where: {
-        isActive: true,
-        area: { type: areaType },
-      },
-      orderBy: { order: 'asc' },
-      include: {
-        area: { select: { type: true } },
-      },
-    });
+    const niches =
+      await this.techSkillsRepo.findActiveNichesByAreaType(areaType);
 
     const result: TechNiche[] = niches.map((n) => ({
       id: n.id,

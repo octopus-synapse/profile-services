@@ -7,13 +7,13 @@
  * Kent Beck: "Make it work, make it right, make it fast."
  */
 
+import { Injectable } from '@nestjs/common';
 import {
-  Injectable,
-  BadRequestException,
-  ConflictException,
-  NotFoundException,
-} from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+  UserNotFoundError,
+  BusinessRuleError,
+  DuplicateResourceError,
+} from '@octopus-synapse/profile-contracts';
+import { SocialRepository } from '../repositories/social.repository';
 import { AppLoggerService } from '../../common/logger/logger.service';
 
 // --- Types ---
@@ -57,7 +57,7 @@ export interface FollowWithUser {
 @Injectable()
 export class FollowService {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly repository: SocialRepository,
     private readonly logger: AppLoggerService,
   ) {}
 
@@ -71,42 +71,34 @@ export class FollowService {
   ): Promise<FollowWithUser> {
     // Cannot follow yourself
     if (followerId === followingId) {
-      throw new BadRequestException('Cannot follow yourself');
+      throw new BusinessRuleError('Cannot follow yourself', {
+        userId: followerId,
+      });
     }
 
     // Check if target user exists
-    const targetUser = await this.prisma.user.findUnique({
-      where: { id: followingId },
-    });
+    const targetUser = await this.repository.findUserById(followingId);
 
     if (!targetUser) {
-      throw new NotFoundException('User not found');
+      throw new UserNotFoundError(followingId);
     }
 
     // Check if already following
-    const existingFollow = await this.prisma.follow.findFirst({
-      where: { followerId, followingId },
-    });
+    const existingFollow = await this.repository.findFollow(
+      followerId,
+      followingId,
+    );
 
     if (existingFollow) {
-      throw new ConflictException('Already following this user');
+      throw new DuplicateResourceError(
+        'Follow',
+        'relationship',
+        `${followerId}->${followingId}`,
+      );
     }
 
     // Create follow relationship
-    const follow = await this.prisma.follow.create({
-      data: { followerId, followingId },
-      include: {
-        following: {
-          select: {
-            id: true,
-            name: true,
-            username: true,
-            displayName: true,
-            photoURL: true,
-          },
-        },
-      },
-    });
+    const follow = await this.repository.createFollow(followerId, followingId);
 
     this.logger.debug(
       `User ${followerId} followed ${followingId}`,
@@ -121,9 +113,7 @@ export class FollowService {
    * Removes the follow relationship.
    */
   async unfollow(followerId: string, followingId: string): Promise<void> {
-    await this.prisma.follow.deleteMany({
-      where: { followerId, followingId },
-    });
+    await this.repository.deleteFollow(followerId, followingId);
 
     this.logger.debug(
       `User ${followerId} unfollowed ${followingId}`,
@@ -135,9 +125,7 @@ export class FollowService {
    * Check if a user is following another user.
    */
   async isFollowing(followerId: string, followingId: string): Promise<boolean> {
-    const follow = await this.prisma.follow.findFirst({
-      where: { followerId, followingId },
-    });
+    const follow = await this.repository.findFollow(followerId, followingId);
 
     return follow !== null;
   }
@@ -153,26 +141,11 @@ export class FollowService {
     const skip = (page - 1) * limit;
 
     const [data, total] = await Promise.all([
-      this.prisma.follow.findMany({
-        where: { followingId: userId },
-        include: {
-          follower: {
-            select: {
-              id: true,
-              name: true,
-              username: true,
-              displayName: true,
-              photoURL: true,
-            },
-          },
-        },
-        orderBy: { createdAt: 'desc' },
+      this.repository.findFollowersWithPagination(userId, {
         skip,
         take: limit,
       }),
-      this.prisma.follow.count({
-        where: { followingId: userId },
-      }),
+      this.repository.countFollowers(userId),
     ]);
 
     return {
@@ -195,26 +168,11 @@ export class FollowService {
     const skip = (page - 1) * limit;
 
     const [data, total] = await Promise.all([
-      this.prisma.follow.findMany({
-        where: { followerId: userId },
-        include: {
-          following: {
-            select: {
-              id: true,
-              name: true,
-              username: true,
-              displayName: true,
-              photoURL: true,
-            },
-          },
-        },
-        orderBy: { createdAt: 'desc' },
+      this.repository.findFollowingWithPagination(userId, {
         skip,
         take: limit,
       }),
-      this.prisma.follow.count({
-        where: { followerId: userId },
-      }),
+      this.repository.countFollowing(userId),
     ]);
 
     return {
@@ -230,18 +188,14 @@ export class FollowService {
    * Get count of followers for a user.
    */
   async getFollowersCount(userId: string): Promise<number> {
-    return this.prisma.follow.count({
-      where: { followingId: userId },
-    });
+    return this.repository.countFollowers(userId);
   }
 
   /**
    * Get count of users that a user is following.
    */
   async getFollowingCount(userId: string): Promise<number> {
-    return this.prisma.follow.count({
-      where: { followerId: userId },
-    });
+    return this.repository.countFollowing(userId);
   }
 
   /**
@@ -249,10 +203,7 @@ export class FollowService {
    * Useful for building activity feeds.
    */
   async getFollowingIds(userId: string): Promise<string[]> {
-    const following = await this.prisma.follow.findMany({
-      where: { followerId: userId },
-      select: { followingId: true },
-    });
+    const following = await this.repository.findFollowingIds(userId);
 
     return following.map((f) => f.followingId);
   }

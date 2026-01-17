@@ -12,23 +12,15 @@
  * - Pure structural data
  *
  * Frontend just renders, never decides.
+ *
+ * Design:
+ * - Uses SectionMapperRegistry for section-specific mapping (Strategy Pattern)
+ * - Each section type has its own mapper class
+ * - New sections can be added by registering new mappers
  */
 
 import { Injectable } from '@nestjs/common';
-import type {
-  ResumeDsl,
-  ResumeAst,
-  SectionData,
-  ExperienceItem,
-  EducationItem,
-  SkillItem,
-  LanguageItem,
-  ProjectItem,
-  CertificationItem,
-  AwardItem,
-  ReferenceItem,
-  InterestItem,
-} from '@octopus-synapse/profile-contracts';
+import type { ResumeDsl, ResumeAst } from '@octopus-synapse/profile-contracts';
 import {
   Resume,
   Experience,
@@ -47,6 +39,7 @@ import {
   type ResolvedTokens,
 } from './token-resolver.service';
 import { DslMigrationService } from './migrators';
+import { SectionMapperRegistry } from './mappers';
 
 export type ResumeWithRelations = Resume & {
   experiences: Experience[];
@@ -93,11 +86,15 @@ const CURRENT_DSL_VERSION = '1.0.0';
 
 @Injectable()
 export class DslCompilerService {
+  private readonly sectionRegistry: SectionMapperRegistry;
+
   constructor(
     private validator: DslValidatorService,
     private tokenResolver: TokenResolverService,
     private migrationService: DslMigrationService,
-  ) {}
+  ) {
+    this.sectionRegistry = new SectionMapperRegistry();
+  }
 
   /**
    * Migrate DSL to current version if needed
@@ -258,19 +255,12 @@ export class DslCompilerService {
       // Map column from DSL to AST column id
       const columnId = this.mapColumnToId(section.column);
 
-      // Compile section data if resume data is available
-      let data: SectionData;
-      if (resumeData) {
-        const overrides = dsl.itemOverrides?.[section.id] ?? [];
-        const compiledData = this.compileSectionData(
-          section.id,
-          resumeData,
-          overrides,
-        );
-        data = compiledData ?? this.getPlaceholderData(section.id);
-      } else {
-        data = this.getPlaceholderData(section.id);
-      }
+      // Compile section data using registry (Strategy Pattern)
+      const overrides = dsl.itemOverrides?.[section.id] ?? [];
+      const data = resumeData
+        ? (this.sectionRegistry.mapSection(section.id, resumeData, overrides) ??
+          this.sectionRegistry.getPlaceholder(section.id))
+        : this.sectionRegistry.getPlaceholder(section.id);
 
       return {
         sectionId: section.id,
@@ -309,207 +299,6 @@ export class DslCompilerService {
         },
       };
     });
-  }
-
-  private compileSectionData(
-    sectionId: string,
-    resume: ResumeWithRelations,
-    overrides: { itemId: string; visible?: boolean; order?: number }[],
-  ): SectionData | undefined {
-    const applyOverrides = <T extends { id: string; order: number }>(
-      items: T[],
-    ): T[] => {
-      return items
-        .filter((item) => {
-          const override = overrides.find((o) => o.itemId === item.id);
-          return override?.visible !== false;
-        })
-        .map((item) => {
-          const override = overrides.find((o) => o.itemId === item.id);
-          if (override?.order !== undefined) {
-            return { ...item, order: override.order };
-          }
-          return item;
-        })
-        .sort((a, b) => a.order - b.order);
-    };
-
-    switch (sectionId) {
-      case 'experience': {
-        const items = applyOverrides(resume.experiences).map(
-          (exp): ExperienceItem => ({
-            id: exp.id,
-            title: exp.position,
-            company: exp.company,
-            location: exp.location ? { city: exp.location } : undefined,
-            dateRange: {
-              startDate: exp.startDate.toISOString(),
-              endDate: exp.endDate?.toISOString(),
-              isCurrent: exp.isCurrent,
-            },
-            description: exp.description ?? undefined,
-            achievements: [],
-            skills: exp.skills,
-          }),
-        );
-        return { type: 'experience', items };
-      }
-      case 'education': {
-        const items = applyOverrides(resume.education).map(
-          (edu): EducationItem => ({
-            id: edu.id,
-            institution: edu.institution,
-            degree: edu.degree,
-            fieldOfStudy: edu.field,
-            location: edu.location ? { city: edu.location } : undefined,
-            dateRange: {
-              startDate: edu.startDate.toISOString(),
-              endDate: edu.endDate?.toISOString(),
-              isCurrent: edu.isCurrent,
-            },
-            grade: edu.gpa ?? undefined,
-            activities: [],
-          }),
-        );
-        return { type: 'education', items };
-      }
-      case 'skills': {
-        const items = applyOverrides(resume.skills).map(
-          (skill): SkillItem => ({
-            id: skill.id,
-            name: skill.name,
-            level: this.mapSkillLevel(skill.level),
-            category: skill.category,
-          }),
-        );
-        return { type: 'skills', items };
-      }
-      case 'languages': {
-        const items = applyOverrides(resume.languages).map(
-          (lang): LanguageItem => ({
-            id: lang.id,
-            name: lang.name,
-            proficiency: lang.level,
-          }),
-        );
-        return { type: 'languages', items };
-      }
-      case 'projects': {
-        const items = applyOverrides(resume.projects).map(
-          (proj): ProjectItem => ({
-            id: proj.id,
-            name: proj.name,
-            description: proj.description ?? undefined,
-            url: proj.url ?? undefined,
-            dateRange: proj.startDate
-              ? {
-                  startDate: proj.startDate.toISOString(),
-                  endDate: proj.endDate?.toISOString(),
-                  isCurrent: proj.isCurrent,
-                }
-              : undefined,
-            technologies: proj.technologies,
-            highlights: [],
-          }),
-        );
-        return { type: 'projects', items };
-      }
-      case 'certifications': {
-        const items = applyOverrides(resume.certifications).map(
-          (cert): CertificationItem => ({
-            id: cert.id,
-            name: cert.name,
-            issuer: cert.issuer,
-            date: cert.issueDate.toISOString(),
-            url: cert.credentialUrl ?? undefined,
-          }),
-        );
-        return { type: 'certifications', items };
-      }
-      case 'awards': {
-        const items = applyOverrides(resume.awards).map(
-          (award): AwardItem => ({
-            id: award.id,
-            title: award.title,
-            issuer: award.issuer,
-            date: award.date.toISOString(),
-            description: award.description ?? undefined,
-          }),
-        );
-        return { type: 'awards', items };
-      }
-      case 'interests': {
-        const items = applyOverrides(resume.interests).map(
-          (int): InterestItem => ({
-            id: int.id,
-            name: int.name,
-            keywords: int.description ? [int.description] : [],
-          }),
-        );
-        return { type: 'interests', items };
-      }
-      case 'references': {
-        const items = applyOverrides(resume.recommendations).map(
-          (rec): ReferenceItem => ({
-            id: rec.id,
-            name: rec.author,
-            role: rec.position ?? '',
-            company: rec.company ?? undefined,
-          }),
-        );
-        return { type: 'references', items };
-      }
-      case 'summary': {
-        return {
-          type: 'summary',
-          data: { content: resume.summary ?? '' },
-        };
-      }
-      default:
-        return undefined;
-    }
-  }
-
-  private mapSkillLevel(level: number | null): string | undefined {
-    if (level === null) return undefined;
-    if (level >= 5) return 'Expert';
-    if (level >= 4) return 'Advanced';
-    if (level >= 3) return 'Intermediate';
-    if (level >= 2) return 'Elementary';
-    return 'Beginner';
-  }
-
-  private getPlaceholderData(sectionId: string): SectionData {
-    switch (sectionId) {
-      case 'experience':
-        return { type: 'experience', items: [] };
-      case 'education':
-        return { type: 'education', items: [] };
-      case 'skills':
-        return { type: 'skills', items: [] };
-      case 'languages':
-        return { type: 'languages', items: [] };
-      case 'projects':
-        return { type: 'projects', items: [] };
-      case 'certifications':
-        return { type: 'certifications', items: [] };
-      case 'awards':
-        return { type: 'awards', items: [] };
-      case 'interests':
-        return { type: 'interests', items: [] };
-      case 'references':
-        return { type: 'references', items: [] };
-      case 'summary':
-        return { type: 'summary', data: { content: '' } };
-      case 'objective':
-        return { type: 'objective', data: { content: '' } };
-      case 'volunteer':
-        return { type: 'volunteer', items: [] };
-      case 'publications':
-        return { type: 'publications', items: [] };
-      default:
-        return { type: 'custom', items: [] };
-    }
   }
 
   private mapColumnToId(column: string): string {

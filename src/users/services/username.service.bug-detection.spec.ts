@@ -11,7 +11,11 @@
 
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestException } from '@nestjs/common';
+import {
+  DomainValidationError,
+  InvalidInputError,
+  BusinessRuleError,
+} from '@octopus-synapse/profile-contracts';
 import { UsernameService } from './username.service';
 import { UsersRepository } from '../users.repository';
 import { AppLoggerService } from '../../common/logger/logger.service';
@@ -66,19 +70,19 @@ describe('UsernameService - Bug Detection', () => {
       // This test EXPOSES the bug: current code converts instead of rejecting
       await expect(
         service.updateUsername('user-123', { username: 'TestUser' }),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow(InvalidInputError);
     });
 
     it('should REJECT username with mixed case', async () => {
       await expect(
         service.updateUsername('user-123', { username: 'myUserName123' }),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow(InvalidInputError);
     });
 
     it('should REJECT username with single uppercase letter', async () => {
       await expect(
         service.updateUsername('user-123', { username: 'Username' }),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow(InvalidInputError);
     });
 
     it('should ACCEPT only lowercase username', async () => {
@@ -116,7 +120,7 @@ describe('UsernameService - Bug Detection', () => {
       it(`should REJECT reserved username: "${username}"`, async () => {
         await expect(
           service.updateUsername('user-123', { username }),
-        ).rejects.toThrow(BadRequestException);
+        ).rejects.toThrow(InvalidInputError);
       });
     });
 
@@ -143,31 +147,31 @@ describe('UsernameService - Bug Detection', () => {
     it('should REJECT username starting with number', async () => {
       await expect(
         service.updateUsername('user-123', { username: '123user' }),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow(DomainValidationError);
     });
 
     it('should REJECT username with special characters', async () => {
       await expect(
         service.updateUsername('user-123', { username: 'user@name' }),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow(DomainValidationError);
     });
 
     it('should REJECT username with spaces', async () => {
       await expect(
         service.updateUsername('user-123', { username: 'user name' }),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow(DomainValidationError);
     });
 
     it('should REJECT username with consecutive underscores', async () => {
       await expect(
         service.updateUsername('user-123', { username: 'user__name' }),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow(DomainValidationError);
     });
 
     it('should REJECT username ending with underscore', async () => {
       await expect(
         service.updateUsername('user-123', { username: 'username_' }),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow(DomainValidationError);
     });
   });
 
@@ -185,7 +189,7 @@ describe('UsernameService - Bug Detection', () => {
 
       await expect(
         service.updateUsername('user-123', { username: 'newuser' }),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow(BusinessRuleError);
     });
 
     it('should ACCEPT at exactly 30 days (boundary test)', async () => {

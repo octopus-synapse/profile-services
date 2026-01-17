@@ -3,10 +3,13 @@
  * Handles reordering of sections and items
  */
 
-import { Injectable, BadRequestException } from '@nestjs/common';
-import { ResumeConfigRepository } from './resume-config.repository';
+import { Injectable } from '@nestjs/common';
+import { ResumeConfigRepository } from '../repositories';
 import { moveItem, normalizeOrders } from '../utils';
-import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
+import {
+  ERROR_MESSAGES,
+  DomainValidationError,
+} from '@octopus-synapse/profile-contracts';
 
 @Injectable()
 export class SectionOrderingService {
@@ -22,7 +25,7 @@ export class SectionOrderingService {
 
     const idx = config.sections.findIndex((s) => s.id === sectionId);
     if (idx === -1)
-      throw new BadRequestException(ERROR_MESSAGES.SECTION_NOT_FOUND);
+      throw new DomainValidationError(ERROR_MESSAGES.SECTION_NOT_FOUND);
 
     config.sections = moveItem(config.sections, idx, newOrder);
 

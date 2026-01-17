@@ -9,7 +9,7 @@ import { SectionVisibilityService } from './section-visibility.service';
 import {
   ResumeConfigRepository,
   ResumeConfig,
-} from './resume-config.repository';
+} from '../repositories/resume-config.repository';
 
 describe('SectionVisibilityService', () => {
   let service: SectionVisibilityService;

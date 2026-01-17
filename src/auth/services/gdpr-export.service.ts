@@ -6,10 +6,15 @@
  * as required by GDPR Article 20 (Right to Data Portability)
  */
 
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import { Injectable } from '@nestjs/common';
+import { UserNotFoundError } from '@octopus-synapse/profile-contracts';
 import { AuditLogService } from '../../common/audit/audit-log.service';
 import { AuditAction } from '@prisma/client';
+import {
+  AuthUserRepository,
+  UserConsentRepository,
+  GdprRepository,
+} from '../repositories';
 import type { Request } from 'express';
 
 export interface GdprExportData {
@@ -59,7 +64,9 @@ export interface GdprExportData {
 @Injectable()
 export class GdprExportService {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly userRepo: AuthUserRepository,
+    private readonly consentRepo: UserConsentRepository,
+    private readonly gdprRepo: GdprRepository,
     private readonly auditLog: AuditLogService,
   ) {}
 
@@ -71,21 +78,10 @@ export class GdprExportService {
     request?: Request,
   ): Promise<GdprExportData> {
     // Verify user exists
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        username: true,
-        hasCompletedOnboarding: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
+    const user = await this.userRepo.findByIdForExport(userId);
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new UserNotFoundError(userId);
     }
 
     // Fetch all related data in parallel
@@ -122,17 +118,7 @@ export class GdprExportService {
   }
 
   private async getUserConsents(userId: string) {
-    const consents = await this.prisma.userConsent.findMany({
-      where: { userId },
-      select: {
-        documentType: true,
-        version: true,
-        acceptedAt: true,
-        ipAddress: true,
-        userAgent: true,
-      },
-      orderBy: { acceptedAt: 'desc' },
-    });
+    const consents = await this.consentRepo.findAllByUserIdForExport(userId);
 
     return consents.map((c) => ({
       ...c,
@@ -141,18 +127,8 @@ export class GdprExportService {
   }
 
   private async getUserResumes(userId: string) {
-    const resumes = await this.prisma.resume.findMany({
-      where: { userId },
-      include: {
-        experiences: true,
-        education: true,
-        skills: true,
-        projects: true,
-        certifications: true,
-        languages: true,
-        openSource: true,
-      },
-    });
+    const resumes =
+      await this.gdprRepo.findResumesWithRelationsForExport(userId);
 
     return resumes.map((r) => ({
       id: r.id,
@@ -219,18 +195,7 @@ export class GdprExportService {
   }
 
   private async getUserAuditLogs(userId: string) {
-    const logs = await this.prisma.auditLog.findMany({
-      where: { userId },
-      select: {
-        action: true,
-        entityType: true,
-        entityId: true,
-        createdAt: true,
-        ipAddress: true,
-      },
-      orderBy: { createdAt: 'desc' },
-      take: 1000, // Limit to last 1000 entries
-    });
+    const logs = await this.gdprRepo.findAuditLogsForExport(userId);
 
     return logs.map((l) => ({
       ...l,

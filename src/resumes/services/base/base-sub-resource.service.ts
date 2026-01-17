@@ -1,4 +1,4 @@
-import { ForbiddenException, Logger, NotFoundException } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { ResumesRepository } from '../../resumes.repository';
 import type { ISubResourceRepository } from '../../interfaces/base-sub-resource.interface';
 import type { PaginatedResult } from '@octopus-synapse/profile-contracts';
@@ -7,7 +7,10 @@ import {
   DataResponse,
   MessageResponse,
 } from '../../../common/dto/api-response.dto';
-import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
+import {
+  ResumeNotFoundError,
+  ResourceOwnershipError,
+} from '@octopus-synapse/profile-contracts';
 
 /**
  * Abstract base service for resume sub-resources
@@ -44,7 +47,7 @@ export abstract class BaseSubResourceService<T, Create, Update> {
 
   /**
    * Validates that the user owns the resume
-   * Throws ForbiddenException if the user doesn't have access
+   * @throws {ResourceOwnershipError} if the user doesn't have access
    * Logs unauthorized access attempts for security auditing
    */
   protected async validateResumeOwnership(
@@ -62,7 +65,7 @@ export abstract class BaseSubResourceService<T, Create, Update> {
         resumeId,
         timestamp: new Date().toISOString(),
       });
-      throw new ForbiddenException(ERROR_MESSAGES.RESUME_ACCESS_DENIED);
+      throw new ResourceOwnershipError('resume', resumeId);
     }
   }
 
@@ -81,7 +84,7 @@ export abstract class BaseSubResourceService<T, Create, Update> {
 
   /**
    * Get a single entity by its ID
-   * Throws NotFoundException if not found
+   * @throws {ResumeNotFoundError} if the entity is not found
    */
   async getEntityByIdForResume(
     resumeId: string,
@@ -94,7 +97,7 @@ export abstract class BaseSubResourceService<T, Create, Update> {
       resumeId,
     );
     if (!foundEntity) {
-      throw new NotFoundException(`${this.entityName} not found`);
+      throw new ResumeNotFoundError(resumeId);
     }
     return ApiResponseHelper.success(foundEntity);
   }
@@ -118,7 +121,7 @@ export abstract class BaseSubResourceService<T, Create, Update> {
 
   /**
    * Update an existing entity by its ID
-   * Throws NotFoundException if not found
+   * @throws {ResumeNotFoundError} if the entity is not found
    */
   async updateEntityByIdForResume(
     resumeId: string,
@@ -133,7 +136,7 @@ export abstract class BaseSubResourceService<T, Create, Update> {
       updateData,
     );
     if (!updatedEntity) {
-      throw new NotFoundException(`${this.entityName} not found`);
+      throw new ResumeNotFoundError(resumeId);
     }
     this.logger.log(`Updated ${this.entityName}: ${entityId}`);
     return ApiResponseHelper.success(updatedEntity);
@@ -141,7 +144,7 @@ export abstract class BaseSubResourceService<T, Create, Update> {
 
   /**
    * Delete an entity by its ID
-   * Throws NotFoundException if not found
+   * @throws {ResumeNotFoundError} if the entity is not found
    */
   async deleteEntityByIdForResume(
     resumeId: string,
@@ -154,7 +157,7 @@ export abstract class BaseSubResourceService<T, Create, Update> {
       resumeId,
     );
     if (!wasEntityDeleted) {
-      throw new NotFoundException(`${this.entityName} not found`);
+      throw new ResumeNotFoundError(resumeId);
     }
     this.logger.log(`Deleted ${this.entityName}: ${entityId}`);
     return ApiResponseHelper.message(`${this.entityName} deleted successfully`);
