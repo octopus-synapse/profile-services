@@ -301,9 +301,9 @@ describe('Auth Flow Integration', () => {
         .post('/api/v1/auth/reset-password')
         .send({
           token: 'invalid-token-xyz',
-          newPassword: 'NewPass123!',
+          password: 'NewPass123!',
         })
-        .expect(400);
+        .expect(401);
     });
   });
 
