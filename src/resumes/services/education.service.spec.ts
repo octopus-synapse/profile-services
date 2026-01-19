@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, mock, spyOn } from 'bun:test';
 import { createMockResume } from '../../../test/factories/resume.factory';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Logger } from '@nestjs/common';
+import { ResourceNotFoundError } from '@octopus-synapse/profile-contracts';
 import { EducationService } from './education.service';
 import { EducationRepository } from '../repositories/education.repository';
 import { ResumesRepository } from '../resumes.repository';
@@ -117,7 +118,7 @@ describe('EducationService', () => {
       ).toHaveBeenCalledWith('edu-123', 'resume-123');
     });
 
-    it('should throw NotFoundException when not found', async () => {
+    it('should throw ResourceNotFoundError when not found', async () => {
       resumesRepository.findResumeByIdAndUserId.mockResolvedValue(
         mockResume as any,
       );
@@ -125,7 +126,7 @@ describe('EducationService', () => {
 
       await expect(
         service.getEntityByIdForResume('resume-123', 'invalid-id', 'user-123'),
-      ).rejects.toThrow('Education not found');
+      ).rejects.toThrow(ResourceNotFoundError);
     });
   });
 

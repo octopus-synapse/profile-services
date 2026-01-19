@@ -9,19 +9,19 @@
  * dynamically via AuthorizationService.
  */
 
+import { Injectable } from '@nestjs/common';
 import {
-  Injectable,
-  ConflictException,
-  UnauthorizedException,
-} from '@nestjs/common';
-import { User, Prisma } from '@prisma/client';
-import { PrismaService } from '../../prisma/prisma.service';
+  AuthenticationError,
+  EmailConflictError,
+} from '@octopus-synapse/profile-contracts';
+import { User } from '@prisma/client';
 import { AppLoggerService } from '../../common/logger/logger.service';
 import type { RegisterCredentials as Signup } from '@octopus-synapse/profile-contracts';
 import type { LoginCredentials as Login } from '@octopus-synapse/profile-contracts';
 import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
 import { TokenService } from './token.service';
 import { PasswordService } from './password.service';
+import { AuthUserRepository } from '../repositories';
 
 type ValidatedUser = Omit<User, 'password'>;
 
@@ -30,7 +30,7 @@ export class AuthCoreService {
   private readonly context = 'AuthCoreService';
 
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly userRepo: AuthUserRepository,
     private readonly logger: AppLoggerService,
     private readonly tokenService: TokenService,
     private readonly passwordService: PasswordService,
@@ -41,29 +41,23 @@ export class AuthCoreService {
 
     const hashedPassword = await this.passwordService.hash(password);
 
-    // BUG-001 FIX: Use try-catch with Prisma unique constraint error handling
+    // BUG-001 FIX: Use try-catch with unique constraint error handling
     // instead of check-then-create (TOCTOU vulnerable)
     let createdUser: User;
     try {
-      const userCreationData = {
+      createdUser = await this.userRepo.create({
         email,
         name: name ?? email.split('@')[0],
         password: hashedPassword,
         hasCompletedOnboarding: false,
-      };
-      createdUser = await this.prisma.user.create({
-        data: userCreationData,
       });
     } catch (error) {
       // Handle unique constraint violation (P2002)
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === 'P2002'
-      ) {
+      if (this.userRepo.isUniqueConstraintError(error)) {
         this.logger.warn(`Signup attempt for existing email`, this.context, {
           email,
         });
-        throw new ConflictException(ERROR_MESSAGES.EMAIL_ALREADY_EXISTS);
+        throw new EmailConflictError(email);
       }
       throw error;
     }
@@ -91,7 +85,7 @@ export class AuthCoreService {
     email: string,
     password: string,
   ): Promise<ValidatedUser | null> {
-    const foundUser = await this.prisma.user.findUnique({ where: { email } });
+    const foundUser = await this.userRepo.findByEmail(email);
 
     if (!foundUser?.password) {
       this.logger.warn(`Failed login attempt - user not found`, this.context, {
@@ -126,11 +120,11 @@ export class AuthCoreService {
     );
 
     if (!validatedUser) {
-      throw new UnauthorizedException(ERROR_MESSAGES.INVALID_CREDENTIALS);
+      throw new AuthenticationError(ERROR_MESSAGES.INVALID_CREDENTIALS);
     }
 
     if (!validatedUser.email) {
-      throw new UnauthorizedException(ERROR_MESSAGES.INVALID_CREDENTIALS);
+      throw new AuthenticationError(ERROR_MESSAGES.INVALID_CREDENTIALS);
     }
 
     const accessTokenPayload = {

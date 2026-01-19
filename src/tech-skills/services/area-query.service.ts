@@ -4,15 +4,15 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
 import { CacheService } from '../../common/cache/cache.service';
 import { TECH_SKILLS_CACHE_KEYS, TECH_SKILLS_CACHE_TTL } from '../interfaces';
+import { TechSkillsRepository } from '../repositories';
 import type { TechArea } from '../dtos';
 
 @Injectable()
 export class TechAreaQueryService {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly techSkillsRepo: TechSkillsRepository,
     private readonly cache: CacheService,
   ) {}
 
@@ -25,21 +25,7 @@ export class TechAreaQueryService {
     const cached = await this.cache.get<TechArea[]>(cacheKey);
     if (cached) return cached;
 
-    const areas = await this.prisma.techArea.findMany({
-      where: { isActive: true },
-      orderBy: { order: 'asc' },
-      select: {
-        id: true,
-        type: true,
-        nameEn: true,
-        namePtBr: true,
-        descriptionEn: true,
-        descriptionPtBr: true,
-        icon: true,
-        color: true,
-        order: true,
-      },
-    });
+    const areas = await this.techSkillsRepo.findAllActiveAreas();
 
     await this.cache.set(cacheKey, areas, TECH_SKILLS_CACHE_TTL.AREAS_LIST);
     return areas as TechArea[];

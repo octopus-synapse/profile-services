@@ -9,7 +9,7 @@
 
 import { Injectable } from '@nestjs/common';
 import { ActivityType } from '@prisma/client';
-import { PrismaService } from '../../prisma/prisma.service';
+import { SocialRepository } from '../repositories/social.repository';
 import {
   FollowService,
   PaginationParams,
@@ -41,7 +41,7 @@ export interface ActivityWithUser {
 @Injectable()
 export class ActivityService {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly repository: SocialRepository,
     private readonly followService: FollowService,
     private readonly logger: AppLoggerService,
   ) {}
@@ -56,14 +56,12 @@ export class ActivityService {
     entityId?: string,
     entityType?: string,
   ): Promise<ActivityWithUser> {
-    const activity = await this.prisma.activity.create({
-      data: {
-        userId,
-        type,
-        metadata: metadata ?? undefined,
-        entityId,
-        entityType,
-      },
+    const activity = await this.repository.createActivity({
+      userId,
+      type,
+      metadata,
+      entityId,
+      entityType,
     });
 
     this.logger.debug(
@@ -99,26 +97,11 @@ export class ActivityService {
     }
 
     const [data, total] = await Promise.all([
-      this.prisma.activity.findMany({
-        where: { userId: { in: followingIds } },
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              username: true,
-              displayName: true,
-              photoURL: true,
-            },
-          },
-        },
-        orderBy: { createdAt: 'desc' },
-        skip,
-        take: limit,
-      }),
-      this.prisma.activity.count({
-        where: { userId: { in: followingIds } },
-      }),
+      this.repository.findActivitiesWithPagination(
+        { where: { userId: { in: followingIds } }, skip, take: limit },
+        true,
+      ),
+      this.repository.countActivities({ userId: { in: followingIds } }),
     ]);
 
     return {
@@ -141,17 +124,12 @@ export class ActivityService {
     const skip = (page - 1) * limit;
 
     const [data, total] = await Promise.all([
-      this.prisma.activity.findMany({
-        where: { userId },
-        orderBy: { createdAt: 'desc' },
-        skip,
-        take: limit,
-      }),
-      this.prisma.activity.count({
-        where: { userId },
-      }),
+      this.repository.findActivitiesWithPagination(
+        { where: { userId }, skip, take: limit },
+        false,
+      ),
+      this.repository.countActivities({ userId }),
     ]);
-
     return {
       data: data as ActivityWithUser[],
       total,
@@ -173,15 +151,11 @@ export class ActivityService {
     const skip = (page - 1) * limit;
 
     const [data, total] = await Promise.all([
-      this.prisma.activity.findMany({
-        where: { userId, type },
-        orderBy: { createdAt: 'desc' },
-        skip,
-        take: limit,
-      }),
-      this.prisma.activity.count({
-        where: { userId, type },
-      }),
+      this.repository.findActivitiesWithPagination(
+        { where: { userId, type }, skip, take: limit },
+        false,
+      ),
+      this.repository.countActivities({ userId, type }),
     ]);
 
     return {
@@ -201,13 +175,7 @@ export class ActivityService {
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - days);
 
-    const result = await this.prisma.activity.deleteMany({
-      where: {
-        createdAt: {
-          lt: cutoffDate,
-        },
-      },
-    });
+    const result = await this.repository.deleteActivitiesOlderThan(cutoffDate);
 
     this.logger.log(
       `Deleted ${result.count} activities older than ${days} days`,

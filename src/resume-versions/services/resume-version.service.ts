@@ -1,64 +1,40 @@
+import { Injectable } from '@nestjs/common';
 import {
-  Injectable,
-  ForbiddenException,
-  NotFoundException,
-} from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+  ResumeNotFoundError,
+  ResourceNotFoundError,
+  ResourceOwnershipError,
+} from '@octopus-synapse/profile-contracts';
+import { ResumeVersionRepository } from '../repositories';
 
 @Injectable()
 export class ResumeVersionService {
   private readonly MAX_VERSIONS = 30;
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly repository: ResumeVersionRepository) {}
 
   async createSnapshot(resumeId: string, label?: string) {
     // Get full resume data
-    const resume = await this.prisma.resume.findUnique({
-      where: { id: resumeId },
-      include: {
-        experiences: true,
-        education: true,
-        skills: true,
-        languages: true,
-        projects: true,
-        certifications: true,
-        awards: true,
-        recommendations: true,
-        interests: true,
-        achievements: true,
-        publications: true,
-        talks: true,
-        openSource: true,
-        bugBounties: true,
-        hackathons: true,
-      },
-    });
+    const resume = await this.repository.findResumeWithAllRelations(resumeId);
 
     if (!resume) {
-      throw new NotFoundException('Resume not found');
+      throw new ResumeNotFoundError(resumeId);
     }
 
     // Get next version number
-    const lastVersion = await this.prisma.resumeVersion.findFirst({
-      where: { resumeId },
-      orderBy: { versionNumber: 'desc' },
-      select: { versionNumber: true },
-    });
+    const lastVersion = await this.repository.findLastVersion(resumeId);
 
     const versionNumber = (lastVersion?.versionNumber ?? 0) + 1;
 
     // Create version
-    const version = await this.prisma.resumeVersion.create({
-      data: {
-        resumeId,
-        versionNumber,
-        snapshot: resume as never,
-        label,
-      },
+    const version = await this.repository.create({
+      resumeId,
+      versionNumber,
+      snapshot: resume,
+      label,
     });
 
     // Cleanup old versions (keep last 30)
-    await this.cleanupOldVersions(resumeId);
+    await this.repository.deleteOldVersions(resumeId, this.MAX_VERSIONS);
 
     return version;
   }
@@ -67,16 +43,7 @@ export class ResumeVersionService {
     // Verify ownership
     await this.verifyOwnership(resumeId, userId);
 
-    return this.prisma.resumeVersion.findMany({
-      where: { resumeId },
-      orderBy: { versionNumber: 'desc' },
-      select: {
-        id: true,
-        versionNumber: true,
-        label: true,
-        createdAt: true,
-      },
-    });
+    return this.repository.findAllByResumeId(resumeId);
   }
 
   async restoreVersion(resumeId: string, versionId: string, userId: string) {
@@ -84,12 +51,10 @@ export class ResumeVersionService {
     await this.verifyOwnership(resumeId, userId);
 
     // Get version
-    const version = await this.prisma.resumeVersion.findUnique({
-      where: { id: versionId },
-    });
+    const version = await this.repository.findById(versionId);
 
     if (!version?.resumeId || version.resumeId !== resumeId) {
-      throw new NotFoundException('Version not found');
+      throw new ResourceNotFoundError('version', versionId);
     }
 
     // Create a snapshot of current state before restore
@@ -106,43 +71,20 @@ export class ResumeVersionService {
       ...resumeData
     } = snapshot;
 
-    await this.prisma.resume.update({
-      where: { id: resumeId },
-      data: resumeData as never,
-    });
+    await this.repository.updateResume(resumeId, resumeData);
 
     return { success: true, restoredFrom: version.createdAt };
   }
 
   private async verifyOwnership(resumeId: string, userId: string) {
-    const resume = await this.prisma.resume.findUnique({
-      where: { id: resumeId },
-      select: { userId: true },
-    });
+    const resume = await this.repository.findResumeOwner(resumeId);
 
     if (!resume) {
-      throw new NotFoundException('Resume not found');
+      throw new ResumeNotFoundError(resumeId);
     }
 
     if (resume.userId !== userId) {
-      throw new ForbiddenException('Not authorized to access this resume');
-    }
-  }
-
-  private async cleanupOldVersions(resumeId: string) {
-    const versions = await this.prisma.resumeVersion.findMany({
-      where: { resumeId },
-      orderBy: { versionNumber: 'desc' },
-      select: { id: true },
-    });
-
-    if (versions.length > this.MAX_VERSIONS) {
-      const toDelete = versions.slice(this.MAX_VERSIONS);
-      await this.prisma.resumeVersion.deleteMany({
-        where: {
-          id: { in: toDelete.map((v) => v.id) },
-        },
-      });
+      throw new ResourceOwnershipError('resume', resumeId);
     }
   }
 }

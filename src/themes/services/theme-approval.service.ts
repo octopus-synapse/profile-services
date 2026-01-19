@@ -8,18 +8,18 @@
  * Required permission: theme:approve
  */
 
-import {
-  Injectable,
-  ForbiddenException,
-  BadRequestException,
-  UnprocessableEntityException,
-} from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import { Injectable } from '@nestjs/common';
 import { ThemeStatus } from '@prisma/client';
 import type { ReviewTheme } from '@octopus-synapse/profile-contracts';
 import { ThemeCrudService } from './theme-crud.service';
-import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
+import {
+  ERROR_MESSAGES,
+  ResourceOwnershipError,
+  PermissionDeniedError,
+  BusinessRuleError,
+} from '@octopus-synapse/profile-contracts';
 import { AuthorizationService } from '../../authorization';
+import { ThemeRepository } from '../repositories';
 
 /** Maximum number of times a theme can be resubmitted after rejection */
 const MAX_RESUBMISSIONS = 2;
@@ -27,16 +27,16 @@ const MAX_RESUBMISSIONS = 2;
 @Injectable()
 export class ThemeApprovalService {
   constructor(
-    private prisma: PrismaService,
-    private crud: ThemeCrudService,
-    private authorizationService: AuthorizationService,
+    private readonly themeRepository: ThemeRepository,
+    private readonly crud: ThemeCrudService,
+    private readonly authorizationService: AuthorizationService,
   ) {}
 
   async submitForApproval(userId: string, themeId: string) {
     const theme = await this.crud.findThemeByIdOrThrow(themeId);
 
     if (theme.authorId !== userId) {
-      throw new ForbiddenException(ERROR_MESSAGES.CAN_ONLY_SUBMIT_OWN_THEMES);
+      throw new ResourceOwnershipError('theme', themeId);
     }
 
     const validStatuses: ThemeStatus[] = [
@@ -44,7 +44,7 @@ export class ThemeApprovalService {
       ThemeStatus.REJECTED,
     ];
     if (!validStatuses.includes(theme.status)) {
-      throw new BadRequestException(
+      throw new BusinessRuleError(
         ERROR_MESSAGES.THEME_MUST_BE_PRIVATE_OR_REJECTED,
       );
     }
@@ -53,15 +53,15 @@ export class ThemeApprovalService {
     if (theme.status === ThemeStatus.REJECTED) {
       const rejectionCount = theme.rejectionCount;
       if (rejectionCount >= MAX_RESUBMISSIONS) {
-        throw new UnprocessableEntityException(
+        throw new BusinessRuleError(
           ERROR_MESSAGES.THEME_RESUBMISSION_LIMIT_REACHED,
         );
       }
     }
 
-    return this.prisma.resumeTheme.update({
-      where: { id: themeId },
-      data: { status: ThemeStatus.PENDING_APPROVAL, rejectionReason: null },
+    return this.themeRepository.update(themeId, {
+      status: ThemeStatus.PENDING_APPROVAL,
+      rejectionReason: null,
     });
   }
 
@@ -71,10 +71,10 @@ export class ThemeApprovalService {
     const theme = await this.crud.findThemeByIdOrThrow(dto.themeId);
 
     if (theme.status !== ThemeStatus.PENDING_APPROVAL) {
-      throw new BadRequestException(ERROR_MESSAGES.THEME_NOT_PENDING_APPROVAL);
+      throw new BusinessRuleError(ERROR_MESSAGES.THEME_NOT_PENDING_APPROVAL);
     }
     if (theme.authorId === approverId) {
-      throw new ForbiddenException(ERROR_MESSAGES.CANNOT_APPROVE_OWN_THEMES);
+      throw new PermissionDeniedError(ERROR_MESSAGES.CANNOT_APPROVE_OWN_THEMES);
     }
 
     if (dto.approved) {
@@ -86,41 +86,31 @@ export class ThemeApprovalService {
   async getPendingApprovals(approverId: string) {
     await this.assertIsApprover(approverId);
 
-    return this.prisma.resumeTheme.findMany({
-      where: { status: ThemeStatus.PENDING_APPROVAL },
-      orderBy: { createdAt: 'asc' },
-      include: { author: { select: { id: true, name: true, email: true } } },
-    });
+    return this.themeRepository.findManyByStatus(ThemeStatus.PENDING_APPROVAL);
   }
 
   private async approve(themeId: string, approverId: string) {
-    return this.prisma.resumeTheme.update({
-      where: { id: themeId },
-      data: {
-        status: ThemeStatus.PUBLISHED,
-        approvedById: approverId,
-        approvedAt: new Date(),
-        publishedAt: new Date(),
-        rejectionReason: null,
-      },
+    return this.themeRepository.update(themeId, {
+      status: ThemeStatus.PUBLISHED,
+      approvedById: approverId,
+      approvedAt: new Date(),
+      publishedAt: new Date(),
+      rejectionReason: null,
     });
   }
 
   private async reject(themeId: string, approverId: string, reason?: string) {
     if (!reason) {
-      throw new BadRequestException(ERROR_MESSAGES.REJECTION_REASON_REQUIRED);
+      throw new BusinessRuleError(ERROR_MESSAGES.REJECTION_REASON_REQUIRED);
     }
 
     // BUG-007 FIX: Increment rejection count on reject
-    return this.prisma.resumeTheme.update({
-      where: { id: themeId },
-      data: {
-        status: ThemeStatus.REJECTED,
-        approvedById: approverId,
-        approvedAt: new Date(),
-        rejectionReason: reason,
-        rejectionCount: { increment: 1 }, // BUG-007 FIX
-      },
+    return this.themeRepository.update(themeId, {
+      status: ThemeStatus.REJECTED,
+      approvedById: approverId,
+      approvedAt: new Date(),
+      rejectionReason: reason,
+      rejectionCount: { increment: 1 }, // BUG-007 FIX
     });
   }
 
@@ -132,7 +122,7 @@ export class ThemeApprovalService {
     );
 
     if (!hasPermission) {
-      throw new ForbiddenException('Only approvers can perform this action');
+      throw new PermissionDeniedError('Only approvers can perform this action');
     }
   }
 }

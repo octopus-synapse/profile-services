@@ -14,6 +14,9 @@ import { Module } from '@nestjs/common';
 import { PrismaModule } from '../prisma/prisma.module';
 import { LoggerModule } from '../common/logger/logger.module';
 
+// Repositories
+import { SocialRepository } from './repositories/social.repository';
+
 // Services
 import { FollowService } from './services/follow.service';
 import { ActivityService } from './services/activity.service';
@@ -25,7 +28,7 @@ import { ActivityController } from './controllers/activity.controller';
 @Module({
   imports: [PrismaModule, LoggerModule],
   controllers: [FollowController, ActivityController],
-  providers: [FollowService, ActivityService],
+  providers: [SocialRepository, FollowService, ActivityService],
   exports: [FollowService, ActivityService],
 })
 export class SocialModule {}

@@ -10,19 +10,20 @@
 
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
-import { UnauthorizedException } from '@nestjs/common';
+import {
+  InvalidTokenError,
+  AuthenticationError,
+} from '@octopus-synapse/profile-contracts';
 import { TokenRefreshService } from './token-refresh.service';
-import { PrismaService } from '../../prisma/prisma.service';
+import { AuthUserRepository } from '../repositories/auth-user.repository';
 import { AppLoggerService } from '../../common/logger/logger.service';
 import { TokenService } from './token.service';
 import { TokenBlacklistService } from './token-blacklist.service';
 
 describe('TokenRefreshService', () => {
   let service: TokenRefreshService;
-  let fakePrisma: {
-    user: {
-      findUnique: ReturnType<typeof mock>;
-    };
+  let fakeAuthUserRepository: {
+    findById: ReturnType<typeof mock>;
   };
   let fakeTokenService: {
     generateToken: ReturnType<typeof mock>;
@@ -49,10 +50,8 @@ describe('TokenRefreshService', () => {
   };
 
   beforeEach(async () => {
-    fakePrisma = {
-      user: {
-        findUnique: mock(() => null),
-      },
+    fakeAuthUserRepository = {
+      findById: mock(() => null),
     };
 
     fakeTokenService = {
@@ -74,7 +73,7 @@ describe('TokenRefreshService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TokenRefreshService,
-        { provide: PrismaService, useValue: fakePrisma },
+        { provide: AuthUserRepository, useValue: fakeAuthUserRepository },
         { provide: AppLoggerService, useValue: fakeLogger },
         { provide: TokenService, useValue: fakeTokenService },
         { provide: TokenBlacklistService, useValue: fakeTokenBlacklist },
@@ -85,17 +84,17 @@ describe('TokenRefreshService', () => {
   });
 
   describe('refreshToken', () => {
-    it('should throw UnauthorizedException when user not found', async () => {
-      fakePrisma.user.findUnique.mockReturnValue(null);
+    it('should throw AuthenticationError when user not found', async () => {
+      fakeAuthUserRepository.findById.mockReturnValue(null);
 
       await expect(service.refreshToken('user-123')).rejects.toThrow(
-        UnauthorizedException,
+        AuthenticationError,
       );
       expect(fakeLogger.warn).toHaveBeenCalled();
     });
 
     it('should generate new tokens for valid user', async () => {
-      fakePrisma.user.findUnique.mockReturnValue(testUser);
+      fakeAuthUserRepository.findById.mockReturnValue(testUser);
 
       const result = await service.refreshToken('user-123');
 
@@ -107,17 +106,17 @@ describe('TokenRefreshService', () => {
   });
 
   describe('refreshWithToken', () => {
-    it('should throw UnauthorizedException for invalid token', async () => {
+    it('should throw InvalidTokenError for invalid token', async () => {
       fakeTokenService.verifyToken.mockImplementation(() => {
         throw new Error('Invalid token');
       });
 
       await expect(service.refreshWithToken('invalid-token')).rejects.toThrow(
-        UnauthorizedException,
+        InvalidTokenError,
       );
     });
 
-    it('should throw UnauthorizedException when token is revoked (BUG-023/055/056/057)', async () => {
+    it('should throw InvalidTokenError when token is revoked (BUG-023/055/056/057)', async () => {
       fakeTokenService.verifyToken.mockReturnValue({
         sub: 'user-123',
         email: 'test@example.com',
@@ -126,7 +125,7 @@ describe('TokenRefreshService', () => {
       fakeTokenBlacklist.isTokenRevokedForUser.mockResolvedValue(true);
 
       await expect(service.refreshWithToken('revoked-token')).rejects.toThrow(
-        UnauthorizedException,
+        InvalidTokenError,
       );
     });
 
@@ -137,7 +136,7 @@ describe('TokenRefreshService', () => {
         iat: Math.floor(Date.now() / 1000),
       });
       fakeTokenBlacklist.isTokenRevokedForUser.mockResolvedValue(false);
-      fakePrisma.user.findUnique.mockReturnValue(testUser);
+      fakeAuthUserRepository.findById.mockReturnValue(testUser);
 
       const result = await service.refreshWithToken('valid-token');
 
@@ -148,16 +147,16 @@ describe('TokenRefreshService', () => {
   });
 
   describe('getCurrentUser', () => {
-    it('should throw UnauthorizedException when user not found', async () => {
-      fakePrisma.user.findUnique.mockReturnValue(null);
+    it('should throw AuthenticationError when user not found', async () => {
+      fakeAuthUserRepository.findById.mockReturnValue(null);
 
       await expect(service.getCurrentUser('user-123')).rejects.toThrow(
-        UnauthorizedException,
+        AuthenticationError,
       );
     });
 
     it('should return user data on success', async () => {
-      fakePrisma.user.findUnique.mockReturnValue(testUser);
+      fakeAuthUserRepository.findById.mockReturnValue(testUser);
 
       const result = await service.getCurrentUser('user-123');
 

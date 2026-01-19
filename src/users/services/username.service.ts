@@ -3,16 +3,17 @@
  * Handles username operations with cooldown
  */
 
-import {
-  Injectable,
-  NotFoundException,
-  ConflictException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { UsersRepository } from '../users.repository';
 import type { UpdateUsername } from '@octopus-synapse/profile-contracts';
 import { AppLoggerService } from '../../common/logger/logger.service';
-import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
+import {
+  ERROR_MESSAGES,
+  UserNotFoundError,
+  UsernameConflictError,
+  BusinessRuleError,
+  InvalidInputError,
+} from '@octopus-synapse/profile-contracts';
 
 const USERNAME_UPDATE_COOLDOWN_DAYS = 30;
 
@@ -70,7 +71,7 @@ export class UsernameService {
   async updateUsername(userId: string, updateUsername: UpdateUsername) {
     const existingUser = await this.usersRepository.findUserById(userId);
     if (!existingUser) {
-      throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
+      throw new UserNotFoundError(userId);
     }
 
     const { username: newUsername } = updateUsername;
@@ -131,8 +132,9 @@ export class UsernameService {
 
     if (daysSinceLastUpdate < USERNAME_UPDATE_COOLDOWN_DAYS) {
       const daysRemaining = USERNAME_UPDATE_COOLDOWN_DAYS - daysSinceLastUpdate;
-      throw new BadRequestException(
+      throw new BusinessRuleError(
         `You can only change your username once every ${USERNAME_UPDATE_COOLDOWN_DAYS} days. Please wait ${daysRemaining} more day(s).`,
+        { daysRemaining, cooldownDays: USERNAME_UPDATE_COOLDOWN_DAYS },
       );
     }
   }
@@ -146,7 +148,7 @@ export class UsernameService {
       userId,
     );
     if (isTaken) {
-      throw new ConflictException(ERROR_MESSAGES.USERNAME_ALREADY_IN_USE);
+      throw new UsernameConflictError(username);
     }
   }
 
@@ -160,22 +162,29 @@ export class UsernameService {
   private validateUsernameFormat(username: string): void {
     // BUG-001: REJECT uppercase usernames
     if (username !== username.toLowerCase()) {
-      throw new BadRequestException(ERROR_MESSAGES.USERNAME_MUST_BE_LOWERCASE);
+      throw new InvalidInputError(
+        'username',
+        ERROR_MESSAGES.USERNAME_MUST_BE_LOWERCASE,
+      );
     }
 
     // BUG-002: Validate reserved usernames
     if (RESERVED_USERNAMES.has(username.toLowerCase())) {
-      throw new BadRequestException(ERROR_MESSAGES.USERNAME_RESERVED);
+      throw new InvalidInputError('username', ERROR_MESSAGES.USERNAME_RESERVED);
     }
 
     // BUG-003: Validate format (starts with letter, lowercase only)
     if (!USERNAME_REGEX.test(username)) {
-      throw new BadRequestException(ERROR_MESSAGES.USERNAME_INVALID_FORMAT);
+      throw new InvalidInputError(
+        'username',
+        ERROR_MESSAGES.USERNAME_INVALID_FORMAT,
+      );
     }
 
     // Additional check for consecutive underscores or trailing underscore
     if (username.includes('__') || username.endsWith('_')) {
-      throw new BadRequestException(
+      throw new InvalidInputError(
+        'username',
         ERROR_MESSAGES.USERNAME_INVALID_UNDERSCORES,
       );
     }

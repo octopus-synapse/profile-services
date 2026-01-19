@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { PrismaService } from '../../prisma/prisma.service';
+import { UserConsentRepository } from '../repositories';
 import { ConsentDocumentType } from '@prisma/client';
 
 export interface RecordAcceptanceDto {
@@ -12,7 +12,7 @@ export interface RecordAcceptanceDto {
 @Injectable()
 export class TosAcceptanceService {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly userConsentRepository: UserConsentRepository,
     private readonly config: ConfigService,
   ) {}
 
@@ -28,15 +28,13 @@ export class TosAcceptanceService {
   ): Promise<boolean> {
     const currentVersion = this.getCurrentVersion(documentType);
 
-    const acceptance = await this.prisma.userConsent.findFirst({
-      where: {
-        userId,
-        documentType,
-        version: currentVersion,
-      },
-    });
+    // NOTE: Repository findByDocumentType returns most recent, check version match
+    const acceptance = await this.userConsentRepository.findByDocumentType(
+      userId,
+      documentType,
+    );
 
-    return acceptance !== null;
+    return acceptance?.version === currentVersion;
   }
 
   /**
@@ -48,14 +46,12 @@ export class TosAcceptanceService {
   async recordAcceptance(userId: string, dto: RecordAcceptanceDto) {
     const currentVersion = this.getCurrentVersion(dto.documentType);
 
-    return this.prisma.userConsent.create({
-      data: {
-        userId,
-        documentType: dto.documentType,
-        version: currentVersion,
-        ipAddress: dto.ipAddress,
-        userAgent: dto.userAgent,
-      },
+    return this.userConsentRepository.create({
+      userId,
+      documentType: dto.documentType,
+      version: currentVersion,
+      ipAddress: dto.ipAddress,
+      userAgent: dto.userAgent,
     });
   }
 
@@ -65,10 +61,7 @@ export class TosAcceptanceService {
    * @returns Array of consent records, ordered by most recent first
    */
   async getAcceptanceHistory(userId: string) {
-    return this.prisma.userConsent.findMany({
-      where: { userId },
-      orderBy: { acceptedAt: 'desc' },
-    });
+    return this.userConsentRepository.findAllByUserId(userId);
   }
 
   /**

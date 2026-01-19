@@ -1,21 +1,23 @@
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TosAcceptanceService } from './tos-acceptance.service';
-import { PrismaService } from '../../prisma/prisma.service';
+import { UserConsentRepository } from '../repositories/user-consent.repository';
 import { ConfigService } from '@nestjs/config';
 
 describe('TosAcceptanceService', () => {
   let service: TosAcceptanceService;
-  let prisma: any;
+  let userConsentRepository: {
+    findByDocumentType: ReturnType<typeof mock>;
+    create: ReturnType<typeof mock>;
+    findAllByUserId: ReturnType<typeof mock>;
+  };
   let config: any;
 
   beforeEach(async () => {
-    prisma = {
-      userConsent: {
-        findFirst: mock(),
-        create: mock(),
-        findMany: mock(),
-      },
+    userConsentRepository = {
+      findByDocumentType: mock(() => Promise.resolve(null)),
+      create: mock(() => Promise.resolve({})),
+      findAllByUserId: mock(() => Promise.resolve([])),
     };
 
     config = {
@@ -25,7 +27,7 @@ describe('TosAcceptanceService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TosAcceptanceService,
-        { provide: PrismaService, useValue: prisma },
+        { provide: UserConsentRepository, useValue: userConsentRepository },
         { provide: ConfigService, useValue: config },
       ],
     }).compile();
@@ -36,20 +38,17 @@ describe('TosAcceptanceService', () => {
   describe('hasAcceptedCurrentVersion', () => {
     it('should return false when user has not accepted ToS', async () => {
       // Arrange
-      prisma.userConsent.findFirst.mockResolvedValue(null);
+      userConsentRepository.findByDocumentType.mockResolvedValue(null);
 
       // Act
       const result = await service.hasAcceptedCurrentVersion('user-123');
 
       // Assert
       expect(result).toBe(false);
-      expect(prisma.userConsent.findFirst).toHaveBeenCalledWith({
-        where: {
-          userId: 'user-123',
-          documentType: 'TERMS_OF_SERVICE',
-          version: '1.0.0',
-        },
-      });
+      expect(userConsentRepository.findByDocumentType).toHaveBeenCalledWith(
+        'user-123',
+        'TERMS_OF_SERVICE',
+      );
     });
 
     it('should return true when user has accepted current ToS version', async () => {
@@ -61,7 +60,7 @@ describe('TosAcceptanceService', () => {
         version: '1.0.0',
         acceptedAt: new Date(),
       };
-      prisma.userConsent.findFirst.mockResolvedValue(mockConsent);
+      userConsentRepository.findByDocumentType.mockResolvedValue(mockConsent);
 
       // Act
       const result = await service.hasAcceptedCurrentVersion('user-123');
@@ -73,25 +72,22 @@ describe('TosAcceptanceService', () => {
     it('should return false when user accepted old ToS version', async () => {
       // Arrange
       config.get.mockReturnValue('2.0.0'); // Current version is now 2.0.0
-      prisma.userConsent.findFirst.mockResolvedValue(null); // No acceptance of v2.0.0
+      userConsentRepository.findByDocumentType.mockResolvedValue(null); // No acceptance of v2.0.0
 
       // Act
       const result = await service.hasAcceptedCurrentVersion('user-123');
 
       // Assert
       expect(result).toBe(false);
-      expect(prisma.userConsent.findFirst).toHaveBeenCalledWith({
-        where: {
-          userId: 'user-123',
-          documentType: 'TERMS_OF_SERVICE',
-          version: '2.0.0',
-        },
-      });
+      expect(userConsentRepository.findByDocumentType).toHaveBeenCalledWith(
+        'user-123',
+        'TERMS_OF_SERVICE',
+      );
     });
 
     it('should check privacy policy acceptance', async () => {
       // Arrange
-      prisma.userConsent.findFirst.mockResolvedValue({
+      userConsentRepository.findByDocumentType.mockResolvedValue({
         documentType: 'PRIVACY_POLICY',
         version: '1.0.0',
       });
@@ -104,13 +100,10 @@ describe('TosAcceptanceService', () => {
 
       // Assert
       expect(result).toBe(true);
-      expect(prisma.userConsent.findFirst).toHaveBeenCalledWith({
-        where: {
-          userId: 'user-123',
-          documentType: 'PRIVACY_POLICY',
-          version: '1.0.0',
-        },
-      });
+      expect(userConsentRepository.findByDocumentType).toHaveBeenCalledWith(
+        'user-123',
+        'PRIVACY_POLICY',
+      );
     });
   });
 
@@ -131,7 +124,7 @@ describe('TosAcceptanceService', () => {
         userAgent,
       };
 
-      prisma.userConsent.create.mockResolvedValue(mockCreatedConsent);
+      userConsentRepository.create.mockResolvedValue(mockCreatedConsent);
 
       // Act
       const result = await service.recordAcceptance(userId, {
@@ -142,14 +135,12 @@ describe('TosAcceptanceService', () => {
 
       // Assert
       expect(result).toEqual(mockCreatedConsent);
-      expect(prisma.userConsent.create).toHaveBeenCalledWith({
-        data: {
-          userId,
-          documentType: 'TERMS_OF_SERVICE',
-          version: '1.0.0',
-          ipAddress,
-          userAgent,
-        },
+      expect(userConsentRepository.create).toHaveBeenCalledWith({
+        userId,
+        documentType: 'TERMS_OF_SERVICE',
+        version: '1.0.0',
+        ipAddress,
+        userAgent,
       });
     });
 
@@ -164,7 +155,7 @@ describe('TosAcceptanceService', () => {
         acceptedAt: new Date(),
       };
 
-      prisma.userConsent.create.mockResolvedValue(mockConsent);
+      userConsentRepository.create.mockResolvedValue(mockConsent);
 
       // Act
       await service.recordAcceptance(userId, {
@@ -172,19 +163,19 @@ describe('TosAcceptanceService', () => {
       });
 
       // Assert
-      expect(prisma.userConsent.create).toHaveBeenCalledWith({
-        data: expect.objectContaining({
+      expect(userConsentRepository.create).toHaveBeenCalledWith(
+        expect.objectContaining({
           userId,
           documentType: 'PRIVACY_POLICY',
           version: '1.0.0',
         }),
-      });
+      );
     });
 
     it('should handle missing IP and user agent gracefully', async () => {
       // Arrange
       const userId = 'user-789';
-      prisma.userConsent.create.mockResolvedValue({
+      userConsentRepository.create.mockResolvedValue({
         id: 'consent-3',
         userId,
         documentType: 'TERMS_OF_SERVICE',
@@ -200,14 +191,12 @@ describe('TosAcceptanceService', () => {
       });
 
       // Assert
-      expect(prisma.userConsent.create).toHaveBeenCalledWith({
-        data: {
-          userId,
-          documentType: 'TERMS_OF_SERVICE',
-          version: '1.0.0',
-          ipAddress: undefined,
-          userAgent: undefined,
-        },
+      expect(userConsentRepository.create).toHaveBeenCalledWith({
+        userId,
+        documentType: 'TERMS_OF_SERVICE',
+        version: '1.0.0',
+        ipAddress: undefined,
+        userAgent: undefined,
       });
     });
   });
@@ -237,7 +226,7 @@ describe('TosAcceptanceService', () => {
         },
       ];
 
-      prisma.userConsent.findMany.mockResolvedValue(mockHistory);
+      userConsentRepository.findAllByUserId.mockResolvedValue(mockHistory);
 
       // Act
       const result = await service.getAcceptanceHistory(userId);
@@ -245,15 +234,14 @@ describe('TosAcceptanceService', () => {
       // Assert
       expect(result).toHaveLength(2);
       expect(result).toEqual(mockHistory);
-      expect(prisma.userConsent.findMany).toHaveBeenCalledWith({
-        where: { userId },
-        orderBy: { acceptedAt: 'desc' },
-      });
+      expect(userConsentRepository.findAllByUserId).toHaveBeenCalledWith(
+        userId,
+      );
     });
 
     it('should return empty array when user has no consents', async () => {
       // Arrange
-      prisma.userConsent.findMany.mockResolvedValue([]);
+      userConsentRepository.findAllByUserId.mockResolvedValue([]);
 
       // Act
       const result = await service.getAcceptanceHistory('user-new');

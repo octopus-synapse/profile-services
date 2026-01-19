@@ -10,7 +10,7 @@
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ExperienceOnboardingService } from './experience-onboarding.service';
-import { PrismaService } from '../../prisma/prisma.service';
+import { OnboardingRepository } from '../repositories/onboarding.repository';
 import type { OnboardingData } from '../schemas/onboarding.schema';
 
 describe('ExperienceOnboardingService', () => {
@@ -19,23 +19,40 @@ describe('ExperienceOnboardingService', () => {
   // In-memory store
   const experienceStore = new Map<string, any[]>();
 
-  const createFakePrisma = () => ({
-    experience: {
-      deleteMany: mock(({ where }: { where: { resumeId: string } }) => {
-        experienceStore.set(where.resumeId, []);
+  const createMockRepository = () => {
+    const mockGetClient = mock(() => ({
+      experience: {
+        deleteMany: mock(({ where }: { where: { resumeId: string } }) => {
+          experienceStore.set(where.resumeId, []);
+          return Promise.resolve({ count: 0 });
+        }),
+        createMany: mock(({ data }: { data: any[] }) => {
+          const resumeId = data[0]?.resumeId;
+          if (resumeId) {
+            experienceStore.set(resumeId, data);
+          }
+          return Promise.resolve({ count: data.length });
+        }),
+      },
+    }));
+
+    return {
+      getClient: mockGetClient,
+      deleteExperienceByResumeId: mock((tx: any, resumeId: string) => {
+        experienceStore.set(resumeId, []);
         return Promise.resolve({ count: 0 });
       }),
-      createMany: mock(({ data }: { data: any[] }) => {
+      createManyExperience: mock((tx: any, data: any[]) => {
         const resumeId = data[0]?.resumeId;
         if (resumeId) {
           experienceStore.set(resumeId, data);
         }
         return Promise.resolve({ count: data.length });
       }),
-    },
-  });
+    };
+  };
 
-  let fakePrisma: ReturnType<typeof createFakePrisma>;
+  let mockRepository: ReturnType<typeof createMockRepository>;
 
   const createBaseOnboardingData = (): Omit<
     OnboardingData,
@@ -62,12 +79,27 @@ describe('ExperienceOnboardingService', () => {
 
   beforeEach(async () => {
     experienceStore.clear();
-    fakePrisma = createFakePrisma();
+    mockRepository = createMockRepository();
+    (mockRepository.getClient as ReturnType<typeof mock>).mockReturnValue({
+      experience: {
+        deleteMany: mock(({ where }: { where: { resumeId: string } }) => {
+          experienceStore.set(where.resumeId, []);
+          return Promise.resolve({ count: 0 });
+        }),
+        createMany: mock(({ data }: { data: any[] }) => {
+          const resumeId = data[0]?.resumeId;
+          if (resumeId) {
+            experienceStore.set(resumeId, data);
+          }
+          return Promise.resolve({ count: data.length });
+        }),
+      },
+    });
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ExperienceOnboardingService,
-        { provide: PrismaService, useValue: fakePrisma },
+        { provide: OnboardingRepository, useValue: mockRepository },
       ],
     }).compile();
 
@@ -201,7 +233,7 @@ describe('ExperienceOnboardingService', () => {
 
       await service.saveExperiences('resume-1', data);
 
-      expect(fakePrisma.experience.createMany.mock.calls.length).toBe(0);
+      expect(experienceStore.get('resume-1')).toBeUndefined();
     });
 
     it('should not save experiences when array is empty', async () => {
@@ -213,7 +245,7 @@ describe('ExperienceOnboardingService', () => {
 
       await service.saveExperiences('resume-1', data);
 
-      expect(fakePrisma.experience.createMany.mock.calls.length).toBe(0);
+      expect(experienceStore.get('resume-1')).toBeUndefined();
     });
 
     it('should use empty string for missing description', async () => {

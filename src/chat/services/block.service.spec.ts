@@ -1,5 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  BusinessRuleError,
+  ResourceNotFoundError,
+} from '@octopus-synapse/profile-contracts';
 import { BlockService } from './block.service';
 import { BlockedUserRepository } from '../repositories/blocked-user.repository';
 
@@ -60,10 +63,10 @@ describe('BlockService', () => {
       );
     });
 
-    it('should throw BadRequestException when blocking yourself', async () => {
+    it('should throw BusinessRuleError when blocking yourself', async () => {
       await expect(
         service.blockUser('user1', { userId: 'user1' }),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow(BusinessRuleError);
     });
   });
 
@@ -77,11 +80,11 @@ describe('BlockService', () => {
       expect(blockedUserRepo.unblock).toHaveBeenCalledWith('user1', 'user2');
     });
 
-    it('should throw NotFoundException if user is not blocked', async () => {
+    it('should throw ResourceNotFoundError if user is not blocked', async () => {
       blockedUserRepo.isBlocked.mockResolvedValue(false);
 
       await expect(service.unblockUser('user1', 'user2')).rejects.toThrow(
-        NotFoundException,
+        ResourceNotFoundError,
       );
     });
   });

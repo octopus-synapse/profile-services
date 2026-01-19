@@ -18,37 +18,26 @@
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import {
-  BadRequestException,
-  ConflictException,
-  NotFoundException,
-} from '@nestjs/common';
+  UserNotFoundError,
+  BusinessRuleError,
+  DuplicateResourceError,
+} from '@octopus-synapse/profile-contracts';
 import { FollowService } from './follow.service';
-import { PrismaService } from '../../prisma/prisma.service';
+import { SocialRepository } from '../repositories/social.repository';
 import { AppLoggerService } from '../../common/logger/logger.service';
 
 // --- Mocks ---
 
-const createMockPrismaService = () => ({
-  follow: {
-    create: mock(() => Promise.resolve({ id: 'follow-1' })),
-    delete: mock(() => Promise.resolve()),
-    deleteMany: mock(() => Promise.resolve({ count: 1 })),
-    findUnique: mock(() => Promise.resolve(null)),
-    findFirst: mock(() => Promise.resolve(null)),
-    findMany: mock(() => Promise.resolve([])),
-    count: mock(() => Promise.resolve(0)),
-  },
-  user: {
-    findUnique: mock(() => Promise.resolve({ id: 'user-1', name: 'Test' })),
-  },
-  $transaction: mock((fn: (tx: unknown) => Promise<unknown>) =>
-    fn({
-      follow: {
-        create: mock(() => Promise.resolve({ id: 'follow-1' })),
-        findFirst: mock(() => Promise.resolve(null)),
-      },
-    }),
-  ),
+const createMockRepository = () => ({
+  createFollow: mock(() => Promise.resolve({ id: 'follow-1' })),
+  deleteFollow: mock(() => Promise.resolve({ count: 1 })),
+  findFollow: mock(() => Promise.resolve(null)),
+  findUserById: mock(() => Promise.resolve({ id: 'user-1', name: 'Test' })),
+  findFollowersWithPagination: mock(() => Promise.resolve([])),
+  findFollowingWithPagination: mock(() => Promise.resolve([])),
+  countFollowers: mock(() => Promise.resolve(0)),
+  countFollowing: mock(() => Promise.resolve(0)),
+  findFollowingIds: mock(() => Promise.resolve([])),
 });
 
 const createMockLogger = () => ({
@@ -60,17 +49,17 @@ const createMockLogger = () => ({
 
 describe('FollowService', () => {
   let service: FollowService;
-  let mockPrisma: ReturnType<typeof createMockPrismaService>;
+  let mockRepository: ReturnType<typeof createMockRepository>;
   let mockLogger: ReturnType<typeof createMockLogger>;
 
   beforeEach(async () => {
-    mockPrisma = createMockPrismaService();
+    mockRepository = createMockRepository();
     mockLogger = createMockLogger();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         FollowService,
-        { provide: PrismaService, useValue: mockPrisma },
+        { provide: SocialRepository, useValue: mockRepository },
         { provide: AppLoggerService, useValue: mockLogger },
       ],
     }).compile();
@@ -83,12 +72,12 @@ describe('FollowService', () => {
       const followerId = 'user-1';
       const followingId = 'user-2';
 
-      mockPrisma.user.findUnique.mockResolvedValue({
+      mockRepository.findUserById.mockResolvedValue({
         id: followingId,
         name: 'User 2',
       });
-      mockPrisma.follow.findFirst.mockResolvedValue(null);
-      mockPrisma.follow.create.mockResolvedValue({
+      mockRepository.findFollow.mockResolvedValue(null);
+      mockRepository.createFollow.mockResolvedValue({
         id: 'follow-1',
         followerId,
         followingId,
@@ -98,44 +87,44 @@ describe('FollowService', () => {
       const result = await service.follow(followerId, followingId);
 
       expect(result).toHaveProperty('id');
-      expect(mockPrisma.follow.create).toHaveBeenCalled();
+      expect(mockRepository.createFollow).toHaveBeenCalled();
     });
 
-    it('should throw BadRequestException when trying to follow yourself', async () => {
+    it('should throw BusinessRuleError when trying to follow yourself', async () => {
       const userId = 'user-1';
 
       await expect(service.follow(userId, userId)).rejects.toThrow(
-        BadRequestException,
+        BusinessRuleError,
       );
     });
 
-    it('should throw ConflictException when already following', async () => {
+    it('should throw DuplicateResourceError when already following', async () => {
       const followerId = 'user-1';
       const followingId = 'user-2';
 
-      mockPrisma.user.findUnique.mockResolvedValue({
+      mockRepository.findUserById.mockResolvedValue({
         id: followingId,
         name: 'User 2',
       });
-      mockPrisma.follow.findFirst.mockResolvedValue({
+      mockRepository.findFollow.mockResolvedValue({
         id: 'existing-follow',
         followerId,
         followingId,
       });
 
       await expect(service.follow(followerId, followingId)).rejects.toThrow(
-        ConflictException,
+        DuplicateResourceError,
       );
     });
 
-    it('should throw NotFoundException when target user does not exist', async () => {
+    it('should throw UserNotFoundError when target user does not exist', async () => {
       const followerId = 'user-1';
       const followingId = 'nonexistent-user';
 
-      mockPrisma.user.findUnique.mockResolvedValue(null);
+      mockRepository.findUserById.mockResolvedValue(null);
 
       await expect(service.follow(followerId, followingId)).rejects.toThrow(
-        NotFoundException,
+        UserNotFoundError,
       );
     });
   });
@@ -145,20 +134,21 @@ describe('FollowService', () => {
       const followerId = 'user-1';
       const followingId = 'user-2';
 
-      mockPrisma.follow.deleteMany.mockResolvedValue({ count: 1 });
+      mockRepository.deleteFollow.mockResolvedValue({ count: 1 });
 
       await service.unfollow(followerId, followingId);
 
-      expect(mockPrisma.follow.deleteMany).toHaveBeenCalledWith({
-        where: { followerId, followingId },
-      });
+      expect(mockRepository.deleteFollow).toHaveBeenCalledWith(
+        followerId,
+        followingId,
+      );
     });
 
     it('should not throw when not following', async () => {
       const followerId = 'user-1';
       const followingId = 'user-2';
 
-      mockPrisma.follow.deleteMany.mockResolvedValue({ count: 0 });
+      mockRepository.deleteFollow.mockResolvedValue({ count: 0 });
 
       const result = await service.unfollow(followerId, followingId);
       expect(result).toBeUndefined();
@@ -170,7 +160,7 @@ describe('FollowService', () => {
       const followerId = 'user-1';
       const followingId = 'user-2';
 
-      mockPrisma.follow.findFirst.mockResolvedValue({
+      mockRepository.findFollow.mockResolvedValue({
         id: 'follow-1',
         followerId,
         followingId,
@@ -185,7 +175,7 @@ describe('FollowService', () => {
       const followerId = 'user-1';
       const followingId = 'user-2';
 
-      mockPrisma.follow.findFirst.mockResolvedValue(null);
+      mockRepository.findFollow.mockResolvedValue(null);
 
       const result = await service.isFollowing(followerId, followingId);
 
@@ -209,16 +199,18 @@ describe('FollowService', () => {
         },
       ];
 
-      mockPrisma.follow.findMany.mockResolvedValue(followers);
-      mockPrisma.follow.count.mockResolvedValue(2);
+      mockRepository.findFollowersWithPagination.mockResolvedValue(followers);
+      mockRepository.countFollowers.mockResolvedValue(2);
 
       const result = await service.getFollowers(userId, { page: 1, limit: 10 });
 
       expect(result.data).toHaveLength(2);
       expect(result.total).toBe(2);
-      expect(mockPrisma.follow.findMany).toHaveBeenCalledWith(
+      expect(mockRepository.findFollowersWithPagination).toHaveBeenCalledWith(
+        userId,
         expect.objectContaining({
-          where: { followingId: userId },
+          skip: 0,
+          take: 10,
         }),
       );
     });
@@ -235,16 +227,18 @@ describe('FollowService', () => {
         },
       ];
 
-      mockPrisma.follow.findMany.mockResolvedValue(following);
-      mockPrisma.follow.count.mockResolvedValue(1);
+      mockRepository.findFollowingWithPagination.mockResolvedValue(following);
+      mockRepository.countFollowing.mockResolvedValue(1);
 
       const result = await service.getFollowing(userId, { page: 1, limit: 10 });
 
       expect(result.data).toHaveLength(1);
       expect(result.total).toBe(1);
-      expect(mockPrisma.follow.findMany).toHaveBeenCalledWith(
+      expect(mockRepository.findFollowingWithPagination).toHaveBeenCalledWith(
+        userId,
         expect.objectContaining({
-          where: { followerId: userId },
+          skip: 0,
+          take: 10,
         }),
       );
     });
@@ -253,28 +247,24 @@ describe('FollowService', () => {
   describe('getFollowersCount', () => {
     it('should return count of followers', async () => {
       const userId = 'user-1';
-      mockPrisma.follow.count.mockResolvedValue(42);
+      mockRepository.countFollowers.mockResolvedValue(42);
 
       const result = await service.getFollowersCount(userId);
 
       expect(result).toBe(42);
-      expect(mockPrisma.follow.count).toHaveBeenCalledWith({
-        where: { followingId: userId },
-      });
+      expect(mockRepository.countFollowers).toHaveBeenCalledWith(userId);
     });
   });
 
   describe('getFollowingCount', () => {
     it('should return count of following', async () => {
       const userId = 'user-1';
-      mockPrisma.follow.count.mockResolvedValue(10);
+      mockRepository.countFollowing.mockResolvedValue(10);
 
       const result = await service.getFollowingCount(userId);
 
       expect(result).toBe(10);
-      expect(mockPrisma.follow.count).toHaveBeenCalledWith({
-        where: { followerId: userId },
-      });
+      expect(mockRepository.countFollowing).toHaveBeenCalledWith(userId);
     });
   });
 
@@ -283,7 +273,7 @@ describe('FollowService', () => {
       const userId = 'user-1';
       const following = [{ followingId: 'user-2' }, { followingId: 'user-3' }];
 
-      mockPrisma.follow.findMany.mockResolvedValue(following);
+      mockRepository.findFollowingIds.mockResolvedValue(following);
 
       const result = await service.getFollowingIds(userId);
 

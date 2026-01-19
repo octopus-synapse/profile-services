@@ -11,9 +11,12 @@
 
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
-import { NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+  UserNotFoundError,
+  AuthenticationError,
+} from '@octopus-synapse/profile-contracts';
 import { PasswordResetService } from './password-reset.service';
-import { PrismaService } from '../../prisma/prisma.service';
+import { AuthUserRepository } from '../repositories/auth-user.repository';
 import { AppLoggerService } from '../../common/logger/logger.service';
 import { EmailService } from '../../common/email/email.service';
 import { PasswordService } from './password.service';
@@ -22,11 +25,11 @@ import { TokenBlacklistService } from './token-blacklist.service';
 
 describe('PasswordResetService', () => {
   let service: PasswordResetService;
-  let fakePrisma: {
-    user: {
-      findUnique: ReturnType<typeof mock>;
-      update: ReturnType<typeof mock>;
-    };
+  let fakeAuthUserRepository: {
+    findByEmail: ReturnType<typeof mock>;
+    findById: ReturnType<typeof mock>;
+    findByIdWithPassword: ReturnType<typeof mock>;
+    updatePassword: ReturnType<typeof mock>;
   };
   let fakeEmailService: {
     sendPasswordResetEmail: ReturnType<typeof mock>;
@@ -57,11 +60,11 @@ describe('PasswordResetService', () => {
   };
 
   beforeEach(async () => {
-    fakePrisma = {
-      user: {
-        findUnique: mock(() => null),
-        update: mock(() => ({})),
-      },
+    fakeAuthUserRepository = {
+      findByEmail: mock(() => null),
+      findById: mock(() => null),
+      findByIdWithPassword: mock(() => null),
+      updatePassword: mock(() => ({})),
     };
 
     fakeEmailService = {
@@ -94,7 +97,7 @@ describe('PasswordResetService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         PasswordResetService,
-        { provide: PrismaService, useValue: fakePrisma },
+        { provide: AuthUserRepository, useValue: fakeAuthUserRepository },
         { provide: AppLoggerService, useValue: fakeLogger },
         { provide: EmailService, useValue: fakeEmailService },
         { provide: PasswordService, useValue: fakePasswordService },
@@ -108,7 +111,7 @@ describe('PasswordResetService', () => {
 
   describe('forgotPassword', () => {
     it('should return success with emailSent:false when user does not exist (anti-enumeration)', async () => {
-      fakePrisma.user.findUnique.mockReturnValue(null);
+      fakeAuthUserRepository.findByEmail.mockReturnValue(null);
 
       const result = await service.forgotPassword({
         email: 'unknown@test.com',
@@ -121,7 +124,7 @@ describe('PasswordResetService', () => {
     });
 
     it('should create token and send email when user exists', async () => {
-      fakePrisma.user.findUnique.mockReturnValue(testUser);
+      fakeAuthUserRepository.findByEmail.mockReturnValue(testUser);
 
       const result = await service.forgotPassword({ email: testUser.email });
 
@@ -138,7 +141,7 @@ describe('PasswordResetService', () => {
     });
 
     it('should return success with emailSent:false when email fails (does not throw)', async () => {
-      fakePrisma.user.findUnique.mockReturnValue(testUser);
+      fakeAuthUserRepository.findByEmail.mockReturnValue(testUser);
       fakeEmailService.sendPasswordResetEmail.mockRejectedValue(
         new Error('SMTP error'),
       );
@@ -154,7 +157,7 @@ describe('PasswordResetService', () => {
       const originalEnv = process.env.NODE_ENV;
       process.env.NODE_ENV = 'development';
 
-      fakePrisma.user.findUnique.mockReturnValue(testUser);
+      fakeAuthUserRepository.findByEmail.mockReturnValue(testUser);
 
       const result = await service.forgotPassword({ email: testUser.email });
 
@@ -166,6 +169,8 @@ describe('PasswordResetService', () => {
 
   describe('resetPassword', () => {
     it('should validate token, hash password, and update user', async () => {
+      fakeAuthUserRepository.findByEmail.mockReturnValue(testUser);
+
       const result = await service.resetPassword({
         token: 'valid-token',
         password: 'NewPassword123!',
@@ -176,27 +181,27 @@ describe('PasswordResetService', () => {
         'valid-token',
       );
       expect(fakePasswordService.hash).toHaveBeenCalledWith('NewPassword123!');
-      expect(fakePrisma.user.update).toHaveBeenCalledWith({
-        where: { email: 'test@example.com' },
-        data: { password: 'new-hashed-password' },
-      });
+      expect(fakeAuthUserRepository.updatePassword).toHaveBeenCalledWith(
+        testUser.id,
+        'new-hashed-password',
+      );
     });
   });
 
   describe('changePassword', () => {
-    it('should throw NotFoundException when user not found', async () => {
-      fakePrisma.user.findUnique.mockReturnValue(null);
+    it('should throw UserNotFoundError when user not found', async () => {
+      fakeAuthUserRepository.findById.mockReturnValue(null);
 
       await expect(
         service.changePassword('user-123', {
           currentPassword: 'old',
           newPassword: 'new',
         }),
-      ).rejects.toThrow(NotFoundException);
+      ).rejects.toThrow(UserNotFoundError);
     });
 
-    it('should throw NotFoundException when user has no password', async () => {
-      fakePrisma.user.findUnique.mockReturnValue({
+    it('should throw UserNotFoundError when user has no password', async () => {
+      fakeAuthUserRepository.findById.mockReturnValue({
         ...testUser,
         password: null,
       });
@@ -206,11 +211,11 @@ describe('PasswordResetService', () => {
           currentPassword: 'old',
           newPassword: 'new',
         }),
-      ).rejects.toThrow(NotFoundException);
+      ).rejects.toThrow(UserNotFoundError);
     });
 
-    it('should throw UnauthorizedException when current password is incorrect', async () => {
-      fakePrisma.user.findUnique.mockReturnValue(testUser);
+    it('should throw AuthenticationError when current password is incorrect', async () => {
+      fakeAuthUserRepository.findById.mockReturnValue(testUser);
       fakePasswordService.compare.mockResolvedValue(false);
 
       await expect(
@@ -218,11 +223,11 @@ describe('PasswordResetService', () => {
           currentPassword: 'wrong',
           newPassword: 'new',
         }),
-      ).rejects.toThrow(UnauthorizedException);
+      ).rejects.toThrow(AuthenticationError);
     });
 
     it('should update password and revoke all tokens on success (BUG-056)', async () => {
-      fakePrisma.user.findUnique.mockReturnValue(testUser);
+      fakeAuthUserRepository.findById.mockReturnValue(testUser);
       fakePasswordService.compare.mockResolvedValue(true);
 
       const result = await service.changePassword('user-123', {
@@ -232,14 +237,14 @@ describe('PasswordResetService', () => {
 
       expect(result.success).toBe(true);
       expect(fakePasswordService.hash).toHaveBeenCalledWith('NewPassword123!');
-      expect(fakePrisma.user.update).toHaveBeenCalled();
+      expect(fakeAuthUserRepository.updatePassword).toHaveBeenCalled();
       expect(fakeTokenBlacklist.revokeAllUserTokens).toHaveBeenCalledWith(
         'user-123',
       );
     });
 
     it('should send password changed email but not throw if email fails', async () => {
-      fakePrisma.user.findUnique.mockReturnValue(testUser);
+      fakeAuthUserRepository.findById.mockReturnValue(testUser);
       fakePasswordService.compare.mockResolvedValue(true);
       fakeEmailService.sendPasswordChangedEmail.mockRejectedValue(
         new Error('SMTP error'),

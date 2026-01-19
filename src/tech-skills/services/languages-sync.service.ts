@@ -4,12 +4,12 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import { TechSkillsRepository } from '../repositories';
 import type { ParsedLanguage } from '../interfaces';
 
 @Injectable()
 export class LanguagesSyncService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly techSkillsRepo: TechSkillsRepository) {}
 
   async syncLanguages(
     languages: ParsedLanguage[],
@@ -18,9 +18,7 @@ export class LanguagesSyncService {
     let updated = 0;
 
     for (const lang of languages) {
-      const existing = await this.prisma.programmingLanguage.findUnique({
-        where: { slug: lang.slug },
-      });
+      const existing = await this.techSkillsRepo.findLanguageBySlug(lang.slug);
 
       const data = {
         nameEn: lang.nameEn,
@@ -35,15 +33,10 @@ export class LanguagesSyncService {
       };
 
       if (existing) {
-        await this.prisma.programmingLanguage.update({
-          where: { slug: lang.slug },
-          data,
-        });
+        await this.techSkillsRepo.updateLanguageBySlug(lang.slug, data);
         updated++;
       } else {
-        await this.prisma.programmingLanguage.create({
-          data: { slug: lang.slug, ...data },
-        });
+        await this.techSkillsRepo.createLanguage({ slug: lang.slug, ...data });
         inserted++;
       }
     }

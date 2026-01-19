@@ -23,6 +23,8 @@ import request from 'supertest';
 import { AppModule } from '../../src/app.module';
 import { PrismaService } from '../../src/prisma/prisma.service';
 import { acceptTosWithPrisma } from './setup';
+import { AppLoggerService } from '../../src/common/logger/logger.service';
+import { configureExceptionHandling } from '../../src/common/config/validation.config';
 
 describe('Resume CRUD Integration', () => {
   let app: INestApplication;
@@ -52,6 +54,10 @@ describe('Resume CRUD Integration', () => {
     // Validation is handled by ZodValidationPipe at controller level
 
     prisma = app.get<PrismaService>(PrismaService);
+    const logger = app.get<AppLoggerService>(AppLoggerService);
+
+    // Configure exception handling to transform DomainExceptions to HTTP responses
+    configureExceptionHandling(app, logger);
 
     await app.init();
 
@@ -272,7 +278,7 @@ describe('Resume CRUD Integration', () => {
         })
         .expect(422);
 
-      expect(response.body.message.includes('limit')).toBe(true);
+      expect(response.body.error.message.includes('limit')).toBe(true);
     });
   });
 

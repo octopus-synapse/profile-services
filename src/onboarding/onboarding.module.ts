@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { OnboardingService } from './onboarding.service';
 import { OnboardingController } from './onboarding.controller';
 import { PrismaModule } from '../prisma/prisma.module';
+import { OnboardingRepository } from './repositories';
 import { ResumeOnboardingService } from './services/resume-onboarding.service';
 import { SkillsOnboardingService } from './services/skills-onboarding.service';
 import { ExperienceOnboardingService } from './services/experience-onboarding.service';
@@ -13,6 +14,7 @@ import { OnboardingProgressService } from './services/onboarding-progress.servic
   imports: [PrismaModule],
   controllers: [OnboardingController],
   providers: [
+    OnboardingRepository,
     ResumeOnboardingService,
     SkillsOnboardingService,
     ExperienceOnboardingService,

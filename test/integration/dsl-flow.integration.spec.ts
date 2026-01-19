@@ -13,6 +13,8 @@ import { PrismaService } from '../../src/prisma/prisma.service';
 import { createMockResume } from '../factories/resume.factory';
 import { createMockUser } from '../factories/user.factory';
 import { acceptTosWithPrisma } from './setup';
+import { AppLoggerService } from '../../src/common/logger/logger.service';
+import { configureExceptionHandling } from '../../src/common/config/validation.config';
 
 describe('DSL Smoke Tests (e2e)', () => {
   let app: INestApplication;
@@ -31,6 +33,9 @@ describe('DSL Smoke Tests (e2e)', () => {
     // Apply same configuration as setup.ts
     app.setGlobalPrefix('api');
     // Validation is handled by ZodValidationPipe at controller level
+
+    const logger = app.get<AppLoggerService>(AppLoggerService);
+    configureExceptionHandling(app, logger);
 
     await app.init();
 

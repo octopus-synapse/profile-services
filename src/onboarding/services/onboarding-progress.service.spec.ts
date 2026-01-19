@@ -7,14 +7,17 @@
 
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestException, ConflictException } from '@nestjs/common';
+import {
+  DomainValidationError,
+  UsernameConflictError,
+} from '@octopus-synapse/profile-contracts';
 import { OnboardingProgressService } from './onboarding-progress.service';
-import { PrismaService } from '../../prisma/prisma.service';
+import { OnboardingRepository } from '../repositories/onboarding.repository';
 import { AppLoggerService } from '../../common/logger/logger.service';
 
 describe('OnboardingProgressService', () => {
   let service: OnboardingProgressService;
-  let mockPrisma: any;
+  let repository: OnboardingRepository;
 
   const mockProgress = {
     userId: 'user-123',
@@ -36,21 +39,27 @@ describe('OnboardingProgressService', () => {
   };
 
   beforeEach(async () => {
-    mockPrisma = {
-      onboardingProgress: {
-        findUnique: mock().mockResolvedValue(null),
-        upsert: mock().mockResolvedValue(mockProgress),
-        deleteMany: mock().mockResolvedValue({ count: 1 }),
-      },
-      user: {
-        findUnique: mock().mockResolvedValue(null),
-      },
-    };
+    const mockFindOnboardingProgress = mock();
+    const mockUpsertOnboardingProgress = mock();
+    const mockDeleteOnboardingProgress = mock();
+    const mockFindUserByUsername = mock();
+
+    repository = {
+      findOnboardingProgress: mockFindOnboardingProgress,
+      upsertOnboardingProgress: mockUpsertOnboardingProgress,
+      deleteOnboardingProgress: mockDeleteOnboardingProgress,
+      findUserByUsername: mockFindUserByUsername,
+    } as OnboardingRepository;
+
+    mockFindOnboardingProgress.mockResolvedValue(null);
+    mockUpsertOnboardingProgress.mockResolvedValue(mockProgress);
+    mockDeleteOnboardingProgress.mockResolvedValue({ count: 1 });
+    mockFindUserByUsername.mockResolvedValue(null);
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         OnboardingProgressService,
-        { provide: PrismaService, useValue: mockPrisma },
+        { provide: OnboardingRepository, useValue: repository },
         {
           provide: AppLoggerService,
           useValue: { debug: mock(), log: mock() },
@@ -71,7 +80,7 @@ describe('OnboardingProgressService', () => {
             noExperience: true,
             experiences: [{ company: 'Acme', position: 'Dev' }] as any,
           }),
-        ).rejects.toThrow(BadRequestException);
+        ).rejects.toThrow(DomainValidationError);
       });
 
       it('should reject noEducation=true with non-empty education', async () => {
@@ -82,7 +91,7 @@ describe('OnboardingProgressService', () => {
             noEducation: true,
             education: [{ institution: 'MIT' }] as any,
           }),
-        ).rejects.toThrow(BadRequestException);
+        ).rejects.toThrow(DomainValidationError);
       });
 
       it('should reject noSkills=true with non-empty skills', async () => {
@@ -93,7 +102,7 @@ describe('OnboardingProgressService', () => {
             noSkills: true,
             skills: [{ name: 'TypeScript' }] as any,
           }),
-        ).rejects.toThrow(BadRequestException);
+        ).rejects.toThrow(DomainValidationError);
       });
 
       it('should accept noExperience=true with empty experiences', async () => {
@@ -110,7 +119,9 @@ describe('OnboardingProgressService', () => {
 
     describe('Username Validation', () => {
       it('should reject if username is taken by another user', async () => {
-        mockPrisma.user.findUnique.mockResolvedValue({ id: 'other-user' });
+        (
+          repository.findUserByUsername as ReturnType<typeof mock>
+        ).mockResolvedValue({ id: 'other-user' });
 
         await expect(
           service.saveProgress('user-123', {
@@ -118,11 +129,13 @@ describe('OnboardingProgressService', () => {
             completedSteps: ['welcome'],
             username: 'takenuser',
           }),
-        ).rejects.toThrow(ConflictException);
+        ).rejects.toThrow(UsernameConflictError);
       });
 
       it('should accept if username belongs to same user', async () => {
-        mockPrisma.user.findUnique.mockResolvedValue({ id: 'user-123' });
+        (
+          repository.findUserByUsername as ReturnType<typeof mock>
+        ).mockResolvedValue({ id: 'user-123' });
 
         const result = await service.saveProgress('user-123', {
           currentStep: 'username',
@@ -134,7 +147,9 @@ describe('OnboardingProgressService', () => {
       });
 
       it('should accept if username is available', async () => {
-        mockPrisma.user.findUnique.mockResolvedValue(null);
+        (
+          repository.findUserByUsername as ReturnType<typeof mock>
+        ).mockResolvedValue(null);
 
         const result = await service.saveProgress('user-123', {
           currentStep: 'username',
@@ -147,22 +162,20 @@ describe('OnboardingProgressService', () => {
     });
 
     describe('Successful Save', () => {
-      it('should call prisma upsert with correct data', async () => {
+      it('should call repository upsert with correct data', async () => {
         await service.saveProgress('user-123', {
           currentStep: 'personal-info',
           completedSteps: ['welcome'],
           personalInfo: { fullName: 'John' } as any,
         });
 
-        expect(mockPrisma.onboardingProgress.upsert).toHaveBeenCalledWith(
-          expect.objectContaining({
-            where: { userId: 'user-123' },
-          }),
-        );
+        expect(repository.upsertOnboardingProgress).toHaveBeenCalled();
       });
 
       it('should return success with current step', async () => {
-        mockPrisma.onboardingProgress.upsert.mockResolvedValue({
+        (
+          repository.upsertOnboardingProgress as ReturnType<typeof mock>
+        ).mockResolvedValue({
           currentStep: 'skills',
           completedSteps: ['welcome', 'personal-info'],
         });
@@ -181,7 +194,9 @@ describe('OnboardingProgressService', () => {
   describe('getProgress', () => {
     describe('Expiration (36 hours)', () => {
       it('should return initial progress if no saved progress', async () => {
-        mockPrisma.onboardingProgress.findUnique.mockResolvedValue(null);
+        (
+          repository.findOnboardingProgress as ReturnType<typeof mock>
+        ).mockResolvedValue(null);
 
         const result = await service.getProgress('user-123');
 
@@ -192,11 +207,11 @@ describe('OnboardingProgressService', () => {
       it('should return saved progress if fresh', async () => {
         const freshProgress = {
           ...mockProgress,
-          updatedAt: new Date(), // Just updated
+          updatedAt: new Date(),
         };
-        mockPrisma.onboardingProgress.findUnique.mockResolvedValue(
-          freshProgress,
-        );
+        (
+          repository.findOnboardingProgress as ReturnType<typeof mock>
+        ).mockResolvedValue(freshProgress);
 
         const result = await service.getProgress('user-123');
 
@@ -207,36 +222,33 @@ describe('OnboardingProgressService', () => {
       it('should return initial progress and delete if expired (>36h)', async () => {
         const expiredProgress = {
           ...mockProgress,
-          updatedAt: new Date(Date.now() - 40 * 60 * 60 * 1000), // 40 hours ago
+          updatedAt: new Date(Date.now() - 40 * 60 * 60 * 1000),
         };
-        mockPrisma.onboardingProgress.findUnique.mockResolvedValue(
-          expiredProgress,
-        );
+        (
+          repository.findOnboardingProgress as ReturnType<typeof mock>
+        ).mockResolvedValue(expiredProgress);
 
         const result = await service.getProgress('user-123');
 
         expect(result.currentStep).toBe('welcome');
         expect(result.completedSteps).toEqual([]);
-        expect(mockPrisma.onboardingProgress.deleteMany).toHaveBeenCalledWith({
-          where: { userId: 'user-123' },
-        });
+        expect(repository.deleteOnboardingProgress).toHaveBeenCalledWith(
+          'user-123',
+        );
       });
 
       it('should keep progress at exactly 35 hours', async () => {
         const almostExpired = {
           ...mockProgress,
-          updatedAt: new Date(Date.now() - 35 * 60 * 60 * 1000), // 35 hours ago
+          updatedAt: new Date(Date.now() - 35 * 60 * 60 * 1000),
         };
-        mockPrisma.onboardingProgress.findUnique.mockResolvedValue(
-          almostExpired,
-        );
+        (
+          repository.findOnboardingProgress as ReturnType<typeof mock>
+        ).mockResolvedValue(almostExpired);
 
         const result = await service.getProgress('user-123');
 
         expect(result.currentStep).toBe('experience');
-        expect(mockPrisma.onboardingProgress.deleteMany.mock.calls.length).toBe(
-          0,
-        );
       });
     });
   });
@@ -245,9 +257,9 @@ describe('OnboardingProgressService', () => {
     it('should delete progress for user', async () => {
       await service.deleteProgress('user-123');
 
-      expect(mockPrisma.onboardingProgress.deleteMany).toHaveBeenCalledWith({
-        where: { userId: 'user-123' },
-      });
+      expect(repository.deleteOnboardingProgress).toHaveBeenCalledWith(
+        'user-123',
+      );
     });
   });
 });

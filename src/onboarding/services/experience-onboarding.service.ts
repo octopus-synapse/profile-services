@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
-import { PrismaService } from '../../prisma/prisma.service';
+import { OnboardingRepository } from '../repositories';
 import { DateUtils } from '../../common/utils/date.utils';
 import type { OnboardingData } from '../schemas/onboarding.schema';
 import { BaseOnboardingService } from './base-onboarding.service';
@@ -15,12 +15,16 @@ export class ExperienceOnboardingService extends BaseOnboardingService<
 > {
   protected readonly logger = new Logger(ExperienceOnboardingService.name);
 
-  constructor(private readonly prisma: PrismaService) {
+  constructor(private readonly repository: OnboardingRepository) {
     super();
   }
 
   async saveExperiences(resumeId: string, data: OnboardingData) {
-    return this.saveExperiencesWithTx(this.prisma, resumeId, data);
+    return this.saveExperiencesWithTx(
+      this.repository.getClient(),
+      resumeId,
+      data,
+    );
   }
 
   async saveExperiencesWithTx(
@@ -49,7 +53,7 @@ export class ExperienceOnboardingService extends BaseOnboardingService<
     tx: Prisma.TransactionClient,
     resumeId: string,
   ): Promise<void> {
-    await tx.experience.deleteMany({ where: { resumeId } });
+    await this.repository.deleteExperienceByResumeId(tx, resumeId);
   }
 
   protected transformItems(
@@ -100,7 +104,7 @@ export class ExperienceOnboardingService extends BaseOnboardingService<
     tx: Prisma.TransactionClient,
     items: ExperienceCreate[],
   ): Promise<void> {
-    await tx.experience.createMany({ data: items });
+    await this.repository.createManyExperience(tx, items);
   }
 
   protected getSuccessMessage(count: number): string {

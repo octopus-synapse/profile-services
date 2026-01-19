@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
-import { PrismaService } from '../../prisma/prisma.service';
+import { OnboardingRepository } from '../repositories';
 import type { OnboardingData } from '../schemas/onboarding.schema';
 import { BaseOnboardingService } from './base-onboarding.service';
 
@@ -14,12 +14,16 @@ export class LanguagesOnboardingService extends BaseOnboardingService<
 > {
   protected readonly logger = new Logger(LanguagesOnboardingService.name);
 
-  constructor(private readonly prisma: PrismaService) {
+  constructor(private readonly repository: OnboardingRepository) {
     super();
   }
 
   async saveLanguages(resumeId: string, data: OnboardingData) {
-    return this.saveLanguagesWithTx(this.prisma, resumeId, data);
+    return this.saveLanguagesWithTx(
+      this.repository.getClient(),
+      resumeId,
+      data,
+    );
   }
 
   async saveLanguagesWithTx(
@@ -47,7 +51,7 @@ export class LanguagesOnboardingService extends BaseOnboardingService<
     tx: Prisma.TransactionClient,
     resumeId: string,
   ): Promise<void> {
-    await tx.language.deleteMany({ where: { resumeId } });
+    await this.repository.deleteLanguagesByResumeId(tx, resumeId);
   }
 
   protected transformItems(
@@ -66,7 +70,7 @@ export class LanguagesOnboardingService extends BaseOnboardingService<
     tx: Prisma.TransactionClient,
     items: LanguageCreate[],
   ): Promise<void> {
-    await tx.language.createMany({ data: items });
+    await this.repository.createManyLanguages(tx, items);
   }
 
   protected getSuccessMessage(count: number): string {

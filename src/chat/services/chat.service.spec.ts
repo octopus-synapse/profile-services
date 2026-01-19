@@ -1,5 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ForbiddenException, BadRequestException } from '@nestjs/common';
+import {
+  BusinessRuleError,
+  PermissionDeniedError,
+} from '@octopus-synapse/profile-contracts';
 import { ChatService } from './chat.service';
 import { ConversationRepository } from '../repositories/conversation.repository';
 import { MessageRepository } from '../repositories/message.repository';
@@ -111,7 +114,7 @@ describe('ChatService', () => {
       expect(messageRepo.create).toHaveBeenCalled();
     });
 
-    it('should throw ForbiddenException if users are blocked', async () => {
+    it('should throw PermissionDeniedError if users are blocked', async () => {
       blockedUserRepo.isBlockedBetween.mockResolvedValue(true);
 
       await expect(
@@ -119,10 +122,10 @@ describe('ChatService', () => {
           recipientId: 'user2',
           content: 'Hello!',
         }),
-      ).rejects.toThrow(ForbiddenException);
+      ).rejects.toThrow(PermissionDeniedError);
     });
 
-    it('should throw BadRequestException when messaging yourself', async () => {
+    it('should throw BusinessRuleError when messaging yourself', async () => {
       blockedUserRepo.isBlockedBetween.mockResolvedValue(false);
 
       await expect(
@@ -130,7 +133,7 @@ describe('ChatService', () => {
           recipientId: 'user1',
           content: 'Hello!',
         }),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow(BusinessRuleError);
     });
   });
 
@@ -152,22 +155,22 @@ describe('ChatService', () => {
       expect(result.content).toBe('Hello!');
     });
 
-    it('should throw ForbiddenException if not a participant', async () => {
+    it('should throw PermissionDeniedError if not a participant', async () => {
       conversationRepo.isParticipant.mockResolvedValue(false);
 
       await expect(
         service.sendMessageToConversation('user3', 'conv1', 'Hello!'),
-      ).rejects.toThrow(ForbiddenException);
+      ).rejects.toThrow(PermissionDeniedError);
     });
 
-    it('should throw ForbiddenException if blocked', async () => {
+    it('should throw PermissionDeniedError if blocked', async () => {
       conversationRepo.isParticipant.mockResolvedValue(true);
       conversationRepo.getOtherParticipant.mockResolvedValue(mockUser2);
       blockedUserRepo.isBlockedBetween.mockResolvedValue(true);
 
       await expect(
         service.sendMessageToConversation('user1', 'conv1', 'Hello!'),
-      ).rejects.toThrow(ForbiddenException);
+      ).rejects.toThrow(PermissionDeniedError);
     });
   });
 
@@ -189,12 +192,12 @@ describe('ChatService', () => {
       expect(result.hasMore).toBe(false);
     });
 
-    it('should throw ForbiddenException if not a participant', async () => {
+    it('should throw PermissionDeniedError if not a participant', async () => {
       conversationRepo.isParticipant.mockResolvedValue(false);
 
       await expect(
         service.getMessages('user3', { conversationId: 'conv1', limit: 50 }),
-      ).rejects.toThrow(ForbiddenException);
+      ).rejects.toThrow(PermissionDeniedError);
     });
   });
 
@@ -224,12 +227,12 @@ describe('ChatService', () => {
       expect(result.count).toBe(5);
     });
 
-    it('should throw ForbiddenException if not a participant', async () => {
+    it('should throw PermissionDeniedError if not a participant', async () => {
       conversationRepo.isParticipant.mockResolvedValue(false);
 
       await expect(
         service.markConversationAsRead('user3', 'conv1'),
-      ).rejects.toThrow(ForbiddenException);
+      ).rejects.toThrow(PermissionDeniedError);
     });
   });
 

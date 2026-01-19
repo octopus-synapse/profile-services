@@ -12,7 +12,11 @@ import {
   UsernameService,
   UserManagementService,
 } from './services';
-import { UserQueryRepository, UserMutationRepository } from './repositories';
+import {
+  UserQueryRepository,
+  UserMutationRepository,
+  UserManagementRepository,
+} from './repositories';
 import { PrismaModule } from '../prisma/prisma.module';
 import { ResumesModule } from '../resumes/resumes.module';
 import { LoggerModule } from '../common/logger/logger.module';
@@ -37,6 +41,7 @@ import { AuthModule } from '../auth/auth.module';
     UsersRepository,
     UserQueryRepository,
     UserMutationRepository,
+    UserManagementRepository,
     UserProfileService,
     UserPreferencesService,
     UsernameService,

@@ -15,12 +15,20 @@ import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { createMockResume } from '../../../test/factories/resume.factory';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ResumeAnalyticsService } from './resume-analytics.service';
-import { PrismaService } from '../../prisma/prisma.service';
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
+import { ViewTrackingService } from './view-tracking.service';
+import { ATSScoreService } from './ats-score.service';
+import { KeywordAnalyzerService } from './keyword-analyzer.service';
+import { BenchmarkingService } from './benchmarking.service';
+import { SnapshotService } from './snapshot.service';
+import { AnalyticsRepository } from '../repositories';
+import {
+  ResumeNotFoundError,
+  ResourceOwnershipError,
+} from '@octopus-synapse/profile-contracts';
 
 describe('ResumeAnalyticsService', () => {
   let service: ResumeAnalyticsService;
-  let prisma: PrismaService;
+  let repository: AnalyticsRepository;
 
   const mockResume = {
     ...createMockResume({
@@ -67,27 +75,34 @@ describe('ResumeAnalyticsService', () => {
   };
 
   beforeEach(async () => {
-    prisma = {
-      resume: {
-        findUnique: mock(() => Promise.resolve(mockResume)),
-        findMany: mock(() => Promise.resolve([mockResume])),
-      },
-      resumeAnalytics: {
-        create: mock(() => Promise.resolve(mockAnalyticsSnapshot)),
-        findMany: mock(() => Promise.resolve([mockAnalyticsSnapshot])),
-        findFirst: mock(() => Promise.resolve(mockAnalyticsSnapshot)),
-      },
-      resumeViewEvent: {
-        create: mock(() => Promise.resolve({ id: 'view-123' })),
-        groupBy: mock(() => Promise.resolve([])),
-        count: mock(() => Promise.resolve(150)),
-      },
-    } as unknown as PrismaService;
+    repository = {
+      findResumeById: mock(() => Promise.resolve(mockResume)),
+      findPublicResumesByIndustry: mock(() => Promise.resolve([mockResume])),
+      createViewEvent: mock(() => Promise.resolve({ id: 'view-123' })),
+      countViewEvents: mock(() => Promise.resolve(150)),
+      groupViewEventsByIpHash: mock(() => Promise.resolve([])),
+      findViewEventsForDateRange: mock(() => Promise.resolve([])),
+      groupViewEventsBySource: mock(() => Promise.resolve([])),
+      createAnalyticsSnapshot: mock(() =>
+        Promise.resolve(mockAnalyticsSnapshot),
+      ),
+      findAnalyticsSnapshots: mock(() =>
+        Promise.resolve([mockAnalyticsSnapshot]),
+      ),
+      findAnalyticsScoreProgression: mock(() =>
+        Promise.resolve([mockAnalyticsSnapshot]),
+      ),
+    } as unknown as AnalyticsRepository;
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ResumeAnalyticsService,
-        { provide: PrismaService, useValue: prisma },
+        ViewTrackingService,
+        ATSScoreService,
+        KeywordAnalyzerService,
+        BenchmarkingService,
+        SnapshotService,
+        { provide: AnalyticsRepository, useValue: repository },
       ],
     }).compile();
 
@@ -95,22 +110,22 @@ describe('ResumeAnalyticsService', () => {
   });
 
   describe('Authorization', () => {
-    it('should throw ForbiddenException when user does not own resume', async () => {
-      prisma.resume.findUnique = mock(() =>
+    it('should throw ResourceOwnershipError when user does not own resume', async () => {
+      repository.findResumeById = mock(() =>
         Promise.resolve({ ...mockResume, userId: 'other-user' }),
       );
 
       await expect(
         service.getAnalytics('resume-123', 'user-123'),
-      ).rejects.toThrow(ForbiddenException);
+      ).rejects.toThrow(ResourceOwnershipError);
     });
 
-    it('should throw NotFoundException when resume does not exist', async () => {
-      prisma.resume.findUnique = mock(() => Promise.resolve(null));
+    it('should throw ResumeNotFoundError when resume does not exist', async () => {
+      repository.findResumeById = mock(() => Promise.resolve(null));
 
       await expect(
         service.getAnalytics('nonexistent', 'user-123'),
-      ).rejects.toThrow(NotFoundException);
+      ).rejects.toThrow(ResumeNotFoundError);
     });
 
     it('should allow access when user owns resume', async () => {
@@ -130,13 +145,12 @@ describe('ResumeAnalyticsService', () => {
         referer: 'https://linkedin.com',
       });
 
-      expect(prisma.resumeViewEvent.create).toHaveBeenCalledWith({
-        data: expect.objectContaining({
+      expect(repository.createViewEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
           resumeId: 'resume-123',
-          ipHash: expect.any(String),
           source: 'linkedin',
         }),
-      });
+      );
     });
 
     it('should anonymize IP address for GDPR compliance', async () => {
@@ -145,10 +159,10 @@ describe('ResumeAnalyticsService', () => {
         ip: '192.168.1.1',
       });
 
-      const call = (prisma.resumeViewEvent.create as ReturnType<typeof mock>)
-        .mock.calls[0];
-      expect(call[0].data.ipHash).not.toBe('192.168.1.1');
-      expect(call[0].data.ipHash).toMatch(/^[a-f0-9]{64}$/);
+      const call = (repository.createViewEvent as ReturnType<typeof mock>).mock
+        .calls[0];
+      expect(call[0].ipHash).not.toBe('192.168.1.1');
+      expect(call[0].ipHash).toMatch(/^[a-f0-9]{64}$/);
     });
 
     it('should detect traffic source from referer', async () => {
@@ -167,17 +181,17 @@ describe('ResumeAnalyticsService', () => {
           referer,
         });
 
-        expect(prisma.resumeViewEvent.create).toHaveBeenCalledWith({
-          data: expect.objectContaining({
+        expect(repository.createViewEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
             source: expected,
           }),
-        });
+        );
       }
     });
 
     it('should aggregate views by time period', async () => {
-      prisma.resumeViewEvent.count = mock(() => Promise.resolve(33));
-      prisma.resumeViewEvent.groupBy = mock(() =>
+      repository.countViewEvents = mock(() => Promise.resolve(33));
+      repository.groupViewEventsByIpHash = mock(() =>
         Promise.resolve([{ ipHash: 'hash1' }, { ipHash: 'hash2' }]),
       );
 
@@ -190,8 +204,8 @@ describe('ResumeAnalyticsService', () => {
     });
 
     it('should return unique visitors count', async () => {
-      prisma.resumeViewEvent.count = mock(() => Promise.resolve(10));
-      prisma.resumeViewEvent.groupBy = mock(() =>
+      repository.countViewEvents = mock(() => Promise.resolve(10));
+      repository.groupViewEventsByIpHash = mock(() =>
         Promise.resolve([
           { ipHash: 'hash1' },
           { ipHash: 'hash2' },
@@ -226,7 +240,7 @@ describe('ResumeAnalyticsService', () => {
     });
 
     it('should penalize missing contact information', async () => {
-      prisma.resume.findUnique = mock(() =>
+      repository.findResumeById = mock(() =>
         Promise.resolve({
           ...mockResume,
           emailContact: null,
@@ -243,7 +257,7 @@ describe('ResumeAnalyticsService', () => {
     });
 
     it('should penalize short summary', async () => {
-      prisma.resume.findUnique = mock(() =>
+      repository.findResumeById = mock(() =>
         Promise.resolve({
           ...mockResume,
           summary: 'Short.',
@@ -256,7 +270,7 @@ describe('ResumeAnalyticsService', () => {
     });
 
     it('should reward quantified achievements', async () => {
-      prisma.resume.findUnique = mock(() =>
+      repository.findResumeById = mock(() =>
         Promise.resolve({
           ...mockResume,
           experiences: [
@@ -275,7 +289,7 @@ describe('ResumeAnalyticsService', () => {
     });
 
     it('should detect and reward action verbs', async () => {
-      prisma.resume.findUnique = mock(() =>
+      repository.findResumeById = mock(() =>
         Promise.resolve({
           ...mockResume,
           experiences: [
@@ -355,7 +369,7 @@ describe('ResumeAnalyticsService', () => {
     });
 
     it('should warn about keyword stuffing', async () => {
-      prisma.resume.findUnique = mock(() =>
+      repository.findResumeById = mock(() =>
         Promise.resolve({
           ...mockResume,
           summary:
@@ -377,7 +391,7 @@ describe('ResumeAnalyticsService', () => {
 
   describe('Industry Benchmarking', () => {
     it('should return industry ranking percentile', async () => {
-      prisma.resume.findMany = mock(() =>
+      repository.findPublicResumesByIndustry = mock(() =>
         Promise.resolve(
           Array.from({ length: 100 }, (_, i) => ({
             ...mockResume,
@@ -461,7 +475,7 @@ describe('ResumeAnalyticsService', () => {
     });
 
     it('should return empty state for new resume', async () => {
-      prisma.resume.findUnique = mock(() =>
+      repository.findResumeById = mock(() =>
         Promise.resolve({
           ...mockResume,
           profileViews: 0,
@@ -469,7 +483,7 @@ describe('ResumeAnalyticsService', () => {
           experiences: [],
         }),
       );
-      prisma.resumeViewEvent.count = mock(() => Promise.resolve(0));
+      repository.countViewEvents = mock(() => Promise.resolve(0));
 
       const result = await service.getDashboard('resume-123', 'user-123');
 
@@ -485,12 +499,12 @@ describe('ResumeAnalyticsService', () => {
     it('should save analytics snapshot', async () => {
       await service.saveSnapshot('resume-123', 'user-123');
 
-      expect(prisma.resumeAnalytics.create).toHaveBeenCalledWith({
-        data: expect.objectContaining({
+      expect(repository.createAnalyticsSnapshot).toHaveBeenCalledWith(
+        expect.objectContaining({
           resumeId: 'resume-123',
           atsScore: expect.any(Number),
         }),
-      });
+      );
     });
 
     it('should retrieve historical snapshots', async () => {
@@ -499,17 +513,17 @@ describe('ResumeAnalyticsService', () => {
       });
 
       expect(Array.isArray(result)).toBe(true);
-      expect(prisma.resumeAnalytics.findMany).toHaveBeenCalledWith(
+      expect(repository.findAnalyticsSnapshots).toHaveBeenCalledWith(
+        'resume-123',
         expect.objectContaining({
-          where: { resumeId: 'resume-123' },
-          orderBy: { createdAt: 'desc' },
-          take: 10,
+          limit: 10,
+          orderBy: 'desc',
         }),
       );
     });
 
     it('should track score progression over time', async () => {
-      prisma.resumeAnalytics.findMany = mock(() =>
+      repository.findAnalyticsScoreProgression = mock(() =>
         Promise.resolve([
           {
             ...mockAnalyticsSnapshot,

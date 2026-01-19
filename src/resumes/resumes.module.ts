@@ -8,6 +8,7 @@ import { CacheModule } from '../common/cache/cache.module';
 import { AuthorizationModule } from '../authorization';
 import { ResumeManagementService } from './services/resume-management.service';
 import { ResumeManagementController } from './controllers/resume-management.controller';
+import { ResumeManagementRepository } from './repositories/resume-management.repository';
 import {
   // Controllers
   ExperienceController,
@@ -89,6 +90,7 @@ import {
     ResumesService,
     ResumesRepository,
     ResumeManagementService,
+    ResumeManagementRepository,
     // Sub-resource Services
     ExperienceService,
     EducationService,

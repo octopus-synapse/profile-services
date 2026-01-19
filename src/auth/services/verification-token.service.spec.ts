@@ -1,31 +1,33 @@
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
+import { InvalidTokenError } from '@octopus-synapse/profile-contracts';
 import { VerificationTokenService } from './verification-token.service';
-import { PrismaService } from '../../prisma/prisma.service';
-import { BadRequestException } from '@nestjs/common';
-import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
+import { VerificationTokenRepository } from '../repositories/verification-token.repository';
 
 describe('VerificationTokenService', () => {
   let service: VerificationTokenService;
-  let prismaService: PrismaService;
+  let verificationTokenRepository: {
+    upsert: ReturnType<typeof mock>;
+    findByToken: ReturnType<typeof mock>;
+    deleteByToken: ReturnType<typeof mock>;
+    isExpired: ReturnType<typeof mock>;
+  };
 
   beforeEach(async () => {
-    const mockUpsert = mock();
-    const mockFindUnique = mock();
-    const mockDelete = mock();
-
-    prismaService = {
-      verificationToken: {
-        upsert: mockUpsert,
-        findUnique: mockFindUnique,
-        delete: mockDelete,
-      },
-    } as any;
+    verificationTokenRepository = {
+      upsert: mock(() => Promise.resolve({})),
+      findByToken: mock(() => Promise.resolve(null)),
+      deleteByToken: mock(() => Promise.resolve()),
+      isExpired: mock(() => false),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         VerificationTokenService,
-        { provide: PrismaService, useValue: prismaService },
+        {
+          provide: VerificationTokenRepository,
+          useValue: verificationTokenRepository,
+        },
       ],
     }).compile();
 
@@ -35,30 +37,16 @@ describe('VerificationTokenService', () => {
   describe('createEmailVerificationToken', () => {
     it('should create email verification token', async () => {
       const email = 'user@example.com';
-      const mockUpsert = prismaService.verificationToken.upsert as any;
-      mockUpsert.mockResolvedValue({});
 
       const token = await service.createEmailVerificationToken(email);
 
       expect(token).toBeTruthy();
       expect(typeof token).toBe('string');
       expect(token.length).toBeGreaterThan(0);
-      expect(mockUpsert).toHaveBeenCalledWith({
-        where: {
-          identifier_token: {
-            identifier: email,
-            token,
-          },
-        },
-        update: expect.objectContaining({
-          token,
-          expires: expect.any(Date),
-        }),
-        create: expect.objectContaining({
-          identifier: email,
-          token,
-          expires: expect.any(Date),
-        }),
+      expect(verificationTokenRepository.upsert).toHaveBeenCalledWith({
+        identifier: email,
+        token,
+        expires: expect.any(Date),
       });
     });
 
@@ -68,7 +56,7 @@ describe('VerificationTokenService', () => {
       let capturedArgs: any;
 
       // Replace mock with a function that captures arguments
-      (prismaService.verificationToken.upsert as any) = async (args: any) => {
+      verificationTokenRepository.upsert = async (args: any) => {
         capturedArgs = args;
         return {};
       };
@@ -82,11 +70,10 @@ describe('VerificationTokenService', () => {
       const maxExpiry = afterTime + 25 * 60 * 60 * 1000;
 
       expect(capturedArgs).toBeDefined();
-      expect(capturedArgs.create).toBeDefined();
-      expect(capturedArgs.create.expires).toBeDefined();
+      expect(capturedArgs.expires).toBeDefined();
 
       // The expires should be a Date object - check its validity
-      const expires = capturedArgs.create.expires;
+      const expires = capturedArgs.expires;
       const expiryTime =
         expires instanceof Date ? expires.getTime() : Number(expires);
       expect(typeof expiryTime).toBe('number');
@@ -97,15 +84,14 @@ describe('VerificationTokenService', () => {
 
     it('should upsert token to handle existing tokens', async () => {
       const email = 'existing@example.com';
-      const mockUpsert = prismaService.verificationToken.upsert as any;
-      mockUpsert.mockResolvedValue({});
 
       await service.createEmailVerificationToken(email);
 
-      expect(mockUpsert).toHaveBeenCalledWith(
+      expect(verificationTokenRepository.upsert).toHaveBeenCalledWith(
         expect.objectContaining({
-          update: expect.any(Object),
-          create: expect.any(Object),
+          identifier: email,
+          token: expect.any(String),
+          expires: expect.any(Date),
         }),
       );
     });
@@ -114,29 +100,15 @@ describe('VerificationTokenService', () => {
   describe('createPasswordResetToken', () => {
     it('should create password reset token with prefix', async () => {
       const email = 'user@example.com';
-      const mockUpsert = prismaService.verificationToken.upsert as any;
-      mockUpsert.mockResolvedValue({});
 
       const token = await service.createPasswordResetToken(email);
 
       expect(token).toBeTruthy();
       expect(typeof token).toBe('string');
-      expect(mockUpsert).toHaveBeenCalledWith({
-        where: {
-          identifier_token: {
-            identifier: `reset:${email}`,
-            token,
-          },
-        },
-        update: expect.objectContaining({
-          token,
-          expires: expect.any(Date),
-        }),
-        create: expect.objectContaining({
-          identifier: `reset:${email}`,
-          token,
-          expires: expect.any(Date),
-        }),
+      expect(verificationTokenRepository.upsert).toHaveBeenCalledWith({
+        identifier: `reset:${email}`,
+        token,
+        expires: expect.any(Date),
       });
     });
 
@@ -146,7 +118,7 @@ describe('VerificationTokenService', () => {
       let capturedArgs: any;
 
       // Replace mock with a function that captures arguments
-      (prismaService.verificationToken.upsert as any) = async (args: any) => {
+      verificationTokenRepository.upsert = async (args: any) => {
         capturedArgs = args;
         return {};
       };
@@ -160,8 +132,8 @@ describe('VerificationTokenService', () => {
       const maxExpiry = afterTime + 70 * 60 * 1000; // 70 minutes
 
       expect(capturedArgs).toBeDefined();
-      expect(capturedArgs.create.expires).toBeInstanceOf(Date);
-      const expiryTime = capturedArgs.create.expires.getTime();
+      expect(capturedArgs.expires).toBeInstanceOf(Date);
+      const expiryTime = capturedArgs.expires.getTime();
       expect(expiryTime).toBeGreaterThan(minExpiry);
       expect(expiryTime).toBeLessThan(maxExpiry);
     });
@@ -177,31 +149,28 @@ describe('VerificationTokenService', () => {
         expires: new Date(Date.now() + 60 * 60 * 1000), // 1 hour future
       };
 
-      const mockFindUnique = prismaService.verificationToken.findUnique as any;
-      const mockDelete = prismaService.verificationToken.delete as any;
-      mockFindUnique.mockResolvedValue(mockToken);
-      mockDelete.mockResolvedValue(mockToken);
+      verificationTokenRepository.findByToken.mockResolvedValue(mockToken);
+      verificationTokenRepository.isExpired.mockReturnValue(false);
 
       const result = await service.validateEmailVerificationToken(token);
 
       expect(result).toBe(email);
-      expect(mockDelete).toHaveBeenCalledWith({ where: { token } });
-    });
-
-    it('should throw BadRequestException for non-existent token', async () => {
-      const token = 'nonexistent-token';
-
-      const mockFindUnique = prismaService.verificationToken.findUnique as any;
-      mockFindUnique.mockResolvedValue(null);
-
-      await expect(
-        service.validateEmailVerificationToken(token),
-      ).rejects.toThrow(
-        new BadRequestException(ERROR_MESSAGES.INVALID_VERIFICATION_TOKEN),
+      expect(verificationTokenRepository.deleteByToken).toHaveBeenCalledWith(
+        token,
       );
     });
 
-    it('should throw BadRequestException for expired token', async () => {
+    it('should throw InvalidTokenError for non-existent token', async () => {
+      const token = 'nonexistent-token';
+
+      verificationTokenRepository.findByToken.mockResolvedValue(null);
+
+      await expect(
+        service.validateEmailVerificationToken(token),
+      ).rejects.toThrow(InvalidTokenError);
+    });
+
+    it('should throw InvalidTokenError for expired token', async () => {
       const token = 'expired-token';
       const mockToken = {
         identifier: 'user@example.com',
@@ -209,17 +178,17 @@ describe('VerificationTokenService', () => {
         expires: new Date(Date.now() - 60 * 1000), // 1 minute ago
       };
 
-      const mockFindUnique = prismaService.verificationToken.findUnique as any;
-      const mockDelete = prismaService.verificationToken.delete as any;
-      mockFindUnique.mockResolvedValue(mockToken);
-      mockDelete.mockResolvedValue(mockToken);
+      verificationTokenRepository.findByToken.mockResolvedValue(mockToken);
+      verificationTokenRepository.isExpired.mockReturnValue(true);
 
       await expect(
         service.validateEmailVerificationToken(token),
-      ).rejects.toThrow(new BadRequestException(ERROR_MESSAGES.TOKEN_EXPIRED));
+      ).rejects.toThrow(InvalidTokenError);
 
       // Should attempt to clean up expired token (async, may not complete)
-      expect(mockDelete).toHaveBeenCalledWith({ where: { token } });
+      expect(verificationTokenRepository.deleteByToken).toHaveBeenCalledWith(
+        token,
+      );
     });
 
     it('should handle cleanup failure for expired tokens gracefully', async () => {
@@ -230,14 +199,15 @@ describe('VerificationTokenService', () => {
         expires: new Date(Date.now() - 60 * 1000),
       };
 
-      const mockFindUnique = prismaService.verificationToken.findUnique as any;
-      const mockDelete = prismaService.verificationToken.delete as any;
-      mockFindUnique.mockResolvedValue(mockToken);
-      mockDelete.mockRejectedValue(new Error('Database error'));
+      verificationTokenRepository.findByToken.mockResolvedValue(mockToken);
+      verificationTokenRepository.isExpired.mockReturnValue(true);
+      verificationTokenRepository.deleteByToken.mockRejectedValue(
+        new Error('Database error'),
+      );
 
       await expect(
         service.validateEmailVerificationToken(token),
-      ).rejects.toThrow(new BadRequestException(ERROR_MESSAGES.TOKEN_EXPIRED));
+      ).rejects.toThrow(InvalidTokenError);
     });
   });
 
@@ -251,18 +221,18 @@ describe('VerificationTokenService', () => {
         expires: new Date(Date.now() + 60 * 60 * 1000),
       };
 
-      const mockFindUnique = prismaService.verificationToken.findUnique as any;
-      const mockDelete = prismaService.verificationToken.delete as any;
-      mockFindUnique.mockResolvedValue(mockToken);
-      mockDelete.mockResolvedValue(mockToken);
+      verificationTokenRepository.findByToken.mockResolvedValue(mockToken);
+      verificationTokenRepository.isExpired.mockReturnValue(false);
 
       const result = await service.validatePasswordResetToken(token);
 
       expect(result).toBe(email);
-      expect(mockDelete).toHaveBeenCalledWith({ where: { token } });
+      expect(verificationTokenRepository.deleteByToken).toHaveBeenCalledWith(
+        token,
+      );
     });
 
-    it('should throw BadRequestException for email verification token', async () => {
+    it('should throw InvalidTokenError for email verification token', async () => {
       const token = 'email-verification-token';
       const mockToken = {
         identifier: 'user@example.com', // No "reset:" prefix
@@ -270,26 +240,25 @@ describe('VerificationTokenService', () => {
         expires: new Date(Date.now() + 60 * 60 * 1000),
       };
 
-      const mockFindUnique = prismaService.verificationToken.findUnique as any;
-      mockFindUnique.mockResolvedValue(mockToken);
+      verificationTokenRepository.findByToken.mockResolvedValue(mockToken);
+      verificationTokenRepository.isExpired.mockReturnValue(false);
 
       await expect(
         async () => await service.validatePasswordResetToken(token),
-      ).toThrow(new BadRequestException(ERROR_MESSAGES.INVALID_RESET_TOKEN));
+      ).toThrow(InvalidTokenError);
     });
 
-    it('should throw BadRequestException for null token', async () => {
+    it('should throw InvalidTokenError for null token', async () => {
       const token = 'nonexistent-reset-token';
 
-      const mockFindUnique = prismaService.verificationToken.findUnique as any;
-      mockFindUnique.mockResolvedValue(null);
+      verificationTokenRepository.findByToken.mockResolvedValue(null);
 
       await expect(
         async () => await service.validatePasswordResetToken(token),
-      ).toThrow(new BadRequestException(ERROR_MESSAGES.INVALID_RESET_TOKEN));
+      ).toThrow(InvalidTokenError);
     });
 
-    it('should throw BadRequestException for expired reset token', async () => {
+    it('should throw InvalidTokenError for expired reset token', async () => {
       const token = 'expired-reset-token';
       const mockToken = {
         identifier: 'reset:user@example.com',
@@ -297,14 +266,12 @@ describe('VerificationTokenService', () => {
         expires: new Date(Date.now() - 60 * 1000),
       };
 
-      const mockFindUnique = prismaService.verificationToken.findUnique as any;
-      const mockDelete = prismaService.verificationToken.delete as any;
-      mockFindUnique.mockResolvedValue(mockToken);
-      mockDelete.mockResolvedValue(mockToken);
+      verificationTokenRepository.findByToken.mockResolvedValue(mockToken);
+      verificationTokenRepository.isExpired.mockReturnValue(true);
 
       await expect(
         async () => await service.validatePasswordResetToken(token),
-      ).toThrow(new BadRequestException(ERROR_MESSAGES.TOKEN_EXPIRED));
+      ).toThrow(InvalidTokenError);
     });
 
     it('should extract email correctly from prefixed identifier', async () => {
@@ -316,10 +283,8 @@ describe('VerificationTokenService', () => {
         expires: new Date(Date.now() + 60 * 60 * 1000),
       };
 
-      const mockFindUnique = prismaService.verificationToken.findUnique as any;
-      const mockDelete = prismaService.verificationToken.delete as any;
-      mockFindUnique.mockResolvedValue(mockToken);
-      mockDelete.mockResolvedValue(mockToken);
+      verificationTokenRepository.findByToken.mockResolvedValue(mockToken);
+      verificationTokenRepository.isExpired.mockReturnValue(false);
 
       const result = await service.validatePasswordResetToken(token);
 
@@ -330,8 +295,6 @@ describe('VerificationTokenService', () => {
   describe('token generation', () => {
     it('should generate different tokens on subsequent calls', async () => {
       const email = 'user@example.com';
-      const mockUpsert = prismaService.verificationToken.upsert as any;
-      mockUpsert.mockResolvedValue({});
 
       const token1 = await service.createEmailVerificationToken(email);
       const token2 = await service.createEmailVerificationToken(email);
@@ -341,8 +304,6 @@ describe('VerificationTokenService', () => {
 
     it('should generate hex string tokens', async () => {
       const email = 'user@example.com';
-      const mockUpsert = prismaService.verificationToken.upsert as any;
-      mockUpsert.mockResolvedValue({});
 
       const token = await service.createEmailVerificationToken(email);
 

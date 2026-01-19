@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, mock, spyOn } from 'bun:test';
 import { createMockResume } from '../../../test/factories/resume.factory';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Logger } from '@nestjs/common';
+import { ResourceNotFoundError } from '@octopus-synapse/profile-contracts';
 import { ProjectService } from './project.service';
 import { ProjectRepository } from '../repositories/project.repository';
 import { ResumesRepository } from '../resumes.repository';
@@ -123,7 +124,7 @@ describe('ProjectService', () => {
       );
     });
 
-    it('should throw NotFoundException when project not found', async () => {
+    it('should throw ResourceNotFoundError when project not found', async () => {
       resumesRepository.findResumeByIdAndUserId.mockResolvedValue(
         mockResume as any,
       );
@@ -131,7 +132,7 @@ describe('ProjectService', () => {
 
       await expect(
         service.getEntityByIdForResume('resume-123', 'invalid-id', 'user-123'),
-      ).rejects.toThrow('Project not found');
+      ).rejects.toThrow(ResourceNotFoundError);
     });
   });
 
@@ -191,7 +192,7 @@ describe('ProjectService', () => {
       );
     });
 
-    it('should throw NotFoundException when project not found', async () => {
+    it('should throw ResourceNotFoundError when project not found', async () => {
       resumesRepository.findResumeByIdAndUserId.mockResolvedValue(
         mockResume as any,
       );
@@ -204,7 +205,7 @@ describe('ProjectService', () => {
           'user-123',
           {},
         ),
-      ).rejects.toThrow('Project not found');
+      ).rejects.toThrow(ResourceNotFoundError);
     });
   });
 
@@ -228,7 +229,7 @@ describe('ProjectService', () => {
       );
     });
 
-    it('should throw NotFoundException when project not found', async () => {
+    it('should throw ResourceNotFoundError when project not found', async () => {
       resumesRepository.findResumeByIdAndUserId.mockResolvedValue(
         mockResume as any,
       );
@@ -240,7 +241,7 @@ describe('ProjectService', () => {
           'invalid-id',
           'user-123',
         ),
-      ).rejects.toThrow('Project not found');
+      ).rejects.toThrow(ResourceNotFoundError);
     });
   });
 });

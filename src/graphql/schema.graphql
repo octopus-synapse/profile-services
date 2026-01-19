@@ -2,69 +2,113 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-"""Input for creating education entry"""
+"""
+Input for creating education entry
+"""
 input CreateEducationInput {
-  """Currently studying"""
+  """
+  Currently studying
+  """
   current: Boolean! = false
 
-  """Degree obtained"""
+  """
+  Degree obtained
+  """
   degree: String!
 
-  """Program description"""
+  """
+  Program description
+  """
   description: String
 
-  """End date (YYYY-MM or YYYY-MM-DD)"""
+  """
+  End date (YYYY-MM or YYYY-MM-DD)
+  """
   endDate: String
 
-  """Field of study"""
+  """
+  Field of study
+  """
   field: String
 
-  """GPA or grade"""
+  """
+  GPA or grade
+  """
   gpa: String
 
-  """Institution name"""
+  """
+  Institution name
+  """
   institution: String!
 
-  """Institution location"""
+  """
+  Institution location
+  """
   location: String
 
-  """Display order"""
+  """
+  Display order
+  """
   order: Int
 
-  """Start date (YYYY-MM or YYYY-MM-DD)"""
+  """
+  Start date (YYYY-MM or YYYY-MM-DD)
+  """
   startDate: String!
 }
 
-"""Input for creating work experience"""
+"""
+Input for creating work experience
+"""
 input CreateExperienceInput {
-  """Key achievements in this role"""
+  """
+  Key achievements in this role
+  """
   achievements: [String!] = []
 
-  """Company name"""
+  """
+  Company name
+  """
   company: String!
 
-  """Currently working here"""
+  """
+  Currently working here
+  """
   current: Boolean! = false
 
-  """Job description"""
+  """
+  Job description
+  """
   description: String
 
-  """End date (YYYY-MM or YYYY-MM-DD)"""
+  """
+  End date (YYYY-MM or YYYY-MM-DD)
+  """
   endDate: String
 
-  """Work location"""
+  """
+  Work location
+  """
   location: String
 
-  """Display order"""
+  """
+  Display order
+  """
   order: Int
 
-  """Job position/title"""
+  """
+  Job position/title
+  """
   position: String!
 
-  """Skills used in this role"""
+  """
+  Skills used in this role
+  """
   skills: [String!] = []
 
-  """Start date (YYYY-MM or YYYY-MM-DD)"""
+  """
+  Start date (YYYY-MM or YYYY-MM-DD)
+  """
   startDate: String!
 }
 
@@ -73,233 +117,383 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
-"""Educational qualification entry"""
+"""
+Educational qualification entry
+"""
 type EducationModel {
-  """Created at timestamp"""
+  """
+  Created at timestamp
+  """
   createdAt: DateTime!
 
-  """Degree obtained"""
+  """
+  Degree obtained
+  """
   degree: String!
 
-  """Program description"""
+  """
+  Program description
+  """
   description: String
 
-  """End date"""
+  """
+  End date
+  """
   endDate: DateTime
 
-  """Field of study"""
+  """
+  Field of study
+  """
   field: String
 
-  """GPA or grade"""
+  """
+  GPA or grade
+  """
   gpa: String
 
-  """Unique identifier"""
+  """
+  Unique identifier
+  """
   id: ID!
 
-  """Institution name"""
+  """
+  Institution name
+  """
   institution: String!
 
-  """Currently studying"""
+  """
+  Currently studying
+  """
   isCurrent: Boolean!
 
-  """Institution location"""
+  """
+  Institution location
+  """
   location: String
 
-  """Display order"""
+  """
+  Display order
+  """
   order: Int!
 
-  """Resume ID this education belongs to"""
+  """
+  Resume ID this education belongs to
+  """
   resumeId: String!
 
-  """Start date"""
+  """
+  Start date
+  """
   startDate: DateTime!
 
-  """Updated at timestamp"""
+  """
+  Updated at timestamp
+  """
   updatedAt: DateTime!
 }
 
-"""Professional work experience entry"""
+"""
+Professional work experience entry
+"""
 type ExperienceModel {
-  """Company name"""
+  """
+  Company name
+  """
   company: String!
 
-  """Created at timestamp"""
+  """
+  Created at timestamp
+  """
   createdAt: DateTime!
 
-  """Job description"""
+  """
+  Job description
+  """
   description: String
 
-  """End date"""
+  """
+  End date
+  """
   endDate: DateTime
 
-  """Unique identifier"""
+  """
+  Unique identifier
+  """
   id: ID!
 
-  """Currently working here"""
+  """
+  Currently working here
+  """
   isCurrent: Boolean!
 
-  """Work location"""
+  """
+  Work location
+  """
   location: String
 
-  """Display order"""
+  """
+  Display order
+  """
   order: Int!
 
-  """Job position/title"""
+  """
+  Job position/title
+  """
   position: String!
 
-  """Resume ID this experience belongs to"""
+  """
+  Resume ID this experience belongs to
+  """
   resumeId: String!
 
-  """Skills used in this role"""
+  """
+  Skills used in this role
+  """
   skills: [String!]!
 
-  """Start date"""
+  """
+  Start date
+  """
   startDate: DateTime!
 
-  """Updated at timestamp"""
+  """
+  Updated at timestamp
+  """
   updatedAt: DateTime!
 }
 
 type Mutation {
-  """Add education entry to resume"""
+  """
+  Add education entry to resume
+  """
   addEducation(input: CreateEducationInput!, resumeId: ID!): EducationModel!
 
-  """Add work experience to resume"""
+  """
+  Add work experience to resume
+  """
   addExperience(input: CreateExperienceInput!, resumeId: ID!): ExperienceModel!
 
-  """Delete work experience"""
+  """
+  Delete work experience
+  """
   deleteExperience(experienceId: ID!, resumeId: ID!): Boolean!
 
-  """Update work experience"""
-  updateExperience(experienceId: ID!, input: UpdateExperienceInput!, resumeId: ID!): ExperienceModel!
+  """
+  Update work experience
+  """
+  updateExperience(
+    experienceId: ID!
+    input: UpdateExperienceInput!
+    resumeId: ID!
+  ): ExperienceModel!
 }
 
 type Query {
-  """Get all resumes for current user"""
+  """
+  Get all resumes for current user
+  """
   myResumes: [ResumeModel!]!
 
-  """Get a single resume by ID"""
+  """
+  Get a single resume by ID
+  """
   resume(id: ID!): ResumeModel!
 }
 
-"""Complete resume document"""
+"""
+Complete resume document
+"""
 type ResumeModel {
-  """Accent color"""
+  """
+  Accent color
+  """
   accentColor: String
 
-  """Created at timestamp"""
+  """
+  Created at timestamp
+  """
   createdAt: DateTime!
 
-  """Education entries"""
+  """
+  Education entries
+  """
   educations: [EducationModel!]!
 
-  """Email address"""
+  """
+  Email address
+  """
   emailContact: String
 
-  """Work experiences"""
+  """
+  Work experiences
+  """
   experiences: [ExperienceModel!]!
 
-  """Full name"""
+  """
+  Full name
+  """
   fullName: String
 
-  """Unique identifier"""
+  """
+  Unique identifier
+  """
   id: ID!
 
-  """Is this resume public"""
+  """
+  Is this resume public
+  """
   isPublic: Boolean!
 
-  """Location/City"""
+  """
+  Location/City
+  """
   location: String
 
-  """Phone number"""
+  """
+  Phone number
+  """
   phone: String
 
-  """Skills"""
+  """
+  Skills
+  """
   skills: [SkillModel!]!
 
-  """Professional summary"""
+  """
+  Professional summary
+  """
   summary: String
 
-  """Resume template"""
+  """
+  Resume template
+  """
   template: ResumeTemplate!
 
-  """Resume title"""
+  """
+  Resume title
+  """
   title: String
 
-  """Updated at timestamp"""
+  """
+  Updated at timestamp
+  """
   updatedAt: DateTime!
 
-  """User ID who owns this resume"""
+  """
+  User ID who owns this resume
+  """
   userId: String!
 }
 
-"""Available resume templates"""
+"""
+Available resume templates - synced with Prisma enum
+"""
 enum ResumeTemplate {
   ACADEMIC
-  CLASSIC
   CREATIVE
+  EXECUTIVE
   MINIMAL
   MODERN
   PROFESSIONAL
-  TECH
+  TECHNICAL
 }
 
-"""Technical or professional skill"""
+"""
+Technical or professional skill
+"""
 type SkillModel {
-  """Skill category"""
+  """
+  Skill category
+  """
   category: String!
 
-  """Created at timestamp"""
+  """
+  Created at timestamp
+  """
   createdAt: DateTime!
 
-  """Unique identifier"""
+  """
+  Unique identifier
+  """
   id: ID!
 
-  """Proficiency level (0-5)"""
+  """
+  Proficiency level (0-5)
+  """
   level: Int
 
-  """Skill name"""
+  """
+  Skill name
+  """
   name: String!
 
-  """Display order"""
+  """
+  Display order
+  """
   order: Int!
 
-  """Resume ID this skill belongs to"""
+  """
+  Resume ID this skill belongs to
+  """
   resumeId: String!
 
-  """Updated at timestamp"""
+  """
+  Updated at timestamp
+  """
   updatedAt: DateTime!
 }
 
-"""Input for updating work experience"""
+"""
+Input for updating work experience
+"""
 input UpdateExperienceInput {
-  """Key achievements in this role"""
+  """
+  Key achievements in this role
+  """
   achievements: [String!]
 
-  """Company name"""
+  """
+  Company name
+  """
   company: String
 
-  """Currently working here"""
+  """
+  Currently working here
+  """
   current: Boolean
 
-  """Job description"""
+  """
+  Job description
+  """
   description: String
 
-  """End date (YYYY-MM or YYYY-MM-DD)"""
+  """
+  End date (YYYY-MM or YYYY-MM-DD)
+  """
   endDate: String
 
-  """Work location"""
+  """
+  Work location
+  """
   location: String
 
-  """Display order"""
+  """
+  Display order
+  """
   order: Int
 
-  """Job position/title"""
+  """
+  Job position/title
+  """
   position: String
 
-  """Skills used in this role"""
+  """
+  Skills used in this role
+  """
   skills: [String!]
 
-  """Start date (YYYY-MM or YYYY-MM-DD)"""
+  """
+  Start date (YYYY-MM or YYYY-MM-DD)
+  """
   startDate: String
 }

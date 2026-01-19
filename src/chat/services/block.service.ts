@@ -1,8 +1,8 @@
+import { Injectable } from '@nestjs/common';
 import {
-  Injectable,
-  BadRequestException,
-  NotFoundException,
-} from '@nestjs/common';
+  ResourceNotFoundError,
+  BusinessRuleError,
+} from '@octopus-synapse/profile-contracts';
 import { BlockedUserRepository } from '../repositories/blocked-user.repository';
 import type {
   BlockUser,
@@ -21,7 +21,7 @@ export class BlockService {
     dto: BlockUser,
   ): Promise<BlockedUserResponse> {
     if (blockerId === dto.userId) {
-      throw new BadRequestException('Cannot block yourself');
+      throw new BusinessRuleError('Cannot block yourself');
     }
 
     const record = await this.blockedUserRepo.block(
@@ -52,7 +52,7 @@ export class BlockService {
       blockedId,
     );
     if (!isBlocked) {
-      throw new NotFoundException('User is not blocked');
+      throw new ResourceNotFoundError('block', blockedId);
     }
 
     await this.blockedUserRepo.unblock(blockerId, blockedId);

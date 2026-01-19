@@ -1,20 +1,17 @@
-import {
-  Injectable,
-  NotFoundException,
-  ConflictException,
-} from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { Injectable } from '@nestjs/common';
 import { AppLoggerService } from '../common/logger/logger.service';
 import { AuditLogService } from '../common/audit/audit-log.service';
 import type { Prisma } from '@prisma/client';
 import {
-  ERROR_MESSAGES,
   SUCCESS_MESSAGES,
+  UserNotFoundError,
+  UsernameConflictError,
 } from '@octopus-synapse/profile-contracts';
 import {
   onboardingDataSchema,
   type OnboardingData,
 } from './schemas/onboarding.schema';
+import { OnboardingRepository } from './repositories';
 import { ResumeOnboardingService } from './services/resume-onboarding.service';
 import { SkillsOnboardingService } from './services/skills-onboarding.service';
 import { ExperienceOnboardingService } from './services/experience-onboarding.service';
@@ -26,7 +23,7 @@ import type { OnboardingProgress } from '@octopus-synapse/profile-contracts';
 @Injectable()
 export class OnboardingService {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly repository: OnboardingRepository,
     private readonly logger: AppLoggerService,
     private readonly auditLog: AuditLogService,
     private readonly resumeService: ResumeOnboardingService,
@@ -46,8 +43,8 @@ export class OnboardingService {
     const user = await this.findUser(userId);
 
     // Use transaction to ensure atomicity
-    return await this.prisma
-      .$transaction(
+    return await this.repository
+      .transaction(
         async (tx) => {
           // Create/update resume
           const resume = await this.resumeService.upsertResumeWithTx(
@@ -147,7 +144,7 @@ export class OnboardingService {
             'OnboardingService',
             { username: validatedData.username, userId },
           );
-          throw new ConflictException(ERROR_MESSAGES.USERNAME_ALREADY_IN_USE);
+          throw new UsernameConflictError(validatedData.username);
         }
 
         throw error;
@@ -155,12 +152,9 @@ export class OnboardingService {
   }
 
   async getOnboardingStatus(userId: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { hasCompletedOnboarding: true, onboardingCompletedAt: true },
-    });
+    const user = await this.repository.findUserOnboardingStatus(userId);
 
-    if (!user) throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
+    if (!user) throw new UserNotFoundError(userId);
 
     return {
       hasCompletedOnboarding: user.hasCompletedOnboarding,
@@ -181,7 +175,7 @@ export class OnboardingService {
   }
 
   private async findUser(userId: string) {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    const user = await this.repository.findUserById(userId);
 
     if (!user) {
       this.logger.warn(
@@ -189,14 +183,10 @@ export class OnboardingService {
         'OnboardingService',
         { userId },
       );
-      throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
+      throw new UserNotFoundError(userId);
     }
 
     return user;
-  }
-
-  private async markOnboardingComplete(userId: string, data: OnboardingData) {
-    return this.markOnboardingCompleteWithTx(this.prisma, userId, data);
   }
 
   private async markOnboardingCompleteWithTx(
@@ -205,21 +195,15 @@ export class OnboardingService {
     data: OnboardingData,
   ) {
     // Update user with profile data from onboarding
-    await tx.user.update({
-      where: { id: userId },
-      data: {
-        hasCompletedOnboarding: true,
-        onboardingCompletedAt: new Date(),
-        username: data.username,
-        // Sync profile data from onboarding to user table for settings
-        displayName: data.personalInfo.fullName,
-        phone: data.personalInfo.phone ?? null,
-        location: data.personalInfo.location ?? null,
-        bio: data.professionalProfile.summary,
-        linkedin: data.professionalProfile.linkedin ?? null,
-        github: data.professionalProfile.github ?? null,
-        website: data.professionalProfile.website ?? null,
-      },
+    await this.repository.updateUserOnboardingComplete(tx, userId, {
+      username: data.username,
+      displayName: data.personalInfo.fullName,
+      phone: data.personalInfo.phone,
+      location: data.personalInfo.location,
+      bio: data.professionalProfile.summary,
+      linkedin: data.professionalProfile.linkedin,
+      github: data.professionalProfile.github,
+      website: data.professionalProfile.website,
     });
   }
 

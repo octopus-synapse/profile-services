@@ -1,17 +1,18 @@
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConflictException, UnauthorizedException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import {
+  AuthenticationError,
+  EmailConflictError,
+} from '@octopus-synapse/profile-contracts';
 import { AuthCoreService } from './auth-core.service';
-import { PrismaService } from '../../prisma/prisma.service';
+import { AuthUserRepository } from '../repositories/auth-user.repository';
 import { AppLoggerService } from '../../common/logger/logger.service';
 import { TokenService } from './token.service';
 import { PasswordService } from './password.service';
-import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
 
 describe('AuthCoreService', () => {
   let service: AuthCoreService;
-  let prisma: any;
+  let authUserRepository: any;
   let logger: AppLoggerService;
   let tokenService: TokenService;
   let passwordService: PasswordService;
@@ -29,11 +30,11 @@ describe('AuthCoreService', () => {
   };
 
   beforeEach(async () => {
-    const mockPrisma = {
-      user: {
-        findUnique: mock(),
-        create: mock(),
-      },
+    const mockAuthUserRepository = {
+      findByEmail: mock(),
+      findById: mock(),
+      create: mock(),
+      isUniqueConstraintError: mock(() => false),
     };
 
     const mockLogger = {
@@ -54,7 +55,7 @@ describe('AuthCoreService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthCoreService,
-        { provide: PrismaService, useValue: mockPrisma },
+        { provide: AuthUserRepository, useValue: mockAuthUserRepository },
         { provide: AppLoggerService, useValue: mockLogger },
         { provide: TokenService, useValue: mockTokenService },
         { provide: PasswordService, useValue: mockPasswordService },
@@ -62,7 +63,7 @@ describe('AuthCoreService', () => {
     }).compile();
 
     service = module.get(AuthCoreService);
-    prisma = module.get(PrismaService);
+    authUserRepository = module.get(AuthUserRepository);
     logger = module.get(AppLoggerService);
     tokenService = module.get(TokenService);
     passwordService = module.get(PasswordService);
@@ -80,9 +81,8 @@ describe('AuthCoreService', () => {
       const token = 'jwt-token';
       const refreshToken = 'refresh-token';
 
-      prisma.user.findUnique.mockResolvedValue(null);
       passwordService.hash.mockResolvedValue(hashedPassword);
-      prisma.user.create.mockResolvedValue({
+      authUserRepository.create.mockResolvedValue({
         ...mockUser,
         email: signupDto.email,
         name: signupDto.name,
@@ -98,13 +98,11 @@ describe('AuthCoreService', () => {
       expect(result.data.accessToken).toBe(token);
       expect(result.data.refreshToken).toBe(refreshToken);
       expect(result.data.user.email).toBe(signupDto.email);
-      expect(prisma.user.create).toHaveBeenCalledWith({
-        data: {
-          email: signupDto.email,
-          name: signupDto.name,
-          password: hashedPassword,
-          hasCompletedOnboarding: false,
-        },
+      expect(authUserRepository.create).toHaveBeenCalledWith({
+        email: signupDto.email,
+        name: signupDto.name,
+        password: hashedPassword,
+        hasCompletedOnboarding: false,
       });
     });
 
@@ -115,9 +113,8 @@ describe('AuthCoreService', () => {
       };
       const hashedPassword = 'hashed-password';
 
-      prisma.user.findUnique.mockResolvedValue(null);
       passwordService.hash.mockResolvedValue(hashedPassword);
-      prisma.user.create.mockResolvedValue({
+      authUserRepository.create.mockResolvedValue({
         ...mockUser,
         email: dtoWithoutName.email,
         name: 'test',
@@ -127,36 +124,28 @@ describe('AuthCoreService', () => {
 
       await service.signup(dtoWithoutName);
 
-      expect(prisma.user.create).toHaveBeenCalledWith({
-        data: {
-          email: dtoWithoutName.email,
-          name: 'test',
-          password: hashedPassword,
-          hasCompletedOnboarding: false,
-        },
+      expect(authUserRepository.create).toHaveBeenCalledWith({
+        email: dtoWithoutName.email,
+        name: 'test',
+        password: hashedPassword,
+        hasCompletedOnboarding: false,
       });
     });
 
-    it('should throw ConflictException when email already exists', async () => {
-      const duplicateError = new Prisma.PrismaClientKnownRequestError(
-        'Unique constraint failed',
-        { code: 'P2002', clientVersion: '5.0.0' },
-      );
-      prisma.user.create.mockRejectedValue(duplicateError);
+    it('should throw EmailConflictError when email already exists', async () => {
+      const duplicateError = new Error('Unique constraint failed');
+      authUserRepository.create.mockRejectedValue(duplicateError);
+      authUserRepository.isUniqueConstraintError.mockReturnValue(true);
 
       await expect(async () => await service.signup(signupDto)).toThrow(
-        ConflictException,
-      );
-      await expect(async () => await service.signup(signupDto)).toThrow(
-        ERROR_MESSAGES.EMAIL_ALREADY_EXISTS,
+        EmailConflictError,
       );
       expect(logger.warn).toHaveBeenCalled();
     });
 
     it('should throw when user email is null after creation', async () => {
-      prisma.user.findUnique.mockResolvedValue(null);
       passwordService.hash.mockResolvedValue('hashed');
-      prisma.user.create.mockResolvedValue({
+      authUserRepository.create.mockResolvedValue({
         ...mockUser,
         email: null,
       });
@@ -167,9 +156,8 @@ describe('AuthCoreService', () => {
     });
 
     it('should log successful signup', async () => {
-      prisma.user.findUnique.mockResolvedValue(null);
       passwordService.hash.mockResolvedValue('hashed');
-      prisma.user.create.mockResolvedValue({
+      authUserRepository.create.mockResolvedValue({
         ...mockUser,
         email: signupDto.email,
       });
@@ -193,7 +181,7 @@ describe('AuthCoreService', () => {
     const password = 'password123';
 
     it('should return user without password when credentials valid', async () => {
-      prisma.user.findUnique.mockResolvedValue(mockUser);
+      authUserRepository.findByEmail.mockResolvedValue(mockUser);
       passwordService.compare.mockResolvedValue(true);
 
       const result = await service.validateUser(email, password);
@@ -208,7 +196,7 @@ describe('AuthCoreService', () => {
     });
 
     it('should return null when user not found', async () => {
-      prisma.user.findUnique.mockResolvedValue(null);
+      authUserRepository.findByEmail.mockResolvedValue(null);
 
       const result = await service.validateUser(email, password);
 
@@ -221,7 +209,7 @@ describe('AuthCoreService', () => {
     });
 
     it('should return null when user has no password', async () => {
-      prisma.user.findUnique.mockResolvedValue({
+      authUserRepository.findByEmail.mockResolvedValue({
         ...mockUser,
         password: null,
       });
@@ -233,7 +221,7 @@ describe('AuthCoreService', () => {
     });
 
     it('should return null when password invalid', async () => {
-      prisma.user.findUnique.mockResolvedValue(mockUser);
+      authUserRepository.findByEmail.mockResolvedValue(mockUser);
       passwordService.compare.mockResolvedValue(false);
 
       const result = await service.validateUser(email, password);
@@ -257,7 +245,7 @@ describe('AuthCoreService', () => {
       const token = 'jwt-token';
       const refreshToken = 'refresh-token';
 
-      prisma.user.findUnique.mockResolvedValue(mockUser);
+      authUserRepository.findByEmail.mockResolvedValue(mockUser);
       passwordService.compare.mockResolvedValue(true);
       tokenService.generateToken
         .mockReturnValueOnce(token)
@@ -272,43 +260,37 @@ describe('AuthCoreService', () => {
       expect(result.data.user.id).toBe(mockUser.id);
     });
 
-    it('should throw UnauthorizedException when user not found', async () => {
-      prisma.user.findUnique.mockResolvedValue(null);
+    it('should throw AuthenticationError when user not found', async () => {
+      authUserRepository.findByEmail.mockResolvedValue(null);
 
       await expect(async () => await service.login(loginDto)).toThrow(
-        UnauthorizedException,
-      );
-      await expect(async () => await service.login(loginDto)).toThrow(
-        ERROR_MESSAGES.INVALID_CREDENTIALS,
+        AuthenticationError,
       );
     });
 
-    it('should throw UnauthorizedException when password invalid', async () => {
-      prisma.user.findUnique.mockResolvedValue(mockUser);
+    it('should throw AuthenticationError when password invalid', async () => {
+      authUserRepository.findByEmail.mockResolvedValue(mockUser);
       passwordService.compare.mockResolvedValue(false);
 
       await expect(async () => await service.login(loginDto)).toThrow(
-        UnauthorizedException,
-      );
-      await expect(async () => await service.login(loginDto)).toThrow(
-        ERROR_MESSAGES.INVALID_CREDENTIALS,
+        AuthenticationError,
       );
     });
 
     it('should throw when validated user has null email', async () => {
-      prisma.user.findUnique.mockResolvedValue({
+      authUserRepository.findByEmail.mockResolvedValue({
         ...mockUser,
         email: null,
       });
       passwordService.compare.mockResolvedValue(true);
 
       await expect(async () => await service.login(loginDto)).toThrow(
-        UnauthorizedException,
+        AuthenticationError,
       );
     });
 
     it('should log successful login', async () => {
-      prisma.user.findUnique.mockResolvedValue(mockUser);
+      authUserRepository.findByEmail.mockResolvedValue(mockUser);
       passwordService.compare.mockResolvedValue(true);
       tokenService.generateToken.mockReturnValue('token');
 
@@ -322,7 +304,7 @@ describe('AuthCoreService', () => {
     });
 
     it('should generate correct token payload', async () => {
-      prisma.user.findUnique.mockResolvedValue(mockUser);
+      authUserRepository.findByEmail.mockResolvedValue(mockUser);
       passwordService.compare.mockResolvedValue(true);
       tokenService.generateToken.mockReturnValue('token');
 
@@ -343,7 +325,7 @@ describe('AuthCoreService', () => {
         hasCompletedOnboarding: true,
       };
 
-      prisma.user.findUnique.mockResolvedValue(userWithAllFields);
+      authUserRepository.findByEmail.mockResolvedValue(userWithAllFields);
       passwordService.compare.mockResolvedValue(true);
       tokenService.generateToken.mockReturnValue('token');
 

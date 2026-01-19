@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import { OnboardingRepository } from '../repositories';
 import type { OnboardingData } from '../schemas/onboarding.schema';
 
 import type { Prisma, ResumeTemplate } from '@prisma/client';
@@ -8,10 +8,10 @@ import type { Prisma, ResumeTemplate } from '@prisma/client';
 export class ResumeOnboardingService {
   private readonly logger = new Logger(ResumeOnboardingService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly repository: OnboardingRepository) {}
 
   async upsertResume(userId: string, data: OnboardingData) {
-    return this.upsertResumeWithTx(this.prisma, userId, data);
+    return this.upsertResumeWithTx(this.repository.getClient(), userId, data);
   }
 
   async upsertResumeWithTx(
@@ -21,15 +21,18 @@ export class ResumeOnboardingService {
   ) {
     const { personalInfo, professionalProfile, templateSelection } = data;
 
-    const existingResume = await tx.resume.findFirst({
-      where: { userId },
-    });
+    const existingResume = await this.repository.findFirstResumeByUserId(
+      tx,
+      userId,
+    );
 
     const isFirstResume = !existingResume;
 
-    const resume = await tx.resume.upsert({
-      where: { id: existingResume?.id ?? 'nonexistent' },
-      update: {
+    const resume = await this.repository.upsertResume(
+      tx,
+      existingResume?.id ?? null,
+      userId,
+      {
         fullName: personalInfo.fullName,
         emailContact: personalInfo.email,
         phone: personalInfo.phone,
@@ -41,27 +44,11 @@ export class ResumeOnboardingService {
         website: professionalProfile.website,
         template: templateSelection.template as ResumeTemplate,
       },
-      create: {
-        userId,
-        fullName: personalInfo.fullName,
-        emailContact: personalInfo.email,
-        phone: personalInfo.phone,
-        location: personalInfo.location,
-        jobTitle: professionalProfile.jobTitle,
-        summary: professionalProfile.summary,
-        linkedin: professionalProfile.linkedin,
-        github: professionalProfile.github,
-        website: professionalProfile.website,
-        template: templateSelection.template as ResumeTemplate,
-      },
-    });
+    );
 
     // Set as primary resume if it's the first one created during onboarding
     if (isFirstResume) {
-      await tx.user.update({
-        where: { id: userId },
-        data: { primaryResumeId: resume.id },
-      });
+      await this.repository.setUserPrimaryResume(tx, userId, resume.id);
       this.logger.log(`Set resume ${resume.id} as primary for user ${userId}`);
     }
 

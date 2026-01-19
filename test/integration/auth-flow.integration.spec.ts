@@ -24,6 +24,8 @@ import request from 'supertest';
 import { AppModule } from '../../src/app.module';
 import { PrismaService } from '../../src/prisma/prisma.service';
 import { acceptTosWithPrisma } from './setup';
+import { AppLoggerService } from '../../src/common/logger/logger.service';
+import { configureExceptionHandling } from '../../src/common/config/validation.config';
 
 describe('Auth Flow Integration', () => {
   let app: INestApplication;
@@ -68,6 +70,10 @@ describe('Auth Flow Integration', () => {
     // Validation is handled by ZodValidationPipe at controller level
 
     prisma = app.get<PrismaService>(PrismaService);
+    const logger = app.get<AppLoggerService>(AppLoggerService);
+
+    // Configure exception handling to transform DomainExceptions to HTTP responses
+    configureExceptionHandling(app, logger);
 
     await app.init();
   });
@@ -147,7 +153,7 @@ describe('Auth Flow Integration', () => {
         .expect(409);
 
       // Error message should indicate email is already registered
-      expect(duplicateResponse.body.message).toMatch(
+      expect(duplicateResponse.body.error.message).toMatch(
         /already|registered|exists/i,
       );
     });
@@ -168,7 +174,7 @@ describe('Auth Flow Integration', () => {
         })
         .expect(401);
 
-      expect(response.body.message.includes('Invalid')).toBe(true);
+      expect(response.body.error.message.includes('Invalid')).toBe(true);
     });
 
     it('should reject access to protected route without token', async () => {
@@ -295,9 +301,9 @@ describe('Auth Flow Integration', () => {
         .post('/api/v1/auth/reset-password')
         .send({
           token: 'invalid-token-xyz',
-          newPassword: 'NewPass123!',
+          password: 'NewPass123!',
         })
-        .expect(400);
+        .expect(401);
     });
   });
 

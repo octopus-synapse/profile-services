@@ -1,6 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-import { PrismaService } from '../../prisma/prisma.service';
+import { Injectable } from '@nestjs/common';
+import { ResumeNotFoundError } from '@octopus-synapse/profile-contracts';
+import {
+  ExportRepository,
+  ResumeWithFullRelations,
+} from '../repositories/export.repository';
 
 interface JsonResumeBasics {
   name: string;
@@ -59,41 +62,18 @@ export interface JsonExportOptions {
   language?: 'en' | 'pt';
 }
 
-type ResumeWithRelations = Prisma.ResumeGetPayload<{
-  include: {
-    user: true;
-    experiences: true;
-    education: true;
-    skills: true;
-    languages: true;
-    openSource: true;
-    certifications: true;
-  };
-}>;
-
 @Injectable()
 export class ResumeJsonService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly repository: ExportRepository) {}
 
   async exportAsJson(
     resumeId: string,
     options: JsonExportOptions = {},
   ): Promise<JsonResume | ProfileFormat> {
-    const resume = await this.prisma.resume.findUnique({
-      where: { id: resumeId },
-      include: {
-        user: true,
-        experiences: { orderBy: { startDate: 'desc' } },
-        education: { orderBy: { startDate: 'desc' } },
-        skills: true,
-        languages: true,
-        openSource: true,
-        certifications: true,
-      },
-    });
+    const resume = await this.repository.findResumeForJsonExport(resumeId);
 
     if (!resume) {
-      throw new NotFoundException('Resume not found');
+      throw new ResumeNotFoundError(resumeId);
     }
 
     if (options.format === 'profile') {
@@ -111,7 +91,7 @@ export class ResumeJsonService {
     return Buffer.from(JSON.stringify(json, null, 2));
   }
 
-  private toJsonResume(resume: ResumeWithRelations): JsonResume {
+  private toJsonResume(resume: ResumeWithFullRelations): JsonResume {
     return {
       $schema:
         'https://raw.githubusercontent.com/jsonresume/resume-schema/v1.0.0/schema.json',
@@ -154,7 +134,7 @@ export class ResumeJsonService {
     };
   }
 
-  private toProfileFormat(resume: ResumeWithRelations): ProfileFormat {
+  private toProfileFormat(resume: ResumeWithFullRelations): ProfileFormat {
     return {
       format: 'profile',
       version: '1.0',

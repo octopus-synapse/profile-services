@@ -7,22 +7,22 @@
  * Single Responsibility: CRUD operations on users requiring 'user:*' permissions.
  */
 
-import {
-  Injectable,
-  NotFoundException,
-  ConflictException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { PrismaService } from '../../prisma/prisma.service';
 import { PasswordService } from '../../auth/services/password.service';
 import { AuthorizationService } from '../../authorization';
-import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
+import {
+  UserNotFoundError,
+  EmailConflictError,
+  DuplicateResourceError,
+  BusinessRuleError,
+} from '@octopus-synapse/profile-contracts';
 import type {
   AdminCreateUser,
   AdminUpdateUser,
   AdminResetPassword,
 } from '@octopus-synapse/profile-contracts';
+import { UserManagementRepository } from '../repositories';
 
 // ============================================================================
 // Types
@@ -35,23 +35,6 @@ export interface UserListOptions {
   roleName?: string;
 }
 
-const USER_LIST_SELECT = {
-  id: true,
-  email: true,
-  name: true,
-  username: true,
-  hasCompletedOnboarding: true,
-  createdAt: true,
-  updatedAt: true,
-  image: true,
-  emailVerified: true,
-  _count: {
-    select: {
-      resumes: true,
-    },
-  },
-} as const;
-
 // ============================================================================
 // Service
 // ============================================================================
@@ -59,7 +42,7 @@ const USER_LIST_SELECT = {
 @Injectable()
 export class UserManagementService {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly repository: UserManagementRepository,
     private readonly passwordService: PasswordService,
     private readonly authService: AuthorizationService,
   ) {}
@@ -74,16 +57,11 @@ export class UserManagementService {
 
     const where = this.buildWhereClause(search);
 
-    const [users, total] = await Promise.all([
-      this.prisma.user.findMany({
-        where,
-        skip,
-        take: limit,
-        select: USER_LIST_SELECT,
-        orderBy: { createdAt: 'desc' },
-      }),
-      this.prisma.user.count({ where }),
-    ]);
+    const { users, total } = await this.repository.findManyPaginated({
+      where,
+      skip,
+      take: limit,
+    });
 
     return {
       users,
@@ -97,28 +75,10 @@ export class UserManagementService {
   }
 
   async getUserDetails(userId: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      include: {
-        resumes: {
-          select: {
-            id: true,
-            title: true,
-            template: true,
-            isPublic: true,
-            createdAt: true,
-            updatedAt: true,
-          },
-        },
-        preferences: true,
-        _count: {
-          select: { accounts: true, sessions: true, resumes: true },
-        },
-      },
-    });
+    const user = await this.repository.findByIdWithDetails(userId);
 
     if (!user) {
-      throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
+      throw new UserNotFoundError(userId);
     }
 
     const { password: _, ...userWithoutPassword } = user;
@@ -134,18 +94,10 @@ export class UserManagementService {
     const hashedPassword = await this.passwordService.hash(password);
 
     try {
-      const user = await this.prisma.user.create({
-        data: {
-          email,
-          password: hashedPassword,
-          name,
-        },
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          createdAt: true,
-        },
+      const user = await this.repository.create({
+        email,
+        password: hashedPassword,
+        name,
       });
 
       return {
@@ -158,7 +110,7 @@ export class UserManagementService {
         error instanceof Prisma.PrismaClientKnownRequestError &&
         error.code === 'P2002'
       ) {
-        throw new ConflictException(ERROR_MESSAGES.EMAIL_ALREADY_EXISTS);
+        throw new EmailConflictError(email);
       }
       throw error;
     }
@@ -168,18 +120,7 @@ export class UserManagementService {
     await this.ensureUserExists(userId);
 
     try {
-      const user = await this.prisma.user.update({
-        where: { id: userId },
-        data,
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          username: true,
-          hasCompletedOnboarding: true,
-          updatedAt: true,
-        },
-      });
+      const user = await this.repository.update(userId, data);
 
       return {
         success: true,
@@ -193,12 +134,16 @@ export class UserManagementService {
       ) {
         const target = error.meta?.target as string[] | undefined;
         if (target?.includes('email')) {
-          throw new ConflictException(ERROR_MESSAGES.EMAIL_ALREADY_IN_USE);
+          throw new EmailConflictError(data.email ?? 'unknown');
         }
         if (target?.includes('username')) {
-          throw new ConflictException(ERROR_MESSAGES.USERNAME_ALREADY_IN_USE);
+          throw new DuplicateResourceError(
+            'User',
+            'username',
+            'provided value',
+          );
         }
-        throw new ConflictException('A unique constraint was violated');
+        throw new DuplicateResourceError('User', 'field', 'value');
       }
       throw error;
     }
@@ -211,7 +156,7 @@ export class UserManagementService {
     // Check if user is last with 'user:delete' permission (prevents lockout)
     await this.preventLastPrivilegedUserDeletion(userId);
 
-    await this.prisma.user.delete({ where: { id: userId } });
+    await this.repository.delete(userId);
 
     return { success: true, message: 'User deleted successfully' };
   }
@@ -221,10 +166,7 @@ export class UserManagementService {
 
     const hashedPassword = await this.passwordService.hash(data.newPassword);
 
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { password: hashedPassword },
-    });
+    await this.repository.updatePassword(userId, hashedPassword);
 
     return { success: true, message: 'Password reset successfully' };
   }
@@ -246,19 +188,16 @@ export class UserManagementService {
   }
 
   private async ensureUserExists(userId: string): Promise<void> {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { id: true },
-    });
+    const user = await this.repository.findById(userId);
 
     if (!user) {
-      throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
+      throw new UserNotFoundError(userId);
     }
   }
 
   private preventSelfDeletion(userId: string, requesterId: string): void {
     if (userId === requesterId) {
-      throw new BadRequestException('Cannot delete your own account');
+      throw new BusinessRuleError('Cannot delete your own account', { userId });
     }
   }
 
@@ -281,8 +220,9 @@ export class UserManagementService {
     const usersWithManage = await this.authService.countUsersWithRole('admin');
 
     if (usersWithManage <= 1) {
-      throw new BadRequestException(
+      throw new BusinessRuleError(
         'Cannot delete the last user with management permissions',
+        { userId },
       );
     }
   }

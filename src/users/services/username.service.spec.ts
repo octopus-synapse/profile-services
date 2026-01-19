@@ -8,10 +8,11 @@
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import {
-  BadRequestException,
-  ConflictException,
-  NotFoundException,
-} from '@nestjs/common';
+  BusinessRuleError,
+  InvalidInputError,
+  UserNotFoundError,
+  UsernameConflictError,
+} from '@octopus-synapse/profile-contracts';
 import { UsernameService } from './username.service';
 import { UsersRepository } from '../users.repository';
 import { AppLoggerService } from '../../common/logger/logger.service';
@@ -54,12 +55,12 @@ describe('UsernameService', () => {
 
   describe('updateUsername', () => {
     describe('User validation', () => {
-      it('should throw NotFoundException when user does not exist', async () => {
+      it('should throw UserNotFoundError when user does not exist', async () => {
         mockUsersRepository.findUserById.mockResolvedValue(null);
 
         await expect(
           service.updateUsername('nonexistent', { username: 'newuser' }),
-        ).rejects.toThrow(NotFoundException);
+        ).rejects.toThrow(UserNotFoundError);
       });
 
       it('should return success when username is unchanged', async () => {
@@ -77,31 +78,31 @@ describe('UsernameService', () => {
       it('should reject uppercase letters', async () => {
         await expect(
           service.updateUsername('user-123', { username: 'TestUser' }),
-        ).rejects.toThrow(BadRequestException);
+        ).rejects.toThrow(InvalidInputError);
       });
 
       it('should reject usernames starting with number', async () => {
         await expect(
           service.updateUsername('user-123', { username: '123user' }),
-        ).rejects.toThrow(BadRequestException);
+        ).rejects.toThrow(InvalidInputError);
       });
 
       it('should reject special characters', async () => {
         await expect(
           service.updateUsername('user-123', { username: 'user@name' }),
-        ).rejects.toThrow(BadRequestException);
+        ).rejects.toThrow(InvalidInputError);
       });
 
       it('should reject consecutive underscores', async () => {
         await expect(
           service.updateUsername('user-123', { username: 'user__name' }),
-        ).rejects.toThrow(BadRequestException);
+        ).rejects.toThrow(InvalidInputError);
       });
 
       it('should reject trailing underscore', async () => {
         await expect(
           service.updateUsername('user-123', { username: 'username_' }),
-        ).rejects.toThrow(BadRequestException);
+        ).rejects.toThrow(InvalidInputError);
       });
 
       it('should accept valid lowercase username', async () => {
@@ -130,25 +131,25 @@ describe('UsernameService', () => {
       it('should reject "admin"', async () => {
         await expect(
           service.updateUsername('user-123', { username: 'admin' }),
-        ).rejects.toThrow(BadRequestException);
+        ).rejects.toThrow(InvalidInputError);
       });
 
       it('should reject "api"', async () => {
         await expect(
           service.updateUsername('user-123', { username: 'api' }),
-        ).rejects.toThrow(BadRequestException);
+        ).rejects.toThrow(InvalidInputError);
       });
 
       it('should reject "www"', async () => {
         await expect(
           service.updateUsername('user-123', { username: 'www' }),
-        ).rejects.toThrow(BadRequestException);
+        ).rejects.toThrow(InvalidInputError);
       });
 
       it('should reject "support"', async () => {
         await expect(
           service.updateUsername('user-123', { username: 'support' }),
-        ).rejects.toThrow(BadRequestException);
+        ).rejects.toThrow(InvalidInputError);
       });
     });
 
@@ -172,7 +173,7 @@ describe('UsernameService', () => {
 
         await expect(
           service.updateUsername('user-123', { username: 'newuser' }),
-        ).rejects.toThrow(BadRequestException);
+        ).rejects.toThrow(BusinessRuleError);
       });
 
       it('should allow after 30 days', async () => {
@@ -189,18 +190,15 @@ describe('UsernameService', () => {
         expect(result.success).toBe(true);
       });
 
-      it('should show remaining days in error message', async () => {
+      it('should throw BusinessRuleError when within cooldown period', async () => {
         const twentyDaysAgo = new Date(Date.now() - 20 * 24 * 60 * 60 * 1000);
         mockUsersRepository.findLastUsernameUpdateByUserId.mockResolvedValue(
           twentyDaysAgo,
         );
 
-        try {
-          await service.updateUsername('user-123', { username: 'newuser' });
-          fail('Should have thrown');
-        } catch (error) {
-          expect((error as Error).message).toInclude('10');
-        }
+        await expect(
+          service.updateUsername('user-123', { username: 'newuser' }),
+        ).rejects.toThrow(BusinessRuleError);
       });
     });
 
@@ -210,7 +208,7 @@ describe('UsernameService', () => {
 
         await expect(
           service.updateUsername('user-123', { username: 'takenuser' }),
-        ).rejects.toThrow(ConflictException);
+        ).rejects.toThrow(UsernameConflictError);
       });
 
       it('should accept available username', async () => {

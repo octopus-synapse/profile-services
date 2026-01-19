@@ -4,12 +4,12 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import { TechSkillsRepository } from '../repositories';
 import type { ParsedSkill } from '../interfaces';
 
 @Injectable()
 export class SkillsDataSyncService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly techSkillsRepo: TechSkillsRepository) {}
 
   async syncSkills(
     skills: ParsedSkill[],
@@ -19,9 +19,7 @@ export class SkillsDataSyncService {
 
     for (const skill of skills) {
       const nicheId = await this.findNicheId(skill.nicheSlug ?? undefined);
-      const existing = await this.prisma.techSkill.findUnique({
-        where: { slug: skill.slug },
-      });
+      const existing = await this.techSkillsRepo.findSkillBySlug(skill.slug);
 
       const data = {
         nameEn: skill.nameEn,
@@ -37,15 +35,10 @@ export class SkillsDataSyncService {
       };
 
       if (existing) {
-        await this.prisma.techSkill.update({
-          where: { slug: skill.slug },
-          data,
-        });
+        await this.techSkillsRepo.updateSkillBySlug(skill.slug, data);
         updated++;
       } else {
-        await this.prisma.techSkill.create({
-          data: { slug: skill.slug, ...data },
-        });
+        await this.techSkillsRepo.createSkill({ slug: skill.slug, ...data });
         inserted++;
       }
     }
@@ -56,9 +49,7 @@ export class SkillsDataSyncService {
   private async findNicheId(nicheSlug?: string): Promise<string | undefined> {
     if (!nicheSlug) return undefined;
 
-    const niche = await this.prisma.techNiche.findUnique({
-      where: { slug: nicheSlug },
-    });
+    const niche = await this.techSkillsRepo.findNicheBySlug(nicheSlug);
 
     return niche?.id ?? undefined;
   }

@@ -1,21 +1,19 @@
-import {
-  Injectable,
-  ForbiddenException,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 import { ConversationRepository } from '../repositories/conversation.repository';
 import { MessageRepository } from '../repositories/message.repository';
 import { BlockedUserRepository } from '../repositories/blocked-user.repository';
-import type {
-  SendMessage,
-  GetMessagesQuery,
-  GetConversationsQuery,
-  ConversationResponse,
-  MessageResponse,
-  PaginatedMessagesResponse,
-  PaginatedConversationsResponse,
+import {
+  ResourceNotFoundError,
+  PermissionDeniedError,
+  BusinessRuleError,
+  type SendMessage,
+  type GetMessagesQuery,
+  type GetConversationsQuery,
+  type ConversationResponse,
+  type MessageResponse,
+  type PaginatedMessagesResponse,
+  type PaginatedConversationsResponse,
 } from '@octopus-synapse/profile-contracts';
 
 type MessageWithSender = Prisma.MessageGetPayload<{
@@ -56,12 +54,12 @@ export class ChatService {
       dto.recipientId,
     );
     if (isBlocked) {
-      throw new ForbiddenException('Cannot send message to this user');
+      throw new PermissionDeniedError('Cannot send message to this user');
     }
 
     // Cannot message yourself
     if (senderId === dto.recipientId) {
-      throw new BadRequestException('Cannot send message to yourself');
+      throw new BusinessRuleError('Cannot send message to yourself');
     }
 
     // Find or create conversation
@@ -101,7 +99,7 @@ export class ChatService {
       senderId,
     );
     if (!isParticipant) {
-      throw new ForbiddenException('Not a participant of this conversation');
+      throw new PermissionDeniedError('Not a participant of this conversation');
     }
 
     // Check if blocked
@@ -110,7 +108,7 @@ export class ChatService {
       senderId,
     );
     if (!otherParticipant) {
-      throw new NotFoundException('Conversation not found');
+      throw new ResourceNotFoundError('conversation', conversationId);
     }
 
     const isBlocked = await this.blockedUserRepo.isBlockedBetween(
@@ -118,7 +116,7 @@ export class ChatService {
       otherParticipant.id,
     );
     if (isBlocked) {
-      throw new ForbiddenException('Cannot send message to this user');
+      throw new PermissionDeniedError('Cannot send message to this user');
     }
 
     // Create message
@@ -151,7 +149,7 @@ export class ChatService {
       userId,
     );
     if (!isParticipant) {
-      throw new ForbiddenException('Not a participant of this conversation');
+      throw new PermissionDeniedError('Not a participant of this conversation');
     }
 
     const result = await this.messageRepo.findByConversationId(
@@ -204,14 +202,14 @@ export class ChatService {
   ): Promise<ConversationResponse> {
     const conversation = await this.conversationRepo.findById(conversationId);
     if (!conversation) {
-      throw new NotFoundException('Conversation not found');
+      throw new ResourceNotFoundError('conversation', conversationId);
     }
 
     const isParticipant =
       conversation.participant1Id === userId ||
       conversation.participant2Id === userId;
     if (!isParticipant) {
-      throw new ForbiddenException('Not a participant of this conversation');
+      throw new PermissionDeniedError('Not a participant of this conversation');
     }
 
     const unreadCount = await this.messageRepo.getUnreadCountByConversation(
@@ -234,7 +232,7 @@ export class ChatService {
       userId,
     );
     if (!isParticipant) {
-      throw new ForbiddenException('Not a participant of this conversation');
+      throw new PermissionDeniedError('Not a participant of this conversation');
     }
 
     const result = await this.messageRepo.markConversationAsRead(

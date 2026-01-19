@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
-import { PrismaService } from '../../prisma/prisma.service';
+import { OnboardingRepository } from '../repositories';
 import type { OnboardingData } from '../schemas/onboarding.schema';
 import { BaseOnboardingService } from './base-onboarding.service';
 
@@ -14,12 +14,12 @@ export class SkillsOnboardingService extends BaseOnboardingService<
 > {
   protected readonly logger = new Logger(SkillsOnboardingService.name);
 
-  constructor(private readonly prisma: PrismaService) {
+  constructor(private readonly repository: OnboardingRepository) {
     super();
   }
 
   async saveSkills(resumeId: string, data: OnboardingData) {
-    return this.saveSkillsWithTx(this.prisma, resumeId, data);
+    return this.saveSkillsWithTx(this.repository.getClient(), resumeId, data);
   }
 
   async saveSkillsWithTx(
@@ -46,7 +46,7 @@ export class SkillsOnboardingService extends BaseOnboardingService<
     tx: Prisma.TransactionClient,
     resumeId: string,
   ): Promise<void> {
-    await tx.skill.deleteMany({ where: { resumeId } });
+    await this.repository.deleteSkillsByResumeId(tx, resumeId);
   }
 
   protected transformItems(
@@ -66,7 +66,7 @@ export class SkillsOnboardingService extends BaseOnboardingService<
     tx: Prisma.TransactionClient,
     items: SkillCreate[],
   ): Promise<void> {
-    await tx.skill.createMany({ data: items });
+    await this.repository.createManySkills(tx, items);
   }
 
   protected getSuccessMessage(count: number): string {

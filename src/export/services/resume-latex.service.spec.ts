@@ -1,12 +1,13 @@
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { Test, TestingModule } from '@nestjs/testing';
+import { ResumeNotFoundError } from '@octopus-synapse/profile-contracts';
 import { createMockResume } from '../../../test/factories/resume.factory';
 import { ResumeLatexService } from './resume-latex.service';
+import { ExportRepository } from '../repositories/export.repository';
 
 describe('ResumeLatexService', () => {
   let service: ResumeLatexService;
-  let mockPrismaService: {
-    resume: { findUnique: ReturnType<typeof mock> };
-  };
+  let mockRepository: ExportRepository;
 
   const mockResume = {
     ...createMockResume({
@@ -51,14 +52,23 @@ describe('ResumeLatexService', () => {
     ],
   } as any;
 
-  beforeEach(() => {
-    mockPrismaService = {
-      resume: {
-        findUnique: mock(() => Promise.resolve(mockResume)),
-      },
-    };
+  beforeEach(async () => {
+    const mockFindResumeForLatexExport = mock(() =>
+      Promise.resolve(mockResume),
+    );
 
-    service = new ResumeLatexService(mockPrismaService as any);
+    mockRepository = {
+      findResumeForLatexExport: mockFindResumeForLatexExport,
+    } as ExportRepository;
+
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        ResumeLatexService,
+        { provide: ExportRepository, useValue: mockRepository },
+      ],
+    }).compile();
+
+    service = module.get<ResumeLatexService>(ResumeLatexService);
   });
 
   describe('exportAsLatex', () => {
@@ -110,9 +120,9 @@ describe('ResumeLatexService', () => {
           },
         ],
       };
-      mockPrismaService.resume.findUnique = mock(() =>
-        Promise.resolve(resumeWithSpecialChars),
-      );
+      (
+        mockRepository.findResumeForLatexExport as ReturnType<typeof mock>
+      ).mockResolvedValue(Promise.resolve(resumeWithSpecialChars));
 
       const result = await service.exportAsLatex('resume-123');
 
@@ -122,11 +132,13 @@ describe('ResumeLatexService', () => {
       expect(result).toContain('\\%');
     });
 
-    it('should throw NotFoundException when resume not found', async () => {
-      mockPrismaService.resume.findUnique = mock(() => Promise.resolve(null));
+    it('should throw ResumeNotFoundError when resume not found', async () => {
+      (
+        mockRepository.findResumeForLatexExport as ReturnType<typeof mock>
+      ).mockResolvedValue(Promise.resolve(null));
 
       await expect(service.exportAsLatex('unknown')).rejects.toThrow(
-        'Resume not found',
+        ResumeNotFoundError,
       );
     });
   });

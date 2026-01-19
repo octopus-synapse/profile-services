@@ -10,49 +10,57 @@
 
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
+import {
+  ResourceNotFoundError,
+  DuplicateResourceError,
+} from '@octopus-synapse/profile-contracts';
 import { TwoFactorAuthService } from './two-factor-auth.service';
-import { PrismaService } from '../../prisma/prisma.service';
+import { TwoFactorAuthRepository } from '../repositories/two-factor-auth.repository';
+import { AuthUserRepository } from '../repositories/auth-user.repository';
 import { AppLoggerService } from '../../common/logger/logger.service';
 
 describe('TwoFactorAuthService', () => {
   let service: TwoFactorAuthService;
-  let mockPrismaService: {
-    twoFactorAuth: {
-      findUnique: ReturnType<typeof mock>;
-      create: ReturnType<typeof mock>;
-      update: ReturnType<typeof mock>;
-      delete: ReturnType<typeof mock>;
-    };
-    twoFactorBackupCode: {
-      findMany: ReturnType<typeof mock>;
-      createMany: ReturnType<typeof mock>;
-      update: ReturnType<typeof mock>;
-      deleteMany: ReturnType<typeof mock>;
-    };
-    user: {
-      findUnique: ReturnType<typeof mock>;
-    };
+  let mockTwoFactorAuthRepository: {
+    findByUserId: ReturnType<typeof mock>;
+    create: ReturnType<typeof mock>;
+    updateSecret: ReturnType<typeof mock>;
+    enable: ReturnType<typeof mock>;
+    disable: ReturnType<typeof mock>;
+    delete: ReturnType<typeof mock>;
+    updateLastUsed: ReturnType<typeof mock>;
+    getUnusedBackupCodes: ReturnType<typeof mock>;
+    createBackupCodes: ReturnType<typeof mock>;
+    deleteBackupCodes: ReturnType<typeof mock>;
+    markBackupCodeUsed: ReturnType<typeof mock>;
+  };
+  let mockAuthUserRepository: {
+    findById: ReturnType<typeof mock>;
   };
 
   beforeEach(async () => {
-    mockPrismaService = {
-      twoFactorAuth: {
-        findUnique: mock(() => Promise.resolve(null)),
-        create: mock(() => Promise.resolve({ id: '2fa-123', enabled: false })),
-        update: mock(() => Promise.resolve({ id: '2fa-123', enabled: true })),
-        delete: mock(() => Promise.resolve({})),
-      },
-      twoFactorBackupCode: {
-        findMany: mock(() => Promise.resolve([])),
-        createMany: mock(() => Promise.resolve({ count: 10 })),
-        update: mock(() => Promise.resolve({})),
-        deleteMany: mock(() => Promise.resolve({ count: 10 })),
-      },
-      user: {
-        findUnique: mock(() =>
-          Promise.resolve({ id: 'user-123', email: 'test@example.com' }),
-        ),
-      },
+    mockTwoFactorAuthRepository = {
+      findByUserId: mock(() => Promise.resolve(null)),
+      create: mock(() => Promise.resolve({ id: '2fa-123', enabled: false })),
+      updateSecret: mock(() =>
+        Promise.resolve({ id: '2fa-123', enabled: false }),
+      ),
+      enable: mock(() => Promise.resolve({ id: '2fa-123', enabled: true })),
+      disable: mock(() => Promise.resolve({ id: '2fa-123', enabled: false })),
+      delete: mock(() => Promise.resolve()),
+      updateLastUsed: mock(() =>
+        Promise.resolve({ id: '2fa-123', enabled: true }),
+      ),
+      getUnusedBackupCodes: mock(() => Promise.resolve([])),
+      createBackupCodes: mock(() => Promise.resolve()),
+      deleteBackupCodes: mock(() => Promise.resolve()),
+      markBackupCodeUsed: mock(() => Promise.resolve()),
+    };
+
+    mockAuthUserRepository = {
+      findById: mock(() =>
+        Promise.resolve({ id: 'user-123', email: 'test@example.com' }),
+      ),
     };
 
     const mockLogger = {
@@ -64,7 +72,11 @@ describe('TwoFactorAuthService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         TwoFactorAuthService,
-        { provide: PrismaService, useValue: mockPrismaService },
+        {
+          provide: TwoFactorAuthRepository,
+          useValue: mockTwoFactorAuthRepository,
+        },
+        { provide: AuthUserRepository, useValue: mockAuthUserRepository },
         { provide: AppLoggerService, useValue: mockLogger },
       ],
     }).compile();
@@ -86,29 +98,27 @@ describe('TwoFactorAuthService', () => {
     it('should create 2FA record in database', async () => {
       await service.setup('user-123');
 
-      expect(mockPrismaService.twoFactorAuth.create).toHaveBeenCalledWith({
-        data: expect.objectContaining({
-          userId: 'user-123',
-          enabled: false,
-        }),
-      });
+      expect(mockTwoFactorAuthRepository.create).toHaveBeenCalledWith(
+        'user-123',
+        expect.any(String),
+      );
     });
 
-    it('should throw error if 2FA already enabled', async () => {
-      mockPrismaService.twoFactorAuth.findUnique.mockResolvedValue({
+    it('should throw DuplicateResourceError if 2FA already enabled', async () => {
+      mockTwoFactorAuthRepository.findByUserId.mockResolvedValue({
         id: '2fa-123',
         enabled: true,
       });
 
       await expect(service.setup('user-123')).rejects.toThrow(
-        '2FA is already enabled',
+        DuplicateResourceError,
       );
     });
   });
 
   describe('verifyAndEnable', () => {
     it('should enable 2FA when valid token provided', async () => {
-      mockPrismaService.twoFactorAuth.findUnique.mockResolvedValue({
+      mockTwoFactorAuthRepository.findByUserId.mockResolvedValue({
         id: '2fa-123',
         userId: 'user-123',
         secret: 'JBSWY3DPEHPK3PXP', // Test secret
@@ -123,7 +133,7 @@ describe('TwoFactorAuthService', () => {
     });
 
     it('should generate backup codes on successful enable', async () => {
-      mockPrismaService.twoFactorAuth.findUnique.mockResolvedValue({
+      mockTwoFactorAuthRepository.findByUserId.mockResolvedValue({
         id: '2fa-123',
         userId: 'user-123',
         secret: 'JBSWY3DPEHPK3PXP',
@@ -140,17 +150,17 @@ describe('TwoFactorAuthService', () => {
     });
 
     it('should throw error if 2FA not setup', async () => {
-      mockPrismaService.twoFactorAuth.findUnique.mockResolvedValue(null);
+      mockTwoFactorAuthRepository.findByUserId.mockResolvedValue(null);
 
       await expect(
         service.verifyAndEnable('user-123', '123456'),
-      ).rejects.toThrow('2FA setup not found');
+      ).rejects.toThrow(ResourceNotFoundError);
     });
   });
 
   describe('validateToken', () => {
     it('should return true for valid TOTP token', async () => {
-      mockPrismaService.twoFactorAuth.findUnique.mockResolvedValue({
+      mockTwoFactorAuthRepository.findByUserId.mockResolvedValue({
         id: '2fa-123',
         userId: 'user-123',
         secret: 'JBSWY3DPEHPK3PXP',
@@ -164,7 +174,7 @@ describe('TwoFactorAuthService', () => {
     });
 
     it('should return false if 2FA not enabled', async () => {
-      mockPrismaService.twoFactorAuth.findUnique.mockResolvedValue(null);
+      mockTwoFactorAuthRepository.findByUserId.mockResolvedValue(null);
 
       const result = await service.validateToken('user-123', '123456');
 
@@ -172,7 +182,7 @@ describe('TwoFactorAuthService', () => {
     });
 
     it('should update lastUsedAt on successful validation', async () => {
-      mockPrismaService.twoFactorAuth.findUnique.mockResolvedValue({
+      mockTwoFactorAuthRepository.findByUserId.mockResolvedValue({
         id: '2fa-123',
         userId: 'user-123',
         secret: 'JBSWY3DPEHPK3PXP',
@@ -188,7 +198,7 @@ describe('TwoFactorAuthService', () => {
 
   describe('disable', () => {
     it('should disable 2FA for user', async () => {
-      mockPrismaService.twoFactorAuth.findUnique.mockResolvedValue({
+      mockTwoFactorAuthRepository.findByUserId.mockResolvedValue({
         id: '2fa-123',
         userId: 'user-123',
         enabled: true,
@@ -196,11 +206,13 @@ describe('TwoFactorAuthService', () => {
 
       await service.disable('user-123');
 
-      expect(mockPrismaService.twoFactorAuth.delete).toHaveBeenCalled();
+      expect(mockTwoFactorAuthRepository.delete).toHaveBeenCalledWith(
+        'user-123',
+      );
     });
 
-    it('should delete backup codes on disable', async () => {
-      mockPrismaService.twoFactorAuth.findUnique.mockResolvedValue({
+    it('should delete 2FA record on disable (cascade deletes backup codes)', async () => {
+      mockTwoFactorAuthRepository.findByUserId.mockResolvedValue({
         id: '2fa-123',
         userId: 'user-123',
         enabled: true,
@@ -208,25 +220,23 @@ describe('TwoFactorAuthService', () => {
 
       await service.disable('user-123');
 
-      expect(
-        mockPrismaService.twoFactorBackupCode.deleteMany,
-      ).toHaveBeenCalledWith({
-        where: { userId: 'user-123' },
-      });
+      expect(mockTwoFactorAuthRepository.delete).toHaveBeenCalledWith(
+        'user-123',
+      );
     });
 
     it('should throw error if 2FA not enabled', async () => {
-      mockPrismaService.twoFactorAuth.findUnique.mockResolvedValue(null);
+      mockTwoFactorAuthRepository.findByUserId.mockResolvedValue(null);
 
       await expect(service.disable('user-123')).rejects.toThrow(
-        '2FA is not enabled',
+        ResourceNotFoundError,
       );
     });
   });
 
   describe('isEnabled', () => {
     it('should return true if 2FA is enabled', async () => {
-      mockPrismaService.twoFactorAuth.findUnique.mockResolvedValue({
+      mockTwoFactorAuthRepository.findByUserId.mockResolvedValue({
         enabled: true,
       });
 
@@ -236,7 +246,7 @@ describe('TwoFactorAuthService', () => {
     });
 
     it('should return false if 2FA is not setup', async () => {
-      mockPrismaService.twoFactorAuth.findUnique.mockResolvedValue(null);
+      mockTwoFactorAuthRepository.findByUserId.mockResolvedValue(null);
 
       const result = await service.isEnabled('user-123');
 
@@ -244,7 +254,7 @@ describe('TwoFactorAuthService', () => {
     });
 
     it('should return false if 2FA setup but not enabled', async () => {
-      mockPrismaService.twoFactorAuth.findUnique.mockResolvedValue({
+      mockTwoFactorAuthRepository.findByUserId.mockResolvedValue({
         enabled: false,
       });
 
@@ -272,26 +282,22 @@ describe('TwoFactorAuthService', () => {
     it('should store hashed codes in database', async () => {
       await service.generateBackupCodes('user-123');
 
-      expect(
-        mockPrismaService.twoFactorBackupCode.createMany,
-      ).toHaveBeenCalled();
+      expect(mockTwoFactorAuthRepository.createBackupCodes).toHaveBeenCalled();
     });
 
     it('should delete existing backup codes before generating new ones', async () => {
       await service.generateBackupCodes('user-123');
 
       expect(
-        mockPrismaService.twoFactorBackupCode.deleteMany,
-      ).toHaveBeenCalledWith({
-        where: { userId: 'user-123' },
-      });
+        mockTwoFactorAuthRepository.deleteBackupCodes,
+      ).toHaveBeenCalledWith('user-123');
     });
   });
 
   describe('validateBackupCode', () => {
     it('should return true for valid backup code', async () => {
       // Mock finding unused backup codes
-      mockPrismaService.twoFactorBackupCode.findMany.mockResolvedValue([
+      mockTwoFactorAuthRepository.getUnusedBackupCodes.mockResolvedValue([
         {
           id: 'code-1',
           userId: 'user-123',
@@ -307,7 +313,7 @@ describe('TwoFactorAuthService', () => {
     });
 
     it('should mark backup code as used after validation', async () => {
-      mockPrismaService.twoFactorBackupCode.findMany.mockResolvedValue([
+      mockTwoFactorAuthRepository.getUnusedBackupCodes.mockResolvedValue([
         {
           id: 'code-1',
           userId: 'user-123',
@@ -323,7 +329,7 @@ describe('TwoFactorAuthService', () => {
     });
 
     it('should return false when no backup codes exist', async () => {
-      mockPrismaService.twoFactorBackupCode.findMany.mockResolvedValue([]);
+      mockTwoFactorAuthRepository.getUnusedBackupCodes.mockResolvedValue([]);
 
       const result = await service.validateBackupCode('user-123', 'ABCD-1234');
 
@@ -333,7 +339,7 @@ describe('TwoFactorAuthService', () => {
 
   describe('getStatus', () => {
     it('should return status with enabled flag', async () => {
-      mockPrismaService.twoFactorAuth.findUnique.mockResolvedValue({
+      mockTwoFactorAuthRepository.findByUserId.mockResolvedValue({
         enabled: true,
         lastUsedAt: new Date(),
       });
@@ -347,7 +353,7 @@ describe('TwoFactorAuthService', () => {
     });
 
     it('should return disabled status when not setup', async () => {
-      mockPrismaService.twoFactorAuth.findUnique.mockResolvedValue(null);
+      mockTwoFactorAuthRepository.findByUserId.mockResolvedValue(null);
 
       const status = await service.getStatus('user-123');
 
@@ -355,11 +361,11 @@ describe('TwoFactorAuthService', () => {
     });
 
     it('should include backup codes count', async () => {
-      mockPrismaService.twoFactorAuth.findUnique.mockResolvedValue({
+      mockTwoFactorAuthRepository.findByUserId.mockResolvedValue({
         enabled: true,
       });
       // Mock returns only unused codes (as the query filters by used: false)
-      mockPrismaService.twoFactorBackupCode.findMany.mockResolvedValue([
+      mockTwoFactorAuthRepository.getUnusedBackupCodes.mockResolvedValue([
         { id: '1' },
         { id: '2' },
       ]);

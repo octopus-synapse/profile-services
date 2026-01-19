@@ -9,18 +9,16 @@
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ResumeSearchService } from './resume-search.service';
-import { PrismaService } from '../prisma/prisma.service';
+import { ResumeSearchRepository } from './repositories';
 
 describe('ResumeSearchService', () => {
   let service: ResumeSearchService;
-  let mockPrismaService: {
-    $queryRaw: ReturnType<typeof mock>;
-    resume: {
-      findUnique: ReturnType<typeof mock>;
-    };
-    skill: {
-      findMany: ReturnType<typeof mock>;
-    };
+  let mockRepository: {
+    executeSearch: ReturnType<typeof mock>;
+    findResumeWithSkills: ReturnType<typeof mock>;
+    getSuggestions: ReturnType<typeof mock>;
+    findSimilarResumes: ReturnType<typeof mock>;
+    findSkillsByResumeIds: ReturnType<typeof mock>;
   };
 
   const mockSearchResults = [
@@ -57,22 +55,25 @@ describe('ResumeSearchService', () => {
   };
 
   beforeEach(async () => {
-    mockPrismaService = {
-      $queryRaw: mock(() => Promise.resolve(mockSearchResults)),
-      resume: {
-        findUnique: mock(() => Promise.resolve(mockResumeWithSkills)),
-      },
-      skill: {
-        findMany: mock(() =>
-          Promise.resolve([{ resumeId: 'resume-1' }, { resumeId: 'resume-2' }]),
-        ),
-      },
+    mockRepository = {
+      executeSearch: mock(() =>
+        Promise.resolve({ results: mockSearchResults, total: 2 }),
+      ),
+      findResumeWithSkills: mock(() => Promise.resolve(mockResumeWithSkills)),
+      getSuggestions: mock(() => Promise.resolve([])),
+      findSimilarResumes: mock(() => Promise.resolve([mockSearchResults[1]])),
+      findSkillsByResumeIds: mock(() =>
+        Promise.resolve([
+          { resumeId: 'resume-1', name: 'TypeScript' },
+          { resumeId: 'resume-2', name: 'React' },
+        ]),
+      ),
     };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ResumeSearchService,
-        { provide: PrismaService, useValue: mockPrismaService },
+        { provide: ResumeSearchRepository, useValue: mockRepository },
       ],
     }).compile();
 
@@ -81,12 +82,9 @@ describe('ResumeSearchService', () => {
 
   describe('search', () => {
     it('should search public resumes by query', async () => {
-      // Mock returns: first call = search results, second call = count
-      let callCount = 0;
-      mockPrismaService.$queryRaw = mock(() => {
-        callCount++;
-        if (callCount === 1) return Promise.resolve(mockSearchResults);
-        return Promise.resolve([{ count: 2 }]);
+      mockRepository.executeSearch.mockResolvedValue({
+        results: mockSearchResults,
+        total: 2,
       });
 
       const result = await service.search({ query: 'react developer' });
@@ -97,11 +95,9 @@ describe('ResumeSearchService', () => {
     });
 
     it('should filter by skills', async () => {
-      let callCount = 0;
-      mockPrismaService.$queryRaw = mock(() => {
-        callCount++;
-        if (callCount === 1) return Promise.resolve(mockSearchResults);
-        return Promise.resolve([{ count: 2 }]);
+      mockRepository.executeSearch.mockResolvedValue({
+        results: mockSearchResults,
+        total: 2,
       });
 
       const result = await service.search({
@@ -110,10 +106,15 @@ describe('ResumeSearchService', () => {
       });
 
       expect(result).toBeDefined();
-      expect(mockPrismaService.skill.findMany).toHaveBeenCalled();
+      expect(mockRepository.executeSearch).toHaveBeenCalled();
     });
 
     it('should filter by location', async () => {
+      mockRepository.executeSearch.mockResolvedValue({
+        results: mockSearchResults,
+        total: 2,
+      });
+
       const result = await service.search({
         query: 'developer',
         location: 'São Paulo',
@@ -123,6 +124,11 @@ describe('ResumeSearchService', () => {
     });
 
     it('should filter by experience years', async () => {
+      mockRepository.executeSearch.mockResolvedValue({
+        results: mockSearchResults,
+        total: 2,
+      });
+
       const result = await service.search({
         query: 'developer',
         minExperienceYears: 3,
@@ -133,6 +139,11 @@ describe('ResumeSearchService', () => {
     });
 
     it('should support pagination', async () => {
+      mockRepository.executeSearch.mockResolvedValue({
+        results: mockSearchResults,
+        total: 2,
+      });
+
       const result = await service.search({
         query: 'developer',
         page: 2,
@@ -145,6 +156,11 @@ describe('ResumeSearchService', () => {
     });
 
     it('should support sorting', async () => {
+      mockRepository.executeSearch.mockResolvedValue({
+        results: mockSearchResults,
+        total: 2,
+      });
+
       const result = await service.search({
         query: 'developer',
         sortBy: 'relevance',
@@ -154,11 +170,9 @@ describe('ResumeSearchService', () => {
     });
 
     it('should return empty result for no matches', async () => {
-      let callCount = 0;
-      mockPrismaService.$queryRaw = mock(() => {
-        callCount++;
-        if (callCount === 1) return Promise.resolve([]); // empty results
-        return Promise.resolve([{ count: 0 }]); // count = 0
+      mockRepository.executeSearch.mockResolvedValue({
+        results: [],
+        total: 0,
       });
 
       const result = await service.search({ query: 'xyz123nonexistent' });
@@ -170,12 +184,10 @@ describe('ResumeSearchService', () => {
 
   describe('suggest', () => {
     it('should return search suggestions', async () => {
-      mockPrismaService.$queryRaw = mock(() =>
-        Promise.resolve([
-          { suggestion: 'react developer' },
-          { suggestion: 'react native' },
-        ]),
-      );
+      mockRepository.getSuggestions.mockResolvedValue([
+        { suggestion: 'react developer' },
+        { suggestion: 'react native' },
+      ]);
 
       const result = await service.suggest('react');
 
@@ -184,17 +196,23 @@ describe('ResumeSearchService', () => {
     });
 
     it('should limit suggestions', async () => {
+      mockRepository.getSuggestions.mockResolvedValue([]);
+
       await service.suggest('dev', 5);
 
-      expect(mockPrismaService.$queryRaw).toHaveBeenCalled();
+      expect(mockRepository.getSuggestions).toHaveBeenCalled();
     });
   });
 
   describe('findSimilar', () => {
     it('should find similar resumes based on skills', async () => {
-      mockPrismaService.$queryRaw = mock(() =>
-        Promise.resolve([mockSearchResults[1]]),
+      mockRepository.findResumeWithSkills.mockResolvedValue(
+        mockResumeWithSkills,
       );
+      mockRepository.executeSearch.mockResolvedValue({
+        results: [mockSearchResults[1]],
+        total: 1,
+      });
 
       const result = await service.findSimilar('resume-1');
 
@@ -203,9 +221,13 @@ describe('ResumeSearchService', () => {
     });
 
     it('should exclude the source resume', async () => {
-      mockPrismaService.$queryRaw = mock(() =>
-        Promise.resolve([mockSearchResults[1]]),
+      mockRepository.findResumeWithSkills.mockResolvedValue(
+        mockResumeWithSkills,
       );
+      mockRepository.executeSearch.mockResolvedValue({
+        results: [mockSearchResults[1]],
+        total: 1,
+      });
 
       const result = await service.findSimilar('resume-1');
 
@@ -214,7 +236,7 @@ describe('ResumeSearchService', () => {
     });
 
     it('should return empty array when resume not found', async () => {
-      mockPrismaService.resume.findUnique = mock(() => Promise.resolve(null));
+      mockRepository.findResumeWithSkills.mockResolvedValue(null);
 
       const result = await service.findSimilar('nonexistent-id');
 

@@ -7,17 +7,17 @@
  * Robert C. Martin: "Single Responsibility"
  * - Parsing: converts external formats to internal structure
  * - Processing: orchestrates import workflow
- * - Persistence: delegates to Prisma
+ * - Persistence: delegates to Repository
  */
 
+import { Injectable } from '@nestjs/common';
 import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+  ResourceNotFoundError,
+  BusinessRuleError,
+} from '@octopus-synapse/profile-contracts';
 import type { ResumeImport, Prisma } from '@prisma/client';
-import { PrismaService } from '../prisma/prisma.service';
 import { AppLoggerService } from '../common/logger/logger.service';
+import { ResumeImportRepository } from './repositories';
 import type {
   JsonResumeSchema,
   ParsedResumeData,
@@ -41,7 +41,7 @@ type ImportStatus =
 @Injectable()
 export class ResumeImportService {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly repository: ResumeImportRepository,
     private readonly logger: AppLoggerService,
   ) {}
 
@@ -55,14 +55,12 @@ export class ResumeImportService {
       `Creating import job for user ${userId}, source: ${source}`,
     );
 
-    return this.prisma.resumeImport.create({
-      data: {
-        userId,
-        source,
-        status: 'PENDING',
-        rawData: rawData as Prisma.InputJsonValue,
-        fileName,
-      },
+    return this.repository.create({
+      userId,
+      source,
+      status: 'PENDING',
+      rawData: rawData as Prisma.InputJsonValue,
+      fileName,
     });
   }
 
@@ -144,21 +142,23 @@ export class ResumeImportService {
    * Process an import job
    */
   async processImport(importId: string): Promise<ImportResult> {
-    const importJob = await this.prisma.resumeImport.findUnique({
-      where: { id: importId },
-    });
+    const importJob = await this.repository.findById(importId);
 
     if (!importJob) {
-      throw new NotFoundException('Import not found');
+      throw new ResourceNotFoundError('import', importId);
     }
 
     try {
       // Update status to PROCESSING
-      await this.updateStatus(importId, 'PROCESSING');
+      await this.repository.updateStatus(importId, 'PROCESSING');
 
       // Validate raw data exists
       if (!importJob.rawData) {
-        await this.updateStatus(importId, 'FAILED', 'No data to import');
+        await this.repository.updateStatus(
+          importId,
+          'FAILED',
+          'No data to import',
+        );
         return {
           importId,
           status: 'FAILED',
@@ -167,16 +167,16 @@ export class ResumeImportService {
       }
 
       // Parse the JSON Resume
-      await this.updateStatus(importId, 'MAPPING');
+      await this.repository.updateStatus(importId, 'MAPPING');
       const parsedData = this.parseJsonResume(
         importJob.rawData as unknown as JsonResumeSchema,
       );
 
       // Validate parsed data
-      await this.updateStatus(importId, 'VALIDATING');
+      await this.repository.updateStatus(importId, 'VALIDATING');
       const validationErrors = this.validateParsedData(parsedData);
       if (validationErrors.length > 0) {
-        await this.updateStatus(
+        await this.repository.updateStatus(
           importId,
           'FAILED',
           validationErrors.join('; '),
@@ -189,7 +189,7 @@ export class ResumeImportService {
       }
 
       // Create resume
-      await this.updateStatus(importId, 'IMPORTING');
+      await this.repository.updateStatus(importId, 'IMPORTING');
       const resume = await this.createResumeFromParsed(
         importJob.userId,
         parsedData,
@@ -197,7 +197,12 @@ export class ResumeImportService {
       );
 
       // Mark as completed
-      await this.updateStatus(importId, 'COMPLETED', undefined, resume.id);
+      await this.repository.updateStatus(
+        importId,
+        'COMPLETED',
+        undefined,
+        resume.id,
+      );
 
       this.logger.log(
         `Import ${importId} completed successfully, resume: ${resume.id}`,
@@ -212,7 +217,7 @@ export class ResumeImportService {
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
       this.logger.error(`Import ${importId} failed: ${errorMessage}`);
-      await this.updateStatus(importId, 'FAILED', errorMessage);
+      await this.repository.updateStatus(importId, 'FAILED', errorMessage);
       return {
         importId,
         status: 'FAILED',
@@ -229,12 +234,10 @@ export class ResumeImportService {
     resumeId?: string;
     errorMessage?: string | null;
   }> {
-    const importJob = await this.prisma.resumeImport.findUnique({
-      where: { id: importId },
-    });
+    const importJob = await this.repository.findById(importId);
 
     if (!importJob) {
-      throw new NotFoundException('Import not found');
+      throw new ResourceNotFoundError('import', importId);
     }
 
     return {
@@ -248,31 +251,24 @@ export class ResumeImportService {
    * Get import history for a user
    */
   async getImportHistory(userId: string): Promise<ResumeImport[]> {
-    return this.prisma.resumeImport.findMany({
-      where: { userId },
-      orderBy: { createdAt: 'desc' },
-    });
+    return this.repository.findAllByUserId(userId);
   }
 
   /**
    * Cancel a pending import
    */
   async cancelImport(importId: string): Promise<void> {
-    const importJob = await this.prisma.resumeImport.findUnique({
-      where: { id: importId },
-    });
+    const importJob = await this.repository.findById(importId);
 
     if (!importJob) {
-      throw new NotFoundException('Import not found');
+      throw new ResourceNotFoundError('import', importId);
     }
 
     if (importJob.status === 'COMPLETED') {
-      throw new BadRequestException('Cannot cancel completed import');
+      throw new BusinessRuleError('Cannot cancel completed import');
     }
 
-    await this.prisma.resumeImport.delete({
-      where: { id: importId },
-    });
+    await this.repository.delete(importId);
 
     this.logger.log(`Import ${importId} cancelled`);
   }
@@ -281,44 +277,19 @@ export class ResumeImportService {
    * Retry a failed import
    */
   async retryImport(importId: string): Promise<ImportResult> {
-    const importJob = await this.prisma.resumeImport.findUnique({
-      where: { id: importId },
-    });
+    const importJob = await this.repository.findById(importId);
 
     if (!importJob) {
-      throw new NotFoundException('Import not found');
+      throw new ResourceNotFoundError('import', importId);
     }
 
     if (importJob.status !== 'FAILED') {
-      throw new BadRequestException('Can only retry failed imports');
+      throw new BusinessRuleError('Can only retry failed imports');
     }
 
     // Reset status and process again
-    await this.updateStatus(importId, 'PENDING');
+    await this.repository.updateStatus(importId, 'PENDING');
     return this.processImport(importId);
-  }
-
-  /**
-   * Update import status
-   */
-  private async updateStatus(
-    importId: string,
-    status: ImportStatus,
-    errorMessage?: string,
-    resumeId?: string,
-  ): Promise<void> {
-    await this.prisma.resumeImport.update({
-      where: { id: importId },
-      data: {
-        status,
-        errorMessage: errorMessage ?? null,
-        resumeId,
-        completedAt:
-          status === 'COMPLETED' || status === 'FAILED'
-            ? new Date()
-            : undefined,
-      },
-    });
   }
 
   /**
@@ -343,17 +314,11 @@ export class ResumeImportService {
     importId: string,
   ): Promise<{ id: string }> {
     // Create the resume with basic info and link to import
-    const resume = await this.prisma.resume.create({
-      data: {
-        userId,
-        title: `Imported Resume - ${data.personalInfo.name}`,
-        summary: data.summary,
-        import: {
-          connect: { id: importId },
-        },
-      },
+    return this.repository.createResume({
+      userId,
+      title: `Imported Resume - ${data.personalInfo.name}`,
+      summary: data.summary,
+      importId,
     });
-
-    return resume;
   }
 }

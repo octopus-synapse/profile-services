@@ -10,51 +10,38 @@
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ResumeImportService } from './resume-import.service';
-import { PrismaService } from '../prisma/prisma.service';
+import { ResumeImportRepository } from './repositories/resume-import.repository';
 import { AppLoggerService } from '../common/logger/logger.service';
+import { ResourceNotFoundError } from '@octopus-synapse/profile-contracts';
 import type { JsonResumeSchema } from './resume-import.types';
 
 describe('ResumeImportService', () => {
   let service: ResumeImportService;
-  let mockPrismaService: {
-    resumeImport: {
-      create: ReturnType<typeof mock>;
-      findUnique: ReturnType<typeof mock>;
-      findMany: ReturnType<typeof mock>;
-      update: ReturnType<typeof mock>;
-      delete: ReturnType<typeof mock>;
-    };
-    resume: {
-      create: ReturnType<typeof mock>;
-    };
-  };
+  let mockRepository: ResumeImportRepository;
 
   beforeEach(async () => {
-    mockPrismaService = {
-      resumeImport: {
-        create: mock(() =>
-          Promise.resolve({
-            id: 'import-123',
-            userId: 'user-123',
-            source: 'JSON',
-            status: 'PENDING',
-            createdAt: new Date(),
-          }),
-        ),
-        findUnique: mock(() => Promise.resolve(null)),
-        findMany: mock(() => Promise.resolve([])),
-        update: mock(() => Promise.resolve({})),
-        delete: mock(() => Promise.resolve({})),
-      },
-      resume: {
-        create: mock(() =>
-          Promise.resolve({
-            id: 'resume-123',
-            userId: 'user-123',
-          }),
-        ),
-      },
-    };
+    const mockCreate = mock(() =>
+      Promise.resolve({
+        id: 'import-123',
+        userId: 'user-123',
+        source: 'JSON',
+        status: 'PENDING',
+        createdAt: new Date(),
+      }),
+    );
+    const mockFindById = mock(() => Promise.resolve(null));
+    const mockFindAllByUserId = mock(() => Promise.resolve([]));
+    const mockUpdate = mock(() => Promise.resolve({}));
+    const mockDelete = mock(() => Promise.resolve({}));
+
+    mockRepository = {
+      create: mockCreate,
+      findById: mockFindById,
+      findAllByUserId: mockFindAllByUserId,
+      updateStatus: mockUpdate,
+      delete: mockDelete,
+      createResume: mock(),
+    } as ResumeImportRepository;
 
     const mockLogger = {
       log: mock(),
@@ -65,7 +52,7 @@ describe('ResumeImportService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ResumeImportService,
-        { provide: PrismaService, useValue: mockPrismaService },
+        { provide: ResumeImportRepository, useValue: mockRepository },
         { provide: AppLoggerService, useValue: mockLogger },
       ],
     }).compile();
@@ -95,10 +82,11 @@ describe('ResumeImportService', () => {
         rawData,
       });
 
-      expect(mockPrismaService.resumeImport.create).toHaveBeenCalledWith({
-        data: expect.objectContaining({
-          rawData,
-        }),
+      expect(mockRepository.create).toHaveBeenCalledWith({
+        userId: 'user-123',
+        source: 'JSON',
+        rawData,
+        status: 'PENDING',
       });
     });
   });
@@ -203,12 +191,17 @@ describe('ResumeImportService', () => {
         ],
       };
 
-      mockPrismaService.resumeImport.findUnique.mockResolvedValue({
+      (mockRepository.findById as ReturnType<typeof mock>).mockResolvedValue({
         id: 'import-123',
         userId: 'user-123',
         source: 'JSON',
         status: 'PENDING',
         rawData: jsonResume,
+      });
+      (
+        mockRepository.createResume as ReturnType<typeof mock>
+      ).mockResolvedValue({
+        id: 'resume-123',
       });
 
       const result = await service.processImport('import-123');
@@ -218,7 +211,7 @@ describe('ResumeImportService', () => {
     });
 
     it('should update status during processing', async () => {
-      mockPrismaService.resumeImport.findUnique.mockResolvedValue({
+      (mockRepository.findById as ReturnType<typeof mock>).mockResolvedValue({
         id: 'import-123',
         userId: 'user-123',
         source: 'JSON',
@@ -229,19 +222,21 @@ describe('ResumeImportService', () => {
       await service.processImport('import-123');
 
       // Should have been updated multiple times (PROCESSING -> MAPPING -> etc)
-      expect(mockPrismaService.resumeImport.update).toHaveBeenCalled();
+      expect(mockRepository.updateStatus).toHaveBeenCalled();
     });
 
-    it('should handle import not found', async () => {
-      mockPrismaService.resumeImport.findUnique.mockResolvedValue(null);
+    it('should throw ResourceNotFoundError when import not found', async () => {
+      (mockRepository.findById as ReturnType<typeof mock>).mockResolvedValue(
+        null,
+      );
 
       await expect(service.processImport('invalid-id')).rejects.toThrow(
-        'Import not found',
+        ResourceNotFoundError,
       );
     });
 
     it('should mark as failed on error', async () => {
-      mockPrismaService.resumeImport.findUnique.mockResolvedValue({
+      (mockRepository.findById as ReturnType<typeof mock>).mockResolvedValue({
         id: 'import-123',
         userId: 'user-123',
         source: 'JSON',
@@ -258,7 +253,7 @@ describe('ResumeImportService', () => {
 
   describe('getImportStatus', () => {
     it('should return import status', async () => {
-      mockPrismaService.resumeImport.findUnique.mockResolvedValue({
+      (mockRepository.findById as ReturnType<typeof mock>).mockResolvedValue({
         id: 'import-123',
         status: 'COMPLETED',
         resumeId: 'resume-123',
@@ -275,7 +270,9 @@ describe('ResumeImportService', () => {
 
   describe('getImportHistory', () => {
     it('should return import history for user', async () => {
-      mockPrismaService.resumeImport.findMany.mockResolvedValue([
+      (
+        mockRepository.findAllByUserId as ReturnType<typeof mock>
+      ).mockResolvedValue([
         { id: 'import-1', status: 'COMPLETED' },
         { id: 'import-2', status: 'FAILED' },
       ]);
@@ -288,18 +285,18 @@ describe('ResumeImportService', () => {
 
   describe('cancelImport', () => {
     it('should cancel pending import', async () => {
-      mockPrismaService.resumeImport.findUnique.mockResolvedValue({
+      (mockRepository.findById as ReturnType<typeof mock>).mockResolvedValue({
         id: 'import-123',
         status: 'PENDING',
       });
 
       await service.cancelImport('import-123');
 
-      expect(mockPrismaService.resumeImport.delete).toHaveBeenCalled();
+      expect(mockRepository.delete).toHaveBeenCalled();
     });
 
     it('should not cancel completed import', async () => {
-      mockPrismaService.resumeImport.findUnique.mockResolvedValue({
+      (mockRepository.findById as ReturnType<typeof mock>).mockResolvedValue({
         id: 'import-123',
         status: 'COMPLETED',
       });
@@ -312,7 +309,7 @@ describe('ResumeImportService', () => {
 
   describe('retryImport', () => {
     it('should retry failed import', async () => {
-      mockPrismaService.resumeImport.findUnique.mockResolvedValue({
+      (mockRepository.findById as ReturnType<typeof mock>).mockResolvedValue({
         id: 'import-123',
         userId: 'user-123',
         source: 'JSON',
@@ -326,7 +323,7 @@ describe('ResumeImportService', () => {
     });
 
     it('should not retry non-failed import', async () => {
-      mockPrismaService.resumeImport.findUnique.mockResolvedValue({
+      (mockRepository.findById as ReturnType<typeof mock>).mockResolvedValue({
         id: 'import-123',
         status: 'COMPLETED',
       });

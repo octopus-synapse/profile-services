@@ -7,7 +7,10 @@
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { createMockResume } from '../../../test/factories/resume.factory';
 import { Test, TestingModule } from '@nestjs/testing';
-import { NotFoundException } from '@nestjs/common';
+import {
+  ResumeNotFoundError,
+  UserNotFoundError,
+} from '@octopus-synapse/profile-contracts';
 import { DocxBuilderService } from './docx-builder.service';
 import { ResumesRepository } from '../../resumes/resumes.repository';
 import { UsersRepository } from '../../users/users.repository';
@@ -80,19 +83,19 @@ describe('DocxBuilderService', () => {
       expect(result.length).toBeGreaterThan(0);
     });
 
-    it('should throw NotFoundException when user not found', async () => {
+    it('should throw UserNotFoundError when user not found', async () => {
       stubUsersRepository.findUserById.mockResolvedValueOnce(null);
 
-      await expect(async () => await service.generate('nonexistent')).toThrow(
-        NotFoundException,
+      await expect(service.generate('nonexistent')).rejects.toThrow(
+        UserNotFoundError,
       );
     });
 
-    it('should throw NotFoundException when resume not found', async () => {
+    it('should throw ResumeNotFoundError when resume not found', async () => {
       stubResumesRepository.findResumeByUserId.mockResolvedValueOnce(null);
 
-      await expect(async () => await service.generate('user-1')).toThrow(
-        NotFoundException,
+      await expect(service.generate('user-1')).rejects.toThrow(
+        ResumeNotFoundError,
       );
     });
 

@@ -4,10 +4,10 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
 import { AppLoggerService } from '../../common/logger/logger.service';
 import { EmailService } from '../../common/email/email.service';
 import { VerificationTokenService } from './verification-token.service';
+import { AuthUserRepository } from '../repositories';
 import type {
   RequestVerification,
   VerifyEmail,
@@ -18,7 +18,7 @@ export class EmailVerificationService {
   private readonly context = 'EmailVerification';
 
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly userRepo: AuthUserRepository,
     private readonly logger: AppLoggerService,
     private readonly emailService: EmailService,
     private readonly tokenService: VerificationTokenService,
@@ -70,17 +70,11 @@ export class EmailVerificationService {
   }
 
   private async findUserByEmail(email: string) {
-    return this.prisma.user.findUnique({
-      where: { email },
-      select: { id: true, email: true, name: true, emailVerified: true },
-    });
+    return this.userRepo.findByEmailForVerification(email);
   }
 
   private async markEmailAsVerified(email: string): Promise<void> {
-    await this.prisma.user.update({
-      where: { email },
-      data: { emailVerified: new Date() },
-    });
+    await this.userRepo.markEmailVerifiedByEmail(email);
   }
 
   private async sendVerificationEmail(

@@ -4,14 +4,14 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
 import { AppLoggerService } from '../../common/logger/logger.service';
+import { TechSkillsRepository } from '../repositories';
 import { TECH_NICHES } from '../data';
 
 @Injectable()
 export class TechNichesSyncService {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly techSkillsRepo: TechSkillsRepository,
     private readonly logger: AppLoggerService,
   ) {}
 
@@ -19,9 +19,7 @@ export class TechNichesSyncService {
     let count = 0;
 
     for (const niche of TECH_NICHES) {
-      const area = await this.prisma.techArea.findUnique({
-        where: { type: niche.areaType },
-      });
+      const area = await this.techSkillsRepo.findAreaByType(niche.areaType);
 
       if (!area) {
         this.logger.warn(
@@ -30,29 +28,16 @@ export class TechNichesSyncService {
         continue;
       }
 
-      await this.prisma.techNiche.upsert({
-        where: { slug: niche.slug },
-        create: {
-          slug: niche.slug,
-          nameEn: niche.nameEn,
-          namePtBr: niche.namePtBr,
-          descriptionEn: niche.descriptionEn,
-          descriptionPtBr: niche.descriptionPtBr,
-          icon: niche.icon,
-          color: niche.color,
-          order: niche.order,
-          areaId: area.id,
-        },
-        update: {
-          nameEn: niche.nameEn,
-          namePtBr: niche.namePtBr,
-          descriptionEn: niche.descriptionEn,
-          descriptionPtBr: niche.descriptionPtBr,
-          icon: niche.icon,
-          color: niche.color,
-          order: niche.order,
-          areaId: area.id,
-        },
+      await this.techSkillsRepo.upsertNiche({
+        slug: niche.slug,
+        nameEn: niche.nameEn,
+        namePtBr: niche.namePtBr,
+        descriptionEn: niche.descriptionEn,
+        descriptionPtBr: niche.descriptionPtBr,
+        icon: niche.icon,
+        color: niche.color,
+        order: niche.order,
+        areaId: area.id,
       });
       count++;
     }

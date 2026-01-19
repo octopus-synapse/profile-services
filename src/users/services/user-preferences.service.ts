@@ -3,14 +3,14 @@
  * Handles user preferences operations
  */
 
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { UsersRepository } from '../users.repository';
 import {
   UpdatePreferences,
   UpdateFullPreferences,
+  UserNotFoundError,
 } from '@octopus-synapse/profile-contracts';
 import { AppLoggerService } from '../../common/logger/logger.service';
-import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
 
 @Injectable()
 export class UserPreferencesService {
@@ -24,7 +24,7 @@ export class UserPreferencesService {
       await this.usersRepository.findUserPreferencesById(userId);
 
     if (!userPreferences) {
-      throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
+      throw new UserNotFoundError(userId);
     }
 
     return userPreferences;
@@ -36,7 +36,7 @@ export class UserPreferencesService {
   ) {
     const existingUser = await this.usersRepository.findUserById(userId);
     if (!existingUser) {
-      throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
+      throw new UserNotFoundError(userId);
     }
 
     await this.usersRepository.updateUserPreferences(userId, updatePreferences);
@@ -64,7 +64,7 @@ export class UserPreferencesService {
   ) {
     const existingUser = await this.usersRepository.findUserById(userId);
     if (!existingUser) {
-      throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
+      throw new UserNotFoundError(userId);
     }
 
     const preferences = await this.usersRepository.upsertFullUserPreferences(

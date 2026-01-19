@@ -1,9 +1,11 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { S3UploadService } from '../common/services/s3-upload.service';
 import { AppLoggerService } from '../common/logger/logger.service';
 import {
   FILE_UPLOAD_CONFIG,
   ERROR_MESSAGES,
+  DomainValidationError,
+  BusinessRuleError,
 } from '@octopus-synapse/profile-contracts';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -37,7 +39,7 @@ export class UploadService {
     );
 
     if (!result) {
-      throw new BadRequestException(ERROR_MESSAGES.FILE_UPLOAD_UNAVAILABLE);
+      throw new BusinessRuleError(ERROR_MESSAGES.FILE_UPLOAD_UNAVAILABLE);
     }
 
     this.logger.log('Profile image uploaded', 'UploadService', {
@@ -62,7 +64,7 @@ export class UploadService {
     );
 
     if (!result) {
-      throw new BadRequestException(ERROR_MESSAGES.FILE_UPLOAD_UNAVAILABLE);
+      throw new BusinessRuleError(ERROR_MESSAGES.FILE_UPLOAD_UNAVAILABLE);
     }
 
     this.logger.log('Company logo uploaded', 'UploadService', {
@@ -87,7 +89,7 @@ export class UploadService {
 
   private validateFile(file: FileUpload) {
     if (file.size > this.maxFileSize) {
-      throw new BadRequestException(
+      throw new DomainValidationError(
         `File size exceeds maximum allowed size of ${this.maxFileSize / 1024 / 1024}MB`,
       );
     }
@@ -97,7 +99,7 @@ export class UploadService {
         file.mimetype as (typeof this.allowedMimeTypes)[number],
       )
     ) {
-      throw new BadRequestException(
+      throw new DomainValidationError(
         `Invalid file type. Allowed types: ${this.allowedMimeTypes.join(', ')}`,
       );
     }
@@ -110,7 +112,7 @@ export class UploadService {
 
   private validateFilenameSafety(filename: string) {
     if (filename.includes('\0')) {
-      throw new BadRequestException('Invalid filename: contains null bytes');
+      throw new DomainValidationError('Invalid filename: contains null bytes');
     }
 
     // Check for directory traversal
@@ -119,7 +121,7 @@ export class UploadService {
       filename.includes('/') ||
       filename.includes('\\')
     ) {
-      throw new BadRequestException(
+      throw new DomainValidationError(
         'Invalid filename: directory traversal detected',
       );
     }
@@ -138,7 +140,7 @@ export class UploadService {
 
     const allowedExts = mimeToExt[file.mimetype] ?? [];
     if (!allowedExts.includes(ext)) {
-      throw new BadRequestException(
+      throw new DomainValidationError(
         `File extension .${ext} does not match file type ${file.mimetype}`,
       );
     }
@@ -146,29 +148,29 @@ export class UploadService {
 
   private validateMagicBytes(file: FileUpload) {
     if (file.buffer.length < 4) {
-      throw new BadRequestException('Invalid file content');
+      throw new DomainValidationError('Invalid file content');
     }
 
     const header = file.buffer.toString('hex', 0, 12).toUpperCase();
 
     // JPEG: FFD8FF
     if (file.mimetype === 'image/jpeg' && !header.startsWith('FFD8FF')) {
-      throw new BadRequestException('Invalid JPEG file content');
+      throw new DomainValidationError('Invalid JPEG file content');
     }
     // PNG: 89504E47
     if (file.mimetype === 'image/png' && !header.startsWith('89504E47')) {
-      throw new BadRequestException('Invalid PNG file content');
+      throw new DomainValidationError('Invalid PNG file content');
     }
     // WEBP: RIFF....WEBP (52494646....57454250)
     if (file.mimetype === 'image/webp') {
       if (!header.startsWith('52494646')) {
         // RIFF
-        throw new BadRequestException('Invalid WEBP file content');
+        throw new DomainValidationError('Invalid WEBP file content');
       }
       // Check bytes 8-11 for WEBP
       const webpType = file.buffer.toString('hex', 8, 12).toUpperCase();
       if (webpType !== '57454250') {
-        throw new BadRequestException('Invalid WEBP file content');
+        throw new DomainValidationError('Invalid WEBP file content');
       }
     }
   }

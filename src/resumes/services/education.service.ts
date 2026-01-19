@@ -3,13 +3,14 @@
  *
  * BUG-019 FIX: Added date validation consistent with ExperienceService
  */
-import { Injectable, Logger, BadRequestException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Education } from '@prisma/client';
 import { EducationRepository } from '../repositories/education.repository';
 import { ResumesRepository } from '../resumes.repository';
 import {
   CreateEducation,
   UpdateEducation,
+  BusinessRuleError,
 } from '@octopus-synapse/profile-contracts';
 import { BaseSubResourceService } from './base';
 import {
@@ -98,7 +99,7 @@ export class EducationService extends BaseSubResourceService<
   ): void {
     // current=true with endDate is invalid
     if (data.current === true && data.endDate) {
-      throw new BadRequestException(
+      throw new BusinessRuleError(
         'Current education cannot have an end date. Either set current to false or remove endDate.',
       );
     }
@@ -109,7 +110,7 @@ export class EducationService extends BaseSubResourceService<
       const end = new Date(data.endDate);
 
       if (end < start) {
-        throw new BadRequestException('End date cannot be before start date.');
+        throw new BusinessRuleError('End date cannot be before start date.');
       }
     }
   }

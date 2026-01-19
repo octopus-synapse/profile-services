@@ -15,10 +15,8 @@ import { ResumesService } from './resumes.service';
 import { ResumesRepository } from './resumes.repository';
 import { ResumeVersionService } from '../resume-versions/services/resume-version.service';
 import { CacheInvalidationService } from '../common/cache/services/cache-invalidation.service';
-import {
-  NotFoundException,
-  UnprocessableEntityException,
-} from '@nestjs/common';
+import { UnprocessableEntityException } from '@nestjs/common';
+import { ResumeNotFoundError } from '@octopus-synapse/profile-contracts';
 
 describe('ResumesService', () => {
   let service: ResumesService;
@@ -149,13 +147,12 @@ describe('ResumesService', () => {
       expect(result.data?.id).toBe('resume-1');
     });
 
-    it('should throw NotFoundException for non-existent resume', async () => {
+    it('should throw ResumeNotFoundError for non-existent resume', async () => {
       repository.findResumeByIdAndUserId.mockResolvedValue(null);
 
       await expect(
-        async () =>
-          await service.findResumeByIdForUser('nonexistent', 'user-123'),
-      ).toThrow(NotFoundException);
+        service.findResumeByIdForUser('nonexistent', 'user-123'),
+      ).rejects.toThrow(ResumeNotFoundError);
     });
 
     it('should update resume if owned by user', async () => {

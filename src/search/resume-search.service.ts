@@ -10,8 +10,9 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-import { PrismaService } from '../prisma/prisma.service';
+import { ResumeSearchRepository, type SearchResultItem } from './repositories';
+
+export type { SearchResultItem };
 
 /**
  * Search query parameters
@@ -28,23 +29,6 @@ export interface SearchParams {
 }
 
 /**
- * Search result item
- */
-export interface SearchResultItem {
-  id: string;
-  userId: string;
-  fullName: string | null;
-  jobTitle: string | null;
-  summary: string | null;
-  slug: string | null;
-  location: string | null;
-  profileViews: number;
-  createdAt: Date;
-  skills?: string[];
-  rank?: number;
-}
-
-/**
  * Paginated search result
  */
 export interface SearchResult {
@@ -57,7 +41,7 @@ export interface SearchResult {
 
 @Injectable()
 export class ResumeSearchService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly repository: ResumeSearchRepository) {}
 
   /**
    * Search public resumes with full-text search
@@ -118,42 +102,18 @@ export class ResumeSearchService {
     const orderClause = this.buildOrderClause(sortBy);
 
     // Execute search query
-    const searchQuery = Prisma.sql`
-      SELECT 
-        id, 
-        "userId", 
-        "fullName", 
-        "jobTitle", 
-        summary, 
-        slug, 
-        location,
-        "profileViews",
-        "createdAt"
-      FROM "Resume"
-      WHERE ${Prisma.raw(whereClause)}
-      ORDER BY ${Prisma.raw(orderClause)}
-      LIMIT ${limit}
-      OFFSET ${offset}
-    `;
-
-    const countQuery = Prisma.sql`
-      SELECT COUNT(*)::int as count
-      FROM "Resume"
-      WHERE ${Prisma.raw(whereClause)}
-    `;
-
-    const [results, countResult] = await Promise.all([
-      this.prisma.$queryRaw<SearchResultItem[]>(searchQuery),
-      this.prisma.$queryRaw<[{ count: number }]>(countQuery),
-    ]);
+    const { results, total } = await this.repository.executeSearch(
+      whereClause,
+      orderClause,
+      limit,
+      offset,
+    );
 
     // Filter by skills if provided (post-query filter for simplicity)
     let filteredResults = results;
     if (skills && skills.length > 0) {
       filteredResults = await this.filterBySkills(results, skills);
     }
-
-    const total = countResult[0].count;
 
     return {
       data: filteredResults,
@@ -170,18 +130,10 @@ export class ResumeSearchService {
   async suggest(prefix: string, limit = 10): Promise<string[]> {
     const normalizedPrefix = this.normalizeSearchTerms(prefix);
 
-    const suggestions = await this.prisma.$queryRaw<{ suggestion: string }[]>`
-      SELECT DISTINCT "jobTitle" as suggestion
-      FROM "Resume"
-      WHERE "isPublic" = true
-        AND "jobTitle" ILIKE ${`${normalizedPrefix}%`}
-      UNION
-      SELECT DISTINCT "techPersona" as suggestion
-      FROM "Resume"
-      WHERE "isPublic" = true
-        AND "techPersona" ILIKE ${`${normalizedPrefix}%`}
-      LIMIT ${limit}
-    `;
+    const suggestions = await this.repository.getSuggestions(
+      normalizedPrefix,
+      limit,
+    );
 
     return suggestions.map((s) => s.suggestion).filter(Boolean);
   }
@@ -191,10 +143,7 @@ export class ResumeSearchService {
    */
   async findSimilar(resumeId: string, limit = 5): Promise<SearchResultItem[]> {
     // Get source resume
-    const sourceResume = await this.prisma.resume.findUnique({
-      where: { id: resumeId },
-      include: { skills: true },
-    });
+    const sourceResume = await this.repository.findResumeWithSkills(resumeId);
 
     if (!sourceResume) {
       return [];
@@ -203,28 +152,7 @@ export class ResumeSearchService {
     const skillNames = sourceResume.skills.map((s) => s.name);
 
     // Find resumes with similar skills
-    const similarResumes = await this.prisma.$queryRaw<SearchResultItem[]>`
-      SELECT DISTINCT
-        r.id,
-        r."userId",
-        r."fullName",
-        r."jobTitle",
-        r.summary,
-        r.slug,
-        r.location,
-        r."profileViews",
-        r."createdAt"
-      FROM "Resume" r
-      JOIN "Skill" s ON s."resumeId" = r.id
-      WHERE r."isPublic" = true
-        AND r.id != ${resumeId}
-        AND s.name = ANY(${skillNames}::text[])
-      GROUP BY r.id
-      ORDER BY COUNT(s.id) DESC, r."profileViews" DESC
-      LIMIT ${limit}
-    `;
-
-    return similarResumes;
+    return this.repository.findSimilarResumes(resumeId, skillNames, limit);
   }
 
   /**
@@ -265,13 +193,10 @@ export class ResumeSearchService {
     const resumeIds = results.map((r) => r.id);
     const normalizedSkills = skills.map((s) => s.toLowerCase());
 
-    const resumesWithSkills = await this.prisma.skill.findMany({
-      where: {
-        resumeId: { in: resumeIds },
-        name: { in: normalizedSkills, mode: 'insensitive' },
-      },
-      select: { resumeId: true },
-    });
+    const resumesWithSkills = await this.repository.findSkillsByResumeIds(
+      resumeIds,
+      normalizedSkills,
+    );
 
     const matchingIds = new Set(resumesWithSkills.map((s) => s.resumeId));
     return results.filter((r) => matchingIds.has(r.id));

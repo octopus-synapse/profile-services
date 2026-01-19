@@ -3,8 +3,9 @@
  * Centralizes error logging and response transformation
  * Follows ERROR_HANDLING_STRATEGY.md principles
  *
- * Also handles ValidationError from profile-contracts,
- * converting them to HTTP 400 responses.
+ * Also handles:
+ * - ValidationError from profile-contracts → HTTP 400
+ * - DomainException from profile-contracts → HTTP based on httpStatus property
  */
 
 import {
@@ -16,7 +17,10 @@ import {
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { AppLoggerService } from '../logger/logger.service';
-import { ERROR_CODES } from '@octopus-synapse/profile-contracts';
+import {
+  ERROR_CODES,
+  DomainException,
+} from '@octopus-synapse/profile-contracts';
 
 /**
  * Interface matching ValidationError from profile-contracts
@@ -72,6 +76,28 @@ export class AllExceptionsFilter implements ExceptionFilter {
         error: {
           code: ERROR_CODES.VALIDATION_ERROR,
           message: 'Validation failed',
+          details,
+        },
+      });
+    }
+
+    // Handle DomainException from profile-contracts
+    // Maps domain errors to HTTP responses without coupling services to NestJS
+    if (exception instanceof DomainException) {
+      const status = exception.httpStatus;
+      const details = {
+        ...exception.details,
+        path: request.url,
+        method: request.method,
+      };
+
+      this.logException(exception, request, status);
+
+      return response.status(status).json({
+        success: false,
+        error: {
+          code: exception.code,
+          message: exception.message,
           details,
         },
       });

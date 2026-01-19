@@ -7,13 +7,11 @@
  * BUG-057 FIX: Revokes all tokens on email change
  */
 
+import { Injectable } from '@nestjs/common';
 import {
-  Injectable,
-  UnauthorizedException,
-  ConflictException,
-} from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-import { PrismaService } from '../../prisma/prisma.service';
+  AuthenticationError,
+  EmailConflictError,
+} from '@octopus-synapse/profile-contracts';
 import { AppLoggerService } from '../../common/logger/logger.service';
 import { PasswordService } from './password.service';
 import { TokenBlacklistService } from './token-blacklist.service';
@@ -22,13 +20,14 @@ import type {
   ChangeEmail,
   DeleteAccount,
 } from '@octopus-synapse/profile-contracts';
+import { AuthUserRepository } from '../repositories';
 
 @Injectable()
 export class AccountManagementService {
   private readonly context = 'AccountManagement';
 
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly userRepo: AuthUserRepository,
     private readonly logger: AppLoggerService,
     private readonly passwordService: PasswordService,
     private readonly tokenBlacklist: TokenBlacklistService,
@@ -43,19 +42,10 @@ export class AccountManagementService {
 
     // BUG-033 FIX: Use try-catch with unique constraint instead of check-then-update
     try {
-      await this.prisma.user.update({
-        where: { id: userId },
-        data: {
-          email: newEmail,
-          emailVerified: null, // Reset verification
-        },
-      });
+      await this.userRepo.updateEmail(userId, newEmail);
     } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === 'P2002'
-      ) {
-        throw new ConflictException(ERROR_MESSAGES.EMAIL_ALREADY_IN_USE);
+      if (this.userRepo.isUniqueConstraintError(error)) {
+        throw new EmailConflictError(newEmail);
       }
       throw error;
     }
@@ -82,7 +72,7 @@ export class AccountManagementService {
     // This ensures any existing tokens become invalid immediately
     await this.tokenBlacklist.revokeAllUserTokens(userId);
 
-    await this.prisma.user.delete({ where: { id: userId } });
+    await this.userRepo.delete(userId);
 
     this.logger.log(`Account deleted`, this.context, { userId });
 
@@ -93,13 +83,10 @@ export class AccountManagementService {
   }
 
   private async findUserWithPassword(userId: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { id: true, email: true, password: true },
-    });
+    const user = await this.userRepo.findByIdWithPassword(userId);
 
     if (!user?.password) {
-      throw new UnauthorizedException(ERROR_MESSAGES.INVALID_CREDENTIALS);
+      throw new AuthenticationError(ERROR_MESSAGES.INVALID_CREDENTIALS);
     }
 
     return { ...user, password: user.password };
@@ -112,7 +99,7 @@ export class AccountManagementService {
     const isValid = await this.passwordService.compare(password, user.password);
 
     if (!isValid) {
-      throw new UnauthorizedException(ERROR_MESSAGES.PASSWORD_INCORRECT);
+      throw new AuthenticationError(ERROR_MESSAGES.PASSWORD_INCORRECT);
     }
   }
 }

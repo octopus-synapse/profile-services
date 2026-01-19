@@ -14,7 +14,7 @@ import { FollowService } from '../../src/social/services/follow.service';
 import { ActivityService } from '../../src/social/services/activity.service';
 import { SocialModule } from '../../src/social/social.module';
 import { PrismaModule } from '../../src/prisma/prisma.module';
-import { BadRequestException } from '@nestjs/common';
+import { BusinessRuleError } from '@octopus-synapse/profile-contracts';
 
 // Skip integration tests in CI unless database is available
 const describeIntegration =
@@ -59,7 +59,7 @@ describeIntegration('Social Integration Tests', () => {
       const userId = 'integration-user-1';
 
       await expect(followService.follow(userId, userId)).rejects.toThrow(
-        BadRequestException,
+        BusinessRuleError,
       );
     });
 

@@ -5,16 +5,16 @@
 
 import { Injectable } from '@nestjs/common';
 import * as crypto from 'crypto';
-import { PrismaService } from '../../prisma/prisma.service';
 import { CacheService } from '../../common/cache/cache.service';
 import { API_LIMITS } from '@octopus-synapse/profile-contracts';
 import { TECH_SKILLS_CACHE_KEYS, TECH_SKILLS_CACHE_TTL } from '../interfaces';
+import { TechSkillsRepository } from '../repositories';
 import type { ProgrammingLanguage } from '../dtos';
 
 @Injectable()
 export class LanguageQueryService {
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly techSkillsRepo: TechSkillsRepository,
     private readonly cache: CacheService,
   ) {}
 
@@ -27,23 +27,7 @@ export class LanguageQueryService {
     const cached = await this.cache.get<ProgrammingLanguage[]>(cacheKey);
     if (cached) return cached;
 
-    const languages = await this.prisma.programmingLanguage.findMany({
-      where: { isActive: true },
-      orderBy: { popularity: 'desc' },
-      select: {
-        id: true,
-        slug: true,
-        nameEn: true,
-        namePtBr: true,
-        color: true,
-        website: true,
-        aliases: true,
-        fileExtensions: true,
-        paradigms: true,
-        typing: true,
-        popularity: true,
-      },
-    });
+    const languages = await this.techSkillsRepo.findAllActiveLanguages();
 
     await this.cache.set(
       cacheKey,
@@ -73,21 +57,10 @@ export class LanguageQueryService {
     const cached = await this.cache.get<ProgrammingLanguage[]>(cacheKey);
     if (cached) return cached;
 
-    const languages = await this.prisma.$queryRaw<ProgrammingLanguage[]>`
-      SELECT 
-        id, slug, "nameEn", "namePtBr", color, website,
-        aliases, "fileExtensions", paradigms, typing, popularity
-      FROM "ProgrammingLanguage"
-      WHERE "isActive" = true
-        AND (
-          immutable_unaccent(lower("nameEn")) LIKE '%' || immutable_unaccent(lower(${normalizedQuery})) || '%'
-          OR immutable_unaccent(lower("namePtBr")) LIKE '%' || immutable_unaccent(lower(${normalizedQuery})) || '%'
-          OR slug LIKE '%' || ${normalizedQuery} || '%'
-          OR ${normalizedQuery} = ANY(aliases)
-        )
-      ORDER BY popularity DESC
-      LIMIT ${limit}
-    `;
+    const languages = await this.techSkillsRepo.searchLanguagesRaw(
+      normalizedQuery,
+      limit,
+    );
 
     await this.cache.set(
       cacheKey,

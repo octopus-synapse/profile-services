@@ -9,15 +9,15 @@
  * - Role: manages collaborator roles
  */
 
-import {
-  Injectable,
-  ForbiddenException,
-  NotFoundException,
-  ConflictException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import {
   CollaboratorRole,
   canRoleEdit,
+  ResumeNotFoundError,
+  ResourceNotFoundError,
+  ResourceOwnershipError,
+  PermissionDeniedError,
+  DuplicateResourceError,
 } from '@octopus-synapse/profile-contracts';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -86,13 +86,11 @@ export class CollaborationService {
     });
 
     if (!resume) {
-      throw new NotFoundException('Resume not found');
+      throw new ResumeNotFoundError(resumeId);
     }
 
     if (resume.userId !== inviterId) {
-      throw new ForbiddenException(
-        'Only resume owner can invite collaborators',
-      );
+      throw new ResourceOwnershipError('resume', resumeId);
     }
 
     // Check if already a collaborator
@@ -101,7 +99,7 @@ export class CollaborationService {
     });
 
     if (existing) {
-      throw new ConflictException('User is already a collaborator');
+      throw new DuplicateResourceError('collaborator', 'userId', inviteeId);
     }
 
     // Create collaborator
@@ -133,7 +131,7 @@ export class CollaborationService {
     // Verify access
     const hasAccess = await this.hasAccess(resumeId, requesterId);
     if (!hasAccess) {
-      throw new ForbiddenException('Access denied to this resume');
+      throw new PermissionDeniedError('view collaborators', resumeId);
     }
 
     const collaborators = await this.prisma.resumeCollaborator.findMany({
@@ -163,11 +161,11 @@ export class CollaborationService {
     });
 
     if (!resume) {
-      throw new NotFoundException('Resume not found');
+      throw new ResumeNotFoundError(resumeId);
     }
 
     if (resume.userId !== requesterId) {
-      throw new ForbiddenException('Only resume owner can update roles');
+      throw new ResourceOwnershipError('resume', resumeId);
     }
 
     const collaborator = await this.prisma.resumeCollaborator.update({
@@ -197,16 +195,14 @@ export class CollaborationService {
     });
 
     if (!resume) {
-      throw new NotFoundException('Resume not found');
+      throw new ResumeNotFoundError(resumeId);
     }
 
     const isOwner = resume.userId === requesterId;
     const isSelf = requesterId === targetUserId;
 
     if (!isOwner && !isSelf) {
-      throw new ForbiddenException(
-        'Only owner can remove collaborators, or you can remove yourself',
-      );
+      throw new PermissionDeniedError('remove collaborator', resumeId);
     }
 
     // Verify collaborator exists
@@ -215,7 +211,7 @@ export class CollaborationService {
     });
 
     if (!collaborator) {
-      throw new NotFoundException('Collaborator not found');
+      throw new ResourceNotFoundError('Collaborator', targetUserId);
     }
 
     await this.prisma.resumeCollaborator.delete({

@@ -3,37 +3,39 @@
  * Handles applying themes to resumes and managing customizations
  */
 
-import {
-  Injectable,
-  ForbiddenException,
-  NotFoundException,
-} from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import { Injectable } from '@nestjs/common';
 import type {
   ApplyThemeToResume,
   ForkTheme,
+} from '@octopus-synapse/profile-contracts';
+import {
+  ResourceNotFoundError,
+  ResourceOwnershipError,
+  PermissionDeniedError,
 } from '@octopus-synapse/profile-contracts';
 import { ThemeCrudService } from './theme-crud.service';
 import { ThemeQueryService } from './theme-query.service';
 import { deepMerge } from '../utils';
 import { ThemeStatus, Prisma } from '@prisma/client';
 import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
+import { ThemeRepository, ResumeRepository } from '../repositories';
 
 @Injectable()
 export class ThemeApplicationService {
   constructor(
-    private prisma: PrismaService,
-    private crud: ThemeCrudService,
-    private query: ThemeQueryService,
+    private readonly themeRepository: ThemeRepository,
+    private readonly resumeRepository: ResumeRepository,
+    private readonly crud: ThemeCrudService,
+    private readonly query: ThemeQueryService,
   ) {}
 
   async applyToResume(userId: string, applyThemeData: ApplyThemeToResume) {
-    const existingResume = await this.prisma.resume.findUnique({
-      where: { id: applyThemeData.resumeId },
-    });
+    const existingResume = await this.resumeRepository.findById(
+      applyThemeData.resumeId,
+    );
 
     if (existingResume?.userId !== userId) {
-      throw new ForbiddenException(ERROR_MESSAGES.RESUME_ACCESS_DENIED);
+      throw new ResourceOwnershipError('resume', applyThemeData.resumeId);
     }
 
     // Verify theme access
@@ -42,24 +44,16 @@ export class ThemeApplicationService {
       userId,
     );
     if (!selectedTheme) {
-      throw new NotFoundException(ERROR_MESSAGES.THEME_ACCESS_DENIED);
+      throw new ResourceNotFoundError('theme', applyThemeData.themeId);
     }
 
     // Apply theme and increment usage
-    await this.prisma.$transaction([
-      this.prisma.resume.update({
-        where: { id: applyThemeData.resumeId },
-        data: {
-          activeThemeId: applyThemeData.themeId,
-          customTheme: (applyThemeData.customizations ??
-            Prisma.JsonNull) as Prisma.InputJsonValue,
-        },
-      }),
-      this.prisma.resumeTheme.update({
-        where: { id: applyThemeData.themeId },
-        data: { usageCount: { increment: 1 } },
-      }),
-    ]);
+    await this.resumeRepository.applyThemeTransaction(
+      applyThemeData.resumeId,
+      applyThemeData.themeId,
+      (applyThemeData.customizations ??
+        Prisma.JsonNull) as Prisma.InputJsonValue,
+    );
 
     return { success: true };
   }
@@ -74,7 +68,7 @@ export class ThemeApplicationService {
       originalTheme.status !== ThemeStatus.PUBLISHED &&
       originalTheme.authorId !== userId
     ) {
-      throw new ForbiddenException(ERROR_MESSAGES.CANNOT_FORK_THEME);
+      throw new PermissionDeniedError(ERROR_MESSAGES.CANNOT_FORK_THEME);
     }
 
     const forkedThemeData = {
@@ -88,19 +82,15 @@ export class ThemeApplicationService {
       status: ThemeStatus.PRIVATE,
     };
 
-    return this.prisma.resumeTheme.create({
-      data: forkedThemeData,
-    });
+    return this.themeRepository.create(forkedThemeData);
   }
 
   async getResolvedConfig(resumeId: string, userId: string) {
-    const existingResume = await this.prisma.resume.findUnique({
-      where: { id: resumeId },
-      include: { activeTheme: true },
-    });
+    const existingResume =
+      await this.resumeRepository.findByIdWithTheme(resumeId);
 
     if (!existingResume || existingResume.userId !== userId) {
-      throw new ForbiddenException(ERROR_MESSAGES.RESUME_NOT_FOUND);
+      throw new ResourceOwnershipError('resume', resumeId);
     }
 
     if (!existingResume.activeTheme) {

@@ -12,10 +12,14 @@ import {
   ThemeQueryService,
   ThemeApprovalService,
   ThemeApplicationService,
-  ResumeConfigRepository,
   SectionVisibilityService,
   SectionOrderingService,
 } from './services';
+import {
+  ThemeRepository,
+  ResumeRepository,
+  ResumeConfigRepository,
+} from './repositories';
 
 @Module({
   imports: [PrismaModule, AuthorizationModule],
@@ -26,11 +30,15 @@ import {
     SectionConfigController,
   ],
   providers: [
+    // Repositories
+    ThemeRepository,
+    ResumeRepository,
+    ResumeConfigRepository,
+    // Services
     ThemeCrudService,
     ThemeQueryService,
     ThemeApprovalService,
     ThemeApplicationService,
-    ResumeConfigRepository,
     SectionVisibilityService,
     SectionOrderingService,
   ],
