@@ -9,7 +9,6 @@ import type {
   AnalyticsEvent,
   ShareAnalytics,
   ResumeShare,
-  Prisma,
 } from '@prisma/client';
 
 interface CreateAnalyticsEvent {
