@@ -147,7 +147,7 @@ describe('Auth Flow Integration', () => {
         .expect(409);
 
       // Error message should indicate email is already registered
-      expect(duplicateResponse.body.message).toMatch(
+      expect(duplicateResponse.body.error.message).toMatch(
         /already|registered|exists/i,
       );
     });
@@ -168,7 +168,7 @@ describe('Auth Flow Integration', () => {
         })
         .expect(401);
 
-      expect(response.body.message.includes('Invalid')).toBe(true);
+      expect(response.body.error.message.includes('Invalid')).toBe(true);
     });
 
     it('should reject access to protected route without token', async () => {

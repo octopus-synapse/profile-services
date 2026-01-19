@@ -272,7 +272,7 @@ describe('Resume CRUD Integration', () => {
         })
         .expect(422);
 
-      expect(response.body.message.includes('limit')).toBe(true);
+      expect(response.body.error.message.includes('limit')).toBe(true);
     });
   });
 

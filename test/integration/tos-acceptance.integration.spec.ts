@@ -130,7 +130,7 @@ describe('ToS Acceptance Flow Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(403);
 
-      expect(blockedResponse.body.message).toMatch(
+      expect(blockedResponse.body.error.message).toMatch(
         /Terms of Service|ToS|consent/i,
       );
 
@@ -261,7 +261,9 @@ describe('ToS Acceptance Flow Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(403);
 
-      expect(blockedResponse.body.message).toMatch(/Terms of Service|ToS/i);
+      expect(blockedResponse.body.error.message).toMatch(
+        /Terms of Service|ToS/i,
+      );
 
       // Step 3: Check consent status shows outdated version
       const statusResponse = await request(app.getHttpServer())
