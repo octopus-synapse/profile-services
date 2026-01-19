@@ -23,6 +23,8 @@ import request from 'supertest';
 import { AppModule } from '../../src/app.module';
 import { PrismaService } from '../../src/prisma/prisma.service';
 import { ConsentDocumentType } from '@prisma/client';
+import { AppLoggerService } from '../../src/common/logger/logger.service';
+import { configureExceptionHandling } from '../../src/common/config/validation.config';
 
 describe('ToS Acceptance Flow Integration', () => {
   let app: INestApplication;
@@ -85,6 +87,10 @@ describe('ToS Acceptance Flow Integration', () => {
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
 
     prisma = app.get<PrismaService>(PrismaService);
+    const logger = app.get<AppLoggerService>(AppLoggerService);
+
+    // Configure exception handling to transform DomainExceptions to HTTP responses
+    configureExceptionHandling(app, logger);
 
     // Set initial ToS version
     setTosVersion('1.0.0');
