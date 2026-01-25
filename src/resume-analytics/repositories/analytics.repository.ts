@@ -29,8 +29,11 @@ export interface CreateAnalyticsSnapshotData {
   atsScore: number;
   keywordScore: number;
   completenessScore: number;
+  industryRank?: number;
+  totalInIndustry?: number;
   topKeywords: string[];
   missingKeywords: string[];
+  improvementSuggestions?: string[];
 }
 
 export interface DateRange {
