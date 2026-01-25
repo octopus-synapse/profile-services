@@ -93,13 +93,13 @@ export class SnapshotService {
           date: s.createdAt,
           score: s.atsScore,
         })),
-        trend: 'stable',
+        trend: 'stable' as const,
         changePercent: 0,
       };
     }
 
-    const firstScore = snapshots[0].atsScore;
-    const lastScore = snapshots[snapshots.length - 1].atsScore;
+    const firstScore = Number(snapshots[0]?.atsScore ?? 0);
+    const lastScore = Number(snapshots[snapshots.length - 1]?.atsScore ?? 0);
     const changePercent =
       firstScore > 0
         ? Math.round(((lastScore - firstScore) / firstScore) * 10000) / 100

@@ -32,10 +32,12 @@ import { PublicResumesModule } from './public-resumes/public-resumes.module';
 import { ResumeVersionsModule } from './resume-versions/resume-versions.module';
 import { ShareAnalyticsModule } from './share-analytics/share-analytics.module';
 import { ResumeAnalyticsModule } from './resume-analytics/resume-analytics.module';
-import { ChatModule } from './chat/chat.module';
+// TEMPORARILY DISABLED - Missing contracts types
+// import { ChatModule } from './chat/chat.module';
 import { MetricsModule } from './metrics/metrics.module';
 import { SearchModule } from './search/search.module';
-import { CollaborationModule } from './collaboration/collaboration.module';
+// TEMPORARILY DISABLED - Missing contracts types
+// import { CollaborationModule } from './collaboration/collaboration.module';
 import { validate } from './common/config/env.validation';
 import { RATE_LIMIT_CONFIG } from '@octopus-synapse/profile-contracts';
 
@@ -79,10 +81,10 @@ import { RATE_LIMIT_CONFIG } from '@octopus-synapse/profile-contracts';
     ResumeVersionsModule,
     ShareAnalyticsModule,
     ResumeAnalyticsModule,
-    ChatModule,
+    // ChatModule, // TEMPORARILY DISABLED - Missing contracts types
     MetricsModule,
     SearchModule,
-    CollaborationModule,
+    // CollaborationModule, // TEMPORARILY DISABLED - Missing contracts types
   ],
   controllers: [AppController],
   providers: [

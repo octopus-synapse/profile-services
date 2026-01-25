@@ -153,9 +153,9 @@ export class ATSService {
   private mapIssuesToContract(
     issues: InternalValidationIssue[],
   ): ValidationIssue[] {
-    const severityToType: Record<
+    const severityMap: Record<
       ValidationSeverity,
-      'error' | 'warning' | 'suggestion'
+      'error' | 'warning' | 'suggestion' | 'info'
     > = {
       error: 'error',
       warning: 'warning',
@@ -163,10 +163,12 @@ export class ATSService {
     };
 
     return issues.map((issue) => ({
-      type: severityToType[issue.severity],
+      severity: severityMap[issue.severity],
+      type: severityMap[issue.severity],
       category: issue.code,
       message: issue.message,
       location: issue.location,
+      suggestion: issue.suggestion,
     }));
   }
 }
