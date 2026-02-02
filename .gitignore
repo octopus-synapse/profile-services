@@ -82,6 +82,8 @@ Thumbs.db
 # ===================================
 # IDE & Editors
 # ===================================
+# VS Code - ignore everything except shared snippets
+!.vscode/*.code-snippets
 .vscode/
 .idea/
 *.iml

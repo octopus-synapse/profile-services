@@ -158,7 +158,7 @@ describe('ResumeImportController', () => {
     it('should return import history for user', async () => {
       const result = await controller.getHistory(mockUser);
 
-      expect(result).toHaveLength(2);
+      expect(result.imports).toHaveLength(2);
       expect(mockImportService.getImportHistory).toHaveBeenCalledWith(
         mockUser.userId,
       );

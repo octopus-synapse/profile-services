@@ -21,7 +21,11 @@ bun run typecheck || exit 1
 echo "  -> Fast lint (oxlint)..."
 bun run lint:fast || exit 1
 
-# 3. Unit tests
+# 3. Swagger documentation validation
+echo "  -> Validating Swagger documentation..."
+bun run validate:swagger || exit 1
+
+# 4. Unit tests
 echo "  -> Running tests..."
 bun test || exit 1
 
