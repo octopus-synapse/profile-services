@@ -15,8 +15,10 @@
  */
 
 import { Module } from '@nestjs/common';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { LoggerModule } from '@/bounded-contexts/platform/common/logger/logger.module';
+import { EventBusModule } from '@/shared-kernel/event-bus/event-bus.module';
 
 // Services
 import { FollowService } from './services/follow.service';
@@ -36,7 +38,7 @@ import {
 } from '../application/handlers';
 
 @Module({
-  imports: [PrismaModule, LoggerModule],
+  imports: [PrismaModule, LoggerModule, EventEmitterModule, EventBusModule],
   controllers: [
     FollowController,
     ActivityController,
