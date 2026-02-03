@@ -43,10 +43,13 @@ jobs:
         with:
           bun-version: 1.2.23
 
+      - name: Configure npm registry auth
+        run: |
+          echo "@octopus-synapse:registry=https://npm.pkg.github.com" >> .npmrc
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> .npmrc
+
       - name: Install dependencies
         run: bun install --frozen-lockfile
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup database
         run: bun run db:setup:test
@@ -76,10 +79,13 @@ jobs:
         with:
           bun-version: 1.2.23
 
+      - name: Configure npm registry auth
+        run: |
+          echo "@octopus-synapse:registry=https://npm.pkg.github.com" >> .npmrc
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> .npmrc
+
       - name: Install dependencies
         run: bun install --frozen-lockfile
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Generate Prisma Client
         run: bunx prisma generate
@@ -106,10 +112,13 @@ jobs:
         with:
           bun-version: 1.2.23
 
+      - name: Configure npm registry auth
+        run: |
+          echo "@octopus-synapse:registry=https://npm.pkg.github.com" >> .npmrc
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> .npmrc
+
       - name: Install dependencies
         run: bun install --frozen-lockfile
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Generate Prisma Client
         run: bunx prisma generate
@@ -128,10 +137,13 @@ jobs:
         with:
           bun-version: 1.2.23
 
+      - name: Configure npm registry auth
+        run: |
+          echo "@octopus-synapse:registry=https://npm.pkg.github.com" >> .npmrc
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> .npmrc
+
       - name: Install dependencies
         run: bun install --frozen-lockfile
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Generate Prisma Client
         run: bunx prisma generate
