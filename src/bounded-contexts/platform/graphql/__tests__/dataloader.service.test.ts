@@ -149,7 +149,9 @@ describe('DataLoaderService', () => {
         { id: 'skill-1', resumeId: 'resume-1', order: 0 } as Skill,
       ];
 
-      prisma.skill.findMany.mockImplementation(() => Promise.resolve(mockSkills));
+      prisma.skill.findMany.mockImplementation(() =>
+        Promise.resolve(mockSkills),
+      );
 
       const loader = service.createSkillsLoader();
       await loader.load('resume-1');

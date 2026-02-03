@@ -17,8 +17,15 @@ import type { User, Resume, Experience } from '@prisma/client';
  */
 describe('ResumeResolver', () => {
   let resolver: ResumeResolver;
-  let resumesRepository: { findResumeByIdAndUserId: Mock<any>; findAllUserResumes: Mock<any> };
-  let experienceService: { addEntityToResume: Mock<any>; updateEntityByIdForResume: Mock<any>; deleteEntityByIdForResume: Mock<any> };
+  let resumesRepository: {
+    findResumeByIdAndUserId: Mock<any>;
+    findAllUserResumes: Mock<any>;
+  };
+  let experienceService: {
+    addEntityToResume: Mock<any>;
+    updateEntityByIdForResume: Mock<any>;
+    deleteEntityByIdForResume: Mock<any>;
+  };
   let _educationService: { addToResume: Mock<any> };
 
   const mockUser = {
@@ -52,9 +59,15 @@ describe('ResumeResolver', () => {
         {
           provide: ExperienceService,
           useValue: {
-            addEntityToResume: mock(() => Promise.resolve({ success: true, data: null })),
-            updateEntityByIdForResume: mock(() => Promise.resolve({ success: true })),
-            deleteEntityByIdForResume: mock(() => Promise.resolve({ success: true })),
+            addEntityToResume: mock(() =>
+              Promise.resolve({ success: true, data: null }),
+            ),
+            updateEntityByIdForResume: mock(() =>
+              Promise.resolve({ success: true }),
+            ),
+            deleteEntityByIdForResume: mock(() =>
+              Promise.resolve({ success: true }),
+            ),
           },
         },
         {
@@ -163,9 +176,9 @@ describe('ResumeResolver', () => {
       );
 
       expect(result).toBe(true);
-      expect(experienceService.deleteEntityByIdForResume.mock.calls.length).toBe(
-        1,
-      );
+      expect(
+        experienceService.deleteEntityByIdForResume.mock.calls.length,
+      ).toBe(1);
     });
   });
 });

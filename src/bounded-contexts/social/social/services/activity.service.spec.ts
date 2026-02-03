@@ -35,7 +35,13 @@ const createMockPrismaService = () => ({
         type: 'RESUME_CREATED',
         metadata: {},
         createdAt: new Date(),
-        user: { id: 'user-1', name: 'Test User', username: 'testuser', displayName: 'Test', photoURL: null },
+        user: {
+          id: 'user-1',
+          name: 'Test User',
+          username: 'testuser',
+          displayName: 'Test',
+          photoURL: null,
+        },
       }),
     ),
     count: mock(() => Promise.resolve(0)),
@@ -182,7 +188,9 @@ describe('ActivityService', () => {
 
       expect(result.data).toHaveLength(2);
       expect(result.total).toBe(2);
-      expect(mockFollowService.getFollowingIds.mock.calls.length).toBeGreaterThan(0);
+      expect(
+        mockFollowService.getFollowingIds.mock.calls.length,
+      ).toBeGreaterThan(0);
       expect(mockPrisma.activity.findMany.mock.calls.length).toBeGreaterThan(0);
     });
 
@@ -253,7 +261,9 @@ describe('ActivityService', () => {
 
       await service.deleteOldActivities(30);
 
-      expect(mockPrisma.activity.deleteMany.mock.calls.length).toBeGreaterThan(0);
+      expect(mockPrisma.activity.deleteMany.mock.calls.length).toBeGreaterThan(
+        0,
+      );
     });
   });
 });
