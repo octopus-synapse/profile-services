@@ -19,7 +19,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request, { Agent } from 'supertest';
 import { AppModule } from '../../src/app.module';
-import { PrismaService } from '../../src/prisma/prisma.service';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 
 // --- Test Constants ---
 

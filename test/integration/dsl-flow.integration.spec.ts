@@ -9,7 +9,7 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { Prisma } from '@prisma/client';
 import { AppModule } from '../../src/app.module';
-import { PrismaService } from '../../src/prisma/prisma.service';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { createMockResume } from '../factories/resume.factory';
 import { createMockUser } from '../factories/user.factory';
 import { acceptTosWithPrisma } from './setup';

@@ -21,7 +21,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '../../src/app.module';
-import { PrismaService } from '../../src/prisma/prisma.service';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { acceptTosWithPrisma } from './setup';
 
 describe('Onboarding Flow Integration', () => {

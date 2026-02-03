@@ -40,7 +40,7 @@ interface ValidationResult {
 const HTTP_DECORATORS = ['@Get(', '@Post(', '@Put(', '@Patch(', '@Delete('];
 const REQUIRED_SWAGGER_DECORATORS = {
   operation: ['@ApiOperation('],
-  response: ['@ApiResponse(', '@SwaggerResponse('] // Support both @ApiResponse and alias @SwaggerResponse
+  response: ['@ApiResponse(', '@SwaggerResponse('], // Support both @ApiResponse and alias @SwaggerResponse
 };
 
 /**
@@ -50,7 +50,9 @@ async function validateSwaggerCoverage(): Promise<ValidationResult> {
   console.log('🔍 Scanning controllers for Swagger documentation...\n');
 
   const controllersPattern = path.join(process.cwd(), 'src/**/*.controller.ts');
-  const controllerFiles = await glob(controllersPattern, { ignore: ['**/node_modules/**', '**/dist/**'] });
+  const controllerFiles = await glob(controllersPattern, {
+    ignore: ['**/node_modules/**', '**/dist/**'],
+  });
 
   console.log(`📂 Found ${controllerFiles.length} controller files\n`);
 
@@ -74,8 +76,10 @@ async function validateSwaggerCoverage(): Promise<ValidationResult> {
 /**
  * Validate a single controller file
  */
-async function validateController(filePath: string): Promise<RouteValidation[]> {
-  const content = fs.readFileSync(filePath, 'utf-8');
+async function validateController(
+  filePath: string,
+): Promise<RouteValidation[]> {
+  const content = await fs.promises.readFile(filePath, 'utf-8');
   const lines = content.split('\n');
   const violations: RouteValidation[] = [];
 
@@ -90,7 +94,7 @@ async function validateController(filePath: string): Promise<RouteValidation[]> 
     const line = lines[i].trim();
 
     // Check if line contains an HTTP decorator
-    const httpDecorator = HTTP_DECORATORS.find(dec => line.startsWith(dec));
+    const httpDecorator = HTTP_DECORATORS.find((dec) => line.startsWith(dec));
     if (!httpDecorator) continue;
 
     // Check if this specific route is excluded
@@ -125,7 +129,7 @@ function isRouteExcluded(lines: string[], routeLineIndex: number): boolean {
   const checkRangeStart = Math.max(0, routeLineIndex - 10);
   const decoratorsAbove = lines
     .slice(checkRangeStart, routeLineIndex)
-    .map(line => line.trim())
+    .map((line) => line.trim())
     .join('\n');
 
   return decoratorsAbove.includes('@ApiExcludeEndpoint()');
@@ -138,24 +142,34 @@ function extractControllerName(filePath: string): string {
   const fileName = path.basename(filePath, '.ts');
   return fileName
     .split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join('');
 }
 
 /**
  * Extract route information (method name, HTTP verb)
  */
-function extractRouteInfo(lines: string[], routeLineIndex: number): { methodName: string; httpMethod: string } {
+function extractRouteInfo(
+  lines: string[],
+  routeLineIndex: number,
+): { methodName: string; httpMethod: string } {
   const routeLine = lines[routeLineIndex].trim();
 
   // Extract HTTP method from decorator
-  const httpMethod = HTTP_DECORATORS.find(dec => routeLine.startsWith(dec))?.replace('@', '').replace('(', '') || 'UNKNOWN';
+  const httpMethod =
+    HTTP_DECORATORS.find((dec) => routeLine.startsWith(dec))
+      ?.replace('@', '')
+      .replace('(', '') ?? 'UNKNOWN';
 
   // Find the method declaration (should be a few lines after the decorator)
   // Skip decorator lines (lines starting with @)
   // Increased search range to 30 lines to handle routes with many decorators
   let methodName = 'unknown';
-  for (let i = routeLineIndex + 1; i < Math.min(routeLineIndex + 30, lines.length); i++) {
+  for (
+    let i = routeLineIndex + 1;
+    i < Math.min(routeLineIndex + 30, lines.length);
+    i++
+  ) {
     const line = lines[i].trim();
     // Skip decorators
     if (line.startsWith('@')) continue;
@@ -173,7 +187,10 @@ function extractRouteInfo(lines: string[], routeLineIndex: number): { methodName
 /**
  * Find missing required Swagger decorators for a route
  */
-function findMissingDecorators(lines: string[], routeLineIndex: number): string[] {
+function findMissingDecorators(
+  lines: string[],
+  routeLineIndex: number,
+): string[] {
   // Check decorators above AND after the HTTP route decorator
   // Some decorators may appear after @Get(), @Post(), etc.
   const checkRangeStart = Math.max(0, routeLineIndex - 20);
@@ -181,7 +198,11 @@ function findMissingDecorators(lines: string[], routeLineIndex: number): string[
   // Find where the method declaration starts (skip decorator lines)
   // Increased search range to 30 lines to handle routes with many decorators
   let methodLineIndex = routeLineIndex + 30;
-  for (let i = routeLineIndex + 1; i < Math.min(routeLineIndex + 30, lines.length); i++) {
+  for (
+    let i = routeLineIndex + 1;
+    i < Math.min(routeLineIndex + 30, lines.length);
+    i++
+  ) {
     const line = lines[i].trim();
     // Skip decorators
     if (line.startsWith('@')) continue;
@@ -196,22 +217,22 @@ function findMissingDecorators(lines: string[], routeLineIndex: number): string[
 
   const decoratorsInRange = lines
     .slice(checkRangeStart, checkRangeEnd)
-    .map(line => line.trim())
+    .map((line) => line.trim())
     .join('\n');
 
   const missing: string[] = [];
 
   // Check for @ApiOperation()
-  const hasOperation = REQUIRED_SWAGGER_DECORATORS.operation.some(decorator =>
-    decoratorsInRange.includes(decorator)
+  const hasOperation = REQUIRED_SWAGGER_DECORATORS.operation.some((decorator) =>
+    decoratorsInRange.includes(decorator),
   );
   if (!hasOperation) {
     missing.push('@ApiOperation');
   }
 
   // Check for @ApiResponse() or @SwaggerResponse()
-  const hasResponse = REQUIRED_SWAGGER_DECORATORS.response.some(decorator =>
-    decoratorsInRange.includes(decorator)
+  const hasResponse = REQUIRED_SWAGGER_DECORATORS.response.some((decorator) =>
+    decoratorsInRange.includes(decorator),
   );
   if (!hasResponse) {
     missing.push('@ApiResponse');
@@ -240,9 +261,13 @@ function countRoutesInFile(filePath: string): number {
  * Print validation results
  */
 function printResults(result: ValidationResult): void {
-  console.log('═══════════════════════════════════════════════════════════════');
+  console.log(
+    '═══════════════════════════════════════════════════════════════',
+  );
   console.log('              SWAGGER DOCUMENTATION VALIDATION');
-  console.log('═══════════════════════════════════════════════════════════════\n');
+  console.log(
+    '═══════════════════════════════════════════════════════════════\n',
+  );
 
   console.log(`📊 Statistics:`);
   console.log(`   Controllers scanned: ${result.totalControllers}`);
@@ -250,18 +275,24 @@ function printResults(result: ValidationResult): void {
   console.log(`   Undocumented routes: ${result.undocumentedRoutes.length}\n`);
 
   if (result.success) {
-    console.log('✅ SUCCESS: All routes have required Swagger documentation!\n');
-    console.log('═══════════════════════════════════════════════════════════════\n');
+    console.log(
+      '✅ SUCCESS: All routes have required Swagger documentation!\n',
+    );
+    console.log(
+      '═══════════════════════════════════════════════════════════════\n',
+    );
     return;
   }
 
-  console.log('❌ FAILURE: Found routes without required Swagger documentation\n');
+  console.log(
+    '❌ FAILURE: Found routes without required Swagger documentation\n',
+  );
   console.log('Required decorators for each route:');
   console.log('  • @ApiOperation() - Describes the endpoint');
   console.log('  • @ApiResponse()  - Defines at least one response\n');
   console.log('Example:');
   console.log('  @Get()');
-  console.log('  @ApiOperation({ summary: \'List all resources\' })');
+  console.log("  @ApiOperation({ summary: 'List all resources' })");
   console.log('  @ApiResponse({ status: 200, type: [ResourceDto] })');
   console.log('  async findAll() { ... }\n');
 
@@ -280,14 +311,20 @@ function printResults(result: ValidationResult): void {
     console.log(`   File: ${violations[0].file}\n`);
 
     for (const violation of violations) {
-      console.log(`   ⚠️  ${violation.httpMethod.toUpperCase()} ${violation.method}() - Line ${violation.line}`);
+      console.log(
+        `   ⚠️  ${violation.httpMethod.toUpperCase()} ${violation.method}() - Line ${violation.line}`,
+      );
       console.log(`      Missing: ${violation.missing.join(', ')}`);
     }
   }
 
-  console.log('\n═══════════════════════════════════════════════════════════════');
+  console.log(
+    '\n═══════════════════════════════════════════════════════════════',
+  );
   console.log('❌ Build failed due to missing Swagger documentation');
-  console.log('═══════════════════════════════════════════════════════════════\n');
+  console.log(
+    '═══════════════════════════════════════════════════════════════\n',
+  );
 }
 
 /**
@@ -309,7 +346,7 @@ async function main() {
 }
 
 // Execute when run directly
-main();
+void main();
 
 export { validateSwaggerCoverage };
 export type { ValidationResult };

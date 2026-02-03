@@ -1,19 +1,19 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { AppLoggerService } from './common/logger/logger.service';
+import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import {
   configureSecurityHeaders,
   configureCors,
-} from './common/config/security.config';
+} from '@/bounded-contexts/platform/common/config/security.config';
 import {
   configureValidation,
   configureExceptionHandling,
   configureGlobalGuards,
-} from './common/config/validation.config';
+} from '@/bounded-contexts/platform/common/config/validation.config';
 import {
   configureSwagger,
   isSwaggerEnabled,
-} from './common/config/swagger.config';
+} from '@/bounded-contexts/platform/common/config/swagger.config';
 
 /**
  * Bootstrap the NestJS application
@@ -28,38 +28,25 @@ async function bootstrap() {
   app.useLogger(logger);
   app.setGlobalPrefix('api');
 
-  const swaggerEnabled = isSwaggerEnabled();
-
-  // Configure application (each function has single responsibility)
-  configureSecurityHeaders(app, swaggerEnabled);
+  // Security Configuration
+  configureSecurityHeaders(app, isSwaggerEnabled());
   configureCors(app);
-  configureExceptionHandling(app, logger);
+
+  // Validation & Error Handling
   configureValidation(app);
+  configureExceptionHandling(app, logger);
   configureGlobalGuards(app);
 
-  if (swaggerEnabled) {
+  // API Documentation
+  if (isSwaggerEnabled()) {
     configureSwagger(app);
   }
 
-  const port = process.env.PORT ?? '3001';
+  const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3001;
   await app.listen(port);
 
-  logStartupInfo(logger, port, swaggerEnabled);
-}
-
-function logStartupInfo(
-  logger: AppLoggerService,
-  port: string | number,
-  swaggerEnabled: boolean,
-): void {
-  logger.log(
-    `Application running on: http://localhost:${port}/api`,
-    'Bootstrap',
-  );
-  logger.log(`Health check: http://localhost:${port}/api/health`, 'Bootstrap');
-  if (swaggerEnabled) {
-    logger.log(`Swagger docs: http://localhost:${port}/api/docs`, 'Bootstrap');
-  }
+  logger.log(`Application is running on: ${await app.getUrl()}`);
+  logger.log(`Swagger UI is available at: ${await app.getUrl()}/api/docs`);
 }
 
 void bootstrap();

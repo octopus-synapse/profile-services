@@ -5,3 +5,4 @@
 
 export * from './user.factory';
 export * from './resume.factory';
+export * from './event-publisher.factory';
