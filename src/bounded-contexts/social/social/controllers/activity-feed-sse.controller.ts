@@ -64,7 +64,7 @@ export class ActivityFeedSseController {
       this.eventEmitter,
       `feed:user:${user.userId}`,
     ).pipe(
-      filter((activity) => activity !== null && activity !== undefined),
+      filter((activity): activity is ActivityFeedEvent => Boolean(activity)),
       map((activity) => ({
         data: activity,
         id: activity.id,

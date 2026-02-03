@@ -4,7 +4,8 @@ import { ResumeResolver } from '../resolvers/resume.resolver';
 import { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.repository';
 import { ExperienceService } from '@/bounded-contexts/resumes/resumes/services/experience.service';
 import { EducationService } from '@/bounded-contexts/resumes/resumes/services/education.service';
-import type { User, Resume, Experience } from '@prisma/client';
+import { ResumeTemplate } from '../models/resume.model';
+import type { User } from '@prisma/client';
 
 /**
  * Resume Resolver Tests
@@ -34,13 +35,12 @@ describe('ResumeResolver', () => {
     username: 'testuser',
   } as unknown as User;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const mockResume: any = {
+  const mockResume = {
     id: 'resume-123',
     userId: 'user-123',
     title: 'Software Engineer Resume',
     isPublic: false,
-    template: 'MODERN',
+    template: ResumeTemplate.MODERN,
     createdAt: new Date(),
     updatedAt: new Date(),
   };
@@ -125,17 +125,16 @@ describe('ResumeResolver', () => {
         skills: ['TypeScript', 'NestJS'],
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const mockExperience: any = {
+      const mockExperience = {
         id: 'exp-123',
         resumeId: 'resume-123',
         company: 'Google',
         position: 'Software Engineer',
-        location: null,
+        location: undefined,
         startDate: new Date('2020-01-01'),
-        endDate: null,
+        endDate: undefined,
         isCurrent: true,
-        description: null,
+        description: undefined,
         skills: ['TypeScript', 'NestJS'],
         order: 0,
         createdAt: new Date(),

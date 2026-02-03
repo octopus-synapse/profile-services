@@ -103,7 +103,7 @@ export class WebhookService {
   ): Promise<void> {
     // TODO: Query webhook configurations from database
     // For now, this is a placeholder - in production you'd have a WebhookConfig table
-    const webhooks = await this.getWebhookConfigurations(userId, eventType);
+    const webhooks = this.getWebhookConfigurations(userId, eventType);
 
     if (webhooks.length === 0) {
       this.logger.debug(
@@ -217,10 +217,10 @@ export class WebhookService {
    * Fetches user's webhook subscriptions from database.
    * TODO: Implement WebhookConfig table and query logic.
    */
-  private async getWebhookConfigurations(
+  private getWebhookConfigurations(
     userId: string,
     eventType: string,
-  ): Promise<Array<{ url: string; secret: string }>> {
+  ): Array<{ url: string; secret: string }> {
     // Placeholder - in production, query from WebhookConfig table:
     // return this.prisma.webhookConfig.findMany({
     //   where: { userId, events: { has: eventType }, enabled: true },

@@ -93,16 +93,14 @@ export class BenchmarkService {
    * Returns aggregated benchmark data across industries.
    * If industry filter is provided, returns only that industry.
    */
-  async getIndustryBenchmarks(industry?: string): Promise<
-    Array<{
-      industry: string;
-      averageScore: number;
-      sampleSize: number;
-      percentile25: number;
-      percentile50: number;
-      percentile75: number;
-    }>
-  > {
+  getIndustryBenchmarks(industry?: string): Array<{
+    industry: string;
+    averageScore: number;
+    sampleSize: number;
+    percentile25: number;
+    percentile50: number;
+    percentile75: number;
+  }> {
     // Mock data - in production, this would aggregate from resume analytics
     const mockBenchmarks = [
       {

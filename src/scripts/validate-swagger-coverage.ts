@@ -301,7 +301,7 @@ function printResults(result: ValidationResult): void {
   // Group by controller for better readability
   const byController = new Map<string, RouteValidation[]>();
   for (const violation of result.undocumentedRoutes) {
-    const existing = byController.get(violation.controller) || [];
+    const existing = byController.get(violation.controller) ?? [];
     existing.push(violation);
     byController.set(violation.controller, existing);
   }
