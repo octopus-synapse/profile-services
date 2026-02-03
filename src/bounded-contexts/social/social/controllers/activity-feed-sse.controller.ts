@@ -11,9 +11,9 @@ import {
   Controller,
   Sse,
   UseGuards,
+  MessageEvent,
   Param,
 } from '@nestjs/common';
-import type { MessageEvent } from '@nestjs/common';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
@@ -58,9 +58,7 @@ export class ActivityFeedSseController {
    */
   @Sse('subscribe')
   @UseGuards(JwtAuthGuard)
-  subscribeToFeed(
-    @CurrentUser() user: UserPayload,
-  ): Observable<MessageEvent<ActivityFeedEvent>> {
+  subscribeToFeed(@CurrentUser() user: UserPayload): Observable<MessageEvent> {
     // Listen to activity events for this user's feed
     return fromEvent<ActivityFeedEvent>(
       this.eventEmitter,
@@ -85,7 +83,7 @@ export class ActivityFeedSseController {
   subscribeToActivityType(
     @CurrentUser() user: UserPayload,
     @Param('type') type: ActivityType,
-  ): Observable<MessageEvent<ActivityFeedEvent>> {
+  ): Observable<MessageEvent> {
     return fromEvent<ActivityFeedEvent>(
       this.eventEmitter,
       `feed:user:${user.userId}`,

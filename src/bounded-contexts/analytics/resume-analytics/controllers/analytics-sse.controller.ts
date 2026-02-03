@@ -11,9 +11,9 @@ import {
   Controller,
   Sse,
   UseGuards,
+  MessageEvent,
   Param,
 } from '@nestjs/common';
-import type { MessageEvent } from '@nestjs/common';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
@@ -58,7 +58,7 @@ export class AnalyticsSseController {
   subscribeToResumeAnalytics(
     @CurrentUser() user: UserPayload,
     @Param('resumeId') resumeId: string,
-  ): Observable<MessageEvent<AnalyticsUpdateEvent>> {
+  ): Observable<MessageEvent> {
     // Listen to both view and ATS score events
     const viewEvents = fromEvent<AnalyticsUpdateEvent>(
       this.eventEmitter,
@@ -89,7 +89,7 @@ export class AnalyticsSseController {
   subscribeToViews(
     @CurrentUser() user: UserPayload,
     @Param('resumeId') resumeId: string,
-  ): Observable<MessageEvent<AnalyticsUpdateEvent>> {
+  ): Observable<MessageEvent> {
     return fromEvent<AnalyticsUpdateEvent>(
       this.eventEmitter,
       `analytics:${resumeId}:view`,
@@ -111,7 +111,7 @@ export class AnalyticsSseController {
   subscribeToAtsScore(
     @CurrentUser() user: UserPayload,
     @Param('resumeId') resumeId: string,
-  ): Observable<MessageEvent<AnalyticsUpdateEvent>> {
+  ): Observable<MessageEvent> {
     return fromEvent<AnalyticsUpdateEvent>(
       this.eventEmitter,
       `analytics:${resumeId}:ats_score`,
