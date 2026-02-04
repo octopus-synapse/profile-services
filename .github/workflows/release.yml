@@ -38,17 +38,8 @@ jobs:
     if: ${{ needs.release-please.outputs.release_created == 'true' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout profile-services
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          path: profile-services
-
-      - name: Checkout profile-contracts
-        uses: actions/checkout@v4
-        with:
-          repository: octopus-synapse/profile-contracts
-          path: profile-contracts
-          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
@@ -68,7 +59,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: profile-services/Dockerfile
+          file: Dockerfile
           push: true
           tags: |
             ghcr.io/${{ github.repository }}:${{ steps.version.outputs.version }}
@@ -80,7 +71,6 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          cd profile-services
           gh release edit "${{ needs.release-please.outputs.tag_name }}" \
             --notes "## Docker Images
 
