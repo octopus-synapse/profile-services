@@ -24,35 +24,43 @@ import { describe, it, expect } from 'bun:test';
 describe('Smoke Tests - Application Bootstrap', () => {
   describe('Core Module Imports', () => {
     it('should import AuthModule', async () => {
-      const { AuthModule } = await import('../../src/auth/auth.module');
+      const { AuthModule } = await import(
+        '@/bounded-contexts/identity/auth/auth.module'
+      );
       expect(AuthModule).toBeDefined();
     });
 
     it('should import UsersModule', async () => {
-      const { UsersModule } = await import('../../src/users/users.module');
+      const { UsersModule } = await import(
+        '@/bounded-contexts/identity/users/users.module'
+      );
       expect(UsersModule).toBeDefined();
     });
 
     it('should import ResumesModule', async () => {
       const { ResumesModule } = await import(
-        '../../src/resumes/resumes.module'
+        '@/bounded-contexts/resumes/resumes/resumes.module'
       );
       expect(ResumesModule).toBeDefined();
     });
 
     it('should import HealthModule', async () => {
-      const { HealthModule } = await import('../../src/health/health.module');
+      const { HealthModule } = await import(
+        '@/bounded-contexts/platform/health/health.module'
+      );
       expect(HealthModule).toBeDefined();
     });
 
     it('should import PrismaModule', async () => {
-      const { PrismaModule } = await import('../../src/prisma/prisma.module');
+      const { PrismaModule } = await import(
+        '@/bounded-contexts/platform/prisma/prisma.module'
+      );
       expect(PrismaModule).toBeDefined();
     });
 
     it('should import OnboardingModule', async () => {
       const { OnboardingModule } = await import(
-        '../../src/onboarding/onboarding.module'
+        '@/bounded-contexts/onboarding/onboarding/onboarding.module'
       );
       expect(OnboardingModule).toBeDefined();
     });
@@ -64,39 +72,43 @@ describe('Smoke Tests - Application Bootstrap', () => {
 
   describe('Core Services Imports', () => {
     it('should import AuthService', async () => {
-      const { AuthService } = await import('../../src/auth/auth.service');
+      const { AuthService } = await import(
+        '@/bounded-contexts/identity/auth/auth.service'
+      );
       expect(AuthService).toBeDefined();
     });
 
     it('should import ResumesService', async () => {
       const { ResumesService } = await import(
-        '../../src/resumes/resumes.service'
+        '@/bounded-contexts/resumes/resumes/resumes.service'
       );
       expect(ResumesService).toBeDefined();
     });
 
     it('should import UsersService', async () => {
-      const { UsersService } = await import('../../src/users/users.service');
+      const { UsersService } = await import(
+        '@/bounded-contexts/identity/users/users.service'
+      );
       expect(UsersService).toBeDefined();
     });
 
     it('should import CacheService', async () => {
       const { CacheService } = await import(
-        '../../src/common/cache/cache.service'
+        '@/bounded-contexts/platform/common/cache/cache.service'
       );
       expect(CacheService).toBeDefined();
     });
 
     it('should import CacheInvalidationService', async () => {
       const { CacheInvalidationService } = await import(
-        '../../src/common/cache/services/cache-invalidation.service'
+        '@/bounded-contexts/platform/common/cache/services/cache-invalidation.service'
       );
       expect(CacheInvalidationService).toBeDefined();
     });
 
     it('should import CacheWarmingService', async () => {
       const { CacheWarmingService } = await import(
-        '../../src/common/cache/services/cache-warming.service'
+        '@/bounded-contexts/platform/common/cache/services/cache-warming.service'
       );
       expect(CacheWarmingService).toBeDefined();
     });
@@ -105,7 +117,7 @@ describe('Smoke Tests - Application Bootstrap', () => {
   describe('Cache Decorators', () => {
     it('should import @Cacheable decorator', async () => {
       const { Cacheable, buildCacheKey } = await import(
-        '../../src/common/cache/decorators/cacheable.decorator'
+        '@/bounded-contexts/platform/common/cache/decorators/cacheable.decorator'
       );
       expect(Cacheable).toBeDefined();
       expect(buildCacheKey).toBeDefined();
@@ -113,14 +125,14 @@ describe('Smoke Tests - Application Bootstrap', () => {
 
     it('should import @CacheInvalidate decorator', async () => {
       const { CacheInvalidate } = await import(
-        '../../src/common/cache/decorators/cache-invalidate.decorator'
+        '@/bounded-contexts/platform/common/cache/decorators/cache-invalidate.decorator'
       );
       expect(CacheInvalidate).toBeDefined();
     });
 
     it('should build cache key correctly', async () => {
       const { buildCacheKey } = await import(
-        '../../src/common/cache/decorators/cacheable.decorator'
+        '@/bounded-contexts/platform/common/cache/decorators/cacheable.decorator'
       );
       const key = buildCacheKey('user:{0}:profile', ['user-123']);
       expect(key).toBe('user:user-123:profile');
@@ -129,40 +141,42 @@ describe('Smoke Tests - Application Bootstrap', () => {
 
   describe('Social Module Imports', () => {
     it('should import SocialModule', async () => {
-      const { SocialModule } = await import('../../src/social/social.module');
+      const { SocialModule } = await import(
+        '@/bounded-contexts/social/social/social.module'
+      );
       expect(SocialModule).toBeDefined();
     });
 
     it('should import FollowService', async () => {
       const { FollowService } = await import(
-        '../../src/social/services/follow.service'
+        '@/bounded-contexts/social/social/services/follow.service'
       );
       expect(FollowService).toBeDefined();
     });
 
     it('should import ActivityService', async () => {
       const { ActivityService } = await import(
-        '../../src/social/services/activity.service'
+        '@/bounded-contexts/social/social/services/activity.service'
       );
       expect(ActivityService).toBeDefined();
     });
 
     it('should import FollowController', async () => {
       const { FollowController } = await import(
-        '../../src/social/controllers/follow.controller'
+        '@/bounded-contexts/social/social/controllers/follow.controller'
       );
       expect(FollowController).toBeDefined();
     });
 
     it('should import ActivityController', async () => {
       const { ActivityController } = await import(
-        '../../src/social/controllers/activity.controller'
+        '@/bounded-contexts/social/social/controllers/activity.controller'
       );
       expect(ActivityController).toBeDefined();
     });
 
     it('should export all social features from index', async () => {
-      const social = await import('../../src/social');
+      const social = await import('@/bounded-contexts/social/social');
       expect(social.SocialModule).toBeDefined();
       expect(social.FollowService).toBeDefined();
       expect(social.ActivityService).toBeDefined();
@@ -192,8 +206,8 @@ describe('Smoke Tests - Application Bootstrap', () => {
 
     it('should have profile-contracts available', async () => {
       const contracts = await import('@octopus-synapse/profile-contracts');
-      expect(contracts.EmailSchema).toBeDefined();
-      expect(contracts.PasswordSchema).toBeDefined();
+      expect(contracts.ResumeDslSchema).toBeDefined();
+      expect(contracts.TranslateBatchSchema).toBeDefined();
     });
 
     it('should have @prisma/client available', async () => {

@@ -1,0 +1,78 @@
+{
+  "NestJS GET Route with Swagger": {
+    "prefix": "nest-get",
+    "description": "Create a GET endpoint with required Swagger documentation",
+    "body": [
+      "@Get('$1')",
+      "@ApiOperation({ summary: '$2' })",
+      "@ApiResponse({ status: 200, description: '$3', type: $4 })",
+      "@ApiResponse({ status: 401, description: 'Unauthorized' })",
+      "async $5() {",
+      "  $0",
+      "}"
+    ]
+  },
+  "NestJS POST Route with Swagger": {
+    "prefix": "nest-post",
+    "description": "Create a POST endpoint with required Swagger documentation",
+    "body": [
+      "@Post('$1')",
+      "@ApiOperation({ summary: '$2' })",
+      "@ApiBody({ type: $3 })",
+      "@ApiResponse({ status: 201, description: '$4', type: $5 })",
+      "@ApiResponse({ status: 400, description: 'Invalid input' })",
+      "@ApiResponse({ status: 401, description: 'Unauthorized' })",
+      "async $6(@Body() dto: $3) {",
+      "  $0",
+      "}"
+    ]
+  },
+  "NestJS GET by ID with Swagger": {
+    "prefix": "nest-get-id",
+    "description": "Create a GET by ID endpoint with required Swagger documentation",
+    "body": [
+      "@Get(':id')",
+      "@ApiOperation({ summary: '$1' })",
+      "@ApiParam({ name: 'id', description: '$2' })",
+      "@ApiResponse({ status: 200, description: '$3', type: $4 })",
+      "@ApiResponse({ status: 404, description: 'Not found' })",
+      "@ApiResponse({ status: 401, description: 'Unauthorized' })",
+      "async $5(@Param('id') id: string) {",
+      "  $0",
+      "}"
+    ]
+  },
+  "NestJS PATCH Route with Swagger": {
+    "prefix": "nest-patch",
+    "description": "Create a PATCH endpoint with required Swagger documentation",
+    "body": [
+      "@Patch(':id')",
+      "@ApiOperation({ summary: '$1' })",
+      "@ApiParam({ name: 'id', description: '$2' })",
+      "@ApiBody({ type: $3 })",
+      "@ApiResponse({ status: 200, description: '$4', type: $5 })",
+      "@ApiResponse({ status: 404, description: 'Not found' })",
+      "@ApiResponse({ status: 400, description: 'Invalid input' })",
+      "@ApiResponse({ status: 401, description: 'Unauthorized' })",
+      "async $6(@Param('id') id: string, @Body() dto: $3) {",
+      "  $0",
+      "}"
+    ]
+  },
+  "NestJS DELETE Route with Swagger": {
+    "prefix": "nest-delete",
+    "description": "Create a DELETE endpoint with required Swagger documentation",
+    "body": [
+      "@Delete(':id')",
+      "@HttpCode(HttpStatus.NO_CONTENT)",
+      "@ApiOperation({ summary: '$1' })",
+      "@ApiParam({ name: 'id', description: '$2' })",
+      "@ApiResponse({ status: 204, description: 'Deleted successfully' })",
+      "@ApiResponse({ status: 404, description: 'Not found' })",
+      "@ApiResponse({ status: 401, description: 'Unauthorized' })",
+      "async $3(@Param('id') id: string) {",
+      "  $0",
+      "}"
+    ]
+  }
+}

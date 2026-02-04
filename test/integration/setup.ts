@@ -19,9 +19,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request, { Agent } from 'supertest';
 import { AppModule } from '../../src/app.module';
-import { PrismaService } from '../../src/prisma/prisma.service';
-import { AppLoggerService } from '../../src/common/logger/logger.service';
-import { configureExceptionHandling } from '../../src/common/config/validation.config';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 
 // --- Test Constants ---
 
@@ -72,10 +70,6 @@ export async function getApp(): Promise<INestApplication> {
   appInstance.setGlobalPrefix('api');
   // Validation is handled by ZodValidationPipe at controller level
   // No global ValidationPipe needed (avoids class-validator dependency)
-
-  // Configure exception handling to transform DomainExceptions to HTTP responses
-  const logger = appInstance.get<AppLoggerService>(AppLoggerService);
-  configureExceptionHandling(appInstance, logger);
 
   await appInstance.init();
   testContext.app = appInstance;

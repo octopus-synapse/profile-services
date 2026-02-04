@@ -3,6 +3,7 @@ import * as bcrypt from 'bcryptjs';
 import { seedThemes } from './seeds/theme.seed';
 import { seedSpokenLanguages } from './seeds/spoken-language.seed';
 import { seedUsernames } from './seeds/username.seed';
+import { seedAnalyticsProjections } from './seeds/analytics-projection.seed';
 
 const prisma = new PrismaClient();
 
@@ -47,6 +48,9 @@ async function main() {
 
   // Seed usernames for existing users without one
   await seedUsernames(prisma);
+
+  // Seed analytics projections from existing resumes
+  await seedAnalyticsProjections(prisma);
 }
 
 main()

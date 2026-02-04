@@ -9,12 +9,12 @@
 
 import { describe, it, expect, beforeEach } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
-import { PrismaService } from '../../src/prisma/prisma.service';
-import { FollowService } from '../../src/social/services/follow.service';
-import { ActivityService } from '../../src/social/services/activity.service';
-import { SocialModule } from '../../src/social/social.module';
-import { PrismaModule } from '../../src/prisma/prisma.module';
-import { BusinessRuleError } from '@octopus-synapse/profile-contracts';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { FollowService } from '@/bounded-contexts/social/social/services/follow.service';
+import { ActivityService } from '@/bounded-contexts/social/social/services/activity.service';
+import { SocialModule } from '@/bounded-contexts/social/social/social.module';
+import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
+import { BadRequestException } from '@nestjs/common';
 
 // Skip integration tests in CI unless database is available
 const describeIntegration =
@@ -59,7 +59,7 @@ describeIntegration('Social Integration Tests', () => {
       const userId = 'integration-user-1';
 
       await expect(followService.follow(userId, userId)).rejects.toThrow(
-        BusinessRuleError,
+        BadRequestException,
       );
     });
 

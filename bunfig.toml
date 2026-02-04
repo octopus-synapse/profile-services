@@ -7,4 +7,4 @@ root = "./src"
 # preload = ["./test/setup.ts"]
 
 [install.scopes]
-"@octopus-synapse" = { token = "$BUN_AUTH_TOKEN", url = "https://npm.pkg.github.com" }
+"@octopus-synapse" = { token = "$GITHUB_TOKEN", url = "https://npm.pkg.github.com" }

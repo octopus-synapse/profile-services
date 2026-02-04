@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
-import { Public } from './auth/decorators/public.decorator';
+import { Public } from '@/bounded-contexts/identity/auth/decorators/public.decorator';
 import * as fs from 'fs';
 import * as path from 'path';
 

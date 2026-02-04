@@ -1,0 +1,32 @@
+// Analytics Resume Projection - Local read model for Analytics context
+// This table is maintained via events to avoid cross-context database coupling
+
+model AnalyticsResumeProjection {
+  id       String @id // Same as resumeId for easy lookup
+  userId   String
+  title    String?
+
+  // Section counts for quick analytics (all 15 section types)
+  experiencesCount     Int @default(0)
+  educationCount       Int @default(0)
+  skillsCount          Int @default(0)
+  certificationsCount  Int @default(0)
+  projectsCount        Int @default(0)
+  awardsCount          Int @default(0)
+  languagesCount       Int @default(0)
+  interestsCount       Int @default(0)
+  recommendationsCount Int @default(0)
+  achievementsCount    Int @default(0)
+  publicationsCount    Int @default(0)
+  talksCount           Int @default(0)
+  hackathonsCount      Int @default(0)
+  bugBountiesCount     Int @default(0)
+  openSourceCount      Int @default(0)
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@map("analytics_resume_projection")
+}

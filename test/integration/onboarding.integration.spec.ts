@@ -21,10 +21,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '../../src/app.module';
-import { PrismaService } from '../../src/prisma/prisma.service';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { acceptTosWithPrisma } from './setup';
-import { AppLoggerService } from '../../src/common/logger/logger.service';
-import { configureExceptionHandling } from '../../src/common/config/validation.config';
 
 describe('Onboarding Flow Integration', () => {
   let app: INestApplication;
@@ -54,10 +52,6 @@ describe('Onboarding Flow Integration', () => {
     // Validation is handled by ZodValidationPipe at controller level
 
     prisma = app.get<PrismaService>(PrismaService);
-    const logger = app.get<AppLoggerService>(AppLoggerService);
-
-    // Configure exception handling to transform DomainExceptions to HTTP responses
-    configureExceptionHandling(app, logger);
 
     await app.init();
   });
