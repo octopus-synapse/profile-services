@@ -6,14 +6,14 @@ FROM oven/bun:1.2.23-alpine AS contracts-builder
 WORKDIR /contracts
 
 # Copy contracts package files
-COPY profile-contracts/package.json ./
-COPY profile-contracts/bun.lockb* ./
+COPY ../profile-contracts/package.json ./
+COPY ../profile-contracts/bun.lockb* ./
 
 # Install contracts dependencies
 RUN bun install --frozen-lockfile
 
 # Copy contracts source
-COPY profile-contracts/ .
+COPY ../profile-contracts/ .
 
 # Build contracts
 RUN bun run build
@@ -43,8 +43,8 @@ WORKDIR /app
 COPY --from=contracts-builder /contracts /profile-contracts
 
 # Copy package files
-COPY profile-services/package.json ./
-COPY profile-services/bun.lockb* ./
+COPY package.json ./
+COPY bun.lockb* ./
 
 # Install dependencies with GitHub Packages authentication using secrets
 RUN --mount=type=secret,id=github_token \
@@ -91,7 +91,7 @@ COPY --from=contracts-builder /contracts /profile-contracts
 COPY --from=deps /app/node_modules ./node_modules
 
 # Copy source files
-COPY profile-services/ .
+COPY . .
 
 # Generate Prisma Client
 RUN bun x prisma generate
