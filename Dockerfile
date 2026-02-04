@@ -1,25 +1,5 @@
 # ==================================
-# Stage 1: Build Contracts
-# ==================================
-FROM oven/bun:1.2.23-alpine AS contracts-builder
-
-WORKDIR /contracts
-
-# Copy contracts package files
-COPY ../profile-contracts/package.json ./
-COPY ../profile-contracts/bun.lockb* ./
-
-# Install contracts dependencies
-RUN bun install --frozen-lockfile
-
-# Copy contracts source
-COPY ../profile-contracts/ .
-
-# Build contracts
-RUN bun run build
-
-# ==================================
-# Stage 2: Dependencies
+# Stage 1: Dependencies
 # ==================================
 FROM oven/bun:1.2.23-alpine AS deps
 
@@ -39,14 +19,12 @@ ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
 
 WORKDIR /app
 
-# Copy built contracts from contracts-builder stage
-COPY --from=contracts-builder /contracts /profile-contracts
-
 # Copy package files
 COPY package.json ./
 COPY bun.lockb* ./
 
 # Install dependencies with GitHub Packages authentication using secrets
+# @octopus-synapse/profile-contracts is installed from GitHub Packages
 RUN --mount=type=secret,id=github_token \
     if [ -s /run/secrets/github_token ]; then \
       GITHUB_TOKEN=$(cat /run/secrets/github_token) && \
@@ -57,7 +35,7 @@ RUN --mount=type=secret,id=github_token \
     rm -f .npmrc
 
 # ==================================
-# Stage 3: Builder
+# Stage 2: Builder
 # ==================================
 FROM node:20-alpine AS builder
 
@@ -84,10 +62,7 @@ ENV PATH="/root/.bun/bin:${PATH}" \
 
 WORKDIR /app
 
-# Copy built contracts to /profile-contracts (required for symlink in node_modules)
-COPY --from=contracts-builder /contracts /profile-contracts
-
-# Copy dependencies from deps stage (includes symlink to ../profile-contracts)
+# Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
 
 # Copy source files
@@ -100,7 +75,14 @@ RUN bun x prisma generate
 RUN bun run build
 
 # Clean up dev dependencies (reinstall with production flag)
-RUN bun install --production --frozen-lockfile
+RUN --mount=type=secret,id=github_token \
+    if [ -s /run/secrets/github_token ]; then \
+      GITHUB_TOKEN=$(cat /run/secrets/github_token) && \
+      echo "//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}" > .npmrc && \
+      echo "@octopus-synapse:registry=https://npm.pkg.github.com" >> .npmrc; \
+    fi && \
+    bun install --production && \
+    rm -f .npmrc
 
 # ==================================
 # Stage 3: Runner (Production)
