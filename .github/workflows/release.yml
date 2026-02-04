@@ -26,7 +26,7 @@ jobs:
       - uses: googleapis/release-please-action@v4
         id: release
         with:
-          token: ${{ secrets.GH_PAT }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           # release-type é definido no release-please-config.json
 
   # ============================================
@@ -48,7 +48,7 @@ jobs:
         with:
           repository: octopus-synapse/profile-contracts
           path: profile-contracts
-          token: ${{ secrets.GH_PAT }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
@@ -74,11 +74,11 @@ jobs:
             ghcr.io/${{ github.repository }}:${{ steps.version.outputs.version }}
             ghcr.io/${{ github.repository }}:latest
           secrets: |
-            github_token=${{ secrets.GH_PAT }}
+            github_token=${{ secrets.GITHUB_TOKEN }}
 
       - name: Update release notes with Docker info
         env:
-          GH_TOKEN: ${{ secrets.GH_PAT }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cd profile-services
           gh release edit "${{ needs.release-please.outputs.tag_name }}" \
