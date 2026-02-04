@@ -1,5 +1,29 @@
 # Changelog
 
+## [7.0.0](https://github.com/octopus-synapse/profile-services/compare/profile-services-v6.0.1...profile-services-v7.0.0) (2026-02-04)
+
+
+### ⚠ BREAKING CHANGES
+
+* **architecture:** Major architectural restructuring
+
+### Bug Fixes
+
+* Achieve zero lint and typecheck errors in production code ([#131](https://github.com/octopus-synapse/profile-services/issues/131)) ([abf9b42](https://github.com/octopus-synapse/profile-services/commit/abf9b42c04c9bbaca55a3e15efc1f7de805e85e6))
+* **ci:** replace GH_PAT with GITHUB_TOKEN in release workflow ([695d99a](https://github.com/octopus-synapse/profile-services/commit/695d99a9d51a0f3d9744cc7eb8d6a635533f03ba))
+* corrigir erros de lint e typecheck ([#129](https://github.com/octopus-synapse/profile-services/issues/129)) ([931ed73](https://github.com/octopus-synapse/profile-services/commit/931ed7343b8006b92179d99bd6ff4f5edaa12c0d))
+
+
+### Miscellaneous Chores
+
+* release main ([#130](https://github.com/octopus-synapse/profile-services/issues/130)) ([b4c7361](https://github.com/octopus-synapse/profile-services/commit/b4c73612d9b1b1f100c36c42320bbd376f7d549f))
+* release main ([#132](https://github.com/octopus-synapse/profile-services/issues/132)) ([8686761](https://github.com/octopus-synapse/profile-services/commit/868676116cf6f5648088e53d50ce6b8209ef3eda))
+
+
+### Code Refactoring
+
+* **architecture:** restructure codebase to bounded contexts with Swagger enforcement ([#134](https://github.com/octopus-synapse/profile-services/issues/134)) ([66e3dc2](https://github.com/octopus-synapse/profile-services/commit/66e3dc2d694de423180cf8407f545eb06fe3ee63))
+
 ## [6.0.1](https://github.com/octopus-synapse/profile-services/compare/profile-services-v6.0.0...profile-services-v6.0.1) (2026-01-16)
 
 
