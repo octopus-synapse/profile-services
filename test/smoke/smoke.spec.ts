@@ -206,8 +206,8 @@ describe('Smoke Tests - Application Bootstrap', () => {
 
     it('should have profile-contracts available', async () => {
       const contracts = await import('@octopus-synapse/profile-contracts');
-      expect(contracts.EmailSchema).toBeDefined();
-      expect(contracts.PasswordSchema).toBeDefined();
+      expect(contracts.ResumeDslSchema).toBeDefined();
+      expect(contracts.TranslateBatchSchema).toBeDefined();
     });
 
     it('should have @prisma/client available', async () => {
