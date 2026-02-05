@@ -5,18 +5,18 @@
  * Supports inviting collaborators, managing roles, and viewing shared resumes.
  */
 
-import { z } from "zod";
-import { CollaboratorRoleSchema } from "../enums";
+import { z } from 'zod';
+import { CollaboratorRoleSchema } from '../enums';
 
 // ============================================================================
 // User Reference (for collaboration context)
 // ============================================================================
 
 export const CollaboratorUserSchema = z.object({
- id: z.string(),
- email: z.string(),
- name: z.string().optional(),
- avatarUrl: z.string().optional(),
+  id: z.string(),
+  email: z.string(),
+  name: z.string().optional(),
+  avatarUrl: z.string().optional(),
 });
 
 export type CollaboratorUser = z.infer<typeof CollaboratorUserSchema>;
@@ -26,13 +26,13 @@ export type CollaboratorUser = z.infer<typeof CollaboratorUserSchema>;
 // ============================================================================
 
 export const CollaboratorSchema = z.object({
- id: z.string(),
- resumeId: z.string(),
- userId: z.string(),
- role: CollaboratorRoleSchema,
- user: CollaboratorUserSchema.optional(),
- createdAt: z.string(),
- updatedAt: z.string(),
+  id: z.string(),
+  resumeId: z.string(),
+  userId: z.string(),
+  role: CollaboratorRoleSchema,
+  user: CollaboratorUserSchema.optional(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
 });
 
 export type Collaborator = z.infer<typeof CollaboratorSchema>;
@@ -42,20 +42,20 @@ export type Collaborator = z.infer<typeof CollaboratorSchema>;
 // ============================================================================
 
 export const SharedResumeOwnerSchema = z.object({
- id: z.string(),
- name: z.string().optional(),
- email: z.string(),
+  id: z.string(),
+  name: z.string().optional(),
+  email: z.string(),
 });
 
 export type SharedResumeOwner = z.infer<typeof SharedResumeOwnerSchema>;
 
 export const SharedResumeSchema = z.object({
- id: z.string(),
- title: z.string().optional(),
- ownerId: z.string(),
- owner: SharedResumeOwnerSchema.optional(),
- role: CollaboratorRoleSchema,
- sharedAt: z.string(),
+  id: z.string(),
+  title: z.string().optional(),
+  ownerId: z.string(),
+  owner: SharedResumeOwnerSchema.optional(),
+  role: CollaboratorRoleSchema,
+  sharedAt: z.string(),
 });
 
 export type SharedResume = z.infer<typeof SharedResumeSchema>;
@@ -65,8 +65,8 @@ export type SharedResume = z.infer<typeof SharedResumeSchema>;
 // ============================================================================
 
 export const InviteCollaboratorSchema = z.object({
- email: z.string().email(),
- role: CollaboratorRoleSchema,
+  email: z.string().email(),
+  role: CollaboratorRoleSchema,
 });
 
 export type InviteCollaborator = z.infer<typeof InviteCollaboratorSchema>;
@@ -76,9 +76,9 @@ export type InviteCollaborator = z.infer<typeof InviteCollaboratorSchema>;
 // ============================================================================
 
 export const UpdateCollaboratorRoleSchema = z.object({
- role: CollaboratorRoleSchema,
+  role: CollaboratorRoleSchema,
 });
 
 export type UpdateCollaboratorRole = z.infer<
- typeof UpdateCollaboratorRoleSchema
+  typeof UpdateCollaboratorRoleSchema
 >;

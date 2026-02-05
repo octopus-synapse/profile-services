@@ -5,17 +5,17 @@
  * Used across onboarding, profile editing, and admin forms.
  */
 
-import { z } from "zod";
+import { z } from 'zod';
 
 // ============================================================================
 // Name Schemas
 // ============================================================================
 
 export const FullNameSchema = z
- .string()
- .trim()
- .min(2, "Name must be at least 2 characters")
- .max(100, "Name cannot exceed 100 characters");
+  .string()
+  .trim()
+  .min(2, 'Name must be at least 2 characters')
+  .max(100, 'Name cannot exceed 100 characters');
 
 export type FullName = z.infer<typeof FullNameSchema>;
 
@@ -24,9 +24,9 @@ export type FullName = z.infer<typeof FullNameSchema>;
 // ============================================================================
 
 export const PhoneSchema = z
- .string()
- .max(20, "Phone number cannot exceed 20 characters")
- .optional();
+  .string()
+  .max(20, 'Phone number cannot exceed 20 characters')
+  .optional();
 
 export type Phone = z.infer<typeof PhoneSchema>;
 
@@ -35,8 +35,8 @@ export type Phone = z.infer<typeof PhoneSchema>;
 // ============================================================================
 
 export const UserLocationSchema = z
- .string()
- .max(100, "Location cannot exceed 100 characters")
- .optional();
+  .string()
+  .max(100, 'Location cannot exceed 100 characters')
+  .optional();
 
 export type UserLocation = z.infer<typeof UserLocationSchema>;

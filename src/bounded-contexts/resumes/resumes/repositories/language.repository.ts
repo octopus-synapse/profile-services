@@ -1,10 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { Language } from '@prisma/client';
-import type {
-  CreateLanguage,
-  UpdateLanguage,
-} from '@/shared-kernel';
+import type { CreateLanguage, UpdateLanguage } from '@/shared-kernel';
 import {
   BaseSubResourceRepository,
   OrderByConfig,

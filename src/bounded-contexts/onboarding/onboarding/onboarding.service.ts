@@ -7,10 +7,7 @@ import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { AuditLogService } from '@/bounded-contexts/platform/common/audit/audit-log.service';
 import type { Prisma } from '@prisma/client';
-import {
-  ERROR_MESSAGES,
-  SUCCESS_MESSAGES,
-} from '@/shared-kernel';
+import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@/shared-kernel';
 import {
   onboardingDataSchema,
   type OnboardingData,

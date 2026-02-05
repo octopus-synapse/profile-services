@@ -2,10 +2,7 @@ import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { Experience } from '@prisma/client';
 import { ExperienceRepository } from '../repositories/experience.repository';
 import { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.repository';
-import type {
-  CreateExperience,
-  UpdateExperience,
-} from '@/shared-kernel';
+import type { CreateExperience, UpdateExperience } from '@/shared-kernel';
 import { BaseSubResourceService } from './base';
 import { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { EventPublisher } from '@/shared-kernel';

@@ -7,7 +7,7 @@
  * @packageDocumentation
  */
 
-export * from "./permission.schema";
-export * from "./role.schema";
-export * from "./group.schema";
-export * from "./user-authorization.schema";
+export * from './permission.schema';
+export * from './role.schema';
+export * from './group.schema';
+export * from './user-authorization.schema';

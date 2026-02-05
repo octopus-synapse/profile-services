@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 /**
  * Theme Status Enum (Domain)
@@ -7,11 +7,11 @@ import { z } from "zod";
  * This is a DOMAIN concept - independent of any infrastructure (Prisma, etc).
  */
 export const ThemeStatusSchema = z.enum([
-  "DRAFT",
-  "PRIVATE",
-  "PENDING_APPROVAL",
-  "PUBLISHED",
-  "REJECTED",
+  'DRAFT',
+  'PRIVATE',
+  'PENDING_APPROVAL',
+  'PUBLISHED',
+  'REJECTED',
 ]);
 
 export type ThemeStatus = z.infer<typeof ThemeStatusSchema>;
@@ -22,14 +22,14 @@ export type ThemeStatus = z.infer<typeof ThemeStatusSchema>;
  * Defines the visual categories for themes.
  */
 export const ThemeCategorySchema = z.enum([
-  "PROFESSIONAL",
-  "CREATIVE",
-  "TECHNICAL",
-  "ACADEMIC",
-  "MINIMAL",
-  "MODERN",
-  "CLASSIC",
-  "EXECUTIVE",
+  'PROFESSIONAL',
+  'CREATIVE',
+  'TECHNICAL',
+  'ACADEMIC',
+  'MINIMAL',
+  'MODERN',
+  'CLASSIC',
+  'EXECUTIVE',
 ]);
 
 export type ThemeCategory = z.infer<typeof ThemeCategorySchema>;

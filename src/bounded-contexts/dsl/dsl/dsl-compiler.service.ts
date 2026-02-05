@@ -1,9 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type {
-  ResumeDsl,
-  ResumeAst,
-  SectionData,
-} from '@/shared-kernel';
+import type { ResumeDsl, ResumeAst, SectionData } from '@/shared-kernel';
 import { DslValidatorService } from './dsl-validator.service';
 import {
   TokenResolverService,

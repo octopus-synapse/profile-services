@@ -1,11 +1,11 @@
-import { z } from "zod";
-import { EmailSchema } from "../primitives";
+import { z } from 'zod';
+import { EmailSchema } from '../primitives';
 
 /**
  * Email Verification Schema
  */
 export const EmailVerificationSchema = z.object({
-  token: z.string().min(1, "Verification token is required"),
+  token: z.string().min(1, 'Verification token is required'),
 });
 
 export type EmailVerification = z.infer<typeof EmailVerificationSchema>;

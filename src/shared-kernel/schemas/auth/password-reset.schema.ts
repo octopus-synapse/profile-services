@@ -1,5 +1,5 @@
-import { z } from "zod";
-import { EmailSchema, PasswordSchema } from "../primitives";
+import { z } from 'zod';
+import { EmailSchema, PasswordSchema } from '../primitives';
 
 /**
  * Reset Password Request Schema
@@ -14,7 +14,7 @@ export type ResetPasswordRequest = z.infer<typeof ResetPasswordRequestSchema>;
  * New Password Schema (for password reset)
  */
 export const NewPasswordSchema = z.object({
-  token: z.string().min(1, "Token is required"),
+  token: z.string().min(1, 'Token is required'),
   password: PasswordSchema,
 });
 
@@ -24,7 +24,7 @@ export type NewPassword = z.infer<typeof NewPasswordSchema>;
  * Change Password Schema
  */
 export const ChangePasswordSchema = z.object({
-  currentPassword: z.string().min(1, "Current password is required"),
+  currentPassword: z.string().min(1, 'Current password is required'),
   newPassword: PasswordSchema,
 });
 

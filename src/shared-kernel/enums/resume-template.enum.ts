@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 /**
  * Resume Template Enum (Domain)
@@ -10,13 +10,13 @@ import { z } from "zod";
  * The mapping to Prisma should happen at the infrastructure layer (profile-services).
  */
 export const ResumeTemplateSchema = z.enum([
-  "PROFESSIONAL",
-  "CREATIVE",
-  "TECHNICAL",
-  "MINIMAL",
-  "MODERN",
-  "EXECUTIVE",
-  "ACADEMIC",
+  'PROFESSIONAL',
+  'CREATIVE',
+  'TECHNICAL',
+  'MINIMAL',
+  'MODERN',
+  'EXECUTIVE',
+  'ACADEMIC',
 ]);
 
 export type ResumeTemplate = z.infer<typeof ResumeTemplateSchema>;
@@ -25,13 +25,13 @@ export type ResumeTemplate = z.infer<typeof ResumeTemplateSchema>;
  * Kebab-case version for DSL/API compatibility
  */
 export const ResumeTemplateKebabSchema = z.enum([
-  "professional",
-  "creative",
-  "technical",
-  "minimal",
-  "modern",
-  "executive",
-  "academic",
+  'professional',
+  'creative',
+  'technical',
+  'minimal',
+  'modern',
+  'executive',
+  'academic',
 ]);
 
 export type ResumeTemplateKebab = z.infer<typeof ResumeTemplateKebabSchema>;
@@ -40,13 +40,13 @@ export type ResumeTemplateKebab = z.infer<typeof ResumeTemplateKebabSchema>;
  * Mapping functions
  */
 export const resumeTemplateToKebab = (
-  value: ResumeTemplate
+  value: ResumeTemplate,
 ): ResumeTemplateKebab => {
   return value.toLowerCase() as ResumeTemplateKebab;
 };
 
 export const resumeTemplateFromKebab = (
-  value: ResumeTemplateKebab
+  value: ResumeTemplateKebab,
 ): ResumeTemplate => {
   return value.toUpperCase() as ResumeTemplate;
 };

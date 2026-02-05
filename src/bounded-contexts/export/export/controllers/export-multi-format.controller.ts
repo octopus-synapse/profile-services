@@ -20,9 +20,7 @@ import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-exp
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
 import { ResumeJsonService } from '../services/resume-json.service';
 import { ResumeLatexService } from '../services/resume-latex.service';
-import {
-  ExportResultDto,
-} from '@/shared-kernel';
+import { ExportResultDto } from '@/shared-kernel';
 
 @SdkExport({ tag: 'export', description: 'Export API' })
 @ApiTags('Export')

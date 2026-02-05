@@ -1,10 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { Hackathon } from '@prisma/client';
-import type {
-  CreateHackathon,
-  UpdateHackathon,
-} from '@/shared-kernel';
+import type { CreateHackathon, UpdateHackathon } from '@/shared-kernel';
 import {
   BaseSubResourceRepository,
   OrderByConfig,

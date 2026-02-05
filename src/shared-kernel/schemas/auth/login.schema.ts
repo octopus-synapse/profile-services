@@ -1,5 +1,5 @@
-import { z } from "zod";
-import { EmailSchema, PasswordInputSchema } from "../primitives";
+import { z } from 'zod';
+import { EmailSchema, PasswordInputSchema } from '../primitives';
 
 /**
  * Login Credentials Schema

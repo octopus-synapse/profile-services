@@ -10,12 +10,13 @@ import { TechNicheQueryService } from '../services/niche-query.service';
 import { TechSkillsQueryService } from '../services/tech-skills-query.service';
 import { Public } from '@/bounded-contexts/identity/auth/decorators/public.decorator';
 import type { TechNiche, TechSkill } from '../dtos';
-import {
-  TechNicheDto,
-  TechSkillDto,
-} from '@/shared-kernel';
+import { TechNicheDto, TechSkillDto } from '@/shared-kernel';
 
-@SdkExport({ tag: 'tech-niches', description: 'Tech Niches API', requiresAuth: false })
+@SdkExport({
+  tag: 'tech-niches',
+  description: 'Tech Niches API',
+  requiresAuth: false,
+})
 @ApiTags('tech-niches')
 @Controller('v1/tech-niches')
 export class TechNicheController {

@@ -24,9 +24,7 @@ import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-exp
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
 import { BannerCaptureService } from '../services/banner-capture.service';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
-import {
-  BannerPreviewResponseDto,
-} from '@/shared-kernel';
+import { BannerPreviewResponseDto } from '@/shared-kernel';
 
 @SdkExport({ tag: 'export', description: 'Export API' })
 @ApiTags('export')

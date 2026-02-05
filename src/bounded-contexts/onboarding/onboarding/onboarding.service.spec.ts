@@ -12,10 +12,7 @@ import { ExperienceOnboardingService } from './services/experience-onboarding.se
 import { EducationOnboardingService } from './services/education-onboarding.service';
 import { LanguagesOnboardingService } from './services/languages-onboarding.service';
 import { OnboardingProgressService } from './services/onboarding-progress.service';
-import {
-  ERROR_MESSAGES,
-  SUCCESS_MESSAGES,
-} from '@/shared-kernel';
+import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@/shared-kernel';
 
 describe('OnboardingService', () => {
   let service: OnboardingService;

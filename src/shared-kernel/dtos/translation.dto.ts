@@ -2,20 +2,20 @@
  * Translation DTOs
  */
 
-import { z } from "zod";
+import { z } from 'zod';
 
 export const TranslateTextSchema = z.object({
- text: z.string().min(1),
- sourceLanguage: z.string().min(2).max(10),
- targetLanguage: z.string().min(2).max(10),
+  text: z.string().min(1),
+  sourceLanguage: z.string().min(2).max(10),
+  targetLanguage: z.string().min(2).max(10),
 });
 
 export type TranslateText = z.infer<typeof TranslateTextSchema>;
 
 export const TranslateBatchSchema = z.object({
- texts: z.array(z.string().min(1)),
- sourceLanguage: z.string().min(2).max(10),
- targetLanguage: z.string().min(2).max(10),
+  texts: z.array(z.string().min(1)),
+  sourceLanguage: z.string().min(2).max(10),
+  targetLanguage: z.string().min(2).max(10),
 });
 
 export type TranslateBatch = z.infer<typeof TranslateBatchSchema>;
@@ -24,7 +24,7 @@ export type TranslateBatch = z.infer<typeof TranslateBatchSchema>;
 // Translation Language Enum
 // ============================================================================
 
-export const TranslationLanguageEnum = z.enum(["en", "pt", "es", "fr", "de"]);
+export const TranslationLanguageEnum = z.enum(['en', 'pt', 'es', 'fr', 'de']);
 export type TranslationLanguage = z.infer<typeof TranslationLanguageEnum>;
 
 // ============================================================================
@@ -45,7 +45,9 @@ export const TranslateBatchWithEnumSchema = z.object({
   targetLanguage: TranslationLanguageEnum,
 });
 
-export type TranslateBatchWithEnum = z.infer<typeof TranslateBatchWithEnumSchema>;
+export type TranslateBatchWithEnum = z.infer<
+  typeof TranslateBatchWithEnumSchema
+>;
 
 // ============================================================================
 // Response DTOs
@@ -66,10 +68,12 @@ export const BatchTranslationResultSchema = z.object({
   targetLanguage: TranslationLanguageEnum,
 });
 
-export type BatchTranslationResult = z.infer<typeof BatchTranslationResultSchema>;
+export type BatchTranslationResult = z.infer<
+  typeof BatchTranslationResultSchema
+>;
 
 export const ServiceHealthSchema = z.object({
-  status: z.enum(["healthy", "unavailable"]),
+  status: z.enum(['healthy', 'unavailable']),
   service: z.string(),
   timestamp: z.string().datetime(),
 });

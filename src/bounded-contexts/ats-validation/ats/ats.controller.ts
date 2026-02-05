@@ -10,10 +10,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiConsumes, ApiBody } from '@nestjs/swagger';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { ATSService } from './services/ats.service';
-import type {
-  ValidateCV,
-  Validation,
-} from '@/shared-kernel';
+import type { ValidateCV, Validation } from '@/shared-kernel';
 
 @SdkExport({ tag: 'ats-validation', description: 'Ats Validation API' })
 @ApiTags('ATS Validation')

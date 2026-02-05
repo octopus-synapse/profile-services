@@ -7,8 +7,8 @@
  * - Expiration dates
  */
 
-import { z } from "zod";
-import { ResumeSchema } from "../types/resume.types";
+import { z } from 'zod';
+import { ResumeSchema } from '../types/resume.types';
 
 // ============================================================================
 // Create Share
@@ -16,7 +16,12 @@ import { ResumeSchema } from "../types/resume.types";
 
 export const CreateShareSchema = z.object({
   resumeId: z.string().cuid(),
-  slug: z.string().min(3).max(50).regex(/^[a-z0-9-]+$/, "Slug must be lowercase alphanumeric with hyphens").optional(),
+  slug: z
+    .string()
+    .min(3)
+    .max(50)
+    .regex(/^[a-z0-9-]+$/, 'Slug must be lowercase alphanumeric with hyphens')
+    .optional(),
   password: z.string().min(8).max(100).optional(),
   expiresAt: z.string().datetime().optional(),
 });

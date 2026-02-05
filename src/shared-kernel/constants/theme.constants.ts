@@ -59,12 +59,12 @@ export const THEME_CONSTANTS = {
 /**
  * Layout type union
  */
-export type LayoutType = typeof THEME_CONSTANTS.VALID_LAYOUT_TYPES[number];
+export type LayoutType = (typeof THEME_CONSTANTS.VALID_LAYOUT_TYPES)[number];
 
 /**
  * Font family union
  */
-export type FontFamily = typeof THEME_CONSTANTS.VALID_FONT_FAMILIES[number];
+export type FontFamily = (typeof THEME_CONSTANTS.VALID_FONT_FAMILIES)[number];
 
 /**
  * Type guard for layout type

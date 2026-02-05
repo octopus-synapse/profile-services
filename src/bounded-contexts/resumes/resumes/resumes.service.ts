@@ -1,9 +1,6 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { ResumesRepository } from './resumes.repository';
-import type {
-  CreateResume,
-  UpdateResume,
-} from '@/shared-kernel';
+import type { CreateResume, UpdateResume } from '@/shared-kernel';
 import { ApiResponseHelper } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { ResumeVersionService } from '@/bounded-contexts/resumes/resume-versions/services/resume-version.service';
 import {

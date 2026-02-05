@@ -11,12 +11,13 @@ import { TechSkillsQueryService } from '../services/tech-skills-query.service';
 import { Public } from '@/bounded-contexts/identity/auth/decorators/public.decorator';
 import type { TechAreaType } from '../interfaces';
 import type { TechArea, TechNiche } from '../dtos';
-import {
-  TechAreaDto,
-  TechNicheDto,
-} from '@/shared-kernel';
+import { TechAreaDto, TechNicheDto } from '@/shared-kernel';
 
-@SdkExport({ tag: 'tech-areas', description: 'Tech Areas API', requiresAuth: false })
+@SdkExport({
+  tag: 'tech-areas',
+  description: 'Tech Areas API',
+  requiresAuth: false,
+})
 @ApiTags('tech-areas')
 @Controller('v1/tech-areas')
 export class TechAreaController {

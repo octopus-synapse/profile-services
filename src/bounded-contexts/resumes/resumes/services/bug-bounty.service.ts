@@ -2,10 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { BugBounty } from '@prisma/client';
 import { BugBountyRepository } from '../repositories/bug-bounty.repository';
 import { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.repository';
-import {
-  CreateBugBounty,
-  UpdateBugBounty,
-} from '@/shared-kernel';
+import { CreateBugBounty, UpdateBugBounty } from '@/shared-kernel';
 import {
   ApiResponseHelper,
   ApiResponse,

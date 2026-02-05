@@ -37,11 +37,7 @@ import {
   UserPreferencesResponseDto,
   UserProfileResponseDto,
 } from '@/shared-kernel/dtos/sdk-response.dto';
-import {
-  ValidateUsernameResponseDto,
-  CheckUsernameResponseDto,
-  UpdateUsernameResponseDto,
-} from './dto/username-response.dto';
+import { ValidateUsernameResponseDto } from './dto/username-response.dto';
 
 @SdkExport({ tag: 'users', description: 'User profile and preferences' })
 @ApiTags('users')

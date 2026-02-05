@@ -1,10 +1,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { S3UploadService } from '@/bounded-contexts/platform/common/services/s3-upload.service';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
-import {
-  FILE_UPLOAD_CONFIG,
-  ERROR_MESSAGES,
-} from '@/shared-kernel';
+import { FILE_UPLOAD_CONFIG, ERROR_MESSAGES } from '@/shared-kernel';
 import { v4 as uuidv4 } from 'uuid';
 
 export interface FileUpload {

@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 /**
  * Tech Persona Enum (Domain)
@@ -10,18 +10,18 @@ import { z } from "zod";
  * Values use kebab-case for consistency with API/DSL.
  */
 export const TechPersonaSchema = z.enum([
- "devops",
- "security",
- "data",
- "fullstack",
- "mobile",
- "ai-ml",
- "qa",
- "ux-ui",
- "backend",
- "frontend",
- "cloud",
- "game-dev",
+  'devops',
+  'security',
+  'data',
+  'fullstack',
+  'mobile',
+  'ai-ml',
+  'qa',
+  'ux-ui',
+  'backend',
+  'frontend',
+  'cloud',
+  'game-dev',
 ]);
 
 export type TechPersona = z.infer<typeof TechPersonaSchema>;
@@ -31,18 +31,18 @@ export type TechPersona = z.infer<typeof TechPersonaSchema>;
  * Use TechPersonaEnum.DEVOPS instead of 'devops' literal for type safety.
  */
 export enum TechPersonaEnum {
- DEVOPS = "devops",
- SECURITY = "security",
- DATA = "data",
- FULLSTACK = "fullstack",
- MOBILE = "mobile",
- AI_ML = "ai-ml",
- QA = "qa",
- UX_UI = "ux-ui",
- BACKEND = "backend",
- FRONTEND = "frontend",
- CLOUD = "cloud",
- GAME_DEV = "game-dev",
+  DEVOPS = 'devops',
+  SECURITY = 'security',
+  DATA = 'data',
+  FULLSTACK = 'fullstack',
+  MOBILE = 'mobile',
+  AI_ML = 'ai-ml',
+  QA = 'qa',
+  UX_UI = 'ux-ui',
+  BACKEND = 'backend',
+  FRONTEND = 'frontend',
+  CLOUD = 'cloud',
+  GAME_DEV = 'game-dev',
 }
 
 /**
@@ -55,6 +55,6 @@ export type TechPersonaKebab = TechPersona;
  * Identity mapping (both are now kebab-case)
  */
 export const techPersonaToKebab = (value: TechPersona): TechPersonaKebab =>
- value;
+  value;
 export const techPersonaFromKebab = (value: TechPersonaKebab): TechPersona =>
- value;
+  value;

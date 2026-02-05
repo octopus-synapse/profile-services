@@ -13,9 +13,7 @@ import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.g
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
 import { Public } from '@/bounded-contexts/identity/auth/decorators/public.decorator';
-import {
-  MecSyncStatusResponseDto,
-} from '@/shared-kernel';
+import { MecSyncStatusResponseDto } from '@/shared-kernel';
 
 @SdkExport({ tag: 'github', description: 'Github API' })
 @ApiTags('github')

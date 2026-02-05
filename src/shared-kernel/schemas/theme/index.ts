@@ -6,4 +6,4 @@
  * @principle Single Source of Truth (Uncle Bob)
  */
 
-export * from "./theme.schema";
+export * from './theme.schema';

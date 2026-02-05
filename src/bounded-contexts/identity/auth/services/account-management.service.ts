@@ -23,10 +23,7 @@ import { UserDeletedEvent } from '@/bounded-contexts/identity/domain/events';
 import { PasswordService } from './password.service';
 import { TokenBlacklistService } from './token-blacklist.service';
 import { ERROR_MESSAGES } from '@/shared-kernel';
-import type {
-  ChangeEmail,
-  DeleteAccount,
-} from '@/shared-kernel';
+import type { ChangeEmail, DeleteAccount } from '@/shared-kernel';
 
 @Injectable()
 export class AccountManagementService {

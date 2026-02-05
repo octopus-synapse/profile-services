@@ -1,10 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { Award } from '@prisma/client';
-import type {
-  CreateAward,
-  UpdateAward,
-} from '@/shared-kernel';
+import type { CreateAward, UpdateAward } from '@/shared-kernel';
 import {
   BaseSubResourceRepository,
   OrderByConfig,

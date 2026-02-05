@@ -5,10 +5,7 @@
  * No class-validator, no Zod here - just imports.
  */
 
-import {
-  validateEnv,
-  type EnvironmentVariables,
-} from '@/shared-kernel';
+import { validateEnv, type EnvironmentVariables } from '@/shared-kernel';
 
 /**
  * Validates environment variables using profile-contracts

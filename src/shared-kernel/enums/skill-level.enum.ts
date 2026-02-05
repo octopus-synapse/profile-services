@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 /**
  * Skill Level Enum (Domain)
@@ -7,10 +7,10 @@ import { z } from "zod";
  * This is a DOMAIN concept - independent of any infrastructure (Prisma, etc).
  */
 export const SkillLevelSchema = z.enum([
-  "BEGINNER",
-  "INTERMEDIATE",
-  "ADVANCED",
-  "EXPERT",
+  'BEGINNER',
+  'INTERMEDIATE',
+  'ADVANCED',
+  'EXPERT',
 ]);
 
 export type SkillLevel = z.infer<typeof SkillLevelSchema>;

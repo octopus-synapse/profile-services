@@ -5,22 +5,22 @@
  * CV/Resume validation functionality.
  */
 
-import { z } from "zod";
+import { z } from 'zod';
 
 // ============================================================================
 // Validation Severity
 // ============================================================================
 
-export const ValidationSeveritySchema = z.enum(["error", "warning", "info"]);
+export const ValidationSeveritySchema = z.enum(['error', 'warning', 'info']);
 export type ValidationSeverity = z.infer<typeof ValidationSeveritySchema>;
 
 /**
  * ValidationSeverity as TypeScript enum for NestJS compatibility
  */
 export enum ValidationSeverityEnum {
- ERROR = "error",
- WARNING = "warning",
- INFO = "info",
+  ERROR = 'error',
+  WARNING = 'warning',
+  INFO = 'info',
 }
 
 // ============================================================================
@@ -28,11 +28,11 @@ export enum ValidationSeverityEnum {
 // ============================================================================
 
 export const ATSValidationIssueSchema = z.object({
- code: z.string(),
- message: z.string(),
- severity: ValidationSeveritySchema,
- location: z.string().optional(),
- suggestion: z.string().optional(),
+  code: z.string(),
+  message: z.string(),
+  severity: ValidationSeveritySchema,
+  location: z.string().optional(),
+  suggestion: z.string().optional(),
 });
 
 export type ATSValidationIssue = z.infer<typeof ATSValidationIssueSchema>;
@@ -42,13 +42,13 @@ export type ATSValidationIssue = z.infer<typeof ATSValidationIssueSchema>;
 // ============================================================================
 
 export const ATSValidationResultBaseSchema = z.object({
- passed: z.boolean(),
- issues: z.array(ATSValidationIssueSchema),
- metadata: z.record(z.unknown()).optional(),
+  passed: z.boolean(),
+  issues: z.array(ATSValidationIssueSchema),
+  metadata: z.record(z.unknown()).optional(),
 });
 
 export type ATSValidationResultBase = z.infer<
- typeof ATSValidationResultBaseSchema
+  typeof ATSValidationResultBaseSchema
 >;
 
 // ============================================================================
@@ -56,13 +56,13 @@ export type ATSValidationResultBase = z.infer<
 // ============================================================================
 
 export const SectionValidationResultSchema =
- ATSValidationResultBaseSchema.extend({
-  detectedSections: z.array(z.string()),
-  missingSections: z.array(z.string()),
- });
+  ATSValidationResultBaseSchema.extend({
+    detectedSections: z.array(z.string()),
+    missingSections: z.array(z.string()),
+  });
 
 export type SectionValidationResult = z.infer<
- typeof SectionValidationResultSchema
+  typeof SectionValidationResultSchema
 >;
 
 // ============================================================================
@@ -70,14 +70,14 @@ export type SectionValidationResult = z.infer<
 // ============================================================================
 
 export const FormatValidationResultSchema =
- ATSValidationResultBaseSchema.extend({
-  fileType: z.string(),
-  fileSize: z.number().int().nonnegative(),
-  isATSCompatible: z.boolean(),
- });
+  ATSValidationResultBaseSchema.extend({
+    fileType: z.string(),
+    fileSize: z.number().int().nonnegative(),
+    isATSCompatible: z.boolean(),
+  });
 
 export type FormatValidationResult = z.infer<
- typeof FormatValidationResultSchema
+  typeof FormatValidationResultSchema
 >;
 
 // ============================================================================
@@ -85,10 +85,10 @@ export type FormatValidationResult = z.infer<
 // ============================================================================
 
 export const TextExtractionResultSchema = ATSValidationResultBaseSchema.extend({
- extractedText: z.string(),
- wordCount: z.number().int().nonnegative(),
- isEmpty: z.boolean(),
- isImageBased: z.boolean(),
+  extractedText: z.string(),
+  wordCount: z.number().int().nonnegative(),
+  isEmpty: z.boolean(),
+  isImageBased: z.boolean(),
 });
 
 export type TextExtractionResult = z.infer<typeof TextExtractionResultSchema>;
@@ -98,15 +98,15 @@ export type TextExtractionResult = z.infer<typeof TextExtractionResultSchema>;
 // ============================================================================
 
 export const ATSIssueTypeSchema = z.enum([
- "missing_contact",
- "short_summary",
- "missing_skills",
- "no_experience",
- "missing_education",
- "weak_action_verbs",
- "no_quantified_achievements",
- "keyword_stuffing",
- "format_issue",
+  'missing_contact',
+  'short_summary',
+  'missing_skills',
+  'no_experience',
+  'missing_education',
+  'weak_action_verbs',
+  'no_quantified_achievements',
+  'keyword_stuffing',
+  'format_issue',
 ]);
 
 export type ATSIssueType = z.infer<typeof ATSIssueTypeSchema>;
@@ -116,10 +116,10 @@ export type ATSIssueType = z.infer<typeof ATSIssueTypeSchema>;
 // ============================================================================
 
 export const ATSIssueDetailedSchema = z.object({
- type: ATSIssueTypeSchema,
- severity: z.enum(["low", "medium", "high"]),
- message: z.string(),
- field: z.string().optional(),
+  type: ATSIssueTypeSchema,
+  severity: z.enum(['low', 'medium', 'high']),
+  message: z.string(),
+  field: z.string().optional(),
 });
 
 export type ATSIssueDetailed = z.infer<typeof ATSIssueDetailedSchema>;
@@ -129,10 +129,10 @@ export type ATSIssueDetailed = z.infer<typeof ATSIssueDetailedSchema>;
 // ============================================================================
 
 export const ATSScoreBreakdownSchema = z.object({
- keywords: z.number().min(0).max(100),
- format: z.number().min(0).max(100),
- completeness: z.number().min(0).max(100),
- experience: z.number().min(0).max(100),
+  keywords: z.number().min(0).max(100),
+  format: z.number().min(0).max(100),
+  completeness: z.number().min(0).max(100),
+  experience: z.number().min(0).max(100),
 });
 
 export type ATSScoreBreakdown = z.infer<typeof ATSScoreBreakdownSchema>;
@@ -142,10 +142,10 @@ export type ATSScoreBreakdown = z.infer<typeof ATSScoreBreakdownSchema>;
 // ============================================================================
 
 export const ATSScoreResultSchema = z.object({
- score: z.number().min(0).max(100),
- breakdown: ATSScoreBreakdownSchema,
- issues: z.array(ATSIssueDetailedSchema),
- recommendations: z.array(z.string()),
+  score: z.number().min(0).max(100),
+  breakdown: ATSScoreBreakdownSchema,
+  issues: z.array(ATSIssueDetailedSchema),
+  recommendations: z.array(z.string()),
 });
 
 export type ATSScoreResult = z.infer<typeof ATSScoreResultSchema>;
@@ -155,19 +155,19 @@ export type ATSScoreResult = z.infer<typeof ATSScoreResultSchema>;
 // ============================================================================
 
 export const CVSectionTypeSchema = z.enum([
- "personal_info",
- "summary",
- "experience",
- "education",
- "skills",
- "certifications",
- "projects",
- "languages",
- "awards",
- "publications",
- "references",
- "interests",
- "other",
+  'personal_info',
+  'summary',
+  'experience',
+  'education',
+  'skills',
+  'certifications',
+  'projects',
+  'languages',
+  'awards',
+  'publications',
+  'references',
+  'interests',
+  'other',
 ]);
 
 export type CVSectionType = z.infer<typeof CVSectionTypeSchema>;
@@ -176,28 +176,28 @@ export type CVSectionType = z.infer<typeof CVSectionTypeSchema>;
  * CVSectionType as TypeScript enum for NestJS compatibility
  */
 export enum CVSectionTypeEnum {
- PERSONAL_INFO = "personal_info",
- SUMMARY = "summary",
- EXPERIENCE = "experience",
- EDUCATION = "education",
- SKILLS = "skills",
- CERTIFICATIONS = "certifications",
- PROJECTS = "projects",
- LANGUAGES = "languages",
- AWARDS = "awards",
- PUBLICATIONS = "publications",
- REFERENCES = "references",
- INTERESTS = "interests",
- OTHER = "other",
+  PERSONAL_INFO = 'personal_info',
+  SUMMARY = 'summary',
+  EXPERIENCE = 'experience',
+  EDUCATION = 'education',
+  SKILLS = 'skills',
+  CERTIFICATIONS = 'certifications',
+  PROJECTS = 'projects',
+  LANGUAGES = 'languages',
+  AWARDS = 'awards',
+  PUBLICATIONS = 'publications',
+  REFERENCES = 'references',
+  INTERESTS = 'interests',
+  OTHER = 'other',
 }
 
 export const CVSectionSchema = z.object({
- type: CVSectionTypeSchema,
- title: z.string().optional(),
- content: z.string(),
- startLine: z.number().int().nonnegative().optional(),
- endLine: z.number().int().nonnegative().optional(),
- order: z.number().int().nonnegative().optional(),
+  type: CVSectionTypeSchema,
+  title: z.string().optional(),
+  content: z.string(),
+  startLine: z.number().int().nonnegative().optional(),
+  endLine: z.number().int().nonnegative().optional(),
+  order: z.number().int().nonnegative().optional(),
 });
 
 export type CVSection = z.infer<typeof CVSectionSchema>;
@@ -207,13 +207,13 @@ export type CVSection = z.infer<typeof CVSectionSchema>;
 // ============================================================================
 
 export const ParsedCVSchema = z.object({
- sections: z.array(CVSectionSchema),
- rawText: z.string(),
- metadata: z.object({
-  fileName: z.string(),
-  fileType: z.string(),
-  extractedAt: z.coerce.date(),
- }),
+  sections: z.array(CVSectionSchema),
+  rawText: z.string(),
+  metadata: z.object({
+    fileName: z.string(),
+    fileType: z.string(),
+    extractedAt: z.coerce.date(),
+  }),
 });
 
 export type ParsedCV = z.infer<typeof ParsedCVSchema>;
@@ -223,15 +223,15 @@ export type ParsedCV = z.infer<typeof ParsedCVSchema>;
 // ============================================================================
 
 export const ServiceValidationIssueSchema = z.object({
- code: z.string(),
- message: z.string(),
- severity: ValidationSeveritySchema,
- location: z.string().optional(),
- suggestion: z.string().optional(),
+  code: z.string(),
+  message: z.string(),
+  severity: ValidationSeveritySchema,
+  location: z.string().optional(),
+  suggestion: z.string().optional(),
 });
 
 export type ServiceValidationIssue = z.infer<
- typeof ServiceValidationIssueSchema
+  typeof ServiceValidationIssueSchema
 >;
 
 // ============================================================================
@@ -239,13 +239,13 @@ export type ServiceValidationIssue = z.infer<
 // ============================================================================
 
 export const ServiceValidationResultSchema = z.object({
- passed: z.boolean(),
- issues: z.array(ServiceValidationIssueSchema),
- metadata: z.record(z.unknown()).optional(),
+  passed: z.boolean(),
+  issues: z.array(ServiceValidationIssueSchema),
+  metadata: z.record(z.unknown()).optional(),
 });
 
 export type ServiceValidationResult = z.infer<
- typeof ServiceValidationResultSchema
+  typeof ServiceValidationResultSchema
 >;
 
 // ============================================================================
@@ -253,11 +253,11 @@ export type ServiceValidationResult = z.infer<
 // ============================================================================
 
 export const ServiceSectionValidationResultSchema =
- ServiceValidationResultSchema.extend({
-  detectedSections: z.array(z.string()),
-  missingSections: z.array(z.string()),
- });
+  ServiceValidationResultSchema.extend({
+    detectedSections: z.array(z.string()),
+    missingSections: z.array(z.string()),
+  });
 
 export type ServiceSectionValidationResult = z.infer<
- typeof ServiceSectionValidationResultSchema
+  typeof ServiceSectionValidationResultSchema
 >;

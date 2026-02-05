@@ -6,7 +6,7 @@
  */
 
 // All section schemas (experience, education, skill, etc.)
-export * from "./sections";
+export * from './sections';
 
 // Resume aggregate schema
-export * from "./resume.schema";
+export * from './resume.schema';

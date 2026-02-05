@@ -4,7 +4,7 @@
  * Domain types and validation schemas for 2FA setup and verification.
  */
 
-import { z } from "zod";
+import { z } from 'zod';
 
 // ============================================================================
 // Setup 2FA
@@ -16,14 +16,19 @@ export const SetupTwoFactorResponseSchema = z.object({
   backupCodes: z.array(z.string().length(10)),
 });
 
-export type SetupTwoFactorResponse = z.infer<typeof SetupTwoFactorResponseSchema>;
+export type SetupTwoFactorResponse = z.infer<
+  typeof SetupTwoFactorResponseSchema
+>;
 
 // ============================================================================
 // Verify 2FA Token
 // ============================================================================
 
 export const VerifyTwoFactorTokenSchema = z.object({
-  token: z.string().length(6).regex(/^\d{6}$/, "Token must be 6 digits"),
+  token: z
+    .string()
+    .length(6)
+    .regex(/^\d{6}$/, 'Token must be 6 digits'),
 });
 
 export type VerifyTwoFactorToken = z.infer<typeof VerifyTwoFactorTokenSchema>;

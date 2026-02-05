@@ -21,9 +21,7 @@ import {
   RequirePermission,
 } from '@/bounded-contexts/identity/authorization';
 import { PlatformStatsService } from '../services/platform-stats.service';
-import {
-  PlatformStatsResponseDto,
-} from '@/shared-kernel';
+import { PlatformStatsResponseDto } from '@/shared-kernel';
 
 @SdkExport({ tag: 'platform', description: 'Platform API' })
 @ApiTags('platform')

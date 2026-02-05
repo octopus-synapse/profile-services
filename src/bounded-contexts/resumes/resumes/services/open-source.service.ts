@@ -2,10 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { OpenSourceContribution } from '@prisma/client';
 import { OpenSourceRepository } from '../repositories/open-source.repository';
 import { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.repository';
-import {
-  CreateOpenSource,
-  UpdateOpenSource,
-} from '@/shared-kernel';
+import { CreateOpenSource, UpdateOpenSource } from '@/shared-kernel';
 import {
   ApiResponseHelper,
   ApiResponse,

@@ -19,7 +19,11 @@ import { Public } from '@/bounded-contexts/identity/auth/decorators/public.decor
 import { CourseQueryService } from '../services/course-query.service';
 import { APP_CONFIG } from '@/shared-kernel';
 
-@SdkExport({ tag: 'mec-courses', description: 'Mec Courses API', requiresAuth: false })
+@SdkExport({
+  tag: 'mec-courses',
+  description: 'Mec Courses API',
+  requiresAuth: false,
+})
 @ApiTags('mec-courses')
 @Controller('v1/mec/courses')
 export class MecCourseController {

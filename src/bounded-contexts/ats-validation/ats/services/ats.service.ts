@@ -7,11 +7,7 @@ import { FormatValidator } from '../validators/format.validator';
 import { SectionOrderValidator } from '../validators/section-order.validator';
 import { LayoutSafetyValidator } from '../validators/layout-safety.validator';
 import { GrammarValidator } from '../validators/grammar.validator';
-import type {
-  Validation,
-  ValidateCV,
-  ValidationIssue,
-} from '@/shared-kernel';
+import type { Validation, ValidateCV, ValidationIssue } from '@/shared-kernel';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import type {
   TextExtractionResult,

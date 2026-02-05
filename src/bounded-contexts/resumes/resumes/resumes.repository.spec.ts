@@ -13,10 +13,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ForbiddenException } from '@nestjs/common';
 import { ResumesRepository } from './resumes.repository';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type {
-  CreateResume,
-  UpdateResume,
-} from '@/shared-kernel';
+import type { CreateResume, UpdateResume } from '@/shared-kernel';
 
 describe('ResumesRepository', () => {
   let repository: ResumesRepository;

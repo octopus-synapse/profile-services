@@ -31,9 +31,7 @@ import {
   ExportCompletedEvent,
   ExportFailedEvent,
 } from '../../domain/events';
-import {
-  ExportResultDto,
-} from '@/shared-kernel';
+import { ExportResultDto } from '@/shared-kernel';
 
 @SdkExport({ tag: 'export', description: 'Export API' })
 @ApiTags('export')

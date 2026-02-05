@@ -36,10 +36,7 @@ import {
   CreateSkillInput,
   UpdateSkillInput,
 } from '../services/skill-management.service';
-import {
-  DeleteResponseDto,
-  ResumeSkillResponseDto,
-} from '@/shared-kernel';
+import { DeleteResponseDto, ResumeSkillResponseDto } from '@/shared-kernel';
 
 @SdkExport({ tag: 'skills', description: 'Skills API' })
 @ApiTags('skills')

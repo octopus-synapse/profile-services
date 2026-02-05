@@ -5,7 +5,7 @@
  * (e.g., English, Portuguese, Spanish, etc.).
  */
 
-import { z } from "zod";
+import { z } from 'zod';
 
 // ============================================================================
 // Spoken Language Catalog

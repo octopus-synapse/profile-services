@@ -12,11 +12,13 @@ import { TechSkillsQueryService } from '../services/tech-skills-query.service';
 import { Public } from '@/bounded-contexts/identity/auth/decorators/public.decorator';
 import type { SkillType } from '../interfaces';
 import type { TechSkill } from '../dtos';
-import {
-  TechSkillDto,
-} from '@/shared-kernel';
+import { TechSkillDto } from '@/shared-kernel';
 
-@SdkExport({ tag: 'tech-skills', description: 'Tech Skills API', requiresAuth: false })
+@SdkExport({
+  tag: 'tech-skills',
+  description: 'Tech Skills API',
+  requiresAuth: false,
+})
 @ApiTags('tech-skills')
 @Controller('v1/tech-skills')
 export class TechSkillController {

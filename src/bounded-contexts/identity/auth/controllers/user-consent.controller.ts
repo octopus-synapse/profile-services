@@ -21,10 +21,7 @@ import { TosAcceptanceService } from '../services/tos-acceptance.service';
 import { AuditLogService } from '@/bounded-contexts/platform/common/audit/audit-log.service';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { SkipTosCheck } from '../decorators/skip-tos-check.decorator';
-import {
-  AcceptConsentSchema,
-  type AcceptConsent,
-} from '@/shared-kernel';
+import { AcceptConsentSchema, type AcceptConsent } from '@/shared-kernel';
 import { createZodPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
 import { AuditAction } from '@prisma/client';
 

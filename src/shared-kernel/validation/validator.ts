@@ -10,7 +10,7 @@
  * - Open/Closed: Extensible via schema composition, not modification
  */
 
-import type { ZodSchema } from "zod";
+import type { ZodSchema } from 'zod';
 
 /**
  * Validation result abstraction.
@@ -39,7 +39,7 @@ export interface ValidationError {
  */
 export function validate<T>(
   schema: ZodSchema<T>,
-  data: unknown
+  data: unknown,
 ): ValidationResult<T> {
   const result = schema.safeParse(data);
 
@@ -50,7 +50,7 @@ export function validate<T>(
   return {
     success: false,
     errors: result.error.errors.map((err) => ({
-      path: err.path.join("."),
+      path: err.path.join('.'),
       message: err.message,
       code: err.code,
     })),

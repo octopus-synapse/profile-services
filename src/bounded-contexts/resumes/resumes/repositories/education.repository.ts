@@ -1,10 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { Education } from '@prisma/client';
-import type {
-  CreateEducation,
-  UpdateEducation,
-} from '@/shared-kernel';
+import type { CreateEducation, UpdateEducation } from '@/shared-kernel';
 import {
   BaseSubResourceRepository,
   OrderByConfig,

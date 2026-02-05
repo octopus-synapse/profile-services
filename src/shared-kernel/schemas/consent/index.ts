@@ -5,16 +5,16 @@
  * Maps to profile-services/src/auth/controllers/user-consent.controller.ts
  */
 
-import { z } from "zod";
+import { z } from 'zod';
 
 // ============================================================================
 // Enums
 // ============================================================================
 
 export const ConsentDocumentTypeSchema = z.enum([
- "TERMS_OF_SERVICE",
- "PRIVACY_POLICY",
- "MARKETING_CONSENT",
+  'TERMS_OF_SERVICE',
+  'PRIVACY_POLICY',
+  'MARKETING_CONSENT',
 ]);
 
 export type ConsentDocumentType = z.infer<typeof ConsentDocumentTypeSchema>;
@@ -28,9 +28,9 @@ export type ConsentDocumentType = z.infer<typeof ConsentDocumentTypeSchema>;
  * POST /v1/users/me/accept-consent
  */
 export const AcceptConsentSchema = z.object({
- documentType: ConsentDocumentTypeSchema,
- ipAddress: z.string().ip().optional(),
- userAgent: z.string().optional(),
+  documentType: ConsentDocumentTypeSchema,
+  ipAddress: z.string().ip().optional(),
+  userAgent: z.string().optional(),
 });
 
 export type AcceptConsent = z.infer<typeof AcceptConsentSchema>;
@@ -43,13 +43,13 @@ export type AcceptConsent = z.infer<typeof AcceptConsentSchema>;
  * A single consent record from the database
  */
 export const ConsentRecordSchema = z.object({
- id: z.string().uuid(),
- userId: z.string().uuid(),
- documentType: ConsentDocumentTypeSchema,
- version: z.string(),
- acceptedAt: z.string().datetime(),
- ipAddress: z.string(),
- userAgent: z.string(),
+  id: z.string().uuid(),
+  userId: z.string().uuid(),
+  documentType: ConsentDocumentTypeSchema,
+  version: z.string(),
+  acceptedAt: z.string().datetime(),
+  ipAddress: z.string(),
+  userAgent: z.string(),
 });
 
 export type ConsentRecord = z.infer<typeof ConsentRecordSchema>;
@@ -58,8 +58,8 @@ export type ConsentRecord = z.infer<typeof ConsentRecordSchema>;
  * Response from POST /v1/users/me/accept-consent
  */
 export const AcceptConsentResponseSchema = z.object({
- message: z.string(),
- consent: ConsentRecordSchema,
+  message: z.string(),
+  consent: ConsentRecordSchema,
 });
 
 export type AcceptConsentResponse = z.infer<typeof AcceptConsentResponseSchema>;
@@ -69,11 +69,11 @@ export type AcceptConsentResponse = z.infer<typeof AcceptConsentResponseSchema>;
  * GET /v1/users/me/consent-status
  */
 export const ConsentStatusSchema = z.object({
- tosAccepted: z.boolean(),
- privacyPolicyAccepted: z.boolean(),
- marketingConsentAccepted: z.boolean(),
- latestTosVersion: z.string(),
- latestPrivacyPolicyVersion: z.string(),
+  tosAccepted: z.boolean(),
+  privacyPolicyAccepted: z.boolean(),
+  marketingConsentAccepted: z.boolean(),
+  latestTosVersion: z.string(),
+  latestPrivacyPolicyVersion: z.string(),
 });
 
 export type ConsentStatus = z.infer<typeof ConsentStatusSchema>;

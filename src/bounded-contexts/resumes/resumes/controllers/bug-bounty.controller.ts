@@ -3,10 +3,7 @@ import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
 import { BugBountyService } from '../services/bug-bounty.service';
-import type {
-  CreateBugBounty,
-  UpdateBugBounty,
-} from '@/shared-kernel';
+import type { CreateBugBounty, UpdateBugBounty } from '@/shared-kernel';
 import {
   BaseSubResourceController,
   SubResourceControllerConfig,

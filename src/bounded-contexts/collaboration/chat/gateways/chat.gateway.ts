@@ -14,10 +14,7 @@ import { ChatService } from '../services/chat.service';
 import { BlockService } from '../services/block.service';
 import { ConversationRepository } from '../repositories/conversation.repository';
 import { MessageRepository } from '../repositories/message.repository';
-import type {
-  SendMessageToConversation,
-  WsTypingEvent,
-} from '@/shared-kernel';
+import type { SendMessageToConversation, WsTypingEvent } from '@/shared-kernel';
 
 interface JwtPayload {
   sub: string;

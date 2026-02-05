@@ -13,10 +13,7 @@ import type {
   ImportResultDto,
   ParsedResumeDataDto,
 } from '../dto/import.dto';
-import type {
-  ParsedResumeData,
-  JsonResumeSchema,
-} from '../resume-import.types';
+import type { ParsedResumeData } from '../resume-import.types';
 
 /**
  * Convert Prisma ResumeImport to ImportJobDto

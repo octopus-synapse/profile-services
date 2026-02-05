@@ -1,15 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { Skill } from '@prisma/client';
-import type {
-  CreateSkill,
-  UpdateSkill,
-} from '@/shared-kernel';
+import type { CreateSkill, UpdateSkill } from '@/shared-kernel';
 import type { PaginatedResult } from '@/shared-kernel';
-import {
-  PAGINATION,
-  SkillLevelToNumeric,
-} from '@/shared-kernel';
+import { PAGINATION, SkillLevelToNumeric } from '@/shared-kernel';
 import {
   BaseSubResourceRepository,
   OrderByConfig,

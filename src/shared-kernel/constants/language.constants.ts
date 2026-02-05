@@ -48,18 +48,23 @@ export const LANGUAGE_CONSTANTS = {
 /**
  * Language level type
  */
-export type LanguageLevel = typeof LANGUAGE_LEVELS[number];
+export type LanguageLevel = (typeof LANGUAGE_LEVELS)[number];
 
 /**
  * CEFR level type
  */
-export type CEFRLevel = typeof CEFR_LEVELS[number];
+export type CEFRLevel = (typeof CEFR_LEVELS)[number];
 
 /**
  * Type guard for language level
  */
-export const isValidLanguageLevel = (value: unknown): value is LanguageLevel => {
-  return typeof value === 'string' && LANGUAGE_LEVELS.includes(value as LanguageLevel);
+export const isValidLanguageLevel = (
+  value: unknown,
+): value is LanguageLevel => {
+  return (
+    typeof value === 'string' &&
+    LANGUAGE_LEVELS.includes(value as LanguageLevel)
+  );
 };
 
 /**

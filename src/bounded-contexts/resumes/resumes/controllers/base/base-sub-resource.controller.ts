@@ -15,10 +15,7 @@ import { ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
 import { BaseSubResourceService } from '../../services/base/base-sub-resource.service';
-import type {
-  ReorderItems,
-  PaginatedResult,
-} from '@/shared-kernel';
+import type { ReorderItems, PaginatedResult } from '@/shared-kernel';
 import { ParseCuidPipe } from '@/bounded-contexts/platform/common/pipes/parse-cuid.pipe';
 import {
   DataResponse,

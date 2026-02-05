@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 /**
  * Auth Types
@@ -12,9 +12,9 @@ import { z } from "zod";
  * Returned after successful authentication
  */
 export const AuthTokensSchema = z.object({
- accessToken: z.string(),
- refreshToken: z.string().optional(),
- expiresIn: z.number().int().positive(),
+  accessToken: z.string(),
+  refreshToken: z.string().optional(),
+  expiresIn: z.number().int().positive(),
 });
 
 export type AuthTokens = z.infer<typeof AuthTokensSchema>;
@@ -24,13 +24,13 @@ export type AuthTokens = z.infer<typeof AuthTokensSchema>;
  * Complete authentication response with user info
  */
 export const AuthResponseSchema = z.object({
- user: z.object({
-  id: z.string().uuid(),
-  email: z.string().email(),
-  name: z.string().nullable(),
-  role: z.enum(["USER", "ADMIN", "APPROVER"]),
- }),
- tokens: AuthTokensSchema,
+  user: z.object({
+    id: z.string().uuid(),
+    email: z.string().email(),
+    name: z.string().nullable(),
+    role: z.enum(['USER', 'ADMIN', 'APPROVER']),
+  }),
+  tokens: AuthTokensSchema,
 });
 
 export type AuthResponse = z.infer<typeof AuthResponseSchema>;
@@ -39,8 +39,8 @@ export type AuthResponse = z.infer<typeof AuthResponseSchema>;
  * Refresh Token Response Schema
  */
 export const RefreshTokenResponseSchema = z.object({
- accessToken: z.string(),
- expiresIn: z.number().int().positive(),
+  accessToken: z.string(),
+  expiresIn: z.number().int().positive(),
 });
 
 export type RefreshTokenResponse = z.infer<typeof RefreshTokenResponseSchema>;

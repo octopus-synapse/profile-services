@@ -5,36 +5,36 @@
  * Maps to profile-services Project model.
  */
 
-import { z } from "zod";
+import { z } from 'zod';
 
 // ============================================================================
 // Shared Date Format
 // ============================================================================
 
 const DateString = z
- .string()
- .regex(
-  /^\d{4}-\d{2}(-\d{2})?$/,
-  "Invalid date format (YYYY-MM or YYYY-MM-DD)"
- );
+  .string()
+  .regex(
+    /^\d{4}-\d{2}(-\d{2})?$/,
+    'Invalid date format (YYYY-MM or YYYY-MM-DD)',
+  );
 
 // ============================================================================
 // Base Schema
 // ============================================================================
 
 export const ProjectBaseSchema = z.object({
- name: z.string().min(1, "Project name is required").max(100),
- description: z.string().max(1000).optional(),
- url: z.string().url().optional(),
- repositoryUrl: z.string().url().optional(),
- imageUrl: z.string().url().optional(),
- startDate: DateString.optional(),
- endDate: DateString.optional(),
- current: z.boolean().default(false),
- highlights: z.array(z.string().max(500)).optional(),
- technologies: z.array(z.string().max(50)).optional(),
- role: z.string().max(100).optional(),
- order: z.number().int().min(0).optional(),
+  name: z.string().min(1, 'Project name is required').max(100),
+  description: z.string().max(1000).optional(),
+  url: z.string().url().optional(),
+  repositoryUrl: z.string().url().optional(),
+  imageUrl: z.string().url().optional(),
+  startDate: DateString.optional(),
+  endDate: DateString.optional(),
+  current: z.boolean().default(false),
+  highlights: z.array(z.string().max(500)).optional(),
+  technologies: z.array(z.string().max(50)).optional(),
+  role: z.string().max(100).optional(),
+  order: z.number().int().min(0).optional(),
 });
 
 // ============================================================================
@@ -56,10 +56,10 @@ export type UpdateProject = z.infer<typeof UpdateProjectSchema>;
 // ============================================================================
 
 export const ProjectSchema = ProjectBaseSchema.extend({
- id: z.string().cuid(),
- resumeId: z.string().cuid(),
- createdAt: z.coerce.date(),
- updatedAt: z.coerce.date(),
+  id: z.string().cuid(),
+  resumeId: z.string().cuid(),
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
 });
 
 export type Project = z.infer<typeof ProjectSchema>;

@@ -5,33 +5,33 @@
  * Allows partial saves during the onboarding flow.
  */
 
-import { z } from "zod";
-import { UsernameSchema } from "../validations/username.schema";
-import { ProfessionalProfileSchema } from "../validations/professional-profile.schema";
+import { z } from 'zod';
+import { UsernameSchema } from '../validations/username.schema';
+import { ProfessionalProfileSchema } from '../validations/professional-profile.schema';
 import {
- PersonalInfoSchema,
- ExperienceSchema,
- EducationSchema,
- SkillSchema,
- LanguageSchema,
- TemplateSelectionSchema,
-} from "../validations/onboarding-data.schema";
+  PersonalInfoSchema,
+  ExperienceSchema,
+  EducationSchema,
+  SkillSchema,
+  LanguageSchema,
+  TemplateSelectionSchema,
+} from '../validations/onboarding-data.schema';
 
 /**
  * Onboarding Step Enum
  */
 export const OnboardingStepSchema = z.enum([
- "welcome",
- "personal-info",
- "username",
- "professional-profile",
- "experience",
- "education",
- "skills",
- "languages",
- "template",
- "review",
- "complete",
+  'welcome',
+  'personal-info',
+  'username',
+  'professional-profile',
+  'experience',
+  'education',
+  'skills',
+  'languages',
+  'template',
+  'review',
+  'complete',
 ]);
 
 export type OnboardingStep = z.infer<typeof OnboardingStepSchema>;
@@ -53,19 +53,19 @@ const PartialTemplateSelectionSchema = TemplateSelectionSchema.partial();
  * Used for saving partial progress during onboarding.
  */
 export const OnboardingProgressSchema = z.object({
- currentStep: OnboardingStepSchema,
- completedSteps: z.array(OnboardingStepSchema),
- username: UsernameSchema.optional(),
- personalInfo: PartialPersonalInfoSchema.optional(),
- professionalProfile: PartialProfessionalProfileSchema.optional(),
- experiences: z.array(PartialExperienceSchema).optional(),
- noExperience: z.boolean().optional(),
- education: z.array(PartialEducationSchema).optional(),
- noEducation: z.boolean().optional(),
- skills: z.array(PartialSkillSchema).optional(),
- noSkills: z.boolean().optional(),
- languages: z.array(PartialLanguageSchema).optional(),
- templateSelection: PartialTemplateSelectionSchema.optional(),
+  currentStep: OnboardingStepSchema,
+  completedSteps: z.array(OnboardingStepSchema),
+  username: UsernameSchema.optional(),
+  personalInfo: PartialPersonalInfoSchema.optional(),
+  professionalProfile: PartialProfessionalProfileSchema.optional(),
+  experiences: z.array(PartialExperienceSchema).optional(),
+  noExperience: z.boolean().optional(),
+  education: z.array(PartialEducationSchema).optional(),
+  noEducation: z.boolean().optional(),
+  skills: z.array(PartialSkillSchema).optional(),
+  noSkills: z.boolean().optional(),
+  languages: z.array(PartialLanguageSchema).optional(),
+  templateSelection: PartialTemplateSelectionSchema.optional(),
 });
 
 export type OnboardingProgress = z.infer<typeof OnboardingProgressSchema>;
@@ -75,8 +75,8 @@ export type OnboardingProgress = z.infer<typeof OnboardingProgressSchema>;
  * Response type for checking if user has completed onboarding
  */
 export const OnboardingStatusSchema = z.object({
- hasCompletedOnboarding: z.boolean(),
- onboardingCompletedAt: z.string().optional(),
+  hasCompletedOnboarding: z.boolean(),
+  onboardingCompletedAt: z.string().optional(),
 });
 
 export type OnboardingStatus = z.infer<typeof OnboardingStatusSchema>;
@@ -86,9 +86,9 @@ export type OnboardingStatus = z.infer<typeof OnboardingStatusSchema>;
  * Response from completing the onboarding process
  */
 export const OnboardingResultSchema = z.object({
- success: z.boolean(),
- resumeId: z.string(),
- message: z.string(),
+  success: z.boolean(),
+  resumeId: z.string(),
+  message: z.string(),
 });
 
 export type OnboardingResult = z.infer<typeof OnboardingResultSchema>;
@@ -98,9 +98,9 @@ export type OnboardingResult = z.infer<typeof OnboardingResultSchema>;
  * Response from saving partial onboarding progress
  */
 export const SaveProgressResultSchema = z.object({
- success: z.boolean(),
- currentStep: z.string(),
- completedSteps: z.array(z.string()),
+  success: z.boolean(),
+  currentStep: z.string(),
+  completedSteps: z.array(z.string()),
 });
 
 export type SaveProgressResult = z.infer<typeof SaveProgressResultSchema>;
@@ -110,27 +110,27 @@ export type SaveProgressResult = z.infer<typeof SaveProgressResultSchema>;
  * Complete data required to submit onboarding
  */
 export const SubmitOnboardingDtoSchema = z.object({
- username: UsernameSchema,
- personalInfo: PersonalInfoSchema,
- professionalProfile: ProfessionalProfileSchema,
- skillsStep: z.object({
-  skills: z.array(SkillSchema),
-  noSkills: z.boolean(),
- }),
- experiencesStep: z
-  .object({
-   experiences: z.array(ExperienceSchema),
-   noExperience: z.boolean(),
-  })
-  .optional(),
- educationStep: z
-  .object({
-   education: z.array(EducationSchema),
-   noEducation: z.boolean(),
-  })
-  .optional(),
- languages: z.array(LanguageSchema).optional(),
- templateSelection: TemplateSelectionSchema,
+  username: UsernameSchema,
+  personalInfo: PersonalInfoSchema,
+  professionalProfile: ProfessionalProfileSchema,
+  skillsStep: z.object({
+    skills: z.array(SkillSchema),
+    noSkills: z.boolean(),
+  }),
+  experiencesStep: z
+    .object({
+      experiences: z.array(ExperienceSchema),
+      noExperience: z.boolean(),
+    })
+    .optional(),
+  educationStep: z
+    .object({
+      education: z.array(EducationSchema),
+      noEducation: z.boolean(),
+    })
+    .optional(),
+  languages: z.array(LanguageSchema).optional(),
+  templateSelection: TemplateSelectionSchema,
 });
 
 export type SubmitOnboardingDto = z.infer<typeof SubmitOnboardingDtoSchema>;
@@ -140,29 +140,29 @@ export type SubmitOnboardingDto = z.infer<typeof SubmitOnboardingDtoSchema>;
  * Standard wrappers for onboarding endpoints
  */
 export const OnboardingStatusResponseSchema = z.object({
- data: OnboardingStatusSchema,
+  data: OnboardingStatusSchema,
 });
 
 export type OnboardingStatusResponseEnvelope = z.infer<
- typeof OnboardingStatusResponseSchema
+  typeof OnboardingStatusResponseSchema
 >;
 
 export const OnboardingProgressResponseSchema = z.object({
- data: OnboardingProgressSchema,
+  data: OnboardingProgressSchema,
 });
 
 export type OnboardingProgressResponseEnvelope = z.infer<
- typeof OnboardingProgressResponseSchema
+  typeof OnboardingProgressResponseSchema
 >;
 
 export const OnboardingCompleteResponseSchema = z.object({
- data: z.object({
-  success: z.boolean(),
-  resumeId: z.string().uuid().optional(),
-  message: z.string().optional(),
- }),
+  data: z.object({
+    success: z.boolean(),
+    resumeId: z.string().uuid().optional(),
+    message: z.string().optional(),
+  }),
 });
 
 export type OnboardingCompleteResponseEnvelope = z.infer<
- typeof OnboardingCompleteResponseSchema
+  typeof OnboardingCompleteResponseSchema
 >;

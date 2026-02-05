@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 /**
  * Password Policy Configuration
@@ -13,7 +13,7 @@ export const PASSWORD_POLICY = {
   requireLowercase: true,
   requireNumber: true,
   requireSpecialChar: true,
-  specialChars: "@$!%*?&",
+  specialChars: '@$!%*?&',
 } as const;
 
 /**
@@ -24,9 +24,9 @@ export const PASSWORD_POLICY = {
 export const PASSWORD_MESSAGES = {
   minLength: `Password must be at least ${PASSWORD_POLICY.minLength} characters`,
   maxLength: `Password must not exceed ${PASSWORD_POLICY.maxLength} characters`,
-  requireUppercase: "Password must contain at least one uppercase letter",
-  requireLowercase: "Password must contain at least one lowercase letter",
-  requireNumber: "Password must contain at least one number",
+  requireUppercase: 'Password must contain at least one uppercase letter',
+  requireLowercase: 'Password must contain at least one lowercase letter',
+  requireNumber: 'Password must contain at least one number',
   requireSpecialChar: `Password must contain at least one special character (${PASSWORD_POLICY.specialChars})`,
 } as const;
 
@@ -53,7 +53,7 @@ export type Password = z.infer<typeof PasswordSchema>;
  */
 export const PasswordInputSchema = z
   .string()
-  .min(1, "Password is required")
+  .min(1, 'Password is required')
   .max(PASSWORD_POLICY.maxLength, PASSWORD_MESSAGES.maxLength);
 
 export type PasswordInput = z.infer<typeof PasswordInputSchema>;

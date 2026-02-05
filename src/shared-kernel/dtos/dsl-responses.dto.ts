@@ -5,7 +5,7 @@
  * validation, preview, and rendering responses.
  */
 
-import { z } from "zod";
+import { z } from 'zod';
 
 // Note: Full AST schema is available at ../ast/resume-ast.schema.ts
 // Using z.unknown() here for flexibility, but can be replaced with full AST schema

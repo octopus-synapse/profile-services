@@ -24,9 +24,7 @@ import { UploadService } from './upload.service';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
-import {
-  DeleteResponseDto,
-} from '@/shared-kernel';
+import { DeleteResponseDto } from '@/shared-kernel';
 
 @SdkExport({ tag: 'upload', description: 'Upload API' })
 @ApiTags('upload')

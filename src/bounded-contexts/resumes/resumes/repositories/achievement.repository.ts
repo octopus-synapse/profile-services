@@ -1,10 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { Achievement } from '@prisma/client';
-import {
-  CreateAchievement,
-  UpdateAchievement,
-} from '@/shared-kernel';
+import { CreateAchievement, UpdateAchievement } from '@/shared-kernel';
 import {
   BaseSubResourceRepository,
   OrderByConfig,

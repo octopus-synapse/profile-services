@@ -10,10 +10,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { EventPublisher } from '@/shared-kernel';
-import type {
-  ApplyThemeToResume,
-  ForkTheme,
-} from '@/shared-kernel';
+import type { ApplyThemeToResume, ForkTheme } from '@/shared-kernel';
 import { ThemeCrudService } from './theme-crud.service';
 import { ThemeQueryService } from './theme-query.service';
 import { ThemeAppliedEvent } from '../../domain/events';
