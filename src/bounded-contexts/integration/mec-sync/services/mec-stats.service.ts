@@ -5,7 +5,7 @@
 
 import { Injectable } from '@nestjs/common';
 import { InstitutionRepository, CourseRepository } from '../repositories';
-import { MecStats } from '@octopus-synapse/profile-contracts';
+import { MecStats } from '@/shared-kernel';
 
 @Injectable()
 export class MecStatsService {

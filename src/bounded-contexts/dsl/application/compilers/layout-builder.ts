@@ -1,4 +1,4 @@
-import type { ResumeAst, ResumeDsl } from '@octopus-synapse/profile-contracts';
+import type { ResumeAst, ResumeDsl } from '@/shared-kernel';
 import type { ResolvedTokens } from '../../dsl/token-resolver.service';
 
 const PAPER_SIZES = {

@@ -9,6 +9,7 @@
 
 import { Controller, Get, Post, Body, Param, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
 import {
   PermissionGuard,
@@ -16,8 +17,9 @@ import {
 } from '@/bounded-contexts/identity/authorization';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { ThemeApprovalService, ThemeCrudService } from '../services';
-import type { ReviewTheme } from '@octopus-synapse/profile-contracts';
+import type { ReviewTheme } from '@/shared-kernel';
 
+@SdkExport({ tag: 'themes', description: 'Themes API' })
 @ApiTags('themes')
 @Controller('v1/themes/approval')
 @UseGuards(JwtAuthGuard, PermissionGuard)

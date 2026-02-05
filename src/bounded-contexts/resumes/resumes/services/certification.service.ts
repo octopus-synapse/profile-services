@@ -2,10 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Certification } from '@prisma/client';
 import { CertificationRepository } from '../repositories/certification.repository';
 import { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.repository';
-import {
-  CreateCertification,
-  UpdateCertification,
-} from '@octopus-synapse/profile-contracts';
+import { CreateCertification, UpdateCertification } from '@/shared-kernel';
 import { BaseSubResourceService } from './base';
 import { EventPublisher } from '@/shared-kernel';
 import type { SectionType } from '@/bounded-contexts/resumes/domain/events';

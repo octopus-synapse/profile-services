@@ -1,15 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { Skill } from '@prisma/client';
-import type {
-  CreateSkill,
-  UpdateSkill,
-} from '@octopus-synapse/profile-contracts';
-import type { PaginatedResult } from '@octopus-synapse/profile-contracts';
-import {
-  PAGINATION,
-  SkillLevelToNumeric,
-} from '@octopus-synapse/profile-contracts';
+import type { CreateSkill, UpdateSkill } from '@/shared-kernel';
+import type { PaginatedResult } from '@/shared-kernel';
+import { PAGINATION, SkillLevelToNumeric } from '@/shared-kernel';
 import {
   BaseSubResourceRepository,
   OrderByConfig,

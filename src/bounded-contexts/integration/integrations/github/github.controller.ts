@@ -7,12 +7,15 @@ import {
   ApiParam,
   ApiBody,
 } from '@nestjs/swagger';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { GitHubService } from './github.service';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
 import { Public } from '@/bounded-contexts/identity/auth/decorators/public.decorator';
+import { MecSyncStatusResponseDto } from '@/shared-kernel';
 
+@SdkExport({ tag: 'github', description: 'Github API' })
 @ApiTags('github')
 @Controller('v1/integrations/github')
 export class GitHubController {
@@ -102,6 +105,7 @@ export class GitHubController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get GitHub sync status for a resume' })
+  @ApiResponse({ status: 200, type: MecSyncStatusResponseDto })
   @ApiParam({ name: 'resumeId', description: 'Resume ID to check' })
   @ApiResponse({
     status: 200,

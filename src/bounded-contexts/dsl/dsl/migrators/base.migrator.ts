@@ -3,7 +3,7 @@
  * Defines contract for DSL version migrations
  */
 
-import type { ResumeDsl } from '@octopus-synapse/profile-contracts';
+import type { ResumeDsl } from '@/shared-kernel';
 
 export interface DslMigrator {
   /**

@@ -1,10 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { Publication } from '@prisma/client';
-import {
-  CreatePublication,
-  UpdatePublication,
-} from '@octopus-synapse/profile-contracts';
+import { CreatePublication, UpdatePublication } from '@/shared-kernel';
 import {
   BaseSubResourceRepository,
   OrderByConfig,

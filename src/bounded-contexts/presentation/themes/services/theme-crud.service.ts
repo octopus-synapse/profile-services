@@ -16,9 +16,9 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ThemeStatus, Prisma } from '@prisma/client';
-import { CreateTheme, UpdateTheme } from '@octopus-synapse/profile-contracts';
+import { CreateTheme, UpdateTheme } from '@/shared-kernel';
 import { validateLayoutConfig, validateSectionsConfig } from '../validators';
-import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
+import { ERROR_MESSAGES } from '@/shared-kernel';
 import { AuthorizationService } from '@/bounded-contexts/identity/authorization';
 
 /** Maximum themes a user can create */

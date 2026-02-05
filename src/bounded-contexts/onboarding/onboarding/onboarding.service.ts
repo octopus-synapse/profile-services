@@ -7,10 +7,7 @@ import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { AuditLogService } from '@/bounded-contexts/platform/common/audit/audit-log.service';
 import type { Prisma } from '@prisma/client';
-import {
-  ERROR_MESSAGES,
-  SUCCESS_MESSAGES,
-} from '@octopus-synapse/profile-contracts';
+import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@/shared-kernel';
 import {
   onboardingDataSchema,
   type OnboardingData,
@@ -21,7 +18,7 @@ import { ExperienceOnboardingService } from './services/experience-onboarding.se
 import { EducationOnboardingService } from './services/education-onboarding.service';
 import { LanguagesOnboardingService } from './services/languages-onboarding.service';
 import { OnboardingProgressService } from './services/onboarding-progress.service';
-import type { OnboardingProgress } from '@octopus-synapse/profile-contracts';
+import type { OnboardingProgress } from '@/shared-kernel';
 
 @Injectable()
 export class OnboardingService {

@@ -5,9 +5,11 @@
 
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { ThemeQueryService } from '../services';
-import type { QueryThemes } from '@octopus-synapse/profile-contracts';
+import type { QueryThemes } from '@/shared-kernel';
 
+@SdkExport({ tag: 'themes', description: 'Themes API' })
 @ApiTags('themes')
 @Controller('v1/themes')
 export class PublicThemeController {

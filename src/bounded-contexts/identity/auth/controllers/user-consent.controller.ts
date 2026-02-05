@@ -15,15 +15,13 @@ import {
   ApiBearerAuth,
   ApiBody,
 } from '@nestjs/swagger';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { Request } from 'express';
 import { TosAcceptanceService } from '../services/tos-acceptance.service';
 import { AuditLogService } from '@/bounded-contexts/platform/common/audit/audit-log.service';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { SkipTosCheck } from '../decorators/skip-tos-check.decorator';
-import {
-  AcceptConsentSchema,
-  type AcceptConsent,
-} from '@octopus-synapse/profile-contracts';
+import { AcceptConsentSchema, type AcceptConsent } from '@/shared-kernel';
 import { createZodPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
 import { AuditAction } from '@prisma/client';
 
@@ -31,6 +29,7 @@ interface RequestWithUser extends Request {
   user: { userId: string; email: string };
 }
 
+@SdkExport({ tag: 'user-consent', description: 'User Consent API' })
 @ApiTags('User Consent')
 @Controller('v1/users/me')
 @UseGuards(JwtAuthGuard)

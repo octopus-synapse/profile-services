@@ -16,10 +16,13 @@ import {
   ApiBearerAuth,
   ApiResponse,
 } from '@nestjs/swagger';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
 import { ResumeJsonService } from '../services/resume-json.service';
 import { ResumeLatexService } from '../services/resume-latex.service';
+import { ExportResultDto } from '@/shared-kernel';
 
+@SdkExport({ tag: 'export', description: 'Export API' })
 @ApiTags('Export')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
@@ -32,6 +35,7 @@ export class ExportMultiFormatController {
 
   @Get(':resumeId/json')
   @ApiOperation({ summary: 'Export resume as JSON' })
+  @ApiResponse({ status: 200, type: ExportResultDto })
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
   @ApiQuery({
     name: 'format',
@@ -64,6 +68,7 @@ export class ExportMultiFormatController {
 
   @Get(':resumeId/latex')
   @ApiOperation({ summary: 'Export resume as LaTeX' })
+  @ApiResponse({ status: 200, type: ExportResultDto })
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
   @ApiQuery({
     name: 'template',

@@ -29,26 +29,18 @@ import {
   ApiBody,
   ApiParam,
 } from '@nestjs/swagger';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
 import { CollaborationService } from './collaboration.service';
-import { CollaboratorRole } from '@octopus-synapse/profile-contracts';
+import { InviteCollaboratorDto, UpdateRoleDto } from './dto/collaboration.dto';
+import {
+  CollaboratorResponseDto,
+  DeleteResponseDto,
+  SharedResumeResponseDto,
+} from '@/shared-kernel/dtos/sdk-response.dto';
 
-/**
- * Invite DTO
- */
-class InviteCollaboratorDto {
-  userId!: string;
-  role!: CollaboratorRole;
-}
-
-/**
- * Update role DTO
- */
-class UpdateRoleDto {
-  role!: CollaboratorRole;
-}
-
+@SdkExport({ tag: 'collaboration', description: 'Collaboration API' })
 @ApiTags('Collaboration')
 @Controller('resumes')
 export class CollaborationController {
@@ -60,6 +52,7 @@ export class CollaborationController {
   @Post(':resumeId/collaborators')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Invite user to collaborate on resume' })
+  @ApiResponse({ status: 201, type: CollaboratorResponseDto })
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
   @ApiBody({ type: InviteCollaboratorDto })
   @ApiResponse({
@@ -92,6 +85,7 @@ export class CollaborationController {
    */
   @Get(':resumeId/collaborators')
   @ApiOperation({ summary: 'Get collaborators for a resume' })
+  @ApiResponse({ status: 200, type: [CollaboratorResponseDto] })
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
   @ApiResponse({ status: HttpStatus.OK, description: 'List of collaborators' })
   @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Access denied' })
@@ -107,6 +101,7 @@ export class CollaborationController {
    */
   @Patch(':resumeId/collaborators/:userId')
   @ApiOperation({ summary: 'Update collaborator role' })
+  @ApiResponse({ status: 200, type: CollaboratorResponseDto })
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
   @ApiParam({ name: 'userId', description: 'Collaborator user ID' })
   @ApiBody({ type: UpdateRoleDto })
@@ -135,6 +130,7 @@ export class CollaborationController {
   @Delete(':resumeId/collaborators/:userId')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Remove collaborator from resume' })
+  @ApiResponse({ status: 200, type: DeleteResponseDto })
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
   @ApiParam({ name: 'userId', description: 'Collaborator user ID' })
   @ApiResponse({
@@ -159,6 +155,7 @@ export class CollaborationController {
    */
   @Get('shared-with-me')
   @ApiOperation({ summary: 'Get resumes shared with current user' })
+  @ApiResponse({ status: 200, type: [SharedResumeResponseDto] })
   @ApiResponse({ status: HttpStatus.OK, description: 'List of shared resumes' })
   async getSharedWithMe(@CurrentUser() user: UserPayload) {
     return this.collaborationService.getSharedWithMe(user.userId);

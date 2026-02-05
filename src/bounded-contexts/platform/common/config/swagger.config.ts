@@ -24,6 +24,7 @@ export function configureSwagger(app: INestApplication): void {
       `${controllerKey}_${methodKey}`,
   });
 
+  // Setup Swagger UI with Scalar
   app.use(
     '/api/docs',
     apiReference({
@@ -34,6 +35,9 @@ export function configureSwagger(app: INestApplication): void {
       customCss: SCALAR_CUSTOM_CSS,
     }),
   );
+
+  // Also setup traditional Swagger endpoints for JSON export
+  SwaggerModule.setup('api/swagger', app, document);
 }
 
 function buildSwaggerConfig() {

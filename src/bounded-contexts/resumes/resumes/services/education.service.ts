@@ -7,10 +7,7 @@ import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { Education } from '@prisma/client';
 import { EducationRepository } from '../repositories/education.repository';
 import { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.repository';
-import {
-  CreateEducation,
-  UpdateEducation,
-} from '@octopus-synapse/profile-contracts';
+import { CreateEducation, UpdateEducation } from '@/shared-kernel';
 import { BaseSubResourceService } from './base';
 import {
   ApiResponseHelper,

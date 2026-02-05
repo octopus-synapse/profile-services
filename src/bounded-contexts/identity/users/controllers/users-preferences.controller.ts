@@ -4,29 +4,32 @@
  */
 
 import {
+  Body,
   Controller,
   Get,
-  Patch,
-  Body,
-  UseGuards,
   HttpCode,
   HttpStatus,
+  Patch,
+  UseGuards,
 } from '@nestjs/common';
+import {
+  UserFullPreferencesResponseDto,
+  UserPreferencesResponseDto,
+} from '@/shared-kernel/dtos/sdk-response.dto';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { UsersService } from '@/bounded-contexts/identity/users/users.service';
-import type {
-  UpdatePreferences,
-  UpdateFullPreferences,
-} from '@octopus-synapse/profile-contracts';
+import type { UpdatePreferences, UpdateFullPreferences } from '@/shared-kernel';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
 
+@SdkExport({ tag: 'users', description: 'Users API' })
 @ApiTags('users')
 @ApiBearerAuth('JWT-auth')
 @Controller('v1/users')
@@ -36,6 +39,7 @@ export class UsersPreferencesController {
   @UseGuards(JwtAuthGuard)
   @Get('preferences')
   @ApiOperation({ summary: 'Get user preferences (basic)' })
+  @ApiResponse({ status: 200, type: UserPreferencesResponseDto })
   @ApiResponse({
     status: 200,
     description: 'Preferences retrieved successfully',
@@ -50,6 +54,7 @@ export class UsersPreferencesController {
   @Patch('preferences')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update user preferences (basic)' })
+  @ApiResponse({ status: 200, type: UserPreferencesResponseDto })
   @ApiResponse({
     status: 200,
     description: 'Preferences updated successfully',
@@ -67,6 +72,7 @@ export class UsersPreferencesController {
   @UseGuards(JwtAuthGuard)
   @Get('preferences/full')
   @ApiOperation({ summary: 'Get all user preferences' })
+  @ApiResponse({ status: 200, type: UserFullPreferencesResponseDto })
   @ApiResponse({
     status: 200,
     description: 'Full preferences retrieved successfully',
@@ -80,6 +86,7 @@ export class UsersPreferencesController {
   @Patch('preferences/full')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update all user preferences' })
+  @ApiResponse({ status: 200, type: UserFullPreferencesResponseDto })
   @ApiResponse({
     status: 200,
     description: 'Full preferences updated successfully',

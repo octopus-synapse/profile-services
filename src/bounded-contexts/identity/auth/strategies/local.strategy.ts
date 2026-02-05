@@ -3,7 +3,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-local';
 import { User } from '@prisma/client';
 import { AuthService } from '@/bounded-contexts/identity/auth/auth.service';
-import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
+import { ERROR_MESSAGES } from '@/shared-kernel';
 
 type ValidatedUser = Omit<User, 'password'>;
 

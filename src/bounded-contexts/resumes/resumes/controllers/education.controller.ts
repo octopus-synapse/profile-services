@@ -1,11 +1,9 @@
 import { Controller, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
 import { EducationService } from '../services/education.service';
-import type {
-  CreateEducation,
-  UpdateEducation,
-} from '@octopus-synapse/profile-contracts';
+import type { CreateEducation, UpdateEducation } from '@/shared-kernel';
 import {
   BaseSubResourceController,
   SubResourceControllerConfig,
@@ -23,6 +21,7 @@ import type { Education } from '@prisma/client';
  * - DELETE /resumes/:resumeId/education/:id - Delete an education entry
  * - POST /resumes/:resumeId/education/reorder - Reorder education entries
  */
+@SdkExport({ tag: 'resumes', description: 'Resumes API' })
 @ApiTags('resumes')
 @ApiBearerAuth('JWT-auth')
 @Controller('v1/resumes/:resumeId/education')

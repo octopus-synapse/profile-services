@@ -25,6 +25,7 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
 import {
   PermissionGuard,
@@ -35,7 +36,9 @@ import {
   CreateSkillInput,
   UpdateSkillInput,
 } from '../services/skill-management.service';
+import { DeleteResponseDto, ResumeSkillResponseDto } from '@/shared-kernel';
 
+@SdkExport({ tag: 'skills', description: 'Skills API' })
 @ApiTags('skills')
 @ApiBearerAuth('JWT-auth')
 @Controller('v1/skills/manage')
@@ -46,6 +49,7 @@ export class SkillManagementController {
   @Get('resume/:resumeId')
   @RequirePermission('skill', 'read')
   @ApiOperation({ summary: 'List all skills for a resume' })
+  @ApiResponse({ status: 200, type: [ResumeSkillResponseDto] })
   @ApiResponse({ status: 200, description: 'Skills retrieved successfully' })
   @ApiResponse({ status: 404, description: 'Resume not found' })
   async listSkillsForResume(@Param('resumeId') resumeId: string) {
@@ -56,6 +60,7 @@ export class SkillManagementController {
   @RequirePermission('skill', 'create')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Add a skill to a resume' })
+  @ApiResponse({ status: 201, type: ResumeSkillResponseDto })
   @ApiResponse({ status: 201, description: 'Skill added successfully' })
   @ApiResponse({ status: 404, description: 'Resume not found' })
   async addSkillToResume(
@@ -68,6 +73,7 @@ export class SkillManagementController {
   @Patch(':id')
   @RequirePermission('skill', 'update')
   @ApiOperation({ summary: 'Update a skill' })
+  @ApiResponse({ status: 200, type: ResumeSkillResponseDto })
   @ApiResponse({ status: 200, description: 'Skill updated successfully' })
   @ApiResponse({ status: 404, description: 'Skill not found' })
   async updateSkill(
@@ -81,6 +87,7 @@ export class SkillManagementController {
   @RequirePermission('skill', 'delete')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete a skill' })
+  @ApiResponse({ status: 200, type: DeleteResponseDto })
   @ApiResponse({ status: 200, description: 'Skill deleted successfully' })
   @ApiResponse({ status: 404, description: 'Skill not found' })
   async deleteSkill(@Param('id') skillId: string) {

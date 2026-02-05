@@ -5,7 +5,7 @@
 
 import { Injectable } from '@nestjs/common';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
-import { TIME_MS } from '@octopus-synapse/profile-contracts';
+import { TIME_MS } from '@/shared-kernel';
 import { PUPPETEER_CONFIG } from '../constants';
 import type { Page } from 'puppeteer';
 

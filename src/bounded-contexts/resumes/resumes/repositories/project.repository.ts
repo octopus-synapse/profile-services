@@ -1,10 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { Project } from '@prisma/client';
-import type {
-  CreateProject,
-  UpdateProject,
-} from '@octopus-synapse/profile-contracts';
+import type { CreateProject, UpdateProject } from '@/shared-kernel';
 import {
   BaseSubResourceRepository,
   OrderByConfig,

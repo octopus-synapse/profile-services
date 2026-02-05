@@ -2,10 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Award } from '@prisma/client';
 import { AwardRepository } from '../repositories/award.repository';
 import { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.repository';
-import type {
-  CreateAward,
-  UpdateAward,
-} from '@octopus-synapse/profile-contracts';
+import type { CreateAward, UpdateAward } from '@/shared-kernel';
 import { BaseSubResourceService } from './base';
 import { EventPublisher } from '@/shared-kernel';
 import type { SectionType } from '@/bounded-contexts/resumes/domain/events';

@@ -10,7 +10,7 @@ import type {
   UpdateProfile,
   UpdatePreferences,
   UpdateFullPreferences,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 import { UserQueryRepository, UserMutationRepository } from './repositories';
 
 @Injectable()

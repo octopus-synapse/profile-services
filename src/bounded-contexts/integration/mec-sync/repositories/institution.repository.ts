@@ -5,7 +5,7 @@
 
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { Institution } from '@octopus-synapse/profile-contracts';
+import { Institution } from '@/shared-kernel';
 import { NormalizedInstitution } from '../interfaces/mec-data.interface';
 import { BATCH_SIZE } from '../constants';
 

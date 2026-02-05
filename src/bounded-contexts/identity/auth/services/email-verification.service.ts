@@ -10,10 +10,7 @@ import { EmailService } from '@/bounded-contexts/platform/common/email/email.ser
 import { VerificationTokenService } from './verification-token.service';
 import { EventPublisher } from '@/shared-kernel';
 import { UserVerifiedEvent } from '../../domain/events';
-import type {
-  RequestVerification,
-  VerifyEmail,
-} from '@octopus-synapse/profile-contracts';
+import type { RequestVerification, VerifyEmail } from '@/shared-kernel';
 
 @Injectable()
 export class EmailVerificationService {

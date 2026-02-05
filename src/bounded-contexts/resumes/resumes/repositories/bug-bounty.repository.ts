@@ -1,10 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { BugBounty } from '@prisma/client';
-import type {
-  CreateBugBounty,
-  UpdateBugBounty,
-} from '@octopus-synapse/profile-contracts';
+import type { CreateBugBounty, UpdateBugBounty } from '@/shared-kernel';
 import {
   BaseSubResourceRepository,
   OrderByConfig,

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { DesignTokens } from '@octopus-synapse/profile-contracts';
+import type { DesignTokens } from '@/shared-kernel';
 import {
   FONT_FAMILIES,
   FONT_SIZES,

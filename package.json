@@ -47,11 +47,14 @@
     "db:reset": "prisma migrate reset --force",
     "schemas:export": "bun run src/scripts/export-schemas.ts",
     "openapi:generate": "bun run src/scripts/generate-openapi.ts",
+    "swagger:generate": "bun run scripts/generate-swagger-from-decorators.ts",
+    "swagger:test": "bun test ./tests/swagger-generation.test.ts",
     "prepare": "husky"
   },
   "dependencies": {
     "@apollo/server": "^5.2.0",
     "@as-integrations/express5": "^1.1.2",
+    "@asteasolutions/zod-to-openapi": "^8.4.0",
     "@aws-sdk/client-s3": "^3.937.0",
     "@nestjs/apollo": "^13.2.3",
     "@nestjs/axios": "^4.0.1",
@@ -71,7 +74,6 @@
     "@nestjs/terminus": "^11.0.0",
     "@nestjs/throttler": "^6.4.0",
     "@nestjs/websockets": "^11.1.11",
-    "@octopus-synapse/profile-contracts": "latest",
     "@prisma/client": "^6.17.1",
     "@scalar/nestjs-api-reference": "^1.0.13",
     "@sendgrid/mail": "^8.1.6",
@@ -114,6 +116,7 @@
     "swagger-ui-express": "^5.0.1",
     "uuid": "^10.0.0",
     "winston": "^3.18.3",
+    "zod": "3.23.8",
     "zod-nestjs": "^1.9.2"
   },
   "devDependencies": {

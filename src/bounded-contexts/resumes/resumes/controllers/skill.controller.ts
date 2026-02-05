@@ -1,16 +1,17 @@
 import {
-  Controller,
-  UseGuards,
-  Get,
-  Post,
   Body,
-  Param,
-  Query,
+  Controller,
+  DefaultValuePipe,
+  Get,
   HttpCode,
   HttpStatus,
+  Param,
   ParseIntPipe,
-  DefaultValuePipe,
+  Post,
+  Query,
+  UseGuards,
 } from '@nestjs/common';
+import { ResumeSkillResponseDto } from '@/shared-kernel/dtos/sdk-response.dto';
 import {
   ApiTags,
   ApiBearerAuth,
@@ -19,13 +20,14 @@ import {
   ApiQuery,
   ApiResponse,
 } from '@nestjs/swagger';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
 import { SkillService } from '../services/skill.service';
 import type {
   CreateSkill,
   UpdateSkill,
   BulkCreateSkills,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 import {
   BaseSubResourceController,
   SubResourceControllerConfig,
@@ -35,6 +37,7 @@ import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/curre
 import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
 import { ParseCuidPipe } from '@/bounded-contexts/platform/common/pipes/parse-cuid.pipe';
 
+@SdkExport({ tag: 'resumes', description: 'Resumes API' })
 @ApiTags('resumes')
 @ApiBearerAuth('JWT-auth')
 @Controller('v1/resumes/:resumeId/skills')
@@ -62,6 +65,7 @@ export class SkillController extends BaseSubResourceController<
   // Custom findAll with category filter (not overriding base listAll)
   @Get()
   @ApiOperation({ summary: 'Get all skills for a resume' })
+  @ApiResponse({ status: 200, type: [ResumeSkillResponseDto] })
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
@@ -87,6 +91,7 @@ export class SkillController extends BaseSubResourceController<
   @Post('bulk')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create multiple skills at once' })
+  @ApiResponse({ status: 201, type: [ResumeSkillResponseDto] })
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
   @ApiResponse({ status: 201, description: 'Skills created' })
   @ApiResponse({ status: 403, description: 'Access denied' })

@@ -4,18 +4,25 @@
  */
 
 import {
-  Controller,
-  Get,
-  Post,
-  Put,
-  Delete,
   Body,
-  Param,
-  UseGuards,
+  Controller,
+  Delete,
+  Get,
   HttpCode,
   HttpStatus,
+  Param,
+  Post,
+  Put,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { ThemeResponseDto } from '@/shared-kernel/dtos/sdk-response.dto';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiResponse,
+} from '@nestjs/swagger';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import {
@@ -28,8 +35,9 @@ import type {
   UpdateTheme,
   ForkTheme,
   ApplyThemeToResume,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 
+@SdkExport({ tag: 'themes', description: 'Themes API' })
 @ApiTags('themes')
 @Controller('v1/themes')
 @UseGuards(JwtAuthGuard)
@@ -82,6 +90,7 @@ export class UserThemeController {
 
   @Post('fork')
   @ApiOperation({ summary: 'Fork a theme' })
+  @ApiResponse({ status: 200, type: ThemeResponseDto })
   async fork(@CurrentUser('userId') userId: string, @Body() dto: ForkTheme) {
     const forkedTheme = await this.appService.forkThemeForUser(userId, dto);
     return forkedTheme;

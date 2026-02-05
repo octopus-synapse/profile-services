@@ -1,11 +1,9 @@
 /**
  * Zod Validation Pipe
  *
- * NestJS adapter for profile-contracts validation.
  * Translates pure ValidationResult into NestJS BadRequestException.
  *
  * Architecture:
- * - profile-contracts: Pure validation logic (framework-agnostic)
  * - profile-services: Framework adapter (NestJS-specific)
  *
  * This follows the Dependency Rule: frameworks depend on domain, not vice versa.
@@ -18,7 +16,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { ZodSchema } from 'zod';
-import { validate, ERROR_CODES } from '@octopus-synapse/profile-contracts';
+import { validate, ERROR_CODES } from '@/shared-kernel';
 
 /**
  * Generic Zod Validation Pipe
@@ -28,7 +26,7 @@ import { validate, ERROR_CODES } from '@octopus-synapse/profile-contracts';
  *
  * @example
  * ```typescript
- * import { LoginCredentialsSchema } from '@octopus-synapse/profile-contracts';
+ * import { LoginCredentialsSchema } from '@/shared-kernel';
  * import { ZodValidationPipe } from './common/validation/zod-validation.pipe';
  *
  * @Post('login')

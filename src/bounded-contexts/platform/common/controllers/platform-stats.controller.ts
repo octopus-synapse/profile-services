@@ -14,13 +14,16 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
 import {
   PermissionGuard,
   RequirePermission,
 } from '@/bounded-contexts/identity/authorization';
 import { PlatformStatsService } from '../services/platform-stats.service';
+import { PlatformStatsResponseDto } from '@/shared-kernel';
 
+@SdkExport({ tag: 'platform', description: 'Platform API' })
 @ApiTags('platform')
 @ApiBearerAuth('JWT-auth')
 @Controller('v1/platform')
@@ -31,6 +34,7 @@ export class PlatformStatsController {
   @Get('stats')
   @RequirePermission('stats', 'read')
   @ApiOperation({ summary: 'Get platform statistics' })
+  @ApiResponse({ status: 200, type: PlatformStatsResponseDto })
   @ApiResponse({
     status: 200,
     description: 'Statistics retrieved successfully',

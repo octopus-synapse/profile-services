@@ -4,7 +4,7 @@ import {
   UpdateExperienceSchema,
   type CreateExperience,
   type UpdateExperience,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 
 /**
  * GraphQL Input for creating experience

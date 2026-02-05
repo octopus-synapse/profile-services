@@ -16,9 +16,9 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ThemeStatus } from '@prisma/client';
-import type { ReviewTheme } from '@octopus-synapse/profile-contracts';
+import type { ReviewTheme } from '@/shared-kernel';
 import { ThemeCrudService } from './theme-crud.service';
-import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
+import { ERROR_MESSAGES } from '@/shared-kernel';
 import { AuthorizationService } from '@/bounded-contexts/identity/authorization';
 
 /** Maximum number of times a theme can be resubmitted after rejection */

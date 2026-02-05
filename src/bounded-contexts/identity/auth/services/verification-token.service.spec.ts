@@ -3,7 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { VerificationTokenService } from './verification-token.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { BadRequestException } from '@nestjs/common';
-import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
+import { ERROR_MESSAGES } from '@/shared-kernel';
 
 describe('VerificationTokenService', () => {
   let service: VerificationTokenService;

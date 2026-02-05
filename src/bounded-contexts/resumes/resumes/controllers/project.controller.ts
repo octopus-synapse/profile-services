@@ -1,17 +1,16 @@
 import { Controller, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
 import { ProjectService } from '../services/project.service';
-import type {
-  CreateProject,
-  UpdateProject,
-} from '@octopus-synapse/profile-contracts';
+import type { CreateProject, UpdateProject } from '@/shared-kernel';
 import {
   BaseSubResourceController,
   SubResourceControllerConfig,
 } from './base/base-sub-resource.controller';
 import type { Project } from '@prisma/client';
 
+@SdkExport({ tag: 'resumes', description: 'Resumes API' })
 @ApiTags('resumes')
 @ApiBearerAuth('JWT-auth')
 @Controller('v1/resumes/:resumeId/projects')

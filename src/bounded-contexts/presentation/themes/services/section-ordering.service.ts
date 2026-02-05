@@ -6,7 +6,7 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { ResumeConfigRepository } from './resume-config.repository';
 import { moveItem, normalizeOrders } from '../utils';
-import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
+import { ERROR_MESSAGES } from '@/shared-kernel';
 
 @Injectable()
 export class SectionOrderingService {

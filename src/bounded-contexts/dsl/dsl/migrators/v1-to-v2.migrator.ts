@@ -4,7 +4,7 @@
  */
 
 import { Injectable, Logger } from '@nestjs/common';
-import type { ResumeDsl } from '@octopus-synapse/profile-contracts';
+import type { ResumeDsl } from '@/shared-kernel';
 import type { DslMigrator } from './base.migrator';
 
 @Injectable()

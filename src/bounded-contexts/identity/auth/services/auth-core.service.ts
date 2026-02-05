@@ -22,9 +22,9 @@ import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { EventPublisher } from '@/shared-kernel';
 import { UserRegisteredEvent } from '@/bounded-contexts/identity/domain/events';
-import type { RegisterCredentials as Signup } from '@octopus-synapse/profile-contracts';
-import type { LoginCredentials as Login } from '@octopus-synapse/profile-contracts';
-import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
+import type { RegisterCredentials as Signup } from '@/shared-kernel';
+import type { LoginCredentials as Login } from '@/shared-kernel';
+import { ERROR_MESSAGES } from '@/shared-kernel';
 import { TokenService } from './token.service';
 import { PasswordService } from './password.service';
 

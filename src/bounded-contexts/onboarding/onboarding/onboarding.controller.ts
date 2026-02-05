@@ -1,30 +1,30 @@
 import {
-  Controller,
-  Post,
-  Get,
-  Put,
   Body,
-  UseGuards,
+  Controller,
+  Get,
   HttpCode,
   HttpStatus,
+  Post,
+  Put,
+  UseGuards,
 } from '@nestjs/common';
+import { OnboardingProgressResponseDto } from '@/shared-kernel/dtos/sdk-response.dto';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { OnboardingService } from './onboarding.service';
-import type { OnboardingProgress } from '@octopus-synapse/profile-contracts';
+import type { OnboardingProgress } from '@/shared-kernel';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
-import {
-  OnboardingDataSchema,
-  type OnboardingData,
-} from '@octopus-synapse/profile-contracts';
+import { OnboardingDataSchema, type OnboardingData } from '@/shared-kernel';
 import { createZodPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
 
+@SdkExport({ tag: 'onboarding', description: 'Onboarding API' })
 @ApiTags('onboarding')
 @ApiBearerAuth('JWT-auth')
 @Controller('v1/onboarding')
@@ -58,6 +58,7 @@ export class OnboardingController {
 
   @Get('status')
   @ApiOperation({ summary: 'Get user onboarding status' })
+  @ApiResponse({ status: 200, type: OnboardingProgressResponseDto })
   @ApiResponse({
     status: 200,
     description: 'Onboarding status retrieved successfully',

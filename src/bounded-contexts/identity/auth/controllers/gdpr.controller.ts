@@ -21,6 +21,7 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { SkipTosCheck } from '../decorators/skip-tos-check.decorator';
 import { GdprExportService } from '../services/gdpr-export.service';
@@ -32,6 +33,7 @@ interface RequestWithUser {
   headers: { [key: string]: string | string[] | undefined };
 }
 
+@SdkExport({ tag: 'gdpr', description: 'Gdpr API' })
 @ApiTags('GDPR')
 @Controller('users/me')
 @UseGuards(JwtAuthGuard)

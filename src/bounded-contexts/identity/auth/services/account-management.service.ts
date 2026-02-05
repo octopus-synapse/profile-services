@@ -22,11 +22,8 @@ import { EventPublisher } from '@/shared-kernel';
 import { UserDeletedEvent } from '@/bounded-contexts/identity/domain/events';
 import { PasswordService } from './password.service';
 import { TokenBlacklistService } from './token-blacklist.service';
-import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
-import type {
-  ChangeEmail,
-  DeleteAccount,
-} from '@octopus-synapse/profile-contracts';
+import { ERROR_MESSAGES } from '@/shared-kernel';
+import type { ChangeEmail, DeleteAccount } from '@/shared-kernel';
 
 @Injectable()
 export class AccountManagementService {

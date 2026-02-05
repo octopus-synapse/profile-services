@@ -9,7 +9,7 @@ import type {
   ReferenceItem,
   InterestItem,
   SectionData,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 
 type ItemOverride = { itemId: string; visible?: boolean; order?: number };
 

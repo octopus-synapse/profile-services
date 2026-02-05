@@ -17,12 +17,12 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { PasswordService } from '@/bounded-contexts/identity/auth/services/password.service';
 import { AuthorizationService } from '@/bounded-contexts/identity/authorization';
-import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
+import { ERROR_MESSAGES } from '@/shared-kernel';
 import type {
   AdminCreateUser,
   AdminUpdateUser,
   AdminResetPassword,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 
 // ============================================================================
 // Types

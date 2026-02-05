@@ -1,15 +1,12 @@
 /**
  * DSL Validator Service
- * Validates Resume DSL using Zod schemas from @octopus-synapse/profile-contracts
+ * Validates Resume DSL using Zod schemas from @/shared-kernel
  *
  * IMPORTANT: No direct imports from 'zod' - all validation comes from contracts.
  */
 
 import { Injectable, BadRequestException } from '@nestjs/common';
-import {
-  ResumeDslSchema,
-  type ResumeDsl,
-} from '@octopus-synapse/profile-contracts';
+import { ResumeDslSchema, type ResumeDsl } from '@/shared-kernel';
 
 export interface ValidationResult {
   valid: boolean;

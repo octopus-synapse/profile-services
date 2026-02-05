@@ -6,7 +6,7 @@ import { UsersRepository } from '@/bounded-contexts/identity/users/users.reposit
 import { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.repository';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { NotFoundException } from '@nestjs/common';
-import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
+import { ERROR_MESSAGES } from '@/shared-kernel';
 
 describe('UserProfileService', () => {
   let service: UserProfileService;

@@ -4,7 +4,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { TokenBlacklistService } from '../services/token-blacklist.service';
-import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
+import { ERROR_MESSAGES } from '@/shared-kernel';
 
 export interface JwtPayload {
   sub: string;

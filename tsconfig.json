@@ -25,5 +25,11 @@
       "@test/*": ["test/*"]
     }
   },
-  "exclude": ["scripts"]
+  "exclude": [
+    "scripts",
+    "prisma",
+    "commitlint.config.ts",
+    "fix-imports.ts",
+    "prisma.config.ts"
+  ]
 }

@@ -1,8 +1,8 @@
 import { Logger } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ISubResourceRepository } from '../../interfaces/base-sub-resource.interface';
-import type { PaginatedResult } from '@octopus-synapse/profile-contracts';
-import { PAGINATION } from '@octopus-synapse/profile-contracts';
+import type { PaginatedResult } from '@/shared-kernel';
+import { PAGINATION } from '@/shared-kernel';
 import {
   type PrismaDelegate,
   type OrderByConfig,

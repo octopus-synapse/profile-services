@@ -193,7 +193,6 @@ export class ResumeResolver {
     this.logger.log(
       `[GraphQL] Adding education to resume ${resumeId} for user ${user.id}`,
     );
-    // TODO: Migrate EducationService to use profile-contracts types
     // Currently using cast due to legacy class-validator DTO mismatch
     const response = await this.educationService.addEntityToResume(
       resumeId,

@@ -3,13 +3,26 @@
  * Public API endpoints for MEC institution queries
  */
 
-import { Controller, Get, Query, Param, ParseIntPipe } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiQuery, ApiParam } from '@nestjs/swagger';
+import { Controller, Get, Param, ParseIntPipe, Query } from '@nestjs/common';
+import { MecInstitutionDto } from '@/shared-kernel/dtos/sdk-response.dto';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiQuery,
+  ApiParam,
+  ApiResponse,
+} from '@nestjs/swagger';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { Public } from '@/bounded-contexts/identity/auth/decorators/public.decorator';
 import { InstitutionQueryService } from '../services/institution-query.service';
 import { CourseQueryService } from '../services/course-query.service';
-import { APP_CONFIG } from '@octopus-synapse/profile-contracts';
+import { APP_CONFIG } from '@/shared-kernel';
 
+@SdkExport({
+  tag: 'mec-institutions',
+  description: 'Mec Institutions API',
+  requiresAuth: false,
+})
 @ApiTags('mec-institutions')
 @Controller('v1/mec/institutions')
 export class MecInstitutionController {
@@ -21,6 +34,7 @@ export class MecInstitutionController {
   @Get()
   @Public()
   @ApiOperation({ summary: 'List institutions' })
+  @ApiResponse({ status: 200, type: [MecInstitutionDto] })
   @ApiQuery({ name: 'uf', required: false, description: 'Filter by state' })
   async listInstitutions(@Query('uf') stateCode?: string) {
     return stateCode

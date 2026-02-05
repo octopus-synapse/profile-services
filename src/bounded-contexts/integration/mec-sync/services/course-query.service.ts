@@ -7,12 +7,12 @@ import { Injectable } from '@nestjs/common';
 import * as crypto from 'crypto';
 import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import { CourseRepository } from '../repositories';
-import { Course } from '@octopus-synapse/profile-contracts';
+import { Course } from '@/shared-kernel';
 import {
   MEC_CACHE_KEYS,
   MEC_CACHE_TTL,
 } from '../interfaces/mec-data.interface';
-import { APP_CONFIG, API_LIMITS } from '@octopus-synapse/profile-contracts';
+import { APP_CONFIG, API_LIMITS } from '@/shared-kernel';
 
 @Injectable()
 export class CourseQueryService {

@@ -1,8 +1,8 @@
 import type { PrismaDelegate } from './prisma-delegate.type';
 import type { OrderByConfig, FindAllFilters } from './order-by-config';
 import { buildOrderByClause } from './order-by-config';
-import type { PaginatedResult } from '@octopus-synapse/profile-contracts';
-import { PAGINATION } from '@octopus-synapse/profile-contracts';
+import type { PaginatedResult } from '@/shared-kernel';
+import { PAGINATION } from '@/shared-kernel';
 
 export async function findAllWithPagination<T>(
   delegate: PrismaDelegate<T>,

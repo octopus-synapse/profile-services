@@ -1,10 +1,7 @@
 import { Injectable, Logger, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { Resume } from '@prisma/client';
-import {
-  type CreateResume,
-  type UpdateResume,
-} from '@octopus-synapse/profile-contracts';
+import { type CreateResume, type UpdateResume } from '@/shared-kernel';
 
 /**
  * Repository-level DTO types.

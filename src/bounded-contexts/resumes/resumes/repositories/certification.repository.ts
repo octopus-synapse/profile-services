@@ -1,10 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { Certification } from '@prisma/client';
-import {
-  CreateCertification,
-  UpdateCertification,
-} from '@octopus-synapse/profile-contracts';
+import { CreateCertification, UpdateCertification } from '@/shared-kernel';
 import {
   BaseSubResourceRepository,
   OrderByConfig,

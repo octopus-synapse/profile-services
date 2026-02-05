@@ -6,7 +6,7 @@
 import { Page } from 'puppeteer';
 import { Logger } from '@nestjs/common';
 import { TIMEOUT, DEBUG_PATH } from '../constants/ui.constants';
-import { API_LIMITS } from '@octopus-synapse/profile-contracts';
+import { API_LIMITS } from '@/shared-kernel';
 
 export class BannerReadyWaiter {
   private readonly logger = new Logger(BannerReadyWaiter.name);

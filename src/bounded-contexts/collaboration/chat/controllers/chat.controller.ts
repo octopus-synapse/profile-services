@@ -1,14 +1,22 @@
 import {
+  Body,
   Controller,
   Get,
-  Post,
-  Body,
   Param,
+  Post,
   Query,
-  UseGuards,
   Req,
+  UseGuards,
 } from '@nestjs/common';
+import {
+  ChatMessageResponseDto,
+  ConversationDetailResponseDto,
+  ConversationResponseDto,
+  MarkAsReadResponseDto,
+  UnreadCountResponseDto,
+} from '@/shared-kernel/dtos/sdk-response.dto';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
 import { ChatService } from '../services/chat.service';
 import { createZodPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
@@ -17,9 +25,11 @@ import {
   SendMessageToConversationSchema,
   GetMessagesQuerySchema,
   GetConversationsQuerySchema,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 import type { AuthenticatedRequest } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
+import { ApiResponse } from '@nestjs/swagger';
 
+@SdkExport({ tag: 'chat', description: 'Chat API' })
 @ApiTags('Chat')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
@@ -29,6 +39,7 @@ export class ChatController {
 
   @Post('messages')
   @ApiOperation({ summary: 'Send a message to a user' })
+  @ApiResponse({ status: 201, type: ChatMessageResponseDto })
   async sendMessage(
     @Req() req: AuthenticatedRequest,
     @Body(createZodPipe(SendMessageSchema))
@@ -39,6 +50,7 @@ export class ChatController {
 
   @Post('conversations/:conversationId/messages')
   @ApiOperation({ summary: 'Send a message to an existing conversation' })
+  @ApiResponse({ status: 201, type: ChatMessageResponseDto })
   async sendMessageToConversation(
     @Req() req: AuthenticatedRequest,
     @Param('conversationId') conversationId: string,
@@ -56,6 +68,7 @@ export class ChatController {
 
   @Get('conversations')
   @ApiOperation({ summary: 'Get all conversations for the current user' })
+  @ApiResponse({ status: 200, type: [ConversationResponseDto] })
   async getConversations(
     @Req() req: AuthenticatedRequest,
     @Query(createZodPipe(GetConversationsQuerySchema))
@@ -66,6 +79,7 @@ export class ChatController {
 
   @Get('conversations/:conversationId')
   @ApiOperation({ summary: 'Get a single conversation' })
+  @ApiResponse({ status: 200, type: ConversationDetailResponseDto })
   async getConversation(
     @Req() req: AuthenticatedRequest,
     @Param('conversationId') conversationId: string,
@@ -75,6 +89,7 @@ export class ChatController {
 
   @Get('conversations/:conversationId/messages')
   @ApiOperation({ summary: 'Get messages for a conversation' })
+  @ApiResponse({ status: 200, type: [ChatMessageResponseDto] })
   async getMessages(
     @Req() req: AuthenticatedRequest,
     @Param('conversationId') conversationId: string,
@@ -90,6 +105,7 @@ export class ChatController {
 
   @Post('conversations/:conversationId/read')
   @ApiOperation({ summary: 'Mark all messages in a conversation as read' })
+  @ApiResponse({ status: 201, type: MarkAsReadResponseDto })
   async markConversationAsRead(
     @Req() req: AuthenticatedRequest,
     @Param('conversationId') conversationId: string,
@@ -102,12 +118,14 @@ export class ChatController {
 
   @Get('unread')
   @ApiOperation({ summary: 'Get unread message count' })
+  @ApiResponse({ status: 200, type: UnreadCountResponseDto })
   async getUnreadCount(@Req() req: AuthenticatedRequest) {
     return this.chatService.getUnreadCount(req.user.userId);
   }
 
   @Get('conversation-with/:userId')
   @ApiOperation({ summary: 'Get or create conversation with a user' })
+  @ApiResponse({ status: 200, type: ConversationDetailResponseDto })
   async getConversationWith(
     @Req() req: AuthenticatedRequest,
     @Param('userId') userId: string,

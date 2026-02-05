@@ -2,10 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Achievement } from '@prisma/client';
 import { AchievementRepository } from '../repositories/achievement.repository';
 import { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.repository';
-import {
-  CreateAchievement,
-  UpdateAchievement,
-} from '@octopus-synapse/profile-contracts';
+import { CreateAchievement, UpdateAchievement } from '@/shared-kernel';
 import { BaseSubResourceService } from './base';
 import { EventPublisher } from '@/shared-kernel';
 import type { SectionType } from '@/bounded-contexts/resumes/domain/events';

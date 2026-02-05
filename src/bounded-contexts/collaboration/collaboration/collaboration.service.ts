@@ -15,10 +15,8 @@ import {
   NotFoundException,
   ConflictException,
 } from '@nestjs/common';
-import {
-  CollaboratorRole,
-  canRoleEdit,
-} from '@octopus-synapse/profile-contracts';
+import { canRoleEdit } from '@/shared-kernel';
+import type { CollaboratorRole } from '@/shared-kernel';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { EventPublisher } from '@/shared-kernel';
 import { CollaborationStartedEvent } from '../domain/events';

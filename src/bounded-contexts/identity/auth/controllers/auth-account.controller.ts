@@ -4,12 +4,12 @@
  */
 
 import {
-  Controller,
-  Post,
   Body,
-  UseGuards,
+  Controller,
   HttpCode,
   HttpStatus,
+  Post,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -17,15 +17,15 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
+import { DeleteResponseDto } from '@/shared-kernel/dtos/sdk-response.dto';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { AuthService } from '@/bounded-contexts/identity/auth/auth.service';
-import type {
-  ChangeEmail,
-  DeleteAccount,
-} from '@octopus-synapse/profile-contracts';
+import type { ChangeEmail, DeleteAccount } from '@/shared-kernel';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import type { UserPayload } from '../interfaces/auth-request.interface';
 
+@SdkExport({ tag: 'auth', description: 'Auth API' })
 @ApiTags('auth')
 @Controller('v1/auth')
 export class AuthAccountController {
@@ -51,6 +51,7 @@ export class AuthAccountController {
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Delete own account (authenticated)' })
+  @ApiResponse({ status: 201, type: DeleteResponseDto })
   @ApiResponse({ status: 200, description: 'Account deleted successfully' })
   @ApiResponse({ status: 401, description: 'Password is incorrect' })
   async deleteAccount(

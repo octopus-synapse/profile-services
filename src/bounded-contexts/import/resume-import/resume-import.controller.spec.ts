@@ -18,7 +18,7 @@ describe('ResumeImportController', () => {
   let mockImportService: {
     createImportJob: ReturnType<typeof mock>;
     processImport: ReturnType<typeof mock>;
-    getImportStatus: ReturnType<typeof mock>;
+    getImportById: ReturnType<typeof mock>;
     getImportHistory: ReturnType<typeof mock>;
     cancelImport: ReturnType<typeof mock>;
     retryImport: ReturnType<typeof mock>;
@@ -48,16 +48,31 @@ describe('ResumeImportController', () => {
           resumeId: 'resume-123',
         }),
       ),
-      getImportStatus: mock(() =>
+      getImportById: mock(() =>
         Promise.resolve({
+          id: 'import-123',
+          userId: 'user-123',
+          source: 'JSON',
           status: 'COMPLETED',
           resumeId: 'resume-123',
+          createdAt: new Date('2024-01-01'),
+          updatedAt: new Date('2024-01-01'),
         }),
       ),
       getImportHistory: mock(() =>
         Promise.resolve([
-          { id: 'import-1', status: 'COMPLETED' },
-          { id: 'import-2', status: 'FAILED' },
+          {
+            id: 'import-1',
+            status: 'COMPLETED',
+            createdAt: new Date('2024-01-01'),
+            updatedAt: new Date('2024-01-01'),
+          },
+          {
+            id: 'import-2',
+            status: 'FAILED',
+            createdAt: new Date('2024-01-02'),
+            updatedAt: new Date('2024-01-02'),
+          },
         ]),
       ),
       cancelImport: mock(() => Promise.resolve()),
@@ -138,13 +153,13 @@ describe('ResumeImportController', () => {
         status: 'COMPLETED',
         resumeId: 'resume-123',
       });
-      expect(mockImportService.getImportStatus).toHaveBeenCalledWith(
+      expect(mockImportService.getImportById).toHaveBeenCalledWith(
         'import-123',
       );
     });
 
     it('should throw NotFoundException for unknown import', async () => {
-      mockImportService.getImportStatus.mockImplementationOnce(() =>
+      mockImportService.getImportById.mockImplementationOnce(() =>
         Promise.reject(new NotFoundException('Import not found')),
       );
 

@@ -4,10 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { BlockedUserRepository } from '../repositories/blocked-user.repository';
-import type {
-  BlockUser,
-  BlockedUserResponse,
-} from '@octopus-synapse/profile-contracts';
+import type { BlockUser, BlockedUserResponse } from '@/shared-kernel';
 
 @Injectable()
 export class BlockService {

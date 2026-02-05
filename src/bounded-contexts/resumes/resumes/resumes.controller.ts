@@ -1,23 +1,27 @@
 import {
-  Controller,
-  Get,
-  Post,
-  Patch,
-  Delete,
   Body,
-  Param,
-  Query,
-  UseGuards,
+  Controller,
+  DefaultValuePipe,
+  Delete,
+  Get,
   HttpCode,
   HttpStatus,
+  Param,
   ParseIntPipe,
-  DefaultValuePipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
 } from '@nestjs/common';
+import {
+  DeleteResponseDto,
+  ResumeFullResponseDto,
+  ResumeListItemDto,
+  ResumeResponseDto,
+  ResumeSlotsResponseDto,
+} from '@/shared-kernel/dtos/sdk-response.dto';
 import { ResumesService } from './resumes.service';
-import type {
-  CreateResume,
-  UpdateResume,
-} from '@octopus-synapse/profile-contracts';
+import type { CreateResume, UpdateResume } from '@/shared-kernel';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
@@ -29,7 +33,9 @@ import {
   ApiBearerAuth,
   ApiParam,
 } from '@nestjs/swagger';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 
+@SdkExport({ tag: 'resumes', description: 'Resume CRUD operations' })
 @ApiTags('resumes')
 @ApiBearerAuth('JWT-auth')
 @Controller('v1/resumes')
@@ -39,6 +45,7 @@ export class ResumesController {
 
   @Get()
   @ApiOperation({ summary: 'Get all resumes for current user' })
+  @ApiResponse({ status: 200, type: [ResumeListItemDto] })
   @ApiResponse({ status: 200, description: 'List of resumes' })
   async getAllUserResumes(
     @CurrentUser() user: UserPayload,
@@ -50,6 +57,7 @@ export class ResumesController {
 
   @Get('slots')
   @ApiOperation({ summary: 'Get remaining resume slots for current user' })
+  @ApiResponse({ status: 200, type: ResumeSlotsResponseDto })
   @ApiResponse({
     status: 200,
     description: 'Resume slots info',
@@ -68,6 +76,7 @@ export class ResumesController {
 
   @Get(':id/full')
   @ApiOperation({ summary: 'Get a resume with all sections' })
+  @ApiResponse({ status: 200, type: ResumeFullResponseDto })
   @ApiParam({ name: 'id', description: 'Resume ID' })
   @ApiResponse({ status: 200, description: 'Resume with all sections' })
   @ApiResponse({ status: 404, description: 'Resume not found' })
@@ -80,6 +89,7 @@ export class ResumesController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get a specific resume' })
+  @ApiResponse({ status: 200, type: ResumeFullResponseDto })
   @ApiParam({ name: 'id', description: 'Resume ID' })
   @ApiResponse({ status: 200, description: 'Resume found' })
   @ApiResponse({ status: 404, description: 'Resume not found' })
@@ -94,6 +104,7 @@ export class ResumesController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new resume' })
+  @ApiResponse({ status: 201, type: ResumeResponseDto })
   @ApiResponse({ status: 201, description: 'Resume created' })
   async createResumeForUser(
     @CurrentUser() user: UserPayload,
@@ -105,6 +116,7 @@ export class ResumesController {
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update a resume' })
+  @ApiResponse({ status: 200, type: ResumeResponseDto })
   @ApiParam({ name: 'id', description: 'Resume ID' })
   @ApiResponse({ status: 200, description: 'Resume updated' })
   @ApiResponse({ status: 404, description: 'Resume not found' })
@@ -123,6 +135,7 @@ export class ResumesController {
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete a resume' })
+  @ApiResponse({ status: 200, type: DeleteResponseDto })
   @ApiParam({ name: 'id', description: 'Resume ID' })
   @ApiResponse({ status: 200, description: 'Resume deleted' })
   @ApiResponse({ status: 404, description: 'Resume not found' })

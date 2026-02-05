@@ -10,9 +10,13 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { UsersRepository } from '@/bounded-contexts/identity/users/users.repository';
-import type { UpdateUsername } from '@octopus-synapse/profile-contracts';
+import type {
+  UpdateUsername,
+  UsernameValidationError,
+  ValidateUsernameResponse,
+} from '@/shared-kernel';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
-import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
+import { ERROR_MESSAGES } from '@/shared-kernel';
 
 const USERNAME_UPDATE_COOLDOWN_DAYS = 30;
 
@@ -117,6 +121,110 @@ export class UsernameService {
     return {
       username: normalizedUsername,
       available: !isTaken,
+    };
+  }
+
+  /**
+   * Validates username format and availability.
+   * Returns structured validation result for frontend consumption.
+   */
+  async validateUsername(
+    username: string,
+    userId?: string,
+  ): Promise<ValidateUsernameResponse> {
+    const errors: UsernameValidationError[] = [];
+    const trimmed = username.trim();
+
+    // Check for uppercase
+    if (trimmed !== trimmed.toLowerCase()) {
+      errors.push({
+        code: 'UPPERCASE',
+        message: 'Username must contain only lowercase letters',
+      });
+    }
+
+    const normalized = trimmed.toLowerCase();
+
+    // Check length
+    if (normalized.length < 3) {
+      errors.push({
+        code: 'TOO_SHORT',
+        message: 'Username must be at least 3 characters',
+      });
+    }
+
+    if (normalized.length > 30) {
+      errors.push({
+        code: 'TOO_LONG',
+        message: 'Username cannot exceed 30 characters',
+      });
+    }
+
+    // Check format (only lowercase letters, numbers, underscores)
+    if (normalized.length >= 3 && !/^[a-z0-9_]+$/.test(normalized)) {
+      errors.push({
+        code: 'INVALID_FORMAT',
+        message:
+          'Username can only contain lowercase letters, numbers, and underscores',
+      });
+    }
+
+    // Check start character
+    if (normalized.length >= 1 && !/^[a-z]/.test(normalized)) {
+      errors.push({
+        code: 'INVALID_START',
+        message: 'Username must start with a letter',
+      });
+    }
+
+    // Check end character
+    if (normalized.length >= 1 && !/[a-z0-9]$/.test(normalized)) {
+      errors.push({
+        code: 'INVALID_END',
+        message: 'Username must end with a letter or number',
+      });
+    }
+
+    // Check consecutive underscores
+    if (normalized.includes('__')) {
+      errors.push({
+        code: 'CONSECUTIVE_UNDERSCORES',
+        message: 'Username cannot contain consecutive underscores',
+      });
+    }
+
+    // Check reserved usernames
+    if (RESERVED_USERNAMES.has(normalized)) {
+      errors.push({
+        code: 'RESERVED',
+        message: 'This username is reserved',
+      });
+    }
+
+    // Only check availability if format is valid
+    const isFormatValid = errors.length === 0;
+    let available: boolean | undefined;
+
+    if (isFormatValid) {
+      const isTaken = await this.usersRepository.isUsernameTaken(
+        normalized,
+        userId,
+      );
+      available = !isTaken;
+
+      if (isTaken) {
+        errors.push({
+          code: 'ALREADY_TAKEN',
+          message: 'This username is already taken',
+        });
+      }
+    }
+
+    return {
+      username: normalized,
+      valid: errors.length === 0,
+      available,
+      errors,
     };
   }
 
