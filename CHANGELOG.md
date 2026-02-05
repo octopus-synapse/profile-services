@@ -1,5 +1,12 @@
 # Changelog
 
+## [7.1.0](https://github.com/octopus-synapse/profile-services/compare/profile-services-v7.0.1...profile-services-v7.1.0) (2026-02-05)
+
+
+### Features
+
+* expose UserRole and ExportFormat enums in Swagger/OpenAPI ([#138](https://github.com/octopus-synapse/profile-services/issues/138)) ([e16152c](https://github.com/octopus-synapse/profile-services/commit/e16152c90f19ccb8e7a3a98acf7554e25d42d03d))
+
 ## [7.0.1](https://github.com/octopus-synapse/profile-services/compare/profile-services-v7.0.0...profile-services-v7.0.1) (2026-02-04)
 
 
