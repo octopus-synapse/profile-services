@@ -8,12 +8,14 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiConsumes, ApiBody } from '@nestjs/swagger';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { ATSService } from './services/ats.service';
 import type {
   ValidateCV,
   Validation,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 
+@SdkExport({ tag: 'ats-validation', description: 'Ats Validation API' })
 @ApiTags('ATS Validation')
 @Controller('v1/ats')
 export class ATSController {

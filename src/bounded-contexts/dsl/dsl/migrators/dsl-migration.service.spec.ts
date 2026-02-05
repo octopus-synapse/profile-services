@@ -7,7 +7,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException } from '@nestjs/common';
 import { DslMigrationService } from './dsl-migration.service';
 import type { DslMigrator } from './base.migrator';
-import type { ResumeDsl } from '@octopus-synapse/profile-contracts';
+import type { ResumeDsl } from '@/shared-kernel';
 
 describe('DslMigrationService', () => {
   let service: DslMigrationService;

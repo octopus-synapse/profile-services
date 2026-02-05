@@ -4,7 +4,7 @@ import { Recommendation } from '@prisma/client';
 import {
   CreateRecommendation,
   UpdateRecommendation,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 import {
   BaseSubResourceRepository,
   OrderByConfig,

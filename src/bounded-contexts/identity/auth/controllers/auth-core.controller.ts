@@ -4,13 +4,13 @@
  */
 
 import {
-  Controller,
-  Post,
-  Get,
   Body,
-  UseGuards,
+  Controller,
+  Get,
   HttpCode,
   HttpStatus,
+  Post,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -19,6 +19,10 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { Throttle, SkipThrottle } from '@nestjs/throttler';
+import {
+  AuthResponseDto,
+  CurrentUserResponseDto,
+} from '@/shared-kernel/dtos/sdk-response.dto';
 import { AuthService } from '@/bounded-contexts/identity/auth/auth.service';
 import {
   LoginCredentialsSchema,
@@ -28,14 +32,20 @@ import {
   type RegisterCredentials,
   type RefreshToken,
   RATE_LIMIT_CONFIG,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 import { createZodPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
 import { Public } from '../decorators/public.decorator';
 import { SkipTosCheck } from '../decorators/skip-tos-check.decorator';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { UserPayload } from '../interfaces/auth-request.interface';
 
+@SdkExport({
+  tag: 'auth',
+  description: 'Authentication - signup, login, tokens',
+  requiresAuth: false,
+})
 @ApiTags('auth')
 @Controller('v1/auth')
 export class AuthCoreController {
@@ -70,6 +80,7 @@ export class AuthCoreController {
   })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Login with email and password' })
+  @ApiResponse({ status: 201, type: AuthResponseDto })
   @ApiResponse({ status: 200, description: 'Login successful' })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
   async login(
@@ -97,6 +108,7 @@ export class AuthCoreController {
   @Get('me')
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get current authenticated user info' })
+  @ApiResponse({ status: 200, type: CurrentUserResponseDto })
   @ApiResponse({ status: 200, description: 'User info retrieved successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   async getCurrentUser(@CurrentUser() user: UserPayload) {

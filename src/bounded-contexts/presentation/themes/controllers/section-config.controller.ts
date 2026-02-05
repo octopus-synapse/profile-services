@@ -5,6 +5,7 @@
 
 import { Controller, Post, Body, Param, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SectionVisibilityService, SectionOrderingService } from '../services';
@@ -24,6 +25,7 @@ class SectionBatch {
   sections: Array<{ id: string; visible?: boolean; order?: number }>;
 }
 
+@SdkExport({ tag: 'resume-config', description: 'Resume Config API' })
 @ApiTags('resume-config')
 @Controller('v1/resumes/:resumeId/config')
 @UseGuards(JwtAuthGuard)

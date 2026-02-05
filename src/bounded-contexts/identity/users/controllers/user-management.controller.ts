@@ -8,18 +8,18 @@
  */
 
 import {
-  Controller,
-  Get,
-  Post,
-  Patch,
-  Delete,
   Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
   Param,
+  Patch,
+  Post,
   Query,
   Req,
   UseGuards,
-  HttpCode,
-  HttpStatus,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -28,6 +28,13 @@ import {
   ApiBearerAuth,
   ApiQuery,
 } from '@nestjs/swagger';
+import {
+  DeleteResponseDto,
+  MessageResponseDto,
+  UserDetailsResponseDto,
+  UserListItemDto,
+} from '@/shared-kernel/dtos/sdk-response.dto';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
 import {
   PermissionGuard,
@@ -38,8 +45,9 @@ import type {
   AdminCreateUser,
   AdminUpdateUser,
   AdminResetPassword,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 
+@SdkExport({ tag: 'users', description: 'Users API' })
 @ApiTags('users')
 @ApiBearerAuth('JWT-auth')
 @Controller('v1/users/manage')
@@ -50,6 +58,7 @@ export class UserManagementController {
   @Get()
   @RequirePermission('user', 'read')
   @ApiOperation({ summary: 'List all users with pagination' })
+  @ApiResponse({ status: 200, type: [UserListItemDto] })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiQuery({ name: 'search', required: false, type: String })
@@ -69,6 +78,7 @@ export class UserManagementController {
   @Get(':id')
   @RequirePermission('user', 'read')
   @ApiOperation({ summary: 'Get user details by ID' })
+  @ApiResponse({ status: 200, type: UserDetailsResponseDto })
   @ApiResponse({ status: 200, description: 'User retrieved successfully' })
   @ApiResponse({ status: 404, description: 'User not found' })
   async getUserDetails(@Param('id') userId: string) {
@@ -79,6 +89,7 @@ export class UserManagementController {
   @RequirePermission('user', 'create')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new user' })
+  @ApiResponse({ status: 201, type: UserDetailsResponseDto })
   @ApiResponse({ status: 201, description: 'User created successfully' })
   @ApiResponse({ status: 409, description: 'Email already exists' })
   async createUser(@Body() data: AdminCreateUser) {
@@ -88,6 +99,7 @@ export class UserManagementController {
   @Patch(':id')
   @RequirePermission('user', 'update')
   @ApiOperation({ summary: 'Update user information' })
+  @ApiResponse({ status: 200, type: UserDetailsResponseDto })
   @ApiResponse({ status: 200, description: 'User updated successfully' })
   @ApiResponse({ status: 404, description: 'User not found' })
   async updateUser(@Param('id') userId: string, @Body() data: AdminUpdateUser) {
@@ -100,6 +112,7 @@ export class UserManagementController {
     summary: 'Delete a user',
     description: 'GDPR-compliant deletion that removes all user data.',
   })
+  @ApiResponse({ status: 200, type: DeleteResponseDto })
   @ApiResponse({ status: 200, description: 'User deleted successfully' })
   @ApiResponse({ status: 404, description: 'User not found' })
   @ApiResponse({
@@ -116,6 +129,7 @@ export class UserManagementController {
   @Post(':id/reset-password')
   @RequirePermission('user', 'update')
   @ApiOperation({ summary: 'Reset user password' })
+  @ApiResponse({ status: 201, type: MessageResponseDto })
   @ApiResponse({ status: 200, description: 'Password reset successfully' })
   @ApiResponse({ status: 404, description: 'User not found' })
   async resetPassword(

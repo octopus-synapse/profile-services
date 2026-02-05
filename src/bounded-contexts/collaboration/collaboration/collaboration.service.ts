@@ -18,7 +18,7 @@ import {
 import {
   CollaboratorRole,
   canRoleEdit,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { EventPublisher } from '@/shared-kernel';
 import { CollaborationStartedEvent } from '../domain/events';

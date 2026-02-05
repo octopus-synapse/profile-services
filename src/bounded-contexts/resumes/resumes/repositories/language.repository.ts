@@ -4,7 +4,7 @@ import { Language } from '@prisma/client';
 import type {
   CreateLanguage,
   UpdateLanguage,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 import {
   BaseSubResourceRepository,
   OrderByConfig,

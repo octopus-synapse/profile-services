@@ -14,10 +14,12 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiQuery, ApiParam } from '@nestjs/swagger';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { Public } from '@/bounded-contexts/identity/auth/decorators/public.decorator';
 import { CourseQueryService } from '../services/course-query.service';
-import { APP_CONFIG } from '@octopus-synapse/profile-contracts';
+import { APP_CONFIG } from '@/shared-kernel';
 
+@SdkExport({ tag: 'mec-courses', description: 'Mec Courses API', requiresAuth: false })
 @ApiTags('mec-courses')
 @Controller('v1/mec/courses')
 export class MecCourseController {

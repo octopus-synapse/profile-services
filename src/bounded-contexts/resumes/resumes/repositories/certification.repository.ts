@@ -4,7 +4,7 @@ import { Certification } from '@prisma/client';
 import {
   CreateCertification,
   UpdateCertification,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 import {
   BaseSubResourceRepository,
   OrderByConfig,

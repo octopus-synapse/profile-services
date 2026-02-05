@@ -4,7 +4,7 @@ import { Talk } from '@prisma/client';
 import type {
   CreateTalk,
   UpdateTalk,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 import {
   BaseSubResourceRepository,
   OrderByConfig,

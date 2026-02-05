@@ -4,7 +4,7 @@ import { BugBounty } from '@prisma/client';
 import type {
   CreateBugBounty,
   UpdateBugBounty,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 import {
   BaseSubResourceRepository,
   OrderByConfig,

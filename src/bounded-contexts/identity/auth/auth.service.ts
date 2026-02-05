@@ -16,7 +16,7 @@ import type {
   ChangePassword,
   ChangeEmail,
   DeleteAccount,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 import {
   AuthCoreService,
   TokenRefreshService,

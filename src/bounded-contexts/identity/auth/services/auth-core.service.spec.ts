@@ -8,7 +8,7 @@ import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logg
 import { TokenService } from './token.service';
 import { PasswordService } from './password.service';
 import { EventPublisher } from '@/shared-kernel';
-import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
+import { ERROR_MESSAGES } from '@/shared-kernel';
 
 describe('AuthCoreService', () => {
   let service: AuthCoreService;

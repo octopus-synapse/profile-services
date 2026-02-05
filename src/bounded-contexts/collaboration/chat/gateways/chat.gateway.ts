@@ -17,7 +17,7 @@ import { MessageRepository } from '../repositories/message.repository';
 import type {
   SendMessageToConversation,
   WsTypingEvent,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 
 interface JwtPayload {
   sub: string;

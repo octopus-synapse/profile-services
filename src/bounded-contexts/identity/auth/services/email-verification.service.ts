@@ -13,7 +13,7 @@ import { UserVerifiedEvent } from '../../domain/events';
 import type {
   RequestVerification,
   VerifyEmail,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 
 @Injectable()
 export class EmailVerificationService {

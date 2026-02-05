@@ -4,16 +4,20 @@
  */
 
 import {
+  Body,
   Controller,
   Get,
-  Patch,
-  Body,
-  UseGuards,
   HttpCode,
   HttpStatus,
   Param,
+  Patch,
   Query,
+  UseGuards,
 } from '@nestjs/common';
+import {
+  PublicProfileResponseDto,
+  UserProfileResponseDto,
+} from '@/shared-kernel/dtos/sdk-response.dto';
 import {
   ApiTags,
   ApiOperation,
@@ -21,16 +25,18 @@ import {
   ApiBearerAuth,
   ApiQuery,
 } from '@nestjs/swagger';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { UsersService } from '@/bounded-contexts/identity/users/users.service';
 import type {
   UpdateUser as UpdateProfile,
   UpdateUsername,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
 import { Public } from '@/bounded-contexts/identity/auth/decorators/public.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
 
+@SdkExport({ tag: 'users', description: 'Users API' })
 @ApiTags('users')
 @ApiBearerAuth('JWT-auth')
 @Controller('v1/users')
@@ -40,6 +46,7 @@ export class UsersProfileController {
   @Public()
   @Get(':username/profile')
   @ApiOperation({ summary: "Get a user's public profile by username" })
+  @ApiResponse({ status: 200, type: PublicProfileResponseDto })
   @ApiResponse({ status: 200, description: 'Public profile retrieved' })
   @ApiResponse({ status: 404, description: 'Public profile not found' })
   async getPublicProfileByUsername(@Param('username') username: string) {
@@ -49,6 +56,7 @@ export class UsersProfileController {
   @UseGuards(JwtAuthGuard)
   @Get('profile')
   @ApiOperation({ summary: 'Get current user profile' })
+  @ApiResponse({ status: 200, type: UserProfileResponseDto })
   @ApiResponse({
     status: 200,
     description: 'User profile retrieved successfully',
@@ -63,6 +71,7 @@ export class UsersProfileController {
   @Patch('profile')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update current user profile' })
+  @ApiResponse({ status: 200, type: UserProfileResponseDto })
   @ApiResponse({ status: 200, description: 'Profile updated successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'User not found' })

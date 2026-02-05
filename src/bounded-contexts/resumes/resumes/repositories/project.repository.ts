@@ -4,7 +4,7 @@ import { Project } from '@prisma/client';
 import type {
   CreateProject,
   UpdateProject,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 import {
   BaseSubResourceRepository,
   OrderByConfig,

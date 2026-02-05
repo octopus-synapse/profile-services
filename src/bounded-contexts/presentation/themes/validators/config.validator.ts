@@ -3,7 +3,7 @@
  */
 
 import { BadRequestException } from '@nestjs/common';
-import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
+import { ERROR_MESSAGES } from '@/shared-kernel';
 
 const VALID_LAYOUT_TYPES = [
   'single-column',

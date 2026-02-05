@@ -4,7 +4,7 @@ import { Publication } from '@prisma/client';
 import {
   CreatePublication,
   UpdatePublication,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 import {
   BaseSubResourceRepository,
   OrderByConfig,

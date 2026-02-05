@@ -7,7 +7,7 @@ import { Injectable } from '@nestjs/common';
 import * as crypto from 'crypto';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
-import { API_LIMITS } from '@octopus-synapse/profile-contracts';
+import { API_LIMITS } from '@/shared-kernel';
 import { TECH_SKILLS_CACHE_KEYS, TECH_SKILLS_CACHE_TTL } from '../interfaces';
 import type { TechSkill, TechSkillRawQueryResult } from '../dtos';
 import { mapRawSkillsTo } from '../utils';

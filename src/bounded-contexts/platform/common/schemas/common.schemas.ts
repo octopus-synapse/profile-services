@@ -1,7 +1,7 @@
 /**
  * Common Validation Schemas
  *
- * Re-exports from @octopus-synapse/profile-contracts.
+ * Re-exports from @/shared-kernel.
  * Single source of truth for common validation patterns.
  */
 
@@ -17,7 +17,7 @@ export {
   type IdParam,
   SearchQuerySchema as searchQuerySchema,
   type SearchQuery,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 
 // For backwards compatibility with existing code
 export type Reorder = { ids: string[] };

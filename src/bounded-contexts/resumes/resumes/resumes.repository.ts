@@ -4,7 +4,7 @@ import { Resume } from '@prisma/client';
 import {
   type CreateResume,
   type UpdateResume,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 
 /**
  * Repository-level DTO types.

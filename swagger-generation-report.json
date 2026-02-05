@@ -1,0 +1,445 @@
+{
+  "success": true,
+  "timestamp": "2026-02-05T16:13:14.468Z",
+  "controllers": 57,
+  "endpoints": 160,
+  "schemas": 65,
+  "tags": [
+    "resumes",
+    "ats-validation",
+    "export",
+    "tech-niches",
+    "tech-areas",
+    "tech-skills",
+    "skills",
+    "platform",
+    "enums",
+    "collaboration",
+    "chat",
+    "chat---block-users",
+    "resume-import",
+    "onboarding",
+    "users",
+    "auth",
+    "gdpr",
+    "user-consent",
+    "mec-institutions",
+    "mec-metadata",
+    "mec-internal",
+    "mec-courses",
+    "upload",
+    "github",
+    "resume-analytics",
+    "dsl",
+    "translation",
+    "themes",
+    "resume-config"
+  ],
+  "details": [
+    {
+      "controller": "ResumesController",
+      "tag": "resumes",
+      "endpoints": 7,
+      "file": "bounded-contexts/resumes/resumes/resumes.controller.ts"
+    },
+    {
+      "controller": "RecommendationController",
+      "tag": "resumes",
+      "endpoints": 0,
+      "file": "bounded-contexts/resumes/resumes/controllers/recommendation.controller.ts"
+    },
+    {
+      "controller": "OpenSourceController",
+      "tag": "resumes",
+      "endpoints": 0,
+      "file": "bounded-contexts/resumes/resumes/controllers/open-source.controller.ts"
+    },
+    {
+      "controller": "ProjectController",
+      "tag": "resumes",
+      "endpoints": 0,
+      "file": "bounded-contexts/resumes/resumes/controllers/project.controller.ts"
+    },
+    {
+      "controller": "TalkController",
+      "tag": "resumes",
+      "endpoints": 0,
+      "file": "bounded-contexts/resumes/resumes/controllers/talk.controller.ts"
+    },
+    {
+      "controller": "EducationController",
+      "tag": "resumes",
+      "endpoints": 0,
+      "file": "bounded-contexts/resumes/resumes/controllers/education.controller.ts"
+    },
+    {
+      "controller": "PublicationController",
+      "tag": "resumes",
+      "endpoints": 0,
+      "file": "bounded-contexts/resumes/resumes/controllers/publication.controller.ts"
+    },
+    {
+      "controller": "HackathonController",
+      "tag": "resumes",
+      "endpoints": 0,
+      "file": "bounded-contexts/resumes/resumes/controllers/hackathon.controller.ts"
+    },
+    {
+      "controller": "SkillController",
+      "tag": "resumes",
+      "endpoints": 2,
+      "file": "bounded-contexts/resumes/resumes/controllers/skill.controller.ts"
+    },
+    {
+      "controller": "LanguageController",
+      "tag": "resumes",
+      "endpoints": 0,
+      "file": "bounded-contexts/resumes/resumes/controllers/language.controller.ts"
+    },
+    {
+      "controller": "ExperienceController",
+      "tag": "resumes",
+      "endpoints": 0,
+      "file": "bounded-contexts/resumes/resumes/controllers/experience.controller.ts"
+    },
+    {
+      "controller": "CertificationController",
+      "tag": "resumes",
+      "endpoints": 0,
+      "file": "bounded-contexts/resumes/resumes/controllers/certification.controller.ts"
+    },
+    {
+      "controller": "ResumeManagementController",
+      "tag": "resumes",
+      "endpoints": 3,
+      "file": "bounded-contexts/resumes/resumes/controllers/resume-management.controller.ts"
+    },
+    {
+      "controller": "AchievementController",
+      "tag": "resumes",
+      "endpoints": 0,
+      "file": "bounded-contexts/resumes/resumes/controllers/achievement.controller.ts"
+    },
+    {
+      "controller": "BugBountyController",
+      "tag": "resumes",
+      "endpoints": 0,
+      "file": "bounded-contexts/resumes/resumes/controllers/bug-bounty.controller.ts"
+    },
+    {
+      "controller": "InterestController",
+      "tag": "resumes",
+      "endpoints": 0,
+      "file": "bounded-contexts/resumes/resumes/controllers/interest.controller.ts"
+    },
+    {
+      "controller": "AwardController",
+      "tag": "resumes",
+      "endpoints": 0,
+      "file": "bounded-contexts/resumes/resumes/controllers/award.controller.ts"
+    },
+    {
+      "controller": "ATSController",
+      "tag": "ats-validation",
+      "endpoints": 1,
+      "file": "bounded-contexts/ats-validation/ats/ats.controller.ts"
+    },
+    {
+      "controller": "ExportController",
+      "tag": "export",
+      "endpoints": 3,
+      "file": "bounded-contexts/export/export/export.controller.ts"
+    },
+    {
+      "controller": "ExportBannerController",
+      "tag": "export",
+      "endpoints": 1,
+      "file": "bounded-contexts/export/export/controllers/export-banner.controller.ts"
+    },
+    {
+      "controller": "ExportMultiFormatController",
+      "tag": "export",
+      "endpoints": 2,
+      "file": "bounded-contexts/export/export/controllers/export-multi-format.controller.ts"
+    },
+    {
+      "controller": "ExportPdfController",
+      "tag": "export",
+      "endpoints": 1,
+      "file": "bounded-contexts/export/export/controllers/export-pdf.controller.ts"
+    },
+    {
+      "controller": "ExportDocxController",
+      "tag": "export",
+      "endpoints": 1,
+      "file": "bounded-contexts/export/export/controllers/export-docx.controller.ts"
+    },
+    {
+      "controller": "TechNicheController",
+      "tag": "tech-niches",
+      "endpoints": 2,
+      "file": "bounded-contexts/skills-catalog/tech-skills/controllers/tech-niche.controller.ts"
+    },
+    {
+      "controller": "TechAreaController",
+      "tag": "tech-areas",
+      "endpoints": 2,
+      "file": "bounded-contexts/skills-catalog/tech-skills/controllers/tech-area.controller.ts"
+    },
+    {
+      "controller": "TechSkillController",
+      "tag": "tech-skills",
+      "endpoints": 3,
+      "file": "bounded-contexts/skills-catalog/tech-skills/controllers/tech-skill.controller.ts"
+    },
+    {
+      "controller": "SkillManagementController",
+      "tag": "skills",
+      "endpoints": 4,
+      "file": "bounded-contexts/skills-catalog/skills/controllers/skill-management.controller.ts"
+    },
+    {
+      "controller": "PlatformStatsController",
+      "tag": "platform",
+      "endpoints": 1,
+      "file": "bounded-contexts/platform/common/controllers/platform-stats.controller.ts"
+    },
+    {
+      "controller": "EnumsController",
+      "tag": "enums",
+      "endpoints": 2,
+      "file": "bounded-contexts/platform/common/controllers/enums.controller.ts"
+    },
+    {
+      "controller": "CollaborationController",
+      "tag": "collaboration",
+      "endpoints": 5,
+      "file": "bounded-contexts/collaboration/collaboration/collaboration.controller.ts"
+    },
+    {
+      "controller": "ChatController",
+      "tag": "chat",
+      "endpoints": 8,
+      "file": "bounded-contexts/collaboration/chat/controllers/chat.controller.ts"
+    },
+    {
+      "controller": "BlockController",
+      "tag": "chat---block-users",
+      "endpoints": 4,
+      "file": "bounded-contexts/collaboration/chat/controllers/block.controller.ts"
+    },
+    {
+      "controller": "ResumeImportController",
+      "tag": "resume-import",
+      "endpoints": 6,
+      "file": "bounded-contexts/import/resume-import/resume-import.controller.ts"
+    },
+    {
+      "controller": "OnboardingController",
+      "tag": "onboarding",
+      "endpoints": 4,
+      "file": "bounded-contexts/onboarding/onboarding/onboarding.controller.ts"
+    },
+    {
+      "controller": "UsersController",
+      "tag": "users",
+      "endpoints": 10,
+      "file": "bounded-contexts/identity/users/users.controller.ts"
+    },
+    {
+      "controller": "UsersPreferencesController",
+      "tag": "users",
+      "endpoints": 4,
+      "file": "bounded-contexts/identity/users/controllers/users-preferences.controller.ts"
+    },
+    {
+      "controller": "UsersProfileController",
+      "tag": "users",
+      "endpoints": 5,
+      "file": "bounded-contexts/identity/users/controllers/users-profile.controller.ts"
+    },
+    {
+      "controller": "UserManagementController",
+      "tag": "users",
+      "endpoints": 6,
+      "file": "bounded-contexts/identity/users/controllers/user-management.controller.ts"
+    },
+    {
+      "controller": "AuthCoreController",
+      "tag": "auth",
+      "endpoints": 4,
+      "file": "bounded-contexts/identity/auth/controllers/auth-core.controller.ts"
+    },
+    {
+      "controller": "GdprController",
+      "tag": "gdpr",
+      "endpoints": 2,
+      "file": "bounded-contexts/identity/auth/controllers/gdpr.controller.ts"
+    },
+    {
+      "controller": "AuthPasswordController",
+      "tag": "auth",
+      "endpoints": 3,
+      "file": "bounded-contexts/identity/auth/controllers/auth-password.controller.ts"
+    },
+    {
+      "controller": "UserConsentController",
+      "tag": "user-consent",
+      "endpoints": 3,
+      "file": "bounded-contexts/identity/auth/controllers/user-consent.controller.ts"
+    },
+    {
+      "controller": "AuthAccountController",
+      "tag": "auth",
+      "endpoints": 2,
+      "file": "bounded-contexts/identity/auth/controllers/auth-account.controller.ts"
+    },
+    {
+      "controller": "AuthVerificationController",
+      "tag": "auth",
+      "endpoints": 2,
+      "file": "bounded-contexts/identity/auth/controllers/auth-verification.controller.ts"
+    },
+    {
+      "controller": "MecInstitutionController",
+      "tag": "mec-institutions",
+      "endpoints": 4,
+      "file": "bounded-contexts/integration/mec-sync/controllers/mec-institution.controller.ts"
+    },
+    {
+      "controller": "MecMetadataController",
+      "tag": "mec-metadata",
+      "endpoints": 3,
+      "file": "bounded-contexts/integration/mec-sync/controllers/mec-metadata.controller.ts"
+    },
+    {
+      "controller": "MecSyncInternalController",
+      "tag": "mec-internal",
+      "endpoints": 3,
+      "file": "bounded-contexts/integration/mec-sync/controllers/mec-sync-internal.controller.ts"
+    },
+    {
+      "controller": "MecCourseController",
+      "tag": "mec-courses",
+      "endpoints": 2,
+      "file": "bounded-contexts/integration/mec-sync/controllers/mec-course.controller.ts"
+    },
+    {
+      "controller": "UploadController",
+      "tag": "upload",
+      "endpoints": 3,
+      "file": "bounded-contexts/integration/upload/upload.controller.ts"
+    },
+    {
+      "controller": "GitHubController",
+      "tag": "github",
+      "endpoints": 4,
+      "file": "bounded-contexts/integration/integrations/github/github.controller.ts"
+    },
+    {
+      "controller": "ResumeAnalyticsController",
+      "tag": "resume-analytics",
+      "endpoints": 10,
+      "file": "bounded-contexts/analytics/resume-analytics/controllers/resume-analytics.controller.ts"
+    },
+    {
+      "controller": "DslController",
+      "tag": "dsl",
+      "endpoints": 4,
+      "file": "bounded-contexts/dsl/dsl/dsl.controller.ts"
+    },
+    {
+      "controller": "TranslationController",
+      "tag": "translation",
+      "endpoints": 5,
+      "file": "bounded-contexts/translation/translation/translation.controller.ts"
+    },
+    {
+      "controller": "ThemeApprovalController",
+      "tag": "themes",
+      "endpoints": 3,
+      "file": "bounded-contexts/presentation/themes/controllers/theme-approval.controller.ts"
+    },
+    {
+      "controller": "UserThemeController",
+      "tag": "themes",
+      "endpoints": 7,
+      "file": "bounded-contexts/presentation/themes/controllers/user-theme.controller.ts"
+    },
+    {
+      "controller": "SectionConfigController",
+      "tag": "resume-config",
+      "endpoints": 5,
+      "file": "bounded-contexts/presentation/themes/controllers/section-config.controller.ts"
+    },
+    {
+      "controller": "PublicThemeController",
+      "tag": "themes",
+      "endpoints": 4,
+      "file": "bounded-contexts/presentation/themes/controllers/public-theme.controller.ts"
+    }
+  ],
+  "warnings": [
+    "ResumesController.resumes_createResumeForUser: POST endpoint without request body DTO",
+    "ResumesController.resumes_updateResumeForUser: PATCH endpoint without request body DTO",
+    "SkillController.resumes_createBulk: POST endpoint without request body DTO",
+    "ATSController.ats-validation_postEndpoint: POST endpoint without request body DTO",
+    "SkillManagementController.skills_addSkillToResume: POST endpoint without request body DTO",
+    "SkillManagementController.skills_updateSkill: PATCH endpoint without request body DTO",
+    "ChatController.chat_sendMessage: POST endpoint without request body DTO",
+    "ChatController.chat_sendMessageToConversation: POST endpoint without request body DTO",
+    "ChatController.chat_markConversationAsRead: POST endpoint without request body DTO",
+    "BlockController.chat---block-users_blockUser: POST endpoint without request body DTO",
+    "ResumeImportController.resume-import_retry: POST endpoint without request body DTO",
+    "OnboardingController.onboarding_completeOnboarding: POST endpoint without request body DTO",
+    "OnboardingController.onboarding_saveProgress: PUT endpoint without request body DTO",
+    "UsersController.users_validateUsername: POST endpoint without request body DTO",
+    "UsersController.users_updateProfile: PATCH endpoint without request body DTO",
+    "UsersController.users_updatePreferences: PATCH endpoint without request body DTO",
+    "UsersController.users_updateFullPreferences: PATCH endpoint without request body DTO",
+    "UsersController.users_updateUsername: PATCH endpoint without request body DTO",
+    "UsersPreferencesController.users_updatePreferences: PATCH endpoint without request body DTO",
+    "UsersPreferencesController.users_updateFullPreferences: PATCH endpoint without request body DTO",
+    "UsersProfileController.users_updateProfile: PATCH endpoint without request body DTO",
+    "UsersProfileController.users_updateUsername: PATCH endpoint without request body DTO",
+    "UserManagementController.users_createUser: POST endpoint without request body DTO",
+    "UserManagementController.users_resetPassword: POST endpoint without request body DTO",
+    "UserManagementController.users_updateUser: PATCH endpoint without request body DTO",
+    "AuthCoreController.auth_signup: POST endpoint without request body DTO",
+    "AuthCoreController.auth_login: POST endpoint without request body DTO",
+    "AuthCoreController.auth_refreshToken: POST endpoint without request body DTO",
+    "AuthPasswordController.auth_forgotPassword: POST endpoint without request body DTO",
+    "AuthPasswordController.auth_resetPassword: POST endpoint without request body DTO",
+    "AuthPasswordController.auth_changePassword: POST endpoint without request body DTO",
+    "UserConsentController.user-consent_acceptConsent: POST endpoint without request body DTO",
+    "AuthAccountController.auth_changeEmail: POST endpoint without request body DTO",
+    "AuthAccountController.auth_deleteAccount: POST endpoint without request body DTO",
+    "AuthVerificationController.auth_requestEmailVerification: POST endpoint without request body DTO",
+    "AuthVerificationController.auth_verifyEmail: POST endpoint without request body DTO",
+    "MecSyncInternalController.mec-internal_triggerSync: POST endpoint without request body DTO",
+    "UploadController.upload_uploadProfileImage: POST endpoint without request body DTO",
+    "UploadController.upload_uploadCompanyLogo: POST endpoint without request body DTO",
+    "GitHubController.github_syncGitHub: POST endpoint without request body DTO",
+    "GitHubController.github_autoSyncGitHub: POST endpoint without request body DTO",
+    "ResumeAnalyticsController.resume-analytics_trackView: POST endpoint without request body DTO",
+    "ResumeAnalyticsController.resume-analytics_matchJob: POST endpoint without request body DTO",
+    "ResumeAnalyticsController.resume-analytics_createSnapshot: POST endpoint without request body DTO",
+    "DslController.dsl_validate: POST endpoint without request body DTO",
+    "DslController.dsl_preview: POST endpoint without request body DTO",
+    "TranslationController.translation_translateText: POST endpoint without request body DTO",
+    "TranslationController.translation_translateBatch: POST endpoint without request body DTO",
+    "TranslationController.translation_translatePtToEn: POST endpoint without request body DTO",
+    "TranslationController.translation_translateEnToPt: POST endpoint without request body DTO",
+    "ThemeApprovalController.themes_review: POST endpoint without request body DTO",
+    "ThemeApprovalController.themes_submit: POST endpoint without request body DTO",
+    "UserThemeController.themes_createThemeForUser: POST endpoint without request body DTO",
+    "UserThemeController.themes_fork: POST endpoint without request body DTO",
+    "UserThemeController.themes_apply: POST endpoint without request body DTO",
+    "UserThemeController.themes_updateThemeForUser: PUT endpoint without request body DTO",
+    "SectionConfigController.resume-config_toggleSection: POST endpoint without request body DTO",
+    "SectionConfigController.resume-config_reorderSection: POST endpoint without request body DTO",
+    "SectionConfigController.resume-config_toggleItem: POST endpoint without request body DTO",
+    "SectionConfigController.resume-config_reorderItem: POST endpoint without request body DTO",
+    "SectionConfigController.resume-config_batchUpdate: POST endpoint without request body DTO"
+  ]
+}

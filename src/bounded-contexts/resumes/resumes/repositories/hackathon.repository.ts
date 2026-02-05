@@ -4,7 +4,7 @@ import { Hackathon } from '@prisma/client';
 import type {
   CreateHackathon,
   UpdateHackathon,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 import {
   BaseSubResourceRepository,
   OrderByConfig,

@@ -16,7 +16,7 @@ import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service
 import type {
   CreateResume,
   UpdateResume,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 
 describe('ResumesRepository', () => {
   let repository: ResumesRepository;

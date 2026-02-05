@@ -20,8 +20,8 @@ import type {
   ForgotPassword,
   ResetPassword,
   ChangePassword,
-} from '@octopus-synapse/profile-contracts';
-import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
+import { ERROR_MESSAGES } from '@/shared-kernel';
 
 @Injectable()
 export class PasswordResetService {

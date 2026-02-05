@@ -2,7 +2,7 @@ import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { DslCompilerService } from './dsl-compiler.service';
 import { DslValidatorService } from './dsl-validator.service';
-import type { ResumeDsl, ResumeAst } from '@octopus-synapse/profile-contracts';
+import type { ResumeDsl, ResumeAst } from '@/shared-kernel';
 import type { ResumeWithRelations } from './dsl-compiler.service';
 import { mergeDsl } from '../domain/value-objects/merge-dsl';
 import { RESUME_RELATIONS_INCLUDE } from '../infrastructure/resume-query';

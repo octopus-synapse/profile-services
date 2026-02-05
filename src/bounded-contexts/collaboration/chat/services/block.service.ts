@@ -7,7 +7,7 @@ import { BlockedUserRepository } from '../repositories/blocked-user.repository';
 import type {
   BlockUser,
   BlockedUserResponse,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 
 @Injectable()
 export class BlockService {

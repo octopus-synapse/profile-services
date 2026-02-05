@@ -4,12 +4,12 @@
  */
 
 import {
-  Controller,
-  Post,
   Body,
-  UseGuards,
+  Controller,
   HttpCode,
   HttpStatus,
+  Post,
+  UseGuards,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -18,18 +18,24 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
+import { MessageResponseDto } from '@/shared-kernel/dtos/sdk-response.dto';
 import { AuthService } from '@/bounded-contexts/identity/auth/auth.service';
 import type {
   ResetPasswordRequest as ForgotPassword,
   NewPassword as ResetPassword,
   ChangePassword,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 import { Public } from '../decorators/public.decorator';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { UserPayload } from '../interfaces/auth-request.interface';
-import { RATE_LIMIT_CONFIG } from '@octopus-synapse/profile-contracts';
+import { RATE_LIMIT_CONFIG } from '@/shared-kernel';
 
+@SdkExport({
+  tag: 'auth',
+  description: 'Password management - forgot, reset, change',
+})
 @ApiTags('auth')
 @Controller('v1/auth')
 export class AuthPasswordController {
@@ -40,6 +46,7 @@ export class AuthPasswordController {
   @Throttle({ default: { ttl: RATE_LIMIT_CONFIG.TTL_MS, limit: 3 } })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Request password reset' })
+  @ApiResponse({ status: 201, type: MessageResponseDto })
   @ApiResponse({ status: 200, description: 'Password reset email sent' })
   @ApiResponse({ status: 429, description: 'Too many requests' })
   async forgotPassword(@Body() dto: ForgotPassword) {
@@ -56,6 +63,7 @@ export class AuthPasswordController {
   })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Reset password with token' })
+  @ApiResponse({ status: 201, type: MessageResponseDto })
   @ApiResponse({ status: 200, description: 'Password reset successfully' })
   @ApiResponse({ status: 400, description: 'Invalid or expired token' })
   async resetPassword(@Body() dto: ResetPassword) {
@@ -67,6 +75,7 @@ export class AuthPasswordController {
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Change password (authenticated)' })
+  @ApiResponse({ status: 201, type: MessageResponseDto })
   @ApiResponse({ status: 200, description: 'Password changed successfully' })
   @ApiResponse({ status: 401, description: 'Current password is incorrect' })
   async changePassword(

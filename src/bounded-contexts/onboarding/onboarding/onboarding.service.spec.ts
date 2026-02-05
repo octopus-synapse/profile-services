@@ -15,7 +15,7 @@ import { OnboardingProgressService } from './services/onboarding-progress.servic
 import {
   ERROR_MESSAGES,
   SUCCESS_MESSAGES,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 
 describe('OnboardingService', () => {
   let service: OnboardingService;

@@ -1,4 +1,4 @@
-import type { PaginatedResult } from '@octopus-synapse/profile-contracts';
+import type { PaginatedResult } from '@/shared-kernel';
 
 /**
  * Generic interface for sub-resource repositories

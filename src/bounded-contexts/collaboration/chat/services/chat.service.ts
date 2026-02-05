@@ -18,7 +18,7 @@ import type {
   MessageResponse,
   PaginatedMessagesResponse,
   PaginatedConversationsResponse,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 
 type MessageWithSender = Prisma.MessageGetPayload<{
   include: {

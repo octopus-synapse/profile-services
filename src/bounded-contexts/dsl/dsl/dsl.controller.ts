@@ -19,14 +19,18 @@ import {
   ApiBearerAuth,
   ApiBody,
   ApiQuery,
+  ApiResponse,
 } from '@nestjs/swagger';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
 import { Public } from '@/bounded-contexts/identity/auth/decorators/public.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { DslRepository } from './dsl.repository';
+import { DslRenderResponseDto } from '@/shared-kernel';
 
 type RenderTarget = 'html' | 'pdf';
 
+@SdkExport({ tag: 'dsl', description: 'Dsl API' })
 @ApiTags('dsl')
 @Controller('v1/dsl')
 export class DslController {
@@ -67,6 +71,7 @@ export class DslController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get compiled AST for a resume' })
+  @ApiResponse({ status: 200, type: DslRenderResponseDto })
   @ApiQuery({ name: 'target', enum: ['html', 'pdf'], required: false })
   async render(
     @CurrentUser('userId') userId: string,

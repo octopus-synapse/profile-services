@@ -4,7 +4,7 @@ import { Award } from '@prisma/client';
 import type {
   CreateAward,
   UpdateAward,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 import {
   BaseSubResourceRepository,
   OrderByConfig,

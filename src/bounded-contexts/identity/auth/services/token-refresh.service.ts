@@ -9,7 +9,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
-import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
+import { ERROR_MESSAGES } from '@/shared-kernel';
 import { TokenService } from './token.service';
 import { TokenBlacklistService } from './token-blacklist.service';
 

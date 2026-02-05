@@ -17,7 +17,7 @@ export type {
   DashboardResponse,
   SnapshotResponse,
   ScoreProgressionResponse,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 
 export type {
   TrackView,

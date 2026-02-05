@@ -4,7 +4,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { RATE_LIMIT_CONFIG } from '@octopus-synapse/profile-contracts';
+import { RATE_LIMIT_CONFIG } from '@/shared-kernel';
 
 // Core & Platform
 import { CustomThrottlerGuard } from '@/bounded-contexts/platform/common/guards/custom-throttler.guard';
@@ -36,6 +36,9 @@ import { PublicResumesModule } from '@/bounded-contexts/presentation/public-resu
 
 // Export Context
 import { ExportModule } from '@/bounded-contexts/export/export/export.module';
+
+// Import Context
+import { ResumeImportModule } from '@/bounded-contexts/import/resume-import/resume-import.module';
 
 // Onboarding Context
 import { OnboardingModule } from '@/bounded-contexts/onboarding/onboarding/onboarding.module';
@@ -105,6 +108,7 @@ import { DslModule } from '@/bounded-contexts/dsl/dsl/dsl.module';
     ResumeVersionsModule,
     OnboardingModule,
     ExportModule,
+    ResumeImportModule,
     UploadModule,
     GitHubModule,
     SkillsManagementModule,

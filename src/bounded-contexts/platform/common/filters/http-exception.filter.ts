@@ -16,7 +16,7 @@ import {
 } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { AppLoggerService } from '../logger/logger.service';
-import { ERROR_CODES } from '@octopus-synapse/profile-contracts';
+import { ERROR_CODES } from '@/shared-kernel';
 
 /**
  * Interface matching ValidationError from profile-contracts

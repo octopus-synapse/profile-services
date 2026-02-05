@@ -9,12 +9,11 @@ import { AppLoggerService } from '../logger/logger.service';
  * Single Responsibility: Configure request validation only
  *
  * Architecture: Validation is handled by validation pipes from
- * @octopus-synapse/profile-contracts at the route level.
+ * @/shared-kernel at the route level.
  * Global pipe is kept for legacy compatibility but does minimal work.
  */
 export function configureValidation(app: INestApplication): void {
   // Minimal global validation - actual validation done at route level
-  // via pipes from profile-contracts
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,

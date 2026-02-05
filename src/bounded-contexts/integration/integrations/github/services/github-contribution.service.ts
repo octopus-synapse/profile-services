@@ -6,7 +6,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { GitHubApiService, GitHubRepo } from './github-api.service';
-import { TIME_MS } from '@octopus-synapse/profile-contracts';
+import { TIME_MS } from '@/shared-kernel';
 
 type GitHubContributionInput = Prisma.OpenSourceContributionCreateManyInput;
 

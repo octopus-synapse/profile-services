@@ -5,7 +5,7 @@
 
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { APP_CONFIG } from '@octopus-synapse/profile-contracts';
+import { APP_CONFIG } from '@/shared-kernel';
 
 export interface SpokenLanguage {
   code: string;

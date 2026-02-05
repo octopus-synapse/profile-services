@@ -13,7 +13,7 @@ import {
   TOKEN_EXPIRY,
   ERROR_MESSAGES,
   CRYPTO_CONSTANTS,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 
 const RESET_TOKEN_PREFIX = 'reset:';
 

@@ -3,7 +3,7 @@ import type {
   ResumeDsl,
   ResumeAst,
   SectionData,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 import { DslValidatorService } from './dsl-validator.service';
 import {
   TokenResolverService,

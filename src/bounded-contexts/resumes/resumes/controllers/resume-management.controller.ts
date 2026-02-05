@@ -22,13 +22,20 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
 import {
   PermissionGuard,
   RequirePermission,
 } from '@/bounded-contexts/identity/authorization';
 import { ResumeManagementService } from '../services/resume-management.service';
+import {
+  DeleteResponseDto,
+  ResumeFullResponseDto,
+  ResumeListItemDto,
+} from '@/shared-kernel';
 
+@SdkExport({ tag: 'resumes', description: 'Resumes API' })
 @ApiTags('resumes')
 @ApiBearerAuth('JWT-auth')
 @Controller('v1/resumes/manage')
@@ -39,6 +46,7 @@ export class ResumeManagementController {
   @Get('user/:userId')
   @RequirePermission('resume', 'read')
   @ApiOperation({ summary: 'List all resumes for a specific user' })
+  @ApiResponse({ status: 200, type: [ResumeListItemDto] })
   @ApiResponse({ status: 200, description: 'Resumes retrieved successfully' })
   @ApiResponse({ status: 404, description: 'User not found' })
   async listResumesForUser(@Param('userId') userId: string) {
@@ -48,6 +56,7 @@ export class ResumeManagementController {
   @Get(':id')
   @RequirePermission('resume', 'read')
   @ApiOperation({ summary: 'Get full resume details' })
+  @ApiResponse({ status: 200, type: ResumeFullResponseDto })
   @ApiResponse({ status: 200, description: 'Resume retrieved successfully' })
   @ApiResponse({ status: 404, description: 'Resume not found' })
   async getResumeDetails(@Param('id') resumeId: string) {
@@ -58,6 +67,7 @@ export class ResumeManagementController {
   @RequirePermission('resume', 'delete')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete a resume' })
+  @ApiResponse({ status: 200, type: DeleteResponseDto })
   @ApiResponse({ status: 200, description: 'Resume deleted successfully' })
   @ApiResponse({ status: 404, description: 'Resume not found' })
   async deleteResume(@Param('id') resumeId: string) {

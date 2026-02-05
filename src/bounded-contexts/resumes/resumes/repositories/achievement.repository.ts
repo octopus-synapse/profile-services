@@ -4,7 +4,7 @@ import { Achievement } from '@prisma/client';
 import {
   CreateAchievement,
   UpdateAchievement,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 import {
   BaseSubResourceRepository,
   OrderByConfig,

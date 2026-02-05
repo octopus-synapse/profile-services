@@ -20,6 +20,7 @@ import {
   ApiQuery,
   ApiProduces,
 } from '@nestjs/swagger';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
 import { ResumePDFService } from '../services/resume-pdf.service';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
@@ -33,6 +34,7 @@ import {
   ExportFailedEvent,
 } from '../../domain/events';
 
+@SdkExport({ tag: 'export', description: 'Export API' })
 @ApiTags('export')
 @ApiBearerAuth('JWT-auth')
 @Controller('v1/export')

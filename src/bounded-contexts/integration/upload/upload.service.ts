@@ -4,7 +4,7 @@ import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logg
 import {
   FILE_UPLOAD_CONFIG,
   ERROR_MESSAGES,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 import { v4 as uuidv4 } from 'uuid';
 
 export interface FileUpload {

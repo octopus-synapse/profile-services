@@ -4,7 +4,7 @@ import { Experience } from '@prisma/client';
 import type {
   CreateExperience,
   UpdateExperience,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 import {
   BaseSubResourceRepository,
   OrderByConfig,

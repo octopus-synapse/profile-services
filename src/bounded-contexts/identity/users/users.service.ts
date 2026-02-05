@@ -12,7 +12,7 @@ import type {
   UpdatePreferences,
   UpdateFullPreferences,
   UpdateUsername,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 
 @Injectable()
 export class UsersService {
@@ -68,5 +68,9 @@ export class UsersService {
 
   async checkUsernameAvailability(username: string, userId?: string) {
     return this.usernameService.checkUsernameAvailability(username, userId);
+  }
+
+  async validateUsername(username: string, userId?: string) {
+    return this.usernameService.validateUsername(username, userId);
   }
 }

@@ -6,8 +6,8 @@ import {
   CreateSkill,
   UpdateSkill,
   type BulkCreateSkills,
-} from '@octopus-synapse/profile-contracts';
-import type { PaginatedResult } from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
+import type { PaginatedResult } from '@/shared-kernel';
 import {
   ApiResponseHelper,
   ApiResponse,

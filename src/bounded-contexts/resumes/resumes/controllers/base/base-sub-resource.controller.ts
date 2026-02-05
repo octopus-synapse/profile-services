@@ -18,7 +18,7 @@ import { BaseSubResourceService } from '../../services/base/base-sub-resource.se
 import type {
   ReorderItems,
   PaginatedResult,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 import { ParseCuidPipe } from '@/bounded-contexts/platform/common/pipes/parse-cuid.pipe';
 import {
   DataResponse,

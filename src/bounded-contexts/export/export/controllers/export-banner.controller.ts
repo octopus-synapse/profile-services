@@ -20,10 +20,15 @@ import {
   ApiQuery,
   ApiProduces,
 } from '@nestjs/swagger';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
 import { BannerCaptureService } from '../services/banner-capture.service';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import {
+  BannerPreviewResponseDto,
+} from '@/shared-kernel';
 
+@SdkExport({ tag: 'export', description: 'Export API' })
 @ApiTags('export')
 @ApiBearerAuth('JWT-auth')
 @Controller('v1/export')
@@ -40,6 +45,7 @@ export class ExportBannerController {
   @Header('Content-Type', 'image/png')
   @Header('Content-Disposition', 'attachment; filename="linkedin-banner.png"')
   @ApiOperation({ summary: 'Export LinkedIn banner image' })
+  @ApiResponse({ status: 200, type: BannerPreviewResponseDto })
   @ApiProduces('image/png')
   @ApiQuery({
     name: 'palette',

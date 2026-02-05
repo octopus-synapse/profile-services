@@ -8,7 +8,7 @@
 import {
   validateEnv,
   type EnvironmentVariables,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 
 /**
  * Validates environment variables using profile-contracts

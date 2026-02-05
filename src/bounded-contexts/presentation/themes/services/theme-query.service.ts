@@ -6,8 +6,8 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ThemeStatus, Prisma } from '@prisma/client';
-import type { QueryThemes } from '@octopus-synapse/profile-contracts';
-import { APP_CONFIG } from '@octopus-synapse/profile-contracts';
+import type { QueryThemes } from '@/shared-kernel';
+import { APP_CONFIG } from '@/shared-kernel';
 
 @Injectable()
 export class ThemeQueryService {

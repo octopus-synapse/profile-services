@@ -4,12 +4,12 @@ import { Skill } from '@prisma/client';
 import type {
   CreateSkill,
   UpdateSkill,
-} from '@octopus-synapse/profile-contracts';
-import type { PaginatedResult } from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
+import type { PaginatedResult } from '@/shared-kernel';
 import {
   PAGINATION,
   SkillLevelToNumeric,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 import {
   BaseSubResourceRepository,
   OrderByConfig,

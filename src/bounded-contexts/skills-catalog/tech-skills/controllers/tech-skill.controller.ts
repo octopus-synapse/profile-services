@@ -5,13 +5,18 @@
 
 import { Controller, Get, Query, Param } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { SkillQueryService } from '../services/skill-query.service';
 import { SkillSearchService } from '../services/skill-search.service';
 import { TechSkillsQueryService } from '../services/tech-skills-query.service';
 import { Public } from '@/bounded-contexts/identity/auth/decorators/public.decorator';
 import type { SkillType } from '../interfaces';
 import type { TechSkill } from '../dtos';
+import {
+  TechSkillDto,
+} from '@/shared-kernel';
 
+@SdkExport({ tag: 'tech-skills', description: 'Tech Skills API', requiresAuth: false })
 @ApiTags('tech-skills')
 @Controller('v1/tech-skills')
 export class TechSkillController {
@@ -25,6 +30,7 @@ export class TechSkillController {
   @Get()
   @Public()
   @ApiOperation({ summary: 'Get all tech skills' })
+  @ApiResponse({ status: 200, type: [TechSkillDto] })
   @ApiResponse({ status: 200, description: 'List of tech skills' })
   async getSkills(): Promise<TechSkill[]> {
     return this.skillQuery.getAllSkills();
@@ -34,6 +40,7 @@ export class TechSkillController {
   @Get('search')
   @Public()
   @ApiOperation({ summary: 'Search tech skills' })
+  @ApiResponse({ status: 200, type: [TechSkillDto] })
   @ApiResponse({ status: 200, description: 'Search results' })
   async searchSkills(
     @Query('q') query: string,
@@ -49,6 +56,7 @@ export class TechSkillController {
   @Get('type/:type')
   @Public()
   @ApiOperation({ summary: 'Get skills by type' })
+  @ApiResponse({ status: 200, type: [TechSkillDto] })
   @ApiResponse({ status: 200, description: 'List of skills by type' })
   async getSkillsByType(
     @Param('type') type: SkillType,

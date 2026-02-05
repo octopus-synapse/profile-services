@@ -4,7 +4,7 @@ import {
   UpdateEducationSchema,
   type CreateEducation,
   type UpdateEducation,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 
 /**
  * GraphQL Input for creating education

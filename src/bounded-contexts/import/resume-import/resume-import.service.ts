@@ -245,6 +245,21 @@ export class ResumeImportService {
   }
 
   /**
+   * Get import job by ID
+   */
+  async getImportById(importId: string): Promise<ResumeImport> {
+    const importJob = await this.prisma.resumeImport.findUnique({
+      where: { id: importId },
+    });
+
+    if (!importJob) {
+      throw new NotFoundException('Import not found');
+    }
+
+    return importJob;
+  }
+
+  /**
    * Get import history for a user
    */
   async getImportHistory(userId: string): Promise<ResumeImport[]> {

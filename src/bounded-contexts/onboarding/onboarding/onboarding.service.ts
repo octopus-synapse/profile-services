@@ -10,7 +10,7 @@ import type { Prisma } from '@prisma/client';
 import {
   ERROR_MESSAGES,
   SUCCESS_MESSAGES,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 import {
   onboardingDataSchema,
   type OnboardingData,
@@ -21,7 +21,7 @@ import { ExperienceOnboardingService } from './services/experience-onboarding.se
 import { EducationOnboardingService } from './services/education-onboarding.service';
 import { LanguagesOnboardingService } from './services/languages-onboarding.service';
 import { OnboardingProgressService } from './services/onboarding-progress.service';
-import type { OnboardingProgress } from '@octopus-synapse/profile-contracts';
+import type { OnboardingProgress } from '@/shared-kernel';
 
 @Injectable()
 export class OnboardingService {

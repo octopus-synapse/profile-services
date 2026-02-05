@@ -1,13 +1,13 @@
 import { ForbiddenException, Logger, NotFoundException } from '@nestjs/common';
 import { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.repository';
 import type { ISubResourceRepository } from '../../interfaces/base-sub-resource.interface';
-import type { PaginatedResult } from '@octopus-synapse/profile-contracts';
+import type { PaginatedResult } from '@/shared-kernel';
 import {
   ApiResponseHelper,
   DataResponse,
   MessageResponse,
 } from '@/bounded-contexts/platform/common/dto/api-response.dto';
-import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
+import { ERROR_MESSAGES } from '@/shared-kernel';
 import { EventPublisher } from '@/shared-kernel';
 import {
   SectionAddedEvent,

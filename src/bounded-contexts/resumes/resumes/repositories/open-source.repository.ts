@@ -4,7 +4,7 @@ import { OpenSourceContribution } from '@prisma/client';
 import {
   CreateOpenSource,
   UpdateOpenSource,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 import {
   BaseSubResourceRepository,
   OrderByConfig,

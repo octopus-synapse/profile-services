@@ -9,7 +9,7 @@
 
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
+import { ERROR_MESSAGES } from '@/shared-kernel';
 
 // ============================================================================
 // Types

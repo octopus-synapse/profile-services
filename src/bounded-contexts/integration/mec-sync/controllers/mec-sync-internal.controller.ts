@@ -6,18 +6,34 @@
 import {
   Controller,
   Get,
+  HttpCode,
+  HttpStatus,
   Post,
   Query,
   UseGuards,
-  HttpCode,
-  HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiQuery, ApiHeader } from '@nestjs/swagger';
+import {
+  MecSyncHistoryResponseDto,
+  MecSyncStatusResponseDto,
+} from '@/shared-kernel/dtos/sdk-response.dto';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiQuery,
+  ApiHeader,
+  ApiResponse,
+} from '@nestjs/swagger';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { InternalAuthGuard } from '../guards/internal-auth.guard';
 import { Public } from '@/bounded-contexts/identity/auth/decorators/public.decorator';
 import { MecSyncOrchestratorService } from '../services/mec-sync.service';
-import { APP_CONFIG } from '@octopus-synapse/profile-contracts';
+import { APP_CONFIG } from '@/shared-kernel';
 
+@SdkExport({
+  tag: 'mec-internal',
+  description: 'Mec Internal API',
+  requiresAuth: false,
+})
 @ApiTags('mec-internal')
 @Controller('v1/mec/internal')
 export class MecSyncInternalController {
@@ -28,6 +44,7 @@ export class MecSyncInternalController {
   @UseGuards(InternalAuthGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Trigger MEC data synchronization' })
+  @ApiResponse({ status: 201, type: MecSyncStatusResponseDto })
   @ApiHeader({ name: 'x-internal-token', required: true })
   async triggerSync() {
     const result = await this.syncOrchestrator.sync('api');
@@ -48,6 +65,7 @@ export class MecSyncInternalController {
   @Public()
   @UseGuards(InternalAuthGuard)
   @ApiOperation({ summary: 'Get sync status' })
+  @ApiResponse({ status: 200, type: MecSyncStatusResponseDto })
   @ApiHeader({ name: 'x-internal-token', required: true })
   async getSyncStatus() {
     const [isRunning, metadata, lastLog] = await Promise.all([
@@ -63,6 +81,7 @@ export class MecSyncInternalController {
   @Public()
   @UseGuards(InternalAuthGuard)
   @ApiOperation({ summary: 'Get sync history' })
+  @ApiResponse({ status: 200, type: [MecSyncHistoryResponseDto] })
   @ApiHeader({ name: 'x-internal-token', required: true })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   async getSyncHistory(@Query('limit') limit?: string) {

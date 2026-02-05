@@ -10,7 +10,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { AuthorizationService } from '@/bounded-contexts/identity/authorization';
-import { TIME_MS } from '@octopus-synapse/profile-contracts';
+import { TIME_MS } from '@/shared-kernel';
 
 const DAYS_FOR_RECENT = 7;
 

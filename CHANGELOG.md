@@ -1,5 +1,12 @@
 # Changelog
 
+## [7.0.1](https://github.com/octopus-synapse/profile-services/compare/profile-services-v7.0.0...profile-services-v7.0.1) (2026-02-04)
+
+
+### Bug Fixes
+
+* **ci:** correct Docker build context in release workflow ([#136](https://github.com/octopus-synapse/profile-services/issues/136)) ([6e197e6](https://github.com/octopus-synapse/profile-services/commit/6e197e6bcb80c0e638f86e5b408089ec1f256907))
+
 ## [7.0.0](https://github.com/octopus-synapse/profile-services/compare/profile-services-v6.0.1...profile-services-v7.0.0) (2026-02-04)
 
 

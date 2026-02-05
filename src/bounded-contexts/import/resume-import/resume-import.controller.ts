@@ -24,26 +24,30 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
-  ApiBody,
   ApiParam,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
 import { ResumeImportService } from './resume-import.service';
-import type {
-  JsonResumeSchema,
-  ImportResult,
-  ParsedResumeData,
-} from './resume-import.types';
+import type { JsonResumeSchema } from './resume-import.types';
+import {
+  ImportJsonDto,
+  ImportResultDto,
+  ParsedResumeDataDto,
+} from './dto/import.dto';
+import {
+  toImportJobDto,
+  toImportResultDto,
+  toParsedResumeDataDto,
+} from './mappers/import.mapper';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import { ImportJobDto } from '@/shared-kernel';
 
-/**
- * DTO for JSON import
- */
-class ImportJsonDto {
-  data!: JsonResumeSchema;
-}
-
+@SdkExport({
+  tag: 'resume-import',
+  description: 'Resume import from JSON Resume format',
+})
 @ApiTags('Resume Import')
 @ApiBearerAuth('JWT-auth')
 @UseGuards(JwtAuthGuard)
@@ -52,20 +56,28 @@ export class ResumeImportController {
   constructor(private readonly importService: ResumeImportService) {}
 
   @Post('json')
-  @ApiOperation({ summary: 'Import resume from JSON Resume format' })
-  @ApiBody({ description: 'JSON Resume data' })
+  @ApiOperation({
+    summary: 'Import resume from JSON Resume format',
+    description:
+      'Creates import job and processes JSON Resume data (jsonresume.org standard)',
+  })
   @ApiResponse({
     status: HttpStatus.CREATED,
-    description: 'Import successful',
+    description: 'Import created and processing started',
+    type: ImportResultDto,
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
-    description: 'Invalid JSON data',
+    description: 'Invalid JSON Resume data - missing required fields',
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Authentication required',
   })
   async importJson(
     @CurrentUser() user: UserPayload,
     @Body() dto: ImportJsonDto,
-  ): Promise<ImportResult> {
+  ): Promise<ImportResultDto> {
     this.validateJsonResume(dto.data);
 
     const importJob = await this.importService.createImportJob({
@@ -74,60 +86,119 @@ export class ResumeImportController {
       rawData: dto.data,
     });
 
-    return this.importService.processImport(importJob.id);
+    const result = await this.importService.processImport(importJob.id);
+    return toImportResultDto({
+      importId: importJob.id,
+      status: result.status,
+      resumeId: result.resumeId,
+      errors: result.errors,
+    });
   }
 
   @Post('parse')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Parse JSON Resume without saving' })
-  @ApiBody({ description: 'JSON Resume data to parse' })
+  @ApiOperation({
+    summary: 'Parse JSON Resume without importing',
+    description:
+      'Validates and transforms JSON Resume to internal format without saving',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Parsed resume data',
+    description: 'Resume parsed successfully',
+    type: ParsedResumeDataDto,
   })
-  parseJson(@Body() dto: ImportJsonDto): ParsedResumeData {
-    return this.importService.parseJsonResume(dto.data);
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Invalid JSON Resume format',
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Authentication required',
+  })
+  parseJson(@Body() dto: ImportJsonDto): ParsedResumeDataDto {
+    const parsed = this.importService.parseJsonResume(dto.data);
+    return toParsedResumeDataDto(parsed);
   }
 
   @Get(':importId')
-  @ApiOperation({ summary: 'Get import status' })
-  @ApiParam({ name: 'importId', description: 'Import job ID' })
+  @ApiOperation({
+    summary: 'Get import job status',
+    description: 'Returns current status, errors, and result of import job',
+  })
+  @ApiParam({
+    name: 'importId',
+    description: 'UUID of import job',
+    example: 'uuid-v4-string',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Import status',
+    description: 'Import job details',
+    type: ImportJobDto,
   })
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
-    description: 'Import not found',
+    description: 'Import job not found',
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Authentication required',
   })
   async getStatus(
     @CurrentUser() _user: UserPayload,
     @Param('importId') importId: string,
-  ) {
-    return this.importService.getImportStatus(importId);
+  ): Promise<ImportJobDto> {
+    const importJob = await this.importService.getImportById(importId);
+    return toImportJobDto(importJob);
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get import history for current user' })
+  @ApiOperation({
+    summary: 'Get import history',
+    description:
+      'Returns all import jobs for authenticated user, ordered by creation date',
+  })
+  @ApiResponse({ status: 200, type: [ImportJobDto] })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Import history',
+    description: 'List of import jobs',
+    type: [ImportJobDto],
   })
-  async getHistory(@CurrentUser() user: UserPayload) {
-    return this.importService.getImportHistory(user.userId);
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Authentication required',
+  })
+  async getHistory(@CurrentUser() user: UserPayload): Promise<ImportJobDto[]> {
+    const jobs = await this.importService.getImportHistory(user.userId);
+    return jobs.map(toImportJobDto);
   }
 
   @Delete(':importId')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Cancel pending import' })
-  @ApiParam({ name: 'importId', description: 'Import job ID' })
+  @ApiOperation({
+    summary: 'Cancel import job',
+    description:
+      'Cancels pending or processing import. Cannot cancel completed/failed imports.',
+  })
+  @ApiParam({
+    name: 'importId',
+    description: 'UUID of import job',
+    example: 'uuid-v4-string',
+  })
   @ApiResponse({
     status: HttpStatus.NO_CONTENT,
-    description: 'Import cancelled',
+    description: 'Import cancelled successfully',
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
-    description: 'Cannot cancel completed import',
+    description: 'Cannot cancel completed or failed import',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Import job not found',
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Authentication required',
   })
   async cancel(
     @CurrentUser() _user: UserPayload,
@@ -137,21 +208,43 @@ export class ResumeImportController {
   }
 
   @Post(':importId/retry')
-  @ApiOperation({ summary: 'Retry failed import' })
-  @ApiParam({ name: 'importId', description: 'Import job ID' })
+  @ApiOperation({
+    summary: 'Retry failed import',
+    description: 'Retries processing of failed import job with same data',
+  })
+  @ApiParam({
+    name: 'importId',
+    description: 'UUID of failed import job',
+    example: 'uuid-v4-string',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Import retried successfully',
+    description: 'Import retry initiated',
+    type: ImportResultDto,
   })
   @ApiResponse({
     status: HttpStatus.BAD_REQUEST,
     description: 'Can only retry failed imports',
   })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Import job not found',
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'Authentication required',
+  })
   async retry(
     @CurrentUser() _user: UserPayload,
     @Param('importId') importId: string,
-  ): Promise<ImportResult> {
-    return this.importService.retryImport(importId);
+  ): Promise<ImportResultDto> {
+    const result = await this.importService.retryImport(importId);
+    return toImportResultDto({
+      importId,
+      status: result.status,
+      resumeId: result.resumeId,
+      errors: result.errors,
+    });
   }
 
   /**

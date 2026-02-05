@@ -19,11 +19,16 @@ import {
   ApiBody,
   ApiParam,
 } from '@nestjs/swagger';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { UploadService } from './upload.service';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
+import {
+  DeleteResponseDto,
+} from '@/shared-kernel';
 
+@SdkExport({ tag: 'upload', description: 'Upload API' })
 @ApiTags('upload')
 @ApiBearerAuth('JWT-auth')
 @Controller('v1/upload')
@@ -118,6 +123,7 @@ export class UploadController {
   @Delete('file/:key')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete uploaded file' })
+  @ApiResponse({ status: 200, type: DeleteResponseDto })
   @ApiParam({ name: 'key', description: 'File key in S3' })
   @ApiResponse({
     status: 200,

@@ -5,7 +5,7 @@ import { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.re
 import type {
   CreateExperience,
   UpdateExperience,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 import { BaseSubResourceService } from './base';
 import { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { EventPublisher } from '@/shared-kernel';

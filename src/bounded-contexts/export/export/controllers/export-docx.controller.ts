@@ -18,6 +18,7 @@ import {
   ApiBearerAuth,
   ApiProduces,
 } from '@nestjs/swagger';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
 import { ResumeDOCXService } from '../services/resume-docx.service';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
@@ -30,7 +31,11 @@ import {
   ExportCompletedEvent,
   ExportFailedEvent,
 } from '../../domain/events';
+import {
+  ExportResultDto,
+} from '@/shared-kernel';
 
+@SdkExport({ tag: 'export', description: 'Export API' })
 @ApiTags('export')
 @ApiBearerAuth('JWT-auth')
 @Controller('v1/export')
@@ -51,6 +56,7 @@ export class ExportDocxController {
   )
   @Header('Content-Disposition', 'attachment; filename="resume.docx"')
   @ApiOperation({ summary: 'Export resume as DOCX document' })
+  @ApiResponse({ status: 200, type: ExportResultDto })
   @ApiProduces(
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   )

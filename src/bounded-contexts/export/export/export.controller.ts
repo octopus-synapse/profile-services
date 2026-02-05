@@ -1,12 +1,16 @@
 import {
   Controller,
   Get,
-  Query,
-  UseGuards,
-  StreamableFile,
   Header,
   InternalServerErrorException,
+  Query,
+  StreamableFile,
+  UseGuards,
 } from '@nestjs/common';
+import {
+  BannerPreviewResponseDto,
+  ExportResultDto,
+} from '@/shared-kernel/dtos/sdk-response.dto';
 import {
   ApiTags,
   ApiOperation,
@@ -15,6 +19,7 @@ import {
   ApiQuery,
   ApiProduces,
 } from '@nestjs/swagger';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { randomUUID } from 'crypto';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
 import { EventPublisher } from '@/shared-kernel';
@@ -30,6 +35,7 @@ import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/curre
 import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 
+@SdkExport({ tag: 'export', description: 'Export API' })
 @ApiTags('export')
 @ApiBearerAuth('JWT-auth')
 @Controller('v1/export')
@@ -49,6 +55,7 @@ export class ExportController {
   @Header('Content-Type', 'image/png')
   @Header('Content-Disposition', 'attachment; filename="linkedin-banner.png"')
   @ApiOperation({ summary: 'Export LinkedIn banner image' })
+  @ApiResponse({ status: 200, type: BannerPreviewResponseDto })
   @ApiProduces('image/png')
   @ApiQuery({
     name: 'palette',
@@ -171,6 +178,7 @@ export class ExportController {
   )
   @Header('Content-Disposition', 'attachment; filename="resume.docx"')
   @ApiOperation({ summary: 'Export resume as DOCX document' })
+  @ApiResponse({ status: 200, type: ExportResultDto })
   @ApiProduces(
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   )

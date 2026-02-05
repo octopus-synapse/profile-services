@@ -8,7 +8,7 @@ import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logg
 import {
   CRYPTO_CONSTANTS,
   API_LIMITS,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 import { CloudflareHandlerService } from './cloudflare-handler.service';
 import type { Browser, Page } from 'puppeteer';
 import { MEC_CSV_URL, PUPPETEER_CONFIG, PUPPETEER_ARGS } from '../constants';

@@ -8,9 +8,9 @@ import { UsersRepository } from '@/bounded-contexts/identity/users/users.reposit
 import {
   UpdatePreferences,
   UpdateFullPreferences,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
-import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
+import { ERROR_MESSAGES } from '@/shared-kernel';
 
 @Injectable()
 export class UserPreferencesService {

@@ -4,7 +4,7 @@ import { Interest } from '@prisma/client';
 import type {
   CreateInterest,
   UpdateInterest,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 import {
   BaseSubResourceRepository,
   OrderByConfig,

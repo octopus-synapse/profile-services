@@ -13,13 +13,13 @@ import { EventPublisher } from '@/shared-kernel';
 import type {
   ApplyThemeToResume,
   ForkTheme,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 import { ThemeCrudService } from './theme-crud.service';
 import { ThemeQueryService } from './theme-query.service';
 import { ThemeAppliedEvent } from '../../domain/events';
 import { deepMerge } from '../utils';
 import { ThemeStatus, Prisma } from '@prisma/client';
-import { ERROR_MESSAGES } from '@octopus-synapse/profile-contracts';
+import { ERROR_MESSAGES } from '@/shared-kernel';
 
 @Injectable()
 export class ThemeApplicationService {

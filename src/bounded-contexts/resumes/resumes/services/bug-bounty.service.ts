@@ -5,7 +5,7 @@ import { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.re
 import {
   CreateBugBounty,
   UpdateBugBounty,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 import {
   ApiResponseHelper,
   ApiResponse,

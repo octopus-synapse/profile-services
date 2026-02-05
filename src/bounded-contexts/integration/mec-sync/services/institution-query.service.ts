@@ -10,12 +10,12 @@ import {
   Institution,
   InstitutionWithCourses,
   CourseBasic,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 import {
   MEC_CACHE_KEYS,
   MEC_CACHE_TTL,
 } from '../interfaces/mec-data.interface';
-import { APP_CONFIG } from '@octopus-synapse/profile-contracts';
+import { APP_CONFIG } from '@/shared-kernel';
 
 @Injectable()
 export class InstitutionQueryService {

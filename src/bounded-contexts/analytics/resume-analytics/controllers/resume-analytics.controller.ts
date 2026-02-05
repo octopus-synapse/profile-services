@@ -14,15 +14,16 @@
  */
 
 import {
+  Body,
   Controller,
   Get,
-  Post,
   Param,
+  Post,
   Query,
-  Body,
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { TrackEventResponseDto } from '@/shared-kernel/dtos/sdk-response.dto';
 import {
   ApiTags,
   ApiOperation,
@@ -30,6 +31,7 @@ import {
   ApiBearerAuth,
   ApiParam,
 } from '@nestjs/swagger';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { Request } from 'express';
 import { ResumeAnalyticsFacade } from '../services/resume-analytics.facade';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
@@ -53,13 +55,18 @@ import type {
   DashboardResponse,
   SnapshotResponse,
   ScoreProgressionResponse,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
+
+import { ImportJobDto } from '@/shared-kernel';
+
+import { ApiResponse } from '@nestjs/swagger';
 
 interface AuthUser {
   id: string;
   email: string;
 }
 
+@SdkExport({ tag: 'resume-analytics', description: 'Resume Analytics API' })
 @ApiTags('Resume Analytics')
 @Controller('resume-analytics')
 export class ResumeAnalyticsController {
@@ -67,6 +74,7 @@ export class ResumeAnalyticsController {
 
   @Post(':resumeId/track-view')
   @ApiOperation({ summary: 'Track resume view (public endpoint)' })
+  @ApiResponse({ status: 201, type: TrackEventResponseDto })
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
   @SwaggerResponse({ status: 200, description: 'View tracked successfully' })
   async trackView(
@@ -225,6 +233,7 @@ export class ResumeAnalyticsController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get analytics history' })
+  @ApiResponse({ status: 200, type: [ImportJobDto] })
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
   @SwaggerResponse({ status: 200, description: 'History retrieved' })
   async getHistory(

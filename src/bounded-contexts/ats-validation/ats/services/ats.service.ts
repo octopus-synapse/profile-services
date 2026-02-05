@@ -11,7 +11,7 @@ import type {
   Validation,
   ValidateCV,
   ValidationIssue,
-} from '@octopus-synapse/profile-contracts';
+} from '@/shared-kernel';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import type {
   TextExtractionResult,
