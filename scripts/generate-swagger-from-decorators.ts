@@ -490,15 +490,16 @@ function findAndParseDtos(
   const schemas: Record<string, DtoSchema> = {};
 
   // Search in both .dto.ts files AND .controller.ts files (for inline DTOs)
-  const dtoFiles = findFiles(srcDir, /\.(dto|controller)\.ts$/);
+  // Sort for deterministic output across platforms
+  const dtoFiles = findFiles(srcDir, /\.(dto|controller)\.ts$/).sort();
 
-  // Keep track of DTOs to process (start with initial list)
-  const toProcess = new Set(dtoNames);
+  // Keep track of DTOs to process (start with initial list, sorted for determinism)
+  const toProcess = new Set(dtoNames.sort());
   const processed = new Set<string>();
 
   // Iteratively discover and parse DTOs until no new ones found
   while (toProcess.size > 0) {
-    const currentBatch = [...toProcess];
+    const currentBatch = [...toProcess].sort(); // Sort for deterministic order
     toProcess.clear();
 
     for (const dtoName of currentBatch) {
@@ -817,6 +818,32 @@ function generateOpenApiSpec(
     }
   }
 
+  // Sort paths for deterministic output
+  const sortedPaths: Record<string, Record<string, unknown>> = {};
+  for (const pathKey of Object.keys(paths).sort()) {
+    // Also sort methods within each path
+    const methodsObj = paths[pathKey];
+    const sortedMethods: Record<string, unknown> = {};
+    for (const method of Object.keys(methodsObj).sort()) {
+      sortedMethods[method] = methodsObj[method];
+    }
+    sortedPaths[pathKey] = sortedMethods;
+  }
+
+  // Sort schemas for deterministic output
+  const sortedSchemas: Record<string, DtoSchema> = {};
+  for (const schemaKey of Object.keys(schemas).sort()) {
+    sortedSchemas[schemaKey] = schemas[schemaKey];
+  }
+
+  // Sort tags for deterministic output
+  const sortedTags = Array.from(tags.entries())
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([name, description]) => ({
+      name,
+      description,
+    }));
+
   return {
     openapi: '3.0.0',
     info: {
@@ -830,11 +857,8 @@ function generateOpenApiSpec(
         description: 'Development Server',
       },
     ],
-    tags: Array.from(tags.entries()).map(([name, description]) => ({
-      name,
-      description,
-    })),
-    paths,
+    tags: sortedTags,
+    paths: sortedPaths,
     components: {
       securitySchemes: {
         'JWT-auth': {
@@ -843,7 +867,7 @@ function generateOpenApiSpec(
           bearerFormat: 'JWT',
         },
       },
-      schemas,
+      schemas: sortedSchemas,
     },
   };
 }
@@ -928,8 +952,8 @@ function generateReport(
 function main() {
   console.log('🔍 Scanning controllers with @SdkExport...\n');
 
-  // Find and parse controllers
-  const controllerFiles = findFiles(CONFIG.srcDir, /\.controller\.ts$/);
+  // Find and parse controllers (sorted for deterministic output across platforms)
+  const controllerFiles = findFiles(CONFIG.srcDir, /\.controller\.ts$/).sort();
   const controllers: ControllerInfo[] = [];
   const allDtos = new Set<string>();
 
