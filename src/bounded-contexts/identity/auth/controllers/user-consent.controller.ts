@@ -21,6 +21,7 @@ import { TosAcceptanceService } from '../services/tos-acceptance.service';
 import { AuditLogService } from '@/bounded-contexts/platform/common/audit/audit-log.service';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { SkipTosCheck } from '../decorators/skip-tos-check.decorator';
+import { AllowUnverifiedEmail } from '../decorators/allow-unverified-email.decorator';
 import { AcceptConsentSchema, type AcceptConsent } from '@/shared-kernel';
 import { createZodPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
 import { AuditAction } from '@prisma/client';
@@ -43,6 +44,7 @@ export class UserConsentController {
   @Post('accept-consent')
   @HttpCode(HttpStatus.CREATED)
   @SkipTosCheck() // Allow access to accept ToS without having accepted it
+  @AllowUnverifiedEmail() // Allow access before email verification
   @ApiOperation({
     summary: 'Accept Terms of Service or Privacy Policy',
     description:
@@ -136,6 +138,7 @@ export class UserConsentController {
   @Get('consent-history')
   @HttpCode(HttpStatus.OK)
   @SkipTosCheck() // Allow access without ToS acceptance (to view consent history)
+  @AllowUnverifiedEmail() // Allow access before email verification
   @ApiOperation({
     summary: 'Get consent acceptance history',
     description: 'Retrieves all consent records for the authenticated user',
@@ -172,6 +175,7 @@ export class UserConsentController {
   @Get('consent-status')
   @HttpCode(HttpStatus.OK)
   @SkipTosCheck() // Allow checking status without ToS acceptance
+  @AllowUnverifiedEmail() // Allow access before email verification
   @ApiOperation({
     summary: 'Check consent acceptance status',
     description:

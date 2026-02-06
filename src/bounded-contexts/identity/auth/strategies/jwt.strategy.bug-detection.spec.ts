@@ -10,7 +10,6 @@ import { describe, it, expect, beforeEach, mock } from 'bun:test';
 
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigService } from '@nestjs/config';
-import { UnauthorizedException } from '@nestjs/common';
 import { JwtStrategy } from './jwt.strategy';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { TokenBlacklistService } from '../services/token-blacklist.service';
@@ -51,30 +50,35 @@ describe('JwtStrategy - BUG DETECTION', () => {
 
   describe('BUG-009: Email Verification Enforcement', () => {
     /**
-     * CRITICAL BUG: User with unverified email can access protected endpoints!
+     * BUG-009 FIX: Email verification was moved from JwtStrategy to EmailVerifiedGuard
      *
      * Business Rule: "Usuário não existe plenamente sem email verificado.
      * Sem verificação: não pode usar o sistema."
      *
-     * Expected: Should throw UnauthorizedException for unverified users
-     * Actual: Returns user without checking emailVerified
+     * Architecture Decision:
+     * - JwtStrategy: Validates token and returns user payload with emailVerified status
+     * - EmailVerifiedGuard: Enforces email verification on protected routes
+     * - @AllowUnverifiedEmail(): Decorator to bypass email check on specific endpoints
+     *
+     * This allows endpoints like /verify-email/request to work before verification.
      */
-    it('should REJECT user with unverified email (emailVerified = null)', async () => {
+    it('should ALLOW user with unverified email (enforcement is in EmailVerifiedGuard)', async () => {
       const unverifiedUser = {
         id: 'user-123',
         email: 'unverified@example.com',
         name: 'Unverified User',
         hasCompletedOnboarding: true,
-        emailVerified: null, // NOT VERIFIED!
+        emailVerified: null, // NOT VERIFIED - but JwtStrategy allows it
       };
       mockPrisma.user.findUnique.mockResolvedValue(unverifiedUser);
 
       const payload = { sub: 'user-123', email: 'unverified@example.com' };
 
-      // BUG: This should throw but doesn't!
-      await expect(async () => await strategy.validate(payload)).toThrow(
-        UnauthorizedException,
-      );
+      // JwtStrategy should allow and include emailVerified in response
+      // EmailVerifiedGuard will enforce verification
+      const result = await strategy.validate(payload);
+      expect(result.userId).toBe('user-123');
+      expect(result.emailVerified).toBe(false); // Converted to boolean
     });
 
     it('should ALLOW user with verified email', async () => {

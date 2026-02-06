@@ -5,8 +5,10 @@
 
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as sgMail from '@sendgrid/mail';
 import { AppLoggerService } from '../../logger/logger.service';
+
+// Dynamic import to avoid issues when SendGrid is not properly configured
+let sgMail: typeof import('@sendgrid/mail') | null = null;
 
 export interface SendEmailOptions {
   to: string;
@@ -35,16 +37,37 @@ export class EmailSenderService {
       this.configService.get<string>('EMAIL_FROM_NAME') ?? 'ProFile';
 
     if (apiKey) {
-      sgMail.setApiKey(apiKey);
-      this.isConfigured = true;
-      this.logger.log(
-        'SendGrid configured successfully',
-        'EmailSenderService',
-        {
-          fromEmail: this.fromEmail,
-          hasApiKey: !!apiKey,
-        },
-      );
+      try {
+        // Dynamic require to handle cases where SendGrid is not available
+        // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
+        const sendgrid = require('@sendgrid/mail');
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+        sgMail = sendgrid.default ?? sendgrid;
+        if (sgMail && typeof sgMail.setApiKey === 'function') {
+          sgMail.setApiKey(apiKey);
+          this.isConfigured = true;
+          this.logger.log(
+            'SendGrid configured successfully',
+            'EmailSenderService',
+            {
+              fromEmail: this.fromEmail,
+              hasApiKey: !!apiKey,
+            },
+          );
+        } else {
+          this.isConfigured = false;
+          this.logger.warn(
+            'SendGrid module not properly loaded. Email sending will be disabled.',
+            'EmailSenderService',
+          );
+        }
+      } catch {
+        this.isConfigured = false;
+        this.logger.warn(
+          'Failed to load SendGrid module. Email sending will be disabled.',
+          'EmailSenderService',
+        );
+      }
     } else {
       this.isConfigured = false;
       this.logger.warn(
@@ -58,7 +81,7 @@ export class EmailSenderService {
    * Send email via SendGrid
    */
   async sendEmail(options: SendEmailOptions): Promise<void> {
-    if (!this.isConfigured) {
+    if (!this.isConfigured || !sgMail) {
       this.logger.warn(
         'Email service not configured. Skipping email send.',
         'EmailSenderService',

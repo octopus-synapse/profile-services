@@ -25,7 +25,7 @@ export class ParseCuidPipe implements PipeTransform<string, string> {
     // This prevents invalid IDs from reaching the database layer
     if (!this.cuidRegex.test(value)) {
       throw new BadRequestException(
-        `Invalid ID format. Expected CUID format (e.g., 'clx1abc2def3ghi4jkl5mno6p')`,
+        `Invalid ID - expected CUID (example: 'clx1abc2def3ghi4jkl5mno6p')`,
       );
     }
 

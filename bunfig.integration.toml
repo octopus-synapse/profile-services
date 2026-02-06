@@ -2,6 +2,8 @@
 # Configuration for integration tests
 root = "./test/integration"
 preload = ["./test/preload.ts"]
+# Timeout for tests AND hooks (beforeEach/afterEach)
+timeout = 60000
 
 [install.scopes]
 "@octopus-synapse" = { token = "$BUN_AUTH_TOKEN", url = "https://npm.pkg.github.com" }

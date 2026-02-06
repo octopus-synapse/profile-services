@@ -24,8 +24,30 @@ export class EmailVerificationService {
     private readonly eventPublisher: EventPublisher,
   ) {}
 
-  async requestVerification(dto: RequestVerification) {
-    const user = await this.findUserByEmail(dto.email);
+  async requestVerification(dto: RequestVerification, userId?: string) {
+    let email = dto.email;
+
+    // If email not provided, get from authenticated user
+    if (!email && userId) {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { email: true, name: true, emailVerified: true },
+      });
+      if (!user) {
+        throw new Error('User not found');
+      }
+      email = user.email ?? undefined;
+
+      if (user.emailVerified) {
+        return this.buildSuccessResponse('Email is already verified');
+      }
+    }
+
+    if (!email) {
+      throw new Error('Email is required');
+    }
+
+    const user = await this.findUserByEmail(email);
 
     if (!user) {
       // Return success even if user not found to prevent email enumeration
@@ -38,15 +60,13 @@ export class EmailVerificationService {
       return this.buildSuccessResponse('Email is already verified');
     }
 
-    const token = await this.tokenService.createEmailVerificationToken(
-      dto.email,
-    );
+    const token = await this.tokenService.createEmailVerificationToken(email);
 
     this.logger.log(`Verification token created`, this.context, {
-      email: dto.email,
+      email,
     });
 
-    await this.sendVerificationEmail(dto.email, user.name, token);
+    await this.sendVerificationEmail(email, user.name, token);
 
     return {
       success: true,

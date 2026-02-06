@@ -22,6 +22,7 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '../../src/app.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { EmailSenderService } from '@/bounded-contexts/platform/common/email/services/email-sender.service';
 import { acceptTosWithPrisma } from './setup';
 
 describe('Onboarding Flow Integration', () => {
@@ -40,7 +41,7 @@ describe('Onboarding Flow Integration', () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     })
-      .overrideProvider('EmailSenderService')
+      .overrideProvider(EmailSenderService)
       .useValue({
         sendEmail: mock().mockResolvedValue(true),
         isConfigured: true,
@@ -153,10 +154,7 @@ describe('Onboarding Flow Integration', () => {
   });
 
   describe('Complete Onboarding', () => {
-    // NOTE: Skipped because complete onboarding performs heavy operations
-    // (resume generation, PDF creation, etc.) that exceed test timeout.
-    // This should be tested in e2e tests with longer timeouts.
-    it.skip('should complete onboarding with valid data', async () => {
+    it('should complete onboarding with valid data', async () => {
       const onboardingData = {
         username: `testuser${Date.now()}`,
         personalInfo: {

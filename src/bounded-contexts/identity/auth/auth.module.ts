@@ -15,6 +15,7 @@ import { GdprController } from './controllers/gdpr.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { EmailVerifiedGuard } from './guards/email-verified.guard';
 import { TosGuard } from './guards/tos.guard';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { EmailModule } from '@/bounded-contexts/platform/common/email/email.module';
@@ -94,10 +95,14 @@ import { GdprDeletionService } from './services/gdpr-deletion.service';
     JwtStrategy,
     LocalStrategy,
     // Global guards (GDPR compliance)
-    // Order matters! JwtAuthGuard must run before TosGuard
+    // Order matters! JwtAuthGuard -> EmailVerifiedGuard -> TosGuard
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: EmailVerifiedGuard,
     },
     {
       provide: APP_GUARD,

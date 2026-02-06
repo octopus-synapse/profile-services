@@ -7,8 +7,23 @@ import {
   RESUME_EVENT_PUBLISHER,
   type ResumeEventPublisher,
 } from '../domain/ports';
+import sanitizeHtml from 'sanitize-html';
 
 const MAX_RESUMES_PER_USER = 4;
+
+/**
+ * Sanitize HTML content to prevent XSS attacks
+ * Strips all HTML tags and scripts
+ * Returns undefined if input is not a string
+ */
+function sanitizeContent(text: string | undefined | null): string | undefined {
+  if (!text) return undefined;
+  if (typeof text !== 'string') return undefined; // Reject non-strings
+  return sanitizeHtml(text, {
+    allowedTags: [], // No HTML allowed
+    allowedAttributes: {},
+  });
+}
 
 @Injectable()
 export class ResumesService {
@@ -21,6 +36,11 @@ export class ResumesService {
 
   async findAllUserResumes(userId: string, page?: number, limit?: number) {
     if (page !== undefined && limit !== undefined) {
+      // Validate pagination parameters
+      if (page < 1) page = 1; // Minimum page is 1
+      if (limit < 1) limit = 1; // Minimum limit is 1
+      if (limit > 100) limit = 100; // Cap at 100 items per page
+
       return this.findPaginated(userId, page, limit);
     }
     const resumes = await this.repository.findAllUserResumes(userId);
@@ -35,11 +55,26 @@ export class ResumesService {
 
   async createResumeForUser(userId: string, data: CreateResume) {
     await this.ensureUserHasSlots(userId);
-    const resume = await this.repository.createResumeForUser(userId, data);
+
+    // Sanitize input to prevent XSS attacks
+    const sanitizedTitle = sanitizeContent(data.title);
+    const sanitizedSummary = sanitizeContent(data.summary);
+
+    // If sanitization removed the title (e.g., was an array/object), use empty string or reject
+    const sanitizedData = {
+      ...data,
+      title: sanitizedTitle ?? '',
+      summary: sanitizedSummary,
+    };
+
+    const resume = await this.repository.createResumeForUser(
+      userId,
+      sanitizedData,
+    );
 
     this.eventPublisher.publishResumeCreated(resume.id, {
       userId,
-      title: data.title,
+      title: resume.title ?? '',
     });
 
     return ApiResponseHelper.success(resume);
@@ -47,7 +82,19 @@ export class ResumesService {
 
   async updateResumeForUser(id: string, userId: string, data: UpdateResume) {
     await this.createSnapshotSafely(id);
-    const resume = await this.repository.updateResumeForUser(id, userId, data);
+
+    // Sanitize input to prevent XSS attacks
+    const sanitizedData = {
+      ...data,
+      title: sanitizeContent(data.title),
+      summary: sanitizeContent(data.summary),
+    };
+
+    const resume = await this.repository.updateResumeForUser(
+      id,
+      userId,
+      sanitizedData,
+    );
     if (!resume) throw new NotFoundException('Resume not found');
 
     this.eventPublisher.publishResumeUpdated(id, {

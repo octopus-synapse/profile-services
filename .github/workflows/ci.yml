@@ -6,11 +6,12 @@ on:
     paths-ignore:
       - "CHANGELOG.md"
       - "package.json"
-  push:
-    branches: [main, dev]
-    paths-ignore:
-      - "CHANGELOG.md"
-      - "package.json"
+      - ".release-please-manifest.json"
+      - "*.md"
+      - "docs/**"
+  # REMOVED: push trigger
+  # Why: Causes duplicate runs after merge. Branch protection + PR checks are sufficient.
+  # See: docs/E2E_TESTS_AND_CI_OPTIMIZATION.md
 
 permissions:
   contents: write
@@ -18,8 +19,106 @@ permissions:
   pull-requests: write
 
 jobs:
+  # Skip CI for release-please PRs (only version bumps, no code changes)
+  should-skip:
+    runs-on: ubuntu-latest
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@v5
+        with:
+          concurrent_skipping: "same_content_newer"
+          skip_after_successful_duplicate: "true"
+          paths_ignore: '["CHANGELOG.md", "package.json", ".release-please-manifest.json", "*.md", "docs/**"]'
+          do_not_skip: '["workflow_dispatch", "schedule"]'
+
+  # Detect which parts of codebase changed
+  detect-changes:
+    needs: should-skip
+    if: needs.should-skip.outputs.should_skip != 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      src: ${{ steps.filter.outputs.src }}
+      tests: ${{ steps.filter.outputs.tests }}
+      e2e: ${{ steps.filter.outputs.e2e }}
+      prisma: ${{ steps.filter.outputs.prisma }}
+      config: ${{ steps.filter.outputs.config }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            src:
+              - 'src/**'
+            tests:
+              - 'test/**'
+            e2e:
+              - 'test/e2e/**'
+            prisma:
+              - 'prisma/**'
+            config:
+              - 'package.json'
+              - 'tsconfig*.json'
+              - 'bunfig*.toml'
+
+  # Centralized dependency installation - runs once, cached for all jobs
+  # Eliminates duplicate "bun install" across 5+ jobs (saves 2-4 minutes)
+  setup:
+    name: Setup Dependencies
+    needs: should-skip
+    if: needs.should-skip.outputs.should_skip != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.23
+
+      - name: Cache Dependencies
+        id: cache-deps
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            ~/.bun/install/cache
+          key: deps-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
+          restore-keys: |
+            deps-${{ runner.os }}-
+
+      - name: Configure npm registry
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: |
+          echo "@octopus-synapse:registry=https://npm.pkg.github.com" >> .npmrc
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> .npmrc
+
+      - name: Install dependencies
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: bun install --frozen-lockfile
+
+      - name: Cache Prisma Client
+        id: cache-prisma
+        uses: actions/cache@v4
+        with:
+          path: node_modules/.prisma
+          key: prisma-${{ hashFiles('prisma/schema/**/*.prisma') }}
+          restore-keys: |
+            prisma-
+
+      - name: Generate Prisma Client
+        if: steps.cache-prisma.outputs.cache-hit != 'true'
+        run: bunx prisma generate
+
   integration:
     name: Integration Tests
+    needs: [setup, detect-changes]
+    if: |
+      needs.should-skip.outputs.should_skip != 'true' &&
+      (needs.detect-changes.outputs.src == 'true' || 
+       needs.detect-changes.outputs.tests == 'true' ||
+       needs.detect-changes.outputs.prisma == 'true')
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -43,13 +142,21 @@ jobs:
         with:
           bun-version: 1.2.23
 
-      - name: Configure npm registry auth
-        run: |
-          echo "@octopus-synapse:registry=https://npm.pkg.github.com" >> .npmrc
-          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> .npmrc
+      - name: Restore Dependencies
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            node_modules
+            ~/.bun/install/cache
+          key: deps-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
+          fail-on-cache-miss: true
 
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
+      - name: Restore Prisma Client
+        uses: actions/cache/restore@v4
+        with:
+          path: node_modules/.prisma
+          key: prisma-${{ hashFiles('prisma/schema/**/*.prisma') }}
+          fail-on-cache-miss: true
 
       - name: Setup database
         run: bun run db:setup:test
@@ -71,6 +178,8 @@ jobs:
 
   hook-compliance:
     name: Verify Pre-Commit Hooks Ran
+    needs: [setup, detect-changes]
+    if: needs.should-skip.outputs.should_skip != 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -79,24 +188,35 @@ jobs:
         with:
           bun-version: 1.2.23
 
-      - name: Configure npm registry auth
-        run: |
-          echo "@octopus-synapse:registry=https://npm.pkg.github.com" >> .npmrc
-          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> .npmrc
+      - name: Restore Dependencies
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            node_modules
+            ~/.bun/install/cache
+          key: deps-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
+          fail-on-cache-miss: true
 
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
+      - name: Restore Prisma Client
+        uses: actions/cache/restore@v4
+        with:
+          path: node_modules/.prisma
+          key: prisma-${{ hashFiles('prisma/schema/**/*.prisma') }}
+          fail-on-cache-miss: true
 
-      - name: Generate Prisma Client
-        run: bunx prisma generate
+      - name: Quick lint verification (oxlint)
+        run: bun run lint:fast
 
       - name: Check if pre-commit hooks were bypassed
         run: |
           echo "🔍 Verificando se pre-commit foi executado..."
 
-          if ! bun run lint; then
-            echo "❌ LINT FALHOU - alguém usou --no-verify"
-            echo "Pre-commit hooks devem ser executados antes do commit."
+          # Generate swagger to check if it's up-to-date
+          bun run scripts/generate-swagger-from-decorators.ts
+
+          if ! git diff --quiet swagger.json; then
+            echo "❌ swagger.json desatualizado - pre-commit hooks foram ignorados"
+            echo "Execute: bun run scripts/generate-swagger-from-decorators.ts"
             exit 1
           fi
 
@@ -104,6 +224,10 @@ jobs:
 
   lint:
     name: ESLint (Type-Aware)
+    needs: [setup, detect-changes]
+    if: |
+      needs.should-skip.outputs.should_skip != 'true' &&
+      needs.detect-changes.outputs.src == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -112,24 +236,32 @@ jobs:
         with:
           bun-version: 1.2.23
 
-      - name: Configure npm registry auth
-        run: |
-          echo "@octopus-synapse:registry=https://npm.pkg.github.com" >> .npmrc
-          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> .npmrc
+      - name: Restore Dependencies
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            node_modules
+            ~/.bun/install/cache
+          key: deps-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
+          fail-on-cache-miss: true
 
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-
-      - name: Generate Prisma Client
-        run: bunx prisma generate
+      - name: Restore Prisma Client
+        uses: actions/cache/restore@v4
+        with:
+          path: node_modules/.prisma
+          key: prisma-${{ hashFiles('prisma/schema/**/*.prisma') }}
+          fail-on-cache-miss: true
 
       - name: Run ESLint
         run: bun run lint
 
   build:
     name: Build
+    needs: [setup, detect-changes]
+    if: |
+      needs.should-skip.outputs.should_skip != 'true' &&
+      needs.detect-changes.outputs.src == 'true'
     runs-on: ubuntu-latest
-    needs: [integration, hook-compliance, lint]
     steps:
       - uses: actions/checkout@v4
 
@@ -137,18 +269,31 @@ jobs:
         with:
           bun-version: 1.2.23
 
-      - name: Configure npm registry auth
-        run: |
-          echo "@octopus-synapse:registry=https://npm.pkg.github.com" >> .npmrc
-          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> .npmrc
+      - name: Restore Dependencies
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            node_modules
+            ~/.bun/install/cache
+          key: deps-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
+          fail-on-cache-miss: true
 
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
+      - name: Restore Prisma Client
+        uses: actions/cache/restore@v4
+        with:
+          path: node_modules/.prisma
+          key: prisma-${{ hashFiles('prisma/schema/**/*.prisma') }}
+          fail-on-cache-miss: true
 
-      - name: Generate Prisma Client
-        run: bunx prisma generate
+      - name: Cache Build Artifacts
+        uses: actions/cache@v4
+        id: build-cache
+        with:
+          path: dist
+          key: build-${{ hashFiles('src/**', 'tsconfig*.json') }}
 
       - name: Build
+        if: steps.build-cache.outputs.cache-hit != 'true'
         run: bun run build
 
       - uses: actions/upload-artifact@v4
@@ -176,3 +321,81 @@ jobs:
             github_token=${{ secrets.GITHUB_TOKEN }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  # E2E tests run ONLY on main branch merges (not on every PR)
+  # This prevents slowing down PR feedback cycle
+  e2e:
+    name: E2E Journey Tests
+    needs: [setup, detect-changes]
+    if: |
+      github.event_name == 'pull_request' &&
+      github.base_ref == 'main' &&
+      needs.should-skip.outputs.should_skip != 'true' &&
+      (needs.detect-changes.outputs.src == 'true' || 
+       needs.detect-changes.outputs.e2e == 'true' ||
+       needs.detect-changes.outputs.prisma == 'true')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: e2e_test_db
+        ports:
+          - 5433:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6380:6379
+        options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.23
+
+      - name: Restore Dependencies
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            node_modules
+            ~/.bun/install/cache
+          key: deps-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
+          fail-on-cache-miss: true
+
+      - name: Restore Prisma Client
+        uses: actions/cache/restore@v4
+        with:
+          path: node_modules/.prisma
+          key: prisma-${{ hashFiles('prisma/schema/**/*.prisma') }}
+          fail-on-cache-miss: true
+
+      - name: Setup E2E database
+        run: bun run db:setup:test
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5433/e2e_test_db
+          REDIS_HOST: localhost
+          REDIS_PORT: 6380
+          JWT_SECRET: e2e-test-secret-key-min-32-chars-required
+          NODE_ENV: test
+
+      - name: Run E2E Journey Tests
+        run: bun run test:e2e
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5433/e2e_test_db
+          REDIS_HOST: localhost
+          REDIS_PORT: 6380
+          JWT_SECRET: e2e-test-secret-key-min-32-chars-required
+          NODE_ENV: test
+
+      - name: Upload E2E Test Results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-results
+          path: test-results/
+          retention-days: 7

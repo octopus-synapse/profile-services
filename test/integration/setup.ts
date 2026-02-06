@@ -62,9 +62,20 @@ export async function getApp(): Promise<INestApplication> {
     return appInstance;
   }
 
+  // Import EmailSenderService dynamically to override
+  const { EmailSenderService } = await import(
+    '@/bounded-contexts/platform/common/email/services/email-sender.service'
+  );
+
   const moduleFixture: TestingModule = await Test.createTestingModule({
     imports: [AppModule],
-  }).compile();
+  })
+    .overrideProvider(EmailSenderService)
+    .useValue({
+      sendEmail: async () => true,
+      isConfigured: true,
+    })
+    .compile();
 
   appInstance = moduleFixture.createNestApplication();
   appInstance.setGlobalPrefix('api');
@@ -152,13 +163,17 @@ export function authHeader(token?: string): { Authorization: string } {
 /**
  * Cleanup function to close the app after all tests.
  * Call this in afterAll() of your test file.
+ *
+ * Note: With shared app instance, this is now a no-op.
+ * The app will be closed when the process exits.
+ * This prevents race conditions when multiple test files
+ * try to close the same app instance.
  */
 export async function closeApp(): Promise<void> {
-  if (appInstance) {
-    await appInstance.close();
-    appInstance = null;
-    testContext.app = null;
-  }
+  // No-op: Let the process handle cleanup
+  // This prevents "Engine is not yet connected" errors
+  // when tests run in parallel and one file closes the app
+  // while others are still using it.
 }
 
 /**

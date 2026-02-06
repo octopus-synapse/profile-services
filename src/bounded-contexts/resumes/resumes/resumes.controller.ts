@@ -26,6 +26,7 @@ import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.g
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
 import { ParseCuidPipe } from '@/bounded-contexts/platform/common/pipes/parse-cuid.pipe';
+import { ParseJsonBodyPipe } from '@/bounded-contexts/platform/common/pipes/parse-json-body.pipe';
 import {
   ApiTags,
   ApiOperation,
@@ -108,7 +109,7 @@ export class ResumesController {
   @ApiResponse({ status: 201, description: 'Resume created' })
   async createResumeForUser(
     @CurrentUser() user: UserPayload,
-    @Body() createResume: CreateResume,
+    @Body(ParseJsonBodyPipe) createResume: CreateResume,
   ) {
     return this.resumesService.createResumeForUser(user.userId, createResume);
   }
