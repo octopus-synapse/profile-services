@@ -52,10 +52,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException(ERROR_MESSAGES.USER_NOT_FOUND);
     }
 
-    // BUG-009 FIX: Reject users with unverified email
-    if (!user.emailVerified) {
-      throw new UnauthorizedException(ERROR_MESSAGES.EMAIL_NOT_VERIFIED);
-    }
+    // BUG-009 FIX: Email verification check moved to EmailVerifiedGuard
+    // This allows specific endpoints (like verify-email/request) to be
+    // accessible by authenticated users who haven't verified their email yet.
+    // The EmailVerifiedGuard checks the @AllowUnverifiedEmail() decorator.
 
     // BUG-023/055/056/057 FIX: Enforce token revocation after security events
     // passport-jwt includes standard claims like iat (seconds since epoch)
@@ -73,6 +73,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       email: user.email,
       name: user.name,
       hasCompletedOnboarding: user.hasCompletedOnboarding,
+      emailVerified: !!user.emailVerified,
     };
   }
 }

@@ -23,6 +23,7 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '../../src/app.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { EmailSenderService } from '@/bounded-contexts/platform/common/email/services/email-sender.service';
 import { acceptTosWithPrisma } from './setup';
 
 describe('Auth Flow Integration', () => {
@@ -56,7 +57,7 @@ describe('Auth Flow Integration', () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     })
-      .overrideProvider('EmailSenderService')
+      .overrideProvider(EmailSenderService)
       .useValue({
         sendEmail: mock().mockResolvedValue(true),
         isConfigured: true,
@@ -230,25 +231,29 @@ describe('Auth Flow Integration', () => {
   });
 
   describe('Email Verification Flow', () => {
-    const testUser = {
-      email: 'integration-test-verify@example.com',
-      password: 'SecurePass123!',
-      name: 'Verify Test User',
-    };
+    let testAccessToken: string;
 
     beforeEach(async () => {
+      // Generate unique email for each test
+      const testEmail = `verify-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.com`;
       const signupResponse = await request(app.getHttpServer())
         .post('/api/v1/auth/signup')
-        .send(testUser)
+        .send({
+          email: testEmail,
+          password: 'SecurePass123!',
+          name: 'Verify Test User',
+        })
         .expect(201);
 
-      accessToken = signupResponse.body.data.accessToken;
+      testAccessToken = signupResponse.body.data.accessToken;
     });
 
     it('should request email verification', async () => {
+      // Endpoint requires authentication - email is taken from token
       const response = await request(app.getHttpServer())
         .post('/api/v1/auth/verify-email/request')
-        .send({ email: testUser.email })
+        .set('Authorization', `Bearer ${testAccessToken}`)
+        .send({})
         .expect(200);
 
       expect(response.body.success).toBe(true);

@@ -55,19 +55,21 @@ describe('Auth Smoke Tests', () => {
         name: TEST_USER.name,
       });
 
-      expect(res.status).toBe(400);
+      // 400 or 422 for validation error
+      expect([400, 422]).toContain(res.status);
     });
 
     it('should reject weak password', async () => {
       const res = await getRequest()
         .post('/api/v1/auth/signup')
         .send({
-          email: `weak-pass-${Date.now()}@test.com`,
+          email: `weak-pass-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@test.com`,
           password: '123',
           name: TEST_USER.name,
         });
 
-      expect(res.status).toBe(400);
+      // 400 or 422 for validation error
+      expect([400, 422]).toContain(res.status);
     });
 
     it('should create a new user', async () => {

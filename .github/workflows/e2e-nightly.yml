@@ -1,0 +1,149 @@
+name: Nightly E2E Tests
+
+# Run all E2E journey tests every night
+# Catches integration issues early without slowing down PR cycle
+on:
+    schedule:
+        - cron: "0 3 * * *" # 3 AM UTC daily
+    workflow_dispatch: # Manual trigger
+
+permissions:
+    contents: read
+    issues: write # To create issues on failure
+
+jobs:
+    e2e-full:
+        name: Full E2E Journey Suite
+        runs-on: ubuntu-latest
+        timeout-minutes: 30
+        services:
+            postgres:
+                image: postgres:16-alpine
+                env:
+                    POSTGRES_USER: postgres
+                    POSTGRES_PASSWORD: postgres
+                    POSTGRES_DB: e2e_nightly_db
+                ports:
+                    - 5433:5432
+                options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+            redis:
+                image: redis:7-alpine
+                ports:
+                    - 6380:6379
+                options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: oven-sh/setup-bun@v2
+              with:
+                  bun-version: 1.2.23
+
+            - name: Configure npm registry auth
+              run: |
+                  echo "@octopus-synapse:registry=https://npm.pkg.github.com" >> .npmrc
+                  echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> .npmrc
+
+            - name: Install dependencies
+              run: bun install --frozen-lockfile
+
+            - name: Generate Prisma Client
+              run: bunx prisma generate
+
+            - name: Setup E2E database
+              run: bun run db:setup:test
+              env:
+                  DATABASE_URL: postgresql://postgres:postgres@localhost:5433/e2e_nightly_db
+                  REDIS_HOST: localhost
+                  REDIS_PORT: 6380
+                  JWT_SECRET: nightly-e2e-test-secret-key-min-32-chars
+                  NODE_ENV: test
+
+            - name: Run Full E2E Suite
+              id: e2e-tests
+              run: |
+                  echo "## E2E Test Results" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+
+                  bun test test/e2e/journeys --reporter=verbose 2>&1 | tee test-output.txt
+
+                  if [ $? -eq 0 ]; then
+                    echo "✅ All E2E tests passed" >> $GITHUB_STEP_SUMMARY
+                    echo "status=success" >> $GITHUB_OUTPUT
+                  else
+                    echo "❌ E2E tests failed" >> $GITHUB_STEP_SUMMARY
+                    echo "status=failure" >> $GITHUB_OUTPUT
+                  fi
+              env:
+                  DATABASE_URL: postgresql://postgres:postgres@localhost:5433/e2e_nightly_db
+                  REDIS_HOST: localhost
+                  REDIS_PORT: 6380
+                  JWT_SECRET: nightly-e2e-test-secret-key-min-32-chars
+                  NODE_ENV: test
+
+            - name: Upload Test Results
+              if: always()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: nightly-e2e-results
+                  path: |
+                      test-output.txt
+                      test-results/
+                  retention-days: 30
+
+            - name: Create Issue on Failure
+              if: failure() && github.event_name == 'schedule'
+              uses: actions/github-script@v7
+              with:
+                  script: |
+                      const issue = await github.rest.issues.create({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        title: '🔴 Nightly E2E Tests Failed',
+                        body: `## Nightly E2E Test Failure
+                        
+                        **Date:** ${new Date().toISOString()}
+                        **Workflow Run:** [${context.runId}](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})
+                        
+                        One or more E2E journey tests failed in the nightly run.
+                        
+                        ### Action Required
+                        - [ ] Review test results in workflow artifacts
+                        - [ ] Identify which journey(s) failed
+                        - [ ] Investigate root cause
+                        - [ ] Fix and verify
+                        
+                        ### Journeys Tested
+                        - Journey 1: User Lifecycle
+                        - Journey 2: Authentication
+                        - Journey 3: Resume CRUD (when implemented)
+                        - Journey 4: Public Resume (when implemented)
+                        - Journey 5: Export Pipeline (when implemented)
+                        - Journey 6: DSL Integration (when implemented)
+                        
+                        cc: @${context.actor}`,
+                        labels: ['bug', 'e2e-failure', 'automated-issue']
+                      });
+
+                      console.log(`Created issue #${issue.data.number}`);
+
+            - name: Post to Slack (if configured)
+              if: failure() && github.event_name == 'schedule'
+              env:
+                  SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_E2E }}
+              run: |
+                  if [ -n "$SLACK_WEBHOOK" ]; then
+                    curl -X POST "$SLACK_WEBHOOK" \
+                      -H 'Content-Type: application/json' \
+                      -d '{
+                        "text": "🔴 Nightly E2E Tests Failed",
+                        "blocks": [
+                          {
+                            "type": "section",
+                            "text": {
+                              "type": "mrkdwn",
+                              "text": "*Nightly E2E Tests Failed* 🔴\n\nOne or more journey tests failed.\n\n<https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Run>"
+                            }
+                          }
+                        ]
+                      }'
+                  fi

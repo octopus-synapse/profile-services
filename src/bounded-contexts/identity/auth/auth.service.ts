@@ -68,8 +68,8 @@ export class AuthService {
 
   // ==================== Email Verification ====================
 
-  async requestEmailVerification(dto: RequestVerification) {
-    return this.emailVerificationService.requestVerification(dto);
+  async requestEmailVerification(dto: RequestVerification, userId?: string) {
+    return this.emailVerificationService.requestVerification(dto, userId);
   }
 
   async verifyEmail(dto: EmailVerification) {

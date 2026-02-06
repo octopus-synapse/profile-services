@@ -241,7 +241,7 @@ const document = generator.generateDocument({
 });
 
 // Add security scheme
-document.components = document.components || {};
+document.components = document.components ?? {};
 document.components.securitySchemes = {
   bearerAuth: {
     type: 'http',

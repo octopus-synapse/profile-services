@@ -1,9 +1,9 @@
 {
   "success": true,
-  "timestamp": "2026-02-05T16:13:21.342Z",
+  "timestamp": "2026-02-06T16:11:03.949Z",
   "controllers": 57,
   "endpoints": 160,
-  "schemas": 65,
+  "schemas": 63,
   "tags": [
     "resumes",
     "ats-validation",

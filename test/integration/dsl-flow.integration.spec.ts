@@ -10,6 +10,7 @@ import request from 'supertest';
 import { Prisma } from '@prisma/client';
 import { AppModule } from '../../src/app.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { EmailSenderService } from '@/bounded-contexts/platform/common/email/services/email-sender.service';
 import { createMockResume } from '../factories/resume.factory';
 import { createMockUser } from '../factories/user.factory';
 import { acceptTosWithPrisma } from './setup';
@@ -24,7 +25,13 @@ describe('DSL Smoke Tests (e2e)', () => {
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideProvider(EmailSenderService)
+      .useValue({
+        sendEmail: async () => true,
+        isConfigured: true,
+      })
+      .compile();
 
     app = moduleFixture.createNestApplication();
 

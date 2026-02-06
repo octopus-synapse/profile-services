@@ -22,6 +22,7 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '../../src/app.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { EmailSenderService } from '@/bounded-contexts/platform/common/email/services/email-sender.service';
 import { ConsentDocumentType } from '@prisma/client';
 
 describe('ToS Acceptance Flow Integration', () => {
@@ -73,7 +74,7 @@ describe('ToS Acceptance Flow Integration', () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     })
-      .overrideProvider('EmailSenderService')
+      .overrideProvider(EmailSenderService)
       .useValue({
         sendEmail: mock().mockResolvedValue(true),
         isConfigured: true,

@@ -88,13 +88,6 @@ export class OnboardingService {
           // Delete onboarding progress within transaction for atomicity
           await this.progressService.deleteProgressWithTx(tx, userId);
 
-          // Audit log: Track onboarding completion
-          await this.auditLog.logOnboardingCompleted(
-            userId,
-            validatedData.username,
-            resume.id,
-          );
-
           this.logger.log(
             'Onboarding completed successfully',
             'OnboardingService',
@@ -111,9 +104,19 @@ export class OnboardingService {
           };
         },
         {
-          timeout: 30000, // 30 seconds timeout
+          timeout: 120000, // 120 seconds timeout - increased for bulk data inserts in integration tests
         },
       )
+      .then(async (result) => {
+        // Audit log AFTER transaction commits to avoid deadlock
+        // AuditLogService uses its own Prisma connection, not the transaction
+        await this.auditLog.logOnboardingCompleted(
+          userId,
+          validatedData.username,
+          result.resumeId,
+        );
+        return result;
+      })
       .catch((error: unknown) => {
         // Transaction rollback with domain exception transformation - see ERROR_HANDLING_STRATEGY.md
         this.logger.error(
@@ -187,6 +190,16 @@ export class OnboardingService {
         { userId },
       );
       throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
+    }
+
+    // Prevent double onboarding completion
+    if (user.hasCompletedOnboarding) {
+      this.logger.warn(
+        'Onboarding already completed for user',
+        'OnboardingService',
+        { userId },
+      );
+      throw new ConflictException(ERROR_MESSAGES.ONBOARDING_ALREADY_COMPLETED);
     }
 
     return user;

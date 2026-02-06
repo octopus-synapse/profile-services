@@ -5500,47 +5500,6 @@
           "errors"
         ]
       },
-      "CheckUsernameResponseDto": {
-        "type": "object",
-        "properties": {
-          "available": {
-            "type": "boolean",
-            "example": "true",
-            "description": "Whether the username is available"
-          },
-          "message": {
-            "type": "string",
-            "description": "Optional message about username availability"
-          }
-        },
-        "required": [
-          "available"
-        ]
-      },
-      "UpdateUsernameResponseDto": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean",
-            "example": "true",
-            "description": "Whether the update was successful"
-          },
-          "message": {
-            "type": "string",
-            "description": "Status message"
-          },
-          "username": {
-            "type": "string",
-            "example": "john_doe",
-            "description": "The updated username"
-          }
-        },
-        "required": [
-          "success",
-          "message",
-          "username"
-        ]
-      },
       "MessageResponseDto": {
         "type": "object",
         "properties": {

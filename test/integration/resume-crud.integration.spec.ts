@@ -22,6 +22,7 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { AppModule } from '../../src/app.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { EmailSenderService } from '@/bounded-contexts/platform/common/email/services/email-sender.service';
 import { acceptTosWithPrisma } from './setup';
 
 describe('Resume CRUD Integration', () => {
@@ -40,7 +41,7 @@ describe('Resume CRUD Integration', () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     })
-      .overrideProvider('EmailSenderService')
+      .overrideProvider(EmailSenderService)
       .useValue({
         sendEmail: mock().mockResolvedValue(true),
         isConfigured: true,

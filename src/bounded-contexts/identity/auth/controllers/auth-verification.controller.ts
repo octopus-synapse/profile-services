@@ -3,7 +3,14 @@
  * Handles email verification endpoints
  */
 
-import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Post,
+  Req,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { Throttle } from '@nestjs/throttler';
@@ -15,6 +22,9 @@ import type {
   EmailVerification as VerifyEmail,
 } from '@/shared-kernel';
 import { Public } from '../decorators/public.decorator';
+import { AllowUnverifiedEmail } from '../decorators/allow-unverified-email.decorator';
+import { SkipTosCheck } from '../decorators/skip-tos-check.decorator';
+import type { Request } from 'express';
 
 @SdkExport({ tag: 'auth', description: 'Auth API', requiresAuth: false })
 @ApiTags('auth')
@@ -22,7 +32,8 @@ import { Public } from '../decorators/public.decorator';
 export class AuthVerificationController {
   constructor(private readonly authService: AuthService) {}
 
-  @Public()
+  @AllowUnverifiedEmail()
+  @SkipTosCheck() // User needs to verify email before accepting ToS
   @Post('verify-email/request')
   @Throttle({ default: { ttl: RATE_LIMIT_CONFIG.TTL_MS, limit: 3 } })
   @HttpCode(HttpStatus.OK)
@@ -30,8 +41,12 @@ export class AuthVerificationController {
   @ApiResponse({ status: 201, type: MessageResponseDto })
   @ApiResponse({ status: 200, description: 'Verification email sent' })
   @ApiResponse({ status: 429, description: 'Too many requests' })
-  async requestEmailVerification(@Body() dto: RequestVerification) {
-    return this.authService.requestEmailVerification(dto);
+  async requestEmailVerification(
+    @Body() dto: RequestVerification,
+    @Req() req: Request & { user?: { userId: string } },
+  ) {
+    const userId = req.user?.userId;
+    return this.authService.requestEmailVerification(dto, userId);
   }
 
   @Public()

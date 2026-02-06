@@ -69,6 +69,7 @@ export const ERROR_MESSAGES = {
   SESSION_LIMIT_REACHED: 'Maximum number of active sessions reached (5)',
   THEME_RESUBMISSION_LIMIT_REACHED:
     'Theme has been rejected too many times. Maximum 2 resubmissions allowed.',
+  ONBOARDING_ALREADY_COMPLETED: 'Onboarding has already been completed',
 } as const;
 
 export type ErrorMessage = (typeof ERROR_MESSAGES)[keyof typeof ERROR_MESSAGES];
