@@ -331,7 +331,7 @@ jobs:
           NODE_ENV: test
 
       - name: Run E2E Journey Tests
-        run: bun test test/e2e/journeys
+        run: bun run test:e2e
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5433/e2e_test_db
           REDIS_HOST: localhost

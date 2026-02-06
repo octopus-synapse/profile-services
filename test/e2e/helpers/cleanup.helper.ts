@@ -82,7 +82,9 @@ export class CleanupHelper {
       await this.prisma.talk.deleteMany({ where: { resumeId } });
       await this.prisma.hackathon.deleteMany({ where: { resumeId } });
       await this.prisma.bugBounty.deleteMany({ where: { resumeId } });
-      await this.prisma.openSource.deleteMany({ where: { resumeId } });
+      await this.prisma.openSourceContribution.deleteMany({
+        where: { resumeId },
+      });
       await this.prisma.achievement.deleteMany({ where: { resumeId } });
       await this.prisma.interest.deleteMany({ where: { resumeId } });
       await this.prisma.recommendation.deleteMany({ where: { resumeId } });

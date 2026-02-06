@@ -64,7 +64,7 @@ jobs:
                   echo "## E2E Test Results" >> $GITHUB_STEP_SUMMARY
                   echo "" >> $GITHUB_STEP_SUMMARY
 
-                  bun test test/e2e/journeys --reporter=verbose 2>&1 | tee test-output.txt
+                  bun run test:e2e 2>&1 | tee test-output.txt
 
                   if [ $? -eq 0 ]; then
                     echo "✅ All E2E tests passed" >> $GITHUB_STEP_SUMMARY

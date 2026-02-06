@@ -1,91 +1,91 @@
 /**
  * E2E Test Fixtures - Resume Data
  *
- * Reusable resume data for E2E tests
+ * Reusable resume data for E2E tests.
+ * Follows the same format as integration tests.
  */
 
-export const minimalOnboardingData = {
-  username: `e2e-user-${Date.now()}`,
-  personalInfo: {
-    fullName: 'E2E Test User',
-    headline: 'Software Engineer',
-    email: 'e2e@example.com',
-    phone: '+1234567890',
-    location: 'San Francisco, CA',
-  },
-  professionalProfile: {
-    jobTitle: 'Senior Developer',
-    summary:
-      'Experienced software engineer with expertise in full-stack development and testing automation.',
-  },
-  skills: [
-    { name: 'TypeScript', category: 'Language' },
-    { name: 'Node.js', category: 'Framework' },
-  ],
-  noSkills: false,
-  experiences: [],
-  noExperience: true,
-  education: [],
-  noEducation: true,
-};
+/**
+ * Creates a minimal onboarding payload.
+ * Use a unique username per test to avoid collisions.
+ */
+export function createMinimalOnboardingData(suffix?: string) {
+  const uniqueSuffix = suffix || Date.now().toString();
+  // Username must use underscores, not hyphens (validation rule)
+  const sanitizedSuffix = uniqueSuffix.replace(/-/g, '_');
+  return {
+    username: `e2e_${sanitizedSuffix}`,
+    personalInfo: {
+      fullName: 'E2E Test User',
+      email: 'e2e@example.com',
+    },
+    professionalProfile: {
+      jobTitle: 'Software Developer',
+      summary: 'Experienced developer with modern web technologies.',
+    },
+    skills: [],
+    noSkills: true,
+    experiences: [],
+    noExperience: true,
+    education: [],
+    noEducation: true,
+    languages: [{ name: 'English', level: 'NATIVE' }],
+    templateSelection: { template: 'PROFESSIONAL', palette: 'DEFAULT' },
+  };
+}
 
-export const fullOnboardingData = {
-  username: `e2e-full-${Date.now()}`,
-  personalInfo: {
-    fullName: 'E2E Full Profile User',
-    headline: 'Full Stack Engineer',
-    email: 'e2e-full@example.com',
-    phone: '+1987654321',
-    location: 'New York, NY',
-    website: 'https://example.com',
-  },
-  professionalProfile: {
-    jobTitle: 'Lead Engineer',
-    summary:
-      'Highly experienced full-stack engineer with 10+ years building scalable applications using modern technologies.',
-  },
-  skills: [
-    { name: 'TypeScript', category: 'Language' },
-    { name: 'JavaScript', category: 'Language' },
-    { name: 'Python', category: 'Language' },
-    { name: 'React', category: 'Framework' },
-    { name: 'Node.js', category: 'Framework' },
-    { name: 'PostgreSQL', category: 'Database' },
-  ],
-  noSkills: false,
-  experiences: [
-    {
-      company: 'Tech Corp',
-      position: 'Senior Engineer',
-      startDate: '2020-01-01',
-      endDate: '2024-01-01',
-      description: 'Led development of microservices architecture',
-      location: 'San Francisco, CA',
-      current: false,
+/**
+ * Creates a full onboarding payload with all sections.
+ */
+export function createFullOnboardingData(suffix?: string) {
+  const uniqueSuffix = suffix || Date.now().toString();
+  // Username must use underscores, not hyphens (validation rule)
+  const sanitizedSuffix = uniqueSuffix.replace(/-/g, '_');
+  return {
+    username: `e2e_full_${sanitizedSuffix}`,
+    personalInfo: {
+      fullName: 'E2E Full Profile User',
+      email: 'e2e-full@example.com',
     },
-    {
-      company: 'Startup Inc',
-      position: 'Full Stack Developer',
-      startDate: '2018-01-01',
-      endDate: '2019-12-31',
-      description: 'Built and deployed multiple web applications',
-      location: 'Remote',
-      current: false,
+    professionalProfile: {
+      jobTitle: 'Lead Engineer',
+      summary:
+        'Full-stack engineer with 10+ years building scalable applications.',
     },
-  ],
-  noExperience: false,
-  education: [
-    {
-      institution: 'University of Technology',
-      degree: 'Bachelor of Science',
-      field: 'Computer Science',
-      startDate: '2014-09-01',
-      endDate: '2018-05-31',
-      grade: '3.8 GPA',
-    },
-  ],
-  noEducation: false,
-};
+    skills: [
+      { name: 'TypeScript', category: 'Programming' },
+      { name: 'Node.js', category: 'Programming' },
+      { name: 'React', category: 'Programming' },
+    ],
+    noSkills: false,
+    experiences: [
+      {
+        company: 'Tech Corp',
+        position: 'Senior Engineer',
+        startDate: '2020-01',
+        endDate: '2023-12',
+        description: 'Led development of microservices architecture',
+      },
+    ],
+    noExperience: false,
+    education: [
+      {
+        institution: 'Tech University',
+        degree: 'Bachelor of Science',
+        field: 'Computer Science',
+        startDate: '2014-09',
+        endDate: '2018-05',
+      },
+    ],
+    noEducation: false,
+    languages: [{ name: 'English', level: 'NATIVE' }],
+    templateSelection: { template: 'PROFESSIONAL', palette: 'DEFAULT' },
+  };
+}
+
+// Legacy exports for backwards compatibility
+export const minimalOnboardingData = createMinimalOnboardingData();
+export const fullOnboardingData = createFullOnboardingData();
 
 export const createResumeData = (title: string) => ({
   title,
@@ -95,23 +95,20 @@ export const createResumeData = (title: string) => ({
 export const createExperienceData = (company: string) => ({
   company,
   position: 'Software Engineer',
-  startDate: '2020-01-01',
-  endDate: '2023-12-31',
+  startDate: '2020-01',
+  endDate: '2023-12',
   description: `Worked at ${company} as a software engineer`,
-  location: 'Remote',
-  current: false,
 });
 
 export const createEducationData = (institution: string) => ({
   institution,
   degree: 'Bachelor of Science',
   field: 'Computer Science',
-  startDate: '2016-09-01',
-  endDate: '2020-05-31',
-  grade: '3.5 GPA',
+  startDate: '2016-09',
+  endDate: '2020-05',
 });
 
-export const createSkillData = (name: string, category = 'Language') => ({
+export const createSkillData = (name: string, category = 'Programming') => ({
   name,
   category,
 });

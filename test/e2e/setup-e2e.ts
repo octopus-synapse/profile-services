@@ -5,7 +5,7 @@
  */
 
 import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import type { INestApplication } from '@nestjs/common';
 import { AppModule } from '@/app.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { EmailSenderService } from '@/bounded-contexts/platform/common/email/services/email-sender.service';
@@ -42,25 +42,15 @@ export async function createE2ETestApp(): Promise<{
     .compile();
 
   const app = moduleFixture.createNestApplication();
-
-  // Apply same configuration as main.ts
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: false,
-      transform: true,
-      transformOptions: {
-        enableImplicitConversion: true,
-      },
-    }),
-  );
-
   app.setGlobalPrefix('api');
+
+  // Validation is handled by ZodValidationPipe at controller level
+  // No global ValidationPipe needed (avoids class-validator dependency)
 
   await app.init();
 
   const prisma = app.get(PrismaService);
-  const authHelper = new AuthHelper(app);
+  const authHelper = new AuthHelper(app, prisma);
   const cleanupHelper = new CleanupHelper(prisma);
 
   return { app, authHelper, cleanupHelper, prisma };
