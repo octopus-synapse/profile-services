@@ -1,5 +1,12 @@
 # Changelog
 
+## [7.1.1](https://github.com/octopus-synapse/profile-services/compare/profile-services-v7.1.0...profile-services-v7.1.1) (2026-02-06)
+
+
+### Bug Fixes
+
+* email verification architecture and integration tests ([#140](https://github.com/octopus-synapse/profile-services/issues/140)) ([32b9277](https://github.com/octopus-synapse/profile-services/commit/32b92772440428d1c05c75a8d5f55aa90a95cee8))
+
 ## [7.1.0](https://github.com/octopus-synapse/profile-services/compare/profile-services-v7.0.1...profile-services-v7.1.0) (2026-02-05)
 
 
