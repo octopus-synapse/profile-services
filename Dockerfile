@@ -7,7 +7,7 @@ WORKDIR /app
 
 # Layer 1: Copy ONLY package files (changes rarely)
 COPY package.json bun.lockb* ./
-COPY prisma/schema ./prisma/schema/
+COPY prisma ./prisma
 
 # Layer 2: Install dependencies (cached by BuildKit)
 RUN --mount=type=secret,id=github_token \

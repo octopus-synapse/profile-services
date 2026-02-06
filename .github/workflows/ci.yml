@@ -72,11 +72,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.2.23
-      
+
       - name: Cache Dependencies
         id: cache-deps
         uses: actions/cache@v4
@@ -87,17 +87,17 @@ jobs:
           key: deps-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
           restore-keys: |
             deps-${{ runner.os }}-
-      
+
       - name: Configure npm registry
         if: steps.cache-deps.outputs.cache-hit != 'true'
         run: |
           echo "@octopus-synapse:registry=https://npm.pkg.github.com" >> .npmrc
           echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> .npmrc
-      
+
       - name: Install dependencies
         if: steps.cache-deps.outputs.cache-hit != 'true'
         run: bun install --frozen-lockfile
-      
+
       - name: Cache Prisma Client
         id: cache-prisma
         uses: actions/cache@v4
@@ -106,7 +106,7 @@ jobs:
           key: prisma-${{ hashFiles('prisma/schema/**/*.prisma') }}
           restore-keys: |
             prisma-
-      
+
       - name: Generate Prisma Client
         if: steps.cache-prisma.outputs.cache-hit != 'true'
         run: bunx prisma generate
