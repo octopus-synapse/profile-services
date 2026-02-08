@@ -114,22 +114,22 @@ backend-test:
 	docker-compose exec backend npm test
 
 backend-lint:
-	docker-compose exec backend npm run lint
+	docker-compose exec backend bun run lint
 
 backend-build:
-	docker-compose exec backend npm run build
+	docker-compose exec backend bun run build
 
 # ==========================================
 # Frontend Commands
 # ==========================================
 frontend-test:
-	docker-compose exec frontend npm test
+	docker-compose exec frontend bun test
 
 frontend-lint:
-	docker-compose exec frontend npm run lint
+	docker-compose exec frontend bun run lint
 
 frontend-build:
-	docker-compose exec frontend npm run build
+	docker-compose exec frontend bun run build
 
 # ==========================================
 # Utility Commands
