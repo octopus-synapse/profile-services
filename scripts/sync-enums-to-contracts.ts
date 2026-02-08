@@ -112,7 +112,7 @@ function generateZodSchemas(enums: PrismaEnum[]): string {
  * Generated at: ${new Date().toISOString()}
  * 
  * These Zod schemas are synchronized from Prisma enum definitions.
- * To update, run: npm run sync:enums
+ * To update, run: bun run sync:enums
  */\n\n`;
 
   const schemas = filteredEnums
@@ -204,7 +204,7 @@ function checkSync(outputPath: string, generatedContent: string): boolean {
     normalizeContent(existingContent) !== normalizeContent(generatedContent)
   ) {
     console.error('❌ Prisma enums are out of sync with profile-contracts!');
-    console.error('   Run: npm run sync:enums to update.');
+    console.error('   Run: bun run sync:enums to update.');
     return false;
   }
 

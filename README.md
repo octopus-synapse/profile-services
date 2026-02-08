@@ -131,7 +131,7 @@ npx prisma generate
 4. Start the development server:
 
 ```bash
-npm run start:dev
+bun run start:dev
 ```
 
 The API will be available at `http://localhost:3001/api`
@@ -206,28 +206,28 @@ FRONTEND_URL=http://localhost:3000
 
 ```bash
 # Development
-npm run start:dev          # Start in development mode with hot-reload
-npm run start:debug        # Start in debug mode
+bun run start:dev          # Start in development mode with hot-reload
+bun run start:debug        # Start in debug mode
 
 # Production
-npm run build              # Build the application
-npm run start:prod         # Start compiled version
+bun run build              # Build the application
+bun run start:prod         # Start compiled version
 
 # Database
-npx prisma migrate dev     # Create and apply migrations
-npx prisma generate        # Generate Prisma Client
-npx prisma studio          # Open Prisma Studio
-npx prisma db seed         # Populate database with sample data
+bunx prisma migrate dev    # Create and apply migrations
+bunx prisma generate       # Generate Prisma Client
+bunx prisma studio         # Open Prisma Studio
+bunx prisma db seed        # Populate database with sample data
 
 # Code Quality
-npm run lint               # Run ESLint
-npm run format             # Format code with Prettier
+bun run lint               # Run ESLint
+bun run format             # Format code with Prettier
 
 # Tests
-npm run test               # Unit tests
-npm run test:watch         # Tests in watch mode
-npm run test:cov           # Tests with coverage
-npm run test:e2e           # End-to-end tests
+bun run test               # Unit tests
+bun run test:watch         # Tests in watch mode
+bun run test:coverage      # Tests with coverage
+bun run test:e2e           # End-to-end tests
 ```
 
 ## Project Structure
@@ -314,16 +314,16 @@ profile-services/
 
 ```bash
 # Run all unit tests
-npm run test
+bun run test
 
 # Tests with coverage
-npm run test:cov
+bun run test:coverage
 
 # E2e tests
-npm run test:e2e
+bun run test:e2e
 
 # Watch mode
-npm run test:watch
+bun run test:watch
 ```
 
 ## Troubleshooting

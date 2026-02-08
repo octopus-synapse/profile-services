@@ -76,7 +76,7 @@ const TOTAL_TIME_TARGET_MS = 3000; // 3 seconds max for unit tests
 function loadTestMetrics(): TestMetrics {
   if (!existsSync(METRICS_FILE_PATH)) {
     console.error('❌ Error: test-metrics.json not found');
-    console.error('   Run: npm run test:metrics');
+    console.error('   Run: bun run test:metrics');
     process.exit(1);
   }
 
