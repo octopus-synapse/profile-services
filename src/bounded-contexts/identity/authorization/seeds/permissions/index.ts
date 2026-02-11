@@ -5,24 +5,23 @@
  */
 
 import type { CreatePermissionInput } from '../../domain/entities/permission.entity';
-
-import { USER_PERMISSIONS } from './user-permissions';
-import { RESUME_PERMISSIONS } from './resume-permissions';
-import { THEME_PERMISSIONS } from './theme-permissions';
-import { SKILL_PERMISSIONS } from './skill-permissions';
 import {
-  ROLE_PERMISSIONS,
   GROUP_PERMISSIONS,
   PERMISSION_PERMISSIONS,
+  ROLE_PERMISSIONS,
 } from './authorization-permissions';
+import { RESUME_PERMISSIONS } from './resume-permissions';
+import { SKILL_PERMISSIONS } from './skill-permissions';
 import {
-  AUDIT_LOG_PERMISSIONS,
   ANALYTICS_PERMISSIONS,
-  STATS_PERMISSIONS,
-  SETTINGS_PERMISSIONS,
+  AUDIT_LOG_PERMISSIONS,
   COLLABORATION_PERMISSIONS,
+  SETTINGS_PERMISSIONS,
+  STATS_PERMISSIONS,
   SUPER_ADMIN_PERMISSIONS,
 } from './system-permissions';
+import { THEME_PERMISSIONS } from './theme-permissions';
+import { USER_PERMISSIONS } from './user-permissions';
 
 /**
  * All system permissions aggregated.

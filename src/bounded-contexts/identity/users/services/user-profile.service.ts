@@ -5,9 +5,9 @@
 
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { UsersRepository } from '@/bounded-contexts/identity/users/users.repository';
+import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.repository';
 import type { UpdateUser as UpdateProfile } from '@/shared-kernel';
-import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { ERROR_MESSAGES } from '@/shared-kernel';
 
 @Injectable()
@@ -25,9 +25,7 @@ export class UserProfileService {
       throw new NotFoundException(ERROR_MESSAGES.PUBLIC_PROFILE_NOT_FOUND);
     }
 
-    const userResume = await this.resumesRepository.findResumeByUserId(
-      foundUser.id,
-    );
+    const userResume = await this.resumesRepository.findResumeByUserId(foundUser.id);
 
     const publicProfileData = {
       user: {

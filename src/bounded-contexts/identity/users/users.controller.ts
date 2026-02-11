@@ -11,26 +11,25 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
   ApiBearerAuth,
-  ApiQuery,
   ApiBody,
+  ApiOperation,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
 } from '@nestjs/swagger';
-import { UsersService } from './users.service';
+import { Public } from '@/bounded-contexts/identity/auth/decorators/public.decorator';
+import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
+import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
+import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type {
-  UpdateProfile,
-  UpdatePreferences,
   UpdateFullPreferences,
+  UpdatePreferences,
+  UpdateProfile,
   UpdateUsername,
   ValidateUsernameRequest,
 } from '@/shared-kernel';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
-import { Public } from '@/bounded-contexts/identity/auth/decorators/public.decorator';
-import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
-import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
-import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
 import {
   PublicProfileResponseDto,
   UserFullPreferencesResponseDto,
@@ -38,6 +37,7 @@ import {
   UserProfileResponseDto,
 } from '@/shared-kernel/dtos/sdk-response.dto';
 import { ValidateUsernameResponseDto } from './dto/username-response.dto';
+import { UsersService } from './users.service';
 
 @SdkExport({ tag: 'users', description: 'User profile and preferences' })
 @ApiTags('users')
@@ -79,10 +79,7 @@ export class UsersController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'User not found' })
   @ApiResponse({ status: 400, description: 'Invalid input data' })
-  async updateProfile(
-    @CurrentUser() user: UserPayload,
-    @Body() updateProfile: UpdateProfile,
-  ) {
+  async updateProfile(@CurrentUser() user: UserPayload, @Body() updateProfile: UpdateProfile) {
     return this.usersService.updateProfile(user.userId, updateProfile);
   }
 
@@ -148,10 +145,7 @@ export class UsersController {
     @CurrentUser() user: UserPayload,
     @Body() updateFullPreferences: UpdateFullPreferences,
   ) {
-    return this.usersService.updateFullPreferences(
-      user.userId,
-      updateFullPreferences,
-    );
+    return this.usersService.updateFullPreferences(user.userId, updateFullPreferences);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -176,10 +170,7 @@ export class UsersController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'User not found' })
   @ApiResponse({ status: 409, description: 'Username already taken' })
-  async updateUsername(
-    @CurrentUser() user: UserPayload,
-    @Body() updateUsername: UpdateUsername,
-  ) {
+  async updateUsername(@CurrentUser() user: UserPayload, @Body() updateUsername: UpdateUsername) {
     return this.usersService.updateUsername(user.userId, updateUsername);
   }
 

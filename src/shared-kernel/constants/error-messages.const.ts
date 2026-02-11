@@ -14,8 +14,7 @@ export const ERROR_MESSAGES = {
   USERNAME_INVALID_UNDERSCORES:
     'Username cannot have consecutive underscores or end with an underscore',
   CANNOT_DELETE_LAST_ADMIN: 'Cannot delete the last admin account',
-  CANNOT_REMOVE_LAST_ADMIN_ROLE:
-    'Cannot remove admin role from the last admin account',
+  CANNOT_REMOVE_LAST_ADMIN_ROLE: 'Cannot remove admin role from the last admin account',
   INVALID_INTERNAL_TOKEN: 'Invalid internal token',
   INVALID_VERIFICATION_TOKEN: 'Invalid or expired verification token',
   INVALID_RESET_TOKEN: 'Invalid or expired reset token',
@@ -61,10 +60,8 @@ export const ERROR_MESSAGES = {
     'Distributed locking is unavailable. Critical operations cannot proceed.',
   LOCK_ACQUISITION_FAILED: 'Could not acquire lock for operation',
   TOO_MANY_LOGIN_ATTEMPTS: 'Too many login attempts. Please try again later.',
-  TOO_MANY_PASSWORD_RESET_REQUESTS:
-    'Too many password reset requests. Please try again later.',
-  TOO_MANY_SYNC_REQUESTS:
-    'Daily sync limit reached. Please try again tomorrow.',
+  TOO_MANY_PASSWORD_RESET_REQUESTS: 'Too many password reset requests. Please try again later.',
+  TOO_MANY_SYNC_REQUESTS: 'Daily sync limit reached. Please try again tomorrow.',
   THEME_LIMIT_REACHED: 'Maximum number of themes reached (5)',
   SESSION_LIMIT_REACHED: 'Maximum number of active sessions reached (5)',
   THEME_RESUBMISSION_LIMIT_REACHED:

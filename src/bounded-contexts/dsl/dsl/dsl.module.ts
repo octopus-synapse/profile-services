@@ -4,13 +4,13 @@
  */
 
 import { Module } from '@nestjs/common';
-import { DslCompilerService } from './dsl-compiler.service';
-import { DslValidatorService } from './dsl-validator.service';
-import { TokenResolverService } from './token-resolver.service';
+import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { DslController } from './dsl.controller';
 import { DslRepository } from './dsl.repository';
+import { DslCompilerService } from './dsl-compiler.service';
+import { DslValidatorService } from './dsl-validator.service';
 import { DslMigrationService, DslV1ToV2Migrator } from './migrators';
-import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
+import { TokenResolverService } from './token-resolver.service';
 
 @Module({
   imports: [PrismaModule],
@@ -23,11 +23,6 @@ import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
     DslMigrationService,
     DslV1ToV2Migrator,
   ],
-  exports: [
-    DslCompilerService,
-    DslValidatorService,
-    DslRepository,
-    DslMigrationService,
-  ],
+  exports: [DslCompilerService, DslValidatorService, DslRepository, DslMigrationService],
 })
 export class DslModule {}

@@ -3,16 +3,10 @@
  * API endpoints for tech skills synchronization (Admin/Internal only)
  */
 
-import {
-  Controller,
-  Post,
-  UseGuards,
-  HttpCode,
-  HttpStatus,
-} from '@nestjs/common';
-import { TechSkillsSyncService } from '../services/tech-skills-sync.service';
-import { InternalAuthGuard } from '@/bounded-contexts/integration/mec-sync/guards/internal-auth.guard';
+import { Controller, HttpCode, HttpStatus, Post, UseGuards } from '@nestjs/common';
 import { Public } from '@/bounded-contexts/identity/auth/decorators/public.decorator';
+import { InternalAuthGuard } from '@/bounded-contexts/integration/mec-sync/guards/internal-auth.guard';
+import { TechSkillsSyncService } from '../services/tech-skills-sync.service';
 
 @Controller('v1/tech-skills')
 export class TechSkillsSyncController {

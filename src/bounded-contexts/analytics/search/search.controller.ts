@@ -51,10 +51,7 @@ export class SearchController {
    */
   @Public()
   @Get('suggestions')
-  async suggestions(
-    @Query('prefix') prefix: string,
-    @Query('limit') limit?: string,
-  ) {
+  async suggestions(@Query('prefix') prefix: string, @Query('limit') limit?: string) {
     const suggestions = await this.searchService.suggest(
       prefix || '',
       limit ? parseInt(limit, 10) : 10,
@@ -69,10 +66,7 @@ export class SearchController {
   @Public()
   @Get('similar/:id')
   async similar(@Param('id') id: string, @Query('limit') limit?: string) {
-    const resumes = await this.searchService.findSimilar(
-      id,
-      limit ? parseInt(limit, 10) : 5,
-    );
+    const resumes = await this.searchService.findSimilar(id, limit ? parseInt(limit, 10) : 5);
 
     return { resumes };
   }

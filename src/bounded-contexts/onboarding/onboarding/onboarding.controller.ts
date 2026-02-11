@@ -1,28 +1,14 @@
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Post,
-  Put,
-  UseGuards,
-} from '@nestjs/common';
-import { OnboardingProgressResponseDto } from '@/shared-kernel/dtos/sdk-response.dto';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
-import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
-import { OnboardingService } from './onboarding.service';
-import type { OnboardingProgress } from '@/shared-kernel';
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Put, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
-import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
-import { OnboardingDataSchema, type OnboardingData } from '@/shared-kernel';
+import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { createZodPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
+import type { OnboardingProgress } from '@/shared-kernel';
+import { type OnboardingData, OnboardingDataSchema } from '@/shared-kernel';
+import { OnboardingProgressResponseDto } from '@/shared-kernel/dtos/sdk-response.dto';
+import { OnboardingService } from './onboarding.service';
 
 @SdkExport({ tag: 'onboarding', description: 'Onboarding API' })
 @ApiTags('onboarding')
@@ -118,10 +104,7 @@ export class OnboardingController {
   })
   @ApiResponse({ status: 400, description: 'Invalid input data' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async saveProgress(
-    @CurrentUser() user: UserPayload,
-    @Body() data: OnboardingProgress,
-  ) {
+  async saveProgress(@CurrentUser() user: UserPayload, @Body() data: OnboardingProgress) {
     return this.onboardingService.saveProgress(user.userId, data);
   }
 }

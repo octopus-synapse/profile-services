@@ -1,25 +1,16 @@
 import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-
-// Controllers
-import { ChatController, BlockController } from './controllers';
-
-// Services
-import { ChatService, BlockService } from './services';
-
-// Repositories
-import {
-  ConversationRepository,
-  MessageRepository,
-  BlockedUserRepository,
-} from './repositories';
-
-// Gateways
-import { ChatGateway } from './gateways';
-
+import { JwtModule } from '@nestjs/jwt';
 // Shared modules
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
+// Controllers
+import { BlockController, ChatController } from './controllers';
+// Gateways
+import { ChatGateway } from './gateways';
+// Repositories
+import { BlockedUserRepository, ConversationRepository, MessageRepository } from './repositories';
+// Services
+import { BlockService, ChatService } from './services';
 
 @Module({
   imports: [

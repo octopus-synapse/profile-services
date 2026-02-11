@@ -3,8 +3,8 @@
  * Maps Prisma skills to DTO format
  */
 
-import type { SkillType } from '../interfaces';
 import type { TechSkill, TechSkillRawQueryResult } from '../dtos';
+import type { SkillType } from '../interfaces';
 
 /** Prisma skill with niche relation */
 export interface PrismaSkillWithNiche {

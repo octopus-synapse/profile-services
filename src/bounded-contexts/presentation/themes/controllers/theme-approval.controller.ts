@@ -7,17 +7,14 @@
  * Single Responsibility: HTTP interface for theme approval operations.
  */
 
-import { Controller, Get, Post, Body, Param, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
-import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
-import {
-  PermissionGuard,
-  RequirePermission,
-} from '@/bounded-contexts/identity/authorization';
+import { PermissionGuard, RequirePermission } from '@/bounded-contexts/identity/authorization';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
-import { ThemeApprovalService, ThemeCrudService } from '../services';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { ReviewTheme } from '@/shared-kernel';
+import { ThemeApprovalService, ThemeCrudService } from '../services';
 
 @SdkExport({ tag: 'themes', description: 'Themes API' })
 @ApiTags('themes')

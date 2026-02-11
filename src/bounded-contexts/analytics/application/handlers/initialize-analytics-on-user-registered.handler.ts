@@ -15,9 +15,7 @@ import { UserRegisteredEvent } from '@/bounded-contexts/identity/domain/events';
 
 @Injectable()
 export class InitializeAnalyticsOnUserRegisteredHandler {
-  private readonly logger = new Logger(
-    InitializeAnalyticsOnUserRegisteredHandler.name,
-  );
+  private readonly logger = new Logger(InitializeAnalyticsOnUserRegisteredHandler.name);
 
   @OnEvent(UserRegisteredEvent.TYPE)
   handle(event: UserRegisteredEvent): void {

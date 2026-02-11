@@ -3,26 +3,20 @@
  * Handles reordering of sections and items
  */
 
-import { Injectable, BadRequestException } from '@nestjs/common';
-import { ResumeConfigRepository } from './resume-config.repository';
-import { moveItem, normalizeOrders } from '../utils';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { ERROR_MESSAGES } from '@/shared-kernel';
+import { moveItem, normalizeOrders } from '../utils';
+import { ResumeConfigRepository } from './resume-config.repository';
 
 @Injectable()
 export class SectionOrderingService {
   constructor(private repo: ResumeConfigRepository) {}
 
-  async reorderSection(
-    userId: string,
-    resumeId: string,
-    sectionId: string,
-    newOrder: number,
-  ) {
+  async reorderSection(userId: string, resumeId: string, sectionId: string, newOrder: number) {
     const config = await this.repo.get(userId, resumeId);
 
     const idx = config.sections.findIndex((s) => s.id === sectionId);
-    if (idx === -1)
-      throw new BadRequestException(ERROR_MESSAGES.SECTION_NOT_FOUND);
+    if (idx === -1) throw new BadRequestException(ERROR_MESSAGES.SECTION_NOT_FOUND);
 
     config.sections = moveItem(config.sections, idx, newOrder);
 

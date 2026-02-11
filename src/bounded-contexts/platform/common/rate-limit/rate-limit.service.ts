@@ -11,11 +11,11 @@
 import { Injectable } from '@nestjs/common';
 import { CacheService } from '../cache/cache.service';
 import {
+  DEFAULT_RATE_LIMITS,
   type RateLimitConfig,
-  type RateLimitResult,
   type RateLimitHeaders,
   type RateLimitKeyStrategy,
-  DEFAULT_RATE_LIMITS,
+  type RateLimitResult,
 } from './rate-limit.types';
 
 interface RateLimitEntry {
@@ -77,10 +77,7 @@ export class RateLimitService {
    * Consumes a rate limit point for the given key.
    * Returns the result including whether the request is blocked.
    */
-  async consume(
-    key: string,
-    config: RateLimitConfig,
-  ): Promise<RateLimitResult> {
+  async consume(key: string, config: RateLimitConfig): Promise<RateLimitResult> {
     const { points, duration } = config;
     const now = Date.now();
     const windowEnd = now + duration * 1000;
@@ -134,13 +131,8 @@ export class RateLimitService {
    * Generates standard rate limit headers for the response.
    * @see https://datatracker.ietf.org/doc/draft-ietf-httpapi-ratelimit-headers/
    */
-  getHeaders(
-    result: RateLimitResult,
-    config: RateLimitConfig,
-  ): RateLimitHeaders {
-    const resetTimestamp = Math.floor(
-      (Date.now() + result.msBeforeNext) / 1000,
-    );
+  getHeaders(result: RateLimitResult, config: RateLimitConfig): RateLimitHeaders {
+    const resetTimestamp = Math.floor((Date.now() + result.msBeforeNext) / 1000);
 
     const headers: RateLimitHeaders = {
       'X-RateLimit-Limit': config.points,

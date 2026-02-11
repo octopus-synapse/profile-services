@@ -3,42 +3,26 @@
  * Handles signup, login, token refresh, and current user info
  */
 
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Post,
-  UseGuards,
-} from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
-import { Throttle, SkipThrottle } from '@nestjs/throttler';
-import {
-  AuthResponseDto,
-  CurrentUserResponseDto,
-} from '@/shared-kernel/dtos/sdk-response.dto';
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { SkipThrottle, Throttle } from '@nestjs/throttler';
 import { AuthService } from '@/bounded-contexts/identity/auth/auth.service';
-import {
-  LoginCredentialsSchema,
-  RegisterCredentialsSchema,
-  RefreshTokenSchema,
-  type LoginCredentials,
-  type RegisterCredentials,
-  type RefreshToken,
-  RATE_LIMIT_CONFIG,
-} from '@/shared-kernel';
+import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { createZodPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
+import {
+  type LoginCredentials,
+  LoginCredentialsSchema,
+  RATE_LIMIT_CONFIG,
+  type RefreshToken,
+  RefreshTokenSchema,
+  type RegisterCredentials,
+  RegisterCredentialsSchema,
+} from '@/shared-kernel';
+import { AuthResponseDto, CurrentUserResponseDto } from '@/shared-kernel/dtos/sdk-response.dto';
 import { Public } from '../decorators/public.decorator';
 import { SkipTosCheck } from '../decorators/skip-tos-check.decorator';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
-import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
-import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { UserPayload } from '../interfaces/auth-request.interface';
 
 @SdkExport({
@@ -64,9 +48,7 @@ export class AuthCoreController {
   @ApiResponse({ status: 201, description: 'User successfully registered' })
   @ApiResponse({ status: 409, description: 'Email already registered' })
   @ApiResponse({ status: 400, description: 'Invalid input data' })
-  async signup(
-    @Body(createZodPipe(RegisterCredentialsSchema)) dto: RegisterCredentials,
-  ) {
+  async signup(@Body(createZodPipe(RegisterCredentialsSchema)) dto: RegisterCredentials) {
     return this.authService.signup(dto);
   }
 
@@ -83,9 +65,7 @@ export class AuthCoreController {
   @ApiResponse({ status: 201, type: AuthResponseDto })
   @ApiResponse({ status: 200, description: 'Login successful' })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
-  async login(
-    @Body(createZodPipe(LoginCredentialsSchema)) dto: LoginCredentials,
-  ) {
+  async login(@Body(createZodPipe(LoginCredentialsSchema)) dto: LoginCredentials) {
     return this.authService.login(dto);
   }
 
@@ -96,9 +76,7 @@ export class AuthCoreController {
   @ApiOperation({ summary: 'Refresh JWT token using refresh token' })
   @ApiResponse({ status: 200, description: 'Token refreshed successfully' })
   @ApiResponse({ status: 401, description: 'Invalid refresh token' })
-  async refreshToken(
-    @Body(createZodPipe(RefreshTokenSchema)) dto: RefreshToken,
-  ) {
+  async refreshToken(@Body(createZodPipe(RefreshTokenSchema)) dto: RefreshToken) {
     return this.authService.refreshTokenWithToken(dto.refreshToken);
   }
 

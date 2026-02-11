@@ -1,4 +1,5 @@
 #!/usr/bin/env bun
+
 /**
  * Swagger Coverage Validator
  *
@@ -17,9 +18,9 @@
  *   1 - Missing documentation found
  */
 
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { glob } from 'glob';
-import * as fs from 'fs';
-import * as path from 'path';
 
 interface RouteValidation {
   controller: string;
@@ -76,9 +77,7 @@ async function validateSwaggerCoverage(): Promise<ValidationResult> {
 /**
  * Validate a single controller file
  */
-async function validateController(
-  filePath: string,
-): Promise<RouteValidation[]> {
+async function validateController(filePath: string): Promise<RouteValidation[]> {
   const content = await fs.promises.readFile(filePath, 'utf-8');
   const lines = content.split('\n');
   const violations: RouteValidation[] = [];
@@ -165,11 +164,7 @@ function extractRouteInfo(
   // Skip decorator lines (lines starting with @)
   // Increased search range to 30 lines to handle routes with many decorators
   let methodName = 'unknown';
-  for (
-    let i = routeLineIndex + 1;
-    i < Math.min(routeLineIndex + 30, lines.length);
-    i++
-  ) {
+  for (let i = routeLineIndex + 1; i < Math.min(routeLineIndex + 30, lines.length); i++) {
     const line = lines[i].trim();
     // Skip decorators
     if (line.startsWith('@')) continue;
@@ -187,10 +182,7 @@ function extractRouteInfo(
 /**
  * Find missing required Swagger decorators for a route
  */
-function findMissingDecorators(
-  lines: string[],
-  routeLineIndex: number,
-): string[] {
+function findMissingDecorators(lines: string[], routeLineIndex: number): string[] {
   // Check decorators above AND after the HTTP route decorator
   // Some decorators may appear after @Get(), @Post(), etc.
   const checkRangeStart = Math.max(0, routeLineIndex - 20);
@@ -198,11 +190,7 @@ function findMissingDecorators(
   // Find where the method declaration starts (skip decorator lines)
   // Increased search range to 30 lines to handle routes with many decorators
   let methodLineIndex = routeLineIndex + 30;
-  for (
-    let i = routeLineIndex + 1;
-    i < Math.min(routeLineIndex + 30, lines.length);
-    i++
-  ) {
+  for (let i = routeLineIndex + 1; i < Math.min(routeLineIndex + 30, lines.length); i++) {
     const line = lines[i].trim();
     // Skip decorators
     if (line.startsWith('@')) continue;
@@ -261,13 +249,9 @@ function countRoutesInFile(filePath: string): number {
  * Print validation results
  */
 function printResults(result: ValidationResult): void {
-  console.log(
-    '═══════════════════════════════════════════════════════════════',
-  );
+  console.log('═══════════════════════════════════════════════════════════════');
   console.log('              SWAGGER DOCUMENTATION VALIDATION');
-  console.log(
-    '═══════════════════════════════════════════════════════════════\n',
-  );
+  console.log('═══════════════════════════════════════════════════════════════\n');
 
   console.log(`📊 Statistics:`);
   console.log(`   Controllers scanned: ${result.totalControllers}`);
@@ -275,18 +259,12 @@ function printResults(result: ValidationResult): void {
   console.log(`   Undocumented routes: ${result.undocumentedRoutes.length}\n`);
 
   if (result.success) {
-    console.log(
-      '✅ SUCCESS: All routes have required Swagger documentation!\n',
-    );
-    console.log(
-      '═══════════════════════════════════════════════════════════════\n',
-    );
+    console.log('✅ SUCCESS: All routes have required Swagger documentation!\n');
+    console.log('═══════════════════════════════════════════════════════════════\n');
     return;
   }
 
-  console.log(
-    '❌ FAILURE: Found routes without required Swagger documentation\n',
-  );
+  console.log('❌ FAILURE: Found routes without required Swagger documentation\n');
   console.log('Required decorators for each route:');
   console.log('  • @ApiOperation() - Describes the endpoint');
   console.log('  • @ApiResponse()  - Defines at least one response\n');
@@ -318,13 +296,9 @@ function printResults(result: ValidationResult): void {
     }
   }
 
-  console.log(
-    '\n═══════════════════════════════════════════════════════════════',
-  );
+  console.log('\n═══════════════════════════════════════════════════════════════');
   console.log('❌ Build failed due to missing Swagger documentation');
-  console.log(
-    '═══════════════════════════════════════════════════════════════\n',
-  );
+  console.log('═══════════════════════════════════════════════════════════════\n');
 }
 
 /**

@@ -6,13 +6,10 @@
  */
 
 import { Controller, Get } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Public } from '@/bounded-contexts/identity/auth/decorators/public.decorator';
-import {
-  ExportFormatResponseDto,
-  UserRoleResponseDto,
-} from '@/shared-kernel/dtos/enums.dto';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import { ExportFormatResponseDto, UserRoleResponseDto } from '@/shared-kernel/dtos/enums.dto';
 
 @SdkExport({ tag: 'enums', description: 'Domain Enums API' })
 @ApiTags('enums')

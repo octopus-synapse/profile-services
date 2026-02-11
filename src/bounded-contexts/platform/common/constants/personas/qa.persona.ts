@@ -1,5 +1,5 @@
-import { TechPersona } from './tech-persona.enum';
 import { PersonaConfig } from './persona-config.interface';
+import { TechPersona } from './tech-persona.enum';
 
 export const QA_PERSONA: PersonaConfig = {
   id: TechPersona.QA,
@@ -18,12 +18,7 @@ export const QA_PERSONA: PersonaConfig = {
     'CI/CD Integration',
     'Bug Tracking',
   ],
-  achievementTypes: [
-    'bugs_found',
-    'test_coverage',
-    'automation_rate',
-    'quality_improvement',
-  ],
+  achievementTypes: ['bugs_found', 'test_coverage', 'automation_rate', 'quality_improvement'],
   prioritySections: ['experiences', 'certifications', 'projects', 'skills'],
   keywords: [
     'selenium',

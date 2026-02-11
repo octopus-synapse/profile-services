@@ -1,4 +1,4 @@
-import { randomUUID } from 'crypto';
+import { randomUUID } from 'node:crypto';
 
 export abstract class DomainEvent<TPayload = unknown> {
   readonly eventId: string;

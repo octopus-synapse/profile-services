@@ -15,13 +15,8 @@ import type { ViewTracker } from '../../application/handlers';
 export class ViewTrackerAdapter implements ViewTracker {
   private readonly logger = new Logger(ViewTrackerAdapter.name);
 
-  async trackResumeUpdate(
-    resumeId: string,
-    fields: readonly string[],
-  ): Promise<void> {
-    this.logger.debug(
-      `Resume ${resumeId} updated fields: ${fields.join(', ')}`,
-    );
+  async trackResumeUpdate(resumeId: string, fields: readonly string[]): Promise<void> {
+    this.logger.debug(`Resume ${resumeId} updated fields: ${fields.join(', ')}`);
 
     // Future: Could track update frequency patterns for analytics
     // e.g., which sections are most frequently edited

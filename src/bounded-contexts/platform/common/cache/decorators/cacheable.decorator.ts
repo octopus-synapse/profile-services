@@ -71,7 +71,7 @@ export function buildCacheKey(pattern: string, args: unknown[]): string {
   return pattern.replace(/\{([^}]+)\}/g, (_, placeholder: string) => {
     // Check if placeholder is a number (positional argument)
     const positionalIndex = parseInt(placeholder, 10);
-    if (!isNaN(positionalIndex) && positionalIndex < args.length) {
+    if (!Number.isNaN(positionalIndex) && positionalIndex < args.length) {
       return String(args[positionalIndex]);
     }
 
@@ -85,10 +85,7 @@ export function buildCacheKey(pattern: string, args: unknown[]): string {
           const objArg = arg as Record<string, unknown>;
 
           // Direct path from object (e.g., {id} on { id: 'x' })
-          const directValue = getNestedValue(objArg, [
-            objName,
-            ...propertyPath,
-          ]);
+          const directValue = getNestedValue(objArg, [objName, ...propertyPath]);
           if (directValue !== undefined) {
             return stringifyValue(directValue);
           }
@@ -98,7 +95,7 @@ export function buildCacheKey(pattern: string, args: unknown[]): string {
       // Fallback for {data.id} pattern where data is the argument itself
       // This handles cases like {data.id} where the arg IS the data object
       const argIndex = parseInt(objName, 10);
-      if (!isNaN(argIndex) && argIndex < args.length) {
+      if (!Number.isNaN(argIndex) && argIndex < args.length) {
         const value = getNestedValue(args[argIndex], propertyPath);
         if (value !== undefined) {
           return stringifyValue(value);
@@ -188,28 +185,19 @@ const CACHE_SERVICE_PROPERTY = 'cacheService';
  * ```
  */
 export function Cacheable(options: CacheableOptions): MethodDecorator {
-  return function <T>(
-    target: object,
-    propertyKey: string | symbol,
+  return <T>(
+    _target: object,
+    _propertyKey: string | symbol,
     descriptor: TypedPropertyDescriptor<T>,
-  ): TypedPropertyDescriptor<T> | void {
-    const originalMethod = descriptor.value as (
-      ...args: unknown[]
-    ) => Promise<unknown>;
+  ): TypedPropertyDescriptor<T> | undefined => {
+    const originalMethod = descriptor.value as (...args: unknown[]) => Promise<unknown>;
 
     if (typeof originalMethod !== 'function') {
-      throw new Error(
-        `@Cacheable can only be applied to methods. Got: ${typeof originalMethod}`,
-      );
+      throw new Error(`@Cacheable can only be applied to methods. Got: ${typeof originalMethod}`);
     }
 
-    descriptor.value = async function (
-      this: Record<string, unknown>,
-      ...args: unknown[]
-    ) {
-      const cacheService = this[CACHE_SERVICE_PROPERTY] as
-        | CacheService
-        | undefined;
+    descriptor.value = async function (this: Record<string, unknown>, ...args: unknown[]) {
+      const cacheService = this[CACHE_SERVICE_PROPERTY] as CacheService | undefined;
 
       // If no cache service, just call the original method
       if (!cacheService) {

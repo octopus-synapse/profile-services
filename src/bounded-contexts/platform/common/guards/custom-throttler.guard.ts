@@ -7,7 +7,7 @@
  * Kent Beck: "Test setup should be simple and predictable"
  */
 
-import { Injectable, ExecutionContext } from '@nestjs/common';
+import { ExecutionContext, Injectable } from '@nestjs/common';
 import { ThrottlerGuard } from '@nestjs/throttler';
 
 @Injectable()

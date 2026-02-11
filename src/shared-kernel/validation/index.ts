@@ -12,5 +12,5 @@
  * const result = validate(LoginSchema, data);
  */
 
+export type { ValidationError, ValidationResult } from './validator';
 export { validate, validateOrThrow } from './validator';
-export type { ValidationResult, ValidationError } from './validator';

@@ -3,12 +3,12 @@
  * Handles section/item visibility and ordering
  */
 
-import { Controller, Post, Body, Param, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
-import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import { Body, Controller, Param, Post, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
-import { SectionVisibilityService, SectionOrderingService } from '../services';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import { SectionOrderingService, SectionVisibilityService } from '../services';
 
 class SectionToggle {
   visible: boolean;
@@ -44,12 +44,7 @@ export class SectionConfigController {
     @Param('sectionId') sectionId: string,
     @Body() dto: SectionToggle,
   ) {
-    return this.visibility.toggleSection(
-      userId,
-      resumeId,
-      sectionId,
-      dto.visible,
-    );
+    return this.visibility.toggleSection(userId, resumeId, sectionId, dto.visible);
   }
 
   @Post('sections/:sectionId/order')
@@ -71,13 +66,7 @@ export class SectionConfigController {
     @Param('sectionId') sectionId: string,
     @Body() dto: SectionItem,
   ) {
-    return this.visibility.toggleItem(
-      userId,
-      resumeId,
-      sectionId,
-      dto.itemId,
-      dto.visible ?? true,
-    );
+    return this.visibility.toggleItem(userId, resumeId, sectionId, dto.itemId, dto.visible ?? true);
   }
 
   @Post('sections/:sectionId/items/order')
@@ -88,13 +77,7 @@ export class SectionConfigController {
     @Param('sectionId') sectionId: string,
     @Body() dto: SectionItem,
   ) {
-    return this.ordering.reorderItem(
-      userId,
-      resumeId,
-      sectionId,
-      dto.itemId,
-      dto.order ?? 0,
-    );
+    return this.ordering.reorderItem(userId, resumeId, sectionId, dto.itemId, dto.order ?? 0);
   }
 
   @Post('sections/batch')

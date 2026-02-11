@@ -57,19 +57,15 @@ const CACHE_SERVICE_PROPERTY = 'cacheService';
  * }
  * ```
  */
-export function CacheInvalidate(
-  options: CacheInvalidateOptions,
-): MethodDecorator {
+export function CacheInvalidate(options: CacheInvalidateOptions): MethodDecorator {
   const { keys = [], patterns = [], timing = 'after' } = options;
 
-  return function <T>(
-    target: object,
-    propertyKey: string | symbol,
+  return <T>(
+    _target: object,
+    _propertyKey: string | symbol,
     descriptor: TypedPropertyDescriptor<T>,
-  ): TypedPropertyDescriptor<T> | void {
-    const originalMethod = descriptor.value as (
-      ...args: unknown[]
-    ) => Promise<unknown>;
+  ): TypedPropertyDescriptor<T> | undefined => {
+    const originalMethod = descriptor.value as (...args: unknown[]) => Promise<unknown>;
 
     if (typeof originalMethod !== 'function') {
       throw new Error(
@@ -77,13 +73,8 @@ export function CacheInvalidate(
       );
     }
 
-    descriptor.value = async function (
-      this: Record<string, unknown>,
-      ...args: unknown[]
-    ) {
-      const cacheService = this[CACHE_SERVICE_PROPERTY] as
-        | CacheService
-        | undefined;
+    descriptor.value = async function (this: Record<string, unknown>, ...args: unknown[]) {
+      const cacheService = this[CACHE_SERVICE_PROPERTY] as CacheService | undefined;
 
       // Helper to perform invalidation
       const invalidate = async () => {

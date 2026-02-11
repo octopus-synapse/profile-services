@@ -1,4 +1,4 @@
-import { PipeTransform, Injectable, BadRequestException } from '@nestjs/common';
+import { BadRequestException, Injectable, PipeTransform } from '@nestjs/common';
 
 /**
  * Validates that the request body was successfully parsed as JSON
@@ -9,9 +9,7 @@ import { PipeTransform, Injectable, BadRequestException } from '@nestjs/common';
 export class ParseJsonBodyPipe implements PipeTransform {
   transform(value: unknown) {
     if (!value || typeof value !== 'object') {
-      throw new BadRequestException(
-        'Invalid request body - must be valid JSON',
-      );
+      throw new BadRequestException('Invalid request body - must be valid JSON');
     }
     return value;
   }

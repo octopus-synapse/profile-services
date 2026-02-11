@@ -3,15 +3,10 @@
  * Handles page configuration and navigation for banner capture
  */
 
-import { Page } from 'puppeteer';
-import { ConfigService } from '@nestjs/config';
 import { Logger } from '@nestjs/common';
-import {
-  VIEWPORT,
-  TIMEOUT,
-  DEBUG_PATH,
-  DEFAULT,
-} from '../constants/ui.constants';
+import { ConfigService } from '@nestjs/config';
+import { Page } from 'puppeteer';
+import { DEBUG_PATH, DEFAULT, TIMEOUT, VIEWPORT } from '../constants/ui.constants';
 
 export class BannerPageSetup {
   private readonly logger = new Logger(BannerPageSetup.name);
@@ -27,10 +22,8 @@ export class BannerPageSetup {
   }
 
   buildBannerUrl(palette: string, logoUrl: string): string {
-    const host =
-      this.configService.get<string>('FRONTEND_HOST') ?? DEFAULT.HOST;
-    const port =
-      this.configService.get<number>('FRONTEND_PORT') ?? DEFAULT.PORT;
+    const host = this.configService.get<string>('FRONTEND_HOST') ?? DEFAULT.HOST;
+    const port = this.configService.get<number>('FRONTEND_PORT') ?? DEFAULT.PORT;
 
     let url = `http://${host}:${port}/?palette=${encodeURIComponent(palette)}`;
     if (logoUrl) {

@@ -13,14 +13,11 @@
  */
 
 import { Injectable } from '@nestjs/common';
+import { UserAuthContext, type UserId } from '../domain/entities/user-auth-context.entity';
 import { PermissionResolverService } from '../domain/services/permission-resolver.service';
-import {
-  UserAuthContext,
-  type UserId,
-} from '../domain/entities/user-auth-context.entity';
+import { GroupRepository } from '../infrastructure/repositories/group.repository';
 import { PermissionRepository } from '../infrastructure/repositories/permission.repository';
 import { RoleRepository } from '../infrastructure/repositories/role.repository';
-import { GroupRepository } from '../infrastructure/repositories/group.repository';
 import { UserAuthorizationRepository } from '../infrastructure/repositories/user-authorization.repository';
 
 // ============================================================================
@@ -65,11 +62,7 @@ export class AuthorizationService {
   /**
    * Check if user has a specific permission
    */
-  async hasPermission(
-    userId: UserId,
-    resource: string,
-    action: string,
-  ): Promise<boolean> {
+  async hasPermission(userId: UserId, resource: string, action: string): Promise<boolean> {
     const context = await this.getContext(userId);
     return context.hasPermission(resource, action);
   }
@@ -138,14 +131,9 @@ export class AuthorizationService {
   /**
    * Get all permissions a user has for a specific resource
    */
-  async getResourcePermissions(
-    userId: UserId,
-    resource: string,
-  ): Promise<string[]> {
+  async getResourcePermissions(userId: UserId, resource: string): Promise<string[]> {
     const context = await this.getContext(userId);
-    return context
-      .getResourcePermissions(resource)
-      .map((p) => p.permission.action);
+    return context.getResourcePermissions(resource).map((p) => p.permission.action);
   }
 
   /**

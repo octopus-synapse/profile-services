@@ -1,5 +1,5 @@
-import { TechPersona } from './tech-persona.enum';
 import { PersonaConfig } from './persona-config.interface';
+import { TechPersona } from './tech-persona.enum';
 
 export const GAME_DEV_PERSONA: PersonaConfig = {
   id: TechPersona.GAME_DEV,
@@ -18,12 +18,7 @@ export const GAME_DEV_PERSONA: PersonaConfig = {
     'Multiplayer',
     'Optimization',
   ],
-  achievementTypes: [
-    'game_downloads',
-    'game_awards',
-    'jam_wins',
-    'player_count',
-  ],
+  achievementTypes: ['game_downloads', 'game_awards', 'jam_wins', 'player_count'],
   prioritySections: ['projects', 'hackathons', 'awards', 'experiences'],
   keywords: [
     'unity',

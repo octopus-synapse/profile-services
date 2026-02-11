@@ -3,8 +3,8 @@
  * Builds education section paragraphs for DOCX export
  */
 
-import { Paragraph, TextRun } from 'docx';
 import { Education } from '@prisma/client';
+import { Paragraph, TextRun } from 'docx';
 
 export class DocxEducationBuilder {
   create(edu: Education): Paragraph[] {

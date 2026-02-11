@@ -1,5 +1,5 @@
-import { TechPersona } from './tech-persona.enum';
 import { PersonaConfig } from './persona-config.interface';
+import { TechPersona } from './tech-persona.enum';
 
 export const MOBILE_PERSONA: PersonaConfig = {
   id: TechPersona.MOBILE,
@@ -18,18 +18,8 @@ export const MOBILE_PERSONA: PersonaConfig = {
     'App Store Optimization',
     'Testing',
   ],
-  achievementTypes: [
-    'app_downloads',
-    'app_rating',
-    'featured_app',
-    'app_revenue',
-  ],
-  prioritySections: [
-    'projects',
-    'experiences',
-    'achievements',
-    'certifications',
-  ],
+  achievementTypes: ['app_downloads', 'app_rating', 'featured_app', 'app_revenue'],
+  prioritySections: ['projects', 'experiences', 'achievements', 'certifications'],
   keywords: [
     'react-native',
     'flutter',

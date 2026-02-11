@@ -12,10 +12,7 @@ export function buildSectionStyles(tokens: ResolvedTokens) {
       borderRadiusPx: tokens.effects.borderRadiusPx,
       paddingPx: tokens.spacing.contentPaddingPx,
       marginBottomPx: tokens.spacing.sectionGapPx,
-      shadow:
-        tokens.effects.boxShadow !== 'none'
-          ? tokens.effects.boxShadow
-          : undefined,
+      shadow: tokens.effects.boxShadow !== 'none' ? tokens.effects.boxShadow : undefined,
     },
     title: {
       fontFamily: tokens.typography.headingFontFamily,

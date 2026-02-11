@@ -5,7 +5,7 @@
  */
 
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsIn } from 'class-validator';
+import { IsIn, IsString } from 'class-validator';
 import type { CollaboratorRole } from '@/shared-kernel';
 
 /**

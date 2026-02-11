@@ -1,24 +1,17 @@
-import {
-  Injectable,
-  NotFoundException,
-  ConflictException,
-} from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
-import { AuditLogService } from '@/bounded-contexts/platform/common/audit/audit-log.service';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
+import { AuditLogService } from '@/bounded-contexts/platform/common/audit/audit-log.service';
+import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { OnboardingProgress } from '@/shared-kernel';
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@/shared-kernel';
-import {
-  onboardingDataSchema,
-  type OnboardingData,
-} from './schemas/onboarding.schema';
-import { ResumeOnboardingService } from './services/resume-onboarding.service';
-import { SkillsOnboardingService } from './services/skills-onboarding.service';
-import { ExperienceOnboardingService } from './services/experience-onboarding.service';
+import { type OnboardingData, onboardingDataSchema } from './schemas/onboarding.schema';
 import { EducationOnboardingService } from './services/education-onboarding.service';
+import { ExperienceOnboardingService } from './services/experience-onboarding.service';
 import { LanguagesOnboardingService } from './services/languages-onboarding.service';
 import { OnboardingProgressService } from './services/onboarding-progress.service';
-import type { OnboardingProgress } from '@/shared-kernel';
+import { ResumeOnboardingService } from './services/resume-onboarding.service';
+import { SkillsOnboardingService } from './services/skills-onboarding.service';
 
 @Injectable()
 export class OnboardingService {
@@ -47,39 +40,19 @@ export class OnboardingService {
       .$transaction(
         async (tx) => {
           // Create/update resume
-          const resume = await this.resumeService.upsertResumeWithTx(
-            tx,
-            userId,
-            validatedData,
-          );
+          const resume = await this.resumeService.upsertResumeWithTx(tx, userId, validatedData);
 
-          this.logger.debug(
-            'Resume created/updated, processing sections',
-            'OnboardingService',
-            {
-              userId,
-              resumeId: resume.id,
-            },
-          );
+          this.logger.debug('Resume created/updated, processing sections', 'OnboardingService', {
+            userId,
+            resumeId: resume.id,
+          });
 
           // Save all sections in parallel
           await Promise.all([
             this.skillsService.saveSkillsWithTx(tx, resume.id, validatedData),
-            this.experienceService.saveExperiencesWithTx(
-              tx,
-              resume.id,
-              validatedData,
-            ),
-            this.educationService.saveEducationWithTx(
-              tx,
-              resume.id,
-              validatedData,
-            ),
-            this.languagesService.saveLanguagesWithTx(
-              tx,
-              resume.id,
-              validatedData,
-            ),
+            this.experienceService.saveExperiencesWithTx(tx, resume.id, validatedData),
+            this.educationService.saveEducationWithTx(tx, resume.id, validatedData),
+            this.languagesService.saveLanguagesWithTx(tx, resume.id, validatedData),
           ]);
 
           // Mark onboarding complete and update username
@@ -88,14 +61,10 @@ export class OnboardingService {
           // Delete onboarding progress within transaction for atomicity
           await this.progressService.deleteProgressWithTx(tx, userId);
 
-          this.logger.log(
-            'Onboarding completed successfully',
-            'OnboardingService',
-            {
-              userId,
-              resumeId: resume.id,
-            },
-          );
+          this.logger.log('Onboarding completed successfully', 'OnboardingService', {
+            userId,
+            resumeId: resume.id,
+          });
 
           return {
             success: true,
@@ -110,11 +79,7 @@ export class OnboardingService {
       .then(async (result) => {
         // Audit log AFTER transaction commits to avoid deadlock
         // AuditLogService uses its own Prisma connection, not the transaction
-        await this.auditLog.logOnboardingCompleted(
-          userId,
-          validatedData.username,
-          result.resumeId,
-        );
+        await this.auditLog.logOnboardingCompleted(userId, validatedData.username, result.resumeId);
         return result;
       })
       .catch((error: unknown) => {
@@ -142,11 +107,10 @@ export class OnboardingService {
           Array.isArray(error.meta.target) &&
           error.meta.target.includes('username')
         ) {
-          this.logger.warn(
-            'Username conflict detected during transaction',
-            'OnboardingService',
-            { username: validatedData.username, userId },
-          );
+          this.logger.warn('Username conflict detected during transaction', 'OnboardingService', {
+            username: validatedData.username,
+            userId,
+          });
           throw new ConflictException(ERROR_MESSAGES.USERNAME_ALREADY_IN_USE);
         }
 
@@ -184,21 +148,15 @@ export class OnboardingService {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
 
     if (!user) {
-      this.logger.warn(
-        'Onboarding attempted for non-existent user',
-        'OnboardingService',
-        { userId },
-      );
+      this.logger.warn('Onboarding attempted for non-existent user', 'OnboardingService', {
+        userId,
+      });
       throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
     }
 
     // Prevent double onboarding completion
     if (user.hasCompletedOnboarding) {
-      this.logger.warn(
-        'Onboarding already completed for user',
-        'OnboardingService',
-        { userId },
-      );
+      this.logger.warn('Onboarding already completed for user', 'OnboardingService', { userId });
       throw new ConflictException(ERROR_MESSAGES.ONBOARDING_ALREADY_COMPLETED);
     }
 

@@ -10,20 +10,19 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
+import type { AuthenticatedRequest } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import { createZodPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
+import { BlockUserSchema } from '@/shared-kernel';
 import {
-  BlockUserResponseDto,
   BlockedUserResponseDto,
+  BlockUserResponseDto,
   DeleteResponseDto,
   IsBlockedResponseDto,
 } from '@/shared-kernel/dtos/sdk-response.dto';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
-import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
 import { BlockService } from '../services/block.service';
-import { createZodPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
-import { BlockUserSchema } from '@/shared-kernel';
-import type { AuthenticatedRequest } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
-import { ApiResponse } from '@nestjs/swagger';
 
 @SdkExport({ tag: 'chat---block-users', description: 'Chat Block Users API' })
 @ApiTags('Chat - Block Users')
@@ -48,10 +47,7 @@ export class BlockController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Unblock a user' })
   @ApiResponse({ status: 200, type: DeleteResponseDto })
-  async unblockUser(
-    @Req() req: AuthenticatedRequest,
-    @Param('userId') userId: string,
-  ) {
+  async unblockUser(@Req() req: AuthenticatedRequest, @Param('userId') userId: string) {
     await this.blockService.unblockUser(req.user.userId, userId);
   }
 
@@ -65,14 +61,8 @@ export class BlockController {
   @Get(':userId/status')
   @ApiOperation({ summary: 'Check if a user is blocked' })
   @ApiResponse({ status: 200, type: IsBlockedResponseDto })
-  async isBlocked(
-    @Req() req: AuthenticatedRequest,
-    @Param('userId') userId: string,
-  ) {
-    const isBlocked = await this.blockService.isBlocked(
-      req.user.userId,
-      userId,
-    );
+  async isBlocked(@Req() req: AuthenticatedRequest, @Param('userId') userId: string) {
+    const isBlocked = await this.blockService.isBlocked(req.user.userId, userId);
     return { isBlocked };
   }
 }

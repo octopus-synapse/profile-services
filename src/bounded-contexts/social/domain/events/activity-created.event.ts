@@ -1,10 +1,6 @@
 import { DomainEvent } from '@/shared-kernel';
 
-export type ActivityType =
-  | 'resume_created'
-  | 'resume_published'
-  | 'user_followed'
-  | 'skill_added';
+export type ActivityType = 'resume_created' | 'resume_published' | 'user_followed' | 'skill_added';
 
 export interface ActivityCreatedPayload {
   readonly userId: string;

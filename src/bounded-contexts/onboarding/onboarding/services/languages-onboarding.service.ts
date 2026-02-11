@@ -22,11 +22,7 @@ export class LanguagesOnboardingService extends BaseOnboardingService<
     return this.saveLanguagesWithTx(this.prisma, resumeId, data);
   }
 
-  async saveLanguagesWithTx(
-    tx: Prisma.TransactionClient,
-    resumeId: string,
-    data: OnboardingData,
-  ) {
+  async saveLanguagesWithTx(tx: Prisma.TransactionClient, resumeId: string, data: OnboardingData) {
     return this.saveWithTransaction(tx, resumeId, data);
   }
 
@@ -43,17 +39,11 @@ export class LanguagesOnboardingService extends BaseOnboardingService<
     return 'No languages provided';
   }
 
-  protected async deleteExisting(
-    tx: Prisma.TransactionClient,
-    resumeId: string,
-  ): Promise<void> {
+  protected async deleteExisting(tx: Prisma.TransactionClient, resumeId: string): Promise<void> {
     await tx.language.deleteMany({ where: { resumeId } });
   }
 
-  protected transformItems(
-    items: LanguageInput[],
-    resumeId: string,
-  ): LanguageCreate[] {
+  protected transformItems(items: LanguageInput[], resumeId: string): LanguageCreate[] {
     return items.map((lang, index) => ({
       resumeId,
       name: lang.name,
@@ -62,10 +52,7 @@ export class LanguagesOnboardingService extends BaseOnboardingService<
     }));
   }
 
-  protected async createMany(
-    tx: Prisma.TransactionClient,
-    items: LanguageCreate[],
-  ): Promise<void> {
+  protected async createMany(tx: Prisma.TransactionClient, items: LanguageCreate[]): Promise<void> {
     await tx.language.createMany({ data: items });
   }
 

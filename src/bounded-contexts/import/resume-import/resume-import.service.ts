@@ -10,19 +10,15 @@
  * - Persistence: delegates to Prisma
  */
 
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
-import type { ResumeImport, Prisma } from '@prisma/client';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import type { Prisma, ResumeImport } from '@prisma/client';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type {
+  CreateImportParams,
+  ImportResult,
   JsonResumeSchema,
   ParsedResumeData,
-  ImportResult,
-  CreateImportParams,
 } from './resume-import.types';
 
 /**
@@ -51,9 +47,7 @@ export class ResumeImportService {
   async createImportJob(params: CreateImportParams): Promise<ResumeImport> {
     const { userId, source, rawData, fileName } = params;
 
-    this.logger.log(
-      `Creating import job for user ${userId}, source: ${source}`,
-    );
+    this.logger.log(`Creating import job for user ${userId}, source: ${source}`);
 
     return this.prisma.resumeImport.create({
       data: {
@@ -76,9 +70,7 @@ export class ResumeImportService {
     const skills = jsonResume.skills ?? [];
 
     // Extract LinkedIn profile URL
-    const linkedinProfile = basics.profiles?.find(
-      (p) => p.network?.toLowerCase() === 'linkedin',
-    );
+    const linkedinProfile = basics.profiles?.find((p) => p.network?.toLowerCase() === 'linkedin');
 
     // Flatten skills from nested structure
     const flattenedSkills: string[] = [];
@@ -168,19 +160,13 @@ export class ResumeImportService {
 
       // Parse the JSON Resume
       await this.updateStatus(importId, 'MAPPING');
-      const parsedData = this.parseJsonResume(
-        importJob.rawData as unknown as JsonResumeSchema,
-      );
+      const parsedData = this.parseJsonResume(importJob.rawData as unknown as JsonResumeSchema);
 
       // Validate parsed data
       await this.updateStatus(importId, 'VALIDATING');
       const validationErrors = this.validateParsedData(parsedData);
       if (validationErrors.length > 0) {
-        await this.updateStatus(
-          importId,
-          'FAILED',
-          validationErrors.join('; '),
-        );
+        await this.updateStatus(importId, 'FAILED', validationErrors.join('; '));
         return {
           importId,
           status: 'FAILED',
@@ -190,18 +176,12 @@ export class ResumeImportService {
 
       // Create resume
       await this.updateStatus(importId, 'IMPORTING');
-      const resume = await this.createResumeFromParsed(
-        importJob.userId,
-        parsedData,
-        importId,
-      );
+      const resume = await this.createResumeFromParsed(importJob.userId, parsedData, importId);
 
       // Mark as completed
       await this.updateStatus(importId, 'COMPLETED', undefined, resume.id);
 
-      this.logger.log(
-        `Import ${importId} completed successfully, resume: ${resume.id}`,
-      );
+      this.logger.log(`Import ${importId} completed successfully, resume: ${resume.id}`);
 
       return {
         importId,
@@ -209,8 +189,7 @@ export class ResumeImportService {
         resumeId: resume.id,
       };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       this.logger.error(`Import ${importId} failed: ${errorMessage}`);
       await this.updateStatus(importId, 'FAILED', errorMessage);
       return {
@@ -328,10 +307,7 @@ export class ResumeImportService {
         status,
         errorMessage: errorMessage ?? null,
         resumeId,
-        completedAt:
-          status === 'COMPLETED' || status === 'FAILED'
-            ? new Date()
-            : undefined,
+        completedAt: status === 'COMPLETED' || status === 'FAILED' ? new Date() : undefined,
       },
     });
   }

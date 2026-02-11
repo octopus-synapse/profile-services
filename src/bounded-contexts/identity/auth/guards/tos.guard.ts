@@ -1,13 +1,8 @@
-import {
-  Injectable,
-  CanActivate,
-  ExecutionContext,
-  ForbiddenException,
-} from '@nestjs/common';
+import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { TosAcceptanceService } from '../services/tos-acceptance.service';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 import { SKIP_TOS_CHECK_KEY } from '../decorators/skip-tos-check.decorator';
+import { TosAcceptanceService } from '../services/tos-acceptance.service';
 
 /**
  * Guard that enforces Terms of Service acceptance
@@ -46,19 +41,17 @@ export class TosGuard implements CanActivate {
     }
 
     // Check if route explicitly skips ToS check (but still requires auth)
-    const skipTosCheck = this.reflector.getAllAndOverride<boolean>(
-      SKIP_TOS_CHECK_KEY,
-      [context.getHandler(), context.getClass()],
-    );
+    const skipTosCheck = this.reflector.getAllAndOverride<boolean>(SKIP_TOS_CHECK_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
 
     if (skipTosCheck) {
       return true;
     }
 
     // Get user from request (set by JWT auth guard)
-    const request = context
-      .switchToHttp()
-      .getRequest<{ user?: { userId: string } }>();
+    const request = context.switchToHttp().getRequest<{ user?: { userId: string } }>();
     const user = request.user;
 
     // If no user, let auth guard handle it

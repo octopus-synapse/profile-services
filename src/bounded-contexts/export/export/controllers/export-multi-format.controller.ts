@@ -1,26 +1,18 @@
+import { Controller, Get, HttpStatus, Param, Query, Res, UseGuards } from '@nestjs/common';
 import {
-  Controller,
-  Get,
-  Param,
-  Query,
-  Res,
-  UseGuards,
-  HttpStatus,
-} from '@nestjs/common';
-import type { Response } from 'express';
-import {
-  ApiTags,
+  ApiBearerAuth,
   ApiOperation,
   ApiParam,
   ApiQuery,
-  ApiBearerAuth,
   ApiResponse,
+  ApiTags,
 } from '@nestjs/swagger';
-import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import type { Response } from 'express';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import { ExportResultDto } from '@/shared-kernel';
 import { ResumeJsonService } from '../services/resume-json.service';
 import { ResumeLatexService } from '../services/resume-latex.service';
-import { ExportResultDto } from '@/shared-kernel';
 
 @SdkExport({ tag: 'export', description: 'Export API' })
 @ApiTags('Export')
@@ -58,10 +50,7 @@ export class ExportMultiFormatController {
 
     if (res) {
       res.setHeader('Content-Type', 'application/json');
-      res.setHeader(
-        'Content-Disposition',
-        `attachment; filename="resume-${resumeId}.json"`,
-      );
+      res.setHeader('Content-Disposition', `attachment; filename="resume-${resumeId}.json"`);
       res.send(json);
     }
   }
@@ -91,10 +80,7 @@ export class ExportMultiFormatController {
 
     if (res) {
       res.setHeader('Content-Type', 'application/x-latex');
-      res.setHeader(
-        'Content-Disposition',
-        `attachment; filename="resume-${resumeId}.tex"`,
-      );
+      res.setHeader('Content-Disposition', `attachment; filename="resume-${resumeId}.tex"`);
       res.send(latex);
     }
   }

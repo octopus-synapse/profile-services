@@ -3,31 +3,17 @@
  * Internal API endpoints for MEC data synchronization (Admin only)
  */
 
-import {
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Post,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, HttpCode, HttpStatus, Post, Query, UseGuards } from '@nestjs/common';
+import { ApiHeader, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Public } from '@/bounded-contexts/identity/auth/decorators/public.decorator';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import { APP_CONFIG } from '@/shared-kernel';
 import {
   MecSyncHistoryResponseDto,
   MecSyncStatusResponseDto,
 } from '@/shared-kernel/dtos/sdk-response.dto';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiQuery,
-  ApiHeader,
-  ApiResponse,
-} from '@nestjs/swagger';
-import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { InternalAuthGuard } from '../guards/internal-auth.guard';
-import { Public } from '@/bounded-contexts/identity/auth/decorators/public.decorator';
 import { MecSyncOrchestratorService } from '../services/mec-sync.service';
-import { APP_CONFIG } from '@/shared-kernel';
 
 @SdkExport({
   tag: 'mec-internal',
@@ -85,9 +71,7 @@ export class MecSyncInternalController {
   @ApiHeader({ name: 'x-internal-token', required: true })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   async getSyncHistory(@Query('limit') limit?: string) {
-    const parsedLimit = limit
-      ? parseInt(limit, 10)
-      : APP_CONFIG.SEARCH_AUTOCOMPLETE_LIMIT;
+    const parsedLimit = limit ? parseInt(limit, 10) : APP_CONFIG.SEARCH_AUTOCOMPLETE_LIMIT;
     const history = await this.syncOrchestrator.getSyncHistory(parsedLimit);
     return { history };
   }

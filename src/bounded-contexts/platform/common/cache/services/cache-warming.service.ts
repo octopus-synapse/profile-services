@@ -8,9 +8,9 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { CacheService } from '../cache.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { AppLoggerService } from '../../logger/logger.service';
+import { CacheService } from '../cache.service';
 
 // --- Types ---
 
@@ -74,11 +74,7 @@ export class CacheWarmingService {
       for (const resume of resumes) {
         if (resume.slug) {
           try {
-            await this.cache.set(
-              `public:resume:${resume.slug}`,
-              resume,
-              CACHE_TTL.POPULAR_RESUME,
-            );
+            await this.cache.set(`public:resume:${resume.slug}`, resume, CACHE_TTL.POPULAR_RESUME);
             warmed++;
           } catch {
             this.stats.errors++;
@@ -89,10 +85,7 @@ export class CacheWarmingService {
       this.stats.itemsWarmed += warmed;
       this.stats.lastWarmTime = new Date();
 
-      this.logger.log(
-        `Warmed ${warmed} popular resumes`,
-        'CacheWarmingService',
-      );
+      this.logger.log(`Warmed ${warmed} popular resumes`, 'CacheWarmingService');
     } catch (error) {
       this.stats.errors++;
       this.logger.error(
@@ -128,16 +121,9 @@ export class CacheWarmingService {
       });
 
       if (resume) {
-        await this.cache.set(
-          `public:resume:${slug}`,
-          resume,
-          CACHE_TTL.PUBLIC_RESUME,
-        );
+        await this.cache.set(`public:resume:${slug}`, resume, CACHE_TTL.PUBLIC_RESUME);
         this.stats.itemsWarmed++;
-        this.logger.debug(
-          `Warmed cache for resume: ${slug}`,
-          'CacheWarmingService',
-        );
+        this.logger.debug(`Warmed cache for resume: ${slug}`, 'CacheWarmingService');
       }
     } catch (error) {
       this.stats.errors++;
@@ -170,11 +156,7 @@ export class CacheWarmingService {
 
       const user = users[0] as (typeof users)[0] | undefined;
       if (user) {
-        await this.cache.set(
-          `user:${userId}:profile`,
-          user,
-          CACHE_TTL.USER_PROFILE,
-        );
+        await this.cache.set(`user:${userId}:profile`, user, CACHE_TTL.USER_PROFILE);
 
         if (user.preferences) {
           await this.cache.set(
@@ -185,10 +167,7 @@ export class CacheWarmingService {
         }
 
         this.stats.itemsWarmed++;
-        this.logger.debug(
-          `Warmed cache for user: ${userId}`,
-          'CacheWarmingService',
-        );
+        this.logger.debug(`Warmed cache for user: ${userId}`, 'CacheWarmingService');
       }
     } catch (error) {
       this.stats.errors++;
@@ -212,10 +191,7 @@ export class CacheWarmingService {
     await this.warmPopularResumes(100);
 
     const duration = Date.now() - startTime;
-    this.logger.log(
-      `Cache warming completed in ${duration}ms`,
-      'CacheWarmingService',
-    );
+    this.logger.log(`Cache warming completed in ${duration}ms`, 'CacheWarmingService');
   }
 
   /**

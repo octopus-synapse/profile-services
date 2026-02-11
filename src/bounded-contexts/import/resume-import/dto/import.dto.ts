@@ -8,17 +8,17 @@
  */
 
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-  IsObject,
-  IsString,
-  IsOptional,
-  ValidateNested,
-  IsArray,
-  IsUrl,
-  IsEmail,
-} from 'class-validator';
+import type { ImportSource, ImportStatus } from '@prisma/client';
 import { Type } from 'class-transformer';
-import type { ImportStatus, ImportSource } from '@prisma/client';
+import {
+  IsArray,
+  IsEmail,
+  IsObject,
+  IsOptional,
+  IsString,
+  IsUrl,
+  ValidateNested,
+} from 'class-validator';
 
 // ============================================================================
 // JSON Resume DTOs (jsonresume.org standard)

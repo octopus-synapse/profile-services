@@ -20,12 +20,7 @@ export class CVSectionParser {
   > = {
     [CVSectionType.PERSONAL_INFO]: {
       keywords: ['personal', 'contact', 'info', 'details'],
-      aliases: [
-        'personal information',
-        'contact information',
-        'contact details',
-        'about me',
-      ],
+      aliases: ['personal information', 'contact information', 'contact details', 'about me'],
     },
     [CVSectionType.SUMMARY]: {
       keywords: ['summary', 'profile', 'objective', 'about'],
@@ -176,8 +171,8 @@ export class CVSectionParser {
   validateSections(parsedCV: ParsedCV): SectionValidationResult {
     const issues: ValidationIssue[] = [];
     const detectedSectionTypes = parsedCV.sections.map((s) => s.type);
-    const detectedSections = Array.from(new Set(detectedSectionTypes)).map(
-      (type) => this.getSectionName(type),
+    const detectedSections = Array.from(new Set(detectedSectionTypes)).map((type) =>
+      this.getSectionName(type),
     );
 
     // Check for mandatory sections
@@ -237,15 +232,12 @@ export class CVSectionParser {
         code: 'NO_SECTIONS_DETECTED',
         message: 'Could not detect any CV sections',
         severity: ValidationSeverity.ERROR,
-        suggestion:
-          'Use clear section headers like "Experience", "Education", "Skills"',
+        suggestion: 'Use clear section headers like "Experience", "Education", "Skills"',
       });
     }
 
     return {
-      passed:
-        issues.filter((i) => i.severity === ValidationSeverity.ERROR).length ===
-        0,
+      passed: issues.filter((i) => i.severity === ValidationSeverity.ERROR).length === 0,
       issues,
       detectedSections,
       missingSections: missingSections.map((s) => this.getSectionName(s)),
@@ -256,9 +248,7 @@ export class CVSectionParser {
     };
   }
 
-  private detectSection(
-    line: string,
-  ): { type: CVSectionType; confidence: number } | null {
+  private detectSection(line: string): { type: CVSectionType; confidence: number } | null {
     const normalizedLine = line.toLowerCase().trim();
 
     // Skip very short lines or lines with too many words (likely not a header)
@@ -272,9 +262,7 @@ export class CVSectionParser {
       const sectionType = type as CVSectionType;
 
       // Check exact alias matches first
-      const exactMatch = patterns.aliases.some(
-        (alias) => normalizedLine === alias.toLowerCase(),
-      );
+      const exactMatch = patterns.aliases.some((alias) => normalizedLine === alias.toLowerCase());
 
       if (exactMatch) {
         if (bestMatch === null) {

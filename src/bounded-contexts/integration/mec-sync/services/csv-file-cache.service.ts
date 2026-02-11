@@ -3,12 +3,12 @@
  * Single Responsibility: Manage local CSV file caching
  */
 
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { Injectable } from '@nestjs/common';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { TIME_MS } from '@/shared-kernel';
-import * as fs from 'fs';
-import * as path from 'path';
-import { LOCAL_CSV_PATH, CACHE_VALIDITY_DAYS } from '../constants';
+import { CACHE_VALIDITY_DAYS, LOCAL_CSV_PATH } from '../constants';
 
 @Injectable()
 export class CsvFileCacheService {

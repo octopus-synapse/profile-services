@@ -1,8 +1,8 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
-import { S3UploadService } from '@/bounded-contexts/platform/common/services/s3-upload.service';
-import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
-import { FILE_UPLOAD_CONFIG, ERROR_MESSAGES } from '@/shared-kernel';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
+import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import { S3UploadService } from '@/bounded-contexts/platform/common/services/s3-upload.service';
+import { ERROR_MESSAGES, FILE_UPLOAD_CONFIG } from '@/shared-kernel';
 
 export interface FileUpload {
   buffer: Buffer;
@@ -27,11 +27,7 @@ export class UploadService {
     const extension = this.getFileExtension(file.originalname);
     const key = `profiles/${userId}/${uuidv4()}.${extension}`;
 
-    const result = await this.s3Service.uploadFile(
-      file.buffer,
-      key,
-      file.mimetype,
-    );
+    const result = await this.s3Service.uploadFile(file.buffer, key, file.mimetype);
 
     if (!result) {
       throw new BadRequestException(ERROR_MESSAGES.FILE_UPLOAD_UNAVAILABLE);
@@ -52,11 +48,7 @@ export class UploadService {
     const extension = this.getFileExtension(file.originalname);
     const key = `logos/${userId}/${resumeId}/${uuidv4()}.${extension}`;
 
-    const result = await this.s3Service.uploadFile(
-      file.buffer,
-      key,
-      file.mimetype,
-    );
+    const result = await this.s3Service.uploadFile(file.buffer, key, file.mimetype);
 
     if (!result) {
       throw new BadRequestException(ERROR_MESSAGES.FILE_UPLOAD_UNAVAILABLE);
@@ -89,11 +81,7 @@ export class UploadService {
       );
     }
 
-    if (
-      !this.allowedMimeTypes.includes(
-        file.mimetype as (typeof this.allowedMimeTypes)[number],
-      )
-    ) {
+    if (!this.allowedMimeTypes.includes(file.mimetype as (typeof this.allowedMimeTypes)[number])) {
       throw new BadRequestException(
         `Invalid file type. Allowed types: ${this.allowedMimeTypes.join(', ')}`,
       );
@@ -111,14 +99,8 @@ export class UploadService {
     }
 
     // Check for directory traversal
-    if (
-      filename.includes('..') ||
-      filename.includes('/') ||
-      filename.includes('\\')
-    ) {
-      throw new BadRequestException(
-        'Invalid filename: directory traversal detected',
-      );
+    if (filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
+      throw new BadRequestException('Invalid filename: directory traversal detected');
     }
   }
 

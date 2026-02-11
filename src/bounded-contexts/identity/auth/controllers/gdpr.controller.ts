@@ -7,25 +7,13 @@
  * - DELETE /api/v1/users/me/account - Delete user account (self-service)
  */
 
-import {
-  Controller,
-  Get,
-  Delete,
-  Req,
-  UseGuards,
-  Header,
-} from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
+import { Controller, Delete, Get, Header, Req, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
-import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { SkipTosCheck } from '../decorators/skip-tos-check.decorator';
-import { GdprExportService } from '../services/gdpr-export.service';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { GdprDeletionService } from '../services/gdpr-deletion.service';
+import { GdprExportService } from '../services/gdpr-export.service';
 
 interface RequestWithUser {
   user: { userId: string; email: string };
@@ -80,10 +68,7 @@ export class GdprController {
     );
 
     // Log the download
-    await this.exportService.logExportDownload(
-      userId,
-      req as unknown as import('express').Request,
-    );
+    await this.exportService.logExportDownload(userId, req as unknown as import('express').Request);
 
     return data;
   }

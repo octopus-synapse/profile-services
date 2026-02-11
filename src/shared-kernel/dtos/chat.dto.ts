@@ -2,25 +2,17 @@ import { z } from 'zod';
 
 export const SendMessageSchema = z.object({
   recipientId: z.string().min(1, 'Recipient ID is required'),
-  content: z
-    .string()
-    .min(1, 'Message cannot be empty')
-    .max(5000, 'Message too long'),
+  content: z.string().min(1, 'Message cannot be empty').max(5000, 'Message too long'),
 });
 
 export type SendMessage = z.infer<typeof SendMessageSchema>;
 
 export const SendMessageToConversationSchema = z.object({
   conversationId: z.string().min(1, 'Conversation ID is required'),
-  content: z
-    .string()
-    .min(1, 'Message cannot be empty')
-    .max(5000, 'Message too long'),
+  content: z.string().min(1, 'Message cannot be empty').max(5000, 'Message too long'),
 });
 
-export type SendMessageToConversation = z.infer<
-  typeof SendMessageToConversationSchema
->;
+export type SendMessageToConversation = z.infer<typeof SendMessageToConversationSchema>;
 
 export const MarkMessageReadSchema = z.object({
   messageId: z.string().min(1, 'Message ID is required'),
@@ -150,9 +142,7 @@ export const PaginatedMessagesResponseSchema = z.object({
   hasMore: z.boolean(),
 });
 
-export type PaginatedMessagesResponse = z.infer<
-  typeof PaginatedMessagesResponseSchema
->;
+export type PaginatedMessagesResponse = z.infer<typeof PaginatedMessagesResponseSchema>;
 
 /**
  * Paginated Conversations Response Schema
@@ -163,9 +153,7 @@ export const PaginatedConversationsResponseSchema = z.object({
   hasMore: z.boolean(),
 });
 
-export type PaginatedConversationsResponse = z.infer<
-  typeof PaginatedConversationsResponseSchema
->;
+export type PaginatedConversationsResponse = z.infer<typeof PaginatedConversationsResponseSchema>;
 
 /**
  * Blocked User Response Schema
@@ -225,9 +213,7 @@ export const ConversationParticipantSchema = z.object({
   avatar: z.string().url().nullable(),
 });
 
-export type ConversationParticipant = z.infer<
-  typeof ConversationParticipantSchema
->;
+export type ConversationParticipant = z.infer<typeof ConversationParticipantSchema>;
 
 /**
  * Simplified Conversation Type (with participants array)
@@ -269,9 +255,7 @@ export const PaginatedConversationsSchema = z.object({
   hasMore: z.boolean(),
 });
 
-export type PaginatedConversations = z.infer<
-  typeof PaginatedConversationsSchema
->;
+export type PaginatedConversations = z.infer<typeof PaginatedConversationsSchema>;
 
 /**
  * Block User DTO (for backward compatibility)

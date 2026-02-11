@@ -1,9 +1,6 @@
 import { getBaseTemplate } from './base.template';
 
-export const getVerificationEmailTemplate = (
-  name: string,
-  verificationUrl: string,
-): string => {
+export const getVerificationEmailTemplate = (name: string, verificationUrl: string): string => {
   const content = `
     <h2 style="color: #1f2937; font-size: 24px; margin-bottom: 16px;">
       Olá, ${name}! 👋

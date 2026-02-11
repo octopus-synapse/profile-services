@@ -1,5 +1,5 @@
 import { INestApplication } from '@nestjs/common';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { apiReference } from '@scalar/nestjs-api-reference';
 
 /**
@@ -8,8 +8,7 @@ import { apiReference } from '@scalar/nestjs-api-reference';
 export function isSwaggerEnabled(): boolean {
   return (
     process.env.ENABLE_SWAGGER === 'true' ||
-    (process.env.ENABLE_SWAGGER !== 'false' &&
-      process.env.NODE_ENV !== 'production')
+    (process.env.ENABLE_SWAGGER !== 'false' && process.env.NODE_ENV !== 'production')
   );
 }
 
@@ -45,16 +44,9 @@ function buildSwaggerConfig() {
     .setTitle('ProFile API')
     .setDescription(API_DESCRIPTION)
     .setVersion('1.0.0')
-    .setContact(
-      'ProFile Team',
-      'https://github.com/your-org/profile',
-      'support@profile.app',
-    )
+    .setContact('ProFile Team', 'https://github.com/your-org/profile', 'support@profile.app')
     .setLicense('MIT', 'https://opensource.org/licenses/MIT')
-    .addServer(
-      `http://localhost:${process.env.PORT ?? 3001}`,
-      'Development Server',
-    )
+    .addServer(`http://localhost:${process.env.PORT ?? 3001}`, 'Development Server')
     .addBearerAuth(
       {
         type: 'http',
@@ -66,26 +58,14 @@ function buildSwaggerConfig() {
       },
       'JWT-auth',
     )
-    .addTag(
-      'auth',
-      'Authentication endpoints - Login, Signup, Password Reset, Email Verification',
-    )
-    .addTag(
-      'users',
-      'User profile management - View and update user information',
-    )
-    .addTag(
-      'onboarding',
-      'User onboarding flow - Complete profile setup for new users',
-    )
+    .addTag('auth', 'Authentication endpoints - Login, Signup, Password Reset, Email Verification')
+    .addTag('users', 'User profile management - View and update user information')
+    .addTag('onboarding', 'User onboarding flow - Complete profile setup for new users')
     .addTag(
       'resumes',
       'Resume CRUD operations - Create, read, update, and delete resumes with all sections',
     )
-    .addTag(
-      'upload',
-      'File upload endpoints - Upload profile pictures and attachments',
-    )
+    .addTag('upload', 'File upload endpoints - Upload profile pictures and attachments')
     .addTag('export', 'Export resumes - Generate PDF and DOCX documents')
     .addTag('github', 'GitHub integration - Import projects and contributions')
     .build();

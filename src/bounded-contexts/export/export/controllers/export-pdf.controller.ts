@@ -3,36 +3,32 @@
  * Handles PDF resume export
  */
 
+import { randomUUID } from 'node:crypto';
 import {
   Controller,
   Get,
-  Query,
-  UseGuards,
-  StreamableFile,
   Header,
   InternalServerErrorException,
+  Query,
+  StreamableFile,
+  UseGuards,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-  ApiQuery,
-  ApiProduces,
-} from '@nestjs/swagger';
-import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
-import { ResumePDFService } from '../services/resume-pdf.service';
-import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
-import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
-import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { randomUUID } from 'crypto';
 import {
-  ExportRequestedEvent,
-  ExportCompletedEvent,
-  ExportFailedEvent,
-} from '../../domain/events';
+  ApiBearerAuth,
+  ApiOperation,
+  ApiProduces,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
+import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
+import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
+import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import { ExportCompletedEvent, ExportFailedEvent, ExportRequestedEvent } from '../../domain/events';
+import { ResumePDFService } from '../services/resume-pdf.service';
 
 @SdkExport({ tag: 'export', description: 'Export API' })
 @ApiTags('export')
@@ -125,9 +121,7 @@ export class ExportPdfController {
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
       });
-      throw new InternalServerErrorException(
-        'Failed to generate PDF. Please try again later.',
-      );
+      throw new InternalServerErrorException('Failed to generate PDF. Please try again later.');
     }
   }
 }

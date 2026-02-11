@@ -45,9 +45,7 @@ export const TranslateBatchWithEnumSchema = z.object({
   targetLanguage: TranslationLanguageEnum,
 });
 
-export type TranslateBatchWithEnum = z.infer<
-  typeof TranslateBatchWithEnumSchema
->;
+export type TranslateBatchWithEnum = z.infer<typeof TranslateBatchWithEnumSchema>;
 
 // ============================================================================
 // Response DTOs
@@ -68,9 +66,7 @@ export const BatchTranslationResultSchema = z.object({
   targetLanguage: TranslationLanguageEnum,
 });
 
-export type BatchTranslationResult = z.infer<
-  typeof BatchTranslationResultSchema
->;
+export type BatchTranslationResult = z.infer<typeof BatchTranslationResultSchema>;
 
 export const ServiceHealthSchema = z.object({
   status: z.enum(['healthy', 'unavailable']),

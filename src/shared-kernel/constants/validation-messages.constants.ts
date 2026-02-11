@@ -27,28 +27,19 @@ export const VALIDATION_MESSAGES = {
 
   // Length validation messages
   LENGTH: {
-    USERNAME_TOO_SHORT: (min: number) =>
-      `Username must be at least ${min} characters`,
-    USERNAME_TOO_LONG: (max: number) =>
-      `Username must not exceed ${max} characters`,
-    PASSWORD_TOO_SHORT: (min: number) =>
-      `Password must be at least ${min} characters`,
-    PASSWORD_TOO_LONG: (max: number) =>
-      `Password must not exceed ${max} characters`,
-    SUMMARY_TOO_SHORT: (min: number) =>
-      `Summary must be at least ${min} characters`,
-    SUMMARY_TOO_LONG: (max: number) =>
-      `Summary must not exceed ${max} characters`,
+    USERNAME_TOO_SHORT: (min: number) => `Username must be at least ${min} characters`,
+    USERNAME_TOO_LONG: (max: number) => `Username must not exceed ${max} characters`,
+    PASSWORD_TOO_SHORT: (min: number) => `Password must be at least ${min} characters`,
+    PASSWORD_TOO_LONG: (max: number) => `Password must not exceed ${max} characters`,
+    SUMMARY_TOO_SHORT: (min: number) => `Summary must be at least ${min} characters`,
+    SUMMARY_TOO_LONG: (max: number) => `Summary must not exceed ${max} characters`,
   },
 
   // Pattern validation messages
   PATTERN: {
-    USERNAME_INVALID_CHARS:
-      'Username can only contain letters, numbers, hyphens, and underscores',
-    USERNAME_MUST_START_WITH_ALPHANUMERIC:
-      'Username must start with a letter or number',
-    USERNAME_NO_CONSECUTIVE_UNDERSCORES:
-      'Username cannot contain consecutive underscores',
+    USERNAME_INVALID_CHARS: 'Username can only contain letters, numbers, hyphens, and underscores',
+    USERNAME_MUST_START_WITH_ALPHANUMERIC: 'Username must start with a letter or number',
+    USERNAME_NO_CONSECUTIVE_UNDERSCORES: 'Username cannot contain consecutive underscores',
     PASSWORD_WEAK:
       'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character',
   },
@@ -77,10 +68,7 @@ export type ValidationMessage = string | ((param: number) => string);
 /**
  * Helper to get validation message with parameters
  */
-export function getValidationMessage(
-  message: ValidationMessage,
-  param?: number,
-): string {
+export function getValidationMessage(message: ValidationMessage, param?: number): string {
   if (typeof message === 'function' && param !== undefined) {
     return message(param);
   }

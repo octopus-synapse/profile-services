@@ -12,195 +12,186 @@
  * - '@/shared-kernel/validations' - Validation utilities
  */
 
-// Event Bus
-export {
-  EventBusModule,
-  EventPublisher,
-  type EventPublisherPort,
-  DomainEvent,
-} from './event-bus';
-
-// Constants (no conflicts)
-export * from './constants';
-
-// Enums (canonical source)
-export * from './enums';
-
-// Schemas (canonical source)
-export * from './schemas';
-
-// DSL schemas (Resume DSL)
-export * from './dsl';
-
 // AST schemas (Resume AST)
 export * from './ast';
 
-// Types (API types, etc.)
-export * from './types';
-
-// Validations (domain validation schemas)
-export * from './validations';
-
-// Validation utilities
-export * from './validation';
-
+// Constants (no conflicts)
+export * from './constants';
+// DSL schemas (Resume DSL)
+export * from './dsl';
 // DTOs - Selective exports to avoid conflicts with schemas/enums
 // These are DTOs that are ONLY defined in dtos/ and don't conflict
 export {
+  type ActivityType,
+  ActivityTypeSchema,
+  type AdminCreateUser,
   // Admin
   AdminCreateUserSchema,
-  type AdminCreateUser,
-  AdminUpdateUserSchema,
-  type AdminUpdateUser,
-  AdminResetPasswordSchema,
   type AdminResetPassword,
-  AdminUserQuerySchema,
-  type AdminUserQuery,
-  AdminUpdateRoleRequestSchema,
-  type AdminUpdateRoleRequest,
-  AdminUserListItemSchema,
-  type AdminUserListItem,
-  PaginatedUsersSchema,
-  type PaginatedUsers,
-  AdminStatsSchema,
+  AdminResetPasswordSchema,
   type AdminStats,
-  ActivityTypeSchema,
-  type ActivityType,
-  RecentActivitySchema,
-  type RecentActivity,
-  HealthStatusSchema,
-  type HealthStatus,
-  SystemHealthSchema,
-  type SystemHealth,
-  // Common
-  PaginationQuerySchema,
-  type PaginationQuery,
-  ReorderItemsSchema,
-  type ReorderItems,
-  DateStringSchema,
-  type DateString,
-  IdParamSchema,
-  type IdParam,
-  SearchQuerySchema,
-  type SearchQuery,
-  // User
-  UpdateUserSchema,
-  type UpdateUser,
-  // User Profile
-  UpdateProfileSchema,
-  type UpdateProfile,
-  UpdatePreferencesSchema,
-  type UpdatePreferences,
-  UpdateFullPreferencesSchema,
-  type UpdateFullPreferences,
-  UpdateUsernameSchema,
-  type UpdateUsername,
-  // Username Validation
-  ValidateUsernameRequestSchema,
-  type ValidateUsernameRequest,
-  ValidateUsernameResponseSchema,
-  type ValidateUsernameResponse,
-  UsernameValidationErrorSchema,
-  type UsernameValidationError,
-  // Theme
-  CreateThemeSchema,
-  type CreateTheme,
-  UpdateThemeSchema,
-  type UpdateTheme,
-  QueryThemesSchema,
-  type QueryThemes,
-  ThemeApplicationSchema,
-  type ThemeApplication,
-  ThemeApprovalSchema,
-  type ThemeApproval,
-  ApplyThemeToResumeSchema,
+  AdminStatsSchema,
+  type AdminUpdateRoleRequest,
+  AdminUpdateRoleRequestSchema,
+  type AdminUpdateUser,
+  AdminUpdateUserSchema,
+  type AdminUserListItem,
+  AdminUserListItemSchema,
+  type AdminUserQuery,
+  AdminUserQuerySchema,
   type ApplyThemeToResume,
-  ForkThemeSchema,
-  type ForkTheme,
-  type ReviewTheme,
-  // Onboarding
-  OnboardingStepSchema,
-  type OnboardingStep,
-  OnboardingProgressSchema,
-  type OnboardingProgress,
-  OnboardingStatusSchema,
-  type OnboardingStatus,
-  OnboardingResultSchema,
-  type OnboardingResult,
-  // Analytics
-  TrackViewSchema,
-  type TrackView,
-  ViewStatsQuerySchema,
-  type ViewStatsQuery,
-  KeywordOptionsSchema,
-  type KeywordOptions,
-  JobMatchSchema,
-  type JobMatch,
-  BenchmarkOptionsSchema,
-  type BenchmarkOptions,
-  HistoryQuerySchema,
-  type HistoryQuery,
-  ViewStatsResponseSchema,
-  type ViewStatsResponse,
-  ATSScoreResponseSchema,
+  ApplyThemeToResumeSchema,
   type ATSScoreResponse,
-  KeywordSuggestionsResponseSchema,
-  type KeywordSuggestionsResponse,
-  JobMatchResponseSchema,
-  type JobMatchResponse,
-  BenchmarkResponseSchema,
+  ATSScoreResponseSchema,
+  type BenchmarkOptions,
+  BenchmarkOptionsSchema,
   type BenchmarkResponse,
-  DashboardResponseSchema,
-  type DashboardResponse,
-  SnapshotResponseSchema,
-  type SnapshotResponse,
-  ScoreProgressionResponseSchema,
-  type ScoreProgressionResponse,
-  // Translation
-  TranslateTextSchema,
-  type TranslateText,
-  TranslateBatchSchema,
-  type TranslateBatch,
-  // MEC
-  InstitutionSchema,
-  type Institution,
-  CourseBasicSchema,
-  type CourseBasic,
-  InstitutionWithCoursesSchema,
-  type InstitutionWithCourses,
-  CourseSchema,
-  type Course,
-  MecStatsSchema,
-  type MecStats,
-  // Chat
-  SendMessageSchema,
-  type SendMessage,
-  SendMessageToConversationSchema,
-  type SendMessageToConversation,
-  GetMessagesQuerySchema,
-  type GetMessagesQuery,
-  GetConversationsQuerySchema,
-  type GetConversationsQuery,
+  BenchmarkResponseSchema,
+  type BlockedUserResponse,
+  type BlockUser,
   // Chat - Block
   BlockUserSchema,
-  type BlockUser,
-  type BlockedUserResponse,
   // Chat - Responses
   type ConversationResponse,
+  type Course,
+  type CourseBasic,
+  CourseBasicSchema,
+  CourseSchema,
+  type CreateTheme,
+  // Theme
+  CreateThemeSchema,
+  type DashboardResponse,
+  DashboardResponseSchema,
+  type DateString,
+  DateStringSchema,
+  type ForkTheme,
+  ForkThemeSchema,
+  type GetConversationsQuery,
+  GetConversationsQuerySchema,
+  type GetMessagesQuery,
+  GetMessagesQuerySchema,
+  type HealthStatus,
+  HealthStatusSchema,
+  type HistoryQuery,
+  HistoryQuerySchema,
+  type IdParam,
+  IdParamSchema,
+  type Institution,
+  // MEC
+  InstitutionSchema,
+  type InstitutionWithCourses,
+  InstitutionWithCoursesSchema,
+  type JobMatch,
+  type JobMatchResponse,
+  JobMatchResponseSchema,
+  JobMatchSchema,
+  type KeywordOptions,
+  KeywordOptionsSchema,
+  type KeywordSuggestionsResponse,
+  KeywordSuggestionsResponseSchema,
+  type MecStats,
+  MecStatsSchema,
   type MessageResponse,
-  type PaginatedMessagesResponse,
+  type OnboardingProgress,
+  OnboardingProgressSchema,
+  type OnboardingResult,
+  OnboardingResultSchema,
+  type OnboardingStatus,
+  OnboardingStatusSchema,
+  type OnboardingStep,
+  // Onboarding
+  OnboardingStepSchema,
   type PaginatedConversationsResponse,
-  // Chat - WebSocket
-  type WsTypingEvent,
+  type PaginatedMessagesResponse,
+  type PaginatedUsers,
+  PaginatedUsersSchema,
+  type PaginationQuery,
+  // Common
+  PaginationQuerySchema,
+  type QueryThemes,
+  QueryThemesSchema,
+  type RecentActivity,
+  RecentActivitySchema,
+  type ReorderItems,
+  ReorderItemsSchema,
+  type ReviewTheme,
+  type ScoreProgressionResponse,
+  ScoreProgressionResponseSchema,
+  type SearchQuery,
+  SearchQuerySchema,
+  type SendMessage,
+  // Chat
+  SendMessageSchema,
+  type SendMessageToConversation,
+  SendMessageToConversationSchema,
+  type SnapshotResponse,
+  SnapshotResponseSchema,
+  type SystemHealth,
+  SystemHealthSchema,
+  type ThemeApplication,
+  ThemeApplicationSchema,
+  type ThemeApproval,
+  ThemeApprovalSchema,
+  type TrackView,
+  // Analytics
+  TrackViewSchema,
+  type TranslateBatch,
+  TranslateBatchSchema,
+  type TranslateText,
+  // Translation
+  TranslateTextSchema,
+  type UpdateFullPreferences,
+  UpdateFullPreferencesSchema,
+  type UpdatePreferences,
+  UpdatePreferencesSchema,
+  type UpdateProfile,
+  // User Profile
+  UpdateProfileSchema,
+  type UpdateTheme,
+  UpdateThemeSchema,
+  type UpdateUser,
+  type UpdateUsername,
+  UpdateUsernameSchema,
+  // User
+  UpdateUserSchema,
+  type UsernameValidationError,
+  UsernameValidationErrorSchema,
+  type ValidateCV,
   // ATS
   ValidateCVSchema,
-  type ValidateCV,
-  ValidationIssueSchema,
-  type ValidationIssue,
-  ValidationResponseSchema,
-  type ValidationResponse,
+  type ValidateUsernameRequest,
+  // Username Validation
+  ValidateUsernameRequestSchema,
+  type ValidateUsernameResponse,
+  ValidateUsernameResponseSchema,
   type Validation,
+  type ValidationIssue,
+  ValidationIssueSchema,
+  type ValidationResponse,
+  ValidationResponseSchema,
+  type ViewStatsQuery,
+  ViewStatsQuerySchema,
+  type ViewStatsResponse,
+  ViewStatsResponseSchema,
+  // Chat - WebSocket
+  type WsTypingEvent,
 } from './dtos';
-
 // SDK Response DTOs (for @ApiResponse decorators)
 export * from './dtos/sdk-response.dto';
+// Enums (canonical source)
+export * from './enums';
+// Event Bus
+export {
+  DomainEvent,
+  EventBusModule,
+  EventPublisher,
+  type EventPublisherPort,
+} from './event-bus';
+// Schemas (canonical source)
+export * from './schemas';
+// Types (API types, etc.)
+export * from './types';
+// Validation utilities
+export * from './validation';
+// Validations (domain validation schemas)
+export * from './validations';

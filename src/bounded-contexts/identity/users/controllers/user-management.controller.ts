@@ -21,31 +21,18 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-  ApiQuery,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
+import { PermissionGuard, RequirePermission } from '@/bounded-contexts/identity/authorization';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import type { AdminCreateUser, AdminResetPassword, AdminUpdateUser } from '@/shared-kernel';
 import {
   DeleteResponseDto,
   MessageResponseDto,
   UserDetailsResponseDto,
   UserListItemDto,
 } from '@/shared-kernel/dtos/sdk-response.dto';
-import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
-import {
-  PermissionGuard,
-  RequirePermission,
-} from '@/bounded-contexts/identity/authorization';
 import { UserManagementService } from '../services/user-management.service';
-import type {
-  AdminCreateUser,
-  AdminUpdateUser,
-  AdminResetPassword,
-} from '@/shared-kernel';
 
 @SdkExport({ tag: 'users', description: 'Users API' })
 @ApiTags('users')
@@ -119,10 +106,7 @@ export class UserManagementController {
     status: 400,
     description: 'Cannot delete self or last privileged user',
   })
-  async deleteUser(
-    @Param('id') userId: string,
-    @Req() req: { user: { userId: string } },
-  ) {
+  async deleteUser(@Param('id') userId: string, @Req() req: { user: { userId: string } }) {
     return this.userManagement.deleteUser(userId, req.user.userId);
   }
 
@@ -132,10 +116,7 @@ export class UserManagementController {
   @ApiResponse({ status: 201, type: MessageResponseDto })
   @ApiResponse({ status: 200, description: 'Password reset successfully' })
   @ApiResponse({ status: 404, description: 'User not found' })
-  async resetPassword(
-    @Param('id') userId: string,
-    @Body() data: AdminResetPassword,
-  ) {
+  async resetPassword(@Param('id') userId: string, @Body() data: AdminResetPassword) {
     return this.userManagement.resetPassword(userId, data);
   }
 }

@@ -8,8 +8,8 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { AuthorizationService } from '@/bounded-contexts/identity/authorization';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { TIME_MS } from '@/shared-kernel';
 
 const DAYS_FOR_RECENT = 7;
@@ -26,19 +26,14 @@ export class PlatformStatsService {
    * Requires 'stats:read' or 'stats:manage' permission
    */
   async getStatistics() {
-    const [
-      totalUsers,
-      totalResumes,
-      usersWithOnboarding,
-      recentSignups,
-      privilegedUserCount,
-    ] = await Promise.all([
-      this.prisma.user.count(),
-      this.prisma.resume.count(),
-      this.prisma.user.count({ where: { hasCompletedOnboarding: true } }),
-      this.countRecentSignups(),
-      this.authService.countUsersWithRole('admin'),
-    ]);
+    const [totalUsers, totalResumes, usersWithOnboarding, recentSignups, privilegedUserCount] =
+      await Promise.all([
+        this.prisma.user.count(),
+        this.prisma.resume.count(),
+        this.prisma.user.count({ where: { hasCompletedOnboarding: true } }),
+        this.countRecentSignups(),
+        this.authService.countUsersWithRole('admin'),
+      ]);
 
     return {
       users: {

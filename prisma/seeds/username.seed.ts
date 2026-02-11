@@ -32,10 +32,7 @@ function generateUsernameFromEmail(email: string): string {
 /**
  * Find a unique username by appending numbers if needed
  */
-async function findUniqueUsername(
-  prisma: PrismaClient,
-  baseUsername: string,
-): Promise<string> {
+async function findUniqueUsername(prisma: PrismaClient, baseUsername: string): Promise<string> {
   let username = baseUsername;
   let counter = 1;
 

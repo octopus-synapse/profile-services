@@ -35,8 +35,7 @@ export const StandardActions = {
   MANAGE: 'manage', // Super-action: implies all actions on resource
 } as const;
 
-export type StandardAction =
-  (typeof StandardActions)[keyof typeof StandardActions];
+export type StandardAction = (typeof StandardActions)[keyof typeof StandardActions];
 
 /**
  * Standard resources in the system
@@ -55,8 +54,7 @@ export const StandardResources = {
   COLLABORATION: 'collaboration',
 } as const;
 
-export type StandardResource =
-  (typeof StandardResources)[keyof typeof StandardResources];
+export type StandardResource = (typeof StandardResources)[keyof typeof StandardResources];
 
 /**
  * Permission value object properties
@@ -175,18 +173,12 @@ export class Permission {
     const normalizedAction = action.toLowerCase().trim();
 
     // Direct match
-    if (
-      this.resource === normalizedResource &&
-      this.action === normalizedAction
-    ) {
+    if (this.resource === normalizedResource && this.action === normalizedAction) {
       return true;
     }
 
     // "manage" action implies all actions on the resource
-    if (
-      this.resource === normalizedResource &&
-      this.action === StandardActions.MANAGE
-    ) {
+    if (this.resource === normalizedResource && this.action === StandardActions.MANAGE) {
       return true;
     }
 
@@ -258,10 +250,7 @@ export class Permission {
 
     const validPattern = /^[a-z][a-z0-9_]*$/;
 
-    if (
-      this.props.resource !== '*' &&
-      !validPattern.test(this.props.resource)
-    ) {
+    if (this.props.resource !== '*' && !validPattern.test(this.props.resource)) {
       throw new Error(
         `Permission resource "${this.props.resource}" must start with lowercase letter and contain only lowercase letters, numbers, and underscores`,
       );

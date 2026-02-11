@@ -3,8 +3,8 @@
  * Builds experience section paragraphs for DOCX export
  */
 
-import { Paragraph, TextRun } from 'docx';
 import { Experience } from '@prisma/client';
+import { Paragraph, TextRun } from 'docx';
 
 export class DocxExperienceBuilder {
   create(exp: Experience): Paragraph[] {

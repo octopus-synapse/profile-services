@@ -4,11 +4,11 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
-import { CRYPTO_CONSTANTS, API_LIMITS } from '@/shared-kernel';
-import { CloudflareHandlerService } from './cloudflare-handler.service';
 import type { Browser, Page } from 'puppeteer';
-import { MEC_CSV_URL, PUPPETEER_CONFIG, PUPPETEER_ARGS } from '../constants';
+import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import { API_LIMITS, CRYPTO_CONSTANTS } from '@/shared-kernel';
+import { MEC_CSV_URL, PUPPETEER_ARGS, PUPPETEER_CONFIG } from '../constants';
+import { CloudflareHandlerService } from './cloudflare-handler.service';
 
 /* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment */
 const puppeteerExtra: {
@@ -98,25 +98,17 @@ export class CsvDownloaderService {
     const buffer = Buffer.from(await response.buffer());
     this.validateCsvContent(buffer);
 
-    this.logger.log(
-      `Downloaded ${this.formatFileSize(buffer.length)}`,
-      this.context,
-    );
+    this.logger.log(`Downloaded ${this.formatFileSize(buffer.length)}`, this.context);
 
     return buffer;
   }
 
   private validateCsvContent(buffer: Buffer): void {
-    const start = buffer
-      .slice(0, API_LIMITS.MAX_PREVIEW_CHARS)
-      .toString('utf-8')
-      .toLowerCase();
+    const start = buffer.slice(0, API_LIMITS.MAX_PREVIEW_CHARS).toString('utf-8').toLowerCase();
     const isHtml = start.includes('<!doctype') || start.includes('<html');
 
     if (isHtml) {
-      throw new Error(
-        'Received HTML instead of CSV - Cloudflare may still be blocking',
-      );
+      throw new Error('Received HTML instead of CSV - Cloudflare may still be blocking');
     }
   }
 

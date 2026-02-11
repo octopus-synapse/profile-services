@@ -7,7 +7,7 @@
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
-    "target": "ES2021",
+    "target": "ES2022",
     "useDefineForClassFields": false,
     "sourceMap": true,
     "outDir": "./dist",
@@ -25,11 +25,5 @@
       "@test/*": ["test/*"]
     }
   },
-  "exclude": [
-    "scripts",
-    "prisma",
-    "commitlint.config.ts",
-    "fix-imports.ts",
-    "prisma.config.ts"
-  ]
+  "exclude": ["scripts", "prisma", "commitlint.config.ts", "fix-imports.ts", "prisma.config.ts"]
 }

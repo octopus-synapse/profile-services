@@ -1,27 +1,18 @@
 import { Injectable, Logger } from '@nestjs/common';
 import type { Skill } from '@prisma/client';
-import { SkillRepository } from '../repositories/skill.repository';
-import { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.repository';
 import {
-  CreateSkill,
-  UpdateSkill,
-  type BulkCreateSkills,
-} from '@/shared-kernel';
-import type { PaginatedResult } from '@/shared-kernel';
-import {
-  ApiResponseHelper,
   ApiResponse,
+  ApiResponseHelper,
 } from '@/bounded-contexts/platform/common/dto/api-response.dto';
-import { BaseSubResourceService } from './base';
-import { EventPublisher } from '@/shared-kernel';
 import type { SectionType } from '@/bounded-contexts/resumes/domain/events';
+import { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.repository';
+import type { PaginatedResult } from '@/shared-kernel';
+import { type BulkCreateSkills, CreateSkill, EventPublisher, UpdateSkill } from '@/shared-kernel';
+import { SkillRepository } from '../repositories/skill.repository';
+import { BaseSubResourceService } from './base';
 
 @Injectable()
-export class SkillService extends BaseSubResourceService<
-  Skill,
-  CreateSkill,
-  UpdateSkill
-> {
+export class SkillService extends BaseSubResourceService<Skill, CreateSkill, UpdateSkill> {
   protected readonly entityName = 'Skill';
   protected readonly sectionType: SectionType = 'skills';
   protected readonly logger = new Logger(SkillService.name);
@@ -45,12 +36,7 @@ export class SkillService extends BaseSubResourceService<
     category?: string,
   ): Promise<PaginatedResult<Skill>> {
     await this.validateResumeOwnership(resumeId, userId);
-    return this.skillRepository.findAllSkillsForResume(
-      resumeId,
-      page,
-      limit,
-      category,
-    );
+    return this.skillRepository.findAllSkillsForResume(resumeId, page, limit, category);
   }
 
   /**
@@ -62,9 +48,7 @@ export class SkillService extends BaseSubResourceService<
     data: BulkCreateSkills,
   ): Promise<ApiResponse<{ count: number }>> {
     await this.validateResumeOwnership(resumeId, userId);
-    this.logger.log(
-      `Creating ${data.skills.length} skills for resume: ${resumeId}`,
-    );
+    this.logger.log(`Creating ${data.skills.length} skills for resume: ${resumeId}`);
     const count = await this.skillRepository.createMany(resumeId, data.skills);
     return ApiResponseHelper.count(count, 'Skills created successfully');
   }
@@ -78,10 +62,7 @@ export class SkillService extends BaseSubResourceService<
     category: string,
   ): Promise<ApiResponse<{ count: number }>> {
     await this.validateResumeOwnership(resumeId, userId);
-    const count = await this.skillRepository.deleteByCategory(
-      resumeId,
-      category,
-    );
+    const count = await this.skillRepository.deleteByCategory(resumeId, category);
     this.logger.log(`Deleted ${count} skills in category: ${category}`);
     return ApiResponseHelper.count(count, 'Skills deleted successfully');
   }

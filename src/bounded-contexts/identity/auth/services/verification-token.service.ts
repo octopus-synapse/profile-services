@@ -5,15 +5,10 @@
  * BUG-014 FIX: Now logs token deletion errors instead of silently ignoring
  */
 
-import { Injectable, BadRequestException, Logger } from '@nestjs/common';
-import * as crypto from 'crypto';
+import * as crypto from 'node:crypto';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import {
-  TIME_MS,
-  TOKEN_EXPIRY,
-  ERROR_MESSAGES,
-  CRYPTO_CONSTANTS,
-} from '@/shared-kernel';
+import { CRYPTO_CONSTANTS, ERROR_MESSAGES, TIME_MS, TOKEN_EXPIRY } from '@/shared-kernel';
 
 const RESET_TOKEN_PREFIX = 'reset:';
 
@@ -85,11 +80,7 @@ export class VerificationTokenService {
     return new Date(Date.now() + hours * TIME_MS.HOUR);
   }
 
-  private async upsertToken(
-    identifier: string,
-    token: string,
-    expires: Date,
-  ): Promise<void> {
+  private async upsertToken(identifier: string, token: string, expires: Date): Promise<void> {
     await this.prisma.verificationToken.upsert({
       where: {
         identifier_token: {

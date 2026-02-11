@@ -71,19 +71,13 @@ export const UsernameSchema = z
   .trim()
   .min(3, 'Username must be at least 3 characters')
   .max(30, 'Username cannot exceed 30 characters')
-  .regex(
-    /^[a-z0-9_]+$/,
-    'Username can only contain lowercase letters, numbers, and underscores',
-  )
+  .regex(/^[a-z0-9_]+$/, 'Username can only contain lowercase letters, numbers, and underscores')
   .regex(/^[a-z0-9]/, 'Username must start with a letter or number')
   .regex(/[a-z0-9]$/, 'Username must end with a letter or number')
   .regex(/^(?!.*__)/, 'Username cannot contain consecutive underscores')
-  .refine(
-    (username) => !(RESERVED_USERNAMES as readonly string[]).includes(username),
-    {
-      message: 'This username is reserved',
-    },
-  );
+  .refine((username) => !(RESERVED_USERNAMES as readonly string[]).includes(username), {
+    message: 'This username is reserved',
+  });
 
 /**
  * Username Availability Check

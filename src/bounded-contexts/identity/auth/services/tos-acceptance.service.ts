@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ConsentDocumentType } from '@prisma/client';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 
 export interface RecordAcceptanceDto {
   documentType: ConsentDocumentType;

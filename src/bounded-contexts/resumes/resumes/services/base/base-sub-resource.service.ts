@@ -1,20 +1,19 @@
 import { ForbiddenException, Logger, NotFoundException } from '@nestjs/common';
-import { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.repository';
-import type { ISubResourceRepository } from '../../interfaces/base-sub-resource.interface';
-import type { PaginatedResult } from '@/shared-kernel';
 import {
   ApiResponseHelper,
   DataResponse,
   MessageResponse,
 } from '@/bounded-contexts/platform/common/dto/api-response.dto';
-import { ERROR_MESSAGES } from '@/shared-kernel';
-import { EventPublisher } from '@/shared-kernel';
+import type { SectionType } from '@/bounded-contexts/resumes/domain/events';
 import {
   SectionAddedEvent,
-  SectionUpdatedEvent,
   SectionRemovedEvent,
+  SectionUpdatedEvent,
 } from '@/bounded-contexts/resumes/domain/events';
-import type { SectionType } from '@/bounded-contexts/resumes/domain/events';
+import { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.repository';
+import type { PaginatedResult } from '@/shared-kernel';
+import { ERROR_MESSAGES, EventPublisher } from '@/shared-kernel';
+import type { ISubResourceRepository } from '../../interfaces/base-sub-resource.interface';
 
 /**
  * Abstract base service for resume sub-resources
@@ -66,14 +65,8 @@ export abstract class BaseSubResourceService<T, Create, Update> {
    * Throws ForbiddenException if the user doesn't have access
    * Logs unauthorized access attempts for security auditing
    */
-  protected async validateResumeOwnership(
-    resumeId: string,
-    userId: string,
-  ): Promise<void> {
-    const resume = await this.resumesRepository.findResumeByIdAndUserId(
-      resumeId,
-      userId,
-    );
+  protected async validateResumeOwnership(resumeId: string, userId: string): Promise<void> {
+    const resume = await this.resumesRepository.findResumeByIdAndUserId(resumeId, userId);
     if (!resume) {
       // Security: Log unauthorized access attempts for audit trail
       this.logger.warn(`Unauthorized ${this.entityName} access attempt`, {
@@ -108,10 +101,7 @@ export abstract class BaseSubResourceService<T, Create, Update> {
     userId: string,
   ): Promise<DataResponse<T>> {
     await this.validateResumeOwnership(resumeId, userId);
-    const foundEntity = await this.repository.findEntityByIdAndResumeId(
-      entityId,
-      resumeId,
-    );
+    const foundEntity = await this.repository.findEntityByIdAndResumeId(entityId, resumeId);
     if (!foundEntity) {
       throw new NotFoundException(`${this.entityName} not found`);
     }
@@ -129,10 +119,7 @@ export abstract class BaseSubResourceService<T, Create, Update> {
   ): Promise<DataResponse<T>> {
     await this.validateResumeOwnership(resumeId, userId);
     this.logger.log(`Creating ${this.entityName} for resume: ${resumeId}`);
-    const createdEntity = await this.repository.createEntityForResume(
-      resumeId,
-      entityData,
-    );
+    const createdEntity = await this.repository.createEntityForResume(resumeId, entityData);
 
     const entityId = (createdEntity as { id: string }).id;
     this.eventPublisher.publish(
@@ -191,10 +178,7 @@ export abstract class BaseSubResourceService<T, Create, Update> {
     userId: string,
   ): Promise<MessageResponse> {
     await this.validateResumeOwnership(resumeId, userId);
-    const wasEntityDeleted = await this.repository.deleteEntityForResume(
-      entityId,
-      resumeId,
-    );
+    const wasEntityDeleted = await this.repository.deleteEntityForResume(entityId, resumeId);
     if (!wasEntityDeleted) {
       throw new NotFoundException(`${this.entityName} not found`);
     }
@@ -221,8 +205,6 @@ export abstract class BaseSubResourceService<T, Create, Update> {
   ): Promise<MessageResponse> {
     await this.validateResumeOwnership(resumeId, userId);
     await this.repository.reorderEntitiesForResume(resumeId, entityIds);
-    return ApiResponseHelper.message(
-      `${this.entityName}s reordered successfully`,
-    );
+    return ApiResponseHelper.message(`${this.entityName}s reordered successfully`);
   }
 }

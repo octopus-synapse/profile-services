@@ -1,4 +1,4 @@
-import { Processor, WorkerHost, OnWorkerEvent } from '@nestjs/bullmq';
+import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
 import { Injectable, Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
 import type { ExportJobData } from '../queue.service';
@@ -22,11 +22,7 @@ interface NotificationService {
 }
 
 interface UploadService {
-  uploadBuffer(
-    buffer: Buffer,
-    filename: string,
-    contentType: string,
-  ): Promise<{ url: string }>;
+  uploadBuffer(buffer: Buffer, filename: string, contentType: string): Promise<{ url: string }>;
 }
 
 export interface ExportResult {
@@ -56,9 +52,7 @@ export class ExportProcessor extends WorkerHost {
   async process(job: Job<ExportJobData>): Promise<ExportResult> {
     const { type, resumeId, userId } = job.data;
 
-    this.logger.log(
-      `Processing export job ${job.id}: ${type} for resume ${resumeId}`,
-    );
+    this.logger.log(`Processing export job ${job.id}: ${type} for resume ${resumeId}`);
 
     try {
       await job.updateProgress(10);
@@ -75,8 +69,7 @@ export class ExportProcessor extends WorkerHost {
           break;
         case 'docx':
           buffer = await this.resumeDocxService.generate(resumeId);
-          contentType =
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+          contentType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
           extension = 'docx';
           break;
         default:
@@ -86,11 +79,7 @@ export class ExportProcessor extends WorkerHost {
       await job.updateProgress(60);
 
       const filename = `resume-${resumeId}-${Date.now()}.${extension}`;
-      const uploadResult = await this.uploadService.uploadBuffer(
-        buffer,
-        filename,
-        contentType,
-      );
+      const uploadResult = await this.uploadService.uploadBuffer(buffer, filename, contentType);
 
       await job.updateProgress(90);
 

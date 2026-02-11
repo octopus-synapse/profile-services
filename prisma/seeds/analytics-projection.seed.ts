@@ -10,9 +10,7 @@
 
 import type { PrismaClient } from '@prisma/client';
 
-export async function seedAnalyticsProjections(
-  prisma: PrismaClient,
-): Promise<void> {
+export async function seedAnalyticsProjections(prisma: PrismaClient): Promise<void> {
   console.log('📊 Seeding analytics projections...');
 
   // Get all resumes with _count of each section type

@@ -31,10 +31,7 @@ export class SnapshotService {
     return this.mapToSnapshot(snapshot);
   }
 
-  async getHistory(
-    resumeId: string,
-    limit: number = 10,
-  ): Promise<AnalyticsSnapshot[]> {
+  async getHistory(resumeId: string, limit: number = 10): Promise<AnalyticsSnapshot[]> {
     const snapshots = await this.prisma.resumeAnalytics.findMany({
       where: { resumeId },
       orderBy: { createdAt: 'desc' },
@@ -44,10 +41,7 @@ export class SnapshotService {
     return snapshots.map((s) => this.mapToSnapshot(s));
   }
 
-  async getScoreProgression(
-    resumeId: string,
-    days: number = 30,
-  ): Promise<ScoreProgressionPoint[]> {
+  async getScoreProgression(resumeId: string, days: number = 30): Promise<ScoreProgressionPoint[]> {
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - days);
 

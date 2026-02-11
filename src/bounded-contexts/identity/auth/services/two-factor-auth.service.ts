@@ -8,16 +8,12 @@
  * Kent Beck: "Make the happy path obvious, make errors explicit"
  */
 
-import {
-  Injectable,
-  ConflictException,
-  NotFoundException,
-} from '@nestjs/common';
-import * as speakeasy from 'speakeasy';
-import * as QRCode from 'qrcode';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import * as QRCode from 'qrcode';
+import * as speakeasy from 'speakeasy';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 
 interface SetupResult {
   secret: string;

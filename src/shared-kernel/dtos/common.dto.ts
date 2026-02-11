@@ -9,8 +9,8 @@ import { z } from 'zod';
 
 // Re-export pagination from types (avoid duplication)
 export {
-  PaginationQuerySchema,
   type PaginationQuery,
+  PaginationQuerySchema,
 } from '../types/api.types';
 
 /**
@@ -29,10 +29,7 @@ export type ReorderItems = z.infer<typeof ReorderItemsSchema>;
  */
 export const DateStringSchema = z
   .string()
-  .regex(
-    /^\d{4}-\d{2}(-\d{2})?$/,
-    'Invalid date format (YYYY-MM or YYYY-MM-DD)',
-  );
+  .regex(/^\d{4}-\d{2}(-\d{2})?$/, 'Invalid date format (YYYY-MM or YYYY-MM-DD)');
 
 export type DateString = z.infer<typeof DateStringSchema>;
 

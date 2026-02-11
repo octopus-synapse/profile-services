@@ -3,11 +3,11 @@
  * Aggregates language-related constants for GitHub Linguist parsing
  */
 
-import { LANGUAGE_TRANSLATIONS } from './language-translations.const';
 import { LANGUAGE_PARADIGMS } from './language-paradigms.const';
+import { POPULARITY_ORDER } from './language-popularity.const';
+import { LANGUAGE_TRANSLATIONS } from './language-translations.const';
 import { LANGUAGE_TYPING } from './language-typing.const';
 import { LANGUAGE_WEBSITES } from './language-websites.const';
-import { POPULARITY_ORDER } from './language-popularity.const';
 
 /**
  * Language metadata configuration

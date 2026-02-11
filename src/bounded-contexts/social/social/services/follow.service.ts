@@ -8,13 +8,13 @@
  */
 
 import {
-  Injectable,
   BadRequestException,
   ConflictException,
+  Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { EventPublisher } from '@/shared-kernel';
 import { UserFollowedEvent } from '../../domain/events';
 
@@ -68,10 +68,7 @@ export class FollowService {
    * Follow a user.
    * Creates a follow relationship between follower and following.
    */
-  async follow(
-    followerId: string,
-    followingId: string,
-  ): Promise<FollowWithUser> {
+  async follow(followerId: string, followingId: string): Promise<FollowWithUser> {
     // Cannot follow yourself
     if (followerId === followingId) {
       throw new BadRequestException('Cannot follow yourself');
@@ -111,14 +108,9 @@ export class FollowService {
       },
     });
 
-    this.eventPublisher.publish(
-      new UserFollowedEvent(followingId, { followerId }),
-    );
+    this.eventPublisher.publish(new UserFollowedEvent(followingId, { followerId }));
 
-    this.logger.debug(
-      `User ${followerId} followed ${followingId}`,
-      'FollowService',
-    );
+    this.logger.debug(`User ${followerId} followed ${followingId}`, 'FollowService');
 
     return follow;
   }
@@ -132,10 +124,7 @@ export class FollowService {
       where: { followerId, followingId },
     });
 
-    this.logger.debug(
-      `User ${followerId} unfollowed ${followingId}`,
-      'FollowService',
-    );
+    this.logger.debug(`User ${followerId} unfollowed ${followingId}`, 'FollowService');
   }
 
   /**
@@ -267,9 +256,7 @@ export class FollowService {
   /**
    * Get social stats for a user.
    */
-  async getSocialStats(
-    userId: string,
-  ): Promise<{ followers: number; following: number }> {
+  async getSocialStats(userId: string): Promise<{ followers: number; following: number }> {
     const [followers, following] = await Promise.all([
       this.getFollowersCount(userId),
       this.getFollowingCount(userId),

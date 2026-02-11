@@ -33,8 +33,7 @@ export class EmailSenderService {
       this.configService.get<string>('EMAIL_FROM') ??
       this.configService.get<string>('SENDGRID_EMAIL_FROM') ??
       'noreply@profile.com';
-    this.fromName =
-      this.configService.get<string>('EMAIL_FROM_NAME') ?? 'ProFile';
+    this.fromName = this.configService.get<string>('EMAIL_FROM_NAME') ?? 'ProFile';
 
     if (apiKey) {
       try {
@@ -46,14 +45,10 @@ export class EmailSenderService {
         if (sgMail && typeof sgMail.setApiKey === 'function') {
           sgMail.setApiKey(apiKey);
           this.isConfigured = true;
-          this.logger.log(
-            'SendGrid configured successfully',
-            'EmailSenderService',
-            {
-              fromEmail: this.fromEmail,
-              hasApiKey: !!apiKey,
-            },
-          );
+          this.logger.log('SendGrid configured successfully', 'EmailSenderService', {
+            fromEmail: this.fromEmail,
+            hasApiKey: !!apiKey,
+          });
         } else {
           this.isConfigured = false;
           this.logger.warn(
@@ -82,11 +77,10 @@ export class EmailSenderService {
    */
   async sendEmail(options: SendEmailOptions): Promise<void> {
     if (!this.isConfigured || !sgMail) {
-      this.logger.warn(
-        'Email service not configured. Skipping email send.',
-        'EmailSenderService',
-        { to: options.to, subject: options.subject },
-      );
+      this.logger.warn('Email service not configured. Skipping email send.', 'EmailSenderService', {
+        to: options.to,
+        subject: options.subject,
+      });
       return;
     }
 

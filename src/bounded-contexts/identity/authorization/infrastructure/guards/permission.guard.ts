@@ -15,13 +15,13 @@
  */
 
 import {
-  Injectable,
+  applyDecorators,
   CanActivate,
   ExecutionContext,
-  SetMetadata,
-  applyDecorators,
-  UseGuards,
   ForbiddenException,
+  Injectable,
+  SetMetadata,
+  UseGuards,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthorizationService } from '../../services/authorization.service';
@@ -85,8 +85,7 @@ export const RequirePermissions = (
  * @example
  * @CanManage('resume')
  */
-export const CanManage = (resource: string) =>
-  RequirePermission(resource, 'manage');
+export const CanManage = (resource: string) => RequirePermission(resource, 'manage');
 
 /**
  * Composite decorator: Apply guard + permission requirement
@@ -95,10 +94,7 @@ export const CanManage = (resource: string) =>
  * @Protected('resume', 'create')
  */
 export const Protected = (resource: string, action: string) =>
-  applyDecorators(
-    RequirePermission(resource, action),
-    UseGuards(PermissionGuard),
-  );
+  applyDecorators(RequirePermission(resource, action), UseGuards(PermissionGuard));
 
 // ============================================================================
 // Role Decorators
@@ -111,8 +107,7 @@ export const Protected = (resource: string, action: string) =>
  * @RequireRole('admin')
  * @RequireRole('content_moderator')
  */
-export const RequireRole = (roleName: string) =>
-  SetMetadata(ROLE_KEY, roleName);
+export const RequireRole = (roleName: string) => SetMetadata(ROLE_KEY, roleName);
 
 /**
  * Require any of the specified roles
@@ -120,8 +115,7 @@ export const RequireRole = (roleName: string) =>
  * @example
  * @RequireRoles(['admin', 'approver'])
  */
-export const RequireRoles = (roleNames: string[]) =>
-  SetMetadata(ROLES_KEY, roleNames);
+export const RequireRoles = (roleNames: string[]) => SetMetadata(ROLES_KEY, roleNames);
 
 // ============================================================================
 // Composite Decorators (Convenience)
@@ -143,10 +137,7 @@ export const AdminOnly = () =>
  * @ApproverOnly()
  */
 export const ApproverOnly = () =>
-  applyDecorators(
-    RequirePermission('theme', 'approve'),
-    UseGuards(PermissionGuard),
-  );
+  applyDecorators(RequirePermission('theme', 'approve'), UseGuards(PermissionGuard));
 
 /**
  * Composite decorator: Require any of admin or approver permissions
@@ -179,9 +170,10 @@ export class PermissionGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     // Check for single permission requirement
-    const singlePermission = this.reflector.getAllAndOverride<
-      PermissionRequirement | undefined
-    >(PERMISSION_KEY, [context.getHandler(), context.getClass()]);
+    const singlePermission = this.reflector.getAllAndOverride<PermissionRequirement | undefined>(
+      PERMISSION_KEY,
+      [context.getHandler(), context.getClass()],
+    );
 
     // Check for multiple permissions requirement
     const multiplePermissions = this.reflector.getAllAndOverride<
@@ -189,14 +181,15 @@ export class PermissionGuard implements CanActivate {
     >(PERMISSIONS_KEY, [context.getHandler(), context.getClass()]);
 
     // Check for role requirements
-    const singleRole = this.reflector.getAllAndOverride<string | undefined>(
-      ROLE_KEY,
-      [context.getHandler(), context.getClass()],
-    );
+    const singleRole = this.reflector.getAllAndOverride<string | undefined>(ROLE_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
 
-    const multipleRoles = this.reflector.getAllAndOverride<
-      string[] | undefined
-    >(ROLES_KEY, [context.getHandler(), context.getClass()]);
+    const multipleRoles = this.reflector.getAllAndOverride<string[] | undefined>(ROLES_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
 
     // No requirements = allow access (public route)
     const hasNoRequirements =
@@ -210,9 +203,7 @@ export class PermissionGuard implements CanActivate {
     }
 
     // Get user from request
-    const request = context
-      .switchToHttp()
-      .getRequest<{ user?: { id: string } }>();
+    const request = context.switchToHttp().getRequest<{ user?: { id: string } }>();
     const user = request.user;
 
     if (!user?.id) {
@@ -243,14 +234,8 @@ export class PermissionGuard implements CanActivate {
       const effectiveStrategy = strategy;
       const hasPermission =
         effectiveStrategy === 'all'
-          ? await this.authService.hasAllPermissions(
-              user.id,
-              multiplePermissions,
-            )
-          : await this.authService.hasAnyPermission(
-              user.id,
-              multiplePermissions,
-            );
+          ? await this.authService.hasAllPermissions(user.id, multiplePermissions)
+          : await this.authService.hasAnyPermission(user.id, multiplePermissions);
 
       if (!hasPermission) {
         const permissionList = multiplePermissions
@@ -268,9 +253,7 @@ export class PermissionGuard implements CanActivate {
       const hasRole = await this.authService.hasRole(user.id, singleRole);
 
       if (!hasRole) {
-        throw new ForbiddenException(
-          `Permission denied: requires role "${singleRole}"`,
-        );
+        throw new ForbiddenException(`Permission denied: requires role "${singleRole}"`);
       }
     }
 

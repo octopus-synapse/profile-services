@@ -4,20 +4,13 @@
  */
 
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { Education, Experience, Language, Project, Resume, Skill } from '@prisma/client';
 import { Document, Packer } from 'docx';
-import { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.repository';
 import { UsersRepository } from '@/bounded-contexts/identity/users/users.repository';
+import { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.repository';
 import { ERROR_MESSAGES } from '@/shared-kernel';
 import { DocxSectionsService } from './docx-sections.service';
 import { DocxStylesService } from './docx-styles.service';
-import {
-  Resume,
-  Experience,
-  Education,
-  Skill,
-  Project,
-  Language,
-} from '@prisma/client';
 
 type FullResume = Resume & {
   experiences: Experience[];

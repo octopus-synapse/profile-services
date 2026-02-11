@@ -14,9 +14,6 @@ export class ResumeUpdatedHandler {
 
   @OnEvent(ResumeUpdatedEvent.TYPE)
   async handle(event: ResumeUpdatedEvent): Promise<void> {
-    await this.tracker.trackResumeUpdate(
-      event.aggregateId,
-      event.payload.changedFields,
-    );
+    await this.tracker.trackResumeUpdate(event.aggregateId, event.payload.changedFields);
   }
 }

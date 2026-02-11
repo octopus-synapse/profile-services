@@ -4,13 +4,13 @@
  */
 
 import {
+  AlignmentType,
+  BorderStyle,
+  Header,
+  HeadingLevel,
+  PageNumber,
   Paragraph,
   TextRun,
-  HeadingLevel,
-  AlignmentType,
-  Header,
-  PageNumber,
-  BorderStyle,
 } from 'docx';
 
 interface UserHeaderData {
@@ -65,15 +65,9 @@ export class DocxHeaderBuilder {
       style: 'default',
       children: [
         ...(user.website ? [new TextRun(user.website)] : []),
-        ...(user.linkedin
-          ? [new TextRun(`${user.website ? ' | ' : ''}${user.linkedin}`)]
-          : []),
+        ...(user.linkedin ? [new TextRun(`${user.website ? ' | ' : ''}${user.linkedin}`)] : []),
         ...(user.github
-          ? [
-              new TextRun(
-                `${user.website || user.linkedin ? ' | ' : ''}${user.github}`,
-              ),
-            ]
+          ? [new TextRun(`${user.website || user.linkedin ? ' | ' : ''}${user.github}`)]
           : []),
       ],
     });

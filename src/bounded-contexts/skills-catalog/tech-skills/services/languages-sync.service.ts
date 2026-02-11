@@ -11,9 +11,7 @@ import type { ParsedLanguage } from '../interfaces';
 export class LanguagesSyncService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async syncLanguages(
-    languages: ParsedLanguage[],
-  ): Promise<{ inserted: number; updated: number }> {
+  async syncLanguages(languages: ParsedLanguage[]): Promise<{ inserted: number; updated: number }> {
     let inserted = 0;
     let updated = 0;
 

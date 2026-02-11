@@ -8,30 +8,29 @@
  * @deprecated Import directly from './personas' instead
  */
 
-export {
-  // Enum
-  TechPersona,
-  // Aggregated record
-  TECH_PERSONAS,
-  // Individual personas (for direct access if needed)
-  DEVOPS_PERSONA,
-  SECURITY_PERSONA,
-  DATA_PERSONA,
-  AI_ML_PERSONA,
-  FULLSTACK_PERSONA,
-  MOBILE_PERSONA,
-  QA_PERSONA,
-  UX_UI_PERSONA,
-  BACKEND_PERSONA,
-  FRONTEND_PERSONA,
-  CLOUD_PERSONA,
-  GAME_DEV_PERSONA,
-  // Helper functions
-  getPersonaConfig,
-  suggestPersona,
-  getAllPersonaIds,
-  isValidPersona,
-} from './personas';
-
 // Type re-export
 export type { PersonaConfig } from './personas';
+export {
+  AI_ML_PERSONA,
+  BACKEND_PERSONA,
+  CLOUD_PERSONA,
+  DATA_PERSONA,
+  // Individual personas (for direct access if needed)
+  DEVOPS_PERSONA,
+  FRONTEND_PERSONA,
+  FULLSTACK_PERSONA,
+  GAME_DEV_PERSONA,
+  getAllPersonaIds,
+  // Helper functions
+  getPersonaConfig,
+  isValidPersona,
+  MOBILE_PERSONA,
+  QA_PERSONA,
+  SECURITY_PERSONA,
+  suggestPersona,
+  // Aggregated record
+  TECH_PERSONAS,
+  // Enum
+  TechPersona,
+  UX_UI_PERSONA,
+} from './personas';

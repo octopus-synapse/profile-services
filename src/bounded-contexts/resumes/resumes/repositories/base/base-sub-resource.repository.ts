@@ -1,14 +1,14 @@
 import { Logger } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { ISubResourceRepository } from '../../interfaces/base-sub-resource.interface';
+import {
+  buildOrderByClause,
+  type FindAllFilters,
+  type OrderByConfig,
+  type PrismaDelegate,
+} from '@/bounded-contexts/resumes/infrastructure/repositories';
 import type { PaginatedResult } from '@/shared-kernel';
 import { PAGINATION } from '@/shared-kernel';
-import {
-  type PrismaDelegate,
-  type OrderByConfig,
-  type FindAllFilters,
-  buildOrderByClause,
-} from '@/bounded-contexts/resumes/infrastructure/repositories';
+import { ISubResourceRepository } from '../../interfaces/base-sub-resource.interface';
 
 export type { OrderByConfig, FindAllFilters };
 
@@ -36,19 +36,13 @@ export abstract class BaseSubResourceRepository<T, Create, Update>
     return {};
   }
 
-  async findEntityByIdAndResumeId(
-    entityId: string,
-    resumeId: string,
-  ): Promise<T | null> {
+  async findEntityByIdAndResumeId(entityId: string, resumeId: string): Promise<T | null> {
     return this.getPrismaDelegate().findFirst({
       where: { id: entityId, resumeId },
     });
   }
 
-  async reorderEntitiesForResume(
-    resumeId: string,
-    entityIds: string[],
-  ): Promise<void> {
+  async reorderEntitiesForResume(_resumeId: string, entityIds: string[]): Promise<void> {
     const delegate = this.getPrismaDelegate();
     await this.prisma.$transaction(async () => {
       for (let index = 0; index < entityIds.length; index++) {
@@ -99,10 +93,7 @@ export abstract class BaseSubResourceRepository<T, Create, Update>
     };
   }
 
-  async deleteEntityForResume(
-    entityId: string,
-    resumeId: string,
-  ): Promise<boolean> {
+  async deleteEntityForResume(entityId: string, resumeId: string): Promise<boolean> {
     const result = await this.getPrismaDelegate().deleteMany({
       where: { id: entityId, resumeId },
     });
@@ -125,10 +116,7 @@ export abstract class BaseSubResourceRepository<T, Create, Update>
     return delegate.findUnique({ where: { id: entityId } });
   }
 
-  async createEntityForResume(
-    resumeId: string,
-    entityData: Create,
-  ): Promise<T> {
+  async createEntityForResume(resumeId: string, entityData: Create): Promise<T> {
     const maxOrder = await this.getMaxOrder(resumeId, entityData);
     return this.getPrismaDelegate().create({
       data: this.mapCreate(resumeId, entityData, maxOrder + 1),

@@ -4,18 +4,18 @@
  */
 
 import {
+  BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
-  ConflictException,
-  BadRequestException,
 } from '@nestjs/common';
 import { UsersRepository } from '@/bounded-contexts/identity/users/users.repository';
+import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import type {
   UpdateUsername,
   UsernameValidationError,
   ValidateUsernameResponse,
 } from '@/shared-kernel';
-import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { ERROR_MESSAGES } from '@/shared-kernel';
 
 const USERNAME_UPDATE_COOLDOWN_DAYS = 30;
@@ -93,10 +93,7 @@ export class UsernameService {
     await this.checkCooldownPeriod(userId);
     await this.ensureUsernameAvailable(newUsername, userId);
 
-    const updatedUser = await this.usersRepository.updateUsername(
-      userId,
-      newUsername,
-    );
+    const updatedUser = await this.usersRepository.updateUsername(userId, newUsername);
 
     this.logger.debug(`Username updated`, 'UsernameService', {
       userId,
@@ -113,10 +110,7 @@ export class UsernameService {
 
   async checkUsernameAvailability(username: string, userId?: string) {
     const normalizedUsername = username.toLowerCase();
-    const isTaken = await this.usersRepository.isUsernameTaken(
-      normalizedUsername,
-      userId,
-    );
+    const isTaken = await this.usersRepository.isUsernameTaken(normalizedUsername, userId);
 
     return {
       username: normalizedUsername,
@@ -128,10 +122,7 @@ export class UsernameService {
    * Validates username format and availability.
    * Returns structured validation result for frontend consumption.
    */
-  async validateUsername(
-    username: string,
-    userId?: string,
-  ): Promise<ValidateUsernameResponse> {
+  async validateUsername(username: string, userId?: string): Promise<ValidateUsernameResponse> {
     const errors: UsernameValidationError[] = [];
     const trimmed = username.trim();
 
@@ -164,8 +155,7 @@ export class UsernameService {
     if (normalized.length >= 3 && !/^[a-z0-9_]+$/.test(normalized)) {
       errors.push({
         code: 'INVALID_FORMAT',
-        message:
-          'Username can only contain lowercase letters, numbers, and underscores',
+        message: 'Username can only contain lowercase letters, numbers, and underscores',
       });
     }
 
@@ -206,10 +196,7 @@ export class UsernameService {
     let available: boolean | undefined;
 
     if (isFormatValid) {
-      const isTaken = await this.usersRepository.isUsernameTaken(
-        normalized,
-        userId,
-      );
+      const isTaken = await this.usersRepository.isUsernameTaken(normalized, userId);
       available = !isTaken;
 
       if (isTaken) {
@@ -229,8 +216,7 @@ export class UsernameService {
   }
 
   private async checkCooldownPeriod(userId: string): Promise<void> {
-    const lastUsernameUpdate =
-      await this.usersRepository.findLastUsernameUpdateByUserId(userId);
+    const lastUsernameUpdate = await this.usersRepository.findLastUsernameUpdateByUserId(userId);
     if (!lastUsernameUpdate) return;
 
     const daysSinceLastUpdate = Math.floor(
@@ -245,14 +231,8 @@ export class UsernameService {
     }
   }
 
-  private async ensureUsernameAvailable(
-    username: string,
-    userId: string,
-  ): Promise<void> {
-    const isTaken = await this.usersRepository.isUsernameTaken(
-      username,
-      userId,
-    );
+  private async ensureUsernameAvailable(username: string, userId: string): Promise<void> {
+    const isTaken = await this.usersRepository.isUsernameTaken(username, userId);
     if (isTaken) {
       throw new ConflictException(ERROR_MESSAGES.USERNAME_ALREADY_IN_USE);
     }
@@ -283,9 +263,7 @@ export class UsernameService {
 
     // Additional check for consecutive underscores or trailing underscore
     if (username.includes('__') || username.endsWith('_')) {
-      throw new BadRequestException(
-        ERROR_MESSAGES.USERNAME_INVALID_UNDERSCORES,
-      );
+      throw new BadRequestException(ERROR_MESSAGES.USERNAME_INVALID_UNDERSCORES);
     }
   }
 }

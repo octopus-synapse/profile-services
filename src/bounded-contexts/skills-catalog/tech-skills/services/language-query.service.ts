@@ -3,13 +3,13 @@
  * Handles cached queries for programming languages
  */
 
+import * as crypto from 'node:crypto';
 import { Injectable } from '@nestjs/common';
-import * as crypto from 'crypto';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { API_LIMITS } from '@/shared-kernel';
-import { TECH_SKILLS_CACHE_KEYS, TECH_SKILLS_CACHE_TTL } from '../interfaces';
 import type { ProgrammingLanguage } from '../dtos';
+import { TECH_SKILLS_CACHE_KEYS, TECH_SKILLS_CACHE_TTL } from '../interfaces';
 
 @Injectable()
 export class LanguageQueryService {
@@ -45,21 +45,14 @@ export class LanguageQueryService {
       },
     });
 
-    await this.cache.set(
-      cacheKey,
-      languages,
-      TECH_SKILLS_CACHE_TTL.LANGUAGES_LIST,
-    );
+    await this.cache.set(cacheKey, languages, TECH_SKILLS_CACHE_TTL.LANGUAGES_LIST);
     return languages;
   }
 
   /**
    * Search programming languages with accent-insensitive matching
    */
-  async searchLanguages(
-    query: string,
-    limit = 20,
-  ): Promise<ProgrammingLanguage[]> {
+  async searchLanguages(query: string, limit = 20): Promise<ProgrammingLanguage[]> {
     const normalizedQuery = query.toLowerCase().trim();
     if (normalizedQuery.length < 1) return [];
 
@@ -89,11 +82,7 @@ export class LanguageQueryService {
       LIMIT ${limit}
     `;
 
-    await this.cache.set(
-      cacheKey,
-      languages,
-      TECH_SKILLS_CACHE_TTL.SKILLS_SEARCH,
-    );
+    await this.cache.set(cacheKey, languages, TECH_SKILLS_CACHE_TTL.SKILLS_SEARCH);
     return languages;
   }
 }

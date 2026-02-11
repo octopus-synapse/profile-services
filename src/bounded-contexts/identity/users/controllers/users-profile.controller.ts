@@ -14,27 +14,18 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Public } from '@/bounded-contexts/identity/auth/decorators/public.decorator';
+import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
+import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
+import { UsersService } from '@/bounded-contexts/identity/users/users.service';
+import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import type { UpdateUser as UpdateProfile, UpdateUsername } from '@/shared-kernel';
 import {
   PublicProfileResponseDto,
   UserProfileResponseDto,
 } from '@/shared-kernel/dtos/sdk-response.dto';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-  ApiQuery,
-} from '@nestjs/swagger';
-import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
-import { UsersService } from '@/bounded-contexts/identity/users/users.service';
-import type {
-  UpdateUser as UpdateProfile,
-  UpdateUsername,
-} from '@/shared-kernel';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
-import { Public } from '@/bounded-contexts/identity/auth/decorators/public.decorator';
-import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
-import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
 
 @SdkExport({ tag: 'users', description: 'Users API' })
 @ApiTags('users')
@@ -76,10 +67,7 @@ export class UsersProfileController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'User not found' })
   @ApiResponse({ status: 400, description: 'Invalid input data' })
-  async updateProfile(
-    @CurrentUser() user: UserPayload,
-    @Body() updateProfile: UpdateProfile,
-  ) {
+  async updateProfile(@CurrentUser() user: UserPayload, @Body() updateProfile: UpdateProfile) {
     return this.usersService.updateProfile(user.userId, updateProfile);
   }
 
@@ -105,10 +93,7 @@ export class UsersProfileController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'User not found' })
   @ApiResponse({ status: 409, description: 'Username already taken' })
-  async updateUsername(
-    @CurrentUser() user: UserPayload,
-    @Body() updateUsername: UpdateUsername,
-  ) {
+  async updateUsername(@CurrentUser() user: UserPayload, @Body() updateUsername: UpdateUsername) {
     return this.usersService.updateUsername(user.userId, updateUsername);
   }
 

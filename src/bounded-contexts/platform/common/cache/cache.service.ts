@@ -52,11 +52,7 @@ export class CacheService implements OnModuleDestroy {
   /**
    * Cache-aside pattern helper
    */
-  async getOrSet<T>(
-    key: string,
-    computeFn: () => Promise<T>,
-    ttl?: number,
-  ): Promise<T> {
+  async getOrSet<T>(key: string, computeFn: () => Promise<T>, ttl?: number): Promise<T> {
     return this.patternsService.getOrSet(key, computeFn, ttl);
   }
 

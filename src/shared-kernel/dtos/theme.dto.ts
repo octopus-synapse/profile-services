@@ -6,7 +6,7 @@
  */
 
 import { z } from 'zod';
-import { ThemeStatusSchema, ThemeCategorySchema } from '../enums';
+import { ThemeCategorySchema, ThemeStatusSchema } from '../enums';
 
 /**
  * Theme Sort Fields
@@ -32,10 +32,7 @@ export type SortDirection = z.infer<typeof SortDirectionSchema>;
  * Create Theme Schema
  */
 export const CreateThemeSchema = z.object({
-  name: z
-    .string()
-    .min(3, 'Name must be at least 3 characters')
-    .max(50, 'Name too long'),
+  name: z.string().min(3, 'Name must be at least 3 characters').max(50, 'Name too long'),
   description: z.string().max(500, 'Description too long').optional(),
   category: ThemeCategorySchema,
   tags: z.array(z.string()).optional(),
@@ -49,11 +46,7 @@ export type CreateTheme = z.infer<typeof CreateThemeSchema>;
  * Update Theme Schema
  */
 export const UpdateThemeSchema = z.object({
-  name: z
-    .string()
-    .min(3, 'Name must be at least 3 characters')
-    .max(50, 'Name too long')
-    .optional(),
+  name: z.string().min(3, 'Name must be at least 3 characters').max(50, 'Name too long').optional(),
   description: z.string().max(500, 'Description too long').optional(),
   category: ThemeCategorySchema.optional(),
   tags: z.array(z.string()).optional(),
@@ -116,10 +109,7 @@ export type ApplyThemeToResume = z.infer<typeof ApplyThemeToResumeSchema>;
  */
 export const ForkThemeSchema = z.object({
   themeId: z.string().uuid('Theme ID must be a valid UUID'),
-  name: z
-    .string()
-    .min(3, 'Name must be at least 3 characters')
-    .max(50, 'Name too long'),
+  name: z.string().min(3, 'Name must be at least 3 characters').max(50, 'Name too long'),
   description: z.string().max(500, 'Description too long').optional(),
 });
 

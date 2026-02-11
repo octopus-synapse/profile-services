@@ -1,16 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OpenSourceContribution } from '@prisma/client';
-import { OpenSourceRepository } from '../repositories/open-source.repository';
-import { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.repository';
-import { CreateOpenSource, UpdateOpenSource } from '@/shared-kernel';
 import {
-  ApiResponseHelper,
   ApiResponse,
+  ApiResponseHelper,
   MessageResponse,
 } from '@/bounded-contexts/platform/common/dto/api-response.dto';
-import { BaseSubResourceService } from './base';
-import { EventPublisher } from '@/shared-kernel';
 import type { SectionType } from '@/bounded-contexts/resumes/domain/events';
+import { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.repository';
+import { CreateOpenSource, EventPublisher, UpdateOpenSource } from '@/shared-kernel';
+import { OpenSourceRepository } from '../repositories/open-source.repository';
+import { BaseSubResourceService } from './base';
 
 @Injectable()
 export class OpenSourceService extends BaseSubResourceService<
@@ -33,16 +32,10 @@ export class OpenSourceService extends BaseSubResourceService<
   /**
    * Override reorder to use proper plural form
    */
-  async reorder(
-    resumeId: string,
-    userId: string,
-    ids: string[],
-  ): Promise<MessageResponse> {
+  async reorder(resumeId: string, userId: string, ids: string[]): Promise<MessageResponse> {
     await this.validateResumeOwnership(resumeId, userId);
     await this.repository.reorderEntitiesForResume(resumeId, ids);
-    return ApiResponseHelper.message(
-      'Open source contributions reordered successfully',
-    );
+    return ApiResponseHelper.message('Open source contributions reordered successfully');
   }
 
   /**
@@ -51,9 +44,7 @@ export class OpenSourceService extends BaseSubResourceService<
   async getTotalStats(
     resumeId: string,
     userId: string,
-  ): Promise<
-    ApiResponse<{ totalCommits: number; totalPRs: number; totalStars: number }>
-  > {
+  ): Promise<ApiResponse<{ totalCommits: number; totalPRs: number; totalStars: number }>> {
     await this.validateResumeOwnership(resumeId, userId);
     const stats = await this.openSourceRepository.getTotalStats(resumeId);
     return ApiResponseHelper.success(stats);

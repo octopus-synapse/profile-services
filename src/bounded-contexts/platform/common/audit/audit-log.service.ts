@@ -8,10 +8,10 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { AppLoggerService } from '../logger/logger.service';
 import { AuditAction, Prisma } from '@prisma/client';
 import type { Request } from 'express';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { AppLoggerService } from '../logger/logger.service';
 
 export interface AuditMetadata {
   ipAddress?: string;
@@ -271,9 +271,7 @@ export class AuditLogService {
 
     const forwardedFor = request.headers['x-forwarded-for'];
     const ipAddress =
-      (typeof forwardedFor === 'string'
-        ? forwardedFor.split(',')[0]?.trim()
-        : undefined) ??
+      (typeof forwardedFor === 'string' ? forwardedFor.split(',')[0]?.trim() : undefined) ??
       request.ip ??
       request.socket.remoteAddress;
 
@@ -281,7 +279,7 @@ export class AuditLogService {
       ipAddress,
       userAgent: request.headers['user-agent'],
       metadata: {
-        referer: request.headers['referer'],
+        referer: request.headers.referer,
         method: request.method,
         path: request.path,
       },

@@ -3,16 +3,12 @@
  * Single Responsibility: Query operations for courses
  */
 
+import * as crypto from 'node:crypto';
 import { Injectable } from '@nestjs/common';
-import * as crypto from 'crypto';
 import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
+import { API_LIMITS, APP_CONFIG, Course } from '@/shared-kernel';
+import { MEC_CACHE_KEYS, MEC_CACHE_TTL } from '../interfaces/mec-data.interface';
 import { CourseRepository } from '../repositories';
-import { Course } from '@/shared-kernel';
-import {
-  MEC_CACHE_KEYS,
-  MEC_CACHE_TTL,
-} from '../interfaces/mec-data.interface';
-import { APP_CONFIG, API_LIMITS } from '@/shared-kernel';
 
 @Injectable()
 export class CourseQueryService {
@@ -27,14 +23,9 @@ export class CourseQueryService {
     const cachedCourses = await this.cache.get<Course[]>(cacheKey);
     if (cachedCourses) return cachedCourses;
 
-    const institutionCourses =
-      await this.repository.findCoursesByInstitutionCode(codigoIes);
+    const institutionCourses = await this.repository.findCoursesByInstitutionCode(codigoIes);
 
-    await this.cache.set(
-      cacheKey,
-      institutionCourses,
-      MEC_CACHE_TTL.COURSES_BY_IES,
-    );
+    await this.cache.set(cacheKey, institutionCourses, MEC_CACHE_TTL.COURSES_BY_IES);
 
     return institutionCourses;
   }
@@ -58,16 +49,9 @@ export class CourseQueryService {
     const cachedCourses = await this.cache.get<Course[]>(cacheKey);
     if (cachedCourses) return cachedCourses;
 
-    const matchingCourses = await this.repository.searchCoursesByName(
-      normalizedQuery,
-      limit,
-    );
+    const matchingCourses = await this.repository.searchCoursesByName(normalizedQuery, limit);
 
-    await this.cache.set(
-      cacheKey,
-      matchingCourses,
-      MEC_CACHE_TTL.COURSES_SEARCH,
-    );
+    await this.cache.set(cacheKey, matchingCourses, MEC_CACHE_TTL.COURSES_SEARCH);
 
     return matchingCourses;
   }

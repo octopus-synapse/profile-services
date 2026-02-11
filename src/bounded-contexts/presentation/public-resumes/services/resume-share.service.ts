@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import * as bcrypt from 'bcryptjs';
+import { nanoid } from 'nanoid';
 import { CacheCoreService } from '@/bounded-contexts/platform/common/cache/services/cache-core.service';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { EventPublisher } from '@/shared-kernel';
 import { ResumePublishedEvent } from '../../domain/events';
-import { nanoid } from 'nanoid';
-import * as bcrypt from 'bcryptjs';
 
 interface CreateShare {
   resumeId: string;
@@ -28,9 +28,7 @@ export class ResumeShareService {
 
     // Validate custom slug
     if (dto.slug && !this.isValidSlug(dto.slug)) {
-      throw new Error(
-        'Invalid slug format. Use alphanumeric characters and hyphens only.',
-      );
+      throw new Error('Invalid slug format. Use alphanumeric characters and hyphens only.');
     }
 
     // Check slug uniqueness
@@ -43,9 +41,7 @@ export class ResumeShareService {
     }
 
     // Hash password if provided
-    const hashedPassword = dto.password
-      ? await bcrypt.hash(dto.password, 10)
-      : null;
+    const hashedPassword = dto.password ? await bcrypt.hash(dto.password, 10) : null;
 
     // Get userId from resume before creating share
     const resume = await this.prisma.resume.findUnique({

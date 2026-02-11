@@ -1,16 +1,11 @@
-import type {
-  Certification,
-  Award,
-  Interest,
-  Recommendation,
-} from '@prisma/client';
+import type { Award, Certification, Interest, Recommendation } from '@prisma/client';
 import {
+  type AwardItem,
   applyOverrides,
   type CertificationItem,
-  type AwardItem,
   type InterestItem,
-  type ReferenceItem,
   type ItemOverride,
+  type ReferenceItem,
   type SectionData,
 } from './shared';
 
@@ -30,10 +25,7 @@ export function compileCertifications(
   return { type: 'certifications', items };
 }
 
-export function compileAwards(
-  awards: Award[],
-  overrides: ItemOverride[],
-): SectionData {
+export function compileAwards(awards: Award[], overrides: ItemOverride[]): SectionData {
   const items = applyOverrides(awards, overrides).map(
     (award): AwardItem => ({
       id: award.id,
@@ -46,10 +38,7 @@ export function compileAwards(
   return { type: 'awards', items };
 }
 
-export function compileInterests(
-  interests: Interest[],
-  overrides: ItemOverride[],
-): SectionData {
+export function compileInterests(interests: Interest[], overrides: ItemOverride[]): SectionData {
   const items = applyOverrides(interests, overrides).map(
     (int): InterestItem => ({
       id: int.id,

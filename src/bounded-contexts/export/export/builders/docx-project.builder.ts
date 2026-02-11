@@ -3,24 +3,19 @@
  * Builds project section paragraphs for DOCX export
  */
 
-import { Paragraph, TextRun } from 'docx';
 import { Project } from '@prisma/client';
+import { Paragraph, TextRun } from 'docx';
 
 export class DocxProjectBuilder {
   create(proj: Project): Paragraph[] {
-    return [
-      this.createTitleParagraph(proj),
-      this.createDescriptionParagraph(proj.description),
-    ];
+    return [this.createTitleParagraph(proj), this.createDescriptionParagraph(proj.description)];
   }
 
   private createTitleParagraph(proj: Project): Paragraph {
     return new Paragraph({
       children: [
         new TextRun({ text: proj.name, bold: true }),
-        ...(proj.url
-          ? [new TextRun({ text: ` - ${proj.url}`, style: 'Hyperlink' })]
-          : []),
+        ...(proj.url ? [new TextRun({ text: ` - ${proj.url}`, style: 'Hyperlink' })] : []),
       ],
       spacing: { after: 50 },
     });

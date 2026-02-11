@@ -4,11 +4,11 @@
  */
 
 import { Injectable, Logger } from '@nestjs/common';
-import { Page } from 'puppeteer';
-import { BrowserManagerService } from './browser-manager.service';
-import { BannerPageSetup, BannerReadyWaiter } from '../helpers';
 import { ConfigService } from '@nestjs/config';
+import { Page } from 'puppeteer';
 import { DEFAULT } from '../constants/ui.constants';
+import { BannerPageSetup, BannerReadyWaiter } from '../helpers';
+import { BrowserManagerService } from './browser-manager.service';
 
 @Injectable()
 export class BannerCaptureService {
@@ -24,10 +24,7 @@ export class BannerCaptureService {
     this.readyWaiter = new BannerReadyWaiter();
   }
 
-  async capture(
-    palette: string = DEFAULT.PALETTE,
-    logoUrl: string = '',
-  ): Promise<Buffer> {
+  async capture(palette: string = DEFAULT.PALETTE, logoUrl: string = ''): Promise<Buffer> {
     const browser = await this.browserManager.getBrowser();
     const page = await browser.newPage();
 

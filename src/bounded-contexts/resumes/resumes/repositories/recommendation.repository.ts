@@ -1,13 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { Recommendation } from '@prisma/client';
 import { CreateRecommendation, UpdateRecommendation } from '@/shared-kernel';
-import {
-  BaseSubResourceRepository,
-  OrderByConfig,
-  buildUpdateData,
-  buildCreateData,
-} from './base';
+import { BaseSubResourceRepository, buildCreateData, buildUpdateData, OrderByConfig } from './base';
 
 /**
  * Repository for Recommendation entities
@@ -23,10 +17,6 @@ export class RecommendationRepository extends BaseSubResourceRepository<
 > {
   protected readonly logger = new Logger(RecommendationRepository.name);
 
-  constructor(prisma: PrismaService) {
-    super(prisma);
-  }
-
   protected getPrismaDelegate() {
     return this.prisma.recommendation;
   }
@@ -35,11 +25,7 @@ export class RecommendationRepository extends BaseSubResourceRepository<
     return { type: 'user-defined' };
   }
 
-  protected mapCreate(
-    resumeId: string,
-    dto: CreateRecommendation,
-    order: number,
-  ) {
+  protected mapCreate(resumeId: string, dto: CreateRecommendation, order: number) {
     return buildCreateData({ resumeId, order: order }, dto, {
       author: 'string',
       position: 'optional',

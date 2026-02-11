@@ -3,7 +3,7 @@
  * Handles version migrations for ResumeDSL schemas
  */
 
-import { Injectable, Logger, BadRequestException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import type { ResumeDsl } from '@/shared-kernel';
 import type { DslMigrator } from './base.migrator';
 
@@ -17,9 +17,7 @@ export class DslMigrationService {
    */
   registerMigrators(migrators: DslMigrator[]): void {
     for (const migrator of migrators) {
-      this.logger.log(
-        `Registering migrator: ${migrator.fromVersion} → ${migrator.toVersion}`,
-      );
+      this.logger.log(`Registering migrator: ${migrator.fromVersion} → ${migrator.toVersion}`);
       this.migrators.set(migrator.fromVersion, migrator);
     }
   }
@@ -44,9 +42,7 @@ export class DslMigrationService {
     while (currentVersion !== targetVersion) {
       // Detect circular migration
       if (visitedVersions.has(currentVersion)) {
-        throw new BadRequestException(
-          `Circular migration detected at version ${currentVersion}`,
-        );
+        throw new BadRequestException(`Circular migration detected at version ${currentVersion}`);
       }
       visitedVersions.add(currentVersion);
 
@@ -59,9 +55,7 @@ export class DslMigrationService {
       }
 
       // Apply migration
-      this.logger.log(
-        `Applying migrator: ${migrator.fromVersion} → ${migrator.toVersion}`,
-      );
+      this.logger.log(`Applying migrator: ${migrator.fromVersion} → ${migrator.toVersion}`);
       currentDsl = migrator.migrate(currentDsl);
       currentVersion = migrator.toVersion;
 
@@ -117,9 +111,7 @@ export class DslMigrationService {
 
       const migrator = this.migrators.get(currentVersion);
       if (!migrator) {
-        throw new BadRequestException(
-          `No migration path from ${fromVersion} to ${toVersion}`,
-        );
+        throw new BadRequestException(`No migration path from ${fromVersion} to ${toVersion}`);
       }
 
       currentVersion = migrator.toVersion;

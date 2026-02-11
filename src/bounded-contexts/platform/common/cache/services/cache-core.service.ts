@@ -4,8 +4,8 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { RedisConnectionService } from '../redis-connection.service';
 import { AppLoggerService } from '../../logger/logger.service';
+import { RedisConnectionService } from '../redis-connection.service';
 
 @Injectable()
 export class CacheCoreService {

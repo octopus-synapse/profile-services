@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
-import { GitHubService } from './github.service';
-import { GitHubController } from './github.controller';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
+import { GitHubController } from './github.controller';
+import { GitHubService } from './github.service';
 import {
+  GitHubAchievementService,
   GitHubApiService,
   GitHubContributionService,
-  GitHubAchievementService,
   GitHubDatabaseService,
   GitHubSyncService,
 } from './services';

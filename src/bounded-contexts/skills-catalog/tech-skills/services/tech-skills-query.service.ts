@@ -5,25 +5,20 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import type { TechAreaType, SkillType } from '../interfaces';
-import {
-  type TechArea,
-  type TechNiche,
-  type TechSkill,
-  type ProgrammingLanguage,
-} from '../dtos';
+import { type ProgrammingLanguage, type TechArea, type TechNiche, type TechSkill } from '../dtos';
+import type { SkillType, TechAreaType } from '../interfaces';
 import { TechAreaQueryService } from './area-query.service';
-import { TechNicheQueryService } from './niche-query.service';
 import { LanguageQueryService } from './language-query.service';
+import { TechNicheQueryService } from './niche-query.service';
 import { SkillQueryService } from './skill-query.service';
 import { SkillSearchService } from './skill-search.service';
 
 // Re-export DTOs for backward compatibility
 export type {
+  ProgrammingLanguage,
   TechArea,
   TechNiche,
   TechSkill,
-  ProgrammingLanguage,
 } from '../dtos';
 
 @Injectable()
@@ -57,10 +52,7 @@ export class TechSkillsQueryService {
   }
 
   /** Search programming languages */
-  async searchLanguages(
-    query: string,
-    limit = 20,
-  ): Promise<ProgrammingLanguage[]> {
+  async searchLanguages(query: string, limit = 20): Promise<ProgrammingLanguage[]> {
     return this.languageQuery.searchLanguages(query, limit);
   }
 

@@ -6,12 +6,8 @@
 import { Injectable } from '@nestjs/common';
 import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import { MEC_CACHE_KEYS, MEC_CACHE_TTL, SyncMetadata } from '../interfaces/mec-data.interface';
 import { SyncLogRepository } from '../repositories';
-import {
-  SyncMetadata,
-  MEC_CACHE_KEYS,
-  MEC_CACHE_TTL,
-} from '../interfaces/mec-data.interface';
 
 @Injectable()
 export class SyncHelperService {
@@ -77,11 +73,7 @@ export class SyncHelperService {
   }
 
   async updateSyncMetadata(metadata: SyncMetadata): Promise<void> {
-    await this.cache.set(
-      MEC_CACHE_KEYS.SYNC_METADATA,
-      metadata,
-      MEC_CACHE_TTL.METADATA,
-    );
+    await this.cache.set(MEC_CACHE_KEYS.SYNC_METADATA, metadata, MEC_CACHE_TTL.METADATA);
   }
 
   logSyncCompletion(

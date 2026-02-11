@@ -12,9 +12,9 @@
  * so this should be refreshed when needed.
  */
 
+import type { GroupId } from './group.entity';
 import type { Permission } from './permission.entity';
 import type { RoleId } from './role.entity';
-import type { GroupId } from './group.entity';
 
 /**
  * User identifier
@@ -169,18 +169,14 @@ export class UserAuthContext {
   /**
    * Check if user has any of the specified permissions
    */
-  hasAnyPermission(
-    permissions: Array<{ resource: string; action: string }>,
-  ): boolean {
+  hasAnyPermission(permissions: Array<{ resource: string; action: string }>): boolean {
     return permissions.some((p) => this.hasPermission(p.resource, p.action));
   }
 
   /**
    * Check if user has all of the specified permissions
    */
-  hasAllPermissions(
-    permissions: Array<{ resource: string; action: string }>,
-  ): boolean {
+  hasAllPermissions(permissions: Array<{ resource: string; action: string }>): boolean {
     return permissions.every((p) => this.hasPermission(p.resource, p.action));
   }
 

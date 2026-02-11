@@ -1,13 +1,15 @@
+import { Body, Controller, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
+import type { AuthenticatedRequest } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import { createZodPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
 import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Post,
-  Query,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+  GetConversationsQuerySchema,
+  GetMessagesQuerySchema,
+  SendMessageSchema,
+  SendMessageToConversationSchema,
+} from '@/shared-kernel';
 import {
   ChatMessageResponseDto,
   ConversationDetailResponseDto,
@@ -15,19 +17,7 @@ import {
   MarkAsReadResponseDto,
   UnreadCountResponseDto,
 } from '@/shared-kernel/dtos/sdk-response.dto';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
-import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
 import { ChatService } from '../services/chat.service';
-import { createZodPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
-import {
-  SendMessageSchema,
-  SendMessageToConversationSchema,
-  GetMessagesQuerySchema,
-  GetConversationsQuerySchema,
-} from '@/shared-kernel';
-import type { AuthenticatedRequest } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
-import { ApiResponse } from '@nestjs/swagger';
 
 @SdkExport({ tag: 'chat', description: 'Chat API' })
 @ApiTags('Chat')
@@ -54,16 +44,10 @@ export class ChatController {
   async sendMessageToConversation(
     @Req() req: AuthenticatedRequest,
     @Param('conversationId') conversationId: string,
-    @Body(
-      createZodPipe(SendMessageToConversationSchema.pick({ content: true })),
-    )
+    @Body(createZodPipe(SendMessageToConversationSchema.pick({ content: true })))
     dto: { content: string },
   ) {
-    return this.chatService.sendMessageToConversation(
-      req.user.userId,
-      conversationId,
-      dto.content,
-    );
+    return this.chatService.sendMessageToConversation(req.user.userId, conversationId, dto.content);
   }
 
   @Get('conversations')
@@ -110,10 +94,7 @@ export class ChatController {
     @Req() req: AuthenticatedRequest,
     @Param('conversationId') conversationId: string,
   ) {
-    return this.chatService.markConversationAsRead(
-      req.user.userId,
-      conversationId,
-    );
+    return this.chatService.markConversationAsRead(req.user.userId, conversationId);
   }
 
   @Get('unread')
@@ -126,14 +107,8 @@ export class ChatController {
   @Get('conversation-with/:userId')
   @ApiOperation({ summary: 'Get or create conversation with a user' })
   @ApiResponse({ status: 200, type: ConversationDetailResponseDto })
-  async getConversationWith(
-    @Req() req: AuthenticatedRequest,
-    @Param('userId') userId: string,
-  ) {
-    const conversationId = await this.chatService.getConversationId(
-      req.user.userId,
-      userId,
-    );
+  async getConversationWith(@Req() req: AuthenticatedRequest, @Param('userId') userId: string) {
+    const conversationId = await this.chatService.getConversationId(req.user.userId, userId);
     if (!conversationId) {
       return { conversationId: null };
     }

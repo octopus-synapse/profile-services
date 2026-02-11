@@ -1,20 +1,20 @@
-import {
-  WebSocketGateway,
-  WebSocketServer,
-  SubscribeMessage,
-  OnGatewayConnection,
-  OnGatewayDisconnect,
-  ConnectedSocket,
-  MessageBody,
-} from '@nestjs/websockets';
-import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { ChatService } from '../services/chat.service';
-import { BlockService } from '../services/block.service';
+import {
+  ConnectedSocket,
+  MessageBody,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
+  SubscribeMessage,
+  WebSocketGateway,
+  WebSocketServer,
+} from '@nestjs/websockets';
+import { Server, Socket } from 'socket.io';
+import type { SendMessageToConversation, WsTypingEvent } from '@/shared-kernel';
 import { ConversationRepository } from '../repositories/conversation.repository';
 import { MessageRepository } from '../repositories/message.repository';
-import type { SendMessageToConversation, WsTypingEvent } from '@/shared-kernel';
+import { BlockService } from '../services/block.service';
+import { ChatService } from '../services/chat.service';
 
 interface JwtPayload {
   sub: string;
@@ -82,10 +82,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       await client.join(`user:${userId}`);
 
       // Join rooms for all conversations
-      const { conversations } = await this.conversationRepo.findByUserId(
-        userId,
-        { limit: 100 },
-      );
+      const { conversations } = await this.conversationRepo.findByUserId(userId, { limit: 100 });
       for (const conv of conversations) {
         await client.join(`conversation:${conv.id}`);
       }
@@ -140,22 +137,19 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       );
 
       // Broadcast to conversation room
-      this.server
-        .to(`conversation:${data.conversationId}`)
-        .emit('message:new', {
-          id: message.id,
-          conversationId: message.conversationId,
-          senderId: message.senderId,
-          content: message.content,
-          createdAt: message.createdAt,
-          isRead: message.isRead,
-        });
+      this.server.to(`conversation:${data.conversationId}`).emit('message:new', {
+        id: message.id,
+        conversationId: message.conversationId,
+        senderId: message.senderId,
+        content: message.content,
+        createdAt: message.createdAt,
+        isRead: message.isRead,
+      });
 
       // Also emit to sender for confirmation
       return { success: true, message };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       this.logger.error(`Failed to send message: ${errorMessage}`);
       return { success: false, error: errorMessage };
     }
@@ -172,10 +166,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const userId = client.userId;
 
     // Verify participant
-    const isParticipant = await this.conversationRepo.isParticipant(
-      data.conversationId,
-      userId,
-    );
+    const isParticipant = await this.conversationRepo.isParticipant(data.conversationId, userId);
     if (!isParticipant) return;
 
     // Broadcast to other participants
@@ -214,10 +205,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const userId = client.userId;
 
     try {
-      await this.chatService.markConversationAsRead(
-        userId,
-        data.conversationId,
-      );
+      await this.chatService.markConversationAsRead(userId, data.conversationId);
 
       // Notify other participant about read receipts
       client.to(`conversation:${data.conversationId}`).emit('messages:read', {
@@ -228,8 +216,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
       return { success: true };
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       return { success: false, error: errorMessage };
     }
   }
@@ -244,10 +231,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     const userId = client.userId;
 
-    const isParticipant = await this.conversationRepo.isParticipant(
-      data.conversationId,
-      userId,
-    );
+    const isParticipant = await this.conversationRepo.isParticipant(data.conversationId, userId);
     if (!isParticipant) {
       return { success: false, error: 'Not a participant' };
     }

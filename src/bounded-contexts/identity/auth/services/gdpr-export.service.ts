@@ -7,10 +7,10 @@
  */
 
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { AuditLogService } from '@/bounded-contexts/platform/common/audit/audit-log.service';
 import { AuditAction } from '@prisma/client';
 import type { Request } from 'express';
+import { AuditLogService } from '@/bounded-contexts/platform/common/audit/audit-log.service';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 
 export interface GdprExportData {
   exportedAt: string;
@@ -66,10 +66,7 @@ export class GdprExportService {
   /**
    * Export all user data in GDPR-compliant format
    */
-  async exportUserData(
-    userId: string,
-    request?: Request,
-  ): Promise<GdprExportData> {
+  async exportUserData(userId: string, request?: Request): Promise<GdprExportData> {
     // Verify user exists
     const user = await this.prisma.user.findUnique({
       where: { id: userId },

@@ -20,8 +20,8 @@
  *   This script MUST run before any other checks to ensure swagger.json is up-to-date.
  */
 
-import { readFileSync, writeFileSync, readdirSync, statSync } from 'fs';
-import { resolve, join, relative } from 'path';
+import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { join, relative, resolve } from 'node:path';
 
 // ============================================================================
 // Types
@@ -100,11 +100,7 @@ function findFiles(dir: string, pattern: RegExp): string[] {
       for (const entry of entries) {
         const fullPath = join(currentDir, entry);
         const stat = statSync(fullPath);
-        if (
-          stat.isDirectory() &&
-          !entry.includes('node_modules') &&
-          !entry.startsWith('.')
-        ) {
+        if (stat.isDirectory() && !entry.includes('node_modules') && !entry.startsWith('.')) {
           scan(fullPath);
         } else if (pattern.test(entry)) {
           files.push(fullPath);
@@ -142,13 +138,9 @@ function parseController(filePath: string): ControllerInfo | null {
   const className = classMatch[1];
 
   // Extract base path from @Controller
-  const controllerMatch = content.match(
-    /@Controller\(\s*['"`]([^'"`]+)['"`]\s*\)/,
-  );
+  const controllerMatch = content.match(/@Controller\(\s*['"`]([^'"`]+)['"`]\s*\)/);
   // Convert :param to {param} for OpenAPI in base path
-  const basePath = controllerMatch
-    ? controllerMatch[1].replace(/:(\w+)/g, '{$1}')
-    : '';
+  const basePath = controllerMatch ? controllerMatch[1].replace(/:(\w+)/g, '{$1}') : '';
 
   // Extract endpoints
   const endpoints = parseEndpoints(content, sdkExport.tag);
@@ -198,7 +190,7 @@ function parseEndpoints(content: string, tag: string): EndpointInfo[] {
       'g',
     );
 
-    let decoratorMatch;
+    let decoratorMatch: RegExpExecArray | null = null;
     while ((decoratorMatch = decoratorRegex.exec(content)) !== null) {
       const decoratorEnd = decoratorMatch.index + decoratorMatch[0].length;
       const pathArg = decoratorMatch[1] || '';
@@ -209,18 +201,14 @@ function parseEndpoints(content: string, tag: string): EndpointInfo[] {
       const nextDecoratorMatch = remainingContent.match(
         /@(?:Get|Post|Put|Patch|Delete|Head|Options)\s*\(/,
       );
-      const searchLimit = nextDecoratorMatch
-        ? nextDecoratorMatch.index!
-        : Math.min(800, remainingContent.length);
+      const searchLimit = nextDecoratorMatch?.index ?? Math.min(800, remainingContent.length);
       const afterDecorator = remainingContent.substring(0, searchLimit);
 
       // Extract @ApiOperation summary
       const apiOpMatch = afterDecorator.match(
         /@ApiOperation\(\s*\{[^}]*summary:\s*['"`]([^'"`]+)['"`]/s,
       );
-      const summary = apiOpMatch
-        ? apiOpMatch[1]
-        : `${decorator} ${pathArg || 'endpoint'}`;
+      const summary = apiOpMatch ? apiOpMatch[1] : `${decorator} ${pathArg || 'endpoint'}`;
 
       // Extract @ApiOperation description
       const descMatch = afterDecorator.match(
@@ -247,15 +235,11 @@ function parseEndpoints(content: string, tag: string): EndpointInfo[] {
           INTERNAL_SERVER_ERROR: 500,
         };
         responseStatus =
-          httpStatusMap[statusMatch[1]] ||
-          parseInt(statusMatch[1], 10) ||
-          defaultStatus;
+          httpStatusMap[statusMatch[1]] || parseInt(statusMatch[1], 10) || defaultStatus;
       }
 
       // Extract @ApiResponse type (for response DTO)
-      const responseTypeMatch = afterDecorator.match(
-        /@ApiResponse\(\s*\{[^}]*type:\s*(\w+)/,
-      );
+      const responseTypeMatch = afterDecorator.match(/@ApiResponse\(\s*\{[^}]*type:\s*(\w+)/);
       const responseDto = responseTypeMatch ? responseTypeMatch[1] : undefined;
 
       // Extract method name for operationId
@@ -265,18 +249,11 @@ function parseEndpoints(content: string, tag: string): EndpointInfo[] {
         /\)\s*\{?\s*\n\s*(?:return\s+)?(?:async\s+)?(\w+)\s*\(/,
       );
       // Fallback: look for async functionName( after all decorators
-      const fallbackMatch = afterDecorator.match(
-        /async\s+([a-z][a-zA-Z0-9]*)\s*\(/,
-      );
+      const fallbackMatch = afterDecorator.match(/async\s+([a-z][a-zA-Z0-9]*)\s*\(/);
       // Another fallback: look for any function followed by @CurrentUser or @Body or @Param
-      const funcDefMatch = afterDecorator.match(
-        /\n\s*async\s+([a-z][a-zA-Z0-9]*)\s*\(/,
-      );
+      const funcDefMatch = afterDecorator.match(/\n\s*async\s+([a-z][a-zA-Z0-9]*)\s*\(/);
       const methodName =
-        funcDefMatch?.[1] ||
-        fallbackMatch?.[1] ||
-        methodMatch?.[1] ||
-        `${method}Endpoint`;
+        funcDefMatch?.[1] || fallbackMatch?.[1] || methodMatch?.[1] || `${method}Endpoint`;
 
       // Extract @Body DTO
       const bodyMatch = afterDecorator.match(/@Body\([^)]*\)[^:]*:\s*(\w+Dto)/);
@@ -367,14 +344,13 @@ function extractAllDtosFromController(content: string): string[] {
   const dtos = new Set<string>();
 
   // 1. From imports that include 'dto' in path
-  const importMatches = content.matchAll(
-    /import\s*\{([^}]+)\}[^;]*(?:\.dto|dto\/|\/dto)/g,
-  );
+  const importMatches = content.matchAll(/import\s*\{([^}]+)\}[^;]*(?:\.dto|dto\/|\/dto)/g);
   for (const imp of importMatches) {
     const items = imp[1].split(',').map((s) => s.trim().split(/\s+as\s+/)[0]);
-    items
-      .filter((s) => s.endsWith('Dto') || s.endsWith('DTO'))
-      .forEach((dto) => dtos.add(dto));
+    const dtoItems = items.filter((s) => s.endsWith('Dto') || s.endsWith('DTO'));
+    for (const dto of dtoItems) {
+      dtos.add(dto);
+    }
   }
 
   // 2. From @Body() annotations: @Body() dto: SomeDto
@@ -384,25 +360,19 @@ function extractAllDtosFromController(content: string): string[] {
   }
 
   // 3. From @ApiResponse type: @ApiResponse({ type: SomeDto })
-  const apiResponseMatches = content.matchAll(
-    /@ApiResponse\(\s*\{[^}]*type:\s*(\w+Dto)/g,
-  );
+  const apiResponseMatches = content.matchAll(/@ApiResponse\(\s*\{[^}]*type:\s*(\w+Dto)/g);
   for (const match of apiResponseMatches) {
     dtos.add(match[1]);
   }
 
   // 4. From @ApiBody type: @ApiBody({ type: SomeDto })
-  const apiBodyMatches = content.matchAll(
-    /@ApiBody\(\s*\{[^}]*type:\s*(\w+Dto)/g,
-  );
+  const apiBodyMatches = content.matchAll(/@ApiBody\(\s*\{[^}]*type:\s*(\w+Dto)/g);
   for (const match of apiBodyMatches) {
     dtos.add(match[1]);
   }
 
   // 5. From function return types: ): Promise<SomeDto> or ): SomeDto
-  const returnTypeMatches = content.matchAll(
-    /\):\s*(?:Promise<)?(\w+Dto)>?\s*\{/g,
-  );
+  const returnTypeMatches = content.matchAll(/\):\s*(?:Promise<)?(\w+Dto)>?\s*\{/g);
   for (const match of returnTypeMatches) {
     dtos.add(match[1]);
   }
@@ -437,12 +407,7 @@ function extractNestedDtoRefs(schema: DtoSchema): string[] {
       if (match) refs.push(match[1]);
     }
     // Array items with $ref
-    if (
-      prop.items &&
-      typeof prop.items === 'object' &&
-      '$ref' in prop.items &&
-      prop.items.$ref
-    ) {
+    if (prop.items && typeof prop.items === 'object' && '$ref' in prop.items && prop.items.$ref) {
       const match = prop.items.$ref.match(/#\/components\/schemas\/(\w+)/);
       if (match) refs.push(match[1]);
     }
@@ -455,7 +420,7 @@ function extractNestedDtoRefs(schema: DtoSchema): string[] {
  * Discover ALL DTOs in the backend codebase
  * Scans all .dto.ts files and extracts class names with @ApiProperty
  */
-function discoverAllDtos(srcDir: string): string[] {
+function _discoverAllDtos(srcDir: string): string[] {
   const dtoFiles = findFiles(srcDir, /\.dto\.ts$/);
   const allDtos = new Set<string>();
 
@@ -463,17 +428,13 @@ function discoverAllDtos(srcDir: string): string[] {
     const content = readFileSync(file, 'utf-8');
 
     // Find all exported classes that end with Dto
-    const classMatches = content.matchAll(
-      /export\s+class\s+(\w+Dto)\s*(?:extends|implements|\{)/g,
-    );
+    const classMatches = content.matchAll(/export\s+class\s+(\w+Dto)\s*(?:extends|implements|\{)/g);
     for (const match of classMatches) {
       allDtos.add(match[1]);
     }
 
     // Also find non-exported classes (inline DTOs)
-    const inlineMatches = content.matchAll(
-      /^class\s+(\w+Dto)\s*(?:extends|implements|\{)/gm,
-    );
+    const inlineMatches = content.matchAll(/^class\s+(\w+Dto)\s*(?:extends|implements|\{)/gm);
     for (const match of inlineMatches) {
       allDtos.add(match[1]);
     }
@@ -483,10 +444,7 @@ function discoverAllDtos(srcDir: string): string[] {
   return [...allDtos];
 }
 
-function findAndParseDtos(
-  srcDir: string,
-  dtoNames: string[],
-): Record<string, DtoSchema> {
+function findAndParseDtos(srcDir: string, dtoNames: string[]): Record<string, DtoSchema> {
   const schemas: Record<string, DtoSchema> = {};
 
   // Search in both .dto.ts files AND .controller.ts files (for inline DTOs)
@@ -511,8 +469,7 @@ function findAndParseDtos(
 
         // Match both "export class" and just "class" (for inline DTOs)
         if (
-          (content.includes(`export class ${dtoName}`) ||
-            content.includes(`class ${dtoName}`)) &&
+          (content.includes(`export class ${dtoName}`) || content.includes(`class ${dtoName}`)) &&
           !schemas[dtoName]
         ) {
           const schema = parseDtoClass(content, dtoName);
@@ -571,7 +528,7 @@ function parseDtoClass(content: string, className: string): DtoSchema | null {
   const propRegex =
     /@ApiProperty\(\s*\{([\s\S]*?)\}\s*\)[\s\S]*?(?:@\w+\([^)]*\)\s*)*(?:readonly\s+)?(\w+)(\?)?!?:\s*([^;=\n]+)/g;
 
-  let propMatch;
+  let propMatch: RegExpExecArray | null = null;
   while ((propMatch = propRegex.exec(classBody)) !== null) {
     const apiPropOptions = propMatch[1];
     const propName = propMatch[2];
@@ -619,9 +576,7 @@ function parseDtoClass(content: string, className: string): DtoSchema | null {
       property.type = 'string';
       // Try to find enum values
       const enumName = enumMatch[1];
-      const enumValuesMatch = content.match(
-        new RegExp(`enum\\s+${enumName}\\s*\\{([^}]+)\\}`),
-      );
+      const enumValuesMatch = content.match(new RegExp(`enum\\s+${enumName}\\s*\\{([^}]+)\\}`));
       if (enumValuesMatch) {
         const values = enumValuesMatch[1]
           .split(',')
@@ -632,17 +587,13 @@ function parseDtoClass(content: string, className: string): DtoSchema | null {
     }
 
     // Extract example
-    const exampleMatch = apiPropOptions.match(
-      /example:\s*(['"`]?)([^'"`\s,}]+)\1/,
-    );
+    const exampleMatch = apiPropOptions.match(/example:\s*(['"`]?)([^'"`\s,}]+)\1/);
     if (exampleMatch) {
       property.example = exampleMatch[2];
     }
 
     // Extract description
-    const descMatch = apiPropOptions.match(
-      /description:\s*['"`]([^'"`]+)['"`]/,
-    );
+    const descMatch = apiPropOptions.match(/description:\s*['"`]([^'"`]+)['"`]/);
     if (descMatch) {
       property.description = descMatch[1];
     }
@@ -662,7 +613,7 @@ function parseDtoClass(content: string, className: string): DtoSchema | null {
 
   // Also parse simple properties without @ApiProperty (for completeness)
   const simplePropRegex = /(?:readonly\s+)?(\w+)(\?)?:\s*(\w+)(?:\s*[;=])/g;
-  let simpleMatch;
+  let simpleMatch: RegExpExecArray | null = null;
   while ((simpleMatch = simplePropRegex.exec(classBody)) !== null) {
     const propName = simpleMatch[1];
     if (!properties[propName] && !propName.startsWith('_')) {
@@ -713,14 +664,14 @@ function generateOpenApiSpec(
       // Build full path
       let fullPath = CONFIG.apiPrefix;
       if (controller.basePath) {
-        fullPath += '/' + controller.basePath;
+        fullPath += `/${controller.basePath}`;
       }
       if (endpoint.path) {
-        fullPath += '/' + endpoint.path;
+        fullPath += `/${endpoint.path}`;
       }
       // Normalize path
       fullPath = fullPath.replace(/\/+/g, '/').replace(/\/$/, '');
-      if (!fullPath.startsWith('/')) fullPath = '/' + fullPath;
+      if (!fullPath.startsWith('/')) fullPath = `/${fullPath}`;
 
       if (!paths[fullPath]) {
         paths[fullPath] = {};
@@ -901,10 +852,7 @@ function generateReport(
   // Check for endpoints without DTOs
   for (const controller of controllers) {
     for (const endpoint of controller.endpoints) {
-      if (
-        ['post', 'put', 'patch'].includes(endpoint.method) &&
-        !endpoint.requestBodyDto
-      ) {
+      if (['post', 'put', 'patch'].includes(endpoint.method) && !endpoint.requestBodyDto) {
         warnings.push(
           `${controller.className}.${endpoint.operationId}: ${endpoint.method.toUpperCase()} endpoint without request body DTO`,
         );
@@ -916,8 +864,7 @@ function generateReport(
   const allReferencedDtos = new Set<string>();
   for (const controller of controllers) {
     for (const endpoint of controller.endpoints) {
-      if (endpoint.requestBodyDto)
-        allReferencedDtos.add(endpoint.requestBodyDto);
+      if (endpoint.requestBodyDto) allReferencedDtos.add(endpoint.requestBodyDto);
       if (endpoint.responseDto) allReferencedDtos.add(endpoint.responseDto);
     }
   }
@@ -961,7 +908,9 @@ function main() {
     const info = parseController(file);
     if (info) {
       controllers.push(info);
-      info.dtoImports.forEach((dto) => allDtos.add(dto));
+      for (const dto of info.dtoImports) {
+        allDtos.add(dto);
+      }
       console.log(
         `  ✅ ${info.className} (${info.endpoints.length} endpoints) [${info.sdkExport.tag}]`,
       );
@@ -970,13 +919,9 @@ function main() {
 
   if (controllers.length === 0) {
     console.log('⚠️  No controllers with @SdkExport found.\n');
-    console.log(
-      '   Add @SdkExport decorator to controllers you want in the SDK:',
-    );
+    console.log('   Add @SdkExport decorator to controllers you want in the SDK:');
     console.log('');
-    console.log(
-      '   @SdkExport({ tag: "my-feature", description: "My Feature API" })',
-    );
+    console.log('   @SdkExport({ tag: "my-feature", description: "My Feature API" })');
     console.log('   @Controller("v1/my-feature")');
     console.log('   export class MyFeatureController {}');
     console.log('');
@@ -1008,7 +953,7 @@ function main() {
   // Generate and display report
   const report = generateReport(controllers, schemas);
 
-  console.log('\n' + '='.repeat(60));
+  console.log(`\n${'='.repeat(60)}`);
   console.log('📊 Generation Report');
   console.log('='.repeat(60));
   console.log(`  Controllers: ${report.controllers}`);
@@ -1023,9 +968,9 @@ function main() {
     }
   }
 
-  console.log('\n' + '='.repeat(60));
+  console.log(`\n${'='.repeat(60)}`);
   console.log(`✅ Swagger JSON generated: ${CONFIG.outputPath}`);
-  console.log('='.repeat(60) + '\n');
+  console.log(`${'='.repeat(60)}\n`);
 
   // Write report for testing
   const reportPath = resolve(__dirname, '../swagger-generation-report.json');
@@ -1035,6 +980,6 @@ function main() {
 }
 
 // Run if executed directly
-const report = main();
+const _report = main();
 export { main, parseController, parseDtoClass, generateReport };
 export type { ControllerInfo, EndpointInfo, GenerationReport };

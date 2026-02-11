@@ -1,7 +1,7 @@
-import { Controller, Get, Param, Query, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Param, Query, Req, UseGuards } from '@nestjs/common';
+import type { Request } from 'express';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
 import { ShareAnalyticsService } from '../services/share-analytics.service';
-import type { Request } from 'express';
 
 interface RequestWithUser extends Request {
   user: { userId: string; email: string };
@@ -15,7 +15,7 @@ export class ShareAnalyticsController {
   // Original nested endpoint
   @Get('resumes/:resumeId/shares/:shareId/analytics')
   async getAnalyticsNested(
-    @Param('resumeId') resumeId: string,
+    @Param('resumeId') _resumeId: string,
     @Param('shareId') shareId: string,
     @Req() req: RequestWithUser,
   ) {
@@ -24,10 +24,7 @@ export class ShareAnalyticsController {
 
   // Flat endpoints for easier testing
   @Get('analytics/:shareId')
-  async getAnalytics(
-    @Param('shareId') shareId: string,
-    @Req() req: RequestWithUser,
-  ) {
+  async getAnalytics(@Param('shareId') shareId: string, @Req() req: RequestWithUser) {
     return this.analyticsService.getAnalytics(shareId, req.user.userId);
   }
 

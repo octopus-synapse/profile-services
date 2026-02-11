@@ -16,9 +16,9 @@ export interface ExtractedStyles {
 export class PdfStyleExtractor {
   async extractStyles(page: Page): Promise<ExtractedStyles> {
     return await page.evaluate(() => {
-      const linkTags = Array.from(
-        document.querySelectorAll('head link[rel="stylesheet"]'),
-      ).map((l) => (l as HTMLLinkElement).outerHTML);
+      const linkTags = Array.from(document.querySelectorAll('head link[rel="stylesheet"]')).map(
+        (l) => (l as HTMLLinkElement).outerHTML,
+      );
 
       const styleTags = Array.from(document.querySelectorAll('head style')).map(
         (s) => (s as HTMLStyleElement).outerHTML,
@@ -40,20 +40,13 @@ export class PdfStyleExtractor {
     });
   }
 
-  async renderCleanPage(
-    page: Page,
-    pageUrl: string,
-    styles: ExtractedStyles,
-  ): Promise<void> {
+  async renderCleanPage(page: Page, pageUrl: string, styles: ExtractedStyles): Promise<void> {
     const origin = new URL(pageUrl).origin;
     const { linkTags, styleTags, resumeHTML, cssVars } = styles;
 
-    await page.setContent(
-      this.buildCleanHtml(origin, linkTags, styleTags, resumeHTML, cssVars),
-      {
-        waitUntil: 'domcontentloaded',
-      },
-    );
+    await page.setContent(this.buildCleanHtml(origin, linkTags, styleTags, resumeHTML, cssVars), {
+      waitUntil: 'domcontentloaded',
+    });
 
     await page.emulateMediaType('print');
     await page.evaluateHandle('document.fonts.ready');

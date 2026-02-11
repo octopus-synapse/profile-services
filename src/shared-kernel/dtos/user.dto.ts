@@ -1,17 +1,13 @@
 import { z } from 'zod';
-import { UsernameSchema } from '../validations/username.schema';
 import {
-  SocialUrlSchema,
-  LinkedInUrlSchema,
   GitHubUrlSchema,
+  LinkedInUrlSchema,
+  SocialUrlSchema,
 } from '../validations/professional-profile.schema';
+import { UsernameSchema } from '../validations/username.schema';
 
 // Local schemas (TODO: move to schemas/primitives if needed)
-const FullNameSchema = z
-  .string()
-  .trim()
-  .min(2, 'Name must be at least 2 characters')
-  .max(100);
+const FullNameSchema = z.string().trim().min(2, 'Name must be at least 2 characters').max(100);
 const PhoneSchema = z.string().max(20).optional();
 const UserLocationSchema = z.string().max(100).optional();
 
@@ -30,10 +26,7 @@ export const UpdateUserSchema = z.object({
   bio: z.string().max(500, 'Bio must be 500 characters or less').optional(),
   location: UserLocationSchema.optional(),
   website: SocialUrlSchema.optional(),
-  company: z
-    .string()
-    .max(100, 'Company must be 100 characters or less')
-    .optional(),
+  company: z.string().max(100, 'Company must be 100 characters or less').optional(),
   title: z.string().max(100, 'Title must be 100 characters or less').optional(),
   phone: PhoneSchema.optional(),
   linkedin: LinkedInUrlSchema.optional(),
@@ -97,9 +90,7 @@ export const UpdateUsernameResponseSchema = z.object({
   username: z.string(),
 });
 
-export type UpdateUsernameResponse = z.infer<
-  typeof UpdateUsernameResponseSchema
->;
+export type UpdateUsernameResponse = z.infer<typeof UpdateUsernameResponseSchema>;
 
 /**
  * Validate Username Request Schema
@@ -108,9 +99,7 @@ export const ValidateUsernameRequestSchema = z.object({
   username: z.string().trim(),
 });
 
-export type ValidateUsernameRequest = z.infer<
-  typeof ValidateUsernameRequestSchema
->;
+export type ValidateUsernameRequest = z.infer<typeof ValidateUsernameRequestSchema>;
 
 /**
  * Username Validation Error
@@ -130,9 +119,7 @@ export const UsernameValidationErrorSchema = z.object({
   message: z.string(),
 });
 
-export type UsernameValidationError = z.infer<
-  typeof UsernameValidationErrorSchema
->;
+export type UsernameValidationError = z.infer<typeof UsernameValidationErrorSchema>;
 
 /**
  * Validate Username Response Schema
@@ -144,9 +131,7 @@ export const ValidateUsernameResponseSchema = z.object({
   errors: z.array(UsernameValidationErrorSchema),
 });
 
-export type ValidateUsernameResponse = z.infer<
-  typeof ValidateUsernameResponseSchema
->;
+export type ValidateUsernameResponse = z.infer<typeof ValidateUsernameResponseSchema>;
 
 /**
  * Upload Image Response Schema
@@ -165,6 +150,4 @@ export const UploadImageResponseWrapperSchema = z.object({
   data: UploadImageResponseSchema,
 });
 
-export type UploadImageResponseEnvelope = z.infer<
-  typeof UploadImageResponseWrapperSchema
->;
+export type UploadImageResponseEnvelope = z.infer<typeof UploadImageResponseWrapperSchema>;

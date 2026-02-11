@@ -1,12 +1,7 @@
-import {
-  Injectable,
-  CanActivate,
-  ExecutionContext,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { ALLOW_UNVERIFIED_EMAIL_KEY } from '../decorators/allow-unverified-email.decorator';
 import { ERROR_MESSAGES } from '@/shared-kernel';
+import { ALLOW_UNVERIFIED_EMAIL_KEY } from '../decorators/allow-unverified-email.decorator';
 
 /**
  * Guard that enforces email verification for protected routes.
@@ -32,19 +27,17 @@ export class EmailVerifiedGuard implements CanActivate {
     }
 
     // Check if route allows unverified email
-    const allowUnverified = this.reflector.getAllAndOverride<boolean>(
-      ALLOW_UNVERIFIED_EMAIL_KEY,
-      [context.getHandler(), context.getClass()],
-    );
+    const allowUnverified = this.reflector.getAllAndOverride<boolean>(ALLOW_UNVERIFIED_EMAIL_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
 
     if (allowUnverified) {
       return true;
     }
 
     // Get user from request (populated by JwtAuthGuard)
-    const request = context
-      .switchToHttp()
-      .getRequest<{ user?: { emailVerified?: boolean } }>();
+    const request = context.switchToHttp().getRequest<{ user?: { emailVerified?: boolean } }>();
     const user = request.user;
 
     if (!user) {

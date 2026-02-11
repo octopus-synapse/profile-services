@@ -12,33 +12,27 @@
  */
 
 import {
-  Controller,
-  Get,
-  Post,
-  Patch,
-  Delete,
-  Param,
   Body,
+  Controller,
+  Delete,
+  Get,
   HttpCode,
   HttpStatus,
+  Param,
+  Patch,
+  Post,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBody,
-  ApiParam,
-} from '@nestjs/swagger';
-import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
-import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
+import { ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
-import { CollaborationService } from './collaboration.service';
-import { InviteCollaboratorDto, UpdateRoleDto } from './dto/collaboration.dto';
+import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import {
   CollaboratorResponseDto,
   DeleteResponseDto,
   SharedResumeResponseDto,
 } from '@/shared-kernel/dtos/sdk-response.dto';
+import { CollaborationService } from './collaboration.service';
+import { InviteCollaboratorDto, UpdateRoleDto } from './dto/collaboration.dto';
 
 @SdkExport({ tag: 'collaboration', description: 'Collaboration API' })
 @ApiTags('Collaboration')
@@ -89,10 +83,7 @@ export class CollaborationController {
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
   @ApiResponse({ status: HttpStatus.OK, description: 'List of collaborators' })
   @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Access denied' })
-  async getCollaborators(
-    @Param('resumeId') resumeId: string,
-    @CurrentUser() user: UserPayload,
-  ) {
+  async getCollaborators(@Param('resumeId') resumeId: string, @CurrentUser() user: UserPayload) {
     return this.collaborationService.getCollaborators(resumeId, user.userId);
   }
 

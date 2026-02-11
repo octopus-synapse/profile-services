@@ -7,9 +7,9 @@
  */
 
 import { Injectable, ServiceUnavailableException } from '@nestjs/common';
-import { RedisConnectionService } from './redis-connection.service';
-import { AppLoggerService } from '../logger/logger.service';
 import { ERROR_MESSAGES } from '../constants/config';
+import { AppLoggerService } from '../logger/logger.service';
+import { RedisConnectionService } from './redis-connection.service';
 
 export interface LockOptions {
   /**
@@ -34,19 +34,12 @@ export class CacheLockService {
    * BUG-004 FIX: Now throws ServiceUnavailableException when Redis is disabled
    * unless explicitly allowed via options.allowWithoutLock
    */
-  async acquireLock(
-    key: string,
-    ttl: number,
-    options: LockOptions = {},
-  ): Promise<boolean> {
+  async acquireLock(key: string, ttl: number, options: LockOptions = {}): Promise<boolean> {
     const { allowWithoutLock = false } = options;
 
     if (!this.redisConnection.isEnabled || !this.redisConnection.client) {
       if (allowWithoutLock) {
-        this.logger.warn(
-          `Redis disabled, proceeding without lock: ${key}`,
-          'CacheLockService',
-        );
+        this.logger.warn(`Redis disabled, proceeding without lock: ${key}`, 'CacheLockService');
         return true;
       }
       // BUG-004 FIX: Throw error instead of silently allowing
@@ -55,9 +48,7 @@ export class CacheLockService {
         undefined,
         'CacheLockService',
       );
-      throw new ServiceUnavailableException(
-        ERROR_MESSAGES.DISTRIBUTED_LOCK_UNAVAILABLE,
-      );
+      throw new ServiceUnavailableException(ERROR_MESSAGES.DISTRIBUTED_LOCK_UNAVAILABLE);
     }
 
     try {

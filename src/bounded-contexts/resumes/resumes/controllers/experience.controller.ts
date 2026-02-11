@@ -1,14 +1,13 @@
 import { Controller, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
-import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import type { Experience } from '@prisma/client';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
-import { ExperienceService } from '../services/experience.service';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { CreateExperience, UpdateExperience } from '@/shared-kernel';
 import {
   BaseSubResourceController,
   SubResourceControllerConfig,
 } from './base/base-sub-resource.controller';
-import type { Experience } from '@prisma/client';
 
 /**
  * Controller for managing resume experiences
@@ -41,8 +40,4 @@ export class ExperienceController extends BaseSubResourceController<
     entityName: 'experience',
     entityPluralName: 'experiences',
   };
-
-  constructor(experienceService: ExperienceService) {
-    super(experienceService);
-  }
 }

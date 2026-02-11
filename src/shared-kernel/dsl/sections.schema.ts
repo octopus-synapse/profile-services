@@ -16,10 +16,7 @@ export const ItemOverrideSchema = z.object({
   order: z.number(),
 });
 
-export const SectionItemOverridesSchema = z.record(
-  SectionIdSchema,
-  z.array(ItemOverrideSchema),
-);
+export const SectionItemOverridesSchema = z.record(SectionIdSchema, z.array(ItemOverrideSchema));
 
 export type SectionConfig = z.infer<typeof SectionConfigSchema>;
 export type SectionItemOverrides = z.infer<typeof SectionItemOverridesSchema>;

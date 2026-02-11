@@ -4,8 +4,8 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { TranslationCoreService } from './translation-core.service';
 import { TranslationLanguage } from '../types/translation.types';
+import { TranslationCoreService } from './translation-core.service';
 
 const TRANSLATABLE_FIELDS = [
   'summary',
@@ -22,9 +22,7 @@ const TRANSLATABLE_FIELDS = [
 export class ResumeTranslationService {
   constructor(private readonly coreService: TranslationCoreService) {}
 
-  async translateToEnglish(
-    resumeData: Record<string, unknown>,
-  ): Promise<Record<string, unknown>> {
+  async translateToEnglish(resumeData: Record<string, unknown>): Promise<Record<string, unknown>> {
     return this.translateFields(resumeData, 'pt', 'en');
   }
 
@@ -43,18 +41,10 @@ export class ResumeTranslationService {
 
     for (const field of TRANSLATABLE_FIELDS) {
       if (typeof result[field] === 'string' && result[field]) {
-        const translation = await this.coreService.translate(
-          result[field],
-          source,
-          target,
-        );
+        const translation = await this.coreService.translate(result[field], source, target);
         result[field] = translation.translated;
       } else if (Array.isArray(result[field])) {
-        result[field] = await this.translateArray(
-          result[field] as unknown[],
-          source,
-          target,
-        );
+        result[field] = await this.translateArray(result[field] as unknown[], source, target);
       } else if (typeof result[field] === 'object' && result[field] !== null) {
         result[field] = await this.translateFields(
           result[field] as Record<string, unknown>,
@@ -75,19 +65,11 @@ export class ResumeTranslationService {
     return Promise.all(
       array.map(async (item) => {
         if (typeof item === 'string') {
-          const translation = await this.coreService.translate(
-            item,
-            source,
-            target,
-          );
+          const translation = await this.coreService.translate(item, source, target);
           return translation.translated;
         }
         if (typeof item === 'object' && item !== null) {
-          return this.translateFields(
-            item as Record<string, unknown>,
-            source,
-            target,
-          );
+          return this.translateFields(item as Record<string, unknown>, source, target);
         }
         return item;
       }),

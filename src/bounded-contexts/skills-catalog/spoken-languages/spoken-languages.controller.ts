@@ -5,21 +5,13 @@
  * BUG-035 FIX: Added parseInt validation with NaN handling
  */
 
-import {
-  Controller,
-  Get,
-  Query,
-  Param,
-  BadRequestException,
-} from '@nestjs/common';
-import { SpokenLanguagesService } from './services/spoken-languages.service';
+import { BadRequestException, Controller, Get, Param, Query } from '@nestjs/common';
 import { Public } from '@/bounded-contexts/identity/auth/decorators/public.decorator';
+import { SpokenLanguagesService } from './services/spoken-languages.service';
 
 @Controller('v1/spoken-languages')
 export class SpokenLanguagesController {
-  constructor(
-    private readonly spokenLanguagesService: SpokenLanguagesService,
-  ) {}
+  constructor(private readonly spokenLanguagesService: SpokenLanguagesService) {}
 
   /**
    * Get all spoken languages
@@ -36,24 +28,16 @@ export class SpokenLanguagesController {
    */
   @Public()
   @Get('search')
-  async searchLanguagesByName(
-    @Query('q') searchQuery: string,
-    @Query('limit') limit?: string,
-  ) {
+  async searchLanguagesByName(@Query('q') searchQuery: string, @Query('limit') limit?: string) {
     // BUG-035 FIX: Validate parseInt result
     let parsedLimit = 10;
     if (limit) {
       parsedLimit = parseInt(limit, 10);
-      if (isNaN(parsedLimit) || parsedLimit <= 0) {
-        throw new BadRequestException(
-          'Invalid limit parameter. Must be a positive number.',
-        );
+      if (Number.isNaN(parsedLimit) || parsedLimit <= 0) {
+        throw new BadRequestException('Invalid limit parameter. Must be a positive number.');
       }
     }
-    return this.spokenLanguagesService.searchLanguagesByName(
-      searchQuery || '',
-      parsedLimit,
-    );
+    return this.spokenLanguagesService.searchLanguagesByName(searchQuery || '', parsedLimit);
   }
 
   /**

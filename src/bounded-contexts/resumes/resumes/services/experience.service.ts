@@ -1,12 +1,12 @@
-import { Injectable, Logger, BadRequestException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { Experience } from '@prisma/client';
-import { ExperienceRepository } from '../repositories/experience.repository';
+import { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
+import type { SectionType } from '@/bounded-contexts/resumes/domain/events';
 import { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.repository';
 import type { CreateExperience, UpdateExperience } from '@/shared-kernel';
-import { BaseSubResourceService } from './base';
-import { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { EventPublisher } from '@/shared-kernel';
-import type { SectionType } from '@/bounded-contexts/resumes/domain/events';
+import { ExperienceRepository } from '../repositories/experience.repository';
+import { BaseSubResourceService } from './base';
 
 @Injectable()
 export class ExperienceService extends BaseSubResourceService<
@@ -57,12 +57,7 @@ export class ExperienceService extends BaseSubResourceService<
     ) {
       this.validateExperienceDates(updateData);
     }
-    return super.updateEntityByIdForResume(
-      resumeId,
-      entityId,
-      userId,
-      updateData,
-    );
+    return super.updateEntityByIdForResume(resumeId, entityId, userId, updateData);
   }
 
   /**
@@ -74,9 +69,7 @@ export class ExperienceService extends BaseSubResourceService<
    * - If current=false → endDate SHOULD be set (warning only for now)
    * - endDate cannot be before startDate
    */
-  private validateExperienceDates(
-    data: CreateExperience | UpdateExperience,
-  ): void {
+  private validateExperienceDates(data: CreateExperience | UpdateExperience): void {
     // BUG-007: current=true with endDate is invalid
     if (data.current === true && data.endDate) {
       throw new BadRequestException(
@@ -94,9 +87,7 @@ export class ExperienceService extends BaseSubResourceService<
       }
 
       if (end.getTime() === start.getTime()) {
-        throw new BadRequestException(
-          'End date cannot be the same as start date.',
-        );
+        throw new BadRequestException('End date cannot be the same as start date.');
       }
     }
   }

@@ -8,21 +8,17 @@
  */
 
 import {
+  BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
-  ConflictException,
-  BadRequestException,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { PasswordService } from '@/bounded-contexts/identity/auth/services/password.service';
 import { AuthorizationService } from '@/bounded-contexts/identity/authorization';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { AdminCreateUser, AdminResetPassword, AdminUpdateUser } from '@/shared-kernel';
 import { ERROR_MESSAGES } from '@/shared-kernel';
-import type {
-  AdminCreateUser,
-  AdminUpdateUser,
-  AdminResetPassword,
-} from '@/shared-kernel';
 
 // ============================================================================
 // Types
@@ -154,10 +150,7 @@ export class UserManagementService {
         message: 'User created successfully',
       };
     } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === 'P2002'
-      ) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
         throw new ConflictException(ERROR_MESSAGES.EMAIL_ALREADY_EXISTS);
       }
       throw error;
@@ -187,10 +180,7 @@ export class UserManagementService {
         message: 'User updated successfully',
       };
     } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === 'P2002'
-      ) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
         const target = error.meta?.target as string[] | undefined;
         if (target?.includes('email')) {
           throw new ConflictException(ERROR_MESSAGES.EMAIL_ALREADY_IN_USE);
@@ -266,14 +256,8 @@ export class UserManagementService {
    * Prevent deleting the last user with elevated permissions.
    * This prevents a situation where no one can manage users anymore.
    */
-  private async preventLastPrivilegedUserDeletion(
-    userId: string,
-  ): Promise<void> {
-    const hasManagePermission = await this.authService.hasPermission(
-      userId,
-      'user',
-      'manage',
-    );
+  private async preventLastPrivilegedUserDeletion(userId: string): Promise<void> {
+    const hasManagePermission = await this.authService.hasPermission(userId, 'user', 'manage');
 
     if (!hasManagePermission) return;
 
@@ -281,9 +265,7 @@ export class UserManagementService {
     const usersWithManage = await this.authService.countUsersWithRole('admin');
 
     if (usersWithManage <= 1) {
-      throw new BadRequestException(
-        'Cannot delete the last user with management permissions',
-      );
+      throw new BadRequestException('Cannot delete the last user with management permissions');
     }
   }
 }

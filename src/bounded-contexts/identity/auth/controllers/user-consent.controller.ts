@@ -1,30 +1,15 @@
-import {
-  Controller,
-  Post,
-  Get,
-  Body,
-  Req,
-  UseGuards,
-  HttpCode,
-  HttpStatus,
-} from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-  ApiBody,
-} from '@nestjs/swagger';
-import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
-import type { Request } from 'express';
-import { TosAcceptanceService } from '../services/tos-acceptance.service';
-import { AuditLogService } from '@/bounded-contexts/platform/common/audit/audit-log.service';
-import { JwtAuthGuard } from '../guards/jwt-auth.guard';
-import { SkipTosCheck } from '../decorators/skip-tos-check.decorator';
-import { AllowUnverifiedEmail } from '../decorators/allow-unverified-email.decorator';
-import { AcceptConsentSchema, type AcceptConsent } from '@/shared-kernel';
-import { createZodPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuditAction } from '@prisma/client';
+import type { Request } from 'express';
+import { AuditLogService } from '@/bounded-contexts/platform/common/audit/audit-log.service';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import { createZodPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
+import { type AcceptConsent, AcceptConsentSchema } from '@/shared-kernel';
+import { AllowUnverifiedEmail } from '../decorators/allow-unverified-email.decorator';
+import { SkipTosCheck } from '../decorators/skip-tos-check.decorator';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import { TosAcceptanceService } from '../services/tos-acceptance.service';
 
 interface RequestWithUser extends Request {
   user: { userId: string; email: string };
@@ -112,14 +97,7 @@ export class UserConsentController {
           ? AuditAction.PRIVACY_POLICY_ACCEPTED
           : AuditAction.TOS_ACCEPTED; // Fallback for MARKETING_CONSENT
 
-    await this.auditService.log(
-      userId,
-      auditAction,
-      'UserConsent',
-      consent.id,
-      undefined,
-      req,
-    );
+    await this.auditService.log(userId, auditAction, 'UserConsent', consent.id, undefined, req);
 
     // Return user-friendly message
     const documentName =
@@ -178,8 +156,7 @@ export class UserConsentController {
   @AllowUnverifiedEmail() // Allow access before email verification
   @ApiOperation({
     summary: 'Check consent acceptance status',
-    description:
-      'Returns which documents the user has accepted for the current versions',
+    description: 'Returns which documents the user has accepted for the current versions',
   })
   @ApiResponse({
     status: 200,
@@ -197,17 +174,15 @@ export class UserConsentController {
   async checkConsentStatus(@Req() req: RequestWithUser) {
     const userId = req.user.userId;
 
-    const [tosAccepted, privacyPolicyAccepted, marketingConsentAccepted] =
-      await Promise.all([
-        this.tosService.hasAcceptedCurrentVersion(userId, 'TERMS_OF_SERVICE'),
-        this.tosService.hasAcceptedCurrentVersion(userId, 'PRIVACY_POLICY'),
-        this.tosService.hasAcceptedCurrentVersion(userId, 'MARKETING_CONSENT'),
-      ]);
+    const [tosAccepted, privacyPolicyAccepted, marketingConsentAccepted] = await Promise.all([
+      this.tosService.hasAcceptedCurrentVersion(userId, 'TERMS_OF_SERVICE'),
+      this.tosService.hasAcceptedCurrentVersion(userId, 'PRIVACY_POLICY'),
+      this.tosService.hasAcceptedCurrentVersion(userId, 'MARKETING_CONSENT'),
+    ]);
 
     // Get current versions from environment
     const latestTosVersion = process.env.TOS_VERSION ?? '1.0.0';
-    const latestPrivacyPolicyVersion =
-      process.env.PRIVACY_POLICY_VERSION ?? '1.0.0';
+    const latestPrivacyPolicyVersion = process.env.PRIVACY_POLICY_VERSION ?? '1.0.0';
 
     return {
       tosAccepted,

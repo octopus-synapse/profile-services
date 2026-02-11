@@ -1,10 +1,10 @@
-import { Controller, Get, Res, Header } from '@nestjs/common';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import { Controller, Get, Header, Res } from '@nestjs/common';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
-import { AppService } from './app.service';
 import { Public } from '@/bounded-contexts/identity/auth/decorators/public.decorator';
-import * as fs from 'fs';
-import * as path from 'path';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { AppService } from './app.service';
 
 interface PackageJson {
   version: string;
@@ -69,9 +69,7 @@ export class AppController {
     try {
       const manifestPath = '/opt/deployment-manifest.json';
       if (fs.existsSync(manifestPath)) {
-        manifest = JSON.parse(
-          fs.readFileSync(manifestPath, 'utf-8'),
-        ) as DeploymentManifest;
+        manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8')) as DeploymentManifest;
       }
     } catch {
       // Manifest not available, use package.json only
@@ -81,8 +79,7 @@ export class AppController {
       service: 'profile-services',
       version: manifest?.versions.services ?? `v${packageJson.version}`,
       contracts_version:
-        manifest?.versions.contracts ??
-        packageJson.dependencies['@/shared-kernel'],
+        manifest?.versions.contracts ?? packageJson.dependencies['@/shared-kernel'],
       environment: manifest?.environment ?? 'development',
       deployed_at: manifest?.timestamp ?? 'unknown',
       git_tag: manifest?.git_tags.services ?? `v${packageJson.version}`,

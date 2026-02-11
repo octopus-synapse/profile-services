@@ -1,30 +1,27 @@
 import { Injectable } from '@nestjs/common';
-import type { ResumeDsl, ResumeAst, SectionData } from '@/shared-kernel';
-import { DslValidatorService } from './dsl-validator.service';
+import type { ResumeAst, ResumeDsl, SectionData } from '@/shared-kernel';
 import {
-  TokenResolverService,
-  type ResolvedTokens,
-} from './token-resolver.service';
-import { DslMigrationService } from './migrators';
-import { type ResumeWithRelations } from '../domain/value-objects/resume-with-relations';
-import {
-  compileExperience,
+  buildPageLayout,
+  buildSectionStyles,
+  compileAwards,
+  compileCertifications,
   compileEducation,
-  compileSkills,
+  compileExperience,
+  compileInterests,
   compileLanguages,
   compileProjects,
-  compileCertifications,
-  compileAwards,
-  compileInterests,
   compileReferences,
+  compileSkills,
   getPlaceholderData,
-  buildPageLayout,
-  mapColumnToId,
-  buildSectionStyles,
   type ItemOverride,
+  mapColumnToId,
 } from '../application/compilers';
+import { type ResumeWithRelations } from '../domain/value-objects/resume-with-relations';
+import { DslValidatorService } from './dsl-validator.service';
+import { DslMigrationService } from './migrators';
+import { type ResolvedTokens, TokenResolverService } from './token-resolver.service';
 
-export { ResumeWithRelations };
+export type { ResumeWithRelations };
 
 const CURRENT_DSL_VERSION = '1.0.0';
 
@@ -90,8 +87,7 @@ export class DslCompilerService {
       .filter((s) => s.visible)
       .sort((a, b) => a.order - b.order)
       .map((section) => {
-        const overrides = (dsl.itemOverrides?.[section.id] ??
-          []) as ItemOverride[];
+        const overrides = (dsl.itemOverrides?.[section.id] ?? []) as ItemOverride[];
         const data = resumeData
           ? this.compileSectionData(section.id, resumeData, overrides)
           : getPlaceholderData(section.id);

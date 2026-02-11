@@ -5,20 +5,20 @@
  * Separated from index.ts to avoid circular dependencies.
  */
 
-import { TechPersona } from './tech-persona.enum';
-import { PersonaConfig } from './persona-config.interface';
-import { DEVOPS_PERSONA } from './devops.persona';
-import { SECURITY_PERSONA } from './security.persona';
-import { DATA_PERSONA } from './data.persona';
 import { AI_ML_PERSONA } from './ai-ml.persona';
-import { FULLSTACK_PERSONA } from './fullstack.persona';
-import { MOBILE_PERSONA } from './mobile.persona';
-import { QA_PERSONA } from './qa.persona';
-import { UX_UI_PERSONA } from './ux-ui.persona';
 import { BACKEND_PERSONA } from './backend.persona';
-import { FRONTEND_PERSONA } from './frontend.persona';
 import { CLOUD_PERSONA } from './cloud.persona';
+import { DATA_PERSONA } from './data.persona';
+import { DEVOPS_PERSONA } from './devops.persona';
+import { FRONTEND_PERSONA } from './frontend.persona';
+import { FULLSTACK_PERSONA } from './fullstack.persona';
 import { GAME_DEV_PERSONA } from './game-dev.persona';
+import { MOBILE_PERSONA } from './mobile.persona';
+import { PersonaConfig } from './persona-config.interface';
+import { QA_PERSONA } from './qa.persona';
+import { SECURITY_PERSONA } from './security.persona';
+import { TechPersona } from './tech-persona.enum';
+import { UX_UI_PERSONA } from './ux-ui.persona';
 
 /**
  * Aggregated record of all tech personas

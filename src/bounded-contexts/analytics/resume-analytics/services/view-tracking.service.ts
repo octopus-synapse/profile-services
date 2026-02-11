@@ -1,9 +1,9 @@
+import { createHash } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { createHash } from 'crypto';
-import type { TrackView, ViewStats, ViewStatsOptions } from '../interfaces';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { TRAFFIC_SOURCES } from '../domain/value-objects/traffic-sources';
+import type { TrackView, ViewStats, ViewStatsOptions } from '../interfaces';
 
 @Injectable()
 export class ViewTrackingService {
@@ -43,10 +43,7 @@ export class ViewTrackingService {
     });
   }
 
-  async getViewStats(
-    resumeId: string,
-    options: ViewStatsOptions,
-  ): Promise<ViewStats> {
+  async getViewStats(resumeId: string, options: ViewStatsOptions): Promise<ViewStats> {
     const { startDate, endDate } = this.getDateRange(options.period);
 
     const [totalViews, uniqueVisitors] = await Promise.all([

@@ -1,15 +1,7 @@
 import type { Education } from '@prisma/client';
-import {
-  applyOverrides,
-  type EducationItem,
-  type ItemOverride,
-  type SectionData,
-} from './shared';
+import { applyOverrides, type EducationItem, type ItemOverride, type SectionData } from './shared';
 
-export function compileEducation(
-  education: Education[],
-  overrides: ItemOverride[],
-): SectionData {
+export function compileEducation(education: Education[], overrides: ItemOverride[]): SectionData {
   const items = applyOverrides(education, overrides).map(
     (edu): EducationItem => ({
       id: edu.id,

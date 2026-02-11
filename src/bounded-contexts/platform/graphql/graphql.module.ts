@@ -1,14 +1,15 @@
-import { Module } from '@nestjs/common';
-import { GraphQLModule } from '@nestjs/graphql';
+import { join } from 'node:path';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { join } from 'path';
+import { GraphQLModule } from '@nestjs/graphql';
 import { GraphQLError } from 'graphql';
-import { ResumeResolver } from './resolvers/resume.resolver';
-import { DataLoaderService } from './dataloaders/dataloader.service';
-import { ResumesModule } from '@/bounded-contexts/resumes/resumes/resumes.module';
 import { ResumeAnalyticsModule } from '@/bounded-contexts/analytics/resume-analytics/resume-analytics.module';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
+import { ResumesModule } from '@/bounded-contexts/resumes/resumes/resumes.module';
+import { PrismaService } from '../prisma/prisma.service';
+import { DataLoaderService } from './dataloaders/dataloader.service';
+import { ResumeResolver } from './resolvers/resume.resolver';
 
 /**
  * GraphQL Module
@@ -43,8 +44,7 @@ import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
           introspection: !isProduction, // Disable introspection in production
 
           // Context setup for DataLoader and authentication
-          /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access */
-          context: ({ req }: any) => {
+          context: ({ req }: { req: Express.Request & { prisma: PrismaService } }) => {
             const loaders = new DataLoaderService(req.prisma);
             return {
               req,
@@ -67,9 +67,7 @@ import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 
           // CORS configuration
           cors: {
-            origin:
-              configService.get<string>('FRONTEND_URL') ??
-              'http://localhost:3000',
+            origin: configService.get<string>('FRONTEND_URL') ?? 'http://localhost:3000',
             credentials: true,
           },
         };

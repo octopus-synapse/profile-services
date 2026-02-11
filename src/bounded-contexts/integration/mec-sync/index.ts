@@ -12,8 +12,8 @@
  * └── services/       # Business logic
  */
 
-export * from './mec-sync.module';
 export * from '@/shared-kernel';
-export * from './services/institution-query.service';
+export * from './mec-sync.module';
 export * from './services/course-query.service';
+export * from './services/institution-query.service';
 export * from './services/mec-stats.service';

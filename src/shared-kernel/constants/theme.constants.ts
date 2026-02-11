@@ -71,8 +71,7 @@ export type FontFamily = (typeof THEME_CONSTANTS.VALID_FONT_FAMILIES)[number];
  */
 export const isValidLayoutType = (value: unknown): value is LayoutType => {
   return (
-    typeof value === 'string' &&
-    THEME_CONSTANTS.VALID_LAYOUT_TYPES.includes(value as LayoutType)
+    typeof value === 'string' && THEME_CONSTANTS.VALID_LAYOUT_TYPES.includes(value as LayoutType)
   );
 };
 

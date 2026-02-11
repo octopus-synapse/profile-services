@@ -6,12 +6,7 @@ import { z } from 'zod';
  * Defines the proficiency levels for technical skills.
  * This is a DOMAIN concept - independent of any infrastructure (Prisma, etc).
  */
-export const SkillLevelSchema = z.enum([
-  'BEGINNER',
-  'INTERMEDIATE',
-  'ADVANCED',
-  'EXPERT',
-]);
+export const SkillLevelSchema = z.enum(['BEGINNER', 'INTERMEDIATE', 'ADVANCED', 'EXPERT']);
 
 export type SkillLevel = z.infer<typeof SkillLevelSchema>;
 

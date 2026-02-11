@@ -10,15 +10,14 @@
  */
 
 import {
-  Injectable,
-  ForbiddenException,
-  NotFoundException,
   ConflictException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
 } from '@nestjs/common';
-import { canRoleEdit } from '@/shared-kernel';
-import type { CollaboratorRole } from '@/shared-kernel';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { EventPublisher } from '@/shared-kernel';
+import type { CollaboratorRole } from '@/shared-kernel';
+import { canRoleEdit, EventPublisher } from '@/shared-kernel';
 import { CollaborationStartedEvent } from '../domain/events';
 
 /**
@@ -78,9 +77,7 @@ export class CollaborationService {
   /**
    * Invite a user to collaborate on a resume
    */
-  async inviteCollaborator(
-    params: InviteCollaboratorParams,
-  ): Promise<CollaboratorWithUser> {
+  async inviteCollaborator(params: InviteCollaboratorParams): Promise<CollaboratorWithUser> {
     const { resumeId, inviterId, inviteeId, role } = params;
 
     // Verify resume exists and user is owner
@@ -93,9 +90,7 @@ export class CollaborationService {
     }
 
     if (resume.userId !== inviterId) {
-      throw new ForbiddenException(
-        'Only resume owner can invite collaborators',
-      );
+      throw new ForbiddenException('Only resume owner can invite collaborators');
     }
 
     // Check if already a collaborator
@@ -136,10 +131,7 @@ export class CollaborationService {
   /**
    * Get all collaborators for a resume
    */
-  async getCollaborators(
-    resumeId: string,
-    requesterId: string,
-  ): Promise<CollaboratorWithUser[]> {
+  async getCollaborators(resumeId: string, requesterId: string): Promise<CollaboratorWithUser[]> {
     // Verify access
     const hasAccess = await this.hasAccess(resumeId, requesterId);
     if (!hasAccess) {
@@ -162,9 +154,7 @@ export class CollaborationService {
   /**
    * Update collaborator role
    */
-  async updateCollaboratorRole(
-    params: UpdateRoleParams,
-  ): Promise<CollaboratorWithUser> {
+  async updateCollaboratorRole(params: UpdateRoleParams): Promise<CollaboratorWithUser> {
     const { resumeId, requesterId, targetUserId, newRole } = params;
 
     // Only owner can update roles

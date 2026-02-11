@@ -3,19 +3,18 @@
  *
  * BUG-019 FIX: Added date validation consistent with ExperienceService
  */
-import { Injectable, Logger, BadRequestException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { Education } from '@prisma/client';
-import { EducationRepository } from '../repositories/education.repository';
-import { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.repository';
-import { CreateEducation, UpdateEducation } from '@/shared-kernel';
-import { BaseSubResourceService } from './base';
 import {
   ApiResponseHelper,
-  MessageResponse,
   DataResponse,
+  MessageResponse,
 } from '@/bounded-contexts/platform/common/dto/api-response.dto';
-import { EventPublisher } from '@/shared-kernel';
 import type { SectionType } from '@/bounded-contexts/resumes/domain/events';
+import { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.repository';
+import { CreateEducation, EventPublisher, UpdateEducation } from '@/shared-kernel';
+import { EducationRepository } from '../repositories/education.repository';
+import { BaseSubResourceService } from './base';
 
 @Injectable()
 export class EducationService extends BaseSubResourceService<
@@ -63,12 +62,7 @@ export class EducationService extends BaseSubResourceService<
     ) {
       this.validateEducationDates(updateData);
     }
-    return super.updateEntityByIdForResume(
-      resumeId,
-      entityId,
-      userId,
-      updateData,
-    );
+    return super.updateEntityByIdForResume(resumeId, entityId, userId, updateData);
   }
 
   /**
@@ -81,9 +75,7 @@ export class EducationService extends BaseSubResourceService<
   ): Promise<MessageResponse> {
     await this.validateResumeOwnership(resumeId, userId);
     await this.repository.reorderEntitiesForResume(resumeId, entityIds);
-    return ApiResponseHelper.message(
-      'Education entries reordered successfully',
-    );
+    return ApiResponseHelper.message('Education entries reordered successfully');
   }
 
   /**
@@ -94,9 +86,7 @@ export class EducationService extends BaseSubResourceService<
    * - If current=true → endDate MUST be null/undefined
    * - endDate cannot be before startDate
    */
-  private validateEducationDates(
-    data: CreateEducation | UpdateEducation,
-  ): void {
+  private validateEducationDates(data: CreateEducation | UpdateEducation): void {
     // current=true with endDate is invalid
     if (data.current === true && data.endDate) {
       throw new BadRequestException(

@@ -4,12 +4,7 @@
  * Used for GitHub Actions and other internal services
  */
 
-import {
-  Injectable,
-  CanActivate,
-  ExecutionContext,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ERROR_MESSAGES } from '@/shared-kernel';
 
@@ -34,14 +29,10 @@ export class InternalAuthGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<{
       headers: Record<string, string | string[] | undefined>;
     }>();
-    const providedToken = request.headers[INTERNAL_TOKEN_HEADER] as
-      | string
-      | undefined;
+    const providedToken = request.headers[INTERNAL_TOKEN_HEADER] as string | undefined;
 
     if (!providedToken) {
-      throw new UnauthorizedException(
-        `Missing ${INTERNAL_TOKEN_HEADER} header`,
-      );
+      throw new UnauthorizedException(`Missing ${INTERNAL_TOKEN_HEADER} header`);
     }
 
     // Use timing-safe comparison to prevent timing attacks

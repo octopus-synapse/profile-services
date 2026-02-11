@@ -6,8 +6,8 @@
 import { Injectable } from '@nestjs/common';
 import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
-import { InstitutionRepository, CourseRepository } from '../repositories';
 import { MEC_CACHE_KEYS } from '../interfaces/mec-data.interface';
+import { CourseRepository, InstitutionRepository } from '../repositories';
 import { ParseResult } from './mec-csv-parser.service';
 
 @Injectable()
@@ -21,17 +21,11 @@ export class DataSyncService {
     private readonly courseRepo: CourseRepository,
   ) {}
 
-  async syncInstitutions(
-    parseResult: ParseResult,
-  ): Promise<{ inserted: number; updated: number }> {
+  async syncInstitutions(parseResult: ParseResult): Promise<{ inserted: number; updated: number }> {
     const institutions = Array.from(parseResult.institutions.values());
-    this.logger.log(
-      `Syncing ${institutions.length} institutions...`,
-      this.context,
-    );
+    this.logger.log(`Syncing ${institutions.length} institutions...`, this.context);
 
-    const existingInstitutionCodes =
-      await this.institutionRepo.findAllExistingInstitutionCodes();
+    const existingInstitutionCodes = await this.institutionRepo.findAllExistingInstitutionCodes();
     const newInstitutions = institutions.filter(
       (institution) => !existingInstitutionCodes.has(institution.codigoIes),
     );
@@ -43,26 +37,16 @@ export class DataSyncService {
 
     const insertedInstitutionCount =
       await this.institutionRepo.bulkCreateInstitutions(newInstitutions);
-    this.logger.log(
-      `Inserted ${insertedInstitutionCount} new institutions`,
-      this.context,
-    );
+    this.logger.log(`Inserted ${insertedInstitutionCount} new institutions`, this.context);
 
     return { inserted: insertedInstitutionCount, updated: 0 };
   }
 
-  async syncCourses(
-    parseResult: ParseResult,
-  ): Promise<{ inserted: number; updated: number }> {
-    this.logger.log(
-      `Syncing ${parseResult.courses.length} courses...`,
-      this.context,
-    );
+  async syncCourses(parseResult: ParseResult): Promise<{ inserted: number; updated: number }> {
+    this.logger.log(`Syncing ${parseResult.courses.length} courses...`, this.context);
 
-    const existingCourseCodes =
-      await this.courseRepo.findAllExistingCourseCodes();
-    const validInstitutionCodes =
-      await this.institutionRepo.findAllExistingInstitutionCodes();
+    const existingCourseCodes = await this.courseRepo.findAllExistingCourseCodes();
+    const validInstitutionCodes = await this.institutionRepo.findAllExistingInstitutionCodes();
 
     const newCourses = parseResult.courses.filter(
       (course) => !existingCourseCodes.has(course.codigoCurso),
@@ -77,10 +61,7 @@ export class DataSyncService {
       newCourses,
       validInstitutionCodes,
     );
-    this.logger.log(
-      `Inserted ${insertedCourseCount} new courses`,
-      this.context,
-    );
+    this.logger.log(`Inserted ${insertedCourseCount} new courses`, this.context);
 
     return { inserted: insertedCourseCount, updated: 0 };
   }

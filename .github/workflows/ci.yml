@@ -204,7 +204,7 @@ jobs:
           key: prisma-${{ hashFiles('prisma/schema/**/*.prisma') }}
           fail-on-cache-miss: true
 
-      - name: Quick lint verification (oxlint)
+      - name: Quick lint verification (biome)
         run: bun run lint:fast
 
       - name: Check if pre-commit hooks were bypassed
@@ -223,7 +223,7 @@ jobs:
           echo "✅ Pre-commit hooks foram executados corretamente"
 
   lint:
-    name: ESLint (Type-Aware)
+    name: Biome Check (Full)
     needs: [setup, detect-changes]
     if: |
       needs.should-skip.outputs.should_skip != 'true' &&
@@ -252,7 +252,7 @@ jobs:
           key: prisma-${{ hashFiles('prisma/schema/**/*.prisma') }}
           fail-on-cache-miss: true
 
-      - name: Run ESLint
+      - name: Run Biome Check
         run: bun run lint
 
   build:

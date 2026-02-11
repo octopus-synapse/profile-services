@@ -32,12 +32,7 @@ export const DATE_LIMITS = {
 export const FILE_LIMITS = {
   MAX_SIZE_MB: 5,
   MAX_SIZE_BYTES: 5 * 1024 * 1024,
-  ALLOWED_IMAGE_TYPES: [
-    'image/jpeg',
-    'image/png',
-    'image/webp',
-    'image/svg+xml',
-  ] as const,
+  ALLOWED_IMAGE_TYPES: ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'] as const,
   ALLOWED_DOCUMENT_TYPES: [
     'application/pdf',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',

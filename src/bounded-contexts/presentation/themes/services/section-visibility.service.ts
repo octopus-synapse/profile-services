@@ -4,26 +4,16 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import {
-  ResumeConfigRepository,
-  ResumeConfig,
-} from './resume-config.repository';
+import { ResumeConfig, ResumeConfigRepository } from './resume-config.repository';
 
 @Injectable()
 export class SectionVisibilityService {
   constructor(private repo: ResumeConfigRepository) {}
 
-  async toggleSection(
-    userId: string,
-    resumeId: string,
-    sectionId: string,
-    visible: boolean,
-  ) {
+  async toggleSection(userId: string, resumeId: string, sectionId: string, visible: boolean) {
     const config = await this.repo.get(userId, resumeId);
 
-    config.sections = config.sections.map((s) =>
-      s.id === sectionId ? { ...s, visible } : s,
-    );
+    config.sections = config.sections.map((s) => (s.id === sectionId ? { ...s, visible } : s));
 
     await this.repo.save(resumeId, config);
     return { success: true };

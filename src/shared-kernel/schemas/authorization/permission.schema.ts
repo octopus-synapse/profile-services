@@ -104,10 +104,7 @@ export type PermissionResponse = z.infer<typeof PermissionResponseSchema>;
  */
 export const PermissionIdentifierSchema = z
   .string()
-  .regex(
-    /^[a-z-]+:[a-z-]+$/,
-    'Permission identifier must be in format "resource:action"',
-  );
+  .regex(/^[a-z-]+:[a-z-]+$/, 'Permission identifier must be in format "resource:action"');
 
 export type PermissionIdentifier = z.infer<typeof PermissionIdentifierSchema>;
 

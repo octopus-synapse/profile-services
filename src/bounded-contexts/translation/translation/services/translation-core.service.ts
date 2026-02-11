@@ -3,14 +3,11 @@
  * Handles basic translation operations using LibreTranslate
  */
 
+import { HttpService } from '@nestjs/axios';
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { HttpService } from '@nestjs/axios';
 import { firstValueFrom, timeout } from 'rxjs';
-import {
-  TranslationLanguage,
-  TranslationResult,
-} from '../types/translation.types';
+import { TranslationLanguage, TranslationResult } from '../types/translation.types';
 
 @Injectable()
 export class TranslationCoreService implements OnModuleInit {
@@ -35,9 +32,7 @@ export class TranslationCoreService implements OnModuleInit {
   async checkServiceHealth(): Promise<boolean> {
     try {
       const response = await firstValueFrom(
-        this.httpService
-          .get(`${this.libreTranslateUrl}/languages`)
-          .pipe(timeout(5000)),
+        this.httpService.get(`${this.libreTranslateUrl}/languages`).pipe(timeout(5000)),
       );
       this.isServiceAvailable = response.status === 200;
       this.logger.log(
@@ -68,9 +63,7 @@ export class TranslationCoreService implements OnModuleInit {
     }
 
     if (!this.isServiceAvailable) {
-      this.logger.warn(
-        'Translation service unavailable, returning original text',
-      );
+      this.logger.warn('Translation service unavailable, returning original text');
       return {
         original: text,
         translated: text,
@@ -91,9 +84,7 @@ export class TranslationCoreService implements OnModuleInit {
           .pipe(timeout(15000)),
       );
 
-      const responseData = response.data as
-        | { translatedText?: string }
-        | undefined;
+      const responseData = response.data as { translatedText?: string } | undefined;
       const translatedText = responseData?.translatedText ?? text;
       return {
         original: text,

@@ -7,10 +7,7 @@ type DeepPartial<T> = {
   [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
 };
 
-export function deepMerge<T extends object>(
-  base: T,
-  overrides: DeepPartial<T>,
-): T {
+export function deepMerge<T extends object>(base: T, overrides: DeepPartial<T>): T {
   const result = { ...base };
 
   for (const key of Object.keys(overrides) as (keyof T)[]) {
@@ -27,10 +24,7 @@ export function deepMerge<T extends object>(
       overrideVal !== null &&
       !Array.isArray(overrideVal)
     ) {
-      result[key] = deepMerge(
-        baseVal as object,
-        overrideVal as object,
-      ) as T[keyof T];
+      result[key] = deepMerge(baseVal as object, overrideVal as object) as T[keyof T];
     } else {
       result[key] = overrideVal as T[keyof T];
     }

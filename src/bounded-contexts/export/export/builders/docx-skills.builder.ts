@@ -3,8 +3,8 @@
  * Builds skills and languages paragraphs for DOCX export
  */
 
+import { Language, Skill } from '@prisma/client';
 import { Paragraph, TextRun } from 'docx';
-import { Skill, Language } from '@prisma/client';
 
 export class DocxSkillsBuilder {
   createSkillsParagraph(skills: Skill[]): Paragraph {

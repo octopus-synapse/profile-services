@@ -3,7 +3,7 @@
  * Provides mocked browser, page, and element handles
  */
 
-import { mock, type Mock } from 'bun:test';
+import { type Mock, mock } from 'bun:test';
 
 type MockFn = Mock<(...args: any[]) => any>;
 
@@ -52,9 +52,7 @@ export const createMockPage = (): MockPage => ({
   pdf: mock(() => Promise.resolve(Buffer.from('mock-pdf-content'))),
   screenshot: mock(() => Promise.resolve(undefined)),
   addStyleTag: mock(() => Promise.resolve(undefined)),
-  content: mock(() =>
-    Promise.resolve('<html><body><div id="banner"></div></body></html>'),
-  ),
+  content: mock(() => Promise.resolve('<html><body><div id="banner"></div></body></html>')),
   $: mock(() => Promise.resolve(null)),
   close: mock(() => Promise.resolve(undefined)),
 });

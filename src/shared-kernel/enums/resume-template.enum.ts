@@ -39,14 +39,10 @@ export type ResumeTemplateKebab = z.infer<typeof ResumeTemplateKebabSchema>;
 /**
  * Mapping functions
  */
-export const resumeTemplateToKebab = (
-  value: ResumeTemplate,
-): ResumeTemplateKebab => {
+export const resumeTemplateToKebab = (value: ResumeTemplate): ResumeTemplateKebab => {
   return value.toLowerCase() as ResumeTemplateKebab;
 };
 
-export const resumeTemplateFromKebab = (
-  value: ResumeTemplateKebab,
-): ResumeTemplate => {
+export const resumeTemplateFromKebab = (value: ResumeTemplateKebab): ResumeTemplate => {
   return value.toUpperCase() as ResumeTemplate;
 };

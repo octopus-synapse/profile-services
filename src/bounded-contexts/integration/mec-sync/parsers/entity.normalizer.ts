@@ -5,27 +5,25 @@
 
 import {
   MecCsvRow,
-  NormalizedInstitution,
   NormalizedCourse,
+  NormalizedInstitution,
 } from '../interfaces/mec-data.interface';
 import {
-  mapOrganization,
   mapCategory,
+  mapCourseStatus,
   mapDegree,
   mapModality,
-  mapCourseStatus,
+  mapOrganization,
 } from '../mappers/mec-code.mapper';
 import { normalizeText } from '../mappers/text.normalizer';
 
 /**
  * Normalize institution data from CSV row
  */
-export function normalizeInstitution(
-  row: MecCsvRow,
-): NormalizedInstitution | null {
+export function normalizeInstitution(row: MecCsvRow): NormalizedInstitution | null {
   const codigoIes = parseInt(row.CO_IES, 10);
 
-  if (isNaN(codigoIes) || !row.NO_IES || !row.SG_UF_IES) {
+  if (Number.isNaN(codigoIes) || !row.NO_IES || !row.SG_UF_IES) {
     return null;
   }
 
@@ -48,7 +46,7 @@ export function normalizeCourse(row: MecCsvRow): NormalizedCourse | null {
   const codigoCurso = parseInt(row.CO_CURSO, 10);
   const codigoIes = parseInt(row.CO_IES, 10);
 
-  if (isNaN(codigoCurso) || isNaN(codigoIes) || !row.NO_CURSO) {
+  if (Number.isNaN(codigoCurso) || Number.isNaN(codigoIes) || !row.NO_CURSO) {
     return null;
   }
 

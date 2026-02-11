@@ -1,12 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { BugBounty } from '@prisma/client';
 import type { CreateBugBounty, UpdateBugBounty } from '@/shared-kernel';
-import {
-  BaseSubResourceRepository,
-  OrderByConfig,
-  buildUpdateData,
-} from './base';
+import { BaseSubResourceRepository, buildUpdateData, OrderByConfig } from './base';
 
 /**
  * Repository for BugBounty entities
@@ -21,10 +16,6 @@ export class BugBountyRepository extends BaseSubResourceRepository<
   UpdateBugBounty
 > {
   protected readonly logger = new Logger(BugBountyRepository.name);
-
-  constructor(prisma: PrismaService) {
-    super(prisma);
-  }
 
   protected getPrismaDelegate() {
     return this.prisma.bugBounty;

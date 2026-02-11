@@ -1,13 +1,10 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { ResumesRepository } from './resumes.repository';
-import type { CreateResume, UpdateResume } from '@/shared-kernel';
+import sanitizeHtml from 'sanitize-html';
 import { ApiResponseHelper } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { ResumeVersionService } from '@/bounded-contexts/resumes/resume-versions/services/resume-version.service';
-import {
-  RESUME_EVENT_PUBLISHER,
-  type ResumeEventPublisher,
-} from '../domain/ports';
-import sanitizeHtml from 'sanitize-html';
+import type { CreateResume, UpdateResume } from '@/shared-kernel';
+import { RESUME_EVENT_PUBLISHER, type ResumeEventPublisher } from '../domain/ports';
+import { ResumesRepository } from './resumes.repository';
 
 const MAX_RESUMES_PER_USER = 4;
 
@@ -67,10 +64,7 @@ export class ResumesService {
       summary: sanitizedSummary,
     };
 
-    const resume = await this.repository.createResumeForUser(
-      userId,
-      sanitizedData,
-    );
+    const resume = await this.repository.createResumeForUser(userId, sanitizedData);
 
     this.eventPublisher.publishResumeCreated(resume.id, {
       userId,
@@ -90,11 +84,7 @@ export class ResumesService {
       summary: sanitizeContent(data.summary),
     };
 
-    const resume = await this.repository.updateResumeForUser(
-      id,
-      userId,
-      sanitizedData,
-    );
+    const resume = await this.repository.updateResumeForUser(id, userId, sanitizedData);
     if (!resume) throw new NotFoundException('Resume not found');
 
     this.eventPublisher.publishResumeUpdated(id, {

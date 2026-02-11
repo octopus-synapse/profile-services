@@ -3,10 +3,10 @@
  * Public API endpoints for querying tech skills, languages, areas, and niches
  */
 
-import { Controller, Get, Query, Param } from '@nestjs/common';
-import { TechSkillsQueryService } from '../services/tech-skills-query.service';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { Public } from '@/bounded-contexts/identity/auth/decorators/public.decorator';
-import type { TechAreaType, SkillType } from '../interfaces';
+import type { SkillType, TechAreaType } from '../interfaces';
+import { TechSkillsQueryService } from '../services/tech-skills-query.service';
 
 @Controller('v1/tech-skills')
 export class TechSkillsQueryController {
@@ -43,14 +43,8 @@ export class TechSkillsQueryController {
   /** Search programming languages */
   @Get('languages/search')
   @Public()
-  async searchLanguages(
-    @Query('q') query: string,
-    @Query('limit') limit?: string,
-  ) {
-    return this.queryService.searchLanguages(
-      query,
-      limit ? parseInt(limit, 10) : 20,
-    );
+  async searchLanguages(@Query('q') query: string, @Query('limit') limit?: string) {
+    return this.queryService.searchLanguages(query, limit ? parseInt(limit, 10) : 20);
   }
 
   /** Get all skills */
@@ -63,14 +57,8 @@ export class TechSkillsQueryController {
   /** Search skills */
   @Get('skills/search')
   @Public()
-  async searchSkills(
-    @Query('q') query: string,
-    @Query('limit') limit?: string,
-  ) {
-    return this.queryService.searchSkills(
-      query,
-      limit ? parseInt(limit, 10) : 20,
-    );
+  async searchSkills(@Query('q') query: string, @Query('limit') limit?: string) {
+    return this.queryService.searchSkills(query, limit ? parseInt(limit, 10) : 20);
   }
 
   /** Get skills by niche */
@@ -83,14 +71,8 @@ export class TechSkillsQueryController {
   /** Get skills by type */
   @Get('skills/type/:type')
   @Public()
-  async getSkillsByType(
-    @Param('type') type: SkillType,
-    @Query('limit') limit?: string,
-  ) {
-    return this.queryService.getSkillsByType(
-      type,
-      limit ? parseInt(limit, 10) : 50,
-    );
+  async getSkillsByType(@Param('type') type: SkillType, @Query('limit') limit?: string) {
+    return this.queryService.getSkillsByType(type, limit ? parseInt(limit, 10) : 50);
   }
 
   /** Combined search (languages + skills) */

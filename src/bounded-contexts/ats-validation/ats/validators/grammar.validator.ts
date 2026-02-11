@@ -1,30 +1,25 @@
 import { Injectable } from '@nestjs/common';
-import {
-  ValidationResult,
-  ValidationIssue,
-  ValidationSeverity,
-} from '../interfaces';
+import { ValidationIssue, ValidationResult, ValidationSeverity } from '../interfaces';
 
 @Injectable()
 export class GrammarValidator {
-  private readonly SPELLING_MISTAKES_WITH_CORRECTIONS: Record<string, string> =
-    {
-      recieve: 'receive',
-      seperate: 'separate',
-      definately: 'definitely',
-      occured: 'occurred',
-      untill: 'until',
-      sucessful: 'successful',
-      succesful: 'successful',
-      experiance: 'experience',
-      responsable: 'responsible',
-      managment: 'management',
-      acheive: 'achieve',
-      acheivement: 'achievement',
-      commited: 'committed',
-      developement: 'development',
-      enviroment: 'environment',
-    };
+  private readonly SPELLING_MISTAKES_WITH_CORRECTIONS: Record<string, string> = {
+    recieve: 'receive',
+    seperate: 'separate',
+    definately: 'definitely',
+    occured: 'occurred',
+    untill: 'until',
+    sucessful: 'successful',
+    succesful: 'successful',
+    experiance: 'experience',
+    responsable: 'responsible',
+    managment: 'management',
+    acheive: 'achieve',
+    acheivement: 'achievement',
+    commited: 'committed',
+    developement: 'development',
+    enviroment: 'environment',
+  };
 
   private readonly GRAMMAR_ISSUE_PATTERNS = [
     {
@@ -75,9 +70,7 @@ export class GrammarValidator {
     issues.push(...repetitionIssues);
 
     return {
-      passed:
-        issues.filter((i) => i.severity === ValidationSeverity.ERROR).length ===
-        0,
+      passed: issues.filter((i) => i.severity === ValidationSeverity.ERROR).length === 0,
       issues,
       metadata: {
         totalIssues: issues.length,
@@ -93,10 +86,7 @@ export class GrammarValidator {
     const foundMistakes = new Set<string>();
 
     words.forEach((word) => {
-      if (
-        this.SPELLING_MISTAKES_WITH_CORRECTIONS[word] &&
-        !foundMistakes.has(word)
-      ) {
+      if (this.SPELLING_MISTAKES_WITH_CORRECTIONS[word] && !foundMistakes.has(word)) {
         foundMistakes.add(word);
         issues.push({
           code: 'SPELLING_ERROR',
@@ -141,8 +131,7 @@ export class GrammarValidator {
           code: 'LONG_SENTENCE',
           message: `Sentence ${index + 1} is very long (${words.length} words)`,
           severity: ValidationSeverity.INFO,
-          suggestion:
-            'Consider breaking into shorter sentences for better readability',
+          suggestion: 'Consider breaking into shorter sentences for better readability',
         });
       }
     });
@@ -152,8 +141,7 @@ export class GrammarValidator {
         code: 'FEW_SENTENCES',
         message: 'Document contains very few sentences',
         severity: ValidationSeverity.WARNING,
-        suggestion:
-          'Ensure your CV has sufficient detail and complete sentences',
+        suggestion: 'Ensure your CV has sufficient detail and complete sentences',
       });
     }
 
