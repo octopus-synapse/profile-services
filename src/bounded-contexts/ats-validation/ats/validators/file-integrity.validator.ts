@@ -1,10 +1,6 @@
+import * as path from 'node:path';
 import { Injectable } from '@nestjs/common';
-import {
-  ValidationResult,
-  ValidationIssue,
-  ValidationSeverity,
-} from '../interfaces';
-import * as path from 'path';
+import { ValidationIssue, ValidationResult, ValidationSeverity } from '../interfaces';
 
 @Injectable()
 export class FileIntegrityValidator {
@@ -71,24 +67,18 @@ export class FileIntegrityValidator {
       });
     }
 
-    const isValidSignature = this.validateFileSignature(
-      file.buffer,
-      fileExtension,
-    );
+    const isValidSignature = this.validateFileSignature(file.buffer, fileExtension);
     if (!isValidSignature) {
       issues.push({
         code: 'INVALID_FILE_SIGNATURE',
         message: 'File appears to be corrupted or is not a valid document',
         severity: ValidationSeverity.ERROR,
-        suggestion:
-          'The file signature does not match its extension. Try re-saving the file.',
+        suggestion: 'The file signature does not match its extension. Try re-saving the file.',
       });
     }
 
     return {
-      passed:
-        issues.filter((i) => i.severity === ValidationSeverity.ERROR).length ===
-        0,
+      passed: issues.filter((i) => i.severity === ValidationSeverity.ERROR).length === 0,
       issues,
       metadata: {
         fileSize: file.size,
@@ -101,8 +91,7 @@ export class FileIntegrityValidator {
   private getMimeTypeFromExtension(extension: string): string | null {
     const mimeTypes: Record<string, string> = {
       '.pdf': 'application/pdf',
-      '.docx':
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     };
     return mimeTypes[extension] || null;
   }
@@ -123,8 +112,8 @@ export class FileIntegrityValidator {
   }
 
   private formatBytes(bytes: number): string {
-    if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(2) + ' KB';
-    return (bytes / (1024 * 1024)).toFixed(2) + ' MB';
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(2)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
   }
 }

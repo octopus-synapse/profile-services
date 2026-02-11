@@ -9,14 +9,9 @@
  * This follows the Dependency Rule: frameworks depend on domain, not vice versa.
  */
 
-import {
-  PipeTransform,
-  Injectable,
-  ArgumentMetadata,
-  BadRequestException,
-} from '@nestjs/common';
+import { ArgumentMetadata, BadRequestException, Injectable, PipeTransform } from '@nestjs/common';
 import { ZodSchema } from 'zod';
-import { validate, ERROR_CODES } from '@/shared-kernel';
+import { ERROR_CODES, validate } from '@/shared-kernel';
 
 /**
  * Generic Zod Validation Pipe
@@ -70,5 +65,4 @@ export class ZodValidationPipe<T> implements PipeTransform<unknown, T> {
  * async login(@Body(createZodPipe(LoginCredentialsSchema)) dto: LoginCredentials) {}
  * ```
  */
-export const createZodPipe = <T>(schema: ZodSchema<T>) =>
-  new ZodValidationPipe(schema);
+export const createZodPipe = <T>(schema: ZodSchema<T>) => new ZodValidationPipe(schema);

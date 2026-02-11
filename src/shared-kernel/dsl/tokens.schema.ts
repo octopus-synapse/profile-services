@@ -59,11 +59,7 @@ export const ColorTokensSchema = z.object({
     .optional(),
 });
 
-export const SpacingDensitySchema = z.enum([
-  'compact',
-  'comfortable',
-  'spacious',
-]);
+export const SpacingDensitySchema = z.enum(['compact', 'comfortable', 'spacious']);
 export const SpacingSizeSchema = z.enum(['sm', 'md', 'lg', 'xl']);
 
 export const SpacingTokensSchema = z.object({

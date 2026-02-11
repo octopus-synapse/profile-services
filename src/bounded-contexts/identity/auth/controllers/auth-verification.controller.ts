@@ -3,28 +3,18 @@
  * Handles email verification endpoints
  */
 
-import {
-  Body,
-  Controller,
-  HttpCode,
-  HttpStatus,
-  Post,
-  Req,
-} from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import { Body, Controller, HttpCode, HttpStatus, Post, Req } from '@nestjs/common';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
-import { MessageResponseDto } from '@/shared-kernel/dtos/sdk-response.dto';
-import { RATE_LIMIT_CONFIG } from '@/shared-kernel';
-import { AuthService } from '@/bounded-contexts/identity/auth/auth.service';
-import type {
-  RequestVerification,
-  EmailVerification as VerifyEmail,
-} from '@/shared-kernel';
-import { Public } from '../decorators/public.decorator';
-import { AllowUnverifiedEmail } from '../decorators/allow-unverified-email.decorator';
-import { SkipTosCheck } from '../decorators/skip-tos-check.decorator';
 import type { Request } from 'express';
+import { AuthService } from '@/bounded-contexts/identity/auth/auth.service';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import type { RequestVerification, EmailVerification as VerifyEmail } from '@/shared-kernel';
+import { RATE_LIMIT_CONFIG } from '@/shared-kernel';
+import { MessageResponseDto } from '@/shared-kernel/dtos/sdk-response.dto';
+import { AllowUnverifiedEmail } from '../decorators/allow-unverified-email.decorator';
+import { Public } from '../decorators/public.decorator';
+import { SkipTosCheck } from '../decorators/skip-tos-check.decorator';
 
 @SdkExport({ tag: 'auth', description: 'Auth API', requiresAuth: false })
 @ApiTags('auth')

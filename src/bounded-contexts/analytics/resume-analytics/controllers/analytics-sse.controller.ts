@@ -7,18 +7,12 @@
  * Kent Beck: "Make the change easy, then make the easy change."
  */
 
-import {
-  Controller,
-  Sse,
-  UseGuards,
-  MessageEvent,
-  Param,
-} from '@nestjs/common';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
-import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
-import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
+import { Controller, MessageEvent, Param, Sse, UseGuards } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { Observable, fromEvent, map, merge } from 'rxjs';
+import { fromEvent, map, merge, Observable } from 'rxjs';
+import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
+import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
+import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 
 interface AnalyticsUpdateEvent {
   type: 'view' | 'ats_score';
@@ -56,7 +50,7 @@ export class AnalyticsSseController {
   @Sse(':resumeId/live')
   @UseGuards(JwtAuthGuard)
   subscribeToResumeAnalytics(
-    @CurrentUser() user: UserPayload,
+    @CurrentUser() _user: UserPayload,
     @Param('resumeId') resumeId: string,
   ): Observable<MessageEvent> {
     // Listen to both view and ATS score events
@@ -87,13 +81,10 @@ export class AnalyticsSseController {
   @Sse(':resumeId/views')
   @UseGuards(JwtAuthGuard)
   subscribeToViews(
-    @CurrentUser() user: UserPayload,
+    @CurrentUser() _user: UserPayload,
     @Param('resumeId') resumeId: string,
   ): Observable<MessageEvent> {
-    return fromEvent<AnalyticsUpdateEvent>(
-      this.eventEmitter,
-      `analytics:${resumeId}:view`,
-    ).pipe(
+    return fromEvent<AnalyticsUpdateEvent>(this.eventEmitter, `analytics:${resumeId}:view`).pipe(
       map((event) => ({
         data: event,
         id: `${resumeId}-view-${Date.now()}`,
@@ -109,7 +100,7 @@ export class AnalyticsSseController {
   @Sse(':resumeId/ats-score')
   @UseGuards(JwtAuthGuard)
   subscribeToAtsScore(
-    @CurrentUser() user: UserPayload,
+    @CurrentUser() _user: UserPayload,
     @Param('resumeId') resumeId: string,
   ): Observable<MessageEvent> {
     return fromEvent<AnalyticsUpdateEvent>(

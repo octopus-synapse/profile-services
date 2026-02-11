@@ -7,8 +7,8 @@
  */
 
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ERROR_MESSAGES } from '@/shared-kernel';
 import { TokenService } from './token.service';
 import { TokenBlacklistService } from './token-blacklist.service';
@@ -44,10 +44,7 @@ export class TokenRefreshService {
       // iat is added by JwtService (seconds since epoch)
       const decodedAny = decoded as unknown as { iat?: number };
       const issuedAtMs = (decodedAny.iat ?? 0) * 1000;
-      const isRevoked = await this.tokenBlacklist.isTokenRevokedForUser(
-        decoded.sub,
-        issuedAtMs,
-      );
+      const isRevoked = await this.tokenBlacklist.isTokenRevokedForUser(decoded.sub, issuedAtMs);
       if (isRevoked) {
         throw new UnauthorizedException(ERROR_MESSAGES.TOKEN_REVOKED);
       }

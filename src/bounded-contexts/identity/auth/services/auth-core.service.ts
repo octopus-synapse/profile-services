@@ -12,21 +12,15 @@
  * - UserRegisteredEvent: When a new user successfully registers
  */
 
-import {
-  Injectable,
-  ConflictException,
-  UnauthorizedException,
-} from '@nestjs/common';
-import { User, Prisma } from '@prisma/client';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
-import { EventPublisher } from '@/shared-kernel';
+import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { Prisma, User } from '@prisma/client';
 import { UserRegisteredEvent } from '@/bounded-contexts/identity/domain/events';
-import type { RegisterCredentials as Signup } from '@/shared-kernel';
-import type { LoginCredentials as Login } from '@/shared-kernel';
-import { ERROR_MESSAGES } from '@/shared-kernel';
-import { TokenService } from './token.service';
+import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { LoginCredentials as Login, RegisterCredentials as Signup } from '@/shared-kernel';
+import { ERROR_MESSAGES, EventPublisher } from '@/shared-kernel';
 import { PasswordService } from './password.service';
+import { TokenService } from './token.service';
 
 type ValidatedUser = Omit<User, 'password'>;
 
@@ -62,10 +56,7 @@ export class AuthCoreService {
       });
     } catch (error) {
       // Handle unique constraint violation (P2002)
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === 'P2002'
-      ) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
         this.logger.warn(`Signup attempt for existing email`, this.context, {
           email,
         });
@@ -87,8 +78,7 @@ export class AuthCoreService {
     this.eventPublisher.publish(
       new UserRegisteredEvent(createdUser.id, {
         email: createdUser.email,
-        username:
-          createdUser.username ?? createdUser.name ?? email.split('@')[0],
+        username: createdUser.username ?? createdUser.name ?? email.split('@')[0],
       }),
     );
 
@@ -102,10 +92,7 @@ export class AuthCoreService {
     return this.buildAuthResponse(createdUser, accessToken);
   }
 
-  async validateUser(
-    email: string,
-    password: string,
-  ): Promise<ValidatedUser | null> {
+  async validateUser(email: string, password: string): Promise<ValidatedUser | null> {
     const foundUser = await this.prisma.user.findUnique({ where: { email } });
 
     if (!foundUser?.password) {
@@ -115,22 +102,14 @@ export class AuthCoreService {
       return null;
     }
 
-    const isPasswordValid = await this.passwordService.compare(
-      password,
-      foundUser.password,
-    );
+    const isPasswordValid = await this.passwordService.compare(password, foundUser.password);
 
     if (!isPasswordValid) {
-      this.logger.warn(
-        `Failed login attempt - invalid password`,
-        this.context,
-        { email },
-      );
+      this.logger.warn(`Failed login attempt - invalid password`, this.context, { email });
       return null;
     }
 
-    const { password: _passwordField, ...validatedUserWithoutPassword } =
-      foundUser;
+    const { password: _passwordField, ...validatedUserWithoutPassword } = foundUser;
     return validatedUserWithoutPassword;
   }
 

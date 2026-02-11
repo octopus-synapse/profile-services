@@ -1,16 +1,16 @@
 import {
+  BadRequestException,
+  Body,
   Controller,
   Post,
   UploadedFile,
   UseInterceptors,
-  Body,
-  BadRequestException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiTags, ApiOperation, ApiConsumes, ApiBody } from '@nestjs/swagger';
+import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
-import { ATSService } from './services/ats.service';
 import type { ValidateCV, Validation } from '@/shared-kernel';
+import { ATSService } from './services/ats.service';
 
 @SdkExport({ tag: 'ats-validation', description: 'Ats Validation API' })
 @ApiTags('ATS Validation')

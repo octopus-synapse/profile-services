@@ -6,8 +6,7 @@ import { ThemeCategory, ThemeStatus } from '@prisma/client';
 
 export const MODERN_THEME = {
   name: 'Modern',
-  description:
-    'Clean, contemporary design with vibrant colors and two-column layout.',
+  description: 'Clean, contemporary design with vibrant colors and two-column layout.',
   category: ThemeCategory.MODERN,
   tags: ['clean', 'professional', 'tech', 'two-column'],
   status: ThemeStatus.PUBLISHED,

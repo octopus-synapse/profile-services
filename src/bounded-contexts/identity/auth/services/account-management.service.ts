@@ -10,20 +10,15 @@
  * - UserDeletedEvent: When a user account is deleted
  */
 
-import {
-  Injectable,
-  UnauthorizedException,
-  ConflictException,
-} from '@nestjs/common';
+import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
-import { EventPublisher } from '@/shared-kernel';
 import { UserDeletedEvent } from '@/bounded-contexts/identity/domain/events';
+import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { ChangeEmail, DeleteAccount } from '@/shared-kernel';
+import { ERROR_MESSAGES, EventPublisher } from '@/shared-kernel';
 import { PasswordService } from './password.service';
 import { TokenBlacklistService } from './token-blacklist.service';
-import { ERROR_MESSAGES } from '@/shared-kernel';
-import type { ChangeEmail, DeleteAccount } from '@/shared-kernel';
 
 @Injectable()
 export class AccountManagementService {
@@ -54,10 +49,7 @@ export class AccountManagementService {
         },
       });
     } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === 'P2002'
-      ) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
         throw new ConflictException(ERROR_MESSAGES.EMAIL_ALREADY_IN_USE);
       }
       throw error;
@@ -115,10 +107,7 @@ export class AccountManagementService {
     return { ...user, password: user.password };
   }
 
-  private async validatePassword(
-    user: { password: string },
-    password: string,
-  ): Promise<void> {
+  private async validatePassword(user: { password: string }, password: string): Promise<void> {
     const isValid = await this.passwordService.compare(password, user.password);
 
     if (!isValid) {

@@ -1,19 +1,19 @@
-import { Controller, Post, Get, Body, Param, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
   ApiBearerAuth,
-  ApiParam,
   ApiBody,
+  ApiOperation,
+  ApiParam,
+  ApiResponse,
+  ApiTags,
 } from '@nestjs/swagger';
-import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
-import { GitHubService } from './github.service';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
-import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
-import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
 import { Public } from '@/bounded-contexts/identity/auth/decorators/public.decorator';
+import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
+import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
+import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { MecSyncStatusResponseDto } from '@/shared-kernel';
+import { GitHubService } from './github.service';
 
 @SdkExport({ tag: 'github', description: 'Github API' })
 @ApiTags('github')
@@ -75,11 +75,7 @@ export class GitHubController {
     @CurrentUser() user: UserPayload,
     @Body() body: { githubUsername: string; resumeId: string },
   ) {
-    return this.githubService.syncUserGitHub(
-      user.userId,
-      body.githubUsername,
-      body.resumeId,
-    );
+    return this.githubService.syncUserGitHub(user.userId, body.githubUsername, body.resumeId);
   }
 
   @Post('sync/:resumeId/auto')
@@ -94,10 +90,7 @@ export class GitHubController {
   @ApiResponse({ status: 400, description: 'No GitHub link found in resume' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Resume not found' })
-  async autoSyncGitHub(
-    @CurrentUser() user: UserPayload,
-    @Param('resumeId') resumeId: string,
-  ) {
+  async autoSyncGitHub(@CurrentUser() user: UserPayload, @Param('resumeId') resumeId: string) {
     return this.githubService.autoSyncGitHubFromResume(user.userId, resumeId);
   }
 
@@ -120,10 +113,7 @@ export class GitHubController {
   })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 404, description: 'Resume not found' })
-  async getSyncStatus(
-    @CurrentUser() user: UserPayload,
-    @Param('resumeId') resumeId: string,
-  ) {
+  async getSyncStatus(@CurrentUser() user: UserPayload, @Param('resumeId') resumeId: string) {
     return this.githubService.getSyncStatus(user.userId, resumeId);
   }
 }

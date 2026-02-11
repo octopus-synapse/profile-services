@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type {
+  BenchmarkRecommendation,
   IndustryBenchmark,
   IndustryBenchmarkOptions,
   IndustryComparison,
   TopPerformersProfile,
-  BenchmarkRecommendation,
 } from '../interfaces';
 
 @Injectable()
@@ -62,10 +62,7 @@ export class BenchmarkService {
     return Math.round((belowCount / allValues.length) * 100);
   }
 
-  private generateRecommendations(
-    yourScore: number,
-    avgScore: number,
-  ): BenchmarkRecommendation[] {
+  private generateRecommendations(yourScore: number, avgScore: number): BenchmarkRecommendation[] {
     const recommendations: BenchmarkRecommendation[] = [];
 
     if (yourScore < avgScore) {

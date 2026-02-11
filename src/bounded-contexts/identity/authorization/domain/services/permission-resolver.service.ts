@@ -8,17 +8,14 @@
  * Repositories are injected as port interfaces.
  */
 
+import type { Group, GroupId } from '../entities/group.entity';
 import type { Permission, PermissionId } from '../entities/permission.entity';
 import type { Role } from '../entities/role.entity';
-import type { Group, GroupId } from '../entities/group.entity';
-import {
-  UserAuthContext,
-  type UserId,
-} from '../entities/user-auth-context.entity';
+import { UserAuthContext, type UserId } from '../entities/user-auth-context.entity';
 import type {
+  IGroupRepository,
   IPermissionRepository,
   IRoleRepository,
-  IGroupRepository,
   IUserAuthorizationRepository,
 } from '../ports/authorization-repositories.port';
 import { PermissionCollector } from './permission-collector';
@@ -39,15 +36,9 @@ export class PermissionResolverService {
     ]);
 
     const now = new Date();
-    const activePermissions = userPermissions.filter(
-      (p) => !p.expiresAt || p.expiresAt > now,
-    );
-    const activeRoles = userRoles.filter(
-      (r) => !r.expiresAt || r.expiresAt > now,
-    );
-    const activeGroups = userGroups.filter(
-      (g) => !g.expiresAt || g.expiresAt > now,
-    );
+    const activePermissions = userPermissions.filter((p) => !p.expiresAt || p.expiresAt > now);
+    const activeRoles = userRoles.filter((r) => !r.expiresAt || r.expiresAt > now);
+    const activeGroups = userGroups.filter((g) => !g.expiresAt || g.expiresAt > now);
 
     const roleIds = activeRoles.map((r) => r.roleId);
     const groupIds = activeGroups.map((g) => g.groupId);
@@ -64,18 +55,11 @@ export class PermissionResolverService {
     const collector = new PermissionCollector();
     this.collectDirectPermissions(collector, activePermissions, userId);
     this.collectRolePermissions(collector, roles);
-    this.collectGroupPermissions(
-      collector,
-      [...groups, ...ancestorGroups],
-      groupIds,
-      roles,
-    );
+    this.collectGroupPermissions(collector, [...groups, ...ancestorGroups], groupIds, roles);
 
     const permissionIds = collector.getAllPermissionIds();
     const permissions = await this.permissionRepo.findByIds(permissionIds);
-    const permissionMap = new Map<PermissionId, Permission>(
-      permissions.map((p) => [p.id, p]),
-    );
+    const permissionMap = new Map<PermissionId, Permission>(permissions.map((p) => [p.id, p]));
     const resolvedPermissions = collector.resolve(permissionMap);
 
     return UserAuthContext.create({
@@ -86,16 +70,8 @@ export class PermissionResolverService {
     });
   }
 
-  async hasPermission(
-    userId: UserId,
-    resource: string,
-    action: string,
-  ): Promise<boolean> {
-    const directResult = await this.checkDirectPermission(
-      userId,
-      resource,
-      action,
-    );
+  async hasPermission(userId: UserId, resource: string, action: string): Promise<boolean> {
+    const directResult = await this.checkDirectPermission(userId, resource, action);
     if (directResult !== null) return directResult;
     const context = await this.resolveUserContext(userId);
     return context.hasPermission(resource, action);
@@ -106,14 +82,10 @@ export class PermissionResolverService {
     permissions: { permissionId: PermissionId; granted: boolean }[],
     userId: string,
   ): void {
-    for (const p of permissions)
-      collector.addDirect(p.permissionId, p.granted, userId);
+    for (const p of permissions) collector.addDirect(p.permissionId, p.granted, userId);
   }
 
-  private collectRolePermissions(
-    collector: PermissionCollector,
-    roles: Role[],
-  ): void {
+  private collectRolePermissions(collector: PermissionCollector, roles: Role[]): void {
     for (const role of roles) {
       for (const permissionId of role.permissionIds) {
         collector.addFromRole(permissionId, role.id, role.displayName);
@@ -130,12 +102,7 @@ export class PermissionResolverService {
     for (const group of allGroups) {
       const isInherited = !directGroupIds.includes(group.id);
       for (const permissionId of group.permissionIds) {
-        collector.addFromGroup(
-          permissionId,
-          group.id,
-          group.displayName,
-          isInherited,
-        );
+        collector.addFromGroup(permissionId, group.id, group.displayName, isInherited);
       }
       for (const roleId of group.roleIds) {
         const groupRole = roles.find((r) => r.id === roleId);
@@ -162,9 +129,7 @@ export class PermissionResolverService {
     const permission = await this.permissionRepo.findByKey(resource, action);
     if (!permission) return null;
     const assignment = userPermissions.find(
-      (p) =>
-        p.permissionId === permission.id &&
-        (!p.expiresAt || p.expiresAt > new Date()),
+      (p) => p.permissionId === permission.id && (!p.expiresAt || p.expiresAt > new Date()),
     );
     return assignment ? assignment.granted : null;
   }

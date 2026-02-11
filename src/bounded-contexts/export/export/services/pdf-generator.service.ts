@@ -5,10 +5,10 @@
 
 import { Injectable, Logger } from '@nestjs/common';
 import { Page } from 'puppeteer';
+import { TIMEOUT } from '../constants/ui.constants';
+import { ResumePDFOptions } from '../helpers';
 import { BrowserManagerService } from './browser-manager.service';
 import { PdfTemplateService } from './pdf-template.service';
-import { ResumePDFOptions } from '../helpers';
-import { TIMEOUT } from '../constants/ui.constants';
 
 @Injectable()
 export class PdfGeneratorService {
@@ -32,8 +32,7 @@ export class PdfGeneratorService {
         this.generateContent(page, options),
         new Promise<Buffer>((_, reject) =>
           setTimeout(
-            () =>
-              reject(new Error(`PDF generation timed out after ${timeout}ms`)),
+            () => reject(new Error(`PDF generation timed out after ${timeout}ms`)),
             timeout,
           ),
         ),
@@ -43,10 +42,7 @@ export class PdfGeneratorService {
     }
   }
 
-  private async generateContent(
-    page: Page,
-    options: ResumePDFOptions,
-  ): Promise<Buffer> {
+  private async generateContent(page: Page, options: ResumePDFOptions): Promise<Buffer> {
     const pageSetup = this.templateService.getPageSetup();
     const styleExtractor = this.templateService.getStyleExtractor();
 
@@ -83,9 +79,7 @@ export class PdfGeneratorService {
     return await page.evaluate(() => {
       const pxToMm = 0.264583;
       const el = document.querySelector('#resume');
-      const heightPx = el
-        ? Math.ceil(el.scrollHeight)
-        : Math.ceil(document.body.scrollHeight);
+      const heightPx = el ? Math.ceil(el.scrollHeight) : Math.ceil(document.body.scrollHeight);
       return Math.ceil(heightPx * pxToMm) + 2;
     });
   }

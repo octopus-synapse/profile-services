@@ -4,10 +4,10 @@
  */
 
 import { Injectable } from '@nestjs/common';
+import type { Page } from 'puppeteer';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { TIME_MS } from '@/shared-kernel';
 import { PUPPETEER_CONFIG } from '../constants';
-import type { Page } from 'puppeteer';
 
 @Injectable()
 export class CloudflareHandlerService {

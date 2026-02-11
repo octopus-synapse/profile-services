@@ -1,8 +1,5 @@
 import { z } from 'zod';
-import {
-  ThemeSchema,
-  ThemeListItemSchema,
-} from '../schemas/theme/theme.schema';
+import { ThemeListItemSchema, ThemeSchema } from '../schemas/theme/theme.schema';
 
 /**
  * Theme Response Schemas

@@ -40,8 +40,6 @@ export const techAreaTypeToKebab = (value: TechAreaType): TechAreaTypeKebab => {
   return value.toLowerCase() as TechAreaTypeKebab;
 };
 
-export const techAreaTypeFromKebab = (
-  value: TechAreaTypeKebab,
-): TechAreaType => {
+export const techAreaTypeFromKebab = (value: TechAreaTypeKebab): TechAreaType => {
   return value.toUpperCase() as TechAreaType;
 };

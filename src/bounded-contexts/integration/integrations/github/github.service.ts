@@ -4,13 +4,9 @@
  * Delegates to specialized services for implementation
  */
 
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { API_LIMITS } from '@/shared-kernel';
-import {
-  GitHubApiService,
-  GitHubSyncService,
-  GitHubDatabaseService,
-} from './services';
+import { GitHubApiService, GitHubDatabaseService, GitHubSyncService } from './services';
 
 @Injectable()
 export class GitHubService {
@@ -37,11 +33,7 @@ export class GitHubService {
 
   // ==================== Sync Operations ====================
 
-  async syncUserGitHub(
-    userId: string,
-    githubUsername: string,
-    resumeId: string,
-  ) {
+  async syncUserGitHub(userId: string, githubUsername: string, resumeId: string) {
     return this.syncService.syncUserGitHub(userId, githubUsername, resumeId);
   }
 
@@ -50,19 +42,13 @@ export class GitHubService {
   }
 
   async getSyncStatus(userId: string, resumeId: string) {
-    const resume = await this.databaseService.verifyResumeOwnership(
-      userId,
-      resumeId,
-      {
-        openSource: { where: { projectUrl: { contains: 'github.com' } } },
-        achievements: { where: { type: 'github_stars' } },
-      },
-    );
+    const resume = await this.databaseService.verifyResumeOwnership(userId, resumeId, {
+      openSource: { where: { projectUrl: { contains: 'github.com' } } },
+      achievements: { where: { type: 'github_stars' } },
+    });
 
-    const openSourceList =
-      'openSource' in resume ? (resume.openSource as unknown[]) : [];
-    const achievementsList =
-      'achievements' in resume ? (resume.achievements as unknown[]) : [];
+    const openSourceList = 'openSource' in resume ? (resume.openSource as unknown[]) : [];
+    const achievementsList = 'achievements' in resume ? (resume.achievements as unknown[]) : [];
     const github = (resume as { github?: string | null }).github;
 
     return {
@@ -83,10 +69,7 @@ export class GitHubService {
       const repos = await this.apiService.getUserRepos(username, {
         per_page: 100,
       });
-      const totalStars = repos.reduce(
-        (sum, repo) => sum + repo.stargazers_count,
-        0,
-      );
+      const totalStars = repos.reduce((sum, repo) => sum + repo.stargazers_count, 0);
 
       const topRepos = repos
         .sort((a, b) => b.stargazers_count - a.stargazers_count)
@@ -111,10 +94,7 @@ export class GitHubService {
     } catch (error) {
       // Error transformation - see ERROR_HANDLING_STRATEGY.md
       if (error instanceof HttpException) throw error;
-      throw new HttpException(
-        'Failed to fetch GitHub summary',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      throw new HttpException('Failed to fetch GitHub summary', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 

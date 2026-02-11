@@ -9,11 +9,11 @@
 
 import type {
   ResumeCreatedPayload,
-  ResumeUpdatedPayload,
   ResumeDeletedPayload,
+  ResumeUpdatedPayload,
   SectionAddedPayload,
-  SectionUpdatedPayload,
   SectionRemovedPayload,
+  SectionUpdatedPayload,
   VersionCreatedPayload,
   VersionRestoredPayload,
 } from '../events';
@@ -26,10 +26,7 @@ export interface ResumeEventPublisher {
   publishSectionUpdated(resumeId: string, payload: SectionUpdatedPayload): void;
   publishSectionRemoved(resumeId: string, payload: SectionRemovedPayload): void;
   publishVersionCreated(resumeId: string, payload: VersionCreatedPayload): void;
-  publishVersionRestored(
-    resumeId: string,
-    payload: VersionRestoredPayload,
-  ): void;
+  publishVersionRestored(resumeId: string, payload: VersionRestoredPayload): void;
 }
 
 export const RESUME_EVENT_PUBLISHER = Symbol('RESUME_EVENT_PUBLISHER');

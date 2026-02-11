@@ -4,15 +4,15 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { UserProfileService } from './services/user-profile.service';
-import { UserPreferencesService } from './services/user-preferences.service';
-import { UsernameService } from './services/username.service';
 import type {
-  UpdateProfile,
-  UpdatePreferences,
   UpdateFullPreferences,
+  UpdatePreferences,
+  UpdateProfile,
   UpdateUsername,
 } from '@/shared-kernel';
+import { UserPreferencesService } from './services/user-preferences.service';
+import { UserProfileService } from './services/user-profile.service';
+import { UsernameService } from './services/username.service';
 
 @Injectable()
 export class UsersService {
@@ -40,10 +40,7 @@ export class UsersService {
     return this.preferencesService.getPreferences(userId);
   }
 
-  async updatePreferences(
-    userId: string,
-    updatePreferences: UpdatePreferences,
-  ) {
+  async updatePreferences(userId: string, updatePreferences: UpdatePreferences) {
     return this.preferencesService.updatePreferences(userId, updatePreferences);
   }
 
@@ -51,14 +48,8 @@ export class UsersService {
     return this.preferencesService.getFullPreferences(userId);
   }
 
-  async updateFullPreferences(
-    userId: string,
-    updateFullPreferences: UpdateFullPreferences,
-  ) {
-    return this.preferencesService.updateFullPreferences(
-      userId,
-      updateFullPreferences,
-    );
+  async updateFullPreferences(userId: string, updateFullPreferences: UpdateFullPreferences) {
+    return this.preferencesService.updateFullPreferences(userId, updateFullPreferences);
   }
 
   // Username operations

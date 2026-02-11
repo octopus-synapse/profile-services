@@ -5,17 +5,9 @@
 
 import { Injectable } from '@nestjs/common';
 import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
+import { APP_CONFIG, CourseBasic, Institution, InstitutionWithCourses } from '@/shared-kernel';
+import { MEC_CACHE_KEYS, MEC_CACHE_TTL } from '../interfaces/mec-data.interface';
 import { InstitutionRepository } from '../repositories';
-import {
-  Institution,
-  InstitutionWithCourses,
-  CourseBasic,
-} from '@/shared-kernel';
-import {
-  MEC_CACHE_KEYS,
-  MEC_CACHE_TTL,
-} from '../interfaces/mec-data.interface';
-import { APP_CONFIG } from '@/shared-kernel';
 
 @Injectable()
 export class InstitutionQueryService {
@@ -30,8 +22,7 @@ export class InstitutionQueryService {
     );
     if (cachedInstitutions) return cachedInstitutions;
 
-    const activeInstitutions =
-      await this.repository.findAllActiveInstitutions();
+    const activeInstitutions = await this.repository.findAllActiveInstitutions();
 
     await this.cache.set(
       MEC_CACHE_KEYS.INSTITUTIONS_LIST,
@@ -49,14 +40,9 @@ export class InstitutionQueryService {
     const cachedInstitutions = await this.cache.get<Institution[]>(cacheKey);
     if (cachedInstitutions) return cachedInstitutions;
 
-    const institutionsInState =
-      await this.repository.findInstitutionsByUf(normalizedUf);
+    const institutionsInState = await this.repository.findInstitutionsByUf(normalizedUf);
 
-    await this.cache.set(
-      cacheKey,
-      institutionsInState,
-      MEC_CACHE_TTL.INSTITUTIONS_BY_UF,
-    );
+    await this.cache.set(cacheKey, institutionsInState, MEC_CACHE_TTL.INSTITUTIONS_BY_UF);
 
     return institutionsInState;
   }
@@ -64,8 +50,7 @@ export class InstitutionQueryService {
   async findInstitutionByCodeWithCourses(
     codigoIes: number,
   ): Promise<InstitutionWithCourses | null> {
-    const foundInstitution =
-      await this.repository.findInstitutionByCode(codigoIes);
+    const foundInstitution = await this.repository.findInstitutionByCode(codigoIes);
     if (!foundInstitution) return null;
 
     return {

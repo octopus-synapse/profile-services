@@ -4,8 +4,8 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { InstitutionRepository, CourseRepository } from '../repositories';
 import { MecStats } from '@/shared-kernel';
+import { CourseRepository, InstitutionRepository } from '../repositories';
 
 @Injectable()
 export class MecStatsService {
@@ -15,8 +15,7 @@ export class MecStatsService {
   ) {}
 
   async getMecStatistics(): Promise<MecStats> {
-    const totalInstitutionCount =
-      await this.institutionRepo.countActiveInstitutions();
+    const totalInstitutionCount = await this.institutionRepo.countActiveInstitutions();
     const totalCourseCount: number = await this.courseRepo.countActiveCourses();
     const coursesByDegreeCount: Array<{
       grau: string | null;

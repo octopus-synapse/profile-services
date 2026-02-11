@@ -7,13 +7,10 @@
  * Priority: Direct denials > Direct grants > Role > Group > Inherited
  */
 
+import type { GroupId } from '../entities/group.entity';
 import type { Permission, PermissionId } from '../entities/permission.entity';
 import type { RoleId } from '../entities/role.entity';
-import type { GroupId } from '../entities/group.entity';
-import type {
-  PermissionSource,
-  ResolvedPermission,
-} from '../entities/user-auth-context.entity';
+import type { PermissionSource, ResolvedPermission } from '../entities/user-auth-context.entity';
 
 interface PermissionEntry {
   sources: PermissionSource[];
@@ -24,11 +21,7 @@ interface PermissionEntry {
 export class PermissionCollector {
   private entries = new Map<PermissionId, PermissionEntry>();
 
-  addDirect(
-    permissionId: PermissionId,
-    granted: boolean,
-    userId: string,
-  ): void {
+  addDirect(permissionId: PermissionId, granted: boolean, userId: string): void {
     const entry = this.getOrCreate(permissionId);
     entry.sources.push({
       type: 'direct',
@@ -44,11 +37,7 @@ export class PermissionCollector {
     }
   }
 
-  addFromRole(
-    permissionId: PermissionId,
-    roleId: RoleId,
-    roleName: string,
-  ): void {
+  addFromRole(permissionId: PermissionId, roleId: RoleId, roleName: string): void {
     const entry = this.getOrCreate(permissionId);
     entry.sources.push({
       type: 'role',

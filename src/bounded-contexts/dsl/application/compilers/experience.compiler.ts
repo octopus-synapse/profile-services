@@ -1,10 +1,5 @@
 import type { Experience } from '@prisma/client';
-import {
-  applyOverrides,
-  type ExperienceItem,
-  type ItemOverride,
-  type SectionData,
-} from './shared';
+import { applyOverrides, type ExperienceItem, type ItemOverride, type SectionData } from './shared';
 
 export function compileExperience(
   experiences: Experience[],

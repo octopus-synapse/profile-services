@@ -4,11 +4,11 @@
  */
 
 export {
-  Cacheable,
-  buildCacheKey,
-  type CacheableOptions,
-} from './cacheable.decorator';
-export {
   CacheInvalidate,
   type CacheInvalidateOptions,
 } from './cache-invalidate.decorator';
+export {
+  buildCacheKey,
+  Cacheable,
+  type CacheableOptions,
+} from './cacheable.decorator';

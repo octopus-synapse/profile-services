@@ -8,13 +8,7 @@
 /**
  * Simplified language proficiency levels
  */
-export const LANGUAGE_LEVELS = [
-  'basic',
-  'intermediate',
-  'advanced',
-  'fluent',
-  'native',
-] as const;
+export const LANGUAGE_LEVELS = ['basic', 'intermediate', 'advanced', 'fluent', 'native'] as const;
 
 /**
  * CEFR (Common European Framework of Reference for Languages) levels
@@ -58,13 +52,8 @@ export type CEFRLevel = (typeof CEFR_LEVELS)[number];
 /**
  * Type guard for language level
  */
-export const isValidLanguageLevel = (
-  value: unknown,
-): value is LanguageLevel => {
-  return (
-    typeof value === 'string' &&
-    LANGUAGE_LEVELS.includes(value as LanguageLevel)
-  );
+export const isValidLanguageLevel = (value: unknown): value is LanguageLevel => {
+  return typeof value === 'string' && LANGUAGE_LEVELS.includes(value as LanguageLevel);
 };
 
 /**

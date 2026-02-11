@@ -1,14 +1,14 @@
 import type {
-  ExperienceItem,
+  AwardItem,
+  CertificationItem,
   EducationItem,
-  SkillItem,
+  ExperienceItem,
+  InterestItem,
   LanguageItem,
   ProjectItem,
-  CertificationItem,
-  AwardItem,
   ReferenceItem,
-  InterestItem,
   SectionData,
+  SkillItem,
 } from '@/shared-kernel';
 
 type ItemOverride = { itemId: string; visible?: boolean; order?: number };
@@ -41,12 +41,6 @@ export function mapSkillLevel(level: number | null): string | undefined {
   return 'Beginner';
 }
 
-export { ExperienceItem, EducationItem, SkillItem, LanguageItem };
-export {
-  ProjectItem,
-  CertificationItem,
-  AwardItem,
-  ReferenceItem,
-  InterestItem,
-};
+export type { ExperienceItem, EducationItem, SkillItem, LanguageItem };
+export type { ProjectItem, CertificationItem, AwardItem, ReferenceItem, InterestItem };
 export type { SectionData, ItemOverride };

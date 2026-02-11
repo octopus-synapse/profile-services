@@ -1,14 +1,10 @@
-import {
-  Injectable,
-  ForbiddenException,
-  NotFoundException,
-} from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { EventPublisher } from '@/shared-kernel';
 import {
   VersionCreatedEvent,
   VersionRestoredEvent,
 } from '@/bounded-contexts/resumes/domain/events';
+import { EventPublisher } from '@/shared-kernel';
 
 @Injectable()
 export class ResumeVersionService {
@@ -116,12 +112,7 @@ export class ResumeVersionService {
     const snapshot = version.snapshot as Record<string, unknown>;
 
     // Update resume with snapshot data (excluding relations)
-    const {
-      id: _id,
-      userId: _userId,
-      createdAt: _createdAt,
-      ...resumeData
-    } = snapshot;
+    const { id: _id, userId: _userId, createdAt: _createdAt, ...resumeData } = snapshot;
 
     await this.prisma.resume.update({
       where: { id: resumeId },

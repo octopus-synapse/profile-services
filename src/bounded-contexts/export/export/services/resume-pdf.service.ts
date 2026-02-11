@@ -4,8 +4,8 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { PdfGeneratorService } from './pdf-generator.service';
 import { ResumePDFOptions } from '../helpers';
+import { PdfGeneratorService } from './pdf-generator.service';
 
 @Injectable()
 export class ResumePDFService {

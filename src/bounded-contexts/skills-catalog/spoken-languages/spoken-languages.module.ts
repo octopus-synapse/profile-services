@@ -5,8 +5,8 @@
 
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
-import { SpokenLanguagesController } from './spoken-languages.controller';
 import { SpokenLanguagesService } from './services/spoken-languages.service';
+import { SpokenLanguagesController } from './spoken-languages.controller';
 
 @Module({
   imports: [PrismaModule],

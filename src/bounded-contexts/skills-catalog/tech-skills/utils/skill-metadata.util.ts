@@ -38,9 +38,7 @@ const KEYWORD_MAP: Record<string, string[]> = {
  */
 export function getAliases(name: string): string[] {
   const lower = name.toLowerCase();
-  return Object.prototype.hasOwnProperty.call(ALIAS_MAP, lower)
-    ? ALIAS_MAP[lower]
-    : [];
+  return Object.hasOwn(ALIAS_MAP, lower) ? ALIAS_MAP[lower] : [];
 }
 
 /**
@@ -48,7 +46,5 @@ export function getAliases(name: string): string[] {
  */
 export function getKeywords(name: string): string[] {
   const lower = name.toLowerCase();
-  return Object.prototype.hasOwnProperty.call(KEYWORD_MAP, lower)
-    ? KEYWORD_MAP[lower]
-    : [];
+  return Object.hasOwn(KEYWORD_MAP, lower) ? KEYWORD_MAP[lower] : [];
 }

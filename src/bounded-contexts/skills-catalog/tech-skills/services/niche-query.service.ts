@@ -4,14 +4,10 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
-import {
-  TECH_SKILLS_CACHE_KEYS,
-  TECH_SKILLS_CACHE_TTL,
-  type TechAreaType,
-} from '../interfaces';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { TechNiche } from '../dtos';
+import { TECH_SKILLS_CACHE_KEYS, TECH_SKILLS_CACHE_TTL, type TechAreaType } from '../interfaces';
 
 @Injectable()
 export class TechNicheQueryService {
@@ -87,11 +83,7 @@ export class TechNicheQueryService {
       areaType: n.area.type as TechAreaType,
     }));
 
-    await this.cache.set(
-      cacheKey,
-      result,
-      TECH_SKILLS_CACHE_TTL.SKILLS_BY_AREA,
-    );
+    await this.cache.set(cacheKey, result, TECH_SKILLS_CACHE_TTL.SKILLS_BY_AREA);
     return result;
   }
 }

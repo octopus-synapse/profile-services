@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import {
   CVSectionType,
   ParsedCV,
-  ValidationResult,
   ValidationIssue,
+  ValidationResult,
   ValidationSeverity,
 } from '../interfaces';
 
@@ -58,18 +58,14 @@ export class SectionOrderValidator {
     if (summaryIndex > 2 && summaryIndex !== -1) {
       issues.push({
         code: 'SUMMARY_TOO_LATE',
-        message:
-          'Professional Summary should appear near the beginning of the CV',
+        message: 'Professional Summary should appear near the beginning of the CV',
         severity: ValidationSeverity.INFO,
-        suggestion:
-          'Move Summary/Profile section to the top, after contact information',
+        suggestion: 'Move Summary/Profile section to the top, after contact information',
       });
     }
 
     return {
-      passed:
-        issues.filter((i) => i.severity === ValidationSeverity.ERROR).length ===
-        0,
+      passed: issues.filter((i) => i.severity === ValidationSeverity.ERROR).length === 0,
       issues,
       metadata: {
         currentOrder: currentOrder.map((type) => this.getSectionName(type)),
@@ -80,9 +76,7 @@ export class SectionOrderValidator {
     };
   }
 
-  private detectOrderViolations(
-    currentOrder: CVSectionType[],
-  ): ValidationIssue[] {
+  private detectOrderViolations(currentOrder: CVSectionType[]): ValidationIssue[] {
     const violations: ValidationIssue[] = [];
 
     const refIndex = currentOrder.indexOf(CVSectionType.REFERENCES);
@@ -98,17 +92,12 @@ export class SectionOrderValidator {
     const interestsIndex = currentOrder.indexOf(CVSectionType.INTERESTS);
     const skillsIndex = currentOrder.indexOf(CVSectionType.SKILLS);
 
-    if (
-      interestsIndex !== -1 &&
-      skillsIndex !== -1 &&
-      interestsIndex < skillsIndex
-    ) {
+    if (interestsIndex !== -1 && skillsIndex !== -1 && interestsIndex < skillsIndex) {
       violations.push({
         code: 'INTERESTS_BEFORE_SKILLS',
         message: 'Interests section should come after Skills',
         severity: ValidationSeverity.INFO,
-        suggestion:
-          'Place Skills before Interests to emphasize professional qualifications',
+        suggestion: 'Place Skills before Interests to emphasize professional qualifications',
       });
     }
 

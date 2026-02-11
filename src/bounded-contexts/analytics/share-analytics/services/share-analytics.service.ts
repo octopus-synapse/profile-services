@@ -1,7 +1,7 @@
-import { Injectable, ForbiddenException } from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { createHash } from 'crypto';
+import { createHash } from 'node:crypto';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import type { AnalyticsEvent } from '@prisma/client';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 
 interface TrackEvent {
   shareId: string;
@@ -88,8 +88,7 @@ export class ShareAnalyticsService {
     return {
       shareId,
       totalViews: analytics.find((a) => a.event === 'VIEW')?._count.event ?? 0,
-      totalDownloads:
-        analytics.find((a) => a.event === 'DOWNLOAD')?._count.event ?? 0,
+      totalDownloads: analytics.find((a) => a.event === 'DOWNLOAD')?._count.event ?? 0,
       uniqueVisitors: uniqueViews.length,
       byCountry: byCountry.map((c) => ({
         country: c.country,

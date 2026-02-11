@@ -235,16 +235,12 @@ export type HistoryQuery = z.infer<typeof HistoryQuerySchema>;
 
 export type ViewStatsResponse = z.infer<typeof ViewStatsResponseSchema>;
 export type ATSScoreResponse = z.infer<typeof ATSScoreResponseSchema>;
-export type KeywordSuggestionsResponse = z.infer<
-  typeof KeywordSuggestionsResponseSchema
->;
+export type KeywordSuggestionsResponse = z.infer<typeof KeywordSuggestionsResponseSchema>;
 export type JobMatchResponse = z.infer<typeof JobMatchResponseSchema>;
 export type BenchmarkResponse = z.infer<typeof BenchmarkResponseSchema>;
 export type DashboardResponse = z.infer<typeof DashboardResponseSchema>;
 export type SnapshotResponse = z.infer<typeof SnapshotResponseSchema>;
-export type ScoreProgressionResponse = z.infer<
-  typeof ScoreProgressionResponseSchema
->;
+export type ScoreProgressionResponse = z.infer<typeof ScoreProgressionResponseSchema>;
 
 // ============================================================================
 // Additional Analytics Types (Frontend-compatible)

@@ -1,6 +1,6 @@
-import { Injectable, Logger, ForbiddenException } from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { Resume } from '@prisma/client';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { type CreateResume, type UpdateResume } from '@/shared-kernel';
 
 /**
@@ -11,22 +11,12 @@ import { type CreateResume, type UpdateResume } from '@/shared-kernel';
  */
 type CreateResumeData = Omit<
   CreateResume,
-  | 'experiences'
-  | 'educations'
-  | 'skills'
-  | 'languages'
-  | 'certifications'
-  | 'projects'
+  'experiences' | 'educations' | 'skills' | 'languages' | 'certifications' | 'projects'
 >;
 
 type UpdateResumeData = Omit<
   UpdateResume,
-  | 'experiences'
-  | 'educations'
-  | 'skills'
-  | 'languages'
-  | 'certifications'
-  | 'projects'
+  'experiences' | 'educations' | 'skills' | 'languages' | 'certifications' | 'projects'
 >;
 
 @Injectable()
@@ -54,20 +44,14 @@ export class ResumesRepository {
     });
   }
 
-  async findResumeByIdAndUserId(
-    id: string,
-    userId: string,
-  ): Promise<Resume | null> {
+  async findResumeByIdAndUserId(id: string, userId: string): Promise<Resume | null> {
     return await this.prisma.resume.findFirst({
       where: { id, userId },
       include: this.includeRelations,
     });
   }
 
-  async createResumeForUser(
-    userId: string,
-    resumeCreationData: CreateResumeData,
-  ): Promise<Resume> {
+  async createResumeForUser(userId: string, resumeCreationData: CreateResumeData): Promise<Resume> {
     this.logger.log(`Creating resume for user: ${userId}`);
     const resumeData = {
       userId,
@@ -105,10 +89,7 @@ export class ResumesRepository {
     return true;
   }
 
-  private async ensureResumeOwnership(
-    id: string,
-    userId: string,
-  ): Promise<void> {
+  private async ensureResumeOwnership(id: string, userId: string): Promise<void> {
     const resume = await this.findResumeByIdAndUserId(id, userId);
     if (!resume) {
       throw new ForbiddenException('Access denied to resume');
@@ -125,11 +106,7 @@ export class ResumesRepository {
   /**
    * BUG-015 FIX: Proper database pagination
    */
-  async findAllUserResumesPaginated(
-    userId: string,
-    skip: number,
-    take: number,
-  ): Promise<Resume[]> {
+  async findAllUserResumesPaginated(userId: string, skip: number, take: number): Promise<Resume[]> {
     return await this.prisma.resume.findMany({
       where: { userId },
       orderBy: { updatedAt: 'desc' },

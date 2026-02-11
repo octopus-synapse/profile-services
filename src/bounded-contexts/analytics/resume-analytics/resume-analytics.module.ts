@@ -18,32 +18,29 @@
  */
 
 import { Module } from '@nestjs/common';
-import { ResumeAnalyticsController } from './controllers/resume-analytics.controller';
-import { AnalyticsSseController } from './controllers/analytics-sse.controller';
-import { ResumeAnalyticsFacade } from './services/resume-analytics.facade';
-import { ViewTrackingService } from './services/view-tracking.service';
-import { ATSScoreService } from './services/ats-score.service';
-import { KeywordAnalysisService } from './services/keyword-analysis.service';
-import { BenchmarkService } from './services/benchmark.service';
-import { SnapshotService } from './services/snapshot.service';
-import { DashboardService } from './services/dashboard.service';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import {
+  ANALYTICS_RECORDER,
+  InitializeAnalyticsOnUserRegisteredHandler,
   ResumeCreatedHandler,
   ResumeUpdatedHandler,
-  InitializeAnalyticsOnUserRegisteredHandler,
   SyncProjectionOnResumeCreatedHandler,
   SyncProjectionOnResumeDeletedHandler,
   SyncProjectionOnSectionAddedHandler,
-  SyncProjectionOnSectionUpdatedHandler,
   SyncProjectionOnSectionRemovedHandler,
-  ANALYTICS_RECORDER,
+  SyncProjectionOnSectionUpdatedHandler,
   VIEW_TRACKER,
 } from '../application/handlers';
-import {
-  AnalyticsRecorderAdapter,
-  ViewTrackerAdapter,
-} from '../infrastructure/adapters';
+import { AnalyticsRecorderAdapter, ViewTrackerAdapter } from '../infrastructure/adapters';
+import { AnalyticsSseController } from './controllers/analytics-sse.controller';
+import { ResumeAnalyticsController } from './controllers/resume-analytics.controller';
+import { ATSScoreService } from './services/ats-score.service';
+import { BenchmarkService } from './services/benchmark.service';
+import { DashboardService } from './services/dashboard.service';
+import { KeywordAnalysisService } from './services/keyword-analysis.service';
+import { ResumeAnalyticsFacade } from './services/resume-analytics.facade';
+import { SnapshotService } from './services/snapshot.service';
+import { ViewTrackingService } from './services/view-tracking.service';
 
 @Module({
   imports: [PrismaModule],

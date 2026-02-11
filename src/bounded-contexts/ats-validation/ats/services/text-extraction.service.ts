@@ -1,10 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import {
-  TextExtractionResult,
-  ValidationIssue,
-  ValidationSeverity,
-} from '../interfaces';
 import * as mammoth from 'mammoth';
+import { TextExtractionResult, ValidationIssue, ValidationSeverity } from '../interfaces';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const pdfParse = require('pdf-parse') as (
@@ -36,8 +32,7 @@ export class TextExtractionService {
           issues.push(...result.issues);
         }
       } else if (
-        file.mimetype ===
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        file.mimetype === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
       ) {
         const result = await this.extractFromDOCX(file.buffer);
         extractedText = result.text;
@@ -70,8 +65,7 @@ export class TextExtractionService {
       if (isEmpty) {
         issues.push({
           code: 'EMPTY_TEXT',
-          message:
-            'No text could be extracted from the document or text is too short',
+          message: 'No text could be extracted from the document or text is too short',
           severity: ValidationSeverity.ERROR,
           suggestion:
             'Ensure the CV contains readable text. Image-based PDFs need to be converted to text.',
@@ -83,8 +77,7 @@ export class TextExtractionService {
           code: 'IMAGE_BASED_PDF',
           message: 'The PDF appears to be image-based (scanned)',
           severity: ValidationSeverity.ERROR,
-          suggestion:
-            'Convert your CV to a text-based PDF or use OCR to make it ATS-compatible',
+          suggestion: 'Convert your CV to a text-based PDF or use OCR to make it ATS-compatible',
         });
       }
 
@@ -98,9 +91,7 @@ export class TextExtractionService {
       }
 
       return {
-        passed:
-          issues.filter((i) => i.severity === ValidationSeverity.ERROR)
-            .length === 0,
+        passed: issues.filter((i) => i.severity === ValidationSeverity.ERROR).length === 0,
         issues,
         extractedText,
         wordCount,

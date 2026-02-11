@@ -1,9 +1,9 @@
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
-import { seedThemes } from './seeds/theme.seed';
-import { seedSpokenLanguages } from './seeds/spoken-language.seed';
-import { seedUsernames } from './seeds/username.seed';
 import { seedAnalyticsProjections } from './seeds/analytics-projection.seed';
+import { seedSpokenLanguages } from './seeds/spoken-language.seed';
+import { seedThemes } from './seeds/theme.seed';
+import { seedUsernames } from './seeds/username.seed';
 
 const prisma = new PrismaClient();
 

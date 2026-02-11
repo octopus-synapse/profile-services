@@ -9,73 +9,70 @@
 // Core Sections (commonly used)
 // ============================================================================
 
-// Experience
+// Certification
 export {
-  ExperienceBaseSchema,
-  CreateExperienceSchema,
-  UpdateExperienceSchema,
-  ExperienceSchema,
-  type CreateExperience,
-  type UpdateExperience,
-  type Experience,
-} from './experience.schema';
+  type Certification,
+  CertificationBaseSchema,
+  CertificationSchema,
+  type CreateCertification,
+  CreateCertificationSchema,
+  type UpdateCertification,
+  UpdateCertificationSchema,
+} from './certification.schema';
 
 // Education
 export {
-  EducationBaseSchema,
-  CreateEducationSchema,
-  UpdateEducationSchema,
-  EducationSchema,
   type CreateEducation,
-  type UpdateEducation,
+  CreateEducationSchema,
   type Education,
+  EducationBaseSchema,
+  EducationSchema,
+  type UpdateEducation,
+  UpdateEducationSchema,
 } from './education.schema';
-
-// Skill
+// Experience
 export {
-  SkillBaseSchema,
-  CreateSkillSchema,
-  UpdateSkillSchema,
-  BulkCreateSkillsSchema,
-  SkillSchema,
-  type CreateSkill,
-  type UpdateSkill,
-  type BulkCreateSkills,
-  type Skill,
-} from './skill.schema';
+  type CreateExperience,
+  CreateExperienceSchema,
+  type Experience,
+  ExperienceBaseSchema,
+  ExperienceSchema,
+  type UpdateExperience,
+  UpdateExperienceSchema,
+} from './experience.schema';
 
 // Language
 export {
-  LanguageBaseSchema,
-  CreateLanguageSchema,
-  UpdateLanguageSchema,
-  LanguageSchema,
   type CreateLanguage,
-  type UpdateLanguage,
+  CreateLanguageSchema,
   type Language,
+  LanguageBaseSchema,
+  LanguageSchema,
+  type UpdateLanguage,
+  UpdateLanguageSchema,
 } from './language.schema';
-
-// Certification
-export {
-  CertificationBaseSchema,
-  CreateCertificationSchema,
-  UpdateCertificationSchema,
-  CertificationSchema,
-  type CreateCertification,
-  type UpdateCertification,
-  type Certification,
-} from './certification.schema';
-
 // Project
 export {
-  ProjectBaseSchema,
-  CreateProjectSchema,
-  UpdateProjectSchema,
-  ProjectSchema,
   type CreateProject,
-  type UpdateProject,
+  CreateProjectSchema,
   type Project,
+  ProjectBaseSchema,
+  ProjectSchema,
+  type UpdateProject,
+  UpdateProjectSchema,
 } from './project.schema';
+// Skill
+export {
+  type BulkCreateSkills,
+  BulkCreateSkillsSchema,
+  type CreateSkill,
+  CreateSkillSchema,
+  type Skill,
+  SkillBaseSchema,
+  SkillSchema,
+  type UpdateSkill,
+  UpdateSkillSchema,
+} from './skill.schema';
 
 // ============================================================================
 // Advanced Sections (tech professional features)
@@ -83,109 +80,109 @@ export {
 
 // Achievement
 export {
-  AchievementTypeSchema,
+  type Achievement,
   AchievementBaseSchema,
-  CreateAchievementSchema,
-  UpdateAchievementSchema,
   AchievementSchema,
   type AchievementType,
+  AchievementTypeSchema,
   type CreateAchievement,
+  CreateAchievementSchema,
   type UpdateAchievement,
-  type Achievement,
+  UpdateAchievementSchema,
 } from './achievement.schema';
 
 // Award
 export {
+  type Award,
   AwardBaseSchema,
-  CreateAwardSchema,
-  UpdateAwardSchema,
   AwardSchema,
   type CreateAward,
+  CreateAwardSchema,
   type UpdateAward,
-  type Award,
+  UpdateAwardSchema,
 } from './award.schema';
 
 // Bug Bounty
 export {
-  SeverityLevelSchema,
-  BugBountyBaseSchema,
-  CreateBugBountySchema,
-  UpdateBugBountySchema,
-  BugBountySchema,
-  type SeverityLevel,
-  type CreateBugBounty,
-  type UpdateBugBounty,
   type BugBounty,
+  BugBountyBaseSchema,
+  BugBountySchema,
+  type CreateBugBounty,
+  CreateBugBountySchema,
+  type SeverityLevel,
+  SeverityLevelSchema,
+  type UpdateBugBounty,
+  UpdateBugBountySchema,
 } from './bug-bounty.schema';
 
 // Hackathon
 export {
-  HackathonBaseSchema,
-  CreateHackathonSchema,
-  UpdateHackathonSchema,
-  HackathonSchema,
   type CreateHackathon,
-  type UpdateHackathon,
+  CreateHackathonSchema,
   type Hackathon,
+  HackathonBaseSchema,
+  HackathonSchema,
+  type UpdateHackathon,
+  UpdateHackathonSchema,
 } from './hackathon.schema';
 
 // Interest
 export {
-  InterestBaseSchema,
-  CreateInterestSchema,
-  UpdateInterestSchema,
-  InterestSchema,
   type CreateInterest,
-  type UpdateInterest,
+  CreateInterestSchema,
   type Interest,
+  InterestBaseSchema,
+  InterestSchema,
+  type UpdateInterest,
+  UpdateInterestSchema,
 } from './interest.schema';
 
 // Open Source
 export {
-  OpenSourceRoleSchema,
-  OpenSourceBaseSchema,
-  CreateOpenSourceSchema,
-  UpdateOpenSourceSchema,
-  OpenSourceSchema,
-  type OpenSourceRole,
   type CreateOpenSource,
-  type UpdateOpenSource,
+  CreateOpenSourceSchema,
   type OpenSource,
+  OpenSourceBaseSchema,
+  type OpenSourceRole,
+  OpenSourceRoleSchema,
+  OpenSourceSchema,
+  type UpdateOpenSource,
+  UpdateOpenSourceSchema,
 } from './open-source.schema';
 
 // Publication
 export {
-  PublicationTypeSchema,
-  PublicationBaseSchema,
+  type CreatePublication,
   CreatePublicationSchema,
-  UpdatePublicationSchema,
+  type Publication,
+  PublicationBaseSchema,
   PublicationSchema,
   type PublicationType,
-  type CreatePublication,
+  PublicationTypeSchema,
   type UpdatePublication,
-  type Publication,
+  UpdatePublicationSchema,
 } from './publication.schema';
 
 // Recommendation
 export {
-  RecommendationBaseSchema,
-  CreateRecommendationSchema,
-  UpdateRecommendationSchema,
-  RecommendationSchema,
   type CreateRecommendation,
-  type UpdateRecommendation,
+  CreateRecommendationSchema,
   type Recommendation,
+  RecommendationBaseSchema,
+  RecommendationSchema,
+  type UpdateRecommendation,
+  UpdateRecommendationSchema,
 } from './recommendation.schema';
 
 // Talk
 export {
-  EventTypeSchema,
-  TalkBaseSchema,
-  CreateTalkSchema,
-  UpdateTalkSchema,
-  TalkSchema,
-  type EventType,
   type CreateTalk,
-  type UpdateTalk,
+  CreateTalkSchema,
+  type EventType,
+  EventTypeSchema,
   type Talk,
+  TalkBaseSchema,
+  TalkSchema,
+  type UpdateTalk,
+  UpdateTalkSchema,
 } from './talk.schema';

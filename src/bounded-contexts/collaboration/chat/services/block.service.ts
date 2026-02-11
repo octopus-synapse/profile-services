@@ -1,10 +1,6 @@
-import {
-  Injectable,
-  BadRequestException,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import type { BlockedUserResponse, BlockUser } from '@/shared-kernel';
 import { BlockedUserRepository } from '../repositories/blocked-user.repository';
-import type { BlockUser, BlockedUserResponse } from '@/shared-kernel';
 
 @Injectable()
 export class BlockService {
@@ -13,19 +9,12 @@ export class BlockService {
   /**
    * Block a user.
    */
-  async blockUser(
-    blockerId: string,
-    dto: BlockUser,
-  ): Promise<BlockedUserResponse> {
+  async blockUser(blockerId: string, dto: BlockUser): Promise<BlockedUserResponse> {
     if (blockerId === dto.userId) {
       throw new BadRequestException('Cannot block yourself');
     }
 
-    const record = await this.blockedUserRepo.block(
-      blockerId,
-      dto.userId,
-      dto.reason,
-    );
+    const record = await this.blockedUserRepo.block(blockerId, dto.userId, dto.reason);
 
     return {
       id: record.id,
@@ -44,10 +33,7 @@ export class BlockService {
    * Unblock a user.
    */
   async unblockUser(blockerId: string, blockedId: string): Promise<void> {
-    const isBlocked = await this.blockedUserRepo.isBlocked(
-      blockerId,
-      blockedId,
-    );
+    const isBlocked = await this.blockedUserRepo.isBlocked(blockerId, blockedId);
     if (!isBlocked) {
       throw new NotFoundException('User is not blocked');
     }

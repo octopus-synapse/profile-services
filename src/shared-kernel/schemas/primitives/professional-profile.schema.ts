@@ -14,10 +14,7 @@ import { STRING_LIMITS } from '../../constants';
 export const JobTitleSchema = z
   .string()
   .min(2, 'Job title must be at least 2 characters')
-  .max(
-    STRING_LIMITS.TITLE.MAX,
-    `Job title must be less than ${STRING_LIMITS.TITLE.MAX} characters`,
-  )
+  .max(STRING_LIMITS.TITLE.MAX, `Job title must be less than ${STRING_LIMITS.TITLE.MAX} characters`)
   .trim();
 
 /**
@@ -26,10 +23,7 @@ export const JobTitleSchema = z
  */
 export const ProfessionalSummarySchema = z
   .string()
-  .min(
-    50,
-    'Summary must be at least 50 characters to provide meaningful content',
-  )
+  .min(50, 'Summary must be at least 50 characters to provide meaningful content')
   .max(
     STRING_LIMITS.SUMMARY.MAX,
     `Summary must be less than ${STRING_LIMITS.SUMMARY.MAX} characters`,
@@ -74,9 +68,6 @@ export type ProfessionalProfile = z.infer<typeof ProfessionalProfileSchema>;
 /**
  * Partial professional profile for updates
  */
-export const UpdateProfessionalProfileSchema =
-  ProfessionalProfileSchema.partial();
+export const UpdateProfessionalProfileSchema = ProfessionalProfileSchema.partial();
 
-export type UpdateProfessionalProfile = z.infer<
-  typeof UpdateProfessionalProfileSchema
->;
+export type UpdateProfessionalProfile = z.infer<typeof UpdateProfessionalProfileSchema>;

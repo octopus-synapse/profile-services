@@ -1,11 +1,5 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
-import {
-  Counter,
-  Gauge,
-  Histogram,
-  Registry,
-  collectDefaultMetrics,
-} from 'prom-client';
+import { Counter, collectDefaultMetrics, Gauge, Histogram, Registry } from 'prom-client';
 
 type CounterLabels = Record<string, string>;
 
@@ -196,9 +190,7 @@ export class MetricsService implements OnModuleInit {
     // Find matching entry by labels
     const matchingEntry = values.find((v) => {
       const entryLabels = v.labels as CounterLabels;
-      return Object.entries(labels).every(
-        ([key, value]) => entryLabels[key] === value,
-      );
+      return Object.entries(labels).every(([key, value]) => entryLabels[key] === value);
     });
 
     return matchingEntry?.value ?? 0;

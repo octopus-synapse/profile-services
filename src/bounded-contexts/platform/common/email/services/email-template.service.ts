@@ -5,11 +5,11 @@
 
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { EmailSenderService } from './email-sender.service';
-import { getVerificationEmailTemplate } from '../templates/verification.template';
-import { getPasswordResetTemplate } from '../templates/password-reset.template';
-import { getWelcomeEmailTemplate } from '../templates/welcome.template';
 import { getPasswordChangedTemplate } from '../templates/password-changed.template';
+import { getPasswordResetTemplate } from '../templates/password-reset.template';
+import { getVerificationEmailTemplate } from '../templates/verification.template';
+import { getWelcomeEmailTemplate } from '../templates/welcome.template';
+import { EmailSenderService } from './email-sender.service';
 
 @Injectable()
 export class EmailTemplateService {
@@ -21,13 +21,8 @@ export class EmailTemplateService {
   /**
    * Send verification email
    */
-  async sendVerificationEmail(
-    email: string,
-    name: string,
-    token: string,
-  ): Promise<void> {
-    const frontendUrl =
-      this.configService.get<string>('FRONTEND_URL') ?? 'http://localhost:3000';
+  async sendVerificationEmail(email: string, name: string, token: string): Promise<void> {
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL') ?? 'http://localhost:3000';
     const verificationUrl = `${frontendUrl}/auth/verify-email?token=${token}`;
 
     const html = getVerificationEmailTemplate(name, verificationUrl);
@@ -42,13 +37,8 @@ export class EmailTemplateService {
   /**
    * Send password reset email
    */
-  async sendPasswordResetEmail(
-    email: string,
-    name: string,
-    token: string,
-  ): Promise<void> {
-    const frontendUrl =
-      this.configService.get<string>('FRONTEND_URL') ?? 'http://localhost:3000';
+  async sendPasswordResetEmail(email: string, name: string, token: string): Promise<void> {
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL') ?? 'http://localhost:3000';
     const resetUrl = `${frontendUrl}/auth/reset-password?token=${token}`;
 
     const html = getPasswordResetTemplate(name, resetUrl);

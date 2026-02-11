@@ -1,3 +1,3 @@
+export { ActivityController, FollowController } from './controllers';
+export { ActivityService, FollowService } from './services';
 export { SocialModule } from './social.module';
-export { FollowService, ActivityService } from './services';
-export { FollowController, ActivityController } from './controllers';

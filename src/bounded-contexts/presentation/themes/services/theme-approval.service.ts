@@ -9,17 +9,17 @@
  */
 
 import {
-  Injectable,
-  ForbiddenException,
   BadRequestException,
+  ForbiddenException,
+  Injectable,
   UnprocessableEntityException,
 } from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ThemeStatus } from '@prisma/client';
-import type { ReviewTheme } from '@/shared-kernel';
-import { ThemeCrudService } from './theme-crud.service';
-import { ERROR_MESSAGES } from '@/shared-kernel';
 import { AuthorizationService } from '@/bounded-contexts/identity/authorization';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { ReviewTheme } from '@/shared-kernel';
+import { ERROR_MESSAGES } from '@/shared-kernel';
+import { ThemeCrudService } from './theme-crud.service';
 
 /** Maximum number of times a theme can be resubmitted after rejection */
 const MAX_RESUBMISSIONS = 2;
@@ -39,23 +39,16 @@ export class ThemeApprovalService {
       throw new ForbiddenException(ERROR_MESSAGES.CAN_ONLY_SUBMIT_OWN_THEMES);
     }
 
-    const validStatuses: ThemeStatus[] = [
-      ThemeStatus.PRIVATE,
-      ThemeStatus.REJECTED,
-    ];
+    const validStatuses: ThemeStatus[] = [ThemeStatus.PRIVATE, ThemeStatus.REJECTED];
     if (!validStatuses.includes(theme.status)) {
-      throw new BadRequestException(
-        ERROR_MESSAGES.THEME_MUST_BE_PRIVATE_OR_REJECTED,
-      );
+      throw new BadRequestException(ERROR_MESSAGES.THEME_MUST_BE_PRIVATE_OR_REJECTED);
     }
 
     // BUG-007 FIX: Check resubmission count for rejected themes
     if (theme.status === ThemeStatus.REJECTED) {
       const rejectionCount = theme.rejectionCount;
       if (rejectionCount >= MAX_RESUBMISSIONS) {
-        throw new UnprocessableEntityException(
-          ERROR_MESSAGES.THEME_RESUBMISSION_LIMIT_REACHED,
-        );
+        throw new UnprocessableEntityException(ERROR_MESSAGES.THEME_RESUBMISSION_LIMIT_REACHED);
       }
     }
 
@@ -125,11 +118,7 @@ export class ThemeApprovalService {
   }
 
   private async assertIsApprover(userId: string) {
-    const hasPermission = await this.authorizationService.hasPermission(
-      userId,
-      'theme',
-      'approve',
-    );
+    const hasPermission = await this.authorizationService.hasPermission(userId, 'theme', 'approve');
 
     if (!hasPermission) {
       throw new ForbiddenException('Only approvers can perform this action');

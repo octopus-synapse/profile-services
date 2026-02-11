@@ -1,17 +1,13 @@
 import { Controller, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
-import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import type { Recommendation } from '@prisma/client';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
-import { RecommendationService } from '../services/recommendation.service';
-import type {
-  CreateRecommendation,
-  UpdateRecommendation,
-} from '@/shared-kernel';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import type { CreateRecommendation, UpdateRecommendation } from '@/shared-kernel';
 import {
   BaseSubResourceController,
   SubResourceControllerConfig,
 } from './base/base-sub-resource.controller';
-import type { Recommendation } from '@prisma/client';
 
 @SdkExport({ tag: 'resumes', description: 'Resumes API' })
 @ApiTags('resumes')
@@ -33,8 +29,4 @@ export class RecommendationController extends BaseSubResourceController<
     entityName: 'recommendation',
     entityPluralName: 'recommendations',
   };
-
-  constructor(recommendationService: RecommendationService) {
-    super(recommendationService);
-  }
 }

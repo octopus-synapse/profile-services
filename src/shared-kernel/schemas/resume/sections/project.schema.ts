@@ -13,10 +13,7 @@ import { z } from 'zod';
 
 const DateString = z
   .string()
-  .regex(
-    /^\d{4}-\d{2}(-\d{2})?$/,
-    'Invalid date format (YYYY-MM or YYYY-MM-DD)',
-  );
+  .regex(/^\d{4}-\d{2}(-\d{2})?$/, 'Invalid date format (YYYY-MM or YYYY-MM-DD)');
 
 // ============================================================================
 // Base Schema

@@ -4,19 +4,13 @@
  */
 
 import { Controller, Get, Param, ParseIntPipe, Query } from '@nestjs/common';
-import { MecInstitutionDto } from '@/shared-kernel/dtos/sdk-response.dto';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiQuery,
-  ApiParam,
-  ApiResponse,
-} from '@nestjs/swagger';
-import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import { ApiOperation, ApiParam, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Public } from '@/bounded-contexts/identity/auth/decorators/public.decorator';
-import { InstitutionQueryService } from '../services/institution-query.service';
-import { CourseQueryService } from '../services/course-query.service';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { APP_CONFIG } from '@/shared-kernel';
+import { MecInstitutionDto } from '@/shared-kernel/dtos/sdk-response.dto';
+import { CourseQueryService } from '../services/course-query.service';
+import { InstitutionQueryService } from '../services/institution-query.service';
 
 @SdkExport({
   tag: 'mec-institutions',
@@ -47,26 +41,16 @@ export class MecInstitutionController {
   @ApiOperation({ summary: 'Search institutions' })
   @ApiQuery({ name: 'q', required: true })
   @ApiQuery({ name: 'limit', required: false, type: Number })
-  async searchInstitutionsByName(
-    @Query('q') searchQuery: string,
-    @Query('limit') limit?: string,
-  ) {
-    const parsedLimit = limit
-      ? parseInt(limit, 10)
-      : APP_CONFIG.DEFAULT_PAGE_SIZE;
-    return this.institutionQuery.searchInstitutionsByName(
-      searchQuery,
-      parsedLimit,
-    );
+  async searchInstitutionsByName(@Query('q') searchQuery: string, @Query('limit') limit?: string) {
+    const parsedLimit = limit ? parseInt(limit, 10) : APP_CONFIG.DEFAULT_PAGE_SIZE;
+    return this.institutionQuery.searchInstitutionsByName(searchQuery, parsedLimit);
   }
 
   @Get(':codigoIes')
   @Public()
   @ApiOperation({ summary: 'Get institution by MEC code' })
   @ApiParam({ name: 'codigoIes', type: Number })
-  async getInstitutionByCodeWithCourses(
-    @Param('codigoIes', ParseIntPipe) codigoIes: number,
-  ) {
+  async getInstitutionByCodeWithCourses(@Param('codigoIes', ParseIntPipe) codigoIes: number) {
     return this.institutionQuery.findInstitutionByCodeWithCourses(codigoIes);
   }
 
@@ -74,9 +58,7 @@ export class MecInstitutionController {
   @Public()
   @ApiOperation({ summary: 'Get courses by institution' })
   @ApiParam({ name: 'codigoIes', type: Number })
-  async listCoursesByInstitutionCode(
-    @Param('codigoIes', ParseIntPipe) codigoIes: number,
-  ) {
+  async listCoursesByInstitutionCode(@Param('codigoIes', ParseIntPipe) codigoIes: number) {
     return this.courseQuery.listCoursesByInstitutionCode(codigoIes);
   }
 }

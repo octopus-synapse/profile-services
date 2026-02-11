@@ -1,13 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { Talk } from '@prisma/client';
 import type { CreateTalk, UpdateTalk } from '@/shared-kernel';
-import {
-  BaseSubResourceRepository,
-  OrderByConfig,
-  buildUpdateData,
-  buildCreateData,
-} from './base';
+import { BaseSubResourceRepository, buildCreateData, buildUpdateData, OrderByConfig } from './base';
 
 /**
  * Repository for Talk entities
@@ -16,16 +10,8 @@ import {
  * Rationale: Talks are chronological events - most recent should appear first.
  */
 @Injectable()
-export class TalkRepository extends BaseSubResourceRepository<
-  Talk,
-  CreateTalk,
-  UpdateTalk
-> {
+export class TalkRepository extends BaseSubResourceRepository<Talk, CreateTalk, UpdateTalk> {
   protected readonly logger = new Logger(TalkRepository.name);
-
-  constructor(prisma: PrismaService) {
-    super(prisma);
-  }
 
   protected getPrismaDelegate() {
     return this.prisma.talk;

@@ -7,8 +7,8 @@
 
 import { z } from 'zod';
 import {
-  LanguageProficiencyEnum,
   CefrLevelEnum,
+  LanguageProficiencyEnum,
 } from '../../../validations/onboarding-data.schema';
 
 export const LanguageBaseSchema = z.object({

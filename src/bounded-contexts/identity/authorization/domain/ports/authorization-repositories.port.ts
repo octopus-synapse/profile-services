@@ -5,9 +5,9 @@
  * Domain services depend on these abstractions, not implementations.
  */
 
+import type { Group, GroupId } from '../entities/group.entity';
 import type { Permission, PermissionId } from '../entities/permission.entity';
 import type { Role, RoleId } from '../entities/role.entity';
-import type { Group, GroupId } from '../entities/group.entity';
 import type { UserId } from '../entities/user-auth-context.entity';
 
 /** User's direct permission assignment */

@@ -1,5 +1,5 @@
-import { TechPersona } from './tech-persona.enum';
 import { PersonaConfig } from './persona-config.interface';
+import { TechPersona } from './tech-persona.enum';
 
 export const SECURITY_PERSONA: PersonaConfig = {
   id: TechPersona.SECURITY,
@@ -18,18 +18,8 @@ export const SECURITY_PERSONA: PersonaConfig = {
     'Application Security',
     'Incident Response',
   ],
-  achievementTypes: [
-    'cve_discovered',
-    'bug_bounty_total',
-    'ctf_wins',
-    'hall_of_fame',
-  ],
-  prioritySections: [
-    'bugBounties',
-    'certifications',
-    'publications',
-    'achievements',
-  ],
+  achievementTypes: ['cve_discovered', 'bug_bounty_total', 'ctf_wins', 'hall_of_fame'],
+  prioritySections: ['bugBounties', 'certifications', 'publications', 'achievements'],
   keywords: [
     'oscp',
     'ceh',

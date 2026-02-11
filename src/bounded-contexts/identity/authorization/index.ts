@@ -6,63 +6,58 @@
 
 // Module
 export * from './authorization.module';
-
+export {
+  type CreateGroupInput,
+  Group,
+  type GroupId,
+  type GroupProps,
+  type UpdateGroupInput,
+} from './domain/entities/group.entity';
 // Domain Entities
 export {
+  type CreatePermissionInput,
   Permission,
   type PermissionId,
   type PermissionProps,
-  type CreatePermissionInput,
-  StandardActions,
-  StandardResources,
   type StandardAction,
+  StandardActions,
   type StandardResource,
+  StandardResources,
 } from './domain/entities/permission.entity';
-
 export {
+  type CreateRoleInput,
   Role,
   type RoleId,
   type RoleProps,
-  type CreateRoleInput,
   type UpdateRoleInput,
 } from './domain/entities/role.entity';
 
 export {
-  Group,
-  type GroupId,
-  type GroupProps,
-  type CreateGroupInput,
-  type UpdateGroupInput,
-} from './domain/entities/group.entity';
-
-export {
+  type PermissionSource,
+  type ResolvedPermission,
   UserAuthContext,
   type UserId,
-  type ResolvedPermission,
-  type PermissionSource,
 } from './domain/entities/user-auth-context.entity';
-
-// Services
-export { AuthorizationService } from './services/authorization.service';
-
 // Guards & Decorators
 export {
+  AdminOnly,
+  AdminOrApprover,
+  ApproverOnly,
+  CanManage,
   PermissionGuard,
+  type PermissionRequirement,
+  type PermissionStrategy,
+  Protected,
   RequirePermission,
   RequirePermissions,
   RequireRole,
   RequireRoles,
-  CanManage,
-  Protected,
-  AdminOnly,
-  ApproverOnly,
-  AdminOrApprover,
-  type PermissionRequirement,
-  type PermissionStrategy,
 } from './infrastructure/guards/permission.guard';
+export { GroupRepository } from './infrastructure/repositories/group.repository';
 
 // Repositories (for admin use)
 export { PermissionRepository } from './infrastructure/repositories/permission.repository';
 export { RoleRepository } from './infrastructure/repositories/role.repository';
-export { GroupRepository } from './infrastructure/repositories/group.repository';
 export { UserAuthorizationRepository } from './infrastructure/repositories/user-authorization.repository';
+// Services
+export { AuthorizationService } from './services/authorization.service';

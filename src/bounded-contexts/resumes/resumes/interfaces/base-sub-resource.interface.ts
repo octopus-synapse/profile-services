@@ -22,10 +22,7 @@ export interface ISubResourceRepository<T, Create, Update> {
   /**
    * Find a single entity by ID within a resume
    */
-  findEntityByIdAndResumeId(
-    entityId: string,
-    resumeId: string,
-  ): Promise<T | null>;
+  findEntityByIdAndResumeId(entityId: string, resumeId: string): Promise<T | null>;
 
   /**
    * Create a new entity for a resume
@@ -35,11 +32,7 @@ export interface ISubResourceRepository<T, Create, Update> {
   /**
    * Update an existing entity
    */
-  updateEntityForResume(
-    entityId: string,
-    resumeId: string,
-    updateData: Update,
-  ): Promise<T | null>;
+  updateEntityForResume(entityId: string, resumeId: string, updateData: Update): Promise<T | null>;
 
   /**
    * Delete an entity
@@ -49,8 +42,5 @@ export interface ISubResourceRepository<T, Create, Update> {
   /**
    * Reorder entities within a resume
    */
-  reorderEntitiesForResume(
-    resumeId: string,
-    entityIds: string[],
-  ): Promise<void>;
+  reorderEntitiesForResume(resumeId: string, entityIds: string[]): Promise<void>;
 }

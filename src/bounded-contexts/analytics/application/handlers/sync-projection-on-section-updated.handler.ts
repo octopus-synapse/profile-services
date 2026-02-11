@@ -15,9 +15,7 @@ import { SectionUpdatedEvent } from '@/bounded-contexts/resumes';
 
 @Injectable()
 export class SyncProjectionOnSectionUpdatedHandler {
-  private readonly logger = new Logger(
-    SyncProjectionOnSectionUpdatedHandler.name,
-  );
+  private readonly logger = new Logger(SyncProjectionOnSectionUpdatedHandler.name);
 
   constructor(private readonly prisma: PrismaService) {}
 
@@ -25,9 +23,7 @@ export class SyncProjectionOnSectionUpdatedHandler {
   async handle(event: SectionUpdatedEvent): Promise<void> {
     const resumeId = event.aggregateId;
 
-    this.logger.debug(
-      `Section ${event.payload.sectionType} updated for resume: ${resumeId}`,
-    );
+    this.logger.debug(`Section ${event.payload.sectionType} updated for resume: ${resumeId}`);
 
     // Touch updatedAt to track activity (Prisma @updatedAt handles this)
     await this.prisma.analyticsResumeProjection.update({

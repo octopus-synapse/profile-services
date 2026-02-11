@@ -3,16 +3,12 @@
  * Single Responsibility: Manage onboarding progress (checkpoints)
  */
 
-import {
-  Injectable,
-  ConflictException,
-  BadRequestException,
-} from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { BadRequestException, ConflictException, Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { OnboardingProgress } from '@/shared-kernel';
 import { ERROR_MESSAGES } from '@/shared-kernel';
-import { Prisma } from '@prisma/client';
 
 /** Onboarding progress expires after 36 hours */
 const PROGRESS_EXPIRATION_HOURS = 36;
@@ -41,14 +37,10 @@ export class OnboardingProgressService {
   ) {}
 
   async saveProgress(userId: string, data: OnboardingProgress) {
-    this.logger.debug(
-      'Saving onboarding progress',
-      'OnboardingProgressService',
-      {
-        userId,
-        currentStep: data.currentStep,
-      },
-    );
+    this.logger.debug('Saving onboarding progress', 'OnboardingProgressService', {
+      userId,
+      currentStep: data.currentStep,
+    });
 
     // BUG-011, BUG-012, BUG-013 FIX: Validate flag + array combinations
     this.validateFlagArrayConsistency(data);
@@ -73,10 +65,7 @@ export class OnboardingProgressService {
     };
   }
 
-  private async validateUsernameUniqueness(
-    username: string,
-    userId: string,
-  ): Promise<void> {
+  private async validateUsernameUniqueness(username: string, userId: string): Promise<void> {
     const existingUser = await this.prisma.user.findUnique({
       where: { username },
       select: { id: true },
@@ -139,10 +128,7 @@ export class OnboardingProgressService {
    * @param tx Prisma transaction client
    * @param userId User ID
    */
-  async deleteProgressWithTx(
-    tx: Prisma.TransactionClient,
-    userId: string,
-  ): Promise<void> {
+  async deleteProgressWithTx(tx: Prisma.TransactionClient, userId: string): Promise<void> {
     await tx.onboardingProgress.deleteMany({ where: { userId } });
   }
 

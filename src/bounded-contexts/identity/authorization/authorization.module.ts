@@ -27,20 +27,20 @@
  * async createResume() { ... }
  */
 
-import { Module, Global } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 
 // Domain
 // (Domain services are created by application services, not injected)
 
+import { PermissionGuard } from './infrastructure/guards';
 // Infrastructure
 import {
+  GroupRepository,
   PermissionRepository,
   RoleRepository,
-  GroupRepository,
   UserAuthorizationRepository,
 } from './infrastructure/repositories';
-import { PermissionGuard } from './infrastructure/guards';
 
 // Application
 import { AuthorizationService } from './services/authorization.service';

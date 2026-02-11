@@ -16,10 +16,7 @@ const COLUMN_DISTRIBUTIONS: Record<string, [number, number]> = {
   '70-30': [70, 30],
 };
 
-export function buildPageLayout(
-  dsl: ResumeDsl,
-  tokens: ResolvedTokens,
-): ResumeAst['page'] {
+export function buildPageLayout(dsl: ResumeDsl, tokens: ResolvedTokens): ResumeAst['page'] {
   const { layout } = dsl;
   const paper = PAPER_SIZES[layout.paperSize];
   const margin = MARGINS[layout.margins];
@@ -38,19 +35,14 @@ export function buildPageLayout(
   };
 }
 
-function buildColumns(
-  layoutType: string,
-  distribution?: string,
-): ResumeAst['page']['columns'] {
+function buildColumns(layoutType: string, distribution?: string): ResumeAst['page']['columns'] {
   switch (layoutType) {
     case 'single-column':
       return [{ id: 'main', widthPercentage: 100, order: 0 }];
 
     case 'two-column':
     case 'sidebar-right': {
-      const [main, sidebar] = COLUMN_DISTRIBUTIONS[distribution ?? '70-30'] ?? [
-        70, 30,
-      ];
+      const [main, sidebar] = COLUMN_DISTRIBUTIONS[distribution ?? '70-30'] ?? [70, 30];
       return [
         { id: 'main', widthPercentage: main, order: 0 },
         { id: 'sidebar', widthPercentage: sidebar, order: 1 },
@@ -58,9 +50,7 @@ function buildColumns(
     }
 
     case 'sidebar-left': {
-      const [main, sidebar] = COLUMN_DISTRIBUTIONS[distribution ?? '70-30'] ?? [
-        70, 30,
-      ];
+      const [main, sidebar] = COLUMN_DISTRIBUTIONS[distribution ?? '70-30'] ?? [70, 30];
       return [
         { id: 'sidebar', widthPercentage: sidebar, order: 0 },
         { id: 'main', widthPercentage: main, order: 1 },
@@ -72,8 +62,6 @@ function buildColumns(
         { id: 'main', widthPercentage: 60, order: 0 },
         { id: 'sidebar', widthPercentage: 40, order: 1 },
       ];
-
-    case 'compact':
     default:
       return [{ id: 'main', widthPercentage: 100, order: 0 }];
   }

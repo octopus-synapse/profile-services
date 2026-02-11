@@ -4,21 +4,16 @@
  */
 
 import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import type { TranslateBatch, TranslateText } from '@/shared-kernel';
 import {
   BatchTranslationResponseDto,
   HealthCheckResponseDto,
   TranslationResponseDto,
 } from '@/shared-kernel/dtos/sdk-response.dto';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
-import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
-import { TranslationService, TranslationLanguage } from './translation.service';
-import type { TranslateText, TranslateBatch } from '@/shared-kernel';
+import { TranslationLanguage, TranslationService } from './translation.service';
 
 @SdkExport({ tag: 'translation', description: 'Translation API' })
 @ApiTags('Translation')

@@ -1,13 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { Experience } from '@prisma/client';
 import type { CreateExperience, UpdateExperience } from '@/shared-kernel';
-import {
-  BaseSubResourceRepository,
-  OrderByConfig,
-  buildUpdateData,
-  buildCreateData,
-} from './base';
+import { BaseSubResourceRepository, buildCreateData, buildUpdateData, OrderByConfig } from './base';
 
 /**
  * Repository for Experience entities
@@ -24,10 +18,6 @@ export class ExperienceRepository extends BaseSubResourceRepository<
   UpdateExperience
 > {
   protected readonly logger = new Logger(ExperienceRepository.name);
-
-  constructor(prisma: PrismaService) {
-    super(prisma);
-  }
 
   protected getPrismaDelegate() {
     return this.prisma.experience;

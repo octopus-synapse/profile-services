@@ -1,12 +1,8 @@
 import { z } from 'zod';
-import { EmailSchema, PasswordSchema } from '../schemas/primitives';
 import { UserRoleSchema } from '../enums/user-role.enum';
+import { EmailSchema, PasswordSchema } from '../schemas/primitives';
 
-const FullNameSchema = z
-  .string()
-  .trim()
-  .min(2, 'Name must be at least 2 characters')
-  .max(100);
+const FullNameSchema = z.string().trim().min(2, 'Name must be at least 2 characters').max(100);
 
 export const AdminCreateUserSchema = z.object({
   email: EmailSchema,
@@ -48,9 +44,7 @@ export const AdminUpdateRoleRequestSchema = z.object({
   role: z.enum(['USER', 'ADMIN']),
 });
 
-export type AdminUpdateRoleRequest = z.infer<
-  typeof AdminUpdateRoleRequestSchema
->;
+export type AdminUpdateRoleRequest = z.infer<typeof AdminUpdateRoleRequestSchema>;
 
 import { UserSchema } from '../types/user.types';
 

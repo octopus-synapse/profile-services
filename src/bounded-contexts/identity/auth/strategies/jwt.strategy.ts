@@ -1,10 +1,10 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { TokenBlacklistService } from '../services/token-blacklist.service';
 import { ERROR_MESSAGES } from '@/shared-kernel';
+import { TokenBlacklistService } from '../services/token-blacklist.service';
 
 export interface JwtPayload {
   sub: string;
@@ -60,10 +60,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     // BUG-023/055/056/057 FIX: Enforce token revocation after security events
     // passport-jwt includes standard claims like iat (seconds since epoch)
     const issuedAtMs = (payload.iat ?? 0) * 1000;
-    const isRevoked = await this.tokenBlacklist.isTokenRevokedForUser(
-      user.id,
-      issuedAtMs,
-    );
+    const isRevoked = await this.tokenBlacklist.isTokenRevokedForUser(user.id, issuedAtMs);
     if (isRevoked) {
       throw new UnauthorizedException(ERROR_MESSAGES.TOKEN_REVOKED);
     }

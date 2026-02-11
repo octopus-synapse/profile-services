@@ -1,11 +1,11 @@
 export type {
-  ResumeRepository,
-  ResumeAggregate,
   CreateResumeData,
+  ResumeAggregate,
+  ResumeRepository,
   UpdateResumeData,
 } from './resume.repository';
 
 export {
-  type ResumeEventPublisher,
   RESUME_EVENT_PUBLISHER,
+  type ResumeEventPublisher,
 } from './resume-event-publisher.port';

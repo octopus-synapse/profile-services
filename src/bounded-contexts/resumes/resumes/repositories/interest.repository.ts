@@ -1,13 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { Interest } from '@prisma/client';
 import type { CreateInterest, UpdateInterest } from '@/shared-kernel';
-import {
-  BaseSubResourceRepository,
-  OrderByConfig,
-  buildUpdateData,
-  buildCreateData,
-} from './base';
+import { BaseSubResourceRepository, buildCreateData, buildUpdateData, OrderByConfig } from './base';
 
 /**
  * Repository for Interest entities
@@ -22,10 +16,6 @@ export class InterestRepository extends BaseSubResourceRepository<
   UpdateInterest
 > {
   protected readonly logger = new Logger(InterestRepository.name);
-
-  constructor(prisma: PrismaService) {
-    super(prisma);
-  }
 
   protected getPrismaDelegate() {
     return this.prisma.interest;

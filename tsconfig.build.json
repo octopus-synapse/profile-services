@@ -3,8 +3,13 @@
   "exclude": [
     "node_modules",
     "test",
+    "tests",
     "dist",
-    "**/*spec.ts",
+    "**/*.spec.ts",
+    "**/*.test.ts",
+    "**/*.e2e-spec.ts",
+    "**/__tests__/**",
+    "**/__mocks__/**",
     "eslint.config.ts",
     "scripts"
   ]

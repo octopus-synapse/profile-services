@@ -10,8 +10,8 @@
  *   xvfb-run --auto-servernum npx ts-node scripts/mec-download.ts
  */
 
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import puppeteer from 'puppeteer';
 
 // Page that contains the download link
@@ -98,10 +98,7 @@ async function downloadMecCsv(): Promise<void> {
       await page.waitForFunction(
         () => {
           const body = document.body?.innerHTML || '';
-          return (
-            !body.includes('Just a moment') &&
-            !body.includes('Checking your browser')
-          );
+          return !body.includes('Just a moment') && !body.includes('Checking your browser');
         },
         { timeout: 60000 },
       );
@@ -149,9 +146,7 @@ async function downloadMecCsv(): Promise<void> {
 
             // Check for any .csv file in the directory
             const files = fs.readdirSync(dataDir);
-            const csvFile = files.find(
-              (f) => f.endsWith('.csv') && !f.endsWith('.crdownload'),
-            );
+            const csvFile = files.find((f) => f.endsWith('.csv') && !f.endsWith('.crdownload'));
 
             if (csvFile) {
               const filePath = path.join(dataDir, csvFile);
@@ -168,9 +163,7 @@ async function downloadMecCsv(): Promise<void> {
                     fs.renameSync(filePath, OUTPUT_PATH);
                   }
                   downloadComplete = true;
-                  console.log(
-                    `✅ Downloaded ${(newStats.size / 1024 / 1024).toFixed(2)} MB`,
-                  );
+                  console.log(`✅ Downloaded ${(newStats.size / 1024 / 1024).toFixed(2)} MB`);
                 }
               }
             }
@@ -220,9 +213,7 @@ async function downloadMecCsv(): Promise<void> {
         await delay(1000);
 
         const files = fs.readdirSync(dataDir);
-        const csvFile = files.find(
-          (f) => f.endsWith('.csv') && !f.endsWith('.crdownload'),
-        );
+        const csvFile = files.find((f) => f.endsWith('.csv') && !f.endsWith('.crdownload'));
 
         if (csvFile) {
           const filePath = path.join(dataDir, csvFile);
@@ -237,9 +228,7 @@ async function downloadMecCsv(): Promise<void> {
                 fs.renameSync(filePath, OUTPUT_PATH);
               }
               downloadComplete = true;
-              console.log(
-                `✅ Downloaded ${(newStats.size / 1024 / 1024).toFixed(2)} MB`,
-              );
+              console.log(`✅ Downloaded ${(newStats.size / 1024 / 1024).toFixed(2)} MB`);
             }
           }
         }

@@ -19,10 +19,7 @@ export class RedisConnectionService implements OnModuleDestroy {
 
   constructor(private readonly logger: AppLoggerService) {
     const redisHost = process.env.REDIS_HOST;
-    const redisPort = parseInt(
-      process.env.REDIS_PORT ?? String(REDIS_DEFAULT_PORT),
-      10,
-    );
+    const redisPort = parseInt(process.env.REDIS_PORT ?? String(REDIS_DEFAULT_PORT), 10);
     const redisPassword = process.env.REDIS_PASSWORD;
 
     this._isEnabled = !!redisHost;
@@ -30,44 +27,28 @@ export class RedisConnectionService implements OnModuleDestroy {
     if (this._isEnabled && redisHost) {
       this.initializeClient(redisHost, redisPort, redisPassword);
     } else {
-      this.logger.warn(
-        'Redis not configured - caching disabled',
-        'RedisConnectionService',
-      );
+      this.logger.warn('Redis not configured - caching disabled', 'RedisConnectionService');
     }
   }
 
-  private initializeClient(
-    host: string,
-    port: number,
-    password?: string,
-  ): void {
+  private initializeClient(host: string, port: number, password?: string): void {
     try {
       this._client = new Redis({
         host,
         port,
         password,
-        retryStrategy: (times) =>
-          Math.min(times * RETRY_DELAY_MULTIPLIER, RETRY_DELAY_MAX),
+        retryStrategy: (times) => Math.min(times * RETRY_DELAY_MULTIPLIER, RETRY_DELAY_MAX),
         maxRetriesPerRequest: MAX_RETRIES_PER_REQUEST,
       });
 
       this._client.on('connect', () => {
-        this.logger.log(
-          'Redis connected successfully',
-          'RedisConnectionService',
-        );
+        this.logger.log('Redis connected successfully', 'RedisConnectionService');
       });
 
       this._client.on('error', (error) => {
-        this.logger.error(
-          'Redis connection error',
-          error.stack,
-          'RedisConnectionService',
-          {
-            error: error.message,
-          },
-        );
+        this.logger.error('Redis connection error', error.stack, 'RedisConnectionService', {
+          error: error.message,
+        });
       });
     } catch (error) {
       this.logger.error(
@@ -86,13 +67,9 @@ export class RedisConnectionService implements OnModuleDestroy {
         this.logger.log('Redis connection closed', 'RedisConnectionService');
       } catch (error) {
         // Ignore errors during shutdown
-        this.logger.warn(
-          'Error closing Redis connection',
-          'RedisConnectionService',
-          {
-            error: error instanceof Error ? error.message : String(error),
-          },
-        );
+        this.logger.warn('Error closing Redis connection', 'RedisConnectionService', {
+          error: error instanceof Error ? error.message : String(error),
+        });
       } finally {
         this._client = null;
       }

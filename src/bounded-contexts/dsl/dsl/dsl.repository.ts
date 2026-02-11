@@ -1,11 +1,11 @@
-import { Injectable, Logger, BadRequestException } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { DslCompilerService } from './dsl-compiler.service';
-import { DslValidatorService } from './dsl-validator.service';
-import type { ResumeDsl, ResumeAst } from '@/shared-kernel';
-import type { ResumeWithRelations } from './dsl-compiler.service';
+import type { ResumeAst, ResumeDsl } from '@/shared-kernel';
 import { mergeDsl } from '../domain/value-objects/merge-dsl';
 import { RESUME_RELATIONS_INCLUDE } from '../infrastructure/resume-query';
+import type { ResumeWithRelations } from './dsl-compiler.service';
+import { DslCompilerService } from './dsl-compiler.service';
+import { DslValidatorService } from './dsl-validator.service';
 
 type RenderTarget = 'html' | 'pdf';
 
@@ -56,11 +56,7 @@ export class DslRepository {
     }
 
     const mergedDsl = this.buildMergedDsl(resume as ResumeWithRelations);
-    const ast = this.compileWithResumeData(
-      mergedDsl,
-      resume as ResumeWithRelations,
-      target,
-    );
+    const ast = this.compileWithResumeData(mergedDsl, resume as ResumeWithRelations, target);
     return { ast, slug };
   }
 
@@ -81,10 +77,7 @@ export class DslRepository {
   }
 
   private buildMergedDsl(resume: ResumeWithRelations): Record<string, unknown> {
-    const baseDsl = (resume.activeTheme?.styleConfig ?? {}) as Record<
-      string,
-      unknown
-    >;
+    const baseDsl = (resume.activeTheme?.styleConfig ?? {}) as Record<string, unknown>;
     const customDsl = (resume.customTheme ?? {}) as Record<string, unknown>;
     return mergeDsl(baseDsl, customDsl);
   }

@@ -1,16 +1,16 @@
 import {
   Controller,
-  Get,
-  Param,
-  Headers,
   ForbiddenException,
+  Get,
+  Headers,
   NotFoundException,
+  Param,
   Req,
 } from '@nestjs/common';
-import { ResumeShareService } from '../services/resume-share.service';
+import type { Request } from 'express';
 import { ShareAnalyticsService } from '@/bounded-contexts/analytics/share-analytics/services/share-analytics.service';
 import { Public } from '@/bounded-contexts/identity/auth/decorators/public.decorator';
-import type { Request } from 'express';
+import { ResumeShareService } from '../services/resume-share.service';
 
 @Controller('v1/public/resumes')
 @Public() // Public endpoint - no auth required
@@ -43,10 +43,7 @@ export class PublicResumeController {
         throw new ForbiddenException('Password required');
       }
 
-      const isValid = await this.shareService.verifyPassword(
-        password,
-        share.password,
-      );
+      const isValid = await this.shareService.verifyPassword(password, share.password);
 
       if (!isValid) {
         throw new ForbiddenException('Invalid password');
@@ -102,10 +99,7 @@ export class PublicResumeController {
         throw new ForbiddenException('Password required');
       }
 
-      const isValid = await this.shareService.verifyPassword(
-        password,
-        share.password,
-      );
+      const isValid = await this.shareService.verifyPassword(password, share.password);
 
       if (!isValid) {
         throw new ForbiddenException('Invalid password');

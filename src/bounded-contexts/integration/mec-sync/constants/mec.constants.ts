@@ -3,7 +3,7 @@
  * Single Responsibility: Configuration constants for MEC sync
  */
 
-import * as path from 'path';
+import * as path from 'node:path';
 
 /**
  * MEC CSV source URL
@@ -14,11 +14,7 @@ export const MEC_CSV_URL =
 /**
  * Local cache path for downloaded CSV
  */
-export const LOCAL_CSV_PATH = path.join(
-  process.cwd(),
-  'data',
-  'mec-courses.csv',
-);
+export const LOCAL_CSV_PATH = path.join(process.cwd(), 'data', 'mec-courses.csv');
 
 /**
  * Cache validity in days

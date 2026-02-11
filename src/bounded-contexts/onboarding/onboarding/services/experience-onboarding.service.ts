@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
+import { toUTCDate } from '@/bounded-contexts/platform/common/utils/date.utils';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { DateUtils } from '@/bounded-contexts/platform/common/utils/date.utils';
 import type { OnboardingData } from '../schemas/onboarding.schema';
 import { BaseOnboardingService } from './base-onboarding.service';
 
@@ -40,45 +40,30 @@ export class ExperienceOnboardingService extends BaseOnboardingService<
   }
 
   protected getSkipMessage(noDataFlag: boolean | null): string {
-    return noDataFlag
-      ? 'User selected noExperience'
-      : 'No experiences provided';
+    return noDataFlag ? 'User selected noExperience' : 'No experiences provided';
   }
 
-  protected async deleteExisting(
-    tx: Prisma.TransactionClient,
-    resumeId: string,
-  ): Promise<void> {
+  protected async deleteExisting(tx: Prisma.TransactionClient, resumeId: string): Promise<void> {
     await tx.experience.deleteMany({ where: { resumeId } });
   }
 
-  protected transformItems(
-    items: ExperienceInput[],
-    resumeId: string,
-  ): ExperienceCreate[] {
+  protected transformItems(items: ExperienceInput[], resumeId: string): ExperienceCreate[] {
     return items
       .map((exp) => this.mapExperience(exp, resumeId))
       .filter((e): e is ExperienceCreate => e !== null);
   }
 
-  private mapExperience(
-    exp: ExperienceInput,
-    resumeId: string,
-  ): ExperienceCreate | null {
-    const startDate = DateUtils.toUTCDate(exp.startDate);
-    const endDate = exp.isCurrent ? null : DateUtils.toUTCDate(exp.endDate);
+  private mapExperience(exp: ExperienceInput, resumeId: string): ExperienceCreate | null {
+    const startDate = toUTCDate(exp.startDate);
+    const endDate = exp.isCurrent ? null : toUTCDate(exp.endDate);
 
     if (!startDate) {
-      this.logger.warn(
-        `Skipping experience with invalid start date: ${exp.company}`,
-      );
+      this.logger.warn(`Skipping experience with invalid start date: ${exp.company}`);
       return null;
     }
 
     if (endDate && endDate < startDate) {
-      this.logger.warn(
-        `Skipping experience with end date before start date: ${exp.company}`,
-      );
+      this.logger.warn(`Skipping experience with end date before start date: ${exp.company}`);
       return null;
     }
 

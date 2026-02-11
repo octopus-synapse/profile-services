@@ -13,53 +13,42 @@
  * - Historical snapshots
  */
 
+import { Body, Controller, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
 import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Post,
-  Query,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
-import { TrackEventResponseDto } from '@/shared-kernel/dtos/sdk-response.dto';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse as SwaggerResponse,
   ApiBearerAuth,
+  ApiOperation,
   ApiParam,
+  ApiResponse,
+  ApiTags,
+  ApiResponse as SwaggerResponse,
 } from '@nestjs/swagger';
-import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { Request } from 'express';
-import { ResumeAnalyticsFacade } from '../services/resume-analytics.facade';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import {
   ApiResponseHelper,
   ApiResponse as AppApiResponse,
 } from '@/bounded-contexts/platform/common/dto';
 import type {
-  TrackView,
-  ViewStatsQuery,
-  KeywordOptions,
-  JobMatch,
-  BenchmarkOptions,
-  HistoryQuery,
-  ViewStatsResponse,
   ATSScoreResponse,
-  KeywordSuggestionsResponse,
-  JobMatchResponse,
+  BenchmarkOptions,
   BenchmarkResponse,
   DashboardResponse,
-  SnapshotResponse,
+  HistoryQuery,
+  JobMatch,
+  JobMatchResponse,
+  KeywordOptions,
+  KeywordSuggestionsResponse,
   ScoreProgressionResponse,
+  SnapshotResponse,
+  TrackView,
+  ViewStatsQuery,
+  ViewStatsResponse,
 } from '@/shared-kernel';
-
 import { ImportJobDto } from '@/shared-kernel';
-
-import { ApiResponse } from '@nestjs/swagger';
+import { TrackEventResponseDto } from '@/shared-kernel/dtos/sdk-response.dto';
+import { ResumeAnalyticsFacade } from '../services/resume-analytics.facade';
 
 interface AuthUser {
   id: string;
@@ -86,7 +75,7 @@ export class ResumeAnalyticsController {
       resumeId,
       ip: req.ip ?? '0.0.0.0',
       userAgent: req.headers['user-agent'],
-      referer: req.headers['referer'],
+      referer: req.headers.referer,
     });
 
     return ApiResponseHelper.message('View tracked successfully');
@@ -122,10 +111,7 @@ export class ResumeAnalyticsController {
     @Param('resumeId') resumeId: string,
     @CurrentUser() user: AuthUser,
   ): Promise<AppApiResponse<ATSScoreResponse>> {
-    const score = await this.analyticsService.calculateATSScore(
-      resumeId,
-      user.id,
-    );
+    const score = await this.analyticsService.calculateATSScore(resumeId, user.id);
 
     return ApiResponseHelper.success(score as ATSScoreResponse);
   }
@@ -184,11 +170,7 @@ export class ResumeAnalyticsController {
     @Query() options: BenchmarkOptions,
     @CurrentUser() user: AuthUser,
   ): Promise<AppApiResponse<BenchmarkResponse>> {
-    const benchmark = await this.analyticsService.getIndustryBenchmark(
-      resumeId,
-      user.id,
-      options,
-    );
+    const benchmark = await this.analyticsService.getIndustryBenchmark(resumeId, user.id, options);
 
     return ApiResponseHelper.success(benchmark as BenchmarkResponse);
   }
@@ -203,10 +185,7 @@ export class ResumeAnalyticsController {
     @Param('resumeId') resumeId: string,
     @CurrentUser() user: AuthUser,
   ): Promise<AppApiResponse<DashboardResponse>> {
-    const dashboard = await this.analyticsService.getDashboard(
-      resumeId,
-      user.id,
-    );
+    const dashboard = await this.analyticsService.getDashboard(resumeId, user.id);
 
     return ApiResponseHelper.success(dashboard as DashboardResponse);
   }
@@ -221,10 +200,7 @@ export class ResumeAnalyticsController {
     @Param('resumeId') resumeId: string,
     @CurrentUser() user: AuthUser,
   ): Promise<AppApiResponse<SnapshotResponse>> {
-    const snapshot = await this.analyticsService.saveSnapshot(
-      resumeId,
-      user.id,
-    );
+    const snapshot = await this.analyticsService.saveSnapshot(resumeId, user.id);
 
     return ApiResponseHelper.success(snapshot as SnapshotResponse);
   }
@@ -241,11 +217,7 @@ export class ResumeAnalyticsController {
     @Query() query: HistoryQuery,
     @CurrentUser() user: AuthUser,
   ): Promise<AppApiResponse<SnapshotResponse[]>> {
-    const history = await this.analyticsService.getHistory(
-      resumeId,
-      user.id,
-      query,
-    );
+    const history = await this.analyticsService.getHistory(resumeId, user.id, query);
 
     return ApiResponseHelper.success(history as SnapshotResponse[]);
   }
@@ -260,10 +232,7 @@ export class ResumeAnalyticsController {
     @Param('resumeId') resumeId: string,
     @CurrentUser() user: AuthUser,
   ): Promise<AppApiResponse<ScoreProgressionResponse>> {
-    const progression = await this.analyticsService.getScoreProgression(
-      resumeId,
-      user.id,
-    );
+    const progression = await this.analyticsService.getScoreProgression(resumeId, user.id);
 
     return ApiResponseHelper.success(progression as ScoreProgressionResponse);
   }

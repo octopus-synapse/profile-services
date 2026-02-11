@@ -47,10 +47,7 @@ export function validateDescription(description?: string): string | null {
   return null;
 }
 
-export function validateParentId(
-  parentId: string | undefined,
-  id: string,
-): string | null {
+export function validateParentId(parentId: string | undefined, id: string): string | null {
   if (parentId && parentId === id && id !== '') {
     return 'Group cannot be its own parent';
   }

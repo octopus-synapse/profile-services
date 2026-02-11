@@ -59,9 +59,7 @@ export type EnvironmentVariables = z.infer<typeof EnvironmentSchema>;
  * @returns Validated and typed environment variables
  * @throws Error if validation fails
  */
-export function validateEnv(
-  config: Record<string, unknown>,
-): EnvironmentVariables {
+export function validateEnv(config: Record<string, unknown>): EnvironmentVariables {
   try {
     return EnvironmentSchema.parse(config);
   } catch (error) {

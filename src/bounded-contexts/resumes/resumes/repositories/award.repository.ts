@@ -1,13 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { Award } from '@prisma/client';
 import type { CreateAward, UpdateAward } from '@/shared-kernel';
-import {
-  BaseSubResourceRepository,
-  OrderByConfig,
-  buildUpdateData,
-  buildCreateData,
-} from './base';
+import { BaseSubResourceRepository, buildCreateData, buildUpdateData, OrderByConfig } from './base';
 
 /**
  * Repository for Award entities
@@ -16,16 +10,8 @@ import {
  * Rationale: Awards are chronological achievements - most recent should appear first.
  */
 @Injectable()
-export class AwardRepository extends BaseSubResourceRepository<
-  Award,
-  CreateAward,
-  UpdateAward
-> {
+export class AwardRepository extends BaseSubResourceRepository<Award, CreateAward, UpdateAward> {
   protected readonly logger = new Logger(AwardRepository.name);
-
-  constructor(prisma: PrismaService) {
-    super(prisma);
-  }
 
   protected getPrismaDelegate() {
     return this.prisma.award;

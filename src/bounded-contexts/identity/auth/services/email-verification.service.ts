@@ -4,13 +4,13 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { EmailService } from '@/bounded-contexts/platform/common/email/email.service';
-import { VerificationTokenService } from './verification-token.service';
+import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { RequestVerification, VerifyEmail } from '@/shared-kernel';
 import { EventPublisher } from '@/shared-kernel';
 import { UserVerifiedEvent } from '../../domain/events';
-import type { RequestVerification, VerifyEmail } from '@/shared-kernel';
+import { VerificationTokenService } from './verification-token.service';
 
 @Injectable()
 export class EmailVerificationService {
@@ -51,9 +51,7 @@ export class EmailVerificationService {
 
     if (!user) {
       // Return success even if user not found to prevent email enumeration
-      return this.buildSuccessResponse(
-        'If the email exists, a verification link has been sent',
-      );
+      return this.buildSuccessResponse('If the email exists, a verification link has been sent');
     }
 
     if (user.emailVerified) {
@@ -76,9 +74,7 @@ export class EmailVerificationService {
   }
 
   async verifyEmail(dto: VerifyEmail) {
-    const email = await this.tokenService.validateEmailVerificationToken(
-      dto.token,
-    );
+    const email = await this.tokenService.validateEmailVerificationToken(dto.token);
 
     await this.markEmailAsVerified(email);
 
@@ -118,11 +114,7 @@ export class EmailVerificationService {
     token: string,
   ): Promise<void> {
     try {
-      await this.emailService.sendVerificationEmail(
-        email,
-        name ?? 'Usuário',
-        token,
-      );
+      await this.emailService.sendVerificationEmail(email, name ?? 'Usuário', token);
     } catch (error) {
       this.logger.error(
         'Failed to send verification email',

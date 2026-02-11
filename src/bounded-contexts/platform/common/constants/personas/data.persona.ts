@@ -1,5 +1,5 @@
-import { TechPersona } from './tech-persona.enum';
 import { PersonaConfig } from './persona-config.interface';
+import { TechPersona } from './tech-persona.enum';
 
 export const DATA_PERSONA: PersonaConfig = {
   id: TechPersona.DATA,
@@ -18,18 +18,8 @@ export const DATA_PERSONA: PersonaConfig = {
     'Data Engineering',
     'Programming Languages',
   ],
-  achievementTypes: [
-    'kaggle_medal',
-    'paper_published',
-    'dataset_created',
-    'model_deployed',
-  ],
-  prioritySections: [
-    'publications',
-    'projects',
-    'achievements',
-    'certifications',
-  ],
+  achievementTypes: ['kaggle_medal', 'paper_published', 'dataset_created', 'model_deployed'],
+  prioritySections: ['publications', 'projects', 'achievements', 'certifications'],
   keywords: [
     'python',
     'r',

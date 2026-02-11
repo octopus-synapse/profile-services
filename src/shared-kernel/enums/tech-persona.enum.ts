@@ -54,7 +54,5 @@ export type TechPersonaKebab = TechPersona;
 /**
  * Identity mapping (both are now kebab-case)
  */
-export const techPersonaToKebab = (value: TechPersona): TechPersonaKebab =>
-  value;
-export const techPersonaFromKebab = (value: TechPersonaKebab): TechPersona =>
-  value;
+export const techPersonaToKebab = (value: TechPersona): TechPersonaKebab => value;
+export const techPersonaFromKebab = (value: TechPersonaKebab): TechPersona => value;

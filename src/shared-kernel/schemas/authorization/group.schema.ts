@@ -6,8 +6,8 @@
  */
 
 import { z } from 'zod';
-import { RoleResponseSchema } from './role.schema';
 import { PermissionResponseSchema } from './permission.schema';
+import { RoleResponseSchema } from './role.schema';
 
 // ============================================================================
 // Group Schemas
@@ -63,13 +63,12 @@ export type GroupResponse = z.infer<typeof GroupResponseSchema>;
 /**
  * Schema for group response with hierarchy.
  */
-export const GroupWithHierarchyResponseSchema: z.ZodType<GroupWithHierarchyResponse> =
-  z.lazy(() =>
-    GroupResponseSchema.extend({
-      parent: GroupResponseSchema.nullable().optional(),
-      children: z.array(GroupWithHierarchyResponseSchema).optional(),
-    }),
-  );
+export const GroupWithHierarchyResponseSchema: z.ZodType<GroupWithHierarchyResponse> = z.lazy(() =>
+  GroupResponseSchema.extend({
+    parent: GroupResponseSchema.nullable().optional(),
+    children: z.array(GroupWithHierarchyResponseSchema).optional(),
+  }),
+);
 
 export interface GroupWithHierarchyResponse extends GroupResponse {
   parent?: GroupResponse | null;

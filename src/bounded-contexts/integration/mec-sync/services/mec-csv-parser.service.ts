@@ -5,17 +5,17 @@
 
 import { Injectable } from '@nestjs/common';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
-import { CsvFileCacheService } from './csv-file-cache.service';
-import { CsvDownloaderService } from './csv-downloader.service';
-import { CsvEncodingService } from './csv-encoding.service';
-import { CsvRowProcessorService } from './csv-row-processor.service';
+import { MEC_CSV_URL } from '../constants';
 import {
-  NormalizedInstitution,
   NormalizedCourse,
+  NormalizedInstitution,
   SyncError,
 } from '../interfaces/mec-data.interface';
-import { MEC_CSV_URL } from '../constants';
-import { parseCsvLine, buildColumnMap } from '../parsers/csv-line.parser';
+import { buildColumnMap, parseCsvLine } from '../parsers/csv-line.parser';
+import { CsvDownloaderService } from './csv-downloader.service';
+import { CsvEncodingService } from './csv-encoding.service';
+import { CsvFileCacheService } from './csv-file-cache.service';
+import { CsvRowProcessorService } from './csv-row-processor.service';
 
 export interface ParseResult {
   institutions: Map<number, NormalizedInstitution>;
@@ -79,15 +79,9 @@ export class MecCsvParserService {
     const header = parseCsvLine(lines[0]);
     const columnMap = buildColumnMap(header);
 
-    this.logger.log(
-      `CSV: ${lines.length - 1} rows, ${header.length} columns`,
-      this.context,
-    );
+    this.logger.log(`CSV: ${lines.length - 1} rows, ${header.length} columns`, this.context);
 
-    const { institutions, courses, errors } = this.rowProcessor.processDataRows(
-      lines,
-      columnMap,
-    );
+    const { institutions, courses, errors } = this.rowProcessor.processDataRows(lines, columnMap);
 
     return {
       institutions,

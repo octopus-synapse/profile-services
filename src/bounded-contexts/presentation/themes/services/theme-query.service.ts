@@ -4,8 +4,8 @@
  */
 
 import { Injectable } from '@nestjs/common';
+import { Prisma, ThemeStatus } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { ThemeStatus, Prisma } from '@prisma/client';
 import type { QueryThemes } from '@/shared-kernel';
 import { APP_CONFIG } from '@/shared-kernel';
 
@@ -13,10 +13,7 @@ import { APP_CONFIG } from '@/shared-kernel';
 export class ThemeQueryService {
   constructor(private prisma: PrismaService) {}
 
-  async findAllThemesWithPagination(
-    queryOptions: QueryThemes,
-    userId?: string,
-  ) {
+  async findAllThemesWithPagination(queryOptions: QueryThemes, userId?: string) {
     const whereClause = this.buildWhereClause(queryOptions, userId);
     const {
       sortBy = 'createdAt',
@@ -62,19 +59,14 @@ export class ThemeQueryService {
     });
 
     if (!foundTheme) return null;
-    if (
-      foundTheme.status !== ThemeStatus.PUBLISHED &&
-      foundTheme.authorId !== userId
-    ) {
+    if (foundTheme.status !== ThemeStatus.PUBLISHED && foundTheme.authorId !== userId) {
       return null;
     }
 
     return foundTheme;
   }
 
-  async findPopularThemes(
-    limit: number = APP_CONFIG.SEARCH_AUTOCOMPLETE_LIMIT,
-  ) {
+  async findPopularThemes(limit: number = APP_CONFIG.SEARCH_AUTOCOMPLETE_LIMIT) {
     return this.prisma.resumeTheme.findMany({
       where: { status: ThemeStatus.PUBLISHED },
       orderBy: [{ usageCount: 'desc' }, { rating: 'desc' }],
@@ -97,10 +89,7 @@ export class ThemeQueryService {
     });
   }
 
-  private buildWhereClause(
-    query: QueryThemes,
-    userId?: string,
-  ): Prisma.ResumeThemeWhereInput {
+  private buildWhereClause(query: QueryThemes, userId?: string): Prisma.ResumeThemeWhereInput {
     const where: Prisma.ResumeThemeWhereInput = {};
 
     if (query.status) where.status = query.status;

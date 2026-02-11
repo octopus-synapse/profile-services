@@ -34,9 +34,7 @@ export const InstitutionWithCoursesSchema = InstitutionSchema.extend({
   courses: z.array(CourseBasicSchema),
 });
 
-export type InstitutionWithCourses = z.infer<
-  typeof InstitutionWithCoursesSchema
->;
+export type InstitutionWithCourses = z.infer<typeof InstitutionWithCoursesSchema>;
 
 // Course
 export const InstitutionBasicSchema = z.object({

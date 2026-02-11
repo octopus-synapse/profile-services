@@ -3,9 +3,9 @@
  * Single Responsibility: Load tech skills configuration data
  */
 
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 import { TechAreaType } from '../interfaces';
-import * as path from 'path';
-import * as fs from 'fs';
 
 export interface TechAreaData {
   type: TechAreaType;
@@ -40,10 +40,7 @@ function loadTechSkillsData(): TechSkillsDataFile {
   // In production mode, __dirname is /app/dist/src/tech-skills/data
   // Data folder is mounted at /app/data in dev, or copied to /app/dist/data in prod
   // We need to check both locations
-  const distDataPath = path.resolve(
-    __dirname,
-    '../../../data/tech-skills-data.json',
-  );
+  const distDataPath = path.resolve(__dirname, '../../../data/tech-skills-data.json');
   const srcDataPath = path.resolve(process.cwd(), 'data/tech-skills-data.json');
 
   const dataPath = fs.existsSync(srcDataPath) ? srcDataPath : distDataPath;

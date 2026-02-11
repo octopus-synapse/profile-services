@@ -10,16 +10,12 @@
 
 import { z } from 'zod';
 import { EmailSchema } from '../schemas/primitives';
-import { UsernameSchema } from './username.schema';
 import { ProfessionalProfileSchema } from './professional-profile.schema';
+import { UsernameSchema } from './username.schema';
 
 // PersonalInfoSchema (exported for onboarding-progress.dto.ts)
 export const PersonalInfoSchema = z.object({
-  fullName: z
-    .string()
-    .trim()
-    .min(2, 'Name must be at least 2 characters')
-    .max(100),
+  fullName: z.string().trim().min(2, 'Name must be at least 2 characters').max(100),
   email: EmailSchema,
   phone: z.string().max(20).optional(),
   location: z.string().max(100).optional(),
@@ -31,24 +27,15 @@ export const PersonalInfoSchema = z.object({
  */
 const DateString = z
   .string()
-  .regex(
-    /^\d{4}-\d{2}(-\d{2})?$/,
-    'Invalid date format (YYYY-MM or YYYY-MM-DD)',
-  );
+  .regex(/^\d{4}-\d{2}(-\d{2})?$/, 'Invalid date format (YYYY-MM or YYYY-MM-DD)');
 
 /**
  * Experience Entry Schema
  * Aligned with profile-backend CreateExperienceDto
  */
 export const ExperienceSchema = z.object({
-  company: z
-    .string()
-    .min(1, 'Company name is required')
-    .max(100, 'Company name too long'),
-  position: z
-    .string()
-    .min(1, 'Position is required')
-    .max(100, 'Position too long'),
+  company: z.string().min(1, 'Company name is required').max(100, 'Company name too long'),
+  position: z.string().min(1, 'Position is required').max(100, 'Position too long'),
   startDate: DateString,
   endDate: DateString.optional(),
   isCurrent: z.boolean().default(false),
@@ -63,15 +50,9 @@ export type Experience = z.infer<typeof ExperienceSchema>;
  * Aligned with profile-backend CreateEducationDto
  */
 export const EducationSchema = z.object({
-  institution: z
-    .string()
-    .min(1, 'Institution is required')
-    .max(200, 'Institution name too long'),
+  institution: z.string().min(1, 'Institution is required').max(200, 'Institution name too long'),
   degree: z.string().min(1, 'Degree is required').max(100, 'Degree too long'),
-  field: z
-    .string()
-    .min(1, 'Field of study is required')
-    .max(100, 'Field too long'),
+  field: z.string().min(1, 'Field of study is required').max(100, 'Field too long'),
   startDate: DateString,
   endDate: DateString.optional(),
   isCurrent: z.boolean().default(false),
@@ -84,10 +65,7 @@ export type Education = z.infer<typeof EducationSchema>;
  * Skill Entry Schema
  */
 export const SkillSchema = z.object({
-  name: z
-    .string()
-    .min(1, 'Skill name is required')
-    .max(50, 'Skill name too long'),
+  name: z.string().min(1, 'Skill name is required').max(50, 'Skill name too long'),
   category: z.string().max(50, 'Category too long').optional(),
 });
 
@@ -111,10 +89,7 @@ export const CefrLevelEnum = z.enum(['A1', 'A2', 'B1', 'B2', 'C1', 'C2']);
 export type CefrLevel = z.infer<typeof CefrLevelEnum>;
 
 export const LanguageSchema = z.object({
-  name: z
-    .string()
-    .min(1, 'Language is required')
-    .max(50, 'Language name too long'),
+  name: z.string().min(1, 'Language is required').max(50, 'Language name too long'),
   level: LanguageProficiencyEnum,
   cefrLevel: CefrLevelEnum.optional(),
 });

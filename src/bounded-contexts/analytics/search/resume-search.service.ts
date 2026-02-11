@@ -247,7 +247,6 @@ export class ResumeSearchService {
         return '"createdAt" DESC';
       case 'views':
         return '"profileViews" DESC';
-      case 'relevance':
       default:
         return '"profileViews" DESC, "createdAt" DESC';
     }

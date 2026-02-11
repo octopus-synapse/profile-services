@@ -9,9 +9,8 @@
 
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { EventPublisher } from '@/shared-kernel';
+import { ERROR_MESSAGES, EventPublisher } from '@/shared-kernel';
 import { ResumeDeletedEvent } from '../../domain/events';
-import { ERROR_MESSAGES } from '@/shared-kernel';
 
 @Injectable()
 export class ResumeManagementService {
@@ -101,9 +100,7 @@ export class ResumeManagementService {
     }
 
     // CRITICAL: Publish event BEFORE delete so handlers can cleanup
-    this.eventPublisher.publish(
-      new ResumeDeletedEvent(resumeId, { userId: resume.userId }),
-    );
+    this.eventPublisher.publish(new ResumeDeletedEvent(resumeId, { userId: resume.userId }));
 
     await this.prisma.resume.delete({ where: { id: resumeId } });
 

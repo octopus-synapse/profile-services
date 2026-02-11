@@ -101,9 +101,7 @@ export const UserProfileResponseSchema = z.object({
   }),
 });
 
-export type UserProfileResponseEnvelope = z.infer<
-  typeof UserProfileResponseSchema
->;
+export type UserProfileResponseEnvelope = z.infer<typeof UserProfileResponseSchema>;
 
 export const PublicUserProfileResponseSchema = z.object({
   data: z.object({
@@ -111,9 +109,7 @@ export const PublicUserProfileResponseSchema = z.object({
   }),
 });
 
-export type PublicUserProfileResponseEnvelope = z.infer<
-  typeof PublicUserProfileResponseSchema
->;
+export type PublicUserProfileResponseEnvelope = z.infer<typeof PublicUserProfileResponseSchema>;
 
 /**
  * Admin User Schemas

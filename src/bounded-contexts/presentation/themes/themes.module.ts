@@ -1,20 +1,20 @@
 import { Module } from '@nestjs/common';
-import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { AuthorizationModule } from '@/bounded-contexts/identity/authorization';
+import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import {
   PublicThemeController,
-  UserThemeController,
-  ThemeApprovalController,
   SectionConfigController,
+  ThemeApprovalController,
+  UserThemeController,
 } from './controllers';
 import {
+  ResumeConfigRepository,
+  SectionOrderingService,
+  SectionVisibilityService,
+  ThemeApplicationService,
+  ThemeApprovalService,
   ThemeCrudService,
   ThemeQueryService,
-  ThemeApprovalService,
-  ThemeApplicationService,
-  ResumeConfigRepository,
-  SectionVisibilityService,
-  SectionOrderingService,
 } from './services';
 
 @Module({

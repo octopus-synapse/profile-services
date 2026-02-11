@@ -8,11 +8,7 @@ export class MessageRepository {
   /**
    * Create a new message.
    */
-  async create(data: {
-    conversationId: string;
-    senderId: string;
-    content: string;
-  }) {
+  async create(data: { conversationId: string; senderId: string; content: string }) {
     return this.prisma.message.create({
       data: {
         conversationId: data.conversationId,
@@ -30,10 +26,7 @@ export class MessageRepository {
   /**
    * Get messages for a conversation with cursor-based pagination.
    */
-  async findByConversationId(
-    conversationId: string,
-    options: { cursor?: string; limit: number },
-  ) {
+  async findByConversationId(conversationId: string, options: { cursor?: string; limit: number }) {
     const messages = await this.prisma.message.findMany({
       where: {
         conversationId,
@@ -130,10 +123,7 @@ export class MessageRepository {
   /**
    * Get unread count for a specific conversation.
    */
-  async getUnreadCountByConversation(
-    conversationId: string,
-    userId: string,
-  ): Promise<number> {
+  async getUnreadCountByConversation(conversationId: string, userId: string): Promise<number> {
     return this.prisma.message.count({
       where: {
         conversationId,

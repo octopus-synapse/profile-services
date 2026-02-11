@@ -7,10 +7,10 @@
  */
 
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { AuditLogService } from '@/bounded-contexts/platform/common/audit/audit-log.service';
 import { AuditAction } from '@prisma/client';
 import type { Request } from 'express';
+import { AuditLogService } from '@/bounded-contexts/platform/common/audit/audit-log.service';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 
 export interface DeletionResult {
   success: boolean;
@@ -69,25 +69,18 @@ export class GdprDeletionService {
     // Execute cascading deletion in a transaction
     const result = await this.prisma.$transaction(async (tx) => {
       // 1. Delete all resume sub-resources first
-      const [
-        experiences,
-        education,
-        skills,
-        projects,
-        certifications,
-        languages,
-        openSource,
-      ] = await Promise.all([
-        tx.experience.deleteMany({ where: { resumeId: { in: resumeIds } } }),
-        tx.education.deleteMany({ where: { resumeId: { in: resumeIds } } }),
-        tx.skill.deleteMany({ where: { resumeId: { in: resumeIds } } }),
-        tx.project.deleteMany({ where: { resumeId: { in: resumeIds } } }),
-        tx.certification.deleteMany({ where: { resumeId: { in: resumeIds } } }),
-        tx.language.deleteMany({ where: { resumeId: { in: resumeIds } } }),
-        tx.openSourceContribution.deleteMany({
-          where: { resumeId: { in: resumeIds } },
-        }),
-      ]);
+      const [experiences, education, skills, projects, certifications, languages, openSource] =
+        await Promise.all([
+          tx.experience.deleteMany({ where: { resumeId: { in: resumeIds } } }),
+          tx.education.deleteMany({ where: { resumeId: { in: resumeIds } } }),
+          tx.skill.deleteMany({ where: { resumeId: { in: resumeIds } } }),
+          tx.project.deleteMany({ where: { resumeId: { in: resumeIds } } }),
+          tx.certification.deleteMany({ where: { resumeId: { in: resumeIds } } }),
+          tx.language.deleteMany({ where: { resumeId: { in: resumeIds } } }),
+          tx.openSourceContribution.deleteMany({
+            where: { resumeId: { in: resumeIds } },
+          }),
+        ]);
 
       // 2. Delete resume versions and shares
       const [resumeVersions, resumeShares] = await Promise.all([
@@ -151,10 +144,7 @@ export class GdprDeletionService {
   /**
    * Self-deletion by user (with confirmation)
    */
-  async requestSelfDeletion(
-    userId: string,
-    request?: Request,
-  ): Promise<DeletionResult> {
+  async requestSelfDeletion(userId: string, request?: Request): Promise<DeletionResult> {
     return this.deleteUserCompletely(userId, userId, request);
   }
 }

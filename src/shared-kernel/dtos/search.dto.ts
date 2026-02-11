@@ -14,12 +14,7 @@ import { z } from 'zod';
 export const SearchSortBySchema = z.enum(['relevance', 'date', 'experience']);
 export type SearchSortBy = z.infer<typeof SearchSortBySchema>;
 
-export const SuggestionTypeSchema = z.enum([
-  'skill',
-  'location',
-  'title',
-  'name',
-]);
+export const SuggestionTypeSchema = z.enum(['skill', 'location', 'title', 'name']);
 export type SuggestionType = z.infer<typeof SuggestionTypeSchema>;
 
 // ============================================================================
@@ -108,6 +103,4 @@ export const SimilarProfilesResponseSchema = z.object({
   profiles: z.array(SimilarProfileSchema),
 });
 
-export type SimilarProfilesResponse = z.infer<
-  typeof SimilarProfilesResponseSchema
->;
+export type SimilarProfilesResponse = z.infer<typeof SimilarProfilesResponseSchema>;

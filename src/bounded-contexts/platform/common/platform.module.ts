@@ -5,12 +5,12 @@
  */
 
 import { Module } from '@nestjs/common';
-import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { AuthorizationModule } from '@/bounded-contexts/identity/authorization';
+import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { ResumesModule } from '@/bounded-contexts/resumes/resumes/resumes.module';
-import { PlatformStatsService } from './services/platform-stats.service';
-import { PlatformStatsController } from './controllers/platform-stats.controller';
 import { EnumsController } from './controllers/enums.controller';
+import { PlatformStatsController } from './controllers/platform-stats.controller';
+import { PlatformStatsService } from './services/platform-stats.service';
 
 @Module({
   imports: [PrismaModule, AuthorizationModule, ResumesModule],

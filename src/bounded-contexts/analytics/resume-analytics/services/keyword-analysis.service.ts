@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import type {
-  KeywordSuggestions,
-  KeywordSuggestionsOptions,
-  JobMatchResult,
-  Industry,
-} from '../interfaces';
 import type { ResumeForKeywords } from '../domain/types';
 import { INDUSTRY_KEYWORDS } from '../domain/value-objects/industry-keywords';
+import type {
+  Industry,
+  JobMatchResult,
+  KeywordSuggestions,
+  KeywordSuggestionsOptions,
+} from '../interfaces';
 
 @Injectable()
 export class KeywordAnalysisService {
@@ -16,50 +16,29 @@ export class KeywordAnalysisService {
   ): KeywordSuggestions {
     const resumeText = this.extractResumeText(resume);
     const industryKeywords = INDUSTRY_KEYWORDS[options.industry];
-    const existingKeywords = this.findExistingKeywords(
-      resumeText,
-      industryKeywords,
-    );
+    const existingKeywords = this.findExistingKeywords(resumeText, industryKeywords);
     const missingKeywords = industryKeywords.filter(
-      (kw) =>
-        !existingKeywords.some(
-          (ek) => ek.keyword.toLowerCase() === kw.toLowerCase(),
-        ),
+      (kw) => !existingKeywords.some((ek) => ek.keyword.toLowerCase() === kw.toLowerCase()),
     );
     const wordCount = resumeText.split(/\s+/).length;
-    const keywordCount = existingKeywords.reduce(
-      (sum, kw) => sum + kw.count,
-      0,
-    );
+    const keywordCount = existingKeywords.reduce((sum, kw) => sum + kw.count, 0);
     const keywordDensity = (keywordCount / wordCount) * 100;
     return {
       existingKeywords,
       missingKeywords,
       keywordDensity,
       warnings: this.detectWarnings(existingKeywords, keywordDensity),
-      recommendations: this.generateRecommendations(
-        missingKeywords,
-        options.industry,
-      ),
+      recommendations: this.generateRecommendations(missingKeywords, options.industry),
     };
   }
 
-  matchJobDescription(
-    resume: ResumeForKeywords,
-    jobDescription: string,
-  ): JobMatchResult {
+  matchJobDescription(resume: ResumeForKeywords, jobDescription: string): JobMatchResult {
     const resumeText = this.extractResumeText(resume).toLowerCase();
     const jobKeywords = this.extractJobKeywords(jobDescription);
-    const matchedKeywords = jobKeywords.filter((kw) =>
-      resumeText.includes(kw.toLowerCase()),
-    );
-    const missingKeywords = jobKeywords.filter(
-      (kw) => !resumeText.includes(kw.toLowerCase()),
-    );
+    const matchedKeywords = jobKeywords.filter((kw) => resumeText.includes(kw.toLowerCase()));
+    const missingKeywords = jobKeywords.filter((kw) => !resumeText.includes(kw.toLowerCase()));
     const matchScore =
-      jobKeywords.length > 0
-        ? Math.round((matchedKeywords.length / jobKeywords.length) * 100)
-        : 0;
+      jobKeywords.length > 0 ? Math.round((matchedKeywords.length / jobKeywords.length) * 100) : 0;
     return {
       matchScore,
       matchedKeywords,
@@ -95,10 +74,7 @@ export class KeywordAnalysisService {
             }
           : null;
       })
-      .filter(
-        (r): r is { keyword: string; count: number; relevance: number } =>
-          r !== null,
-      )
+      .filter((r): r is { keyword: string; count: number; relevance: number } => r !== null)
       .sort((a, b) => b.count - a.count);
   }
 
@@ -108,10 +84,7 @@ export class KeywordAnalysisService {
     return allKeywords.filter((kw) => jobLower.includes(kw.toLowerCase()));
   }
 
-  private detectWarnings(
-    keywords: Array<{ keyword: string; count: number }>,
-    density: number,
-  ) {
+  private detectWarnings(keywords: Array<{ keyword: string; count: number }>, density: number) {
     const stuffedKeywords = keywords.filter((k) => k.count > 5);
     if (stuffedKeywords.length === 0 && density <= 10) return [];
     return [
@@ -123,10 +96,7 @@ export class KeywordAnalysisService {
     ];
   }
 
-  private generateRecommendations(
-    missingKeywords: string[],
-    industry: Industry,
-  ): string[] {
+  private generateRecommendations(missingKeywords: string[], industry: Industry): string[] {
     if (missingKeywords.length === 0) return [];
     return [
       `Consider adding these ${industry} keywords: ${missingKeywords.slice(0, 5).join(', ')}`,

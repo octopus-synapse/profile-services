@@ -14,10 +14,7 @@ const DEFAULT_STYLE: HeadingStyle = {
   paddingLeft: 0,
 };
 
-export function resolveHeadingStyle(
-  style: string,
-  accentColor: string,
-): HeadingStyle {
+export function resolveHeadingStyle(style: string, accentColor: string): HeadingStyle {
   switch (style) {
     case 'bold':
       return DEFAULT_STYLE;

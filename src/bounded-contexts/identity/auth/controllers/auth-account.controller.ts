@@ -3,26 +3,14 @@
  * Handles account management endpoints
  */
 
-import {
-  Body,
-  Controller,
-  HttpCode,
-  HttpStatus,
-  Post,
-  UseGuards,
-} from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
-import { DeleteResponseDto } from '@/shared-kernel/dtos/sdk-response.dto';
-import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import { Body, Controller, HttpCode, HttpStatus, Post, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthService } from '@/bounded-contexts/identity/auth/auth.service';
-import type { ChangeEmail, DeleteAccount } from '@/shared-kernel';
-import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import type { ChangeEmail, DeleteAccount } from '@/shared-kernel';
+import { DeleteResponseDto } from '@/shared-kernel/dtos/sdk-response.dto';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import type { UserPayload } from '../interfaces/auth-request.interface';
 
 @SdkExport({ tag: 'auth', description: 'Auth API' })
@@ -39,10 +27,7 @@ export class AuthAccountController {
   @ApiResponse({ status: 200, description: 'Email changed successfully' })
   @ApiResponse({ status: 400, description: 'Invalid email or password' })
   @ApiResponse({ status: 409, description: 'Email already in use' })
-  async changeEmail(
-    @CurrentUser() user: UserPayload,
-    @Body() dto: ChangeEmail,
-  ) {
+  async changeEmail(@CurrentUser() user: UserPayload, @Body() dto: ChangeEmail) {
     return this.authService.changeEmail(user.userId, dto);
   }
 
@@ -54,10 +39,7 @@ export class AuthAccountController {
   @ApiResponse({ status: 201, type: DeleteResponseDto })
   @ApiResponse({ status: 200, description: 'Account deleted successfully' })
   @ApiResponse({ status: 401, description: 'Password is incorrect' })
-  async deleteAccount(
-    @CurrentUser() user: UserPayload,
-    @Body() dto: DeleteAccount,
-  ) {
+  async deleteAccount(@CurrentUser() user: UserPayload, @Body() dto: DeleteAccount) {
     return this.authService.deleteAccount(user.userId, dto);
   }
 }

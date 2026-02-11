@@ -5,8 +5,8 @@
  * IMPORTANT: No direct imports from 'zod' - all validation comes from contracts.
  */
 
-import { Injectable, BadRequestException } from '@nestjs/common';
-import { ResumeDslSchema, type ResumeDsl } from '@/shared-kernel';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { type ResumeDsl, ResumeDslSchema } from '@/shared-kernel';
 
 export interface ValidationResult {
   valid: boolean;
@@ -30,9 +30,7 @@ export class DslValidatorService {
     // Convert Zod errors to string array without importing ZodError
     return {
       valid: false,
-      errors: result.error.errors.map(
-        (err) => `${err.path.join('.')}: ${err.message}`,
-      ),
+      errors: result.error.errors.map((err) => `${err.path.join('.')}: ${err.message}`),
     };
   }
 
@@ -48,9 +46,7 @@ export class DslValidatorService {
       });
     }
     if (!result.normalized) {
-      throw new BadRequestException(
-        'Validation succeeded but normalized DSL is missing',
-      );
+      throw new BadRequestException('Validation succeeded but normalized DSL is missing');
     }
     return result.normalized;
   }

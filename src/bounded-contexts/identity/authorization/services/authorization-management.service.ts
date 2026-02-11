@@ -10,14 +10,14 @@
 
 import { Injectable } from '@nestjs/common';
 import { EventPublisher } from '@/shared-kernel';
-import { UserAuthorizationRepository } from '../infrastructure/repositories/user-authorization.repository';
 import {
+  GroupMembershipChangedEvent,
+  PermissionDeniedEvent,
+  PermissionGrantedEvent,
   RoleAssignedEvent,
   RoleRevokedEvent,
-  PermissionGrantedEvent,
-  PermissionDeniedEvent,
-  GroupMembershipChangedEvent,
 } from '../domain/events';
+import { UserAuthorizationRepository } from '../infrastructure/repositories/user-authorization.repository';
 
 export interface AssignRoleParams {
   userId: string;
@@ -89,15 +89,11 @@ export class AuthorizationManagementService {
   }
 
   async grantPermission(params: GrantPermissionParams): Promise<void> {
-    await this.userAuthRepo.grantPermission(
-      params.userId,
-      params.permissionId,
-      {
-        assignedBy: params.assignedBy,
-        expiresAt: params.expiresAt,
-        reason: params.reason,
-      },
-    );
+    await this.userAuthRepo.grantPermission(params.userId, params.permissionId, {
+      assignedBy: params.assignedBy,
+      expiresAt: params.expiresAt,
+      reason: params.reason,
+    });
 
     this.eventPublisher.publish(
       new PermissionGrantedEvent(params.userId, {

@@ -11,31 +11,27 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ResumeSkillResponseDto } from '@/shared-kernel/dtos/sdk-response.dto';
 import {
-  ApiTags,
   ApiBearerAuth,
   ApiOperation,
   ApiParam,
   ApiQuery,
   ApiResponse,
+  ApiTags,
 } from '@nestjs/swagger';
-import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import type { Skill } from '@prisma/client';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
+import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
+import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import { ParseCuidPipe } from '@/bounded-contexts/platform/common/pipes/parse-cuid.pipe';
+import type { BulkCreateSkills, CreateSkill, UpdateSkill } from '@/shared-kernel';
+import { ResumeSkillResponseDto } from '@/shared-kernel/dtos/sdk-response.dto';
 import { SkillService } from '../services/skill.service';
-import type {
-  CreateSkill,
-  UpdateSkill,
-  BulkCreateSkills,
-} from '@/shared-kernel';
 import {
   BaseSubResourceController,
   SubResourceControllerConfig,
 } from './base/base-sub-resource.controller';
-import type { Skill } from '@prisma/client';
-import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
-import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
-import { ParseCuidPipe } from '@/bounded-contexts/platform/common/pipes/parse-cuid.pipe';
 
 @SdkExport({ tag: 'resumes', description: 'Resumes API' })
 @ApiTags('resumes')
@@ -48,12 +44,7 @@ export class SkillController extends BaseSubResourceController<
   UpdateSkill,
   Skill
 > {
-  protected readonly config: SubResourceControllerConfig<
-    Skill,
-    CreateSkill,
-    UpdateSkill,
-    Skill
-  > = {
+  protected readonly config: SubResourceControllerConfig<Skill, CreateSkill, UpdateSkill, Skill> = {
     entityName: 'skill',
     entityPluralName: 'skills',
   };
@@ -78,13 +69,7 @@ export class SkillController extends BaseSubResourceController<
     @Query('limit', new DefaultValuePipe(50), ParseIntPipe) limit: number,
     @Query('category') category?: string,
   ) {
-    return this.skillService.findAllSkillsForResume(
-      resumeId,
-      user.userId,
-      page,
-      limit,
-      category,
-    );
+    return this.skillService.findAllSkillsForResume(resumeId, user.userId, page, limit, category);
   }
 
   // Additional method: bulk create skills

@@ -14,9 +14,7 @@ import { ResumeCreatedEvent } from '@/bounded-contexts/resumes';
 
 @Injectable()
 export class SyncProjectionOnResumeCreatedHandler {
-  private readonly logger = new Logger(
-    SyncProjectionOnResumeCreatedHandler.name,
-  );
+  private readonly logger = new Logger(SyncProjectionOnResumeCreatedHandler.name);
 
   constructor(private readonly prisma: PrismaService) {}
 

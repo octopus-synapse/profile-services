@@ -1,15 +1,7 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Param,
-  UseGuards,
-  Req,
-  NotFoundException,
-} from '@nestjs/common';
+import { Controller, Get, NotFoundException, Param, Post, Req, UseGuards } from '@nestjs/common';
+import type { Request } from 'express';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
 import { ResumeVersionService } from '../services/resume-version.service';
-import type { Request } from 'express';
 
 interface RequestWithUser extends Request {
   user: { userId: string; email: string };
@@ -22,10 +14,7 @@ export class ResumeVersionController {
 
   // Original endpoints
   @Get('resumes/:resumeId/versions')
-  async getVersionsNested(
-    @Param('resumeId') resumeId: string,
-    @Req() req: RequestWithUser,
-  ) {
+  async getVersionsNested(@Param('resumeId') resumeId: string, @Req() req: RequestWithUser) {
     return this.versionService.getVersions(resumeId, req.user.userId);
   }
 
@@ -35,19 +24,12 @@ export class ResumeVersionController {
     @Param('versionId') versionId: string,
     @Req() req: RequestWithUser,
   ) {
-    return this.versionService.restoreVersion(
-      resumeId,
-      versionId,
-      req.user.userId,
-    );
+    return this.versionService.restoreVersion(resumeId, versionId, req.user.userId);
   }
 
   // Alternative flat endpoints for easier testing
   @Get('versions/:resumeId')
-  async getVersions(
-    @Param('resumeId') resumeId: string,
-    @Req() req: RequestWithUser,
-  ) {
+  async getVersions(@Param('resumeId') resumeId: string, @Req() req: RequestWithUser) {
     return this.versionService.getVersions(resumeId, req.user.userId);
   }
 
@@ -57,10 +39,7 @@ export class ResumeVersionController {
     @Param('versionId') versionId: string,
     @Req() req: RequestWithUser,
   ) {
-    const versions = await this.versionService.getVersions(
-      resumeId,
-      req.user.userId,
-    );
+    const versions = await this.versionService.getVersions(resumeId, req.user.userId);
     const version = versions.find((v) => v.id === versionId);
 
     if (!version) {
@@ -76,10 +55,6 @@ export class ResumeVersionController {
     @Param('versionId') versionId: string,
     @Req() req: RequestWithUser,
   ) {
-    return this.versionService.restoreVersion(
-      resumeId,
-      versionId,
-      req.user.userId,
-    );
+    return this.versionService.restoreVersion(resumeId, versionId, req.user.userId);
   }
 }

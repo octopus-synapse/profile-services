@@ -9,20 +9,12 @@
  * - GET /v1/users/:userId/activities/by-type/:type - Filter activities by type
  */
 
-import {
-  Controller,
-  Get,
-  Param,
-  Query,
-  UseGuards,
-  HttpCode,
-  HttpStatus,
-} from '@nestjs/common';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
-import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
-import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
-import { ActivityService } from '../services/activity.service';
+import { Controller, Get, HttpCode, HttpStatus, Param, Query, UseGuards } from '@nestjs/common';
 import type { ActivityType } from '@prisma/client';
+import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
+import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
+import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
+import { ActivityService } from '../services/activity.service';
 
 // --- Response Types ---
 
@@ -94,14 +86,10 @@ export class ActivityController {
     @Query('page') page = 1,
     @Query('limit') limit = 20,
   ): Promise<ApiResponse<unknown>> {
-    const result = await this.activityService.getActivitiesByType(
-      userId,
-      type as ActivityType,
-      {
-        page: Number(page),
-        limit: Math.min(Number(limit), 100),
-      },
-    );
+    const result = await this.activityService.getActivitiesByType(userId, type as ActivityType, {
+      page: Number(page),
+      limit: Math.min(Number(limit), 100),
+    });
 
     return {
       success: true,

@@ -38,11 +38,7 @@ export class CachePatternsService {
   /**
    * Cache-aside pattern: get from cache or compute and cache
    */
-  async getOrSet<T>(
-    key: string,
-    computeFn: () => Promise<T>,
-    ttl?: number,
-  ): Promise<T> {
+  async getOrSet<T>(key: string, computeFn: () => Promise<T>, ttl?: number): Promise<T> {
     const cached = await this.coreService.get<T>(key);
     if (cached !== null) {
       return cached;

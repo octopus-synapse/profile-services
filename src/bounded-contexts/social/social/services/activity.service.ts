@@ -8,20 +8,13 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { ActivityType } from '@prisma/client';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import {
-  FollowService,
-  PaginationParams,
-  PaginatedResult,
-} from './follow.service';
-import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
-import { EventPublisher } from '@/shared-kernel';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import {
-  ActivityCreatedEvent,
-  ActivityType as DomainActivityType,
-} from '../../domain/events';
+import { ActivityType } from '@prisma/client';
+import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { EventPublisher } from '@/shared-kernel';
+import { ActivityCreatedEvent, ActivityType as DomainActivityType } from '../../domain/events';
+import { FollowService, PaginatedResult, PaginationParams } from './follow.service';
 
 // --- Types ---
 

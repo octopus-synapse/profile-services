@@ -13,29 +13,18 @@ import { z } from 'zod';
  */
 const DateString = z
   .string()
-  .regex(
-    /^\d{4}-\d{2}(-\d{2})?$/,
-    'Invalid date format (YYYY-MM or YYYY-MM-DD)',
-  );
+  .regex(/^\d{4}-\d{2}(-\d{2})?$/, 'Invalid date format (YYYY-MM or YYYY-MM-DD)');
 
 /**
  * Publication Schema
  */
-export const PublicationTypeEnum = z.enum([
-  'paper',
-  'article',
-  'blog',
-  'whitepaper',
-]);
+export const PublicationTypeEnum = z.enum(['paper', 'article', 'blog', 'whitepaper']);
 
 export type PublicationType = z.infer<typeof PublicationTypeEnum>;
 
 export const CreatePublicationSchema = z.object({
   title: z.string().min(1, 'Title is required').max(300, 'Title too long'),
-  publisher: z
-    .string()
-    .min(1, 'Publisher is required')
-    .max(200, 'Publisher name too long'),
+  publisher: z.string().min(1, 'Publisher is required').max(200, 'Publisher name too long'),
   publicationType: PublicationTypeEnum,
   url: z.string().url('Invalid URL').optional(),
   publishedAt: DateString,
@@ -51,16 +40,10 @@ export type CreatePublication = z.infer<typeof CreatePublicationSchema>;
  * Recommendation Schema
  */
 export const CreateRecommendationSchema = z.object({
-  author: z
-    .string()
-    .min(1, 'Author is required')
-    .max(200, 'Author name too long'),
+  author: z.string().min(1, 'Author is required').max(200, 'Author name too long'),
   position: z.string().max(200, 'Position too long').optional(),
   company: z.string().max(200, 'Company name too long').optional(),
-  content: z
-    .string()
-    .min(1, 'Recommendation content is required')
-    .max(5000, 'Content too long'),
+  content: z.string().min(1, 'Recommendation content is required').max(5000, 'Content too long'),
   date: DateString.optional(),
   order: z.number().int().min(0).default(0),
 });
@@ -71,19 +54,10 @@ export type CreateRecommendation = z.infer<typeof CreateRecommendationSchema>;
  * Hackathon Schema
  */
 export const CreateHackathonSchema = z.object({
-  name: z
-    .string()
-    .min(1, 'Hackathon name is required')
-    .max(200, 'Name too long'),
-  organizer: z
-    .string()
-    .min(1, 'Organizer is required')
-    .max(200, 'Organizer name too long'),
+  name: z.string().min(1, 'Hackathon name is required').max(200, 'Name too long'),
+  organizer: z.string().min(1, 'Organizer is required').max(200, 'Organizer name too long'),
   position: z.string().max(100, 'Position too long').optional(),
-  projectName: z
-    .string()
-    .min(1, 'Project name is required')
-    .max(200, 'Project name too long'),
+  projectName: z.string().min(1, 'Project name is required').max(200, 'Project name too long'),
   description: z.string().max(5000, 'Description too long').optional(),
   technologies: z.array(z.string()).optional(),
   teamSize: z.number().int().min(1).optional(),
@@ -98,34 +72,18 @@ export type CreateHackathon = z.infer<typeof CreateHackathonSchema>;
 /**
  * Bug Bounty Schema
  */
-export const BugBountyPlatformEnum = z.enum([
-  'HackerOne',
-  'Bugcrowd',
-  'YesWeHack',
-  'Custom',
-]);
+export const BugBountyPlatformEnum = z.enum(['HackerOne', 'Bugcrowd', 'YesWeHack', 'Custom']);
 
-export const BugBountySeverityEnum = z.enum([
-  'critical',
-  'high',
-  'medium',
-  'low',
-]);
+export const BugBountySeverityEnum = z.enum(['critical', 'high', 'medium', 'low']);
 
 export type BugBountyPlatform = z.infer<typeof BugBountyPlatformEnum>;
 export type BugBountySeverity = z.infer<typeof BugBountySeverityEnum>;
 
 export const CreateBugBountySchema = z.object({
   platform: BugBountyPlatformEnum,
-  company: z
-    .string()
-    .min(1, 'Company is required')
-    .max(200, 'Company name too long'),
+  company: z.string().min(1, 'Company is required').max(200, 'Company name too long'),
   severity: BugBountySeverityEnum,
-  vulnerabilityType: z
-    .string()
-    .min(1, 'Vulnerability type is required')
-    .max(100, 'Type too long'),
+  vulnerabilityType: z.string().min(1, 'Vulnerability type is required').max(100, 'Type too long'),
   cveId: z.string().max(50, 'CVE ID too long').optional(),
   reward: z.number().min(0).optional(),
   currency: z.string().max(10).default('USD'),
@@ -142,19 +100,12 @@ export type CreateBugBounty = z.infer<typeof CreateBugBountySchema>;
 /**
  * Open Source Contribution Schema
  */
-export const OpenSourceRoleEnum = z.enum([
-  'maintainer',
-  'core_contributor',
-  'contributor',
-]);
+export const OpenSourceRoleEnum = z.enum(['maintainer', 'core_contributor', 'contributor']);
 
 export type OpenSourceRole = z.infer<typeof OpenSourceRoleEnum>;
 
 export const CreateOpenSourceSchema = z.object({
-  projectName: z
-    .string()
-    .min(1, 'Project name is required')
-    .max(200, 'Project name too long'),
+  projectName: z.string().min(1, 'Project name is required').max(200, 'Project name too long'),
   projectUrl: z.string().url('Invalid project URL'),
   role: OpenSourceRoleEnum,
   description: z.string().max(5000, 'Description too long').optional(),
@@ -176,13 +127,7 @@ export type CreateOpenSource = z.infer<typeof CreateOpenSourceSchema>;
 /**
  * Talk/Presentation Schema
  */
-export const TalkTypeEnum = z.enum([
-  'conference',
-  'meetup',
-  'webinar',
-  'podcast',
-  'workshop',
-]);
+export const TalkTypeEnum = z.enum(['conference', 'meetup', 'webinar', 'podcast', 'workshop']);
 
 export type TalkType = z.infer<typeof TalkTypeEnum>;
 
@@ -207,10 +152,7 @@ export type CreateTalk = z.infer<typeof CreateTalkSchema>;
  */
 export const CreateAwardSchema = z.object({
   title: z.string().min(1, 'Title is required').max(300, 'Title too long'),
-  issuer: z
-    .string()
-    .min(1, 'Issuer is required')
-    .max(200, 'Issuer name too long'),
+  issuer: z.string().min(1, 'Issuer is required').max(200, 'Issuer name too long'),
   date: DateString,
   description: z.string().max(2000, 'Description too long').optional(),
   url: z.string().url('Invalid URL').optional(),

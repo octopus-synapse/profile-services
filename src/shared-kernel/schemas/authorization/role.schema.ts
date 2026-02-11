@@ -6,10 +6,7 @@
  */
 
 import { z } from 'zod';
-import {
-  PermissionResponseSchema,
-  PermissionIdentifierSchema,
-} from './permission.schema';
+import { PermissionIdentifierSchema, PermissionResponseSchema } from './permission.schema';
 
 // ============================================================================
 // Role Schemas
@@ -70,9 +67,7 @@ export const RoleWithPermissionsResponseSchema = RoleResponseSchema.extend({
   permissions: z.array(PermissionResponseSchema),
 });
 
-export type RoleWithPermissionsResponse = z.infer<
-  typeof RoleWithPermissionsResponseSchema
->;
+export type RoleWithPermissionsResponse = z.infer<typeof RoleWithPermissionsResponseSchema>;
 
 /**
  * Schema for assigning permissions to a role.
