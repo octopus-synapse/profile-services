@@ -35,6 +35,9 @@ bun run lint || exit 1
 echo "  -> Validating Swagger documentation..."
 bun test ./tests/swagger-generation.test.ts || exit 1
 
+# Stage the updated swagger-generation-report.json after validation
+git add swagger-generation-report.json 2>/dev/null || true
+
 # 4. Unit tests
 echo "  -> Running tests..."
 bun test || exit 1
