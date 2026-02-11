@@ -3,9 +3,9 @@
  * Low-level access to resume style configurations
  */
 
-import { Injectable, ForbiddenException } from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ERROR_MESSAGES } from '@/shared-kernel';
 
 export interface ResumeConfig {
@@ -15,10 +15,7 @@ export interface ResumeConfig {
     order: number;
     column: string;
   }>;
-  itemOverrides: Record<
-    string,
-    Array<{ itemId: string; visible: boolean; order: number }>
-  >;
+  itemOverrides: Record<string, Array<{ itemId: string; visible: boolean; order: number }>>;
   [key: string]: unknown;
 }
 

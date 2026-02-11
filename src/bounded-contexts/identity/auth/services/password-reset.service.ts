@@ -5,23 +5,15 @@
  * BUG-056 FIX: Revokes all user tokens after password change
  */
 
-import {
-  Injectable,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { EmailService } from '@/bounded-contexts/platform/common/email/email.service';
-import { PasswordService } from './password.service';
-import { VerificationTokenService } from './verification-token.service';
-import { TokenBlacklistService } from './token-blacklist.service';
-import type {
-  ForgotPassword,
-  ResetPassword,
-  ChangePassword,
-} from '@/shared-kernel';
+import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { ChangePassword, ForgotPassword, ResetPassword } from '@/shared-kernel';
 import { ERROR_MESSAGES } from '@/shared-kernel';
+import { PasswordService } from './password.service';
+import { TokenBlacklistService } from './token-blacklist.service';
+import { VerificationTokenService } from './verification-token.service';
 
 @Injectable()
 export class PasswordResetService {
@@ -111,9 +103,7 @@ export class PasswordResetService {
     );
 
     if (!isCurrentPasswordValid) {
-      throw new UnauthorizedException(
-        ERROR_MESSAGES.CURRENT_PASSWORD_INCORRECT,
-      );
+      throw new UnauthorizedException(ERROR_MESSAGES.CURRENT_PASSWORD_INCORRECT);
     }
 
     const hashedPassword = await this.passwordService.hash(dto.newPassword);
@@ -154,10 +144,7 @@ export class PasswordResetService {
     });
   }
 
-  private async updatePasswordById(
-    userId: string,
-    password: string,
-  ): Promise<void> {
+  private async updatePasswordById(userId: string, password: string): Promise<void> {
     await this.prisma.user.update({
       where: { id: userId },
       data: { password },
@@ -170,22 +157,12 @@ export class PasswordResetService {
     token: string,
   ): Promise<void> {
     // Don't catch error here - let it propagate so forgotPassword can track if email was sent
-    await this.emailService.sendPasswordResetEmail(
-      email,
-      name ?? 'Usuário',
-      token,
-    );
+    await this.emailService.sendPasswordResetEmail(email, name ?? 'Usuário', token);
   }
 
-  private async sendPasswordChangedEmail(
-    email: string,
-    name: string | null,
-  ): Promise<void> {
+  private async sendPasswordChangedEmail(email: string, name: string | null): Promise<void> {
     try {
-      await this.emailService.sendPasswordChangedEmail(
-        email,
-        name ?? 'Usuário',
-      );
+      await this.emailService.sendPasswordChangedEmail(email, name ?? 'Usuário');
     } catch (error) {
       this.logger.error(
         'Failed to send password changed email',

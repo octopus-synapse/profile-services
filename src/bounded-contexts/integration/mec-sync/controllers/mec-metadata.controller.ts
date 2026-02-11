@@ -4,17 +4,17 @@
  */
 
 import { Controller, Get } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Public } from '@/bounded-contexts/identity/auth/decorators/public.decorator';
-import { InstitutionQueryService } from '../services/institution-query.service';
-import { CourseQueryService } from '../services/course-query.service';
-import { MecStatsService } from '../services/mec-stats.service';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import {
   KnowledgeAreaResponseDto,
   MecStatisticsResponseDto,
   StateCodeResponseDto,
 } from '@/shared-kernel';
+import { CourseQueryService } from '../services/course-query.service';
+import { InstitutionQueryService } from '../services/institution-query.service';
+import { MecStatsService } from '../services/mec-stats.service';
 
 @SdkExport({
   tag: 'mec-metadata',

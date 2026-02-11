@@ -7,8 +7,8 @@
  */
 
 import { Injectable } from '@nestjs/common';
+import type { EmailLog, EmailStatus } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { EmailStatus, EmailLog } from '@prisma/client';
 
 interface LogEmailParams {
   userId?: string;
@@ -84,10 +84,7 @@ export class EmailLogService {
   /**
    * Gets email history for a user.
    */
-  async getEmailHistory(
-    userId: string,
-    options: EmailHistoryOptions = {},
-  ): Promise<EmailLog[]> {
+  async getEmailHistory(userId: string, options: EmailHistoryOptions = {}): Promise<EmailLog[]> {
     const { skip, take = DEFAULT_PAGE_SIZE, status } = options;
 
     return this.prisma.emailLog.findMany({

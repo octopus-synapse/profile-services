@@ -1,9 +1,6 @@
 import { getBaseTemplate } from './base.template';
 
-export const getPasswordResetTemplate = (
-  name: string,
-  resetUrl: string,
-): string => {
+export const getPasswordResetTemplate = (name: string, resetUrl: string): string => {
   const content = `
     <h2>Redefinir sua senha 🔐</h2>
     <p>Olá, ${name}!</p>

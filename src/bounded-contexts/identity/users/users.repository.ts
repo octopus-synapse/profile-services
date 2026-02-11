@@ -6,12 +6,8 @@
 
 import { Injectable } from '@nestjs/common';
 import { User, UserPreferences } from '@prisma/client';
-import type {
-  UpdateProfile,
-  UpdatePreferences,
-  UpdateFullPreferences,
-} from '@/shared-kernel';
-import { UserQueryRepository, UserMutationRepository } from './repositories';
+import type { UpdateFullPreferences, UpdatePreferences, UpdateProfile } from '@/shared-kernel';
+import { UserMutationRepository, UserQueryRepository } from './repositories';
 
 @Injectable()
 export class UsersRepository {
@@ -45,16 +41,11 @@ export class UsersRepository {
     return this.queryRepo.findUserPreferencesById(userId);
   }
 
-  async findFullUserPreferencesByUserId(
-    userId: string,
-  ): Promise<UserPreferences | null> {
+  async findFullUserPreferencesByUserId(userId: string): Promise<UserPreferences | null> {
     return this.queryRepo.findFullUserPreferencesByUserId(userId);
   }
 
-  async isUsernameTaken(
-    username: string,
-    excludeUserId?: string,
-  ): Promise<boolean> {
+  async isUsernameTaken(username: string, excludeUserId?: string): Promise<boolean> {
     return this.queryRepo.isUsernameTaken(username, excludeUserId);
   }
 
@@ -72,10 +63,7 @@ export class UsersRepository {
     return this.mutationRepo.createUserAccount(userData);
   }
 
-  async updateUserAccount(
-    userId: string,
-    userData: Partial<User>,
-  ): Promise<User> {
+  async updateUserAccount(userId: string, userData: Partial<User>): Promise<User> {
     return this.mutationRepo.updateUserAccount(userId, userData);
   }
 
@@ -83,17 +71,11 @@ export class UsersRepository {
     return this.mutationRepo.deleteUserAccount(userId);
   }
 
-  async updateUserProfile(
-    userId: string,
-    profile: UpdateProfile,
-  ): Promise<User> {
+  async updateUserProfile(userId: string, profile: UpdateProfile): Promise<User> {
     return this.mutationRepo.updateUserProfile(userId, profile);
   }
 
-  async updateUserPreferences(
-    userId: string,
-    preferences: UpdatePreferences,
-  ): Promise<void> {
+  async updateUserPreferences(userId: string, preferences: UpdatePreferences): Promise<void> {
     return this.mutationRepo.updateUserPreferences(userId, preferences);
   }
 

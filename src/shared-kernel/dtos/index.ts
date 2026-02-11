@@ -5,429 +5,393 @@
  * Both frontend and backend must import from here.
  */
 
-export * from './enums.dto';
-
 // Auth DTOs (re-exported from schemas for backward compatibility)
 export {
-  LoginCredentialsSchema,
-  type LoginCredentials,
-  RegisterCredentialsSchema,
-  type RegisterCredentials,
-  ResetPasswordRequestSchema,
-  type ResetPasswordRequest,
-  NewPasswordSchema,
-  type NewPassword,
-  ChangePasswordSchema,
-  type ChangePassword,
-  ChangeEmailSchema,
   type ChangeEmail,
-  RefreshTokenSchema,
-  type RefreshToken,
-  DeleteAccountSchema,
+  ChangeEmailSchema,
+  type ChangePassword,
+  ChangePasswordSchema,
   type DeleteAccount,
-  EmailVerificationSchema,
+  DeleteAccountSchema,
   type EmailVerification,
-  RequestVerificationSchema,
-  type RequestVerification,
+  EmailVerificationSchema,
   // Type aliases for backward compatibility
   type ForgotPassword,
+  type LoginCredentials,
+  LoginCredentialsSchema,
+  type NewPassword,
+  NewPasswordSchema,
+  type RefreshToken,
+  RefreshTokenSchema,
+  type RegisterCredentials,
+  RegisterCredentialsSchema,
+  type RequestVerification,
+  RequestVerificationSchema,
   type ResetPassword,
+  type ResetPasswordRequest,
+  ResetPasswordRequestSchema,
   type VerifyEmail,
 } from '../schemas/auth';
-
-// User DTOs
-export {
-  UpdateUserSchema,
-  type UpdateUser,
-  AdminUserFiltersSchema,
-  type AdminUserFilters,
-  UserStatsSchema,
-  type UserStats,
-  CheckUsernameResponseSchema,
-  type CheckUsernameResponse,
-  UpdateUsernameRequestSchema,
-  type UpdateUsernameRequest,
-  UpdateUsernameResponseSchema,
-  type UpdateUsernameResponse,
-  ValidateUsernameRequestSchema,
-  type ValidateUsernameRequest,
-  ValidateUsernameResponseSchema,
-  type ValidateUsernameResponse,
-  UsernameValidationErrorSchema,
-  type UsernameValidationError,
-  UploadImageResponseSchema,
-  type UploadImageResponse,
-  UploadImageResponseWrapperSchema,
-  type UploadImageResponseEnvelope,
-} from './user.dto';
-
-// Resume DTOs
-export {
-  CreateExperienceSchema,
-  type CreateExperience,
-  CreateEducationSchema,
-  type CreateEducation,
-  CreateSkillSchema,
-  type CreateSkill,
-  CreateLanguageSchema,
-  type CreateLanguage,
-  CreateCertificationSchema,
-  type CreateCertification,
-  CreateProjectSchema,
-  type CreateProject,
-  CreateResumeSchema,
-  type CreateResume,
-  UpdateResumeSchema,
-  type UpdateResume,
-} from './resume.dto';
-
-// Resume Extended DTOs (Advanced Features)
-export {
-  PublicationTypeEnum,
-  type PublicationType,
-  CreatePublicationSchema,
-  type CreatePublication,
-  CreateRecommendationSchema,
-  type CreateRecommendation,
-  CreateHackathonSchema,
-  type CreateHackathon,
-  BugBountyPlatformEnum,
-  BugBountySeverityEnum,
-  type BugBountyPlatform,
-  type BugBountySeverity,
-  CreateBugBountySchema,
-  type CreateBugBounty,
-  OpenSourceRoleEnum,
-  type OpenSourceRole,
-  CreateOpenSourceSchema,
-  type CreateOpenSource,
-  TalkTypeEnum,
-  type TalkType,
-  CreateTalkSchema,
-  type CreateTalk,
-  CreateAwardSchema,
-  type CreateAward,
-  CreateInterestSchema,
-  type CreateInterest,
-  AchievementTypeEnum,
-  type AchievementType,
-  CreateAchievementSchema,
-  type CreateAchievement,
-} from './resume-extended.dto';
-
-// Common DTOs (Utilities)
-export {
-  PaginationQuerySchema,
-  type PaginationQuery,
-  ReorderItemsSchema,
-  type ReorderItems,
-  DateStringSchema,
-  type DateString,
-  IdParamSchema,
-  type IdParam,
-  SearchQuerySchema,
-  type SearchQuery,
-} from './common.dto';
-
 // Admin DTOs (Backend-specific)
 export {
-  AdminCreateUserSchema,
+  type ActivityType,
+  ActivityTypeSchema,
   type AdminCreateUser,
-  AdminUpdateUserSchema,
-  type AdminUpdateUser,
-  AdminResetPasswordSchema,
+  AdminCreateUserSchema,
   type AdminResetPassword,
-  AdminUserQuerySchema,
-  type AdminUserQuery,
-  AdminUpdateRoleRequestSchema,
-  type AdminUpdateRoleRequest,
-  AdminUserListItemSchema,
-  type AdminUserListItem,
-  PaginatedUsersSchema,
-  type PaginatedUsers,
+  AdminResetPasswordSchema,
+  type AdminStats,
   // Admin Dashboard
   AdminStatsSchema,
-  type AdminStats,
-  ActivityTypeSchema,
-  type ActivityType,
-  RecentActivitySchema,
-  type RecentActivity,
-  HealthStatusSchema,
+  type AdminUpdateRoleRequest,
+  AdminUpdateRoleRequestSchema,
+  type AdminUpdateUser,
+  AdminUpdateUserSchema,
+  type AdminUserListItem,
+  AdminUserListItemSchema,
+  type AdminUserQuery,
+  AdminUserQuerySchema,
   type HealthStatus,
-  SystemHealthSchema,
+  HealthStatusSchema,
+  type PaginatedUsers,
+  PaginatedUsersSchema,
+  type RecentActivity,
+  RecentActivitySchema,
   type SystemHealth,
+  SystemHealthSchema,
 } from './admin.dto';
-
-// User Profile DTOs
-export {
-  UpdateProfileSchema,
-  type UpdateProfile,
-  UpdatePreferencesSchema,
-  type UpdatePreferences,
-  UpdateFullPreferencesSchema,
-  type UpdateFullPreferences,
-  UpdateUsernameSchema,
-  type UpdateUsername,
-} from './user-profile.dto';
-
-// Theme DTOs
-export {
-  ThemeSortFieldSchema,
-  type ThemeSortField,
-  SortDirectionSchema,
-  type SortDirection,
-  CreateThemeSchema,
-  type CreateTheme,
-  UpdateThemeSchema,
-  type UpdateTheme,
-  QueryThemesSchema,
-  type QueryThemes,
-  ThemeApplicationSchema,
-  type ThemeApplication,
-  ThemeApprovalSchema,
-  type ThemeApproval,
-  ApplyThemeToResumeSchema,
-  type ApplyThemeToResume,
-  ForkThemeSchema,
-  type ForkTheme,
-  type ReviewTheme,
-} from './theme.dto';
-
-// Onboarding Progress DTOs
-export {
-  OnboardingStepSchema,
-  type OnboardingStep,
-  OnboardingProgressSchema,
-  type OnboardingProgress,
-  OnboardingStatusSchema,
-  type OnboardingStatus,
-  OnboardingResultSchema,
-  type OnboardingResult,
-  SaveProgressResultSchema,
-  type SaveProgressResult,
-  SubmitOnboardingDtoSchema,
-  type SubmitOnboardingDto,
-  // Response Envelopes
-  OnboardingStatusResponseSchema,
-  type OnboardingStatusResponseEnvelope,
-  OnboardingProgressResponseSchema,
-  type OnboardingProgressResponseEnvelope,
-  OnboardingCompleteResponseSchema,
-  type OnboardingCompleteResponseEnvelope,
-} from './onboarding-progress.dto';
-
 // Analytics DTOs
 export {
+  type AnalyticsTimeRange,
+  AnalyticsTimeRangeSchema,
+  type ATSScoreResponse,
+  ATSScoreResponseSchema,
+  type BenchmarkOptions,
+  BenchmarkOptionsSchema,
+  type BenchmarkResponse,
+  BenchmarkResponseSchema,
+  type DashboardResponse,
+  DashboardResponseSchema,
+  type ExperienceLevel,
+  ExperienceLevelEnum,
+  type HistoryQuery,
+  HistoryQuerySchema,
+  type Industry,
   // Enums
   IndustryEnum,
-  type Industry,
-  ExperienceLevelEnum,
-  type ExperienceLevel,
-  PeriodEnum,
-  type Period,
-  SeverityEnum,
-  type Severity,
-  PriorityEnum,
-  type Priority,
-  TrendEnum,
-  type Trend,
-  // Request schemas
-  TrackViewSchema,
-  type TrackView,
-  ViewStatsQuerySchema,
-  type ViewStatsQuery,
-  KeywordOptionsSchema,
-  type KeywordOptions,
-  JobMatchSchema,
   type JobMatch,
-  BenchmarkOptionsSchema,
-  type BenchmarkOptions,
-  HistoryQuerySchema,
-  type HistoryQuery,
-  // Response schemas
-  ViewStatsResponseSchema,
-  type ViewStatsResponse,
-  ATSScoreResponseSchema,
-  type ATSScoreResponse,
-  KeywordSuggestionsResponseSchema,
-  type KeywordSuggestionsResponse,
-  JobMatchResponseSchema,
   type JobMatchResponse,
-  BenchmarkResponseSchema,
-  type BenchmarkResponse,
-  DashboardResponseSchema,
-  type DashboardResponse,
-  SnapshotResponseSchema,
-  type SnapshotResponse,
-  ScoreProgressionResponseSchema,
-  type ScoreProgressionResponse,
+  JobMatchResponseSchema,
+  JobMatchSchema,
+  type KeywordOptions,
+  KeywordOptionsSchema,
+  type KeywordSuggestionsResponse,
+  KeywordSuggestionsResponseSchema,
+  type Period,
+  PeriodEnum,
+  type Priority,
+  PriorityEnum,
+  type ResumeAnalytics,
   // Additional Analytics Types
   ResumeAnalyticsSchema,
-  type ResumeAnalytics,
-  ShareAnalyticsSchema,
+  type ScoreProgressionResponse,
+  ScoreProgressionResponseSchema,
+  type Severity,
+  SeverityEnum,
   type ShareAnalytics,
-  AnalyticsTimeRangeSchema,
-  type AnalyticsTimeRange,
-  UserAnalyticsSummarySchema,
+  ShareAnalyticsSchema,
+  type SnapshotResponse,
+  SnapshotResponseSchema,
+  type TrackView,
+  // Request schemas
+  TrackViewSchema,
+  type Trend,
+  TrendEnum,
   type UserAnalyticsSummary,
+  UserAnalyticsSummarySchema,
+  type ViewStatsQuery,
+  ViewStatsQuerySchema,
+  type ViewStatsResponse,
+  // Response schemas
+  ViewStatsResponseSchema,
 } from './analytics.dto';
-
-// Resume Update DTOs
-export {
-  UpdateExperienceSchema,
-  type UpdateExperience,
-  UpdateEducationSchema,
-  type UpdateEducation,
-  UpdateSkillSchema,
-  type UpdateSkill,
-  UpdateLanguageSchema,
-  type UpdateLanguage,
-  UpdateCertificationSchema,
-  type UpdateCertification,
-  UpdateProjectSchema,
-  type UpdateProject,
-  BulkCreateSkillsSchema,
-  type BulkCreateSkills,
-} from './resume.dto';
-
-// Resume Extended Update DTOs
-export {
-  UpdatePublicationSchema,
-  type UpdatePublication,
-  UpdateRecommendationSchema,
-  type UpdateRecommendation,
-  UpdateHackathonSchema,
-  type UpdateHackathon,
-  UpdateBugBountySchema,
-  type UpdateBugBounty,
-  UpdateOpenSourceSchema,
-  type UpdateOpenSource,
-  UpdateTalkSchema,
-  type UpdateTalk,
-  UpdateAwardSchema,
-  type UpdateAward,
-  UpdateInterestSchema,
-  type UpdateInterest,
-  UpdateAchievementSchema,
-  type UpdateAchievement,
-} from './resume-extended.dto';
-
-// Translation DTOs
-export {
-  TranslateTextSchema,
-  type TranslateText,
-  TranslateBatchSchema,
-  type TranslateBatch,
-  TranslateTextWithEnumSchema,
-  type TranslateTextWithEnum,
-  TranslateBatchWithEnumSchema,
-  type TranslateBatchWithEnum,
-  TranslationLanguageEnum,
-  type TranslationLanguage,
-  TranslationResultSchema,
-  type TranslationResult,
-  BatchTranslationResultSchema,
-  type BatchTranslationResult,
-  ServiceHealthSchema,
-  type ServiceHealth,
-} from './translation.dto';
-
+// API Response DTOs
+export * from './api-response.dto';
 // ATS DTOs
 export {
-  ValidateCVSchema,
-  type ValidateCV,
-  ValidationIssueSchema,
-  type ValidationIssue,
-  ValidationResponseSchema,
-  type ValidationResponse,
-  type Validation,
-  ValidateOptionsSchema,
-  type ValidateOptions,
-  ATSValidationResultSchema,
   type ATSValidationResult,
+  ATSValidationResultSchema,
+  type ValidateCV,
+  ValidateCVSchema,
+  type ValidateOptions,
+  ValidateOptionsSchema,
+  type Validation,
+  type ValidationIssue,
+  ValidationIssueSchema,
+  type ValidationResponse,
+  ValidationResponseSchema,
 } from './ats.dto';
-
-// MEC DTOs
-export {
-  InstitutionSchema,
-  type Institution,
-  CourseBasicSchema,
-  type CourseBasic,
-  InstitutionWithCoursesSchema,
-  type InstitutionWithCourses,
-  InstitutionBasicSchema,
-  type InstitutionBasic,
-  CourseSchema,
-  type Course,
-  GrauCountSchema,
-  type GrauCount,
-  UfCountSchema,
-  type UfCount,
-  MecStatsSchema,
-  type MecStats,
-  SyncResultSchema,
-  type SyncResult,
-  SyncMetadataSchema,
-  type SyncMetadata,
-  SyncLogSchema,
-  type SyncLog,
-  SyncStatusSchema,
-  type SyncStatus,
-} from './mec.dto';
-
+// ATS Validation DTOs
+export * from './ats-validation.dto';
 // Authorization DTOs
 export * from './authorization.dto';
-
 // Chat DTOs
 export * from './chat.dto';
-
-// Public Profile DTOs
-export * from './public-profile.dto';
-
-// Share DTOs
-export * from './share.dto';
-
-// Export DTOs
-export * from './export.dto';
-
-// Resume Import DTOs
-export * from './resume-import.dto';
-
-// Two-Factor DTOs
-export * from './two-factor.dto';
-
-// GDPR DTOs
-export * from './gdpr.dto';
-
+// Collaboration DTOs
+export * from './collaboration.dto';
+// Common DTOs (Utilities)
+export {
+  type DateString,
+  DateStringSchema,
+  type IdParam,
+  IdParamSchema,
+  type PaginationQuery,
+  PaginationQuerySchema,
+  type ReorderItems,
+  ReorderItemsSchema,
+  type SearchQuery,
+  SearchQuerySchema,
+} from './common.dto';
 // DSL Response DTOs
 export * from './dsl-responses.dto';
-
+export * from './enums.dto';
+// Export DTOs
+export * from './export.dto';
+// GDPR DTOs
+export * from './gdpr.dto';
 // GitHub DTOs
 export * from './github.dto';
 
-// Tech Skills DTOs
-export * from './tech-skills.dto';
-
-// Spoken Languages DTOs
-export * from './spoken-languages.dto';
-
-// Section Config DTOs
-export * from './section-config.dto';
-
-// Social DTOs
-export * from './social.dto';
-
-// Search DTOs
-export * from './search.dto';
-
-// Collaboration DTOs
-export * from './collaboration.dto';
-
-// API Response DTOs
-export * from './api-response.dto';
-
-// ATS Validation DTOs
-export * from './ats-validation.dto';
-
+// MEC DTOs
+export {
+  type Course,
+  type CourseBasic,
+  CourseBasicSchema,
+  CourseSchema,
+  type GrauCount,
+  GrauCountSchema,
+  type Institution,
+  type InstitutionBasic,
+  InstitutionBasicSchema,
+  InstitutionSchema,
+  type InstitutionWithCourses,
+  InstitutionWithCoursesSchema,
+  type MecStats,
+  MecStatsSchema,
+  type SyncLog,
+  SyncLogSchema,
+  type SyncMetadata,
+  SyncMetadataSchema,
+  type SyncResult,
+  SyncResultSchema,
+  type SyncStatus,
+  SyncStatusSchema,
+  type UfCount,
+  UfCountSchema,
+} from './mec.dto';
+// Onboarding Progress DTOs
+export {
+  type OnboardingCompleteResponseEnvelope,
+  OnboardingCompleteResponseSchema,
+  type OnboardingProgress,
+  type OnboardingProgressResponseEnvelope,
+  OnboardingProgressResponseSchema,
+  OnboardingProgressSchema,
+  type OnboardingResult,
+  OnboardingResultSchema,
+  type OnboardingStatus,
+  type OnboardingStatusResponseEnvelope,
+  // Response Envelopes
+  OnboardingStatusResponseSchema,
+  OnboardingStatusSchema,
+  type OnboardingStep,
+  OnboardingStepSchema,
+  type SaveProgressResult,
+  SaveProgressResultSchema,
+  type SubmitOnboardingDto,
+  SubmitOnboardingDtoSchema,
+} from './onboarding-progress.dto';
 // Persona DTOs
 export * from './persona.dto';
+
+// Public Profile DTOs
+export * from './public-profile.dto';
+// Resume DTOs
+// Resume Update DTOs
+export {
+  type BulkCreateSkills,
+  BulkCreateSkillsSchema,
+  type CreateCertification,
+  CreateCertificationSchema,
+  type CreateEducation,
+  CreateEducationSchema,
+  type CreateExperience,
+  CreateExperienceSchema,
+  type CreateLanguage,
+  CreateLanguageSchema,
+  type CreateProject,
+  CreateProjectSchema,
+  type CreateResume,
+  CreateResumeSchema,
+  type CreateSkill,
+  CreateSkillSchema,
+  type UpdateCertification,
+  UpdateCertificationSchema,
+  type UpdateEducation,
+  UpdateEducationSchema,
+  type UpdateExperience,
+  UpdateExperienceSchema,
+  type UpdateLanguage,
+  UpdateLanguageSchema,
+  type UpdateProject,
+  UpdateProjectSchema,
+  type UpdateResume,
+  UpdateResumeSchema,
+  type UpdateSkill,
+  UpdateSkillSchema,
+} from './resume.dto';
+// Resume Extended DTOs (Advanced Features)
+// Resume Extended Update DTOs
+export {
+  type AchievementType,
+  AchievementTypeEnum,
+  type BugBountyPlatform,
+  BugBountyPlatformEnum,
+  type BugBountySeverity,
+  BugBountySeverityEnum,
+  type CreateAchievement,
+  CreateAchievementSchema,
+  type CreateAward,
+  CreateAwardSchema,
+  type CreateBugBounty,
+  CreateBugBountySchema,
+  type CreateHackathon,
+  CreateHackathonSchema,
+  type CreateInterest,
+  CreateInterestSchema,
+  type CreateOpenSource,
+  CreateOpenSourceSchema,
+  type CreatePublication,
+  CreatePublicationSchema,
+  type CreateRecommendation,
+  CreateRecommendationSchema,
+  type CreateTalk,
+  CreateTalkSchema,
+  type OpenSourceRole,
+  OpenSourceRoleEnum,
+  type PublicationType,
+  PublicationTypeEnum,
+  type TalkType,
+  TalkTypeEnum,
+  type UpdateAchievement,
+  UpdateAchievementSchema,
+  type UpdateAward,
+  UpdateAwardSchema,
+  type UpdateBugBounty,
+  UpdateBugBountySchema,
+  type UpdateHackathon,
+  UpdateHackathonSchema,
+  type UpdateInterest,
+  UpdateInterestSchema,
+  type UpdateOpenSource,
+  UpdateOpenSourceSchema,
+  type UpdatePublication,
+  UpdatePublicationSchema,
+  type UpdateRecommendation,
+  UpdateRecommendationSchema,
+  type UpdateTalk,
+  UpdateTalkSchema,
+} from './resume-extended.dto';
+// Resume Import DTOs
+export * from './resume-import.dto';
+// Search DTOs
+export * from './search.dto';
+// Section Config DTOs
+export * from './section-config.dto';
+// Share DTOs
+export * from './share.dto';
+// Social DTOs
+export * from './social.dto';
+// Spoken Languages DTOs
+export * from './spoken-languages.dto';
+// Tech Skills DTOs
+export * from './tech-skills.dto';
+// Theme DTOs
+export {
+  type ApplyThemeToResume,
+  ApplyThemeToResumeSchema,
+  type CreateTheme,
+  CreateThemeSchema,
+  type ForkTheme,
+  ForkThemeSchema,
+  type QueryThemes,
+  QueryThemesSchema,
+  type ReviewTheme,
+  type SortDirection,
+  SortDirectionSchema,
+  type ThemeApplication,
+  ThemeApplicationSchema,
+  type ThemeApproval,
+  ThemeApprovalSchema,
+  type ThemeSortField,
+  ThemeSortFieldSchema,
+  type UpdateTheme,
+  UpdateThemeSchema,
+} from './theme.dto';
+// Translation DTOs
+export {
+  type BatchTranslationResult,
+  BatchTranslationResultSchema,
+  type ServiceHealth,
+  ServiceHealthSchema,
+  type TranslateBatch,
+  TranslateBatchSchema,
+  type TranslateBatchWithEnum,
+  TranslateBatchWithEnumSchema,
+  type TranslateText,
+  TranslateTextSchema,
+  type TranslateTextWithEnum,
+  TranslateTextWithEnumSchema,
+  type TranslationLanguage,
+  TranslationLanguageEnum,
+  type TranslationResult,
+  TranslationResultSchema,
+} from './translation.dto';
+// Two-Factor DTOs
+export * from './two-factor.dto';
+// User DTOs
+export {
+  type AdminUserFilters,
+  AdminUserFiltersSchema,
+  type CheckUsernameResponse,
+  CheckUsernameResponseSchema,
+  type UpdateUser,
+  type UpdateUsernameRequest,
+  UpdateUsernameRequestSchema,
+  type UpdateUsernameResponse,
+  UpdateUsernameResponseSchema,
+  UpdateUserSchema,
+  type UploadImageResponse,
+  type UploadImageResponseEnvelope,
+  UploadImageResponseSchema,
+  UploadImageResponseWrapperSchema,
+  type UsernameValidationError,
+  UsernameValidationErrorSchema,
+  type UserStats,
+  UserStatsSchema,
+  type ValidateUsernameRequest,
+  ValidateUsernameRequestSchema,
+  type ValidateUsernameResponse,
+  ValidateUsernameResponseSchema,
+} from './user.dto';
+// User Profile DTOs
+export {
+  type UpdateFullPreferences,
+  UpdateFullPreferencesSchema,
+  type UpdatePreferences,
+  UpdatePreferencesSchema,
+  type UpdateProfile,
+  UpdateProfileSchema,
+  type UpdateUsername,
+  UpdateUsernameSchema,
+} from './user-profile.dto';

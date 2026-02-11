@@ -4,29 +4,21 @@
  * Thin layer that delegates to DslRepository
  */
 
+import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import {
-  Controller,
-  Post,
-  Get,
-  Body,
-  Param,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
   ApiBearerAuth,
   ApiBody,
+  ApiOperation,
   ApiQuery,
   ApiResponse,
+  ApiTags,
 } from '@nestjs/swagger';
-import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
 import { Public } from '@/bounded-contexts/identity/auth/decorators/public.decorator';
+import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
-import { DslRepository } from './dsl.repository';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { DslRenderResponseDto } from '@/shared-kernel';
+import { DslRepository } from './dsl.repository';
 
 type RenderTarget = 'html' | 'pdf';
 
@@ -56,10 +48,7 @@ export class DslController {
   @ApiOperation({ summary: 'Compile DSL to AST (preview, no persistence)' })
   @ApiQuery({ name: 'target', enum: ['html', 'pdf'], required: false })
   @ApiBody({ description: 'DSL object to compile' })
-  preview(
-    @Body() body: unknown,
-    @Query('target') target: RenderTarget = 'html',
-  ) {
+  preview(@Body() body: unknown, @Query('target') target: RenderTarget = 'html') {
     const ast = this.repository.preview(body, target);
     return { ast };
   }
@@ -88,10 +77,7 @@ export class DslController {
   @Get('render/public/:slug')
   @ApiOperation({ summary: 'Get compiled AST for a public resume' })
   @ApiQuery({ name: 'target', enum: ['html', 'pdf'], required: false })
-  async renderPublic(
-    @Param('slug') slug: string,
-    @Query('target') target: RenderTarget = 'html',
-  ) {
+  async renderPublic(@Param('slug') slug: string, @Query('target') target: RenderTarget = 'html') {
     return this.repository.renderPublic(slug, target);
   }
 }

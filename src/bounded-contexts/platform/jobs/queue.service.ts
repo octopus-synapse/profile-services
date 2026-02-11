@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
+import { Injectable } from '@nestjs/common';
 import { Queue } from 'bullmq';
 
 export interface ExportJobData {
@@ -73,10 +73,7 @@ export class QueueService {
     };
   }
 
-  async queueEmail(
-    data: EmailJobData,
-    options?: JobOptions,
-  ): Promise<JobResult> {
+  async queueEmail(data: EmailJobData, options?: JobOptions): Promise<JobResult> {
     const job = await this.emailQueue.add('send-email', data, {
       ...DEFAULT_JOB_OPTIONS,
       ...options,

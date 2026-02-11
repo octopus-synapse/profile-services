@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import {
   Controller,
   Get,
@@ -8,32 +9,24 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import {
-  BannerPreviewResponseDto,
-  ExportResultDto,
-} from '@/shared-kernel/dtos/sdk-response.dto';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
   ApiBearerAuth,
-  ApiQuery,
+  ApiOperation,
   ApiProduces,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
 } from '@nestjs/swagger';
-import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
-import { randomUUID } from 'crypto';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
-import { EventPublisher } from '@/shared-kernel';
-import {
-  ExportRequestedEvent,
-  ExportCompletedEvent,
-  ExportFailedEvent,
-} from '../domain/events';
-import { BannerCaptureService } from './services/banner-capture.service';
-import { ResumePDFService } from './services/resume-pdf.service';
-import { ResumeDOCXService } from './services/resume-docx.service';
-import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
+import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import { EventPublisher } from '@/shared-kernel';
+import { BannerPreviewResponseDto, ExportResultDto } from '@/shared-kernel/dtos/sdk-response.dto';
+import { ExportCompletedEvent, ExportFailedEvent, ExportRequestedEvent } from '../domain/events';
+import { BannerCaptureService } from './services/banner-capture.service';
+import { ResumeDOCXService } from './services/resume-docx.service';
+import { ResumePDFService } from './services/resume-pdf.service';
 
 @SdkExport({ tag: 'export', description: 'Export API' })
 @ApiTags('export')
@@ -84,9 +77,7 @@ export class ExportController {
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
       });
-      throw new InternalServerErrorException(
-        'Failed to generate banner. Please try again later.',
-      );
+      throw new InternalServerErrorException('Failed to generate banner. Please try again later.');
     }
   }
 
@@ -164,30 +155,21 @@ export class ExportController {
         error: reason,
         stack: error instanceof Error ? error.stack : undefined,
       });
-      throw new InternalServerErrorException(
-        'Failed to generate PDF. Please try again later.',
-      );
+      throw new InternalServerErrorException('Failed to generate PDF. Please try again later.');
     }
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('resume/docx')
-  @Header(
-    'Content-Type',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  )
+  @Header('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
   @Header('Content-Disposition', 'attachment; filename="resume.docx"')
   @ApiOperation({ summary: 'Export resume as DOCX document' })
   @ApiResponse({ status: 200, type: ExportResultDto })
-  @ApiProduces(
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  )
+  @ApiProduces('application/vnd.openxmlformats-officedocument.wordprocessingml.document')
   @ApiResponse({ status: 200, description: 'DOCX document file' })
   @ApiResponse({ status: 400, description: 'Failed to generate DOCX' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async exportResumeDOCX(
-    @CurrentUser() user: UserPayload,
-  ): Promise<StreamableFile> {
+  async exportResumeDOCX(@CurrentUser() user: UserPayload): Promise<StreamableFile> {
     const exportId = randomUUID();
 
     this.eventPublisher.publish(
@@ -224,9 +206,7 @@ export class ExportController {
         error: reason,
         stack: error instanceof Error ? error.stack : undefined,
       });
-      throw new InternalServerErrorException(
-        'Failed to generate DOCX. Please try again later.',
-      );
+      throw new InternalServerErrorException('Failed to generate DOCX. Please try again later.');
     }
   }
 }

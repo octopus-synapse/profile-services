@@ -1,24 +1,24 @@
 import {
-  Injectable,
-  ForbiddenException,
-  NotFoundException,
   BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
+import type {
+  ConversationResponse,
+  GetConversationsQuery,
+  GetMessagesQuery,
+  MessageResponse,
+  PaginatedConversationsResponse,
+  PaginatedMessagesResponse,
+  SendMessage,
+} from '@/shared-kernel';
 import { EventPublisher } from '@/shared-kernel';
 import { MessageSentEvent } from '../../domain/events';
+import { BlockedUserRepository } from '../repositories/blocked-user.repository';
 import { ConversationRepository } from '../repositories/conversation.repository';
 import { MessageRepository } from '../repositories/message.repository';
-import { BlockedUserRepository } from '../repositories/blocked-user.repository';
-import type {
-  SendMessage,
-  GetMessagesQuery,
-  GetConversationsQuery,
-  ConversationResponse,
-  MessageResponse,
-  PaginatedMessagesResponse,
-  PaginatedConversationsResponse,
-} from '@/shared-kernel';
 
 type MessageWithSender = Prisma.MessageGetPayload<{
   include: {
@@ -49,15 +49,9 @@ export class ChatService {
   /**
    * Send a message to a user (creates conversation if needed).
    */
-  async sendMessage(
-    senderId: string,
-    dto: SendMessage,
-  ): Promise<MessageResponse> {
+  async sendMessage(senderId: string, dto: SendMessage): Promise<MessageResponse> {
     // Check if blocked
-    const isBlocked = await this.blockedUserRepo.isBlockedBetween(
-      senderId,
-      dto.recipientId,
-    );
+    const isBlocked = await this.blockedUserRepo.isBlockedBetween(senderId, dto.recipientId);
     if (isBlocked) {
       throw new ForbiddenException('Cannot send message to this user');
     }
@@ -68,10 +62,7 @@ export class ChatService {
     }
 
     // Find or create conversation
-    const conversation = await this.conversationRepo.findOrCreate(
-      senderId,
-      dto.recipientId,
-    );
+    const conversation = await this.conversationRepo.findOrCreate(senderId, dto.recipientId);
 
     // Create message
     const message = await this.messageRepo.create({
@@ -107,10 +98,7 @@ export class ChatService {
     content: string,
   ): Promise<MessageResponse> {
     // Verify participant
-    const isParticipant = await this.conversationRepo.isParticipant(
-      conversationId,
-      senderId,
-    );
+    const isParticipant = await this.conversationRepo.isParticipant(conversationId, senderId);
     if (!isParticipant) {
       throw new ForbiddenException('Not a participant of this conversation');
     }
@@ -124,10 +112,7 @@ export class ChatService {
       throw new NotFoundException('Conversation not found');
     }
 
-    const isBlocked = await this.blockedUserRepo.isBlockedBetween(
-      senderId,
-      otherParticipant.id,
-    );
+    const isBlocked = await this.blockedUserRepo.isBlockedBetween(senderId, otherParticipant.id);
     if (isBlocked) {
       throw new ForbiddenException('Cannot send message to this user');
     }
@@ -152,23 +137,17 @@ export class ChatService {
   /**
    * Get messages for a conversation with pagination.
    */
-  async getMessages(
-    userId: string,
-    query: GetMessagesQuery,
-  ): Promise<PaginatedMessagesResponse> {
+  async getMessages(userId: string, query: GetMessagesQuery): Promise<PaginatedMessagesResponse> {
     // Verify participant
-    const isParticipant = await this.conversationRepo.isParticipant(
-      query.conversationId,
-      userId,
-    );
+    const isParticipant = await this.conversationRepo.isParticipant(query.conversationId, userId);
     if (!isParticipant) {
       throw new ForbiddenException('Not a participant of this conversation');
     }
 
-    const result = await this.messageRepo.findByConversationId(
-      query.conversationId,
-      { cursor: query.cursor, limit: query.limit },
-    );
+    const result = await this.messageRepo.findByConversationId(query.conversationId, {
+      cursor: query.cursor,
+      limit: query.limit,
+    });
 
     return {
       messages: result.messages.map((msg) => this.mapMessageToResponse(msg)),
@@ -191,10 +170,7 @@ export class ChatService {
 
     const conversationsWithUnread = await Promise.all(
       result.conversations.map(async (conv) => {
-        const unreadCount = await this.messageRepo.getUnreadCountByConversation(
-          conv.id,
-          userId,
-        );
+        const unreadCount = await this.messageRepo.getUnreadCountByConversation(conv.id, userId);
         return this.mapConversationToResponse(conv, userId, unreadCount);
       }),
     );
@@ -209,26 +185,19 @@ export class ChatService {
   /**
    * Get a single conversation by ID.
    */
-  async getConversation(
-    userId: string,
-    conversationId: string,
-  ): Promise<ConversationResponse> {
+  async getConversation(userId: string, conversationId: string): Promise<ConversationResponse> {
     const conversation = await this.conversationRepo.findById(conversationId);
     if (!conversation) {
       throw new NotFoundException('Conversation not found');
     }
 
     const isParticipant =
-      conversation.participant1Id === userId ||
-      conversation.participant2Id === userId;
+      conversation.participant1Id === userId || conversation.participant2Id === userId;
     if (!isParticipant) {
       throw new ForbiddenException('Not a participant of this conversation');
     }
 
-    const unreadCount = await this.messageRepo.getUnreadCountByConversation(
-      conversationId,
-      userId,
-    );
+    const unreadCount = await this.messageRepo.getUnreadCountByConversation(conversationId, userId);
 
     return this.mapConversationToResponse(conversation, userId, unreadCount);
   }
@@ -236,22 +205,13 @@ export class ChatService {
   /**
    * Mark all messages in a conversation as read.
    */
-  async markConversationAsRead(
-    userId: string,
-    conversationId: string,
-  ): Promise<{ count: number }> {
-    const isParticipant = await this.conversationRepo.isParticipant(
-      conversationId,
-      userId,
-    );
+  async markConversationAsRead(userId: string, conversationId: string): Promise<{ count: number }> {
+    const isParticipant = await this.conversationRepo.isParticipant(conversationId, userId);
     if (!isParticipant) {
       throw new ForbiddenException('Not a participant of this conversation');
     }
 
-    const result = await this.messageRepo.markConversationAsRead(
-      conversationId,
-      userId,
-    );
+    const result = await this.messageRepo.markConversationAsRead(conversationId, userId);
 
     return { count: result.count };
   }
@@ -266,14 +226,8 @@ export class ChatService {
   /**
    * Get conversation ID between two users (if exists).
    */
-  async getConversationId(
-    userId: string,
-    otherUserId: string,
-  ): Promise<string | null> {
-    const conversation = await this.conversationRepo.findOrCreate(
-      userId,
-      otherUserId,
-    );
+  async getConversationId(userId: string, otherUserId: string): Promise<string | null> {
+    const conversation = await this.conversationRepo.findOrCreate(userId, otherUserId);
     return conversation.id;
   }
 
@@ -322,9 +276,7 @@ export class ChatService {
         ? {
             content: conversation.lastMessageContent,
             senderId: conversation.lastMessageSenderId ?? '',
-            createdAt:
-              conversation.lastMessageAt?.toISOString() ??
-              new Date().toISOString(),
+            createdAt: conversation.lastMessageAt?.toISOString() ?? new Date().toISOString(),
             isRead: unreadCount === 0,
           }
         : null,

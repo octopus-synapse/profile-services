@@ -1,36 +1,31 @@
 import {
-  Get,
-  Post,
-  Patch,
-  Delete,
   Body,
-  Param,
-  Query,
+  DefaultValuePipe,
+  Delete,
+  Get,
   HttpCode,
   HttpStatus,
+  Param,
   ParseIntPipe,
-  DefaultValuePipe,
+  Patch,
+  Post,
+  Query,
 } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiParam, ApiQuery } from '@nestjs/swagger';
-import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
+import { ApiOperation, ApiParam, ApiQuery, ApiResponse } from '@nestjs/swagger';
 import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
-import { BaseSubResourceService } from '../../services/base/base-sub-resource.service';
-import type { ReorderItems, PaginatedResult } from '@/shared-kernel';
-import { ParseCuidPipe } from '@/bounded-contexts/platform/common/pipes/parse-cuid.pipe';
+import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import {
   DataResponse,
   MessageResponse,
 } from '@/bounded-contexts/platform/common/dto/api-response.dto';
+import { ParseCuidPipe } from '@/bounded-contexts/platform/common/pipes/parse-cuid.pipe';
+import type { PaginatedResult, ReorderItems } from '@/shared-kernel';
+import { BaseSubResourceService } from '../../services/base/base-sub-resource.service';
 
 /**
  * Configuration for the BaseSubResourceController
  */
-export interface SubResourceControllerConfig<
-  _Entity,
-  _Create,
-  _Update,
-  _Response,
-> {
+export interface SubResourceControllerConfig<_Entity, _Create, _Update, _Response> {
   /** The name of the entity (singular, e.g., 'experience', 'education') */
   entityName: string;
   /** The plural name for API descriptions (e.g., 'experiences', 'education entries') */
@@ -58,22 +53,10 @@ export interface SubResourceControllerConfig<
  * @template Update - DTO for updating the entity
  * @template Response - DTO for API responses
  */
-export abstract class BaseSubResourceController<
-  Entity,
-  Create,
-  Update,
-  Response,
-> {
-  protected abstract readonly config: SubResourceControllerConfig<
-    Entity,
-    Create,
-    Update,
-    Response
-  >;
+export abstract class BaseSubResourceController<Entity, Create, Update, Response> {
+  protected abstract readonly config: SubResourceControllerConfig<Entity, Create, Update, Response>;
 
-  constructor(
-    protected readonly service: BaseSubResourceService<Entity, Create, Update>,
-  ) {}
+  constructor(protected readonly service: BaseSubResourceService<Entity, Create, Update>) {}
 
   @Get()
   @ApiOperation({ summary: 'Get all entities for a resume' })
@@ -87,12 +70,7 @@ export abstract class BaseSubResourceController<
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
   ): Promise<PaginatedResult<Entity>> {
-    return this.service.listAllEntitiesForResume(
-      resumeId,
-      user.userId,
-      page,
-      limit,
-    );
+    return this.service.listAllEntitiesForResume(resumeId, user.userId, page, limit);
   }
 
   @Get(':id')
@@ -135,12 +113,7 @@ export abstract class BaseSubResourceController<
     @CurrentUser() user: UserPayload,
     @Body() updateDto: Update,
   ): Promise<DataResponse<Entity>> {
-    return this.service.updateEntityByIdForResume(
-      resumeId,
-      entityId,
-      user.userId,
-      updateDto,
-    );
+    return this.service.updateEntityByIdForResume(resumeId, entityId, user.userId, updateDto);
   }
 
   @Delete(':id')
@@ -155,11 +128,7 @@ export abstract class BaseSubResourceController<
     @Param('id', ParseCuidPipe) entityId: string,
     @CurrentUser() user: UserPayload,
   ): Promise<MessageResponse> {
-    return this.service.deleteEntityByIdForResume(
-      resumeId,
-      entityId,
-      user.userId,
-    );
+    return this.service.deleteEntityByIdForResume(resumeId, entityId, user.userId);
   }
 
   @Post('reorder')
@@ -172,10 +141,6 @@ export abstract class BaseSubResourceController<
     @CurrentUser() user: UserPayload,
     @Body() reorderDto: ReorderItems,
   ): Promise<MessageResponse> {
-    return this.service.reorderEntitiesInResume(
-      resumeId,
-      user.userId,
-      reorderDto.ids,
-    );
+    return this.service.reorderEntitiesInResume(resumeId, user.userId, reorderDto.ids);
   }
 }

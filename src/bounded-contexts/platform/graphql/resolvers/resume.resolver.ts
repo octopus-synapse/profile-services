@@ -1,30 +1,27 @@
+import { Logger, UseGuards } from '@nestjs/common';
 import {
-  Resolver,
-  Query,
-  Mutation,
   Args,
-  ID,
-  ResolveField,
-  Parent,
   Context,
+  ID,
+  Mutation,
+  Parent,
+  Query,
+  ResolveField,
+  Resolver,
 } from '@nestjs/graphql';
-import { UseGuards, Logger } from '@nestjs/common';
-import { GqlAuthGuard } from '../guards/gql-auth.guard';
-import { CurrentUser } from '../decorators/current-user.decorator';
-import { ResumeModel } from '../models/resume.model';
-import { ExperienceModel } from '../models/experience.model';
-import { EducationModel } from '../models/education.model';
-import { SkillModel } from '../models/skill.model';
-import {
-  CreateExperienceInput,
-  UpdateExperienceInput,
-} from '../inputs/experience.input';
-import { CreateEducationInput } from '../inputs/education.input';
-import { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.repository';
-import { ExperienceService } from '@/bounded-contexts/resumes/resumes/services/experience.service';
-import { EducationService } from '@/bounded-contexts/resumes/resumes/services/education.service';
 import type { User } from '@prisma/client';
+import { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.repository';
+import { EducationService } from '@/bounded-contexts/resumes/resumes/services/education.service';
+import { ExperienceService } from '@/bounded-contexts/resumes/resumes/services/experience.service';
 import { DataLoaderService } from '../dataloaders/dataloader.service';
+import { CurrentUser } from '../decorators/current-user.decorator';
+import { GqlAuthGuard } from '../guards/gql-auth.guard';
+import { CreateEducationInput } from '../inputs/education.input';
+import { CreateExperienceInput, UpdateExperienceInput } from '../inputs/experience.input';
+import { EducationModel } from '../models/education.model';
+import { ExperienceModel } from '../models/experience.model';
+import { ResumeModel } from '../models/resume.model';
+import { SkillModel } from '../models/skill.model';
 
 /**
  * GraphQL Resolver for Resume queries and mutations
@@ -55,10 +52,7 @@ export class ResumeResolver {
     @CurrentUser() user: User,
   ): Promise<ResumeModel> {
     this.logger.log(`[GraphQL] Fetching resume ${id} for user ${user.id}`);
-    const resume = await this.resumesRepository.findResumeByIdAndUserId(
-      id,
-      user.id,
-    );
+    const resume = await this.resumesRepository.findResumeByIdAndUserId(id, user.id);
     return resume as ResumeModel;
   }
 
@@ -126,14 +120,8 @@ export class ResumeResolver {
     @Args('input') input: CreateExperienceInput,
     @CurrentUser() user: User,
   ): Promise<ExperienceModel> {
-    this.logger.log(
-      `[GraphQL] Adding experience to resume ${resumeId} for user ${user.id}`,
-    );
-    const response = await this.experienceService.addEntityToResume(
-      resumeId,
-      user.id,
-      input,
-    );
+    this.logger.log(`[GraphQL] Adding experience to resume ${resumeId} for user ${user.id}`);
+    const response = await this.experienceService.addEntityToResume(resumeId, user.id, input);
     return response.data as ExperienceModel;
   }
 
@@ -147,9 +135,7 @@ export class ResumeResolver {
     @Args('input') input: UpdateExperienceInput,
     @CurrentUser() user: User,
   ): Promise<ExperienceModel> {
-    this.logger.log(
-      `[GraphQL] Updating experience ${experienceId} for user ${user.id}`,
-    );
+    this.logger.log(`[GraphQL] Updating experience ${experienceId} for user ${user.id}`);
     const response = await this.experienceService.updateEntityByIdForResume(
       resumeId,
       experienceId,
@@ -168,14 +154,8 @@ export class ResumeResolver {
     @Args('experienceId', { type: () => ID }) experienceId: string,
     @CurrentUser() user: User,
   ): Promise<boolean> {
-    this.logger.log(
-      `[GraphQL] Deleting experience ${experienceId} for user ${user.id}`,
-    );
-    await this.experienceService.deleteEntityByIdForResume(
-      resumeId,
-      experienceId,
-      user.id,
-    );
+    this.logger.log(`[GraphQL] Deleting experience ${experienceId} for user ${user.id}`);
+    await this.experienceService.deleteEntityByIdForResume(resumeId, experienceId, user.id);
     return true;
   }
 
@@ -190,9 +170,7 @@ export class ResumeResolver {
     @Args('input') input: CreateEducationInput,
     @CurrentUser() user: User,
   ): Promise<EducationModel> {
-    this.logger.log(
-      `[GraphQL] Adding education to resume ${resumeId} for user ${user.id}`,
-    );
+    this.logger.log(`[GraphQL] Adding education to resume ${resumeId} for user ${user.id}`);
     // Currently using cast due to legacy class-validator DTO mismatch
     const response = await this.educationService.addEntityToResume(
       resumeId,

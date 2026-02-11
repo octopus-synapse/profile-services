@@ -5,9 +5,9 @@
  * Immutable: all modifications return new instances.
  */
 
-import type { RoleId } from './role.entity';
-import type { PermissionId } from './permission.entity';
 import { assertGroupValid } from '../validation/group-validation';
+import type { PermissionId } from './permission.entity';
+import type { RoleId } from './role.entity';
 
 /** Unique identifier for a Group */
 export type GroupId = string;
@@ -43,8 +43,7 @@ export interface UpdateGroupInput {
 }
 
 /** Serialized group for persistence */
-interface SerializedGroup
-  extends Omit<GroupProps, 'roleIds' | 'permissionIds'> {
+interface SerializedGroup extends Omit<GroupProps, 'roleIds' | 'permissionIds'> {
   roleIds: RoleId[];
   permissionIds: PermissionId[];
 }
@@ -134,10 +133,7 @@ export class Group {
 
   addPermission(permissionId: PermissionId): Group {
     if (this.props.permissionIds.has(permissionId)) return this;
-    return this.withSet(
-      'permissionIds',
-      new Set([...this.props.permissionIds, permissionId]),
-    );
+    return this.withSet('permissionIds', new Set([...this.props.permissionIds, permissionId]));
   }
 
   removePermission(permissionId: PermissionId): Group {
@@ -152,18 +148,11 @@ export class Group {
   }
 
   setParent(parentId: GroupId | null): Group {
-    return parentId === this.props.parentId
-      ? this
-      : this.with({ parentId: parentId ?? undefined });
+    return parentId === this.props.parentId ? this : this.with({ parentId: parentId ?? undefined });
   }
 
-  wouldCreateCycle(
-    potentialParentId: GroupId,
-    ancestorIds: GroupId[],
-  ): boolean {
-    return (
-      potentialParentId === this.props.id || ancestorIds.includes(this.props.id)
-    );
+  wouldCreateCycle(potentialParentId: GroupId, ancestorIds: GroupId[]): boolean {
+    return potentialParentId === this.props.id || ancestorIds.includes(this.props.id);
   }
 
   canBeDeleted(): boolean {
@@ -175,10 +164,7 @@ export class Group {
       ...this.props,
       displayName: input.displayName?.trim() ?? this.props.displayName,
       description: input.description?.trim() ?? this.props.description,
-      parentId:
-        input.parentId === null
-          ? undefined
-          : (input.parentId ?? this.props.parentId),
+      parentId: input.parentId === null ? undefined : (input.parentId ?? this.props.parentId),
       updatedAt: new Date(),
     });
   }
@@ -199,10 +185,7 @@ export class Group {
     return new Group({ ...this.props, ...partial, updatedAt: new Date() });
   }
 
-  private withSet<K extends 'roleIds' | 'permissionIds'>(
-    key: K,
-    value: GroupProps[K],
-  ): Group {
+  private withSet<K extends 'roleIds' | 'permissionIds'>(key: K, value: GroupProps[K]): Group {
     return new Group({ ...this.props, [key]: value, updatedAt: new Date() });
   }
 }

@@ -1,9 +1,9 @@
-import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bullmq';
+import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
-import { QueueService } from './queue.service';
 import { ExportProcessor } from './processors/export.processor';
+import { QueueService } from './queue.service';
 
 @Module({
   imports: [

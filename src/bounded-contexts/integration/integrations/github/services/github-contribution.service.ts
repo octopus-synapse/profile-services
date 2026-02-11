@@ -5,8 +5,8 @@
 
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { GitHubApiService, GitHubRepo } from './github-api.service';
 import { TIME_MS } from '@/shared-kernel';
+import { GitHubApiService, GitHubRepo } from './github-api.service';
 
 type GitHubContributionInput = Prisma.OpenSourceContributionCreateManyInput;
 
@@ -25,11 +25,7 @@ export class GitHubContributionService {
 
     for (const repo of repos) {
       if (this.shouldIncludeRepo(repo, githubUsername)) {
-        const contribution = await this.buildContribution(
-          resumeId,
-          githubUsername,
-          repo,
-        );
+        const contribution = await this.buildContribution(resumeId, githubUsername, repo);
         contributions.push(contribution);
       }
     }
@@ -57,12 +53,7 @@ export class GitHubContributionService {
       githubUsername,
     );
 
-    const role = this.determineRole(
-      repo,
-      githubUsername,
-      commits,
-      pullRequests,
-    );
+    const role = this.determineRole(repo, githubUsername, commits, pullRequests);
     const isCurrent = this.isRecentlyActive(repo.pushed_at);
 
     return {
@@ -71,12 +62,7 @@ export class GitHubContributionService {
       projectUrl: repo.html_url,
       role,
       description: repo.description || undefined,
-      technologies:
-        repo.topics.length > 0
-          ? repo.topics
-          : repo.language
-            ? [repo.language]
-            : [],
+      technologies: repo.topics.length > 0 ? repo.topics : repo.language ? [repo.language] : [],
       commits: commits || undefined,
       prsCreated: pullRequests || undefined,
       stars: repo.stargazers_count > 0 ? repo.stargazers_count : undefined,
@@ -97,8 +83,7 @@ export class GitHubContributionService {
   }
 
   private isRecentlyActive(pushedAt: string): boolean {
-    const activityThreshold =
-      Date.now() - ACTIVITY_THRESHOLD_DAYS * TIME_MS.DAY;
+    const activityThreshold = Date.now() - ACTIVITY_THRESHOLD_DAYS * TIME_MS.DAY;
     return new Date(pushedAt) > new Date(activityThreshold);
   }
 }

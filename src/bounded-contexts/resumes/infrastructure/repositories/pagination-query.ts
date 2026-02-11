@@ -1,8 +1,8 @@
-import type { PrismaDelegate } from './prisma-delegate.type';
-import type { OrderByConfig, FindAllFilters } from './order-by-config';
-import { buildOrderByClause } from './order-by-config';
 import type { PaginatedResult } from '@/shared-kernel';
 import { PAGINATION } from '@/shared-kernel';
+import type { FindAllFilters, OrderByConfig } from './order-by-config';
+import { buildOrderByClause } from './order-by-config';
+import type { PrismaDelegate } from './prisma-delegate.type';
 
 export async function findAllWithPagination<T>(
   delegate: PrismaDelegate<T>,

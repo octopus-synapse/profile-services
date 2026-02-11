@@ -68,35 +68,23 @@ export abstract class BaseOnboardingService<TInput, TCreate> {
   /**
    * Get skip reason message for logging.
    */
-  protected abstract getSkipMessage(
-    noDataFlag: boolean | null,
-    items: TInput[],
-  ): string;
+  protected abstract getSkipMessage(noDataFlag: boolean | null, items: TInput[]): string;
 
   /**
    * Delete existing records for this resumeId.
    */
-  protected abstract deleteExisting(
-    tx: Prisma.TransactionClient,
-    resumeId: string,
-  ): Promise<void>;
+  protected abstract deleteExisting(tx: Prisma.TransactionClient, resumeId: string): Promise<void>;
 
   /**
    * Transform and validate input items to Prisma create format.
    * Filters out invalid items (nulls).
    */
-  protected abstract transformItems(
-    items: TInput[],
-    resumeId: string,
-  ): TCreate[];
+  protected abstract transformItems(items: TInput[], resumeId: string): TCreate[];
 
   /**
    * Create many records in database.
    */
-  protected abstract createMany(
-    tx: Prisma.TransactionClient,
-    items: TCreate[],
-  ): Promise<void>;
+  protected abstract createMany(tx: Prisma.TransactionClient, items: TCreate[]): Promise<void>;
 
   /**
    * Get success message for logging.

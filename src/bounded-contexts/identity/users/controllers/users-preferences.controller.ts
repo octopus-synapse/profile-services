@@ -3,31 +3,18 @@
  * Handles user preferences operations
  */
 
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Patch,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Patch, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
+import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
+import { UsersService } from '@/bounded-contexts/identity/users/users.service';
+import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import type { UpdateFullPreferences, UpdatePreferences } from '@/shared-kernel';
 import {
   UserFullPreferencesResponseDto,
   UserPreferencesResponseDto,
 } from '@/shared-kernel/dtos/sdk-response.dto';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
-import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
-import { UsersService } from '@/bounded-contexts/identity/users/users.service';
-import type { UpdatePreferences, UpdateFullPreferences } from '@/shared-kernel';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
-import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
-import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
 
 @SdkExport({ tag: 'users', description: 'Users API' })
 @ApiTags('users')
@@ -98,9 +85,6 @@ export class UsersPreferencesController {
     @CurrentUser() user: UserPayload,
     @Body() updateFullPreferences: UpdateFullPreferences,
   ) {
-    return this.usersService.updateFullPreferences(
-      user.userId,
-      updateFullPreferences,
-    );
+    return this.usersService.updateFullPreferences(user.userId, updateFullPreferences);
   }
 }

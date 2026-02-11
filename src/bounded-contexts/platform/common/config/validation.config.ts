@@ -26,10 +26,7 @@ export function configureValidation(app: INestApplication): void {
  * Global exception filter configuration
  * Single Responsibility: Configure error handling only
  */
-export function configureExceptionHandling(
-  app: INestApplication,
-  logger: AppLoggerService,
-): void {
+export function configureExceptionHandling(app: INestApplication, logger: AppLoggerService): void {
   app.useGlobalFilters(new AllExceptionsFilter(logger));
 }
 

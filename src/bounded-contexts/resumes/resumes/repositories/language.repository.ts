@@ -1,13 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { Language } from '@prisma/client';
 import type { CreateLanguage, UpdateLanguage } from '@/shared-kernel';
-import {
-  BaseSubResourceRepository,
-  OrderByConfig,
-  buildUpdateData,
-  buildCreateData,
-} from './base';
+import { BaseSubResourceRepository, buildCreateData, buildUpdateData, OrderByConfig } from './base';
 
 /**
  * Repository for Language entities
@@ -24,10 +18,6 @@ export class LanguageRepository extends BaseSubResourceRepository<
   UpdateLanguage
 > {
   protected readonly logger = new Logger(LanguageRepository.name);
-
-  constructor(prisma: PrismaService) {
-    super(prisma);
-  }
 
   protected getPrismaDelegate() {
     return this.prisma.language;

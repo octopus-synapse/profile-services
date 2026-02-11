@@ -5,14 +5,12 @@
  * No class-validator, no Zod here - just imports.
  */
 
-import { validateEnv, type EnvironmentVariables } from '@/shared-kernel';
+import { type EnvironmentVariables, validateEnv } from '@/shared-kernel';
 
 /**
  * Validates environment variables using profile-contracts
  */
-export function validate(
-  config: Record<string, unknown>,
-): EnvironmentVariables {
+export function validate(config: Record<string, unknown>): EnvironmentVariables {
   return validateEnv(config);
 }
 

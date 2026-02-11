@@ -1,78 +1,73 @@
 import { Module } from '@nestjs/common';
-import { ResumesService } from './resumes.service';
-import { ResumesController } from './resumes.controller';
-import { ResumesRepository } from './resumes.repository';
+import { AuthorizationModule } from '@/bounded-contexts/identity/authorization';
+import { CacheModule } from '@/bounded-contexts/platform/common/cache/cache.module';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { ResumeVersionsModule } from '@/bounded-contexts/resumes/resume-versions/resume-versions.module';
-import { CacheModule } from '@/bounded-contexts/platform/common/cache/cache.module';
-import { AuthorizationModule } from '@/bounded-contexts/identity/authorization';
-import { ResumeManagementService } from './services/resume-management.service';
-import { ResumeManagementController } from './controllers/resume-management.controller';
 import {
-  InvalidateCacheOnResumeUpdate,
-  InvalidateCacheOnResumeDelete,
   CleanupResumesOnUserDeleteHandler,
+  InvalidateCacheOnResumeDelete,
+  InvalidateCacheOnResumeUpdate,
 } from '../application/handlers';
 import { RESUME_EVENT_PUBLISHER } from '../domain/ports';
 import { ResumeEventPublisherAdapter } from '../infrastructure/adapters';
+import { ResumeManagementController } from './controllers/resume-management.controller';
 import {
+  AchievementController,
+  AchievementRepository,
+  AchievementService,
+  AwardController,
+  AwardRepository,
+  AwardService,
+  BugBountyController,
+  BugBountyRepository,
+  BugBountyService,
+  CertificationController,
+  CertificationRepository,
+  CertificationService,
+  EducationController,
+  EducationRepository,
+  EducationService,
   // Controllers
   ExperienceController,
-  EducationController,
-  SkillController,
-  ProjectController,
-  CertificationController,
-  AwardController,
-  LanguageController,
-  InterestController,
-  RecommendationController,
-  AchievementController,
-  PublicationController,
-  TalkController,
-  HackathonController,
-  BugBountyController,
-  OpenSourceController,
-  // Services
-  ExperienceService,
-  EducationService,
-  SkillService,
-  ProjectService,
-  CertificationService,
-  AwardService,
-  LanguageService,
-  InterestService,
-  RecommendationService,
-  AchievementService,
-  PublicationService,
-  TalkService,
-  HackathonService,
-  BugBountyService,
-  OpenSourceService,
   // Repositories
   ExperienceRepository,
-  EducationRepository,
-  SkillRepository,
-  ProjectRepository,
-  CertificationRepository,
-  AwardRepository,
-  LanguageRepository,
-  InterestRepository,
-  RecommendationRepository,
-  AchievementRepository,
-  PublicationRepository,
-  TalkRepository,
+  // Services
+  ExperienceService,
+  HackathonController,
   HackathonRepository,
-  BugBountyRepository,
+  HackathonService,
+  InterestController,
+  InterestRepository,
+  InterestService,
+  LanguageController,
+  LanguageRepository,
+  LanguageService,
+  OpenSourceController,
   OpenSourceRepository,
+  OpenSourceService,
+  ProjectController,
+  ProjectRepository,
+  ProjectService,
+  PublicationController,
+  PublicationRepository,
+  PublicationService,
+  RecommendationController,
+  RecommendationRepository,
+  RecommendationService,
+  SkillController,
+  SkillRepository,
+  SkillService,
+  TalkController,
+  TalkRepository,
+  TalkService,
 } from './module-imports';
+import { ResumesController } from './resumes.controller';
+import { ResumesRepository } from './resumes.repository';
+import { ResumesService } from './resumes.service';
+import { ResumeManagementService } from './services/resume-management.service';
 
 @Module({
-  imports: [
-    PrismaModule,
-    ResumeVersionsModule,
-    CacheModule,
-    AuthorizationModule,
-  ],
+  imports: [PrismaModule, ResumeVersionsModule, CacheModule, AuthorizationModule],
   controllers: [
     ResumesController,
     ResumeManagementController,

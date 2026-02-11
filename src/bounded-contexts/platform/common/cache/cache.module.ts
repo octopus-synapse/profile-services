@@ -1,15 +1,15 @@
-import { Module, Global } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
+import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
+import { LoggerModule } from '../logger/logger.module';
 import { CacheService } from './cache.service';
-import { RedisConnectionService } from './redis-connection.service';
 import { CacheLockService } from './cache-lock.service';
+import { RedisConnectionService } from './redis-connection.service';
 import {
   CacheCoreService,
-  CachePatternsService,
   CacheInvalidationService,
+  CachePatternsService,
   CacheWarmingService,
 } from './services';
-import { LoggerModule } from '../logger/logger.module';
-import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 
 @Global()
 @Module({

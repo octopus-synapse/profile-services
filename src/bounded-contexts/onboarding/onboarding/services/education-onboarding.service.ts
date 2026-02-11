@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
+import { toUTCDate } from '@/bounded-contexts/platform/common/utils/date.utils';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { DateUtils } from '@/bounded-contexts/platform/common/utils/date.utils';
 import type { OnboardingData } from '../schemas/onboarding.schema';
 import { BaseOnboardingService } from './base-onboarding.service';
 
@@ -23,11 +23,7 @@ export class EducationOnboardingService extends BaseOnboardingService<
     return this.saveEducationWithTx(this.prisma, resumeId, data);
   }
 
-  async saveEducationWithTx(
-    tx: Prisma.TransactionClient,
-    resumeId: string,
-    data: OnboardingData,
-  ) {
+  async saveEducationWithTx(tx: Prisma.TransactionClient, resumeId: string, data: OnboardingData) {
     return this.saveWithTransaction(tx, resumeId, data);
   }
 
@@ -43,40 +39,27 @@ export class EducationOnboardingService extends BaseOnboardingService<
     return noDataFlag ? 'User selected noEducation' : 'No education provided';
   }
 
-  protected async deleteExisting(
-    tx: Prisma.TransactionClient,
-    resumeId: string,
-  ): Promise<void> {
+  protected async deleteExisting(tx: Prisma.TransactionClient, resumeId: string): Promise<void> {
     await tx.education.deleteMany({ where: { resumeId } });
   }
 
-  protected transformItems(
-    items: EducationInput[],
-    resumeId: string,
-  ): EducationCreate[] {
+  protected transformItems(items: EducationInput[], resumeId: string): EducationCreate[] {
     return items
       .map((edu) => this.mapEducation(edu, resumeId))
       .filter((e): e is EducationCreate => e !== null);
   }
 
-  private mapEducation(
-    edu: EducationInput,
-    resumeId: string,
-  ): EducationCreate | null {
-    const startDate = DateUtils.toUTCDate(edu.startDate);
-    const endDate = edu.isCurrent ? null : DateUtils.toUTCDate(edu.endDate);
+  private mapEducation(edu: EducationInput, resumeId: string): EducationCreate | null {
+    const startDate = toUTCDate(edu.startDate);
+    const endDate = edu.isCurrent ? null : toUTCDate(edu.endDate);
 
     if (!startDate) {
-      this.logger.warn(
-        `Skipping education with invalid start date: ${edu.institution}`,
-      );
+      this.logger.warn(`Skipping education with invalid start date: ${edu.institution}`);
       return null;
     }
 
     if (endDate && endDate < startDate) {
-      this.logger.warn(
-        `Skipping education with end date before start date: ${edu.institution}`,
-      );
+      this.logger.warn(`Skipping education with end date before start date: ${edu.institution}`);
       return null;
     }
 

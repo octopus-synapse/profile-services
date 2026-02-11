@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { ViewTrackingService } from './view-tracking.service';
-import { ATSScoreService } from './ats-score.service';
-import { SnapshotService } from './snapshot.service';
 import type {
   AnalyticsDashboard,
-  ScoreProgressionPoint,
   ATSScoreResult,
+  ScoreProgressionPoint,
   ViewStats,
 } from '../interfaces';
+import { ATSScoreService } from './ats-score.service';
+import { SnapshotService } from './snapshot.service';
+import { ViewTrackingService } from './view-tracking.service';
 
 type ResumeWithDetails = {
   id: string;
@@ -30,10 +30,7 @@ export class DashboardService {
     private readonly snapshot: SnapshotService,
   ) {}
 
-  async build(
-    resumeId: string,
-    resume: ResumeWithDetails,
-  ): Promise<AnalyticsDashboard> {
+  async build(resumeId: string, resume: ResumeWithDetails): Promise<AnalyticsDashboard> {
     const [viewStats, progression] = await Promise.all([
       this.viewTracking.getViewStats(resumeId, { period: 'month' }),
       this.snapshot.getScoreProgression(resumeId, 30),
@@ -75,9 +72,7 @@ export class DashboardService {
     };
   }
 
-  private calculateTrend(
-    points: ScoreProgressionPoint[],
-  ): 'improving' | 'stable' | 'declining' {
+  private calculateTrend(points: ScoreProgressionPoint[]): 'improving' | 'stable' | 'declining' {
     if (points.length < 2) return 'stable';
     const first = points[0].score;
     const last = points[points.length - 1].score;

@@ -7,17 +7,17 @@
 import { Injectable } from '@nestjs/common';
 import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
-import { MecCsvParserService, ParseResult } from './mec-csv-parser.service';
-import { DataSyncService } from './data-sync.service';
-import { SyncHelperService } from './sync-helper.service';
-import { SyncLogRepository } from '../repositories';
+import { APP_CONFIG } from '@/shared-kernel';
 import {
-  SyncResult,
-  SyncMetadata,
   MEC_CACHE_KEYS,
   MEC_CACHE_TTL,
+  SyncMetadata,
+  SyncResult,
 } from '../interfaces/mec-data.interface';
-import { APP_CONFIG } from '@/shared-kernel';
+import { SyncLogRepository } from '../repositories';
+import { DataSyncService } from './data-sync.service';
+import { MecCsvParserService, ParseResult } from './mec-csv-parser.service';
+import { SyncHelperService } from './sync-helper.service';
 
 @Injectable()
 export class MecSyncOrchestratorService {
@@ -66,12 +66,7 @@ export class MecSyncOrchestratorService {
       return syncResult;
     } catch (error) {
       // External I/O side-effects (DB update) - see ERROR_HANDLING_STRATEGY.md
-      await this.syncHelper.handleSyncError(
-        syncLog.id,
-        error,
-        startTime,
-        triggeredBy,
-      );
+      await this.syncHelper.handleSyncError(syncLog.id, error, startTime, triggeredBy);
       throw error;
     } finally {
       await this.cache.releaseLock(MEC_CACHE_KEYS.SYNC_LOCK);
@@ -85,9 +80,7 @@ export class MecSyncOrchestratorService {
     );
 
     if (!lockAcquired) {
-      throw new Error(
-        'Sync already in progress. Please wait for the current sync to complete.',
-      );
+      throw new Error('Sync already in progress. Please wait for the current sync to complete.');
     }
   }
 

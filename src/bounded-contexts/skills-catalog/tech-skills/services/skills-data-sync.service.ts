@@ -11,9 +11,7 @@ import type { ParsedSkill } from '../interfaces';
 export class SkillsDataSyncService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async syncSkills(
-    skills: ParsedSkill[],
-  ): Promise<{ inserted: number; updated: number }> {
+  async syncSkills(skills: ParsedSkill[]): Promise<{ inserted: number; updated: number }> {
     let inserted = 0;
     let updated = 0;
 

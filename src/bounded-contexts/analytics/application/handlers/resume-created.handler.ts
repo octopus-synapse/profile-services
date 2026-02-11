@@ -10,15 +10,10 @@ export interface AnalyticsRecorder {
 
 @Injectable()
 export class ResumeCreatedHandler {
-  constructor(
-    @Inject(ANALYTICS_RECORDER) private readonly recorder: AnalyticsRecorder,
-  ) {}
+  constructor(@Inject(ANALYTICS_RECORDER) private readonly recorder: AnalyticsRecorder) {}
 
   @OnEvent(ResumeCreatedEvent.TYPE)
   async handle(event: ResumeCreatedEvent): Promise<void> {
-    await this.recorder.recordResumeCreation(
-      event.aggregateId,
-      event.payload.userId,
-    );
+    await this.recorder.recordResumeCreation(event.aggregateId, event.payload.userId);
   }
 }

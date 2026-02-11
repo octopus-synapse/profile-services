@@ -11,9 +11,9 @@ import { SkillLevel } from '../enums/skill-level.enum';
 
 // Re-export from enums for backward compatibility
 export {
+  type SkillLevel,
   SkillLevelSchema,
   SkillLevelToNumeric,
-  type SkillLevel,
 } from '../enums/skill-level.enum';
 
 /**

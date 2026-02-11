@@ -20,10 +20,7 @@ type ResumeWithRelations = Prisma.ResumeGetPayload<{
 export class ResumeLatexService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async exportAsLatex(
-    resumeId: string,
-    options: LatexExportOptions = {},
-  ): Promise<string> {
+  async exportAsLatex(resumeId: string, options: LatexExportOptions = {}): Promise<string> {
     const resume = await this.prisma.resume.findUnique({
       where: { id: resumeId },
       include: {
@@ -47,21 +44,14 @@ export class ResumeLatexService {
     return this.generateSimpleTemplate(resume);
   }
 
-  async exportAsBuffer(
-    resumeId: string,
-    options: LatexExportOptions = {},
-  ): Promise<Buffer> {
+  async exportAsBuffer(resumeId: string, options: LatexExportOptions = {}): Promise<Buffer> {
     const latex = await this.exportAsLatex(resumeId, options);
     return Buffer.from(latex);
   }
 
   private generateSimpleTemplate(resume: ResumeWithRelations): string {
-    const name = this.escapeLatex(
-      resume.user.name ?? resume.fullName ?? 'Unknown',
-    );
-    const email = this.escapeLatex(
-      resume.user.email ?? resume.emailContact ?? '',
-    );
+    const name = this.escapeLatex(resume.user.name ?? resume.fullName ?? 'Unknown');
+    const email = this.escapeLatex(resume.user.email ?? resume.emailContact ?? '');
     const phone = this.escapeLatex(resume.user.phone ?? resume.phone ?? '');
     const title = this.escapeLatex(resume.jobTitle ?? resume.title ?? '');
 
@@ -94,9 +84,7 @@ ${email}${phone ? ` \\textbar{} ${phone}` : ''}
         const position = this.escapeLatex(exp.position);
         const company = this.escapeLatex(exp.company);
         const startDate = this.formatDate(exp.startDate);
-        const endDate = exp.isCurrent
-          ? 'Present'
-          : this.formatDate(exp.endDate);
+        const endDate = exp.isCurrent ? 'Present' : this.formatDate(exp.endDate);
         const description = this.escapeLatex(exp.description ?? '');
 
         latex += `\\textbf{${position}} \\hfill ${startDate} -- ${endDate}\\\\
@@ -128,9 +116,7 @@ ${description}\\\\[0.5em]
       latex += `
 \\section*{Skills}
 `;
-      const skillNames = resume.skills
-        .map((s) => this.escapeLatex(s.name))
-        .join(', ');
+      const skillNames = resume.skills.map((s) => this.escapeLatex(s.name)).join(', ');
       latex += `${skillNames}\\\\
 `;
     }
@@ -143,12 +129,8 @@ ${description}\\\\[0.5em]
   }
 
   private generateModerncvTemplate(resume: ResumeWithRelations): string {
-    const name = this.escapeLatex(
-      resume.user.name ?? resume.fullName ?? 'Unknown',
-    );
-    const email = this.escapeLatex(
-      resume.user.email ?? resume.emailContact ?? '',
-    );
+    const name = this.escapeLatex(resume.user.name ?? resume.fullName ?? 'Unknown');
+    const email = this.escapeLatex(resume.user.email ?? resume.emailContact ?? '');
     const title = this.escapeLatex(resume.jobTitle ?? resume.title ?? '');
 
     let latex = `\\documentclass[11pt,a4paper,sans]{moderncv}
@@ -175,9 +157,7 @@ ${description}\\\\[0.5em]
         const position = this.escapeLatex(exp.position);
         const company = this.escapeLatex(exp.company);
         const startDate = this.formatDate(exp.startDate);
-        const endDate = exp.isCurrent
-          ? 'Present'
-          : this.formatDate(exp.endDate);
+        const endDate = exp.isCurrent ? 'Present' : this.formatDate(exp.endDate);
         const description = this.escapeLatex(exp.description ?? '');
 
         latex += `\\cventry{${startDate}--${endDate}}{${position}}{${company}}{}{}{${description}}
@@ -206,9 +186,7 @@ ${description}\\\\[0.5em]
       latex += `
 \\section{Skills}
 `;
-      const skillNames = resume.skills
-        .map((s) => this.escapeLatex(s.name))
-        .join(', ');
+      const skillNames = resume.skills.map((s) => this.escapeLatex(s.name)).join(', ');
       latex += `\\cvitem{Technical}{${skillNames}}
 `;
     }

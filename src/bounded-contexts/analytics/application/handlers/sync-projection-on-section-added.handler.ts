@@ -12,9 +12,7 @@ import { SectionAddedEvent } from '@/bounded-contexts/resumes';
 
 @Injectable()
 export class SyncProjectionOnSectionAddedHandler {
-  private readonly logger = new Logger(
-    SyncProjectionOnSectionAddedHandler.name,
-  );
+  private readonly logger = new Logger(SyncProjectionOnSectionAddedHandler.name);
 
   constructor(private readonly prisma: PrismaService) {}
 

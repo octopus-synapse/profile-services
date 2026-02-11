@@ -3,5 +3,5 @@
  */
 
 export * from './csv-line.parser';
-export * from './mec-row.mapper';
 export * from './entity.normalizer';
+export * from './mec-row.mapper';

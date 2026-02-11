@@ -10,19 +10,16 @@
  * Usage: bun run src/scripts/generate-openapi.ts
  */
 
-import {
-  OpenAPIRegistry,
-  OpenApiGeneratorV31,
-} from '@asteasolutions/zod-to-openapi';
+import { writeFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { OpenAPIRegistry, OpenApiGeneratorV31 } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
-import { writeFileSync } from 'fs';
-import { resolve } from 'path';
 
 // Import schemas from shared-kernel
 import {
-  RegisterCredentialsSchema,
   LoginCredentialsSchema,
   RefreshTokenSchema,
+  RegisterCredentialsSchema,
 } from '../shared-kernel/schemas';
 
 // Define response schemas inline (these are API-specific)

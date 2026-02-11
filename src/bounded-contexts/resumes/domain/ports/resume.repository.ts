@@ -1,21 +1,10 @@
 export interface ResumeRepository {
-  findByIdAndUserId(
-    id: string,
-    userId: string,
-  ): Promise<ResumeAggregate | null>;
+  findByIdAndUserId(id: string, userId: string): Promise<ResumeAggregate | null>;
   findAllByUserId(userId: string): Promise<ResumeAggregate[]>;
-  findAllByUserIdPaginated(
-    userId: string,
-    skip: number,
-    take: number,
-  ): Promise<ResumeAggregate[]>;
+  findAllByUserIdPaginated(userId: string, skip: number, take: number): Promise<ResumeAggregate[]>;
   countByUserId(userId: string): Promise<number>;
   create(userId: string, data: CreateResumeData): Promise<ResumeAggregate>;
-  update(
-    id: string,
-    userId: string,
-    data: UpdateResumeData,
-  ): Promise<ResumeAggregate | null>;
+  update(id: string, userId: string, data: UpdateResumeData): Promise<ResumeAggregate | null>;
   delete(id: string, userId: string): Promise<boolean>;
   findByUserId(userId: string): Promise<ResumeAggregate | null>;
 }

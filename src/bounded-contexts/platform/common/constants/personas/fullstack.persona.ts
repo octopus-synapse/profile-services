@@ -1,5 +1,5 @@
-import { TechPersona } from './tech-persona.enum';
 import { PersonaConfig } from './persona-config.interface';
+import { TechPersona } from './tech-persona.enum';
 
 export const FULLSTACK_PERSONA: PersonaConfig = {
   id: TechPersona.FULLSTACK,
@@ -18,12 +18,7 @@ export const FULLSTACK_PERSONA: PersonaConfig = {
     'UI/UX',
     'Testing',
   ],
-  achievementTypes: [
-    'github_stars',
-    'npm_downloads',
-    'open_source_contribution',
-    'hackathon_win',
-  ],
+  achievementTypes: ['github_stars', 'npm_downloads', 'open_source_contribution', 'hackathon_win'],
   prioritySections: ['projects', 'openSource', 'experiences', 'hackathons'],
   keywords: [
     'react',

@@ -8,8 +8,8 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { CacheService } from '../cache.service';
 import { AppLoggerService } from '../../logger/logger.service';
+import { CacheService } from '../cache.service';
 
 // --- Types ---
 
@@ -50,10 +50,7 @@ export class CacheInvalidationService {
 
     await Promise.all(operations);
 
-    this.logger.debug(
-      `Cache invalidated for resume: ${resumeId}`,
-      'CacheInvalidationService',
-    );
+    this.logger.debug(`Cache invalidated for resume: ${resumeId}`, 'CacheInvalidationService');
   }
 
   /**
@@ -67,19 +64,13 @@ export class CacheInvalidationService {
       this.safeDeletePattern(`user:${userId}:*`),
     ]);
 
-    this.logger.debug(
-      `Cache invalidated for user: ${userId}`,
-      'CacheInvalidationService',
-    );
+    this.logger.debug(`Cache invalidated for user: ${userId}`, 'CacheInvalidationService');
   }
 
   /**
    * Invalidate analytics cache for a specific entity.
    */
-  async invalidateAnalytics(
-    entityType: string,
-    entityId: string,
-  ): Promise<void> {
+  async invalidateAnalytics(entityType: string, entityId: string): Promise<void> {
     await Promise.all([
       this.safeDeletePattern(`analytics:${entityType}:${entityId}:*`),
       this.safeDelete(`analytics:dashboard:${entityId}`),
@@ -98,10 +89,7 @@ export class CacheInvalidationService {
   async invalidatePublicResumes(): Promise<void> {
     await this.safeDeletePattern('public:resumes:*');
 
-    this.logger.debug(
-      'Public resumes cache invalidated',
-      'CacheInvalidationService',
-    );
+    this.logger.debug('Public resumes cache invalidated', 'CacheInvalidationService');
   }
 
   /**
@@ -121,10 +109,7 @@ export class CacheInvalidationService {
 
     await Promise.all(keys.map((key) => this.safeDelete(key)));
 
-    this.logger.debug(
-      `Invalidated ${keys.length} cache keys`,
-      'CacheInvalidationService',
-    );
+    this.logger.debug(`Invalidated ${keys.length} cache keys`, 'CacheInvalidationService');
   }
 
   /**
@@ -133,14 +118,9 @@ export class CacheInvalidationService {
   async invalidatePatterns(patterns: string[]): Promise<void> {
     if (patterns.length === 0) return;
 
-    await Promise.all(
-      patterns.map((pattern) => this.safeDeletePattern(pattern)),
-    );
+    await Promise.all(patterns.map((pattern) => this.safeDeletePattern(pattern)));
 
-    this.logger.debug(
-      `Invalidated ${patterns.length} cache patterns`,
-      'CacheInvalidationService',
-    );
+    this.logger.debug(`Invalidated ${patterns.length} cache patterns`, 'CacheInvalidationService');
   }
 
   // --- Private Helpers ---

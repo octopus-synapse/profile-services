@@ -1,9 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import {
-  FormatValidationResult,
-  ValidationIssue,
-  ValidationSeverity,
-} from '../interfaces';
+import { FormatValidationResult, ValidationIssue, ValidationSeverity } from '../interfaces';
 import { FORMAT_VALIDATION } from './constants';
 
 @Injectable()
@@ -13,10 +9,7 @@ export class FormatValidator {
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   ];
 
-  validate(
-    file: Express.Multer.File,
-    extractedText: string,
-  ): FormatValidationResult {
+  validate(file: Express.Multer.File, extractedText: string): FormatValidationResult {
     const issues: ValidationIssue[] = [];
 
     const isATSSafeType = this.ATS_SAFE_FILE_TYPES.includes(file.mimetype);
@@ -32,11 +25,9 @@ export class FormatValidator {
     if (this.detectTables(extractedText)) {
       issues.push({
         code: 'TABLES_DETECTED',
-        message:
-          'Document may contain tables which can interfere with ATS parsing',
+        message: 'Document may contain tables which can interfere with ATS parsing',
         severity: ValidationSeverity.WARNING,
-        suggestion:
-          'Replace tables with simple text formatting for better ATS compatibility',
+        suggestion: 'Replace tables with simple text formatting for better ATS compatibility',
       });
     }
 
@@ -60,16 +51,12 @@ export class FormatValidator {
     }
 
     return {
-      passed:
-        issues.filter((i) => i.severity === ValidationSeverity.ERROR).length ===
-        0,
+      passed: issues.filter((i) => i.severity === ValidationSeverity.ERROR).length === 0,
       issues,
       fileType: file.mimetype,
       fileSize: file.size,
       isATSCompatible:
-        isATSSafeType &&
-        issues.filter((i) => i.severity === ValidationSeverity.ERROR).length ===
-          0,
+        isATSSafeType && issues.filter((i) => i.severity === ValidationSeverity.ERROR).length === 0,
       metadata: {
         hasTable: this.detectTables(extractedText),
         hasMultiColumn: this.detectMultiColumn(extractedText),
@@ -97,9 +84,7 @@ export class FormatValidator {
   private detectMultiColumn(text: string): boolean {
     const lines = text.split('\n');
 
-    const spacingPattern = new RegExp(
-      `\\s{${FORMAT_VALIDATION.MULTI_COLUMN_SPACING},}`,
-    );
+    const spacingPattern = new RegExp(`\\s{${FORMAT_VALIDATION.MULTI_COLUMN_SPACING},}`);
     let suspiciousLines = 0;
 
     lines.forEach((line) => {

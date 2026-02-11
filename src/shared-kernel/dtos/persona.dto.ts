@@ -32,10 +32,7 @@ export const PersonaConfigSchema = z.object({
   accentColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
 
   /** Gradient colors for visual effects [start, end] */
-  gradient: z.tuple([
-    z.string().regex(/^#[0-9A-Fa-f]{6}$/),
-    z.string().regex(/^#[0-9A-Fa-f]{6}$/),
-  ]),
+  gradient: z.tuple([z.string().regex(/^#[0-9A-Fa-f]{6}$/), z.string().regex(/^#[0-9A-Fa-f]{6}$/)]),
 
   /** Relevant skill categories for this persona */
   skillCategories: z.array(z.string()),
@@ -79,6 +76,4 @@ export const PersonaDetectionResultSchema = z.object({
   }),
 });
 
-export type PersonaDetectionResult = z.infer<
-  typeof PersonaDetectionResultSchema
->;
+export type PersonaDetectionResult = z.infer<typeof PersonaDetectionResultSchema>;

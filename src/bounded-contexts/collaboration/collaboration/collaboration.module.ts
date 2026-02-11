@@ -6,8 +6,8 @@
 
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
-import { CollaborationService } from './collaboration.service';
 import { CollaborationController } from './collaboration.controller';
+import { CollaborationService } from './collaboration.service';
 
 @Module({
   imports: [PrismaModule],

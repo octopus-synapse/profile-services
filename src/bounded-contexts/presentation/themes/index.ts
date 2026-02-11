@@ -1,4 +1,4 @@
-export * from './themes.module';
 export * from '@/shared-kernel';
-export * from './services';
 export * from './controllers';
+export * from './services';
+export * from './themes.module';

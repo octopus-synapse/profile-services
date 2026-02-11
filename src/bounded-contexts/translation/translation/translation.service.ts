@@ -6,14 +6,14 @@
 
 import { Injectable, OnModuleInit } from '@nestjs/common';
 import {
-  TranslationCoreService,
-  TranslationBatchService,
   ResumeTranslationService,
+  TranslationBatchService,
+  TranslationCoreService,
 } from './services';
 import type {
+  BatchTranslationResult,
   TranslationLanguage,
   TranslationResult,
-  BatchTranslationResult,
 } from './types/translation.types';
 
 // Re-export types for backward compatibility
@@ -56,11 +56,7 @@ export class TranslationService implements OnModuleInit {
     sourceLanguage: TranslationLanguage,
     targetLanguage: TranslationLanguage,
   ): Promise<BatchTranslationResult> {
-    return this.batchService.translateBatch(
-      texts,
-      sourceLanguage,
-      targetLanguage,
-    );
+    return this.batchService.translateBatch(texts, sourceLanguage, targetLanguage);
   }
 
   async translateResumeToEnglish(

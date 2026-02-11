@@ -8,35 +8,27 @@
  */
 
 import {
-  Controller,
-  Get,
-  Post,
-  Patch,
-  Delete,
   Body,
-  Param,
-  UseGuards,
+  Controller,
+  Delete,
+  Get,
   HttpCode,
   HttpStatus,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
-import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
+import { PermissionGuard, RequirePermission } from '@/bounded-contexts/identity/authorization';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import { DeleteResponseDto, ResumeSkillResponseDto } from '@/shared-kernel';
 import {
-  PermissionGuard,
-  RequirePermission,
-} from '@/bounded-contexts/identity/authorization';
-import {
-  SkillManagementService,
   CreateSkillInput,
+  SkillManagementService,
   UpdateSkillInput,
 } from '../services/skill-management.service';
-import { DeleteResponseDto, ResumeSkillResponseDto } from '@/shared-kernel';
 
 @SdkExport({ tag: 'skills', description: 'Skills API' })
 @ApiTags('skills')
@@ -63,10 +55,7 @@ export class SkillManagementController {
   @ApiResponse({ status: 201, type: ResumeSkillResponseDto })
   @ApiResponse({ status: 201, description: 'Skill added successfully' })
   @ApiResponse({ status: 404, description: 'Resume not found' })
-  async addSkillToResume(
-    @Param('resumeId') resumeId: string,
-    @Body() data: CreateSkillInput,
-  ) {
+  async addSkillToResume(@Param('resumeId') resumeId: string, @Body() data: CreateSkillInput) {
     return this.skillManagement.addSkillToResume(resumeId, data);
   }
 
@@ -76,10 +65,7 @@ export class SkillManagementController {
   @ApiResponse({ status: 200, type: ResumeSkillResponseDto })
   @ApiResponse({ status: 200, description: 'Skill updated successfully' })
   @ApiResponse({ status: 404, description: 'Skill not found' })
-  async updateSkill(
-    @Param('id') skillId: string,
-    @Body() data: UpdateSkillInput,
-  ) {
+  async updateSkill(@Param('id') skillId: string, @Body() data: UpdateSkillInput) {
     return this.skillManagement.updateSkill(skillId, data);
   }
 

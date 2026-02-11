@@ -3,8 +3,8 @@
  * Fix DTO imports by replacing specific section imports with barrel imports
  */
 
-import { readFileSync, writeFileSync, readdirSync } from 'fs';
-import { join } from 'path';
+import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 const RESUME_SECTIONS = [
   'achievement',
@@ -35,10 +35,7 @@ function fixImportsInFile(filePath: string): boolean {
   let wasUpdated = false;
 
   RESUME_SECTIONS.forEach((section) => {
-    const sectionImportPattern = new RegExp(
-      `from ['"]\\.\\.\/dto\/${section}\\.dto['"];?`,
-      'g',
-    );
+    const sectionImportPattern = new RegExp(`from ['"]\\.\\./dto/${section}\\.dto['"];?`, 'g');
     if (sectionImportPattern.test(fileContent)) {
       fileContent = fileContent.replace(sectionImportPattern, `from '../dto';`);
       wasUpdated = true;
@@ -53,9 +50,7 @@ function fixImportsInFile(filePath: string): boolean {
 }
 
 function processDirectory(directoryPath: string): void {
-  const files = readdirSync(directoryPath).filter((file) =>
-    file.endsWith('.ts'),
-  );
+  const files = readdirSync(directoryPath).filter((file) => file.endsWith('.ts'));
 
   let totalFilesProcessed = 0;
   let totalFilesUpdated = 0;

@@ -7,9 +7,9 @@
 
 import { z } from 'zod';
 import {
-  SocialUrlSchema,
-  LinkedInUrlSchema,
   GitHubUrlSchema,
+  LinkedInUrlSchema,
+  SocialUrlSchema,
 } from '../validations/professional-profile.schema';
 
 /**
@@ -45,6 +45,4 @@ export const PublicProfileResponseSchema = z.object({
   }),
 });
 
-export type PublicProfileResponseEnvelope = z.infer<
-  typeof PublicProfileResponseSchema
->;
+export type PublicProfileResponseEnvelope = z.infer<typeof PublicProfileResponseSchema>;

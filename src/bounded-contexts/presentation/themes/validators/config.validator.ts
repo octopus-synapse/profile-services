@@ -41,11 +41,7 @@ export function validateLayoutConfig(layout: unknown): void {
 
   const l = layout as Record<string, unknown>;
 
-  if (
-    l.type &&
-    typeof l.type === 'string' &&
-    !VALID_LAYOUT_TYPES.includes(l.type)
-  ) {
+  if (l.type && typeof l.type === 'string' && !VALID_LAYOUT_TYPES.includes(l.type)) {
     throw new BadRequestException(`Invalid layout type: ${String(l.type)}`);
   }
 }
@@ -61,14 +57,10 @@ export function validateSectionsConfig(sections: unknown): void {
       throw new BadRequestException(`Invalid section id: ${String(sectionId)}`);
     }
     if (typeof section.visible !== 'boolean') {
-      throw new BadRequestException(
-        `Section ${sectionId} must have visible property`,
-      );
+      throw new BadRequestException(`Section ${sectionId} must have visible property`);
     }
     if (typeof section.order !== 'number') {
-      throw new BadRequestException(
-        `Section ${sectionId} must have order property`,
-      );
+      throw new BadRequestException(`Section ${sectionId} must have order property`);
     }
   }
 }
@@ -82,9 +74,7 @@ export function validateItemOverrides(overrides: unknown): void {
 
   for (const [sectionId, items] of Object.entries(overrides)) {
     if (!VALID_SECTION_IDS.includes(sectionId)) {
-      throw new BadRequestException(
-        `Invalid section in overrides: ${sectionId}`,
-      );
+      throw new BadRequestException(`Invalid section in overrides: ${sectionId}`);
     }
     if (!Array.isArray(items)) {
       throw new BadRequestException(`Overrides for ${sectionId} must be array`);

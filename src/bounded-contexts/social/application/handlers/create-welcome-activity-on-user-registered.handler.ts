@@ -10,14 +10,12 @@
 
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { ActivityService } from '../../social/services/activity.service';
 import { UserRegisteredEvent } from '@/bounded-contexts/identity/domain/events';
+import { ActivityService } from '../../social/services/activity.service';
 
 @Injectable()
 export class CreateWelcomeActivityOnUserRegisteredHandler {
-  private readonly logger = new Logger(
-    CreateWelcomeActivityOnUserRegisteredHandler.name,
-  );
+  private readonly logger = new Logger(CreateWelcomeActivityOnUserRegisteredHandler.name);
 
   constructor(private readonly activityService: ActivityService) {}
 
@@ -35,8 +33,6 @@ export class CreateWelcomeActivityOnUserRegisteredHandler {
       'user',
     );
 
-    this.logger.log(
-      `Welcome activity created for user ${userId} (${event.payload.username})`,
-    );
+    this.logger.log(`Welcome activity created for user ${userId} (${event.payload.username})`);
   }
 }

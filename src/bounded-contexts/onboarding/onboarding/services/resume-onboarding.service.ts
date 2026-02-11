@@ -1,8 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
+import type { Prisma, ResumeTemplate } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { OnboardingData } from '../schemas/onboarding.schema';
-
-import type { Prisma, ResumeTemplate } from '@prisma/client';
 
 @Injectable()
 export class ResumeOnboardingService {
@@ -14,11 +13,7 @@ export class ResumeOnboardingService {
     return this.upsertResumeWithTx(this.prisma, userId, data);
   }
 
-  async upsertResumeWithTx(
-    tx: Prisma.TransactionClient,
-    userId: string,
-    data: OnboardingData,
-  ) {
+  async upsertResumeWithTx(tx: Prisma.TransactionClient, userId: string, data: OnboardingData) {
     const { personalInfo, professionalProfile, templateSelection } = data;
 
     const existingResume = await tx.resume.findFirst({

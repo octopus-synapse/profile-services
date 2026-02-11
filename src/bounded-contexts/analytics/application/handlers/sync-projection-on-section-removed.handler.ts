@@ -12,9 +12,7 @@ import { SectionRemovedEvent } from '@/bounded-contexts/resumes';
 
 @Injectable()
 export class SyncProjectionOnSectionRemovedHandler {
-  private readonly logger = new Logger(
-    SyncProjectionOnSectionRemovedHandler.name,
-  );
+  private readonly logger = new Logger(SyncProjectionOnSectionRemovedHandler.name);
 
   constructor(private readonly prisma: PrismaService) {}
 

@@ -4,8 +4,8 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { TECH_NICHES } from '../data';
 
 @Injectable()
@@ -24,9 +24,7 @@ export class TechNichesSyncService {
       });
 
       if (!area) {
-        this.logger.warn(
-          `Area not found for niche ${niche.slug}: ${niche.areaType}`,
-        );
+        this.logger.warn(`Area not found for niche ${niche.slug}: ${niche.areaType}`);
         continue;
       }
 

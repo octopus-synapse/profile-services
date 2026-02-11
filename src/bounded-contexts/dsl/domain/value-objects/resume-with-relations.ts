@@ -1,14 +1,14 @@
 import {
-  Resume,
-  Experience,
+  Award,
+  Certification,
   Education,
-  Skill,
+  Experience,
+  Interest,
   Language,
   Project,
-  Certification,
-  Award,
   Recommendation,
-  Interest,
+  Resume,
+  Skill,
 } from '@prisma/client';
 
 export type ResumeWithRelations = Resume & {

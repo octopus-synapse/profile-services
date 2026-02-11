@@ -6,17 +6,7 @@
 /**
  * Small Portuguese prepositions that should remain lowercase
  */
-const LOWERCASE_PREPOSITIONS = [
-  'de',
-  'da',
-  'do',
-  'das',
-  'dos',
-  'e',
-  'em',
-  'para',
-  'com',
-];
+const LOWERCASE_PREPOSITIONS = ['de', 'da', 'do', 'das', 'dos', 'e', 'em', 'para', 'com'];
 
 /**
  * Normalize text: trim, title case, remove extra spaces

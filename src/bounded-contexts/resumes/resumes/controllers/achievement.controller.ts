@@ -1,14 +1,13 @@
 import { Controller, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
-import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import type { Achievement } from '@prisma/client';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
-import { AchievementService } from '../services/achievement.service';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { CreateAchievement, UpdateAchievement } from '@/shared-kernel';
 import {
   BaseSubResourceController,
   SubResourceControllerConfig,
 } from './base/base-sub-resource.controller';
-import type { Achievement } from '@prisma/client';
 
 @SdkExport({ tag: 'resumes', description: 'Resumes API' })
 @ApiTags('resumes')
@@ -30,8 +29,4 @@ export class AchievementController extends BaseSubResourceController<
     entityName: 'achievement',
     entityPluralName: 'achievements',
   };
-
-  constructor(achievementService: AchievementService) {
-    super(achievementService);
-  }
 }

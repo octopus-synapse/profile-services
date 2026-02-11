@@ -8,11 +8,7 @@
  */
 
 import type { ResumeImport } from '@prisma/client';
-import type {
-  ImportJobDto,
-  ImportResultDto,
-  ParsedResumeDataDto,
-} from '../dto/import.dto';
+import type { ImportJobDto, ImportResultDto, ParsedResumeDataDto } from '../dto/import.dto';
 import type { ParsedResumeData } from '../resume-import.types';
 
 /**
@@ -53,9 +49,7 @@ export function toImportResultDto(data: {
 /**
  * Convert ParsedResumeData to DTO
  */
-export function toParsedResumeDataDto(
-  data: ParsedResumeData,
-): ParsedResumeDataDto {
+export function toParsedResumeDataDto(data: ParsedResumeData): ParsedResumeDataDto {
   return {
     personalInfo: data.personalInfo,
     summary: data.summary,

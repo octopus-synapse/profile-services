@@ -8,20 +8,12 @@
  */
 
 import { Controller, Get, UseGuards } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
-import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
-import {
-  PermissionGuard,
-  RequirePermission,
-} from '@/bounded-contexts/identity/authorization';
-import { PlatformStatsService } from '../services/platform-stats.service';
+import { PermissionGuard, RequirePermission } from '@/bounded-contexts/identity/authorization';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { PlatformStatsResponseDto } from '@/shared-kernel';
+import { PlatformStatsService } from '../services/platform-stats.service';
 
 @SdkExport({ tag: 'platform', description: 'Platform API' })
 @ApiTags('platform')

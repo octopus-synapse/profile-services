@@ -3,20 +3,15 @@
  * Handles applying themes to resumes and managing customizations
  */
 
-import {
-  Injectable,
-  ForbiddenException,
-  NotFoundException,
-} from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma, ThemeStatus } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { EventPublisher } from '@/shared-kernel';
 import type { ApplyThemeToResume, ForkTheme } from '@/shared-kernel';
-import { ThemeCrudService } from './theme-crud.service';
-import { ThemeQueryService } from './theme-query.service';
+import { ERROR_MESSAGES, EventPublisher } from '@/shared-kernel';
 import { ThemeAppliedEvent } from '../../domain/events';
 import { deepMerge } from '../utils';
-import { ThemeStatus, Prisma } from '@prisma/client';
-import { ERROR_MESSAGES } from '@/shared-kernel';
+import { ThemeCrudService } from './theme-crud.service';
+import { ThemeQueryService } from './theme-query.service';
 
 @Injectable()
 export class ThemeApplicationService {
@@ -37,10 +32,7 @@ export class ThemeApplicationService {
     }
 
     // Verify theme access
-    const selectedTheme = await this.query.findThemeById(
-      applyThemeData.themeId,
-      userId,
-    );
+    const selectedTheme = await this.query.findThemeById(applyThemeData.themeId, userId);
     if (!selectedTheme) {
       throw new NotFoundException(ERROR_MESSAGES.THEME_ACCESS_DENIED);
     }
@@ -51,8 +43,7 @@ export class ThemeApplicationService {
         where: { id: applyThemeData.resumeId },
         data: {
           activeThemeId: applyThemeData.themeId,
-          customTheme: (applyThemeData.customizations ??
-            Prisma.JsonNull) as Prisma.InputJsonValue,
+          customTheme: (applyThemeData.customizations ?? Prisma.JsonNull) as Prisma.InputJsonValue,
         },
       }),
       this.prisma.resumeTheme.update({
@@ -72,15 +63,10 @@ export class ThemeApplicationService {
   }
 
   async forkThemeForUser(userId: string, forkThemeData: ForkTheme) {
-    const originalTheme = await this.crud.findThemeByIdOrThrow(
-      forkThemeData.themeId,
-    );
+    const originalTheme = await this.crud.findThemeByIdOrThrow(forkThemeData.themeId);
 
     // Can fork published or own themes
-    if (
-      originalTheme.status !== ThemeStatus.PUBLISHED &&
-      originalTheme.authorId !== userId
-    ) {
+    if (originalTheme.status !== ThemeStatus.PUBLISHED && originalTheme.authorId !== userId) {
       throw new ForbiddenException(ERROR_MESSAGES.CANNOT_FORK_THEME);
     }
 
@@ -114,14 +100,8 @@ export class ThemeApplicationService {
       return null;
     }
 
-    const baseThemeConfig = existingResume.activeTheme.styleConfig as Record<
-      string,
-      unknown
-    >;
-    const customThemeOverrides = existingResume.customTheme as Record<
-      string,
-      unknown
-    > | null;
+    const baseThemeConfig = existingResume.activeTheme.styleConfig as Record<string, unknown>;
+    const customThemeOverrides = existingResume.customTheme as Record<string, unknown> | null;
 
     if (!customThemeOverrides) return baseThemeConfig;
 

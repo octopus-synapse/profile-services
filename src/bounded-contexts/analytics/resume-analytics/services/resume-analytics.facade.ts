@@ -1,28 +1,28 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { EventPublisher } from '@/shared-kernel';
-import { ViewTrackingService } from './view-tracking.service';
-import { ATSScoreService } from './ats-score.service';
 import { AtsScoreCalculatedEvent } from '../../domain/events';
-import { KeywordAnalysisService } from './keyword-analysis.service';
-import { BenchmarkService } from './benchmark.service';
-import { SnapshotService } from './snapshot.service';
-import { DashboardService } from './dashboard.service';
 import type {
+  AnalyticsDashboard,
+  AnalyticsSnapshot,
+  ATSScoreResult,
+  IndustryBenchmark,
+  IndustryBenchmarkOptions,
+  JobMatchResult,
+  KeywordSuggestions,
+  KeywordSuggestionsOptions,
+  ScoreProgression,
+  ScoreProgressionPoint,
   TrackView,
   ViewStats,
   ViewStatsOptions,
-  ATSScoreResult,
-  KeywordSuggestions,
-  KeywordSuggestionsOptions,
-  JobMatchResult,
-  IndustryBenchmark,
-  IndustryBenchmarkOptions,
-  AnalyticsDashboard,
-  AnalyticsSnapshot,
-  ScoreProgression,
-  ScoreProgressionPoint,
 } from '../interfaces';
+import { ATSScoreService } from './ats-score.service';
+import { BenchmarkService } from './benchmark.service';
+import { DashboardService } from './dashboard.service';
+import { KeywordAnalysisService } from './keyword-analysis.service';
+import { SnapshotService } from './snapshot.service';
+import { ViewTrackingService } from './view-tracking.service';
 
 @Injectable()
 export class ResumeAnalyticsFacade {
@@ -51,10 +51,7 @@ export class ResumeAnalyticsFacade {
     return this.viewTracking.getViewStats(resumeId, options);
   }
 
-  async calculateATSScore(
-    resumeId: string,
-    userId: string,
-  ): Promise<ATSScoreResult> {
+  async calculateATSScore(resumeId: string, userId: string): Promise<ATSScoreResult> {
     await this.verifyOwnership(resumeId, userId);
     const resume = await this.getResumeWithDetails(resumeId);
     const result = this.atsScore.calculate(resume);
@@ -100,19 +97,13 @@ export class ResumeAnalyticsFacade {
     return this.benchmark.getIndustryBenchmark(atsResult.score, options);
   }
 
-  async getDashboard(
-    resumeId: string,
-    userId: string,
-  ): Promise<AnalyticsDashboard> {
+  async getDashboard(resumeId: string, userId: string): Promise<AnalyticsDashboard> {
     await this.verifyOwnership(resumeId, userId);
     const resume = await this.getResumeWithDetails(resumeId);
     return this.dashboard.build(resumeId, resume);
   }
 
-  async saveSnapshot(
-    resumeId: string,
-    userId: string,
-  ): Promise<AnalyticsSnapshot> {
+  async saveSnapshot(resumeId: string, userId: string): Promise<AnalyticsSnapshot> {
     await this.verifyOwnership(resumeId, userId);
     const resume = await this.getResumeWithDetails(resumeId);
     const atsResult = this.atsScore.calculate(resume);
@@ -150,9 +141,7 @@ export class ResumeAnalyticsFacade {
     };
   }
 
-  private calculateTrend(
-    points: ScoreProgressionPoint[],
-  ): 'improving' | 'stable' | 'declining' {
+  private calculateTrend(points: ScoreProgressionPoint[]): 'improving' | 'stable' | 'declining' {
     if (points.length < 2) return 'stable';
     const diff = points[points.length - 1].score - points[0].score;
     if (diff > 5) return 'improving';
@@ -163,15 +152,10 @@ export class ResumeAnalyticsFacade {
   private calculateChangePercent(points: ScoreProgressionPoint[]): number {
     if (points.length < 2) return 0;
     const first = points[0].score;
-    return Math.round(
-      ((points[points.length - 1].score - first) / first) * 100,
-    );
+    return Math.round(((points[points.length - 1].score - first) / first) * 100);
   }
 
-  private async verifyOwnership(
-    resumeId: string,
-    userId: string,
-  ): Promise<void> {
+  private async verifyOwnership(resumeId: string, userId: string): Promise<void> {
     // First try the local projection (eliminates cross-context query)
     const projection = await this.prisma.analyticsResumeProjection.findFirst({
       where: { id: resumeId, userId },
@@ -186,8 +170,7 @@ export class ResumeAnalyticsFacade {
       where: { id: resumeId, userId },
       select: { id: true },
     });
-    if (!resume)
-      throw new NotFoundException('Resume not found or access denied');
+    if (!resume) throw new NotFoundException('Resume not found or access denied');
   }
 
   private async verifyResumeExists(resumeId: string): Promise<void> {

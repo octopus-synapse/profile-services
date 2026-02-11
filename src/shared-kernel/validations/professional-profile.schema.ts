@@ -75,10 +75,7 @@ export type LinkedInUrl = z.infer<typeof LinkedInUrlSchema>;
 export const GitHubUrlSchema = z
   .string()
   .url('Invalid GitHub URL')
-  .regex(
-    /^https?:\/\/(www\.)?github\.com\/[a-zA-Z0-9_-]+/,
-    'Must be a valid GitHub profile URL',
-  )
+  .regex(/^https?:\/\/(www\.)?github\.com\/[a-zA-Z0-9_-]+/, 'Must be a valid GitHub profile URL')
   .max(500, 'URL cannot exceed 500 characters')
   .trim()
   .optional();

@@ -39,9 +39,7 @@ export class WebhookService {
     userId: string;
     title: string;
   }): Promise<void> {
-    this.logger.log(
-      `[Webhook] Resume created event for user ${payload.userId}`,
-    );
+    this.logger.log(`[Webhook] Resume created event for user ${payload.userId}`);
 
     await this.sendWebhooks(payload.userId, 'resume.created', payload);
   }
@@ -57,9 +55,7 @@ export class WebhookService {
     userId: string;
     publicUrl: string;
   }): Promise<void> {
-    this.logger.log(
-      `[Webhook] Resume published event for user ${payload.userId}`,
-    );
+    this.logger.log(`[Webhook] Resume published event for user ${payload.userId}`);
 
     await this.sendWebhooks(payload.userId, 'resume.published', payload);
   }
@@ -77,16 +73,11 @@ export class WebhookService {
     previousScore?: number;
   }): Promise<void> {
     // Only send webhook if score changed by >5 points
-    if (
-      payload.previousScore &&
-      Math.abs(payload.score - payload.previousScore) < 5
-    ) {
+    if (payload.previousScore && Math.abs(payload.score - payload.previousScore) < 5) {
       return;
     }
 
-    this.logger.log(
-      `[Webhook] ATS score updated for user ${payload.userId}: ${payload.score}`,
-    );
+    this.logger.log(`[Webhook] ATS score updated for user ${payload.userId}: ${payload.score}`);
 
     await this.sendWebhooks(payload.userId, 'ats.score.updated', payload);
   }
@@ -96,19 +87,13 @@ export class WebhookService {
    *
    * Fetches user's webhook configurations and delivers HTTP POST requests.
    */
-  private async sendWebhooks(
-    userId: string,
-    eventType: string,
-    payload: unknown,
-  ): Promise<void> {
+  private async sendWebhooks(userId: string, eventType: string, payload: unknown): Promise<void> {
     // TODO: Query webhook configurations from database
     // For now, this is a placeholder - in production you'd have a WebhookConfig table
     const webhooks = this.getWebhookConfigurations(userId, eventType);
 
     if (webhooks.length === 0) {
-      this.logger.debug(
-        `[Webhook] No webhooks configured for user ${userId}, event ${eventType}`,
-      );
+      this.logger.debug(`[Webhook] No webhooks configured for user ${userId}, event ${eventType}`);
       return;
     }
 
@@ -176,7 +161,7 @@ export class WebhookService {
 
         if (attempt < maxRetries) {
           // Exponential backoff: 1s, 2s, 4s
-          const delay = Math.pow(2, attempt) * 1000;
+          const delay = 2 ** attempt * 1000;
           await new Promise((resolve) => setTimeout(resolve, delay));
         } else {
           throw error;
@@ -200,11 +185,7 @@ export class WebhookService {
       ['sign'],
     );
 
-    const signature = await crypto.subtle.sign(
-      'HMAC',
-      key,
-      encoder.encode(body),
-    );
+    const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(body));
 
     return Array.from(new Uint8Array(signature))
       .map((b) => b.toString(16).padStart(2, '0'))
@@ -227,9 +208,7 @@ export class WebhookService {
     //   select: { url: true, secret: true }
     // });
 
-    this.logger.debug(
-      `[Webhook] TODO: Query webhooks for user ${userId}, event ${eventType}`,
-    );
+    this.logger.debug(`[Webhook] TODO: Query webhooks for user ${userId}, event ${eventType}`);
     return [];
   }
 }

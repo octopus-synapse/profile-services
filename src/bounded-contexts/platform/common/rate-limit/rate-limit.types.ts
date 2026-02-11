@@ -10,21 +10,12 @@
 /**
  * Rate limit context - determines which rules to apply
  */
-export type RateLimitContext =
-  | 'global'
-  | 'authenticated'
-  | 'public'
-  | 'expensive'
-  | 'auth';
+export type RateLimitContext = 'global' | 'authenticated' | 'public' | 'expensive' | 'auth';
 
 /**
  * Rate limit key strategy - how to identify the requestor
  */
-export type RateLimitKeyStrategy =
-  | 'ip'
-  | 'user'
-  | 'ip-and-endpoint'
-  | 'user-and-endpoint';
+export type RateLimitKeyStrategy = 'ip' | 'user' | 'ip-and-endpoint' | 'user-and-endpoint';
 
 /**
  * Configuration for a single rate limit rule

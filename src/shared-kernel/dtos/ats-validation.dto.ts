@@ -47,38 +47,30 @@ export const ATSValidationResultBaseSchema = z.object({
   metadata: z.record(z.unknown()).optional(),
 });
 
-export type ATSValidationResultBase = z.infer<
-  typeof ATSValidationResultBaseSchema
->;
+export type ATSValidationResultBase = z.infer<typeof ATSValidationResultBaseSchema>;
 
 // ============================================================================
 // Section Validation Result
 // ============================================================================
 
-export const SectionValidationResultSchema =
-  ATSValidationResultBaseSchema.extend({
-    detectedSections: z.array(z.string()),
-    missingSections: z.array(z.string()),
-  });
+export const SectionValidationResultSchema = ATSValidationResultBaseSchema.extend({
+  detectedSections: z.array(z.string()),
+  missingSections: z.array(z.string()),
+});
 
-export type SectionValidationResult = z.infer<
-  typeof SectionValidationResultSchema
->;
+export type SectionValidationResult = z.infer<typeof SectionValidationResultSchema>;
 
 // ============================================================================
 // Format Validation Result
 // ============================================================================
 
-export const FormatValidationResultSchema =
-  ATSValidationResultBaseSchema.extend({
-    fileType: z.string(),
-    fileSize: z.number().int().nonnegative(),
-    isATSCompatible: z.boolean(),
-  });
+export const FormatValidationResultSchema = ATSValidationResultBaseSchema.extend({
+  fileType: z.string(),
+  fileSize: z.number().int().nonnegative(),
+  isATSCompatible: z.boolean(),
+});
 
-export type FormatValidationResult = z.infer<
-  typeof FormatValidationResultSchema
->;
+export type FormatValidationResult = z.infer<typeof FormatValidationResultSchema>;
 
 // ============================================================================
 // Text Extraction Result
@@ -230,9 +222,7 @@ export const ServiceValidationIssueSchema = z.object({
   suggestion: z.string().optional(),
 });
 
-export type ServiceValidationIssue = z.infer<
-  typeof ServiceValidationIssueSchema
->;
+export type ServiceValidationIssue = z.infer<typeof ServiceValidationIssueSchema>;
 
 // ============================================================================
 // Service Validation Result (for backend services)
@@ -244,20 +234,15 @@ export const ServiceValidationResultSchema = z.object({
   metadata: z.record(z.unknown()).optional(),
 });
 
-export type ServiceValidationResult = z.infer<
-  typeof ServiceValidationResultSchema
->;
+export type ServiceValidationResult = z.infer<typeof ServiceValidationResultSchema>;
 
 // ============================================================================
 // Section Validation Result (for backend services)
 // ============================================================================
 
-export const ServiceSectionValidationResultSchema =
-  ServiceValidationResultSchema.extend({
-    detectedSections: z.array(z.string()),
-    missingSections: z.array(z.string()),
-  });
+export const ServiceSectionValidationResultSchema = ServiceValidationResultSchema.extend({
+  detectedSections: z.array(z.string()),
+  missingSections: z.array(z.string()),
+});
 
-export type ServiceSectionValidationResult = z.infer<
-  typeof ServiceSectionValidationResultSchema
->;
+export type ServiceSectionValidationResult = z.infer<typeof ServiceSectionValidationResultSchema>;

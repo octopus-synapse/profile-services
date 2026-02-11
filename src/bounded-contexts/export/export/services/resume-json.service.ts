@@ -103,18 +103,14 @@ export class ResumeJsonService {
     return this.toJsonResume(resume);
   }
 
-  async exportAsBuffer(
-    resumeId: string,
-    options: JsonExportOptions = {},
-  ): Promise<Buffer> {
+  async exportAsBuffer(resumeId: string, options: JsonExportOptions = {}): Promise<Buffer> {
     const json = await this.exportAsJson(resumeId, options);
     return Buffer.from(JSON.stringify(json, null, 2));
   }
 
   private toJsonResume(resume: ResumeWithRelations): JsonResume {
     return {
-      $schema:
-        'https://raw.githubusercontent.com/jsonresume/resume-schema/v1.0.0/schema.json',
+      $schema: 'https://raw.githubusercontent.com/jsonresume/resume-schema/v1.0.0/schema.json',
       basics: {
         name: resume.user.name ?? 'Unknown',
         label: resume.jobTitle ?? resume.title ?? 'Professional',

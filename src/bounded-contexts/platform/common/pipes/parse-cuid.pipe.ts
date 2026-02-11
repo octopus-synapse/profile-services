@@ -1,4 +1,4 @@
-import { PipeTransform, Injectable, BadRequestException } from '@nestjs/common';
+import { BadRequestException, Injectable, PipeTransform } from '@nestjs/common';
 import { ERROR_MESSAGES } from '../constants/config';
 
 /**

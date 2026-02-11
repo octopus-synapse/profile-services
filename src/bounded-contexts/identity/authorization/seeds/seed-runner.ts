@@ -7,8 +7,8 @@
 
 import { PrismaClient } from '@prisma/client';
 import { SYSTEM_PERMISSIONS } from './permissions';
-import { SYSTEM_ROLES } from './system-roles';
 import { SYSTEM_GROUPS } from './system-groups';
+import { SYSTEM_ROLES } from './system-roles';
 
 const prisma = new PrismaClient();
 
@@ -46,9 +46,7 @@ async function seedPermissions(): Promise<Map<string, string>> {
   return permissionMap;
 }
 
-async function seedRoles(
-  permissionMap: Map<string, string>,
-): Promise<Map<string, string>> {
+async function seedRoles(permissionMap: Map<string, string>): Promise<Map<string, string>> {
   console.log('👤 Seeding roles...');
   const roleMap = new Map<string, string>();
 
@@ -90,15 +88,11 @@ async function seedRoles(
           update: {},
         });
       } else {
-        console.warn(
-          `  ⚠ Permission "${permKey}" not found for role "${roleDef.name}"`,
-        );
+        console.warn(`  ⚠ Permission "${permKey}" not found for role "${roleDef.name}"`);
       }
     }
 
-    console.log(
-      `  ✓ ${roleDef.name} (${roleDef.permissions.length} permissions)`,
-    );
+    console.log(`  ✓ ${roleDef.name} (${roleDef.permissions.length} permissions)`);
   }
 
   console.log(`  Created/updated ${roleMap.size} roles\n`);
@@ -146,9 +140,7 @@ async function seedGroups(
           update: {},
         });
       } else {
-        console.warn(
-          `  ⚠ Role "${roleName}" not found for group "${groupDef.name}"`,
-        );
+        console.warn(`  ⚠ Role "${roleName}" not found for group "${groupDef.name}"`);
       }
     }
 

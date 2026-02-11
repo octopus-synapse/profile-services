@@ -3,10 +3,10 @@
  * Waits for banner elements to render completely
  */
 
-import { Page } from 'puppeteer';
 import { Logger } from '@nestjs/common';
-import { TIMEOUT, DEBUG_PATH } from '../constants/ui.constants';
+import { Page } from 'puppeteer';
 import { API_LIMITS } from '@/shared-kernel';
+import { DEBUG_PATH, TIMEOUT } from '../constants/ui.constants';
 
 export class BannerReadyWaiter {
   private readonly logger = new Logger(BannerReadyWaiter.name);
@@ -35,9 +35,7 @@ export class BannerReadyWaiter {
     await page.screenshot({ path: DEBUG_PATH.BANNER_WAIT_ERROR });
     const html = await page.content();
 
-    const bannerMatch = html.match(
-      /<section[^>]*id=["']banner["'][^>]*>([\s\S]*?)<\/section>/i,
-    );
+    const bannerMatch = html.match(/<section[^>]*id=["']banner["'][^>]*>([\s\S]*?)<\/section>/i);
     if (bannerMatch) {
       this.logger.error('[BannerCapture] #banner HTML snippet found');
     } else {
@@ -55,9 +53,7 @@ export class BannerReadyWaiter {
     await page.waitForSelector('#company-logo', { timeout: TIMEOUT.LOGO_LOAD });
     await page.waitForFunction(
       () => {
-        const img = document.getElementById(
-          'company-logo',
-        ) as HTMLImageElement | null;
+        const img = document.getElementById('company-logo') as HTMLImageElement | null;
         return img ? img.complete && img.naturalWidth > 0 : true;
       },
       { timeout: TIMEOUT.LOGO_LOAD },

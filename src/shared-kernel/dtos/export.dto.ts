@@ -37,12 +37,7 @@ export type ExportResumeOptions = z.infer<typeof ExportResumeOptionsSchema>;
 // Export Job
 // ============================================================================
 
-export const ExportStatusEnum = z.enum([
-  'pending',
-  'processing',
-  'completed',
-  'failed',
-]);
+export const ExportStatusEnum = z.enum(['pending', 'processing', 'completed', 'failed']);
 
 export type ExportStatus = z.infer<typeof ExportStatusEnum>;
 

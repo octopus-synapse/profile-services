@@ -4,10 +4,7 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import {
-  EmailSenderService,
-  type SendEmailOptions,
-} from './services/email-sender.service';
+import { EmailSenderService, type SendEmailOptions } from './services/email-sender.service';
 import { EmailTemplateService } from './services/email-template.service';
 
 @Injectable()
@@ -27,22 +24,14 @@ export class EmailService {
   /**
    * Send verification email
    */
-  async sendVerificationEmail(
-    email: string,
-    name: string,
-    token: string,
-  ): Promise<void> {
+  async sendVerificationEmail(email: string, name: string, token: string): Promise<void> {
     return this.templateService.sendVerificationEmail(email, name, token);
   }
 
   /**
    * Send password reset email
    */
-  async sendPasswordResetEmail(
-    email: string,
-    name: string,
-    token: string,
-  ): Promise<void> {
+  async sendPasswordResetEmail(email: string, name: string, token: string): Promise<void> {
     return this.templateService.sendPasswordResetEmail(email, name, token);
   }
 

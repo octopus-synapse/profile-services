@@ -3,16 +3,16 @@
  * Endpoints for tech skills
  */
 
-import { Controller, Get, Query, Param } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Controller, Get, Param, Query } from '@nestjs/common';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Public } from '@/bounded-contexts/identity/auth/decorators/public.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import { TechSkillDto } from '@/shared-kernel';
+import type { TechSkill } from '../dtos';
+import type { SkillType } from '../interfaces';
 import { SkillQueryService } from '../services/skill-query.service';
 import { SkillSearchService } from '../services/skill-search.service';
 import { TechSkillsQueryService } from '../services/tech-skills-query.service';
-import { Public } from '@/bounded-contexts/identity/auth/decorators/public.decorator';
-import type { SkillType } from '../interfaces';
-import type { TechSkill } from '../dtos';
-import { TechSkillDto } from '@/shared-kernel';
 
 @SdkExport({
   tag: 'tech-skills',
@@ -48,10 +48,7 @@ export class TechSkillController {
     @Query('q') query: string,
     @Query('limit') limit?: string,
   ): Promise<TechSkill[]> {
-    return this.skillSearch.searchSkills(
-      query,
-      limit ? parseInt(limit, 10) : 20,
-    );
+    return this.skillSearch.searchSkills(query, limit ? parseInt(limit, 10) : 20);
   }
 
   /** Get skills by type */
@@ -64,9 +61,6 @@ export class TechSkillController {
     @Param('type') type: SkillType,
     @Query('limit') limit?: string,
   ): Promise<TechSkill[]> {
-    return this.queryService.getSkillsByType(
-      type,
-      limit ? parseInt(limit, 10) : 50,
-    );
+    return this.queryService.getSkillsByType(type, limit ? parseInt(limit, 10) : 50);
   }
 }

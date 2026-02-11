@@ -1,19 +1,19 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
-import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import {
-  configureSecurityHeaders,
   configureCors,
+  configureSecurityHeaders,
 } from '@/bounded-contexts/platform/common/config/security.config';
-import {
-  configureValidation,
-  configureExceptionHandling,
-  configureGlobalGuards,
-} from '@/bounded-contexts/platform/common/config/validation.config';
 import {
   configureSwagger,
   isSwaggerEnabled,
 } from '@/bounded-contexts/platform/common/config/swagger.config';
+import {
+  configureExceptionHandling,
+  configureGlobalGuards,
+  configureValidation,
+} from '@/bounded-contexts/platform/common/config/validation.config';
+import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import { AppModule } from './app.module';
 
 /**
  * Bootstrap the NestJS application

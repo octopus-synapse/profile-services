@@ -1,18 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Project } from '@prisma/client';
-import { ProjectRepository } from '../repositories/project.repository';
+import type { SectionType } from '@/bounded-contexts/resumes/domain/events';
 import { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.repository';
 import type { CreateProject, UpdateProject } from '@/shared-kernel';
-import { BaseSubResourceService } from './base';
 import { EventPublisher } from '@/shared-kernel';
-import type { SectionType } from '@/bounded-contexts/resumes/domain/events';
+import { ProjectRepository } from '../repositories/project.repository';
+import { BaseSubResourceService } from './base';
 
 @Injectable()
-export class ProjectService extends BaseSubResourceService<
-  Project,
-  CreateProject,
-  UpdateProject
-> {
+export class ProjectService extends BaseSubResourceService<Project, CreateProject, UpdateProject> {
   protected readonly entityName = 'Project';
   protected readonly sectionType: SectionType = 'projects';
   protected readonly logger = new Logger(ProjectService.name);

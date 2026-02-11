@@ -1,11 +1,11 @@
 import { z } from 'zod';
 import { ResumeTemplateSchema } from '../../enums';
-import { CreateExperienceSchema } from './sections/experience.schema';
-import { CreateEducationSchema } from './sections/education.schema';
-import { CreateSkillSchema } from './sections/skill.schema';
-import { CreateLanguageSchema } from './sections/language.schema';
 import { CreateCertificationSchema } from './sections/certification.schema';
+import { CreateEducationSchema } from './sections/education.schema';
+import { CreateExperienceSchema } from './sections/experience.schema';
+import { CreateLanguageSchema } from './sections/language.schema';
 import { CreateProjectSchema } from './sections/project.schema';
+import { CreateSkillSchema } from './sections/skill.schema';
 
 /**
  * Create Resume Schema

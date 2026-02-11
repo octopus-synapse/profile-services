@@ -1,9 +1,9 @@
-import { InputType, Field, Int } from '@nestjs/graphql';
+import { Field, InputType, Int } from '@nestjs/graphql';
 import {
-  CreateEducationSchema,
-  UpdateEducationSchema,
   type CreateEducation,
+  CreateEducationSchema,
   type UpdateEducation,
+  UpdateEducationSchema,
 } from '@/shared-kernel';
 
 /**

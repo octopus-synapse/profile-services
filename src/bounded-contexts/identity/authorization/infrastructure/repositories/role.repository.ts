@@ -6,8 +6,8 @@
 
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { Role, type RoleId } from '../../domain/entities/role.entity';
 import type { PermissionId } from '../../domain/entities/permission.entity';
+import { Role, type RoleId } from '../../domain/entities/role.entity';
 import type { IRoleRepository } from '../../domain/ports/authorization-repositories.port';
 
 @Injectable()
@@ -140,10 +140,7 @@ export class RoleRepository implements IRoleRepository {
     });
   }
 
-  async removePermission(
-    roleId: RoleId,
-    permissionId: PermissionId,
-  ): Promise<void> {
+  async removePermission(roleId: RoleId, permissionId: PermissionId): Promise<void> {
     await this.prisma.rolePermission.deleteMany({
       where: { roleId, permissionId },
     });

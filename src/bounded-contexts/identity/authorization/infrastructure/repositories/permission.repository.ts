@@ -8,10 +8,7 @@
 
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import {
-  Permission,
-  type PermissionId,
-} from '../../domain/entities/permission.entity';
+import { Permission, type PermissionId } from '../../domain/entities/permission.entity';
 import type { IPermissionRepository } from '../../domain/ports/authorization-repositories.port';
 
 @Injectable()
@@ -42,10 +39,7 @@ export class PermissionRepository implements IPermissionRepository {
     return records.map((r) => this.toDomain(r));
   }
 
-  async findByKey(
-    resource: string,
-    action: string,
-  ): Promise<Permission | null> {
+  async findByKey(resource: string, action: string): Promise<Permission | null> {
     const record = await this.prisma.permission.findUnique({
       where: {
         resource_action: {

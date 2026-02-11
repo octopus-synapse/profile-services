@@ -15,82 +15,77 @@
 // These DTOs are defined ONCE in the domain layer.
 // Application layer re-exports them to maintain the contract API.
 
-// Experience
+// Resume (aggregate)
 export {
-  ExperienceBaseSchema,
-  CreateExperienceSchema,
-  UpdateExperienceSchema,
-  ExperienceSchema,
-  type CreateExperience,
-  type UpdateExperience,
-  type Experience,
-} from '../schemas/resume/sections/experience.schema';
-
-// Education
-export {
-  EducationBaseSchema,
-  CreateEducationSchema,
-  UpdateEducationSchema,
-  EducationSchema,
-  type CreateEducation,
-  type UpdateEducation,
-  type Education,
-} from '../schemas/resume/sections/education.schema';
-
-// Skill
-export {
-  SkillBaseSchema,
-  CreateSkillSchema,
-  UpdateSkillSchema,
-  BulkCreateSkillsSchema,
-  SkillSchema,
-  type CreateSkill,
-  type UpdateSkill,
-  type BulkCreateSkills,
-  type Skill,
-} from '../schemas/resume/sections/skill.schema';
-
-// Language
-export {
-  LanguageBaseSchema,
-  CreateLanguageSchema,
-  UpdateLanguageSchema,
-  LanguageSchema,
-  type CreateLanguage,
-  type UpdateLanguage,
-  type Language,
-} from '../schemas/resume/sections/language.schema';
-
+  type CreateResume,
+  type CreateResumeData,
+  CreateResumeSchema,
+  RESUME_RELATION_KEYS,
+  type ResumeRelationKey,
+  type UpdateResume,
+  type UpdateResumeData,
+  UpdateResumeSchema,
+} from '../schemas/resume/resume.schema';
 // Certification
 export {
+  type Certification,
   CertificationBaseSchema,
-  CreateCertificationSchema,
-  UpdateCertificationSchema,
   CertificationSchema,
   type CreateCertification,
+  CreateCertificationSchema,
   type UpdateCertification,
-  type Certification,
+  UpdateCertificationSchema,
 } from '../schemas/resume/sections/certification.schema';
+// Education
+export {
+  type CreateEducation,
+  CreateEducationSchema,
+  type Education,
+  EducationBaseSchema,
+  EducationSchema,
+  type UpdateEducation,
+  UpdateEducationSchema,
+} from '../schemas/resume/sections/education.schema';
+// Experience
+export {
+  type CreateExperience,
+  CreateExperienceSchema,
+  type Experience,
+  ExperienceBaseSchema,
+  ExperienceSchema,
+  type UpdateExperience,
+  UpdateExperienceSchema,
+} from '../schemas/resume/sections/experience.schema';
+// Language
+export {
+  type CreateLanguage,
+  CreateLanguageSchema,
+  type Language,
+  LanguageBaseSchema,
+  LanguageSchema,
+  type UpdateLanguage,
+  UpdateLanguageSchema,
+} from '../schemas/resume/sections/language.schema';
 
 // Project
 export {
-  ProjectBaseSchema,
-  CreateProjectSchema,
-  UpdateProjectSchema,
-  ProjectSchema,
   type CreateProject,
-  type UpdateProject,
+  CreateProjectSchema,
   type Project,
+  ProjectBaseSchema,
+  ProjectSchema,
+  type UpdateProject,
+  UpdateProjectSchema,
 } from '../schemas/resume/sections/project.schema';
-
-// Resume (aggregate)
+// Skill
 export {
-  CreateResumeSchema,
-  UpdateResumeSchema,
-  RESUME_RELATION_KEYS,
-  type CreateResume,
-  type UpdateResume,
-  type ResumeRelationKey,
-  type CreateResumeData,
-  type UpdateResumeData,
-} from '../schemas/resume/resume.schema';
+  type BulkCreateSkills,
+  BulkCreateSkillsSchema,
+  type CreateSkill,
+  CreateSkillSchema,
+  type Skill,
+  SkillBaseSchema,
+  SkillSchema,
+  type UpdateSkill,
+  UpdateSkillSchema,
+} from '../schemas/resume/sections/skill.schema';

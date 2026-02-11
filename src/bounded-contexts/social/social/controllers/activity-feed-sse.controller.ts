@@ -7,19 +7,13 @@
  * Martin Fowler: "Push beats polling for real-time data."
  */
 
-import {
-  Controller,
-  Sse,
-  UseGuards,
-  MessageEvent,
-  Param,
-} from '@nestjs/common';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
-import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
-import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
+import { Controller, MessageEvent, Param, Sse, UseGuards } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { Observable, fromEvent, map, filter } from 'rxjs';
 import type { ActivityType } from '@prisma/client';
+import { filter, fromEvent, map, Observable } from 'rxjs';
+import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
+import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
+import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 
 interface ActivityFeedEvent {
   id: string;
@@ -60,10 +54,7 @@ export class ActivityFeedSseController {
   @UseGuards(JwtAuthGuard)
   subscribeToFeed(@CurrentUser() user: UserPayload): Observable<MessageEvent> {
     // Listen to activity events for this user's feed
-    return fromEvent<ActivityFeedEvent>(
-      this.eventEmitter,
-      `feed:user:${user.userId}`,
-    ).pipe(
+    return fromEvent<ActivityFeedEvent>(this.eventEmitter, `feed:user:${user.userId}`).pipe(
       filter((activity): activity is ActivityFeedEvent => Boolean(activity)),
       map((activity) => ({
         data: activity,
@@ -84,10 +75,7 @@ export class ActivityFeedSseController {
     @CurrentUser() user: UserPayload,
     @Param('type') type: ActivityType,
   ): Observable<MessageEvent> {
-    return fromEvent<ActivityFeedEvent>(
-      this.eventEmitter,
-      `feed:user:${user.userId}`,
-    ).pipe(
+    return fromEvent<ActivityFeedEvent>(this.eventEmitter, `feed:user:${user.userId}`).pipe(
       filter((activity) => activity.type === type),
       map((activity) => ({
         data: activity,

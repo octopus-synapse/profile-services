@@ -1,5 +1,5 @@
-import { TechPersona } from './tech-persona.enum';
 import { PersonaConfig } from './persona-config.interface';
+import { TechPersona } from './tech-persona.enum';
 
 export const AI_ML_PERSONA: PersonaConfig = {
   id: TechPersona.AI_ML,

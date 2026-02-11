@@ -13,6 +13,14 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
+import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
+import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import { ParseCuidPipe } from '@/bounded-contexts/platform/common/pipes/parse-cuid.pipe';
+import { ParseJsonBodyPipe } from '@/bounded-contexts/platform/common/pipes/parse-json-body.pipe';
+import type { CreateResume, UpdateResume } from '@/shared-kernel';
 import {
   DeleteResponseDto,
   ResumeFullResponseDto,
@@ -21,20 +29,6 @@ import {
   ResumeSlotsResponseDto,
 } from '@/shared-kernel/dtos/sdk-response.dto';
 import { ResumesService } from './resumes.service';
-import type { CreateResume, UpdateResume } from '@/shared-kernel';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
-import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
-import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
-import { ParseCuidPipe } from '@/bounded-contexts/platform/common/pipes/parse-cuid.pipe';
-import { ParseJsonBodyPipe } from '@/bounded-contexts/platform/common/pipes/parse-json-body.pipe';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-  ApiParam,
-} from '@nestjs/swagger';
-import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 
 @SdkExport({ tag: 'resumes', description: 'Resume CRUD operations' })
 @ApiTags('resumes')
@@ -126,11 +120,7 @@ export class ResumesController {
     @CurrentUser() user: UserPayload,
     @Body() updateResume: UpdateResume,
   ) {
-    return this.resumesService.updateResumeForUser(
-      id,
-      user.userId,
-      updateResume,
-    );
+    return this.resumesService.updateResumeForUser(id, user.userId, updateResume);
   }
 
   @Delete(':id')

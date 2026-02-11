@@ -39,11 +39,7 @@
             "example": "john_doe"
           }
         },
-        "required": [
-          "email",
-          "password",
-          "username"
-        ]
+        "required": ["email", "password", "username"]
       },
       "LoginCredentials": {
         "type": "object",
@@ -60,10 +56,7 @@
             "minLength": 1
           }
         },
-        "required": [
-          "email",
-          "password"
-        ]
+        "required": ["email", "password"]
       },
       "RefreshToken": {
         "type": "object",
@@ -73,27 +66,20 @@
             "minLength": 1
           }
         },
-        "required": [
-          "refreshToken"
-        ]
+        "required": ["refreshToken"]
       },
       "AuthResponse": {
         "type": "object",
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              true
-            ]
+            "enum": [true]
           },
           "data": {
             "$ref": "#/components/schemas/AuthTokens"
           }
         },
-        "required": [
-          "success",
-          "data"
-        ]
+        "required": ["success", "data"]
       },
       "AuthTokens": {
         "type": "object",
@@ -108,29 +94,20 @@
             "type": "number"
           }
         },
-        "required": [
-          "accessToken",
-          "refreshToken",
-          "expiresIn"
-        ]
+        "required": ["accessToken", "refreshToken", "expiresIn"]
       },
       "UserInfoResponse": {
         "type": "object",
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              true
-            ]
+            "enum": [true]
           },
           "data": {
             "$ref": "#/components/schemas/UserInfo"
           }
         },
-        "required": [
-          "success",
-          "data"
-        ]
+        "required": ["success", "data"]
       },
       "UserInfo": {
         "type": "object",
@@ -157,23 +134,14 @@
             "format": "date-time"
           }
         },
-        "required": [
-          "id",
-          "email",
-          "username",
-          "emailVerified",
-          "tosAccepted",
-          "createdAt"
-        ]
+        "required": ["id", "email", "username", "emailVerified", "tosAccepted", "createdAt"]
       },
       "ApiError": {
         "type": "object",
         "properties": {
           "success": {
             "type": "boolean",
-            "enum": [
-              false
-            ]
+            "enum": [false]
           },
           "error": {
             "type": "object",
@@ -202,26 +170,16 @@
                           "type": "string"
                         }
                       },
-                      "required": [
-                        "path",
-                        "message",
-                        "code"
-                      ]
+                      "required": ["path", "message", "code"]
                     }
                   }
                 }
               }
             },
-            "required": [
-              "code",
-              "message"
-            ]
+            "required": ["code", "message"]
           }
         },
-        "required": [
-          "success",
-          "error"
-        ]
+        "required": ["success", "error"]
       }
     },
     "parameters": {},
@@ -236,9 +194,7 @@
   "paths": {
     "/api/v1/auth/signup": {
       "post": {
-        "tags": [
-          "auth"
-        ],
+        "tags": ["auth"],
         "summary": "Register a new user",
         "requestBody": {
           "content": {
@@ -285,9 +241,7 @@
     },
     "/api/v1/auth/login": {
       "post": {
-        "tags": [
-          "auth"
-        ],
+        "tags": ["auth"],
         "summary": "Login with email and password",
         "requestBody": {
           "content": {
@@ -324,9 +278,7 @@
     },
     "/api/v1/auth/refresh": {
       "post": {
-        "tags": [
-          "auth"
-        ],
+        "tags": ["auth"],
         "summary": "Refresh JWT token using refresh token",
         "requestBody": {
           "content": {
@@ -363,9 +315,7 @@
     },
     "/api/v1/auth/me": {
       "get": {
-        "tags": [
-          "auth"
-        ],
+        "tags": ["auth"],
         "summary": "Get current authenticated user info",
         "security": [
           {

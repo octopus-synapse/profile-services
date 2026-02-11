@@ -1,10 +1,10 @@
-import { Injectable } from '@nestjs/common';
 import {
-  S3Client,
-  PutObjectCommand,
   DeleteObjectCommand,
   HeadBucketCommand,
+  PutObjectCommand,
+  S3Client,
 } from '@aws-sdk/client-s3';
+import { Injectable } from '@nestjs/common';
 import { AppLoggerService } from '../logger/logger.service';
 
 @Injectable()
@@ -46,10 +46,7 @@ export class S3UploadService {
         this._isEnabled = false;
       }
     } else {
-      this.logger.warn(
-        'MinIO upload service disabled - missing configuration',
-        'S3UploadService',
-      );
+      this.logger.warn('MinIO upload service disabled - missing configuration', 'S3UploadService');
     }
   }
 
@@ -59,10 +56,7 @@ export class S3UploadService {
     contentType: string,
   ): Promise<{ url: string; key: string } | null> {
     if (!this._isEnabled || !this.client || !this.bucket) {
-      this.logger.warn(
-        'S3 upload attempted but service is disabled',
-        'S3UploadService',
-      );
+      this.logger.warn('S3 upload attempted but service is disabled', 'S3UploadService');
       return null;
     }
 
@@ -90,10 +84,7 @@ export class S3UploadService {
 
   async deleteFile(key: string): Promise<boolean> {
     if (!this._isEnabled || !this.client || !this.bucket) {
-      this.logger.warn(
-        'MinIO delete attempted but service is disabled',
-        'S3UploadService',
-      );
+      this.logger.warn('MinIO delete attempted but service is disabled', 'S3UploadService');
       return false;
     }
 
@@ -105,13 +96,9 @@ export class S3UploadService {
 
       await this.client.send(command);
 
-      this.logger.log(
-        'File deleted from MinIO successfully',
-        'S3UploadService',
-        {
-          key,
-        },
-      );
+      this.logger.log('File deleted from MinIO successfully', 'S3UploadService', {
+        key,
+      });
 
       return true;
     } catch (error) {

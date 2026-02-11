@@ -14,15 +14,8 @@ export type ValidateCV = z.infer<typeof ValidateCVSchema>;
  * Validation Issue Severity/Type Enum
  * Unified to support both "severity" and "type" naming
  */
-export const ValidationIssueSeverityEnum = z.enum([
-  'error',
-  'warning',
-  'info',
-  'suggestion',
-]);
-export type ValidationIssueSeverity = z.infer<
-  typeof ValidationIssueSeverityEnum
->;
+export const ValidationIssueSeverityEnum = z.enum(['error', 'warning', 'info', 'suggestion']);
+export type ValidationIssueSeverity = z.infer<typeof ValidationIssueSeverityEnum>;
 
 /**
  * Validation Issue Schema

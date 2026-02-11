@@ -1,9 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import {
-  HealthIndicator,
-  HealthIndicatorResult,
-  HealthCheckError,
-} from '@nestjs/terminus';
+import { HealthCheckError, HealthIndicator, HealthIndicatorResult } from '@nestjs/terminus';
 import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 
 @Injectable()

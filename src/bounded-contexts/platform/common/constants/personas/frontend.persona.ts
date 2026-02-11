@@ -1,5 +1,5 @@
-import { TechPersona } from './tech-persona.enum';
 import { PersonaConfig } from './persona-config.interface';
+import { TechPersona } from './tech-persona.enum';
 
 export const FRONTEND_PERSONA: PersonaConfig = {
   id: TechPersona.FRONTEND,
@@ -18,12 +18,7 @@ export const FRONTEND_PERSONA: PersonaConfig = {
     'Accessibility',
     'Testing',
   ],
-  achievementTypes: [
-    'npm_package',
-    'lighthouse_score',
-    'github_stars',
-    'performance_improvement',
-  ],
+  achievementTypes: ['npm_package', 'lighthouse_score', 'github_stars', 'performance_improvement'],
   prioritySections: ['projects', 'openSource', 'experiences', 'achievements'],
   keywords: [
     'react',

@@ -4,12 +4,12 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { TranslationCoreService } from './translation-core.service';
 import {
+  BatchTranslationResult,
   TranslationLanguage,
   TranslationResult,
-  BatchTranslationResult,
 } from '../types/translation.types';
+import { TranslationCoreService } from './translation-core.service';
 
 const BATCH_SIZE = 5;
 
@@ -28,9 +28,7 @@ export class TranslationBatchService {
     for (let i = 0; i < texts.length; i += BATCH_SIZE) {
       const batch = texts.slice(i, i + BATCH_SIZE);
       const results = await Promise.allSettled(
-        batch.map((text) =>
-          this.coreService.translate(text, sourceLanguage, targetLanguage),
-        ),
+        batch.map((text) => this.coreService.translate(text, sourceLanguage, targetLanguage)),
       );
 
       results.forEach((result, index) => {

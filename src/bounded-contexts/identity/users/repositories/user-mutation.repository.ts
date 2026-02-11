@@ -4,13 +4,9 @@
  */
 
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { User, UserPreferences } from '@prisma/client';
-import {
-  UpdateProfile,
-  UpdatePreferences,
-  type UpdateFullPreferences,
-} from '@/shared-kernel';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { type UpdateFullPreferences, UpdatePreferences, UpdateProfile } from '@/shared-kernel';
 
 @Injectable()
 export class UserMutationRepository {
@@ -28,10 +24,7 @@ export class UserMutationRepository {
     return await this.prisma.user.create({ data: userData });
   }
 
-  async updateUserAccount(
-    userId: string,
-    userData: Partial<User>,
-  ): Promise<User> {
+  async updateUserAccount(userId: string, userData: Partial<User>): Promise<User> {
     this.logger.log(`Updating user account: ${userId}`);
     return await this.prisma.user.update({
       where: { id: userId },
@@ -44,10 +37,7 @@ export class UserMutationRepository {
     await this.prisma.user.delete({ where: { id: userId } });
   }
 
-  async updateUserProfile(
-    userId: string,
-    profile: UpdateProfile,
-  ): Promise<User> {
+  async updateUserProfile(userId: string, profile: UpdateProfile): Promise<User> {
     this.logger.log(`Updating profile for user: ${userId}`);
     return await this.prisma.user.update({
       where: { id: userId },
@@ -55,10 +45,7 @@ export class UserMutationRepository {
     });
   }
 
-  async updateUserPreferences(
-    userId: string,
-    preferences: UpdatePreferences,
-  ): Promise<void> {
+  async updateUserPreferences(userId: string, preferences: UpdatePreferences): Promise<void> {
     this.logger.log(`Updating preferences for user: ${userId}`);
     await this.prisma.user.update({
       where: { id: userId },

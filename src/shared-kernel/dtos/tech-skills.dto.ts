@@ -132,9 +132,7 @@ export const TechSkillsSearchResultSchema = z.object({
   skills: z.array(TechSkillSchema),
 });
 
-export type TechSkillsSearchResult = z.infer<
-  typeof TechSkillsSearchResultSchema
->;
+export type TechSkillsSearchResult = z.infer<typeof TechSkillsSearchResultSchema>;
 
 // ============================================================================
 // Sync Results (for admin sync operations)
@@ -191,12 +189,7 @@ export type ParsedSkill = z.infer<typeof ParsedSkillSchema>;
 // GitHub Linguist Types (for language parsing)
 // ============================================================================
 
-export const GithubLanguageTypeSchema = z.enum([
-  'programming',
-  'data',
-  'markup',
-  'prose',
-]);
+export const GithubLanguageTypeSchema = z.enum(['programming', 'data', 'markup', 'prose']);
 
 export type GithubLanguageType = z.infer<typeof GithubLanguageTypeSchema>;
 
@@ -218,10 +211,7 @@ export const GithubLanguageSchema = z.object({
 
 export type GithubLanguage = z.infer<typeof GithubLanguageSchema>;
 
-export const GithubLanguagesYmlSchema = z.record(
-  z.string(),
-  GithubLanguageSchema,
-);
+export const GithubLanguagesYmlSchema = z.record(z.string(), GithubLanguageSchema);
 export type GithubLanguagesYml = z.infer<typeof GithubLanguagesYmlSchema>;
 
 // ============================================================================

@@ -4,10 +4,10 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
-import { TECH_SKILLS_CACHE_KEYS, TECH_SKILLS_CACHE_TTL } from '../interfaces';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { TechArea } from '../dtos';
+import { TECH_SKILLS_CACHE_KEYS, TECH_SKILLS_CACHE_TTL } from '../interfaces';
 
 @Injectable()
 export class TechAreaQueryService {

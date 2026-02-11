@@ -1,14 +1,13 @@
 import { Controller, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
-import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import type { Publication } from '@prisma/client';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
-import { PublicationService } from '../services/publication.service';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { CreatePublication, UpdatePublication } from '@/shared-kernel';
 import {
   BaseSubResourceController,
   SubResourceControllerConfig,
 } from './base/base-sub-resource.controller';
-import type { Publication } from '@prisma/client';
 
 @SdkExport({ tag: 'resumes', description: 'Resumes API' })
 @ApiTags('resumes')
@@ -30,8 +29,4 @@ export class PublicationController extends BaseSubResourceController<
     entityName: 'publication',
     entityPluralName: 'publications',
   };
-
-  constructor(publicationService: PublicationService) {
-    super(publicationService);
-  }
 }

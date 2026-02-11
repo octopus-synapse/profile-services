@@ -7,22 +7,22 @@
 import { Injectable } from '@nestjs/common';
 import { User } from '@prisma/client';
 import type {
-  RegisterCredentials,
-  LoginCredentials,
-  RequestVerification,
-  EmailVerification,
-  ResetPasswordRequest,
-  NewPassword,
-  ChangePassword,
   ChangeEmail,
+  ChangePassword,
   DeleteAccount,
+  EmailVerification,
+  LoginCredentials,
+  NewPassword,
+  RegisterCredentials,
+  RequestVerification,
+  ResetPasswordRequest,
 } from '@/shared-kernel';
 import {
+  AccountManagementService,
   AuthCoreService,
-  TokenRefreshService,
   EmailVerificationService,
   PasswordResetService,
-  AccountManagementService,
+  TokenRefreshService,
 } from './services';
 
 type ValidatedUser = Omit<User, 'password'>;
@@ -43,10 +43,7 @@ export class AuthService {
     return this.authCoreService.signup(dto);
   }
 
-  async validateUser(
-    email: string,
-    password: string,
-  ): Promise<ValidatedUser | null> {
+  async validateUser(email: string, password: string): Promise<ValidatedUser | null> {
     return this.authCoreService.validateUser(email, password);
   }
 

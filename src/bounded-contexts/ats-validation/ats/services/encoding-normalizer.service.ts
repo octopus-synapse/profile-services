@@ -1,10 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import {
-  ValidationResult,
-  ValidationIssue,
-  ValidationSeverity,
-} from '../interfaces';
 import iconv from 'iconv-lite';
+import { ValidationIssue, ValidationResult, ValidationSeverity } from '../interfaces';
 
 @Injectable()
 export class EncodingNormalizerService {
@@ -80,9 +76,7 @@ export class EncodingNormalizerService {
       '\uFEFF', // Zero-width no-break space
     ];
 
-    const hasZeroWidth = zeroWidthChars.some((char) =>
-      normalizedText.includes(char),
-    );
+    const hasZeroWidth = zeroWidthChars.some((char) => normalizedText.includes(char));
     zeroWidthChars.forEach((char) => {
       normalizedText = normalizedText.split(char).join('');
     });
@@ -110,8 +104,7 @@ export class EncodingNormalizerService {
     }
 
     // Check for unusual whitespace
-    const unusualWhitespace =
-      /[\x85\xA0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]/g;
+    const unusualWhitespace = /[\x85\xA0\u1680\u2000-\u200A\u2028\u2029\u202F\u205F\u3000]/g;
     if (unusualWhitespace.test(normalizedText)) {
       normalizedText = normalizedText.replace(unusualWhitespace, ' ');
       issues.push({
@@ -122,25 +115,21 @@ export class EncodingNormalizerService {
     }
 
     // Check for accented characters (informational only, don't replace)
-    const accentedChars =
-      /[àáâãäåèéêëìíîïòóôõöùúûüýÿñçÀÁÂÃÄÅÈÉÊËÌÍÎÏÒÓÔÕÖÙÚÛÜÝŸÑÇ]/g;
+    const accentedChars = /[àáâãäåèéêëìíîïòóôõöùúûüýÿñçÀÁÂÃÄÅÈÉÊËÌÍÎÏÒÓÔÕÖÙÚÛÜÝŸÑÇ]/g;
     const accentedMatches = normalizedText.match(accentedChars);
     if (accentedMatches && accentedMatches.length > 0) {
       issues.push({
         code: 'ACCENTED_CHARS_DETECTED',
         message: `Found ${accentedMatches.length} accented character(s)`,
         severity: ValidationSeverity.INFO,
-        suggestion:
-          'Accented characters are supported but some ATS may have issues with them',
+        suggestion: 'Accented characters are supported but some ATS may have issues with them',
       });
     }
 
     return {
       normalizedText,
       result: {
-        passed:
-          issues.filter((i) => i.severity === ValidationSeverity.ERROR)
-            .length === 0,
+        passed: issues.filter((i) => i.severity === ValidationSeverity.ERROR).length === 0,
         issues,
         metadata: {
           originalLength: text.length,

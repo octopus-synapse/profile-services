@@ -7,33 +7,13 @@
  * Single Responsibility: HTTP interface for resume management operations.
  */
 
-import {
-  Controller,
-  Get,
-  Delete,
-  Param,
-  UseGuards,
-  HttpCode,
-  HttpStatus,
-} from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
-import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import { Controller, Delete, Get, HttpCode, HttpStatus, Param, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
-import {
-  PermissionGuard,
-  RequirePermission,
-} from '@/bounded-contexts/identity/authorization';
+import { PermissionGuard, RequirePermission } from '@/bounded-contexts/identity/authorization';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import { DeleteResponseDto, ResumeFullResponseDto, ResumeListItemDto } from '@/shared-kernel';
 import { ResumeManagementService } from '../services/resume-management.service';
-import {
-  DeleteResponseDto,
-  ResumeFullResponseDto,
-  ResumeListItemDto,
-} from '@/shared-kernel';
 
 @SdkExport({ tag: 'resumes', description: 'Resumes API' })
 @ApiTags('resumes')

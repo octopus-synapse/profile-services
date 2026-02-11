@@ -5,11 +5,11 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { Prisma } from '@prisma/client';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { Group, type GroupId } from '../../domain/entities/group.entity';
-import type { RoleId } from '../../domain/entities/role.entity';
 import type { PermissionId } from '../../domain/entities/permission.entity';
+import type { RoleId } from '../../domain/entities/role.entity';
 import type { IGroupRepository } from '../../domain/ports/authorization-repositories.port';
 
 @Injectable()
@@ -212,11 +212,7 @@ export class GroupRepository implements IGroupRepository {
     });
   }
 
-  async addRole(
-    groupId: GroupId,
-    roleId: RoleId,
-    assignedBy?: string,
-  ): Promise<void> {
+  async addRole(groupId: GroupId, roleId: RoleId, assignedBy?: string): Promise<void> {
     await this.prisma.groupRole.upsert({
       where: {
         groupId_roleId: { groupId, roleId },
@@ -254,10 +250,7 @@ export class GroupRepository implements IGroupRepository {
     });
   }
 
-  async removePermission(
-    groupId: GroupId,
-    permissionId: PermissionId,
-  ): Promise<void> {
+  async removePermission(groupId: GroupId, permissionId: PermissionId): Promise<void> {
     await this.prisma.groupPermission.deleteMany({
       where: { groupId, permissionId },
     });

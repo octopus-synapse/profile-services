@@ -8,41 +8,27 @@
  */
 
 import {
-  Controller,
-  Post,
-  Get,
-  Delete,
+  BadRequestException,
   Body,
-  Param,
-  UseGuards,
+  Controller,
+  Delete,
+  Get,
   HttpCode,
   HttpStatus,
-  BadRequestException,
+  Param,
+  Post,
+  UseGuards,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-  ApiParam,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
-import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
-import { ResumeImportService } from './resume-import.service';
-import type { JsonResumeSchema } from './resume-import.types';
-import {
-  ImportJsonDto,
-  ImportResultDto,
-  ParsedResumeDataDto,
-} from './dto/import.dto';
-import {
-  toImportJobDto,
-  toImportResultDto,
-  toParsedResumeDataDto,
-} from './mappers/import.mapper';
+import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { ImportJobDto } from '@/shared-kernel';
+import { ImportJsonDto, ImportResultDto, ParsedResumeDataDto } from './dto/import.dto';
+import { toImportJobDto, toImportResultDto, toParsedResumeDataDto } from './mappers/import.mapper';
+import { ResumeImportService } from './resume-import.service';
+import type { JsonResumeSchema } from './resume-import.types';
 
 @SdkExport({
   tag: 'resume-import',
@@ -58,8 +44,7 @@ export class ResumeImportController {
   @Post('json')
   @ApiOperation({
     summary: 'Import resume from JSON Resume format',
-    description:
-      'Creates import job and processes JSON Resume data (jsonresume.org standard)',
+    description: 'Creates import job and processes JSON Resume data (jsonresume.org standard)',
   })
   @ApiResponse({
     status: HttpStatus.CREATED,
@@ -99,8 +84,7 @@ export class ResumeImportController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Parse JSON Resume without importing',
-    description:
-      'Validates and transforms JSON Resume to internal format without saving',
+    description: 'Validates and transforms JSON Resume to internal format without saving',
   })
   @ApiResponse({
     status: HttpStatus.OK,
@@ -154,8 +138,7 @@ export class ResumeImportController {
   @Get()
   @ApiOperation({
     summary: 'Get import history',
-    description:
-      'Returns all import jobs for authenticated user, ordered by creation date',
+    description: 'Returns all import jobs for authenticated user, ordered by creation date',
   })
   @ApiResponse({ status: 200, type: [ImportJobDto] })
   @ApiResponse({
@@ -176,8 +159,7 @@ export class ResumeImportController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({
     summary: 'Cancel import job',
-    description:
-      'Cancels pending or processing import. Cannot cancel completed/failed imports.',
+    description: 'Cancels pending or processing import. Cannot cancel completed/failed imports.',
   })
   @ApiParam({
     name: 'importId',

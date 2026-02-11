@@ -1,42 +1,42 @@
-import { Module, forwardRef } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
-import { PassportModule } from '@nestjs/passport';
+import { forwardRef, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
+import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
+import { UsersModule } from '@/bounded-contexts/identity/users/users.module';
+import { AuditLogModule } from '@/bounded-contexts/platform/common/audit/audit-log.module';
+import { CacheModule } from '@/bounded-contexts/platform/common/cache/cache.module';
+import { EmailModule } from '@/bounded-contexts/platform/common/email/email.module';
+import { LoggerModule } from '@/bounded-contexts/platform/common/logger/logger.module';
+import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { AuthService } from './auth.service';
 import {
-  AuthCoreController,
-  AuthVerificationController,
-  AuthPasswordController,
   AuthAccountController,
+  AuthCoreController,
+  AuthPasswordController,
+  AuthVerificationController,
   UserConsentController,
 } from './controllers';
 import { GdprController } from './controllers/gdpr.controller';
-import { JwtStrategy } from './strategies/jwt.strategy';
-import { LocalStrategy } from './strategies/local.strategy';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { EmailVerifiedGuard } from './guards/email-verified.guard';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { TosGuard } from './guards/tos.guard';
-import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
-import { EmailModule } from '@/bounded-contexts/platform/common/email/email.module';
-import { LoggerModule } from '@/bounded-contexts/platform/common/logger/logger.module';
-import { CacheModule } from '@/bounded-contexts/platform/common/cache/cache.module';
-import { AuditLogModule } from '@/bounded-contexts/platform/common/audit/audit-log.module';
-import { UsersModule } from '@/bounded-contexts/identity/users/users.module';
 import {
-  TokenService,
-  PasswordService,
-  VerificationTokenService,
-  EmailVerificationService,
-  PasswordResetService,
   AccountManagementService,
   AuthCoreService,
-  TokenRefreshService,
+  EmailVerificationService,
+  PasswordResetService,
+  PasswordService,
   TokenBlacklistService,
+  TokenRefreshService,
+  TokenService,
   TosAcceptanceService,
+  VerificationTokenService,
 } from './services';
-import { GdprExportService } from './services/gdpr-export.service';
 import { GdprDeletionService } from './services/gdpr-deletion.service';
+import { GdprExportService } from './services/gdpr-export.service';
+import { JwtStrategy } from './strategies/jwt.strategy';
+import { LocalStrategy } from './strategies/local.strategy';
 
 @Module({
   imports: [

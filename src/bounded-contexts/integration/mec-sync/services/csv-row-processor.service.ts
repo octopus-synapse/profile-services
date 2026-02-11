@@ -6,16 +6,13 @@
 import { Injectable } from '@nestjs/common';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import {
-  NormalizedInstitution,
   NormalizedCourse,
+  NormalizedInstitution,
   SyncError,
 } from '../interfaces/mec-data.interface';
 import { parseCsvLine } from '../parsers/csv-line.parser';
+import { normalizeCourse, normalizeInstitution } from '../parsers/entity.normalizer';
 import { mapToMecRow } from '../parsers/mec-row.mapper';
-import {
-  normalizeInstitution,
-  normalizeCourse,
-} from '../parsers/entity.normalizer';
 
 export interface RowProcessingResult {
   institutions: Map<number, NormalizedInstitution>;
@@ -29,10 +26,7 @@ export class CsvRowProcessorService {
 
   constructor(private readonly logger: AppLoggerService) {}
 
-  processDataRows(
-    lines: string[],
-    columnMap: Map<string, number>,
-  ): RowProcessingResult {
+  processDataRows(lines: string[], columnMap: Map<string, number>): RowProcessingResult {
     const institutions = new Map<number, NormalizedInstitution>();
     const courses: NormalizedCourse[] = [];
     const errors: SyncError[] = [];
@@ -72,11 +66,7 @@ export class CsvRowProcessorService {
     }
   }
 
-  private recordError(
-    errors: SyncError[],
-    rowIndex: number,
-    error: unknown,
-  ): void {
+  private recordError(errors: SyncError[], rowIndex: number, error: unknown): void {
     errors.push({
       row: rowIndex + 1,
       message: error instanceof Error ? error.message : 'Unknown error',
@@ -87,11 +77,7 @@ export class CsvRowProcessorService {
     }
   }
 
-  private logParseResult(
-    institutionCount: number,
-    courseCount: number,
-    errorCount: number,
-  ): void {
+  private logParseResult(institutionCount: number, courseCount: number, errorCount: number): void {
     this.logger.log(
       `Parsed: ${institutionCount} institutions, ${courseCount} courses, ${errorCount} errors`,
       this.context,

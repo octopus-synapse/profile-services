@@ -16,9 +16,7 @@ export const SetupTwoFactorResponseSchema = z.object({
   backupCodes: z.array(z.string().length(10)),
 });
 
-export type SetupTwoFactorResponse = z.infer<
-  typeof SetupTwoFactorResponseSchema
->;
+export type SetupTwoFactorResponse = z.infer<typeof SetupTwoFactorResponseSchema>;
 
 // ============================================================================
 // Verify 2FA Token

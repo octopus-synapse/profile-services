@@ -7,26 +7,22 @@
 
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { UserId } from '../../domain/entities/user-auth-context.entity';
-import type { RoleId } from '../../domain/entities/role.entity';
 import type { GroupId } from '../../domain/entities/group.entity';
 import type { PermissionId } from '../../domain/entities/permission.entity';
+import type { RoleId } from '../../domain/entities/role.entity';
+import type { UserId } from '../../domain/entities/user-auth-context.entity';
 import type {
   IUserAuthorizationRepository,
+  UserGroupMembership,
   UserPermissionAssignment,
   UserRoleAssignment,
-  UserGroupMembership,
 } from '../../domain/ports/authorization-repositories.port';
 
 @Injectable()
-export class UserAuthorizationRepository
-  implements IUserAuthorizationRepository
-{
+export class UserAuthorizationRepository implements IUserAuthorizationRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getUserPermissions(
-    userId: UserId,
-  ): Promise<UserPermissionAssignment[]> {
+  async getUserPermissions(userId: UserId): Promise<UserPermissionAssignment[]> {
     const records = await this.prisma.userPermission.findMany({
       where: { userId },
       select: {
@@ -231,10 +227,7 @@ export class UserAuthorizationRepository
     });
   }
 
-  async removeDirectPermission(
-    userId: UserId,
-    permissionId: PermissionId,
-  ): Promise<void> {
+  async removeDirectPermission(userId: UserId, permissionId: PermissionId): Promise<void> {
     await this.prisma.userPermission.deleteMany({
       where: { userId, permissionId },
     });

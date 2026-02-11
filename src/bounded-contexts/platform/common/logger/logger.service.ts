@@ -20,10 +20,8 @@ export class AppLoggerService implements NestLoggerService {
           : winston.format.combine(
               winston.format.colorize(),
               winston.format.printf((info) => {
-                const { timestamp, level, message, context, stack, ...meta } =
-                  info;
-                const ctx =
-                  typeof context === 'string' ? context : 'Application';
+                const { timestamp, level, message, context, stack, ...meta } = info;
+                const ctx = typeof context === 'string' ? context : 'Application';
                 let log = `${String(timestamp)} [${ctx}] ${String(level)}: ${String(message)}`;
                 if (Object.keys(meta).length > 0) {
                   log += ` ${JSON.stringify(meta)}`;
@@ -68,36 +66,19 @@ export class AppLoggerService implements NestLoggerService {
     this.logger.info(message, { context, ...meta });
   }
 
-  error(
-    message: string,
-    trace?: string,
-    context?: string,
-    meta?: Record<string, unknown>,
-  ): void {
+  error(message: string, trace?: string, context?: string, meta?: Record<string, unknown>): void {
     this.logger.error(message, { context, stack: trace, ...meta });
   }
 
-  warn(
-    message: string,
-    context?: string,
-    meta?: Record<string, unknown>,
-  ): void {
+  warn(message: string, context?: string, meta?: Record<string, unknown>): void {
     this.logger.warn(message, { context, ...meta });
   }
 
-  debug(
-    message: string,
-    context?: string,
-    meta?: Record<string, unknown>,
-  ): void {
+  debug(message: string, context?: string, meta?: Record<string, unknown>): void {
     this.logger.debug(message, { context, ...meta });
   }
 
-  verbose(
-    message: string,
-    context?: string,
-    meta?: Record<string, unknown>,
-  ): void {
+  verbose(message: string, context?: string, meta?: Record<string, unknown>): void {
     this.logger.verbose(message, { context: context ?? this.context, ...meta });
   }
 

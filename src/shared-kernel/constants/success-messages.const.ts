@@ -8,5 +8,4 @@ export const SUCCESS_MESSAGES = {
   ONBOARDING_COMPLETED: 'Onboarding completed successfully',
 } as const;
 
-export type SuccessMessage =
-  (typeof SUCCESS_MESSAGES)[keyof typeof SUCCESS_MESSAGES];
+export type SuccessMessage = (typeof SUCCESS_MESSAGES)[keyof typeof SUCCESS_MESSAGES];

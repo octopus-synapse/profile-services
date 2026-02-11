@@ -4,22 +4,15 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { SectionType, ISectionOptions } from 'docx';
+import { Education, Experience, Language, Project, Resume, Skill } from '@prisma/client';
+import { ISectionOptions, SectionType } from 'docx';
 import {
-  DocxHeaderBuilder,
-  DocxExperienceBuilder,
   DocxEducationBuilder,
+  DocxExperienceBuilder,
+  DocxHeaderBuilder,
   DocxProjectBuilder,
   DocxSkillsBuilder,
 } from '../builders';
-import {
-  Resume,
-  Experience,
-  Education,
-  Skill,
-  Project,
-  Language,
-} from '@prisma/client';
 
 type FullResume = Resume & {
   experiences: Experience[];
@@ -72,9 +65,7 @@ export class DocxSectionsService {
         this.headerBuilder.createSectionHeading('Summary'),
         this.headerBuilder.createSummaryParagraph(user.bio),
         this.headerBuilder.createSectionHeading('Experience'),
-        ...resume.experiences.flatMap((exp) =>
-          this.experienceBuilder.create(exp),
-        ),
+        ...resume.experiences.flatMap((exp) => this.experienceBuilder.create(exp)),
         this.headerBuilder.createSectionHeading('Education'),
         ...resume.education.flatMap((edu) => this.educationBuilder.create(edu)),
         this.headerBuilder.createSectionHeading('Skills'),

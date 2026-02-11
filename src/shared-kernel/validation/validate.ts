@@ -31,10 +31,7 @@ export interface ValidationError {
  * const result = validate(LoginSchema, req.body);
  * if (!result.success) return res.status(400).json(result.errors);
  */
-export function validate<T>(
-  schema: ZodSchema<T>,
-  data: unknown,
-): ValidationResult<T> {
+export function validate<T>(schema: ZodSchema<T>, data: unknown): ValidationResult<T> {
   const result = schema.safeParse(data);
 
   if (result.success) {

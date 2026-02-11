@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 
 @Injectable()
 export class ConversationRepository {
@@ -92,10 +92,7 @@ export class ConversationRepository {
   /**
    * Get all conversations for a user with pagination.
    */
-  async findByUserId(
-    userId: string,
-    options: { cursor?: string; limit: number },
-  ) {
+  async findByUserId(userId: string, options: { cursor?: string; limit: number }) {
     const where: Prisma.ConversationWhereInput = {
       OR: [{ participant1Id: userId }, { participant2Id: userId }],
     };
@@ -158,10 +155,7 @@ export class ConversationRepository {
   /**
    * Check if user is participant in conversation.
    */
-  async isParticipant(
-    conversationId: string,
-    userId: string,
-  ): Promise<boolean> {
+  async isParticipant(conversationId: string, userId: string): Promise<boolean> {
     const conversation = await this.prisma.conversation.findFirst({
       where: {
         id: conversationId,

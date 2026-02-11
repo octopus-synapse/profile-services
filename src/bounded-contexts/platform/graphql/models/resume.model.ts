@@ -1,6 +1,6 @@
-import { ObjectType, Field, ID, registerEnumType } from '@nestjs/graphql';
-import { ExperienceModel } from './experience.model';
+import { Field, ID, ObjectType, registerEnumType } from '@nestjs/graphql';
 import { EducationModel } from './education.model';
+import { ExperienceModel } from './experience.model';
 import { SkillModel } from './skill.model';
 
 /**

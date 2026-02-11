@@ -6,8 +6,8 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { Institution } from '@/shared-kernel';
-import { NormalizedInstitution } from '../interfaces/mec-data.interface';
 import { BATCH_SIZE } from '../constants';
+import { NormalizedInstitution } from '../interfaces/mec-data.interface';
 
 const INSTITUTION_SELECT = {
   id: true,
@@ -75,10 +75,7 @@ export class InstitutionRepository {
     `;
   }
 
-  async searchInstitutionsByName(
-    query: string,
-    limit: number,
-  ): Promise<Institution[]> {
+  async searchInstitutionsByName(query: string, limit: number): Promise<Institution[]> {
     return this.search(query, limit);
   }
 
@@ -105,9 +102,7 @@ export class InstitutionRepository {
     }));
   }
 
-  async countInstitutionsByUf(): Promise<
-    Array<{ uf: string; _count: number }>
-  > {
+  async countInstitutionsByUf(): Promise<Array<{ uf: string; _count: number }>> {
     return this.countByUf();
   }
 
@@ -122,20 +117,11 @@ export class InstitutionRepository {
     return new Set(existing.map((i) => i.codigoIes));
   }
 
-  async bulkCreateInstitutions(
-    normalizedInstitutions: NormalizedInstitution[],
-  ): Promise<number> {
+  async bulkCreateInstitutions(normalizedInstitutions: NormalizedInstitution[]): Promise<number> {
     let insertedInstitutionCount = 0;
 
-    for (
-      let batchIndex = 0;
-      batchIndex < normalizedInstitutions.length;
-      batchIndex += BATCH_SIZE
-    ) {
-      const institutionBatch = normalizedInstitutions.slice(
-        batchIndex,
-        batchIndex + BATCH_SIZE,
-      );
+    for (let batchIndex = 0; batchIndex < normalizedInstitutions.length; batchIndex += BATCH_SIZE) {
+      const institutionBatch = normalizedInstitutions.slice(batchIndex, batchIndex + BATCH_SIZE);
 
       await this.prisma.mecInstitution.createMany({
         data: institutionBatch.map((institution) => ({

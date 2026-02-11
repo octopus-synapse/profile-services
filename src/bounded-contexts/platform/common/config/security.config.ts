@@ -5,22 +5,14 @@ import helmet from 'helmet';
  * Security configuration - Helmet setup
  * Single Responsibility: Configure security headers only
  */
-export function configureSecurityHeaders(
-  app: INestApplication,
-  enableSwagger: boolean,
-): void {
+export function configureSecurityHeaders(app: INestApplication, enableSwagger: boolean): void {
   app.use(
     helmet({
       contentSecurityPolicy: enableSwagger
         ? {
             directives: {
               defaultSrc: ["'self'"],
-              scriptSrc: [
-                "'self'",
-                "'unsafe-inline'",
-                "'unsafe-eval'",
-                'https://cdn.jsdelivr.net',
-              ],
+              scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", 'https://cdn.jsdelivr.net'],
               styleSrc: ["'self'", "'unsafe-inline'", 'https:'],
               fontSrc: ["'self'", 'https:', 'data:'],
               imgSrc: ["'self'", 'data:', 'https:'],

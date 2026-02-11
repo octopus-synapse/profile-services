@@ -31,11 +31,7 @@ export function normalizeOrders<T extends Orderable>(items: T[]): T[] {
 /**
  * Move an item to a new position
  */
-export function moveItem<T extends Orderable>(
-  items: T[],
-  fromIndex: number,
-  toIndex: number,
-): T[] {
+export function moveItem<T extends Orderable>(items: T[], fromIndex: number, toIndex: number): T[] {
   const sorted = sortByOrder(items);
   const [moved] = sorted.splice(fromIndex, 1);
   sorted.splice(toIndex, 0, moved);

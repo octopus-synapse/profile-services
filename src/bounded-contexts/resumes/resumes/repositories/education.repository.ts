@@ -1,13 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { Education } from '@prisma/client';
 import type { CreateEducation, UpdateEducation } from '@/shared-kernel';
-import {
-  BaseSubResourceRepository,
-  OrderByConfig,
-  buildUpdateData,
-  buildCreateData,
-} from './base';
+import { BaseSubResourceRepository, buildCreateData, buildUpdateData, OrderByConfig } from './base';
 
 /**
  * Repository for Education entities
@@ -25,10 +19,6 @@ export class EducationRepository extends BaseSubResourceRepository<
   UpdateEducation
 > {
   protected readonly logger = new Logger(EducationRepository.name);
-
-  constructor(prisma: PrismaService) {
-    super(prisma);
-  }
 
   protected getPrismaDelegate() {
     return this.prisma.education;

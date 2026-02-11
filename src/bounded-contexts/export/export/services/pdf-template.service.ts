@@ -5,8 +5,8 @@
 
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { PdfPageSetup, PdfStyleExtractor } from '../helpers';
 import { PDF } from '../constants/ui.constants';
+import { PdfPageSetup, PdfStyleExtractor } from '../helpers';
 
 @Injectable()
 export class PdfTemplateService {

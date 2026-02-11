@@ -1,15 +1,7 @@
 import type { Project } from '@prisma/client';
-import {
-  applyOverrides,
-  type ProjectItem,
-  type ItemOverride,
-  type SectionData,
-} from './shared';
+import { applyOverrides, type ItemOverride, type ProjectItem, type SectionData } from './shared';
 
-export function compileProjects(
-  projects: Project[],
-  overrides: ItemOverride[],
-): SectionData {
+export function compileProjects(projects: Project[], overrides: ItemOverride[]): SectionData {
   const items = applyOverrides(projects, overrides).map(
     (proj): ProjectItem => ({
       id: proj.id,

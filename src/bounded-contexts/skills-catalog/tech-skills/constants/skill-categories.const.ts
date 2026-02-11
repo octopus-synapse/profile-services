@@ -5,26 +5,20 @@
  */
 
 import type { SkillType } from '../interfaces';
+import { DATA_AI_CATEGORIES, TESTING_CATEGORIES } from './skill-categories-data.const';
 import { SKILL_CATEGORIES as FRAMEWORK_CATEGORIES } from './skill-categories-frameworks.const';
+import { DATABASE_CATEGORIES, DEVOPS_CATEGORIES } from './skill-categories-infra.const';
 import {
-  DATABASE_CATEGORIES,
-  DEVOPS_CATEGORIES,
-} from './skill-categories-infra.const';
-import {
-  DATA_AI_CATEGORIES,
-  TESTING_CATEGORIES,
-} from './skill-categories-data.const';
-import {
-  DESIGN_CATEGORIES,
-  SECURITY_CATEGORIES,
-  COLLABORATION_CATEGORIES,
-} from './skill-categories-tools.const';
-import {
-  LIBRARY_CATEGORIES,
-  METHODOLOGY_CATEGORIES,
   BLOCKCHAIN_CATEGORIES,
   IDE_CATEGORIES,
+  LIBRARY_CATEGORIES,
+  METHODOLOGY_CATEGORIES,
 } from './skill-categories-misc.const';
+import {
+  COLLABORATION_CATEGORIES,
+  DESIGN_CATEGORIES,
+  SECURITY_CATEGORIES,
+} from './skill-categories-tools.const';
 
 type SkillCategory = { type: SkillType; niche: string | null };
 

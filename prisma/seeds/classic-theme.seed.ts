@@ -6,8 +6,7 @@ import { ThemeCategory, ThemeStatus } from '@prisma/client';
 
 export const CLASSIC_THEME = {
   name: 'Classic',
-  description:
-    'Traditional, formal design with serif typography. Ideal for executive roles.',
+  description: 'Traditional, formal design with serif typography. Ideal for executive roles.',
   category: ThemeCategory.CLASSIC,
   tags: ['traditional', 'formal', 'serif', 'executive'],
   status: ThemeStatus.PUBLISHED,

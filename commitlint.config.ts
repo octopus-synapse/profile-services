@@ -26,9 +26,7 @@ const configuration: UserConfig = {
     'header-max-length': [2, 'always', 100],
     'body-max-line-length': [0, 'always', Infinity],
   },
-  ignores: [
-    (commit: string): boolean => commit.includes('Merge pull request'),
-  ],
+  ignores: [(commit: string): boolean => commit.includes('Merge pull request')],
 };
 
 export default configuration;

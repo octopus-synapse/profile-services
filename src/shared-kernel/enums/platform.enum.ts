@@ -104,42 +104,24 @@ export const DateFormatPatterns: Record<DateFormat, string> = {
   YMD: 'YYYY-MM-DD',
 };
 
-export const DateFormatPatternSchema = z.enum([
-  'MM/DD/YYYY',
-  'DD/MM/YYYY',
-  'YYYY-MM-DD',
-]);
+export const DateFormatPatternSchema = z.enum(['MM/DD/YYYY', 'DD/MM/YYYY', 'YYYY-MM-DD']);
 export type DateFormatPattern = z.infer<typeof DateFormatPatternSchema>;
 
 // ============================================================================
 // Profile Visibility
 // ============================================================================
 
-export const ProfileVisibilitySchema = z.enum([
-  'PUBLIC',
-  'PRIVATE',
-  'UNLISTED',
-]);
+export const ProfileVisibilitySchema = z.enum(['PUBLIC', 'PRIVATE', 'UNLISTED']);
 export type ProfileVisibility = z.infer<typeof ProfileVisibilitySchema>;
 
-export const ProfileVisibilityKebabSchema = z.enum([
-  'public',
-  'private',
-  'unlisted',
-]);
-export type ProfileVisibilityKebab = z.infer<
-  typeof ProfileVisibilityKebabSchema
->;
+export const ProfileVisibilityKebabSchema = z.enum(['public', 'private', 'unlisted']);
+export type ProfileVisibilityKebab = z.infer<typeof ProfileVisibilityKebabSchema>;
 
-export const profileVisibilityToKebab = (
-  value: ProfileVisibility,
-): ProfileVisibilityKebab => {
+export const profileVisibilityToKebab = (value: ProfileVisibility): ProfileVisibilityKebab => {
   return value.toLowerCase() as ProfileVisibilityKebab;
 };
 
-export const profileVisibilityFromKebab = (
-  value: ProfileVisibilityKebab,
-): ProfileVisibility => {
+export const profileVisibilityFromKebab = (value: ProfileVisibilityKebab): ProfileVisibility => {
   return value.toUpperCase() as ProfileVisibility;
 };
 
@@ -157,9 +139,7 @@ export const exportFormatToKebab = (value: ExportFormat): ExportFormatKebab => {
   return value.toLowerCase() as ExportFormatKebab;
 };
 
-export const exportFormatFromKebab = (
-  value: ExportFormatKebab,
-): ExportFormat => {
+export const exportFormatFromKebab = (value: ExportFormatKebab): ExportFormat => {
   return value.toUpperCase() as ExportFormat;
 };
 
@@ -167,12 +147,7 @@ export const exportFormatFromKebab = (
 // Language Proficiency (Spoken Languages)
 // ============================================================================
 
-export const LanguageProficiencySchema = z.enum([
-  'BASIC',
-  'CONVERSATIONAL',
-  'FLUENT',
-  'NATIVE',
-]);
+export const LanguageProficiencySchema = z.enum(['BASIC', 'CONVERSATIONAL', 'FLUENT', 'NATIVE']);
 export type LanguageProficiency = z.infer<typeof LanguageProficiencySchema>;
 
 export const LanguageProficiencyKebabSchema = z.enum([
@@ -181,9 +156,7 @@ export const LanguageProficiencyKebabSchema = z.enum([
   'fluent',
   'native',
 ]);
-export type LanguageProficiencyKebab = z.infer<
-  typeof LanguageProficiencyKebabSchema
->;
+export type LanguageProficiencyKebab = z.infer<typeof LanguageProficiencyKebabSchema>;
 
 export const languageProficiencyToKebab = (
   value: LanguageProficiency,
@@ -200,10 +173,9 @@ export const languageProficiencyFromKebab = (
 /**
  * Numeric mapping for sorting/comparison
  */
-export const LanguageProficiencyToNumeric: Record<LanguageProficiency, number> =
-  {
-    BASIC: 1,
-    CONVERSATIONAL: 2,
-    FLUENT: 3,
-    NATIVE: 4,
-  };
+export const LanguageProficiencyToNumeric: Record<LanguageProficiency, number> = {
+  BASIC: 1,
+  CONVERSATIONAL: 2,
+  FLUENT: 3,
+  NATIVE: 4,
+};

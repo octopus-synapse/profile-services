@@ -1,14 +1,13 @@
 import { Controller, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
-import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import type { Education } from '@prisma/client';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
-import { EducationService } from '../services/education.service';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { CreateEducation, UpdateEducation } from '@/shared-kernel';
 import {
   BaseSubResourceController,
   SubResourceControllerConfig,
 } from './base/base-sub-resource.controller';
-import type { Education } from '@prisma/client';
 
 /**
  * Controller for managing resume education entries
@@ -41,8 +40,4 @@ export class EducationController extends BaseSubResourceController<
     entityName: 'education',
     entityPluralName: 'education entries',
   };
-
-  constructor(educationService: EducationService) {
-    super(educationService);
-  }
 }

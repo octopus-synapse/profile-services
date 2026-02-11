@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { WebhookService } from './webhook.service';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
+import { WebhookService } from './webhook.service';
 
 /**
  * Webhook Module

@@ -1,15 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { Skill } from '@prisma/client';
-import type { CreateSkill, UpdateSkill } from '@/shared-kernel';
-import type { PaginatedResult } from '@/shared-kernel';
+import type { CreateSkill, PaginatedResult, UpdateSkill } from '@/shared-kernel';
 import { PAGINATION, SkillLevelToNumeric } from '@/shared-kernel';
 import {
   BaseSubResourceRepository,
-  OrderByConfig,
-  FindAllFilters,
-  buildUpdateData,
   buildCreateData,
+  buildUpdateData,
+  FindAllFilters,
+  OrderByConfig,
 } from './base';
 
 /**
@@ -22,17 +20,9 @@ import {
  * provides both logical grouping and user control.
  */
 @Injectable()
-export class SkillRepository extends BaseSubResourceRepository<
-  Skill,
-  CreateSkill,
-  UpdateSkill
-> {
+export class SkillRepository extends BaseSubResourceRepository<Skill, CreateSkill, UpdateSkill> {
   protected readonly logger = new Logger(SkillRepository.name);
   private categoryFilter?: string; // Instance variable for category filtering
-
-  constructor(prisma: PrismaService) {
-    super(prisma);
-  }
 
   protected getPrismaDelegate() {
     return this.prisma.skill;
@@ -78,11 +68,7 @@ export class SkillRepository extends BaseSubResourceRepository<
     category?: string,
   ): Promise<PaginatedResult<Skill>> {
     this.categoryFilter = category;
-    const paginatedSkills = await super.findAllEntitiesForResume(
-      resumeId,
-      page,
-      limit,
-    );
+    const paginatedSkills = await super.findAllEntitiesForResume(resumeId, page, limit);
     this.categoryFilter = undefined; // Clean up
     return paginatedSkills;
   }

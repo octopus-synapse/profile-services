@@ -56,8 +56,7 @@ export class ValidateUsernameResponseDto {
   valid: boolean;
 
   @ApiProperty({
-    description:
-      'Whether the username is available (not taken by another user)',
+    description: 'Whether the username is available (not taken by another user)',
     example: true,
     required: false,
   })

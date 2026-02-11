@@ -46,11 +46,7 @@ export const ApiResponseHelper = {
   /**
    * Create a success response with data and metadata
    */
-  withMeta<T>(
-    data: T,
-    meta: Record<string, unknown>,
-    message?: string,
-  ): ApiResponse<T> {
+  withMeta<T>(data: T, meta: Record<string, unknown>, message?: string): ApiResponse<T> {
     return {
       success: true,
       ...(message && { message }),

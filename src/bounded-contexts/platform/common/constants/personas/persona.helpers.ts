@@ -1,6 +1,6 @@
-import { TechPersona } from './tech-persona.enum';
-import { PersonaConfig } from './persona-config.interface';
 import { TECH_PERSONAS } from './persona.registry';
+import { PersonaConfig } from './persona-config.interface';
+import { TechPersona } from './tech-persona.enum';
 
 /**
  * Get configuration for a specific persona
@@ -15,18 +15,14 @@ export function getPersonaConfig(persona: TechPersona): PersonaConfig {
  * Analyzes keywords from job title and skills to find the best matching
  * persona. Returns FULLSTACK as default if no strong match is found.
  */
-export function suggestPersona(
-  jobTitle: string,
-  skills: string[],
-): TechPersona {
+export function suggestPersona(jobTitle: string, skills: string[]): TechPersona {
   const jobLower = jobTitle.toLowerCase();
   const skillsLower = skills.map((s) => s.toLowerCase());
 
   for (const [persona, config] of Object.entries(TECH_PERSONAS)) {
     const matchingKeywords = config.keywords.filter(
       (keyword) =>
-        jobLower.includes(keyword) ||
-        skillsLower.some((skill) => skill.includes(keyword)),
+        jobLower.includes(keyword) || skillsLower.some((skill) => skill.includes(keyword)),
     );
 
     if (matchingKeywords.length > 3) {

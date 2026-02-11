@@ -7,13 +7,13 @@
 import { Injectable } from '@nestjs/common';
 import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import type { TechSkillsSyncResult } from '../interfaces';
 import { GithubLinguistParserService } from './github-linguist-parser.service';
+import { LanguagesSyncService } from './languages-sync.service';
+import { SkillsDataSyncService } from './skills-data-sync.service';
 import { StackOverflowParserService } from './stackoverflow-parser.service';
 import { TechAreasSyncService } from './tech-areas-sync.service';
 import { TechNichesSyncService } from './tech-niches-sync.service';
-import { LanguagesSyncService } from './languages-sync.service';
-import { SkillsDataSyncService } from './skills-data-sync.service';
-import type { TechSkillsSyncResult } from '../interfaces';
 
 @Injectable()
 export class TechSkillsSyncService {
@@ -43,14 +43,10 @@ export class TechSkillsSyncService {
 
     try {
       result.areasCreated = await this.techAreasSync.syncAreas();
-      this.logger.log(
-        `Tech areas synced: ${result.areasCreated} created/updated`,
-      );
+      this.logger.log(`Tech areas synced: ${result.areasCreated} created/updated`);
 
       result.nichesCreated = await this.techNichesSync.syncNiches();
-      this.logger.log(
-        `Tech niches synced: ${result.nichesCreated} created/updated`,
-      );
+      this.logger.log(`Tech niches synced: ${result.nichesCreated} created/updated`);
 
       const languages = await this.linguistParser.fetchAndParse();
       const langResult = await this.languagesSync.syncLanguages(languages);
@@ -71,8 +67,7 @@ export class TechSkillsSyncService {
       await this.clearCache();
       this.logger.log('Tech skills sync completed successfully');
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.error('Tech skills sync failed', errorMessage);
       result.errors.push(errorMessage);
     }

@@ -3,34 +3,22 @@
  * Handles password-related endpoints
  */
 
-import {
-  Body,
-  Controller,
-  HttpCode,
-  HttpStatus,
-  Post,
-  UseGuards,
-} from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
+import { Body, Controller, HttpCode, HttpStatus, Post, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
-import { MessageResponseDto } from '@/shared-kernel/dtos/sdk-response.dto';
 import { AuthService } from '@/bounded-contexts/identity/auth/auth.service';
-import type {
-  ResetPasswordRequest as ForgotPassword,
-  NewPassword as ResetPassword,
-  ChangePassword,
-} from '@/shared-kernel';
-import { Public } from '../decorators/public.decorator';
-import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
-import type { UserPayload } from '../interfaces/auth-request.interface';
+import type {
+  ChangePassword,
+  ResetPasswordRequest as ForgotPassword,
+  NewPassword as ResetPassword,
+} from '@/shared-kernel';
 import { RATE_LIMIT_CONFIG } from '@/shared-kernel';
+import { MessageResponseDto } from '@/shared-kernel/dtos/sdk-response.dto';
+import { Public } from '../decorators/public.decorator';
+import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import type { UserPayload } from '../interfaces/auth-request.interface';
 
 @SdkExport({
   tag: 'auth',
@@ -78,10 +66,7 @@ export class AuthPasswordController {
   @ApiResponse({ status: 201, type: MessageResponseDto })
   @ApiResponse({ status: 200, description: 'Password changed successfully' })
   @ApiResponse({ status: 401, description: 'Current password is incorrect' })
-  async changePassword(
-    @CurrentUser() user: UserPayload,
-    @Body() dto: ChangePassword,
-  ) {
+  async changePassword(@CurrentUser() user: UserPayload, @Body() dto: ChangePassword) {
     return this.authService.changePassword(user.userId, dto);
   }
 }

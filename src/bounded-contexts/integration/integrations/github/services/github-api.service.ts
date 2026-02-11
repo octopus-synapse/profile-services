@@ -3,13 +3,9 @@
  * Single Responsibility: Raw API calls to GitHub's REST API
  */
 
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import type {
-  GitHubUser,
-  GitHubRepo,
-  GitHubFetchOptions,
-} from '../types/github.types';
+import type { GitHubFetchOptions, GitHubRepo, GitHubUser } from '../types/github.types';
 
 // Re-export types for backward compatibility
 export type { GitHubUser, GitHubRepo };
@@ -29,7 +25,7 @@ export class GitHubApiService {
     };
 
     if (this.githubToken) {
-      headers['Authorization'] = `Bearer ${this.githubToken}`;
+      headers.Authorization = `Bearer ${this.githubToken}`;
     }
 
     const response = await fetch(`${this.apiUrl}${endpoint}`, { headers });
@@ -45,10 +41,7 @@ export class GitHubApiService {
     return this.fetchGitHub<GitHubUser>(`/users/${username}`);
   }
 
-  async getUserRepos(
-    username: string,
-    options: GitHubFetchOptions = {},
-  ): Promise<GitHubRepo[]> {
+  async getUserRepos(username: string, options: GitHubFetchOptions = {}): Promise<GitHubRepo[]> {
     const sort = options.sort ?? 'updated';
     const perPage = options.per_page ?? 100;
     return this.fetchGitHub<GitHubRepo[]>(
@@ -56,11 +49,7 @@ export class GitHubApiService {
     );
   }
 
-  async getRepoCommitCount(
-    owner: string,
-    repo: string,
-    username: string,
-  ): Promise<number> {
+  async getRepoCommitCount(owner: string, repo: string, username: string): Promise<number> {
     try {
       const commits = await this.fetchGitHub<unknown[]>(
         `/repos/${owner}/${repo}/commits?author=${username}&per_page=100`,
@@ -71,11 +60,7 @@ export class GitHubApiService {
     }
   }
 
-  async getRepoPullRequests(
-    owner: string,
-    repo: string,
-    username: string,
-  ): Promise<number> {
+  async getRepoPullRequests(owner: string, repo: string, username: string): Promise<number> {
     try {
       const prs = await this.fetchGitHub<unknown[]>(
         `/repos/${owner}/${repo}/pulls?creator=${username}&state=all&per_page=100`,
@@ -86,11 +71,7 @@ export class GitHubApiService {
     }
   }
 
-  async getRepoIssues(
-    owner: string,
-    repo: string,
-    username: string,
-  ): Promise<number> {
+  async getRepoIssues(owner: string, repo: string, username: string): Promise<number> {
     try {
       const issues = await this.fetchGitHub<unknown[]>(
         `/repos/${owner}/${repo}/issues?creator=${username}&state=all&per_page=100`,
@@ -103,16 +84,10 @@ export class GitHubApiService {
 
   private handleApiError(response: Response): never {
     if (response.status === 404) {
-      throw new HttpException(
-        'GitHub resource not found',
-        HttpStatus.NOT_FOUND,
-      );
+      throw new HttpException('GitHub resource not found', HttpStatus.NOT_FOUND);
     }
     if (response.status === 403) {
-      throw new HttpException(
-        'GitHub API rate limit exceeded',
-        HttpStatus.FORBIDDEN,
-      );
+      throw new HttpException('GitHub API rate limit exceeded', HttpStatus.FORBIDDEN);
     }
     throw new HttpException(
       `Failed to fetch from GitHub: ${response.statusText}`,

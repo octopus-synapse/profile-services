@@ -4,14 +4,10 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
-import {
-  TECH_SKILLS_CACHE_KEYS,
-  TECH_SKILLS_CACHE_TTL,
-  type SkillType,
-} from '../interfaces';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { TechSkill } from '../dtos';
+import { type SkillType, TECH_SKILLS_CACHE_KEYS, TECH_SKILLS_CACHE_TTL } from '../interfaces';
 import { mapSkillsTo } from '../utils';
 
 const NICHE_SELECT = { slug: true, nameEn: true, namePtBr: true } as const;
@@ -55,11 +51,7 @@ export class SkillQueryService {
     });
 
     const result = mapSkillsTo(skills);
-    await this.cache.set(
-      cacheKey,
-      result,
-      TECH_SKILLS_CACHE_TTL.SKILLS_BY_NICHE,
-    );
+    await this.cache.set(cacheKey, result, TECH_SKILLS_CACHE_TTL.SKILLS_BY_NICHE);
     return result;
   }
 

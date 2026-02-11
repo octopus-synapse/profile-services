@@ -4,14 +4,14 @@
  */
 
 import { Controller, Get, Param } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Public } from '@/bounded-contexts/identity/auth/decorators/public.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import { TechAreaDto, TechNicheDto } from '@/shared-kernel';
+import type { TechArea, TechNiche } from '../dtos';
+import type { TechAreaType } from '../interfaces';
 import { TechAreaQueryService } from '../services/area-query.service';
 import { TechSkillsQueryService } from '../services/tech-skills-query.service';
-import { Public } from '@/bounded-contexts/identity/auth/decorators/public.decorator';
-import type { TechAreaType } from '../interfaces';
-import type { TechArea, TechNiche } from '../dtos';
-import { TechAreaDto, TechNicheDto } from '@/shared-kernel';
 
 @SdkExport({
   tag: 'tech-areas',
@@ -42,9 +42,7 @@ export class TechAreaController {
   @ApiOperation({ summary: 'Get niches by area type' })
   @ApiResponse({ status: 200, type: [TechNicheDto] })
   @ApiResponse({ status: 200, description: 'List of niches for the area' })
-  async getNichesByArea(
-    @Param('areaType') areaType: TechAreaType,
-  ): Promise<TechNiche[]> {
+  async getNichesByArea(@Param('areaType') areaType: TechAreaType): Promise<TechNiche[]> {
     return this.queryService.getNichesByArea(areaType);
   }
 }

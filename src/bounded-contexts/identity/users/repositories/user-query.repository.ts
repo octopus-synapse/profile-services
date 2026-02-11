@@ -4,8 +4,8 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { User, UserPreferences } from '@prisma/client';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 
 @Injectable()
 export class UserQueryRepository {
@@ -63,18 +63,13 @@ export class UserQueryRepository {
     });
   }
 
-  async findFullUserPreferencesByUserId(
-    userId: string,
-  ): Promise<UserPreferences | null> {
+  async findFullUserPreferencesByUserId(userId: string): Promise<UserPreferences | null> {
     return await this.prisma.userPreferences.findUnique({
       where: { userId },
     });
   }
 
-  async isUsernameTaken(
-    username: string,
-    excludeUserId?: string,
-  ): Promise<boolean> {
+  async isUsernameTaken(username: string, excludeUserId?: string): Promise<boolean> {
     const existingUser = await this.prisma.user.findUnique({
       where: { username },
       select: { id: true },

@@ -6,25 +6,25 @@
 import {
   Controller,
   Get,
-  Query,
-  UseGuards,
-  StreamableFile,
   Header,
   InternalServerErrorException,
+  Query,
+  StreamableFile,
+  UseGuards,
 } from '@nestjs/common';
 import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
   ApiBearerAuth,
-  ApiQuery,
+  ApiOperation,
   ApiProduces,
+  ApiQuery,
+  ApiResponse,
+  ApiTags,
 } from '@nestjs/swagger';
-import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
-import { BannerCaptureService } from '../services/banner-capture.service';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { BannerPreviewResponseDto } from '@/shared-kernel';
+import { BannerCaptureService } from '../services/banner-capture.service';
 
 @SdkExport({ tag: 'export', description: 'Export API' })
 @ApiTags('export')
@@ -72,9 +72,7 @@ export class ExportBannerController {
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
       });
-      throw new InternalServerErrorException(
-        'Failed to generate banner. Please try again later.',
-      );
+      throw new InternalServerErrorException('Failed to generate banner. Please try again later.');
     }
   }
 }

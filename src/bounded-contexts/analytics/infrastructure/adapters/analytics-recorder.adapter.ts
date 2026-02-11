@@ -18,9 +18,7 @@ export class AnalyticsRecorderAdapter implements AnalyticsRecorder {
   constructor(private readonly prisma: PrismaService) {}
 
   async recordResumeCreation(resumeId: string, userId: string): Promise<void> {
-    this.logger.debug(
-      `Recording analytics for new resume: ${resumeId}, user: ${userId}`,
-    );
+    this.logger.debug(`Recording analytics for new resume: ${resumeId}, user: ${userId}`);
 
     await this.prisma.resumeAnalytics.create({
       data: {

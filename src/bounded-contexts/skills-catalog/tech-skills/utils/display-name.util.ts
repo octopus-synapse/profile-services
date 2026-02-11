@@ -40,7 +40,7 @@ const SPECIAL_CASES: Record<string, string> = {
  */
 export function formatDisplayName(name: string): string {
   const lower = name.toLowerCase();
-  if (Object.prototype.hasOwnProperty.call(SPECIAL_CASES, lower)) {
+  if (Object.hasOwn(SPECIAL_CASES, lower)) {
     return SPECIAL_CASES[lower];
   }
 

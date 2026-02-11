@@ -1,5 +1,5 @@
-import { TechPersona } from './tech-persona.enum';
 import { PersonaConfig } from './persona-config.interface';
+import { TechPersona } from './tech-persona.enum';
 
 export const DEVOPS_PERSONA: PersonaConfig = {
   id: TechPersona.DEVOPS,

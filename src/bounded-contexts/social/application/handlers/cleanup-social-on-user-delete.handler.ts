@@ -10,8 +10,8 @@
 
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { UserDeletedEvent } from '@/bounded-contexts/identity/domain/events';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 
 @Injectable()
 export class CleanupSocialOnUserDeleteHandler {
@@ -26,18 +26,17 @@ export class CleanupSocialOnUserDeleteHandler {
     this.logger.log(`Cleaning up social data for deleted user: ${userId}`);
 
     // Delete follows where user is follower or following
-    const [followsAsFollower, followsAsFollowing, activities] =
-      await Promise.all([
-        this.prisma.follow.deleteMany({
-          where: { followerId: userId },
-        }),
-        this.prisma.follow.deleteMany({
-          where: { followingId: userId },
-        }),
-        this.prisma.activity.deleteMany({
-          where: { userId },
-        }),
-      ]);
+    const [followsAsFollower, followsAsFollowing, activities] = await Promise.all([
+      this.prisma.follow.deleteMany({
+        where: { followerId: userId },
+      }),
+      this.prisma.follow.deleteMany({
+        where: { followingId: userId },
+      }),
+      this.prisma.activity.deleteMany({
+        where: { userId },
+      }),
+    ]);
 
     this.logger.log(
       `Cleaned up social data for user ${userId}: ` +

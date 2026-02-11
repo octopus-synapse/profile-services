@@ -9,20 +9,20 @@
  */
 
 import {
-  Injectable,
   CanActivate,
   ExecutionContext,
   HttpException,
   HttpStatus,
+  Injectable,
   SetMetadata,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import type { Request, Response } from 'express';
 import { RateLimitService } from './rate-limit.service';
 import type {
-  RateLimitOptions,
   RateLimitErrorPayload,
   RateLimitKeyStrategy,
+  RateLimitOptions,
 } from './rate-limit.types';
 
 export const RATE_LIMIT_KEY = 'rateLimit';
@@ -30,8 +30,7 @@ export const RATE_LIMIT_KEY = 'rateLimit';
 /**
  * Decorator for custom rate limit on specific endpoints
  */
-export const RateLimit = (options: RateLimitOptions) =>
-  SetMetadata(RATE_LIMIT_KEY, options);
+export const RateLimit = (options: RateLimitOptions) => SetMetadata(RATE_LIMIT_KEY, options);
 
 interface RequestWithUser extends Request {
   user?: { id: string };
@@ -88,10 +87,7 @@ export class RateLimitGuard implements CanActivate {
     // Set rate limit headers
     const headers = this.rateLimitService.getHeaders(result, config);
     response.setHeader('X-RateLimit-Limit', headers['X-RateLimit-Limit']);
-    response.setHeader(
-      'X-RateLimit-Remaining',
-      headers['X-RateLimit-Remaining'],
-    );
+    response.setHeader('X-RateLimit-Remaining', headers['X-RateLimit-Remaining']);
     response.setHeader('X-RateLimit-Reset', headers['X-RateLimit-Reset']);
     if (headers['Retry-After'] !== undefined) {
       response.setHeader('Retry-After', headers['Retry-After']);

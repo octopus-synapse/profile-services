@@ -16,34 +16,27 @@
 
 import { Module } from '@nestjs/common';
 import { EventEmitterModule } from '@nestjs/event-emitter';
-import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { LoggerModule } from '@/bounded-contexts/platform/common/logger/logger.module';
+import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { EventBusModule } from '@/shared-kernel/event-bus/event-bus.module';
-
-// Services
-import { FollowService } from './services/follow.service';
-import { ActivityService } from './services/activity.service';
-
-// Controllers
-import { FollowController } from './controllers/follow.controller';
-import { ActivityController } from './controllers/activity.controller';
-import { ActivityFeedSseController } from './controllers/activity-feed-sse.controller';
-
 // Event Handlers
 import {
+  CleanupSocialOnUserDeleteHandler,
+  CreateWelcomeActivityOnUserRegisteredHandler,
   ResumeCreatedActivityHandler,
   ResumePublishedActivityHandler,
-  CreateWelcomeActivityOnUserRegisteredHandler,
-  CleanupSocialOnUserDeleteHandler,
 } from '../application/handlers';
+import { ActivityController } from './controllers/activity.controller';
+import { ActivityFeedSseController } from './controllers/activity-feed-sse.controller';
+// Controllers
+import { FollowController } from './controllers/follow.controller';
+import { ActivityService } from './services/activity.service';
+// Services
+import { FollowService } from './services/follow.service';
 
 @Module({
   imports: [PrismaModule, LoggerModule, EventEmitterModule, EventBusModule],
-  controllers: [
-    FollowController,
-    ActivityController,
-    ActivityFeedSseController,
-  ],
+  controllers: [FollowController, ActivityController, ActivityFeedSseController],
   providers: [
     // Domain Services
     FollowService,

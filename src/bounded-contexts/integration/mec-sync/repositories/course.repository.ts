@@ -6,8 +6,8 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { Course } from '@/shared-kernel';
-import { NormalizedCourse } from '../interfaces/mec-data.interface';
 import { BATCH_SIZE } from '../constants';
+import { NormalizedCourse } from '../interfaces/mec-data.interface';
 
 @Injectable()
 export class CourseRepository {
@@ -88,14 +88,10 @@ export class CourseRepository {
       orderBy: { areaConhecimento: 'asc' },
     });
 
-    return areas
-      .map((a) => a.areaConhecimento)
-      .filter((a): a is string => a !== null);
+    return areas.map((a) => a.areaConhecimento).filter((a): a is string => a !== null);
   }
 
-  async countCoursesByDegree(): Promise<
-    Array<{ grau: string | null; _count: number }>
-  > {
+  async countCoursesByDegree(): Promise<Array<{ grau: string | null; _count: number }>> {
     const result = await this.prisma.mecCourse.groupBy({
       by: ['grau'],
       where: { isActive: true },
@@ -136,10 +132,7 @@ export class CourseRepository {
       batchIndex < validCoursesForInstitutions.length;
       batchIndex += BATCH_SIZE
     ) {
-      const courseBatch = validCoursesForInstitutions.slice(
-        batchIndex,
-        batchIndex + BATCH_SIZE,
-      );
+      const courseBatch = validCoursesForInstitutions.slice(batchIndex, batchIndex + BATCH_SIZE);
 
       await this.prisma.mecCourse.createMany({
         data: courseBatch.map((course) => ({

@@ -3,15 +3,10 @@
  * Handles Puppeteer page configuration and navigation
  */
 
-import { Page } from 'puppeteer';
-import { ConfigService } from '@nestjs/config';
 import { Logger } from '@nestjs/common';
-import {
-  VIEWPORT,
-  TIMEOUT,
-  DEBUG_PATH,
-  DEFAULT,
-} from '../constants/ui.constants';
+import { ConfigService } from '@nestjs/config';
+import { Page } from 'puppeteer';
+import { DEBUG_PATH, DEFAULT, TIMEOUT, VIEWPORT } from '../constants/ui.constants';
 
 export interface ResumePDFOptions {
   palette?: string;
@@ -35,16 +30,9 @@ export class PdfPageSetup {
   }
 
   buildResumeUrl(options: ResumePDFOptions): string {
-    const {
-      palette = DEFAULT.PALETTE,
-      lang = DEFAULT.LANGUAGE,
-      bannerColor,
-      userId,
-    } = options;
-    const host =
-      this.configService.get<string>('FRONTEND_HOST') ?? DEFAULT.HOST;
-    const port =
-      this.configService.get<number>('FRONTEND_PORT') ?? DEFAULT.PORT;
+    const { palette = DEFAULT.PALETTE, lang = DEFAULT.LANGUAGE, bannerColor, userId } = options;
+    const host = this.configService.get<string>('FRONTEND_HOST') ?? DEFAULT.HOST;
+    const port = this.configService.get<number>('FRONTEND_PORT') ?? DEFAULT.PORT;
 
     let url = `http://${host}:${port}/protected/resume?export=1&palette=${encodeURIComponent(palette)}&lang=${encodeURIComponent(lang)}`;
 

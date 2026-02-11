@@ -81,9 +81,7 @@ export function buildUpdateData<T extends object>(
       case 'nullableDate':
         // Nullable date: convert to Date or null
         if (value !== undefined) {
-          result[field] = value
-            ? new Date(value as string | number | Date)
-            : null;
+          result[field] = value ? new Date(value as string | number | Date) : null;
         }
         break;
 
@@ -159,8 +157,7 @@ export function buildCreateData<T extends object>(
 
   for (const [field, fieldConfig] of Object.entries(config)) {
     const value = dtoRecord[field];
-    const cfg =
-      typeof fieldConfig === 'string' ? { type: fieldConfig } : fieldConfig;
+    const cfg = typeof fieldConfig === 'string' ? { type: fieldConfig } : fieldConfig;
     const { type, optional, default: defaultValue } = cfg;
 
     // Handle missing required fields
@@ -193,9 +190,7 @@ export function buildCreateData<T extends object>(
         break;
 
       case 'nullableDate':
-        result[field] = value
-          ? new Date(value as string | number | Date)
-          : null;
+        result[field] = value ? new Date(value as string | number | Date) : null;
         break;
     }
   }

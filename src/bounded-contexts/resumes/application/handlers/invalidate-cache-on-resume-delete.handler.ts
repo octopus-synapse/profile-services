@@ -11,9 +11,7 @@ export class InvalidateCacheOnResumeDelete {
 
   @OnEvent(ResumeDeletedEvent.TYPE)
   async handle(event: ResumeDeletedEvent): Promise<void> {
-    this.logger.log(
-      `Invalidating cache for deleted resume: ${event.aggregateId}`,
-    );
+    this.logger.log(`Invalidating cache for deleted resume: ${event.aggregateId}`);
 
     await this.cacheInvalidation.invalidateResume({
       resumeId: event.aggregateId,

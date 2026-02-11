@@ -1,4 +1,4 @@
-import { ObjectType, Field, ID, Int } from '@nestjs/graphql';
+import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
 
 /**
  * GraphQL ObjectType for Resume Skill

@@ -1,11 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Publication } from '@prisma/client';
-import { PublicationRepository } from '../repositories/publication.repository';
-import { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.repository';
-import { CreatePublication, UpdatePublication } from '@/shared-kernel';
-import { BaseSubResourceService } from './base';
-import { EventPublisher } from '@/shared-kernel';
 import type { SectionType } from '@/bounded-contexts/resumes/domain/events';
+import { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.repository';
+import { CreatePublication, EventPublisher, UpdatePublication } from '@/shared-kernel';
+import { PublicationRepository } from '../repositories/publication.repository';
+import { BaseSubResourceService } from './base';
 
 @Injectable()
 export class PublicationService extends BaseSubResourceService<

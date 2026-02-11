@@ -27,10 +27,7 @@ export class CsvEncodingService {
       return buffer.toString('utf8');
     }
 
-    this.logger.log(
-      'CSV detected as Latin-1, converting to UTF-8',
-      this.context,
-    );
+    this.logger.log('CSV detected as Latin-1, converting to UTF-8', this.context);
     return iconv.decode(buffer, 'latin1');
   }
 

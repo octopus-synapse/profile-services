@@ -4,13 +4,7 @@
  */
 
 export const LANGUAGE_PARADIGMS: Record<string, string[]> = {
-  JavaScript: [
-    'multi-paradigm',
-    'event-driven',
-    'functional',
-    'imperative',
-    'object-oriented',
-  ],
+  JavaScript: ['multi-paradigm', 'event-driven', 'functional', 'imperative', 'object-oriented'],
   TypeScript: ['multi-paradigm', 'object-oriented', 'functional'],
   Python: ['multi-paradigm', 'object-oriented', 'functional', 'imperative'],
   Java: ['object-oriented', 'imperative'],
@@ -21,12 +15,7 @@ export const LANGUAGE_PARADIGMS: Record<string, string[]> = {
   Rust: ['multi-paradigm', 'concurrent', 'functional', 'imperative'],
   Ruby: ['multi-paradigm', 'object-oriented', 'functional'],
   PHP: ['multi-paradigm', 'object-oriented', 'procedural'],
-  Swift: [
-    'multi-paradigm',
-    'object-oriented',
-    'functional',
-    'protocol-oriented',
-  ],
+  Swift: ['multi-paradigm', 'object-oriented', 'functional', 'protocol-oriented'],
   Kotlin: ['multi-paradigm', 'object-oriented', 'functional'],
   Scala: ['multi-paradigm', 'object-oriented', 'functional'],
   Haskell: ['purely functional', 'lazy evaluation'],

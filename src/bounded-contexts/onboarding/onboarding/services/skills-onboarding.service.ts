@@ -8,10 +8,7 @@ type SkillInput = OnboardingData['skills'][number];
 type SkillCreate = Prisma.SkillCreateManyInput;
 
 @Injectable()
-export class SkillsOnboardingService extends BaseOnboardingService<
-  SkillInput,
-  SkillCreate
-> {
+export class SkillsOnboardingService extends BaseOnboardingService<SkillInput, SkillCreate> {
   protected readonly logger = new Logger(SkillsOnboardingService.name);
 
   constructor(private readonly prisma: PrismaService) {
@@ -22,11 +19,7 @@ export class SkillsOnboardingService extends BaseOnboardingService<
     return this.saveSkillsWithTx(this.prisma, resumeId, data);
   }
 
-  async saveSkillsWithTx(
-    tx: Prisma.TransactionClient,
-    resumeId: string,
-    data: OnboardingData,
-  ) {
+  async saveSkillsWithTx(tx: Prisma.TransactionClient, resumeId: string, data: OnboardingData) {
     return this.saveWithTransaction(tx, resumeId, data);
   }
 
@@ -42,17 +35,11 @@ export class SkillsOnboardingService extends BaseOnboardingService<
     return noDataFlag ? 'User selected noSkills' : 'No skills provided';
   }
 
-  protected async deleteExisting(
-    tx: Prisma.TransactionClient,
-    resumeId: string,
-  ): Promise<void> {
+  protected async deleteExisting(tx: Prisma.TransactionClient, resumeId: string): Promise<void> {
     await tx.skill.deleteMany({ where: { resumeId } });
   }
 
-  protected transformItems(
-    items: SkillInput[],
-    resumeId: string,
-  ): SkillCreate[] {
+  protected transformItems(items: SkillInput[], resumeId: string): SkillCreate[] {
     return items.map((skill, index) => ({
       resumeId,
       name: skill.name,
@@ -62,10 +49,7 @@ export class SkillsOnboardingService extends BaseOnboardingService<
     }));
   }
 
-  protected async createMany(
-    tx: Prisma.TransactionClient,
-    items: SkillCreate[],
-  ): Promise<void> {
+  protected async createMany(tx: Prisma.TransactionClient, items: SkillCreate[]): Promise<void> {
     await tx.skill.createMany({ data: items });
   }
 

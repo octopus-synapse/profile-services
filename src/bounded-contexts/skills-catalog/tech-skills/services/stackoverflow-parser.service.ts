@@ -7,22 +7,18 @@
 
 import { Injectable } from '@nestjs/common';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
-import type {
-  StackOverflowResponse,
-  ParsedSkill,
-  SkillType,
-} from '../interfaces';
 import {
   STACKOVERFLOW_CATEGORIES,
-  STACKOVERFLOW_TRANSLATIONS,
   STACKOVERFLOW_COLORS,
+  STACKOVERFLOW_TRANSLATIONS,
 } from '../constants';
+import type { ParsedSkill, SkillType, StackOverflowResponse } from '../interfaces';
 import {
   formatDisplayName,
-  normalizeSlug,
-  shouldIncludeStackOverflowTag,
   getAliases,
   getKeywords,
+  normalizeSlug,
+  shouldIncludeStackOverflowTag,
 } from '../utils';
 
 @Injectable()
@@ -74,7 +70,7 @@ export class StackOverflowParserService {
     const parsed: ParsedSkill[] = [];
     const seenSlugs = new Set<string>();
     const hasOwn = (obj: Record<string, unknown>, key: string): boolean => {
-      return Boolean(Object.prototype.hasOwnProperty.call(obj, key));
+      return Object.hasOwn(obj, key);
     };
 
     for (const tag of tags) {
@@ -112,12 +108,8 @@ export class StackOverflowParserService {
     hasOwn: (obj: Record<string, unknown>, key: string) => boolean,
   ): { type: SkillType; niche: string | null } {
     return (
-      (hasOwn(STACKOVERFLOW_CATEGORIES, tagLower)
-        ? STACKOVERFLOW_CATEGORIES[tagLower]
-        : null) ??
-      (hasOwn(STACKOVERFLOW_CATEGORIES, slug)
-        ? STACKOVERFLOW_CATEGORIES[slug]
-        : null) ?? {
+      (hasOwn(STACKOVERFLOW_CATEGORIES, tagLower) ? STACKOVERFLOW_CATEGORIES[tagLower] : null) ??
+      (hasOwn(STACKOVERFLOW_CATEGORIES, slug) ? STACKOVERFLOW_CATEGORIES[slug] : null) ?? {
         type: 'OTHER' as SkillType,
         niche: null,
       }
@@ -134,9 +126,7 @@ export class StackOverflowParserService {
       (hasOwn(STACKOVERFLOW_TRANSLATIONS, tagLower)
         ? STACKOVERFLOW_TRANSLATIONS[tagLower]
         : null) ??
-      (hasOwn(STACKOVERFLOW_TRANSLATIONS, slug)
-        ? STACKOVERFLOW_TRANSLATIONS[slug]
-        : null) ??
+      (hasOwn(STACKOVERFLOW_TRANSLATIONS, slug) ? STACKOVERFLOW_TRANSLATIONS[slug] : null) ??
       formatDisplayName(name)
     );
   }
@@ -147,12 +137,8 @@ export class StackOverflowParserService {
     hasOwn: (obj: Record<string, unknown>, key: string) => boolean,
   ): string | null {
     return (
-      (hasOwn(STACKOVERFLOW_COLORS, tagLower)
-        ? STACKOVERFLOW_COLORS[tagLower]
-        : null) ??
-      (hasOwn(STACKOVERFLOW_COLORS, slug)
-        ? STACKOVERFLOW_COLORS[slug]
-        : null) ??
+      (hasOwn(STACKOVERFLOW_COLORS, tagLower) ? STACKOVERFLOW_COLORS[tagLower] : null) ??
+      (hasOwn(STACKOVERFLOW_COLORS, slug) ? STACKOVERFLOW_COLORS[slug] : null) ??
       null
     );
   }

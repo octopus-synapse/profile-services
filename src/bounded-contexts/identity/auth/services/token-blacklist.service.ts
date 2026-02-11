@@ -39,16 +39,12 @@ export class TokenBlacklistService implements OnModuleInit {
   ) {
     // Default 7 days in seconds (typical refresh token lifetime)
     this.defaultTokenTtl =
-      this.configService.get<number>('JWT_REFRESH_EXPIRY_SECONDS') ??
-      7 * 24 * 60 * 60;
+      this.configService.get<number>('JWT_REFRESH_EXPIRY_SECONDS') ?? 7 * 24 * 60 * 60;
   }
 
   onModuleInit() {
     // Cleanup expired tokens from memory store every hour
-    this.cleanupInterval = setInterval(
-      () => this.cleanupMemoryStore(),
-      60 * 60 * 1000,
-    );
+    this.cleanupInterval = setInterval(() => this.cleanupMemoryStore(), 60 * 60 * 1000);
   }
 
   /**
@@ -66,11 +62,7 @@ export class TokenBlacklistService implements OnModuleInit {
         this.logger.debug(`Token blacklisted: ${jti}`, this.context);
         return;
       } catch (error) {
-        this.logger.warn(
-          `Redis blacklist failed, using memory fallback`,
-          this.context,
-          { error },
-        );
+        this.logger.warn(`Redis blacklist failed, using memory fallback`, this.context, { error });
       }
     }
 
@@ -91,11 +83,7 @@ export class TokenBlacklistService implements OnModuleInit {
         const exists = await this.redisConnection.client.exists(key);
         return exists === 1;
       } catch (error) {
-        this.logger.warn(
-          `Redis check failed, using memory fallback`,
-          this.context,
-          { error },
-        );
+        this.logger.warn(`Redis check failed, using memory fallback`, this.context, { error });
       }
     }
 
@@ -123,19 +111,11 @@ export class TokenBlacklistService implements OnModuleInit {
     if (this.isRedisAvailable() && this.redisConnection.client) {
       try {
         // Store revocation timestamp with long TTL (30 days)
-        await this.redisConnection.client.setex(
-          key,
-          30 * 24 * 60 * 60,
-          revokedAt.toString(),
-        );
+        await this.redisConnection.client.setex(key, 30 * 24 * 60 * 60, revokedAt.toString());
         this.logger.log(`All tokens revoked for user: ${userId}`, this.context);
         return;
       } catch (error) {
-        this.logger.warn(
-          `Redis revocation failed, using memory fallback`,
-          this.context,
-          { error },
-        );
+        this.logger.warn(`Redis revocation failed, using memory fallback`, this.context, { error });
       }
     }
 
@@ -151,10 +131,7 @@ export class TokenBlacklistService implements OnModuleInit {
   /**
    * Check if a token was issued before user's revocation timestamp
    */
-  async isTokenRevokedForUser(
-    userId: string,
-    tokenIssuedAt: number,
-  ): Promise<boolean> {
+  async isTokenRevokedForUser(userId: string, tokenIssuedAt: number): Promise<boolean> {
     const key = `${USER_TOKENS_PREFIX}${userId}:revoked_before`;
 
     if (this.isRedisAvailable() && this.redisConnection.client) {
@@ -163,11 +140,7 @@ export class TokenBlacklistService implements OnModuleInit {
         if (!revokedBefore) return false;
         return tokenIssuedAt < parseInt(revokedBefore, 10);
       } catch (error) {
-        this.logger.warn(
-          `Redis check failed, using memory fallback`,
-          this.context,
-          { error },
-        );
+        this.logger.warn(`Redis check failed, using memory fallback`, this.context, { error });
       }
     }
 
@@ -193,10 +166,7 @@ export class TokenBlacklistService implements OnModuleInit {
     }
 
     if (cleaned > 0) {
-      this.logger.debug(
-        `Cleaned ${cleaned} expired tokens from memory blacklist`,
-        this.context,
-      );
+      this.logger.debug(`Cleaned ${cleaned} expired tokens from memory blacklist`, this.context);
     }
   }
 }

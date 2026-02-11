@@ -1,15 +1,7 @@
 import type { Language } from '@prisma/client';
-import {
-  applyOverrides,
-  type LanguageItem,
-  type ItemOverride,
-  type SectionData,
-} from './shared';
+import { applyOverrides, type ItemOverride, type LanguageItem, type SectionData } from './shared';
 
-export function compileLanguages(
-  languages: Language[],
-  overrides: ItemOverride[],
-): SectionData {
+export function compileLanguages(languages: Language[], overrides: ItemOverride[]): SectionData {
   const items = applyOverrides(languages, overrides).map(
     (lang): LanguageItem => ({
       id: lang.id,

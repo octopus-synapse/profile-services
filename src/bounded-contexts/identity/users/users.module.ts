@@ -1,23 +1,23 @@
-import { Module, forwardRef } from '@nestjs/common';
-import { UsersService } from './users.service';
-import {
-  UsersProfileController,
-  UsersPreferencesController,
-  UserManagementController,
-} from './controllers';
-import { UsersRepository } from './users.repository';
-import {
-  UserProfileService,
-  UserPreferencesService,
-  UsernameService,
-  UserManagementService,
-} from './services';
-import { UserQueryRepository, UserMutationRepository } from './repositories';
+import { forwardRef, Module } from '@nestjs/common';
+import { AuthModule } from '@/bounded-contexts/identity/auth/auth.module';
+import { AuthorizationModule } from '@/bounded-contexts/identity/authorization';
+import { LoggerModule } from '@/bounded-contexts/platform/common/logger/logger.module';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { ResumesModule } from '@/bounded-contexts/resumes/resumes/resumes.module';
-import { LoggerModule } from '@/bounded-contexts/platform/common/logger/logger.module';
-import { AuthorizationModule } from '@/bounded-contexts/identity/authorization';
-import { AuthModule } from '@/bounded-contexts/identity/auth/auth.module';
+import {
+  UserManagementController,
+  UsersPreferencesController,
+  UsersProfileController,
+} from './controllers';
+import { UserMutationRepository, UserQueryRepository } from './repositories';
+import {
+  UserManagementService,
+  UsernameService,
+  UserPreferencesService,
+  UserProfileService,
+} from './services';
+import { UsersRepository } from './users.repository';
+import { UsersService } from './users.service';
 
 @Module({
   imports: [
@@ -27,11 +27,7 @@ import { AuthModule } from '@/bounded-contexts/identity/auth/auth.module';
     AuthorizationModule,
     forwardRef(() => AuthModule),
   ],
-  controllers: [
-    UsersProfileController,
-    UsersPreferencesController,
-    UserManagementController,
-  ],
+  controllers: [UsersProfileController, UsersPreferencesController, UserManagementController],
   providers: [
     UsersService,
     UsersRepository,

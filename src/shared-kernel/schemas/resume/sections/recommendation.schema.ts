@@ -15,10 +15,7 @@ export const RecommendationBaseSchema = z.object({
   author: z.string().min(1, 'Author name is required').max(200),
   position: z.string().max(200).optional(),
   company: z.string().max(200).optional(),
-  content: z
-    .string()
-    .min(10, 'Content must be at least 10 characters')
-    .max(5000),
+  content: z.string().min(10, 'Content must be at least 10 characters').max(5000),
   date: z.coerce.date().optional(),
   order: z.number().int().min(0).optional(),
 });

@@ -14,20 +14,20 @@
 
 import {
   Controller,
-  Post,
   Delete,
   Get,
-  Param,
-  Query,
-  UseGuards,
   HttpCode,
   HttpStatus,
+  Param,
+  Post,
+  Query,
+  UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
-import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
-import { FollowService } from '../services/follow.service';
+import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { ActivityService } from '../services/activity.service';
+import { FollowService } from '../services/follow.service';
 
 // --- Response Types ---
 
@@ -149,10 +149,7 @@ export class FollowController {
     @CurrentUser() user: UserPayload,
     @Param('userId') targetUserId: string,
   ): Promise<ApiResponse<{ isFollowing: boolean }>> {
-    const isFollowing = await this.followService.isFollowing(
-      user.userId,
-      targetUserId,
-    );
+    const isFollowing = await this.followService.isFollowing(user.userId, targetUserId);
 
     return {
       success: true,

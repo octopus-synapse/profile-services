@@ -6,12 +6,9 @@
  */
 
 import { z } from 'zod';
-import {
-  PermissionResponseSchema,
-  PermissionIdentifierSchema,
-} from './permission.schema';
-import { RoleResponseSchema } from './role.schema';
 import { GroupResponseSchema } from './group.schema';
+import { PermissionIdentifierSchema, PermissionResponseSchema } from './permission.schema';
+import { RoleResponseSchema } from './role.schema';
 
 // ============================================================================
 // User Role Assignment Schemas
@@ -49,9 +46,7 @@ export const UserRoleAssignmentResponseSchema = z.object({
   expiresAt: z.coerce.date().nullable(),
 });
 
-export type UserRoleAssignmentResponse = z.infer<
-  typeof UserRoleAssignmentResponseSchema
->;
+export type UserRoleAssignmentResponse = z.infer<typeof UserRoleAssignmentResponseSchema>;
 
 // ============================================================================
 // User Group Membership Schemas
@@ -89,9 +84,7 @@ export const UserGroupMembershipResponseSchema = z.object({
   expiresAt: z.coerce.date().nullable(),
 });
 
-export type UserGroupMembershipResponse = z.infer<
-  typeof UserGroupMembershipResponseSchema
->;
+export type UserGroupMembershipResponse = z.infer<typeof UserGroupMembershipResponseSchema>;
 
 // ============================================================================
 // User Direct Permission Schemas
@@ -143,9 +136,7 @@ export const UserPermissionResponseSchema = z.object({
   reason: z.string().nullable(),
 });
 
-export type UserPermissionResponse = z.infer<
-  typeof UserPermissionResponseSchema
->;
+export type UserPermissionResponse = z.infer<typeof UserPermissionResponseSchema>;
 
 // ============================================================================
 // User Authorization Summary
@@ -166,15 +157,11 @@ export type CheckPermissionQuery = z.infer<typeof CheckPermissionQuerySchema>;
  */
 export const CheckPermissionResponseSchema = z.object({
   hasPermission: z.boolean(),
-  source: z
-    .enum(['direct_grant', 'direct_deny', 'role', 'group', 'inherited'])
-    .optional(),
+  source: z.enum(['direct_grant', 'direct_deny', 'role', 'group', 'inherited']).optional(),
   permission: z.string().optional(),
 });
 
-export type CheckPermissionResponse = z.infer<
-  typeof CheckPermissionResponseSchema
->;
+export type CheckPermissionResponse = z.infer<typeof CheckPermissionResponseSchema>;
 
 /**
  * Schema for resolved permission with source information.
@@ -202,9 +189,7 @@ export const UserAuthorizationSummarySchema = z.object({
   effectivePermissions: z.array(ResolvedPermissionSchema),
 });
 
-export type UserAuthorizationSummary = z.infer<
-  typeof UserAuthorizationSummarySchema
->;
+export type UserAuthorizationSummary = z.infer<typeof UserAuthorizationSummarySchema>;
 
 /**
  * Schema for listing user authorization with filters.
@@ -216,6 +201,4 @@ export const ListUserAuthorizationQuerySchema = z.object({
   includeEffectivePermissions: z.coerce.boolean().default(false),
 });
 
-export type ListUserAuthorizationQuery = z.infer<
-  typeof ListUserAuthorizationQuerySchema
->;
+export type ListUserAuthorizationQuery = z.infer<typeof ListUserAuthorizationQuerySchema>;

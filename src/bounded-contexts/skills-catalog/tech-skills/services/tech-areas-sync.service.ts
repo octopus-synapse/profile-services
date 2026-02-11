@@ -4,8 +4,8 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { TECH_AREAS } from '../data';
 
 @Injectable()
