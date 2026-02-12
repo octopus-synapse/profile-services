@@ -1,5 +1,12 @@
 # Changelog
 
+## [7.2.0](https://github.com/octopus-synapse/profile-services/compare/profile-services-v7.1.1...profile-services-v7.2.0) (2026-02-08)
+
+
+### Features
+
+* migrate from npm to bun and add E2E docker compose ([#142](https://github.com/octopus-synapse/profile-services/issues/142)) ([01ddd3b](https://github.com/octopus-synapse/profile-services/commit/01ddd3bcad881e89af2db205c235e6d98081a8c1))
+
 ## [7.1.1](https://github.com/octopus-synapse/profile-services/compare/profile-services-v7.1.0...profile-services-v7.1.1) (2026-02-06)
 
 

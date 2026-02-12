@@ -1,6 +1,6 @@
 {
   "name": "@octopus-synapse/profile-services",
-  "version": "7.1.1",
+  "version": "7.2.0",
   "description": "",
   "author": "",
   "private": true,
@@ -22,8 +22,8 @@
     "test:coverage": "bun test src --coverage",
     "test:debug": "bun test src",
     "test:e2e": "bun test --config=bunfig.e2e.toml",
-    "test:e2e:docker": "docker compose -f docker-compose.test.yml up -d && sleep 3 && bun run test:e2e:run ; docker compose -f docker-compose.test.yml down",
-    "test:e2e:run": "DATABASE_URL=postgresql://postgres:postgres@localhost:5433/profile_test REDIS_HOST=localhost REDIS_PORT=6380 JWT_SECRET=test-secret NODE_ENV=test bun run db:setup:test && bun test --config=bunfig.e2e.toml",
+    "test:e2e:docker": "docker compose -f docker-compose.e2e.yml up -d && sleep 5 && bun run test:e2e:run ; docker compose -f docker-compose.e2e.yml down -v",
+    "test:e2e:run": "DATABASE_URL=postgresql://test_user:test_password@localhost:5433/profile_test REDIS_HOST=localhost REDIS_PORT=6380 JWT_SECRET=e2e_test_secret_key_minimum_32_characters_long NODE_ENV=test bun run db:setup:test && bun test --config=bunfig.e2e.toml",
     "test:smoke": "bun test ./test/smoke",
     "test:integration": "bun test --config=bunfig.integration.toml",
     "test:integration:docker": "docker compose -f docker-compose.test.yml up -d && sleep 3 && bun run test:integration:run ; docker compose -f docker-compose.test.yml down",
