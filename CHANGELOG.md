@@ -1,5 +1,20 @@
 # Changelog
 
+## [7.3.0](https://github.com/octopus-synapse/profile-services/compare/profile-services-v7.2.0...profile-services-v7.3.0) (2026-02-12)
+
+
+### Features
+
+* migrate from ESLint/Prettier to Biome ([02ec125](https://github.com/octopus-synapse/profile-services/commit/02ec125fcd67cd3d01e163daa4bcce8c52f4b677))
+* **tooling:** migrate from ESLint+oxlint to Biome for unified linting/formatting ([28b6473](https://github.com/octopus-synapse/profile-services/commit/28b6473cc994e3e7b671cb922f3aadd5cc4441c7))
+
+
+### Miscellaneous Chores
+
+* apply biome formatting to swagger files ([c351c52](https://github.com/octopus-synapse/profile-services/commit/c351c5226271c8758ed02972541093a13c4fcc6c))
+* merge remote changes after constructor fixes ([a2d297b](https://github.com/octopus-synapse/profile-services/commit/a2d297b025144958ccc122f0e55f19bb647947ac))
+* update swagger generation report timestamp ([517ca74](https://github.com/octopus-synapse/profile-services/commit/517ca74dc46eeb77e7a2d316858f02024ae284ed))
+
 ## [7.2.0](https://github.com/octopus-synapse/profile-services/compare/profile-services-v7.1.1...profile-services-v7.2.0) (2026-02-08)
 
 
