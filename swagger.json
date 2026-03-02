@@ -133,7 +133,9 @@
     "/api/api/v1/export/{resumeId}/json": {
       "get": {
         "operationId": "export_exportJson",
-        "tags": ["export"],
+        "tags": [
+          "export"
+        ],
         "summary": "Export resume as JSON",
         "security": [
           {
@@ -163,7 +165,9 @@
     "/api/api/v1/export/{resumeId}/latex": {
       "get": {
         "operationId": "export_exportLatex",
-        "tags": ["export"],
+        "tags": [
+          "export"
+        ],
         "summary": "Export resume as LaTeX",
         "security": [
           {
@@ -193,7 +197,9 @@
     "/api/chat/blocked": {
       "get": {
         "operationId": "chat---block-users_getBlockedUsers",
-        "tags": ["chat---block-users"],
+        "tags": [
+          "chat---block-users"
+        ],
         "summary": "Get all blocked users",
         "security": [
           {
@@ -211,7 +217,9 @@
       },
       "post": {
         "operationId": "chat---block-users_blockUser",
-        "tags": ["chat---block-users"],
+        "tags": [
+          "chat---block-users"
+        ],
         "summary": "Block a user",
         "security": [
           {
@@ -231,7 +239,9 @@
     "/api/chat/blocked/{userId}": {
       "delete": {
         "operationId": "chat---block-users_unblockUser",
-        "tags": ["chat---block-users"],
+        "tags": [
+          "chat---block-users"
+        ],
         "summary": "Unblock a user",
         "security": [
           {
@@ -261,7 +271,9 @@
     "/api/chat/blocked/{userId}/status": {
       "get": {
         "operationId": "chat---block-users_isBlocked",
-        "tags": ["chat---block-users"],
+        "tags": [
+          "chat---block-users"
+        ],
         "summary": "Check if a user is blocked",
         "security": [
           {
@@ -291,7 +303,9 @@
     "/api/chat/conversation-with/{userId}": {
       "get": {
         "operationId": "chat_getConversationWith",
-        "tags": ["chat"],
+        "tags": [
+          "chat"
+        ],
         "summary": "Get or create conversation with a user",
         "security": [
           {
@@ -321,7 +335,9 @@
     "/api/chat/conversations": {
       "get": {
         "operationId": "chat_getConversations",
-        "tags": ["chat"],
+        "tags": [
+          "chat"
+        ],
         "summary": "Get all conversations for the current user",
         "security": [
           {
@@ -341,7 +357,9 @@
     "/api/chat/conversations/{conversationId}": {
       "get": {
         "operationId": "chat_getConversation",
-        "tags": ["chat"],
+        "tags": [
+          "chat"
+        ],
         "summary": "Get a single conversation",
         "security": [
           {
@@ -371,7 +389,9 @@
     "/api/chat/conversations/{conversationId}/messages": {
       "get": {
         "operationId": "chat_getMessages",
-        "tags": ["chat"],
+        "tags": [
+          "chat"
+        ],
         "summary": "Get messages for a conversation",
         "security": [
           {
@@ -399,7 +419,9 @@
       },
       "post": {
         "operationId": "chat_sendMessageToConversation",
-        "tags": ["chat"],
+        "tags": [
+          "chat"
+        ],
         "summary": "Send a message to an existing conversation",
         "security": [
           {
@@ -429,7 +451,9 @@
     "/api/chat/conversations/{conversationId}/read": {
       "post": {
         "operationId": "chat_markConversationAsRead",
-        "tags": ["chat"],
+        "tags": [
+          "chat"
+        ],
         "summary": "Mark all messages in a conversation as read",
         "security": [
           {
@@ -459,7 +483,9 @@
     "/api/chat/messages": {
       "post": {
         "operationId": "chat_sendMessage",
-        "tags": ["chat"],
+        "tags": [
+          "chat"
+        ],
         "summary": "Send a message to a user",
         "security": [
           {
@@ -479,7 +505,9 @@
     "/api/chat/unread": {
       "get": {
         "operationId": "chat_getUnreadCount",
-        "tags": ["chat"],
+        "tags": [
+          "chat"
+        ],
         "summary": "Get unread message count",
         "security": [
           {
@@ -499,7 +527,9 @@
     "/api/resume-analytics/{resumeId}/ats-score": {
       "get": {
         "operationId": "resume-analytics_getATSScore",
-        "tags": ["resume-analytics"],
+        "tags": [
+          "resume-analytics"
+        ],
         "summary": "Calculate ATS compatibility score",
         "security": [
           {
@@ -529,7 +559,9 @@
     "/api/resume-analytics/{resumeId}/benchmark": {
       "get": {
         "operationId": "resume-analytics_getBenchmark",
-        "tags": ["resume-analytics"],
+        "tags": [
+          "resume-analytics"
+        ],
         "summary": "Get industry benchmark comparison",
         "security": [
           {
@@ -559,7 +591,9 @@
     "/api/resume-analytics/{resumeId}/dashboard": {
       "get": {
         "operationId": "resume-analytics_getDashboard",
-        "tags": ["resume-analytics"],
+        "tags": [
+          "resume-analytics"
+        ],
         "summary": "Get complete analytics dashboard",
         "security": [
           {
@@ -589,7 +623,9 @@
     "/api/resume-analytics/{resumeId}/history": {
       "get": {
         "operationId": "resume-analytics_getHistory",
-        "tags": ["resume-analytics"],
+        "tags": [
+          "resume-analytics"
+        ],
         "summary": "Get analytics history",
         "security": [
           {
@@ -619,7 +655,9 @@
     "/api/resume-analytics/{resumeId}/keywords": {
       "get": {
         "operationId": "resume-analytics_getKeywordSuggestions",
-        "tags": ["resume-analytics"],
+        "tags": [
+          "resume-analytics"
+        ],
         "summary": "Get keyword optimization suggestions",
         "security": [
           {
@@ -649,7 +687,9 @@
     "/api/resume-analytics/{resumeId}/match-job": {
       "post": {
         "operationId": "resume-analytics_matchJob",
-        "tags": ["resume-analytics"],
+        "tags": [
+          "resume-analytics"
+        ],
         "summary": "Match resume against job description",
         "security": [
           {
@@ -679,7 +719,9 @@
     "/api/resume-analytics/{resumeId}/progression": {
       "get": {
         "operationId": "resume-analytics_getProgression",
-        "tags": ["resume-analytics"],
+        "tags": [
+          "resume-analytics"
+        ],
         "summary": "Get score progression over time",
         "security": [
           {
@@ -709,7 +751,9 @@
     "/api/resume-analytics/{resumeId}/snapshot": {
       "post": {
         "operationId": "resume-analytics_createSnapshot",
-        "tags": ["resume-analytics"],
+        "tags": [
+          "resume-analytics"
+        ],
         "summary": "Save analytics snapshot for tracking progress",
         "security": [
           {
@@ -739,7 +783,9 @@
     "/api/resume-analytics/{resumeId}/track-view": {
       "post": {
         "operationId": "resume-analytics_trackView",
-        "tags": ["resume-analytics"],
+        "tags": [
+          "resume-analytics"
+        ],
         "summary": "Track resume view (public endpoint)",
         "security": [
           {
@@ -769,7 +815,9 @@
     "/api/resume-analytics/{resumeId}/views": {
       "get": {
         "operationId": "resume-analytics_getViewStats",
-        "tags": ["resume-analytics"],
+        "tags": [
+          "resume-analytics"
+        ],
         "summary": "Get view statistics",
         "security": [
           {
@@ -799,7 +847,9 @@
     "/api/resume-import": {
       "get": {
         "operationId": "resume-import_getHistory",
-        "tags": ["resume-import"],
+        "tags": [
+          "resume-import"
+        ],
         "summary": "Get import history",
         "description": "Returns all import jobs for authenticated user, ordered by creation date",
         "security": [
@@ -820,7 +870,9 @@
     "/api/resume-import/json": {
       "post": {
         "operationId": "resume-import_importJson",
-        "tags": ["resume-import"],
+        "tags": [
+          "resume-import"
+        ],
         "summary": "Import resume from JSON Resume format",
         "description": "Creates import job and processes JSON Resume data (jsonresume.org standard)",
         "security": [
@@ -851,7 +903,9 @@
     "/api/resume-import/parse": {
       "post": {
         "operationId": "resume-import_parseJson",
-        "tags": ["resume-import"],
+        "tags": [
+          "resume-import"
+        ],
         "summary": "Parse JSON Resume without importing",
         "description": "Validates and transforms JSON Resume to internal format without saving",
         "security": [
@@ -882,7 +936,9 @@
     "/api/resume-import/{importId}": {
       "delete": {
         "operationId": "resume-import_cancel",
-        "tags": ["resume-import"],
+        "tags": [
+          "resume-import"
+        ],
         "summary": "Cancel import job",
         "description": "Cancels pending or processing import. Cannot cancel completed/failed imports.",
         "security": [
@@ -911,7 +967,9 @@
       },
       "get": {
         "operationId": "resume-import_getStatus",
-        "tags": ["resume-import"],
+        "tags": [
+          "resume-import"
+        ],
         "summary": "Get import job status",
         "description": "Returns current status, errors, and result of import job",
         "security": [
@@ -942,7 +1000,9 @@
     "/api/resume-import/{importId}/retry": {
       "post": {
         "operationId": "resume-import_retry",
-        "tags": ["resume-import"],
+        "tags": [
+          "resume-import"
+        ],
         "summary": "Retry failed import",
         "description": "Retries processing of failed import job with same data",
         "security": [
@@ -973,7 +1033,9 @@
     "/api/resumes/shared-with-me": {
       "get": {
         "operationId": "collaboration_getSharedWithMe",
-        "tags": ["collaboration"],
+        "tags": [
+          "collaboration"
+        ],
         "summary": "Get resumes shared with current user",
         "security": [
           {
@@ -993,7 +1055,9 @@
     "/api/resumes/{resumeId}/collaborators": {
       "get": {
         "operationId": "collaboration_getCollaborators",
-        "tags": ["collaboration"],
+        "tags": [
+          "collaboration"
+        ],
         "summary": "Get collaborators for a resume",
         "security": [
           {
@@ -1021,7 +1085,9 @@
       },
       "post": {
         "operationId": "collaboration_invite",
-        "tags": ["collaboration"],
+        "tags": [
+          "collaboration"
+        ],
         "summary": "Invite user to collaborate on resume",
         "security": [
           {
@@ -1061,7 +1127,9 @@
     "/api/resumes/{resumeId}/collaborators/{userId}": {
       "delete": {
         "operationId": "collaboration_remove",
-        "tags": ["collaboration"],
+        "tags": [
+          "collaboration"
+        ],
         "summary": "Remove collaborator from resume",
         "security": [
           {
@@ -1097,7 +1165,9 @@
       },
       "patch": {
         "operationId": "collaboration_updateRole",
-        "tags": ["collaboration"],
+        "tags": [
+          "collaboration"
+        ],
         "summary": "Update collaborator role",
         "security": [
           {
@@ -1145,7 +1215,9 @@
     "/api/users/me/account": {
       "delete": {
         "operationId": "gdpr_deleteAccount",
-        "tags": ["gdpr"],
+        "tags": [
+          "gdpr"
+        ],
         "summary": "Delete user account (GDPR Right to be Forgotten)",
         "description": "Permanently deletes the user account and all associated data as required by GDPR Article 17. This action is irreversible.",
         "security": [
@@ -1166,7 +1238,9 @@
     "/api/users/me/data-export": {
       "get": {
         "operationId": "gdpr_exportUserData",
-        "tags": ["gdpr"],
+        "tags": [
+          "gdpr"
+        ],
         "summary": "Export all user data (GDPR Right to Access)",
         "description": "Downloads all user data in machine-readable JSON format as required by GDPR Article 20.",
         "security": [
@@ -1187,7 +1261,9 @@
     "/api/v1/ats/validate": {
       "post": {
         "operationId": "ats-validation_postEndpoint",
-        "tags": ["ats-validation"],
+        "tags": [
+          "ats-validation"
+        ],
         "summary": "Validate CV for ATS compatibility",
         "description": "Upload a CV (PDF or DOCX) to validate its compatibility with Applicant Tracking Systems. Returns detailed validation results including issues and suggestions.",
         "security": [
@@ -1208,7 +1284,9 @@
     "/api/v1/auth/change-email": {
       "post": {
         "operationId": "auth_changeEmail",
-        "tags": ["auth"],
+        "tags": [
+          "auth"
+        ],
         "summary": "Change email address (authenticated)",
         "security": [
           {
@@ -1228,7 +1306,9 @@
     "/api/v1/auth/change-password": {
       "post": {
         "operationId": "auth_changePassword",
-        "tags": ["auth"],
+        "tags": [
+          "auth"
+        ],
         "summary": "Change password (authenticated)",
         "security": [
           {
@@ -1248,7 +1328,9 @@
     "/api/v1/auth/delete-account": {
       "post": {
         "operationId": "auth_deleteAccount",
-        "tags": ["auth"],
+        "tags": [
+          "auth"
+        ],
         "summary": "Delete own account (authenticated)",
         "security": [
           {
@@ -1268,7 +1350,9 @@
     "/api/v1/auth/forgot-password": {
       "post": {
         "operationId": "auth_forgotPassword",
-        "tags": ["auth"],
+        "tags": [
+          "auth"
+        ],
         "summary": "Request password reset",
         "security": [
           {
@@ -1288,7 +1372,9 @@
     "/api/v1/auth/login": {
       "post": {
         "operationId": "auth_login",
-        "tags": ["auth"],
+        "tags": [
+          "auth"
+        ],
         "summary": "Login with email and password",
         "requestBody": {
           "required": true,
@@ -1310,7 +1396,9 @@
     "/api/v1/auth/me": {
       "get": {
         "operationId": "auth_getCurrentUser",
-        "tags": ["auth"],
+        "tags": [
+          "auth"
+        ],
         "summary": "Get current authenticated user info",
         "responses": {
           "200": {
@@ -1322,7 +1410,9 @@
     "/api/v1/auth/refresh": {
       "post": {
         "operationId": "auth_refreshToken",
-        "tags": ["auth"],
+        "tags": [
+          "auth"
+        ],
         "summary": "Refresh JWT token using refresh token",
         "requestBody": {
           "required": true,
@@ -1344,7 +1434,9 @@
     "/api/v1/auth/reset-password": {
       "post": {
         "operationId": "auth_resetPassword",
-        "tags": ["auth"],
+        "tags": [
+          "auth"
+        ],
         "summary": "Reset password with token",
         "security": [
           {
@@ -1364,7 +1456,9 @@
     "/api/v1/auth/signup": {
       "post": {
         "operationId": "auth_signup",
-        "tags": ["auth"],
+        "tags": [
+          "auth"
+        ],
         "summary": "Register a new user",
         "requestBody": {
           "required": true,
@@ -1386,7 +1480,9 @@
     "/api/v1/auth/verify-email": {
       "post": {
         "operationId": "auth_verifyEmail",
-        "tags": ["auth"],
+        "tags": [
+          "auth"
+        ],
         "summary": "Verify email with token",
         "responses": {
           "201": {
@@ -1398,7 +1494,9 @@
     "/api/v1/auth/verify-email/request": {
       "post": {
         "operationId": "auth_requestEmailVerification",
-        "tags": ["auth"],
+        "tags": [
+          "auth"
+        ],
         "summary": "Request email verification",
         "responses": {
           "201": {
@@ -1410,7 +1508,9 @@
     "/api/v1/dsl/preview": {
       "post": {
         "operationId": "dsl_preview",
-        "tags": ["dsl"],
+        "tags": [
+          "dsl"
+        ],
         "summary": "Compile DSL to AST (preview, no persistence)",
         "security": [
           {
@@ -1440,7 +1540,9 @@
     "/api/v1/dsl/render/public/{slug}": {
       "get": {
         "operationId": "dsl_renderPublic",
-        "tags": ["dsl"],
+        "tags": [
+          "dsl"
+        ],
         "summary": "Get compiled AST for a public resume",
         "security": [
           {
@@ -1478,7 +1580,9 @@
     "/api/v1/dsl/render/{resumeId}": {
       "get": {
         "operationId": "dsl_render",
-        "tags": ["dsl"],
+        "tags": [
+          "dsl"
+        ],
         "summary": "Get compiled AST for a resume",
         "security": [
           {
@@ -1516,7 +1620,9 @@
     "/api/v1/dsl/validate": {
       "post": {
         "operationId": "dsl_validate",
-        "tags": ["dsl"],
+        "tags": [
+          "dsl"
+        ],
         "summary": "Validate DSL schema",
         "security": [
           {
@@ -1536,7 +1642,9 @@
     "/api/v1/enums/export-formats": {
       "get": {
         "operationId": "enums_getExportFormats",
-        "tags": ["enums"],
+        "tags": [
+          "enums"
+        ],
         "summary": "Get available export formats",
         "description": "Returns all available export formats for resume export",
         "security": [
@@ -1557,7 +1665,9 @@
     "/api/v1/enums/section-types": {
       "get": {
         "operationId": "enums_getSectionTypes",
-        "tags": ["enums"],
+        "tags": [
+          "enums"
+        ],
         "summary": "Get available section types",
         "description": "Returns all available resume section types",
         "security": [
@@ -1578,7 +1688,9 @@
     "/api/v1/enums/user-roles": {
       "get": {
         "operationId": "enums_getUserRoles",
-        "tags": ["enums"],
+        "tags": [
+          "enums"
+        ],
         "summary": "Get available user roles",
         "description": "Returns all available user roles in the system",
         "security": [
@@ -1599,7 +1711,9 @@
     "/api/v1/export/banner": {
       "get": {
         "operationId": "export_exportBanner",
-        "tags": ["export"],
+        "tags": [
+          "export"
+        ],
         "summary": "Export LinkedIn banner image",
         "security": [
           {
@@ -1637,7 +1751,9 @@
     "/api/v1/export/resume/docx": {
       "get": {
         "operationId": "export_exportResumeDOCX",
-        "tags": ["export"],
+        "tags": [
+          "export"
+        ],
         "summary": "Export resume as DOCX document",
         "security": [
           {
@@ -1657,7 +1773,9 @@
     "/api/v1/export/resume/pdf": {
       "get": {
         "operationId": "export_exportResumePDF",
-        "tags": ["export"],
+        "tags": [
+          "export"
+        ],
         "summary": "Export resume as PDF document",
         "security": [
           {
@@ -1703,7 +1821,9 @@
     "/api/v1/integrations/github/summary/{username}": {
       "get": {
         "operationId": "github_getGitHubSummary",
-        "tags": ["github"],
+        "tags": [
+          "github"
+        ],
         "summary": "Get GitHub profile summary for a username",
         "security": [
           {
@@ -1733,7 +1853,9 @@
     "/api/v1/integrations/github/sync": {
       "post": {
         "operationId": "github_syncGitHub",
-        "tags": ["github"],
+        "tags": [
+          "github"
+        ],
         "summary": "Sync GitHub data to user resume",
         "security": [
           {
@@ -1753,7 +1875,9 @@
     "/api/v1/integrations/github/sync-status/{resumeId}": {
       "get": {
         "operationId": "github_getSyncStatus",
-        "tags": ["github"],
+        "tags": [
+          "github"
+        ],
         "summary": "Get GitHub sync status for a resume",
         "security": [
           {
@@ -1783,7 +1907,9 @@
     "/api/v1/integrations/github/sync/{resumeId}/auto": {
       "post": {
         "operationId": "github_autoSyncGitHub",
-        "tags": ["github"],
+        "tags": [
+          "github"
+        ],
         "summary": "Auto-sync GitHub from resume GitHub link",
         "security": [
           {
@@ -1813,7 +1939,9 @@
     "/api/v1/mec/areas": {
       "get": {
         "operationId": "mec-metadata_listAllKnowledgeAreas",
-        "tags": ["mec-metadata"],
+        "tags": [
+          "mec-metadata"
+        ],
         "summary": "List knowledge areas",
         "responses": {
           "200": {
@@ -1825,7 +1953,9 @@
     "/api/v1/mec/courses/search": {
       "get": {
         "operationId": "mec-courses_searchCoursesByName",
-        "tags": ["mec-courses"],
+        "tags": [
+          "mec-courses"
+        ],
         "summary": "Search courses",
         "parameters": [
           {
@@ -1855,7 +1985,9 @@
     "/api/v1/mec/courses/{codigoCurso}": {
       "get": {
         "operationId": "mec-courses_getCourseByCode",
-        "tags": ["mec-courses"],
+        "tags": [
+          "mec-courses"
+        ],
         "summary": "Get course by MEC code",
         "parameters": [
           {
@@ -1877,7 +2009,9 @@
     "/api/v1/mec/institutions": {
       "get": {
         "operationId": "mec-institutions_listInstitutions",
-        "tags": ["mec-institutions"],
+        "tags": [
+          "mec-institutions"
+        ],
         "summary": "List institutions",
         "parameters": [
           {
@@ -1899,7 +2033,9 @@
     "/api/v1/mec/institutions/search": {
       "get": {
         "operationId": "mec-institutions_searchInstitutionsByName",
-        "tags": ["mec-institutions"],
+        "tags": [
+          "mec-institutions"
+        ],
         "summary": "Search institutions",
         "parameters": [
           {
@@ -1929,7 +2065,9 @@
     "/api/v1/mec/institutions/{codigoIes}": {
       "get": {
         "operationId": "mec-institutions_getInstitutionByCodeWithCourses",
-        "tags": ["mec-institutions"],
+        "tags": [
+          "mec-institutions"
+        ],
         "summary": "Get institution by MEC code",
         "parameters": [
           {
@@ -1951,7 +2089,9 @@
     "/api/v1/mec/institutions/{codigoIes}/courses": {
       "get": {
         "operationId": "mec-institutions_listCoursesByInstitutionCode",
-        "tags": ["mec-institutions"],
+        "tags": [
+          "mec-institutions"
+        ],
         "summary": "Get courses by institution",
         "parameters": [
           {
@@ -1973,7 +2113,9 @@
     "/api/v1/mec/internal/sync": {
       "post": {
         "operationId": "mec-internal_triggerSync",
-        "tags": ["mec-internal"],
+        "tags": [
+          "mec-internal"
+        ],
         "summary": "Trigger MEC data synchronization",
         "responses": {
           "201": {
@@ -1985,7 +2127,9 @@
     "/api/v1/mec/internal/sync/history": {
       "get": {
         "operationId": "mec-internal_getSyncHistory",
-        "tags": ["mec-internal"],
+        "tags": [
+          "mec-internal"
+        ],
         "summary": "Get sync history",
         "parameters": [
           {
@@ -2007,7 +2151,9 @@
     "/api/v1/mec/internal/sync/status": {
       "get": {
         "operationId": "mec-internal_getSyncStatus",
-        "tags": ["mec-internal"],
+        "tags": [
+          "mec-internal"
+        ],
         "summary": "Get sync status",
         "responses": {
           "200": {
@@ -2019,7 +2165,9 @@
     "/api/v1/mec/stats": {
       "get": {
         "operationId": "mec-metadata_getMecStatistics",
-        "tags": ["mec-metadata"],
+        "tags": [
+          "mec-metadata"
+        ],
         "summary": "Get MEC statistics",
         "responses": {
           "200": {
@@ -2031,7 +2179,9 @@
     "/api/v1/mec/ufs": {
       "get": {
         "operationId": "mec-metadata_listAllStateCodes",
-        "tags": ["mec-metadata"],
+        "tags": [
+          "mec-metadata"
+        ],
         "summary": "List all states (UFs)",
         "responses": {
           "200": {
@@ -2043,7 +2193,9 @@
     "/api/v1/onboarding": {
       "post": {
         "operationId": "onboarding_completeOnboarding",
-        "tags": ["onboarding"],
+        "tags": [
+          "onboarding"
+        ],
         "summary": "Complete user onboarding with resume data",
         "security": [
           {
@@ -2063,7 +2215,9 @@
     "/api/v1/onboarding/progress": {
       "get": {
         "operationId": "onboarding_getProgress",
-        "tags": ["onboarding"],
+        "tags": [
+          "onboarding"
+        ],
         "summary": "Get user onboarding progress (checkpoint)",
         "security": [
           {
@@ -2081,7 +2235,9 @@
       },
       "put": {
         "operationId": "onboarding_saveProgress",
-        "tags": ["onboarding"],
+        "tags": [
+          "onboarding"
+        ],
         "summary": "Save user onboarding progress (checkpoint)",
         "security": [
           {
@@ -2101,7 +2257,9 @@
     "/api/v1/onboarding/status": {
       "get": {
         "operationId": "onboarding_getStatus",
-        "tags": ["onboarding"],
+        "tags": [
+          "onboarding"
+        ],
         "summary": "Get user onboarding status",
         "security": [
           {
@@ -2121,7 +2279,9 @@
     "/api/v1/platform/stats": {
       "get": {
         "operationId": "platform_getStatistics",
-        "tags": ["platform"],
+        "tags": [
+          "platform"
+        ],
         "summary": "Get platform statistics",
         "security": [
           {
@@ -2141,7 +2301,9 @@
     "/api/v1/resumes": {
       "get": {
         "operationId": "resumes_getAllUserResumes",
-        "tags": ["resumes"],
+        "tags": [
+          "resumes"
+        ],
         "summary": "Get all resumes for current user",
         "security": [
           {
@@ -2159,7 +2321,9 @@
       },
       "post": {
         "operationId": "resumes_createResumeForUser",
-        "tags": ["resumes"],
+        "tags": [
+          "resumes"
+        ],
         "summary": "Create a new resume",
         "security": [
           {
@@ -2179,7 +2343,9 @@
     "/api/v1/resumes/manage/user/{userId}": {
       "get": {
         "operationId": "resumes_listResumesForUser",
-        "tags": ["resumes"],
+        "tags": [
+          "resumes"
+        ],
         "summary": "List all resumes for a specific user",
         "security": [
           {
@@ -2209,7 +2375,9 @@
     "/api/v1/resumes/manage/{id}": {
       "delete": {
         "operationId": "resumes_deleteResume",
-        "tags": ["resumes"],
+        "tags": [
+          "resumes"
+        ],
         "summary": "Delete a resume",
         "security": [
           {
@@ -2237,7 +2405,9 @@
       },
       "get": {
         "operationId": "resumes_getResumeDetails",
-        "tags": ["resumes"],
+        "tags": [
+          "resumes"
+        ],
         "summary": "Get full resume details",
         "security": [
           {
@@ -2267,7 +2437,9 @@
     "/api/v1/resumes/slots": {
       "get": {
         "operationId": "resumes_getRemainingSlots",
-        "tags": ["resumes"],
+        "tags": [
+          "resumes"
+        ],
         "summary": "Get remaining resume slots for current user",
         "security": [
           {
@@ -2287,7 +2459,9 @@
     "/api/v1/resumes/{id}": {
       "delete": {
         "operationId": "resumes_deleteResumeForUser",
-        "tags": ["resumes"],
+        "tags": [
+          "resumes"
+        ],
         "summary": "Delete a resume",
         "security": [
           {
@@ -2315,7 +2489,9 @@
       },
       "get": {
         "operationId": "resumes_getResumeByIdForUser",
-        "tags": ["resumes"],
+        "tags": [
+          "resumes"
+        ],
         "summary": "Get a specific resume",
         "security": [
           {
@@ -2343,7 +2519,9 @@
       },
       "patch": {
         "operationId": "resumes_updateResumeForUser",
-        "tags": ["resumes"],
+        "tags": [
+          "resumes"
+        ],
         "summary": "Update a resume",
         "security": [
           {
@@ -2373,7 +2551,9 @@
     "/api/v1/resumes/{id}/full": {
       "get": {
         "operationId": "resumes_getResumeByIdWithAllSections",
-        "tags": ["resumes"],
+        "tags": [
+          "resumes"
+        ],
         "summary": "Get a resume with all sections",
         "security": [
           {
@@ -2403,7 +2583,9 @@
     "/api/v1/resumes/{resumeId}/config/sections/batch": {
       "post": {
         "operationId": "resume-config_batchUpdate",
-        "tags": ["resume-config"],
+        "tags": [
+          "resume-config"
+        ],
         "summary": "Batch update sections",
         "security": [
           {
@@ -2433,7 +2615,9 @@
     "/api/v1/resumes/{resumeId}/config/sections/{sectionId}/items/order": {
       "post": {
         "operationId": "resume-config_reorderItem",
-        "tags": ["resume-config"],
+        "tags": [
+          "resume-config"
+        ],
         "summary": "Reorder item",
         "security": [
           {
@@ -2471,7 +2655,9 @@
     "/api/v1/resumes/{resumeId}/config/sections/{sectionId}/items/visibility": {
       "post": {
         "operationId": "resume-config_toggleItem",
-        "tags": ["resume-config"],
+        "tags": [
+          "resume-config"
+        ],
         "summary": "Toggle item visibility",
         "security": [
           {
@@ -2509,7 +2695,9 @@
     "/api/v1/resumes/{resumeId}/config/sections/{sectionId}/order": {
       "post": {
         "operationId": "resume-config_reorderSection",
-        "tags": ["resume-config"],
+        "tags": [
+          "resume-config"
+        ],
         "summary": "Reorder section",
         "security": [
           {
@@ -2547,7 +2735,9 @@
     "/api/v1/resumes/{resumeId}/config/sections/{sectionId}/visibility": {
       "post": {
         "operationId": "resume-config_toggleSection",
-        "tags": ["resume-config"],
+        "tags": [
+          "resume-config"
+        ],
         "summary": "Toggle section visibility",
         "security": [
           {
@@ -2585,7 +2775,9 @@
     "/api/v1/skills/manage/resume/{resumeId}": {
       "get": {
         "operationId": "skills_listSkillsForResume",
-        "tags": ["skills"],
+        "tags": [
+          "skills"
+        ],
         "summary": "List all skills for a resume",
         "security": [
           {
@@ -2613,7 +2805,9 @@
       },
       "post": {
         "operationId": "skills_addSkillToResume",
-        "tags": ["skills"],
+        "tags": [
+          "skills"
+        ],
         "summary": "Add a skill to a resume",
         "security": [
           {
@@ -2643,7 +2837,9 @@
     "/api/v1/skills/manage/{id}": {
       "delete": {
         "operationId": "skills_deleteSkill",
-        "tags": ["skills"],
+        "tags": [
+          "skills"
+        ],
         "summary": "Delete a skill",
         "security": [
           {
@@ -2671,7 +2867,9 @@
       },
       "patch": {
         "operationId": "skills_updateSkill",
-        "tags": ["skills"],
+        "tags": [
+          "skills"
+        ],
         "summary": "Update a skill",
         "security": [
           {
@@ -2701,7 +2899,9 @@
     "/api/v1/tech-areas": {
       "get": {
         "operationId": "tech-areas_getAreas",
-        "tags": ["tech-areas"],
+        "tags": [
+          "tech-areas"
+        ],
         "summary": "Get all tech areas",
         "responses": {
           "200": {
@@ -2713,7 +2913,9 @@
     "/api/v1/tech-areas/{areaType}/niches": {
       "get": {
         "operationId": "tech-areas_getNichesByArea",
-        "tags": ["tech-areas"],
+        "tags": [
+          "tech-areas"
+        ],
         "summary": "Get niches by area type",
         "parameters": [
           {
@@ -2735,7 +2937,9 @@
     "/api/v1/tech-niches": {
       "get": {
         "operationId": "tech-niches_getNiches",
-        "tags": ["tech-niches"],
+        "tags": [
+          "tech-niches"
+        ],
         "summary": "Get all tech niches",
         "responses": {
           "200": {
@@ -2747,7 +2951,9 @@
     "/api/v1/tech-niches/{nicheSlug}/skills": {
       "get": {
         "operationId": "tech-niches_getSkillsByNiche",
-        "tags": ["tech-niches"],
+        "tags": [
+          "tech-niches"
+        ],
         "summary": "Get skills by niche slug",
         "parameters": [
           {
@@ -2769,7 +2975,9 @@
     "/api/v1/tech-skills": {
       "get": {
         "operationId": "tech-skills_getSkills",
-        "tags": ["tech-skills"],
+        "tags": [
+          "tech-skills"
+        ],
         "summary": "Get all tech skills",
         "responses": {
           "200": {
@@ -2781,7 +2989,9 @@
     "/api/v1/tech-skills/search": {
       "get": {
         "operationId": "tech-skills_searchSkills",
-        "tags": ["tech-skills"],
+        "tags": [
+          "tech-skills"
+        ],
         "summary": "Search tech skills",
         "parameters": [
           {
@@ -2811,7 +3021,9 @@
     "/api/v1/tech-skills/type/{type}": {
       "get": {
         "operationId": "tech-skills_getSkillsByType",
-        "tags": ["tech-skills"],
+        "tags": [
+          "tech-skills"
+        ],
         "summary": "Get skills by type",
         "parameters": [
           {
@@ -2841,7 +3053,9 @@
     "/api/v1/themes": {
       "get": {
         "operationId": "themes_findAllThemesWithPagination",
-        "tags": ["themes"],
+        "tags": [
+          "themes"
+        ],
         "summary": "List published themes",
         "security": [
           {
@@ -2859,7 +3073,9 @@
       },
       "post": {
         "operationId": "themes_createThemeForUser",
-        "tags": ["themes"],
+        "tags": [
+          "themes"
+        ],
         "summary": "Create theme",
         "security": [
           {
@@ -2879,7 +3095,9 @@
     "/api/v1/themes/apply": {
       "post": {
         "operationId": "themes_apply",
-        "tags": ["themes"],
+        "tags": [
+          "themes"
+        ],
         "summary": "Apply theme to resume",
         "security": [
           {
@@ -2899,7 +3117,9 @@
     "/api/v1/themes/approval/pending": {
       "get": {
         "operationId": "themes_getPending",
-        "tags": ["themes"],
+        "tags": [
+          "themes"
+        ],
         "summary": "Get pending themes for approval",
         "security": [
           {
@@ -2919,7 +3139,9 @@
     "/api/v1/themes/approval/review": {
       "post": {
         "operationId": "themes_review",
-        "tags": ["themes"],
+        "tags": [
+          "themes"
+        ],
         "summary": "Review and approve/reject a theme",
         "security": [
           {
@@ -2939,7 +3161,9 @@
     "/api/v1/themes/approval/{id}/submit": {
       "post": {
         "operationId": "themes_submit",
-        "tags": ["themes"],
+        "tags": [
+          "themes"
+        ],
         "summary": "Submit a theme for approval",
         "security": [
           {
@@ -2969,7 +3193,9 @@
     "/api/v1/themes/fork": {
       "post": {
         "operationId": "themes_fork",
-        "tags": ["themes"],
+        "tags": [
+          "themes"
+        ],
         "summary": "Fork a theme",
         "security": [
           {
@@ -2989,7 +3215,9 @@
     "/api/v1/themes/me": {
       "get": {
         "operationId": "themes_getAllThemesByUser",
-        "tags": ["themes"],
+        "tags": [
+          "themes"
+        ],
         "summary": "Get my themes",
         "security": [
           {
@@ -3009,7 +3237,9 @@
     "/api/v1/themes/popular": {
       "get": {
         "operationId": "themes_findPopularThemes",
-        "tags": ["themes"],
+        "tags": [
+          "themes"
+        ],
         "summary": "Get popular themes",
         "security": [
           {
@@ -3039,7 +3269,9 @@
     "/api/v1/themes/resume/{resumeId}/config": {
       "get": {
         "operationId": "themes_getResolvedConfig",
-        "tags": ["themes"],
+        "tags": [
+          "themes"
+        ],
         "summary": "Get resolved config for resume",
         "security": [
           {
@@ -3069,7 +3301,9 @@
     "/api/v1/themes/system": {
       "get": {
         "operationId": "themes_findAllSystemThemes",
-        "tags": ["themes"],
+        "tags": [
+          "themes"
+        ],
         "summary": "Get system themes",
         "security": [
           {
@@ -3089,7 +3323,9 @@
     "/api/v1/themes/{id}": {
       "delete": {
         "operationId": "themes_deleteThemeForUser",
-        "tags": ["themes"],
+        "tags": [
+          "themes"
+        ],
         "summary": "Delete theme",
         "security": [
           {
@@ -3117,7 +3353,9 @@
       },
       "get": {
         "operationId": "themes_findThemeById",
-        "tags": ["themes"],
+        "tags": [
+          "themes"
+        ],
         "summary": "Get theme by ID",
         "security": [
           {
@@ -3145,7 +3383,9 @@
       },
       "put": {
         "operationId": "themes_updateThemeForUser",
-        "tags": ["themes"],
+        "tags": [
+          "themes"
+        ],
         "summary": "Update theme",
         "security": [
           {
@@ -3175,7 +3415,9 @@
     "/api/v1/translation/batch": {
       "post": {
         "operationId": "translation_translateBatch",
-        "tags": ["translation"],
+        "tags": [
+          "translation"
+        ],
         "summary": "Translate multiple texts in batch",
         "security": [
           {
@@ -3195,7 +3437,9 @@
     "/api/v1/translation/en-to-pt": {
       "post": {
         "operationId": "translation_translateEnToPt",
-        "tags": ["translation"],
+        "tags": [
+          "translation"
+        ],
         "summary": "Translate English to Portuguese",
         "security": [
           {
@@ -3215,7 +3459,9 @@
     "/api/v1/translation/health": {
       "get": {
         "operationId": "translation_healthCheck",
-        "tags": ["translation"],
+        "tags": [
+          "translation"
+        ],
         "summary": "Check translation service health",
         "security": [
           {
@@ -3235,7 +3481,9 @@
     "/api/v1/translation/pt-to-en": {
       "post": {
         "operationId": "translation_translatePtToEn",
-        "tags": ["translation"],
+        "tags": [
+          "translation"
+        ],
         "summary": "Translate Portuguese to English",
         "security": [
           {
@@ -3255,7 +3503,9 @@
     "/api/v1/translation/text": {
       "post": {
         "operationId": "translation_translateText",
-        "tags": ["translation"],
+        "tags": [
+          "translation"
+        ],
         "summary": "Translate a single text",
         "security": [
           {
@@ -3275,7 +3525,9 @@
     "/api/v1/upload/company-logo/{resumeId}": {
       "post": {
         "operationId": "upload_uploadCompanyLogo",
-        "tags": ["upload"],
+        "tags": [
+          "upload"
+        ],
         "summary": "Upload company logo for resume",
         "security": [
           {
@@ -3305,7 +3557,9 @@
     "/api/v1/upload/file/{key}": {
       "delete": {
         "operationId": "upload_deleteFile",
-        "tags": ["upload"],
+        "tags": [
+          "upload"
+        ],
         "summary": "Delete uploaded file",
         "security": [
           {
@@ -3335,7 +3589,9 @@
     "/api/v1/upload/profile-image": {
       "post": {
         "operationId": "upload_uploadProfileImage",
-        "tags": ["upload"],
+        "tags": [
+          "upload"
+        ],
         "summary": "Upload user profile image",
         "security": [
           {
@@ -3355,7 +3611,9 @@
     "/api/v1/users/manage": {
       "get": {
         "operationId": "users_listUsers",
-        "tags": ["users"],
+        "tags": [
+          "users"
+        ],
         "summary": "List all users with pagination",
         "security": [
           {
@@ -3399,7 +3657,9 @@
       },
       "post": {
         "operationId": "users_createUser",
-        "tags": ["users"],
+        "tags": [
+          "users"
+        ],
         "summary": "Create a new user",
         "security": [
           {
@@ -3419,7 +3679,9 @@
     "/api/v1/users/manage/{id}": {
       "delete": {
         "operationId": "users_deleteUser",
-        "tags": ["users"],
+        "tags": [
+          "users"
+        ],
         "summary": "Delete a user",
         "description": "GDPR-compliant deletion that removes all user data.",
         "security": [
@@ -3448,7 +3710,9 @@
       },
       "get": {
         "operationId": "users_getUserDetails",
-        "tags": ["users"],
+        "tags": [
+          "users"
+        ],
         "summary": "Get user details by ID",
         "security": [
           {
@@ -3476,7 +3740,9 @@
       },
       "patch": {
         "operationId": "users_updateUser",
-        "tags": ["users"],
+        "tags": [
+          "users"
+        ],
         "summary": "Update user information",
         "security": [
           {
@@ -3506,7 +3772,9 @@
     "/api/v1/users/manage/{id}/reset-password": {
       "post": {
         "operationId": "users_resetPassword",
-        "tags": ["users"],
+        "tags": [
+          "users"
+        ],
         "summary": "Reset user password",
         "security": [
           {
@@ -3536,7 +3804,9 @@
     "/api/v1/users/me/accept-consent": {
       "post": {
         "operationId": "user-consent_acceptConsent",
-        "tags": ["user-consent"],
+        "tags": [
+          "user-consent"
+        ],
         "summary": "Accept Terms of Service or Privacy Policy",
         "description": "Records user acceptance of legal documents with IP and user agent for audit trail. ",
         "security": [
@@ -3557,7 +3827,9 @@
     "/api/v1/users/me/consent-history": {
       "get": {
         "operationId": "user-consent_getConsentHistory",
-        "tags": ["user-consent"],
+        "tags": [
+          "user-consent"
+        ],
         "summary": "Get consent acceptance history",
         "description": "Retrieves all consent records for the authenticated user",
         "security": [
@@ -3578,7 +3850,9 @@
     "/api/v1/users/me/consent-status": {
       "get": {
         "operationId": "user-consent_checkConsentStatus",
-        "tags": ["user-consent"],
+        "tags": [
+          "user-consent"
+        ],
         "summary": "Check consent acceptance status",
         "description": "Returns which documents the user has accepted for the current versions",
         "security": [
@@ -3599,7 +3873,9 @@
     "/api/v1/users/preferences": {
       "get": {
         "operationId": "users_getPreferences",
-        "tags": ["users"],
+        "tags": [
+          "users"
+        ],
         "summary": "Get user preferences (basic)",
         "security": [
           {
@@ -3617,7 +3893,9 @@
       },
       "patch": {
         "operationId": "users_updatePreferences",
-        "tags": ["users"],
+        "tags": [
+          "users"
+        ],
         "summary": "Update user preferences (basic)",
         "security": [
           {
@@ -3637,7 +3915,9 @@
     "/api/v1/users/preferences/full": {
       "get": {
         "operationId": "users_getFullPreferences",
-        "tags": ["users"],
+        "tags": [
+          "users"
+        ],
         "summary": "Get all user preferences",
         "security": [
           {
@@ -3655,7 +3935,9 @@
       },
       "patch": {
         "operationId": "users_updateFullPreferences",
-        "tags": ["users"],
+        "tags": [
+          "users"
+        ],
         "summary": "Update all user preferences",
         "security": [
           {
@@ -3675,7 +3957,9 @@
     "/api/v1/users/profile": {
       "get": {
         "operationId": "users_getProfile",
-        "tags": ["users"],
+        "tags": [
+          "users"
+        ],
         "summary": "Get current user profile",
         "security": [
           {
@@ -3693,7 +3977,9 @@
       },
       "patch": {
         "operationId": "users_updateProfile",
-        "tags": ["users"],
+        "tags": [
+          "users"
+        ],
         "summary": "Update current user profile",
         "security": [
           {
@@ -3713,7 +3999,9 @@
     "/api/v1/users/username": {
       "patch": {
         "operationId": "users_updateUsername",
-        "tags": ["users"],
+        "tags": [
+          "users"
+        ],
         "summary": "Update username (once every 30 days)",
         "security": [
           {
@@ -3733,7 +4021,9 @@
     "/api/v1/users/username/check": {
       "get": {
         "operationId": "users_checkUsernameAvailability",
-        "tags": ["users"],
+        "tags": [
+          "users"
+        ],
         "summary": "Check if a username is available",
         "security": [
           {
@@ -3763,7 +4053,9 @@
     "/api/v1/users/username/validate": {
       "post": {
         "operationId": "users_validateUsername",
-        "tags": ["users"],
+        "tags": [
+          "users"
+        ],
         "summary": "Validate username format and availability",
         "description": "Validates username against all business rules (format, length, reserved words) and checks availability. Returns structured validation result with all errors.",
         "security": [
@@ -3784,7 +4076,9 @@
     "/api/v1/users/{username}/profile": {
       "get": {
         "operationId": "users_getPublicProfileByUsername",
-        "tags": ["users"],
+        "tags": [
+          "users"
+        ],
         "summary": "Get a user",
         "security": [
           {
@@ -3850,7 +4144,14 @@
             "type": "string"
           }
         },
-        "required": ["score", "issues", "suggestions", "isATSCompatible", "field", "message"]
+        "required": [
+          "score",
+          "issues",
+          "suggestions",
+          "isATSCompatible",
+          "field",
+          "message"
+        ]
       },
       "AcceptConsentResponseDto": {
         "type": "object",
@@ -3862,7 +4163,10 @@
             "$ref": "#/components/schemas/ConsentRecordDto"
           }
         },
-        "required": ["message", "consent"]
+        "required": [
+          "message",
+          "consent"
+        ]
       },
       "AstMetaDto": {
         "type": "object",
@@ -3876,7 +4180,10 @@
             "example": "2026-02-15T12:00:00.000Z"
           }
         },
-        "required": ["version", "generatedAt"]
+        "required": [
+          "version",
+          "generatedAt"
+        ]
       },
       "AuthResponseDto": {
         "type": "object",
@@ -3893,7 +4200,10 @@
             "$ref": "#/components/schemas/CurrentUserResponseDto"
           }
         },
-        "required": ["accessToken", "user"]
+        "required": [
+          "accessToken",
+          "user"
+        ]
       },
       "AwardItemDto": {
         "type": "object",
@@ -3916,7 +4226,12 @@
             "type": "string"
           }
         },
-        "required": ["id", "title", "issuer", "date"]
+        "required": [
+          "id",
+          "title",
+          "issuer",
+          "date"
+        ]
       },
       "AwardsSectionDataDto": {
         "type": "object",
@@ -3932,7 +4247,10 @@
             }
           }
         },
-        "required": ["type", "items"]
+        "required": [
+          "type",
+          "items"
+        ]
       },
       "BatchTranslationResultDto": {
         "type": "object",
@@ -3950,7 +4268,10 @@
             }
           }
         },
-        "required": ["translations", "failed"]
+        "required": [
+          "translations",
+          "failed"
+        ]
       },
       "BlockUserDataDto": {
         "type": "object",
@@ -3959,7 +4280,9 @@
             "type": "string"
           }
         },
-        "required": ["block"]
+        "required": [
+          "block"
+        ]
       },
       "BlockedUsersListDataDto": {
         "type": "object",
@@ -3972,7 +4295,9 @@
             "description": "List of blocked users"
           }
         },
-        "required": ["blockedUsers"]
+        "required": [
+          "blockedUsers"
+        ]
       },
       "CertificationItemDto": {
         "type": "object",
@@ -3996,7 +4321,12 @@
             "example": "https://aws.amazon.com/verify/..."
           }
         },
-        "required": ["id", "name", "issuer", "date"]
+        "required": [
+          "id",
+          "name",
+          "issuer",
+          "date"
+        ]
       },
       "CertificationsSectionDataDto": {
         "type": "object",
@@ -4012,7 +4342,10 @@
             }
           }
         },
-        "required": ["type", "items"]
+        "required": [
+          "type",
+          "items"
+        ]
       },
       "ChangeEmailResponseDto": {
         "type": "object",
@@ -4021,7 +4354,9 @@
             "type": "string"
           }
         },
-        "required": ["message"]
+        "required": [
+          "message"
+        ]
       },
       "ChatMessageDataDto": {
         "type": "object",
@@ -4030,7 +4365,9 @@
             "type": "string"
           }
         },
-        "required": ["message"]
+        "required": [
+          "message"
+        ]
       },
       "CollaboratorDataDto": {
         "type": "object",
@@ -4039,7 +4376,9 @@
             "type": "string"
           }
         },
-        "required": ["collaborator"]
+        "required": [
+          "collaborator"
+        ]
       },
       "CollaboratorsListDataDto": {
         "type": "object",
@@ -4051,7 +4390,9 @@
             }
           }
         },
-        "required": ["collaborators"]
+        "required": [
+          "collaborators"
+        ]
       },
       "ColumnDefinitionDto": {
         "type": "object",
@@ -4069,7 +4410,11 @@
             "example": "0"
           }
         },
-        "required": ["id", "widthPercentage", "order"]
+        "required": [
+          "id",
+          "widthPercentage",
+          "order"
+        ]
       },
       "CompleteOnboardingResponseDto": {
         "type": "object",
@@ -4086,7 +4431,11 @@
             "type": "string"
           }
         },
-        "required": ["success", "resumeId", "message"]
+        "required": [
+          "success",
+          "resumeId",
+          "message"
+        ]
       },
       "ConsentHistoryResponseDto": {
         "type": "object",
@@ -4116,7 +4465,14 @@
             "example": "Mozilla/5.0..."
           }
         },
-        "required": ["id", "documentType", "version", "acceptedAt", "ipAddress", "userAgent"]
+        "required": [
+          "id",
+          "documentType",
+          "version",
+          "acceptedAt",
+          "ipAddress",
+          "userAgent"
+        ]
       },
       "ConsentRecordDto": {
         "type": "object",
@@ -4199,7 +4555,9 @@
             "type": "string"
           }
         },
-        "required": ["conversation"]
+        "required": [
+          "conversation"
+        ]
       },
       "ConversationNullableDataDto": {
         "type": "object",
@@ -4214,7 +4572,9 @@
             "nullable": true
           }
         },
-        "required": ["conversationId"]
+        "required": [
+          "conversationId"
+        ]
       },
       "ConversationsListDataDto": {
         "type": "object",
@@ -4223,7 +4583,9 @@
             "type": "string"
           }
         },
-        "required": ["conversations"]
+        "required": [
+          "conversations"
+        ]
       },
       "CurrentUserResponseDto": {
         "type": "object",
@@ -4252,7 +4614,12 @@
             "example": "true"
           }
         },
-        "required": ["id", "email", "role", "emailVerified"]
+        "required": [
+          "id",
+          "email",
+          "role",
+          "emailVerified"
+        ]
       },
       "CustomSectionDataDto": {
         "type": "object",
@@ -4265,7 +4632,10 @@
             "type": "string"
           }
         },
-        "required": ["type", "content"]
+        "required": [
+          "type",
+          "content"
+        ]
       },
       "DateRangeDto": {
         "type": "object",
@@ -4283,7 +4653,10 @@
             "example": "false"
           }
         },
-        "required": ["startDate", "isCurrent"]
+        "required": [
+          "startDate",
+          "isCurrent"
+        ]
       },
       "DeleteResponseDto": {
         "type": "object",
@@ -4296,7 +4669,9 @@
             "type": "string"
           }
         },
-        "required": ["success"]
+        "required": [
+          "success"
+        ]
       },
       "DeleteSkillDataDto": {
         "type": "object",
@@ -4305,7 +4680,9 @@
             "type": "string"
           }
         },
-        "required": ["result"]
+        "required": [
+          "result"
+        ]
       },
       "DeletedEntitiesDto": {
         "type": "object",
@@ -4361,7 +4738,9 @@
             "example": "john-doe-resume"
           }
         },
-        "required": ["ast"]
+        "required": [
+          "ast"
+        ]
       },
       "DslPreviewResultDto": {
         "type": "object",
@@ -4371,7 +4750,9 @@
             "description": "Compiled AST"
           }
         },
-        "required": ["ast"]
+        "required": [
+          "ast"
+        ]
       },
       "DslValidationErrorDto": {
         "type": "object",
@@ -4387,7 +4768,10 @@
             "description": "Error message"
           }
         },
-        "required": ["path", "message"]
+        "required": [
+          "path",
+          "message"
+        ]
       },
       "DslValidationResultDto": {
         "type": "object",
@@ -4401,7 +4785,10 @@
             "nullable": true
           }
         },
-        "required": ["valid", "errors"]
+        "required": [
+          "valid",
+          "errors"
+        ]
       },
       "EducationItemDto": {
         "type": "object",
@@ -4437,7 +4824,14 @@
             "example": "["
           }
         },
-        "required": ["id", "institution", "degree", "fieldOfStudy", "dateRange", "activities"]
+        "required": [
+          "id",
+          "institution",
+          "degree",
+          "fieldOfStudy",
+          "dateRange",
+          "activities"
+        ]
       },
       "EducationSectionDataDto": {
         "type": "object",
@@ -4453,7 +4847,10 @@
             }
           }
         },
-        "required": ["type", "items"]
+        "required": [
+          "type",
+          "items"
+        ]
       },
       "ExperienceItemDto": {
         "type": "object",
@@ -4492,7 +4889,14 @@
             "example": "["
           }
         },
-        "required": ["id", "title", "company", "dateRange", "achievements", "skills"]
+        "required": [
+          "id",
+          "title",
+          "company",
+          "dateRange",
+          "achievements",
+          "skills"
+        ]
       },
       "ExperienceSectionDataDto": {
         "type": "object",
@@ -4508,7 +4912,10 @@
             }
           }
         },
-        "required": ["type", "items"]
+        "required": [
+          "type",
+          "items"
+        ]
       },
       "ExportFormatResponseDto": {
         "type": "object",
@@ -4519,7 +4926,9 @@
             "description": "Available export formats"
           }
         },
-        "required": ["format"]
+        "required": [
+          "format"
+        ]
       },
       "ExportFormatsDataDto": {
         "type": "object",
@@ -4531,7 +4940,9 @@
             }
           }
         },
-        "required": ["formats"]
+        "required": [
+          "formats"
+        ]
       },
       "FailedTranslationDto": {
         "type": "object",
@@ -4543,7 +4954,10 @@
             "type": "string"
           }
         },
-        "required": ["text", "error"]
+        "required": [
+          "text",
+          "error"
+        ]
       },
       "GdprDeletionResponseDto": {
         "type": "object",
@@ -4558,7 +4972,11 @@
             "type": "boolean"
           }
         },
-        "required": ["deletedEntities", "deletedAt", "success"]
+        "required": [
+          "deletedEntities",
+          "deletedAt",
+          "success"
+        ]
       },
       "GdprExportResponseDto": {
         "type": "object",
@@ -4664,7 +5082,9 @@
             "type": "string"
           }
         },
-        "required": ["synced"]
+        "required": [
+          "synced"
+        ]
       },
       "GlobalStylesDto": {
         "type": "object",
@@ -4686,7 +5106,12 @@
             "example": "#0066cc"
           }
         },
-        "required": ["background", "textPrimary", "textSecondary", "accent"]
+        "required": [
+          "background",
+          "textPrimary",
+          "textSecondary",
+          "accent"
+        ]
       },
       "HealthCheckResponseDto": {
         "type": "object",
@@ -4700,7 +5125,9 @@
             "example": "2024-01-01T00:00:00.000Z"
           }
         },
-        "required": ["status"]
+        "required": [
+          "status"
+        ]
       },
       "ImportJobDto": {
         "type": "object",
@@ -4746,7 +5173,13 @@
             "example": "2024-01-15T10:30:15Z"
           }
         },
-        "required": ["id", "userId", "source", "status", "createdAt"]
+        "required": [
+          "id",
+          "userId",
+          "source",
+          "status",
+          "createdAt"
+        ]
       },
       "ImportResultDto": {
         "type": "object",
@@ -4770,7 +5203,10 @@
             "example": "["
           }
         },
-        "required": ["importId", "status"]
+        "required": [
+          "importId",
+          "status"
+        ]
       },
       "InterestItemDto": {
         "type": "object",
@@ -4790,7 +5226,11 @@
             "example": "["
           }
         },
-        "required": ["id", "name", "keywords"]
+        "required": [
+          "id",
+          "name",
+          "keywords"
+        ]
       },
       "InterestsSectionDataDto": {
         "type": "object",
@@ -4806,7 +5246,10 @@
             }
           }
         },
-        "required": ["type", "items"]
+        "required": [
+          "type",
+          "items"
+        ]
       },
       "IsBlockedDataDto": {
         "type": "object",
@@ -4816,7 +5259,9 @@
             "description": "Block status"
           }
         },
-        "required": ["isBlocked"]
+        "required": [
+          "isBlocked"
+        ]
       },
       "LanguageItemDto": {
         "type": "object",
@@ -4834,7 +5279,11 @@
             "example": "Fluent"
           }
         },
-        "required": ["id", "name", "proficiency"]
+        "required": [
+          "id",
+          "name",
+          "proficiency"
+        ]
       },
       "LanguagesSectionDataDto": {
         "type": "object",
@@ -4850,7 +5299,10 @@
             }
           }
         },
-        "required": ["type", "items"]
+        "required": [
+          "type",
+          "items"
+        ]
       },
       "LocationDto": {
         "type": "object",
@@ -4882,7 +5334,10 @@
             "description": "User password"
           }
         },
-        "required": ["email", "password"]
+        "required": [
+          "email",
+          "password"
+        ]
       },
       "MarkAsReadDataDto": {
         "type": "object",
@@ -4892,7 +5347,9 @@
             "description": "Number of messages marked as read"
           }
         },
-        "required": ["count"]
+        "required": [
+          "count"
+        ]
       },
       "MecCourseDataDto": {
         "type": "object",
@@ -4902,7 +5359,9 @@
             "nullable": true
           }
         },
-        "required": ["course"]
+        "required": [
+          "course"
+        ]
       },
       "MecCourseListDataDto": {
         "type": "object",
@@ -4914,7 +5373,9 @@
             }
           }
         },
-        "required": ["courses"]
+        "required": [
+          "courses"
+        ]
       },
       "MecInstitutionCoursesDataDto": {
         "type": "object",
@@ -4926,7 +5387,9 @@
             }
           }
         },
-        "required": ["courses"]
+        "required": [
+          "courses"
+        ]
       },
       "MecInstitutionDataDto": {
         "type": "object",
@@ -4936,7 +5399,9 @@
             "nullable": true
           }
         },
-        "required": ["institution"]
+        "required": [
+          "institution"
+        ]
       },
       "MecInstitutionListDataDto": {
         "type": "object",
@@ -4948,7 +5413,9 @@
             }
           }
         },
-        "required": ["institutions"]
+        "required": [
+          "institutions"
+        ]
       },
       "MecKnowledgeAreasDataDto": {
         "type": "object",
@@ -4960,7 +5427,9 @@
             }
           }
         },
-        "required": ["areas"]
+        "required": [
+          "areas"
+        ]
       },
       "MecStateCodesDataDto": {
         "type": "object",
@@ -4972,7 +5441,9 @@
             }
           }
         },
-        "required": ["states"]
+        "required": [
+          "states"
+        ]
       },
       "MecStatisticsDataDto": {
         "type": "object",
@@ -4981,7 +5452,9 @@
             "type": "string"
           }
         },
-        "required": ["stats"]
+        "required": [
+          "stats"
+        ]
       },
       "MecSyncExecutionDataDto": {
         "type": "object",
@@ -5003,7 +5476,12 @@
             "example": "0"
           }
         },
-        "required": ["institutionsInserted", "coursesInserted", "totalRowsProcessed", "errorsCount"]
+        "required": [
+          "institutionsInserted",
+          "coursesInserted",
+          "totalRowsProcessed",
+          "errorsCount"
+        ]
       },
       "MecSyncHistoryDataDto": {
         "type": "object",
@@ -5015,7 +5493,9 @@
             }
           }
         },
-        "required": ["history"]
+        "required": [
+          "history"
+        ]
       },
       "MecSyncStatusDataDto": {
         "type": "object",
@@ -5033,7 +5513,11 @@
             "nullable": true
           }
         },
-        "required": ["isRunning", "metadata", "lastSync"]
+        "required": [
+          "isRunning",
+          "metadata",
+          "lastSync"
+        ]
       },
       "MecSyncStatusResponseDto": {
         "type": "object",
@@ -5054,7 +5538,9 @@
             "type": "string"
           }
         },
-        "required": ["status"]
+        "required": [
+          "status"
+        ]
       },
       "MessageResponseDto": {
         "type": "object",
@@ -5063,7 +5549,9 @@
             "type": "string"
           }
         },
-        "required": ["message"]
+        "required": [
+          "message"
+        ]
       },
       "MessagesListDataDto": {
         "type": "object",
@@ -5072,7 +5560,9 @@
             "type": "string"
           }
         },
-        "required": ["messages"]
+        "required": [
+          "messages"
+        ]
       },
       "OnboardingProgressDto": {
         "type": "object",
@@ -5212,7 +5702,11 @@
             "example": "2024-01-01T00:00:00.000Z"
           }
         },
-        "required": ["stepId", "title", "completed"]
+        "required": [
+          "stepId",
+          "title",
+          "completed"
+        ]
       },
       "PageLayoutDto": {
         "type": "object",
@@ -5278,7 +5772,11 @@
             "type": "number"
           }
         },
-        "required": ["total", "page", "limit"]
+        "required": [
+          "total",
+          "page",
+          "limit"
+        ]
       },
       "PaginationMetaDto": {
         "type": "object",
@@ -5300,7 +5798,12 @@
             "example": "5"
           }
         },
-        "required": ["page", "limit", "total", "totalPages"]
+        "required": [
+          "page",
+          "limit",
+          "total",
+          "totalPages"
+        ]
       },
       "ParsedCertificationDto": {
         "type": "object",
@@ -5320,7 +5823,9 @@
             "example": "https://aws.amazon.com/certification/"
           }
         },
-        "required": ["name"]
+        "required": [
+          "name"
+        ]
       },
       "ParsedEducationDto": {
         "type": "object",
@@ -5346,7 +5851,10 @@
             "type": "string"
           }
         },
-        "required": ["degree", "institution"]
+        "required": [
+          "degree",
+          "institution"
+        ]
       },
       "ParsedExperienceDto": {
         "type": "object",
@@ -5379,7 +5887,11 @@
             "example": "["
           }
         },
-        "required": ["title", "company", "startDate"]
+        "required": [
+          "title",
+          "company",
+          "startDate"
+        ]
       },
       "ParsedLanguageDto": {
         "type": "object",
@@ -5393,7 +5905,9 @@
             "example": "Native"
           }
         },
-        "required": ["name"]
+        "required": [
+          "name"
+        ]
       },
       "ParsedPersonalInfoDto": {
         "type": "object",
@@ -5447,7 +5961,9 @@
             "example": "["
           }
         },
-        "required": ["name"]
+        "required": [
+          "name"
+        ]
       },
       "ParsedResumeDataDto": {
         "type": "object",
@@ -5496,7 +6012,12 @@
             }
           }
         },
-        "required": ["personalInfo", "experiences", "education", "skills"]
+        "required": [
+          "personalInfo",
+          "experiences",
+          "education",
+          "skills"
+        ]
       },
       "PlacedSectionDto": {
         "type": "object",
@@ -5562,7 +6083,13 @@
             "$ref": "#/components/schemas/SectionStylesDto"
           }
         },
-        "required": ["sectionId", "columnId", "order", "data", "styles"]
+        "required": [
+          "sectionId",
+          "columnId",
+          "order",
+          "data",
+          "styles"
+        ]
       },
       "PlatformStatsResponseDto": {
         "type": "object",
@@ -5643,7 +6170,12 @@
             "example": "["
           }
         },
-        "required": ["id", "name", "highlights", "technologies"]
+        "required": [
+          "id",
+          "name",
+          "highlights",
+          "technologies"
+        ]
       },
       "ProjectsSectionDataDto": {
         "type": "object",
@@ -5659,7 +6191,10 @@
             }
           }
         },
-        "required": ["type", "items"]
+        "required": [
+          "type",
+          "items"
+        ]
       },
       "PublicProfileDataDto": {
         "type": "object",
@@ -5672,7 +6207,10 @@
             "nullable": true
           }
         },
-        "required": ["user", "resume"]
+        "required": [
+          "user",
+          "resume"
+        ]
       },
       "PublicProfileResponseDto": {
         "type": "object",
@@ -5695,7 +6233,9 @@
             "type": "string"
           }
         },
-        "required": ["username"]
+        "required": [
+          "username"
+        ]
       },
       "PublicationItemDto": {
         "type": "object",
@@ -5722,7 +6262,12 @@
             "type": "string"
           }
         },
-        "required": ["id", "title", "publisher", "date"]
+        "required": [
+          "id",
+          "title",
+          "publisher",
+          "date"
+        ]
       },
       "PublicationsSectionDataDto": {
         "type": "object",
@@ -5738,7 +6283,10 @@
             }
           }
         },
-        "required": ["type", "items"]
+        "required": [
+          "type",
+          "items"
+        ]
       },
       "ReferenceItemDto": {
         "type": "object",
@@ -5766,7 +6314,11 @@
             "example": "+1234567890"
           }
         },
-        "required": ["id", "name", "role"]
+        "required": [
+          "id",
+          "name",
+          "role"
+        ]
       },
       "ReferencesSectionDataDto": {
         "type": "object",
@@ -5782,7 +6334,10 @@
             }
           }
         },
-        "required": ["type", "items"]
+        "required": [
+          "type",
+          "items"
+        ]
       },
       "RefreshTokenDto": {
         "type": "object",
@@ -5793,7 +6348,9 @@
             "description": "Refresh token"
           }
         },
-        "required": ["refreshToken"]
+        "required": [
+          "refreshToken"
+        ]
       },
       "RegisterCredentialsDto": {
         "type": "object",
@@ -5813,7 +6370,10 @@
             "description": "Display name"
           }
         },
-        "required": ["email", "password"]
+        "required": [
+          "email",
+          "password"
+        ]
       },
       "ResolvedBoxStyleDto": {
         "type": "object",
@@ -5910,7 +6470,12 @@
             "$ref": "#/components/schemas/GlobalStylesDto"
           }
         },
-        "required": ["meta", "page", "sections", "globalStyles"]
+        "required": [
+          "meta",
+          "page",
+          "sections",
+          "globalStyles"
+        ]
       },
       "ResumeConfigOperationDataDto": {
         "type": "object",
@@ -5920,7 +6485,9 @@
             "example": "true"
           }
         },
-        "required": ["success"]
+        "required": [
+          "success"
+        ]
       },
       "ResumeDetailsDataDto": {
         "type": "object",
@@ -5929,7 +6496,9 @@
             "type": "string"
           }
         },
-        "required": ["resume"]
+        "required": [
+          "resume"
+        ]
       },
       "ResumeFullResponseDto": {
         "type": "object",
@@ -5958,7 +6527,9 @@
             "type": "string"
           }
         },
-        "required": ["resumeSections"]
+        "required": [
+          "resumeSections"
+        ]
       },
       "ResumeListDataDto": {
         "type": "object",
@@ -5970,7 +6541,9 @@
             }
           }
         },
-        "required": ["resumes"]
+        "required": [
+          "resumes"
+        ]
       },
       "ResumeListItemDto": {
         "type": "object",
@@ -5992,7 +6565,9 @@
             "type": "string"
           }
         },
-        "required": ["message"]
+        "required": [
+          "message"
+        ]
       },
       "ResumeResponseDto": {
         "type": "object",
@@ -6028,7 +6603,13 @@
             "example": "2024-01-01T00:00:00.000Z"
           }
         },
-        "required": ["id", "title", "isPublic", "createdAt", "updatedAt"]
+        "required": [
+          "id",
+          "title",
+          "isPublic",
+          "createdAt",
+          "updatedAt"
+        ]
       },
       "ResumeSectionItemResponseDto": {
         "type": "object",
@@ -6046,7 +6627,10 @@
             "example": "{"
           }
         },
-        "required": ["id", "order"]
+        "required": [
+          "id",
+          "order"
+        ]
       },
       "ResumeSectionResponseDto": {
         "type": "object",
@@ -6069,7 +6653,12 @@
             }
           }
         },
-        "required": ["id", "order", "sectionType", "items"]
+        "required": [
+          "id",
+          "order",
+          "sectionType",
+          "items"
+        ]
       },
       "ResumeSectionTypeResponseDto": {
         "type": "object",
@@ -6095,7 +6684,10 @@
             "example": "1"
           }
         },
-        "required": ["id", "key"]
+        "required": [
+          "id",
+          "key"
+        ]
       },
       "ResumeSkillDataDto": {
         "type": "object",
@@ -6104,7 +6696,9 @@
             "$ref": "#/components/schemas/ResumeSkillResponseDto"
           }
         },
-        "required": ["skill"]
+        "required": [
+          "skill"
+        ]
       },
       "ResumeSkillListDataDto": {
         "type": "object",
@@ -6116,7 +6710,9 @@
             }
           }
         },
-        "required": ["skills"]
+        "required": [
+          "skills"
+        ]
       },
       "ResumeSkillResponseDto": {
         "type": "object",
@@ -6146,7 +6742,12 @@
             "example": "0"
           }
         },
-        "required": ["id", "resumeId", "name", "order"]
+        "required": [
+          "id",
+          "resumeId",
+          "name",
+          "order"
+        ]
       },
       "ResumeSlotsResponseDto": {
         "type": "object",
@@ -6164,7 +6765,11 @@
             "example": "2"
           }
         },
-        "required": ["used", "limit", "remaining"]
+        "required": [
+          "used",
+          "limit",
+          "remaining"
+        ]
       },
       "SaveProgressResponseDto": {
         "type": "object",
@@ -6185,7 +6790,11 @@
             "example": "["
           }
         },
-        "required": ["success", "currentStep", "completedSteps"]
+        "required": [
+          "success",
+          "currentStep",
+          "completedSteps"
+        ]
       },
       "SectionStylesDto": {
         "type": "object",
@@ -6200,7 +6809,11 @@
             "$ref": "#/components/schemas/ResolvedTypographyDto"
           }
         },
-        "required": ["container", "title", "content"]
+        "required": [
+          "container",
+          "title",
+          "content"
+        ]
       },
       "SectionTypeResponseDto": {
         "type": "object",
@@ -6211,7 +6824,9 @@
             "description": "Available resume section types"
           }
         },
-        "required": ["type"]
+        "required": [
+          "type"
+        ]
       },
       "SectionTypesDataDto": {
         "type": "object",
@@ -6223,7 +6838,9 @@
             }
           }
         },
-        "required": ["types"]
+        "required": [
+          "types"
+        ]
       },
       "SharedResumesListDataDto": {
         "type": "object",
@@ -6241,7 +6858,12 @@
             "type": "string"
           }
         },
-        "required": ["sharedResumes", "role", "invitedAt", "id"]
+        "required": [
+          "sharedResumes",
+          "role",
+          "invitedAt",
+          "id"
+        ]
       },
       "SkillItemDto": {
         "type": "object",
@@ -6262,7 +6884,10 @@
             "type": "string"
           }
         },
-        "required": ["id", "name"]
+        "required": [
+          "id",
+          "name"
+        ]
       },
       "SkillsSectionDataDto": {
         "type": "object",
@@ -6278,7 +6903,10 @@
             }
           }
         },
-        "required": ["type", "items"]
+        "required": [
+          "type",
+          "items"
+        ]
       },
       "SummarySectionDataDto": {
         "type": "object",
@@ -6291,7 +6919,10 @@
             "type": "string"
           }
         },
-        "required": ["type", "content"]
+        "required": [
+          "type",
+          "content"
+        ]
       },
       "TechAreaDto": {
         "type": "object",
@@ -6314,7 +6945,11 @@
             }
           }
         },
-        "required": ["id", "name", "niches"]
+        "required": [
+          "id",
+          "name",
+          "niches"
+        ]
       },
       "TechAreaListDataDto": {
         "type": "object",
@@ -6326,7 +6961,9 @@
             }
           }
         },
-        "required": ["areas"]
+        "required": [
+          "areas"
+        ]
       },
       "TechNicheDto": {
         "type": "object",
@@ -6353,7 +6990,11 @@
             }
           }
         },
-        "required": ["id", "name", "skills"]
+        "required": [
+          "id",
+          "name",
+          "skills"
+        ]
       },
       "TechNicheListDataDto": {
         "type": "object",
@@ -6365,7 +7006,9 @@
             }
           }
         },
-        "required": ["niches"]
+        "required": [
+          "niches"
+        ]
       },
       "TechSkillDto": {
         "type": "object",
@@ -6395,7 +7038,10 @@
             "example": "#3178c6"
           }
         },
-        "required": ["id", "name"]
+        "required": [
+          "id",
+          "name"
+        ]
       },
       "TechSkillListDataDto": {
         "type": "object",
@@ -6407,7 +7053,9 @@
             }
           }
         },
-        "required": ["skills"]
+        "required": [
+          "skills"
+        ]
       },
       "ThemeApplyDataDto": {
         "type": "object",
@@ -6417,7 +7065,9 @@
             "example": "true"
           }
         },
-        "required": ["success"]
+        "required": [
+          "success"
+        ]
       },
       "ThemeEntityDataDto": {
         "type": "object",
@@ -6426,7 +7076,9 @@
             "type": "string"
           }
         },
-        "required": ["theme"]
+        "required": [
+          "theme"
+        ]
       },
       "ThemeListDataDto": {
         "type": "object",
@@ -6438,7 +7090,9 @@
             }
           }
         },
-        "required": ["themes"]
+        "required": [
+          "themes"
+        ]
       },
       "ThemeNullableEntityDataDto": {
         "type": "object",
@@ -6448,7 +7102,9 @@
             "nullable": true
           }
         },
-        "required": ["theme"]
+        "required": [
+          "theme"
+        ]
       },
       "ThemePaginatedListDataDto": {
         "type": "object",
@@ -6463,7 +7119,10 @@
             "$ref": "#/components/schemas/ThemePaginationDataDto"
           }
         },
-        "required": ["themes", "pagination"]
+        "required": [
+          "themes",
+          "pagination"
+        ]
       },
       "ThemePaginationDataDto": {
         "type": "object",
@@ -6485,7 +7144,12 @@
             "example": "5"
           }
         },
-        "required": ["total", "page", "limit", "totalPages"]
+        "required": [
+          "total",
+          "page",
+          "limit",
+          "totalPages"
+        ]
       },
       "ThemeResolvedConfigDataDto": {
         "type": "object",
@@ -6495,7 +7159,9 @@
             "nullable": true
           }
         },
-        "required": ["config"]
+        "required": [
+          "config"
+        ]
       },
       "TranslationResultDto": {
         "type": "object",
@@ -6515,7 +7181,12 @@
             "example": "pt"
           }
         },
-        "required": ["original", "translated", "sourceLanguage", "targetLanguage"]
+        "required": [
+          "original",
+          "translated",
+          "sourceLanguage",
+          "targetLanguage"
+        ]
       },
       "UnreadCountDataDto": {
         "type": "object",
@@ -6529,7 +7200,10 @@
             "description": "Unread count by conversation ID"
           }
         },
-        "required": ["totalUnread", "byConversation"]
+        "required": [
+          "totalUnread",
+          "byConversation"
+        ]
       },
       "UpdateUsernameResponseDto": {
         "type": "object",
@@ -6549,7 +7223,11 @@
             "description": "The updated username"
           }
         },
-        "required": ["success", "message", "username"]
+        "required": [
+          "success",
+          "message",
+          "username"
+        ]
       },
       "UploadResponseDto": {
         "type": "object",
@@ -6563,7 +7241,10 @@
             "example": "profiles/userId/uuid.jpg"
           }
         },
-        "required": ["url", "key"]
+        "required": [
+          "url",
+          "key"
+        ]
       },
       "UserDetailsDataDto": {
         "type": "object",
@@ -6572,7 +7253,9 @@
             "type": "string"
           }
         },
-        "required": ["user"]
+        "required": [
+          "user"
+        ]
       },
       "UserFullPreferencesDataDto": {
         "type": "object",
@@ -6581,7 +7264,9 @@
             "type": "string"
           }
         },
-        "required": ["preferences"]
+        "required": [
+          "preferences"
+        ]
       },
       "UserFullPreferencesResponseDto": {
         "type": "object",
@@ -6617,7 +7302,10 @@
             "$ref": "#/components/schemas/PaginationMetaDto"
           }
         },
-        "required": ["users", "pagination"]
+        "required": [
+          "users",
+          "pagination"
+        ]
       },
       "UserMutationDataDto": {
         "type": "object",
@@ -6629,7 +7317,10 @@
             "type": "string"
           }
         },
-        "required": ["user", "message"]
+        "required": [
+          "user",
+          "message"
+        ]
       },
       "UserOperationMessageDataDto": {
         "type": "object",
@@ -6638,7 +7329,9 @@
             "type": "string"
           }
         },
-        "required": ["message"]
+        "required": [
+          "message"
+        ]
       },
       "UserPreferencesDataDto": {
         "type": "object",
@@ -6647,7 +7340,9 @@
             "type": "string"
           }
         },
-        "required": ["preferences"]
+        "required": [
+          "preferences"
+        ]
       },
       "UserPreferencesResponseDto": {
         "type": "object",
@@ -6676,7 +7371,9 @@
             "type": "string"
           }
         },
-        "required": ["profile"]
+        "required": [
+          "profile"
+        ]
       },
       "UserProfileResponseDto": {
         "type": "object",
@@ -6735,7 +7432,12 @@
             "example": "2024-01-01T00:00:00.000Z"
           }
         },
-        "required": ["id", "email", "createdAt", "updatedAt"]
+        "required": [
+          "id",
+          "email",
+          "createdAt",
+          "updatedAt"
+        ]
       },
       "UserRoleResponseDto": {
         "type": "object",
@@ -6746,7 +7448,9 @@
             "description": "Available user roles"
           }
         },
-        "required": ["role"]
+        "required": [
+          "role"
+        ]
       },
       "UserRolesDataDto": {
         "type": "object",
@@ -6758,7 +7462,9 @@
             }
           }
         },
-        "required": ["roles"]
+        "required": [
+          "roles"
+        ]
       },
       "UsernameAvailabilityDataDto": {
         "type": "object",
@@ -6772,7 +7478,10 @@
             "example": "true"
           }
         },
-        "required": ["username", "available"]
+        "required": [
+          "username",
+          "available"
+        ]
       },
       "UsernameAvailabilityResponseDto": {
         "type": "object",
@@ -6786,7 +7495,10 @@
             "example": "true"
           }
         },
-        "required": ["username", "available"]
+        "required": [
+          "username",
+          "available"
+        ]
       },
       "UsernameUpdateDataDto": {
         "type": "object",
@@ -6800,7 +7512,10 @@
             "type": "string"
           }
         },
-        "required": ["username", "message"]
+        "required": [
+          "username",
+          "message"
+        ]
       },
       "UsernameValidationErrorDto": {
         "type": "object",
@@ -6826,7 +7541,10 @@
             "description": "Human-readable error message"
           }
         },
-        "required": ["code", "message"]
+        "required": [
+          "code",
+          "message"
+        ]
       },
       "ValidateUsernameResponseDto": {
         "type": "object",
@@ -6855,7 +7573,11 @@
             "description": "List of validation errors (empty if valid)"
           }
         },
-        "required": ["username", "valid", "errors"]
+        "required": [
+          "username",
+          "valid",
+          "errors"
+        ]
       },
       "ValidationResponseDto": {
         "type": "object",
@@ -6949,7 +7671,12 @@
             "type": "string"
           }
         },
-        "required": ["id", "organization", "role", "dateRange"]
+        "required": [
+          "id",
+          "organization",
+          "role",
+          "dateRange"
+        ]
       },
       "VolunteerSectionDataDto": {
         "type": "object",
@@ -6965,7 +7692,10 @@
             }
           }
         },
-        "required": ["type", "items"]
+        "required": [
+          "type",
+          "items"
+        ]
       }
     }
   }

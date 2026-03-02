@@ -82,8 +82,10 @@ jobs:
               with:
                   bun-version: 1.2.23
 
-            - name: Cache Dependencies
-              uses: actions/cache@v4
+            # Restore cached dependencies (shared with ci.yml setup job)
+            - name: Restore Dependencies Cache
+              id: cache-deps
+              uses: actions/cache/restore@v4
               with:
                   path: |
                       node_modules
@@ -92,14 +94,26 @@ jobs:
                   restore-keys: deps-${{ runner.os }}-
 
             - name: Configure npm registry
+              if: steps.cache-deps.outputs.cache-hit != 'true'
               run: |
                   echo "@octopus-synapse:registry=https://npm.pkg.github.com" >> .npmrc
                   echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> .npmrc
 
             - name: Install Dependencies
+              if: steps.cache-deps.outputs.cache-hit != 'true'
               run: bun install --frozen-lockfile
 
+            # Restore cached Prisma Client
+            - name: Restore Prisma Cache
+              id: cache-prisma
+              uses: actions/cache/restore@v4
+              with:
+                  path: node_modules/.prisma
+                  key: prisma-${{ hashFiles('prisma/schema/**/*.prisma') }}
+                  restore-keys: prisma-
+
             - name: Generate Prisma Client
+              if: steps.cache-prisma.outputs.cache-hit != 'true'
               run: bunx prisma generate
 
             - name: Setup Database

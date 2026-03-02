@@ -29,7 +29,18 @@ jobs:
         with:
           bun-version: latest
 
+      - name: Restore Dependencies Cache
+        id: cache-deps
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            node_modules
+            ~/.bun/install/cache
+          key: deps-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
+          restore-keys: deps-${{ runner.os }}-
+
       - name: Install dependencies
+        if: steps.cache-deps.outputs.cache-hit != 'true'
         run: bun install --frozen-lockfile
 
       - name: Install Chrome dependencies
