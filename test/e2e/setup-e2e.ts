@@ -45,7 +45,6 @@ export async function createE2ETestApp(): Promise<{
   app.setGlobalPrefix('api');
 
   // Validation is handled by ZodValidationPipe at controller level
-  // No global ValidationPipe needed (avoids class-validator dependency)
 
   await app.init();
 

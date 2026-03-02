@@ -1,4 +1,4 @@
-import type { SectionData } from './shared';
+import type { SectionData } from '@/shared-kernel/ast/section-data.schema';
 
 const EMPTY_SECTIONS: Record<string, SectionData> = {
   experience: { type: 'experience', items: [] },

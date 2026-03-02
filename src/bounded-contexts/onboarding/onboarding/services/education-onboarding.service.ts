@@ -4,18 +4,23 @@ import { toUTCDate } from '@/bounded-contexts/platform/common/utils/date.utils';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { OnboardingData } from '../schemas/onboarding.schema';
 import { BaseOnboardingService } from './base-onboarding.service';
+import { ResumeSectionOnboardingService } from './resume-section-onboarding.service';
 
 type EducationInput = OnboardingData['education'][number];
-type EducationCreate = Prisma.EducationCreateManyInput;
+type EducationContent = Prisma.InputJsonValue;
 
 @Injectable()
 export class EducationOnboardingService extends BaseOnboardingService<
   EducationInput,
-  EducationCreate
+  EducationContent
 > {
+  private static readonly SECTION_TYPE_KEY = 'education_v1';
   protected readonly logger = new Logger(EducationOnboardingService.name);
 
-  constructor(private readonly prisma: PrismaService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly resumeSectionService: ResumeSectionOnboardingService,
+  ) {
     super();
   }
 
@@ -40,16 +45,20 @@ export class EducationOnboardingService extends BaseOnboardingService<
   }
 
   protected async deleteExisting(tx: Prisma.TransactionClient, resumeId: string): Promise<void> {
-    await tx.education.deleteMany({ where: { resumeId } });
+    await this.resumeSectionService.replaceSectionItems(tx, {
+      resumeId,
+      sectionTypeKey: EducationOnboardingService.SECTION_TYPE_KEY,
+      items: [],
+    });
   }
 
-  protected transformItems(items: EducationInput[], resumeId: string): EducationCreate[] {
+  protected transformItems(items: EducationInput[], _resumeId: string): EducationContent[] {
     return items
-      .map((edu) => this.mapEducation(edu, resumeId))
-      .filter((e): e is EducationCreate => e !== null);
+      .map((edu) => this.mapEducation(edu))
+      .filter((e): e is EducationContent => e !== null);
   }
 
-  private mapEducation(edu: EducationInput, resumeId: string): EducationCreate | null {
+  private mapEducation(edu: EducationInput): EducationContent | null {
     const startDate = toUTCDate(edu.startDate);
     const endDate = edu.isCurrent ? null : toUTCDate(edu.endDate);
 
@@ -64,21 +73,25 @@ export class EducationOnboardingService extends BaseOnboardingService<
     }
 
     return {
-      resumeId,
       institution: edu.institution,
       degree: edu.degree,
       field: edu.field,
-      startDate,
-      endDate,
+      startDate: startDate ? startDate.toISOString() : null,
+      endDate: endDate ? endDate.toISOString() : null,
       isCurrent: edu.isCurrent,
     };
   }
 
   protected async createMany(
     tx: Prisma.TransactionClient,
-    items: EducationCreate[],
+    items: EducationContent[],
+    resumeId: string,
   ): Promise<void> {
-    await tx.education.createMany({ data: items });
+    await this.resumeSectionService.replaceSectionItems(tx, {
+      resumeId,
+      sectionTypeKey: EducationOnboardingService.SECTION_TYPE_KEY,
+      items,
+    });
   }
 
   protected getSuccessMessage(count: number): string {

@@ -10,6 +10,8 @@ import { ALLOW_UNVERIFIED_EMAIL_KEY } from '../decorators/allow-unverified-email
  * to allow @AllowUnverifiedEmail() decorator on specific endpoints.
  *
  * This guard should run AFTER JwtAuthGuard in the guard chain.
+ *
+ * Can be disabled via SKIP_EMAIL_VERIFICATION=true for E2E tests.
  */
 @Injectable()
 export class EmailVerifiedGuard implements CanActivate {
@@ -41,8 +43,13 @@ export class EmailVerifiedGuard implements CanActivate {
     const user = request.user;
 
     if (!user) {
-      // No user means JwtAuthGuard didn't run or failed
-      return true; // Let JwtAuthGuard handle this
+      // No user means JwtAuthGuard didn't run or failed - let JwtAuthGuard handle auth
+      return true;
+    }
+
+    // Skip email verification in E2E test environment (user must still be authenticated)
+    if (process.env.SKIP_EMAIL_VERIFICATION === 'true') {
+      return true;
     }
 
     // Enforce email verification

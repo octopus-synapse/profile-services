@@ -7,6 +7,7 @@ import { ExperienceOnboardingService } from './services/experience-onboarding.se
 import { LanguagesOnboardingService } from './services/languages-onboarding.service';
 import { OnboardingProgressService } from './services/onboarding-progress.service';
 import { ResumeOnboardingService } from './services/resume-onboarding.service';
+import { ResumeSectionOnboardingService } from './services/resume-section-onboarding.service';
 import { SkillsOnboardingService } from './services/skills-onboarding.service';
 
 @Module({
@@ -14,6 +15,7 @@ import { SkillsOnboardingService } from './services/skills-onboarding.service';
   controllers: [OnboardingController],
   providers: [
     ResumeOnboardingService,
+    ResumeSectionOnboardingService,
     SkillsOnboardingService,
     ExperienceOnboardingService,
     EducationOnboardingService,

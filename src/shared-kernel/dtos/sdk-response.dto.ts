@@ -345,15 +345,51 @@ export class SkillResponseDto {
   order!: number;
 }
 
+export class ResumeSectionTypeResponseDto {
+  @ApiProperty({ example: 'section-type-1' })
+  id!: string;
+
+  @ApiProperty({ example: 'work_experience_v1' })
+  key!: string;
+
+  @ApiPropertyOptional({ example: 'WORK_EXPERIENCE' })
+  semanticKind?: string;
+
+  @ApiPropertyOptional({ example: 'Experience' })
+  title?: string;
+
+  @ApiPropertyOptional({ example: 1 })
+  version?: number;
+}
+
+export class ResumeSectionItemResponseDto {
+  @ApiProperty({ example: 'section-item-1' })
+  id!: string;
+
+  @ApiProperty({ example: 0 })
+  order!: number;
+
+  @ApiPropertyOptional({ example: { company: 'Acme', role: 'Engineer' } })
+  content?: Record<string, unknown>;
+}
+
+export class ResumeSectionResponseDto {
+  @ApiProperty({ example: 'resume-section-1' })
+  id!: string;
+
+  @ApiProperty({ example: 0 })
+  order!: number;
+
+  @ApiProperty({ type: ResumeSectionTypeResponseDto })
+  sectionType!: ResumeSectionTypeResponseDto;
+
+  @ApiProperty({ type: [ResumeSectionItemResponseDto] })
+  items!: ResumeSectionItemResponseDto[];
+}
+
 export class ResumeFullResponseDto extends ResumeResponseDto {
-  @ApiProperty({ type: [ExperienceResponseDto] })
-  experiences!: ExperienceResponseDto[];
-
-  @ApiProperty({ type: [EducationResponseDto] })
-  educations!: EducationResponseDto[];
-
-  @ApiProperty({ type: [SkillResponseDto] })
-  skills!: SkillResponseDto[];
+  @ApiProperty({ type: [ResumeSectionResponseDto] })
+  resumeSections!: ResumeSectionResponseDto[];
 
   @ApiPropertyOptional({ example: 'John Doe' })
   fullName?: string;
@@ -735,29 +771,78 @@ export class OnboardingProgressResponseDto {
 // CONSENT RESPONSE DTOs
 // ============================================================================
 
-export class ConsentResponseDto {
-  @ApiProperty({ example: 'clxxx...' })
+export class ConsentRecordDto {
+  @ApiProperty({ example: 'consent-123' })
   id!: string;
 
-  @ApiProperty({ example: 'TERMS_OF_SERVICE' })
-  type!: string;
+  @ApiProperty({ example: 'user-456' })
+  userId!: string;
 
-  @ApiProperty({ example: '1.0' })
+  @ApiProperty({
+    example: 'TERMS_OF_SERVICE',
+    enum: ['TERMS_OF_SERVICE', 'PRIVACY_POLICY', 'MARKETING_CONSENT'],
+  })
+  documentType!: string;
+
+  @ApiProperty({ example: '1.0.0' })
   version!: string;
 
-  @ApiProperty({ example: true })
-  accepted!: boolean;
-
-  @ApiProperty({ example: '2024-01-01T00:00:00.000Z' })
+  @ApiProperty({ example: '2026-01-09T19:15:00.000Z' })
   acceptedAt!: string;
+
+  @ApiProperty({ example: '192.168.1.1' })
+  ipAddress!: string;
+
+  @ApiProperty({ example: 'Mozilla/5.0...' })
+  userAgent!: string;
 }
 
-export class ConsentHistoryResponseDto extends ConsentResponseDto {
-  @ApiPropertyOptional({ example: '192.168.1.1' })
-  ipAddress?: string;
+export class AcceptConsentResponseDto {
+  @ApiProperty({ example: 'Terms of Service accepted successfully' })
+  message!: string;
 
-  @ApiPropertyOptional({ example: 'Mozilla/5.0...' })
-  userAgent?: string;
+  @ApiProperty({ type: ConsentRecordDto })
+  consent!: ConsentRecordDto;
+}
+
+export class ConsentHistoryResponseDto {
+  @ApiProperty({ example: 'consent-1' })
+  id!: string;
+
+  @ApiProperty({
+    example: 'TERMS_OF_SERVICE',
+    enum: ['TERMS_OF_SERVICE', 'PRIVACY_POLICY', 'MARKETING_CONSENT'],
+  })
+  documentType!: string;
+
+  @ApiProperty({ example: '1.0.0' })
+  version!: string;
+
+  @ApiProperty({ example: '2026-01-09T10:00:00.000Z' })
+  acceptedAt!: string;
+
+  @ApiProperty({ example: '192.168.1.1' })
+  ipAddress!: string;
+
+  @ApiProperty({ example: 'Mozilla/5.0...' })
+  userAgent!: string;
+}
+
+export class ConsentStatusResponseDto {
+  @ApiProperty({ example: true })
+  tosAccepted!: boolean;
+
+  @ApiProperty({ example: true })
+  privacyPolicyAccepted!: boolean;
+
+  @ApiProperty({ example: false })
+  marketingConsentAccepted!: boolean;
+
+  @ApiProperty({ example: '1.0.0' })
+  latestTosVersion!: string;
+
+  @ApiProperty({ example: '1.0.0' })
+  latestPrivacyPolicyVersion!: string;
 }
 
 // ============================================================================

@@ -4,12 +4,14 @@
  */
 
 import { Body, Controller, HttpCode, HttpStatus, Post, Req } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
 import type { Request } from 'express';
 import { AuthService } from '@/bounded-contexts/identity/auth/auth.service';
+import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
-import type { RequestVerification, EmailVerification as VerifyEmail } from '@/shared-kernel';
+import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
+import type { EmailVerification, RequestVerification } from '@/shared-kernel';
 import { RATE_LIMIT_CONFIG } from '@/shared-kernel';
 import { MessageResponseDto } from '@/shared-kernel/dtos/sdk-response.dto';
 import { AllowUnverifiedEmail } from '../decorators/allow-unverified-email.decorator';
@@ -28,25 +30,27 @@ export class AuthVerificationController {
   @Throttle({ default: { ttl: RATE_LIMIT_CONFIG.TTL_MS, limit: 3 } })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Request email verification' })
-  @ApiResponse({ status: 201, type: MessageResponseDto })
-  @ApiResponse({ status: 200, description: 'Verification email sent' })
-  @ApiResponse({ status: 429, description: 'Too many requests' })
+  @ApiDataResponse(MessageResponseDto, {
+    description: 'Verification email sent',
+  })
   async requestEmailVerification(
     @Body() dto: RequestVerification,
     @Req() req: Request & { user?: { userId: string } },
-  ) {
+  ): Promise<DataResponse<MessageResponseDto>> {
     const userId = req.user?.userId;
-    return this.authService.requestEmailVerification(dto, userId);
+    const result = await this.authService.requestEmailVerification(dto, userId);
+    return { success: true, data: result };
   }
 
   @Public()
   @Post('verify-email')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Verify email with token' })
-  @ApiResponse({ status: 201, type: MessageResponseDto })
-  @ApiResponse({ status: 200, description: 'Email verified successfully' })
-  @ApiResponse({ status: 400, description: 'Invalid or expired token' })
-  async verifyEmail(@Body() dto: VerifyEmail) {
-    return this.authService.verifyEmail(dto);
+  @ApiDataResponse(MessageResponseDto, {
+    description: 'Email verified successfully',
+  })
+  async verifyEmail(@Body() dto: EmailVerification): Promise<DataResponse<MessageResponseDto>> {
+    const result = await this.authService.verifyEmail(dto);
+    return { success: true, data: result };
   }
 }

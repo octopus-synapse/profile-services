@@ -8,8 +8,10 @@
  */
 
 import { Controller, Delete, Get, Header, Req, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger';
+import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { SkipTosCheck } from '../decorators/skip-tos-check.decorator';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { GdprDeletionService } from '../services/gdpr-deletion.service';
@@ -19,6 +21,63 @@ interface RequestWithUser {
   user: { userId: string; email: string };
   ip?: string;
   headers: { [key: string]: string | string[] | undefined };
+}
+
+class GdprExportResponseDto {
+  @ApiProperty({ format: 'date-time' })
+  exportedAt!: string;
+
+  @ApiProperty()
+  dataRetentionPolicy!: string;
+
+  @ApiProperty({ description: 'User data' })
+  user!: Record<string, string | number | boolean | null>;
+
+  @ApiProperty({ description: 'User consents' })
+  consents!: Record<string, string | number | boolean>[];
+
+  @ApiProperty({ description: 'User resumes' })
+  resumes!: Record<string, string | number | boolean>[];
+
+  @ApiProperty({ description: 'Audit logs' })
+  auditLogs!: Record<string, string | number | boolean>[];
+}
+
+class DeletedEntitiesDto {
+  @ApiProperty()
+  user!: boolean;
+
+  @ApiProperty()
+  resumes!: number;
+
+  @ApiProperty()
+  resumeSections!: number;
+
+  @ApiProperty()
+  sectionItems!: number;
+
+  @ApiProperty()
+  consents!: number;
+
+  @ApiProperty()
+  auditLogs!: number;
+
+  @ApiProperty()
+  resumeVersions!: number;
+
+  @ApiProperty()
+  resumeShares!: number;
+}
+
+class GdprDeletionResponseDto {
+  @ApiProperty()
+  success!: boolean;
+
+  @ApiProperty({ type: DeletedEntitiesDto })
+  deletedEntities!: DeletedEntitiesDto;
+
+  @ApiProperty({ format: 'date-time' })
+  deletedAt!: string;
 }
 
 @SdkExport({ tag: 'gdpr', description: 'Gdpr API' })
@@ -40,27 +99,10 @@ export class GdprController {
     description:
       'Downloads all user data in machine-readable JSON format as required by GDPR Article 20.',
   })
-  @ApiResponse({
-    status: 200,
+  @ApiDataResponse(GdprExportResponseDto, {
     description: 'User data exported successfully',
-    content: {
-      'application/json': {
-        schema: {
-          type: 'object',
-          properties: {
-            exportedAt: { type: 'string', format: 'date-time' },
-            dataRetentionPolicy: { type: 'string' },
-            user: { type: 'object' },
-            consents: { type: 'array' },
-            resumes: { type: 'array' },
-            auditLogs: { type: 'array' },
-          },
-        },
-      },
-    },
   })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async exportUserData(@Req() req: RequestWithUser) {
+  async exportUserData(@Req() req: RequestWithUser): Promise<DataResponse<GdprExportResponseDto>> {
     const userId = req.user.userId;
     const data = await this.exportService.exportUserData(
       userId,
@@ -70,7 +112,7 @@ export class GdprController {
     // Log the download
     await this.exportService.logExportDownload(userId, req as unknown as import('express').Request);
 
-    return data;
+    return { success: true, data: data as unknown as GdprExportResponseDto };
   }
 
   @Delete('account')
@@ -80,40 +122,15 @@ export class GdprController {
     description:
       'Permanently deletes the user account and all associated data as required by GDPR Article 17. This action is irreversible.',
   })
-  @ApiResponse({
-    status: 200,
+  @ApiDataResponse(GdprDeletionResponseDto, {
     description: 'Account deleted successfully',
-    schema: {
-      type: 'object',
-      properties: {
-        success: { type: 'boolean' },
-        deletedEntities: {
-          type: 'object',
-          properties: {
-            user: { type: 'boolean' },
-            resumes: { type: 'number' },
-            experiences: { type: 'number' },
-            educations: { type: 'number' },
-            skills: { type: 'number' },
-            projects: { type: 'number' },
-            certifications: { type: 'number' },
-            languages: { type: 'number' },
-            githubContributions: { type: 'number' },
-            consents: { type: 'number' },
-            auditLogs: { type: 'number' },
-          },
-        },
-        deletedAt: { type: 'string', format: 'date-time' },
-      },
-    },
   })
-  @ApiResponse({ status: 400, description: 'Cannot delete last admin account' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async deleteAccount(@Req() req: RequestWithUser) {
+  async deleteAccount(@Req() req: RequestWithUser): Promise<DataResponse<GdprDeletionResponseDto>> {
     const userId = req.user.userId;
-    return this.deletionService.requestSelfDeletion(
+    const result = await this.deletionService.requestSelfDeletion(
       userId,
       req as unknown as import('express').Request,
     );
+    return { success: true, data: result };
   }
 }

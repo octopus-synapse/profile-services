@@ -7,6 +7,9 @@
 # 2. Type check
 # 3. Fast lint
 # 4. Unit tests
+# 5. Integration tests
+# 6. Architecture tests
+# 7. Contract tests (includes Swagger coverage policy validation)
 #
 # CI will run additional checks:
 # - Full ESLint with type-aware rules
@@ -31,13 +34,21 @@ bun run typecheck || exit 1
 echo "  -> Lint & auto-fix (biome)..."
 bun run lint || exit 1
 
-# 3. Swagger documentation validation
-echo "  -> Validating Swagger documentation..."
-bun test ./tests/swagger-generation.test.ts || exit 1
-
-# 4. Unit tests
+# 3. Unit tests
 echo "  -> Running tests..."
 bun test || exit 1
+
+# 4. Integration tests
+echo "  -> Running integration tests..."
+bun test ./test/integration || exit 1
+
+# 5. Architecture tests
+echo "  -> Running architecture tests..."
+bun test ./test/architecture || exit 1
+
+# 6. Contract tests (MUST be last)
+echo "  -> Running contract tests..."
+bun test ./test/contracts || exit 1
 
 echo ""
 echo "Pre-commit passed!"

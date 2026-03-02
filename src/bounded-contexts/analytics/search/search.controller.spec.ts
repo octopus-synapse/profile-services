@@ -63,7 +63,8 @@ describe('SearchController', () => {
       const result = await controller.search('developer');
 
       expect(result).toBeDefined();
-      expect(result.data).toHaveLength(1);
+      expect(result.success).toBe(true);
+      expect(result.data.data).toHaveLength(1);
       expect(mockSearchService.search).toHaveBeenCalled();
     });
 
@@ -102,7 +103,8 @@ describe('SearchController', () => {
       const result = await controller.suggestions('dev');
 
       expect(result).toBeDefined();
-      expect(result.suggestions).toBeDefined();
+      expect(result.success).toBe(true);
+      expect(result.data.suggestions).toBeDefined();
       expect(mockSearchService.suggest).toHaveBeenCalledWith('dev', 10);
     });
 
@@ -118,7 +120,8 @@ describe('SearchController', () => {
       const result = await controller.similar('resume-1');
 
       expect(result).toBeDefined();
-      expect(result.resumes).toBeDefined();
+      expect(result.success).toBe(true);
+      expect(result.data.resumes).toBeDefined();
       expect(mockSearchService.findSimilar).toHaveBeenCalledWith('resume-1', 5);
     });
 

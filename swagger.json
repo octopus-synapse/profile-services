@@ -133,9 +133,7 @@
     "/api/api/v1/export/{resumeId}/json": {
       "get": {
         "operationId": "export_exportJson",
-        "tags": [
-          "export"
-        ],
+        "tags": ["export"],
         "summary": "Export resume as JSON",
         "security": [
           {
@@ -154,14 +152,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Export resume as JSON",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ExportResultDto"
-                }
-              }
-            }
+            "description": "Export resume as JSON"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -172,9 +163,7 @@
     "/api/api/v1/export/{resumeId}/latex": {
       "get": {
         "operationId": "export_exportLatex",
-        "tags": [
-          "export"
-        ],
+        "tags": ["export"],
         "summary": "Export resume as LaTeX",
         "security": [
           {
@@ -193,14 +182,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Export resume as LaTeX",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ExportResultDto"
-                }
-              }
-            }
+            "description": "Export resume as LaTeX"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -211,9 +193,7 @@
     "/api/chat/blocked": {
       "get": {
         "operationId": "chat---block-users_getBlockedUsers",
-        "tags": [
-          "chat---block-users"
-        ],
+        "tags": ["chat---block-users"],
         "summary": "Get all blocked users",
         "security": [
           {
@@ -231,9 +211,7 @@
       },
       "post": {
         "operationId": "chat---block-users_blockUser",
-        "tags": [
-          "chat---block-users"
-        ],
+        "tags": ["chat---block-users"],
         "summary": "Block a user",
         "security": [
           {
@@ -242,14 +220,7 @@
         ],
         "responses": {
           "201": {
-            "description": "Block a user",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BlockUserResponseDto"
-                }
-              }
-            }
+            "description": "Block a user"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -260,9 +231,7 @@
     "/api/chat/blocked/{userId}": {
       "delete": {
         "operationId": "chat---block-users_unblockUser",
-        "tags": [
-          "chat---block-users"
-        ],
+        "tags": ["chat---block-users"],
         "summary": "Unblock a user",
         "security": [
           {
@@ -280,15 +249,8 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "Unblock a user",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DeleteResponseDto"
-                }
-              }
-            }
+          "204": {
+            "description": "Unblock a user"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -299,9 +261,7 @@
     "/api/chat/blocked/{userId}/status": {
       "get": {
         "operationId": "chat---block-users_isBlocked",
-        "tags": [
-          "chat---block-users"
-        ],
+        "tags": ["chat---block-users"],
         "summary": "Check if a user is blocked",
         "security": [
           {
@@ -320,14 +280,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Check if a user is blocked",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/IsBlockedResponseDto"
-                }
-              }
-            }
+            "description": "Check if a user is blocked"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -338,9 +291,7 @@
     "/api/chat/conversation-with/{userId}": {
       "get": {
         "operationId": "chat_getConversationWith",
-        "tags": [
-          "chat"
-        ],
+        "tags": ["chat"],
         "summary": "Get or create conversation with a user",
         "security": [
           {
@@ -359,14 +310,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Get or create conversation with a user",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ConversationDetailResponseDto"
-                }
-              }
-            }
+            "description": "Get or create conversation with a user"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -377,9 +321,7 @@
     "/api/chat/conversations": {
       "get": {
         "operationId": "chat_getConversations",
-        "tags": [
-          "chat"
-        ],
+        "tags": ["chat"],
         "summary": "Get all conversations for the current user",
         "security": [
           {
@@ -399,9 +341,7 @@
     "/api/chat/conversations/{conversationId}": {
       "get": {
         "operationId": "chat_getConversation",
-        "tags": [
-          "chat"
-        ],
+        "tags": ["chat"],
         "summary": "Get a single conversation",
         "security": [
           {
@@ -420,14 +360,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Get a single conversation",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ConversationDetailResponseDto"
-                }
-              }
-            }
+            "description": "Get a single conversation"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -438,9 +371,7 @@
     "/api/chat/conversations/{conversationId}/messages": {
       "get": {
         "operationId": "chat_getMessages",
-        "tags": [
-          "chat"
-        ],
+        "tags": ["chat"],
         "summary": "Get messages for a conversation",
         "security": [
           {
@@ -468,9 +399,7 @@
       },
       "post": {
         "operationId": "chat_sendMessageToConversation",
-        "tags": [
-          "chat"
-        ],
+        "tags": ["chat"],
         "summary": "Send a message to an existing conversation",
         "security": [
           {
@@ -489,14 +418,7 @@
         ],
         "responses": {
           "201": {
-            "description": "Send a message to an existing conversation",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ChatMessageResponseDto"
-                }
-              }
-            }
+            "description": "Send a message to an existing conversation"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -507,9 +429,7 @@
     "/api/chat/conversations/{conversationId}/read": {
       "post": {
         "operationId": "chat_markConversationAsRead",
-        "tags": [
-          "chat"
-        ],
+        "tags": ["chat"],
         "summary": "Mark all messages in a conversation as read",
         "security": [
           {
@@ -528,14 +448,7 @@
         ],
         "responses": {
           "201": {
-            "description": "Mark all messages in a conversation as read",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MarkAsReadResponseDto"
-                }
-              }
-            }
+            "description": "Mark all messages in a conversation as read"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -546,9 +459,7 @@
     "/api/chat/messages": {
       "post": {
         "operationId": "chat_sendMessage",
-        "tags": [
-          "chat"
-        ],
+        "tags": ["chat"],
         "summary": "Send a message to a user",
         "security": [
           {
@@ -557,14 +468,7 @@
         ],
         "responses": {
           "201": {
-            "description": "Send a message to a user",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ChatMessageResponseDto"
-                }
-              }
-            }
+            "description": "Send a message to a user"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -575,9 +479,7 @@
     "/api/chat/unread": {
       "get": {
         "operationId": "chat_getUnreadCount",
-        "tags": [
-          "chat"
-        ],
+        "tags": ["chat"],
         "summary": "Get unread message count",
         "security": [
           {
@@ -586,14 +488,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Get unread message count",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UnreadCountResponseDto"
-                }
-              }
-            }
+            "description": "Get unread message count"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -604,9 +499,7 @@
     "/api/resume-analytics/{resumeId}/ats-score": {
       "get": {
         "operationId": "resume-analytics_getATSScore",
-        "tags": [
-          "resume-analytics"
-        ],
+        "tags": ["resume-analytics"],
         "summary": "Calculate ATS compatibility score",
         "security": [
           {
@@ -636,9 +529,7 @@
     "/api/resume-analytics/{resumeId}/benchmark": {
       "get": {
         "operationId": "resume-analytics_getBenchmark",
-        "tags": [
-          "resume-analytics"
-        ],
+        "tags": ["resume-analytics"],
         "summary": "Get industry benchmark comparison",
         "security": [
           {
@@ -668,9 +559,7 @@
     "/api/resume-analytics/{resumeId}/dashboard": {
       "get": {
         "operationId": "resume-analytics_getDashboard",
-        "tags": [
-          "resume-analytics"
-        ],
+        "tags": ["resume-analytics"],
         "summary": "Get complete analytics dashboard",
         "security": [
           {
@@ -700,9 +589,7 @@
     "/api/resume-analytics/{resumeId}/history": {
       "get": {
         "operationId": "resume-analytics_getHistory",
-        "tags": [
-          "resume-analytics"
-        ],
+        "tags": ["resume-analytics"],
         "summary": "Get analytics history",
         "security": [
           {
@@ -732,9 +619,7 @@
     "/api/resume-analytics/{resumeId}/keywords": {
       "get": {
         "operationId": "resume-analytics_getKeywordSuggestions",
-        "tags": [
-          "resume-analytics"
-        ],
+        "tags": ["resume-analytics"],
         "summary": "Get keyword optimization suggestions",
         "security": [
           {
@@ -764,9 +649,7 @@
     "/api/resume-analytics/{resumeId}/match-job": {
       "post": {
         "operationId": "resume-analytics_matchJob",
-        "tags": [
-          "resume-analytics"
-        ],
+        "tags": ["resume-analytics"],
         "summary": "Match resume against job description",
         "security": [
           {
@@ -796,9 +679,7 @@
     "/api/resume-analytics/{resumeId}/progression": {
       "get": {
         "operationId": "resume-analytics_getProgression",
-        "tags": [
-          "resume-analytics"
-        ],
+        "tags": ["resume-analytics"],
         "summary": "Get score progression over time",
         "security": [
           {
@@ -828,9 +709,7 @@
     "/api/resume-analytics/{resumeId}/snapshot": {
       "post": {
         "operationId": "resume-analytics_createSnapshot",
-        "tags": [
-          "resume-analytics"
-        ],
+        "tags": ["resume-analytics"],
         "summary": "Save analytics snapshot for tracking progress",
         "security": [
           {
@@ -860,9 +739,7 @@
     "/api/resume-analytics/{resumeId}/track-view": {
       "post": {
         "operationId": "resume-analytics_trackView",
-        "tags": [
-          "resume-analytics"
-        ],
+        "tags": ["resume-analytics"],
         "summary": "Track resume view (public endpoint)",
         "security": [
           {
@@ -881,14 +758,7 @@
         ],
         "responses": {
           "201": {
-            "description": "Track resume view (public endpoint)",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TrackEventResponseDto"
-                }
-              }
-            }
+            "description": "Track resume view (public endpoint)"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -899,9 +769,7 @@
     "/api/resume-analytics/{resumeId}/views": {
       "get": {
         "operationId": "resume-analytics_getViewStats",
-        "tags": [
-          "resume-analytics"
-        ],
+        "tags": ["resume-analytics"],
         "summary": "Get view statistics",
         "security": [
           {
@@ -931,9 +799,7 @@
     "/api/resume-import": {
       "get": {
         "operationId": "resume-import_getHistory",
-        "tags": [
-          "resume-import"
-        ],
+        "tags": ["resume-import"],
         "summary": "Get import history",
         "description": "Returns all import jobs for authenticated user, ordered by creation date",
         "security": [
@@ -954,9 +820,7 @@
     "/api/resume-import/json": {
       "post": {
         "operationId": "resume-import_importJson",
-        "tags": [
-          "resume-import"
-        ],
+        "tags": ["resume-import"],
         "summary": "Import resume from JSON Resume format",
         "description": "Creates import job and processes JSON Resume data (jsonresume.org standard)",
         "security": [
@@ -976,14 +840,7 @@
         },
         "responses": {
           "201": {
-            "description": "Import resume from JSON Resume format",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ImportResultDto"
-                }
-              }
-            }
+            "description": "Import resume from JSON Resume format"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -994,9 +851,7 @@
     "/api/resume-import/parse": {
       "post": {
         "operationId": "resume-import_parseJson",
-        "tags": [
-          "resume-import"
-        ],
+        "tags": ["resume-import"],
         "summary": "Parse JSON Resume without importing",
         "description": "Validates and transforms JSON Resume to internal format without saving",
         "security": [
@@ -1015,15 +870,8 @@
           }
         },
         "responses": {
-          "200": {
-            "description": "Parse JSON Resume without importing",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ParsedResumeDataDto"
-                }
-              }
-            }
+          "201": {
+            "description": "Parse JSON Resume without importing"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -1034,9 +882,7 @@
     "/api/resume-import/{importId}": {
       "delete": {
         "operationId": "resume-import_cancel",
-        "tags": [
-          "resume-import"
-        ],
+        "tags": ["resume-import"],
         "summary": "Cancel import job",
         "description": "Cancels pending or processing import. Cannot cancel completed/failed imports.",
         "security": [
@@ -1065,9 +911,7 @@
       },
       "get": {
         "operationId": "resume-import_getStatus",
-        "tags": [
-          "resume-import"
-        ],
+        "tags": ["resume-import"],
         "summary": "Get import job status",
         "description": "Returns current status, errors, and result of import job",
         "security": [
@@ -1087,14 +931,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Get import job status",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ImportJobDto"
-                }
-              }
-            }
+            "description": "Get import job status"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -1105,9 +942,7 @@
     "/api/resume-import/{importId}/retry": {
       "post": {
         "operationId": "resume-import_retry",
-        "tags": [
-          "resume-import"
-        ],
+        "tags": ["resume-import"],
         "summary": "Retry failed import",
         "description": "Retries processing of failed import job with same data",
         "security": [
@@ -1126,15 +961,8 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "Retry failed import",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ImportResultDto"
-                }
-              }
-            }
+          "201": {
+            "description": "Retry failed import"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -1145,9 +973,7 @@
     "/api/resumes/shared-with-me": {
       "get": {
         "operationId": "collaboration_getSharedWithMe",
-        "tags": [
-          "collaboration"
-        ],
+        "tags": ["collaboration"],
         "summary": "Get resumes shared with current user",
         "security": [
           {
@@ -1167,9 +993,7 @@
     "/api/resumes/{resumeId}/collaborators": {
       "get": {
         "operationId": "collaboration_getCollaborators",
-        "tags": [
-          "collaboration"
-        ],
+        "tags": ["collaboration"],
         "summary": "Get collaborators for a resume",
         "security": [
           {
@@ -1197,9 +1021,7 @@
       },
       "post": {
         "operationId": "collaboration_invite",
-        "tags": [
-          "collaboration"
-        ],
+        "tags": ["collaboration"],
         "summary": "Invite user to collaborate on resume",
         "security": [
           {
@@ -1228,14 +1050,7 @@
         },
         "responses": {
           "201": {
-            "description": "Invite user to collaborate on resume",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CollaboratorResponseDto"
-                }
-              }
-            }
+            "description": "Invite user to collaborate on resume"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -1246,9 +1061,7 @@
     "/api/resumes/{resumeId}/collaborators/{userId}": {
       "delete": {
         "operationId": "collaboration_remove",
-        "tags": [
-          "collaboration"
-        ],
+        "tags": ["collaboration"],
         "summary": "Remove collaborator from resume",
         "security": [
           {
@@ -1274,15 +1087,8 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "Remove collaborator from resume",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DeleteResponseDto"
-                }
-              }
-            }
+          "204": {
+            "description": "Remove collaborator from resume"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -1291,9 +1097,7 @@
       },
       "patch": {
         "operationId": "collaboration_updateRole",
-        "tags": [
-          "collaboration"
-        ],
+        "tags": ["collaboration"],
         "summary": "Update collaborator role",
         "security": [
           {
@@ -1330,14 +1134,7 @@
         },
         "responses": {
           "200": {
-            "description": "Update collaborator role",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CollaboratorResponseDto"
-                }
-              }
-            }
+            "description": "Update collaborator role"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -1347,10 +1144,8 @@
     },
     "/api/users/me/account": {
       "delete": {
-        "operationId": "gdpr_deleteEndpoint",
-        "tags": [
-          "gdpr"
-        ],
+        "operationId": "gdpr_deleteAccount",
+        "tags": ["gdpr"],
         "summary": "Delete user account (GDPR Right to be Forgotten)",
         "description": "Permanently deletes the user account and all associated data as required by GDPR Article 17. This action is irreversible.",
         "security": [
@@ -1359,7 +1154,7 @@
           }
         ],
         "responses": {
-          "200": {
+          "204": {
             "description": "Delete user account (GDPR Right to be Forgotten)"
           },
           "401": {
@@ -1371,9 +1166,7 @@
     "/api/users/me/data-export": {
       "get": {
         "operationId": "gdpr_exportUserData",
-        "tags": [
-          "gdpr"
-        ],
+        "tags": ["gdpr"],
         "summary": "Export all user data (GDPR Right to Access)",
         "description": "Downloads all user data in machine-readable JSON format as required by GDPR Article 20.",
         "security": [
@@ -1394,9 +1187,7 @@
     "/api/v1/ats/validate": {
       "post": {
         "operationId": "ats-validation_postEndpoint",
-        "tags": [
-          "ats-validation"
-        ],
+        "tags": ["ats-validation"],
         "summary": "Validate CV for ATS compatibility",
         "description": "Upload a CV (PDF or DOCX) to validate its compatibility with Applicant Tracking Systems. Returns detailed validation results including issues and suggestions.",
         "security": [
@@ -1417,9 +1208,7 @@
     "/api/v1/auth/change-email": {
       "post": {
         "operationId": "auth_changeEmail",
-        "tags": [
-          "auth"
-        ],
+        "tags": ["auth"],
         "summary": "Change email address (authenticated)",
         "security": [
           {
@@ -1427,7 +1216,7 @@
           }
         ],
         "responses": {
-          "200": {
+          "201": {
             "description": "Change email address (authenticated)"
           },
           "401": {
@@ -1439,9 +1228,7 @@
     "/api/v1/auth/change-password": {
       "post": {
         "operationId": "auth_changePassword",
-        "tags": [
-          "auth"
-        ],
+        "tags": ["auth"],
         "summary": "Change password (authenticated)",
         "security": [
           {
@@ -1450,14 +1237,7 @@
         ],
         "responses": {
           "201": {
-            "description": "Change password (authenticated)",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MessageResponseDto"
-                }
-              }
-            }
+            "description": "Change password (authenticated)"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -1468,9 +1248,7 @@
     "/api/v1/auth/delete-account": {
       "post": {
         "operationId": "auth_deleteAccount",
-        "tags": [
-          "auth"
-        ],
+        "tags": ["auth"],
         "summary": "Delete own account (authenticated)",
         "security": [
           {
@@ -1479,14 +1257,7 @@
         ],
         "responses": {
           "201": {
-            "description": "Delete own account (authenticated)",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DeleteResponseDto"
-                }
-              }
-            }
+            "description": "Delete own account (authenticated)"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -1497,9 +1268,7 @@
     "/api/v1/auth/forgot-password": {
       "post": {
         "operationId": "auth_forgotPassword",
-        "tags": [
-          "auth"
-        ],
+        "tags": ["auth"],
         "summary": "Request password reset",
         "security": [
           {
@@ -1508,14 +1277,7 @@
         ],
         "responses": {
           "201": {
-            "description": "Request password reset",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MessageResponseDto"
-                }
-              }
-            }
+            "description": "Request password reset"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -1526,20 +1288,21 @@
     "/api/v1/auth/login": {
       "post": {
         "operationId": "auth_login",
-        "tags": [
-          "auth"
-        ],
+        "tags": ["auth"],
         "summary": "Login with email and password",
-        "responses": {
-          "201": {
-            "description": "Login with email and password",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/AuthResponseDto"
-                }
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginCredentialsDto"
               }
             }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Login with email and password"
           }
         }
       }
@@ -1547,20 +1310,11 @@
     "/api/v1/auth/me": {
       "get": {
         "operationId": "auth_getCurrentUser",
-        "tags": [
-          "auth"
-        ],
+        "tags": ["auth"],
         "summary": "Get current authenticated user info",
         "responses": {
           "200": {
-            "description": "Get current authenticated user info",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CurrentUserResponseDto"
-                }
-              }
-            }
+            "description": "Get current authenticated user info"
           }
         }
       }
@@ -1568,12 +1322,20 @@
     "/api/v1/auth/refresh": {
       "post": {
         "operationId": "auth_refreshToken",
-        "tags": [
-          "auth"
-        ],
+        "tags": ["auth"],
         "summary": "Refresh JWT token using refresh token",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshTokenDto"
+              }
+            }
+          }
+        },
         "responses": {
-          "200": {
+          "201": {
             "description": "Refresh JWT token using refresh token"
           }
         }
@@ -1582,9 +1344,7 @@
     "/api/v1/auth/reset-password": {
       "post": {
         "operationId": "auth_resetPassword",
-        "tags": [
-          "auth"
-        ],
+        "tags": ["auth"],
         "summary": "Reset password with token",
         "security": [
           {
@@ -1593,14 +1353,7 @@
         ],
         "responses": {
           "201": {
-            "description": "Reset password with token",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MessageResponseDto"
-                }
-              }
-            }
+            "description": "Reset password with token"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -1611,10 +1364,18 @@
     "/api/v1/auth/signup": {
       "post": {
         "operationId": "auth_signup",
-        "tags": [
-          "auth"
-        ],
+        "tags": ["auth"],
         "summary": "Register a new user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterCredentialsDto"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Register a new user"
@@ -1625,20 +1386,11 @@
     "/api/v1/auth/verify-email": {
       "post": {
         "operationId": "auth_verifyEmail",
-        "tags": [
-          "auth"
-        ],
+        "tags": ["auth"],
         "summary": "Verify email with token",
         "responses": {
           "201": {
-            "description": "Verify email with token",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MessageResponseDto"
-                }
-              }
-            }
+            "description": "Verify email with token"
           }
         }
       }
@@ -1646,20 +1398,11 @@
     "/api/v1/auth/verify-email/request": {
       "post": {
         "operationId": "auth_requestEmailVerification",
-        "tags": [
-          "auth"
-        ],
+        "tags": ["auth"],
         "summary": "Request email verification",
         "responses": {
           "201": {
-            "description": "Request email verification",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MessageResponseDto"
-                }
-              }
-            }
+            "description": "Request email verification"
           }
         }
       }
@@ -1667,9 +1410,7 @@
     "/api/v1/dsl/preview": {
       "post": {
         "operationId": "dsl_preview",
-        "tags": [
-          "dsl"
-        ],
+        "tags": ["dsl"],
         "summary": "Compile DSL to AST (preview, no persistence)",
         "security": [
           {
@@ -1699,9 +1440,7 @@
     "/api/v1/dsl/render/public/{slug}": {
       "get": {
         "operationId": "dsl_renderPublic",
-        "tags": [
-          "dsl"
-        ],
+        "tags": ["dsl"],
         "summary": "Get compiled AST for a public resume",
         "security": [
           {
@@ -1739,9 +1478,7 @@
     "/api/v1/dsl/render/{resumeId}": {
       "get": {
         "operationId": "dsl_render",
-        "tags": [
-          "dsl"
-        ],
+        "tags": ["dsl"],
         "summary": "Get compiled AST for a resume",
         "security": [
           {
@@ -1768,14 +1505,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Get compiled AST for a resume",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DslRenderResponseDto"
-                }
-              }
-            }
+            "description": "Get compiled AST for a resume"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -1786,9 +1516,7 @@
     "/api/v1/dsl/validate": {
       "post": {
         "operationId": "dsl_validate",
-        "tags": [
-          "dsl"
-        ],
+        "tags": ["dsl"],
         "summary": "Validate DSL schema",
         "security": [
           {
@@ -1808,9 +1536,7 @@
     "/api/v1/enums/export-formats": {
       "get": {
         "operationId": "enums_getExportFormats",
-        "tags": [
-          "enums"
-        ],
+        "tags": ["enums"],
         "summary": "Get available export formats",
         "description": "Returns all available export formats for resume export",
         "security": [
@@ -1828,12 +1554,31 @@
         }
       }
     },
+    "/api/v1/enums/section-types": {
+      "get": {
+        "operationId": "enums_getSectionTypes",
+        "tags": ["enums"],
+        "summary": "Get available section types",
+        "description": "Returns all available resume section types",
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Get available section types"
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required"
+          }
+        }
+      }
+    },
     "/api/v1/enums/user-roles": {
       "get": {
         "operationId": "enums_getUserRoles",
-        "tags": [
-          "enums"
-        ],
+        "tags": ["enums"],
         "summary": "Get available user roles",
         "description": "Returns all available user roles in the system",
         "security": [
@@ -1854,9 +1599,7 @@
     "/api/v1/export/banner": {
       "get": {
         "operationId": "export_exportBanner",
-        "tags": [
-          "export"
-        ],
+        "tags": ["export"],
         "summary": "Export LinkedIn banner image",
         "security": [
           {
@@ -1883,14 +1626,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Export LinkedIn banner image",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BannerPreviewResponseDto"
-                }
-              }
-            }
+            "description": "Export LinkedIn banner image"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -1901,9 +1637,7 @@
     "/api/v1/export/resume/docx": {
       "get": {
         "operationId": "export_exportResumeDOCX",
-        "tags": [
-          "export"
-        ],
+        "tags": ["export"],
         "summary": "Export resume as DOCX document",
         "security": [
           {
@@ -1912,14 +1646,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Export resume as DOCX document",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ExportResultDto"
-                }
-              }
-            }
+            "description": "Export resume as DOCX document"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -1930,9 +1657,7 @@
     "/api/v1/export/resume/pdf": {
       "get": {
         "operationId": "export_exportResumePDF",
-        "tags": [
-          "export"
-        ],
+        "tags": ["export"],
         "summary": "Export resume as PDF document",
         "security": [
           {
@@ -1978,9 +1703,7 @@
     "/api/v1/integrations/github/summary/{username}": {
       "get": {
         "operationId": "github_getGitHubSummary",
-        "tags": [
-          "github"
-        ],
+        "tags": ["github"],
         "summary": "Get GitHub profile summary for a username",
         "security": [
           {
@@ -2010,9 +1733,7 @@
     "/api/v1/integrations/github/sync": {
       "post": {
         "operationId": "github_syncGitHub",
-        "tags": [
-          "github"
-        ],
+        "tags": ["github"],
         "summary": "Sync GitHub data to user resume",
         "security": [
           {
@@ -2020,7 +1741,7 @@
           }
         ],
         "responses": {
-          "200": {
+          "201": {
             "description": "Sync GitHub data to user resume"
           },
           "401": {
@@ -2032,9 +1753,7 @@
     "/api/v1/integrations/github/sync-status/{resumeId}": {
       "get": {
         "operationId": "github_getSyncStatus",
-        "tags": [
-          "github"
-        ],
+        "tags": ["github"],
         "summary": "Get GitHub sync status for a resume",
         "security": [
           {
@@ -2053,14 +1772,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Get GitHub sync status for a resume",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MecSyncStatusResponseDto"
-                }
-              }
-            }
+            "description": "Get GitHub sync status for a resume"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -2071,9 +1783,7 @@
     "/api/v1/integrations/github/sync/{resumeId}/auto": {
       "post": {
         "operationId": "github_autoSyncGitHub",
-        "tags": [
-          "github"
-        ],
+        "tags": ["github"],
         "summary": "Auto-sync GitHub from resume GitHub link",
         "security": [
           {
@@ -2091,7 +1801,7 @@
           }
         ],
         "responses": {
-          "200": {
+          "201": {
             "description": "Auto-sync GitHub from resume GitHub link"
           },
           "401": {
@@ -2103,9 +1813,7 @@
     "/api/v1/mec/areas": {
       "get": {
         "operationId": "mec-metadata_listAllKnowledgeAreas",
-        "tags": [
-          "mec-metadata"
-        ],
+        "tags": ["mec-metadata"],
         "summary": "List knowledge areas",
         "responses": {
           "200": {
@@ -2117,9 +1825,7 @@
     "/api/v1/mec/courses/search": {
       "get": {
         "operationId": "mec-courses_searchCoursesByName",
-        "tags": [
-          "mec-courses"
-        ],
+        "tags": ["mec-courses"],
         "summary": "Search courses",
         "parameters": [
           {
@@ -2149,9 +1855,7 @@
     "/api/v1/mec/courses/{codigoCurso}": {
       "get": {
         "operationId": "mec-courses_getCourseByCode",
-        "tags": [
-          "mec-courses"
-        ],
+        "tags": ["mec-courses"],
         "summary": "Get course by MEC code",
         "parameters": [
           {
@@ -2173,9 +1877,7 @@
     "/api/v1/mec/institutions": {
       "get": {
         "operationId": "mec-institutions_listInstitutions",
-        "tags": [
-          "mec-institutions"
-        ],
+        "tags": ["mec-institutions"],
         "summary": "List institutions",
         "parameters": [
           {
@@ -2197,9 +1899,7 @@
     "/api/v1/mec/institutions/search": {
       "get": {
         "operationId": "mec-institutions_searchInstitutionsByName",
-        "tags": [
-          "mec-institutions"
-        ],
+        "tags": ["mec-institutions"],
         "summary": "Search institutions",
         "parameters": [
           {
@@ -2229,9 +1929,7 @@
     "/api/v1/mec/institutions/{codigoIes}": {
       "get": {
         "operationId": "mec-institutions_getInstitutionByCodeWithCourses",
-        "tags": [
-          "mec-institutions"
-        ],
+        "tags": ["mec-institutions"],
         "summary": "Get institution by MEC code",
         "parameters": [
           {
@@ -2253,9 +1951,7 @@
     "/api/v1/mec/institutions/{codigoIes}/courses": {
       "get": {
         "operationId": "mec-institutions_listCoursesByInstitutionCode",
-        "tags": [
-          "mec-institutions"
-        ],
+        "tags": ["mec-institutions"],
         "summary": "Get courses by institution",
         "parameters": [
           {
@@ -2277,20 +1973,11 @@
     "/api/v1/mec/internal/sync": {
       "post": {
         "operationId": "mec-internal_triggerSync",
-        "tags": [
-          "mec-internal"
-        ],
+        "tags": ["mec-internal"],
         "summary": "Trigger MEC data synchronization",
         "responses": {
           "201": {
-            "description": "Trigger MEC data synchronization",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MecSyncStatusResponseDto"
-                }
-              }
-            }
+            "description": "Trigger MEC data synchronization"
           }
         }
       }
@@ -2298,9 +1985,7 @@
     "/api/v1/mec/internal/sync/history": {
       "get": {
         "operationId": "mec-internal_getSyncHistory",
-        "tags": [
-          "mec-internal"
-        ],
+        "tags": ["mec-internal"],
         "summary": "Get sync history",
         "parameters": [
           {
@@ -2322,20 +2007,11 @@
     "/api/v1/mec/internal/sync/status": {
       "get": {
         "operationId": "mec-internal_getSyncStatus",
-        "tags": [
-          "mec-internal"
-        ],
+        "tags": ["mec-internal"],
         "summary": "Get sync status",
         "responses": {
           "200": {
-            "description": "Get sync status",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MecSyncStatusResponseDto"
-                }
-              }
-            }
+            "description": "Get sync status"
           }
         }
       }
@@ -2343,20 +2019,11 @@
     "/api/v1/mec/stats": {
       "get": {
         "operationId": "mec-metadata_getMecStatistics",
-        "tags": [
-          "mec-metadata"
-        ],
+        "tags": ["mec-metadata"],
         "summary": "Get MEC statistics",
         "responses": {
           "200": {
-            "description": "Get MEC statistics",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MecStatisticsResponseDto"
-                }
-              }
-            }
+            "description": "Get MEC statistics"
           }
         }
       }
@@ -2364,9 +2031,7 @@
     "/api/v1/mec/ufs": {
       "get": {
         "operationId": "mec-metadata_listAllStateCodes",
-        "tags": [
-          "mec-metadata"
-        ],
+        "tags": ["mec-metadata"],
         "summary": "List all states (UFs)",
         "responses": {
           "200": {
@@ -2378,9 +2043,7 @@
     "/api/v1/onboarding": {
       "post": {
         "operationId": "onboarding_completeOnboarding",
-        "tags": [
-          "onboarding"
-        ],
+        "tags": ["onboarding"],
         "summary": "Complete user onboarding with resume data",
         "security": [
           {
@@ -2388,7 +2051,7 @@
           }
         ],
         "responses": {
-          "200": {
+          "201": {
             "description": "Complete user onboarding with resume data"
           },
           "401": {
@@ -2400,9 +2063,7 @@
     "/api/v1/onboarding/progress": {
       "get": {
         "operationId": "onboarding_getProgress",
-        "tags": [
-          "onboarding"
-        ],
+        "tags": ["onboarding"],
         "summary": "Get user onboarding progress (checkpoint)",
         "security": [
           {
@@ -2420,9 +2081,7 @@
       },
       "put": {
         "operationId": "onboarding_saveProgress",
-        "tags": [
-          "onboarding"
-        ],
+        "tags": ["onboarding"],
         "summary": "Save user onboarding progress (checkpoint)",
         "security": [
           {
@@ -2442,9 +2101,7 @@
     "/api/v1/onboarding/status": {
       "get": {
         "operationId": "onboarding_getStatus",
-        "tags": [
-          "onboarding"
-        ],
+        "tags": ["onboarding"],
         "summary": "Get user onboarding status",
         "security": [
           {
@@ -2453,14 +2110,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Get user onboarding status",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OnboardingProgressResponseDto"
-                }
-              }
-            }
+            "description": "Get user onboarding status"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -2471,9 +2121,7 @@
     "/api/v1/platform/stats": {
       "get": {
         "operationId": "platform_getStatistics",
-        "tags": [
-          "platform"
-        ],
+        "tags": ["platform"],
         "summary": "Get platform statistics",
         "security": [
           {
@@ -2482,14 +2130,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Get platform statistics",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PlatformStatsResponseDto"
-                }
-              }
-            }
+            "description": "Get platform statistics"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -2500,9 +2141,7 @@
     "/api/v1/resumes": {
       "get": {
         "operationId": "resumes_getAllUserResumes",
-        "tags": [
-          "resumes"
-        ],
+        "tags": ["resumes"],
         "summary": "Get all resumes for current user",
         "security": [
           {
@@ -2520,9 +2159,7 @@
       },
       "post": {
         "operationId": "resumes_createResumeForUser",
-        "tags": [
-          "resumes"
-        ],
+        "tags": ["resumes"],
         "summary": "Create a new resume",
         "security": [
           {
@@ -2531,14 +2168,7 @@
         ],
         "responses": {
           "201": {
-            "description": "Create a new resume",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResumeResponseDto"
-                }
-              }
-            }
+            "description": "Create a new resume"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -2549,9 +2179,7 @@
     "/api/v1/resumes/manage/user/{userId}": {
       "get": {
         "operationId": "resumes_listResumesForUser",
-        "tags": [
-          "resumes"
-        ],
+        "tags": ["resumes"],
         "summary": "List all resumes for a specific user",
         "security": [
           {
@@ -2581,9 +2209,7 @@
     "/api/v1/resumes/manage/{id}": {
       "delete": {
         "operationId": "resumes_deleteResume",
-        "tags": [
-          "resumes"
-        ],
+        "tags": ["resumes"],
         "summary": "Delete a resume",
         "security": [
           {
@@ -2601,15 +2227,8 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "Delete a resume",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DeleteResponseDto"
-                }
-              }
-            }
+          "204": {
+            "description": "Delete a resume"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -2618,9 +2237,7 @@
       },
       "get": {
         "operationId": "resumes_getResumeDetails",
-        "tags": [
-          "resumes"
-        ],
+        "tags": ["resumes"],
         "summary": "Get full resume details",
         "security": [
           {
@@ -2639,14 +2256,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Get full resume details",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResumeFullResponseDto"
-                }
-              }
-            }
+            "description": "Get full resume details"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -2657,9 +2267,7 @@
     "/api/v1/resumes/slots": {
       "get": {
         "operationId": "resumes_getRemainingSlots",
-        "tags": [
-          "resumes"
-        ],
+        "tags": ["resumes"],
         "summary": "Get remaining resume slots for current user",
         "security": [
           {
@@ -2668,14 +2276,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Get remaining resume slots for current user",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResumeSlotsResponseDto"
-                }
-              }
-            }
+            "description": "Get remaining resume slots for current user"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -2686,9 +2287,7 @@
     "/api/v1/resumes/{id}": {
       "delete": {
         "operationId": "resumes_deleteResumeForUser",
-        "tags": [
-          "resumes"
-        ],
+        "tags": ["resumes"],
         "summary": "Delete a resume",
         "security": [
           {
@@ -2706,15 +2305,8 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "Delete a resume",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DeleteResponseDto"
-                }
-              }
-            }
+          "204": {
+            "description": "Delete a resume"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -2723,9 +2315,7 @@
       },
       "get": {
         "operationId": "resumes_getResumeByIdForUser",
-        "tags": [
-          "resumes"
-        ],
+        "tags": ["resumes"],
         "summary": "Get a specific resume",
         "security": [
           {
@@ -2744,14 +2334,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Get a specific resume",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResumeFullResponseDto"
-                }
-              }
-            }
+            "description": "Get a specific resume"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -2760,9 +2343,7 @@
       },
       "patch": {
         "operationId": "resumes_updateResumeForUser",
-        "tags": [
-          "resumes"
-        ],
+        "tags": ["resumes"],
         "summary": "Update a resume",
         "security": [
           {
@@ -2781,14 +2362,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Update a resume",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResumeResponseDto"
-                }
-              }
-            }
+            "description": "Update a resume"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -2799,9 +2373,7 @@
     "/api/v1/resumes/{id}/full": {
       "get": {
         "operationId": "resumes_getResumeByIdWithAllSections",
-        "tags": [
-          "resumes"
-        ],
+        "tags": ["resumes"],
         "summary": "Get a resume with all sections",
         "security": [
           {
@@ -2820,14 +2392,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Get a resume with all sections",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResumeFullResponseDto"
-                }
-              }
-            }
+            "description": "Get a resume with all sections"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -2838,9 +2403,7 @@
     "/api/v1/resumes/{resumeId}/config/sections/batch": {
       "post": {
         "operationId": "resume-config_batchUpdate",
-        "tags": [
-          "resume-config"
-        ],
+        "tags": ["resume-config"],
         "summary": "Batch update sections",
         "security": [
           {
@@ -2870,9 +2433,7 @@
     "/api/v1/resumes/{resumeId}/config/sections/{sectionId}/items/order": {
       "post": {
         "operationId": "resume-config_reorderItem",
-        "tags": [
-          "resume-config"
-        ],
+        "tags": ["resume-config"],
         "summary": "Reorder item",
         "security": [
           {
@@ -2910,9 +2471,7 @@
     "/api/v1/resumes/{resumeId}/config/sections/{sectionId}/items/visibility": {
       "post": {
         "operationId": "resume-config_toggleItem",
-        "tags": [
-          "resume-config"
-        ],
+        "tags": ["resume-config"],
         "summary": "Toggle item visibility",
         "security": [
           {
@@ -2950,9 +2509,7 @@
     "/api/v1/resumes/{resumeId}/config/sections/{sectionId}/order": {
       "post": {
         "operationId": "resume-config_reorderSection",
-        "tags": [
-          "resume-config"
-        ],
+        "tags": ["resume-config"],
         "summary": "Reorder section",
         "security": [
           {
@@ -2990,9 +2547,7 @@
     "/api/v1/resumes/{resumeId}/config/sections/{sectionId}/visibility": {
       "post": {
         "operationId": "resume-config_toggleSection",
-        "tags": [
-          "resume-config"
-        ],
+        "tags": ["resume-config"],
         "summary": "Toggle section visibility",
         "security": [
           {
@@ -3027,84 +2582,10 @@
         }
       }
     },
-    "/api/v1/resumes/{resumeId}/skills": {
-      "get": {
-        "operationId": "resumes_findAllSkillsForResume",
-        "tags": [
-          "resumes"
-        ],
-        "summary": "Get all skills for a resume",
-        "security": [
-          {
-            "JWT-auth": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "resumeId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "category",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Get all skills for a resume"
-          },
-          "401": {
-            "description": "Unauthorized - Authentication required"
-          }
-        }
-      }
-    },
-    "/api/v1/resumes/{resumeId}/skills/bulk": {
-      "post": {
-        "operationId": "resumes_createBulk",
-        "tags": [
-          "resumes"
-        ],
-        "summary": "Create multiple skills at once",
-        "security": [
-          {
-            "JWT-auth": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "resumeId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Create multiple skills at once"
-          },
-          "401": {
-            "description": "Unauthorized - Authentication required"
-          }
-        }
-      }
-    },
     "/api/v1/skills/manage/resume/{resumeId}": {
       "get": {
         "operationId": "skills_listSkillsForResume",
-        "tags": [
-          "skills"
-        ],
+        "tags": ["skills"],
         "summary": "List all skills for a resume",
         "security": [
           {
@@ -3132,9 +2613,7 @@
       },
       "post": {
         "operationId": "skills_addSkillToResume",
-        "tags": [
-          "skills"
-        ],
+        "tags": ["skills"],
         "summary": "Add a skill to a resume",
         "security": [
           {
@@ -3153,14 +2632,7 @@
         ],
         "responses": {
           "201": {
-            "description": "Add a skill to a resume",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResumeSkillResponseDto"
-                }
-              }
-            }
+            "description": "Add a skill to a resume"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -3171,9 +2643,7 @@
     "/api/v1/skills/manage/{id}": {
       "delete": {
         "operationId": "skills_deleteSkill",
-        "tags": [
-          "skills"
-        ],
+        "tags": ["skills"],
         "summary": "Delete a skill",
         "security": [
           {
@@ -3191,15 +2661,8 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "Delete a skill",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DeleteResponseDto"
-                }
-              }
-            }
+          "204": {
+            "description": "Delete a skill"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -3208,9 +2671,7 @@
       },
       "patch": {
         "operationId": "skills_updateSkill",
-        "tags": [
-          "skills"
-        ],
+        "tags": ["skills"],
         "summary": "Update a skill",
         "security": [
           {
@@ -3229,14 +2690,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Update a skill",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResumeSkillResponseDto"
-                }
-              }
-            }
+            "description": "Update a skill"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -3247,9 +2701,7 @@
     "/api/v1/tech-areas": {
       "get": {
         "operationId": "tech-areas_getAreas",
-        "tags": [
-          "tech-areas"
-        ],
+        "tags": ["tech-areas"],
         "summary": "Get all tech areas",
         "responses": {
           "200": {
@@ -3261,9 +2713,7 @@
     "/api/v1/tech-areas/{areaType}/niches": {
       "get": {
         "operationId": "tech-areas_getNichesByArea",
-        "tags": [
-          "tech-areas"
-        ],
+        "tags": ["tech-areas"],
         "summary": "Get niches by area type",
         "parameters": [
           {
@@ -3285,9 +2735,7 @@
     "/api/v1/tech-niches": {
       "get": {
         "operationId": "tech-niches_getNiches",
-        "tags": [
-          "tech-niches"
-        ],
+        "tags": ["tech-niches"],
         "summary": "Get all tech niches",
         "responses": {
           "200": {
@@ -3299,9 +2747,7 @@
     "/api/v1/tech-niches/{nicheSlug}/skills": {
       "get": {
         "operationId": "tech-niches_getSkillsByNiche",
-        "tags": [
-          "tech-niches"
-        ],
+        "tags": ["tech-niches"],
         "summary": "Get skills by niche slug",
         "parameters": [
           {
@@ -3323,9 +2769,7 @@
     "/api/v1/tech-skills": {
       "get": {
         "operationId": "tech-skills_getSkills",
-        "tags": [
-          "tech-skills"
-        ],
+        "tags": ["tech-skills"],
         "summary": "Get all tech skills",
         "responses": {
           "200": {
@@ -3337,9 +2781,7 @@
     "/api/v1/tech-skills/search": {
       "get": {
         "operationId": "tech-skills_searchSkills",
-        "tags": [
-          "tech-skills"
-        ],
+        "tags": ["tech-skills"],
         "summary": "Search tech skills",
         "parameters": [
           {
@@ -3369,9 +2811,7 @@
     "/api/v1/tech-skills/type/{type}": {
       "get": {
         "operationId": "tech-skills_getSkillsByType",
-        "tags": [
-          "tech-skills"
-        ],
+        "tags": ["tech-skills"],
         "summary": "Get skills by type",
         "parameters": [
           {
@@ -3401,9 +2841,7 @@
     "/api/v1/themes": {
       "get": {
         "operationId": "themes_findAllThemesWithPagination",
-        "tags": [
-          "themes"
-        ],
+        "tags": ["themes"],
         "summary": "List published themes",
         "security": [
           {
@@ -3421,9 +2859,7 @@
       },
       "post": {
         "operationId": "themes_createThemeForUser",
-        "tags": [
-          "themes"
-        ],
+        "tags": ["themes"],
         "summary": "Create theme",
         "security": [
           {
@@ -3443,9 +2879,7 @@
     "/api/v1/themes/apply": {
       "post": {
         "operationId": "themes_apply",
-        "tags": [
-          "themes"
-        ],
+        "tags": ["themes"],
         "summary": "Apply theme to resume",
         "security": [
           {
@@ -3465,9 +2899,7 @@
     "/api/v1/themes/approval/pending": {
       "get": {
         "operationId": "themes_getPending",
-        "tags": [
-          "themes"
-        ],
+        "tags": ["themes"],
         "summary": "Get pending themes for approval",
         "security": [
           {
@@ -3487,9 +2919,7 @@
     "/api/v1/themes/approval/review": {
       "post": {
         "operationId": "themes_review",
-        "tags": [
-          "themes"
-        ],
+        "tags": ["themes"],
         "summary": "Review and approve/reject a theme",
         "security": [
           {
@@ -3509,9 +2939,7 @@
     "/api/v1/themes/approval/{id}/submit": {
       "post": {
         "operationId": "themes_submit",
-        "tags": [
-          "themes"
-        ],
+        "tags": ["themes"],
         "summary": "Submit a theme for approval",
         "security": [
           {
@@ -3541,9 +2969,7 @@
     "/api/v1/themes/fork": {
       "post": {
         "operationId": "themes_fork",
-        "tags": [
-          "themes"
-        ],
+        "tags": ["themes"],
         "summary": "Fork a theme",
         "security": [
           {
@@ -3551,15 +2977,8 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "Fork a theme",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ThemeResponseDto"
-                }
-              }
-            }
+          "201": {
+            "description": "Fork a theme"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -3570,9 +2989,7 @@
     "/api/v1/themes/me": {
       "get": {
         "operationId": "themes_getAllThemesByUser",
-        "tags": [
-          "themes"
-        ],
+        "tags": ["themes"],
         "summary": "Get my themes",
         "security": [
           {
@@ -3592,9 +3009,7 @@
     "/api/v1/themes/popular": {
       "get": {
         "operationId": "themes_findPopularThemes",
-        "tags": [
-          "themes"
-        ],
+        "tags": ["themes"],
         "summary": "Get popular themes",
         "security": [
           {
@@ -3624,9 +3039,7 @@
     "/api/v1/themes/resume/{resumeId}/config": {
       "get": {
         "operationId": "themes_getResolvedConfig",
-        "tags": [
-          "themes"
-        ],
+        "tags": ["themes"],
         "summary": "Get resolved config for resume",
         "security": [
           {
@@ -3656,9 +3069,7 @@
     "/api/v1/themes/system": {
       "get": {
         "operationId": "themes_findAllSystemThemes",
-        "tags": [
-          "themes"
-        ],
+        "tags": ["themes"],
         "summary": "Get system themes",
         "security": [
           {
@@ -3678,9 +3089,7 @@
     "/api/v1/themes/{id}": {
       "delete": {
         "operationId": "themes_deleteThemeForUser",
-        "tags": [
-          "themes"
-        ],
+        "tags": ["themes"],
         "summary": "Delete theme",
         "security": [
           {
@@ -3708,9 +3117,7 @@
       },
       "get": {
         "operationId": "themes_findThemeById",
-        "tags": [
-          "themes"
-        ],
+        "tags": ["themes"],
         "summary": "Get theme by ID",
         "security": [
           {
@@ -3738,9 +3145,7 @@
       },
       "put": {
         "operationId": "themes_updateThemeForUser",
-        "tags": [
-          "themes"
-        ],
+        "tags": ["themes"],
         "summary": "Update theme",
         "security": [
           {
@@ -3770,9 +3175,7 @@
     "/api/v1/translation/batch": {
       "post": {
         "operationId": "translation_translateBatch",
-        "tags": [
-          "translation"
-        ],
+        "tags": ["translation"],
         "summary": "Translate multiple texts in batch",
         "security": [
           {
@@ -3781,14 +3184,7 @@
         ],
         "responses": {
           "201": {
-            "description": "Translate multiple texts in batch",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/BatchTranslationResponseDto"
-                }
-              }
-            }
+            "description": "Translate multiple texts in batch"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -3799,9 +3195,7 @@
     "/api/v1/translation/en-to-pt": {
       "post": {
         "operationId": "translation_translateEnToPt",
-        "tags": [
-          "translation"
-        ],
+        "tags": ["translation"],
         "summary": "Translate English to Portuguese",
         "security": [
           {
@@ -3810,14 +3204,7 @@
         ],
         "responses": {
           "201": {
-            "description": "Translate English to Portuguese",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TranslationResponseDto"
-                }
-              }
-            }
+            "description": "Translate English to Portuguese"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -3828,9 +3215,7 @@
     "/api/v1/translation/health": {
       "get": {
         "operationId": "translation_healthCheck",
-        "tags": [
-          "translation"
-        ],
+        "tags": ["translation"],
         "summary": "Check translation service health",
         "security": [
           {
@@ -3839,14 +3224,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Check translation service health",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HealthCheckResponseDto"
-                }
-              }
-            }
+            "description": "Check translation service health"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -3857,9 +3235,7 @@
     "/api/v1/translation/pt-to-en": {
       "post": {
         "operationId": "translation_translatePtToEn",
-        "tags": [
-          "translation"
-        ],
+        "tags": ["translation"],
         "summary": "Translate Portuguese to English",
         "security": [
           {
@@ -3868,14 +3244,7 @@
         ],
         "responses": {
           "201": {
-            "description": "Translate Portuguese to English",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TranslationResponseDto"
-                }
-              }
-            }
+            "description": "Translate Portuguese to English"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -3886,9 +3255,7 @@
     "/api/v1/translation/text": {
       "post": {
         "operationId": "translation_translateText",
-        "tags": [
-          "translation"
-        ],
+        "tags": ["translation"],
         "summary": "Translate a single text",
         "security": [
           {
@@ -3897,14 +3264,7 @@
         ],
         "responses": {
           "201": {
-            "description": "Translate a single text",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TranslationResponseDto"
-                }
-              }
-            }
+            "description": "Translate a single text"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -3915,9 +3275,7 @@
     "/api/v1/upload/company-logo/{resumeId}": {
       "post": {
         "operationId": "upload_uploadCompanyLogo",
-        "tags": [
-          "upload"
-        ],
+        "tags": ["upload"],
         "summary": "Upload company logo for resume",
         "security": [
           {
@@ -3935,7 +3293,7 @@
           }
         ],
         "responses": {
-          "200": {
+          "201": {
             "description": "Upload company logo for resume"
           },
           "401": {
@@ -3947,9 +3305,7 @@
     "/api/v1/upload/file/{key}": {
       "delete": {
         "operationId": "upload_deleteFile",
-        "tags": [
-          "upload"
-        ],
+        "tags": ["upload"],
         "summary": "Delete uploaded file",
         "security": [
           {
@@ -3967,15 +3323,8 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "Delete uploaded file",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DeleteResponseDto"
-                }
-              }
-            }
+          "204": {
+            "description": "Delete uploaded file"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -3986,9 +3335,7 @@
     "/api/v1/upload/profile-image": {
       "post": {
         "operationId": "upload_uploadProfileImage",
-        "tags": [
-          "upload"
-        ],
+        "tags": ["upload"],
         "summary": "Upload user profile image",
         "security": [
           {
@@ -3996,7 +3343,7 @@
           }
         ],
         "responses": {
-          "200": {
+          "201": {
             "description": "Upload user profile image"
           },
           "401": {
@@ -4008,9 +3355,7 @@
     "/api/v1/users/manage": {
       "get": {
         "operationId": "users_listUsers",
-        "tags": [
-          "users"
-        ],
+        "tags": ["users"],
         "summary": "List all users with pagination",
         "security": [
           {
@@ -4054,9 +3399,7 @@
       },
       "post": {
         "operationId": "users_createUser",
-        "tags": [
-          "users"
-        ],
+        "tags": ["users"],
         "summary": "Create a new user",
         "security": [
           {
@@ -4065,14 +3408,7 @@
         ],
         "responses": {
           "201": {
-            "description": "Create a new user",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserDetailsResponseDto"
-                }
-              }
-            }
+            "description": "Create a new user"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -4083,9 +3419,7 @@
     "/api/v1/users/manage/{id}": {
       "delete": {
         "operationId": "users_deleteUser",
-        "tags": [
-          "users"
-        ],
+        "tags": ["users"],
         "summary": "Delete a user",
         "description": "GDPR-compliant deletion that removes all user data.",
         "security": [
@@ -4104,15 +3438,8 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "Delete a user",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DeleteResponseDto"
-                }
-              }
-            }
+          "204": {
+            "description": "Delete a user"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -4121,9 +3448,7 @@
       },
       "get": {
         "operationId": "users_getUserDetails",
-        "tags": [
-          "users"
-        ],
+        "tags": ["users"],
         "summary": "Get user details by ID",
         "security": [
           {
@@ -4142,14 +3467,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Get user details by ID",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserDetailsResponseDto"
-                }
-              }
-            }
+            "description": "Get user details by ID"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -4158,9 +3476,7 @@
       },
       "patch": {
         "operationId": "users_updateUser",
-        "tags": [
-          "users"
-        ],
+        "tags": ["users"],
         "summary": "Update user information",
         "security": [
           {
@@ -4179,14 +3495,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Update user information",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserDetailsResponseDto"
-                }
-              }
-            }
+            "description": "Update user information"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -4197,9 +3506,7 @@
     "/api/v1/users/manage/{id}/reset-password": {
       "post": {
         "operationId": "users_resetPassword",
-        "tags": [
-          "users"
-        ],
+        "tags": ["users"],
         "summary": "Reset user password",
         "security": [
           {
@@ -4218,14 +3525,7 @@
         ],
         "responses": {
           "201": {
-            "description": "Reset user password",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MessageResponseDto"
-                }
-              }
-            }
+            "description": "Reset user password"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -4236,9 +3536,7 @@
     "/api/v1/users/me/accept-consent": {
       "post": {
         "operationId": "user-consent_acceptConsent",
-        "tags": [
-          "user-consent"
-        ],
+        "tags": ["user-consent"],
         "summary": "Accept Terms of Service or Privacy Policy",
         "description": "Records user acceptance of legal documents with IP and user agent for audit trail. ",
         "security": [
@@ -4259,9 +3557,7 @@
     "/api/v1/users/me/consent-history": {
       "get": {
         "operationId": "user-consent_getConsentHistory",
-        "tags": [
-          "user-consent"
-        ],
+        "tags": ["user-consent"],
         "summary": "Get consent acceptance history",
         "description": "Retrieves all consent records for the authenticated user",
         "security": [
@@ -4282,9 +3578,7 @@
     "/api/v1/users/me/consent-status": {
       "get": {
         "operationId": "user-consent_checkConsentStatus",
-        "tags": [
-          "user-consent"
-        ],
+        "tags": ["user-consent"],
         "summary": "Check consent acceptance status",
         "description": "Returns which documents the user has accepted for the current versions",
         "security": [
@@ -4305,9 +3599,7 @@
     "/api/v1/users/preferences": {
       "get": {
         "operationId": "users_getPreferences",
-        "tags": [
-          "users"
-        ],
+        "tags": ["users"],
         "summary": "Get user preferences (basic)",
         "security": [
           {
@@ -4316,14 +3608,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Get user preferences (basic)",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserPreferencesResponseDto"
-                }
-              }
-            }
+            "description": "Get user preferences (basic)"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -4332,9 +3617,7 @@
       },
       "patch": {
         "operationId": "users_updatePreferences",
-        "tags": [
-          "users"
-        ],
+        "tags": ["users"],
         "summary": "Update user preferences (basic)",
         "security": [
           {
@@ -4343,14 +3626,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Update user preferences (basic)",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserPreferencesResponseDto"
-                }
-              }
-            }
+            "description": "Update user preferences (basic)"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -4361,9 +3637,7 @@
     "/api/v1/users/preferences/full": {
       "get": {
         "operationId": "users_getFullPreferences",
-        "tags": [
-          "users"
-        ],
+        "tags": ["users"],
         "summary": "Get all user preferences",
         "security": [
           {
@@ -4372,14 +3646,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Get all user preferences",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserFullPreferencesResponseDto"
-                }
-              }
-            }
+            "description": "Get all user preferences"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -4388,9 +3655,7 @@
       },
       "patch": {
         "operationId": "users_updateFullPreferences",
-        "tags": [
-          "users"
-        ],
+        "tags": ["users"],
         "summary": "Update all user preferences",
         "security": [
           {
@@ -4399,14 +3664,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Update all user preferences",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserFullPreferencesResponseDto"
-                }
-              }
-            }
+            "description": "Update all user preferences"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -4417,9 +3675,7 @@
     "/api/v1/users/profile": {
       "get": {
         "operationId": "users_getProfile",
-        "tags": [
-          "users"
-        ],
+        "tags": ["users"],
         "summary": "Get current user profile",
         "security": [
           {
@@ -4428,14 +3684,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Get current user profile",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserProfileResponseDto"
-                }
-              }
-            }
+            "description": "Get current user profile"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -4444,9 +3693,7 @@
       },
       "patch": {
         "operationId": "users_updateProfile",
-        "tags": [
-          "users"
-        ],
+        "tags": ["users"],
         "summary": "Update current user profile",
         "security": [
           {
@@ -4455,14 +3702,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Update current user profile",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/UserProfileResponseDto"
-                }
-              }
-            }
+            "description": "Update current user profile"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -4473,9 +3713,7 @@
     "/api/v1/users/username": {
       "patch": {
         "operationId": "users_updateUsername",
-        "tags": [
-          "users"
-        ],
+        "tags": ["users"],
         "summary": "Update username (once every 30 days)",
         "security": [
           {
@@ -4495,9 +3733,7 @@
     "/api/v1/users/username/check": {
       "get": {
         "operationId": "users_checkUsernameAvailability",
-        "tags": [
-          "users"
-        ],
+        "tags": ["users"],
         "summary": "Check if a username is available",
         "security": [
           {
@@ -4527,9 +3763,7 @@
     "/api/v1/users/username/validate": {
       "post": {
         "operationId": "users_validateUsername",
-        "tags": [
-          "users"
-        ],
+        "tags": ["users"],
         "summary": "Validate username format and availability",
         "description": "Validates username against all business rules (format, length, reserved words) and checks availability. Returns structured validation result with all errors.",
         "security": [
@@ -4538,15 +3772,8 @@
           }
         ],
         "responses": {
-          "200": {
-            "description": "Validate username format and availability",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ValidateUsernameResponseDto"
-                }
-              }
-            }
+          "201": {
+            "description": "Validate username format and availability"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -4557,9 +3784,7 @@
     "/api/v1/users/{username}/profile": {
       "get": {
         "operationId": "users_getPublicProfileByUsername",
-        "tags": [
-          "users"
-        ],
+        "tags": ["users"],
         "summary": "Get a user",
         "security": [
           {
@@ -4578,14 +3803,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Get a user",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PublicProfileResponseDto"
-                }
-              }
-            }
+            "description": "Get a user"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -4603,6 +3821,63 @@
       }
     },
     "schemas": {
+      "ATSValidationResponseDto": {
+        "type": "object",
+        "properties": {
+          "score": {
+            "type": "number",
+            "example": "85"
+          },
+          "issues": {
+            "type": "string",
+            "example": "[]"
+          },
+          "suggestions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": "[]"
+          },
+          "isATSCompatible": {
+            "type": "boolean",
+            "example": "true"
+          },
+          "field": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": ["score", "issues", "suggestions", "isATSCompatible", "field", "message"]
+      },
+      "AcceptConsentResponseDto": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "consent": {
+            "$ref": "#/components/schemas/ConsentRecordDto"
+          }
+        },
+        "required": ["message", "consent"]
+      },
+      "AstMetaDto": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "string",
+            "example": "1.0.0"
+          },
+          "generatedAt": {
+            "type": "string",
+            "example": "2026-02-15T12:00:00.000Z"
+          }
+        },
+        "required": ["version", "generatedAt"]
+      },
       "AuthResponseDto": {
         "type": "object",
         "properties": {
@@ -4610,216 +3885,345 @@
             "type": "string",
             "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
           },
+          "refreshToken": {
+            "type": "string",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          },
           "user": {
             "$ref": "#/components/schemas/CurrentUserResponseDto"
+          }
+        },
+        "required": ["accessToken", "user"]
+      },
+      "AwardItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "award_123"
           },
-          "refreshToken": {
+          "title": {
+            "type": "string"
+          },
+          "issuer": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "example": "2023-12"
+          },
+          "description": {
             "type": "string"
           }
         },
-        "required": [
-          "accessToken",
-          "user"
-        ]
+        "required": ["id", "title", "issuer", "date"]
       },
-      "BannerPreviewResponseDto": {
+      "AwardsSectionDataDto": {
         "type": "object",
         "properties": {
-          "imageUrl": {
+          "type": {
             "type": "string",
-            "example": "https://example.com/banner.png"
+            "example": "awards"
           },
-          "width": {
-            "type": "number",
-            "example": "1200"
-          },
-          "height": {
-            "type": "number",
-            "example": "630"
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AwardItemDto"
+            }
           }
         },
-        "required": [
-          "imageUrl",
-          "width",
-          "height"
-        ]
+        "required": ["type", "items"]
       },
-      "BatchTranslationResponseDto": {
+      "BatchTranslationResultDto": {
         "type": "object",
         "properties": {
           "translations": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/TranslationResponseDto"
+              "$ref": "#/components/schemas/TranslationResultDto"
             }
           },
-          "count": {
-            "type": "number",
-            "example": "5"
+          "failed": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FailedTranslationDto"
+            }
           }
         },
-        "required": [
-          "translations",
-          "count"
-        ]
+        "required": ["translations", "failed"]
       },
-      "BlockUserResponseDto": {
+      "BlockUserDataDto": {
+        "type": "object",
+        "properties": {
+          "block": {
+            "type": "string"
+          }
+        },
+        "required": ["block"]
+      },
+      "BlockedUsersListDataDto": {
+        "type": "object",
+        "properties": {
+          "blockedUsers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of blocked users"
+          }
+        },
+        "required": ["blockedUsers"]
+      },
+      "CertificationItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "cert_123"
+          },
+          "name": {
+            "type": "string"
+          },
+          "issuer": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "example": "2023-01"
+          },
+          "url": {
+            "type": "string",
+            "example": "https://aws.amazon.com/verify/..."
+          }
+        },
+        "required": ["id", "name", "issuer", "date"]
+      },
+      "CertificationsSectionDataDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "certifications"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CertificationItemDto"
+            }
+          }
+        },
+        "required": ["type", "items"]
+      },
+      "ChangeEmailResponseDto": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": ["message"]
+      },
+      "ChatMessageDataDto": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": ["message"]
+      },
+      "CollaboratorDataDto": {
+        "type": "object",
+        "properties": {
+          "collaborator": {
+            "type": "string"
+          }
+        },
+        "required": ["collaborator"]
+      },
+      "CollaboratorsListDataDto": {
+        "type": "object",
+        "properties": {
+          "collaborators": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["collaborators"]
+      },
+      "ColumnDefinitionDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "col_main"
+          },
+          "widthPercentage": {
+            "type": "number",
+            "example": "66.67"
+          },
+          "order": {
+            "type": "number",
+            "example": "0"
+          }
+        },
+        "required": ["id", "widthPercentage", "order"]
+      },
+      "CompleteOnboardingResponseDto": {
         "type": "object",
         "properties": {
           "success": {
             "type": "boolean",
             "example": "true"
           },
-          "blockedUserId": {
+          "resumeId": {
             "type": "string",
-            "example": "clxxx..."
-          }
-        },
-        "required": [
-          "success",
-          "blockedUserId"
-        ]
-      },
-      "BlockedUserResponseDto": {
-        "type": "object",
-        "properties": {
-          "userId": {
-            "type": "string",
-            "example": "clxxx..."
+            "example": "cuid123"
           },
-          "blockedAt": {
-            "type": "string",
-            "example": "2024-01-01T00:00:00.000Z"
-          },
-          "displayName": {
+          "message": {
             "type": "string"
           }
         },
-        "required": [
-          "userId",
-          "blockedAt"
-        ]
+        "required": ["success", "resumeId", "message"]
       },
-      "ChatMessageResponseDto": {
+      "ConsentHistoryResponseDto": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string",
-            "example": "clxxx..."
+            "example": "consent-1"
           },
-          "conversationId": {
+          "documentType": {
             "type": "string",
-            "example": "clxxx..."
+            "example": "TERMS_OF_SERVICE"
           },
-          "senderId": {
+          "version": {
             "type": "string",
-            "example": "clxxx..."
+            "example": "1.0.0"
           },
-          "content": {
-            "type": "string"
+          "acceptedAt": {
+            "type": "string",
+            "example": "2026-01-09T10:00:00.000Z"
           },
-          "read": {
+          "ipAddress": {
+            "type": "string",
+            "example": "192.168.1.1"
+          },
+          "userAgent": {
+            "type": "string",
+            "example": "Mozilla/5.0..."
+          }
+        },
+        "required": ["id", "documentType", "version", "acceptedAt", "ipAddress", "userAgent"]
+      },
+      "ConsentRecordDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "consent-123"
+          },
+          "userId": {
+            "type": "string",
+            "example": "user-456"
+          },
+          "documentType": {
+            "type": "string",
+            "example": "TERMS_OF_SERVICE"
+          },
+          "version": {
+            "type": "string",
+            "example": "1.0.0"
+          },
+          "acceptedAt": {
+            "type": "string",
+            "example": "2026-01-09T19:15:00.000Z"
+          },
+          "ipAddress": {
+            "type": "string",
+            "example": "192.168.1.1"
+          },
+          "userAgent": {
+            "type": "string",
+            "example": "Mozilla/5.0..."
+          }
+        },
+        "required": [
+          "id",
+          "userId",
+          "documentType",
+          "version",
+          "acceptedAt",
+          "ipAddress",
+          "userAgent"
+        ]
+      },
+      "ConsentStatusResponseDto": {
+        "type": "object",
+        "properties": {
+          "tosAccepted": {
+            "type": "boolean",
+            "example": "true"
+          },
+          "privacyPolicyAccepted": {
+            "type": "boolean",
+            "example": "true"
+          },
+          "marketingConsentAccepted": {
             "type": "boolean",
             "example": "false"
           },
-          "createdAt": {
+          "latestTosVersion": {
             "type": "string",
-            "example": "2024-01-01T00:00:00.000Z"
+            "example": "1.0.0"
+          },
+          "latestPrivacyPolicyVersion": {
+            "type": "string",
+            "example": "1.0.0"
           }
         },
         "required": [
-          "id",
-          "conversationId",
-          "senderId",
-          "content",
-          "read",
-          "createdAt"
+          "tosAccepted",
+          "privacyPolicyAccepted",
+          "marketingConsentAccepted",
+          "latestTosVersion",
+          "latestPrivacyPolicyVersion"
         ]
       },
-      "CollaboratorResponseDto": {
+      "ConversationDataDto": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "example": "clxxx..."
-          },
-          "userId": {
-            "type": "string",
-            "example": "clxxx..."
-          },
-          "resumeId": {
-            "type": "string",
-            "example": "clxxx..."
-          },
-          "role": {
-            "type": "string",
-            "example": "EDITOR"
-          },
-          "createdAt": {
-            "type": "string",
-            "example": "2024-01-01T00:00:00.000Z"
-          },
-          "displayName": {
-            "type": "string"
-          },
-          "email": {
+          "conversation": {
             "type": "string"
           }
         },
-        "required": [
-          "id",
-          "userId",
-          "resumeId",
-          "role",
-          "createdAt"
-        ]
+        "required": ["conversation"]
       },
-      "ConversationDetailResponseDto": {
+      "ConversationNullableDataDto": {
         "type": "object",
         "properties": {
-          "messages": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ChatMessageResponseDto"
-            }
+          "conversationId": {
+            "type": "string",
+            "nullable": true
+          },
+          "conversation": {
+            "type": "string",
+            "description": "Conversation details",
+            "nullable": true
           }
         },
-        "required": [
-          "messages"
-        ]
+        "required": ["conversationId"]
       },
-      "ConversationResponseDto": {
+      "ConversationsListDataDto": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "example": "clxxx..."
-          },
-          "participantId": {
-            "type": "string",
-            "example": "clxxx..."
-          },
-          "unreadCount": {
-            "type": "number",
-            "example": "2"
-          },
-          "updatedAt": {
-            "type": "string",
-            "example": "2024-01-01T00:00:00.000Z"
-          },
-          "participantName": {
-            "type": "string"
-          },
-          "lastMessage": {
+          "conversations": {
             "type": "string"
           }
         },
-        "required": [
-          "id",
-          "participantId",
-          "unreadCount",
-          "updatedAt"
-        ]
+        "required": ["conversations"]
       },
       "CurrentUserResponseDto": {
         "type": "object",
@@ -4832,6 +4236,13 @@
             "type": "string",
             "example": "user@example.com"
           },
+          "username": {
+            "type": "string",
+            "example": "johndoe"
+          },
+          "displayName": {
+            "type": "string"
+          },
           "role": {
             "type": "string",
             "example": "USER"
@@ -4839,20 +4250,40 @@
           "emailVerified": {
             "type": "boolean",
             "example": "true"
+          }
+        },
+        "required": ["id", "email", "role", "emailVerified"]
+      },
+      "CustomSectionDataDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "custom"
           },
-          "username": {
-            "type": "string"
-          },
-          "displayName": {
+          "content": {
             "type": "string"
           }
         },
-        "required": [
-          "id",
-          "email",
-          "role",
-          "emailVerified"
-        ]
+        "required": ["type", "content"]
+      },
+      "DateRangeDto": {
+        "type": "object",
+        "properties": {
+          "startDate": {
+            "type": "string",
+            "example": "2020-01"
+          },
+          "endDate": {
+            "type": "string",
+            "example": "2023-06"
+          },
+          "isCurrent": {
+            "type": "boolean",
+            "example": "false"
+          }
+        },
+        "required": ["startDate", "isCurrent"]
       },
       "DeleteResponseDto": {
         "type": "object",
@@ -4865,69 +4296,171 @@
             "type": "string"
           }
         },
-        "required": [
-          "success"
-        ]
+        "required": ["success"]
       },
-      "DslRenderResponseDto": {
+      "DeleteSkillDataDto": {
         "type": "object",
         "properties": {
-          "html": {
-            "type": "string"
-          },
-          "css": {
+          "result": {
             "type": "string"
           }
         },
+        "required": ["result"]
+      },
+      "DeletedEntitiesDto": {
+        "type": "object",
+        "properties": {
+          "user": {
+            "type": "boolean"
+          },
+          "resumes": {
+            "type": "number"
+          },
+          "resumeSections": {
+            "type": "number"
+          },
+          "sectionItems": {
+            "type": "number"
+          },
+          "consents": {
+            "type": "number"
+          },
+          "auditLogs": {
+            "type": "number"
+          },
+          "resumeVersions": {
+            "type": "number"
+          },
+          "resumeShares": {
+            "type": "number"
+          }
+        },
         "required": [
-          "html"
+          "user",
+          "resumes",
+          "resumeSections",
+          "sectionItems",
+          "consents",
+          "auditLogs",
+          "resumeVersions",
+          "resumeShares"
         ]
       },
-      "EducationResponseDto": {
+      "DslAstResponseDto": {
+        "type": "object",
+        "properties": {
+          "ast": {
+            "$ref": "#/components/schemas/ResumeAstDto"
+          },
+          "resumeId": {
+            "type": "string",
+            "example": "clxxx..."
+          },
+          "slug": {
+            "type": "string",
+            "example": "john-doe-resume"
+          }
+        },
+        "required": ["ast"]
+      },
+      "DslPreviewResultDto": {
+        "type": "object",
+        "properties": {
+          "ast": {
+            "type": "string",
+            "description": "Compiled AST"
+          }
+        },
+        "required": ["ast"]
+      },
+      "DslValidationErrorDto": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "example": "root.name",
+            "description": "Path to invalid field"
+          },
+          "message": {
+            "type": "string",
+            "example": "Required",
+            "description": "Error message"
+          }
+        },
+        "required": ["path", "message"]
+      },
+      "DslValidationResultDto": {
+        "type": "object",
+        "properties": {
+          "valid": {
+            "type": "boolean",
+            "example": "true"
+          },
+          "errors": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": ["valid", "errors"]
+      },
+      "EducationItemDto": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string",
-            "example": "clxxx..."
+            "example": "edu_123"
           },
           "institution": {
             "type": "string"
           },
-          "order": {
-            "type": "number",
-            "example": "0"
-          },
           "degree": {
             "type": "string"
           },
-          "field": {
+          "fieldOfStudy": {
             "type": "string"
           },
-          "startDate": {
-            "type": "string"
+          "location": {
+            "$ref": "#/components/schemas/LocationDto"
           },
-          "endDate": {
-            "type": "string"
+          "dateRange": {
+            "$ref": "#/components/schemas/DateRangeDto"
           },
-          "gpa": {
-            "type": "string"
+          "grade": {
+            "type": "string",
+            "example": "3.8"
           },
-          "description": {
-            "type": "string"
+          "activities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": "["
           }
         },
-        "required": [
-          "id",
-          "institution",
-          "order"
-        ]
+        "required": ["id", "institution", "degree", "fieldOfStudy", "dateRange", "activities"]
       },
-      "ExperienceResponseDto": {
+      "EducationSectionDataDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "education"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EducationItemDto"
+            }
+          }
+        },
+        "required": ["type", "items"]
+      },
+      "ExperienceItemDto": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string",
-            "example": "clxxx..."
+            "example": "exp_123"
           },
           "title": {
             "type": "string"
@@ -4935,32 +4468,47 @@
           "company": {
             "type": "string"
           },
-          "order": {
-            "type": "number",
-            "example": "0"
-          },
           "location": {
-            "type": "string"
+            "$ref": "#/components/schemas/LocationDto"
           },
-          "startDate": {
-            "type": "string"
-          },
-          "endDate": {
-            "type": "string"
-          },
-          "current": {
-            "type": "boolean"
+          "dateRange": {
+            "$ref": "#/components/schemas/DateRangeDto"
           },
           "description": {
             "type": "string"
+          },
+          "achievements": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": "["
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": "["
           }
         },
-        "required": [
-          "id",
-          "title",
-          "company",
-          "order"
-        ]
+        "required": ["id", "title", "company", "dateRange", "achievements", "skills"]
+      },
+      "ExperienceSectionDataDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "experience"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExperienceItemDto"
+            }
+          }
+        },
+        "required": ["type", "items"]
       },
       "ExportFormatResponseDto": {
         "type": "object",
@@ -4971,37 +4519,174 @@
             "description": "Available export formats"
           }
         },
-        "required": [
-          "format"
-        ]
+        "required": ["format"]
       },
-      "ExportResultDto": {
+      "ExportFormatsDataDto": {
         "type": "object",
         "properties": {
-          "downloadUrl": {
-            "type": "string",
-            "example": "https://example.com/download/resume.pdf"
-          },
-          "contentType": {
-            "type": "string",
-            "example": "application/pdf"
-          },
-          "expiresAt": {
-            "type": "string",
-            "example": "2024-01-01T00:00:00.000Z"
-          },
-          "filename": {
+          "formats": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExportFormatResponseDto"
+            }
+          }
+        },
+        "required": ["formats"]
+      },
+      "FailedTranslationDto": {
+        "type": "object",
+        "properties": {
+          "text": {
             "type": "string"
           },
-          "size": {
-            "type": "number"
+          "error": {
+            "type": "string"
+          }
+        },
+        "required": ["text", "error"]
+      },
+      "GdprDeletionResponseDto": {
+        "type": "object",
+        "properties": {
+          "deletedEntities": {
+            "$ref": "#/components/schemas/DeletedEntitiesDto"
+          },
+          "deletedAt": {
+            "type": "string"
+          },
+          "success": {
+            "type": "boolean"
+          }
+        },
+        "required": ["deletedEntities", "deletedAt", "success"]
+      },
+      "GdprExportResponseDto": {
+        "type": "object",
+        "properties": {
+          "exportedAt": {
+            "type": "string"
+          },
+          "user": {
+            "type": "string",
+            "description": "User data"
+          },
+          "consents": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "User consents"
+          },
+          "resumes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "User resumes"
+          },
+          "auditLogs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Audit logs"
+          },
+          "dataRetentionPolicy": {
+            "type": "string"
           }
         },
         "required": [
-          "downloadUrl",
-          "contentType",
-          "expiresAt"
+          "exportedAt",
+          "user",
+          "consents",
+          "resumes",
+          "auditLogs",
+          "dataRetentionPolicy"
         ]
+      },
+      "GitHubSummaryDto": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "example": "octocat"
+          },
+          "name": {
+            "type": "string"
+          },
+          "bio": {
+            "type": "string"
+          },
+          "publicRepos": {
+            "type": "number",
+            "example": "42"
+          },
+          "followers": {
+            "type": "number",
+            "example": "1000"
+          },
+          "following": {
+            "type": "number",
+            "example": "50"
+          },
+          "topLanguages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": "["
+          },
+          "pinnedRepos": {
+            "type": "string",
+            "example": "[]"
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "username",
+          "publicRepos",
+          "followers",
+          "following",
+          "topLanguages",
+          "pinnedRepos"
+        ]
+      },
+      "GitHubSyncResponseDto": {
+        "type": "object",
+        "properties": {
+          "synced": {
+            "type": "boolean",
+            "example": "true"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": ["synced"]
+      },
+      "GlobalStylesDto": {
+        "type": "object",
+        "properties": {
+          "background": {
+            "type": "string",
+            "example": "#ffffff"
+          },
+          "textPrimary": {
+            "type": "string",
+            "example": "#1a1a1a"
+          },
+          "textSecondary": {
+            "type": "string",
+            "example": "#666666"
+          },
+          "accent": {
+            "type": "string",
+            "example": "#0066cc"
+          }
+        },
+        "required": ["background", "textPrimary", "textSecondary", "accent"]
       },
       "HealthCheckResponseDto": {
         "type": "object",
@@ -5011,12 +4696,11 @@
             "example": "ok"
           },
           "timestamp": {
-            "type": "string"
+            "type": "string",
+            "example": "2024-01-01T00:00:00.000Z"
           }
         },
-        "required": [
-          "status"
-        ]
+        "required": ["status"]
       },
       "ImportJobDto": {
         "type": "object",
@@ -5035,6 +4719,24 @@
           "status": {
             "type": "string"
           },
+          "data": {
+            "type": "string",
+            "description": "Raw import data (format depends on source)"
+          },
+          "parsedData": {
+            "$ref": "#/components/schemas/ParsedResumeDataDto"
+          },
+          "resumeId": {
+            "type": "string",
+            "example": "resume-uuid"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": "["
+          },
           "createdAt": {
             "type": "string",
             "example": "2024-01-15T10:30:00Z"
@@ -5042,36 +4744,9 @@
           "updatedAt": {
             "type": "string",
             "example": "2024-01-15T10:30:15Z"
-          },
-          "data": {
-            "type": "string"
-          },
-          "parsedData": {
-            "type": "string"
-          },
-          "resumeId": {
-            "type": "string"
           }
         },
-        "required": [
-          "id",
-          "userId",
-          "source",
-          "status",
-          "createdAt"
-        ]
-      },
-      "ImportJsonDto": {
-        "type": "object",
-        "properties": {
-          "data": {
-            "$ref": "#/components/schemas/JsonResumeSchemaDto",
-            "description": "JSON Resume format data (jsonresume.org)"
-          }
-        },
-        "required": [
-          "data"
-        ]
+        "required": ["id", "userId", "source", "status", "createdAt"]
       },
       "ImportResultDto": {
         "type": "object",
@@ -5084,201 +4759,281 @@
             "type": "string"
           },
           "resumeId": {
-            "type": "string"
+            "type": "string",
+            "example": "resume-uuid"
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": "["
           }
         },
-        "required": [
-          "importId",
-          "status"
-        ]
+        "required": ["importId", "status"]
       },
-      "InviteCollaboratorDto": {
+      "InterestItemDto": {
         "type": "object",
         "properties": {
-          "userId": {
+          "id": {
             "type": "string",
-            "example": "user-uuid-v4",
-            "description": "User ID to invite as collaborator"
+            "example": "int_123"
           },
-          "role": {
-            "type": "string",
-            "example": "EDITOR",
-            "description": "Role to assign to the collaborator"
+          "name": {
+            "type": "string"
+          },
+          "keywords": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": "["
           }
         },
-        "required": [
-          "userId",
-          "role"
-        ]
+        "required": ["id", "name", "keywords"]
       },
-      "IsBlockedResponseDto": {
+      "InterestsSectionDataDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "interests"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InterestItemDto"
+            }
+          }
+        },
+        "required": ["type", "items"]
+      },
+      "IsBlockedDataDto": {
         "type": "object",
         "properties": {
           "isBlocked": {
             "type": "boolean",
-            "example": "false"
+            "description": "Block status"
           }
         },
-        "required": [
-          "isBlocked"
-        ]
+        "required": ["isBlocked"]
       },
-      "JsonResumeBasicsDto": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "label": {
-            "type": "string"
-          },
-          "email": {
-            "type": "string"
-          },
-          "phone": {
-            "type": "string"
-          },
-          "url": {
-            "type": "string"
-          },
-          "summary": {
-            "type": "string"
-          },
-          "location": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "name"
-        ]
-      },
-      "JsonResumeSchemaDto": {
-        "type": "object",
-        "properties": {
-          "basics": {
-            "$ref": "#/components/schemas/JsonResumeBasicsDto"
-          }
-        },
-        "required": [
-          "basics"
-        ]
-      },
-      "KnowledgeAreaResponseDto": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "string",
-            "example": "ENGENHARIA"
-          },
-          "name": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "code",
-          "name"
-        ]
-      },
-      "MarkAsReadResponseDto": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean",
-            "example": "true"
-          },
-          "messagesMarked": {
-            "type": "number",
-            "example": "5"
-          }
-        },
-        "required": [
-          "success",
-          "messagesMarked"
-        ]
-      },
-      "MecInstitutionDto": {
+      "LanguageItemDto": {
         "type": "object",
         "properties": {
           "id": {
-            "type": "number",
-            "example": "12345"
+            "type": "string",
+            "example": "lang_123"
           },
           "name": {
-            "type": "string"
+            "type": "string",
+            "example": "English"
           },
-          "iguGeral": {
-            "type": "number",
-            "example": "5"
+          "proficiency": {
+            "type": "string",
+            "example": "Fluent"
+          }
+        },
+        "required": ["id", "name", "proficiency"]
+      },
+      "LanguagesSectionDataDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "languages"
           },
-          "acronym": {
-            "type": "string"
-          },
-          "stateCode": {
-            "type": "string"
-          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LanguageItemDto"
+            }
+          }
+        },
+        "required": ["type", "items"]
+      },
+      "LocationDto": {
+        "type": "object",
+        "properties": {
           "city": {
             "type": "string"
+          },
+          "country": {
+            "type": "string",
+            "example": "Brazil"
+          },
+          "remote": {
+            "type": "boolean",
+            "example": "true"
           }
-        },
-        "required": [
-          "id",
-          "name",
-          "iguGeral"
-        ]
+        }
       },
-      "MecStatisticsResponseDto": {
+      "LoginCredentialsDto": {
         "type": "object",
         "properties": {
-          "totalInstitutions": {
-            "type": "number",
-            "example": "2500"
-          },
-          "totalCourses": {
-            "type": "number",
-            "example": "45000"
-          },
-          "lastSyncAt": {
+          "email": {
             "type": "string",
-            "example": "2024-01-01T00:00:00.000Z"
+            "example": "user@example.com",
+            "description": "User email address"
+          },
+          "password": {
+            "type": "string",
+            "example": "securePassword123",
+            "description": "User password"
           }
         },
-        "required": [
-          "totalInstitutions",
-          "totalCourses",
-          "lastSyncAt"
-        ]
+        "required": ["email", "password"]
       },
-      "MecSyncHistoryResponseDto": {
+      "MarkAsReadDataDto": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "example": "clxxx..."
-          },
-          "status": {
-            "type": "string",
-            "example": "COMPLETED"
-          },
-          "recordsProcessed": {
+          "count": {
             "type": "number",
-            "example": "2500"
-          },
-          "startedAt": {
-            "type": "string",
-            "example": "2024-01-01T00:00:00.000Z"
-          },
-          "completedAt": {
-            "type": "string",
-            "example": "2024-01-01T01:30:00.000Z"
+            "description": "Number of messages marked as read"
           }
         },
-        "required": [
-          "id",
-          "status",
-          "recordsProcessed",
-          "startedAt",
-          "completedAt"
-        ]
+        "required": ["count"]
+      },
+      "MecCourseDataDto": {
+        "type": "object",
+        "properties": {
+          "course": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": ["course"]
+      },
+      "MecCourseListDataDto": {
+        "type": "object",
+        "properties": {
+          "courses": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["courses"]
+      },
+      "MecInstitutionCoursesDataDto": {
+        "type": "object",
+        "properties": {
+          "courses": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["courses"]
+      },
+      "MecInstitutionDataDto": {
+        "type": "object",
+        "properties": {
+          "institution": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": ["institution"]
+      },
+      "MecInstitutionListDataDto": {
+        "type": "object",
+        "properties": {
+          "institutions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["institutions"]
+      },
+      "MecKnowledgeAreasDataDto": {
+        "type": "object",
+        "properties": {
+          "areas": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["areas"]
+      },
+      "MecStateCodesDataDto": {
+        "type": "object",
+        "properties": {
+          "states": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["states"]
+      },
+      "MecStatisticsDataDto": {
+        "type": "object",
+        "properties": {
+          "stats": {
+            "type": "string"
+          }
+        },
+        "required": ["stats"]
+      },
+      "MecSyncExecutionDataDto": {
+        "type": "object",
+        "properties": {
+          "institutionsInserted": {
+            "type": "number",
+            "example": "100"
+          },
+          "coursesInserted": {
+            "type": "number",
+            "example": "300"
+          },
+          "totalRowsProcessed": {
+            "type": "number",
+            "example": "400"
+          },
+          "errorsCount": {
+            "type": "number",
+            "example": "0"
+          }
+        },
+        "required": ["institutionsInserted", "coursesInserted", "totalRowsProcessed", "errorsCount"]
+      },
+      "MecSyncHistoryDataDto": {
+        "type": "object",
+        "properties": {
+          "history": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["history"]
+      },
+      "MecSyncStatusDataDto": {
+        "type": "object",
+        "properties": {
+          "isRunning": {
+            "type": "boolean",
+            "example": "false"
+          },
+          "metadata": {
+            "type": "string",
+            "nullable": true
+          },
+          "lastSync": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": ["isRunning", "metadata", "lastSync"]
       },
       "MecSyncStatusResponseDto": {
         "type": "object",
@@ -5288,18 +5043,18 @@
             "example": "RUNNING"
           },
           "progress": {
-            "type": "number"
+            "type": "number",
+            "example": "75"
           },
           "startedAt": {
-            "type": "string"
+            "type": "string",
+            "example": "2024-01-01T00:00:00.000Z"
           },
           "currentTask": {
             "type": "string"
           }
         },
-        "required": [
-          "status"
-        ]
+        "required": ["status"]
       },
       "MessageResponseDto": {
         "type": "object",
@@ -5308,8 +5063,92 @@
             "type": "string"
           }
         },
+        "required": ["message"]
+      },
+      "MessagesListDataDto": {
+        "type": "object",
+        "properties": {
+          "messages": {
+            "type": "string"
+          }
+        },
+        "required": ["messages"]
+      },
+      "OnboardingProgressDto": {
+        "type": "object",
+        "properties": {
+          "currentStep": {
+            "type": "string",
+            "example": "professional-profile"
+          },
+          "completedSteps": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": "["
+          },
+          "professionalProfile": {
+            "type": "string"
+          },
+          "experiences": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": "[]"
+          },
+          "noExperience": {
+            "type": "boolean",
+            "example": "false"
+          },
+          "education": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": "[]"
+          },
+          "noEducation": {
+            "type": "boolean",
+            "example": "false"
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": "[]"
+          },
+          "noSkills": {
+            "type": "boolean",
+            "example": "false"
+          },
+          "languages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": "[]"
+          },
+          "templateSelection": {
+            "type": "string"
+          },
+          "fullName": {
+            "type": "string"
+          }
+        },
         "required": [
-          "message"
+          "currentStep",
+          "completedSteps",
+          "experiences",
+          "noExperience",
+          "education",
+          "noEducation",
+          "skills",
+          "noSkills",
+          "languages",
+          "fullName"
         ]
       },
       "OnboardingProgressResponseDto": {
@@ -5361,22 +5200,127 @@
           "title": {
             "type": "string"
           },
+          "description": {
+            "type": "string"
+          },
           "completed": {
             "type": "boolean",
             "example": "true"
           },
-          "description": {
-            "type": "string"
-          },
           "completedAt": {
-            "type": "string"
+            "type": "string",
+            "example": "2024-01-01T00:00:00.000Z"
+          }
+        },
+        "required": ["stepId", "title", "completed"]
+      },
+      "PageLayoutDto": {
+        "type": "object",
+        "properties": {
+          "widthMm": {
+            "type": "number",
+            "example": "210",
+            "description": "Page width in mm (A4 = 210)"
+          },
+          "heightMm": {
+            "type": "number",
+            "example": "297",
+            "description": "Page height in mm (A4 = 297)"
+          },
+          "marginTopMm": {
+            "type": "number",
+            "example": "20"
+          },
+          "marginBottomMm": {
+            "type": "number",
+            "example": "20"
+          },
+          "marginLeftMm": {
+            "type": "number",
+            "example": "15"
+          },
+          "marginRightMm": {
+            "type": "number",
+            "example": "15"
+          },
+          "columns": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ColumnDefinitionDto"
+            }
+          },
+          "columnGapMm": {
+            "type": "number",
+            "example": "10"
           }
         },
         "required": [
-          "stepId",
-          "title",
-          "completed"
+          "widthMm",
+          "heightMm",
+          "marginTopMm",
+          "marginBottomMm",
+          "marginLeftMm",
+          "marginRightMm",
+          "columns",
+          "columnGapMm"
         ]
+      },
+      "PaginatedResumesDataDto": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number"
+          },
+          "page": {
+            "type": "number"
+          },
+          "limit": {
+            "type": "number"
+          }
+        },
+        "required": ["total", "page", "limit"]
+      },
+      "PaginationMetaDto": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "number",
+            "example": "1"
+          },
+          "limit": {
+            "type": "number",
+            "example": "20"
+          },
+          "total": {
+            "type": "number",
+            "example": "100"
+          },
+          "totalPages": {
+            "type": "number",
+            "example": "5"
+          }
+        },
+        "required": ["page", "limit", "total", "totalPages"]
+      },
+      "ParsedCertificationDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "issuer": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "example": "2023-03-15"
+          },
+          "url": {
+            "type": "string",
+            "example": "https://aws.amazon.com/certification/"
+          }
+        },
+        "required": ["name"]
       },
       "ParsedEducationDto": {
         "type": "object",
@@ -5391,19 +5335,18 @@
             "type": "string"
           },
           "startDate": {
-            "type": "string"
+            "type": "string",
+            "example": "2015-09-01"
           },
           "endDate": {
-            "type": "string"
+            "type": "string",
+            "example": "2019-06-15"
           },
           "description": {
             "type": "string"
           }
         },
-        "required": [
-          "degree",
-          "institution"
-        ]
+        "required": ["degree", "institution"]
       },
       "ParsedExperienceDto": {
         "type": "object",
@@ -5414,25 +5357,43 @@
           "company": {
             "type": "string"
           },
+          "location": {
+            "type": "string"
+          },
           "startDate": {
             "type": "string",
             "example": "2020-01-15"
           },
-          "location": {
-            "type": "string"
-          },
           "endDate": {
-            "type": "string"
+            "type": "string",
+            "example": "2023-05-30"
           },
           "description": {
             "type": "string"
+          },
+          "highlights": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": "["
           }
         },
-        "required": [
-          "title",
-          "company",
-          "startDate"
-        ]
+        "required": ["title", "company", "startDate"]
+      },
+      "ParsedLanguageDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "English"
+          },
+          "level": {
+            "type": "string",
+            "example": "Native"
+          }
+        },
+        "required": ["name"]
       },
       "ParsedPersonalInfoDto": {
         "type": "object",
@@ -5441,30 +5402,61 @@
             "type": "string"
           },
           "email": {
-            "type": "string"
+            "type": "string",
+            "example": "john@example.com"
           },
           "phone": {
-            "type": "string"
+            "type": "string",
+            "example": "+1-555-123-4567"
           },
           "location": {
             "type": "string"
           },
           "website": {
-            "type": "string"
+            "type": "string",
+            "example": "https://johndoe.com"
           },
           "linkedin": {
-            "type": "string"
+            "type": "string",
+            "example": "https://linkedin.com/in/johndoe"
           },
           "github": {
-            "type": "string"
+            "type": "string",
+            "example": "https://github.com/johndoe"
           }
         }
+      },
+      "ParsedProjectDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "example": "https://github.com/johndoe/ecommerce"
+          },
+          "technologies": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": "["
+          }
+        },
+        "required": ["name"]
       },
       "ParsedResumeDataDto": {
         "type": "object",
         "properties": {
           "personalInfo": {
             "$ref": "#/components/schemas/ParsedPersonalInfoDto"
+          },
+          "summary": {
+            "type": "string"
           },
           "experiences": {
             "type": "array",
@@ -5485,16 +5477,92 @@
             },
             "example": "["
           },
-          "summary": {
-            "type": "string"
+          "certifications": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ParsedCertificationDto"
+            }
+          },
+          "languages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ParsedLanguageDto"
+            }
+          },
+          "projects": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ParsedProjectDto"
+            }
           }
         },
-        "required": [
-          "personalInfo",
-          "experiences",
-          "education",
-          "skills"
-        ]
+        "required": ["personalInfo", "experiences", "education", "skills"]
+      },
+      "PlacedSectionDto": {
+        "type": "object",
+        "properties": {
+          "sectionId": {
+            "type": "string",
+            "example": "sec_experience_1"
+          },
+          "columnId": {
+            "type": "string",
+            "example": "col_main"
+          },
+          "order": {
+            "type": "number",
+            "example": "0"
+          },
+          "data": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ExperienceSectionDataDto"
+              },
+              {
+                "$ref": "#/components/schemas/EducationSectionDataDto"
+              },
+              {
+                "$ref": "#/components/schemas/SkillsSectionDataDto"
+              },
+              {
+                "$ref": "#/components/schemas/ProjectsSectionDataDto"
+              },
+              {
+                "$ref": "#/components/schemas/LanguagesSectionDataDto"
+              },
+              {
+                "$ref": "#/components/schemas/CertificationsSectionDataDto"
+              },
+              {
+                "$ref": "#/components/schemas/InterestsSectionDataDto"
+              },
+              {
+                "$ref": "#/components/schemas/ReferencesSectionDataDto"
+              },
+              {
+                "$ref": "#/components/schemas/VolunteerSectionDataDto"
+              },
+              {
+                "$ref": "#/components/schemas/AwardsSectionDataDto"
+              },
+              {
+                "$ref": "#/components/schemas/PublicationsSectionDataDto"
+              },
+              {
+                "$ref": "#/components/schemas/SummarySectionDataDto"
+              },
+              {
+                "$ref": "#/components/schemas/CustomSectionDataDto"
+              }
+            ],
+            "example": "{",
+            "description": "Section data object with discriminated type field. Type can be: experience, education, skills, projects, languages, certifications, interests, references, volunteer, awards, publications, summary, custom"
+          },
+          "styles": {
+            "$ref": "#/components/schemas/SectionStylesDto"
+          }
+        },
+        "required": ["sectionId", "columnId", "order", "data", "styles"]
       },
       "PlatformStatsResponseDto": {
         "type": "object",
@@ -5533,6 +5601,79 @@
           "updatedAt"
         ]
       },
+      "ProjectItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "proj_123"
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "dateRange": {
+            "$ref": "#/components/schemas/DateRangeDto"
+          },
+          "url": {
+            "type": "string",
+            "example": "https://example.com"
+          },
+          "repositoryUrl": {
+            "type": "string",
+            "example": "https://github.com/user/repo"
+          },
+          "description": {
+            "type": "string"
+          },
+          "highlights": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": "["
+          },
+          "technologies": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": "["
+          }
+        },
+        "required": ["id", "name", "highlights", "technologies"]
+      },
+      "ProjectsSectionDataDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "projects"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProjectItemDto"
+            }
+          }
+        },
+        "required": ["type", "items"]
+      },
+      "PublicProfileDataDto": {
+        "type": "object",
+        "properties": {
+          "user": {
+            "type": "string"
+          },
+          "resume": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": ["user", "resume"]
+      },
       "PublicProfileResponseDto": {
         "type": "object",
         "properties": {
@@ -5544,7 +5685,8 @@
             "type": "string"
           },
           "photoURL": {
-            "type": "string"
+            "type": "string",
+            "example": "https://example.com/photo.jpg"
           },
           "bio": {
             "type": "string"
@@ -5553,39 +5695,261 @@
             "type": "string"
           }
         },
+        "required": ["username"]
+      },
+      "PublicationItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "pub_123"
+          },
+          "title": {
+            "type": "string"
+          },
+          "publisher": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "example": "2023-06"
+          },
+          "url": {
+            "type": "string",
+            "example": "https://example.com/book"
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "title", "publisher", "date"]
+      },
+      "PublicationsSectionDataDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "publications"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicationItemDto"
+            }
+          }
+        },
+        "required": ["type", "items"]
+      },
+      "ReferenceItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "ref_123"
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "example": "CTO"
+          },
+          "company": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "example": "john@example.com"
+          },
+          "phone": {
+            "type": "string",
+            "example": "+1234567890"
+          }
+        },
+        "required": ["id", "name", "role"]
+      },
+      "ReferencesSectionDataDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "references"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReferenceItemDto"
+            }
+          }
+        },
+        "required": ["type", "items"]
+      },
+      "RefreshTokenDto": {
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+            "description": "Refresh token"
+          }
+        },
+        "required": ["refreshToken"]
+      },
+      "RegisterCredentialsDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "user@example.com",
+            "description": "User email address"
+          },
+          "password": {
+            "type": "string",
+            "example": "SecurePassword123",
+            "description": "User password (min 8 chars, 1 uppercase, 1 lowercase, 1 number)"
+          },
+          "name": {
+            "type": "string",
+            "description": "Display name"
+          }
+        },
+        "required": ["email", "password"]
+      },
+      "ResolvedBoxStyleDto": {
+        "type": "object",
+        "properties": {
+          "backgroundColor": {
+            "type": "string",
+            "example": "#ffffff"
+          },
+          "borderColor": {
+            "type": "string",
+            "example": "#e5e5e5"
+          },
+          "borderWidthPx": {
+            "type": "number",
+            "example": "0"
+          },
+          "borderRadiusPx": {
+            "type": "number",
+            "example": "8"
+          },
+          "paddingPx": {
+            "type": "number",
+            "example": "16"
+          },
+          "marginBottomPx": {
+            "type": "number",
+            "example": "24"
+          },
+          "shadow": {
+            "type": "string"
+          }
+        },
         "required": [
-          "username"
+          "backgroundColor",
+          "borderColor",
+          "borderWidthPx",
+          "borderRadiusPx",
+          "paddingPx",
+          "marginBottomPx"
         ]
+      },
+      "ResolvedTypographyDto": {
+        "type": "object",
+        "properties": {
+          "fontFamily": {
+            "type": "string"
+          },
+          "fontSizePx": {
+            "type": "number",
+            "example": "16"
+          },
+          "lineHeight": {
+            "type": "number",
+            "example": "1.5"
+          },
+          "fontWeight": {
+            "type": "number",
+            "example": "400"
+          },
+          "textTransform": {
+            "type": "string",
+            "example": "none"
+          },
+          "textDecoration": {
+            "type": "string",
+            "example": "none"
+          }
+        },
+        "required": [
+          "fontFamily",
+          "fontSizePx",
+          "lineHeight",
+          "fontWeight",
+          "textTransform",
+          "textDecoration"
+        ]
+      },
+      "ResumeAstDto": {
+        "type": "object",
+        "properties": {
+          "meta": {
+            "$ref": "#/components/schemas/AstMetaDto"
+          },
+          "page": {
+            "$ref": "#/components/schemas/PageLayoutDto"
+          },
+          "sections": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlacedSectionDto"
+            }
+          },
+          "globalStyles": {
+            "$ref": "#/components/schemas/GlobalStylesDto"
+          }
+        },
+        "required": ["meta", "page", "sections", "globalStyles"]
+      },
+      "ResumeConfigOperationDataDto": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "example": "true"
+          }
+        },
+        "required": ["success"]
+      },
+      "ResumeDetailsDataDto": {
+        "type": "object",
+        "properties": {
+          "resume": {
+            "type": "string"
+          }
+        },
+        "required": ["resume"]
       },
       "ResumeFullResponseDto": {
         "type": "object",
         "properties": {
-          "experiences": {
+          "resumeSections": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ExperienceResponseDto"
-            }
-          },
-          "educations": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/EducationResponseDto"
-            }
-          },
-          "skills": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SkillResponseDto"
+              "$ref": "#/components/schemas/ResumeSectionResponseDto"
             }
           },
           "fullName": {
             "type": "string"
           },
           "email": {
-            "type": "string"
+            "type": "string",
+            "example": "john@example.com"
           },
           "phone": {
-            "type": "string"
+            "type": "string",
+            "example": "+1234567890"
           },
           "location": {
             "type": "string"
@@ -5594,22 +5958,41 @@
             "type": "string"
           }
         },
-        "required": [
-          "experiences",
-          "educations",
-          "skills"
-        ]
+        "required": ["resumeSections"]
+      },
+      "ResumeListDataDto": {
+        "type": "object",
+        "properties": {
+          "resumes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["resumes"]
       },
       "ResumeListItemDto": {
         "type": "object",
         "properties": {
           "viewCount": {
-            "type": "number"
+            "type": "number",
+            "example": "5"
           },
           "lastViewedAt": {
-            "type": "string"
+            "type": "string",
+            "example": "2024-01-01T00:00:00.000Z"
           }
         }
+      },
+      "ResumeOperationMessageDataDto": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": ["message"]
       },
       "ResumeResponseDto": {
         "type": "object",
@@ -5621,9 +6004,20 @@
           "title": {
             "type": "string"
           },
+          "language": {
+            "type": "string",
+            "example": "en"
+          },
+          "targetRole": {
+            "type": "string"
+          },
           "isPublic": {
             "type": "boolean",
             "example": "false"
+          },
+          "slug": {
+            "type": "string",
+            "example": "my-resume-slug"
           },
           "createdAt": {
             "type": "string",
@@ -5632,24 +6026,97 @@
           "updatedAt": {
             "type": "string",
             "example": "2024-01-01T00:00:00.000Z"
-          },
-          "language": {
-            "type": "string"
-          },
-          "targetRole": {
-            "type": "string"
-          },
-          "slug": {
-            "type": "string"
           }
         },
-        "required": [
-          "id",
-          "title",
-          "isPublic",
-          "createdAt",
-          "updatedAt"
-        ]
+        "required": ["id", "title", "isPublic", "createdAt", "updatedAt"]
+      },
+      "ResumeSectionItemResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "section-item-1"
+          },
+          "order": {
+            "type": "number",
+            "example": "0"
+          },
+          "content": {
+            "type": "string",
+            "example": "{"
+          }
+        },
+        "required": ["id", "order"]
+      },
+      "ResumeSectionResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "resume-section-1"
+          },
+          "order": {
+            "type": "number",
+            "example": "0"
+          },
+          "sectionType": {
+            "$ref": "#/components/schemas/ResumeSectionTypeResponseDto"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ResumeSectionItemResponseDto"
+            }
+          }
+        },
+        "required": ["id", "order", "sectionType", "items"]
+      },
+      "ResumeSectionTypeResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "section-type-1"
+          },
+          "key": {
+            "type": "string",
+            "example": "work_experience_v1"
+          },
+          "semanticKind": {
+            "type": "string",
+            "example": "WORK_EXPERIENCE"
+          },
+          "title": {
+            "type": "string",
+            "example": "Experience"
+          },
+          "version": {
+            "type": "number",
+            "example": "1"
+          }
+        },
+        "required": ["id", "key"]
+      },
+      "ResumeSkillDataDto": {
+        "type": "object",
+        "properties": {
+          "skill": {
+            "$ref": "#/components/schemas/ResumeSkillResponseDto"
+          }
+        },
+        "required": ["skill"]
+      },
+      "ResumeSkillListDataDto": {
+        "type": "object",
+        "properties": {
+          "skills": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ResumeSkillResponseDto"
+            }
+          }
+        },
+        "required": ["skills"]
       },
       "ResumeSkillResponseDto": {
         "type": "object",
@@ -5666,23 +6133,20 @@
             "type": "string",
             "example": "TypeScript"
           },
+          "level": {
+            "type": "string",
+            "example": "expert"
+          },
+          "category": {
+            "type": "string",
+            "example": "programming"
+          },
           "order": {
             "type": "number",
             "example": "0"
-          },
-          "level": {
-            "type": "string"
-          },
-          "category": {
-            "type": "string"
           }
         },
-        "required": [
-          "id",
-          "resumeId",
-          "name",
-          "order"
-        ]
+        "required": ["id", "resumeId", "name", "order"]
       },
       "ResumeSlotsResponseDto": {
         "type": "object",
@@ -5700,89 +6164,134 @@
             "example": "2"
           }
         },
-        "required": [
-          "used",
-          "limit",
-          "remaining"
-        ]
+        "required": ["used", "limit", "remaining"]
       },
-      "SharedResumeResponseDto": {
+      "SaveProgressResponseDto": {
         "type": "object",
         "properties": {
-          "resumeId": {
-            "type": "string",
-            "example": "clxxx..."
+          "success": {
+            "type": "boolean",
+            "example": "true"
           },
-          "resumeTitle": {
+          "currentStep": {
+            "type": "string",
+            "example": "professional-profile"
+          },
+          "completedSteps": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": "["
+          }
+        },
+        "required": ["success", "currentStep", "completedSteps"]
+      },
+      "SectionStylesDto": {
+        "type": "object",
+        "properties": {
+          "container": {
+            "$ref": "#/components/schemas/ResolvedBoxStyleDto"
+          },
+          "title": {
+            "$ref": "#/components/schemas/ResolvedTypographyDto"
+          },
+          "content": {
+            "$ref": "#/components/schemas/ResolvedTypographyDto"
+          }
+        },
+        "required": ["container", "title", "content"]
+      },
+      "SectionTypeResponseDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "experience",
+            "description": "Available resume section types"
+          }
+        },
+        "required": ["type"]
+      },
+      "SectionTypesDataDto": {
+        "type": "object",
+        "properties": {
+          "types": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SectionTypeResponseDto"
+            }
+          }
+        },
+        "required": ["types"]
+      },
+      "SharedResumesListDataDto": {
+        "type": "object",
+        "properties": {
+          "sharedResumes": {
             "type": "string"
           },
-          "ownerId": {
-            "type": "string",
-            "example": "clxxx..."
-          },
           "role": {
-            "type": "string",
-            "example": "VIEWER"
+            "type": "string"
           },
-          "sharedAt": {
-            "type": "string",
-            "example": "2024-01-01T00:00:00.000Z"
+          "invitedAt": {
+            "type": "string"
           },
-          "ownerName": {
+          "id": {
             "type": "string"
           }
         },
-        "required": [
-          "resumeId",
-          "resumeTitle",
-          "ownerId",
-          "role",
-          "sharedAt"
-        ]
+        "required": ["sharedResumes", "role", "invitedAt", "id"]
       },
-      "SkillResponseDto": {
+      "SkillItemDto": {
         "type": "object",
         "properties": {
           "id": {
             "type": "string",
-            "example": "clxxx..."
+            "example": "skill_123"
           },
           "name": {
             "type": "string",
             "example": "TypeScript"
           },
-          "order": {
-            "type": "number",
-            "example": "0"
-          },
           "level": {
-            "type": "string"
+            "type": "string",
+            "example": "Advanced"
           },
           "category": {
             "type": "string"
           }
         },
-        "required": [
-          "id",
-          "name",
-          "order"
-        ]
+        "required": ["id", "name"]
       },
-      "StateCodeResponseDto": {
+      "SkillsSectionDataDto": {
         "type": "object",
         "properties": {
-          "code": {
+          "type": {
             "type": "string",
-            "example": "SP"
+            "example": "skills"
           },
-          "name": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SkillItemDto"
+            }
+          }
+        },
+        "required": ["type", "items"]
+      },
+      "SummarySectionDataDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "summary"
+          },
+          "content": {
             "type": "string"
           }
         },
-        "required": [
-          "code",
-          "name"
-        ]
+        "required": ["type", "content"]
       },
       "TechAreaDto": {
         "type": "object",
@@ -5794,21 +6303,30 @@
           "name": {
             "type": "string"
           },
+          "slug": {
+            "type": "string",
+            "example": "software-development"
+          },
           "niches": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/TechNicheDto"
             }
-          },
-          "slug": {
-            "type": "string"
           }
         },
-        "required": [
-          "id",
-          "name",
-          "niches"
-        ]
+        "required": ["id", "name", "niches"]
+      },
+      "TechAreaListDataDto": {
+        "type": "object",
+        "properties": {
+          "areas": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["areas"]
       },
       "TechNicheDto": {
         "type": "object",
@@ -5820,24 +6338,34 @@
           "name": {
             "type": "string"
           },
+          "slug": {
+            "type": "string",
+            "example": "frontend-development"
+          },
+          "areaId": {
+            "type": "string",
+            "example": "clxxx..."
+          },
           "skills": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/TechSkillDto"
             }
-          },
-          "slug": {
-            "type": "string"
-          },
-          "areaId": {
-            "type": "string"
           }
         },
-        "required": [
-          "id",
-          "name",
-          "skills"
-        ]
+        "required": ["id", "name", "skills"]
+      },
+      "TechNicheListDataDto": {
+        "type": "object",
+        "properties": {
+          "niches": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["niches"]
       },
       "TechSkillDto": {
         "type": "object",
@@ -5851,83 +6379,131 @@
             "example": "TypeScript"
           },
           "slug": {
-            "type": "string"
+            "type": "string",
+            "example": "typescript"
           },
           "type": {
-            "type": "string"
+            "type": "string",
+            "example": "programming_language"
           },
           "iconUrl": {
-            "type": "string"
+            "type": "string",
+            "example": "https://example.com/icon.svg"
           },
           "color": {
-            "type": "string"
+            "type": "string",
+            "example": "#3178c6"
           }
         },
-        "required": [
-          "id",
-          "name"
-        ]
+        "required": ["id", "name"]
       },
-      "ThemeResponseDto": {
+      "TechSkillListDataDto": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "example": "clxxx..."
-          },
-          "name": {
-            "type": "string"
-          },
-          "isSystem": {
-            "type": "boolean",
-            "example": "false"
-          },
-          "isPublic": {
-            "type": "boolean",
-            "example": "false"
-          },
-          "createdAt": {
-            "type": "string",
-            "example": "2024-01-01T00:00:00.000Z"
-          },
-          "updatedAt": {
-            "type": "string",
-            "example": "2024-01-01T00:00:00.000Z"
-          },
-          "description": {
-            "type": "string"
+          "skills": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
-        "required": [
-          "id",
-          "name",
-          "isSystem",
-          "isPublic",
-          "createdAt",
-          "updatedAt"
-        ]
+        "required": ["skills"]
       },
-      "TrackEventResponseDto": {
+      "ThemeApplyDataDto": {
         "type": "object",
         "properties": {
           "success": {
             "type": "boolean",
             "example": "true"
-          },
-          "eventId": {
-            "type": "string",
-            "example": "clxxx..."
           }
         },
-        "required": [
-          "success",
-          "eventId"
-        ]
+        "required": ["success"]
       },
-      "TranslationResponseDto": {
+      "ThemeEntityDataDto": {
         "type": "object",
         "properties": {
-          "text": {
+          "theme": {
+            "type": "string"
+          }
+        },
+        "required": ["theme"]
+      },
+      "ThemeListDataDto": {
+        "type": "object",
+        "properties": {
+          "themes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["themes"]
+      },
+      "ThemeNullableEntityDataDto": {
+        "type": "object",
+        "properties": {
+          "theme": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": ["theme"]
+      },
+      "ThemePaginatedListDataDto": {
+        "type": "object",
+        "properties": {
+          "themes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/ThemePaginationDataDto"
+          }
+        },
+        "required": ["themes", "pagination"]
+      },
+      "ThemePaginationDataDto": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "number",
+            "example": "100"
+          },
+          "page": {
+            "type": "number",
+            "example": "1"
+          },
+          "limit": {
+            "type": "number",
+            "example": "20"
+          },
+          "totalPages": {
+            "type": "number",
+            "example": "5"
+          }
+        },
+        "required": ["total", "page", "limit", "totalPages"]
+      },
+      "ThemeResolvedConfigDataDto": {
+        "type": "object",
+        "properties": {
+          "config": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": ["config"]
+      },
+      "TranslationResultDto": {
+        "type": "object",
+        "properties": {
+          "original": {
+            "type": "string"
+          },
+          "translated": {
             "type": "string"
           },
           "sourceLanguage": {
@@ -5939,123 +6515,168 @@
             "example": "pt"
           }
         },
-        "required": [
-          "text",
-          "sourceLanguage",
-          "targetLanguage"
-        ]
+        "required": ["original", "translated", "sourceLanguage", "targetLanguage"]
       },
-      "UnreadCountResponseDto": {
+      "UnreadCountDataDto": {
         "type": "object",
         "properties": {
-          "count": {
+          "totalUnread": {
             "type": "number",
-            "example": "3"
-          }
-        },
-        "required": [
-          "count"
-        ]
-      },
-      "UpdateRoleDto": {
-        "type": "object",
-        "properties": {
-          "role": {
-            "type": "string",
-            "example": "VIEWER",
-            "description": "New role for the collaborator"
-          }
-        },
-        "required": [
-          "role"
-        ]
-      },
-      "UserDetailsResponseDto": {
-        "type": "object",
-        "properties": {
-          "role": {
-            "type": "string",
-            "example": "USER"
+            "description": "Total unread messages"
           },
-          "emailVerified": {
+          "byConversation": {
+            "type": "string",
+            "description": "Unread count by conversation ID"
+          }
+        },
+        "required": ["totalUnread", "byConversation"]
+      },
+      "UpdateUsernameResponseDto": {
+        "type": "object",
+        "properties": {
+          "success": {
             "type": "boolean",
-            "example": "true"
+            "example": "true",
+            "description": "Whether the update was successful"
           },
-          "lastLoginAt": {
+          "message": {
+            "type": "string",
+            "description": "Status message"
+          },
+          "username": {
+            "type": "string",
+            "example": "john_doe",
+            "description": "The updated username"
+          }
+        },
+        "required": ["success", "message", "username"]
+      },
+      "UploadResponseDto": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "example": "http://minio.example.com:9000/profile-uploads/profiles/userId/uuid.jpg"
+          },
+          "key": {
+            "type": "string",
+            "example": "profiles/userId/uuid.jpg"
+          }
+        },
+        "required": ["url", "key"]
+      },
+      "UserDetailsDataDto": {
+        "type": "object",
+        "properties": {
+          "user": {
             "type": "string"
           }
         },
-        "required": [
-          "role",
-          "emailVerified"
-        ]
+        "required": ["user"]
+      },
+      "UserFullPreferencesDataDto": {
+        "type": "object",
+        "properties": {
+          "preferences": {
+            "type": "string"
+          }
+        },
+        "required": ["preferences"]
       },
       "UserFullPreferencesResponseDto": {
         "type": "object",
         "properties": {
           "language": {
-            "type": "string"
+            "type": "string",
+            "example": "en"
           },
           "timezone": {
-            "type": "string"
+            "type": "string",
+            "example": "America/New_York"
           },
           "emailNotifications": {
-            "type": "boolean"
+            "type": "boolean",
+            "example": "true"
           },
           "marketingEmails": {
-            "type": "boolean"
+            "type": "boolean",
+            "example": "false"
           }
         }
       },
-      "UserListItemDto": {
+      "UserManagementListDataDto": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "example": "clxxx..."
+          "users": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
-          "email": {
-            "type": "string",
-            "example": "user@example.com"
-          },
-          "role": {
-            "type": "string",
-            "example": "USER"
-          },
-          "createdAt": {
-            "type": "string",
-            "example": "2024-01-01T00:00:00.000Z"
-          },
-          "username": {
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationMetaDto"
+          }
+        },
+        "required": ["users", "pagination"]
+      },
+      "UserMutationDataDto": {
+        "type": "object",
+        "properties": {
+          "user": {
             "type": "string"
           },
-          "displayName": {
+          "message": {
             "type": "string"
           }
         },
-        "required": [
-          "id",
-          "email",
-          "role",
-          "createdAt"
-        ]
+        "required": ["user", "message"]
+      },
+      "UserOperationMessageDataDto": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": ["message"]
+      },
+      "UserPreferencesDataDto": {
+        "type": "object",
+        "properties": {
+          "preferences": {
+            "type": "string"
+          }
+        },
+        "required": ["preferences"]
       },
       "UserPreferencesResponseDto": {
         "type": "object",
         "properties": {
           "palette": {
-            "type": "string"
+            "type": "string",
+            "example": "dark"
           },
           "bannerColor": {
-            "type": "string"
+            "type": "string",
+            "example": "#3b82f6"
           },
           "displayName": {
             "type": "string"
           },
           "photoURL": {
-            "type": "string"
+            "type": "string",
+            "example": "https://example.com/photo.jpg"
           }
         }
+      },
+      "UserProfileDataDto": {
+        "type": "object",
+        "properties": {
+          "profile": {
+            "type": "string"
+          }
+        },
+        "required": ["profile"]
       },
       "UserProfileResponseDto": {
         "type": "object",
@@ -6068,22 +6689,16 @@
             "type": "string",
             "example": "user@example.com"
           },
-          "createdAt": {
-            "type": "string",
-            "example": "2024-01-01T00:00:00.000Z"
-          },
-          "updatedAt": {
-            "type": "string",
-            "example": "2024-01-01T00:00:00.000Z"
-          },
           "username": {
-            "type": "string"
+            "type": "string",
+            "example": "johndoe"
           },
           "displayName": {
             "type": "string"
           },
           "photoURL": {
-            "type": "string"
+            "type": "string",
+            "example": "https://example.com/photo.jpg"
           },
           "bio": {
             "type": "string"
@@ -6092,27 +6707,35 @@
             "type": "string"
           },
           "phone": {
-            "type": "string"
+            "type": "string",
+            "example": "+1234567890"
           },
           "website": {
-            "type": "string"
+            "type": "string",
+            "example": "https://johndoe.com"
           },
           "linkedin": {
-            "type": "string"
+            "type": "string",
+            "example": "https://linkedin.com/in/johndoe"
           },
           "github": {
-            "type": "string"
+            "type": "string",
+            "example": "https://github.com/johndoe"
           },
           "twitter": {
-            "type": "string"
+            "type": "string",
+            "example": "https://twitter.com/johndoe"
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2024-01-01T00:00:00.000Z"
+          },
+          "updatedAt": {
+            "type": "string",
+            "example": "2024-01-01T00:00:00.000Z"
           }
         },
-        "required": [
-          "id",
-          "email",
-          "createdAt",
-          "updatedAt"
-        ]
+        "required": ["id", "email", "createdAt", "updatedAt"]
       },
       "UserRoleResponseDto": {
         "type": "object",
@@ -6123,9 +6746,61 @@
             "description": "Available user roles"
           }
         },
-        "required": [
-          "role"
-        ]
+        "required": ["role"]
+      },
+      "UserRolesDataDto": {
+        "type": "object",
+        "properties": {
+          "roles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserRoleResponseDto"
+            }
+          }
+        },
+        "required": ["roles"]
+      },
+      "UsernameAvailabilityDataDto": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "example": "john_doe"
+          },
+          "available": {
+            "type": "boolean",
+            "example": "true"
+          }
+        },
+        "required": ["username", "available"]
+      },
+      "UsernameAvailabilityResponseDto": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "example": "john_doe"
+          },
+          "available": {
+            "type": "boolean",
+            "example": "true"
+          }
+        },
+        "required": ["username", "available"]
+      },
+      "UsernameUpdateDataDto": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "example": "new_username",
+            "nullable": true
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": ["username", "message"]
       },
       "UsernameValidationErrorDto": {
         "type": "object",
@@ -6151,10 +6826,7 @@
             "description": "Human-readable error message"
           }
         },
-        "required": [
-          "code",
-          "message"
-        ]
+        "required": ["code", "message"]
       },
       "ValidateUsernameResponseDto": {
         "type": "object",
@@ -6183,11 +6855,117 @@
             "description": "List of validation errors (empty if valid)"
           }
         },
+        "required": ["username", "valid", "errors"]
+      },
+      "ValidationResponseDto": {
+        "type": "object",
+        "properties": {
+          "isValid": {
+            "type": "boolean",
+            "example": "true"
+          },
+          "score": {
+            "type": "number",
+            "example": "85"
+          },
+          "issues": {
+            "type": "string",
+            "example": "[]"
+          },
+          "suggestions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": "[]"
+          },
+          "metadata": {
+            "type": "string"
+          },
+          "severity": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string"
+          },
+          "suggestion": {
+            "type": "string"
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "fileType": {
+            "type": "string"
+          },
+          "fileSize": {
+            "type": "number"
+          },
+          "analyzedAt": {
+            "type": "string"
+          },
+          "semanticScore": {
+            "type": "number"
+          }
+        },
         "required": [
-          "username",
-          "valid",
-          "errors"
+          "isValid",
+          "score",
+          "issues",
+          "suggestions",
+          "metadata",
+          "severity",
+          "category",
+          "message",
+          "fileName",
+          "fileType",
+          "fileSize",
+          "analyzedAt"
         ]
+      },
+      "VolunteerItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "vol_123"
+          },
+          "organization": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "example": "Mentor"
+          },
+          "dateRange": {
+            "$ref": "#/components/schemas/DateRangeDto"
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "required": ["id", "organization", "role", "dateRange"]
+      },
+      "VolunteerSectionDataDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "volunteer"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VolunteerItemDto"
+            }
+          }
+        },
+        "required": ["type", "items"]
       }
     }
   }

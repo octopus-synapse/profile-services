@@ -1,6 +1,6 @@
 [test]
 # Configuration for integration tests
-root = "./test/integration"
+root = "./test/e2e"
 preload = ["./test/preload.ts"]
 # Timeout for tests AND hooks (beforeEach/afterEach)
 timeout = 60000

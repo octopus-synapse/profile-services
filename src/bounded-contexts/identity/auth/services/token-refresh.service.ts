@@ -75,10 +75,7 @@ export class TokenRefreshService {
       throw new UnauthorizedException(ERROR_MESSAGES.USER_NOT_FOUND);
     }
 
-    return {
-      success: true,
-      data: user,
-    };
+    return user;
   }
 
   private async findUserById(userId: string): Promise<UserForTokens> {
@@ -125,16 +122,13 @@ export class TokenRefreshService {
     this.logger.debug(`Tokens generated`, this.context, { userId: user.id });
 
     return {
-      success: true,
-      data: {
-        accessToken,
-        refreshToken,
-        user: {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          hasCompletedOnboarding: user.hasCompletedOnboarding,
-        },
+      accessToken,
+      refreshToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        hasCompletedOnboarding: user.hasCompletedOnboarding,
       },
     };
   }

@@ -4,19 +4,24 @@
  */
 
 import { Body, Controller, Get, HttpCode, HttpStatus, Post, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { SkipThrottle, Throttle } from '@nestjs/throttler';
 import { AuthService } from '@/bounded-contexts/identity/auth/auth.service';
+import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { createZodPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
 import {
   type LoginCredentials,
+  LoginCredentialsDto,
   LoginCredentialsSchema,
   RATE_LIMIT_CONFIG,
   type RefreshToken,
+  RefreshTokenDto,
   RefreshTokenSchema,
   type RegisterCredentials,
+  RegisterCredentialsDto,
   RegisterCredentialsSchema,
 } from '@/shared-kernel';
 import { AuthResponseDto, CurrentUserResponseDto } from '@/shared-kernel/dtos/sdk-response.dto';
@@ -45,11 +50,16 @@ export class AuthCoreController {
   })
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Register a new user' })
-  @ApiResponse({ status: 201, description: 'User successfully registered' })
-  @ApiResponse({ status: 409, description: 'Email already registered' })
-  @ApiResponse({ status: 400, description: 'Invalid input data' })
-  async signup(@Body(createZodPipe(RegisterCredentialsSchema)) dto: RegisterCredentials) {
-    return this.authService.signup(dto);
+  @ApiBody({ type: RegisterCredentialsDto })
+  @ApiDataResponse(AuthResponseDto, {
+    description: 'User successfully registered',
+    status: HttpStatus.CREATED,
+  })
+  async signup(
+    @Body(createZodPipe(RegisterCredentialsSchema)) dto: RegisterCredentials,
+  ): Promise<DataResponse<AuthResponseDto>> {
+    const result = await this.authService.signup(dto);
+    return { success: true, data: result as unknown as AuthResponseDto };
   }
 
   @Public()
@@ -62,11 +72,13 @@ export class AuthCoreController {
   })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Login with email and password' })
-  @ApiResponse({ status: 201, type: AuthResponseDto })
-  @ApiResponse({ status: 200, description: 'Login successful' })
-  @ApiResponse({ status: 401, description: 'Invalid credentials' })
-  async login(@Body(createZodPipe(LoginCredentialsSchema)) dto: LoginCredentials) {
-    return this.authService.login(dto);
+  @ApiBody({ type: LoginCredentialsDto })
+  @ApiDataResponse(AuthResponseDto, { description: 'Login successful' })
+  async login(
+    @Body(createZodPipe(LoginCredentialsSchema)) dto: LoginCredentials,
+  ): Promise<DataResponse<AuthResponseDto>> {
+    const result = await this.authService.login(dto);
+    return { success: true, data: result as unknown as AuthResponseDto };
   }
 
   @Public()
@@ -74,10 +86,15 @@ export class AuthCoreController {
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Refresh JWT token using refresh token' })
-  @ApiResponse({ status: 200, description: 'Token refreshed successfully' })
-  @ApiResponse({ status: 401, description: 'Invalid refresh token' })
-  async refreshToken(@Body(createZodPipe(RefreshTokenSchema)) dto: RefreshToken) {
-    return this.authService.refreshTokenWithToken(dto.refreshToken);
+  @ApiBody({ type: RefreshTokenDto })
+  @ApiDataResponse(AuthResponseDto, {
+    description: 'Token refreshed successfully',
+  })
+  async refreshToken(
+    @Body(createZodPipe(RefreshTokenSchema)) dto: RefreshToken,
+  ): Promise<DataResponse<AuthResponseDto>> {
+    const result = await this.authService.refreshTokenWithToken(dto.refreshToken);
+    return { success: true, data: result as unknown as AuthResponseDto };
   }
 
   @UseGuards(JwtAuthGuard)
@@ -86,10 +103,13 @@ export class AuthCoreController {
   @Get('me')
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get current authenticated user info' })
-  @ApiResponse({ status: 200, type: CurrentUserResponseDto })
-  @ApiResponse({ status: 200, description: 'User info retrieved successfully' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async getCurrentUser(@CurrentUser() user: UserPayload) {
-    return this.authService.getCurrentUser(user.userId);
+  @ApiDataResponse(CurrentUserResponseDto, {
+    description: 'User info retrieved successfully',
+  })
+  async getCurrentUser(
+    @CurrentUser() user: UserPayload,
+  ): Promise<DataResponse<CurrentUserResponseDto>> {
+    const result = await this.authService.getCurrentUser(user.userId);
+    return { success: true, data: result as unknown as CurrentUserResponseDto };
   }
 }

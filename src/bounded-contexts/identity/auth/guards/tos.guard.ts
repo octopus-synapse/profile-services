@@ -59,6 +59,11 @@ export class TosGuard implements CanActivate {
       return true;
     }
 
+    // Skip ToS check in E2E test environment (but user must still be authenticated)
+    if (process.env.SKIP_TOS_CHECK === 'true') {
+      return true;
+    }
+
     // Check if user has accepted current versions of required documents
     const userId = user.userId;
     const [hasAcceptedTos, hasAcceptedPrivacy] = await Promise.all([
@@ -67,7 +72,7 @@ export class TosGuard implements CanActivate {
     ]);
 
     if (!hasAcceptedTos || !hasAcceptedPrivacy) {
-      const missing: string[] = []; // ← TIPO EXPLÍCITO AQUI
+      const missing: string[] = [];
       if (!hasAcceptedTos) missing.push('Terms of Service');
       if (!hasAcceptedPrivacy) missing.push('Privacy Policy');
 

@@ -1,12 +1,21 @@
 import { Controller, Get, NotFoundException, Param, Post, Req, UseGuards } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
+import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
+import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
+import {
+  ResumeVersionDataDto,
+  ResumeVersionListDataDto,
+  ResumeVersionRestoreDataDto,
+} from '../dto/controller-response.dto';
 import { ResumeVersionService } from '../services/resume-version.service';
 
 interface RequestWithUser extends Request {
   user: { userId: string; email: string };
 }
 
+@ApiTags('resume-versions')
 @Controller('v1')
 @UseGuards(JwtAuthGuard)
 export class ResumeVersionController {
@@ -14,31 +23,75 @@ export class ResumeVersionController {
 
   // Original endpoints
   @Get('resumes/:resumeId/versions')
-  async getVersionsNested(@Param('resumeId') resumeId: string, @Req() req: RequestWithUser) {
-    return this.versionService.getVersions(resumeId, req.user.userId);
+  @ApiOperation({ summary: 'List resume versions (nested route)' })
+  @ApiDataResponse(ResumeVersionListDataDto, {
+    description: 'Resume versions returned',
+  })
+  async getVersionsNested(
+    @Param('resumeId') resumeId: string,
+    @Req() req: RequestWithUser,
+  ): Promise<DataResponse<ResumeVersionListDataDto>> {
+    const versions = await this.versionService.getVersions(resumeId, req.user.userId);
+
+    return {
+      success: true,
+      data: {
+        versions,
+      },
+    };
   }
 
   @Post('resumes/:resumeId/versions/:versionId/restore')
+  @ApiOperation({ summary: 'Restore resume version (nested route)' })
+  @ApiDataResponse(ResumeVersionRestoreDataDto, {
+    description: 'Resume version restored',
+  })
   async restoreVersionNested(
     @Param('resumeId') resumeId: string,
     @Param('versionId') versionId: string,
     @Req() req: RequestWithUser,
-  ) {
-    return this.versionService.restoreVersion(resumeId, versionId, req.user.userId);
+  ): Promise<DataResponse<ResumeVersionRestoreDataDto>> {
+    const restored = await this.versionService.restoreVersion(resumeId, versionId, req.user.userId);
+
+    return {
+      success: true,
+      data: {
+        success: true,
+        restoredFrom: restored.restoredFrom,
+      },
+    };
   }
 
   // Alternative flat endpoints for easier testing
   @Get('versions/:resumeId')
-  async getVersions(@Param('resumeId') resumeId: string, @Req() req: RequestWithUser) {
-    return this.versionService.getVersions(resumeId, req.user.userId);
+  @ApiOperation({ summary: 'List resume versions' })
+  @ApiDataResponse(ResumeVersionListDataDto, {
+    description: 'Resume versions returned',
+  })
+  async getVersions(
+    @Param('resumeId') resumeId: string,
+    @Req() req: RequestWithUser,
+  ): Promise<DataResponse<ResumeVersionListDataDto>> {
+    const versions = await this.versionService.getVersions(resumeId, req.user.userId);
+
+    return {
+      success: true,
+      data: {
+        versions,
+      },
+    };
   }
 
   @Get('versions/:resumeId/:versionId')
+  @ApiOperation({ summary: 'Get a specific resume version' })
+  @ApiDataResponse(ResumeVersionDataDto, {
+    description: 'Resume version returned',
+  })
   async getVersion(
     @Param('resumeId') resumeId: string,
     @Param('versionId') versionId: string,
     @Req() req: RequestWithUser,
-  ) {
+  ): Promise<DataResponse<ResumeVersionDataDto>> {
     const versions = await this.versionService.getVersions(resumeId, req.user.userId);
     const version = versions.find((v) => v.id === versionId);
 
@@ -46,15 +99,32 @@ export class ResumeVersionController {
       throw new NotFoundException('Version not found');
     }
 
-    return version;
+    return {
+      success: true,
+      data: {
+        version,
+      },
+    };
   }
 
   @Post('versions/:resumeId/restore/:versionId')
+  @ApiOperation({ summary: 'Restore resume version' })
+  @ApiDataResponse(ResumeVersionRestoreDataDto, {
+    description: 'Resume version restored',
+  })
   async restoreVersion(
     @Param('resumeId') resumeId: string,
     @Param('versionId') versionId: string,
     @Req() req: RequestWithUser,
-  ) {
-    return this.versionService.restoreVersion(resumeId, versionId, req.user.userId);
+  ): Promise<DataResponse<ResumeVersionRestoreDataDto>> {
+    const restored = await this.versionService.restoreVersion(resumeId, versionId, req.user.userId);
+
+    return {
+      success: true,
+      data: {
+        success: true,
+        restoredFrom: restored.restoredFrom,
+      },
+    };
   }
 }

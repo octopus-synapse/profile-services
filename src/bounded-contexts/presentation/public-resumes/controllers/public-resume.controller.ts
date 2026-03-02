@@ -7,11 +7,16 @@ import {
   Param,
   Req,
 } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { ShareAnalyticsService } from '@/bounded-contexts/analytics/share-analytics/services/share-analytics.service';
 import { Public } from '@/bounded-contexts/identity/auth/decorators/public.decorator';
+import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
+import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
+import { PublicResumeDataDto } from '../dto/public-resume-response.dto';
 import { ResumeShareService } from '../services/resume-share.service';
 
+@ApiTags('public-resumes')
 @Controller('v1/public/resumes')
 @Public() // Public endpoint - no auth required
 export class PublicResumeController {
@@ -21,11 +26,13 @@ export class PublicResumeController {
   ) {}
 
   @Get(':slug')
+  @ApiOperation({ summary: 'Get public resume by share slug' })
+  @ApiDataResponse(PublicResumeDataDto, { description: 'Public resume returned' })
   async getPublicResume(
     @Param('slug') slug: string,
     @Headers('x-share-password') password: string | undefined,
     @Req() req: Request,
-  ) {
+  ): Promise<DataResponse<PublicResumeDataDto>> {
     const share = await this.shareService.getBySlug(slug);
 
     if (!share) {
@@ -68,20 +75,27 @@ export class PublicResumeController {
     const resume = await this.shareService.getResumeWithCache(share.resumeId);
 
     return {
-      resume,
-      share: {
-        slug: share.slug,
-        expiresAt: share.expiresAt,
+      success: true,
+      data: {
+        resume,
+        share: {
+          slug: share.slug,
+          expiresAt: share.expiresAt,
+        },
       },
     };
   }
 
   @Get(':slug/download')
+  @ApiOperation({ summary: 'Download public resume by share slug' })
+  @ApiDataResponse(PublicResumeDataDto, {
+    description: 'Public resume download payload returned',
+  })
   async downloadPublicResume(
     @Param('slug') slug: string,
     @Headers('x-share-password') password: string | undefined,
     @Req() req: Request,
-  ) {
+  ): Promise<DataResponse<PublicResumeDataDto>> {
     const share = await this.shareService.getBySlug(slug);
 
     if (!share) {
@@ -124,10 +138,13 @@ export class PublicResumeController {
     const resume = await this.shareService.getResumeWithCache(share.resumeId);
 
     return {
-      resume,
-      share: {
-        slug: share.slug,
-        expiresAt: share.expiresAt,
+      success: true,
+      data: {
+        resume,
+        share: {
+          slug: share.slug,
+          expiresAt: share.expiresAt,
+        },
       },
     };
   }

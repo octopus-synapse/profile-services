@@ -2,6 +2,18 @@ import { Injectable } from '@nestjs/common';
 import * as mammoth from 'mammoth';
 import { TextExtractionResult, ValidationIssue, ValidationSeverity } from '../interfaces';
 
+// Polyfill DOM APIs for pdf-parse
+if (typeof globalThis.DOMMatrix === 'undefined') {
+  try {
+    const canvas = require('canvas');
+    globalThis.DOMMatrix = canvas.DOMMatrix;
+    globalThis.ImageData = canvas.ImageData;
+    globalThis.Path2D = canvas.Path2D;
+  } catch {
+    // Canvas not available, pdf-parse will fail
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const pdfParse = require('pdf-parse') as (
   buffer: Buffer,

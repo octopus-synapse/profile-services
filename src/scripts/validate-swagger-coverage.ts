@@ -8,7 +8,8 @@
  *
  * Required decorators:
  * - @ApiOperation() - Describes the endpoint purpose
- * - @ApiResponse() - At least one response status
+ * - One composed response decorator:
+ *   @ApiDataResponse() | @ApiPaginatedDataResponse() | @ApiEmptyDataResponse() | @ApiStreamResponse()
  *
  * Usage:
  *   bun run src/scripts/validate-swagger-coverage.ts
@@ -41,7 +42,13 @@ interface ValidationResult {
 const HTTP_DECORATORS = ['@Get(', '@Post(', '@Put(', '@Patch(', '@Delete('];
 const REQUIRED_SWAGGER_DECORATORS = {
   operation: ['@ApiOperation('],
-  response: ['@ApiResponse(', '@SwaggerResponse('], // Support both @ApiResponse and alias @SwaggerResponse
+  response: [
+    '@ApiDataResponse(',
+    '@ApiPaginatedDataResponse(',
+    '@ApiEmptyDataResponse(',
+    '@ApiStreamResponse(',
+  ],
+  legacyResponse: ['@ApiResponse(', '@SwaggerResponse('],
 };
 
 /**
@@ -218,12 +225,22 @@ function findMissingDecorators(lines: string[], routeLineIndex: number): string[
     missing.push('@ApiOperation');
   }
 
-  // Check for @ApiResponse() or @SwaggerResponse()
+  // Check for composed response decorators (new standard)
   const hasResponse = REQUIRED_SWAGGER_DECORATORS.response.some((decorator) =>
     decoratorsInRange.includes(decorator),
   );
   if (!hasResponse) {
-    missing.push('@ApiResponse');
+    missing.push(
+      '@ApiDataResponse|@ApiPaginatedDataResponse|@ApiEmptyDataResponse|@ApiStreamResponse',
+    );
+  }
+
+  // Legacy response decorators are forbidden by the new standard
+  const hasLegacyResponse = REQUIRED_SWAGGER_DECORATORS.legacyResponse.some((decorator) =>
+    decoratorsInRange.includes(decorator),
+  );
+  if (hasLegacyResponse) {
+    missing.push('legacy-response-decorator(@ApiResponse/@SwaggerResponse)');
   }
 
   return missing;
@@ -265,13 +282,16 @@ function printResults(result: ValidationResult): void {
   }
 
   console.log('❌ FAILURE: Found routes without required Swagger documentation\n');
-  console.log('Required decorators for each route:');
+  console.log('Required decorators for each route (new standard):');
   console.log('  • @ApiOperation() - Describes the endpoint');
-  console.log('  • @ApiResponse()  - Defines at least one response\n');
+  console.log(
+    '  • One composed response decorator: @ApiDataResponse | @ApiPaginatedDataResponse | @ApiEmptyDataResponse | @ApiStreamResponse',
+  );
+  console.log('  • Legacy @ApiResponse/@SwaggerResponse are NOT allowed\n');
   console.log('Example:');
   console.log('  @Get()');
   console.log("  @ApiOperation({ summary: 'List all resources' })");
-  console.log('  @ApiResponse({ status: 200, type: [ResourceDto] })');
+  console.log('  @ApiDataResponse(ResourceListDataDto, { description: "List all resources" })');
   console.log('  async findAll() { ... }\n');
 
   console.log('📋 Undocumented Routes:\n');
@@ -320,7 +340,9 @@ async function main() {
 }
 
 // Execute when run directly
-void main();
+if (process.argv[1]?.includes('validate-swagger-coverage')) {
+  void main();
+}
 
 export { validateSwaggerCoverage };
 export type { ValidationResult };

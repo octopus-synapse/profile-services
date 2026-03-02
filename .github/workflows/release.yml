@@ -11,10 +11,6 @@ permissions:
   packages: write
 
 jobs:
-  # ============================================
-  # Job 1: Release Please - Apenas gerencia PRs
-  # NÃO cria tags/releases automaticamente
-  # ============================================
   release-please:
     runs-on: ubuntu-latest
     outputs:
@@ -27,12 +23,7 @@ jobs:
         id: release
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          # release-type é definido no release-please-config.json
 
-  # ============================================
-  # Job 2: Build & Push Docker Image
-  # Só roda quando release-please cria release
-  # ============================================
   build-and-push:
     needs: release-please
     if: ${{ needs.release-please.outputs.release_created == 'true' }}

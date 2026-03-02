@@ -3,18 +3,23 @@ import type { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { OnboardingData } from '../schemas/onboarding.schema';
 import { BaseOnboardingService } from './base-onboarding.service';
+import { ResumeSectionOnboardingService } from './resume-section-onboarding.service';
 
 type LanguageInput = OnboardingData['languages'][number];
-type LanguageCreate = Prisma.LanguageCreateManyInput;
+type LanguageContent = Prisma.InputJsonValue;
 
 @Injectable()
 export class LanguagesOnboardingService extends BaseOnboardingService<
   LanguageInput,
-  LanguageCreate
+  LanguageContent
 > {
+  private static readonly SECTION_TYPE_KEY = 'language_v1';
   protected readonly logger = new Logger(LanguagesOnboardingService.name);
 
-  constructor(private readonly prisma: PrismaService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly resumeSectionService: ResumeSectionOnboardingService,
+  ) {
     super();
   }
 
@@ -40,20 +45,30 @@ export class LanguagesOnboardingService extends BaseOnboardingService<
   }
 
   protected async deleteExisting(tx: Prisma.TransactionClient, resumeId: string): Promise<void> {
-    await tx.language.deleteMany({ where: { resumeId } });
+    await this.resumeSectionService.replaceSectionItems(tx, {
+      resumeId,
+      sectionTypeKey: LanguagesOnboardingService.SECTION_TYPE_KEY,
+      items: [],
+    });
   }
 
-  protected transformItems(items: LanguageInput[], resumeId: string): LanguageCreate[] {
-    return items.map((lang, index) => ({
-      resumeId,
+  protected transformItems(items: LanguageInput[], _resumeId: string): LanguageContent[] {
+    return items.map((lang) => ({
       name: lang.name,
       level: lang.level,
-      order: index,
     }));
   }
 
-  protected async createMany(tx: Prisma.TransactionClient, items: LanguageCreate[]): Promise<void> {
-    await tx.language.createMany({ data: items });
+  protected async createMany(
+    tx: Prisma.TransactionClient,
+    items: LanguageContent[],
+    resumeId: string,
+  ): Promise<void> {
+    await this.resumeSectionService.replaceSectionItems(tx, {
+      resumeId,
+      sectionTypeKey: LanguagesOnboardingService.SECTION_TYPE_KEY,
+      items,
+    });
   }
 
   protected getSuccessMessage(count: number): string {

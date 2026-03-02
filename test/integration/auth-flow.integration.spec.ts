@@ -4,8 +4,6 @@
  * Tests complete authentication workflows with real database and services.
  * No mocks - validates actual system behavior.
  *
- * Uncle Bob: "Test the architecture, not isolated units"
- * Kent Beck: "Integration tests are the safety net for refactoring"
  */
 
 import {

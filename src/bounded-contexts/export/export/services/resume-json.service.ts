@@ -1,6 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import {
+  type ProjectionSection,
+  SectionProjectionAdapter,
+} from '@/shared-kernel/types/section-projection.adapter';
 
 interface JsonResumeBasics {
   name: string;
@@ -15,37 +18,15 @@ interface JsonResumeBasics {
   };
 }
 
-interface JsonResumeWork {
-  company: string;
-  position: string;
-  startDate: string;
-  endDate?: string;
-  summary?: string;
-  highlights?: string[];
-}
-
-interface JsonResumeEducation {
-  institution: string;
-  studyType: string;
-  startDate: string;
-  endDate?: string;
-  area?: string;
-}
-
-interface JsonResumeSkill {
-  name: string;
-  level: string;
-  keywords?: string[];
+interface JsonResumeSection {
+  semanticKind: string;
+  items: Record<string, unknown>[];
 }
 
 interface JsonResume {
   $schema: string;
   basics: JsonResumeBasics;
-  work: JsonResumeWork[];
-  education: JsonResumeEducation[];
-  skills: JsonResumeSkill[];
-  languages?: { language: string; fluency: string }[];
-  projects?: { name: string; description: string; url?: string }[];
+  sections: JsonResumeSection[];
 }
 
 interface ProfileFormat {
@@ -59,17 +40,21 @@ export interface JsonExportOptions {
   language?: 'en' | 'pt';
 }
 
-type ResumeWithRelations = Prisma.ResumeGetPayload<{
-  include: {
-    user: true;
-    experiences: true;
-    education: true;
-    skills: true;
-    languages: true;
-    openSource: true;
-    certifications: true;
+type ResumeWithRelations = {
+  id: string;
+  title: string | null;
+  slug: string | null;
+  summary: string | null;
+  jobTitle: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+  user: {
+    name: string | null;
+    email: string | null;
+    phone: string | null;
   };
-}>;
+  sections: ProjectionSection[];
+};
 
 @Injectable()
 export class ResumeJsonService {
@@ -83,12 +68,21 @@ export class ResumeJsonService {
       where: { id: resumeId },
       include: {
         user: true,
-        experiences: { orderBy: { startDate: 'desc' } },
-        education: { orderBy: { startDate: 'desc' } },
-        skills: true,
-        languages: true,
-        openSource: true,
-        certifications: true,
+        resumeSections: {
+          include: {
+            sectionType: {
+              select: {
+                semanticKind: true,
+              },
+            },
+            items: {
+              orderBy: { order: 'asc' },
+              select: {
+                content: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -96,11 +90,13 @@ export class ResumeJsonService {
       throw new NotFoundException('Resume not found');
     }
 
+    const normalizedResume = this.normalizeResume(resume);
+
     if (options.format === 'profile') {
-      return this.toProfileFormat(resume);
+      return this.toProfileFormat(normalizedResume);
     }
 
-    return this.toJsonResume(resume);
+    return this.toJsonResume(normalizedResume);
   }
 
   async exportAsBuffer(resumeId: string, options: JsonExportOptions = {}): Promise<Buffer> {
@@ -118,34 +114,9 @@ export class ResumeJsonService {
         phone: resume.user.phone ?? undefined,
         summary: resume.summary ?? undefined,
       },
-      work: resume.experiences.map((exp) => ({
-        company: exp.company,
-        position: exp.position,
-        startDate: this.formatDate(exp.startDate),
-        endDate: exp.isCurrent ? undefined : this.formatDate(exp.endDate),
-        summary: exp.description ?? undefined,
-        highlights: exp.skills,
-      })),
-      education: resume.education.map((edu) => ({
-        institution: edu.institution,
-        studyType: edu.degree,
-        startDate: this.formatDate(edu.startDate),
-        endDate: this.formatDate(edu.endDate),
-        area: edu.field,
-      })),
-      skills: resume.skills.map((skill) => ({
-        name: skill.name,
-        level: this.mapSkillLevel(skill.level),
-        keywords: [],
-      })),
-      languages: resume.languages.map((lang) => ({
-        language: lang.name,
-        fluency: this.mapLanguageFluency(lang.level),
-      })),
-      projects: resume.openSource.map((contrib) => ({
-        name: contrib.projectName,
-        description: contrib.description ?? '',
-        url: contrib.projectUrl,
+      sections: resume.sections.map((section) => ({
+        semanticKind: section.semanticKind,
+        items: section.items.map((item) => item.content),
       })),
     };
   }
@@ -162,41 +133,46 @@ export class ResumeJsonService {
           name: resume.user.name,
           email: resume.user.email,
         },
-        experiences: resume.experiences,
-        education: resume.education,
-        skills: resume.skills,
+        sections: resume.sections.map((section) => ({
+          semanticKind: section.semanticKind,
+          items: section.items.map((item) => item.content),
+        })),
         createdAt: resume.createdAt,
         updatedAt: resume.updatedAt,
       },
     };
   }
 
-  private formatDate(date: Date | null | undefined): string {
-    if (!date) return '';
-    return date.toISOString().split('T')[0];
-  }
-
-  private mapSkillLevel(level: number | null): string {
-    if (level === null) return 'Beginner';
-    if (level >= 4) return 'Expert';
-    if (level >= 3) return 'Advanced';
-    if (level >= 2) return 'Intermediate';
-    return 'Beginner';
-  }
-
-  private mapLanguageFluency(level: string | null): string {
-    const mapping: Record<string, string> = {
-      NATIVE: 'Native speaker',
-      FLUENT: 'Fluent',
-      ADVANCED: 'Advanced',
-      INTERMEDIATE: 'Intermediate',
-      BASIC: 'Basic',
-      native: 'Native speaker',
-      fluent: 'Fluent',
-      advanced: 'Advanced',
-      intermediate: 'Intermediate',
-      basic: 'Basic',
+  private normalizeResume(resume: {
+    id: string;
+    title: string | null;
+    slug: string | null;
+    summary: string | null;
+    jobTitle: string | null;
+    createdAt: Date;
+    updatedAt: Date;
+    user: {
+      name: string | null;
+      email: string | null;
+      phone: string | null;
     };
-    return level ? mapping[level] || level : 'Basic';
+    resumeSections: Array<{
+      sectionType: { semanticKind: string };
+      items: Array<{ content: unknown }>;
+    }>;
+  }): ResumeWithRelations {
+    const genericSections = SectionProjectionAdapter.toGenericSections(resume.resumeSections);
+
+    return {
+      id: resume.id,
+      title: resume.title,
+      slug: resume.slug,
+      summary: resume.summary,
+      jobTitle: resume.jobTitle,
+      createdAt: resume.createdAt,
+      updatedAt: resume.updatedAt,
+      user: resume.user,
+      sections: genericSections,
+    };
   }
 }

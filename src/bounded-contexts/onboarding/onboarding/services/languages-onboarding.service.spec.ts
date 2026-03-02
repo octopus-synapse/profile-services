@@ -11,6 +11,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { LanguagesOnboardingService } from './languages-onboarding.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { OnboardingData } from '../schemas/onboarding.schema';
+import { ResumeSectionOnboardingService } from './resume-section-onboarding.service';
 
 describe('LanguagesOnboardingService', () => {
   let service: LanguagesOnboardingService;
@@ -18,21 +19,16 @@ describe('LanguagesOnboardingService', () => {
   // In-memory store
   const languageStore = new Map<string, any[]>();
 
-  const createFakePrisma = () => ({
-    language: {
-      deleteMany: mock(({ where }: { where: { resumeId: string } }) => {
-        languageStore.set(where.resumeId, []);
-        return Promise.resolve({ count: 0 });
-      }),
-      createMany: mock(({ data }: { data: any[] }) => {
-        const resumeId = data[0]?.resumeId;
-        if (resumeId) {
-          languageStore.set(resumeId, data);
-        }
-        return Promise.resolve({ count: data.length });
-      }),
-    },
-  });
+  const createFakePrisma = () => ({});
+
+  const mockSectionService = {
+    replaceSectionItems: mock(
+      (_tx: unknown, { resumeId, items }: { resumeId: string; items: any[] }) => {
+        languageStore.set(resumeId, items);
+        return Promise.resolve();
+      },
+    ),
+  };
 
   let fakePrisma: ReturnType<typeof createFakePrisma>;
 
@@ -59,12 +55,14 @@ describe('LanguagesOnboardingService', () => {
 
   beforeEach(async () => {
     languageStore.clear();
+    mockSectionService.replaceSectionItems.mockClear();
     fakePrisma = createFakePrisma();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         LanguagesOnboardingService,
         { provide: PrismaService, useValue: fakePrisma },
+        { provide: ResumeSectionOnboardingService, useValue: mockSectionService },
       ],
     }).compile();
 
@@ -89,20 +87,16 @@ describe('LanguagesOnboardingService', () => {
       const saved = languageStore.get('resume-1');
       expect(saved).toHaveLength(3);
       expect(saved![0]).toMatchObject({
-        resumeId: 'resume-1',
         name: 'English',
         level: 'NATIVE',
-        order: 0,
       });
       expect(saved![1]).toMatchObject({
         name: 'Spanish',
         level: 'INTERMEDIATE',
-        order: 1,
       });
       expect(saved![2]).toMatchObject({
         name: 'French',
         level: 'BASIC',
-        order: 2,
       });
     });
 
@@ -114,7 +108,7 @@ describe('LanguagesOnboardingService', () => {
 
       await service.saveLanguages('resume-1', data);
 
-      expect(fakePrisma.language.createMany.mock.calls.length).toBe(0);
+      expect(mockSectionService.replaceSectionItems.mock.calls.length).toBe(0);
     });
 
     it('should replace existing languages', async () => {
@@ -174,7 +168,7 @@ describe('LanguagesOnboardingService', () => {
 
       const saved = languageStore.get('resume-1');
       expect(saved).toHaveLength(1);
-      expect(saved![0].order).toBe(0);
+      expect(saved![0]).toMatchObject({ name: 'Mandarin', level: 'NATIVE' });
     });
   });
 });

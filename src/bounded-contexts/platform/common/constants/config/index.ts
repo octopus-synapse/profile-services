@@ -17,8 +17,7 @@ export { ERROR_MESSAGES } from './error-messages.const';
 export { SUCCESS_MESSAGES } from './success-messages.const';
 export { TIME_MS, TOKEN_EXPIRY } from './time.const';
 
-// Legacy APP_CONSTANTS for backward compatibility
-// Maps to individual config objects
+// Aggregated APP_CONSTANTS map to individual config objects
 export const APP_CONSTANTS = {
   JWT_EXPIRATION: '15m', // APP_CONFIG value
   BCRYPT_ROUNDS: 10, // APP_CONFIG value

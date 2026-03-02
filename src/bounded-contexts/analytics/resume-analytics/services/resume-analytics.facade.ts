@@ -1,6 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { EventPublisher } from '@/shared-kernel';
+import {
+  SectionProjectionAdapter,
+  toGenericSections,
+} from '@/shared-kernel/types/section-projection.adapter';
 import { AtsScoreCalculatedEvent } from '../../domain/events';
 import type {
   AnalyticsDashboard,
@@ -156,49 +160,65 @@ export class ResumeAnalyticsFacade {
   }
 
   private async verifyOwnership(resumeId: string, userId: string): Promise<void> {
-    // First try the local projection (eliminates cross-context query)
     const projection = await this.prisma.analyticsResumeProjection.findFirst({
       where: { id: resumeId, userId },
       select: { id: true },
     });
 
-    if (projection) return;
-
-    // Fallback to resume table for backward compatibility
-    // (until projection is fully populated)
-    const resume = await this.prisma.resume.findFirst({
-      where: { id: resumeId, userId },
-      select: { id: true },
-    });
-    if (!resume) throw new NotFoundException('Resume not found or access denied');
+    if (!projection) throw new NotFoundException('Resume not found or access denied');
   }
 
   private async verifyResumeExists(resumeId: string): Promise<void> {
-    // First try the local projection
     const projection = await this.prisma.analyticsResumeProjection.findUnique({
       where: { id: resumeId },
       select: { id: true },
     });
 
-    if (projection) return;
-
-    // Fallback to resume table
-    const exists = await this.prisma.resume.findUnique({
-      where: { id: resumeId },
-      select: { id: true },
-    });
-    if (!exists) throw new NotFoundException('Resume not found');
+    if (!projection) throw new NotFoundException('Resume not found');
   }
 
   private async getResumeWithDetails(resumeId: string) {
-    return this.prisma.resume.findUniqueOrThrow({
+    const resume = await this.prisma.resume.findUniqueOrThrow({
       where: { id: resumeId },
       include: {
-        experiences: true,
-        education: true,
-        skills: true,
-        certifications: true,
+        resumeSections: {
+          include: {
+            sectionType: {
+              select: {
+                semanticKind: true,
+              },
+            },
+            items: {
+              orderBy: { order: 'asc' },
+              select: {
+                content: true,
+              },
+            },
+          },
+        },
       },
     });
+
+    const sections = toGenericSections(
+      resume.resumeSections as Array<{
+        sectionType: { semanticKind: string };
+        items: Array<{ content: unknown }>;
+      }>,
+    );
+
+    const experiences = SectionProjectionAdapter.projectExperience(sections);
+    const skills = SectionProjectionAdapter.projectSkills(sections);
+
+    return {
+      ...resume,
+      skills: skills.map((s) => ({ name: s.name })),
+      experiences: experiences.map((exp) => ({
+        description: exp.description,
+        startDate: exp.startDate,
+        endDate: exp.endDate,
+        position: exp.role,
+        company: exp.company,
+      })),
+    };
   }
 }

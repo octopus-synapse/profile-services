@@ -14,9 +14,54 @@ import { DslValidatorService } from './dsl-validator.service';
 import { TokenResolverService } from './token-resolver.service';
 import { DslMigrationService } from './migrators';
 import { BadRequestException } from '@nestjs/common';
+import type { ResumeDsl } from '@/shared-kernel';
 
 describe('DslCompilerService', () => {
   let service: DslCompilerService;
+
+  const validDsl: ResumeDsl = {
+    version: '1.0.0',
+    layout: {
+      type: 'single-column',
+      paperSize: 'a4',
+      margins: 'normal',
+      pageBreakBehavior: 'auto',
+    },
+    tokens: {
+      typography: {
+        fontFamily: { heading: 'inter', body: 'inter' },
+        fontSize: 'base',
+        headingStyle: 'bold',
+      },
+      colors: {
+        colors: {
+          primary: '#2563eb',
+          secondary: '#6b7280',
+          background: '#ffffff',
+          surface: '#ffffff',
+          text: {
+            primary: '#111827',
+            secondary: '#4b5563',
+            accent: '#2563eb',
+          },
+          border: '#e5e7eb',
+          divider: '#f3f4f6',
+        },
+        borderRadius: 'md',
+        shadows: 'none',
+      },
+      spacing: {
+        density: 'comfortable',
+        sectionGap: 'md',
+        itemGap: 'sm',
+        contentPadding: 'md',
+      },
+    },
+    sections: [
+      { id: 'experience', visible: true, order: 1, column: 'main' },
+      { id: 'skills', visible: true, order: 2, column: 'main' },
+    ],
+  };
 
   // Real services are used because mocking the complex internal flow
   // is error-prone and the services have no external dependencies.
@@ -69,6 +114,86 @@ describe('DslCompilerService', () => {
 
     it('compileFromRaw should be callable', () => {
       expect(typeof service.compileFromRaw).toBe('function');
+    });
+  });
+
+  describe('generic sections fallback', () => {
+    it('should compile experience and skills from sections[] when legacy arrays are empty', () => {
+      const resumeData = {
+        id: 'resume-1',
+        userId: 'user-1',
+        summary: null,
+        activeTheme: null,
+        customTheme: null,
+        sections: [
+          {
+            id: 'section-exp-1',
+            semanticKind: 'WORK_EXPERIENCE',
+            order: 0,
+            isVisible: true,
+            items: [
+              {
+                id: 'exp-item-1',
+                order: 0,
+                isVisible: true,
+                content: {
+                  position: 'Backend Engineer',
+                  company: 'Acme',
+                  startDate: '2024-01-01',
+                  isCurrent: true,
+                  skills: ['TypeScript'],
+                },
+              },
+            ],
+          },
+          {
+            id: 'section-skill-1',
+            semanticKind: 'SKILL_SET',
+            order: 1,
+            isVisible: true,
+            items: [
+              {
+                id: 'skill-item-1',
+                order: 0,
+                isVisible: true,
+                content: {
+                  name: 'TypeScript',
+                  level: 4,
+                  category: 'Languages',
+                },
+              },
+            ],
+          },
+        ],
+        experiences: [],
+        education: [],
+        skills: [],
+        languages: [],
+        projects: [],
+        certifications: [],
+        awards: [],
+        recommendations: [],
+        interests: [],
+      } as any;
+
+      const ast = service.compileForHtml(validDsl, resumeData);
+
+      const experienceSection = ast.sections.find(
+        (section) => section.sectionId === 'experience',
+      );
+      const skillsSection = ast.sections.find(
+        (section) => section.sectionId === 'skills',
+      );
+
+      expect(experienceSection?.data.type).toBe('experience');
+      expect((experienceSection?.data as any).items).toHaveLength(1);
+      expect((experienceSection?.data as any).items[0].title).toBe(
+        'Backend Engineer',
+      );
+
+      expect(skillsSection?.data.type).toBe('skills');
+      expect((skillsSection?.data as any).items).toHaveLength(1);
+      expect((skillsSection?.data as any).items[0].name).toBe('TypeScript');
     });
   });
 });

@@ -23,17 +23,15 @@ describe('DocxBuilderService', () => {
     email: 'john@example.com',
   };
 
-  const mockResume = createMockResume({
-    id: 'resume-1',
-    userId: 'user-1',
-    fullName: 'John Doe',
-    jobTitle: 'Software Engineer',
-    experiences: [],
-    education: [],
-    skills: [],
-    projects: [],
-    languages: [],
-  });
+  const mockResume = {
+    ...createMockResume({
+      id: 'resume-1',
+      userId: 'user-1',
+      fullName: 'John Doe',
+      jobTitle: 'Software Engineer',
+    }),
+    resumeSections: [],
+  };
 
   const mockSection = {
     properties: {},
@@ -100,10 +98,17 @@ describe('DocxBuilderService', () => {
       await service.generate('user-1');
 
       expect(stubSectionsService.createMainSection).toHaveBeenCalledWith(
-        mockUser,
         expect.objectContaining({
-          id: 'resume-1',
-          fullName: 'John Doe',
+          name: 'John Doe',
+          displayName: 'John Doe',
+          email: 'john@example.com',
+        }),
+        expect.objectContaining({
+          experiences: [],
+          education: [],
+          skills: [],
+          projects: [],
+          languages: [],
         }),
       );
     });

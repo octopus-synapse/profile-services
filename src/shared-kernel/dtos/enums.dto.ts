@@ -16,7 +16,7 @@ export class ExportFormatResponseDto {
     description: 'Available export formats',
     example: 'PDF',
   })
-  format: 'PDF' | 'DOCX' | 'JSON';
+  format!: 'PDF' | 'DOCX' | 'JSON';
 }
 
 /**
@@ -28,5 +28,38 @@ export class UserRoleResponseDto {
     description: 'Available user roles',
     example: 'USER',
   })
-  role: 'USER' | 'ADMIN' | 'APPROVER';
+  role!: 'USER' | 'ADMIN' | 'APPROVER';
+}
+
+/**
+ * Resume section type enum values
+ */
+export const SECTION_TYPE_VALUES = [
+  'experience',
+  'education',
+  'skills',
+  'projects',
+  'languages',
+  'certifications',
+  'interests',
+  'references',
+  'volunteer',
+  'awards',
+  'publications',
+  'summary',
+  'custom',
+] as const;
+
+export type SectionType = (typeof SECTION_TYPE_VALUES)[number];
+
+/**
+ * Section type enum response for swagger documentation
+ */
+export class SectionTypeResponseDto {
+  @ApiProperty({
+    enum: SECTION_TYPE_VALUES,
+    description: 'Available resume section types',
+    example: 'experience',
+  })
+  type!: SectionType;
 }

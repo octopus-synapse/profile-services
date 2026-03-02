@@ -1,7 +1,6 @@
 /**
  * Tech Skills Controller
- * Re-exports for backward compatibility
- * @deprecated Import from controllers/ directory instead
+ * Convenience re-export for controllers.
  */
 
 export { TechSkillsQueryController } from './controllers/tech-skills-query.controller';

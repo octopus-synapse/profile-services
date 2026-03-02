@@ -3,7 +3,6 @@
  *
  * Bug Discovery: Domain invariants and business logic validation.
  *
- * Kent Beck: "Tests are a way to communicate what the business rules are."
  *
  * These tests verify that business rules are enforced correctly.
  */

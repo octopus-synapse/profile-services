@@ -8,10 +8,12 @@
  */
 
 import { Controller, Get, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
 import { PermissionGuard, RequirePermission } from '@/bounded-contexts/identity/authorization';
+import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { PlatformStatsResponseDto } from '@/shared-kernel';
 import { PlatformStatsService } from '../services/platform-stats.service';
 
@@ -26,12 +28,14 @@ export class PlatformStatsController {
   @Get('stats')
   @RequirePermission('stats', 'read')
   @ApiOperation({ summary: 'Get platform statistics' })
-  @ApiResponse({ status: 200, type: PlatformStatsResponseDto })
-  @ApiResponse({
-    status: 200,
+  @ApiDataResponse(PlatformStatsResponseDto, {
     description: 'Statistics retrieved successfully',
   })
-  async getStatistics() {
-    return this.statsService.getStatistics();
+  async getStatistics(): Promise<DataResponse<PlatformStatsResponseDto>> {
+    const stats = await this.statsService.getStatistics();
+    return {
+      success: true,
+      data: stats as unknown as PlatformStatsResponseDto,
+    };
   }
 }

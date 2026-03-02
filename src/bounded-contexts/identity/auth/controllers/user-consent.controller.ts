@@ -1,11 +1,19 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { AuditAction } from '@prisma/client';
 import type { Request } from 'express';
 import { AuditLogService } from '@/bounded-contexts/platform/common/audit/audit-log.service';
+import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { createZodPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
-import { type AcceptConsent, AcceptConsentSchema } from '@/shared-kernel';
+import {
+  type AcceptConsent,
+  AcceptConsentResponseDto,
+  AcceptConsentSchema,
+  ConsentHistoryResponseDto,
+  ConsentStatusResponseDto,
+} from '@/shared-kernel';
 import { AllowUnverifiedEmail } from '../decorators/allow-unverified-email.decorator';
 import { SkipTosCheck } from '../decorators/skip-tos-check.decorator';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
@@ -50,32 +58,14 @@ export class UserConsentController {
       },
     },
   })
-  @ApiResponse({
-    status: 201,
+  @ApiDataResponse(AcceptConsentResponseDto, {
     description: 'Consent recorded successfully',
-    schema: {
-      example: {
-        message: 'Terms of Service accepted successfully',
-        consent: {
-          id: 'consent-123',
-          userId: 'user-456',
-          documentType: 'TERMS_OF_SERVICE',
-          version: '1.0.0',
-          acceptedAt: '2026-01-09T19:15:00.000Z',
-          ipAddress: '192.168.1.1',
-          userAgent: 'Mozilla/5.0...',
-        },
-      },
-    },
-  })
-  @ApiResponse({
-    status: 401,
-    description: 'Unauthorized - Invalid or missing JWT token',
+    status: HttpStatus.CREATED,
   })
   async acceptConsent(
     @Req() req: RequestWithUser,
     @Body(createZodPipe(AcceptConsentSchema)) dto: AcceptConsent,
-  ) {
+  ): Promise<DataResponse<AcceptConsentResponseDto>> {
     const userId = req.user.userId;
 
     // Extract IP and user agent from request if not provided in DTO
@@ -108,8 +98,11 @@ export class UserConsentController {
           : 'Marketing Consent';
 
     return {
-      message: `${documentName} accepted successfully`,
-      consent,
+      success: true,
+      data: {
+        message: `${documentName} accepted successfully`,
+        consent,
+      } as unknown as AcceptConsentResponseDto,
     };
   }
 
@@ -121,33 +114,18 @@ export class UserConsentController {
     summary: 'Get consent acceptance history',
     description: 'Retrieves all consent records for the authenticated user',
   })
-  @ApiResponse({
-    status: 200,
+  @ApiDataResponse(ConsentHistoryResponseDto, {
     description: 'Consent history retrieved successfully',
-    schema: {
-      example: [
-        {
-          id: 'consent-1',
-          documentType: 'TERMS_OF_SERVICE',
-          version: '1.0.0',
-          acceptedAt: '2026-01-09T10:00:00.000Z',
-          ipAddress: '192.168.1.1',
-          userAgent: 'Mozilla/5.0...',
-        },
-        {
-          id: 'consent-2',
-          documentType: 'PRIVACY_POLICY',
-          version: '1.0.0',
-          acceptedAt: '2026-01-09T10:00:05.000Z',
-          ipAddress: '192.168.1.1',
-          userAgent: 'Mozilla/5.0...',
-        },
-      ],
-    },
   })
-  async getConsentHistory(@Req() req: RequestWithUser) {
+  async getConsentHistory(
+    @Req() req: RequestWithUser,
+  ): Promise<DataResponse<ConsentHistoryResponseDto[]>> {
     const userId = req.user.userId;
-    return this.tosService.getAcceptanceHistory(userId);
+    const result = await this.tosService.getAcceptanceHistory(userId);
+    return {
+      success: true,
+      data: result as unknown as ConsentHistoryResponseDto[],
+    };
   }
 
   @Get('consent-status')
@@ -158,20 +136,12 @@ export class UserConsentController {
     summary: 'Check consent acceptance status',
     description: 'Returns which documents the user has accepted for the current versions',
   })
-  @ApiResponse({
-    status: 200,
+  @ApiDataResponse(ConsentStatusResponseDto, {
     description: 'Consent status retrieved successfully',
-    schema: {
-      example: {
-        tosAccepted: true,
-        privacyPolicyAccepted: true,
-        marketingConsentAccepted: false,
-        latestTosVersion: '1.0.0',
-        latestPrivacyPolicyVersion: '1.0.0',
-      },
-    },
   })
-  async checkConsentStatus(@Req() req: RequestWithUser) {
+  async checkConsentStatus(
+    @Req() req: RequestWithUser,
+  ): Promise<DataResponse<ConsentStatusResponseDto>> {
     const userId = req.user.userId;
 
     const [tosAccepted, privacyPolicyAccepted, marketingConsentAccepted] = await Promise.all([
@@ -185,11 +155,14 @@ export class UserConsentController {
     const latestPrivacyPolicyVersion = process.env.PRIVACY_POLICY_VERSION ?? '1.0.0';
 
     return {
-      tosAccepted,
-      privacyPolicyAccepted,
-      marketingConsentAccepted,
-      latestTosVersion,
-      latestPrivacyPolicyVersion,
+      success: true,
+      data: {
+        tosAccepted,
+        privacyPolicyAccepted,
+        marketingConsentAccepted,
+        latestTosVersion,
+        latestPrivacyPolicyVersion,
+      },
     };
   }
 }

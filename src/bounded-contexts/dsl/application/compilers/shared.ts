@@ -1,18 +1,22 @@
-import type {
-  AwardItem,
-  CertificationItem,
-  EducationItem,
-  ExperienceItem,
-  InterestItem,
-  LanguageItem,
-  ProjectItem,
-  ReferenceItem,
-  SectionData,
-  SkillItem,
-} from '@/shared-kernel';
+/**
+ * Shared DSL Compiler Utilities
+ *
+ * Basic types and utilities for DSL compilation.
+ * Section-specific types are now in @/shared-kernel/types/section-projection.adapter.ts
+ */
 
-type ItemOverride = { itemId: string; visible?: boolean; order?: number };
+/**
+ * Item override configuration for DSL rendering.
+ */
+export type ItemOverride = {
+  itemId: string;
+  visible?: boolean;
+  order?: number;
+};
 
+/**
+ * Apply overrides to a list of items.
+ */
 export function applyOverrides<T extends { id: string; order: number }>(
   items: T[],
   overrides: ItemOverride[],
@@ -31,16 +35,3 @@ export function applyOverrides<T extends { id: string; order: number }>(
     })
     .sort((a, b) => a.order - b.order);
 }
-
-export function mapSkillLevel(level: number | null): string | undefined {
-  if (level === null) return undefined;
-  if (level >= 5) return 'Expert';
-  if (level >= 4) return 'Advanced';
-  if (level >= 3) return 'Intermediate';
-  if (level >= 2) return 'Elementary';
-  return 'Beginner';
-}
-
-export type { ExperienceItem, EducationItem, SkillItem, LanguageItem };
-export type { ProjectItem, CertificationItem, AwardItem, ReferenceItem, InterestItem };
-export type { SectionData, ItemOverride };

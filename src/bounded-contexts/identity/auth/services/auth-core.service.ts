@@ -166,7 +166,7 @@ export class AuthCoreService {
     };
     const refreshToken = this.tokenService.generateToken(refreshTokenPayload);
 
-    const authResponseData = {
+    return {
       accessToken,
       refreshToken,
       user: {
@@ -177,11 +177,6 @@ export class AuthCoreService {
         image: authenticatedUser.image ?? null,
         hasCompletedOnboarding: authenticatedUser.hasCompletedOnboarding,
       },
-    };
-
-    return {
-      success: true,
-      data: authResponseData,
     };
   }
 }

@@ -43,11 +43,39 @@ export class GitHubService {
 
   async getSyncStatus(userId: string, resumeId: string) {
     const resume = await this.databaseService.verifyResumeOwnership(userId, resumeId, {
-      openSource: { where: { projectUrl: { contains: 'github.com' } } },
+      resumeSections: {
+        where: {
+          sectionType: {
+            semanticKind: 'OPEN_SOURCE',
+          },
+        },
+        include: {
+          items: {
+            select: {
+              content: true,
+            },
+          },
+        },
+      },
       achievements: { where: { type: 'github_stars' } },
     });
 
-    const openSourceList = 'openSource' in resume ? (resume.openSource as unknown[]) : [];
+    const openSourceList =
+      'resumeSections' in resume
+        ? (
+            resume.resumeSections as Array<{
+              items: Array<{ content: unknown }>;
+            }>
+          ).flatMap((section) =>
+            section.items.filter((item) => {
+              const content = this.asRecord(item.content);
+              return (
+                typeof content.projectUrl === 'string' && content.projectUrl.includes('github.com')
+              );
+            }),
+          )
+        : [];
+
     const achievementsList = 'achievements' in resume ? (resume.achievements as unknown[]) : [];
     const github = (resume as { github?: string | null }).github;
 
@@ -104,5 +132,13 @@ export class GitHubService {
       .replace('http://github.com/', '')
       .replace('github.com/', '')
       .split('/')[0];
+  }
+
+  private asRecord(value: unknown): Record<string, unknown> {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      return {};
+    }
+
+    return value as Record<string, unknown>;
   }
 }

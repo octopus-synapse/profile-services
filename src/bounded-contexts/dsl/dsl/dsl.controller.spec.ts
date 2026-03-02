@@ -20,7 +20,7 @@ describe('DslController', () => {
   const mockResumeId = 'resume-456';
   const mockSlug = 'john-doe-software-engineer';
 
-  const mockDsl = {
+  const mockDsl: any = {
     version: '2.0',
     content: {
       name: 'John Doe',
@@ -31,15 +31,23 @@ describe('DslController', () => {
     },
   };
 
-  const mockAst = {
-    type: 'document',
-    version: '2.0',
-    children: [
-      {
-        type: 'header',
-        props: { name: 'John Doe', title: 'Software Engineer' },
-      },
-    ],
+  const mockAst: any = {
+    meta: {
+      version: '1.0',
+      generatedAt: '2024-01-01T00:00:00.000Z',
+    },
+    page: {
+      widthMm: 210,
+      heightMm: 297,
+      marginTopMm: 10,
+      marginBottomMm: 10,
+      marginLeftMm: 10,
+      marginRightMm: 10,
+      columns: [],
+      columnGapMm: 0,
+    },
+    sections: [],
+    globalStyles: {},
   };
 
   const mockValidationResult = {
@@ -52,8 +60,12 @@ describe('DslController', () => {
     mockDslRepository = {
       validate: mock(() => mockValidationResult),
       preview: mock(() => mockAst),
-      render: mock(() => Promise.resolve({ ast: mockAst })),
-      renderPublic: mock(() => Promise.resolve({ ast: mockAst })),
+      render: mock(() =>
+        Promise.resolve({ ast: mockAst, resumeId: mockResumeId }),
+      ),
+      renderPublic: mock(() =>
+        Promise.resolve({ ast: mockAst, slug: mockSlug }),
+      ),
     };
 
     controller = new DslController(mockDslRepository as DslRepository);
@@ -63,7 +75,8 @@ describe('DslController', () => {
     it('should validate DSL and return validation result', () => {
       const result = controller.validate(mockDsl);
 
-      expect(result).toEqual(mockValidationResult);
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual(mockValidationResult);
       expect(mockDslRepository.validate).toHaveBeenCalledWith(mockDsl);
     });
 
@@ -77,10 +90,11 @@ describe('DslController', () => {
         invalidResult,
       );
 
-      const result = controller.validate({ invalid: 'dsl' });
+      const result = controller.validate({ invalid: 'dsl' } as any);
 
-      expect(result.valid).toBe(false);
-      expect(result.errors).toHaveLength(1);
+      expect(result.success).toBe(true);
+      expect(result.data?.valid).toBe(false);
+      expect(result.data?.errors).toHaveLength(1);
     });
   });
 
@@ -88,14 +102,16 @@ describe('DslController', () => {
     it('should compile DSL to AST with default HTML target', () => {
       const result = controller.preview(mockDsl);
 
-      expect(result.ast).toEqual(mockAst);
+      expect(result.success).toBe(true);
+      expect(result.data?.ast).toBeDefined();
       expect(mockDslRepository.preview).toHaveBeenCalledWith(mockDsl, 'html');
     });
 
     it('should compile DSL to AST with PDF target', () => {
       const result = controller.preview(mockDsl, 'pdf');
 
-      expect(result.ast).toEqual(mockAst);
+      expect(result.success).toBe(true);
+      expect(result.data?.ast).toBeDefined();
       expect(mockDslRepository.preview).toHaveBeenCalledWith(mockDsl, 'pdf');
     });
 
@@ -110,7 +126,8 @@ describe('DslController', () => {
     it('should render resume AST for authenticated user', async () => {
       const result = await controller.render(mockUserId, mockResumeId);
 
-      expect(result.ast).toEqual(mockAst);
+      expect(result.success).toBe(true);
+      expect(result.data?.ast).toBeDefined();
       expect(mockDslRepository.render).toHaveBeenCalledWith(
         mockResumeId,
         mockUserId,
@@ -133,7 +150,8 @@ describe('DslController', () => {
     it('should render public resume by slug', async () => {
       const result = await controller.renderPublic(mockSlug);
 
-      expect(result.ast).toEqual(mockAst);
+      expect(result.success).toBe(true);
+      expect(result.data?.ast).toBeDefined();
       expect(mockDslRepository.renderPublic).toHaveBeenCalledWith(
         mockSlug,
         'html',

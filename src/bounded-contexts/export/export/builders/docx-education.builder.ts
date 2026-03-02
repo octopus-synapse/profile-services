@@ -3,11 +3,11 @@
  * Builds education section paragraphs for DOCX export
  */
 
-import { Education } from '@prisma/client';
 import { Paragraph, TextRun } from 'docx';
+import { DocxEducation } from '../services/docx.types';
 
 export class DocxEducationBuilder {
-  create(edu: Education): Paragraph[] {
+  create(edu: DocxEducation): Paragraph[] {
     const { startDate, endDate } = this.formatDateRange(edu);
 
     return [
@@ -16,14 +16,16 @@ export class DocxEducationBuilder {
     ];
   }
 
-  private formatDateRange(edu: Education): {
+  private formatDateRange(edu: DocxEducation): {
     startDate: string;
     endDate: string;
   } {
-    const startDate = new Date(edu.startDate).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-    });
+    const startDate = edu.startDate
+      ? new Date(edu.startDate).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+        })
+      : '';
     const endDate = edu.endDate
       ? new Date(edu.endDate).toLocaleDateString('en-US', {
           year: 'numeric',
@@ -34,7 +36,7 @@ export class DocxEducationBuilder {
     return { startDate, endDate };
   }
 
-  private createDegreeParagraph(edu: Education): Paragraph {
+  private createDegreeParagraph(edu: DocxEducation): Paragraph {
     return new Paragraph({
       children: [
         new TextRun({ text: edu.degree, bold: true }),

@@ -304,7 +304,7 @@ profile-services/
 - Helmet.js for HTTP security headers
 - Rate limiting (Throttler) per IP
 - CORS configured
-- Input validation with class-validator
+- Input validation with Zod
 - Data sanitization
 - JWT for stateless authentication
 - Bcrypt for password hashing (10 rounds)

@@ -2,7 +2,6 @@
  * Environment Variables Validation
  *
  * Uses profile-contracts for validation.
- * No class-validator, no Zod here - just imports.
  */
 
 import { type EnvironmentVariables, validateEnv } from '@/shared-kernel';

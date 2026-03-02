@@ -16,9 +16,6 @@ import type {
   TranslationResult,
 } from './types/translation.types';
 
-// Re-export types for backward compatibility
-export type { TranslationLanguage, TranslationResult, BatchTranslationResult };
-
 @Injectable()
 export class TranslationService implements OnModuleInit {
   constructor(

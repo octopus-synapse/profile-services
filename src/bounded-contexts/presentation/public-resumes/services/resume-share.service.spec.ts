@@ -39,6 +39,23 @@ describe('ResumeShareService', () => {
     awards: [],
   });
 
+  const mockResumeWithSections = {
+    ...mockResume,
+    resumeSections: [
+      {
+        sectionType: { semanticKind: 'SKILL_SET' },
+        items: [
+          { content: { name: 'TypeScript' } },
+          { content: { name: 'NestJS' } },
+        ],
+      },
+      {
+        sectionType: { semanticKind: 'WORK_EXPERIENCE' },
+        items: [{ content: { title: 'Backend Engineer' } }],
+      },
+    ],
+  };
+
   const mockShare = {
     id: 'share-123',
     resumeId: 'resume-123',
@@ -59,7 +76,7 @@ describe('ResumeShareService', () => {
         delete: mock(() => Promise.resolve(mockShare)),
       },
       resume: {
-        findUnique: mock(() => Promise.resolve(mockResume)),
+        findUnique: mock(() => Promise.resolve(mockResumeWithSections)),
       },
     } as any;
 
@@ -216,7 +233,21 @@ describe('ResumeShareService', () => {
 
       const result = await service.getResumeWithCache('resume-123');
 
-      expect(result).toEqual(mockResume);
+      expect(result).toEqual(
+        expect.objectContaining({
+          id: 'resume-123',
+          sections: [
+            {
+              semanticKind: 'SKILL_SET',
+              items: [{ name: 'TypeScript' }, { name: 'NestJS' }],
+            },
+            {
+              semanticKind: 'WORK_EXPERIENCE',
+              items: [{ title: 'Backend Engineer' }],
+            },
+          ],
+        }),
+      );
       expect(prisma.resume.findUnique).toHaveBeenCalled();
       expect(cache.set).toHaveBeenCalled();
     });
@@ -228,7 +259,19 @@ describe('ResumeShareService', () => {
 
       expect(cache.set).toHaveBeenCalledWith(
         'public:resume:resume-123',
-        mockResume,
+        expect.objectContaining({
+          id: 'resume-123',
+          sections: [
+            {
+              semanticKind: 'SKILL_SET',
+              items: [{ name: 'TypeScript' }, { name: 'NestJS' }],
+            },
+            {
+              semanticKind: 'WORK_EXPERIENCE',
+              items: [{ title: 'Backend Engineer' }],
+            },
+          ],
+        }),
         60,
       );
     });

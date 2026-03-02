@@ -274,10 +274,10 @@ if (response.status !== 200) {
 
 ## Next Steps
 
-- [ ] Implement Journey 3: Resume CRUD (P1)
-- [ ] Implement Journey 4: Public Resume (P1)
-- [ ] Implement Journey 5: Export Pipeline (P2)
-- [ ] Implement Journey 6: DSL Integration (P3)
+- [x] Implement Journey 3: Resume CRUD (P1) ✅
+- [x] Implement Journey 4: Public Resume (P1) ✅
+- [x] Implement Journey 5: Export Pipeline (P2) ✅
+- [x] Implement Journey 6: DSL Integration (P3) ✅
 - [ ] Add performance tracking
 - [ ] Add flakiness monitoring
 - [ ] Integrate with Slack for nightly failures

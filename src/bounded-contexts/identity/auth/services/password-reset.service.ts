@@ -9,7 +9,7 @@ import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/co
 import { EmailService } from '@/bounded-contexts/platform/common/email/email.service';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { ChangePassword, ForgotPassword, ResetPassword } from '@/shared-kernel';
+import type { ChangePassword, NewPassword, ResetPasswordRequest } from '@/shared-kernel';
 import { ERROR_MESSAGES } from '@/shared-kernel';
 import { PasswordService } from './password.service';
 import { TokenBlacklistService } from './token-blacklist.service';
@@ -28,7 +28,7 @@ export class PasswordResetService {
     private readonly tokenBlacklist: TokenBlacklistService,
   ) {}
 
-  async forgotPassword(dto: ForgotPassword) {
+  async forgotPassword(dto: ResetPasswordRequest) {
     const user = await this.findUserByEmail(dto.email);
 
     // Always return success to prevent email enumeration
@@ -78,7 +78,7 @@ export class PasswordResetService {
     };
   }
 
-  async resetPassword(dto: ResetPassword) {
+  async resetPassword(dto: NewPassword) {
     const email = await this.tokenService.validatePasswordResetToken(dto.token);
 
     const hashedPassword = await this.passwordService.hash(dto.password);

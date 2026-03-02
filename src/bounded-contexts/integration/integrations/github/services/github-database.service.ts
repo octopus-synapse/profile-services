@@ -7,6 +7,9 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ERROR_MESSAGES } from '@/shared-kernel';
+import { GitHubContributionInput } from './github-contribution.service';
+
+const OPEN_SOURCE_SEMANTIC_KIND = 'OPEN_SOURCE';
 
 @Injectable()
 export class GitHubDatabaseService {
@@ -42,20 +45,78 @@ export class GitHubDatabaseService {
   async reconcileDbEntries(
     resumeId: string,
     githubUsername: string,
-    contributions: Prisma.OpenSourceContributionCreateManyInput[],
+    contributions: GitHubContributionInput[],
     achievements: Prisma.AchievementCreateManyInput[],
   ) {
-    return this.prisma.$transaction([
-      this.prisma.openSourceContribution.deleteMany({
-        where: { resumeId, projectUrl: { contains: 'github.com' } },
+    const operations: Prisma.PrismaPromise<unknown>[] = [];
+
+    operations.push(
+      this.prisma.sectionItem.deleteMany({
+        where: {
+          resumeSection: {
+            resumeId,
+            sectionType: {
+              semanticKind: OPEN_SOURCE_SEMANTIC_KIND,
+            },
+          },
+          content: {
+            path: ['projectUrl'],
+            string_contains: 'github.com',
+          },
+        },
       }),
-      ...(contributions.length > 0
-        ? [
-            this.prisma.openSourceContribution.createMany({
-              data: contributions,
-            }),
-          ]
-        : []),
+    );
+
+    if (contributions.length > 0) {
+      const sectionType = await this.prisma.sectionType.findFirst({
+        where: {
+          semanticKind: OPEN_SOURCE_SEMANTIC_KIND,
+          isActive: true,
+        },
+        orderBy: { version: 'desc' },
+        select: { id: true },
+      });
+
+      if (sectionType) {
+        const resumeSection = await this.prisma.resumeSection.upsert({
+          where: {
+            resumeId_sectionTypeId: {
+              resumeId,
+              sectionTypeId: sectionType.id,
+            },
+          },
+          update: {},
+          create: {
+            resumeId,
+            sectionTypeId: sectionType.id,
+          },
+          select: { id: true },
+        });
+
+        operations.push(
+          this.prisma.sectionItem.createMany({
+            data: contributions.map((contribution, index) => ({
+              resumeSectionId: resumeSection.id,
+              order: index,
+              content: {
+                projectName: contribution.projectName,
+                projectUrl: contribution.projectUrl,
+                role: contribution.role,
+                description: contribution.description,
+                technologies: contribution.technologies,
+                commits: contribution.commits,
+                prsCreated: contribution.prsCreated,
+                stars: contribution.stars,
+                startDate: contribution.startDate,
+                isCurrent: contribution.isCurrent,
+              },
+            })),
+          }),
+        );
+      }
+    }
+
+    operations.push(
       this.prisma.achievement.deleteMany({
         where: {
           resumeId,
@@ -65,9 +126,12 @@ export class GitHubDatabaseService {
           ],
         },
       }),
-      ...(achievements.length > 0
-        ? [this.prisma.achievement.createMany({ data: achievements })]
-        : []),
-    ]);
+    );
+
+    if (achievements.length > 0) {
+      operations.push(this.prisma.achievement.createMany({ data: achievements }));
+    }
+
+    return this.prisma.$transaction(operations);
   }
 }

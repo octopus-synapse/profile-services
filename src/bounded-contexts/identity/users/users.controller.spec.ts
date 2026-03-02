@@ -39,29 +39,13 @@ describe('UsersController', () => {
 
   beforeEach(() => {
     mockUsersService = {
-      getProfile: mock(() => Promise.resolve({ data: mockProfile })),
-      getPublicProfileByUsername: mock(() =>
-        Promise.resolve({ data: mockProfile }),
-      ),
-      updateProfile: mock(() =>
-        Promise.resolve({ data: mockProfile, message: 'Profile updated' }),
-      ),
-      getPreferences: mock(() => Promise.resolve({ data: mockPreferences })),
-      updatePreferences: mock(() =>
-        Promise.resolve({
-          data: mockPreferences,
-          message: 'Preferences updated',
-        }),
-      ),
-      getFullPreferences: mock(() =>
-        Promise.resolve({ data: mockPreferences }),
-      ),
-      updateFullPreferences: mock(() =>
-        Promise.resolve({
-          data: mockPreferences,
-          message: 'Full preferences updated',
-        }),
-      ),
+      getProfile: mock(() => Promise.resolve(mockProfile)),
+      getPublicProfileByUsername: mock(() => Promise.resolve(mockProfile)),
+      updateProfile: mock(() => Promise.resolve(mockProfile)),
+      getPreferences: mock(() => Promise.resolve(mockPreferences)),
+      updatePreferences: mock(() => Promise.resolve(mockPreferences)),
+      getFullPreferences: mock(() => Promise.resolve(mockPreferences)),
+      updateFullPreferences: mock(() => Promise.resolve(mockPreferences)),
       checkUsernameAvailability: mock(() =>
         Promise.resolve({ available: true }),
       ),
@@ -80,6 +64,7 @@ describe('UsersController', () => {
     it('should return public profile for username', async () => {
       const result = await controller.getPublicProfileByUsername('testuser');
 
+      expect(result.success).toBe(true);
       expect(result.data).toEqual(mockProfile);
       expect(mockUsersService.getPublicProfileByUsername).toHaveBeenCalledWith(
         'testuser',
@@ -91,6 +76,7 @@ describe('UsersController', () => {
     it('should return current user profile', async () => {
       const result = await controller.getProfile(mockUser);
 
+      expect(result.success).toBe(true);
       expect(result.data).toEqual(mockProfile);
       expect(mockUsersService.getProfile).toHaveBeenCalledWith(mockUser.userId);
     });
@@ -102,7 +88,8 @@ describe('UsersController', () => {
 
       const result = await controller.updateProfile(mockUser, updateData);
 
-      expect(result.message).toBe('Profile updated');
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual(mockProfile);
       expect(mockUsersService.updateProfile).toHaveBeenCalledWith(
         mockUser.userId,
         updateData,
@@ -114,6 +101,7 @@ describe('UsersController', () => {
     it('should return user preferences', async () => {
       const result = await controller.getPreferences(mockUser);
 
+      expect(result.success).toBe(true);
       expect(result.data).toEqual(mockPreferences);
       expect(mockUsersService.getPreferences).toHaveBeenCalledWith(
         mockUser.userId,
@@ -127,7 +115,8 @@ describe('UsersController', () => {
 
       const result = await controller.updatePreferences(mockUser, updateData);
 
-      expect(result.message).toBe('Preferences updated');
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual(mockPreferences);
       expect(mockUsersService.updatePreferences).toHaveBeenCalledWith(
         mockUser.userId,
         updateData,

@@ -11,6 +11,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ERROR_MESSAGES } from '@/shared-kernel';
 
+const SKILL_SECTION_TYPE_KEY = 'skill_set_v1';
+
 // ============================================================================
 // Types
 // ============================================================================
@@ -45,10 +47,23 @@ export class SkillManagementService {
   async listSkillsForResume(resumeId: string) {
     await this.ensureResumeExists(resumeId);
 
-    const skills = await this.prisma.skill.findMany({
-      where: { resumeId },
-      orderBy: [{ category: 'asc' }, { order: 'asc' }],
+    const resumeSection = await this.prisma.resumeSection.findFirst({
+      where: {
+        resumeId,
+        sectionType: {
+          key: SKILL_SECTION_TYPE_KEY,
+        },
+      },
+      include: {
+        items: {
+          orderBy: { order: 'asc' },
+        },
+      },
     });
+
+    const skills = (resumeSection?.items ?? []).map((item) =>
+      this.toSkillResponse(item.id, resumeId, item.order, item.content),
+    );
 
     return { skills };
   }
@@ -63,21 +78,24 @@ export class SkillManagementService {
   async addSkillToResume(resumeId: string, data: CreateSkillInput) {
     await this.ensureResumeExists(resumeId);
 
-    const nextOrder = await this.getNextOrderValue(resumeId);
+    const resumeSection = await this.ensureSkillSection(resumeId);
+    const nextOrder = await this.getNextOrderValue(resumeSection.id);
 
-    const skill = await this.prisma.skill.create({
+    const skill = await this.prisma.sectionItem.create({
       data: {
-        resumeId,
-        name: data.name,
-        category: data.category,
-        level: data.level,
+        resumeSectionId: resumeSection.id,
+        content: {
+          name: data.name,
+          category: data.category,
+          ...(data.level !== undefined ? { level: data.level } : {}),
+        },
         order: nextOrder,
       },
     });
 
     return {
       success: true,
-      skill,
+      skill: this.toSkillResponse(skill.id, resumeId, skill.order, skill.content),
       message: 'Skill added successfully',
     };
   }
@@ -86,16 +104,29 @@ export class SkillManagementService {
    * Update any skill (elevated permission)
    */
   async updateSkill(skillId: string, data: UpdateSkillInput) {
-    await this.ensureSkillExists(skillId);
+    const existingSkill = await this.ensureSkillExists(skillId);
+    const currentContent = this.asRecord(existingSkill.content);
 
-    const skill = await this.prisma.skill.update({
+    const content = {
+      ...currentContent,
+      ...(data.name !== undefined ? { name: data.name } : {}),
+      ...(data.category !== undefined ? { category: data.category } : {}),
+      ...(data.level !== undefined ? { level: data.level } : {}),
+    };
+
+    const skill = await this.prisma.sectionItem.update({
       where: { id: skillId },
-      data,
+      data: { content },
     });
 
     return {
       success: true,
-      skill,
+      skill: this.toSkillResponse(
+        skill.id,
+        existingSkill.resumeSection.resumeId,
+        skill.order,
+        skill.content,
+      ),
       message: 'Skill updated successfully',
     };
   }
@@ -106,7 +137,7 @@ export class SkillManagementService {
   async deleteSkill(skillId: string) {
     await this.ensureSkillExists(skillId);
 
-    await this.prisma.skill.delete({ where: { id: skillId } });
+    await this.prisma.sectionItem.delete({ where: { id: skillId } });
 
     return {
       success: true,
@@ -118,13 +149,47 @@ export class SkillManagementService {
   // Private Helpers
   // ============================================================================
 
-  private async getNextOrderValue(resumeId: string): Promise<number> {
-    const lastSkill = await this.prisma.skill.findFirst({
-      where: { resumeId },
+  private async getNextOrderValue(resumeSectionId: string): Promise<number> {
+    const lastSkill = await this.prisma.sectionItem.findFirst({
+      where: { resumeSectionId },
       orderBy: { order: 'desc' },
     });
 
     return (lastSkill?.order ?? -1) + 1;
+  }
+
+  private async getSkillSectionTypeId(): Promise<string> {
+    const sectionType = await this.prisma.sectionType.findUnique({
+      where: { key: SKILL_SECTION_TYPE_KEY },
+      select: { id: true },
+    });
+
+    if (!sectionType) {
+      throw new NotFoundException('Skill section type not found');
+    }
+
+    return sectionType.id;
+  }
+
+  private async ensureSkillSection(resumeId: string): Promise<{ id: string }> {
+    const sectionTypeId = await this.getSkillSectionTypeId();
+
+    const resumeSection = await this.prisma.resumeSection.upsert({
+      where: {
+        resumeId_sectionTypeId: {
+          resumeId,
+          sectionTypeId,
+        },
+      },
+      update: {},
+      create: {
+        resumeId,
+        sectionTypeId,
+      },
+      select: { id: true },
+    });
+
+    return resumeSection;
   }
 
   private async ensureResumeExists(resumeId: string): Promise<void> {
@@ -138,14 +203,46 @@ export class SkillManagementService {
     }
   }
 
-  private async ensureSkillExists(skillId: string): Promise<void> {
-    const skill = await this.prisma.skill.findUnique({
+  private async ensureSkillExists(skillId: string) {
+    const skill = await this.prisma.sectionItem.findFirst({
       where: { id: skillId },
-      select: { id: true },
+      include: {
+        resumeSection: {
+          select: {
+            resumeId: true,
+            sectionType: {
+              select: { key: true },
+            },
+          },
+        },
+      },
     });
 
-    if (!skill) {
+    if (!skill || skill.resumeSection.sectionType.key !== SKILL_SECTION_TYPE_KEY) {
       throw new NotFoundException(ERROR_MESSAGES.SKILL_NOT_FOUND);
     }
+
+    return skill;
+  }
+
+  private asRecord(value: unknown): Record<string, unknown> {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      return {};
+    }
+
+    return value as Record<string, unknown>;
+  }
+
+  private toSkillResponse(skillId: string, resumeId: string, order: number, content: unknown) {
+    const data = this.asRecord(content);
+
+    return {
+      id: skillId,
+      resumeId,
+      name: typeof data.name === 'string' ? data.name : '',
+      category: typeof data.category === 'string' ? data.category : '',
+      level: typeof data.level === 'number' ? data.level : undefined,
+      order,
+    };
   }
 }

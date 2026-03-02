@@ -4,17 +4,20 @@
  */
 
 import { Body, Controller, Get, HttpCode, HttpStatus, Patch, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
 import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
 import { UsersService } from '@/bounded-contexts/identity/users/users.service';
+import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import type { UpdateFullPreferences, UpdatePreferences } from '@/shared-kernel';
 import {
-  UserFullPreferencesResponseDto,
-  UserPreferencesResponseDto,
-} from '@/shared-kernel/dtos/sdk-response.dto';
+  UserFullPreferencesDataDto,
+  UserOperationMessageDataDto,
+  UserPreferencesDataDto,
+} from '../dto/controller-response.dto';
 
 @SdkExport({ tag: 'users', description: 'Users API' })
 @ApiTags('users')
@@ -26,65 +29,71 @@ export class UsersPreferencesController {
   @UseGuards(JwtAuthGuard)
   @Get('preferences')
   @ApiOperation({ summary: 'Get user preferences (basic)' })
-  @ApiResponse({ status: 200, type: UserPreferencesResponseDto })
-  @ApiResponse({
-    status: 200,
+  @ApiDataResponse(UserPreferencesDataDto, {
     description: 'Preferences retrieved successfully',
   })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 404, description: 'User not found' })
-  async getPreferences(@CurrentUser() user: UserPayload) {
-    return this.usersService.getPreferences(user.userId);
+  async getPreferences(
+    @CurrentUser() user: UserPayload,
+  ): Promise<DataResponse<UserPreferencesDataDto>> {
+    const preferences = await this.usersService.getPreferences(user.userId);
+    return { success: true, data: { preferences } };
   }
 
   @UseGuards(JwtAuthGuard)
   @Patch('preferences')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update user preferences (basic)' })
-  @ApiResponse({ status: 200, type: UserPreferencesResponseDto })
-  @ApiResponse({
-    status: 200,
+  @ApiDataResponse(UserOperationMessageDataDto, {
     description: 'Preferences updated successfully',
   })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 404, description: 'User not found' })
-  @ApiResponse({ status: 400, description: 'Invalid input data' })
   async updatePreferences(
     @CurrentUser() user: UserPayload,
     @Body() updatePreferences: UpdatePreferences,
-  ) {
-    return this.usersService.updatePreferences(user.userId, updatePreferences);
+  ): Promise<DataResponse<UserOperationMessageDataDto>> {
+    const result = await this.usersService.updatePreferences(user.userId, updatePreferences);
+
+    return {
+      success: true,
+      data: {
+        message: result.message,
+      },
+    };
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('preferences/full')
   @ApiOperation({ summary: 'Get all user preferences' })
-  @ApiResponse({ status: 200, type: UserFullPreferencesResponseDto })
-  @ApiResponse({
-    status: 200,
+  @ApiDataResponse(UserFullPreferencesDataDto, {
     description: 'Full preferences retrieved successfully',
   })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  async getFullPreferences(@CurrentUser() user: UserPayload) {
-    return this.usersService.getFullPreferences(user.userId);
+  async getFullPreferences(
+    @CurrentUser() user: UserPayload,
+  ): Promise<DataResponse<UserFullPreferencesDataDto>> {
+    const preferences = await this.usersService.getFullPreferences(user.userId);
+    return { success: true, data: { preferences } };
   }
 
   @UseGuards(JwtAuthGuard)
   @Patch('preferences/full')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update all user preferences' })
-  @ApiResponse({ status: 200, type: UserFullPreferencesResponseDto })
-  @ApiResponse({
-    status: 200,
+  @ApiDataResponse(UserFullPreferencesDataDto, {
     description: 'Full preferences updated successfully',
   })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 404, description: 'User not found' })
-  @ApiResponse({ status: 400, description: 'Invalid input data' })
   async updateFullPreferences(
     @CurrentUser() user: UserPayload,
     @Body() updateFullPreferences: UpdateFullPreferences,
-  ) {
-    return this.usersService.updateFullPreferences(user.userId, updateFullPreferences);
+  ): Promise<DataResponse<UserFullPreferencesDataDto>> {
+    const preferences = await this.usersService.updateFullPreferences(
+      user.userId,
+      updateFullPreferences,
+    );
+
+    return {
+      success: true,
+      data: {
+        preferences: preferences.preferences,
+      },
+    };
   }
 }

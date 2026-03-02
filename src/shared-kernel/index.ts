@@ -51,6 +51,8 @@ export {
   type BlockUser,
   // Chat - Block
   BlockUserSchema,
+  ChangeEmailDto,
+  ChangePasswordDto,
   // Chat - Responses
   type ConversationResponse,
   type Course,
@@ -64,6 +66,7 @@ export {
   DashboardResponseSchema,
   type DateString,
   DateStringSchema,
+  ForgotPasswordDto,
   type ForkTheme,
   ForkThemeSchema,
   type GetConversationsQuery,
@@ -89,6 +92,7 @@ export {
   KeywordOptionsSchema,
   type KeywordSuggestionsResponse,
   KeywordSuggestionsResponseSchema,
+  LoginCredentialsDto,
   type MecStats,
   MecStatsSchema,
   type MessageResponse,
@@ -112,9 +116,11 @@ export {
   QueryThemesSchema,
   type RecentActivity,
   RecentActivitySchema,
+  RefreshTokenDto,
+  RegisterCredentialsDto,
   type ReorderItems,
   ReorderItemsSchema,
-  type ReviewTheme,
+  ResetPasswordDto,
   type ScoreProgressionResponse,
   ScoreProgressionResponseSchema,
   type SearchQuery,
@@ -164,7 +170,6 @@ export {
   ValidateUsernameRequestSchema,
   type ValidateUsernameResponse,
   ValidateUsernameResponseSchema,
-  type Validation,
   type ValidationIssue,
   ValidationIssueSchema,
   type ValidationResponse,
@@ -176,8 +181,12 @@ export {
   // Chat - WebSocket
   type WsTypingEvent,
 } from './dtos';
+// Resume AST DTOs (for SDK generation)
+export * from './dtos/resume-ast.dto';
 // SDK Response DTOs (for @ApiResponse decorators)
 export * from './dtos/sdk-response.dto';
+// Semantic section contracts
+export * from './dtos/semantic-sections.dto';
 // Enums (canonical source)
 export * from './enums';
 // Event Bus

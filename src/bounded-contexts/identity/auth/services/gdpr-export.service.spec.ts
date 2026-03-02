@@ -131,13 +131,23 @@ describe('GdprExportService', () => {
           website: null,
           linkedin: null,
           github: null,
-          experiences: [],
-          education: [],
-          skills: [],
-          projects: [],
-          certifications: [],
-          languages: [],
-          openSource: [],
+          resumeSections: [
+            {
+              sectionType: {
+                key: 'work_experience_v1',
+                semanticKind: 'WORK_EXPERIENCE',
+              },
+              items: [
+                {
+                  id: 'item-1',
+                  order: 0,
+                  content: { company: 'Acme', role: 'Engineer' },
+                  createdAt: new Date(),
+                  updatedAt: new Date(),
+                },
+              ],
+            },
+          ],
         },
       ]);
       prisma.auditLog.findMany.mockResolvedValue([]);
@@ -149,6 +159,11 @@ describe('GdprExportService', () => {
       expect(result.resumes).toHaveLength(1);
       expect(result.resumes[0].title).toBe('My Resume');
       expect(result.resumes[0].personalInfo).toBeDefined();
+      expect(result.resumes[0].sections).toHaveLength(1);
+      expect(result.resumes[0].sections[0].semanticKind).toBe(
+        'WORK_EXPERIENCE',
+      );
+      expect(result.resumes[0].sections[0].items).toHaveLength(1);
     });
   });
 

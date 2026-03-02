@@ -1,7 +1,7 @@
 /**
  * Users Repository Facade
  * Delegates to specialized query and mutation repositories
- * Maintains backward compatibility with existing code
+ * Maintains a stable repository interface for callers
  */
 
 import { Injectable } from '@nestjs/common';

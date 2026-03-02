@@ -11,12 +11,6 @@ export const PAGINATION = {
 } as const;
 
 /**
- * Legacy alias for PAGINATION
- * @deprecated Use PAGINATION instead
- */
-export const PAGINATION_DEFAULTS = PAGINATION;
-
-/**
  * Cache TTL Constants
  *
  * Time-to-live values for cached data in seconds.

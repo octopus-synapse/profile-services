@@ -13,13 +13,13 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { ApiBearerAuth, ApiOperation, ApiProduces, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiProduces, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
 import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
+import { ApiStreamResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
-import { ExportResultDto } from '@/shared-kernel';
 import { ExportCompletedEvent, ExportFailedEvent, ExportRequestedEvent } from '../../domain/events';
 import { ResumeDOCXService } from '../services/resume-docx.service';
 
@@ -41,11 +41,11 @@ export class ExportDocxController {
   @Header('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
   @Header('Content-Disposition', 'attachment; filename="resume.docx"')
   @ApiOperation({ summary: 'Export resume as DOCX document' })
-  @ApiResponse({ status: 200, type: ExportResultDto })
+  @ApiStreamResponse({
+    mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    description: 'DOCX document file',
+  })
   @ApiProduces('application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-  @ApiResponse({ status: 200, description: 'DOCX document file' })
-  @ApiResponse({ status: 400, description: 'Failed to generate DOCX' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
   async exportResumeDOCX(@CurrentUser() user: UserPayload): Promise<StreamableFile> {
     const exportId = randomUUID();
 

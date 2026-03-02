@@ -4,14 +4,17 @@
  */
 
 import { Controller, Get, HttpCode, HttpStatus, Post, Query, UseGuards } from '@nestjs/common';
-import { ApiHeader, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiHeader, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { Public } from '@/bounded-contexts/identity/auth/decorators/public.decorator';
+import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { APP_CONFIG } from '@/shared-kernel';
 import {
-  MecSyncHistoryResponseDto,
-  MecSyncStatusResponseDto,
-} from '@/shared-kernel/dtos/sdk-response.dto';
+  MecSyncExecutionDataDto,
+  MecSyncHistoryDataDto,
+  MecSyncStatusDataDto,
+} from '../dto/controller-response.dto';
 import { InternalAuthGuard } from '../guards/internal-auth.guard';
 import { MecSyncOrchestratorService } from '../services/mec-sync.service';
 
@@ -30,9 +33,12 @@ export class MecSyncInternalController {
   @UseGuards(InternalAuthGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Trigger MEC data synchronization' })
-  @ApiResponse({ status: 201, type: MecSyncStatusResponseDto })
+  @ApiDataResponse(MecSyncExecutionDataDto, {
+    description: 'Sync completed successfully',
+    status: 201,
+  })
   @ApiHeader({ name: 'x-internal-token', required: true })
-  async triggerSync() {
+  async triggerSync(): Promise<DataResponse<MecSyncExecutionDataDto>> {
     const result = await this.syncOrchestrator.sync('api');
 
     return {
@@ -51,28 +57,41 @@ export class MecSyncInternalController {
   @Public()
   @UseGuards(InternalAuthGuard)
   @ApiOperation({ summary: 'Get sync status' })
-  @ApiResponse({ status: 200, type: MecSyncStatusResponseDto })
+  @ApiDataResponse(MecSyncStatusDataDto, {
+    description: 'Sync status returned',
+  })
   @ApiHeader({ name: 'x-internal-token', required: true })
-  async getSyncStatus() {
+  async getSyncStatus(): Promise<DataResponse<MecSyncStatusDataDto>> {
     const [isRunning, metadata, lastLog] = await Promise.all([
       this.syncOrchestrator.isSyncRunning(),
       this.syncOrchestrator.getSyncMetadata(),
       this.syncOrchestrator.getLastSyncLog(),
     ]);
 
-    return { isRunning, metadata, lastSync: lastLog };
+    return {
+      success: true,
+      data: { isRunning, metadata, lastSync: lastLog },
+    };
   }
 
   @Get('sync/history')
   @Public()
   @UseGuards(InternalAuthGuard)
   @ApiOperation({ summary: 'Get sync history' })
-  @ApiResponse({ status: 200, type: [MecSyncHistoryResponseDto] })
+  @ApiDataResponse(MecSyncHistoryDataDto, {
+    description: 'Sync history returned',
+  })
   @ApiHeader({ name: 'x-internal-token', required: true })
   @ApiQuery({ name: 'limit', required: false, type: Number })
-  async getSyncHistory(@Query('limit') limit?: string) {
+  async getSyncHistory(
+    @Query('limit') limit?: string,
+  ): Promise<DataResponse<MecSyncHistoryDataDto>> {
     const parsedLimit = limit ? parseInt(limit, 10) : APP_CONFIG.SEARCH_AUTOCOMPLETE_LIMIT;
     const history = await this.syncOrchestrator.getSyncHistory(parsedLimit);
-    return { history };
+
+    return {
+      success: true,
+      data: { history },
+    };
   }
 }

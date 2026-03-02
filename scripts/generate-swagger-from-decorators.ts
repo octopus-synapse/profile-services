@@ -65,6 +65,7 @@ interface DtoProperty {
   description?: string;
   items?: { type: string } | { $ref: string };
   $ref?: string;
+  oneOf?: Array<{ $ref: string }>;
 }
 
 interface DtoSchema {
@@ -255,9 +256,12 @@ function parseEndpoints(content: string, tag: string): EndpointInfo[] {
       const methodName =
         funcDefMatch?.[1] || fallbackMatch?.[1] || methodMatch?.[1] || `${method}Endpoint`;
 
-      // Extract @Body DTO
+      // Extract @Body DTO - try multiple patterns
+      // 1. Direct type annotation: @Body() dto: SomeDto
       const bodyMatch = afterDecorator.match(/@Body\([^)]*\)[^:]*:\s*(\w+Dto)/);
-      const requestBodyDto = bodyMatch ? bodyMatch[1] : undefined;
+      // 2. From @ApiBody decorator: @ApiBody({ type: SomeDto })
+      const apiBodyMatch = afterDecorator.match(/@ApiBody\(\s*\{[^}]*type:\s*(\w+)/);
+      const requestBodyDto = apiBodyMatch?.[1] || bodyMatch?.[1] || undefined;
 
       // Extract path params
       const pathParams: Array<{ name: string; type: string }> = [];
@@ -395,7 +399,7 @@ function extractAllDtosFromController(content: string): string[] {
 
 /**
  * Extract nested DTO references from a parsed schema
- * Finds $ref references to other DTOs in properties and array items
+ * Finds $ref references to other DTOs in properties, array items, and oneOf
  */
 function extractNestedDtoRefs(schema: DtoSchema): string[] {
   const refs: string[] = [];
@@ -410,6 +414,15 @@ function extractNestedDtoRefs(schema: DtoSchema): string[] {
     if (prop.items && typeof prop.items === 'object' && '$ref' in prop.items && prop.items.$ref) {
       const match = prop.items.$ref.match(/#\/components\/schemas\/(\w+)/);
       if (match) refs.push(match[1]);
+    }
+    // oneOf references
+    if ('oneOf' in prop && Array.isArray(prop.oneOf)) {
+      for (const oneOfItem of prop.oneOf) {
+        if (oneOfItem.$ref) {
+          const match = oneOfItem.$ref.match(/#\/components\/schemas\/(\w+)/);
+          if (match) refs.push(match[1]);
+        }
+      }
     }
   }
 
@@ -523,10 +536,10 @@ function parseDtoClass(content: string, className: string): DtoSchema | null {
   const properties: Record<string, DtoProperty> = {};
   const required: string[] = [];
 
-  // Parse properties with @ApiProperty (handles multiline and other decorators between)
-  // Match @ApiProperty({ ... }) followed by optional decorators, then property definition
+  // Parse properties with @ApiProperty or @ApiPropertyOptional (handles multiline and other decorators between)
+  // Match @ApiProperty({ ... }) or @ApiPropertyOptional({ ... }) followed by optional decorators, then property definition
   const propRegex =
-    /@ApiProperty\(\s*\{([\s\S]*?)\}\s*\)[\s\S]*?(?:@\w+\([^)]*\)\s*)*(?:readonly\s+)?(\w+)(\?)?!?:\s*([^;=\n]+)/g;
+    /@ApiProperty(?:Optional)?\(\s*\{([\s\S]*?)\}\s*\)[\s\S]*?(?:@\w+\([^)]*\)\s*)*(?:readonly\s+)?(\w+)(\?)?!?:\s*([^;=\n]+)/g;
 
   let propMatch: RegExpExecArray | null = null;
   while ((propMatch = propRegex.exec(classBody)) !== null) {
@@ -564,8 +577,22 @@ function parseDtoClass(content: string, className: string): DtoSchema | null {
       }
     }
 
-    // Handle DTO references
-    if (!isArray && propType.endsWith('Dto')) {
+    // Check for oneOf (discriminated union)
+    const oneOfMatch = apiPropOptions.match(/oneOf:\s*\[([^\]]+)\]/s);
+    if (oneOfMatch) {
+      const oneOfContent = oneOfMatch[1];
+      const refs = [...oneOfContent.matchAll(/\$ref:\s*['"`]?([^'"`},\s]+)['"`]?/g)]
+        .map((m) => m[1].trim())
+        .filter((ref) => ref.startsWith('#/components/schemas/'));
+
+      if (refs.length > 0) {
+        property.oneOf = refs.map((ref) => ({ $ref: ref }));
+        property.type = undefined as unknown as string;
+        delete property.$ref;
+      }
+    }
+    // Handle DTO references (only if no oneOf)
+    else if (!isArray && propType.endsWith('Dto')) {
       property.$ref = `#/components/schemas/${propType}`;
       property.type = undefined as unknown as string;
     }
@@ -612,12 +639,12 @@ function parseDtoClass(content: string, className: string): DtoSchema | null {
   }
 
   // Also parse simple properties without @ApiProperty (for completeness)
-  const simplePropRegex = /(?:readonly\s+)?(\w+)(\?)?:\s*(\w+)(?:\s*[;=])/g;
+  const simplePropRegex = /(?:readonly\s+)?(\w+)(\?)?(!)?:\s*(\w+)(?:\s*[;=])/g;
   let simpleMatch: RegExpExecArray | null = null;
   while ((simpleMatch = simplePropRegex.exec(classBody)) !== null) {
     const propName = simpleMatch[1];
     if (!properties[propName] && !propName.startsWith('_')) {
-      const propType = simpleMatch[3];
+      const propType = simpleMatch[4];
       const isOptional = simpleMatch[2] === '?';
 
       const typeMap: Record<string, string> = {

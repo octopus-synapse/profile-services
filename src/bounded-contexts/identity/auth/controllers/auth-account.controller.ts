@@ -4,14 +4,21 @@
  */
 
 import { Body, Controller, HttpCode, HttpStatus, Post, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger';
 import { AuthService } from '@/bounded-contexts/identity/auth/auth.service';
+import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import type { ChangeEmail, DeleteAccount } from '@/shared-kernel';
 import { DeleteResponseDto } from '@/shared-kernel/dtos/sdk-response.dto';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import type { UserPayload } from '../interfaces/auth-request.interface';
+
+class ChangeEmailResponseDto {
+  @ApiProperty({ example: 'Email changed successfully' })
+  message!: string;
+}
 
 @SdkExport({ tag: 'auth', description: 'Auth API' })
 @ApiTags('auth')
@@ -24,11 +31,15 @@ export class AuthAccountController {
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Change email address (authenticated)' })
-  @ApiResponse({ status: 200, description: 'Email changed successfully' })
-  @ApiResponse({ status: 400, description: 'Invalid email or password' })
-  @ApiResponse({ status: 409, description: 'Email already in use' })
-  async changeEmail(@CurrentUser() user: UserPayload, @Body() dto: ChangeEmail) {
-    return this.authService.changeEmail(user.userId, dto);
+  @ApiDataResponse(ChangeEmailResponseDto, {
+    description: 'Email changed successfully',
+  })
+  async changeEmail(
+    @CurrentUser() user: UserPayload,
+    @Body() dto: ChangeEmail,
+  ): Promise<DataResponse<ChangeEmailResponseDto>> {
+    const result = await this.authService.changeEmail(user.userId, dto);
+    return { success: true, data: result };
   }
 
   @UseGuards(JwtAuthGuard)
@@ -36,10 +47,14 @@ export class AuthAccountController {
   @HttpCode(HttpStatus.OK)
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Delete own account (authenticated)' })
-  @ApiResponse({ status: 201, type: DeleteResponseDto })
-  @ApiResponse({ status: 200, description: 'Account deleted successfully' })
-  @ApiResponse({ status: 401, description: 'Password is incorrect' })
-  async deleteAccount(@CurrentUser() user: UserPayload, @Body() dto: DeleteAccount) {
-    return this.authService.deleteAccount(user.userId, dto);
+  @ApiDataResponse(DeleteResponseDto, {
+    description: 'Account deleted successfully',
+  })
+  async deleteAccount(
+    @CurrentUser() user: UserPayload,
+    @Body() dto: DeleteAccount,
+  ): Promise<DataResponse<DeleteResponseDto>> {
+    const result = await this.authService.deleteAccount(user.userId, dto);
+    return { success: true, data: result };
   }
 }

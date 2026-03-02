@@ -2,7 +2,7 @@
  * Legacy Role Mapping
  *
  * Maps the old UserRole enum to the new role names.
- * Used during migration and backward compatibility.
+ * Used during migration.
  */
 
 export const LEGACY_ROLE_MAPPING: Record<string, string> = {

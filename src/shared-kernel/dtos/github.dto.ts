@@ -111,7 +111,3 @@ export const GitHubSyncResultSchema = z.object({
 });
 
 export type GitHubSyncResult = z.infer<typeof GitHubSyncResultSchema>;
-
-// Backward compatibility alias
-export type SyncResult = GitHubSyncResult;
-export const SyncResultSchema = GitHubSyncResultSchema;

@@ -3,15 +3,20 @@ import type { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { OnboardingData } from '../schemas/onboarding.schema';
 import { BaseOnboardingService } from './base-onboarding.service';
+import { ResumeSectionOnboardingService } from './resume-section-onboarding.service';
 
 type SkillInput = OnboardingData['skills'][number];
-type SkillCreate = Prisma.SkillCreateManyInput;
+type SkillContent = Prisma.InputJsonValue;
 
 @Injectable()
-export class SkillsOnboardingService extends BaseOnboardingService<SkillInput, SkillCreate> {
+export class SkillsOnboardingService extends BaseOnboardingService<SkillInput, SkillContent> {
+  private static readonly SECTION_TYPE_KEY = 'skill_set_v1';
   protected readonly logger = new Logger(SkillsOnboardingService.name);
 
-  constructor(private readonly prisma: PrismaService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly resumeSectionService: ResumeSectionOnboardingService,
+  ) {
     super();
   }
 
@@ -36,21 +41,30 @@ export class SkillsOnboardingService extends BaseOnboardingService<SkillInput, S
   }
 
   protected async deleteExisting(tx: Prisma.TransactionClient, resumeId: string): Promise<void> {
-    await tx.skill.deleteMany({ where: { resumeId } });
+    await this.resumeSectionService.replaceSectionItems(tx, {
+      resumeId,
+      sectionTypeKey: SkillsOnboardingService.SECTION_TYPE_KEY,
+      items: [],
+    });
   }
 
-  protected transformItems(items: SkillInput[], resumeId: string): SkillCreate[] {
-    return items.map((skill, index) => ({
-      resumeId,
+  protected transformItems(items: SkillInput[], _resumeId: string): SkillContent[] {
+    return items.map((skill) => ({
       name: skill.name,
       category: skill.category ?? '',
-      level: null,
-      order: index,
     }));
   }
 
-  protected async createMany(tx: Prisma.TransactionClient, items: SkillCreate[]): Promise<void> {
-    await tx.skill.createMany({ data: items });
+  protected async createMany(
+    tx: Prisma.TransactionClient,
+    items: SkillContent[],
+    resumeId: string,
+  ): Promise<void> {
+    await this.resumeSectionService.replaceSectionItems(tx, {
+      resumeId,
+      sectionTypeKey: SkillsOnboardingService.SECTION_TYPE_KEY,
+      items,
+    });
   }
 
   protected getSuccessMessage(count: number): string {

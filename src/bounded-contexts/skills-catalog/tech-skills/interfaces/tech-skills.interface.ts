@@ -1,7 +1,6 @@
 /**
  * Tech Skills Interfaces
- * Re-exports for backward compatibility
- * @deprecated Import from specific interface files instead
+ * Convenience re-exports for tech-skills interfaces.
  */
 
 // Cache configuration

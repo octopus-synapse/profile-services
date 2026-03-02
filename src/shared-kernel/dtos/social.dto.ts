@@ -107,10 +107,6 @@ export const SocialActivitySchema = z.object({
 
 export type SocialActivity = z.infer<typeof SocialActivitySchema>;
 
-// Backward compatibility aliases
-export type ActivityType = SocialActivityType;
-export type Activity = SocialActivity;
-
 export const PaginatedActivitiesSchema = z.object({
   data: z.array(SocialActivitySchema),
   total: z.number().int().nonnegative(),

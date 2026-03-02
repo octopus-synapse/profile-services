@@ -1,181 +1,68 @@
-// Resume Sections - Basic sections (Experience, Education, Skills, etc.)
+// Resume Sections - Generic section model (single canonical source)
 
-model Experience {
-  id       String @id @default(cuid())
-  resumeId String
-  resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+model SectionType {
+  id           String  @id @default(cuid())
+  key          String  @unique
+  slug         String
+  title        String
+  description  String?
+  semanticKind String
+  version      Int     @default(1)
 
-  company     String
-  position    String
-  startDate   DateTime
-  endDate     DateTime?
-  isCurrent   Boolean   @default(false)
-  location    String?
-  description String?   @db.Text
-  skills      String[]
-  order       Int       @default(0)
+  isActive     Boolean @default(true)
+  isSystem     Boolean @default(true)
+  isRepeatable Boolean @default(true)
+  minItems     Int     @default(0)
+  maxItems     Int?
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([resumeId])
-  @@index([order])
-  @@index([resumeId, order])
-  @@index([isCurrent])
-}
-
-model Education {
-  id       String @id @default(cuid())
-  resumeId String
-  resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
-
-  institution String
-  degree      String
-  field       String
-  startDate   DateTime
-  endDate     DateTime?
-  isCurrent   Boolean   @default(false)
-  location    String?
-  description String?   @db.Text
-  gpa         String?
-  order       Int       @default(0)
+  definition Json
+  uiSchema    Json?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([resumeId])
-  @@index([order])
-  @@index([resumeId, order])
-  @@index([isCurrent])
+  resumeSections ResumeSection[]
+
+  @@unique([slug, version])
+  @@index([semanticKind])
+  @@index([isActive])
 }
 
-model Skill {
+model ResumeSection {
   id       String @id @default(cuid())
   resumeId String
   resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 
-  name     String
-  category String
-  level    Int?
-  order    Int    @default(0)
+  sectionTypeId String
+  sectionType   SectionType @relation(fields: [sectionTypeId], references: [id], onDelete: Restrict)
+
+  titleOverride String?
+  isVisible     Boolean @default(true)
+  order         Int     @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([resumeId])
-  @@index([category])
-  @@index([resumeId, category])
+  items SectionItem[]
+
+  @@unique([resumeId, sectionTypeId])
   @@index([resumeId, order])
+  @@index([sectionTypeId])
 }
 
-model Language {
-  id       String @id @default(cuid())
-  resumeId String
-  resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+model SectionItem {
+  id              String @id @default(cuid())
+  resumeSectionId String
+  resumeSection   ResumeSection @relation(fields: [resumeSectionId], references: [id], onDelete: Cascade)
 
-  name      String
-  level     String
-  cefrLevel String?
+  content Json
+
+  isVisible Boolean @default(true)
   order     Int     @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([resumeId])
-  @@index([resumeId, order])
-}
-
-model Project {
-  id       String @id @default(cuid())
-  resumeId String
-  resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
-
-  name         String
-  description  String?   @db.Text
-  url          String?
-  startDate    DateTime?
-  endDate      DateTime?
-  isCurrent    Boolean   @default(false)
-  technologies String[]
-  order        Int       @default(0)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([resumeId])
-  @@index([resumeId, order])
-  @@index([isCurrent])
-}
-
-model Certification {
-  id       String @id @default(cuid())
-  resumeId String
-  resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
-
-  name          String
-  issuer        String
-  issueDate     DateTime
-  expiryDate    DateTime?
-  credentialId  String?
-  credentialUrl String?
-  order         Int       @default(0)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([resumeId])
-  @@index([resumeId, order])
-}
-
-model Award {
-  id       String @id @default(cuid())
-  resumeId String
-  resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
-
-  title       String
-  issuer      String
-  date        DateTime
-  description String?  @db.Text
-  order       Int      @default(0)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([resumeId])
-  @@index([order])
-}
-
-model Recommendation {
-  id       String @id @default(cuid())
-  resumeId String
-  resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
-
-  author   String
-  position String?
-  company  String?
-  content  String    @db.Text
-  date     DateTime?
-  order    Int       @default(0)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([resumeId])
-  @@index([order])
-}
-
-model Interest {
-  id       String @id @default(cuid())
-  resumeId String
-  resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
-
-  name        String
-  description String? @db.Text
-  order       Int     @default(0)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([resumeId])
-  @@index([order])
+  @@index([resumeSectionId, order])
+  @@index([resumeSectionId])
 }

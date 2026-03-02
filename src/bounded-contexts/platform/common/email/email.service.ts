@@ -50,5 +50,5 @@ export class EmailService {
   }
 }
 
-// Re-export types for backward compatibility
+// Re-export commonly used email types
 export type { SendEmailOptions };

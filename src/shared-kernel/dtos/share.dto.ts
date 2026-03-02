@@ -28,9 +28,6 @@ export const CreateShareSchema = z.object({
 
 export type CreateShare = z.infer<typeof CreateShareSchema>;
 
-// Alias for backward compatibility
-export type CreateShareDto = CreateShare;
-
 // ============================================================================
 // Share Response
 // ============================================================================
@@ -48,9 +45,6 @@ export const ShareResponseSchema = z.object({
 
 export type ShareResponse = z.infer<typeof ShareResponseSchema>;
 
-// Alias for backward compatibility
-export type Share = ShareResponse;
-
 // ============================================================================
 // Public Resume Access
 // ============================================================================
@@ -62,7 +56,9 @@ export const PublicResumeOptionsSchema = z.object({
 export type PublicResumeOptions = z.infer<typeof PublicResumeOptionsSchema>;
 
 export const PublicResumeResponseSchema = z.object({
-  resume: ResumeSchema,
+  resume: ResumeSchema.extend({
+    resumeSections: ResumeSchema.shape.resumeSections.default([]),
+  }),
   share: z.object({
     slug: z.string(),
     expiresAt: z.string().datetime().nullable(),

@@ -7,7 +7,7 @@ import { Injectable } from '@nestjs/common';
 import { EmailService } from '@/bounded-contexts/platform/common/email/email.service';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { RequestVerification, VerifyEmail } from '@/shared-kernel';
+import type { EmailVerification, RequestVerification } from '@/shared-kernel';
 import { EventPublisher } from '@/shared-kernel';
 import { UserVerifiedEvent } from '../../domain/events';
 import { VerificationTokenService } from './verification-token.service';
@@ -73,7 +73,7 @@ export class EmailVerificationService {
     };
   }
 
-  async verifyEmail(dto: VerifyEmail) {
+  async verifyEmail(dto: EmailVerification) {
     const email = await this.tokenService.validateEmailVerificationToken(dto.token);
 
     await this.markEmailAsVerified(email);

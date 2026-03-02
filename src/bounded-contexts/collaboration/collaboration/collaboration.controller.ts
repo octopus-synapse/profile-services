@@ -22,17 +22,37 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import { ApiBody, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiParam, ApiProperty, ApiTags } from '@nestjs/swagger';
 import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
+import {
+  ApiDataResponse,
+  ApiEmptyDataResponse,
+} from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
-import {
-  CollaboratorResponseDto,
-  DeleteResponseDto,
-  SharedResumeResponseDto,
-} from '@/shared-kernel/dtos/sdk-response.dto';
-import { CollaborationService } from './collaboration.service';
+import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
+import { CollaborationService, type CollaboratorWithUser } from './collaboration.service';
 import { InviteCollaboratorDto, UpdateRoleDto } from './dto/collaboration.dto';
+
+// Wrapper DTOs for responses
+export class CollaboratorDataDto {
+  @ApiProperty({ type: 'object', additionalProperties: true })
+  collaborator!: CollaboratorWithUser;
+}
+
+export class CollaboratorsListDataDto {
+  @ApiProperty({ type: 'array', items: { type: 'object' } })
+  collaborators!: CollaboratorWithUser[];
+}
+
+export class SharedResumesListDataDto {
+  @ApiProperty({ type: 'array', items: { type: 'object' } })
+  sharedResumes!: {
+    role: string;
+    invitedAt: Date;
+    resume: { id: string; title: string | null };
+  }[];
+}
 
 @SdkExport({ tag: 'collaboration', description: 'Collaboration API' })
 @ApiTags('Collaboration')
@@ -46,32 +66,24 @@ export class CollaborationController {
   @Post(':resumeId/collaborators')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Invite user to collaborate on resume' })
-  @ApiResponse({ status: 201, type: CollaboratorResponseDto })
-  @ApiParam({ name: 'resumeId', description: 'Resume ID' })
-  @ApiBody({ type: InviteCollaboratorDto })
-  @ApiResponse({
+  @ApiDataResponse(CollaboratorDataDto, {
     status: HttpStatus.CREATED,
     description: 'Collaborator invited',
   })
-  @ApiResponse({
-    status: HttpStatus.FORBIDDEN,
-    description: 'Not resume owner',
-  })
-  @ApiResponse({
-    status: HttpStatus.CONFLICT,
-    description: 'Already collaborator',
-  })
+  @ApiParam({ name: 'resumeId', description: 'Resume ID' })
+  @ApiBody({ type: InviteCollaboratorDto })
   async invite(
     @Param('resumeId') resumeId: string,
     @Body() dto: InviteCollaboratorDto,
     @CurrentUser() user: UserPayload,
-  ) {
-    return this.collaborationService.inviteCollaborator({
+  ): Promise<DataResponse<CollaboratorDataDto>> {
+    const collaborator = await this.collaborationService.inviteCollaborator({
       resumeId,
       inviterId: user.userId,
       inviteeId: dto.userId,
       role: dto.role,
     });
+    return { success: true, data: { collaborator } };
   }
 
   /**
@@ -79,12 +91,16 @@ export class CollaborationController {
    */
   @Get(':resumeId/collaborators')
   @ApiOperation({ summary: 'Get collaborators for a resume' })
-  @ApiResponse({ status: 200, type: [CollaboratorResponseDto] })
+  @ApiDataResponse(CollaboratorsListDataDto, {
+    description: 'List of collaborators',
+  })
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
-  @ApiResponse({ status: HttpStatus.OK, description: 'List of collaborators' })
-  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Access denied' })
-  async getCollaborators(@Param('resumeId') resumeId: string, @CurrentUser() user: UserPayload) {
-    return this.collaborationService.getCollaborators(resumeId, user.userId);
+  async getCollaborators(
+    @Param('resumeId') resumeId: string,
+    @CurrentUser() user: UserPayload,
+  ): Promise<DataResponse<CollaboratorsListDataDto>> {
+    const collaborators = await this.collaborationService.getCollaborators(resumeId, user.userId);
+    return { success: true, data: { collaborators } };
   }
 
   /**
@@ -92,27 +108,23 @@ export class CollaborationController {
    */
   @Patch(':resumeId/collaborators/:userId')
   @ApiOperation({ summary: 'Update collaborator role' })
-  @ApiResponse({ status: 200, type: CollaboratorResponseDto })
+  @ApiDataResponse(CollaboratorDataDto, { description: 'Role updated' })
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
   @ApiParam({ name: 'userId', description: 'Collaborator user ID' })
   @ApiBody({ type: UpdateRoleDto })
-  @ApiResponse({ status: HttpStatus.OK, description: 'Role updated' })
-  @ApiResponse({
-    status: HttpStatus.FORBIDDEN,
-    description: 'Not resume owner',
-  })
   async updateRole(
     @Param('resumeId') resumeId: string,
     @Param('userId') targetUserId: string,
     @Body() dto: UpdateRoleDto,
     @CurrentUser() user: UserPayload,
-  ) {
-    return this.collaborationService.updateCollaboratorRole({
+  ): Promise<DataResponse<CollaboratorDataDto>> {
+    const collaborator = await this.collaborationService.updateCollaboratorRole({
       resumeId,
       requesterId: user.userId,
       targetUserId,
       newRole: dto.role,
     });
+    return { success: true, data: { collaborator } };
   }
 
   /**
@@ -121,19 +133,17 @@ export class CollaborationController {
   @Delete(':resumeId/collaborators/:userId')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Remove collaborator from resume' })
-  @ApiResponse({ status: 200, type: DeleteResponseDto })
-  @ApiParam({ name: 'resumeId', description: 'Resume ID' })
-  @ApiParam({ name: 'userId', description: 'Collaborator user ID' })
-  @ApiResponse({
+  @ApiEmptyDataResponse({
     status: HttpStatus.NO_CONTENT,
     description: 'Collaborator removed',
   })
-  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'Not authorized' })
+  @ApiParam({ name: 'resumeId', description: 'Resume ID' })
+  @ApiParam({ name: 'userId', description: 'Collaborator user ID' })
   async remove(
     @Param('resumeId') resumeId: string,
     @Param('userId') targetUserId: string,
     @CurrentUser() user: UserPayload,
-  ) {
+  ): Promise<void> {
     await this.collaborationService.removeCollaborator({
       resumeId,
       requesterId: user.userId,
@@ -146,9 +156,13 @@ export class CollaborationController {
    */
   @Get('shared-with-me')
   @ApiOperation({ summary: 'Get resumes shared with current user' })
-  @ApiResponse({ status: 200, type: [SharedResumeResponseDto] })
-  @ApiResponse({ status: HttpStatus.OK, description: 'List of shared resumes' })
-  async getSharedWithMe(@CurrentUser() user: UserPayload) {
-    return this.collaborationService.getSharedWithMe(user.userId);
+  @ApiDataResponse(SharedResumesListDataDto, {
+    description: 'List of shared resumes',
+  })
+  async getSharedWithMe(
+    @CurrentUser() user: UserPayload,
+  ): Promise<DataResponse<SharedResumesListDataDto>> {
+    const sharedResumes = await this.collaborationService.getSharedWithMe(user.userId);
+    return { success: true, data: { sharedResumes } };
   }
 }

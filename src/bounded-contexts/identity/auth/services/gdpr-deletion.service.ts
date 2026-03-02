@@ -17,13 +17,8 @@ export interface DeletionResult {
   deletedEntities: {
     user: boolean;
     resumes: number;
-    experiences: number;
-    education: number;
-    skills: number;
-    projects: number;
-    certifications: number;
-    languages: number;
-    openSource: number;
+    resumeSections: number;
+    sectionItems: number;
     consents: number;
     auditLogs: number;
     resumeVersions: number;
@@ -68,19 +63,18 @@ export class GdprDeletionService {
 
     // Execute cascading deletion in a transaction
     const result = await this.prisma.$transaction(async (tx) => {
-      // 1. Delete all resume sub-resources first
-      const [experiences, education, skills, projects, certifications, languages, openSource] =
-        await Promise.all([
-          tx.experience.deleteMany({ where: { resumeId: { in: resumeIds } } }),
-          tx.education.deleteMany({ where: { resumeId: { in: resumeIds } } }),
-          tx.skill.deleteMany({ where: { resumeId: { in: resumeIds } } }),
-          tx.project.deleteMany({ where: { resumeId: { in: resumeIds } } }),
-          tx.certification.deleteMany({ where: { resumeId: { in: resumeIds } } }),
-          tx.language.deleteMany({ where: { resumeId: { in: resumeIds } } }),
-          tx.openSourceContribution.deleteMany({
-            where: { resumeId: { in: resumeIds } },
-          }),
-        ]);
+      // 1. Delete dynamic section items and sections
+      const sectionItems = await tx.sectionItem.deleteMany({
+        where: {
+          resumeSection: {
+            resumeId: { in: resumeIds },
+          },
+        },
+      });
+
+      const resumeSections = await tx.resumeSection.deleteMany({
+        where: { resumeId: { in: resumeIds } },
+      });
 
       // 2. Delete resume versions and shares
       const [resumeVersions, resumeShares] = await Promise.all([
@@ -104,13 +98,8 @@ export class GdprDeletionService {
 
       return {
         resumes: resumes.count,
-        experiences: experiences.count,
-        education: education.count,
-        skills: skills.count,
-        projects: projects.count,
-        certifications: certifications.count,
-        languages: languages.count,
-        openSource: openSource.count,
+        resumeSections: resumeSections.count,
+        sectionItems: sectionItems.count,
         consents: consents.count,
         auditLogs: auditLogs.count,
         resumeVersions: resumeVersions.count,

@@ -11,6 +11,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { SkillsOnboardingService } from './skills-onboarding.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { OnboardingData } from '../schemas/onboarding.schema';
+import { ResumeSectionOnboardingService } from './resume-section-onboarding.service';
 
 describe('SkillsOnboardingService', () => {
   let service: SkillsOnboardingService;
@@ -18,21 +19,16 @@ describe('SkillsOnboardingService', () => {
   // In-memory store
   const skillStore = new Map<string, any[]>();
 
-  const createFakePrisma = () => ({
-    skill: {
-      deleteMany: mock(({ where }: { where: { resumeId: string } }) => {
-        skillStore.set(where.resumeId, []);
-        return Promise.resolve({ count: 0 });
-      }),
-      createMany: mock(({ data }: { data: any[] }) => {
-        const resumeId = data[0]?.resumeId;
-        if (resumeId) {
-          skillStore.set(resumeId, data);
-        }
-        return Promise.resolve({ count: data.length });
-      }),
-    },
-  });
+  const createFakePrisma = () => ({});
+
+  const mockSectionService = {
+    replaceSectionItems: mock(
+      (_tx: unknown, { resumeId, items }: { resumeId: string; items: any[] }) => {
+        skillStore.set(resumeId, items);
+        return Promise.resolve();
+      },
+    ),
+  };
 
   let fakePrisma: ReturnType<typeof createFakePrisma>;
 
@@ -61,12 +57,14 @@ describe('SkillsOnboardingService', () => {
 
   beforeEach(async () => {
     skillStore.clear();
+    mockSectionService.replaceSectionItems.mockClear();
     fakePrisma = createFakePrisma();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         SkillsOnboardingService,
         { provide: PrismaService, useValue: fakePrisma },
+        { provide: ResumeSectionOnboardingService, useValue: mockSectionService },
       ],
     }).compile();
 
@@ -90,20 +88,16 @@ describe('SkillsOnboardingService', () => {
       const savedSkills = skillStore.get('resume-1');
       expect(savedSkills).toHaveLength(3);
       expect(savedSkills![0]).toMatchObject({
-        resumeId: 'resume-1',
         name: 'TypeScript',
         category: 'Programming',
-        order: 0,
       });
       expect(savedSkills![1]).toMatchObject({
         name: 'React',
         category: 'Frontend',
-        order: 1,
       });
       expect(savedSkills![2]).toMatchObject({
         name: 'Node.js',
         category: 'Backend',
-        order: 2,
       });
     });
 
@@ -129,7 +123,7 @@ describe('SkillsOnboardingService', () => {
 
       await service.saveSkills('resume-1', data);
 
-      expect(fakePrisma.skill.createMany.mock.calls.length).toBe(0);
+      expect(mockSectionService.replaceSectionItems.mock.calls.length).toBe(0);
     });
 
     it('should not save skills when skills array is empty', async () => {
@@ -141,7 +135,7 @@ describe('SkillsOnboardingService', () => {
 
       await service.saveSkills('resume-1', data);
 
-      expect(fakePrisma.skill.createMany.mock.calls.length).toBe(0);
+      expect(mockSectionService.replaceSectionItems.mock.calls.length).toBe(0);
     });
 
     it('should replace existing skills', async () => {
@@ -166,7 +160,7 @@ describe('SkillsOnboardingService', () => {
       expect(savedSkills!.map((s) => s.name)).toEqual(['Python', 'Go']);
     });
 
-    it('should set level to null for all skills', async () => {
+    it('should not include level in skill content', async () => {
       const data: OnboardingData = {
         ...createBaseOnboardingData(),
         skills: [{ name: 'Skill1' }, { name: 'Skill2' }],
@@ -176,7 +170,7 @@ describe('SkillsOnboardingService', () => {
       await service.saveSkills('resume-1', data);
 
       const savedSkills = skillStore.get('resume-1');
-      expect(savedSkills!.every((s) => s.level === null)).toBe(true);
+      expect(savedSkills!.every((s) => !('level' in s))).toBe(true);
     });
   });
 });

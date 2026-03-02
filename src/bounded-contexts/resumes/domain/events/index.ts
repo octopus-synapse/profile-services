@@ -17,7 +17,6 @@ export {
 export {
   SectionAddedEvent,
   type SectionAddedPayload,
-  type SectionType,
 } from './section-added.event';
 export {
   SectionRemovedEvent,

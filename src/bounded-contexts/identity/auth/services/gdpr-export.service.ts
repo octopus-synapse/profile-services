@@ -39,13 +39,17 @@ export interface GdprExportData {
     createdAt: string;
     updatedAt: string;
     personalInfo: unknown;
-    experiences: unknown[];
-    education: unknown[];
-    skills: unknown[];
-    projects: unknown[];
-    certifications: unknown[];
-    languages: unknown[];
-    openSource: unknown[];
+    sections: Array<{
+      sectionTypeKey: string;
+      semanticKind: string;
+      items: Array<{
+        id: string;
+        order: number;
+        content: unknown;
+        createdAt: string;
+        updatedAt: string;
+      }>;
+    }>;
   }>;
   auditLogs: Array<{
     action: string;
@@ -141,17 +145,25 @@ export class GdprExportService {
     const resumes = await this.prisma.resume.findMany({
       where: { userId },
       include: {
-        experiences: true,
-        education: true,
-        skills: true,
-        projects: true,
-        certifications: true,
-        languages: true,
-        openSource: true,
+        resumeSections: {
+          include: {
+            sectionType: {
+              select: {
+                key: true,
+                semanticKind: true,
+              },
+            },
+            items: {
+              orderBy: { order: 'asc' },
+            },
+          },
+          orderBy: { order: 'asc' },
+        },
       },
     });
 
     return resumes.map((r) => ({
+      sections: this.mapResumeSections(r.resumeSections),
       id: r.id,
       title: r.title,
       slug: r.slug,
@@ -169,48 +181,30 @@ export class GdprExportService {
         linkedin: r.linkedin,
         github: r.github,
       },
-      experiences: r.experiences.map((e) => ({
-        ...e,
-        startDate: e.startDate.toISOString(),
-        endDate: e.endDate ? e.endDate.toISOString() : null,
-        createdAt: e.createdAt.toISOString(),
-        updatedAt: e.updatedAt.toISOString(),
-      })),
-      education: r.education.map((e) => ({
-        ...e,
-        startDate: e.startDate.toISOString(),
-        endDate: e.endDate ? e.endDate.toISOString() : null,
-        createdAt: e.createdAt.toISOString(),
-        updatedAt: e.updatedAt.toISOString(),
-      })),
-      skills: r.skills.map((s) => ({
-        ...s,
-        createdAt: s.createdAt.toISOString(),
-        updatedAt: s.updatedAt.toISOString(),
-      })),
-      projects: r.projects.map((p) => ({
-        ...p,
-        startDate: p.startDate ? p.startDate.toISOString() : null,
-        endDate: p.endDate ? p.endDate.toISOString() : null,
-        createdAt: p.createdAt.toISOString(),
-        updatedAt: p.updatedAt.toISOString(),
-      })),
-      certifications: r.certifications.map((c) => ({
-        ...c,
-        issueDate: c.issueDate.toISOString(),
-        expiryDate: c.expiryDate ? c.expiryDate.toISOString() : null,
-        createdAt: c.createdAt.toISOString(),
-        updatedAt: c.updatedAt.toISOString(),
-      })),
-      languages: r.languages.map((l) => ({
-        ...l,
-        createdAt: l.createdAt.toISOString(),
-        updatedAt: l.updatedAt.toISOString(),
-      })),
-      openSource: r.openSource.map((g) => ({
-        ...g,
-        createdAt: g.createdAt.toISOString(),
-        updatedAt: g.updatedAt.toISOString(),
+    }));
+  }
+
+  private mapResumeSections(
+    resumeSections: Array<{
+      sectionType: { key: string; semanticKind: string };
+      items: Array<{
+        id: string;
+        order: number;
+        content: unknown;
+        createdAt: Date;
+        updatedAt: Date;
+      }>;
+    }>,
+  ): GdprExportData['resumes'][number]['sections'] {
+    return resumeSections.map((section) => ({
+      sectionTypeKey: section.sectionType.key,
+      semanticKind: section.sectionType.semanticKind,
+      items: section.items.map((item) => ({
+        id: item.id,
+        order: item.order,
+        content: item.content,
+        createdAt: item.createdAt.toISOString(),
+        updatedAt: item.updatedAt.toISOString(),
       })),
     }));
   }

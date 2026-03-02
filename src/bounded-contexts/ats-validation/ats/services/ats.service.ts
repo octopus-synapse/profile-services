@@ -1,13 +1,23 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
-import type { ValidateCV, Validation, ValidationIssue } from '@/shared-kernel';
+import type { ValidateCV, ValidationIssue, ValidationResponse } from '@/shared-kernel';
 import type {
   ValidationIssue as InternalValidationIssue,
+  SectionSemanticCatalogPort,
+  SemanticResumeSnapshot,
   TextExtractionResult,
   ValidationResult,
   ValidationSeverity,
 } from '../interfaces';
+import { SECTION_SEMANTIC_CATALOG } from '../interfaces';
 import { CVSectionParser } from '../parsers/cv-section.parser';
+import {
+  ContentQualitySemanticPolicy,
+  DuplicateSemanticPolicy,
+  MandatorySemanticPolicy,
+  SectionOrderSemanticPolicy,
+} from '../policies';
+import { SemanticScoringService } from '../scoring';
 import { FileIntegrityValidator } from '../validators/file-integrity.validator';
 import { FormatValidator } from '../validators/format.validator';
 import { GrammarValidator } from '../validators/grammar.validator';
@@ -19,6 +29,8 @@ import { TextExtractionService } from './text-extraction.service';
 @Injectable()
 export class ATSService {
   constructor(
+    @Inject(SECTION_SEMANTIC_CATALOG)
+    private readonly semanticCatalog: SectionSemanticCatalogPort,
     private readonly fileIntegrityValidator: FileIntegrityValidator,
     private readonly textExtractionService: TextExtractionService,
     private readonly encodingNormalizer: EncodingNormalizerService,
@@ -27,10 +39,18 @@ export class ATSService {
     private readonly sectionOrderValidator: SectionOrderValidator,
     private readonly layoutSafetyValidator: LayoutSafetyValidator,
     private readonly grammarValidator: GrammarValidator,
+    private readonly mandatorySemanticPolicy: MandatorySemanticPolicy,
+    private readonly sectionOrderSemanticPolicy: SectionOrderSemanticPolicy,
+    private readonly contentQualitySemanticPolicy: ContentQualitySemanticPolicy,
+    private readonly duplicateSemanticPolicy: DuplicateSemanticPolicy,
+    private readonly semanticScoringService: SemanticScoringService,
     private readonly logger: AppLoggerService,
   ) {}
 
-  async validateCV(file: Express.Multer.File, options: ValidateCV = {}): Promise<Validation> {
+  async validateCV(
+    file: Express.Multer.File,
+    options: ValidateCV = {},
+  ): Promise<ValidationResponse> {
     this.logger.log('Starting CV validation', 'ATSService', {
       fileName: file.originalname,
       fileSize: file.size,
@@ -84,6 +104,10 @@ export class ATSService {
         this.logger.log('Checking section order', 'ATSService');
         results.sectionOrder = this.sectionOrderValidator.validate(parsedCV);
       }
+
+      if (options.checkSemantic !== false) {
+        await this.runSemanticPolicies(options, results);
+      }
     }
 
     // Step 7: Validate format (if enabled)
@@ -118,7 +142,7 @@ export class ATSService {
   private buildValidationResponse(
     results: Record<string, ValidationResult>,
     file: Express.Multer.File,
-  ): Validation {
+  ): ValidationResponse {
     const allResults = Object.values(results).filter(Boolean);
     const allIssues = allResults.flatMap((r) => r.issues);
     const allPassed = allResults.every((r) => r.passed);
@@ -134,23 +158,60 @@ export class ATSService {
         fileType: file.mimetype,
         fileSize: file.size,
         analyzedAt: new Date().toISOString(),
+        semanticScore:
+          (results.semanticScoring?.metadata?.semanticScore as number | undefined) ?? undefined,
       },
     };
   }
 
+  private async runSemanticPolicies(
+    options: ValidateCV,
+    results: Record<string, ValidationResult>,
+  ): Promise<void> {
+    const semanticSnapshot = await this.buildSemanticSnapshot(options.resumeId);
+
+    results.semanticMandatory = this.mandatorySemanticPolicy.validate(semanticSnapshot);
+
+    if (options.checkOrder !== false) {
+      results.semanticOrder = this.sectionOrderSemanticPolicy.validate(semanticSnapshot);
+    }
+
+    results.semanticContentQuality = this.contentQualitySemanticPolicy.validate(semanticSnapshot);
+
+    results.semanticDuplicates = this.duplicateSemanticPolicy.validate(semanticSnapshot);
+
+    const semanticScoring = this.semanticScoringService.score(semanticSnapshot);
+    results.semanticScoring = {
+      passed: true,
+      issues: [],
+      metadata: {
+        semanticScore: semanticScoring.score,
+        breakdown: semanticScoring.breakdown,
+      },
+    };
+  }
+
+  private async buildSemanticSnapshot(resumeId?: string): Promise<SemanticResumeSnapshot> {
+    if (!resumeId) {
+      throw new BadRequestException('resumeId is required when semantic validation is enabled');
+    }
+
+    return this.semanticCatalog.getSemanticResumeSnapshot(resumeId);
+  }
+
   private mapIssuesToContract(issues: InternalValidationIssue[]): ValidationIssue[] {
-    const severityToType: Record<ValidationSeverity, 'error' | 'warning' | 'suggestion'> = {
+    const severityMap: Record<ValidationSeverity, 'error' | 'warning' | 'info' | 'suggestion'> = {
       error: 'error',
       warning: 'warning',
-      info: 'suggestion',
+      info: 'info',
     };
 
     return issues.map((issue) => ({
-      type: severityToType[issue.severity],
-      severity: severityToType[issue.severity],
+      severity: severityMap[issue.severity],
       category: issue.code,
       message: issue.message,
       location: issue.location,
+      suggestion: issue.suggestion,
     }));
   }
 }

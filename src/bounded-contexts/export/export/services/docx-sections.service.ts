@@ -4,7 +4,6 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { Education, Experience, Language, Project, Resume, Skill } from '@prisma/client';
 import { ISectionOptions, SectionType } from 'docx';
 import {
   DocxEducationBuilder,
@@ -13,25 +12,7 @@ import {
   DocxProjectBuilder,
   DocxSkillsBuilder,
 } from '../builders';
-
-type FullResume = Resume & {
-  experiences: Experience[];
-  education: Education[];
-  skills: Skill[];
-  projects: Project[];
-  languages: Language[];
-};
-
-type User = {
-  displayName: string | null;
-  bio: string | null;
-  email: string | null;
-  phone: string | null;
-  location: string | null;
-  linkedin: string | null;
-  github: string | null;
-  website: string | null;
-};
+import { DocxResumeData, DocxUserData } from './docx.types';
 
 @Injectable()
 export class DocxSectionsService {
@@ -44,7 +25,9 @@ export class DocxSectionsService {
   /**
    * Create main section with all resume content
    */
-  createMainSection(user: User, resume: FullResume): ISectionOptions {
+  createMainSection(user: DocxUserData, resume: DocxResumeData): ISectionOptions {
+    const displayName = user.displayName ?? user.name ?? null;
+
     return {
       headers: { default: this.headerBuilder.createPageHeader() },
       properties: {
@@ -59,7 +42,7 @@ export class DocxSectionsService {
         },
       },
       children: [
-        this.headerBuilder.createTitleParagraph(user.displayName),
+        this.headerBuilder.createTitleParagraph(displayName),
         this.headerBuilder.createContactParagraph(user),
         this.headerBuilder.createLinksParagraph(user),
         this.headerBuilder.createSectionHeading('Summary'),

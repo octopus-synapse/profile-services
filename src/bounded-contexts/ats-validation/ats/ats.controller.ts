@@ -7,10 +7,57 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiConsumes, ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger';
+import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
-import type { ValidateCV, Validation } from '@/shared-kernel';
+import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
+import type { ValidateCV } from '@/shared-kernel';
 import { ATSService } from './services/ats.service';
+
+/** DTO wrapper for ValidationResponse to satisfy Dto suffix rule */
+export class ValidationResponseDto {
+  @ApiProperty({ example: true })
+  isValid!: boolean;
+
+  @ApiProperty({ example: 85 })
+  score!: number;
+
+  @ApiProperty({ example: [], type: [Object] })
+  issues!: {
+    severity: string;
+    category: string;
+    message: string;
+    location?: string;
+    suggestion?: string;
+  }[];
+
+  @ApiProperty({ example: [], type: [String] })
+  suggestions!: string[];
+
+  @ApiProperty({ type: Object })
+  metadata!: {
+    fileName: string;
+    fileType: string;
+    fileSize: number;
+    analyzedAt: string;
+    semanticScore?: number;
+  };
+}
+
+/** DTO for ATS validation response */
+export class ATSValidationResponseDto {
+  @ApiProperty({ example: 85 })
+  score!: number;
+
+  @ApiProperty({ example: [], type: [Object] })
+  issues!: { field: string; message: string; severity: string }[];
+
+  @ApiProperty({ example: [], type: [String] })
+  suggestions!: string[];
+
+  @ApiProperty({ example: true })
+  isATSCompatible!: boolean;
+}
 
 @SdkExport({ tag: 'ats-validation', description: 'Ats Validation API' })
 @ApiTags('ATS Validation')
@@ -19,6 +66,9 @@ export class ATSController {
   constructor(private readonly atsService: ATSService) {}
 
   @Post('validate')
+  @ApiDataResponse(ATSValidationResponseDto, {
+    description: 'ATS validation completed',
+  })
   @ApiOperation({
     summary: 'Validate CV for ATS compatibility',
     description:
@@ -59,6 +109,15 @@ export class ATSController {
           description: 'Check layout safety (default: true)',
           default: true,
         },
+        resumeId: {
+          type: 'string',
+          description: 'Optional resume ID for semantic snapshot lookup',
+        },
+        checkSemantic: {
+          type: 'boolean',
+          description: 'Run semantic ATS policies (default: true)',
+          default: true,
+        },
       },
     },
   })
@@ -66,11 +125,12 @@ export class ATSController {
   async validateCV(
     @UploadedFile() file: Express.Multer.File | undefined,
     @Body() options: ValidateCV,
-  ): Promise<Validation> {
+  ): Promise<DataResponse<ValidationResponseDto>> {
     if (!file) {
       throw new BadRequestException('No file uploaded');
     }
 
-    return this.atsService.validateCV(file, options);
+    const result = await this.atsService.validateCV(file, options);
+    return { success: true, data: result };
   }
 }

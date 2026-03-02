@@ -6,8 +6,11 @@
 import { Body, Controller, Param, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
+import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
+import { ResumeConfigOperationDataDto } from '../dto/controller-response.dto';
 import { SectionOrderingService, SectionVisibilityService } from '../services';
 
 class SectionToggle {
@@ -38,55 +41,87 @@ export class SectionConfigController {
 
   @Post('sections/:sectionId/visibility')
   @ApiOperation({ summary: 'Toggle section visibility' })
-  toggleSection(
+  @ApiDataResponse(ResumeConfigOperationDataDto, {
+    description: 'Section visibility updated',
+  })
+  async toggleSection(
     @CurrentUser('userId') userId: string,
     @Param('resumeId') resumeId: string,
     @Param('sectionId') sectionId: string,
     @Body() dto: SectionToggle,
-  ) {
-    return this.visibility.toggleSection(userId, resumeId, sectionId, dto.visible);
+  ): Promise<DataResponse<ResumeConfigOperationDataDto>> {
+    const result = await this.visibility.toggleSection(userId, resumeId, sectionId, dto.visible);
+    return { success: true, data: { success: result.success } };
   }
 
   @Post('sections/:sectionId/order')
   @ApiOperation({ summary: 'Reorder section' })
-  reorderSection(
+  @ApiDataResponse(ResumeConfigOperationDataDto, {
+    description: 'Section order updated',
+  })
+  async reorderSection(
     @CurrentUser('userId') userId: string,
     @Param('resumeId') resumeId: string,
     @Param('sectionId') sectionId: string,
     @Body() dto: SectionReorder,
-  ) {
-    return this.ordering.reorderSection(userId, resumeId, sectionId, dto.order);
+  ): Promise<DataResponse<ResumeConfigOperationDataDto>> {
+    const result = await this.ordering.reorderSection(userId, resumeId, sectionId, dto.order);
+    return { success: true, data: { success: result.success } };
   }
 
   @Post('sections/:sectionId/items/visibility')
   @ApiOperation({ summary: 'Toggle item visibility' })
-  toggleItem(
+  @ApiDataResponse(ResumeConfigOperationDataDto, {
+    description: 'Section item visibility updated',
+  })
+  async toggleItem(
     @CurrentUser('userId') userId: string,
     @Param('resumeId') resumeId: string,
     @Param('sectionId') sectionId: string,
     @Body() dto: SectionItem,
-  ) {
-    return this.visibility.toggleItem(userId, resumeId, sectionId, dto.itemId, dto.visible ?? true);
+  ): Promise<DataResponse<ResumeConfigOperationDataDto>> {
+    const result = await this.visibility.toggleItem(
+      userId,
+      resumeId,
+      sectionId,
+      dto.itemId,
+      dto.visible ?? true,
+    );
+    return { success: true, data: { success: result.success } };
   }
 
   @Post('sections/:sectionId/items/order')
   @ApiOperation({ summary: 'Reorder item' })
-  reorderItem(
+  @ApiDataResponse(ResumeConfigOperationDataDto, {
+    description: 'Section item order updated',
+  })
+  async reorderItem(
     @CurrentUser('userId') userId: string,
     @Param('resumeId') resumeId: string,
     @Param('sectionId') sectionId: string,
     @Body() dto: SectionItem,
-  ) {
-    return this.ordering.reorderItem(userId, resumeId, sectionId, dto.itemId, dto.order ?? 0);
+  ): Promise<DataResponse<ResumeConfigOperationDataDto>> {
+    const result = await this.ordering.reorderItem(
+      userId,
+      resumeId,
+      sectionId,
+      dto.itemId,
+      dto.order ?? 0,
+    );
+    return { success: true, data: { success: result.success } };
   }
 
   @Post('sections/batch')
   @ApiOperation({ summary: 'Batch update sections' })
-  batchUpdate(
+  @ApiDataResponse(ResumeConfigOperationDataDto, {
+    description: 'Batch section update applied',
+  })
+  async batchUpdate(
     @CurrentUser('userId') userId: string,
     @Param('resumeId') resumeId: string,
     @Body() dto: SectionBatch,
-  ) {
-    return this.ordering.batchUpdate(userId, resumeId, dto.sections);
+  ): Promise<DataResponse<ResumeConfigOperationDataDto>> {
+    const result = await this.ordering.batchUpdate(userId, resumeId, dto.sections);
+    return { success: true, data: { success: result.success } };
   }
 }

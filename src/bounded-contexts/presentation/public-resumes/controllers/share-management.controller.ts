@@ -9,7 +9,15 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
+import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
+import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
+import {
+  ShareCreateDataDto,
+  ShareDeleteDataDto,
+  ShareListDataDto,
+} from '../dto/share-management-response.dto';
 import { ResumeShareService } from '../services/resume-share.service';
 
 interface CreateShare {
@@ -19,6 +27,7 @@ interface CreateShare {
   expiresAt?: string;
 }
 
+@ApiTags('shares')
 @Controller('v1/shares')
 @UseGuards(JwtAuthGuard)
 export class ShareManagementController {
@@ -26,7 +35,12 @@ export class ShareManagementController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  async createShare(@Body() dto: CreateShare) {
+  @ApiOperation({ summary: 'Create share link for a resume' })
+  @ApiDataResponse(ShareCreateDataDto, {
+    status: 201,
+    description: 'Share created successfully',
+  })
+  async createShare(@Body() dto: CreateShare): Promise<DataResponse<ShareCreateDataDto>> {
     // Verify user owns the resume
     const share = await this.shareService.createShare({
       ...dto,
@@ -34,37 +48,60 @@ export class ShareManagementController {
     });
 
     return {
-      id: share.id,
-      slug: share.slug,
-      resumeId: share.resumeId,
-      isActive: share.isActive,
-      hasPassword: !!share.password,
-      expiresAt: share.expiresAt,
-      createdAt: share.createdAt,
-      publicUrl: `/api/v1/public/resumes/${share.slug}`,
+      success: true,
+      data: {
+        share: {
+          id: share.id,
+          slug: share.slug,
+          resumeId: share.resumeId,
+          isActive: share.isActive,
+          hasPassword: !!share.password,
+          expiresAt: share.expiresAt,
+          createdAt: share.createdAt,
+          publicUrl: `/api/v1/public/resumes/${share.slug}`,
+        },
+      },
     };
   }
 
   @Get('resume/:resumeId')
-  async listResumeShares(@Param('resumeId') resumeId: string) {
+  @ApiOperation({ summary: 'List share links for a resume' })
+  @ApiDataResponse(ShareListDataDto, { description: 'Resume shares returned' })
+  async listResumeShares(
+    @Param('resumeId') resumeId: string,
+  ): Promise<DataResponse<ShareListDataDto>> {
     const shares = await this.shareService.listUserShares(resumeId);
 
-    return shares.map((share) => ({
-      id: share.id,
-      slug: share.slug,
-      resumeId: share.resumeId,
-      isActive: share.isActive,
-      hasPassword: !!share.password,
-      expiresAt: share.expiresAt,
-      createdAt: share.createdAt,
-      publicUrl: `/api/v1/public/resumes/${share.slug}`,
-    }));
+    return {
+      success: true,
+      data: {
+        shares: shares.map((share) => ({
+          id: share.id,
+          slug: share.slug,
+          resumeId: share.resumeId,
+          isActive: share.isActive,
+          hasPassword: !!share.password,
+          expiresAt: share.expiresAt,
+          createdAt: share.createdAt,
+          publicUrl: `/api/v1/public/resumes/${share.slug}`,
+        })),
+      },
+    };
   }
 
   @Delete(':shareId')
   @HttpCode(HttpStatus.OK)
-  async deleteShare(@Param('shareId') shareId: string) {
+  @ApiOperation({ summary: 'Delete a share link' })
+  @ApiDataResponse(ShareDeleteDataDto, {
+    description: 'Share deleted successfully',
+  })
+  async deleteShare(@Param('shareId') shareId: string): Promise<DataResponse<ShareDeleteDataDto>> {
     await this.shareService.deleteShare(shareId);
-    return { message: 'Share deleted successfully' };
+
+    return {
+      success: true,
+      message: 'Share deleted successfully',
+      data: { deleted: true },
+    };
   }
 }

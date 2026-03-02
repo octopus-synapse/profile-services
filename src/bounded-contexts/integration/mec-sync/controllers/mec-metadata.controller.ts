@@ -4,14 +4,16 @@
  */
 
 import { Controller, Get } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Public } from '@/bounded-contexts/identity/auth/decorators/public.decorator';
+import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import {
-  KnowledgeAreaResponseDto,
-  MecStatisticsResponseDto,
-  StateCodeResponseDto,
-} from '@/shared-kernel';
+  MecKnowledgeAreasDataDto,
+  MecStateCodesDataDto,
+  MecStatisticsDataDto,
+} from '../dto/controller-response.dto';
 import { CourseQueryService } from '../services/course-query.service';
 import { InstitutionQueryService } from '../services/institution-query.service';
 import { MecStatsService } from '../services/mec-stats.service';
@@ -33,24 +35,51 @@ export class MecMetadataController {
   @Get('ufs')
   @Public()
   @ApiOperation({ summary: 'List all states (UFs)' })
-  @ApiResponse({ status: 200, type: [StateCodeResponseDto] })
-  async listAllStateCodes() {
-    return this.institutionQuery.findAllStateCodes();
+  @ApiDataResponse(MecStateCodesDataDto, {
+    description: 'State codes returned',
+  })
+  async listAllStateCodes(): Promise<DataResponse<MecStateCodesDataDto>> {
+    const states = await this.institutionQuery.findAllStateCodes();
+
+    return {
+      success: true,
+      data: {
+        states,
+      },
+    };
   }
 
   @Get('areas')
   @Public()
   @ApiOperation({ summary: 'List knowledge areas' })
-  @ApiResponse({ status: 200, type: [KnowledgeAreaResponseDto] })
-  async listAllKnowledgeAreas() {
-    return this.courseQuery.findAllKnowledgeAreas();
+  @ApiDataResponse(MecKnowledgeAreasDataDto, {
+    description: 'Knowledge areas returned',
+  })
+  async listAllKnowledgeAreas(): Promise<DataResponse<MecKnowledgeAreasDataDto>> {
+    const areas = await this.courseQuery.findAllKnowledgeAreas();
+
+    return {
+      success: true,
+      data: {
+        areas,
+      },
+    };
   }
 
   @Get('stats')
   @Public()
   @ApiOperation({ summary: 'Get MEC statistics' })
-  @ApiResponse({ status: 200, type: MecStatisticsResponseDto })
-  async getMecStatistics() {
-    return this.statsService.getMecStatistics();
+  @ApiDataResponse(MecStatisticsDataDto, {
+    description: 'MEC statistics returned',
+  })
+  async getMecStatistics(): Promise<DataResponse<MecStatisticsDataDto>> {
+    const stats = await this.statsService.getMecStatistics();
+
+    return {
+      success: true,
+      data: {
+        stats,
+      },
+    };
   }
 }

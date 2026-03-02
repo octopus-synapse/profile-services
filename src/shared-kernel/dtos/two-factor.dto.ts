@@ -31,10 +31,6 @@ export const VerifyTwoFactorTokenSchema = z.object({
 
 export type VerifyTwoFactorToken = z.infer<typeof VerifyTwoFactorTokenSchema>;
 
-// Alias for backward compatibility
-export type VerifySetupDto = VerifyTwoFactorToken;
-export type VerifyLoginDto = VerifyTwoFactorToken;
-
 // ============================================================================
 // 2FA Status
 // ============================================================================

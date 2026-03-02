@@ -4,8 +4,6 @@
  * Provides shared test utilities for integration tests.
  * Tests run against a real NestJS application with real database.
  *
- * Kent Beck: "Integration tests validate real collaborations"
- * Uncle Bob: "Test setup should be simple and predictable"
  */
 
 import { config } from 'dotenv';
@@ -80,7 +78,6 @@ export async function getApp(): Promise<INestApplication> {
   appInstance = moduleFixture.createNestApplication();
   appInstance.setGlobalPrefix('api');
   // Validation is handled by ZodValidationPipe at controller level
-  // No global ValidationPipe needed (avoids class-validator dependency)
 
   await appInstance.init();
   testContext.app = appInstance;

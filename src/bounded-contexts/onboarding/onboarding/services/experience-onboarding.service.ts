@@ -4,18 +4,23 @@ import { toUTCDate } from '@/bounded-contexts/platform/common/utils/date.utils';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { OnboardingData } from '../schemas/onboarding.schema';
 import { BaseOnboardingService } from './base-onboarding.service';
+import { ResumeSectionOnboardingService } from './resume-section-onboarding.service';
 
 type ExperienceInput = OnboardingData['experiences'][number];
-type ExperienceCreate = Prisma.ExperienceCreateManyInput;
+type ExperienceContent = Prisma.InputJsonValue;
 
 @Injectable()
 export class ExperienceOnboardingService extends BaseOnboardingService<
   ExperienceInput,
-  ExperienceCreate
+  ExperienceContent
 > {
+  private static readonly SECTION_TYPE_KEY = 'work_experience_v1';
   protected readonly logger = new Logger(ExperienceOnboardingService.name);
 
-  constructor(private readonly prisma: PrismaService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly resumeSectionService: ResumeSectionOnboardingService,
+  ) {
     super();
   }
 
@@ -44,16 +49,20 @@ export class ExperienceOnboardingService extends BaseOnboardingService<
   }
 
   protected async deleteExisting(tx: Prisma.TransactionClient, resumeId: string): Promise<void> {
-    await tx.experience.deleteMany({ where: { resumeId } });
+    await this.resumeSectionService.replaceSectionItems(tx, {
+      resumeId,
+      sectionTypeKey: ExperienceOnboardingService.SECTION_TYPE_KEY,
+      items: [],
+    });
   }
 
-  protected transformItems(items: ExperienceInput[], resumeId: string): ExperienceCreate[] {
+  protected transformItems(items: ExperienceInput[], _resumeId: string): ExperienceContent[] {
     return items
-      .map((exp) => this.mapExperience(exp, resumeId))
-      .filter((e): e is ExperienceCreate => e !== null);
+      .map((exp) => this.mapExperience(exp))
+      .filter((e): e is ExperienceContent => e !== null);
   }
 
-  private mapExperience(exp: ExperienceInput, resumeId: string): ExperienceCreate | null {
+  private mapExperience(exp: ExperienceInput): ExperienceContent | null {
     const startDate = toUTCDate(exp.startDate);
     const endDate = exp.isCurrent ? null : toUTCDate(exp.endDate);
 
@@ -68,24 +77,25 @@ export class ExperienceOnboardingService extends BaseOnboardingService<
     }
 
     return {
-      resumeId,
       company: exp.company,
-      position: exp.position,
-      startDate,
-      endDate,
+      role: exp.position,
+      startDate: startDate.toISOString(),
+      endDate: endDate ? endDate.toISOString() : null,
       isCurrent: exp.isCurrent,
       description: exp.description ?? '',
-      location: '',
-      skills: [],
-      order: 0,
     };
   }
 
   protected async createMany(
     tx: Prisma.TransactionClient,
-    items: ExperienceCreate[],
+    items: ExperienceContent[],
+    resumeId: string,
   ): Promise<void> {
-    await tx.experience.createMany({ data: items });
+    await this.resumeSectionService.replaceSectionItems(tx, {
+      resumeId,
+      sectionTypeKey: ExperienceOnboardingService.SECTION_TYPE_KEY,
+      items,
+    });
   }
 
   protected getSuccessMessage(count: number): string {

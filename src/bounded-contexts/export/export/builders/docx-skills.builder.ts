@@ -3,11 +3,11 @@
  * Builds skills and languages paragraphs for DOCX export
  */
 
-import { Language, Skill } from '@prisma/client';
 import { Paragraph, TextRun } from 'docx';
+import { DocxLanguage, DocxSkill } from '../services/docx.types';
 
 export class DocxSkillsBuilder {
-  createSkillsParagraph(skills: Skill[]): Paragraph {
+  createSkillsParagraph(skills: DocxSkill[]): Paragraph {
     return new Paragraph({
       children: skills.map(
         (skill, index) =>
@@ -19,7 +19,7 @@ export class DocxSkillsBuilder {
     });
   }
 
-  createLanguagesParagraph(languages: Language[]): Paragraph {
+  createLanguagesParagraph(languages: DocxLanguage[]): Paragraph {
     return new Paragraph({
       children: languages.map(
         (lang, index) =>

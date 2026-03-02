@@ -113,7 +113,7 @@ jobs:
 
   integration:
     name: Integration Tests
-    needs: [setup, detect-changes]
+    needs: [setup, detect-changes, should-skip]
     if: |
       needs.should-skip.outputs.should_skip != 'true' &&
       (needs.detect-changes.outputs.src == 'true' || 
@@ -178,7 +178,7 @@ jobs:
 
   hook-compliance:
     name: Verify Pre-Commit Hooks Ran
-    needs: [setup, detect-changes]
+    needs: [setup, detect-changes, should-skip]
     if: needs.should-skip.outputs.should_skip != 'true'
     runs-on: ubuntu-latest
     steps:
@@ -224,7 +224,7 @@ jobs:
 
   lint:
     name: Biome Check (Full)
-    needs: [setup, detect-changes]
+    needs: [setup, detect-changes, should-skip]
     if: |
       needs.should-skip.outputs.should_skip != 'true' &&
       needs.detect-changes.outputs.src == 'true'
@@ -257,7 +257,7 @@ jobs:
 
   build:
     name: Build
-    needs: [setup, detect-changes]
+    needs: [setup, detect-changes, should-skip]
     if: |
       needs.should-skip.outputs.should_skip != 'true' &&
       needs.detect-changes.outputs.src == 'true'
@@ -322,11 +322,9 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  # E2E tests run ONLY on main branch merges (not on every PR)
-  # This prevents slowing down PR feedback cycle
   e2e:
     name: E2E Journey Tests
-    needs: [setup, detect-changes]
+    needs: [setup, detect-changes, should-skip]
     if: |
       github.event_name == 'pull_request' &&
       github.base_ref == 'main' &&

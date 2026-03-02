@@ -1,30 +1,21 @@
 import { Logger, UseGuards } from '@nestjs/common';
-import {
-  Args,
-  Context,
-  ID,
-  Mutation,
-  Parent,
-  Query,
-  ResolveField,
-  Resolver,
-} from '@nestjs/graphql';
+import { Args, ID, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import type { User } from '@prisma/client';
 import { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.repository';
-import { EducationService } from '@/bounded-contexts/resumes/resumes/services/education.service';
-import { ExperienceService } from '@/bounded-contexts/resumes/resumes/services/experience.service';
-import { DataLoaderService } from '../dataloaders/dataloader.service';
+import { GenericResumeSectionsService } from '@/bounded-contexts/resumes/resumes/services/generic-resume-sections.service';
 import { CurrentUser } from '../decorators/current-user.decorator';
 import { GqlAuthGuard } from '../guards/gql-auth.guard';
-import { CreateEducationInput } from '../inputs/education.input';
-import { CreateExperienceInput, UpdateExperienceInput } from '../inputs/experience.input';
-import { EducationModel } from '../models/education.model';
-import { ExperienceModel } from '../models/experience.model';
 import { ResumeModel } from '../models/resume.model';
-import { SkillModel } from '../models/skill.model';
+import { ResumeSectionModel } from '../models/resume-section.model';
+import { SectionItemModel } from '../models/section-item.model';
+import { SectionTypeModel } from '../models/section-type.model';
 
 /**
  * GraphQL Resolver for Resume queries and mutations
+ *
+ * Uses generic sections API for all section operations.
+ * Domain-specific mutations (addExperience, addEducation, etc.) have been
+ * removed in favor of the unified createSectionItem/updateSectionItem/deleteSectionItem API.
  *
  * Issue #76: Design GraphQL schema with Code-First approach
  * Issue #77: Implement DataLoader for N+1 optimization
@@ -36,9 +27,12 @@ export class ResumeResolver {
 
   constructor(
     private readonly resumesRepository: ResumesRepository,
-    private readonly experienceService: ExperienceService,
-    private readonly educationService: EducationService,
+    private readonly sectionsService: GenericResumeSectionsService,
   ) {}
+
+  // ============================================================
+  // Queries
+  // ============================================================
 
   /**
    * Query: Get resume by ID
@@ -70,113 +64,155 @@ export class ResumeResolver {
   }
 
   /**
-   * Field Resolver: Load experiences using DataLoader
-   * This prevents N+1 queries when fetching multiple resumes
+   * Query: List available section types
    */
-  @ResolveField(() => [ExperienceModel])
-  async experiences(
-    @Parent() resume: ResumeModel,
-    @Context() context: { loaders: DataLoaderService },
-  ): Promise<ExperienceModel[]> {
-    const loader = context.loaders.createExperiencesLoader();
-    const experiences = await loader.load(resume.id);
-    return experiences as ExperienceModel[];
-  }
-
-  /**
-   * Field Resolver: Load educations using DataLoader
-   */
-  @ResolveField(() => [EducationModel])
-  async educations(
-    @Parent() resume: ResumeModel,
-    @Context() context: { loaders: DataLoaderService },
-  ): Promise<EducationModel[]> {
-    const loader = context.loaders.createEducationsLoader();
-    const educations = await loader.load(resume.id);
-    return educations as EducationModel[];
-  }
-
-  /**
-   * Field Resolver: Load skills using DataLoader
-   */
-  @ResolveField(() => [SkillModel])
-  async skills(
-    @Parent() resume: ResumeModel,
-    @Context() context: { loaders: DataLoaderService },
-  ): Promise<SkillModel[]> {
-    const loader = context.loaders.createSkillsLoader();
-    const skills = await loader.load(resume.id);
-    return skills as SkillModel[];
-  }
-
-  /**
-   * Mutation: Add experience to resume
-   */
-  @Mutation(() => ExperienceModel, {
-    description: 'Add work experience to resume',
+  @Query(() => [SectionTypeModel], {
+    name: 'sectionTypes',
+    description: 'List all available section types for resume sections',
   })
-  async addExperience(
-    @Args('resumeId', { type: () => ID }) resumeId: string,
-    @Args('input') input: CreateExperienceInput,
-    @CurrentUser() user: User,
-  ): Promise<ExperienceModel> {
-    this.logger.log(`[GraphQL] Adding experience to resume ${resumeId} for user ${user.id}`);
-    const response = await this.experienceService.addEntityToResume(resumeId, user.id, input);
-    return response.data as ExperienceModel;
+  async sectionTypes(@CurrentUser() _user: User): Promise<SectionTypeModel[]> {
+    this.logger.log('[GraphQL] Fetching section types');
+    const types = await this.sectionsService.listSectionTypes();
+    return types.map((type) => ({
+      key: type.key,
+      semanticKind: type.semanticKind,
+      displayName: type.title ?? type.key,
+      description: type.description ?? undefined,
+    }));
   }
 
+  // ============================================================
+  // Field Resolvers
+  // ============================================================
+
   /**
-   * Mutation: Update experience
+   * Field Resolver: Load sections for a resume
+   * Returns all sections with their items using the generic sections API
    */
-  @Mutation(() => ExperienceModel, { description: 'Update work experience' })
-  async updateExperience(
+  @ResolveField(() => [ResumeSectionModel])
+  async sections(@Parent() resume: ResumeModel): Promise<ResumeSectionModel[]> {
+    const sections = await this.sectionsService.listResumeSections(resume.id, resume.userId);
+
+    return sections.map((section) => ({
+      id: section.id,
+      sectionTypeKey: section.sectionType?.key ?? 'unknown',
+      semanticKind: section.sectionType?.semanticKind ?? 'CUSTOM',
+      title: section.titleOverride ?? section.sectionType?.title ?? 'Section',
+      order: section.order,
+      visible: section.isVisible ?? true,
+      items: section.items.map((item) => ({
+        id: item.id,
+        sectionTypeKey: section.sectionType?.key ?? 'unknown',
+        content: this.asRecord(item.content),
+        order: item.order,
+        createdAt: item.createdAt,
+        updatedAt: item.updatedAt,
+      })),
+      createdAt: section.createdAt,
+      updatedAt: section.updatedAt,
+    }));
+  }
+
+  // ============================================================
+  // Mutations - Generic Sections API
+  // ============================================================
+
+  /**
+   * Mutation: Create a section item with any section type
+   */
+  @Mutation(() => SectionItemModel, {
+    description: 'Create a new section item with JSON content',
+  })
+  async createSectionItem(
     @Args('resumeId', { type: () => ID }) resumeId: string,
-    @Args('experienceId', { type: () => ID }) experienceId: string,
-    @Args('input') input: UpdateExperienceInput,
+    @Args('sectionTypeKey') sectionTypeKey: string,
+    @Args('content', {
+      type: () => String,
+      description: 'JSON-encoded content',
+    })
+    contentJson: Record<string, unknown>,
     @CurrentUser() user: User,
-  ): Promise<ExperienceModel> {
-    this.logger.log(`[GraphQL] Updating experience ${experienceId} for user ${user.id}`);
-    const response = await this.experienceService.updateEntityByIdForResume(
-      resumeId,
-      experienceId,
-      user.id,
-      input,
+  ): Promise<SectionItemModel> {
+    this.logger.log(
+      `[GraphQL] Creating section item for resume ${resumeId}, type ${sectionTypeKey}`,
     );
-    return response.data as ExperienceModel;
+    const content = typeof contentJson === 'string' ? JSON.parse(contentJson) : contentJson;
+
+    const item = await this.sectionsService.createItem(resumeId, sectionTypeKey, user.id, content);
+
+    return {
+      id: item.id,
+      sectionTypeKey,
+      content: this.asRecord(item.content),
+      order: item.order,
+      createdAt: item.createdAt,
+      updatedAt: item.updatedAt,
+    };
   }
 
   /**
-   * Mutation: Delete experience
+   * Mutation: Update a section item
    */
-  @Mutation(() => Boolean, { description: 'Delete work experience' })
-  async deleteExperience(
+  @Mutation(() => SectionItemModel, {
+    description: 'Update an existing section item with partial JSON content',
+  })
+  async updateSectionItem(
     @Args('resumeId', { type: () => ID }) resumeId: string,
-    @Args('experienceId', { type: () => ID }) experienceId: string,
+    @Args('sectionTypeKey') sectionTypeKey: string,
+    @Args('itemId', { type: () => ID }) itemId: string,
+    @Args('content', {
+      type: () => String,
+      description: 'JSON-encoded partial content',
+    })
+    contentJson: Record<string, unknown>,
+    @CurrentUser() user: User,
+  ): Promise<SectionItemModel> {
+    this.logger.log(`[GraphQL] Updating section item ${itemId} for resume ${resumeId}`);
+    const content = typeof contentJson === 'string' ? JSON.parse(contentJson) : contentJson;
+
+    const item = await this.sectionsService.updateItem(
+      resumeId,
+      sectionTypeKey,
+      itemId,
+      user.id,
+      content,
+    );
+
+    return {
+      id: item.id,
+      sectionTypeKey,
+      content: this.asRecord(item.content),
+      order: item.order,
+      createdAt: item.createdAt,
+      updatedAt: item.updatedAt,
+    };
+  }
+
+  /**
+   * Mutation: Delete a section item
+   */
+  @Mutation(() => Boolean, {
+    description: 'Delete a section item',
+  })
+  async deleteSectionItem(
+    @Args('resumeId', { type: () => ID }) resumeId: string,
+    @Args('sectionTypeKey') sectionTypeKey: string,
+    @Args('itemId', { type: () => ID }) itemId: string,
     @CurrentUser() user: User,
   ): Promise<boolean> {
-    this.logger.log(`[GraphQL] Deleting experience ${experienceId} for user ${user.id}`);
-    await this.experienceService.deleteEntityByIdForResume(resumeId, experienceId, user.id);
+    this.logger.log(`[GraphQL] Deleting section item ${itemId} for resume ${resumeId}`);
+    await this.sectionsService.deleteItem(resumeId, sectionTypeKey, itemId, user.id);
     return true;
   }
 
-  /**
-   * Mutation: Add education to resume
-   */
-  @Mutation(() => EducationModel, {
-    description: 'Add education entry to resume',
-  })
-  async addEducation(
-    @Args('resumeId', { type: () => ID }) resumeId: string,
-    @Args('input') input: CreateEducationInput,
-    @CurrentUser() user: User,
-  ): Promise<EducationModel> {
-    this.logger.log(`[GraphQL] Adding education to resume ${resumeId} for user ${user.id}`);
-    // Currently using cast due to legacy class-validator DTO mismatch
-    const response = await this.educationService.addEntityToResume(
-      resumeId,
-      user.id,
-      input as Parameters<typeof this.educationService.addEntityToResume>[2],
-    );
-    return response.data as EducationModel;
+  // ============================================================
+  // Private helpers
+  // ============================================================
+
+  private asRecord(value: unknown): Record<string, unknown> {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      return {};
+    }
+    return value as Record<string, unknown>;
   }
 }

@@ -19,7 +19,7 @@ interface ActivityFeedEvent {
   id: string;
   userId: string;
   type: ActivityType;
-  metadata: unknown;
+  metadata: Record<string, string | number | boolean | null>;
   entityId: string | null;
   entityType: string | null;
   createdAt: Date;

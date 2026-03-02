@@ -19,6 +19,3 @@ export const RequestVerificationSchema = z.object({
 });
 
 export type RequestVerification = z.infer<typeof RequestVerificationSchema>;
-
-// Type alias for backward compatibility
-export type VerifyEmail = EmailVerification;

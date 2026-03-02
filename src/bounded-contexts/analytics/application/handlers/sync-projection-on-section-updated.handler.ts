@@ -22,8 +22,10 @@ export class SyncProjectionOnSectionUpdatedHandler {
   @OnEvent(SectionUpdatedEvent.TYPE)
   async handle(event: SectionUpdatedEvent): Promise<void> {
     const resumeId = event.aggregateId;
+    const sectionIdentity =
+      event.payload.sectionTypeKey ?? event.payload.sectionKind ?? event.payload.sectionType;
 
-    this.logger.debug(`Section ${event.payload.sectionType} updated for resume: ${resumeId}`);
+    this.logger.debug(`Section ${sectionIdentity ?? 'unknown'} updated for resume: ${resumeId}`);
 
     // Touch updatedAt to track activity (Prisma @updatedAt handles this)
     await this.prisma.analyticsResumeProjection.update({

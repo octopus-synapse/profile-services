@@ -4,8 +4,6 @@
  * NestJS guard for granular rate limiting.
  * Applies rate limits based on endpoint metadata and user context.
  *
- * Kent Beck: "Guards protect invariants at boundaries"
- * Uncle Bob: "Guards are policy enforcement points"
  */
 
 import {

@@ -11,7 +11,8 @@
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { GitHubContributionService } from './github-contribution.service';
-import { GitHubApiService, GitHubRepo } from './github-api.service';
+import type { GitHubRepo } from '../types/github.types';
+import { GitHubApiService } from './github-api.service';
 
 describe('GitHubContributionService', () => {
   let service: GitHubContributionService;

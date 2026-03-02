@@ -113,6 +113,36 @@ export const ResumeProjectSchema = z.object({
 export type ResumeProject = z.infer<typeof ResumeProjectSchema>;
 
 /**
+ * Dynamic Resume Section Schemas
+ */
+export const ResumeSectionTypeSchema = z.object({
+  id: z.string(),
+  key: z.string(),
+  semanticKind: z.string().nullable().optional(),
+  title: z.string().optional(),
+  version: z.number().int().optional(),
+});
+
+export type ResumeSectionType = z.infer<typeof ResumeSectionTypeSchema>;
+
+export const ResumeSectionItemSchema = z.object({
+  id: z.string(),
+  order: z.number().int().min(0),
+  content: z.unknown(),
+});
+
+export type ResumeSectionItem = z.infer<typeof ResumeSectionItemSchema>;
+
+export const ResumeSectionSchema = z.object({
+  id: z.string(),
+  order: z.number().int().min(0),
+  sectionType: ResumeSectionTypeSchema,
+  items: z.array(ResumeSectionItemSchema).default([]),
+});
+
+export type ResumeSection = z.infer<typeof ResumeSectionSchema>;
+
+/**
  * Complete Resume Schema
  */
 export const ResumeSchema = z.object({
@@ -140,12 +170,7 @@ export const ResumeSchema = z.object({
   activeThemeId: z.string().uuid().nullable(),
 
   // Relations
-  experiences: z.array(ResumeExperienceSchema),
-  educations: z.array(ResumeEducationSchema),
-  skills: z.array(ResumeSkillSchema),
-  languages: z.array(ResumeLanguageSchema),
-  certifications: z.array(ResumeCertificationSchema),
-  projects: z.array(ResumeProjectSchema),
+  resumeSections: z.array(ResumeSectionSchema).default([]),
 });
 
 export type Resume = z.infer<typeof ResumeSchema>;
@@ -154,12 +179,7 @@ export type Resume = z.infer<typeof ResumeSchema>;
  * Resume List Item (without relations)
  */
 export const ResumeListItemSchema = ResumeSchema.omit({
-  experiences: true,
-  educations: true,
-  skills: true,
-  languages: true,
-  certifications: true,
-  projects: true,
+  resumeSections: true,
 });
 
 export type ResumeListItem = z.infer<typeof ResumeListItemSchema>;

@@ -4,7 +4,6 @@
  * Tests caching behavior with real application context.
  * Verifies decorators work properly with NestJS DI.
  *
- * Kent Beck: "Integration tests validate real collaborations."
  */
 
 import { describe, it, expect, beforeAll, afterAll } from 'bun:test';

@@ -101,10 +101,9 @@ describe('AuthCoreService', () => {
 
       const result = await service.signup(signupDto);
 
-      expect(result.success).toBe(true);
-      expect(result.data.accessToken).toBe(token);
-      expect(result.data.refreshToken).toBe(refreshToken);
-      expect(result.data.user.email).toBe(signupDto.email);
+      expect(result.accessToken).toBe(token);
+      expect(result.refreshToken).toBe(refreshToken);
+      expect(result.user.email).toBe(signupDto.email);
       expect(prisma.user.create).toHaveBeenCalledWith({
         data: {
           email: signupDto.email,
@@ -272,11 +271,10 @@ describe('AuthCoreService', () => {
 
       const result = await service.login(loginDto);
 
-      expect(result.success).toBe(true);
-      expect(result.data.accessToken).toBe(token);
-      expect(result.data.refreshToken).toBe(refreshToken);
-      expect(result.data.user.email).toBe(mockUser.email);
-      expect(result.data.user.id).toBe(mockUser.id);
+      expect(result.accessToken).toBe(token);
+      expect(result.refreshToken).toBe(refreshToken);
+      expect(result.user.email).toBe(mockUser.email);
+      expect(result.user.id).toBe(mockUser.id);
     });
 
     it('should throw UnauthorizedException when user not found', async () => {
@@ -356,7 +354,7 @@ describe('AuthCoreService', () => {
 
       const result = await service.login(loginDto);
 
-      expect(result.data.user).toEqual({
+      expect(result.user).toEqual({
         id: userWithAllFields.id,
         email: userWithAllFields.email,
         name: userWithAllFields.name,

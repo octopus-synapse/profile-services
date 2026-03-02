@@ -99,9 +99,8 @@ describe('TokenRefreshService', () => {
 
       const result = await service.refreshToken('user-123');
 
-      expect(result.success).toBe(true);
-      expect(result.data.accessToken).toBe('access-token-123');
-      expect(result.data.refreshToken).toBe('access-token-123'); // same token used
+      expect(result.accessToken).toBe('access-token-123');
+      expect(result.refreshToken).toBe('access-token-123'); // same token used
       expect(fakeTokenService.generateToken).toHaveBeenCalled();
     });
   });
@@ -141,9 +140,8 @@ describe('TokenRefreshService', () => {
 
       const result = await service.refreshWithToken('valid-token');
 
-      expect(result.success).toBe(true);
-      expect(result.data.accessToken).toBe('access-token-123');
-      expect(result.data.refreshToken).toBe('access-token-123'); // same token used
+      expect(result.accessToken).toBe('access-token-123');
+      expect(result.refreshToken).toBe('access-token-123'); // same token used
     });
   });
 
@@ -161,9 +159,8 @@ describe('TokenRefreshService', () => {
 
       const result = await service.getCurrentUser('user-123');
 
-      expect(result.success).toBe(true);
-      expect(result.data.id).toBe('user-123');
-      expect(result.data.email).toBe('test@example.com');
+      expect(result.id).toBe('user-123');
+      expect(result.email).toBe('test@example.com');
     });
   });
 });

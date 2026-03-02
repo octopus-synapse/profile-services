@@ -13,6 +13,8 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 
+const SKILL_SECTION_TYPE_KEY = 'skill_set_v1';
+
 /**
  * Search query parameters
  */
@@ -193,38 +195,96 @@ export class ResumeSearchService {
     // Get source resume
     const sourceResume = await this.prisma.resume.findUnique({
       where: { id: resumeId },
-      include: { skills: true },
+      include: {
+        resumeSections: {
+          where: {
+            sectionType: {
+              key: SKILL_SECTION_TYPE_KEY,
+            },
+          },
+          include: {
+            items: {
+              select: {
+                content: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!sourceResume) {
       return [];
     }
 
-    const skillNames = sourceResume.skills.map((s) => s.name);
+    const skillNames = this.extractSkillNames(sourceResume.resumeSections);
 
-    // Find resumes with similar skills
-    const similarResumes = await this.prisma.$queryRaw<SearchResultItem[]>`
-      SELECT DISTINCT
-        r.id,
-        r."userId",
-        r."fullName",
-        r."jobTitle",
-        r.summary,
-        r.slug,
-        r.location,
-        r."profileViews",
-        r."createdAt"
-      FROM "Resume" r
-      JOIN "Skill" s ON s."resumeId" = r.id
-      WHERE r."isPublic" = true
-        AND r.id != ${resumeId}
-        AND s.name = ANY(${skillNames}::text[])
-      GROUP BY r.id
-      ORDER BY COUNT(s.id) DESC, r."profileViews" DESC
-      LIMIT ${limit}
-    `;
+    if (skillNames.length === 0) {
+      return [];
+    }
 
-    return similarResumes;
+    const candidates = await this.prisma.resume.findMany({
+      where: {
+        isPublic: true,
+        id: { not: resumeId },
+      },
+      select: {
+        id: true,
+        userId: true,
+        fullName: true,
+        jobTitle: true,
+        summary: true,
+        slug: true,
+        location: true,
+        profileViews: true,
+        createdAt: true,
+        resumeSections: {
+          where: {
+            sectionType: {
+              key: SKILL_SECTION_TYPE_KEY,
+            },
+          },
+          include: {
+            items: {
+              select: {
+                content: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    const ranked = candidates
+      .map((resume) => {
+        const candidateSkills = this.extractSkillNames(resume.resumeSections);
+        const sharedSkills = candidateSkills.filter((skill) => skillNames.includes(skill));
+
+        return {
+          id: resume.id,
+          userId: resume.userId,
+          fullName: resume.fullName,
+          jobTitle: resume.jobTitle,
+          summary: resume.summary,
+          slug: resume.slug,
+          location: resume.location,
+          profileViews: resume.profileViews,
+          createdAt: resume.createdAt,
+          sharedSkillCount: sharedSkills.length,
+        };
+      })
+      .filter((resume) => resume.sharedSkillCount > 0)
+      .sort((a, b) => {
+        if (b.sharedSkillCount !== a.sharedSkillCount) {
+          return b.sharedSkillCount - a.sharedSkillCount;
+        }
+
+        return b.profileViews - a.profileViews;
+      })
+      .slice(0, limit)
+      .map(({ sharedSkillCount: _sharedSkillCount, ...resume }) => resume);
+
+    return ranked;
   }
 
   /**
@@ -264,15 +324,56 @@ export class ResumeSearchService {
     const resumeIds = results.map((r) => r.id);
     const normalizedSkills = skills.map((s) => s.toLowerCase());
 
-    const resumesWithSkills = await this.prisma.skill.findMany({
+    const items = await this.prisma.sectionItem.findMany({
       where: {
-        resumeId: { in: resumeIds },
-        name: { in: normalizedSkills, mode: 'insensitive' },
+        resumeSection: {
+          resumeId: { in: resumeIds },
+          sectionType: {
+            key: SKILL_SECTION_TYPE_KEY,
+          },
+        },
       },
-      select: { resumeId: true },
+      select: {
+        resumeSection: {
+          select: { resumeId: true },
+        },
+        content: true,
+      },
     });
 
-    const matchingIds = new Set(resumesWithSkills.map((s) => s.resumeId));
+    const matchingIds = new Set<string>();
+    for (const item of items) {
+      const content = this.asRecord(item.content);
+      const name = typeof content.name === 'string' ? content.name.toLowerCase() : '';
+
+      if (normalizedSkills.includes(name)) {
+        matchingIds.add(item.resumeSection.resumeId);
+      }
+    }
+
     return results.filter((r) => matchingIds.has(r.id));
+  }
+
+  private extractSkillNames(sections: Array<{ items: Array<{ content: unknown }> }>): string[] {
+    const skills: string[] = [];
+
+    for (const section of sections) {
+      for (const item of section.items) {
+        const content = this.asRecord(item.content);
+        if (typeof content.name === 'string') {
+          skills.push(content.name.toLowerCase());
+        }
+      }
+    }
+
+    return skills;
+  }
+
+  private asRecord(value: unknown): Record<string, unknown> {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      return {};
+    }
+
+    return value as Record<string, unknown>;
   }
 }

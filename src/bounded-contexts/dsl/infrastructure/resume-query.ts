@@ -1,12 +1,34 @@
+/**
+ * Resume Query Includes
+ *
+ * Prisma include configurations for fetching resume with generic sections.
+ */
+
 export const RESUME_RELATIONS_INCLUDE = {
   activeTheme: true,
-  experiences: { orderBy: { order: 'asc' as const } },
-  education: { orderBy: { startDate: 'desc' as const } },
-  skills: { orderBy: { order: 'asc' as const } },
-  languages: { orderBy: { order: 'asc' as const } },
-  projects: { orderBy: { createdAt: 'desc' as const } },
-  certifications: { orderBy: { issueDate: 'desc' as const } },
-  awards: { orderBy: { date: 'desc' as const } },
-  recommendations: { orderBy: { createdAt: 'desc' as const } },
-  interests: { orderBy: { order: 'asc' as const } },
+  resumeSections: {
+    where: { isVisible: true },
+    orderBy: { order: 'asc' as const },
+    include: {
+      sectionType: {
+        select: {
+          key: true,
+          title: true,
+          semanticKind: true,
+        },
+      },
+      items: {
+        where: { isVisible: true },
+        orderBy: { order: 'asc' as const },
+        select: {
+          id: true,
+          order: true,
+          isVisible: true,
+          content: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      },
+    },
+  },
 };

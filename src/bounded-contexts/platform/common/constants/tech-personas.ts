@@ -1,11 +1,9 @@
 /**
- * Tech Personas - Re-export for backward compatibility
+ * Tech Personas - convenience re-export.
  *
- * This file has been refactored. All persona definitions are now
- * split into individual files under ./personas/ directory.
+ * Persona definitions live under ./personas/.
  *
- * @see ./personas/index.ts for the new structure
- * @deprecated Import directly from './personas' instead
+ * @see ./personas/index.ts
  */
 
 // Type re-export

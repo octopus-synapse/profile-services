@@ -1,16 +1,9 @@
-import { Controller, Get, HttpStatus, Param, Query, Res, UseGuards } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiOperation,
-  ApiParam,
-  ApiQuery,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { Controller, Get, Param, Query, Res, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
+import { ApiStreamResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
-import { ExportResultDto } from '@/shared-kernel';
 import { ResumeJsonService } from '../services/resume-json.service';
 import { ResumeLatexService } from '../services/resume-latex.service';
 
@@ -27,17 +20,16 @@ export class ExportMultiFormatController {
 
   @Get(':resumeId/json')
   @ApiOperation({ summary: 'Export resume as JSON' })
-  @ApiResponse({ status: 200, type: ExportResultDto })
+  @ApiStreamResponse({
+    mimeType: 'application/octet-stream',
+    description: 'JSON resume data',
+  })
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
   @ApiQuery({
     name: 'format',
     required: false,
     enum: ['jsonresume', 'profile'],
     description: 'JSON format (default: jsonresume)',
-  })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'JSON resume data',
   })
   async exportJson(
     @Param('resumeId') resumeId: string,
@@ -57,17 +49,16 @@ export class ExportMultiFormatController {
 
   @Get(':resumeId/latex')
   @ApiOperation({ summary: 'Export resume as LaTeX' })
-  @ApiResponse({ status: 200, type: ExportResultDto })
+  @ApiStreamResponse({
+    mimeType: 'application/octet-stream',
+    description: 'LaTeX source file',
+  })
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
   @ApiQuery({
     name: 'template',
     required: false,
     enum: ['simple', 'moderncv'],
     description: 'LaTeX template (default: simple)',
-  })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'LaTeX source file',
   })
   async exportLatex(
     @Param('resumeId') resumeId: string,

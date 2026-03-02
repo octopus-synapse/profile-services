@@ -1,11 +1,22 @@
 import { z } from 'zod';
 import { ResumeTemplateSchema } from '../../enums';
-import { CreateCertificationSchema } from './sections/certification.schema';
-import { CreateEducationSchema } from './sections/education.schema';
-import { CreateExperienceSchema } from './sections/experience.schema';
-import { CreateLanguageSchema } from './sections/language.schema';
-import { CreateProjectSchema } from './sections/project.schema';
-import { CreateSkillSchema } from './sections/skill.schema';
+
+const ResumeSectionTypeRefSchema = z.object({
+  key: z.string().min(1),
+  version: z.number().int().min(1).optional(),
+});
+
+const ResumeSectionItemPayloadSchema = z.object({
+  id: z.string().min(1).optional(),
+  order: z.number().int().min(0).optional(),
+  content: z.unknown(),
+});
+
+const UpsertResumeSectionSchema = z.object({
+  sectionType: ResumeSectionTypeRefSchema,
+  order: z.number().int().min(0).optional(),
+  items: z.array(ResumeSectionItemPayloadSchema).default([]),
+});
 
 /**
  * Create Resume Schema
@@ -26,13 +37,7 @@ export const CreateResumeSchema = z.object({
   github: z.string().url().optional(),
   website: z.string().url().optional(),
 
-  // Relations
-  experiences: z.array(CreateExperienceSchema).optional(),
-  educations: z.array(CreateEducationSchema).optional(),
-  skills: z.array(CreateSkillSchema).optional(),
-  languages: z.array(CreateLanguageSchema).optional(),
-  certifications: z.array(CreateCertificationSchema).optional(),
-  projects: z.array(CreateProjectSchema).optional(),
+  sections: z.array(UpsertResumeSectionSchema).optional(),
 });
 
 export type CreateResume = z.infer<typeof CreateResumeSchema>;
@@ -47,14 +52,7 @@ export type UpdateResume = z.infer<typeof UpdateResumeSchema>;
 /**
  * Resume Relation Keys
  */
-export const RESUME_RELATION_KEYS = [
-  'experiences',
-  'educations',
-  'skills',
-  'languages',
-  'certifications',
-  'projects',
-] as const;
+export const RESUME_RELATION_KEYS = ['sections'] as const;
 
 export type ResumeRelationKey = (typeof RESUME_RELATION_KEYS)[number];
 

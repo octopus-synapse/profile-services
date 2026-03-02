@@ -41,7 +41,7 @@ export abstract class BaseOnboardingService<TInput, TCreate> {
     const validItems = this.transformItems(items, resumeId);
 
     if (validItems.length > 0) {
-      await this.createMany(tx, validItems);
+      await this.createMany(tx, validItems, resumeId);
       this.logger.log(this.getSuccessMessage(validItems.length));
     }
   }
@@ -84,7 +84,11 @@ export abstract class BaseOnboardingService<TInput, TCreate> {
   /**
    * Create many records in database.
    */
-  protected abstract createMany(tx: Prisma.TransactionClient, items: TCreate[]): Promise<void>;
+  protected abstract createMany(
+    tx: Prisma.TransactionClient,
+    items: TCreate[],
+    resumeId: string,
+  ): Promise<void>;
 
   /**
    * Get success message for logging.

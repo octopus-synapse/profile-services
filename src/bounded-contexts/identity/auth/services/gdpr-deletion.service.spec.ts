@@ -21,13 +21,8 @@ describe('GdprDeletionService', () => {
         findMany: mock(),
         deleteMany: mock(),
       },
-      experience: { deleteMany: mock() },
-      education: { deleteMany: mock() },
-      skill: { deleteMany: mock() },
-      project: { deleteMany: mock() },
-      certification: { deleteMany: mock() },
-      language: { deleteMany: mock() },
-      githubContribution: { deleteMany: mock() },
+      resumeSection: { deleteMany: mock() },
+      sectionItem: { deleteMany: mock() },
       resumeVersion: { deleteMany: mock() },
       resumeAnalytics: { deleteMany: mock() },
       userConsent: { deleteMany: mock() },
@@ -64,13 +59,8 @@ describe('GdprDeletionService', () => {
       prisma.$transaction.mockImplementation(
         async (callback: (tx: unknown) => Promise<unknown>) => {
           const mockTx = {
-            experience: { deleteMany: mock(() => ({ count: 5 })) },
-            education: { deleteMany: mock(() => ({ count: 2 })) },
-            skill: { deleteMany: mock(() => ({ count: 10 })) },
-            project: { deleteMany: mock(() => ({ count: 3 })) },
-            certification: { deleteMany: mock(() => ({ count: 1 })) },
-            language: { deleteMany: mock(() => ({ count: 2 })) },
-            openSourceContribution: { deleteMany: mock(() => ({ count: 4 })) },
+            resumeSection: { deleteMany: mock(() => ({ count: 4 })) },
+            sectionItem: { deleteMany: mock(() => ({ count: 18 })) },
             resumeVersion: { deleteMany: mock(() => ({ count: 1 })) },
             resumeShare: { deleteMany: mock(() => ({ count: 1 })) },
             resume: { deleteMany: mock(() => ({ count: 1 })) },
@@ -92,7 +82,8 @@ describe('GdprDeletionService', () => {
       expect(result.success).toBe(true);
       expect(result.deletedEntities.user).toBe(true);
       expect(result.deletedEntities.resumes).toBe(1);
-      expect(result.deletedEntities.experiences).toBe(5);
+      expect(result.deletedEntities.resumeSections).toBe(4);
+      expect(result.deletedEntities.sectionItems).toBe(18);
       expect(result.deletedAt).toBeDefined();
     });
 
@@ -116,13 +107,8 @@ describe('GdprDeletionService', () => {
       prisma.$transaction.mockImplementation(
         async (callback: (tx: unknown) => Promise<unknown>) => {
           const mockTx = {
-            experience: { deleteMany: mock(() => ({ count: 0 })) },
-            education: { deleteMany: mock(() => ({ count: 0 })) },
-            skill: { deleteMany: mock(() => ({ count: 0 })) },
-            project: { deleteMany: mock(() => ({ count: 0 })) },
-            certification: { deleteMany: mock(() => ({ count: 0 })) },
-            language: { deleteMany: mock(() => ({ count: 0 })) },
-            openSourceContribution: { deleteMany: mock(() => ({ count: 0 })) },
+            resumeSection: { deleteMany: mock(() => ({ count: 0 })) },
+            sectionItem: { deleteMany: mock(() => ({ count: 0 })) },
             resumeVersion: { deleteMany: mock(() => ({ count: 0 })) },
             resumeShare: { deleteMany: mock(() => ({ count: 0 })) },
             resume: { deleteMany: mock(() => ({ count: 0 })) },
@@ -151,13 +137,8 @@ describe('GdprDeletionService', () => {
       prisma.$transaction.mockImplementation(
         async (callback: (tx: unknown) => Promise<unknown>) => {
           const mockTx = {
-            experience: { deleteMany: mock(() => ({ count: 0 })) },
-            education: { deleteMany: mock(() => ({ count: 0 })) },
-            skill: { deleteMany: mock(() => ({ count: 0 })) },
-            project: { deleteMany: mock(() => ({ count: 0 })) },
-            certification: { deleteMany: mock(() => ({ count: 0 })) },
-            language: { deleteMany: mock(() => ({ count: 0 })) },
-            openSourceContribution: { deleteMany: mock(() => ({ count: 0 })) },
+            resumeSection: { deleteMany: mock(() => ({ count: 0 })) },
+            sectionItem: { deleteMany: mock(() => ({ count: 0 })) },
             resumeVersion: { deleteMany: mock(() => ({ count: 0 })) },
             resumeShare: { deleteMany: mock(() => ({ count: 0 })) },
             resume: { deleteMany: mock(() => ({ count: 0 })) },
@@ -196,13 +177,8 @@ describe('GdprDeletionService', () => {
       prisma.$transaction.mockImplementation(
         async (callback: (tx: unknown) => Promise<unknown>) => {
           const mockTx = {
-            experience: { deleteMany: mock(() => ({ count: 0 })) },
-            education: { deleteMany: mock(() => ({ count: 0 })) },
-            skill: { deleteMany: mock(() => ({ count: 0 })) },
-            project: { deleteMany: mock(() => ({ count: 0 })) },
-            certification: { deleteMany: mock(() => ({ count: 0 })) },
-            language: { deleteMany: mock(() => ({ count: 0 })) },
-            openSourceContribution: { deleteMany: mock(() => ({ count: 0 })) },
+            resumeSection: { deleteMany: mock(() => ({ count: 0 })) },
+            sectionItem: { deleteMany: mock(() => ({ count: 0 })) },
             resumeVersion: { deleteMany: mock(() => ({ count: 0 })) },
             resumeShare: { deleteMany: mock(() => ({ count: 0 })) },
             resume: { deleteMany: mock(() => ({ count: 0 })) },

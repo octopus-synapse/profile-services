@@ -17,8 +17,9 @@ describe('ResumeSearchService', () => {
     $queryRaw: ReturnType<typeof mock>;
     resume: {
       findUnique: ReturnType<typeof mock>;
+      findMany: ReturnType<typeof mock>;
     };
-    skill: {
+    sectionItem: {
       findMany: ReturnType<typeof mock>;
     };
   };
@@ -50,9 +51,13 @@ describe('ResumeSearchService', () => {
 
   const mockResumeWithSkills = {
     id: 'resume-1',
-    skills: [
-      { id: 'skill-1', name: 'React' },
-      { id: 'skill-2', name: 'TypeScript' },
+    resumeSections: [
+      {
+        items: [
+          { content: { name: 'React' } },
+          { content: { name: 'TypeScript' } },
+        ],
+      },
     ],
   };
 
@@ -61,10 +66,17 @@ describe('ResumeSearchService', () => {
       $queryRaw: mock(() => Promise.resolve(mockSearchResults)),
       resume: {
         findUnique: mock(() => Promise.resolve(mockResumeWithSkills)),
+        findMany: mock(() => Promise.resolve([mockSearchResults[1]])),
       },
-      skill: {
+      sectionItem: {
         findMany: mock(() =>
-          Promise.resolve([{ resumeId: 'resume-1' }, { resumeId: 'resume-2' }]),
+          Promise.resolve([
+            { resumeSection: { resumeId: 'resume-1' }, content: { name: 'React' } },
+            {
+              resumeSection: { resumeId: 'resume-2' },
+              content: { name: 'TypeScript' },
+            },
+          ]),
         ),
       },
     };
@@ -110,7 +122,7 @@ describe('ResumeSearchService', () => {
       });
 
       expect(result).toBeDefined();
-      expect(mockPrismaService.skill.findMany).toHaveBeenCalled();
+      expect(mockPrismaService.sectionItem.findMany).toHaveBeenCalled();
     });
 
     it('should filter by location', async () => {
@@ -192,19 +204,41 @@ describe('ResumeSearchService', () => {
 
   describe('findSimilar', () => {
     it('should find similar resumes based on skills', async () => {
-      mockPrismaService.$queryRaw = mock(() =>
-        Promise.resolve([mockSearchResults[1]]),
+      mockPrismaService.resume.findMany = mock(() =>
+        Promise.resolve([
+          {
+            ...mockSearchResults[1],
+            resumeSections: [
+              {
+                items: [
+                  { content: { name: 'React' } },
+                  { content: { name: 'Node.js' } },
+                ],
+              },
+            ],
+          },
+        ]),
       );
 
       const result = await service.findSimilar('resume-1');
 
       expect(result).toBeDefined();
       expect(Array.isArray(result)).toBe(true);
+      expect(result).toHaveLength(1);
     });
 
     it('should exclude the source resume', async () => {
-      mockPrismaService.$queryRaw = mock(() =>
-        Promise.resolve([mockSearchResults[1]]),
+      mockPrismaService.resume.findMany = mock(() =>
+        Promise.resolve([
+          {
+            ...mockSearchResults[1],
+            resumeSections: [
+              {
+                items: [{ content: { name: 'React' } }],
+              },
+            ],
+          },
+        ]),
       );
 
       const result = await service.findSimilar('resume-1');

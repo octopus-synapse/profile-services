@@ -37,9 +37,6 @@ export const ImportResumeRequestSchema = z.object({
 
 export type ImportResumeRequest = z.infer<typeof ImportResumeRequestSchema>;
 
-// Alias for backward compatibility
-export type ImportResumeDto = ImportResumeRequest;
-
 // ============================================================================
 // Parsed Data Structure
 // ============================================================================

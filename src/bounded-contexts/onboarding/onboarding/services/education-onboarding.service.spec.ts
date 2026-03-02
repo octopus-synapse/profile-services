@@ -12,6 +12,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { EducationOnboardingService } from './education-onboarding.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { OnboardingData } from '../schemas/onboarding.schema';
+import { ResumeSectionOnboardingService } from './resume-section-onboarding.service';
 
 describe('EducationOnboardingService', () => {
   let service: EducationOnboardingService;
@@ -19,21 +20,16 @@ describe('EducationOnboardingService', () => {
   // In-memory store
   const educationStore = new Map<string, any[]>();
 
-  const createFakePrisma = () => ({
-    education: {
-      deleteMany: mock(({ where }: { where: { resumeId: string } }) => {
-        educationStore.set(where.resumeId, []);
-        return Promise.resolve({ count: 0 });
-      }),
-      createMany: mock(({ data }: { data: any[] }) => {
-        const resumeId = data[0]?.resumeId;
-        if (resumeId) {
-          educationStore.set(resumeId, data);
-        }
-        return Promise.resolve({ count: data.length });
-      }),
-    },
-  });
+  const createFakePrisma = () => ({});
+
+  const mockSectionService = {
+    replaceSectionItems: mock(
+      (_tx: unknown, { resumeId, items }: { resumeId: string; items: any[] }) => {
+        educationStore.set(resumeId, items);
+        return Promise.resolve();
+      },
+    ),
+  };
 
   let fakePrisma: ReturnType<typeof createFakePrisma>;
 
@@ -62,12 +58,14 @@ describe('EducationOnboardingService', () => {
 
   beforeEach(async () => {
     educationStore.clear();
+    mockSectionService.replaceSectionItems.mockClear();
     fakePrisma = createFakePrisma();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         EducationOnboardingService,
         { provide: PrismaService, useValue: fakePrisma },
+        { provide: ResumeSectionOnboardingService, useValue: mockSectionService },
       ],
     }).compile();
 
@@ -98,14 +96,13 @@ describe('EducationOnboardingService', () => {
       const saved = educationStore.get('resume-1');
       expect(saved).toHaveLength(1);
       expect(saved![0]).toMatchObject({
-        resumeId: 'resume-1',
         institution: 'MIT',
         degree: 'Bachelor of Science',
         field: 'Computer Science',
         isCurrent: false,
       });
-      expect(saved![0].startDate).toBeInstanceOf(Date);
-      expect(saved![0].endDate).toBeInstanceOf(Date);
+      expect(typeof saved![0].startDate).toBe('string');
+      expect(typeof saved![0].endDate).toBe('string');
     });
 
     it('should save current education with null endDate', async () => {
@@ -207,7 +204,7 @@ describe('EducationOnboardingService', () => {
 
       await service.saveEducation('resume-1', data);
 
-      expect(fakePrisma.education.createMany.mock.calls.length).toBe(0);
+      expect(mockSectionService.replaceSectionItems.mock.calls.length).toBe(0);
     });
 
     it('should not save education when array is empty', async () => {
@@ -219,7 +216,7 @@ describe('EducationOnboardingService', () => {
 
       await service.saveEducation('resume-1', data);
 
-      expect(fakePrisma.education.createMany.mock.calls.length).toBe(0);
+      expect(mockSectionService.replaceSectionItems.mock.calls.length).toBe(0);
     });
 
     it('should allow empty field', async () => {

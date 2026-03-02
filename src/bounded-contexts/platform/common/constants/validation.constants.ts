@@ -1,11 +1,9 @@
 /**
- * Validation Constants - Re-export for backward compatibility
+ * Validation Constants - convenience re-export.
  *
- * This file has been refactored. All validation constants are now
- * split into smaller files under ./validation/ directory.
+ * Validation constants are organized under ./validation/.
  *
- * @see ./validation/index.ts for the new structure
- * @deprecated Import directly from './validation' instead
+ * @see ./validation/index.ts
  */
 
 export {

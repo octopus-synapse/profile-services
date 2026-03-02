@@ -1,9 +1,9 @@
 {
   "success": true,
-  "timestamp": "2026-02-12T02:43:01.438Z",
-  "controllers": 57,
-  "endpoints": 160,
-  "schemas": 63,
+  "timestamp": "2026-03-02T12:24:26.235Z",
+  "controllers": 42,
+  "endpoints": 159,
+  "schemas": 157,
   "tags": [
     "resume-analytics",
     "ats-validation",
@@ -213,7 +213,7 @@
     {
       "controller": "EnumsController",
       "tag": "enums",
-      "endpoints": 2,
+      "endpoints": 3,
       "file": "bounded-contexts/platform/common/controllers/enums.controller.ts"
     },
     {
@@ -247,100 +247,10 @@
       "file": "bounded-contexts/presentation/themes/controllers/user-theme.controller.ts"
     },
     {
-      "controller": "AchievementController",
-      "tag": "resumes",
-      "endpoints": 0,
-      "file": "bounded-contexts/resumes/resumes/controllers/achievement.controller.ts"
-    },
-    {
-      "controller": "AwardController",
-      "tag": "resumes",
-      "endpoints": 0,
-      "file": "bounded-contexts/resumes/resumes/controllers/award.controller.ts"
-    },
-    {
-      "controller": "BugBountyController",
-      "tag": "resumes",
-      "endpoints": 0,
-      "file": "bounded-contexts/resumes/resumes/controllers/bug-bounty.controller.ts"
-    },
-    {
-      "controller": "CertificationController",
-      "tag": "resumes",
-      "endpoints": 0,
-      "file": "bounded-contexts/resumes/resumes/controllers/certification.controller.ts"
-    },
-    {
-      "controller": "EducationController",
-      "tag": "resumes",
-      "endpoints": 0,
-      "file": "bounded-contexts/resumes/resumes/controllers/education.controller.ts"
-    },
-    {
-      "controller": "ExperienceController",
-      "tag": "resumes",
-      "endpoints": 0,
-      "file": "bounded-contexts/resumes/resumes/controllers/experience.controller.ts"
-    },
-    {
-      "controller": "HackathonController",
-      "tag": "resumes",
-      "endpoints": 0,
-      "file": "bounded-contexts/resumes/resumes/controllers/hackathon.controller.ts"
-    },
-    {
-      "controller": "InterestController",
-      "tag": "resumes",
-      "endpoints": 0,
-      "file": "bounded-contexts/resumes/resumes/controllers/interest.controller.ts"
-    },
-    {
-      "controller": "LanguageController",
-      "tag": "resumes",
-      "endpoints": 0,
-      "file": "bounded-contexts/resumes/resumes/controllers/language.controller.ts"
-    },
-    {
-      "controller": "OpenSourceController",
-      "tag": "resumes",
-      "endpoints": 0,
-      "file": "bounded-contexts/resumes/resumes/controllers/open-source.controller.ts"
-    },
-    {
-      "controller": "ProjectController",
-      "tag": "resumes",
-      "endpoints": 0,
-      "file": "bounded-contexts/resumes/resumes/controllers/project.controller.ts"
-    },
-    {
-      "controller": "PublicationController",
-      "tag": "resumes",
-      "endpoints": 0,
-      "file": "bounded-contexts/resumes/resumes/controllers/publication.controller.ts"
-    },
-    {
-      "controller": "RecommendationController",
-      "tag": "resumes",
-      "endpoints": 0,
-      "file": "bounded-contexts/resumes/resumes/controllers/recommendation.controller.ts"
-    },
-    {
       "controller": "ResumeManagementController",
       "tag": "resumes",
       "endpoints": 3,
       "file": "bounded-contexts/resumes/resumes/controllers/resume-management.controller.ts"
-    },
-    {
-      "controller": "SkillController",
-      "tag": "resumes",
-      "endpoints": 2,
-      "file": "bounded-contexts/resumes/resumes/controllers/skill.controller.ts"
-    },
-    {
-      "controller": "TalkController",
-      "tag": "resumes",
-      "endpoints": 0,
-      "file": "bounded-contexts/resumes/resumes/controllers/talk.controller.ts"
     },
     {
       "controller": "ResumesController",
@@ -392,9 +302,6 @@
     "DslController.dsl_preview: POST endpoint without request body DTO",
     "AuthAccountController.auth_changeEmail: POST endpoint without request body DTO",
     "AuthAccountController.auth_deleteAccount: POST endpoint without request body DTO",
-    "AuthCoreController.auth_signup: POST endpoint without request body DTO",
-    "AuthCoreController.auth_login: POST endpoint without request body DTO",
-    "AuthCoreController.auth_refreshToken: POST endpoint without request body DTO",
     "AuthPasswordController.auth_forgotPassword: POST endpoint without request body DTO",
     "AuthPasswordController.auth_resetPassword: POST endpoint without request body DTO",
     "AuthPasswordController.auth_changePassword: POST endpoint without request body DTO",
@@ -432,7 +339,6 @@
     "UserThemeController.themes_fork: POST endpoint without request body DTO",
     "UserThemeController.themes_apply: POST endpoint without request body DTO",
     "UserThemeController.themes_updateThemeForUser: PUT endpoint without request body DTO",
-    "SkillController.resumes_createBulk: POST endpoint without request body DTO",
     "ResumesController.resumes_createResumeForUser: POST endpoint without request body DTO",
     "ResumesController.resumes_updateResumeForUser: PATCH endpoint without request body DTO",
     "SkillManagementController.skills_addSkillToResume: POST endpoint without request body DTO",
@@ -440,6 +346,9 @@
     "TranslationController.translation_translateText: POST endpoint without request body DTO",
     "TranslationController.translation_translateBatch: POST endpoint without request body DTO",
     "TranslationController.translation_translatePtToEn: POST endpoint without request body DTO",
-    "TranslationController.translation_translateEnToPt: POST endpoint without request body DTO"
+    "TranslationController.translation_translateEnToPt: POST endpoint without request body DTO",
+    "DTO \"InviteCollaboratorDto\" is referenced but not found in schemas",
+    "DTO \"UpdateRoleDto\" is referenced but not found in schemas",
+    "DTO \"ImportJsonDto\" is referenced but not found in schemas"
   ]
 }

@@ -24,30 +24,58 @@ describe('ResumeLatexService', () => {
       email: 'john@example.com',
       phone: '+1234567890',
     },
-    experiences: [
+    resumeSections: [
       {
-        id: 'exp-1',
-        position: 'Senior Developer',
-        company: 'Tech Corp',
-        startDate: new Date('2020-01-01'),
-        endDate: null,
-        isCurrent: true,
-        description: 'Building awesome stuff',
-        skills: ['TypeScript', 'React'],
+        sectionType: { semanticKind: 'WORK_EXPERIENCE' },
+        items: [
+          {
+            content: {
+              position: 'Senior Developer',
+              company: 'Tech Corp',
+              startDate: new Date('2020-01-01'),
+              endDate: null,
+              isCurrent: true,
+              description: 'Building awesome stuff',
+              skills: ['TypeScript', 'React'],
+            },
+          },
+        ],
       },
-    ],
-    education: [
       {
-        id: 'edu-1',
-        degree: 'Computer Science',
-        institution: 'MIT',
-        startDate: new Date('2015-01-01'),
-        endDate: new Date('2019-01-01'),
+        sectionType: { semanticKind: 'EDUCATION' },
+        items: [
+          {
+            content: {
+              degree: 'Computer Science',
+              institution: 'MIT',
+              startDate: new Date('2015-01-01'),
+              endDate: new Date('2019-01-01'),
+            },
+          },
+        ],
       },
-    ],
-    skills: [
-      { id: 'skill-1', name: 'TypeScript', level: 4 },
-      { id: 'skill-2', name: 'Node.js', level: 3 },
+      {
+        sectionType: { semanticKind: 'SKILL_SET' },
+        items: [
+          { content: { name: 'TypeScript', level: 4 } },
+          { content: { name: 'Node.js', level: 3 } },
+        ],
+      },
+      {
+        sectionType: { semanticKind: 'PROJECT' },
+        items: [
+          {
+            content: {
+              name: 'Portfolio Platform',
+              description: 'Built with NestJS',
+            },
+          },
+        ],
+      },
+      {
+        sectionType: { semanticKind: 'LANGUAGE' },
+        items: [{ content: { name: 'English', level: 'FLUENT' } }],
+      },
     ],
   } as any;
 
@@ -98,15 +126,39 @@ describe('ResumeLatexService', () => {
       expect(result).toContain('Node.js');
     });
 
+    it('should include project section', async () => {
+      const result = await service.exportAsLatex('resume-123');
+
+      expect(result).toContain('Projects');
+      expect(result).toContain('Portfolio Platform');
+    });
+
+    it('should include language section', async () => {
+      const result = await service.exportAsLatex('resume-123');
+
+      expect(result).toContain('Languages');
+      expect(result).toContain('English');
+    });
+
     it('should escape special LaTeX characters', async () => {
       // Mock with special characters
       const resumeWithSpecialChars = {
         ...mockResume,
-        experiences: [
+        resumeSections: [
           {
-            ...mockResume.experiences[0],
-            company: 'Tech & Co',
-            description: '100% awesome',
+            sectionType: { semanticKind: 'WORK_EXPERIENCE' },
+            items: [
+              {
+                content: {
+                  position: 'Senior Developer',
+                  company: 'Tech & Co',
+                  startDate: new Date('2020-01-01'),
+                  endDate: null,
+                  isCurrent: true,
+                  description: '100% awesome',
+                },
+              },
+            ],
           },
         ],
       };

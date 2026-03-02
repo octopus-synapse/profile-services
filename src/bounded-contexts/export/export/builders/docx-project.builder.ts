@@ -3,15 +3,15 @@
  * Builds project section paragraphs for DOCX export
  */
 
-import { Project } from '@prisma/client';
 import { Paragraph, TextRun } from 'docx';
+import { DocxProject } from '../services/docx.types';
 
 export class DocxProjectBuilder {
-  create(proj: Project): Paragraph[] {
+  create(proj: DocxProject): Paragraph[] {
     return [this.createTitleParagraph(proj), this.createDescriptionParagraph(proj.description)];
   }
 
-  private createTitleParagraph(proj: Project): Paragraph {
+  private createTitleParagraph(proj: DocxProject): Paragraph {
     return new Paragraph({
       children: [
         new TextRun({ text: proj.name, bold: true }),

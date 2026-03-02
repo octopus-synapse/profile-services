@@ -4,6 +4,7 @@ import { nanoid } from 'nanoid';
 import { CacheCoreService } from '@/bounded-contexts/platform/common/cache/services/cache-core.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { EventPublisher } from '@/shared-kernel';
+import { toGenericSections } from '@/shared-kernel/types/section-projection.adapter';
 import { ResumePublishedEvent } from '../../domain/events';
 
 interface CreateShare {
@@ -90,13 +91,21 @@ export class ResumeShareService {
     const resume = await this.prisma.resume.findUnique({
       where: { id: resumeId },
       include: {
-        experiences: { orderBy: { startDate: 'desc' } },
-        education: { orderBy: { startDate: 'desc' } },
-        skills: { orderBy: { order: 'asc' } },
-        languages: { orderBy: { order: 'asc' } },
-        projects: { orderBy: { startDate: 'desc' } },
-        certifications: { orderBy: { issueDate: 'desc' } },
-        awards: { orderBy: { date: 'desc' } },
+        resumeSections: {
+          include: {
+            sectionType: {
+              select: {
+                semanticKind: true,
+              },
+            },
+            items: {
+              orderBy: { order: 'asc' },
+              select: {
+                content: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -104,10 +113,26 @@ export class ResumeShareService {
       return null;
     }
 
-    // Cache for 60 seconds
-    await this.cache.set(cacheKey, resume, this.CACHE_TTL);
+    const { resumeSections, ...resumeData } = resume;
+    const sections = toGenericSections(
+      resumeSections as Array<{
+        sectionType: { semanticKind: string };
+        items: Array<{ content: unknown }>;
+      }>,
+    );
 
-    return resume;
+    const resumeToCache = {
+      ...resumeData,
+      sections: sections.map((section) => ({
+        semanticKind: section.semanticKind,
+        items: section.items.map((item) => item.content),
+      })),
+    };
+
+    // Cache for 60 seconds
+    await this.cache.set(cacheKey, resumeToCache, this.CACHE_TTL);
+
+    return resumeToCache;
   }
 
   async verifyPassword(plaintext: string, hash: string): Promise<boolean> {

@@ -3,11 +3,11 @@
  * Builds experience section paragraphs for DOCX export
  */
 
-import { Experience } from '@prisma/client';
 import { Paragraph, TextRun } from 'docx';
+import { DocxExperience } from '../services/docx.types';
 
 export class DocxExperienceBuilder {
-  create(exp: Experience): Paragraph[] {
+  create(exp: DocxExperience): Paragraph[] {
     const { startDate, endDate } = this.formatDateRange(exp);
 
     return [
@@ -17,14 +17,16 @@ export class DocxExperienceBuilder {
     ];
   }
 
-  private formatDateRange(exp: Experience): {
+  private formatDateRange(exp: DocxExperience): {
     startDate: string;
     endDate: string;
   } {
-    const startDate = new Date(exp.startDate).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-    });
+    const startDate = exp.startDate
+      ? new Date(exp.startDate).toLocaleDateString('en-US', {
+          year: 'numeric',
+          month: 'short',
+        })
+      : '';
     const endDate = exp.endDate
       ? new Date(exp.endDate).toLocaleDateString('en-US', {
           year: 'numeric',
@@ -35,7 +37,7 @@ export class DocxExperienceBuilder {
     return { startDate, endDate };
   }
 
-  private createPositionParagraph(exp: Experience): Paragraph {
+  private createPositionParagraph(exp: DocxExperience): Paragraph {
     return new Paragraph({
       children: [
         new TextRun({ text: exp.position, bold: true }),

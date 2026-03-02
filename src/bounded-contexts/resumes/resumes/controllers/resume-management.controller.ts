@@ -8,11 +8,17 @@
  */
 
 import { Controller, Delete, Get, HttpCode, HttpStatus, Param, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
 import { PermissionGuard, RequirePermission } from '@/bounded-contexts/identity/authorization';
+import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
-import { DeleteResponseDto, ResumeFullResponseDto, ResumeListItemDto } from '@/shared-kernel';
+import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
+import {
+  ResumeDetailsDataDto,
+  ResumeListDataDto,
+  ResumeOperationMessageDataDto,
+} from '../dto/management-response.dto';
 import { ResumeManagementService } from '../services/resume-management.service';
 
 @SdkExport({ tag: 'resumes', description: 'Resumes API' })
@@ -26,31 +32,40 @@ export class ResumeManagementController {
   @Get('user/:userId')
   @RequirePermission('resume', 'read')
   @ApiOperation({ summary: 'List all resumes for a specific user' })
-  @ApiResponse({ status: 200, type: [ResumeListItemDto] })
-  @ApiResponse({ status: 200, description: 'Resumes retrieved successfully' })
-  @ApiResponse({ status: 404, description: 'User not found' })
-  async listResumesForUser(@Param('userId') userId: string) {
-    return this.resumeManagement.listResumesForUser(userId);
+  @ApiDataResponse(ResumeListDataDto, {
+    description: 'Resumes retrieved successfully',
+  })
+  async listResumesForUser(
+    @Param('userId') userId: string,
+  ): Promise<DataResponse<ResumeListDataDto>> {
+    const resumes = await this.resumeManagement.listResumesForUser(userId);
+    return { success: true, data: { resumes: resumes.resumes } };
   }
 
   @Get(':id')
   @RequirePermission('resume', 'read')
   @ApiOperation({ summary: 'Get full resume details' })
-  @ApiResponse({ status: 200, type: ResumeFullResponseDto })
-  @ApiResponse({ status: 200, description: 'Resume retrieved successfully' })
-  @ApiResponse({ status: 404, description: 'Resume not found' })
-  async getResumeDetails(@Param('id') resumeId: string) {
-    return this.resumeManagement.getResumeDetails(resumeId);
+  @ApiDataResponse(ResumeDetailsDataDto, {
+    description: 'Resume retrieved successfully',
+  })
+  async getResumeDetails(
+    @Param('id') resumeId: string,
+  ): Promise<DataResponse<ResumeDetailsDataDto>> {
+    const resume = await this.resumeManagement.getResumeDetails(resumeId);
+    return { success: true, data: { resume } };
   }
 
   @Delete(':id')
   @RequirePermission('resume', 'delete')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete a resume' })
-  @ApiResponse({ status: 200, type: DeleteResponseDto })
-  @ApiResponse({ status: 200, description: 'Resume deleted successfully' })
-  @ApiResponse({ status: 404, description: 'Resume not found' })
-  async deleteResume(@Param('id') resumeId: string) {
-    return this.resumeManagement.deleteResume(resumeId);
+  @ApiDataResponse(ResumeOperationMessageDataDto, {
+    description: 'Resume deleted successfully',
+  })
+  async deleteResume(
+    @Param('id') resumeId: string,
+  ): Promise<DataResponse<ResumeOperationMessageDataDto>> {
+    await this.resumeManagement.deleteResume(resumeId);
+    return { success: true, data: { message: 'Resume deleted successfully' } };
   }
 }

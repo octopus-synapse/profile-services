@@ -58,7 +58,8 @@ describe('UserConsentController', () => {
       const result = await controller.acceptConsent(req, dto);
 
       // Assert
-      expect(result).toEqual({
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual({
         message: 'Terms of Service accepted successfully',
         consent: mockConsent,
       });
@@ -87,7 +88,8 @@ describe('UserConsentController', () => {
       const result = await controller.acceptConsent(req, dto);
 
       // Assert
-      expect(result.message).toBe('Privacy Policy accepted successfully');
+      expect(result.success).toBe(true);
+      expect(result.data.message).toBe('Privacy Policy accepted successfully');
       expect(tosService.recordAcceptance).toHaveBeenCalledWith('user-456', {
         documentType: 'PRIVACY_POLICY',
         ipAddress: '10.0.0.1',
@@ -163,7 +165,8 @@ describe('UserConsentController', () => {
       const result = await controller.acceptConsent(req, dto);
 
       // Assert
-      expect(result.message).toBe('Marketing Consent accepted successfully');
+      expect(result.success).toBe(true);
+      expect(result.data.message).toBe('Marketing Consent accepted successfully');
     });
   });
 
@@ -194,7 +197,8 @@ describe('UserConsentController', () => {
       const result = await controller.getConsentHistory(req);
 
       // Assert
-      expect(result).toEqual(mockHistory);
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual(mockHistory);
       expect(tosService.getAcceptanceHistory).toHaveBeenCalledWith(userId);
     });
 
@@ -207,7 +211,8 @@ describe('UserConsentController', () => {
       const result = await controller.getConsentHistory(req);
 
       // Assert
-      expect(result).toEqual([]);
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual([]);
     });
   });
 
@@ -225,7 +230,8 @@ describe('UserConsentController', () => {
       const result = await controller.checkConsentStatus(req);
 
       // Assert
-      expect(result).toEqual({
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual({
         tosAccepted: true,
         privacyPolicyAccepted: false,
         marketingConsentAccepted: false,
@@ -248,9 +254,10 @@ describe('UserConsentController', () => {
       const result = await controller.checkConsentStatus(req);
 
       // Assert
-      expect(result.tosAccepted).toBe(true);
-      expect(result.privacyPolicyAccepted).toBe(true);
-      expect(result.marketingConsentAccepted).toBe(true);
+      expect(result.success).toBe(true);
+      expect(result.data.tosAccepted).toBe(true);
+      expect(result.data.privacyPolicyAccepted).toBe(true);
+      expect(result.data.marketingConsentAccepted).toBe(true);
     });
   });
 });

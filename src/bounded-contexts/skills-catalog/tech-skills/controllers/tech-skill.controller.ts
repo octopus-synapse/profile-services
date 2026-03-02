@@ -4,15 +4,22 @@
  */
 
 import { Controller, Get, Param, Query } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger';
 import { Public } from '@/bounded-contexts/identity/auth/decorators/public.decorator';
+import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { TechSkillDto } from '@/shared-kernel';
 import type { TechSkill } from '../dtos';
 import type { SkillType } from '../interfaces';
 import { SkillQueryService } from '../services/skill-query.service';
 import { SkillSearchService } from '../services/skill-search.service';
 import { TechSkillsQueryService } from '../services/tech-skills-query.service';
+
+class TechSkillListDataDto {
+  @ApiProperty({ type: [TechSkillDto] })
+  skills!: TechSkill[];
+}
 
 @SdkExport({
   tag: 'tech-skills',
@@ -32,35 +39,37 @@ export class TechSkillController {
   @Get()
   @Public()
   @ApiOperation({ summary: 'Get all tech skills' })
-  @ApiResponse({ status: 200, type: [TechSkillDto] })
-  @ApiResponse({ status: 200, description: 'List of tech skills' })
-  async getSkills(): Promise<TechSkill[]> {
-    return this.skillQuery.getAllSkills();
+  @ApiDataResponse(TechSkillListDataDto, { description: 'List of tech skills' })
+  async getSkills(): Promise<DataResponse<TechSkillListDataDto>> {
+    const skills = await this.skillQuery.getAllSkills();
+    return { success: true, data: { skills } };
   }
 
   /** Search skills */
   @Get('search')
   @Public()
   @ApiOperation({ summary: 'Search tech skills' })
-  @ApiResponse({ status: 200, type: [TechSkillDto] })
-  @ApiResponse({ status: 200, description: 'Search results' })
+  @ApiDataResponse(TechSkillListDataDto, { description: 'Search results' })
   async searchSkills(
     @Query('q') query: string,
     @Query('limit') limit?: string,
-  ): Promise<TechSkill[]> {
-    return this.skillSearch.searchSkills(query, limit ? parseInt(limit, 10) : 20);
+  ): Promise<DataResponse<TechSkillListDataDto>> {
+    const skills = await this.skillSearch.searchSkills(query, limit ? parseInt(limit, 10) : 20);
+    return { success: true, data: { skills } };
   }
 
   /** Get skills by type */
   @Get('type/:type')
   @Public()
   @ApiOperation({ summary: 'Get skills by type' })
-  @ApiResponse({ status: 200, type: [TechSkillDto] })
-  @ApiResponse({ status: 200, description: 'List of skills by type' })
+  @ApiDataResponse(TechSkillListDataDto, {
+    description: 'List of skills by type',
+  })
   async getSkillsByType(
     @Param('type') type: SkillType,
     @Query('limit') limit?: string,
-  ): Promise<TechSkill[]> {
-    return this.queryService.getSkillsByType(type, limit ? parseInt(limit, 10) : 50);
+  ): Promise<DataResponse<TechSkillListDataDto>> {
+    const skills = await this.queryService.getSkillsByType(type, limit ? parseInt(limit, 10) : 50);
+    return { success: true, data: { skills } };
   }
 }

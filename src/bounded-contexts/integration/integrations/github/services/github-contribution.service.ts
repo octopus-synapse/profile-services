@@ -4,11 +4,23 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 import { TIME_MS } from '@/shared-kernel';
-import { GitHubApiService, GitHubRepo } from './github-api.service';
+import type { GitHubRepo } from '../types/github.types';
+import { GitHubApiService } from './github-api.service';
 
-type GitHubContributionInput = Prisma.OpenSourceContributionCreateManyInput;
+export interface GitHubContributionInput {
+  resumeId: string;
+  projectName: string;
+  projectUrl: string;
+  role: 'maintainer' | 'core_contributor' | 'contributor';
+  description?: string;
+  technologies: string[];
+  commits?: number;
+  prsCreated?: number;
+  stars?: number;
+  startDate: Date;
+  isCurrent: boolean;
+}
 
 const ACTIVITY_THRESHOLD_DAYS = 90;
 

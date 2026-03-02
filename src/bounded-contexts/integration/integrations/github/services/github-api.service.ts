@@ -7,9 +7,6 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { GitHubFetchOptions, GitHubRepo, GitHubUser } from '../types/github.types';
 
-// Re-export types for backward compatibility
-export type { GitHubUser, GitHubRepo };
-
 @Injectable()
 export class GitHubApiService {
   private readonly apiUrl = 'https://api.github.com';

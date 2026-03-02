@@ -10,7 +10,7 @@
  *
  * Architecture: Clean Architecture with Facade pattern
  * The ResumeAnalyticsFacade orchestrates specialized services
- * maintaining backward compatibility with controller API.
+ * while preserving a stable controller API.
  *
  * Event Handlers:
  * - ResumeCreatedHandler: Initializes analytics on resume creation
