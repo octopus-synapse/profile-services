@@ -111,70 +111,12 @@ jobs:
         if: steps.cache-prisma.outputs.cache-hit != 'true'
         run: bunx prisma generate
 
-  integration:
-    name: Integration Tests
-    needs: [setup, detect-changes, should-skip]
-    if: |
-      needs.should-skip.outputs.should_skip != 'true' &&
-      (needs.detect-changes.outputs.src == 'true' || 
-       needs.detect-changes.outputs.tests == 'true' ||
-       needs.detect-changes.outputs.prisma == 'true')
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: test_db
-        ports:
-          - 5432:5432
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
-        options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: 1.2.23
-
-      - name: Restore Dependencies
-        uses: actions/cache/restore@v4
-        with:
-          path: |
-            node_modules
-            ~/.bun/install/cache
-          key: deps-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
-          fail-on-cache-miss: true
-
-      - name: Restore Prisma Client
-        uses: actions/cache/restore@v4
-        with:
-          path: node_modules/.prisma
-          key: prisma-${{ hashFiles('prisma/schema/**/*.prisma') }}
-          fail-on-cache-miss: true
-
-      - name: Setup database
-        run: bun run db:setup:test
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
-          REDIS_HOST: localhost
-          REDIS_PORT: 6379
-          JWT_SECRET: test-secret-key-for-integration-tests-min-32-chars
-          NODE_ENV: test
-
-      - name: Run integration tests
-        run: bun test --config=bunfig.integration.toml
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
-          REDIS_HOST: localhost
-          REDIS_PORT: 6379
-          JWT_SECRET: test-secret-key-for-integration-tests-min-32-chars
-          NODE_ENV: test
+  # ==========================================================================
+  # NOTE: Integration and E2E tests are in separate workflow files
+  # - integration.yml → runs on PR with infrastructure (Postgres, Redis)
+  # - e2e.yml → runs on PR to main + nightly schedule
+  # This follows Single Responsibility Principle (Uncle Bob)
+  # ==========================================================================
 
   hook-compliance:
     name: Verify Pre-Commit Hooks Ran
@@ -321,79 +263,3 @@ jobs:
             github_token=${{ secrets.GITHUB_TOKEN }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-
-  e2e:
-    name: E2E Journey Tests
-    needs: [setup, detect-changes, should-skip]
-    if: |
-      github.event_name == 'pull_request' &&
-      github.base_ref == 'main' &&
-      needs.should-skip.outputs.should_skip != 'true' &&
-      (needs.detect-changes.outputs.src == 'true' || 
-       needs.detect-changes.outputs.e2e == 'true' ||
-       needs.detect-changes.outputs.prisma == 'true')
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: e2e_test_db
-        ports:
-          - 5433:5432
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6380:6379
-        options: --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: 1.2.23
-
-      - name: Restore Dependencies
-        uses: actions/cache/restore@v4
-        with:
-          path: |
-            node_modules
-            ~/.bun/install/cache
-          key: deps-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
-          fail-on-cache-miss: true
-
-      - name: Restore Prisma Client
-        uses: actions/cache/restore@v4
-        with:
-          path: node_modules/.prisma
-          key: prisma-${{ hashFiles('prisma/schema/**/*.prisma') }}
-          fail-on-cache-miss: true
-
-      - name: Setup E2E database
-        run: bun run db:setup:test
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5433/e2e_test_db
-          REDIS_HOST: localhost
-          REDIS_PORT: 6380
-          JWT_SECRET: e2e-test-secret-key-min-32-chars-required
-          NODE_ENV: test
-
-      - name: Run E2E Journey Tests
-        run: bun run test:e2e
-        env:
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5433/e2e_test_db
-          REDIS_HOST: localhost
-          REDIS_PORT: 6380
-          JWT_SECRET: e2e-test-secret-key-min-32-chars-required
-          NODE_ENV: test
-
-      - name: Upload E2E Test Results
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: e2e-test-results
-          path: test-results/
-          retention-days: 7
