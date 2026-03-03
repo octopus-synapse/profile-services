@@ -1,26 +1,17 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
 
-export class VerifyEmailDto {
-  @ApiProperty({
-    description: 'Email verification token',
-    example: 'abc123-verification-token',
-  })
-  @IsString()
-  @IsNotEmpty()
-  token: string;
-}
+// Request Schema
+const VerifyEmailSchema = z.object({
+  token: z.string().min(1),
+});
 
-export class VerifyEmailResponseDto {
-  @ApiProperty({
-    description: 'Verified email address',
-    example: 'user@example.com',
-  })
-  email: string;
+// Response Schema
+const VerifyEmailResponseSchema = z.object({
+  email: z.string(),
+  message: z.string(),
+});
 
-  @ApiProperty({
-    description: 'Confirmation message',
-    example: 'Email has been verified successfully.',
-  })
-  message: string;
-}
+// DTO Classes
+export class VerifyEmailDto extends createZodDto(VerifyEmailSchema) {}
+export class VerifyEmailResponseDto extends createZodDto(VerifyEmailResponseSchema) {}

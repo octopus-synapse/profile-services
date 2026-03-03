@@ -1,30 +1,17 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
 
-export class ChangePasswordDto {
-  @ApiProperty({
-    description: 'Current password for verification',
-    example: 'CurrentP@ssw0rd!',
-  })
-  @IsString()
-  @IsNotEmpty()
-  currentPassword: string;
+// Request Schema
+const ChangePasswordSchema = z.object({
+  currentPassword: z.string().min(1),
+  newPassword: z.string().min(8),
+});
 
-  @ApiProperty({
-    description: 'New password to set',
-    example: 'NewSecureP@ssw0rd!',
-    minLength: 8,
-  })
-  @IsString()
-  @IsNotEmpty()
-  @MinLength(8)
-  newPassword: string;
-}
+// Response Schema
+const ChangePasswordResponseSchema = z.object({
+  message: z.string(),
+});
 
-export class ChangePasswordResponseDto {
-  @ApiProperty({
-    description: 'Confirmation message',
-    example: 'Password has been changed successfully.',
-  })
-  message: string;
-}
+// DTO Classes
+export class ChangePasswordDto extends createZodDto(ChangePasswordSchema) {}
+export class ChangePasswordResponseDto extends createZodDto(ChangePasswordResponseSchema) {}

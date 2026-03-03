@@ -1,20 +1,16 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
 
-export class DeleteAccountDto {
-  @ApiProperty({
-    description: 'Confirmation phrase: "DELETE MY ACCOUNT"',
-    example: 'DELETE MY ACCOUNT',
-  })
-  @IsString()
-  @IsNotEmpty()
-  confirmationPhrase: string;
-}
+// Request Schema
+const DeleteAccountSchema = z.object({
+  confirmationPhrase: z.string().min(1),
+});
 
-export class DeleteAccountResponseDto {
-  @ApiProperty({
-    description: 'Confirmation message',
-    example: 'Account has been permanently deleted.',
-  })
-  message: string;
-}
+// Response Schema
+const DeleteAccountResponseSchema = z.object({
+  message: z.string(),
+});
+
+// DTO Classes
+export class DeleteAccountDto extends createZodDto(DeleteAccountSchema) {}
+export class DeleteAccountResponseDto extends createZodDto(DeleteAccountResponseSchema) {}

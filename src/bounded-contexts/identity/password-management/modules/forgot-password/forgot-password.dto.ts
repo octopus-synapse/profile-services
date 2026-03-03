@@ -1,20 +1,16 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty } from 'class-validator';
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
 
-export class ForgotPasswordDto {
-  @ApiProperty({
-    description: 'Email address associated with the account',
-    example: 'user@example.com',
-  })
-  @IsEmail()
-  @IsNotEmpty()
-  email: string;
-}
+// Request Schema
+const ForgotPasswordSchema = z.object({
+  email: z.string().email(),
+});
 
-export class ForgotPasswordResponseDto {
-  @ApiProperty({
-    description: 'Confirmation message (always returns success to prevent email enumeration)',
-    example: 'If this email exists, a reset link has been sent.',
-  })
-  message: string;
-}
+// Response Schema
+const ForgotPasswordResponseSchema = z.object({
+  message: z.string(),
+});
+
+// DTO Classes
+export class ForgotPasswordDto extends createZodDto(ForgotPasswordSchema) {}
+export class ForgotPasswordResponseDto extends createZodDto(ForgotPasswordResponseSchema) {}

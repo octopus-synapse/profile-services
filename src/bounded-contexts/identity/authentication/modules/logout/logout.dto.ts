@@ -1,28 +1,17 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsOptional, IsString } from 'class-validator';
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
 
-export class LogoutDto {
-  @ApiPropertyOptional({
-    description: 'Refresh token to invalidate',
-    example: 'uuid-refresh-token',
-  })
-  @IsOptional()
-  @IsString()
-  refreshToken?: string;
+// Request Schema
+const LogoutSchema = z.object({
+  refreshToken: z.string().optional(),
+  logoutAllSessions: z.boolean().default(false),
+});
 
-  @ApiPropertyOptional({
-    description: 'Logout from all sessions',
-    example: false,
-  })
-  @IsOptional()
-  @IsBoolean()
-  logoutAllSessions?: boolean;
-}
+// Response Schema
+const LogoutResponseSchema = z.object({
+  message: z.string(),
+});
 
-export class LogoutResponseDto {
-  @ApiProperty({
-    description: 'Confirmation message',
-    example: 'Logged out successfully.',
-  })
-  message: string;
-}
+// DTO Classes
+export class LogoutDto extends createZodDto(LogoutSchema) {}
+export class LogoutResponseDto extends createZodDto(LogoutResponseSchema) {}

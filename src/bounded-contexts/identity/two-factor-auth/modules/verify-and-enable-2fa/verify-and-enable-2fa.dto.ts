@@ -1,22 +1,16 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, Length } from 'class-validator';
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
 
-export class VerifyAndEnable2faRequestDto {
-  @ApiProperty({
-    description: '6-digit TOTP token from authenticator app',
-    example: '123456',
-  })
-  @IsString()
-  @IsNotEmpty()
-  @Length(6, 6)
-  token!: string;
-}
+// Request Schema
+const VerifyAndEnable2faRequestSchema = z.object({
+  token: z.string().length(6),
+});
 
-export class VerifyAndEnable2faResponseDto {
-  @ApiProperty({
-    description: 'Backup codes (shown only once)',
-    example: ['ABCD-1234', 'EFGH-5678'],
-    type: [String],
-  })
-  backupCodes!: string[];
-}
+// Response Schema
+const VerifyAndEnable2faResponseSchema = z.object({
+  backupCodes: z.array(z.string()),
+});
+
+// DTO Classes
+export class VerifyAndEnable2faRequestDto extends createZodDto(VerifyAndEnable2faRequestSchema) {}
+export class VerifyAndEnable2faResponseDto extends createZodDto(VerifyAndEnable2faResponseSchema) {}

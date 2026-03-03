@@ -1,20 +1,16 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsOptional, IsString } from 'class-validator';
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
 
-export class DeactivateAccountDto {
-  @ApiPropertyOptional({
-    description: 'Reason for deactivation',
-    example: 'Taking a break from the platform',
-  })
-  @IsOptional()
-  @IsString()
-  reason?: string;
-}
+// Request Schema
+const DeactivateAccountSchema = z.object({
+  reason: z.string().optional(),
+});
 
-export class DeactivateAccountResponseDto {
-  @ApiProperty({
-    description: 'Confirmation message',
-    example: 'Account has been deactivated.',
-  })
-  message: string;
-}
+// Response Schema
+const DeactivateAccountResponseSchema = z.object({
+  message: z.string(),
+});
+
+// DTO Classes
+export class DeactivateAccountDto extends createZodDto(DeactivateAccountSchema) {}
+export class DeactivateAccountResponseDto extends createZodDto(DeactivateAccountResponseSchema) {}

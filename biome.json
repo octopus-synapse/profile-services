@@ -18,7 +18,10 @@
       "!**/*.test.ts",
       "!**/*.e2e-spec.ts",
       "!**/test",
-      "!**/tests"
+      "!**/tests",
+      "!swagger.json",
+      "!swagger-test.json",
+      "!swagger-generation-report.json"
     ]
   },
   "formatter": {

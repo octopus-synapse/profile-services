@@ -1,32 +1,18 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
 
-export class RefreshTokenDto {
-  @ApiProperty({
-    description: 'Refresh token',
-    example: 'uuid-refresh-token',
-  })
-  @IsString()
-  @IsNotEmpty()
-  refreshToken: string;
-}
+// Request Schema
+const RefreshTokenSchema = z.object({
+  refreshToken: z.string().min(1),
+});
 
-export class RefreshTokenResponseDto {
-  @ApiProperty({
-    description: 'New JWT access token',
-    example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
-  })
-  accessToken: string;
+// Response Schema
+const RefreshTokenResponseSchema = z.object({
+  accessToken: z.string(),
+  refreshToken: z.string(),
+  expiresIn: z.number(),
+});
 
-  @ApiProperty({
-    description: 'New refresh token (rotation)',
-    example: 'uuid-refresh-token',
-  })
-  refreshToken: string;
-
-  @ApiProperty({
-    description: 'Access token expiration time in seconds',
-    example: 3600,
-  })
-  expiresIn: number;
-}
+// DTO Classes
+export class RefreshTokenDto extends createZodDto(RefreshTokenSchema) {}
+export class RefreshTokenResponseDto extends createZodDto(RefreshTokenResponseSchema) {}
