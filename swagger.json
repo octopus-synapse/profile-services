@@ -17,10 +17,6 @@
       "description": "Ats Validation API"
     },
     {
-      "name": "auth",
-      "description": "Auth API"
-    },
-    {
       "name": "chat",
       "description": "Chat API"
     },
@@ -43,10 +39,6 @@
     {
       "name": "export",
       "description": "Export API"
-    },
-    {
-      "name": "gdpr",
-      "description": "Gdpr API"
     },
     {
       "name": "github",
@@ -1212,52 +1204,6 @@
         }
       }
     },
-    "/api/users/me/account": {
-      "delete": {
-        "operationId": "gdpr_deleteAccount",
-        "tags": [
-          "gdpr"
-        ],
-        "summary": "Delete user account (GDPR Right to be Forgotten)",
-        "description": "Permanently deletes the user account and all associated data as required by GDPR Article 17. This action is irreversible.",
-        "security": [
-          {
-            "JWT-auth": []
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Delete user account (GDPR Right to be Forgotten)"
-          },
-          "401": {
-            "description": "Unauthorized - Authentication required"
-          }
-        }
-      }
-    },
-    "/api/users/me/data-export": {
-      "get": {
-        "operationId": "gdpr_exportUserData",
-        "tags": [
-          "gdpr"
-        ],
-        "summary": "Export all user data (GDPR Right to Access)",
-        "description": "Downloads all user data in machine-readable JSON format as required by GDPR Article 20.",
-        "security": [
-          {
-            "JWT-auth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Export all user data (GDPR Right to Access)"
-          },
-          "401": {
-            "description": "Unauthorized - Authentication required"
-          }
-        }
-      }
-    },
     "/api/v1/ats/validate": {
       "post": {
         "operationId": "ats-validation_postEndpoint",
@@ -1277,230 +1223,6 @@
           },
           "401": {
             "description": "Unauthorized - Authentication required"
-          }
-        }
-      }
-    },
-    "/api/v1/auth/change-email": {
-      "post": {
-        "operationId": "auth_changeEmail",
-        "tags": [
-          "auth"
-        ],
-        "summary": "Change email address (authenticated)",
-        "security": [
-          {
-            "JWT-auth": []
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Change email address (authenticated)"
-          },
-          "401": {
-            "description": "Unauthorized - Authentication required"
-          }
-        }
-      }
-    },
-    "/api/v1/auth/change-password": {
-      "post": {
-        "operationId": "auth_changePassword",
-        "tags": [
-          "auth"
-        ],
-        "summary": "Change password (authenticated)",
-        "security": [
-          {
-            "JWT-auth": []
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Change password (authenticated)"
-          },
-          "401": {
-            "description": "Unauthorized - Authentication required"
-          }
-        }
-      }
-    },
-    "/api/v1/auth/delete-account": {
-      "post": {
-        "operationId": "auth_deleteAccount",
-        "tags": [
-          "auth"
-        ],
-        "summary": "Delete own account (authenticated)",
-        "security": [
-          {
-            "JWT-auth": []
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Delete own account (authenticated)"
-          },
-          "401": {
-            "description": "Unauthorized - Authentication required"
-          }
-        }
-      }
-    },
-    "/api/v1/auth/forgot-password": {
-      "post": {
-        "operationId": "auth_forgotPassword",
-        "tags": [
-          "auth"
-        ],
-        "summary": "Request password reset",
-        "security": [
-          {
-            "JWT-auth": []
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Request password reset"
-          },
-          "401": {
-            "description": "Unauthorized - Authentication required"
-          }
-        }
-      }
-    },
-    "/api/v1/auth/login": {
-      "post": {
-        "operationId": "auth_login",
-        "tags": [
-          "auth"
-        ],
-        "summary": "Login with email and password",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/LoginCredentialsDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Login with email and password"
-          }
-        }
-      }
-    },
-    "/api/v1/auth/me": {
-      "get": {
-        "operationId": "auth_getCurrentUser",
-        "tags": [
-          "auth"
-        ],
-        "summary": "Get current authenticated user info",
-        "responses": {
-          "200": {
-            "description": "Get current authenticated user info"
-          }
-        }
-      }
-    },
-    "/api/v1/auth/refresh": {
-      "post": {
-        "operationId": "auth_refreshToken",
-        "tags": [
-          "auth"
-        ],
-        "summary": "Refresh JWT token using refresh token",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RefreshTokenDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Refresh JWT token using refresh token"
-          }
-        }
-      }
-    },
-    "/api/v1/auth/reset-password": {
-      "post": {
-        "operationId": "auth_resetPassword",
-        "tags": [
-          "auth"
-        ],
-        "summary": "Reset password with token",
-        "security": [
-          {
-            "JWT-auth": []
-          }
-        ],
-        "responses": {
-          "201": {
-            "description": "Reset password with token"
-          },
-          "401": {
-            "description": "Unauthorized - Authentication required"
-          }
-        }
-      }
-    },
-    "/api/v1/auth/signup": {
-      "post": {
-        "operationId": "auth_signup",
-        "tags": [
-          "auth"
-        ],
-        "summary": "Register a new user",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/RegisterCredentialsDto"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Register a new user"
-          }
-        }
-      }
-    },
-    "/api/v1/auth/verify-email": {
-      "post": {
-        "operationId": "auth_verifyEmail",
-        "tags": [
-          "auth"
-        ],
-        "summary": "Verify email with token",
-        "responses": {
-          "201": {
-            "description": "Verify email with token"
-          }
-        }
-      }
-    },
-    "/api/v1/auth/verify-email/request": {
-      "post": {
-        "operationId": "auth_requestEmailVerification",
-        "tags": [
-          "auth"
-        ],
-        "summary": "Request email verification",
-        "responses": {
-          "201": {
-            "description": "Request email verification"
           }
         }
       }
@@ -3803,7 +3525,7 @@
     },
     "/api/v1/users/me/accept-consent": {
       "post": {
-        "operationId": "user-consent_acceptConsent",
+        "operationId": "user-consent_postEndpoint",
         "tags": [
           "user-consent"
         ],
@@ -3817,52 +3539,6 @@
         "responses": {
           "201": {
             "description": "Accept Terms of Service or Privacy Policy"
-          },
-          "401": {
-            "description": "Unauthorized - Authentication required"
-          }
-        }
-      }
-    },
-    "/api/v1/users/me/consent-history": {
-      "get": {
-        "operationId": "user-consent_getConsentHistory",
-        "tags": [
-          "user-consent"
-        ],
-        "summary": "Get consent acceptance history",
-        "description": "Retrieves all consent records for the authenticated user",
-        "security": [
-          {
-            "JWT-auth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Get consent acceptance history"
-          },
-          "401": {
-            "description": "Unauthorized - Authentication required"
-          }
-        }
-      }
-    },
-    "/api/v1/users/me/consent-status": {
-      "get": {
-        "operationId": "user-consent_checkConsentStatus",
-        "tags": [
-          "user-consent"
-        ],
-        "summary": "Check consent acceptance status",
-        "description": "Returns which documents the user has accepted for the current versions",
-        "security": [
-          {
-            "JWT-auth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Check consent acceptance status"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -4185,26 +3861,6 @@
           "generatedAt"
         ]
       },
-      "AuthResponseDto": {
-        "type": "object",
-        "properties": {
-          "accessToken": {
-            "type": "string",
-            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-          },
-          "refreshToken": {
-            "type": "string",
-            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-          },
-          "user": {
-            "$ref": "#/components/schemas/CurrentUserResponseDto"
-          }
-        },
-        "required": [
-          "accessToken",
-          "user"
-        ]
-      },
       "AwardItemDto": {
         "type": "object",
         "properties": {
@@ -4347,17 +4003,6 @@
           "items"
         ]
       },
-      "ChangeEmailResponseDto": {
-        "type": "object",
-        "properties": {
-          "message": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "message"
-        ]
-      },
       "ChatMessageDataDto": {
         "type": "object",
         "properties": {
@@ -4419,59 +4064,13 @@
       "CompleteOnboardingResponseDto": {
         "type": "object",
         "properties": {
-          "success": {
-            "type": "boolean",
-            "example": "true"
-          },
           "resumeId": {
             "type": "string",
             "example": "cuid123"
-          },
-          "message": {
-            "type": "string"
           }
         },
         "required": [
-          "success",
-          "resumeId",
-          "message"
-        ]
-      },
-      "ConsentHistoryResponseDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "example": "consent-1"
-          },
-          "documentType": {
-            "type": "string",
-            "example": "TERMS_OF_SERVICE"
-          },
-          "version": {
-            "type": "string",
-            "example": "1.0.0"
-          },
-          "acceptedAt": {
-            "type": "string",
-            "example": "2026-01-09T10:00:00.000Z"
-          },
-          "ipAddress": {
-            "type": "string",
-            "example": "192.168.1.1"
-          },
-          "userAgent": {
-            "type": "string",
-            "example": "Mozilla/5.0..."
-          }
-        },
-        "required": [
-          "id",
-          "documentType",
-          "version",
-          "acceptedAt",
-          "ipAddress",
-          "userAgent"
+          "resumeId"
         ]
       },
       "ConsentRecordDto": {
@@ -4516,38 +4115,6 @@
           "userAgent"
         ]
       },
-      "ConsentStatusResponseDto": {
-        "type": "object",
-        "properties": {
-          "tosAccepted": {
-            "type": "boolean",
-            "example": "true"
-          },
-          "privacyPolicyAccepted": {
-            "type": "boolean",
-            "example": "true"
-          },
-          "marketingConsentAccepted": {
-            "type": "boolean",
-            "example": "false"
-          },
-          "latestTosVersion": {
-            "type": "string",
-            "example": "1.0.0"
-          },
-          "latestPrivacyPolicyVersion": {
-            "type": "string",
-            "example": "1.0.0"
-          }
-        },
-        "required": [
-          "tosAccepted",
-          "privacyPolicyAccepted",
-          "marketingConsentAccepted",
-          "latestTosVersion",
-          "latestPrivacyPolicyVersion"
-        ]
-      },
       "ConversationDataDto": {
         "type": "object",
         "properties": {
@@ -4585,40 +4152,6 @@
         },
         "required": [
           "conversations"
-        ]
-      },
-      "CurrentUserResponseDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "example": "clxxx..."
-          },
-          "email": {
-            "type": "string",
-            "example": "user@example.com"
-          },
-          "username": {
-            "type": "string",
-            "example": "johndoe"
-          },
-          "displayName": {
-            "type": "string"
-          },
-          "role": {
-            "type": "string",
-            "example": "USER"
-          },
-          "emailVerified": {
-            "type": "boolean",
-            "example": "true"
-          }
-        },
-        "required": [
-          "id",
-          "email",
-          "role",
-          "emailVerified"
         ]
       },
       "CustomSectionDataDto": {
@@ -4682,45 +4215,6 @@
         },
         "required": [
           "result"
-        ]
-      },
-      "DeletedEntitiesDto": {
-        "type": "object",
-        "properties": {
-          "user": {
-            "type": "boolean"
-          },
-          "resumes": {
-            "type": "number"
-          },
-          "resumeSections": {
-            "type": "number"
-          },
-          "sectionItems": {
-            "type": "number"
-          },
-          "consents": {
-            "type": "number"
-          },
-          "auditLogs": {
-            "type": "number"
-          },
-          "resumeVersions": {
-            "type": "number"
-          },
-          "resumeShares": {
-            "type": "number"
-          }
-        },
-        "required": [
-          "user",
-          "resumes",
-          "resumeSections",
-          "sectionItems",
-          "consents",
-          "auditLogs",
-          "resumeVersions",
-          "resumeShares"
         ]
       },
       "DslAstResponseDto": {
@@ -4957,69 +4451,6 @@
         "required": [
           "text",
           "error"
-        ]
-      },
-      "GdprDeletionResponseDto": {
-        "type": "object",
-        "properties": {
-          "deletedEntities": {
-            "$ref": "#/components/schemas/DeletedEntitiesDto"
-          },
-          "deletedAt": {
-            "type": "string"
-          },
-          "success": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "deletedEntities",
-          "deletedAt",
-          "success"
-        ]
-      },
-      "GdprExportResponseDto": {
-        "type": "object",
-        "properties": {
-          "exportedAt": {
-            "type": "string"
-          },
-          "user": {
-            "type": "string",
-            "description": "User data"
-          },
-          "consents": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "User consents"
-          },
-          "resumes": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "User resumes"
-          },
-          "auditLogs": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "Audit logs"
-          },
-          "dataRetentionPolicy": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "exportedAt",
-          "user",
-          "consents",
-          "resumes",
-          "auditLogs",
-          "dataRetentionPolicy"
         ]
       },
       "GitHubSummaryDto": {
@@ -5319,25 +4750,6 @@
             "example": "true"
           }
         }
-      },
-      "LoginCredentialsDto": {
-        "type": "object",
-        "properties": {
-          "email": {
-            "type": "string",
-            "example": "user@example.com",
-            "description": "User email address"
-          },
-          "password": {
-            "type": "string",
-            "example": "securePassword123",
-            "description": "User password"
-          }
-        },
-        "required": [
-          "email",
-          "password"
-        ]
       },
       "MarkAsReadDataDto": {
         "type": "object",
@@ -6339,42 +5751,6 @@
           "items"
         ]
       },
-      "RefreshTokenDto": {
-        "type": "object",
-        "properties": {
-          "refreshToken": {
-            "type": "string",
-            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-            "description": "Refresh token"
-          }
-        },
-        "required": [
-          "refreshToken"
-        ]
-      },
-      "RegisterCredentialsDto": {
-        "type": "object",
-        "properties": {
-          "email": {
-            "type": "string",
-            "example": "user@example.com",
-            "description": "User email address"
-          },
-          "password": {
-            "type": "string",
-            "example": "SecurePassword123",
-            "description": "User password (min 8 chars, 1 uppercase, 1 lowercase, 1 number)"
-          },
-          "name": {
-            "type": "string",
-            "description": "Display name"
-          }
-        },
-        "required": [
-          "email",
-          "password"
-        ]
-      },
       "ResolvedBoxStyleDto": {
         "type": "object",
         "properties": {
@@ -6774,10 +6150,6 @@
       "SaveProgressResponseDto": {
         "type": "object",
         "properties": {
-          "success": {
-            "type": "boolean",
-            "example": "true"
-          },
           "currentStep": {
             "type": "string",
             "example": "professional-profile"
@@ -6791,7 +6163,6 @@
           }
         },
         "required": [
-          "success",
           "currentStep",
           "completedSteps"
         ]

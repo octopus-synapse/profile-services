@@ -108,16 +108,32 @@ describe('Architecture', () => {
     });
 
     it('should have isolated module boundaries', () => {
-      // Auth module should not import from Themes
+      // Identity BCs should not import from Themes
       // Themes should not import from Resumes
       // etc.
 
       const moduleImportRules: Record<string, string[]> = {
-        'src/auth': ['src/themes', 'src/resumes', 'src/export', 'src/dsl'],
-        'src/themes': ['src/resumes', 'src/export', 'src/dsl'],
-        'src/resumes': ['src/themes', 'src/dsl'],
-        'src/export': [],
-        'src/dsl': ['src/themes', 'src/resumes', 'src/export'],
+        'src/bounded-contexts/identity': [
+          'src/bounded-contexts/presentation/themes',
+          'src/bounded-contexts/resumes',
+          'src/bounded-contexts/export',
+          'src/bounded-contexts/dsl',
+        ],
+        'src/bounded-contexts/presentation/themes': [
+          'src/bounded-contexts/resumes',
+          'src/bounded-contexts/export',
+          'src/bounded-contexts/dsl',
+        ],
+        'src/bounded-contexts/resumes': [
+          'src/bounded-contexts/presentation/themes',
+          'src/bounded-contexts/dsl',
+        ],
+        'src/bounded-contexts/export': [],
+        'src/bounded-contexts/dsl': [
+          'src/bounded-contexts/presentation/themes',
+          'src/bounded-contexts/resumes',
+          'src/bounded-contexts/export',
+        ],
       };
 
       const violations: string[] = [];
