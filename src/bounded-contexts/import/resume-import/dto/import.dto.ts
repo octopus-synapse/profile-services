@@ -8,9 +8,21 @@
  */
 
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import type { ImportSource, ImportStatus } from '@prisma/client';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
+
+// Local type definitions to avoid Prisma coupling in DTOs
+// Must stay in sync with prisma/schema/resume-import.prisma
+export type ImportSource = 'LINKEDIN' | 'PDF' | 'DOCX' | 'JSON' | 'GITHUB';
+export type ImportStatus =
+  | 'PENDING'
+  | 'PROCESSING'
+  | 'MAPPING'
+  | 'VALIDATING'
+  | 'IMPORTING'
+  | 'COMPLETED'
+  | 'FAILED'
+  | 'PARTIAL';
 
 // ============================================================================
 // JSON Resume Zod Schemas (jsonresume.org standard)

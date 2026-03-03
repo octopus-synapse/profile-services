@@ -2,7 +2,7 @@ import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 import type {
   AuthenticatedRequest,
   UserPayload,
-} from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
+} from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 
 export const CurrentUser = createParamDecorator(
   (data: keyof UserPayload | undefined, ctx: ExecutionContext) => {

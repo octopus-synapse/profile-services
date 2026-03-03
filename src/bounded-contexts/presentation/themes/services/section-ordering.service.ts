@@ -12,7 +12,16 @@ import { ResumeConfigRepository } from './resume-config.repository';
 export class SectionOrderingService {
   constructor(private repo: ResumeConfigRepository) {}
 
-  async reorderSection(userId: string, resumeId: string, sectionId: string, newOrder: number) {
+  /**
+   * Reorder a section
+   * @returns void (not envelope)
+   */
+  async reorderSection(
+    userId: string,
+    resumeId: string,
+    sectionId: string,
+    newOrder: number,
+  ): Promise<void> {
     const config = await this.repo.get(userId, resumeId);
 
     const idx = config.sections.findIndex((s) => s.id === sectionId);
@@ -21,16 +30,19 @@ export class SectionOrderingService {
     config.sections = moveItem(config.sections, idx, newOrder);
 
     await this.repo.save(resumeId, config);
-    return { success: true };
   }
 
+  /**
+   * Reorder an item
+   * @returns void (not envelope)
+   */
   async reorderItem(
     userId: string,
     resumeId: string,
     sectionId: string,
     itemId: string,
     newOrder: number,
-  ) {
+  ): Promise<void> {
     const config = await this.repo.get(userId, resumeId);
 
     const overrides = { ...config.itemOverrides };
@@ -46,9 +58,12 @@ export class SectionOrderingService {
     config.itemOverrides = { ...overrides, [sectionId]: items };
 
     await this.repo.save(resumeId, config);
-    return { success: true };
   }
 
+  /**
+   * Batch update sections
+   * @returns void (not envelope)
+   */
   async batchUpdate(
     userId: string,
     resumeId: string,
@@ -58,7 +73,7 @@ export class SectionOrderingService {
       order?: number;
       column?: string;
     }>,
-  ) {
+  ): Promise<void> {
     const config = await this.repo.get(userId, resumeId);
 
     config.sections = config.sections.map((section) => {
@@ -69,6 +84,5 @@ export class SectionOrderingService {
     config.sections = normalizeOrders(config.sections);
 
     await this.repo.save(resumeId, config);
-    return { success: true };
   }
 }

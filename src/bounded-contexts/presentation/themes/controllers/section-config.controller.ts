@@ -5,7 +5,7 @@
 
 import { Body, Controller, Param, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
@@ -50,8 +50,8 @@ export class SectionConfigController {
     @Param('sectionId') sectionId: string,
     @Body() dto: SectionToggle,
   ): Promise<DataResponse<ResumeConfigOperationDataDto>> {
-    const result = await this.visibility.toggleSection(userId, resumeId, sectionId, dto.visible);
-    return { success: true, data: { success: result.success } };
+    await this.visibility.toggleSection(userId, resumeId, sectionId, dto.visible);
+    return { success: true, data: { success: true } };
   }
 
   @Post('sections/:sectionId/order')
@@ -65,8 +65,8 @@ export class SectionConfigController {
     @Param('sectionId') sectionId: string,
     @Body() dto: SectionReorder,
   ): Promise<DataResponse<ResumeConfigOperationDataDto>> {
-    const result = await this.ordering.reorderSection(userId, resumeId, sectionId, dto.order);
-    return { success: true, data: { success: result.success } };
+    await this.ordering.reorderSection(userId, resumeId, sectionId, dto.order);
+    return { success: true, data: { success: true } };
   }
 
   @Post('sections/:sectionId/items/visibility')
@@ -80,14 +80,8 @@ export class SectionConfigController {
     @Param('sectionId') sectionId: string,
     @Body() dto: SectionItem,
   ): Promise<DataResponse<ResumeConfigOperationDataDto>> {
-    const result = await this.visibility.toggleItem(
-      userId,
-      resumeId,
-      sectionId,
-      dto.itemId,
-      dto.visible ?? true,
-    );
-    return { success: true, data: { success: result.success } };
+    await this.visibility.toggleItem(userId, resumeId, sectionId, dto.itemId, dto.visible ?? true);
+    return { success: true, data: { success: true } };
   }
 
   @Post('sections/:sectionId/items/order')
@@ -101,14 +95,8 @@ export class SectionConfigController {
     @Param('sectionId') sectionId: string,
     @Body() dto: SectionItem,
   ): Promise<DataResponse<ResumeConfigOperationDataDto>> {
-    const result = await this.ordering.reorderItem(
-      userId,
-      resumeId,
-      sectionId,
-      dto.itemId,
-      dto.order ?? 0,
-    );
-    return { success: true, data: { success: result.success } };
+    await this.ordering.reorderItem(userId, resumeId, sectionId, dto.itemId, dto.order ?? 0);
+    return { success: true, data: { success: true } };
   }
 
   @Post('sections/batch')
@@ -121,7 +109,7 @@ export class SectionConfigController {
     @Param('resumeId') resumeId: string,
     @Body() dto: SectionBatch,
   ): Promise<DataResponse<ResumeConfigOperationDataDto>> {
-    const result = await this.ordering.batchUpdate(userId, resumeId, dto.sections);
-    return { success: true, data: { success: result.success } };
+    await this.ordering.batchUpdate(userId, resumeId, dto.sections);
+    return { success: true, data: { success: true } };
   }
 }

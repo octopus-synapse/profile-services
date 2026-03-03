@@ -6,8 +6,8 @@ import { ThemeQueryService } from '../services/theme-query.service';
 const createQueryService = () => ({
   findAllThemesWithPagination: mock(() =>
     Promise.resolve({
-      data: [{ id: 'theme-1' }],
-      meta: { total: 1, page: 1, limit: 20, totalPages: 1 },
+      themes: [{ id: 'theme-1' }],
+      pagination: { total: 1, page: 1, limit: 20, totalPages: 1 },
     }),
   ),
   findPopularThemes: mock(() => Promise.resolve([{ id: 'theme-2' }])),
@@ -21,14 +21,19 @@ describe('PublicThemeController - Contract', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [PublicThemeController],
-      providers: [{ provide: ThemeQueryService, useValue: createQueryService() }],
+      providers: [
+        { provide: ThemeQueryService, useValue: createQueryService() },
+      ],
     }).compile();
 
     controller = module.get<PublicThemeController>(PublicThemeController);
   });
 
   it('findAllThemesWithPagination returns data with themes and pagination', async () => {
-    const result = await controller.findAllThemesWithPagination({ page: 1, limit: 20 } as any);
+    const result = await controller.findAllThemesWithPagination({
+      page: 1,
+      limit: 20,
+    } as any);
 
     expect(result.success).toBe(true);
     expect(result.data).toHaveProperty('themes');

@@ -22,8 +22,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
 import { PermissionGuard, RequirePermission } from '@/bounded-contexts/identity/authorization';
+import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
@@ -97,8 +97,8 @@ export class UserManagementController {
     return {
       success: true,
       data: {
-        user: result.user,
-        message: result.message,
+        user: result,
+        message: 'User created successfully',
       },
     };
   }
@@ -117,8 +117,8 @@ export class UserManagementController {
     return {
       success: true,
       data: {
-        user: result.user,
-        message: result.message,
+        user: result,
+        message: 'User updated successfully',
       },
     };
   }
@@ -136,8 +136,8 @@ export class UserManagementController {
     @Param('id') userId: string,
     @Req() req: { user: { userId: string } },
   ): Promise<DataResponse<UserOperationMessageDataDto>> {
-    const result = await this.userManagement.deleteUser(userId, req.user.userId);
-    return { success: true, data: { message: result.message } };
+    await this.userManagement.deleteUser(userId, req.user.userId);
+    return { success: true, data: { message: 'User deleted successfully' } };
   }
 
   @Post(':id/reset-password')
@@ -150,7 +150,7 @@ export class UserManagementController {
     @Param('id') userId: string,
     @Body() data: AdminResetPassword,
   ): Promise<DataResponse<UserOperationMessageDataDto>> {
-    const result = await this.userManagement.resetPassword(userId, data);
-    return { success: true, data: { message: result.message } };
+    await this.userManagement.resetPassword(userId, data);
+    return { success: true, data: { message: 'Password reset successfully' } };
   }
 }

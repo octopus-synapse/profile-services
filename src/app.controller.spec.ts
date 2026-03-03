@@ -15,8 +15,9 @@ describe('AppController', () => {
       const result = appController.getHello();
       expect(result).toHaveProperty('success', true);
       expect(result).toHaveProperty('data');
-      expect(result.data).toHaveProperty('message');
-      expect(typeof result.data.message).toBe('string');
+      const data = result.data!; // data is guaranteed to exist after the check
+      expect(data).toHaveProperty('message');
+      expect(typeof data.message).toBe('string');
     });
   });
 
@@ -25,9 +26,10 @@ describe('AppController', () => {
       const result = appController.getHealth();
       expect(result).toHaveProperty('success', true);
       expect(result).toHaveProperty('data');
-      expect(result.data).toHaveProperty('status', 'ok');
-      expect(result.data).toHaveProperty('timestamp');
-      expect(typeof result.data.timestamp).toBe('string');
+      const data = result.data!;
+      expect(data).toHaveProperty('status', 'ok');
+      expect(data).toHaveProperty('timestamp');
+      expect(typeof data.timestamp).toBe('string');
     });
   });
 
@@ -36,19 +38,22 @@ describe('AppController', () => {
       const result = appController.getVersion();
       expect(result).toHaveProperty('success', true);
       expect(result).toHaveProperty('data');
-      expect(result.data).toHaveProperty('service', 'profile-services');
-      expect(result.data).toHaveProperty('version');
-      expect(result.data).toHaveProperty('contracts_version');
-      expect(result.data).toHaveProperty('environment');
-      expect(result.data).toHaveProperty('deployed_at');
-      expect(result.data).toHaveProperty('git_tag');
-      expect(result.data).toHaveProperty('is_rollback');
-      expect(typeof result.data.is_rollback).toBe('boolean');
+      const data = result.data!;
+      expect(data).toHaveProperty('service', 'profile-services');
+      expect(data).toHaveProperty('version');
+      expect(data).toHaveProperty('contracts_version');
+      expect(data).toHaveProperty('environment');
+      expect(data).toHaveProperty('deployed_at');
+      expect(data).toHaveProperty('git_tag');
+      expect(data).toHaveProperty('is_rollback');
+      expect(typeof data.is_rollback).toBe('boolean');
     });
 
     it('should use development environment when manifest not available', () => {
       const result = appController.getVersion();
-      expect(result.data.environment).toBe('development');
+      expect(result).toHaveProperty('data');
+      const data = result.data!;
+      expect(data.environment).toBe('development');
     });
   });
 
@@ -57,8 +62,9 @@ describe('AppController', () => {
       const result = appController.getOpenApiSpec();
       expect(result).toHaveProperty('success', true);
       expect(result).toHaveProperty('data');
-      expect(result.data).toHaveProperty('spec');
-      expect(typeof result.data.spec).toBe('object');
+      const data = result.data!;
+      expect(data).toHaveProperty('spec');
+      expect(typeof data.spec).toBe('object');
     });
   });
 });

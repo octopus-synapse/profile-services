@@ -5,12 +5,25 @@ import { UsersService } from '../users.service';
 
 const createMockService = () => ({
   getPublicProfileByUsername: mock(() =>
-    Promise.resolve({ user: { displayName: 'John' }, resume: { id: 'resume-1' } }),
+    Promise.resolve({
+      user: { displayName: 'John' },
+      resume: { id: 'resume-1' },
+    }),
   ),
-  getProfile: mock(() => Promise.resolve({ id: 'user-1', email: 'john@example.com' })),
-  updateProfile: mock(() => Promise.resolve({ success: true, user: { displayName: 'John Updated' } })),
-  updateUsername: mock(() => Promise.resolve({ success: true, username: 'john_doe', message: 'Username updated successfully' })),
-  checkUsernameAvailability: mock(() => Promise.resolve({ username: 'john_doe', available: true })),
+  getProfile: mock(() =>
+    Promise.resolve({ id: 'user-1', email: 'john@example.com' }),
+  ),
+  updateProfile: mock(() => Promise.resolve({ displayName: 'John Updated' })),
+  updateUsername: mock(() =>
+    Promise.resolve({
+      success: true,
+      username: 'john_doe',
+      message: 'Username updated successfully',
+    }),
+  ),
+  checkUsernameAvailability: mock(() =>
+    Promise.resolve({ username: 'john_doe', available: true }),
+  ),
 });
 
 describe('UsersProfileController - Contract', () => {
@@ -41,14 +54,20 @@ describe('UsersProfileController - Contract', () => {
   });
 
   it('updateProfile returns data with profile', async () => {
-    const result = await controller.updateProfile({ userId: 'user-1' } as any, { displayName: 'John Updated' } as any);
+    const result = await controller.updateProfile(
+      { userId: 'user-1' } as any,
+      { displayName: 'John Updated' } as any,
+    );
 
     expect(result.success).toBe(true);
     expect(result.data).toHaveProperty('profile');
   });
 
   it('updateUsername returns data with username and message', async () => {
-    const result = await controller.updateUsername({ userId: 'user-1' } as any, { username: 'john_doe' } as any);
+    const result = await controller.updateUsername(
+      { userId: 'user-1' } as any,
+      { username: 'john_doe' } as any,
+    );
 
     expect(result.success).toBe(true);
     expect(result.data).toHaveProperty('username');
@@ -56,7 +75,10 @@ describe('UsersProfileController - Contract', () => {
   });
 
   it('checkUsernameAvailability returns data with username and available', async () => {
-    const result = await controller.checkUsernameAvailability({ userId: 'user-1' } as any, 'john_doe');
+    const result = await controller.checkUsernameAvailability(
+      { userId: 'user-1' } as any,
+      'john_doe',
+    );
 
     expect(result.success).toBe(true);
     expect(result.data).toHaveProperty('username');

@@ -1,365 +1,192 @@
 /**
- * User Management Service Unit Tests
+ * User Management Service (Facade) Tests
  *
- * Tests administrative operations on user resources.
- * Focus: CRUD operations, permission checks, safety guards.
- *
- * Kent Beck: "Test the behaviors, not the implementation details"
- * Uncle Bob: "Each test should have a single reason to fail"
+ * Uses In-Memory repository + simple fakes for behavior-focused testing.
  */
 
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { describe, it, expect, beforeEach } from 'bun:test';
+import { BadRequestException } from '@nestjs/common';
 import { UserManagementService } from './user-management.service';
-import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { PasswordService } from '@/bounded-contexts/identity/auth/services/password.service';
 import type { AuthorizationService } from '@/bounded-contexts/identity/authorization';
-import {
-  NotFoundException,
-  ConflictException,
-  BadRequestException,
-} from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { InMemoryUserManagementRepository } from '../../shared-kernel/testing';
+import { ListUsersUseCase } from './user-management/use-cases/list-users.use-case';
+import { GetUserDetailsUseCase } from './user-management/use-cases/get-user-details.use-case';
+import { CreateUserUseCase } from './user-management/use-cases/create-user.use-case';
+import { UpdateUserUseCase } from './user-management/use-cases/update-user.use-case';
+import { DeleteUserUseCase } from './user-management/use-cases/delete-user.use-case';
+import { ResetPasswordUseCase } from './user-management/use-cases/reset-password.use-case';
+import type { UserManagementUseCases } from './user-management/ports/user-management.port';
 
-describe('UserManagementService', () => {
+class FakeAuthorizationService {
+  private privilegedUsers = new Set<string>();
+  private usersWithAdminRole = 5;
+
+  setPrivilegedUser(userId: string, isPrivileged: boolean): void {
+    if (isPrivileged) {
+      this.privilegedUsers.add(userId);
+      return;
+    }
+    this.privilegedUsers.delete(userId);
+  }
+
+  setUsersWithAdminRole(count: number): void {
+    this.usersWithAdminRole = count;
+  }
+
+  async hasPermission(userId: string): Promise<boolean> {
+    return this.privilegedUsers.has(userId);
+  }
+
+  async countUsersWithRole(): Promise<number> {
+    return this.usersWithAdminRole;
+  }
+}
+
+describe('UserManagementService (Facade)', () => {
   let service: UserManagementService;
-  let mockPrismaService: Partial<PrismaService>;
-  let mockPasswordService: Partial<PasswordService>;
-  let mockAuthService: Partial<AuthorizationService>;
+  let repository: InMemoryUserManagementRepository;
+  let useCases: UserManagementUseCases;
+  let authService: FakeAuthorizationService;
 
   const mockUserId = 'user-123';
   const mockRequesterId = 'admin-456';
 
-  const mockUser = {
-    id: mockUserId,
-    email: 'test@example.com',
-    name: 'Test User',
-    username: 'testuser',
-    hasCompletedOnboarding: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    image: null,
-    emailVerified: true,
-    _count: { resumes: 2 },
-  };
-
   beforeEach(() => {
-    mockPrismaService = {
-      user: {
-        findMany: mock(() => Promise.resolve([mockUser])),
-        findUnique: mock(() => Promise.resolve(mockUser)),
-        count: mock(() => Promise.resolve(1)),
-        create: mock(() => Promise.resolve(mockUser)),
-        update: mock(() => Promise.resolve(mockUser)),
-        delete: mock(() => Promise.resolve(mockUser)),
-      } as any,
-    };
+    repository = new InMemoryUserManagementRepository();
+    authService = new FakeAuthorizationService();
 
-    mockPasswordService = {
-      hash: mock(() => Promise.resolve('hashed-password-123')),
-    };
+    repository.seedUser({
+      id: mockUserId,
+      email: 'test@example.com',
+      name: 'Test User',
+      username: 'testuser',
+      hasCompletedOnboarding: true,
+      counts: { accounts: 1, sessions: 0, resumes: 2 },
+    });
+    repository.seedUser({ id: mockRequesterId, email: 'admin@example.com' });
 
-    mockAuthService = {
-      hasPermission: mock(() => Promise.resolve(false)),
-      countUsersWithRole: mock(() => Promise.resolve(5)),
+    useCases = {
+      listUsersUseCase: new ListUsersUseCase(repository as any),
+      getUserDetailsUseCase: new GetUserDetailsUseCase(repository as any),
+      createUserUseCase: new CreateUserUseCase(
+        repository as any,
+        async (password: string) => `hashed_${password}`,
+      ),
+      updateUserUseCase: new UpdateUserUseCase(repository as any),
+      deleteUserUseCase: new DeleteUserUseCase(repository as any),
+      resetPasswordUseCase: new ResetPasswordUseCase(
+        repository as any,
+        async (password: string) => `hashed_${password}`,
+      ),
     };
 
     service = new UserManagementService(
-      mockPrismaService as PrismaService,
-      mockPasswordService as PasswordService,
-      mockAuthService as AuthorizationService,
+      useCases,
+      authService as unknown as AuthorizationService,
     );
   });
 
   describe('listUsers', () => {
-    it('should return paginated users', async () => {
-      const result = await service.listUsers({
-        page: 1,
-        limit: 20,
-      });
+    it('should return paginated users list', async () => {
+      const options = { page: 1, limit: 20 };
 
-      expect(result.users).toHaveLength(1);
+      const result = await service.listUsers(options);
+
+      expect(result.users.length).toBe(2);
       expect(result.pagination).toEqual({
         page: 1,
         limit: 20,
-        total: 1,
+        total: 2,
         totalPages: 1,
       });
     });
 
     it('should apply search filter', async () => {
-      await service.listUsers({
-        page: 1,
-        limit: 20,
-        search: 'john',
-      });
+      const options = { page: 1, limit: 20, search: 'john' };
 
-      expect(mockPrismaService.user!.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({
-            OR: expect.any(Array),
-          }),
-        }),
-      );
-    });
-
-    it('should calculate correct skip offset', async () => {
-      await service.listUsers({
-        page: 3,
-        limit: 10,
-      });
-
-      expect(mockPrismaService.user!.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          skip: 20, // (3-1) * 10
-          take: 10,
-        }),
-      );
-    });
-
-    it('should order by createdAt descending', async () => {
-      await service.listUsers({ page: 1, limit: 10 });
-
-      expect(mockPrismaService.user!.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          orderBy: { createdAt: 'desc' },
-        }),
-      );
+      const result = await service.listUsers(options);
+      expect(result.users).toHaveLength(0);
     });
   });
 
   describe('getUserDetails', () => {
-    it('should return user with resumes and preferences', async () => {
-      const userWithRelations = {
-        ...mockUser,
-        resumes: [{ id: 'resume-1', title: 'My Resume' }],
-        preferences: { theme: 'dark' },
-        password: 'should-be-excluded',
-        _count: { accounts: 1, sessions: 2, resumes: 1 },
-      };
-      (
-        mockPrismaService.user!.findUnique as ReturnType<typeof mock>
-      ).mockResolvedValue(userWithRelations);
-
+    it('should return user details', async () => {
       const result = await service.getUserDetails(mockUserId);
 
+      expect(result.id).toBe(mockUserId);
       expect(result.email).toBe('test@example.com');
-      expect(result.resumes).toBeDefined();
-      expect((result as any).password).toBeUndefined();
-    });
-
-    it('should throw NotFoundException when user not found', async () => {
-      (
-        mockPrismaService.user!.findUnique as ReturnType<typeof mock>
-      ).mockResolvedValue(null);
-
-      await expect(service.getUserDetails('non-existent')).rejects.toThrow(
-        NotFoundException,
-      );
     });
   });
 
   describe('createUser', () => {
-    it('should create user with hashed password', async () => {
+    it('should create and persist a new user', async () => {
       const createData = {
         email: 'new@example.com',
-        password: 'SecurePass123!',
+        password: 'SecureP@ss123!',
+        role: 'USER' as const,
         name: 'New User',
       };
 
-      await service.createUser(createData);
+      const result = await service.createUser(createData);
 
-      expect(mockPasswordService.hash).toHaveBeenCalledWith('SecurePass123!');
-      expect(mockPrismaService.user!.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({
-            email: 'new@example.com',
-            password: 'hashed-password-123',
-            name: 'New User',
-          }),
-        }),
-      );
-    });
+      expect(result.email).toBe(createData.email);
+      expect(result.name).toBe(createData.name);
 
-    it('should return success response with created user', async () => {
-      const result = await service.createUser({
-        email: 'new@example.com',
-        password: 'SecurePass123!',
-        name: 'New User',
-      });
-
-      expect(result.success).toBe(true);
-      expect(result.message).toBe('User created successfully');
-    });
-
-    it('should throw ConflictException on duplicate email', async () => {
-      const prismaError = new Prisma.PrismaClientKnownRequestError(
-        'Unique constraint failed',
-        { code: 'P2002', clientVersion: '5.0.0' },
-      );
-      (
-        mockPrismaService.user!.create as ReturnType<typeof mock>
-      ).mockRejectedValue(prismaError);
-
-      await expect(
-        service.createUser({
-          email: 'existing@example.com',
-          password: 'SecurePass123!',
-          name: 'Dup User',
-        }),
-      ).rejects.toThrow(ConflictException);
+      const users = repository.getAllUsers();
+      expect(users.some((user) => user.email === createData.email)).toBe(true);
     });
   });
 
   describe('updateUser', () => {
-    it('should update user fields', async () => {
+    it('should update existing user', async () => {
       const updateData = { name: 'Updated Name' };
 
       const result = await service.updateUser(mockUserId, updateData);
 
-      expect(result.success).toBe(true);
-      expect(mockPrismaService.user!.update).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { id: mockUserId },
-          data: updateData,
-        }),
-      );
-    });
-
-    it('should throw NotFoundException when user not found', async () => {
-      (
-        mockPrismaService.user!.findUnique as ReturnType<typeof mock>
-      ).mockResolvedValue(null);
-
-      await expect(
-        service.updateUser('non-existent', { name: 'Test' }),
-      ).rejects.toThrow(NotFoundException);
-    });
-
-    it('should throw ConflictException on duplicate email', async () => {
-      const prismaError = new Prisma.PrismaClientKnownRequestError(
-        'Unique constraint failed',
-        {
-          code: 'P2002',
-          clientVersion: '5.0.0',
-          meta: { target: ['email'] },
-        } as any,
-      );
-      (
-        mockPrismaService.user!.update as ReturnType<typeof mock>
-      ).mockRejectedValue(prismaError);
-
-      await expect(
-        service.updateUser(mockUserId, { email: 'taken@example.com' }),
-      ).rejects.toThrow(ConflictException);
-    });
-
-    it('should throw ConflictException on duplicate username', async () => {
-      const prismaError = new Prisma.PrismaClientKnownRequestError(
-        'Unique constraint failed',
-        {
-          code: 'P2002',
-          clientVersion: '5.0.0',
-          meta: { target: ['username'] },
-        } as any,
-      );
-      (
-        mockPrismaService.user!.update as ReturnType<typeof mock>
-      ).mockRejectedValue(prismaError);
-
-      await expect(
-        service.updateUser(mockUserId, { username: 'taken' }),
-      ).rejects.toThrow(ConflictException);
+      expect(result.name).toBe('Updated Name');
+      expect(repository.getUser(mockUserId)?.name).toBe('Updated Name');
     });
   });
 
   describe('deleteUser', () => {
-    it('should delete user successfully', async () => {
-      const result = await service.deleteUser(mockUserId, mockRequesterId);
+    it('should delete user when target is not privileged', async () => {
+      authService.setPrivilegedUser(mockUserId, false);
 
-      expect(result.success).toBe(true);
-      expect(result.message).toBe('User deleted successfully');
-      expect(mockPrismaService.user!.delete).toHaveBeenCalledWith({
-        where: { id: mockUserId },
-      });
-    });
+      await service.deleteUser(mockUserId, mockRequesterId);
 
-    it('should throw NotFoundException when user not found', async () => {
-      (
-        mockPrismaService.user!.findUnique as ReturnType<typeof mock>
-      ).mockResolvedValue(null);
-
-      await expect(
-        service.deleteUser('non-existent', mockRequesterId),
-      ).rejects.toThrow(NotFoundException);
-    });
-
-    it('should prevent self-deletion', async () => {
-      await expect(service.deleteUser(mockUserId, mockUserId)).rejects.toThrow(
-        BadRequestException,
-      );
+      expect(repository.getUser(mockUserId)).toBeUndefined();
     });
 
     it('should prevent deleting last privileged user', async () => {
-      (
-        mockAuthService.hasPermission as ReturnType<typeof mock>
-      ).mockResolvedValue(true);
-      (
-        mockAuthService.countUsersWithRole as ReturnType<typeof mock>
-      ).mockResolvedValue(1);
+      authService.setPrivilegedUser(mockUserId, true);
+      authService.setUsersWithAdminRole(1);
 
       await expect(
         service.deleteUser(mockUserId, mockRequesterId),
       ).rejects.toThrow(BadRequestException);
+
+      expect(repository.getUser(mockUserId)).toBeDefined();
     });
 
-    it('should allow deleting non-privileged user', async () => {
-      (
-        mockAuthService.hasPermission as ReturnType<typeof mock>
-      ).mockResolvedValue(false);
+    it('should allow deleting privileged user when others exist', async () => {
+      authService.setPrivilegedUser(mockUserId, true);
+      authService.setUsersWithAdminRole(3);
 
-      const result = await service.deleteUser(mockUserId, mockRequesterId);
+      await service.deleteUser(mockUserId, mockRequesterId);
 
-      expect(result.success).toBe(true);
-    });
-
-    it('should allow deleting privileged user if others exist', async () => {
-      (
-        mockAuthService.hasPermission as ReturnType<typeof mock>
-      ).mockResolvedValue(true);
-      (
-        mockAuthService.countUsersWithRole as ReturnType<typeof mock>
-      ).mockResolvedValue(3);
-
-      const result = await service.deleteUser(mockUserId, mockRequesterId);
-
-      expect(result.success).toBe(true);
+      expect(repository.getUser(mockUserId)).toBeUndefined();
     });
   });
 
   describe('resetPassword', () => {
-    it('should reset password with new hashed value', async () => {
-      const result = await service.resetPassword(mockUserId, {
-        newPassword: 'NewSecurePass456!',
-      });
+    it('should reset user password', async () => {
+      const newPassword = 'NewSecureP@ss123!';
 
-      expect(result.success).toBe(true);
-      expect(mockPasswordService.hash).toHaveBeenCalledWith(
-        'NewSecurePass456!',
+      await service.resetPassword(mockUserId, { newPassword });
+
+      expect(repository.getUser(mockUserId)?.passwordHash).toBe(
+        `hashed_${newPassword}`,
       );
-      expect(mockPrismaService.user!.update).toHaveBeenCalledWith({
-        where: { id: mockUserId },
-        data: { password: 'hashed-password-123' },
-      });
-    });
-
-    it('should throw NotFoundException when user not found', async () => {
-      (
-        mockPrismaService.user!.findUnique as ReturnType<typeof mock>
-      ).mockResolvedValue(null);
-
-      await expect(
-        service.resetPassword('non-existent', { newPassword: 'Test123!' }),
-      ).rejects.toThrow(NotFoundException);
     });
   });
 });

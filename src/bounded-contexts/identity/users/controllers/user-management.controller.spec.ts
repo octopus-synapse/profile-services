@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { PermissionGuard } from '@/bounded-contexts/identity/authorization';
 import { UserManagementController } from './user-management.controller';
 import { UserManagementService } from '../services/user-management.service';
@@ -12,15 +12,17 @@ const createMockService = () => ({
       pagination: { page: 1, limit: 20, total: 1, totalPages: 1 },
     }),
   ),
-  getUserDetails: mock(() => Promise.resolve({ id: 'user-1', email: 'user@example.com' })),
+  getUserDetails: mock(() =>
+    Promise.resolve({ id: 'user-1', email: 'user@example.com' }),
+  ),
   createUser: mock(() =>
-    Promise.resolve({ user: { id: 'user-1', email: 'new@example.com' }, message: 'User created successfully' }),
+    Promise.resolve({ id: 'user-1', email: 'new@example.com' }),
   ),
   updateUser: mock(() =>
-    Promise.resolve({ user: { id: 'user-1', name: 'Updated User' }, message: 'User updated successfully' }),
+    Promise.resolve({ id: 'user-1', name: 'Updated User' }),
   ),
-  deleteUser: mock(() => Promise.resolve({ success: true, message: 'User deleted successfully' })),
-  resetPassword: mock(() => Promise.resolve({ success: true, message: 'Password reset successfully' })),
+  deleteUser: mock(() => Promise.resolve(undefined)),
+  resetPassword: mock(() => Promise.resolve(undefined)),
 });
 
 describe('UserManagementController - Contract', () => {
@@ -63,6 +65,7 @@ describe('UserManagementController - Contract', () => {
     const result = await controller.createUser({
       email: 'new@example.com',
       password: 'Password123!',
+      role: 'USER',
       name: 'New User',
     });
 
@@ -72,7 +75,9 @@ describe('UserManagementController - Contract', () => {
   });
 
   it('updateUser returns data with user and message', async () => {
-    const result = await controller.updateUser('user-1', { name: 'Updated User' });
+    const result = await controller.updateUser('user-1', {
+      name: 'Updated User',
+    });
 
     expect(result.success).toBe(true);
     expect(result.data).toHaveProperty('user');
@@ -80,14 +85,18 @@ describe('UserManagementController - Contract', () => {
   });
 
   it('deleteUser returns data with message', async () => {
-    const result = await controller.deleteUser('user-1', { user: { userId: 'admin-1' } });
+    const result = await controller.deleteUser('user-1', {
+      user: { userId: 'admin-1' },
+    });
 
     expect(result.success).toBe(true);
     expect(result.data).toHaveProperty('message');
   });
 
   it('resetPassword returns data with message', async () => {
-    const result = await controller.resetPassword('user-1', { newPassword: 'NewPassword123!' });
+    const result = await controller.resetPassword('user-1', {
+      newPassword: 'NewPassword123!',
+    });
 
     expect(result.success).toBe(true);
     expect(result.data).toHaveProperty('message');

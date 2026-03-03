@@ -20,17 +20,39 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
 import { PermissionGuard, RequirePermission } from '@/bounded-contexts/identity/authorization';
+import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { DeleteResponseDto, ResumeSkillResponseDto } from '@/shared-kernel';
-import {
-  CreateSkillInput,
-  SkillManagementService,
-  UpdateSkillInput,
-} from '../services/skill-management.service';
+import type {
+  CreateSkillData,
+  UpdateSkillData,
+} from '../services/skill-management/ports/skill-management.port';
+import { SkillManagementService } from '../services/skill-management.service';
+
+class CreateSkillInput implements CreateSkillData {
+  @ApiProperty({ description: 'Skill name' })
+  name!: string;
+
+  @ApiProperty({ description: 'Skill category' })
+  category!: string;
+
+  @ApiProperty({ description: 'Skill level (1-5)', required: false })
+  level?: number;
+}
+
+class UpdateSkillInput implements UpdateSkillData {
+  @ApiProperty({ description: 'Skill name', required: false })
+  name?: string;
+
+  @ApiProperty({ description: 'Skill category', required: false })
+  category?: string;
+
+  @ApiProperty({ description: 'Skill level (1-5)', required: false })
+  level?: number;
+}
 
 class ResumeSkillListDataDto {
   @ApiProperty({ type: [ResumeSkillResponseDto] })
@@ -115,7 +137,7 @@ export class SkillManagementController {
     description: 'Skill deleted successfully',
   })
   async deleteSkill(@Param('id') skillId: string): Promise<DataResponse<DeleteSkillDataDto>> {
-    const result = await this.skillManagement.deleteSkill(skillId);
-    return { success: true, data: { result: { deleted: result.success } } };
+    await this.skillManagement.deleteSkill(skillId);
+    return { success: true, data: { result: { deleted: true } } };
   }
 }

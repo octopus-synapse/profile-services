@@ -1,6 +1,48 @@
 import { describe, expect, it } from 'bun:test';
-import type { SemanticResumeSnapshot } from '../interfaces';
+import type {
+  SemanticResumeSnapshot,
+  SectionTypeAtsEntry,
+} from '../interfaces';
 import { SectionOrderSemanticPolicy } from './section-order-semantic.policy';
+
+const defaultCatalog: SectionTypeAtsEntry[] = [
+  {
+    key: 'personal_info_v1',
+    kind: 'PERSONAL_INFO',
+    ats: {
+      isMandatory: false,
+      recommendedPosition: 0,
+      scoring: { baseScore: 0, fieldWeights: {} },
+    },
+  },
+  {
+    key: 'summary_v1',
+    kind: 'SUMMARY',
+    ats: {
+      isMandatory: false,
+      recommendedPosition: 1,
+      scoring: { baseScore: 50, fieldWeights: {} },
+    },
+  },
+  {
+    key: 'work_experience_v1',
+    kind: 'WORK_EXPERIENCE',
+    ats: {
+      isMandatory: true,
+      recommendedPosition: 2,
+      scoring: { baseScore: 30, fieldWeights: {} },
+    },
+  },
+  {
+    key: 'education_v1',
+    kind: 'EDUCATION',
+    ats: {
+      isMandatory: true,
+      recommendedPosition: 3,
+      scoring: { baseScore: 35, fieldWeights: {} },
+    },
+  },
+];
 
 describe('SectionOrderSemanticPolicy', () => {
   const policy = new SectionOrderSemanticPolicy();
@@ -8,6 +50,7 @@ describe('SectionOrderSemanticPolicy', () => {
   it('returns no issues for expected order', () => {
     const snapshot: SemanticResumeSnapshot = {
       resumeId: 'resume-1',
+      sectionTypeCatalog: defaultCatalog,
       items: [
         {
           sectionTypeKey: 'pi',
@@ -45,6 +88,7 @@ describe('SectionOrderSemanticPolicy', () => {
   it('flags experience after education', () => {
     const snapshot: SemanticResumeSnapshot = {
       resumeId: 'resume-2',
+      sectionTypeCatalog: defaultCatalog,
       items: [
         {
           sectionTypeKey: 'edu',
@@ -73,6 +117,7 @@ describe('SectionOrderSemanticPolicy', () => {
   it('flags summary too late', () => {
     const snapshot: SemanticResumeSnapshot = {
       resumeId: 'resume-3',
+      sectionTypeCatalog: defaultCatalog,
       items: [
         {
           sectionTypeKey: 'pi',

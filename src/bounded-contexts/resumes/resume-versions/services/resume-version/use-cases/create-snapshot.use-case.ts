@@ -1,7 +1,5 @@
-import { NotFoundException } from '@nestjs/common';
-import type { Prisma } from '@prisma/client';
 import type { ResumeEventPublisher } from '@/bounded-contexts/resumes/domain/ports';
-import { ERROR_MESSAGES } from '@/shared-kernel';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions';
 import {
   type ResumeForSnapshot,
   type ResumeVersionRecord,
@@ -20,7 +18,7 @@ export class CreateSnapshotUseCase {
     const resume = await this.repository.findResumeForSnapshot(resumeId);
 
     if (!resume) {
-      throw new NotFoundException(ERROR_MESSAGES.RESUME_NOT_FOUND);
+      throw new EntityNotFoundException('Resume');
     }
 
     const lastVersionNumber = await this.repository.findLastVersionNumber(resumeId);
@@ -69,7 +67,8 @@ export class CreateSnapshotUseCase {
     return this.toJsonValue(genericSnapshot);
   }
 
-  private toJsonValue(value: unknown): Prisma.InputJsonValue {
-    return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
+  private toJsonValue(value: unknown): unknown {
+    // Deep clone to ensure the value is JSON-serializable
+    return JSON.parse(JSON.stringify(value));
   }
 }

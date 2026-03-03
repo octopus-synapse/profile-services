@@ -57,14 +57,13 @@ describe('SectionVisibilityService', () => {
       repo.get.mockResolvedValue({ ...mockConfig });
       repo.save.mockResolvedValue(undefined);
 
-      const result = await service.toggleSection(
+      await service.toggleSection(
         'user-1',
         'resume-1',
         'experience',
         false,
       );
 
-      expect(result).toEqual({ success: true });
       expect(repo.save).toHaveBeenCalledWith(
         'resume-1',
         expect.objectContaining({
@@ -85,14 +84,13 @@ describe('SectionVisibilityService', () => {
       repo.get.mockResolvedValue(configWithHidden);
       repo.save.mockResolvedValue(undefined);
 
-      const result = await service.toggleSection(
+      await service.toggleSection(
         'user-1',
         'resume-1',
         'education',
         true,
       );
 
-      expect(result).toEqual({ success: true });
       expect(repo.save).toHaveBeenCalledWith(
         'resume-1',
         expect.objectContaining({
@@ -130,7 +128,7 @@ describe('SectionVisibilityService', () => {
       repo.get.mockResolvedValue({ ...mockConfig });
       repo.save.mockResolvedValue(undefined);
 
-      const result = await service.toggleItem(
+      await service.toggleItem(
         'user-1',
         'resume-1',
         'experience',
@@ -138,7 +136,6 @@ describe('SectionVisibilityService', () => {
         false,
       );
 
-      expect(result).toEqual({ success: true });
       expect(repo.save).toHaveBeenCalledWith(
         'resume-1',
         expect.objectContaining({
@@ -164,7 +161,7 @@ describe('SectionVisibilityService', () => {
       repo.get.mockResolvedValue(configWithHiddenItem);
       repo.save.mockResolvedValue(undefined);
 
-      const result = await service.toggleItem(
+      await service.toggleItem(
         'user-1',
         'resume-1',
         'experience',
@@ -172,7 +169,6 @@ describe('SectionVisibilityService', () => {
         true,
       );
 
-      expect(result).toEqual({ success: true });
       expect(repo.save).toHaveBeenCalledWith(
         'resume-1',
         expect.objectContaining({

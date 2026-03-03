@@ -3,23 +3,18 @@
  *
  * Tests public resume sharing functionality:
  * - Slug generation and validation
- * - Password protection (bcrypt mocked)
+ * - Password protection
  * - Share creation and retrieval
  * - Redis caching
  */
 
-import { describe, it, expect, beforeEach, mock, spyOn } from 'bun:test';
+import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { createMockResume } from '@test/factories/resume.factory';
-import * as bcrypt from 'bcryptjs';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ResumeShareService } from './resume-share.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { CacheCoreService } from '@/bounded-contexts/platform/common/cache/services/cache-core.service';
 import { EventPublisher } from '@/shared-kernel';
-
-// Mock bcrypt for fast tests
-spyOn(bcrypt, 'hash').mockResolvedValue('$2b$10$mockedhash' as never);
-spyOn(bcrypt, 'compare').mockResolvedValue(true as never);
 
 describe('ResumeShareService', () => {
   let service: ResumeShareService;

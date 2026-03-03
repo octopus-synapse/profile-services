@@ -11,13 +11,7 @@ import {
   MandatorySemanticPolicy,
   SectionOrderSemanticPolicy,
 } from './policies';
-import {
-  CertificationScoringStrategy,
-  DefaultScoringStrategy,
-  EducationScoringStrategy,
-  SemanticScoringService,
-  WorkExperienceScoringStrategy,
-} from './scoring';
+import { DefinitionDrivenScoringStrategy, SemanticScoringService } from './scoring';
 import { ATSService } from './services/ats.service';
 import { EncodingNormalizerService } from './services/encoding-normalizer.service';
 import { SectionSemanticCatalogAdapter } from './services/section-semantic-catalog.adapter';
@@ -48,10 +42,7 @@ import { SectionOrderValidator } from './validators/section-order.validator';
     DateRangeExtractor,
     OrganizationExtractor,
     JobTitleExtractor,
-    WorkExperienceScoringStrategy,
-    EducationScoringStrategy,
-    CertificationScoringStrategy,
-    DefaultScoringStrategy,
+    DefinitionDrivenScoringStrategy,
     SemanticScoringService,
     AppLoggerService,
     SectionSemanticCatalogAdapter,

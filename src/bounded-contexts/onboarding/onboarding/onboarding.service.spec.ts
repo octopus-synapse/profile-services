@@ -217,9 +217,7 @@ describe('OnboardingService', () => {
       const result = await service.completeOnboarding(userId, onboardingData);
 
       expect(result).toEqual({
-        success: true,
         resumeId: mockResume.id,
-        message: SUCCESS_MESSAGES.ONBOARDING_COMPLETED,
       });
 
       expect(mockPrismaService.user.findUnique).toHaveBeenCalledWith({

@@ -8,6 +8,7 @@ describe('DuplicateSemanticPolicy', () => {
   it('reports duplicate section type keys', () => {
     const snapshot: SemanticResumeSnapshot = {
       resumeId: 'resume-1',
+      sectionTypeCatalog: [],
       items: [
         {
           sectionTypeKey: 'project_v1',

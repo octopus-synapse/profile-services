@@ -38,12 +38,9 @@ describe('UsersService (Facade)', () => {
       bio: 'A developer',
     }),
     updateProfile: mock().mockResolvedValue({
-      success: true,
-      data: {
-        id: 'user-123',
-        displayName: 'Updated Name',
-        bio: 'Updated bio',
-      },
+      id: 'user-123',
+      displayName: 'Updated Name',
+      bio: 'Updated bio',
     }),
   };
 
@@ -122,16 +119,13 @@ describe('UsersService (Facade)', () => {
   });
 
   describe('updateProfile', () => {
-    it('should return success with updated profile data', async () => {
+    it('should return updated profile data', async () => {
       const updateDto = { displayName: 'Updated Name', bio: 'Updated bio' };
 
       const result = await service.updateProfile('user-123', updateDto);
 
       expect(result).toMatchObject({
-        success: true,
-        data: expect.objectContaining({
-          displayName: expect.any(String),
-        }),
+        displayName: expect.any(String),
       });
     });
   });

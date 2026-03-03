@@ -1,7 +1,5 @@
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
-import type { Prisma } from '@prisma/client';
 import type { ResumeEventPublisher } from '@/bounded-contexts/resumes/domain/ports';
-import { ERROR_MESSAGES } from '@/shared-kernel';
+import { EntityNotFoundException, ForbiddenException } from '@/shared-kernel/exceptions';
 import {
   ResumeVersionRepositoryPort,
   type VersionRestoreResult,
@@ -62,7 +60,7 @@ export class RestoreVersionUseCase {
     const resume = await this.repository.findResumeOwner(resumeId);
 
     if (!resume) {
-      throw new NotFoundException(ERROR_MESSAGES.RESUME_NOT_FOUND);
+      throw new EntityNotFoundException('Resume');
     }
 
     if (resume.userId !== userId) {
@@ -72,12 +70,12 @@ export class RestoreVersionUseCase {
     const version = await this.repository.findResumeVersionById(versionId);
 
     if (!version || version.resumeId !== resumeId) {
-      throw new NotFoundException('Version not found');
+      throw new EntityNotFoundException('Version');
     }
 
     await this.createSnapshotUseCase.execute(resumeId, 'Before restore');
 
-    const snapshot = version.snapshot as Prisma.JsonObject;
+    const snapshot = version.snapshot as Record<string, unknown>;
     const resumeData = this.extractResumeData(snapshot);
 
     await this.repository.updateResumeFromSnapshot(resumeId, resumeData);
@@ -90,7 +88,7 @@ export class RestoreVersionUseCase {
     return { restoredFrom: version.createdAt };
   }
 
-  private extractResumeData(snapshot: Prisma.JsonObject): Record<string, unknown> {
+  private extractResumeData(snapshot: Record<string, unknown>): Record<string, unknown> {
     const candidate = this.getResumePayload(snapshot);
     const selected = Object.fromEntries(
       RestoreVersionUseCase.RESUME_MUTABLE_FIELDS.filter((field) => field in candidate).map(
@@ -101,7 +99,7 @@ export class RestoreVersionUseCase {
     return selected;
   }
 
-  private getResumePayload(snapshot: Prisma.JsonObject): Record<string, unknown> {
+  private getResumePayload(snapshot: Record<string, unknown>): Record<string, unknown> {
     const maybeResume = snapshot.resume;
     if (maybeResume && typeof maybeResume === 'object' && !Array.isArray(maybeResume)) {
       return maybeResume as Record<string, unknown>;

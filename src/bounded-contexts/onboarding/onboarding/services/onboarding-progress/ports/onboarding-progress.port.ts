@@ -1,0 +1,90 @@
+/**
+ * Onboarding Progress Port
+ *
+ * Defines domain types and repository abstraction for onboarding progress.
+ */
+
+import type { OnboardingProgress as OnboardingProgressInput } from '@/shared-kernel';
+
+// Generic transaction client type (implementation provided by repository)
+export type TransactionClient = unknown;
+
+// ============================================================================
+// Domain Types
+// ============================================================================
+
+export type OnboardingProgressData = {
+  currentStep: string;
+  completedSteps: string[];
+  username?: string | null;
+  personalInfo?: unknown;
+  professionalProfile?: unknown;
+  experiences?: unknown[];
+  noExperience?: boolean;
+  education?: unknown[];
+  noEducation?: boolean;
+  skills?: unknown[];
+  noSkills?: boolean;
+  languages?: unknown[];
+  templateSelection?: unknown;
+};
+
+export type SaveProgressResult = {
+  currentStep: string;
+  completedSteps: string[];
+};
+
+export type ProgressRecord = {
+  userId: string;
+  currentStep: string;
+  completedSteps: string[];
+  username: string | null;
+  personalInfo: unknown;
+  professionalProfile: unknown;
+  experiences: unknown[] | null;
+  noExperience: boolean;
+  education: unknown[] | null;
+  noEducation: boolean;
+  skills: unknown[] | null;
+  noSkills: boolean;
+  languages: unknown[] | null;
+  templateSelection: unknown;
+  updatedAt: Date;
+};
+
+// ============================================================================
+// Repository Port (Abstraction)
+// ============================================================================
+
+export abstract class OnboardingProgressRepositoryPort {
+  abstract findProgressByUserId(userId: string): Promise<ProgressRecord | null>;
+
+  abstract upsertProgress(
+    userId: string,
+    data: OnboardingProgressData,
+  ): Promise<{ currentStep: string; completedSteps: string[] }>;
+
+  abstract deleteProgress(userId: string): Promise<void>;
+
+  abstract deleteProgressWithTx(tx: TransactionClient, userId: string): Promise<void>;
+
+  abstract findUserByUsername(username: string): Promise<{ id: string } | null>;
+}
+
+// ============================================================================
+// Use Cases Interface
+// ============================================================================
+
+export const ONBOARDING_PROGRESS_USE_CASES = Symbol('ONBOARDING_PROGRESS_USE_CASES');
+
+export interface OnboardingProgressUseCases {
+  saveProgressUseCase: {
+    execute: (userId: string, data: OnboardingProgressInput) => Promise<SaveProgressResult>;
+  };
+  getProgressUseCase: {
+    execute: (userId: string) => Promise<OnboardingProgressData>;
+  };
+  deleteProgressUseCase: {
+    execute: (userId: string) => Promise<void>;
+  };
+}

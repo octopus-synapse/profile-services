@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { PermissionGuard } from '@/bounded-contexts/identity/authorization';
 import { ThemeApprovalController } from './theme-approval.controller';
 import { ThemeApprovalService } from '../services/theme-approval.service';

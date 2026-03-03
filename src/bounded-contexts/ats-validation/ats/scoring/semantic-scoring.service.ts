@@ -1,33 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import type { SemanticResumeSnapshot } from '../interfaces';
-import { CertificationScoringStrategy } from './certification-scoring.strategy';
-import { DefaultScoringStrategy } from './default-scoring.strategy';
-import { EducationScoringStrategy } from './education-scoring.strategy';
+import { DefinitionDrivenScoringStrategy } from './definition-driven-scoring.strategy';
 import type {
   SemanticScoreBreakdown,
   SemanticScoringResult,
-  SemanticScoringStrategy,
 } from './semantic-scoring-strategy.interface';
-import { WorkExperienceScoringStrategy } from './work-experience-scoring.strategy';
 
+/**
+ * Semantic Scoring Service
+ *
+ * Orchestrates scoring using ONE definition-driven strategy.
+ * No per-type strategy classes — scoring config lives in the DB.
+ */
 @Injectable()
 export class SemanticScoringService {
-  private readonly strategies: Map<string, SemanticScoringStrategy>;
-
-  constructor(
-    workExperienceScoring: WorkExperienceScoringStrategy,
-    educationScoring: EducationScoringStrategy,
-    certificationScoring: CertificationScoringStrategy,
-    private readonly defaultScoring: DefaultScoringStrategy,
-  ) {
-    const strategyList: SemanticScoringStrategy[] = [
-      workExperienceScoring,
-      educationScoring,
-      certificationScoring,
-    ];
-
-    this.strategies = new Map(strategyList.map((strategy) => [strategy.kind, strategy]));
-  }
+  constructor(private readonly scorer: DefinitionDrivenScoringStrategy) {}
 
   score(snapshot: SemanticResumeSnapshot): SemanticScoringResult {
     if (snapshot.items.length === 0) {
@@ -37,9 +24,19 @@ export class SemanticScoringService {
       };
     }
 
+    // Build a lookup from kind → ATS config using the catalog
+    const catalogByKind = new Map(snapshot.sectionTypeCatalog.map((entry) => [entry.kind, entry]));
+
     const breakdown: SemanticScoreBreakdown[] = snapshot.items.map((item) => {
-      const strategy = this.strategies.get(item.sectionKind);
-      const score = strategy ? strategy.score(item) : this.defaultScoring.score(item);
+      const catalogEntry = catalogByKind.get(item.sectionKind);
+
+      const atsConfig = catalogEntry?.ats ?? {
+        isMandatory: false,
+        recommendedPosition: 99,
+        scoring: { baseScore: 30, fieldWeights: {} },
+      };
+
+      const score = this.scorer.score({ item, atsConfig });
 
       return {
         sectionTypeKey: item.sectionTypeKey,

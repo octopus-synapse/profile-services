@@ -7,6 +7,20 @@ import { ResumesRepository } from './resumes.repository';
 
 const MAX_RESUMES_PER_USER = 4;
 
+export type UserResumesPagination = {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+};
+
+export type UserResumesPaginatedResult = {
+  resumes: unknown[];
+  pagination: UserResumesPagination;
+};
+
 /**
  * Sanitize HTML content to prevent XSS attacks
  * Strips all HTML tags and scripts
@@ -116,16 +130,21 @@ export class ResumesService {
     };
   }
 
-  private async findPaginated(userId: string, page: number, limit: number) {
+  private async findPaginated(
+    userId: string,
+    page: number,
+    limit: number,
+  ): Promise<UserResumesPaginatedResult> {
     const skip = (page - 1) * limit;
     const [resumes, total] = await Promise.all([
       this.repository.findAllUserResumesPaginated(userId, skip, limit),
       this.repository.countUserResumes(userId),
     ]);
     const totalPages = Math.ceil(total / limit);
+
     return {
-      data: resumes,
-      meta: {
+      resumes,
+      pagination: {
         total,
         page,
         limit,

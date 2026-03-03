@@ -16,7 +16,7 @@ import { DslModule } from '@/bounded-contexts/dsl/dsl/dsl.module';
 // Export Context
 import { ExportModule } from '@/bounded-contexts/export/export/export.module';
 // Identity Context
-import { AuthModule } from '@/bounded-contexts/identity/auth/auth.module';
+import { IdentityModule } from '@/bounded-contexts/identity';
 import { AuthorizationModule } from '@/bounded-contexts/identity/authorization/authorization.module';
 import { UsersModule } from '@/bounded-contexts/identity/users/users.module';
 // Import Context
@@ -86,7 +86,7 @@ import { AppService } from './app.service';
 
     // Domain Modules
     AuthorizationModule,
-    AuthModule,
+    IdentityModule,
     UsersModule,
     ResumesModule,
     ResumeVersionsModule,

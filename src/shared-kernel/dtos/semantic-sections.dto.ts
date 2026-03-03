@@ -54,11 +54,61 @@ export const SectionItemConstraintsSchema = z.object({
 
 export type SectionItemConstraints = z.infer<typeof SectionItemConstraintsSchema>;
 
+// ============================================================================
+// ATS Scoring Configuration (DB-driven, not hardcoded)
+// ============================================================================
+
+export const AtsScoringConfigSchema = z.object({
+  baseScore: z.number().int().min(0).max(100).default(30),
+  fieldWeights: z.record(z.string(), z.number().min(0).max(100)).default({}),
+});
+
+export type AtsScoringConfig = z.infer<typeof AtsScoringConfigSchema>;
+
+export const AtsConfigSchema = z.object({
+  isMandatory: z.boolean().default(false),
+  recommendedPosition: z.number().int().min(0).default(99),
+  scoring: AtsScoringConfigSchema.default({}),
+});
+
+export type AtsConfig = z.infer<typeof AtsConfigSchema>;
+
+// ============================================================================
+// Export Mapping Configuration (DB-driven, not hardcoded)
+// ============================================================================
+
+export const ExportFieldMappingSchema = z.record(z.string(), z.string());
+
+export type ExportFieldMapping = z.infer<typeof ExportFieldMappingSchema>;
+
+export const ExportConfigSchema = z.object({
+  jsonResume: z
+    .object({
+      sectionKey: z.string().optional(),
+      fieldMapping: ExportFieldMappingSchema.default({}),
+    })
+    .optional(),
+  dsl: z
+    .object({
+      sectionId: z.string(),
+      astType: z.string(),
+    })
+    .optional(),
+});
+
+export type ExportConfig = z.infer<typeof ExportConfigSchema>;
+
+// ============================================================================
+// Section Definition (the single source of truth)
+// ============================================================================
+
 export const SectionDefinitionSchema = z.object({
   schemaVersion: z.number().int().min(1).default(1),
   kind: SectionKindSchema,
   constraints: SectionItemConstraintsSchema.optional(),
   fields: z.array(SectionFieldDefinitionSchema),
+  ats: AtsConfigSchema.optional(),
+  export: ExportConfigSchema.optional(),
 });
 
 export type SectionDefinition = z.infer<typeof SectionDefinitionSchema>;

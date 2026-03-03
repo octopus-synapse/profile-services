@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import type { SectionKind } from '@/shared-kernel/dtos/semantic-sections.dto';
 import type { SemanticResumeSnapshot } from '../interfaces';
 import {
   type ValidationIssue,
@@ -8,26 +7,23 @@ import {
 } from '../interfaces/validation-result.interface';
 import type { SemanticPolicy } from './semantic-policy.interface';
 
+/**
+ * Section Order Semantic Policy
+ *
+ * Determines the recommended section order by reading `ats.recommendedPosition`
+ * from the snapshot's sectionTypeCatalog — NOT hardcoded.
+ */
 @Injectable()
 export class SectionOrderSemanticPolicy implements SemanticPolicy {
-  private readonly recommendedOrder: SectionKind[] = [
-    'PERSONAL_INFO',
-    'SUMMARY',
-    'WORK_EXPERIENCE',
-    'EDUCATION',
-    'SKILL_SET',
-    'CERTIFICATION',
-    'PROJECT',
-    'AWARD',
-    'PUBLICATION',
-    'LANGUAGE',
-    'INTEREST',
-    'RECOMMENDATION',
-  ];
-
   validate(snapshot: SemanticResumeSnapshot): ValidationResult {
     const issues: ValidationIssue[] = [];
     const currentOrder = this.uniqueOrder(snapshot);
+
+    // Build recommended order from the DB-driven catalog, sorted by position
+    const recommendedOrder = snapshot.sectionTypeCatalog
+      .slice()
+      .sort((a, b) => a.ats.recommendedPosition - b.ats.recommendedPosition)
+      .map((entry) => entry.kind);
 
     this.checkExperienceBeforeEducation(currentOrder, issues);
     this.checkSummaryNearTop(currentOrder, issues);
@@ -37,14 +33,14 @@ export class SectionOrderSemanticPolicy implements SemanticPolicy {
       issues,
       metadata: {
         currentOrder,
-        recommendedOrder: this.recommendedOrder,
+        recommendedOrder,
       },
     };
   }
 
-  private uniqueOrder(snapshot: SemanticResumeSnapshot): SectionKind[] {
-    const seen = new Set<SectionKind>();
-    const order: SectionKind[] = [];
+  private uniqueOrder(snapshot: SemanticResumeSnapshot): string[] {
+    const seen = new Set<string>();
+    const order: string[] = [];
 
     for (const item of snapshot.items) {
       if (seen.has(item.sectionKind)) {
@@ -57,7 +53,7 @@ export class SectionOrderSemanticPolicy implements SemanticPolicy {
     return order;
   }
 
-  private checkExperienceBeforeEducation(order: SectionKind[], issues: ValidationIssue[]): void {
+  private checkExperienceBeforeEducation(order: string[], issues: ValidationIssue[]): void {
     const experienceIndex = order.indexOf('WORK_EXPERIENCE');
     const educationIndex = order.indexOf('EDUCATION');
 
@@ -71,7 +67,7 @@ export class SectionOrderSemanticPolicy implements SemanticPolicy {
     }
   }
 
-  private checkSummaryNearTop(order: SectionKind[], issues: ValidationIssue[]): void {
+  private checkSummaryNearTop(order: string[], issues: ValidationIssue[]): void {
     const summaryIndex = order.indexOf('SUMMARY');
 
     if (summaryIndex > 2) {

@@ -15,9 +15,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { Public } from '@/bounded-contexts/identity/auth/decorators/public.decorator';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
-import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
+import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
+import { JwtAuthGuard, Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { UsersService } from '@/bounded-contexts/identity/users/users.service';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
@@ -84,7 +83,7 @@ export class UsersProfileController {
     return {
       success: true,
       data: {
-        profile: result.user,
+        profile: result,
       },
     };
   }
@@ -93,7 +92,9 @@ export class UsersProfileController {
   @Patch('username')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update username (once every 30 days)' })
-  @ApiDataResponse(UsernameUpdateDataDto, { description: 'Username updated successfully' })
+  @ApiDataResponse(UsernameUpdateDataDto, {
+    description: 'Username updated successfully',
+  })
   async updateUsername(
     @CurrentUser() user: UserPayload,
     @Body() updateUsername: UpdateUsername,
@@ -104,7 +105,7 @@ export class UsersProfileController {
       success: true,
       data: {
         username: result.username,
-        message: result.message,
+        message: 'Username updated successfully',
       },
     };
   }

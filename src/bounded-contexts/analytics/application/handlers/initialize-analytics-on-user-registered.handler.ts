@@ -11,7 +11,7 @@
 
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { UserRegisteredEvent } from '@/bounded-contexts/identity/domain/events';
+import { UserRegisteredEvent } from '@/bounded-contexts/identity/shared-kernel/domain/events';
 
 @Injectable()
 export class InitializeAnalyticsOnUserRegisteredHandler {

@@ -5,8 +5,8 @@
 
 import { Body, Controller, Get, HttpCode, HttpStatus, Patch, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
-import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
+import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
+import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { UsersService } from '@/bounded-contexts/identity/users/users.service';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
@@ -50,12 +50,12 @@ export class UsersPreferencesController {
     @CurrentUser() user: UserPayload,
     @Body() updatePreferences: UpdatePreferences,
   ): Promise<DataResponse<UserOperationMessageDataDto>> {
-    const result = await this.usersService.updatePreferences(user.userId, updatePreferences);
+    await this.usersService.updatePreferences(user.userId, updatePreferences);
 
     return {
       success: true,
       data: {
-        message: result.message,
+        message: 'Preferences updated successfully',
       },
     };
   }
@@ -92,7 +92,7 @@ export class UsersPreferencesController {
     return {
       success: true,
       data: {
-        preferences: preferences.preferences,
+        preferences,
       },
     };
   }

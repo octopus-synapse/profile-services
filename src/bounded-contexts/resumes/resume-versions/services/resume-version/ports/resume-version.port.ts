@@ -1,47 +1,53 @@
-import type { Prisma } from '@prisma/client';
+/**
+ * Resume Version Port
+ *
+ * Defines domain types and repository abstraction for resume versioning.
+ * NO infrastructure dependencies allowed here.
+ */
 
-export type ResumeVersionListItem = Prisma.ResumeVersionGetPayload<{
-  select: {
-    id: true;
-    versionNumber: true;
-    label: true;
-    createdAt: true;
-  };
-}>;
+// ============================================================================
+// Domain Types (Pure TypeScript - No Prisma)
+// ============================================================================
 
-export type ResumeForSnapshot = Prisma.ResumeGetPayload<{
-  include: {
-    resumeSections: {
-      include: {
-        sectionType: {
-          select: {
-            semanticKind: true;
-          };
-        };
-        items: {
-          select: {
-            content: true;
-          };
-        };
-      };
-    };
-  };
-}>;
+export type ResumeVersionListItem = {
+  id: string;
+  versionNumber: number;
+  label: string | null;
+  createdAt: Date;
+};
 
-export type ResumeVersionRecord = Prisma.ResumeVersionGetPayload<{
-  select: {
-    id: true;
-    resumeId: true;
-    versionNumber: true;
-    snapshot: true;
-    label: true;
-    createdAt: true;
+export type ResumeSectionItem = {
+  content: unknown;
+};
+
+export type ResumeSectionForSnapshot = {
+  sectionType: {
+    semanticKind: string | null;
   };
-}>;
+  items: ResumeSectionItem[];
+};
+
+export type ResumeForSnapshot = {
+  userId: string;
+  resumeSections: ResumeSectionForSnapshot[];
+};
+
+export type ResumeVersionRecord = {
+  id: string;
+  resumeId: string;
+  versionNumber: number;
+  snapshot: unknown;
+  label: string | null;
+  createdAt: Date;
+};
 
 export type VersionRestoreResult = {
   restoredFrom: Date;
 };
+
+// ============================================================================
+// Repository Port (Abstraction)
+// ============================================================================
 
 export abstract class ResumeVersionRepositoryPort {
   abstract findResumeForSnapshot(resumeId: string): Promise<ResumeForSnapshot | null>;
@@ -51,7 +57,7 @@ export abstract class ResumeVersionRepositoryPort {
   abstract createResumeVersion(data: {
     resumeId: string;
     versionNumber: number;
-    snapshot: Prisma.InputJsonValue;
+    snapshot: unknown;
     label?: string;
   }): Promise<ResumeVersionRecord>;
 
@@ -70,6 +76,10 @@ export abstract class ResumeVersionRepositoryPort {
 
   abstract deleteVersionsByIds(ids: string[]): Promise<void>;
 }
+
+// ============================================================================
+// Use Cases Interface
+// ============================================================================
 
 export const RESUME_VERSION_USE_CASES = Symbol('RESUME_VERSION_USE_CASES');
 

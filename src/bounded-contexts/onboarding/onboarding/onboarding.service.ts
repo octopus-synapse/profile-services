@@ -4,7 +4,7 @@ import { AuditLogService } from '@/bounded-contexts/platform/common/audit/audit-
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { OnboardingProgress } from '@/shared-kernel';
-import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@/shared-kernel';
+import { ERROR_MESSAGES } from '@/shared-kernel';
 import { type OnboardingData, onboardingDataSchema } from './schemas/onboarding.schema';
 import { EducationOnboardingService } from './services/education-onboarding.service';
 import { ExperienceOnboardingService } from './services/experience-onboarding.service';
@@ -66,10 +66,9 @@ export class OnboardingService {
             resumeId: resume.id,
           });
 
+          // Return domain data only - no envelope (controller responsibility)
           return {
-            success: true,
             resumeId: resume.id,
-            message: SUCCESS_MESSAGES.ONBOARDING_COMPLETED,
           };
         },
         {

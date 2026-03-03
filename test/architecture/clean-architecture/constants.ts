@@ -9,7 +9,6 @@ export const CLEAN_ARCHITECTURE_MODULES = [
   'resumes/resume-versions',
   'skills-catalog/skills',
   'identity/users',
-  'identity/auth',
 ];
 
 // Services with Clean Architecture structure (use-cases subdirectory)
@@ -19,10 +18,8 @@ export const CLEAN_ARCHITECTURE_SERVICES = [
   'identity/users/services/user-management',
   'identity/users/services/user-preferences',
   'identity/users/services/username',
-  'identity/auth/services/password-reset',
-  'identity/auth/services/email-verification',
-  'identity/auth/services/gdpr-deletion',
-  'identity/auth/services/account-management',
+  'onboarding/onboarding/services/onboarding-progress',
+  'onboarding/onboarding/onboarding',
 ];
 
 // Bounded contexts in the system

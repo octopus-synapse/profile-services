@@ -14,8 +14,8 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
-import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
+import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
+import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
@@ -55,9 +55,38 @@ export class ResumesController {
     @Query('limit', new DefaultValuePipe(50), ParseIntPipe) limit?: number,
   ): Promise<DataResponse<PaginatedResumesDataDto>> {
     const result = await this.resumesService.findAllUserResumes(user.userId, page, limit);
+
+    const paginatedResult = result as {
+      resumes?: ResumeListItemDto[];
+      pagination?: {
+        total: number;
+        page: number;
+        limit: number;
+        totalPages: number;
+      };
+    };
+
+    if (paginatedResult.resumes && paginatedResult.pagination) {
+      return {
+        success: true,
+        data: {
+          data: paginatedResult.resumes,
+          meta: paginatedResult.pagination,
+        },
+      };
+    }
+
     return {
       success: true,
-      data: result as unknown as PaginatedResumesDataDto,
+      data: {
+        data: result as unknown as ResumeListItemDto[],
+        meta: {
+          total: (result as unknown[]).length,
+          page: page ?? 1,
+          limit: limit ?? 50,
+          totalPages: 1,
+        },
+      },
     };
   }
 

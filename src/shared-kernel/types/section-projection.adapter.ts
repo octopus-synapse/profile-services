@@ -4,10 +4,14 @@
  * Central adapter for transforming generic section data into context-specific projections.
  * This eliminates duplicate mapping logic across DSL, Export, Analytics, GDPR, etc.
  *
- * Architecture principle: One canonical mapping kernel, many presenters.
+ * Architecture:
+ *   - Field extraction utilities are GENERIC (getString, getDate, etc.)
+ *   - Well-known projectors exist for backward-compat but are NOT the only path.
+ *   - `projectGenericItem` works for ANY section type by reading content directly.
+ *   - `projectItemsByKind` accepts plain `string` kinds — no union needed.
  */
 
-import type { GenericSectionItem, SemanticKind } from './generic-section.types';
+import type { GenericSectionItem } from './generic-section.types';
 
 /**
  * Minimal section item interface for projection operations.
@@ -25,7 +29,7 @@ export interface SectionItemInput {
  */
 export interface SectionInput {
   id: string;
-  semanticKind: SemanticKind;
+  semanticKind: string;
   order: number;
   isVisible: boolean;
   items: SectionItemInput[];
@@ -119,7 +123,7 @@ type RawSection = {
  */
 export interface ProjectionSection {
   id: string;
-  semanticKind: SemanticKind;
+  semanticKind: string;
   order: number;
   isVisible: boolean;
   items: {
@@ -136,7 +140,7 @@ export interface ProjectionSection {
 export function toGenericSections(rawSections: RawSection[]): ProjectionSection[] {
   return rawSections.map((section, sectionIndex) => ({
     id: section.id ?? `section-${sectionIndex}`,
-    semanticKind: section.sectionType.semanticKind as SemanticKind,
+    semanticKind: section.sectionType.semanticKind,
     order: section.order ?? sectionIndex,
     isVisible: section.isVisible ?? true,
     items: section.items.map((item, itemIndex) => ({
@@ -477,20 +481,14 @@ export function getVisibleItems(section: SectionInput): SectionItemInput[] {
 /**
  * Find a section by semantic kind.
  */
-export function findSectionByKind(
-  sections: SectionInput[],
-  kind: SemanticKind,
-): SectionInput | null {
+export function findSectionByKind(sections: SectionInput[], kind: string): SectionInput | null {
   return sections.find((s) => s.semanticKind === kind && s.isVisible) ?? null;
 }
 
 /**
  * Find all sections matching a semantic kind.
  */
-export function findAllSectionsByKind(
-  sections: SectionInput[],
-  kind: SemanticKind,
-): SectionInput[] {
+export function findAllSectionsByKind(sections: SectionInput[], kind: string): SectionInput[] {
   return sections.filter((s) => s.semanticKind === kind && s.isVisible);
 }
 
@@ -499,7 +497,7 @@ export function findAllSectionsByKind(
  */
 export function projectItemsByKind<T>(
   sections: SectionInput[],
-  kind: SemanticKind,
+  kind: string,
   projector: (item: GenericSectionItem) => T,
 ): T[] {
   return findAllSectionsByKind(sections, kind)
@@ -553,8 +551,8 @@ export function projectResumeSections(sections: SectionInput[]): ResumeProjectio
 /**
  * Count items per section kind.
  */
-export function countItemsByKind(sections: SectionInput[]): Record<SemanticKind, number> {
-  const counts: Partial<Record<SemanticKind, number>> = {};
+export function countItemsByKind(sections: SectionInput[]): Record<string, number> {
+  const counts: Record<string, number> = {};
 
   for (const section of sections) {
     if (!section.isVisible) continue;
@@ -562,7 +560,7 @@ export function countItemsByKind(sections: SectionInput[]): Record<SemanticKind,
     counts[section.semanticKind] = (counts[section.semanticKind] ?? 0) + visibleCount;
   }
 
-  return counts as Record<SemanticKind, number>;
+  return counts;
 }
 
 /**
@@ -721,6 +719,61 @@ export function toJsonResumeReference(rec: RecommendationProjection) {
 }
 
 // ============================================================================
+// Generic Projection (works for ANY section type without code changes)
+// ============================================================================
+
+/**
+ * Generic projected item — works for any section type.
+ * Consumers read fields by key from content, using the definition to know what's available.
+ */
+export interface GenericProjectedItem {
+  id: string;
+  order: number;
+  content: Record<string, unknown>;
+}
+
+/**
+ * Get visible items for a section kind as generic projections.
+ * No type-specific mapping — just gives you raw content for rendering/export.
+ */
+export function getVisibleItemsByKind(
+  sections: SectionInput[],
+  kind: string,
+): GenericProjectedItem[] {
+  return findAllSectionsByKind(sections, kind)
+    .flatMap((section) => getVisibleItems(section))
+    .sort((a, b) => a.order - b.order)
+    .map((item) => ({
+      id: item.id,
+      order: item.order,
+      content: item.content,
+    }));
+}
+
+// ============================================================================
+// Well-Known Type Registry (backward-compat — NOT the only path)
+// ============================================================================
+
+type ItemProjector<T> = (item: GenericSectionItem) => T;
+
+/**
+ * Registry of well-known projectors indexed by semantic kind.
+ * For unknown kinds, consumers should use `getVisibleItemsByKind` + field extraction.
+ */
+const WELL_KNOWN_PROJECTORS: Record<string, ItemProjector<unknown>> = {
+  WORK_EXPERIENCE: projectExperience,
+  EDUCATION: projectEducation,
+  SKILL_SET: projectSkill,
+  LANGUAGE: projectLanguage,
+  PROJECT: projectProject,
+  CERTIFICATION: projectCertification,
+  AWARD: projectAward,
+  INTEREST: projectInterest,
+  RECOMMENDATION: projectRecommendation,
+  PUBLICATION: projectPublication,
+};
+
+// ============================================================================
 // SectionProjectionAdapter - Consolidated API
 // ============================================================================
 
@@ -731,6 +784,28 @@ export function toJsonResumeReference(rec: RecommendationProjection) {
 export const SectionProjectionAdapter = {
   /** Convert raw Prisma section data to SectionInput[] */
   toGenericSections,
+
+  /**
+   * Generic: get visible items for any kind — no type mapping needed.
+   */
+  getVisibleItemsByKind,
+
+  /**
+   * Project items using the well-known projector registry.
+   * Falls back to generic content projection for unknown kinds.
+   */
+  projectByKind<T = unknown>(
+    sections: SectionInput[],
+    kind: string,
+    customProjector?: ItemProjector<T>,
+  ): T[] {
+    const projector = customProjector ?? (WELL_KNOWN_PROJECTORS[kind] as ItemProjector<T>);
+    if (projector) {
+      return projectItemsByKind(sections, kind, projector);
+    }
+    // Fallback: return generic projected items
+    return getVisibleItemsByKind(sections, kind) as unknown as T[];
+  },
 
   /** Project experiences from sections */
   projectExperience(sections: SectionInput[]): ExperienceProjection[] {

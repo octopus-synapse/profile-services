@@ -15,7 +15,8 @@ export class ResumeVersionRepository extends ResumeVersionRepositoryPort {
   findResumeForSnapshot(resumeId: string): Promise<ResumeForSnapshot | null> {
     return this.prisma.resume.findUnique({
       where: { id: resumeId },
-      include: {
+      select: {
+        userId: true,
         resumeSections: {
           include: {
             sectionType: {

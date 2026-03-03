@@ -140,14 +140,13 @@ describe('GitHubSyncService', () => {
       );
     });
 
-    it('should return success with profile and stats', async () => {
+    it('should return profile and stats', async () => {
       const result = await service.syncUserGitHub(
         'user-123',
         'testuser',
         'resume-123',
       );
 
-      expect(result.success).toBe(true);
       expect(result.profile.username).toBe('testuser');
       expect(result.stats.totalStars).toBe(150);
       expect(result.stats.contributionsAdded).toBe(1);

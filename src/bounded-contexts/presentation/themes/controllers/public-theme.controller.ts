@@ -24,7 +24,9 @@ export class PublicThemeController {
 
   @Get()
   @ApiOperation({ summary: 'List published themes' })
-  @ApiDataResponse(ThemePaginatedListDataDto, { description: 'Published themes returned' })
+  @ApiDataResponse(ThemePaginatedListDataDto, {
+    description: 'Published themes returned',
+  })
   async findAllThemesWithPagination(
     @Query() queryOptions: QueryThemes,
   ): Promise<DataResponse<ThemePaginatedListDataDto>> {
@@ -33,8 +35,8 @@ export class PublicThemeController {
     return {
       success: true,
       data: {
-        themes: themes.data,
-        pagination: themes.meta,
+        themes: themes.themes as Record<string, unknown>[],
+        pagination: themes.pagination,
       },
     };
   }
@@ -69,7 +71,9 @@ export class PublicThemeController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get theme by ID' })
-  @ApiDataResponse(ThemeNullableEntityDataDto, { description: 'Theme returned by id' })
+  @ApiDataResponse(ThemeNullableEntityDataDto, {
+    description: 'Theme returned by id',
+  })
   async findThemeById(
     @Param('id') themeId: string,
   ): Promise<DataResponse<ThemeNullableEntityDataDto>> {

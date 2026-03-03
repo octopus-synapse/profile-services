@@ -8,6 +8,7 @@ describe('ContentQualitySemanticPolicy', () => {
   it('warns when required roles are missing', () => {
     const snapshot: SemanticResumeSnapshot = {
       resumeId: 'resume-1',
+      sectionTypeCatalog: [],
       items: [
         {
           sectionTypeKey: 'work_experience_v1',
@@ -30,6 +31,7 @@ describe('ContentQualitySemanticPolicy', () => {
   it('flags short description', () => {
     const snapshot: SemanticResumeSnapshot = {
       resumeId: 'resume-2',
+      sectionTypeCatalog: [],
       items: [
         {
           sectionTypeKey: 'work_experience_v1',

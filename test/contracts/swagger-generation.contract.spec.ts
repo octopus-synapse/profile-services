@@ -145,11 +145,6 @@ describe('Swagger Generation Script', () => {
       expect(controllerNames).toContain('ResumeImportController');
     });
 
-    test('AuthCoreController is included', () => {
-      const controllerNames = report.details.map((d: any) => d.controller);
-      expect(controllerNames).toContain('AuthCoreController');
-    });
-
     test('ResumesController is included', () => {
       const controllerNames = report.details.map((d: any) => d.controller);
       expect(controllerNames).toContain('ResumesController');

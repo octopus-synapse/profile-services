@@ -6,27 +6,13 @@
  */
 
 /**
- * Semantic kinds for resume sections.
- * These are the only allowed section kind identifiers in production code.
+ * Semantic kind for resume sections.
+ * This is a plain string — new section types can be added in the DB
+ * without touching any code. No more union of doom.
+ *
+ * @example 'WORK_EXPERIENCE' | 'EDUCATION' | 'SKILL_SET' | 'MY_CUSTOM_SECTION'
  */
-export type SemanticKind =
-  | 'WORK_EXPERIENCE'
-  | 'EDUCATION'
-  | 'SKILL_SET'
-  | 'LANGUAGE'
-  | 'PROJECT'
-  | 'CERTIFICATION'
-  | 'AWARD'
-  | 'INTEREST'
-  | 'RECOMMENDATION'
-  | 'PUBLICATION'
-  | 'SUMMARY'
-  | 'ACHIEVEMENT'
-  | 'TALK'
-  | 'HACKATHON'
-  | 'BUG_BOUNTY'
-  | 'OPEN_SOURCE'
-  | 'CUSTOM';
+export type SemanticKind = string;
 
 /**
  * Generic section item from database.

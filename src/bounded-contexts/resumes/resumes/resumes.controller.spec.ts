@@ -9,7 +9,7 @@
  */
 
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
+import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ResumesController } from './resumes.controller';
 import type { ResumesService } from './resumes.service';
 
@@ -33,8 +33,8 @@ describe('ResumesController', () => {
   };
 
   const mockPaginatedResumes = {
-    data: [mockResume],
-    meta: { total: 1, page: 1, limit: 50, totalPages: 1 },
+    resumes: [mockResume],
+    pagination: { total: 1, page: 1, limit: 50, totalPages: 1 },
   };
 
   beforeEach(() => {
@@ -58,7 +58,10 @@ describe('ResumesController', () => {
 
       expect(result).toHaveProperty('success', true);
       expect(result).toHaveProperty('data');
-      expect(result.data).toEqual(mockPaginatedResumes);
+      expect(result.data).toEqual({
+        data: mockPaginatedResumes.resumes,
+        meta: mockPaginatedResumes.pagination,
+      });
       expect(mockResumesService.findAllUserResumes).toHaveBeenCalledWith(
         mockUser.userId,
         undefined,

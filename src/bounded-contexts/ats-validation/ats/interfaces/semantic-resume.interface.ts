@@ -9,9 +9,32 @@ export interface SemanticSectionItem {
   values: SemanticFieldValue[];
 }
 
+/**
+ * ATS configuration entry for a section type.
+ * Loaded from the DB definition — never hardcoded.
+ */
+export interface SectionTypeAtsEntry {
+  key: string;
+  kind: string;
+  ats: {
+    isMandatory: boolean;
+    recommendedPosition: number;
+    scoring: {
+      baseScore: number;
+      fieldWeights: Record<string, number>;
+    };
+  };
+}
+
 export interface SemanticResumeSnapshot {
   resumeId: string;
   items: SemanticSectionItem[];
+  /**
+   * All active section types with their ATS config.
+   * Scoring, mandatory policy, and ordering policy read from this
+   * instead of hardcoding per-type behavior.
+   */
+  sectionTypeCatalog: SectionTypeAtsEntry[];
 }
 
 export interface SectionSemanticCatalogPort {

@@ -196,6 +196,8 @@ export {
   EventPublisher,
   type EventPublisherPort,
 } from './event-bus';
+// Domain Exceptions (framework-independent)
+export * from './exceptions';
 // Schemas (canonical source)
 export * from './schemas';
 // Types (API types, etc.)

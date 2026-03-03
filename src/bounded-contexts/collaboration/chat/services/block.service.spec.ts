@@ -1,11 +1,21 @@
+import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { BlockService } from './block.service';
 import { BlockedUserRepository } from '../repositories/blocked-user.repository';
 
+// Helper to type mocked repository methods
+type Mocked<T> = {
+  [K in keyof T]: T[K] extends (...args: infer A) => infer R
+    ? ReturnType<typeof mock> & ((...args: A) => R)
+    : T[K];
+};
+
+
+
 describe('BlockService', () => {
   let service: BlockService;
-  let blockedUserRepo: jest.Mocked<BlockedUserRepository>;
+  let blockedUserRepo: Mocked<BlockedUserRepository>;
 
   const mockBlockedUser = {
     id: 'block1',
@@ -22,12 +32,22 @@ describe('BlockService', () => {
   };
 
   beforeEach(async () => {
+    // Create mock functions using Bun's mock()
     const mockRepo = {
-      block: jest.fn(),
-      unblock: jest.fn(),
-      isBlocked: jest.fn(),
-      isBlockedBetween: jest.fn(),
-      getBlockedUsers: jest.fn(),
+      block:
+        mock<
+          (
+            blockerId: string,
+            blockedId: string,
+            reason?: string,
+          ) => Promise<any>
+        >(),
+      unblock: mock<(blockerId: string, blockedId: string) => Promise<any>>(),
+      isBlocked:
+        mock<(blockerId: string, blockedId: string) => Promise<boolean>>(),
+      isBlockedBetween:
+        mock<(userId1: string, userId2: string) => Promise<boolean>>(),
+      getBlockedUsers: mock<(userId: string) => Promise<any[]>>(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -38,7 +58,9 @@ describe('BlockService', () => {
     }).compile();
 
     service = module.get<BlockService>(BlockService);
-    blockedUserRepo = module.get(BlockedUserRepository);
+    blockedUserRepo = module.get(
+      BlockedUserRepository,
+    ) as Mocked<BlockedUserRepository>;
   });
 
   describe('blockUser', () => {

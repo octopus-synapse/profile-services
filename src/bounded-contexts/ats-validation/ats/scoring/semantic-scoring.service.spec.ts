@@ -1,34 +1,66 @@
 import { describe, expect, it } from 'bun:test';
-import {
-  DateRangeExtractor,
-  JobTitleExtractor,
-  OrganizationExtractor,
-} from '../extractors';
-import { CertificationScoringStrategy } from './certification-scoring.strategy';
-import { DefaultScoringStrategy } from './default-scoring.strategy';
-import { EducationScoringStrategy } from './education-scoring.strategy';
+import type { SectionTypeAtsEntry } from '../interfaces';
+import { DefinitionDrivenScoringStrategy } from './definition-driven-scoring.strategy';
 import { SemanticScoringService } from './semantic-scoring.service';
-import { WorkExperienceScoringStrategy } from './work-experience-scoring.strategy';
 
 describe('SemanticScoringService', () => {
-  const organizationExtractor = new OrganizationExtractor();
-  const jobTitleExtractor = new JobTitleExtractor();
-  const dateRangeExtractor = new DateRangeExtractor();
+  const scorer = new DefinitionDrivenScoringStrategy();
+  const service = new SemanticScoringService(scorer);
 
-  const service = new SemanticScoringService(
-    new WorkExperienceScoringStrategy(
-      organizationExtractor,
-      jobTitleExtractor,
-      dateRangeExtractor,
-    ),
-    new EducationScoringStrategy(organizationExtractor, dateRangeExtractor),
-    new CertificationScoringStrategy(organizationExtractor),
-    new DefaultScoringStrategy(),
-  );
+  const sectionTypeCatalog: SectionTypeAtsEntry[] = [
+    {
+      key: 'work_experience_v1',
+      kind: 'WORK_EXPERIENCE',
+      ats: {
+        isMandatory: true,
+        recommendedPosition: 2,
+        scoring: {
+          baseScore: 30,
+          fieldWeights: {
+            ORGANIZATION: 20,
+            JOB_TITLE: 20,
+            START_DATE: 15,
+            END_DATE: 10,
+            DESCRIPTION: 5,
+          },
+        },
+      },
+    },
+    {
+      key: 'education_v1',
+      kind: 'EDUCATION',
+      ats: {
+        isMandatory: true,
+        recommendedPosition: 3,
+        scoring: {
+          baseScore: 35,
+          fieldWeights: {
+            ORGANIZATION: 20,
+            DEGREE: 25,
+            START_DATE: 10,
+            END_DATE: 10,
+          },
+        },
+      },
+    },
+    {
+      key: 'certification_v1',
+      kind: 'CERTIFICATION',
+      ats: {
+        isMandatory: false,
+        recommendedPosition: 5,
+        scoring: {
+          baseScore: 40,
+          fieldWeights: { TITLE: 30, ORGANIZATION: 20, ISSUE_DATE: 10 },
+        },
+      },
+    },
+  ];
 
-  it('scores semantic snapshot using strategies by section kind', () => {
+  it('scores semantic snapshot using definition-driven strategy', () => {
     const result = service.score({
       resumeId: 'resume-1',
+      sectionTypeCatalog,
       items: [
         {
           sectionTypeKey: 'work_experience_v1',
@@ -50,13 +82,15 @@ describe('SemanticScoringService', () => {
     });
 
     expect(result.breakdown.length).toBe(1);
-    expect(result.breakdown[0].score).toBeGreaterThanOrEqual(80);
+    // baseScore(30) + ORGANIZATION(20) + JOB_TITLE(20) + START_DATE(15) + END_DATE(10) + DESCRIPTION(5) = 100
+    expect(result.breakdown[0].score).toBe(100);
     expect(result.score).toBe(result.breakdown[0].score);
   });
 
-  it('uses default strategy for custom kinds', () => {
+  it('uses density-based fallback for unknown kinds', () => {
     const result = service.score({
       resumeId: 'resume-2',
+      sectionTypeCatalog,
       items: [
         {
           sectionTypeKey: 'custom_v1',
@@ -67,6 +101,7 @@ describe('SemanticScoringService', () => {
       ],
     });
 
+    // Fallback: baseScore(30) + density(1.0) * 45 = 75
     expect(result.score).toBeGreaterThanOrEqual(35);
   });
 });

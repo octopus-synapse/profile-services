@@ -8,26 +8,42 @@ import type {
   SemanticRole,
 } from '@/shared-kernel/dtos/semantic-sections.dto';
 import {
+  AtsConfigSchema,
   SectionDefinitionSchema,
   SectionKindSchema,
 } from '@/shared-kernel/dtos/semantic-sections.dto';
-import type { SectionSemanticCatalogPort, SemanticResumeSnapshot } from '../interfaces';
+import type {
+  SectionSemanticCatalogPort,
+  SectionTypeAtsEntry,
+  SemanticResumeSnapshot,
+} from '../interfaces';
 
 @Injectable()
 export class SectionSemanticCatalogAdapter implements SectionSemanticCatalogPort {
   constructor(private readonly prisma: PrismaService) {}
 
   async getSemanticResumeSnapshot(resumeId: string): Promise<SemanticResumeSnapshot> {
-    const resumeSections = await this.prisma.resumeSection.findMany({
-      where: { resumeId },
-      include: {
-        sectionType: true,
-        items: {
-          orderBy: { order: 'asc' },
+    // Fetch resume sections AND all active section types in parallel
+    const [resumeSections, allSectionTypes] = await Promise.all([
+      this.prisma.resumeSection.findMany({
+        where: { resumeId },
+        include: {
+          sectionType: true,
+          items: {
+            orderBy: { order: 'asc' },
+          },
         },
-      },
-      orderBy: { order: 'asc' },
-    });
+        orderBy: { order: 'asc' },
+      }),
+      this.prisma.sectionType.findMany({
+        where: { isActive: true },
+        select: {
+          key: true,
+          semanticKind: true,
+          definition: true,
+        },
+      }),
+    ]);
 
     const items = resumeSections.flatMap((resumeSection) => {
       const definition = this.parseDefinition(resumeSection.sectionType.definition);
@@ -47,9 +63,43 @@ export class SectionSemanticCatalogAdapter implements SectionSemanticCatalogPort
       });
     });
 
+    // Build ATS catalog from ALL active section types
+    const sectionTypeCatalog: SectionTypeAtsEntry[] = allSectionTypes.map((st) => {
+      const definition = this.parseDefinition(st.definition);
+      const atsConfig = this.parseAtsConfig(definition);
+
+      return {
+        key: st.key,
+        kind: st.semanticKind,
+        ats: atsConfig,
+      };
+    });
+
     return {
       resumeId,
       items,
+      sectionTypeCatalog,
+    };
+  }
+
+  private parseAtsConfig(definition: SectionDefinition): SectionTypeAtsEntry['ats'] {
+    const parsed = AtsConfigSchema.safeParse(definition.ats);
+
+    if (!parsed.success) {
+      return {
+        isMandatory: false,
+        recommendedPosition: 99,
+        scoring: { baseScore: 30, fieldWeights: {} },
+      };
+    }
+
+    return {
+      isMandatory: parsed.data.isMandatory,
+      recommendedPosition: parsed.data.recommendedPosition,
+      scoring: {
+        baseScore: parsed.data.scoring.baseScore,
+        fieldWeights: parsed.data.scoring.fieldWeights,
+      },
     };
   }
 

@@ -43,6 +43,21 @@ const sectionTypes: SectionTypeSeedData[] = [
           meta: { label: 'Category' },
         },
       ],
+      ats: {
+        isMandatory: true,
+        recommendedPosition: 4,
+        scoring: {
+          baseScore: 40,
+          fieldWeights: { SKILL_NAME: 50, CATEGORY: 10 },
+        },
+      },
+      export: {
+        jsonResume: {
+          sectionKey: 'skills',
+          fieldMapping: { name: 'name', category: 'keywords[0]' },
+        },
+        dsl: { sectionId: 'skills', astType: 'skills' },
+      },
     },
   },
   {
@@ -74,6 +89,21 @@ const sectionTypes: SectionTypeSeedData[] = [
           meta: { label: 'Proficiency' },
         },
       ],
+      ats: {
+        isMandatory: false,
+        recommendedPosition: 9,
+        scoring: {
+          baseScore: 35,
+          fieldWeights: { LANGUAGE_NAME: 50, PROFICIENCY: 15 },
+        },
+      },
+      export: {
+        jsonResume: {
+          sectionKey: 'languages',
+          fieldMapping: { name: 'language', level: 'fluency' },
+        },
+        dsl: { sectionId: 'languages', astType: 'languages' },
+      },
     },
   },
   {
@@ -142,6 +172,34 @@ const sectionTypes: SectionTypeSeedData[] = [
           meta: { label: 'Key Achievements' },
         },
       ],
+      ats: {
+        isMandatory: true,
+        recommendedPosition: 2,
+        scoring: {
+          baseScore: 30,
+          fieldWeights: {
+            ORGANIZATION: 20,
+            JOB_TITLE: 20,
+            START_DATE: 15,
+            END_DATE: 10,
+            DESCRIPTION: 5,
+          },
+        },
+      },
+      export: {
+        jsonResume: {
+          sectionKey: 'work',
+          fieldMapping: {
+            company: 'name',
+            role: 'position',
+            startDate: 'startDate',
+            endDate: 'endDate',
+            description: 'summary',
+            achievements: 'highlights',
+          },
+        },
+        dsl: { sectionId: 'experience', astType: 'experience' },
+      },
     },
   },
   {
@@ -193,6 +251,31 @@ const sectionTypes: SectionTypeSeedData[] = [
           meta: { label: 'Proof URL', format: 'uri' },
         },
       ],
+      ats: {
+        isMandatory: false,
+        recommendedPosition: 7,
+        scoring: {
+          baseScore: 35,
+          fieldWeights: {
+            TITLE: 30,
+            ORGANIZATION: 20,
+            ISSUE_DATE: 10,
+            DESCRIPTION: 5,
+          },
+        },
+      },
+      export: {
+        jsonResume: {
+          sectionKey: 'awards',
+          fieldMapping: {
+            title: 'title',
+            issuer: 'awarder',
+            date: 'date',
+            description: 'summary',
+          },
+        },
+        dsl: { sectionId: 'awards', astType: 'awards' },
+      },
     },
   },
   {
@@ -245,6 +328,32 @@ const sectionTypes: SectionTypeSeedData[] = [
           meta: { label: 'End Date' },
         },
       ],
+      ats: {
+        isMandatory: true,
+        recommendedPosition: 3,
+        scoring: {
+          baseScore: 35,
+          fieldWeights: {
+            ORGANIZATION: 20,
+            DEGREE: 25,
+            START_DATE: 10,
+            END_DATE: 10,
+          },
+        },
+      },
+      export: {
+        jsonResume: {
+          sectionKey: 'education',
+          fieldMapping: {
+            institution: 'institution',
+            degree: 'studyType',
+            field: 'area',
+            startDate: 'startDate',
+            endDate: 'endDate',
+          },
+        },
+        dsl: { sectionId: 'education', astType: 'education' },
+      },
     },
   },
   {
@@ -290,6 +399,21 @@ const sectionTypes: SectionTypeSeedData[] = [
           meta: { label: 'Expiry Date' },
         },
       ],
+      ats: {
+        isMandatory: false,
+        recommendedPosition: 5,
+        scoring: {
+          baseScore: 40,
+          fieldWeights: { TITLE: 30, ORGANIZATION: 20, ISSUE_DATE: 10 },
+        },
+      },
+      export: {
+        jsonResume: {
+          sectionKey: 'certificates',
+          fieldMapping: { name: 'name', issuer: 'issuer', issueDate: 'date' },
+        },
+        dsl: { sectionId: 'certifications', astType: 'certifications' },
+      },
     },
   },
   {
@@ -319,6 +443,17 @@ const sectionTypes: SectionTypeSeedData[] = [
           },
         },
       ],
+      ats: {
+        isMandatory: false,
+        recommendedPosition: 1,
+        scoring: {
+          baseScore: 50,
+          fieldWeights: { SUMMARY_TEXT: 50 },
+        },
+      },
+      export: {
+        dsl: { sectionId: 'summary', astType: 'summary' },
+      },
     },
   },
 ];

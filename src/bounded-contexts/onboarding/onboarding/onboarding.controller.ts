@@ -6,8 +6,8 @@ import {
   ApiPropertyOptional,
   ApiTags,
 } from '@nestjs/swagger';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
-import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
+import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
+import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
@@ -20,21 +20,12 @@ import { OnboardingService } from './onboarding.service';
 
 /** DTO for complete onboarding response */
 export class CompleteOnboardingResponseDto {
-  @ApiProperty({ example: true })
-  success!: boolean;
-
   @ApiProperty({ example: 'cuid123' })
   resumeId!: string;
-
-  @ApiProperty({ example: 'Onboarding completed successfully' })
-  message!: string;
 }
 
 /** DTO for save progress response */
 export class SaveProgressResponseDto {
-  @ApiProperty({ example: true })
-  success!: boolean;
-
   @ApiProperty({ example: 'professional-profile' })
   currentStep!: string;
 

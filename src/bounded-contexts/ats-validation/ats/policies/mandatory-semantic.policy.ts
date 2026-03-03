@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import type { SectionKind } from '@/shared-kernel/dtos/semantic-sections.dto';
 import type { SemanticResumeSnapshot } from '../interfaces';
 import {
   type ValidationIssue,
@@ -8,15 +7,24 @@ import {
 } from '../interfaces/validation-result.interface';
 import type { SemanticPolicy } from './semantic-policy.interface';
 
+/**
+ * Mandatory Semantic Policy
+ *
+ * Determines which section kinds are mandatory by reading `ats.isMandatory`
+ * from the snapshot's sectionTypeCatalog — NOT hardcoded.
+ */
 @Injectable()
 export class MandatorySemanticPolicy implements SemanticPolicy {
-  private readonly mandatoryKinds: SectionKind[] = ['WORK_EXPERIENCE', 'EDUCATION', 'SKILL_SET'];
-
   validate(snapshot: SemanticResumeSnapshot): ValidationResult {
     const issues: ValidationIssue[] = [];
     const detectedKinds = new Set(snapshot.items.map((item) => item.sectionKind));
 
-    const missingKinds = this.mandatoryKinds.filter((kind) => !detectedKinds.has(kind));
+    // Read mandatory kinds from the DB-driven catalog
+    const mandatoryKinds = snapshot.sectionTypeCatalog
+      .filter((entry) => entry.ats.isMandatory)
+      .map((entry) => entry.kind);
+
+    const missingKinds = mandatoryKinds.filter((kind) => !detectedKinds.has(kind));
 
     if (missingKinds.length > 0) {
       issues.push({
@@ -41,7 +49,7 @@ export class MandatorySemanticPolicy implements SemanticPolicy {
       issues,
       metadata: {
         detectedKinds: Array.from(detectedKinds),
-        mandatoryKinds: this.mandatoryKinds,
+        mandatoryKinds,
       },
     };
   }

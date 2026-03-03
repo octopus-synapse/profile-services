@@ -1,5 +1,4 @@
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
-import { ERROR_MESSAGES } from '@/shared-kernel';
+import { EntityNotFoundException, ForbiddenException } from '@/shared-kernel/exceptions';
 import {
   type ResumeVersionListItem,
   ResumeVersionRepositoryPort,
@@ -12,7 +11,7 @@ export class GetVersionsUseCase {
     const resume = await this.repository.findResumeOwner(resumeId);
 
     if (!resume) {
-      throw new NotFoundException(ERROR_MESSAGES.RESUME_NOT_FOUND);
+      throw new EntityNotFoundException('Resume');
     }
 
     if (resume.userId !== userId) {

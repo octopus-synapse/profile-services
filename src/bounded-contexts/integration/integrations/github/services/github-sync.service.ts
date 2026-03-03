@@ -10,6 +10,24 @@ import { GitHubApiService } from './github-api.service';
 import { GitHubContributionService } from './github-contribution.service';
 import { GitHubDatabaseService } from './github-database.service';
 
+/**
+ * Result of a GitHub sync operation
+ */
+export interface GitHubSyncResult {
+  profile: {
+    username: string;
+    name: string | null;
+    bio: string | null;
+    publicRepos: number;
+  };
+  stats: {
+    totalStars: number;
+    publicRepos: number;
+    contributionsAdded: number;
+    achievementsAdded: number;
+  };
+}
+
 @Injectable()
 export class GitHubSyncService {
   constructor(
@@ -19,7 +37,15 @@ export class GitHubSyncService {
     private readonly databaseService: GitHubDatabaseService,
   ) {}
 
-  async syncUserGitHub(userId: string, githubUsername: string, resumeId: string) {
+  /**
+   * Sync GitHub data for a user
+   * @returns GitHubSyncResult (domain data, not envelope)
+   */
+  async syncUserGitHub(
+    userId: string,
+    githubUsername: string,
+    resumeId: string,
+  ): Promise<GitHubSyncResult> {
     await this.databaseService.verifyResumeOwnership(userId, resumeId);
 
     try {
@@ -53,7 +79,6 @@ export class GitHubSyncService {
       );
 
       return {
-        success: true,
         profile: {
           username: profile.login,
           name: profile.name,
@@ -74,7 +99,11 @@ export class GitHubSyncService {
     }
   }
 
-  async autoSyncGitHubFromResume(userId: string, resumeId: string) {
+  /**
+   * Auto-sync GitHub data using username from resume
+   * @returns GitHubSyncResult (domain data, not envelope)
+   */
+  async autoSyncGitHubFromResume(userId: string, resumeId: string): Promise<GitHubSyncResult> {
     const resume = await this.databaseService.verifyResumeOwnership(userId, resumeId);
 
     if (!resume.github) {

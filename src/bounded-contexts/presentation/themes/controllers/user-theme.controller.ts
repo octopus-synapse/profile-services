@@ -16,7 +16,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import {
   ApiDataResponse,
   ApiEmptyDataResponse,
@@ -112,16 +112,18 @@ export class UserThemeController {
 
   @Post('apply')
   @ApiOperation({ summary: 'Apply theme to resume' })
-  @ApiDataResponse(ThemeApplyDataDto, { description: 'Theme applied to resume' })
+  @ApiDataResponse(ThemeApplyDataDto, {
+    description: 'Theme applied to resume',
+  })
   async apply(
     @CurrentUser('userId') userId: string,
     @Body() dto: ApplyThemeToResume,
   ): Promise<DataResponse<ThemeApplyDataDto>> {
-    const result = await this.appService.applyToResume(userId, dto);
+    await this.appService.applyToResume(userId, dto);
     return {
       success: true,
       data: {
-        success: result.success,
+        success: true,
       },
     };
   }
