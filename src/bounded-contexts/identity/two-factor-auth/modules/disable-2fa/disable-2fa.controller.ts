@@ -1,6 +1,7 @@
 import { Controller, Delete, HttpCode, HttpStatus, Inject, Req } from '@nestjs/common';
-import { ApiBearerAuth, ApiNoContentResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
+import { ApiEmptyDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import {
   TWO_FACTOR_REPOSITORY_PORT,
   type TwoFactorRepositoryPort,
@@ -30,7 +31,8 @@ export class Disable2faController {
     summary: 'Disable 2FA',
     description: 'Disables 2FA and removes all backup codes.',
   })
-  @ApiNoContentResponse({
+  @ApiEmptyDataResponse({
+    status: HttpStatus.NO_CONTENT,
     description: '2FA disabled successfully',
   })
   async disable(@Req() req: AuthenticatedRequest): Promise<void> {

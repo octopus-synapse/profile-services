@@ -1,5 +1,11 @@
 import { Controller, Get, Inject, Req } from '@nestjs/common';
-import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiExcludeController,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import type { Request } from 'express';
 import {
   TWO_FACTOR_REPOSITORY_PORT,
@@ -13,6 +19,7 @@ interface AuthenticatedRequest extends Request {
 }
 
 @ApiTags('Two-Factor Auth')
+@ApiExcludeController()
 @ApiBearerAuth()
 @Controller('auth/2fa')
 export class Get2faStatusController {

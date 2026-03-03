@@ -257,11 +257,31 @@ function parseEndpoints(content: string, tag: string): EndpointInfo[] {
         funcDefMatch?.[1] || fallbackMatch?.[1] || methodMatch?.[1] || `${method}Endpoint`;
 
       // Extract @Body DTO - try multiple patterns
-      // 1. Direct type annotation: @Body() dto: SomeDto
-      const bodyMatch = afterDecorator.match(/@Body\([^)]*\)[^:]*:\s*(\w+Dto)/);
-      // 2. From @ApiBody decorator: @ApiBody({ type: SomeDto })
+      // 1. From @ApiBody decorator: @ApiBody({ type: SomeDto })
       const apiBodyMatch = afterDecorator.match(/@ApiBody\(\s*\{[^}]*type:\s*(\w+)/);
-      const requestBodyDto = apiBodyMatch?.[1] || bodyMatch?.[1] || undefined;
+      // 2. Direct type annotation: @Body() dto: SomeType (any capitalized type, not just *Dto)
+      const bodyMatch = afterDecorator.match(/@Body\([^)]*\)\s*\w+:\s*([A-Z]\w+)/);
+      // 3. Inline object type: @Body() body: { ... } - use 'object' type
+      const inlineBodyMatch = afterDecorator.match(/@Body\([^)]*\)\s*\w+:\s*\{/);
+
+      // Filter out TypeScript built-in types
+      const builtInTypes = [
+        'Record',
+        'Array',
+        'Object',
+        'Promise',
+        'Map',
+        'Set',
+        'Partial',
+        'Pick',
+        'Omit',
+      ];
+      const extractedBody = apiBodyMatch?.[1] || bodyMatch?.[1];
+      const isBuiltInType = extractedBody && builtInTypes.includes(extractedBody);
+
+      const requestBodyDto =
+        (extractedBody && !isBuiltInType ? extractedBody : undefined) ||
+        (inlineBodyMatch || isBuiltInType ? '__InlineObject__' : undefined);
 
       // Extract path params
       const pathParams: Array<{ name: string; type: string }> = [];
@@ -357,10 +377,14 @@ function extractAllDtosFromController(content: string): string[] {
     }
   }
 
-  // 2. From @Body() annotations: @Body() dto: SomeDto
-  const bodyMatches = content.matchAll(/@Body\([^)]*\)[^:]*:\s*(\w+Dto)/g);
+  // 2. From @Body() annotations: @Body() dto: SomeType (any capitalized type)
+  const bodyMatches = content.matchAll(/@Body\([^)]*\)\s*\w+:\s*([A-Z]\w+)/g);
   for (const match of bodyMatches) {
-    dtos.add(match[1]);
+    // Skip built-in types and inline objects
+    const typeName = match[1];
+    if (!['Record', 'Array', 'Object', 'Promise', 'DataResponse'].includes(typeName)) {
+      dtos.add(typeName);
+    }
   }
 
   // 3. From @ApiResponse type: @ApiResponse({ type: SomeDto })
@@ -460,9 +484,9 @@ function _discoverAllDtos(srcDir: string): string[] {
 function findAndParseDtos(srcDir: string, dtoNames: string[]): Record<string, DtoSchema> {
   const schemas: Record<string, DtoSchema> = {};
 
-  // Search in both .dto.ts files AND .controller.ts files (for inline DTOs)
+  // Search in .dto.ts, .controller.ts AND .schema.ts files (for Zod schemas)
   // Sort for deterministic output across platforms
-  const dtoFiles = findFiles(srcDir, /\.(dto|controller)\.ts$/).sort();
+  const dtoFiles = findFiles(srcDir, /\.(dto|controller|schema)\.ts$/).sort();
 
   // Keep track of DTOs to process (start with initial list, sorted for determinism)
   const toProcess = new Set(dtoNames.sort());
@@ -498,6 +522,14 @@ function findAndParseDtos(srcDir: string, dtoNames: string[]): Record<string, Dt
             }
           }
         }
+
+        // Try to parse Zod type alias: export type TypeName = z.infer<typeof TypeNameSchema>
+        if (!schemas[dtoName]) {
+          const zodSchema = parseZodSchema(content, dtoName);
+          if (zodSchema && Object.keys(zodSchema.properties).length > 0) {
+            schemas[dtoName] = zodSchema;
+          }
+        }
       }
     }
   }
@@ -507,8 +539,9 @@ function findAndParseDtos(srcDir: string, dtoNames: string[]): Record<string, Dt
 
 function parseDtoClass(content: string, className: string): DtoSchema | null {
   // Find class definition - handle extends and implements, with or without export
+  // Also handle extends with function calls like: extends createZodDto(SomeSchema)
   const classRegex = new RegExp(
-    `(?:export\\s+)?class ${className}(?:\\s+extends\\s+\\w+)?(?:\\s+implements\\s+[\\w,\\s]+)?\\s*\\{`,
+    `(?:export\\s+)?class ${className}(?:\\s+extends\\s+[\\w()\\s,]+)?(?:\\s+implements\\s+[\\w,\\s]+)?\\s*\\{`,
     's',
   );
   const classStart = content.search(classRegex);
@@ -613,6 +646,17 @@ function parseDtoClass(content: string, className: string): DtoSchema | null {
       }
     }
 
+    // Also check for inline array enums like enum: ['JSON', 'PDF']
+    const inlineEnumMatch = apiPropOptions.match(/enum:\s*\[([\s\S]*?)\]/);
+    if (inlineEnumMatch && !enumMatch) {
+      property.type = 'string';
+      const values = inlineEnumMatch[1]
+        .split(',')
+        .map((v) => v.trim().replace(/['"]/g, ''))
+        .filter(Boolean);
+      property.enum = values;
+    }
+
     // Extract example
     const exampleMatch = apiPropOptions.match(/example:\s*(['"`]?)([^'"`\s,}]+)\1/);
     if (exampleMatch) {
@@ -669,6 +713,195 @@ function parseDtoClass(content: string, className: string): DtoSchema | null {
     properties,
     required: required.length > 0 ? [...new Set(required)] : undefined,
   };
+}
+
+/**
+ * Parse Zod schema definition to extract OpenAPI schema
+ * Handles patterns like:
+ *   export const TypeNameSchema = z.object({ ... })
+ *   export type TypeName = z.infer<typeof TypeNameSchema>
+ *   export const DerivedSchema = BaseSchema.partial()
+ */
+function parseZodSchema(content: string, typeName: string): DtoSchema | null {
+  // Check if this is a Zod type alias: export type TypeName = z.infer<typeof TypeNameSchema>
+  const typeAliasRegex = new RegExp(
+    `export\\s+type\\s+${typeName}\\s*=\\s*z\\.infer<typeof\\s+(\\w+Schema)>`,
+  );
+  const typeAliasMatch = content.match(typeAliasRegex);
+
+  if (!typeAliasMatch) return null;
+
+  const schemaName = typeAliasMatch[1];
+
+  // Find the schema definition: export const TypeNameSchema = z.object({ ... })
+  const schemaRegex = new RegExp(
+    `export\\s+const\\s+${schemaName}\\s*=\\s*z\\.object\\s*\\(\\s*\\{([\\s\\S]*?)\\}\\s*\\)`,
+  );
+  const schemaMatch = content.match(schemaRegex);
+
+  // Check for derived schema: export const UpdateSchema = CreateSchema.partial()
+  if (!schemaMatch) {
+    const derivedRegex = new RegExp(
+      `export\\s+const\\s+${schemaName}\\s*=\\s*(\\w+Schema)\\.partial\\(\\)`,
+    );
+    const derivedMatch = content.match(derivedRegex);
+
+    if (derivedMatch) {
+      // It's derived from another schema with .partial() - all fields become optional
+      const baseSchemaName = derivedMatch[1];
+
+      // Find the base schema's z.object definition
+      const baseSchemaRegex = new RegExp(
+        `export\\s+const\\s+${baseSchemaName}\\s*=\\s*z\\.object\\s*\\(\\s*\\{([\\s\\S]*?)\\}\\s*\\)`,
+      );
+      const baseMatch = content.match(baseSchemaRegex);
+
+      if (baseMatch) {
+        // Parse the base schema but mark all fields as optional
+        const schemaBody = baseMatch[1];
+        const properties: Record<string, DtoProperty> = {};
+
+        // Parse properties like we normally would
+        parseZodFields(schemaBody, properties, []);
+
+        // All fields are optional in a .partial() schema
+        return {
+          type: 'object',
+          properties,
+          required: undefined,
+        };
+      }
+    }
+
+    return null;
+  }
+
+  const schemaBody = schemaMatch[1];
+  const properties: Record<string, DtoProperty> = {};
+  const required: string[] = [];
+
+  parseZodFields(schemaBody, properties, required);
+
+  // Parse Zod field definitions - multiple patterns:
+  // 1. fieldName: z.string().min(1),
+  // 2. fieldName: z.number().optional(),
+  // 3. fieldName: SomeSchema (reference to another schema)
+  // 4. fieldName: SomeSchema.optional()
+  // 5. fieldName: z.coerce.number()
+
+  parseZodFields(schemaBody, properties, required);
+
+  if (Object.keys(properties).length === 0) return null;
+
+  return {
+    type: 'object',
+    properties,
+    required: required.length > 0 ? required : undefined,
+  };
+}
+
+/**
+ * Parse Zod field definitions from a schema body
+ */
+function parseZodFields(
+  schemaBody: string,
+  properties: Record<string, DtoProperty>,
+  required: string[],
+): void {
+  // Pattern 1: z.type() pattern
+  const fieldRegex = /(\w+):\s*z\.(?:coerce\.)?(\w+)\(([^)]*)\)([^,\n}]*)/g;
+
+  let fieldMatch: RegExpExecArray | null = null;
+  while ((fieldMatch = fieldRegex.exec(schemaBody)) !== null) {
+    const fieldName = fieldMatch[1];
+    const zodType = fieldMatch[2];
+    const zodArgs = fieldMatch[3];
+    const modifiers = fieldMatch[4];
+
+    const isOptional =
+      modifiers.includes('.optional()') ||
+      modifiers.includes('.nullable()') ||
+      modifiers.includes('.default(');
+    const isNullable = modifiers.includes('.nullable()');
+
+    // Map Zod types to OpenAPI types
+    const zodTypeMap: Record<string, { type: string; format?: string }> = {
+      string: { type: 'string' },
+      number: { type: 'number' },
+      boolean: { type: 'boolean' },
+      date: { type: 'string', format: 'date-time' },
+      array: { type: 'array' },
+      object: { type: 'object' },
+      enum: { type: 'string' },
+    };
+
+    const baseType = zodTypeMap[zodType] || { type: 'string' };
+    const property: DtoProperty = { ...baseType };
+
+    // Handle array items
+    if (zodType === 'array') {
+      // Try to parse array item type from z.array(z.string()) pattern
+      const arrayItemMatch = zodArgs.match(/z\.(\w+)/);
+      if (arrayItemMatch) {
+        const itemType = zodTypeMap[arrayItemMatch[1]] || { type: 'string' };
+        property.items = { type: itemType.type };
+      } else {
+        property.items = { type: 'string' };
+      }
+    }
+
+    // Handle enum
+    if (zodType === 'enum') {
+      // Parse enum values from z.enum(['a', 'b', 'c'])
+      const enumValuesMatch = zodArgs.match(/\[([^\]]+)\]/);
+      if (enumValuesMatch) {
+        property.enum = enumValuesMatch[1]
+          .split(',')
+          .map((v) => v.trim().replace(/['"]/g, ''))
+          .filter(Boolean);
+      }
+    }
+
+    if (isNullable) {
+      property.nullable = true;
+    }
+
+    properties[fieldName] = property;
+
+    if (!isOptional) {
+      required.push(fieldName);
+    }
+  }
+
+  // Pattern 2: Schema reference pattern (e.g., email: EmailSchema.optional())
+  const refFieldRegex = /(\w+):\s*(\w+Schema)([^,\n}]*)/g;
+  let refMatch: RegExpExecArray | null = null;
+  while ((refMatch = refFieldRegex.exec(schemaBody)) !== null) {
+    const fieldName = refMatch[1];
+    const modifiers = refMatch[3];
+
+    // Skip if already parsed by z.type pattern
+    if (properties[fieldName]) continue;
+
+    const isOptional =
+      modifiers.includes('.optional()') ||
+      modifiers.includes('.nullable()') ||
+      modifiers.includes('.default(');
+    const isNullable = modifiers.includes('.nullable()');
+
+    // For schema references, default to string type (most common case)
+    const property: DtoProperty = { type: 'string' };
+
+    if (isNullable) {
+      property.nullable = true;
+    }
+
+    properties[fieldName] = property;
+
+    if (!isOptional) {
+      required.push(fieldName);
+    }
+  }
 }
 
 // ============================================================================
@@ -753,16 +986,31 @@ function generateOpenApiSpec(
 
       // Add request body
       if (endpoint.requestBodyDto) {
-        operation.requestBody = {
-          required: true,
-          content: {
-            'application/json': {
-              schema: {
-                $ref: `#/components/schemas/${endpoint.requestBodyDto}`,
+        // Handle inline object types (like { key: value })
+        if (endpoint.requestBodyDto === '__InlineObject__') {
+          operation.requestBody = {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  additionalProperties: true,
+                },
               },
             },
-          },
-        };
+          };
+        } else {
+          operation.requestBody = {
+            required: true,
+            content: {
+              'application/json': {
+                schema: {
+                  $ref: `#/components/schemas/${endpoint.requestBodyDto}`,
+                },
+              },
+            },
+          };
+        }
       }
 
       // Add responses
@@ -891,7 +1139,10 @@ function generateReport(
   const allReferencedDtos = new Set<string>();
   for (const controller of controllers) {
     for (const endpoint of controller.endpoints) {
-      if (endpoint.requestBodyDto) allReferencedDtos.add(endpoint.requestBodyDto);
+      // Skip special __InlineObject__ marker
+      if (endpoint.requestBodyDto && endpoint.requestBodyDto !== '__InlineObject__') {
+        allReferencedDtos.add(endpoint.requestBodyDto);
+      }
       if (endpoint.responseDto) allReferencedDtos.add(endpoint.responseDto);
     }
   }
@@ -960,7 +1211,10 @@ function main() {
   // Collect all DTOs referenced in endpoints
   for (const controller of controllers) {
     for (const endpoint of controller.endpoints) {
-      if (endpoint.requestBodyDto) allDtos.add(endpoint.requestBodyDto);
+      // Skip special __InlineObject__ marker
+      if (endpoint.requestBodyDto && endpoint.requestBodyDto !== '__InlineObject__') {
+        allDtos.add(endpoint.requestBodyDto);
+      }
       if (endpoint.responseDto) allDtos.add(endpoint.responseDto);
     }
   }

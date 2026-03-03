@@ -202,11 +202,11 @@ describe('Backend DTO vs Swagger Schema Comparison', () => {
     );
     const dtoContent = readFileSync(dtoPath, 'utf-8');
 
-    // Check if backend has these properties
-    const backendHasId = dtoContent.includes('id:');
-    const backendHasUserId = dtoContent.includes('userId:');
-    const backendHasStatus = dtoContent.includes('status:');
-    const backendHasSource = dtoContent.includes('source:');
+    // Check if backend has these properties (with or without ! assertion)
+    const backendHasId = /\bid[!?]?:/.test(dtoContent);
+    const backendHasUserId = /\buserId[!?]?:/.test(dtoContent);
+    const backendHasStatus = /\bstatus[!?]?:/.test(dtoContent);
+    const backendHasSource = /\bsource[!?]?:/.test(dtoContent);
 
     expect(backendHasId).toBe(true);
     expect(backendHasUserId).toBe(true);

@@ -698,6 +698,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JobMatch"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Match resume against job description"
@@ -794,6 +804,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrackView"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Track resume view (public endpoint)"
@@ -1249,6 +1269,17 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Compile DSL to AST (preview, no persistence)"
@@ -1351,6 +1382,17 @@
             "JWT-auth": []
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Validate DSL schema"
@@ -1584,6 +1626,17 @@
             "JWT-auth": []
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Sync GitHub data to user resume"
@@ -1966,6 +2019,16 @@
             "JWT-auth": []
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OnboardingProgress"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Save user onboarding progress (checkpoint)"
@@ -2052,6 +2115,16 @@
             "JWT-auth": []
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateResume"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Create a new resume"
@@ -2260,6 +2333,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateResume"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Update a resume"
@@ -2324,6 +2407,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SectionBatch"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Batch update sections"
@@ -2364,6 +2457,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SectionItem"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Reorder item"
@@ -2404,6 +2507,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SectionItem"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Toggle item visibility"
@@ -2444,6 +2557,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SectionReorder"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Reorder section"
@@ -2484,6 +2607,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SectionToggle"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Toggle section visibility"
@@ -2546,6 +2679,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSkillInput"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Add a skill to a resume"
@@ -2608,6 +2751,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSkillInput"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Update a skill"
@@ -2804,6 +2957,16 @@
             "JWT-auth": []
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTheme"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Create theme"
@@ -2826,6 +2989,16 @@
             "JWT-auth": []
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplyThemeToResume"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Apply theme to resume"
@@ -2870,6 +3043,16 @@
             "JWT-auth": []
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ThemeApproval"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Review and approve/reject a theme"
@@ -2924,6 +3107,16 @@
             "JWT-auth": []
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForkTheme"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Fork a theme"
@@ -3124,6 +3317,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTheme"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Update theme"
@@ -3146,6 +3349,16 @@
             "JWT-auth": []
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TranslateBatch"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Translate multiple texts in batch"
@@ -3234,6 +3447,16 @@
             "JWT-auth": []
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TranslateText"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Translate a single text"
@@ -3388,6 +3611,16 @@
             "JWT-auth": []
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminCreateUser"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Create a new user"
@@ -3481,6 +3714,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminUpdateUser"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Update user information"
@@ -3513,6 +3756,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminResetPassword"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Reset user password"
@@ -3578,6 +3831,16 @@
             "JWT-auth": []
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePreferences"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Update user preferences (basic)"
@@ -3620,6 +3883,16 @@
             "JWT-auth": []
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateFullPreferences"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Update all user preferences"
@@ -3662,6 +3935,16 @@
             "JWT-auth": []
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateProfile"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Update current user profile"
@@ -3684,6 +3967,16 @@
             "JWT-auth": []
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUsername"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Update username (once every 30 days)"
@@ -3739,6 +4032,16 @@
             "JWT-auth": []
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ValidateUsernameRequest"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Validate username format and availability"
@@ -3842,6 +4145,78 @@
         "required": [
           "message",
           "consent"
+        ]
+      },
+      "AdminCreateUser": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "AdminResetPassword": {
+        "type": "object",
+        "properties": {
+          "newPassword": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "newPassword"
+        ]
+      },
+      "AdminUpdateUser": {
+        "type": "object",
+        "properties": {
+          "isActive": {
+            "type": "boolean"
+          },
+          "isEmailVerified": {
+            "type": "boolean"
+          },
+          "email": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          }
+        }
+      },
+      "ApplyThemeToResume": {
+        "type": "object",
+        "properties": {
+          "resumeId": {
+            "type": "string"
+          },
+          "themeId": {
+            "type": "string"
+          },
+          "customizations": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "resumeId",
+          "themeId",
+          "resumeId",
+          "themeId"
         ]
       },
       "AstMetaDto": {
@@ -4086,6 +4461,11 @@
           },
           "documentType": {
             "type": "string",
+            "enum": [
+              "TERMS_OF_SERVICE",
+              "PRIVACY_POLICY",
+              "MARKETING_CONSENT"
+            ],
             "example": "TERMS_OF_SERVICE"
           },
           "version": {
@@ -4152,6 +4532,113 @@
         },
         "required": [
           "conversations"
+        ]
+      },
+      "CreateResume": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "isPublic": {
+            "type": "boolean"
+          },
+          "fullName": {
+            "type": "string"
+          },
+          "jobTitle": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "emailContact": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string"
+          },
+          "linkedin": {
+            "type": "string"
+          },
+          "github": {
+            "type": "string"
+          },
+          "website": {
+            "type": "string"
+          },
+          "sections": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "template": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "title"
+        ]
+      },
+      "CreateSkillInput": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Skill name"
+          },
+          "category": {
+            "type": "string",
+            "description": "Skill category"
+          },
+          "level": {
+            "type": "number",
+            "description": "Skill level (1-5)"
+          }
+        },
+        "required": [
+          "name",
+          "category"
+        ]
+      },
+      "CreateTheme": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "styleConfig": {
+            "type": "string"
+          },
+          "parentThemeId": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "description",
+          "styleConfig",
+          "category",
+          "name",
+          "description",
+          "styleConfig"
         ]
       },
       "CustomSectionDataDto": {
@@ -4416,6 +4903,11 @@
         "properties": {
           "format": {
             "type": "string",
+            "enum": [
+              "PDF",
+              "DOCX",
+              "JSON"
+            ],
             "example": "PDF",
             "description": "Available export formats"
           }
@@ -4451,6 +4943,28 @@
         "required": [
           "text",
           "error"
+        ]
+      },
+      "ForkTheme": {
+        "type": "object",
+        "properties": {
+          "themeId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "themeId",
+          "name",
+          "description",
+          "themeId",
+          "name",
+          "description"
         ]
       },
       "GitHubSummaryDto": {
@@ -4572,10 +5086,23 @@
             "example": "user-uuid"
           },
           "source": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "JSON",
+              "PDF",
+              "DOCX",
+              "LINKEDIN"
+            ]
           },
           "status": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "PROCESSING",
+              "COMPLETED",
+              "FAILED",
+              "CANCELLED"
+            ]
           },
           "data": {
             "type": "string",
@@ -4612,6 +5139,18 @@
           "createdAt"
         ]
       },
+      "ImportJsonDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/JsonResumeSchemaDto",
+            "description": "JSON Resume format data (jsonresume.org)"
+          }
+        },
+        "required": [
+          "data"
+        ]
+      },
       "ImportResultDto": {
         "type": "object",
         "properties": {
@@ -4620,7 +5159,14 @@
             "example": "uuid-v4-string"
           },
           "status": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "PROCESSING",
+              "COMPLETED",
+              "FAILED",
+              "CANCELLED"
+            ]
           },
           "resumeId": {
             "type": "string",
@@ -4682,6 +5228,25 @@
           "items"
         ]
       },
+      "InviteCollaboratorDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "example": "user-uuid-v4",
+            "description": "User ID to invite as collaborator"
+          },
+          "role": {
+            "type": "string",
+            "example": "EDITOR",
+            "description": "Role to assign to the collaborator"
+          }
+        },
+        "required": [
+          "userId",
+          "role"
+        ]
+      },
       "IsBlockedDataDto": {
         "type": "object",
         "properties": {
@@ -4693,6 +5258,270 @@
         "required": [
           "isBlocked"
         ]
+      },
+      "JobMatch": {
+        "type": "object",
+        "properties": {
+          "jobDescription": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "jobDescription",
+          "jobDescription"
+        ]
+      },
+      "JsonResumeBasicsDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "example": "john@example.com"
+          },
+          "phone": {
+            "type": "string",
+            "example": "+1-555-123-4567"
+          },
+          "url": {
+            "type": "string",
+            "example": "https://johndoe.com"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "location": {
+            "$ref": "#/components/schemas/JsonResumeBasicsLocationDto"
+          },
+          "profiles": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/JsonResumeProfileDto"
+            }
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "JsonResumeBasicsLocationDto": {
+        "type": "object",
+        "properties": {
+          "city": {
+            "type": "string"
+          },
+          "countryCode": {
+            "type": "string",
+            "example": "US"
+          },
+          "region": {
+            "type": "string",
+            "example": "California"
+          }
+        }
+      },
+      "JsonResumeCertificateDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "example": "2023-03-15"
+          },
+          "issuer": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "example": "https://aws.amazon.com/certification/"
+          }
+        }
+      },
+      "JsonResumeEducationDto": {
+        "type": "object",
+        "properties": {
+          "institution": {
+            "type": "string"
+          },
+          "area": {
+            "type": "string"
+          },
+          "studyType": {
+            "type": "string",
+            "example": "Bachelor"
+          },
+          "startDate": {
+            "type": "string",
+            "example": "2015-09-01"
+          },
+          "endDate": {
+            "type": "string",
+            "example": "2019-06-15"
+          },
+          "score": {
+            "type": "string",
+            "example": "3.8"
+          }
+        }
+      },
+      "JsonResumeLanguageDto": {
+        "type": "object",
+        "properties": {
+          "language": {
+            "type": "string",
+            "example": "English"
+          },
+          "fluency": {
+            "type": "string",
+            "example": "Native"
+          }
+        }
+      },
+      "JsonResumeProfileDto": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string",
+            "example": "GitHub"
+          },
+          "url": {
+            "type": "string",
+            "example": "https://github.com/johndoe"
+          },
+          "username": {
+            "type": "string",
+            "example": "johndoe"
+          }
+        }
+      },
+      "JsonResumeProjectDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "example": "https://github.com/johndoe/ecommerce"
+          },
+          "keywords": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": "["
+          }
+        }
+      },
+      "JsonResumeSchemaDto": {
+        "type": "object",
+        "properties": {
+          "basics": {
+            "$ref": "#/components/schemas/JsonResumeBasicsDto"
+          },
+          "work": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/JsonResumeWorkDto"
+            }
+          },
+          "education": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/JsonResumeEducationDto"
+            }
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/JsonResumeSkillDto"
+            }
+          },
+          "languages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/JsonResumeLanguageDto"
+            }
+          },
+          "certificates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/JsonResumeCertificateDto"
+            }
+          },
+          "projects": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/JsonResumeProjectDto"
+            }
+          }
+        },
+        "required": [
+          "basics"
+        ]
+      },
+      "JsonResumeSkillDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "TypeScript"
+          },
+          "level": {
+            "type": "string",
+            "example": "Advanced"
+          },
+          "keywords": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": "["
+          }
+        }
+      },
+      "JsonResumeWorkDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "position": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "example": "https://acme.com"
+          },
+          "startDate": {
+            "type": "string",
+            "example": "2020-01-15"
+          },
+          "endDate": {
+            "type": "string",
+            "example": "2023-05-30"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "highlights": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": "["
+          }
+        }
       },
       "LanguageItemDto": {
         "type": "object",
@@ -4936,6 +5765,12 @@
         "properties": {
           "status": {
             "type": "string",
+            "enum": [
+              "IDLE",
+              "RUNNING",
+              "COMPLETED",
+              "FAILED"
+            ],
             "example": "RUNNING"
           },
           "progress": {
@@ -4974,6 +5809,70 @@
         },
         "required": [
           "messages"
+        ]
+      },
+      "OnboardingProgress": {
+        "type": "object",
+        "properties": {
+          "completedSteps": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "experiences": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "noExperience": {
+            "type": "boolean"
+          },
+          "education": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "noEducation": {
+            "type": "boolean"
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "noSkills": {
+            "type": "boolean"
+          },
+          "languages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "currentStep": {
+            "type": "string"
+          },
+          "username": {
+            "type": "string"
+          },
+          "personalInfo": {
+            "type": "string"
+          },
+          "professionalProfile": {
+            "type": "string"
+          },
+          "templateSelection": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "completedSteps",
+          "currentStep",
+          "completedSteps"
         ]
       },
       "OnboardingProgressDto": {
@@ -5811,10 +6710,21 @@
           },
           "textTransform": {
             "type": "string",
+            "enum": [
+              "none",
+              "uppercase",
+              "lowercase",
+              "capitalize"
+            ],
             "example": "none"
           },
           "textDecoration": {
             "type": "string",
+            "enum": [
+              "none",
+              "underline",
+              "line-through"
+            ],
             "example": "none"
           }
         },
@@ -6167,6 +7077,48 @@
           "completedSteps"
         ]
       },
+      "SectionBatch": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "visible": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "SectionItem": {
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string"
+          },
+          "visible": {
+            "type": "boolean"
+          },
+          "order": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "itemId"
+        ]
+      },
+      "SectionReorder": {
+        "type": "object",
+        "properties": {
+          "order": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "order"
+        ]
+      },
       "SectionStylesDto": {
         "type": "object",
         "properties": {
@@ -6184,6 +7136,17 @@
           "container",
           "title",
           "content"
+        ]
+      },
+      "SectionToggle": {
+        "type": "object",
+        "properties": {
+          "visible": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "visible"
         ]
       },
       "SectionTypeResponseDto": {
@@ -6440,6 +7403,33 @@
           "success"
         ]
       },
+      "ThemeApproval": {
+        "type": "object",
+        "properties": {
+          "themeId": {
+            "type": "string"
+          },
+          "approved": {
+            "type": "boolean"
+          },
+          "feedback": {
+            "type": "string"
+          },
+          "rejectionReason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "themeId",
+          "approved",
+          "feedback",
+          "rejectionReason",
+          "themeId",
+          "approved",
+          "feedback",
+          "rejectionReason"
+        ]
+      },
       "ThemeEntityDataDto": {
         "type": "object",
         "properties": {
@@ -6534,6 +7524,71 @@
           "config"
         ]
       },
+      "TrackView": {
+        "type": "object",
+        "properties": {
+          "resumeId": {
+            "type": "string"
+          },
+          "userAgent": {
+            "type": "string"
+          },
+          "referer": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "resumeId",
+          "resumeId"
+        ]
+      },
+      "TranslateBatch": {
+        "type": "object",
+        "properties": {
+          "texts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "sourceLanguage": {
+            "type": "string"
+          },
+          "targetLanguage": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "texts",
+          "sourceLanguage",
+          "targetLanguage",
+          "texts",
+          "sourceLanguage",
+          "targetLanguage"
+        ]
+      },
+      "TranslateText": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string"
+          },
+          "sourceLanguage": {
+            "type": "string"
+          },
+          "targetLanguage": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "text",
+          "sourceLanguage",
+          "targetLanguage",
+          "text",
+          "sourceLanguage",
+          "targetLanguage"
+        ]
+      },
       "TranslationResultDto": {
         "type": "object",
         "properties": {
@@ -6574,6 +7629,257 @@
         "required": [
           "totalUnread",
           "byConversation"
+        ]
+      },
+      "UpdateFullPreferences": {
+        "type": "object",
+        "properties": {
+          "theme": {
+            "type": "string"
+          },
+          "palette": {
+            "type": "string"
+          },
+          "bannerColor": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string"
+          },
+          "dateFormat": {
+            "type": "string"
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "emailNotifications": {
+            "type": "boolean"
+          },
+          "resumeExpiryAlerts": {
+            "type": "boolean"
+          },
+          "weeklyDigest": {
+            "type": "boolean"
+          },
+          "marketingEmails": {
+            "type": "boolean"
+          },
+          "emailMilestones": {
+            "type": "boolean"
+          },
+          "emailShareExpiring": {
+            "type": "boolean"
+          },
+          "digestFrequency": {
+            "type": "string",
+            "enum": [
+              "DAILY",
+              "WEEKLY",
+              "MONTHLY"
+            ]
+          },
+          "profileVisibility": {
+            "type": "string"
+          },
+          "showEmail": {
+            "type": "boolean"
+          },
+          "showPhone": {
+            "type": "boolean"
+          },
+          "allowSearchEngineIndex": {
+            "type": "boolean"
+          },
+          "defaultExportFormat": {
+            "type": "string"
+          },
+          "includePhotoInExport": {
+            "type": "boolean"
+          },
+          "photoURL": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdatePreferences": {
+        "type": "object",
+        "properties": {
+          "palette": {
+            "type": "string"
+          },
+          "bannerColor": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "photoURL": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "displayName",
+          "displayName"
+        ]
+      },
+      "UpdateProfile": {
+        "type": "object",
+        "properties": {
+          "displayName": {
+            "type": "string"
+          },
+          "bio": {
+            "type": "string"
+          },
+          "photoURL": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "website": {
+            "type": "string"
+          },
+          "linkedin": {
+            "type": "string"
+          },
+          "github": {
+            "type": "string"
+          },
+          "twitter": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "displayName",
+          "bio",
+          "location",
+          "phone",
+          "displayName",
+          "bio"
+        ]
+      },
+      "UpdateResume": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "isPublic": {
+            "type": "boolean"
+          },
+          "fullName": {
+            "type": "string"
+          },
+          "jobTitle": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "emailContact": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string"
+          },
+          "linkedin": {
+            "type": "string"
+          },
+          "github": {
+            "type": "string"
+          },
+          "website": {
+            "type": "string"
+          },
+          "sections": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "template": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdateRoleDto": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string",
+            "example": "VIEWER",
+            "description": "New role for the collaborator"
+          }
+        },
+        "required": [
+          "role"
+        ]
+      },
+      "UpdateSkillInput": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Skill name"
+          },
+          "category": {
+            "type": "string",
+            "description": "Skill category"
+          },
+          "level": {
+            "type": "number",
+            "description": "Skill level (1-5)"
+          }
+        }
+      },
+      "UpdateTheme": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "styleConfig": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "description",
+          "name",
+          "description"
+        ]
+      },
+      "UpdateUsername": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "username"
         ]
       },
       "UpdateUsernameResponseDto": {
@@ -6815,6 +8121,11 @@
         "properties": {
           "role": {
             "type": "string",
+            "enum": [
+              "USER",
+              "ADMIN",
+              "APPROVER"
+            ],
             "example": "USER",
             "description": "Available user roles"
           }
@@ -6915,6 +8226,44 @@
         "required": [
           "code",
           "message"
+        ]
+      },
+      "ValidateCV": {
+        "type": "object",
+        "properties": {
+          "checkFormat": {
+            "type": "boolean"
+          },
+          "checkSections": {
+            "type": "boolean"
+          },
+          "checkGrammar": {
+            "type": "boolean"
+          },
+          "checkOrder": {
+            "type": "boolean"
+          },
+          "checkLayout": {
+            "type": "boolean"
+          },
+          "resumeId": {
+            "type": "string"
+          },
+          "checkSemantic": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ValidateUsernameRequest": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "username",
+          "username"
         ]
       },
       "ValidateUsernameResponseDto": {

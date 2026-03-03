@@ -1,5 +1,11 @@
 import { Controller, HttpCode, HttpStatus, Inject, Post, Req } from '@nestjs/common';
-import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiExcludeController,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import type { Request } from 'express';
 import { HASH_SERVICE_PORT, type HashServicePort } from '../../ports/outbound/hash-service.port';
 import {
@@ -14,6 +20,7 @@ interface AuthenticatedRequest extends Request {
 }
 
 @ApiTags('Two-Factor Auth')
+@ApiExcludeController()
 @ApiBearerAuth()
 @Controller('auth/2fa')
 export class RegenerateBackupCodesController {

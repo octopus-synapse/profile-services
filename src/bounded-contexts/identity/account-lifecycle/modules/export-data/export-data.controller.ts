@@ -1,6 +1,7 @@
 import { Controller, Get, Inject, Req } from '@nestjs/common';
-import { ApiBearerAuth, ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
+import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { AUDIT_LOGGER_PORT, type AuditLoggerPort } from '../../ports/outbound/audit-logger.port';
 import {
   DATA_EXPORT_REPOSITORY_PORT,
@@ -33,9 +34,8 @@ export class ExportDataController {
     summary: 'Export user data (GDPR Article 20)',
     description: 'Exports all user data in machine-readable JSON format.',
   })
-  @ApiOkResponse({
+  @ApiDataResponse(ExportDataResponseDto, {
     description: 'User data export',
-    type: ExportDataResponseDto,
   })
   async exportData(@Req() req: AuthenticatedRequest): Promise<ExportDataResponseDto> {
     const ipAddress = req.ip;

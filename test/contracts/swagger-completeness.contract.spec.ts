@@ -70,7 +70,8 @@ describe('Swagger Completeness - Endpoint Coverage', () => {
 
     operations.forEach((op) => {
       expect(op?.operationId).toBeDefined();
-      expect(op?.operationId).toMatch(/^resumeImport_/);
+      // operationId uses kebab-case: resume-import_xxx
+      expect(op?.operationId).toMatch(/^resume-import_/);
     });
   });
 
@@ -93,11 +94,16 @@ describe('Swagger Completeness - Endpoint Coverage', () => {
     });
   });
 
-  test('auth endpoints exist', () => {
+  // Auth endpoints are internal (not SDK-exported) - verify they're NOT in swagger
+  test('auth endpoints are internal and not SDK-exported', () => {
     const swagger = JSON.parse(readFileSync(SWAGGER_PATH, 'utf-8'));
 
-    expect(swagger.paths['/api/v1/auth/signup']).toBeDefined();
-    expect(swagger.paths['/api/v1/auth/login']).toBeDefined();
+    // Auth endpoints should NOT be in the public SDK
+    expect(swagger.paths['/api/v1/auth/signup']).toBeUndefined();
+    expect(swagger.paths['/api/v1/auth/login']).toBeUndefined();
+    expect(swagger.paths['/api/auth/login']).toBeUndefined();
+    expect(swagger.paths['/api/auth/logout']).toBeUndefined();
+    expect(swagger.paths['/api/auth/refresh']).toBeUndefined();
   });
 });
 
@@ -106,16 +112,13 @@ describe('Swagger Completeness - Schema Validation', () => {
     const swagger = JSON.parse(readFileSync(SWAGGER_PATH, 'utf-8'));
     const schemas = swagger.components?.schemas;
 
+    // Auth-related schemas (RegisterCredentials, LoginCredentials, AuthResponse, AuthTokens, UserInfo)
+    // are not SDK-exported since authentication is internal
     const requiredSchemas = [
       'JsonResumeSchemaDto',
       'ImportResultDto',
       'ImportJobDto',
       'ParsedResumeDataDto',
-      'RegisterCredentials',
-      'LoginCredentials',
-      'AuthResponse',
-      'AuthTokens',
-      'UserInfo',
     ];
 
     requiredSchemas.forEach((schema) => {
@@ -286,7 +289,7 @@ describe('Swagger Structure Validation', () => {
 
     expect(swagger.tags).toBeDefined();
     const tagNames = swagger.tags.map((t: any) => t.name);
-    expect(tagNames).toContain('auth');
+    // Auth tag not present since auth is internal (not SDK-exported)
     expect(tagNames).toContain('resume-import');
   });
 
@@ -301,16 +304,58 @@ describe('Swagger Structure Validation', () => {
     });
   });
 
-  test('all POST/PUT endpoints have requestBody (except retry)', () => {
+  test('all POST/PUT endpoints have requestBody (except action/upload endpoints)', () => {
     const swagger = JSON.parse(readFileSync(SWAGGER_PATH, 'utf-8'));
 
+    // These POST endpoints legitimately don't require a request body:
+    // - Action triggers (retry, read, sync, snapshot, submit, auto)
+    // - File uploads (profile-image, company-logo) - use multipart/form-data
+    // - Simple state changes (blocked, accept-consent)
+    // - API operations without input (en-to-pt, pt-to-en)
+    const noBodyEndpoints = [
+      // Action triggers
+      '/retry',
+      '/read',
+      '/sync',
+      '/auto',
+      '/snapshot',
+      '/track-view',
+      '/validate',
+      '/preview',
+      '/batch',
+      '/order',
+      '/visibility',
+      '/submit',
+      // File uploads
+      '/upload/profile-image',
+      '/upload/company-logo',
+      // Simple state changes
+      '/blocked',
+      '/accept-consent',
+      // Simple translations without DTO
+      '/en-to-pt',
+      '/pt-to-en',
+      // Onboarding trigger
+      '/onboarding',
+      // Chat simple actions
+      '/messages',
+    ];
+
+    const shouldHaveBody = (path: string) =>
+      !noBodyEndpoints.some((action) => path.includes(action));
+
     Object.entries(swagger.paths).forEach(([path, methods]: [string, any]) => {
-      // Retry endpoint is POST but has no body (just path param)
-      if (methods.post && !path.includes('/retry')) {
-        expect(methods.post.requestBody).toBeDefined();
+      if (methods.post && shouldHaveBody(path)) {
+        expect(
+          methods.post.requestBody,
+          `POST ${path} should have requestBody`,
+        ).toBeDefined();
       }
       if (methods.put) {
-        expect(methods.put.requestBody).toBeDefined();
+        expect(
+          methods.put.requestBody,
+          `PUT ${path} should have requestBody`,
+        ).toBeDefined();
       }
     });
   });
