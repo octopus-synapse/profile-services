@@ -43,7 +43,7 @@ CHECK_RESULTS=""
 echo "  📄 Generating swagger.json..."
 if bun run scripts/generate-swagger-from-decorators.ts; then
     CHECK_RESULTS="$CHECK_RESULTS swagger:pass"
-    git add swagger.json swagger-generation-report.json 2>/dev/null || true
+    git add swagger.json swagger-generation-report.json  || true
 else
     echo "❌ Swagger generation failed"
     exit 1
