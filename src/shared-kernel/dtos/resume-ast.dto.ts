@@ -4,6 +4,16 @@
  * NestJS DTOs with Swagger decorators for the Resume Abstract Syntax Tree.
  * These DTOs expose the AST structure through the SDK.
  *
+ * ARCHITECTURE NOTE (GENERIC SECTIONS):
+ * The section-specific DTOs in this file (ExperienceItemDto, EducationItemDto, etc.)
+ * are DEPRECATED for internal use. They exist only for Swagger documentation and
+ * backward compatibility with existing SDK consumers.
+ *
+ * New endpoints should use GenericSectionItemDto and GenericSectionDataDto which
+ * work with any section type. The section-specific field structure comes from
+ * SectionType.definition, not from hardcoded DTOs.
+ *
+ * @see ../ast/generic-section-data.schema.ts for generic section schemas
  * @see ../ast/resume-ast.schema.ts for Zod validation schemas
  */
 

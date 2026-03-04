@@ -6,19 +6,17 @@ import type {
 /** Onboarding progress expires after 36 hours */
 const PROGRESS_EXPIRATION_HOURS = 36;
 
+/**
+ * Initial progress state using GENERIC SECTIONS model.
+ * No hard-coded section types - sections array is empty initially.
+ */
 export const INITIAL_PROGRESS: OnboardingProgressData = {
   currentStep: 'welcome',
   completedSteps: [],
   username: null,
   personalInfo: null,
   professionalProfile: null,
-  experiences: [],
-  noExperience: false,
-  education: [],
-  noEducation: false,
-  skills: [],
-  noSkills: false,
-  languages: [],
+  sections: [],
   templateSelection: null,
 };
 
@@ -44,13 +42,7 @@ export class GetProgressUseCase {
       username: progress.username,
       personalInfo: progress.personalInfo,
       professionalProfile: progress.professionalProfile,
-      experiences: progress.experiences ?? [],
-      noExperience: progress.noExperience,
-      education: progress.education ?? [],
-      noEducation: progress.noEducation,
-      skills: progress.skills ?? [],
-      noSkills: progress.noSkills,
-      languages: progress.languages ?? [],
+      sections: progress.sections ?? [],
       templateSelection: progress.templateSelection,
     };
   }

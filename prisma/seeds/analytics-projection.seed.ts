@@ -6,67 +6,18 @@
  *
  * Decision: Run this once after migration to initialize projections.
  * After that, event handlers keep projections in sync.
+ *
+ * GENERIC SECTIONS: Uses JSON sectionCounts field instead of individual columns.
+ * Keys are semanticKind strings, values are item counts.
  */
 
 import type { PrismaClient } from '@prisma/client';
 
-const SECTION_KIND_TO_PROJECTION_FIELD: Record<string, keyof ProjectionCounts> = {
-  WORK_EXPERIENCE: 'experiencesCount',
-  EDUCATION: 'educationCount',
-  SKILL_SET: 'skillsCount',
-  CERTIFICATION: 'certificationsCount',
-  PROJECT: 'projectsCount',
-  AWARD: 'awardsCount',
-  LANGUAGE: 'languagesCount',
-  INTEREST: 'interestsCount',
-  RECOMMENDATION: 'recommendationsCount',
-  ACHIEVEMENT: 'achievementsCount',
-  PUBLICATION: 'publicationsCount',
-  TALK: 'talksCount',
-  HACKATHON: 'hackathonsCount',
-  BUG_BOUNTY: 'bugBountiesCount',
-  OPEN_SOURCE: 'openSourceCount',
-};
-
-type ProjectionCounts = {
-  experiencesCount: number;
-  educationCount: number;
-  skillsCount: number;
-  certificationsCount: number;
-  projectsCount: number;
-  awardsCount: number;
-  languagesCount: number;
-  interestsCount: number;
-  recommendationsCount: number;
-  achievementsCount: number;
-  publicationsCount: number;
-  talksCount: number;
-  hackathonsCount: number;
-  bugBountiesCount: number;
-  openSourceCount: number;
-};
-
-function createEmptyCounts(): ProjectionCounts {
-  return {
-    experiencesCount: 0,
-    educationCount: 0,
-    skillsCount: 0,
-    certificationsCount: 0,
-    projectsCount: 0,
-    awardsCount: 0,
-    languagesCount: 0,
-    interestsCount: 0,
-    recommendationsCount: 0,
-    achievementsCount: 0,
-    publicationsCount: 0,
-    talksCount: 0,
-    hackathonsCount: 0,
-    bugBountiesCount: 0,
-    openSourceCount: 0,
-  };
-}
-
-function deriveCountsFromSections(
+/**
+ * Derives section counts from resume sections.
+ * Returns a JSON object with semanticKind as keys and item counts as values.
+ */
+function deriveSectionCounts(
   resumeSections: Array<{
     sectionType: {
       semanticKind: string;
@@ -75,16 +26,12 @@ function deriveCountsFromSections(
       id: string;
     }>;
   }>,
-): ProjectionCounts {
-  const counts = createEmptyCounts();
+): Record<string, number> {
+  const counts: Record<string, number> = {};
 
   for (const section of resumeSections) {
-    const field = SECTION_KIND_TO_PROJECTION_FIELD[section.sectionType.semanticKind];
-    if (!field) {
-      continue;
-    }
-
-    counts[field] += section.items.length;
+    const kind = section.sectionType.semanticKind;
+    counts[kind] = (counts[kind] ?? 0) + section.items.length;
   }
 
   return counts;
@@ -93,7 +40,7 @@ function deriveCountsFromSections(
 export async function seedAnalyticsProjections(prisma: PrismaClient): Promise<void> {
   console.log('📊 Seeding analytics projections...');
 
-  // Get all resumes with section items + counts for still-existing non-generic models
+  // Get all resumes with section items
   const resumes = await prisma.resume.findMany({
     select: {
       id: true,
@@ -113,16 +60,6 @@ export async function seedAnalyticsProjections(prisma: PrismaClient): Promise<vo
           },
         },
       },
-      _count: {
-        select: {
-          achievements: true,
-          publications: true,
-          talks: true,
-          hackathons: true,
-          bugBounties: true,
-          openSource: true,
-        },
-      },
     },
   });
 
@@ -135,33 +72,12 @@ export async function seedAnalyticsProjections(prisma: PrismaClient): Promise<vo
   let updated = 0;
 
   for (const resume of resumes) {
-    const sectionCounts = deriveCountsFromSections(resume.resumeSections);
+    const sectionCounts = deriveSectionCounts(resume.resumeSections);
 
     const projectionData = {
       userId: resume.userId,
       title: resume.title,
-      ...sectionCounts,
-      achievementsCount:
-        sectionCounts.achievementsCount > 0
-          ? sectionCounts.achievementsCount
-          : resume._count.achievements,
-      publicationsCount:
-        sectionCounts.publicationsCount > 0
-          ? sectionCounts.publicationsCount
-          : resume._count.publications,
-      talksCount: sectionCounts.talksCount > 0 ? sectionCounts.talksCount : resume._count.talks,
-      hackathonsCount:
-        sectionCounts.hackathonsCount > 0
-          ? sectionCounts.hackathonsCount
-          : resume._count.hackathons,
-      bugBountiesCount:
-        sectionCounts.bugBountiesCount > 0
-          ? sectionCounts.bugBountiesCount
-          : resume._count.bugBounties,
-      openSourceCount:
-        sectionCounts.openSourceCount > 0
-          ? sectionCounts.openSourceCount
-          : resume._count.openSource,
+      sectionCounts,
     };
 
     // Check if projection already exists

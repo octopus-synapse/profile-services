@@ -1,6 +1,8 @@
 /**
  * GitHub Database Service
  * Single Responsibility: Database operations for GitHub sync
+ *
+ * GENERIC SECTIONS: Uses SectionItem for all data, not legacy models.
  */
 
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
@@ -8,8 +10,10 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ERROR_MESSAGES } from '@/shared-kernel';
 import { GitHubContributionInput } from './github-contribution.service';
+import type { GitHubAchievementContent } from './github-achievement.service';
 
 const OPEN_SOURCE_SEMANTIC_KIND = 'OPEN_SOURCE';
+const ACHIEVEMENT_SEMANTIC_KIND = 'ACHIEVEMENT';
 
 @Injectable()
 export class GitHubDatabaseService {
@@ -46,10 +50,11 @@ export class GitHubDatabaseService {
     resumeId: string,
     githubUsername: string,
     contributions: GitHubContributionInput[],
-    achievements: Prisma.AchievementCreateManyInput[],
+    achievements: GitHubAchievementContent[],
   ) {
     const operations: Prisma.PrismaPromise<unknown>[] = [];
 
+    // Delete existing GitHub-sourced open source contributions
     operations.push(
       this.prisma.sectionItem.deleteMany({
         where: {
@@ -67,36 +72,19 @@ export class GitHubDatabaseService {
       }),
     );
 
+    // Create open source contributions as SectionItems
     if (contributions.length > 0) {
-      const sectionType = await this.prisma.sectionType.findFirst({
-        where: {
-          semanticKind: OPEN_SOURCE_SEMANTIC_KIND,
-          isActive: true,
-        },
-        orderBy: { version: 'desc' },
-        select: { id: true },
-      });
+      const openSourceSection = await this.getOrCreateResumeSection(
+        resumeId,
+        OPEN_SOURCE_SEMANTIC_KIND,
+        'open_source_v1',
+      );
 
-      if (sectionType) {
-        const resumeSection = await this.prisma.resumeSection.upsert({
-          where: {
-            resumeId_sectionTypeId: {
-              resumeId,
-              sectionTypeId: sectionType.id,
-            },
-          },
-          update: {},
-          create: {
-            resumeId,
-            sectionTypeId: sectionType.id,
-          },
-          select: { id: true },
-        });
-
+      if (openSourceSection) {
         operations.push(
           this.prisma.sectionItem.createMany({
             data: contributions.map((contribution, index) => ({
-              resumeSectionId: resumeSection.id,
+              resumeSectionId: openSourceSection.id,
               order: index,
               content: {
                 projectName: contribution.projectName,
@@ -116,22 +104,85 @@ export class GitHubDatabaseService {
       }
     }
 
+    // Delete existing GitHub-sourced achievements
     operations.push(
-      this.prisma.achievement.deleteMany({
+      this.prisma.sectionItem.deleteMany({
         where: {
-          resumeId,
+          resumeSection: {
+            resumeId,
+            sectionType: {
+              semanticKind: ACHIEVEMENT_SEMANTIC_KIND,
+            },
+          },
           OR: [
-            { type: 'github_stars' },
-            { verificationUrl: { contains: `github.com/${githubUsername}` } },
+            { content: { path: ['type'], equals: 'github_stars' } },
+            { content: { path: ['verificationUrl'], string_contains: `github.com/${githubUsername}` } },
           ],
         },
       }),
     );
 
+    // Create achievements as SectionItems
     if (achievements.length > 0) {
-      operations.push(this.prisma.achievement.createMany({ data: achievements }));
+      const achievementSection = await this.getOrCreateResumeSection(
+        resumeId,
+        ACHIEVEMENT_SEMANTIC_KIND,
+        'achievement_v1',
+      );
+
+      if (achievementSection) {
+        const existingCount = await this.prisma.sectionItem.count({
+          where: { resumeSectionId: achievementSection.id },
+        });
+
+        operations.push(
+          this.prisma.sectionItem.createMany({
+            data: achievements.map((achievement, index) => ({
+              resumeSectionId: achievementSection.id,
+              order: existingCount + index,
+              content: achievement as unknown as Prisma.InputJsonValue,
+            })),
+          }),
+        );
+      }
     }
 
     return this.prisma.$transaction(operations);
+  }
+
+  /**
+   * Get or create a ResumeSection for a given semantic kind.
+   */
+  private async getOrCreateResumeSection(
+    resumeId: string,
+    semanticKind: string,
+    sectionTypeKey: string,
+  ) {
+    const sectionType = await this.prisma.sectionType.findFirst({
+      where: {
+        key: sectionTypeKey,
+        isActive: true,
+      },
+      select: { id: true },
+    });
+
+    if (!sectionType) {
+      return null;
+    }
+
+    return this.prisma.resumeSection.upsert({
+      where: {
+        resumeId_sectionTypeId: {
+          resumeId,
+          sectionTypeId: sectionType.id,
+        },
+      },
+      update: {},
+      create: {
+        resumeId,
+        sectionTypeId: sectionType.id,
+      },
+      select: { id: true },
+    });
   }
 }

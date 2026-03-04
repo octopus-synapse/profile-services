@@ -21,12 +21,12 @@ describe('SectionVisibilityService', () => {
   const mockConfig: ResumeConfig = {
     sections: [
       { id: 'header', visible: true, order: 0, column: 'main' },
-      { id: 'experience', visible: true, order: 1, column: 'main' },
-      { id: 'education', visible: true, order: 2, column: 'main' },
-      { id: 'skills', visible: true, order: 3, column: 'sidebar' },
+      { id: 'work_experience_v1', visible: true, order: 1, column: 'main' },
+      { id: 'education_v1', visible: true, order: 2, column: 'main' },
+      { id: 'skill_set_v1', visible: true, order: 3, column: 'sidebar' },
     ],
     itemOverrides: {
-      experience: [
+      work_experience_v1: [
         { itemId: 'exp-1', visible: true, order: 0 },
         { itemId: 'exp-2', visible: true, order: 1 },
       ],
@@ -60,7 +60,7 @@ describe('SectionVisibilityService', () => {
       await service.toggleSection(
         'user-1',
         'resume-1',
-        'experience',
+        'work_experience_v1',
         false,
       );
 
@@ -68,7 +68,7 @@ describe('SectionVisibilityService', () => {
         'resume-1',
         expect.objectContaining({
           sections: expect.arrayContaining([
-            expect.objectContaining({ id: 'experience', visible: false }),
+            expect.objectContaining({ id: 'work_experience_v1', visible: false }),
           ]),
         }),
       );
@@ -78,7 +78,7 @@ describe('SectionVisibilityService', () => {
       const configWithHidden = {
         ...mockConfig,
         sections: mockConfig.sections.map((s) =>
-          s.id === 'education' ? { ...s, visible: false } : s,
+          s.id === 'education_v1' ? { ...s, visible: false } : s,
         ),
       };
       repo.get.mockResolvedValue(configWithHidden);
@@ -87,7 +87,7 @@ describe('SectionVisibilityService', () => {
       await service.toggleSection(
         'user-1',
         'resume-1',
-        'education',
+        'education_v1',
         true,
       );
 
@@ -95,7 +95,7 @@ describe('SectionVisibilityService', () => {
         'resume-1',
         expect.objectContaining({
           sections: expect.arrayContaining([
-            expect.objectContaining({ id: 'education', visible: true }),
+            expect.objectContaining({ id: 'education_v1', visible: true }),
           ]),
         }),
       );
@@ -105,7 +105,7 @@ describe('SectionVisibilityService', () => {
       repo.get.mockResolvedValue({ ...mockConfig });
       repo.save.mockResolvedValue(undefined);
 
-      await service.toggleSection('user-1', 'resume-1', 'experience', false);
+      await service.toggleSection('user-1', 'resume-1', 'work_experience_v1', false);
 
       const savedConfig = repo.save.mock.calls[0][1] as ResumeConfig;
       const headerSection = savedConfig.sections.find((s) => s.id === 'header');
@@ -131,7 +131,7 @@ describe('SectionVisibilityService', () => {
       await service.toggleItem(
         'user-1',
         'resume-1',
-        'experience',
+        'work_experience_v1',
         'exp-1',
         false,
       );
@@ -140,7 +140,7 @@ describe('SectionVisibilityService', () => {
         'resume-1',
         expect.objectContaining({
           itemOverrides: expect.objectContaining({
-            experience: expect.arrayContaining([
+            work_experience_v1: expect.arrayContaining([
               expect.objectContaining({ itemId: 'exp-1', visible: false }),
             ]),
           }),
@@ -152,7 +152,7 @@ describe('SectionVisibilityService', () => {
       const configWithHiddenItem = {
         ...mockConfig,
         itemOverrides: {
-          experience: [
+          work_experience_v1: [
             { itemId: 'exp-1', visible: false, order: 0 },
             { itemId: 'exp-2', visible: true, order: 1 },
           ],
@@ -164,7 +164,7 @@ describe('SectionVisibilityService', () => {
       await service.toggleItem(
         'user-1',
         'resume-1',
-        'experience',
+        'work_experience_v1',
         'exp-1',
         true,
       );
@@ -173,7 +173,7 @@ describe('SectionVisibilityService', () => {
         'resume-1',
         expect.objectContaining({
           itemOverrides: expect.objectContaining({
-            experience: expect.arrayContaining([
+            work_experience_v1: expect.arrayContaining([
               expect.objectContaining({ itemId: 'exp-1', visible: true }),
             ]),
           }),
@@ -191,7 +191,7 @@ describe('SectionVisibilityService', () => {
       await service.toggleItem(
         'user-1',
         'resume-1',
-        'education',
+        'education_v1',
         'edu-1',
         false,
       );
@@ -200,7 +200,7 @@ describe('SectionVisibilityService', () => {
         'resume-1',
         expect.objectContaining({
           itemOverrides: expect.objectContaining({
-            education: expect.arrayContaining([
+            education_v1: expect.arrayContaining([
               expect.objectContaining({
                 itemId: 'edu-1',
                 visible: false,
@@ -219,13 +219,13 @@ describe('SectionVisibilityService', () => {
       await service.toggleItem(
         'user-1',
         'resume-1',
-        'experience',
+        'work_experience_v1',
         'exp-1',
         false,
       );
 
       const savedConfig = repo.save.mock.calls[0][1] as ResumeConfig;
-      const exp1 = savedConfig.itemOverrides.experience.find(
+      const exp1 = savedConfig.itemOverrides.work_experience_v1.find(
         (i) => i.itemId === 'exp-1',
       );
       expect(exp1?.order).toBe(0);
@@ -238,13 +238,13 @@ describe('SectionVisibilityService', () => {
       await service.toggleItem(
         'user-1',
         'resume-1',
-        'experience',
+        'work_experience_v1',
         'exp-1',
         false,
       );
 
       const savedConfig = repo.save.mock.calls[0][1] as ResumeConfig;
-      const exp2 = savedConfig.itemOverrides.experience.find(
+      const exp2 = savedConfig.itemOverrides.work_experience_v1.find(
         (i) => i.itemId === 'exp-2',
       );
       expect(exp2?.visible).toBe(true);

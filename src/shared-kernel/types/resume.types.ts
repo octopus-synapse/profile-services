@@ -1,16 +1,42 @@
 import { z } from 'zod';
 import { ResumeTemplateSchema, SkillLevelSchema } from '../enums';
-import { CefrLevelEnum, LanguageProficiencyEnum } from '../validations/onboarding-data.schema';
 
 /**
  * Resume Types
  *
  * Core resume entity types shared between frontend and backend.
  * These represent API contracts, not database schema.
+ *
+ * ARCHITECTURE NOTE (GENERIC SECTIONS):
+ * The section-specific schemas below (ResumeExperienceSchema, ResumeEducationSchema, etc.)
+ * are DEPRECATED and kept only for backward compatibility with existing API responses.
+ *
+ * New code should use the generic section types (ResumeSectionSchema, ResumeSectionItemSchema)
+ * which work with any section type defined in the SectionType table.
  */
 
+// ============================================================================
+// Language Proficiency (kept for backward compatibility)
+// ============================================================================
+
+const LanguageProficiencyEnum = z.enum([
+  'BASIC',
+  'INTERMEDIATE',
+  'ADVANCED',
+  'FLUENT',
+  'NATIVE',
+]);
+
+const CefrLevelEnum = z.enum(['A1', 'A2', 'B1', 'B2', 'C1', 'C2']);
+
+// ============================================================================
+// DEPRECATED: Section-Specific Schemas
+// These are kept for backward compatibility only.
+// Use GenericResumeSection and SectionItem.content instead.
+// ============================================================================
+
 /**
- * Resume Experience Schema
+ * @deprecated Use GenericResumeSection with sectionTypeKey='work_experience_v1'
  */
 export const ResumeExperienceSchema = z.object({
   id: z.string().uuid(),
@@ -18,7 +44,7 @@ export const ResumeExperienceSchema = z.object({
   company: z.string(),
   position: z.string(),
   location: z.string().nullable(),
-  startDate: z.string(), // ISO date string
+  startDate: z.string(),
   endDate: z.string().nullable(),
   current: z.boolean(),
   description: z.string().nullable(),
@@ -26,10 +52,11 @@ export const ResumeExperienceSchema = z.object({
   order: z.number().int().min(0),
 });
 
+/** @deprecated */
 export type ResumeExperience = z.infer<typeof ResumeExperienceSchema>;
 
 /**
- * Resume Education Schema
+ * @deprecated Use GenericResumeSection with sectionTypeKey='education_v1'
  */
 export const ResumeEducationSchema = z.object({
   id: z.string().uuid(),
@@ -46,10 +73,11 @@ export const ResumeEducationSchema = z.object({
   order: z.number().int().min(0),
 });
 
+/** @deprecated */
 export type ResumeEducation = z.infer<typeof ResumeEducationSchema>;
 
 /**
- * Resume Skill Schema
+ * @deprecated Use GenericResumeSection with sectionTypeKey='skill_set_v1'
  */
 export const ResumeSkillSchema = z.object({
   id: z.string().uuid(),
@@ -60,10 +88,11 @@ export const ResumeSkillSchema = z.object({
   order: z.number().int().min(0),
 });
 
+/** @deprecated */
 export type ResumeSkill = z.infer<typeof ResumeSkillSchema>;
 
 /**
- * Resume Language Schema
+ * @deprecated Use GenericResumeSection with sectionTypeKey='language_v1'
  */
 export const ResumeLanguageSchema = z.object({
   id: z.string().uuid(),
@@ -74,10 +103,11 @@ export const ResumeLanguageSchema = z.object({
   order: z.number().int().min(0),
 });
 
+/** @deprecated */
 export type ResumeLanguage = z.infer<typeof ResumeLanguageSchema>;
 
 /**
- * Resume Certification Schema
+ * @deprecated Use GenericResumeSection with sectionTypeKey='certification_v1'
  */
 export const ResumeCertificationSchema = z.object({
   id: z.string().uuid(),
@@ -91,10 +121,11 @@ export const ResumeCertificationSchema = z.object({
   order: z.number().int().min(0),
 });
 
+/** @deprecated */
 export type ResumeCertification = z.infer<typeof ResumeCertificationSchema>;
 
 /**
- * Resume Project Schema
+ * @deprecated Use GenericResumeSection with sectionTypeKey='project_v1'
  */
 export const ResumeProjectSchema = z.object({
   id: z.string().uuid(),
@@ -110,7 +141,12 @@ export const ResumeProjectSchema = z.object({
   order: z.number().int().min(0),
 });
 
+/** @deprecated */
 export type ResumeProject = z.infer<typeof ResumeProjectSchema>;
+
+// ============================================================================
+// Generic Resume Section Schemas (USE THESE)
+// ============================================================================
 
 /**
  * Dynamic Resume Section Schemas

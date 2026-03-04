@@ -65,7 +65,6 @@ export class GitHubSyncService {
       );
 
       const achievements = this.achievementService.generateAchievements(
-        resumeId,
         githubUsername,
         profile,
         totalStars,

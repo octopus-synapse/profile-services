@@ -58,8 +58,8 @@ describe('DslCompilerService', () => {
       },
     },
     sections: [
-      { id: 'experience', visible: true, order: 1, column: 'main' },
-      { id: 'skills', visible: true, order: 2, column: 'main' },
+      { id: 'work_experience_v1', visible: true, order: 1, column: 'main' },
+      { id: 'skill_set_v1', visible: true, order: 2, column: 'main' },
     ],
   };
 
@@ -129,7 +129,7 @@ describe('DslCompilerService', () => {
           {
             id: 'section-exp-1',
             semanticKind: 'WORK_EXPERIENCE',
-            sectionTypeKey: 'experience',
+            sectionTypeKey: 'work_experience_v1',
             title: 'Experience',
             order: 0,
             isVisible: true,
@@ -151,7 +151,7 @@ describe('DslCompilerService', () => {
           {
             id: 'section-skill-1',
             semanticKind: 'SKILL_SET',
-            sectionTypeKey: 'skills',
+            sectionTypeKey: 'skill_set_v1',
             title: 'Skills',
             order: 1,
             isVisible: true,
@@ -174,10 +174,10 @@ describe('DslCompilerService', () => {
       const ast = service.compileForHtml(validDsl, resumeData);
 
       const experienceSection = ast.sections.find(
-        (section) => section.sectionId === 'experience',
+        (section) => section.sectionId === 'work_experience_v1',
       );
       const skillsSection = ast.sections.find(
-        (section) => section.sectionId === 'skills',
+        (section) => section.sectionId === 'skill_set_v1',
       );
 
       // New generic format uses semanticKind instead of type

@@ -3,6 +3,15 @@
  *
  * Domain types and validation schemas for importing resumes from external formats
  * (PDF, DOCX, LinkedIn, etc.).
+ *
+ * ARCHITECTURE NOTE (GENERIC SECTIONS):
+ * These section-specific schemas (ImportedExperienceSchema, ParsedEducationSchema, etc.)
+ * exist ONLY for parsing external data sources. External sources like PDF/DOCX/LinkedIn
+ * have well-defined structures that we need to parse.
+ *
+ * IMPORTANT: After parsing, the import service MUST convert these structures to the
+ * generic SectionItem.content format using the appropriate SectionType definitions.
+ * The code should NOT use these types for storing or processing data internally.
  */
 
 import { z } from 'zod';

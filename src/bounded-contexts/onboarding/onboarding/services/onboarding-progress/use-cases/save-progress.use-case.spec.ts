@@ -67,12 +67,17 @@ describe('SaveProgressUseCase', () => {
     expect(result.currentStep).toBe('personal-info');
   });
 
-  it('throws when noExperience is true but experiences provided', async () => {
+  it('throws when noData is true but items provided for section', async () => {
     const data = {
       currentStep: 'experience',
       completedSteps: ['welcome', 'personal-info'],
-      noExperience: true,
-      experiences: [{ company: 'Test' }],
+      sections: [
+        {
+          sectionTypeKey: 'work_experience_v1',
+          noData: true,
+          items: [{ content: { company: 'Test' } }],
+        },
+      ],
     };
 
     await expect(useCase.execute('user-1', data)).rejects.toThrow(
@@ -80,12 +85,17 @@ describe('SaveProgressUseCase', () => {
     );
   });
 
-  it('throws when noEducation is true but education provided', async () => {
+  it('throws when noData is true but items provided for education', async () => {
     const data = {
       currentStep: 'education',
       completedSteps: ['welcome'],
-      noEducation: true,
-      education: [{ institution: 'Test' }],
+      sections: [
+        {
+          sectionTypeKey: 'education_v1',
+          noData: true,
+          items: [{ content: { institution: 'Test' } }],
+        },
+      ],
     };
 
     await expect(useCase.execute('user-1', data)).rejects.toThrow(
@@ -93,12 +103,17 @@ describe('SaveProgressUseCase', () => {
     );
   });
 
-  it('throws when noSkills is true but skills provided', async () => {
+  it('throws when noData is true but items provided for skills', async () => {
     const data = {
       currentStep: 'skills',
       completedSteps: ['welcome'],
-      noSkills: true,
-      skills: [{ name: 'Test' }],
+      sections: [
+        {
+          sectionTypeKey: 'skill_set_v1',
+          noData: true,
+          items: [{ content: { name: 'Test' } }],
+        },
+      ],
     };
 
     await expect(useCase.execute('user-1', data)).rejects.toThrow(

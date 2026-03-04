@@ -6912,34 +6912,7 @@
               "type": "string"
             }
           },
-          "experiences": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "noExperience": {
-            "type": "boolean"
-          },
-          "education": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "noEducation": {
-            "type": "boolean"
-          },
-          "skills": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "noSkills": {
-            "type": "boolean"
-          },
-          "languages": {
+          "sections": {
             "type": "array",
             "items": {
               "type": "string"

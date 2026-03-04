@@ -5,11 +5,17 @@ import type {
   SaveProgressResult,
 } from '../ports/onboarding-progress.port';
 
+/**
+ * Save Progress Use Case
+ *
+ * GENERIC SECTIONS: This use case now works with sections array
+ * instead of hard-coded fields like experiences, education, skills.
+ */
 export class SaveProgressUseCase {
   constructor(private readonly repository: OnboardingProgressRepositoryPort) {}
 
   async execute(userId: string, data: OnboardingProgress): Promise<SaveProgressResult> {
-    // Validate flag + array combinations
+    // Validate flag + array combinations for all sections
     this.validateFlagArrayConsistency(data);
 
     // Validate username uniqueness if provided
@@ -23,13 +29,7 @@ export class SaveProgressUseCase {
       username: data.username,
       personalInfo: data.personalInfo,
       professionalProfile: data.professionalProfile,
-      experiences: data.experiences,
-      noExperience: data.noExperience ?? false,
-      education: data.education,
-      noEducation: data.noEducation ?? false,
-      skills: data.skills,
-      noSkills: data.noSkills ?? false,
-      languages: data.languages,
+      sections: data.sections,
       templateSelection: data.templateSelection,
     });
 
@@ -49,23 +49,20 @@ export class SaveProgressUseCase {
     }
   }
 
+  /**
+   * Validates that noData flag is consistent with items array.
+   * If noData is true, items should be empty or undefined.
+   */
   private validateFlagArrayConsistency(data: OnboardingProgress): void {
-    if (data.noExperience && data.experiences && data.experiences.length > 0) {
-      throw new ValidationException(
-        'Cannot have experiences when noExperience is true. Either set noExperience to false or provide an empty experiences array.',
-      );
-    }
+    if (!data.sections) return;
 
-    if (data.noEducation && data.education && data.education.length > 0) {
-      throw new ValidationException(
-        'Cannot have education entries when noEducation is true. Either set noEducation to false or provide an empty education array.',
-      );
-    }
-
-    if (data.noSkills && data.skills && data.skills.length > 0) {
-      throw new ValidationException(
-        'Cannot have skills when noSkills is true. Either set noSkills to false or provide an empty skills array.',
-      );
+    for (const section of data.sections) {
+      if (section.noData && section.items && section.items.length > 0) {
+        throw new ValidationException(
+          `Cannot have items for section "${section.sectionTypeKey}" when noData is true. ` +
+            'Either set noData to false or provide an empty items array.',
+        );
+      }
     }
   }
 }

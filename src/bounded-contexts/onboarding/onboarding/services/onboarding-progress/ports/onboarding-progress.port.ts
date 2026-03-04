@@ -2,6 +2,10 @@
  * Onboarding Progress Port
  *
  * Defines domain types and repository abstraction for onboarding progress.
+ *
+ * ARCHITECTURE: Uses GENERIC SECTIONS model.
+ * Instead of hard-coded fields (experiences, education, skills, languages),
+ * we now use a sections array with sectionTypeKey identifiers.
  */
 
 import type { OnboardingProgress as OnboardingProgressInput } from '@/shared-kernel';
@@ -13,19 +17,22 @@ export type TransactionClient = unknown;
 // Domain Types
 // ============================================================================
 
+/**
+ * Section progress data for a single section type.
+ */
+export type SectionProgressData = {
+  sectionTypeKey: string;
+  items?: unknown[];
+  noData?: boolean;
+};
+
 export type OnboardingProgressData = {
   currentStep: string;
   completedSteps: string[];
   username?: string | null;
   personalInfo?: unknown;
   professionalProfile?: unknown;
-  experiences?: unknown[];
-  noExperience?: boolean;
-  education?: unknown[];
-  noEducation?: boolean;
-  skills?: unknown[];
-  noSkills?: boolean;
-  languages?: unknown[];
+  sections?: SectionProgressData[];
   templateSelection?: unknown;
 };
 
@@ -41,13 +48,7 @@ export type ProgressRecord = {
   username: string | null;
   personalInfo: unknown;
   professionalProfile: unknown;
-  experiences: unknown[] | null;
-  noExperience: boolean;
-  education: unknown[] | null;
-  noEducation: boolean;
-  skills: unknown[] | null;
-  noSkills: boolean;
-  languages: unknown[] | null;
+  sections: SectionProgressData[] | null;
   templateSelection: unknown;
   updatedAt: Date;
 };

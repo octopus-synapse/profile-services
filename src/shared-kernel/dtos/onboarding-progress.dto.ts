@@ -3,15 +3,16 @@
  *
  * Data Transfer Objects for onboarding progress tracking.
  * Allows partial saves during the onboarding flow.
+ *
+ * ARCHITECTURE NOTE: These DTOs use GENERIC SECTIONS model.
+ * Section-specific validation happens server-side using SectionType definitions.
+ * Content schemas here are permissive to allow partial saves.
  */
 
 import { z } from 'zod';
 import {
-  EducationSchema,
-  ExperienceSchema,
-  LanguageSchema,
+  OnboardingSectionItemSchema,
   PersonalInfoSchema,
-  SkillSchema,
   TemplateSelectionSchema,
 } from '../validations/onboarding-data.schema';
 import { ProfessionalProfileSchema } from '../validations/professional-profile.schema';
@@ -37,20 +38,39 @@ export const OnboardingStepSchema = z.enum([
 export type OnboardingStep = z.infer<typeof OnboardingStepSchema>;
 
 /**
+ * Generic Section Item Schema for Progress
+ *
+ * Uses permissive content schema since validation happens server-side
+ * using SectionDefinitionZodFactory with SectionType.definition.
+ */
+const PartialSectionItemSchema = OnboardingSectionItemSchema.partial();
+
+/**
  * Partial schemas for progress saving
  * These are more lenient than the final schemas to allow incomplete data
  */
 const PartialPersonalInfoSchema = PersonalInfoSchema.partial();
 const PartialProfessionalProfileSchema = ProfessionalProfileSchema.partial();
-const PartialExperienceSchema = ExperienceSchema.partial();
-const PartialEducationSchema = EducationSchema.partial();
-const PartialSkillSchema = SkillSchema.partial();
-const PartialLanguageSchema = LanguageSchema.partial();
 const PartialTemplateSelectionSchema = TemplateSelectionSchema.partial();
+
+/**
+ * Generic Section Progress Schema
+ *
+ * Tracks progress for a single section type during onboarding.
+ * sectionTypeKey references the SectionType (e.g., 'work_experience_v1').
+ */
+const SectionProgressSchema = z.object({
+  sectionTypeKey: z.string(),
+  items: z.array(PartialSectionItemSchema).optional(),
+  noData: z.boolean().optional(),
+});
 
 /**
  * Onboarding Progress Schema
  * Used for saving partial progress during onboarding.
+ *
+ * ARCHITECTURE: Uses generic sections format. Each section is identified
+ * by sectionTypeKey, not hard-coded field names like 'experiences'.
  */
 export const OnboardingProgressSchema = z.object({
   currentStep: OnboardingStepSchema,
@@ -58,13 +78,7 @@ export const OnboardingProgressSchema = z.object({
   username: UsernameSchema.optional(),
   personalInfo: PartialPersonalInfoSchema.optional(),
   professionalProfile: PartialProfessionalProfileSchema.optional(),
-  experiences: z.array(PartialExperienceSchema).optional(),
-  noExperience: z.boolean().optional(),
-  education: z.array(PartialEducationSchema).optional(),
-  noEducation: z.boolean().optional(),
-  skills: z.array(PartialSkillSchema).optional(),
-  noSkills: z.boolean().optional(),
-  languages: z.array(PartialLanguageSchema).optional(),
+  sections: z.array(SectionProgressSchema).optional(),
   templateSelection: PartialTemplateSelectionSchema.optional(),
 });
 
@@ -108,28 +122,22 @@ export type SaveProgressResult = z.infer<typeof SaveProgressResultSchema>;
 /**
  * Submit Onboarding DTO Schema
  * Complete data required to submit onboarding
+ *
+ * ARCHITECTURE: Uses generic sections format.
+ * Each section is identified by sectionTypeKey (e.g., 'skill_set_v1').
+ * Field-level validation happens server-side using SectionDefinitionZodFactory.
  */
 export const SubmitOnboardingDtoSchema = z.object({
   username: UsernameSchema,
   personalInfo: PersonalInfoSchema,
   professionalProfile: ProfessionalProfileSchema,
-  skillsStep: z.object({
-    skills: z.array(SkillSchema),
-    noSkills: z.boolean(),
-  }),
-  experiencesStep: z
-    .object({
-      experiences: z.array(ExperienceSchema),
-      noExperience: z.boolean(),
-    })
-    .optional(),
-  educationStep: z
-    .object({
-      education: z.array(EducationSchema),
-      noEducation: z.boolean(),
-    })
-    .optional(),
-  languages: z.array(LanguageSchema).optional(),
+  sections: z.array(
+    z.object({
+      sectionTypeKey: z.string().min(1),
+      items: z.array(OnboardingSectionItemSchema),
+      noData: z.boolean().default(false),
+    }),
+  ),
   templateSelection: TemplateSelectionSchema,
 });
 
