@@ -15,8 +15,10 @@ set -e
 
 ATTESTATION_FILE=".pre-commit-attestation.json"
 
-# Calculate tree hash (represents ALL staged files)
-TREE_HASH=$(git write-tree)
+# Calculate tree hash (represents staged files EXCLUDING the attestation itself)
+# This avoids chicken-and-egg: attestation contains tree hash, but adding attestation changes tree hash
+# We use git ls-files -s to get staged file info, exclude attestation, and hash the result
+TREE_HASH=$(git ls-files -s | grep -v "$ATTESTATION_FILE" | sha256sum | cut -d' ' -f1)
 
 # Calculate swagger hash specifically (critical for API contracts)
 SWAGGER_HASH=""
