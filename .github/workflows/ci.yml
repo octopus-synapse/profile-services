@@ -69,6 +69,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Must checkout the actual PR head commit, not the merge commit (refs/pull/N/merge).
+          # The merge commit has a different tree hash, which breaks attestation verification.
+          ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Verify Pre-Commit Ran (O(1) check)
         run: |
