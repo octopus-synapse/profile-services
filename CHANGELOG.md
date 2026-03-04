@@ -1,5 +1,16 @@
 # Changelog
 
+## [8.0.0](https://github.com/octopus-synapse/profile-services/compare/profile-services-v7.3.0...profile-services-v8.0.0) (2026-03-04)
+
+
+### ⚠ BREAKING CHANGES
+
+* Complete migration from legacy per-type section arrays to unified GenericResumeSection model
+
+### Code Refactoring
+
+* migrate from legacy section-specific models to unified generic resume sections architecture ([#146](https://github.com/octopus-synapse/profile-services/issues/146)) ([2997106](https://github.com/octopus-synapse/profile-services/commit/29971065ba76ef2ef3138bbaa1897564a134077c))
+
 ## [7.3.0](https://github.com/octopus-synapse/profile-services/compare/profile-services-v7.2.0...profile-services-v7.3.0) (2026-02-12)
 
 
