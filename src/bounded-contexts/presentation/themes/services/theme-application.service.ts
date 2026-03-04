@@ -22,7 +22,11 @@ export class ThemeApplicationService {
     private query: ThemeQueryService,
   ) {}
 
-  async applyToResume(userId: string, applyThemeData: ApplyThemeToResume) {
+  /**
+   * Apply theme to resume
+   * @returns void (not envelope)
+   */
+  async applyToResume(userId: string, applyThemeData: ApplyThemeToResume): Promise<void> {
     const existingResume = await this.prisma.resume.findUnique({
       where: { id: applyThemeData.resumeId },
     });
@@ -58,8 +62,6 @@ export class ThemeApplicationService {
         userId,
       }),
     );
-
-    return { success: true };
   }
 
   async forkThemeForUser(userId: string, forkThemeData: ForkTheme) {

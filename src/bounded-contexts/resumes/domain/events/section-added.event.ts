@@ -1,26 +1,13 @@
 import { DomainEvent } from '@/shared-kernel';
-
-export type SectionType =
-  | 'experience'
-  | 'education'
-  | 'skills'
-  | 'certifications'
-  | 'awards'
-  | 'languages'
-  | 'interests'
-  | 'recommendations'
-  | 'achievements'
-  | 'publications'
-  | 'talks'
-  | 'hackathons'
-  | 'bugbounties'
-  | 'opensource'
-  | 'projects';
+import type { SectionKind } from '@/shared-kernel/dtos/semantic-sections.dto';
 
 export interface SectionAddedPayload {
   readonly userId: string;
-  readonly sectionType: SectionType;
   readonly sectionId: string;
+  readonly sectionTypeId?: string;
+  readonly sectionTypeKey?: string;
+  readonly sectionKind?: SectionKind;
+  readonly sectionType?: string;
 }
 
 export class SectionAddedEvent extends DomainEvent<SectionAddedPayload> {

@@ -1,10 +1,17 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { Controller, Get, Header, Res } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import type { Response } from 'express';
-import { Public } from '@/bounded-contexts/identity/auth/decorators/public.decorator';
+import { Controller, Get, Header, NotFoundException } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
+import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
+import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { AppService } from './app.service';
+import {
+  HealthDataDto,
+  HelloDataDto,
+  OpenApiSpecDataDto,
+  VersionDataDto,
+} from './dto/app-response.dto';
 
 interface PackageJson {
   version: string;
@@ -35,30 +42,34 @@ export class AppController {
 
   @Public()
   @Get()
-  getHello(): string {
-    return this.appService.getHello();
+  @ApiOperation({ summary: 'Default application hello endpoint' })
+  @ApiDataResponse(HelloDataDto, { description: 'Application hello response' })
+  getHello(): DataResponse<HelloDataDto> {
+    return {
+      success: true,
+      data: { message: this.appService.getHello() },
+    };
   }
 
   @Public()
   @Get('health')
-  getHealth(): { status: string; timestamp: string } {
+  @ApiOperation({ summary: 'Basic application health endpoint' })
+  @ApiDataResponse(HealthDataDto, { description: 'Basic health status' })
+  getHealth(): DataResponse<HealthDataDto> {
     return {
-      status: 'ok',
-      timestamp: new Date().toISOString(),
+      success: true,
+      data: {
+        status: 'ok',
+        timestamp: new Date().toISOString(),
+      },
     };
   }
 
   @Public()
   @Get('version')
-  getVersion(): {
-    service: string;
-    version: string;
-    contracts_version: string;
-    environment: string;
-    deployed_at: string;
-    git_tag: string;
-    is_rollback: boolean;
-  } {
+  @ApiOperation({ summary: 'Get service version and deployment metadata' })
+  @ApiDataResponse(VersionDataDto, { description: 'Service version payload' })
+  getVersion(): DataResponse<VersionDataDto> {
     // Read package.json for fallback version
     const packageJson = JSON.parse(
       fs.readFileSync(path.join(__dirname, '../package.json'), 'utf-8'),
@@ -76,14 +87,17 @@ export class AppController {
     }
 
     return {
-      service: 'profile-services',
-      version: manifest?.versions.services ?? `v${packageJson.version}`,
-      contracts_version:
-        manifest?.versions.contracts ?? packageJson.dependencies['@/shared-kernel'],
-      environment: manifest?.environment ?? 'development',
-      deployed_at: manifest?.timestamp ?? 'unknown',
-      git_tag: manifest?.git_tags.services ?? `v${packageJson.version}`,
-      is_rollback: manifest?.rollback ?? false,
+      success: true,
+      data: {
+        service: 'profile-services',
+        version: manifest?.versions.services ?? `v${packageJson.version}`,
+        contracts_version:
+          manifest?.versions.contracts ?? packageJson.dependencies['@/shared-kernel'],
+        environment: manifest?.environment ?? 'development',
+        deployed_at: manifest?.timestamp ?? 'unknown',
+        git_tag: manifest?.git_tags.services ?? `v${packageJson.version}`,
+        is_rollback: manifest?.rollback ?? false,
+      },
     };
   }
 
@@ -103,22 +117,22 @@ export class AppController {
     description:
       'Returns the complete OpenAPI 3.0 specification for SDK generation. This is the single source of truth for all API contracts.',
   })
-  @ApiResponse({
-    status: 200,
+  @ApiDataResponse(OpenApiSpecDataDto, {
     description: 'OpenAPI specification in JSON format',
   })
-  getOpenApiSpec(@Res() res: Response): void {
+  getOpenApiSpec(): DataResponse<OpenApiSpecDataDto> {
     const swaggerPath = path.join(__dirname, '../swagger.json');
 
     if (!fs.existsSync(swaggerPath)) {
-      res.status(404).json({
-        error: 'OpenAPI specification not found',
-        message: 'Run `bun run swagger:generate` to generate the specification',
-      });
-      return;
+      throw new NotFoundException(
+        'OpenAPI specification not found. Run `bun run swagger:generate` to generate it.',
+      );
     }
 
-    const swagger = fs.readFileSync(swaggerPath, 'utf-8');
-    res.send(swagger);
+    const swagger = JSON.parse(fs.readFileSync(swaggerPath, 'utf-8')) as Record<string, object>;
+    return {
+      success: true,
+      data: { spec: swagger },
+    };
   }
 }

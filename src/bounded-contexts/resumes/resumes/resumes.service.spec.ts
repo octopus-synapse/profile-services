@@ -92,7 +92,7 @@ describe('ResumesService', () => {
         title: 'New Resume',
       });
 
-      expect(result.data).toBeDefined();
+      expect(result).toBeDefined();
     });
 
     it('should reject creating 5th resume with error', async () => {
@@ -134,7 +134,7 @@ describe('ResumesService', () => {
         title: 'Fourth Resume',
       });
 
-      expect(result.data).toBeDefined();
+      expect(result).toBeDefined();
     });
   });
 
@@ -145,7 +145,7 @@ describe('ResumesService', () => {
 
       const result = await service.findAllUserResumes('user-123');
 
-      expect(result.data).toHaveLength(2);
+      expect(result).toHaveLength(2);
     });
 
     it('should return resume by id if owned by user', async () => {
@@ -156,7 +156,7 @@ describe('ResumesService', () => {
         'user-123',
       );
 
-      expect(result.data?.id).toBe('resume-1');
+      expect(result?.id).toBe('resume-1');
     });
 
     it('should throw NotFoundException for non-existent resume', async () => {
@@ -178,15 +178,16 @@ describe('ResumesService', () => {
         title: 'Updated Title',
       });
 
-      expect(result.data?.title).toBe('Updated Title');
+      expect(result?.title).toBe('Updated Title');
     });
 
     it('should delete resume if owned by user', async () => {
       repository.deleteResumeForUser.mockResolvedValue(true);
 
-      const result = await service.deleteResumeForUser('resume-1', 'user-123');
-
-      expect(result.message.includes('deleted')).toBe(true);
+      // deleteResumeForUser returns void, just verify it doesn't throw
+      await expect(
+        service.deleteResumeForUser('resume-1', 'user-123'),
+      ).resolves.toBeUndefined();
     });
   });
 

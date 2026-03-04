@@ -84,8 +84,9 @@ describe('CollaborationController', () => {
         mockUser as any,
       );
 
-      expect(result).toBeDefined();
-      expect(Array.isArray(result)).toBe(true);
+      expect(result.success).toBe(true);
+      expect(result.data).toBeDefined();
+      expect(Array.isArray(result.data.collaborators)).toBe(true);
       expect(mockCollaborationService.getCollaborators).toHaveBeenCalledWith(
         'resume-1',
         'user-1',
@@ -130,8 +131,9 @@ describe('CollaborationController', () => {
     it('should return resumes shared with user', async () => {
       const result = await controller.getSharedWithMe(mockUser as any);
 
-      expect(result).toBeDefined();
-      expect(Array.isArray(result)).toBe(true);
+      expect(result.success).toBe(true);
+      expect(result.data).toBeDefined();
+      expect(Array.isArray(result.data.sharedResumes)).toBe(true);
       expect(mockCollaborationService.getSharedWithMe).toHaveBeenCalledWith(
         'user-1',
       );

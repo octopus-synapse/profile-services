@@ -5,7 +5,14 @@
  * Extracted for testability and reusability.
  */
 
-import type { GroupProps } from '../entities/group.entity';
+// Inline type to avoid circular dependency with group.entity.ts
+interface GroupPropsForValidation {
+  readonly id: string;
+  readonly name: string;
+  readonly displayName: string;
+  readonly description?: string;
+  readonly parentId?: string;
+}
 
 export interface GroupValidationResult {
   isValid: boolean;
@@ -54,7 +61,7 @@ export function validateParentId(parentId: string | undefined, id: string): stri
   return null;
 }
 
-export function validateGroup(props: GroupProps): GroupValidationResult {
+export function validateGroup(props: GroupPropsForValidation): GroupValidationResult {
   const errors: string[] = [];
 
   const nameError = validateGroupName(props.name);
@@ -76,7 +83,7 @@ export function validateGroup(props: GroupProps): GroupValidationResult {
 }
 
 /** Throws if validation fails */
-export function assertGroupValid(props: GroupProps): void {
+export function assertGroupValid(props: GroupPropsForValidation): void {
   const result = validateGroup(props);
   if (!result.isValid) {
     throw new Error(result.errors[0]);

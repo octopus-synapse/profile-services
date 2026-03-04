@@ -14,16 +14,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import {
-  ApiBearerAuth,
-  ApiOperation,
-  ApiProduces,
-  ApiQuery,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
-import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
+import { ApiBearerAuth, ApiOperation, ApiProduces, ApiQuery, ApiTags } from '@nestjs/swagger';
+import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
+import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
+import { ApiStreamResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
@@ -64,9 +58,10 @@ export class ExportPdfController {
     required: false,
     description: 'Custom banner color (hex)',
   })
-  @ApiResponse({ status: 200, description: 'PDF document file' })
-  @ApiResponse({ status: 400, description: 'Failed to generate PDF' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiStreamResponse({
+    mimeType: 'application/pdf',
+    description: 'PDF document file',
+  })
   async exportResumePDF(
     @CurrentUser() user: UserPayload,
     @Query('palette') palette?: string,

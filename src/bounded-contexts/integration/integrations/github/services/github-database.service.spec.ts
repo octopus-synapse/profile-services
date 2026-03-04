@@ -22,13 +22,16 @@ describe('GitHubDatabaseService', () => {
       findUnique: ReturnType<typeof mock>;
       update: ReturnType<typeof mock>;
     };
-    openSourceContribution: {
+    sectionItem: {
       deleteMany: ReturnType<typeof mock>;
       createMany: ReturnType<typeof mock>;
+      count: ReturnType<typeof mock>;
     };
-    achievement: {
-      deleteMany: ReturnType<typeof mock>;
-      createMany: ReturnType<typeof mock>;
+    sectionType: {
+      findFirst: ReturnType<typeof mock>;
+    };
+    resumeSection: {
+      upsert: ReturnType<typeof mock>;
     };
     $transaction: ReturnType<typeof mock>;
   };
@@ -45,13 +48,20 @@ describe('GitHubDatabaseService', () => {
         findUnique: mock(() => Promise.resolve(mockResume)),
         update: mock(() => Promise.resolve(mockResume)),
       },
-      openSourceContribution: {
+      sectionItem: {
         deleteMany: mock(() => Promise.resolve({ count: 0 })),
         createMany: mock(() => Promise.resolve({ count: 1 })),
+        count: mock(() => Promise.resolve(0)),
       },
-      achievement: {
-        deleteMany: mock(() => Promise.resolve({ count: 0 })),
-        createMany: mock(() => Promise.resolve({ count: 1 })),
+      sectionType: {
+        findFirst: mock(() =>
+          Promise.resolve({ id: 'section-type-open-source' }),
+        ),
+      },
+      resumeSection: {
+        upsert: mock(() =>
+          Promise.resolve({ id: 'resume-section-open-source' }),
+        ),
       },
       $transaction: mock((operations: unknown[]) =>
         Promise.resolve(operations),
@@ -110,7 +120,7 @@ describe('GitHubDatabaseService', () => {
     });
 
     it('should pass include options to query', async () => {
-      const include = { openSourceContributions: true };
+      const include = { resumeSections: true };
 
       await service.verifyResumeOwnership('user-123', 'resume-123', include);
 
@@ -168,14 +178,20 @@ describe('GitHubDatabaseService', () => {
         [],
       );
 
-      expect(fakePrisma.openSourceContribution.deleteMany).toHaveBeenCalledWith(
-        {
-          where: {
+      expect(fakePrisma.sectionItem.deleteMany).toHaveBeenCalledWith({
+        where: {
+          resumeSection: {
             resumeId: 'resume-123',
-            projectUrl: { contains: 'github.com' },
+            sectionType: {
+              semanticKind: 'OPEN_SOURCE',
+            },
+          },
+          content: {
+            path: ['projectUrl'],
+            string_contains: 'github.com',
           },
         },
-      );
+      });
     });
   });
 });

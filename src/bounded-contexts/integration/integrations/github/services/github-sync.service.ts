@@ -10,6 +10,24 @@ import { GitHubApiService } from './github-api.service';
 import { GitHubContributionService } from './github-contribution.service';
 import { GitHubDatabaseService } from './github-database.service';
 
+/**
+ * Result of a GitHub sync operation
+ */
+export interface GitHubSyncResult {
+  profile: {
+    username: string;
+    name: string | null;
+    bio: string | null;
+    publicRepos: number;
+  };
+  stats: {
+    totalStars: number;
+    publicRepos: number;
+    contributionsAdded: number;
+    achievementsAdded: number;
+  };
+}
+
 @Injectable()
 export class GitHubSyncService {
   constructor(
@@ -19,7 +37,15 @@ export class GitHubSyncService {
     private readonly databaseService: GitHubDatabaseService,
   ) {}
 
-  async syncUserGitHub(userId: string, githubUsername: string, resumeId: string) {
+  /**
+   * Sync GitHub data for a user
+   * @returns GitHubSyncResult (domain data, not envelope)
+   */
+  async syncUserGitHub(
+    userId: string,
+    githubUsername: string,
+    resumeId: string,
+  ): Promise<GitHubSyncResult> {
     await this.databaseService.verifyResumeOwnership(userId, resumeId);
 
     try {
@@ -28,9 +54,16 @@ export class GitHubSyncService {
         sort: 'updated',
         per_page: 100,
       });
-      const totalStars = repos.reduce((sum, repo) => sum + repo.stargazers_count, 0);
+      const totalStars = repos.reduce(
+        (sum, repo) => sum + repo.stargazers_count,
+        0,
+      );
 
-      await this.databaseService.updateResumeGitHubStats(resumeId, githubUsername, totalStars);
+      await this.databaseService.updateResumeGitHubStats(
+        resumeId,
+        githubUsername,
+        totalStars,
+      );
 
       const contributions = await this.contributionService.processContributions(
         resumeId,
@@ -39,7 +72,6 @@ export class GitHubSyncService {
       );
 
       const achievements = this.achievementService.generateAchievements(
-        resumeId,
         githubUsername,
         profile,
         totalStars,
@@ -53,7 +85,6 @@ export class GitHubSyncService {
       );
 
       return {
-        success: true,
         profile: {
           username: profile.login,
           name: profile.name,
@@ -70,15 +101,31 @@ export class GitHubSyncService {
     } catch (error) {
       // Error transformation - see ERROR_HANDLING_STRATEGY.md
       if (error instanceof HttpException) throw error;
-      throw new HttpException('Failed to sync GitHub data', HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(
+        'Failed to sync GitHub data',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
-  async autoSyncGitHubFromResume(userId: string, resumeId: string) {
-    const resume = await this.databaseService.verifyResumeOwnership(userId, resumeId);
+  /**
+   * Auto-sync GitHub data using username from resume
+   * @returns GitHubSyncResult (domain data, not envelope)
+   */
+  async autoSyncGitHubFromResume(
+    userId: string,
+    resumeId: string,
+  ): Promise<GitHubSyncResult> {
+    const resume = await this.databaseService.verifyResumeOwnership(
+      userId,
+      resumeId,
+    );
 
     if (!resume.github) {
-      throw new HttpException('No GitHub username found in resume', HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        'No GitHub username found in resume',
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     const githubUsername = this.extractUsername(resume.github);

@@ -6,6 +6,8 @@
  * - Stars threshold (100+) generates achievement
  * - Repos threshold (20+) generates achievement
  * - Below thresholds generates no achievements
+ *
+ * GENERIC SECTIONS: Returns achievement content for SectionItem, not legacy Achievement model.
  */
 
 import { describe, it, expect, beforeEach } from 'bun:test';
@@ -41,7 +43,6 @@ describe('GitHubAchievementService', () => {
   describe('generateAchievements', () => {
     it('should generate stars achievement when above threshold (100+)', () => {
       const result = service.generateAchievements(
-        'resume-123',
         'testuser',
         { ...baseProfile, public_repos: 5 },
         150,
@@ -51,12 +52,10 @@ describe('GitHubAchievementService', () => {
       expect(result[0].type).toBe('github_stars');
       expect(result[0].title).toBe('150+ GitHub Stars');
       expect(result[0].value).toBe(150);
-      expect(result[0].resumeId).toBe('resume-123');
     });
 
     it('should generate repos achievement when above threshold (20+)', () => {
       const result = service.generateAchievements(
-        'resume-123',
         'testuser',
         { ...baseProfile, public_repos: 25 },
         50,
@@ -70,7 +69,6 @@ describe('GitHubAchievementService', () => {
 
     it('should generate both achievements when both thresholds met', () => {
       const result = service.generateAchievements(
-        'resume-123',
         'testuser',
         { ...baseProfile, public_repos: 30 },
         200,
@@ -84,7 +82,6 @@ describe('GitHubAchievementService', () => {
 
     it('should generate no achievements when below all thresholds', () => {
       const result = service.generateAchievements(
-        'resume-123',
         'testuser',
         { ...baseProfile, public_repos: 10 },
         50,
@@ -95,7 +92,6 @@ describe('GitHubAchievementService', () => {
 
     it('should include correct verification URLs', () => {
       const result = service.generateAchievements(
-        'resume-123',
         'testuser',
         { ...baseProfile, public_repos: 25 },
         150,
@@ -112,11 +108,10 @@ describe('GitHubAchievementService', () => {
       );
     });
 
-    it('should set achievedAt to current date', () => {
+    it('should set achievedAt to ISO date string', () => {
       const before = new Date();
 
       const result = service.generateAchievements(
-        'resume-123',
         'testuser',
         { ...baseProfile, public_repos: 5 },
         100,
@@ -124,13 +119,10 @@ describe('GitHubAchievementService', () => {
 
       const after = new Date();
 
-      expect(result[0].achievedAt).toBeInstanceOf(Date);
-      expect((result[0].achievedAt as Date).getTime()).toBeGreaterThanOrEqual(
-        before.getTime(),
-      );
-      expect((result[0].achievedAt as Date).getTime()).toBeLessThanOrEqual(
-        after.getTime(),
-      );
+      expect(typeof result[0].achievedAt).toBe('string');
+      const achievedDate = new Date(result[0].achievedAt);
+      expect(achievedDate.getTime()).toBeGreaterThanOrEqual(before.getTime());
+      expect(achievedDate.getTime()).toBeLessThanOrEqual(after.getTime());
     });
   });
 });

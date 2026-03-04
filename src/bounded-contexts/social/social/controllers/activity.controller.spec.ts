@@ -81,7 +81,7 @@ describe('ActivityController', () => {
       const result = await controller.getFeed({ userId } as any, 1, 20);
 
       expect(result.success).toBe(true);
-      expect(result.data).toEqual(mockFeed);
+      expect(result.data).toEqual({ feed: mockFeed });
       expect(mockActivityService.getFeed).toHaveBeenCalledWith(userId, {
         page: 1,
         limit: 20,
@@ -125,7 +125,7 @@ describe('ActivityController', () => {
       const result = await controller.getUserActivities(userId, 1, 20);
 
       expect(result.success).toBe(true);
-      expect(result.data).toEqual(mockActivities);
+      expect(result.data).toEqual({ activities: mockActivities });
       expect(mockActivityService.getUserActivities).toHaveBeenCalledWith(
         userId,
         { page: 1, limit: 20 },
@@ -159,7 +159,7 @@ describe('ActivityController', () => {
       const result = await controller.getActivitiesByType(userId, type, 1, 20);
 
       expect(result.success).toBe(true);
-      expect(result.data).toEqual(mockActivities);
+      expect(result.data).toEqual({ activities: mockActivities });
       expect(mockActivityService.getActivitiesByType).toHaveBeenCalledWith(
         userId,
         type,

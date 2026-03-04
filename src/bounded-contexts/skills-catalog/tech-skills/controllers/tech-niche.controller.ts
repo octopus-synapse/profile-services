@@ -4,13 +4,25 @@
  */
 
 import { Controller, Get, Param } from '@nestjs/common';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { Public } from '@/bounded-contexts/identity/auth/decorators/public.decorator';
+import { ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger';
+import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
+import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { TechNicheDto, TechSkillDto } from '@/shared-kernel';
 import type { TechNiche, TechSkill } from '../dtos';
 import { TechNicheQueryService } from '../services/niche-query.service';
 import { TechSkillsQueryService } from '../services/tech-skills-query.service';
+
+class TechNicheListDataDto {
+  @ApiProperty({ type: [TechNicheDto] })
+  niches!: TechNiche[];
+}
+
+class TechSkillListDataDto {
+  @ApiProperty({ type: [TechSkillDto] })
+  skills!: TechSkill[];
+}
 
 @SdkExport({
   tag: 'tech-niches',
@@ -29,19 +41,23 @@ export class TechNicheController {
   @Get()
   @Public()
   @ApiOperation({ summary: 'Get all tech niches' })
-  @ApiResponse({ status: 200, type: [TechNicheDto] })
-  @ApiResponse({ status: 200, description: 'List of tech niches' })
-  async getNiches(): Promise<TechNiche[]> {
-    return this.nicheQuery.getAllNiches();
+  @ApiDataResponse(TechNicheListDataDto, { description: 'List of tech niches' })
+  async getNiches(): Promise<DataResponse<TechNicheListDataDto>> {
+    const niches = await this.nicheQuery.getAllNiches();
+    return { success: true, data: { niches } };
   }
 
   /** Get skills by niche */
   @Get(':nicheSlug/skills')
   @Public()
   @ApiOperation({ summary: 'Get skills by niche slug' })
-  @ApiResponse({ status: 200, type: [TechSkillDto] })
-  @ApiResponse({ status: 200, description: 'List of skills for the niche' })
-  async getSkillsByNiche(@Param('nicheSlug') nicheSlug: string): Promise<TechSkill[]> {
-    return this.queryService.getSkillsByNiche(nicheSlug);
+  @ApiDataResponse(TechSkillListDataDto, {
+    description: 'List of skills for the niche',
+  })
+  async getSkillsByNiche(
+    @Param('nicheSlug') nicheSlug: string,
+  ): Promise<DataResponse<TechSkillListDataDto>> {
+    const skills = await this.queryService.getSkillsByNiche(nicheSlug);
+    return { success: true, data: { skills } };
   }
 }

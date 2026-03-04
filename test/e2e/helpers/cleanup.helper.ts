@@ -70,24 +70,13 @@ export class CleanupHelper {
         where: { id: resumeId },
       });
 
-      // Delete sub-resources (if not cascaded)
-      await this.prisma.skill.deleteMany({ where: { resumeId } });
-      await this.prisma.experience.deleteMany({ where: { resumeId } });
-      await this.prisma.education.deleteMany({ where: { resumeId } });
-      await this.prisma.language.deleteMany({ where: { resumeId } });
-      await this.prisma.certification.deleteMany({ where: { resumeId } });
-      await this.prisma.project.deleteMany({ where: { resumeId } });
-      await this.prisma.award.deleteMany({ where: { resumeId } });
-      await this.prisma.publication.deleteMany({ where: { resumeId } });
-      await this.prisma.talk.deleteMany({ where: { resumeId } });
-      await this.prisma.hackathon.deleteMany({ where: { resumeId } });
-      await this.prisma.bugBounty.deleteMany({ where: { resumeId } });
-      await this.prisma.openSourceContribution.deleteMany({
-        where: { resumeId },
+      // Delete generic section items (cascades from sections)
+      await this.prisma.sectionItem.deleteMany({
+        where: { resumeSection: { resumeId } },
       });
-      await this.prisma.achievement.deleteMany({ where: { resumeId } });
-      await this.prisma.interest.deleteMany({ where: { resumeId } });
-      await this.prisma.recommendation.deleteMany({ where: { resumeId } });
+
+      // Delete generic sections
+      await this.prisma.resumeSection.deleteMany({ where: { resumeId } });
 
       // Delete resume
       await this.prisma.resume.delete({ where: { id: resumeId } });

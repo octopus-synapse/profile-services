@@ -72,6 +72,9 @@ describe('DslRepository', () => {
             resume: {
               findFirst: mock(),
             },
+            resumeShare: {
+              findUnique: mock(),
+            },
           },
         },
       ],
@@ -135,11 +138,76 @@ describe('DslRepository', () => {
         async () => await repository.render('resume-123', 'user-123'),
       ).toThrow(BadRequestException);
     });
+
+    it('should pass generic sections to compiler data', async () => {
+      const resumeWithSections = {
+        ...mockResume,
+        resumeSections: [
+          {
+            id: 'section-1',
+            sectionTypeId: 'type-1',
+            titleOverride: null,
+            isVisible: true,
+            order: 0,
+            sectionType: {
+              key: 'work_experience_v1',
+              title: 'Work Experience',
+              semanticKind: 'WORK_EXPERIENCE',
+            },
+            items: [
+              {
+                id: 'item-1',
+                order: 0,
+                isVisible: true,
+                content: { position: 'Dev', company: 'Acme' },
+                createdAt: new Date('2024-01-01'),
+                updatedAt: new Date('2024-01-01'),
+              },
+            ],
+          },
+        ],
+      };
+
+      spyOn(prisma.resume, 'findFirst').mockResolvedValue(
+        resumeWithSections as any,
+      );
+      spyOn(validator, 'validateOrThrow').mockReturnValue(
+        mockResume.activeTheme.styleConfig,
+      );
+      spyOn(compiler, 'compileForHtml').mockReturnValue(mockAst as any);
+
+      await repository.render('resume-123', 'user-123', 'html');
+
+      expect(compiler.compileForHtml).toHaveBeenCalledWith(
+        expect.any(Object),
+        expect.objectContaining({
+          sections: expect.arrayContaining([
+            expect.objectContaining({
+              id: 'section-1',
+              semanticKind: 'WORK_EXPERIENCE',
+              items: expect.arrayContaining([
+                expect.objectContaining({
+                  id: 'item-1',
+                  order: 0,
+                  content: { position: 'Dev', company: 'Acme' },
+                }),
+              ]),
+            }),
+          ]),
+        }),
+      );
+    });
   });
 
   describe('renderPublic', () => {
     it('should render public resume AST', async () => {
-      spyOn(prisma.resume, 'findFirst').mockResolvedValue(mockResume);
+      spyOn(prisma.resumeShare, 'findUnique').mockResolvedValue({
+        id: 'share-123',
+        slug: 'john-doe',
+        isActive: true,
+        expiresAt: null,
+        resume: mockResume,
+      } as any);
       spyOn(validator, 'validateOrThrow').mockReturnValue(
         mockResume.activeTheme.styleConfig,
       );
@@ -147,8 +215,8 @@ describe('DslRepository', () => {
 
       const result = await repository.renderPublic('john-doe', 'html');
 
-      expect(prisma.resume.findFirst).toHaveBeenCalledWith({
-        where: { slug: 'john-doe', isPublic: true },
+      expect(prisma.resumeShare.findUnique).toHaveBeenCalledWith({
+        where: { slug: 'john-doe' },
         include: expect.any(Object),
       });
       expect(result).toEqual({
@@ -158,7 +226,7 @@ describe('DslRepository', () => {
     });
 
     it('should throw if public resume not found', async () => {
-      spyOn(prisma.resume, 'findFirst').mockResolvedValue(null);
+      spyOn(prisma.resumeShare, 'findUnique').mockResolvedValue(null);
 
       await expect(
         async () => await repository.renderPublic('john-doe'),

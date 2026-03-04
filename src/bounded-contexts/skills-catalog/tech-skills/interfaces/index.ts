@@ -10,5 +10,5 @@ export * from './parsed-skill.interface';
 export * from './stackoverflow.interface';
 export * from './sync-result.interface';
 export * from './tech-skill-types.interface';
-// Re-export from original file for backward compatibility
+// Re-export from aggregated interface file
 export * from './tech-skills.interface';

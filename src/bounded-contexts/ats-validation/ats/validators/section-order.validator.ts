@@ -1,40 +1,28 @@
 import { Injectable } from '@nestjs/common';
-import {
-  CVSectionType,
-  ParsedCV,
-  ValidationIssue,
-  ValidationResult,
-  ValidationSeverity,
-} from '../interfaces';
+import { ParsedCV, ValidationIssue, ValidationResult, ValidationSeverity } from '../interfaces';
+import { ATSSectionTypeAdapter } from '../services/ats-section-type.adapter';
 
+/**
+ * SectionOrderValidator - Validates section order using definition-driven rules.
+ *
+ * Recommended section positions are loaded from SectionType.definition.ats.recommendedPosition.
+ * No hardcoded section order knowledge.
+ */
 @Injectable()
 export class SectionOrderValidator {
-  private getSectionName(type: CVSectionType): string {
-    return CVSectionType[type] as string;
-  }
-
-  private readonly ATS_RECOMMENDED_SECTION_ORDER: CVSectionType[] = [
-    CVSectionType.PERSONAL_INFO,
-    CVSectionType.SUMMARY,
-    CVSectionType.EXPERIENCE,
-    CVSectionType.EDUCATION,
-    CVSectionType.SKILLS,
-    CVSectionType.CERTIFICATIONS,
-    CVSectionType.PROJECTS,
-    CVSectionType.AWARDS,
-    CVSectionType.PUBLICATIONS,
-    CVSectionType.LANGUAGES,
-    CVSectionType.INTERESTS,
-    CVSectionType.REFERENCES,
-  ];
+  constructor(private readonly atsSectionTypeAdapter: ATSSectionTypeAdapter) {}
 
   validate(parsedCV: ParsedCV): ValidationResult {
     const issues: ValidationIssue[] = [];
 
-    const currentOrder = parsedCV.sections.map((s) => s.type);
+    const currentOrder = parsedCV.sections.map((s) => s.semanticKind);
 
-    const expIndex = currentOrder.indexOf(CVSectionType.EXPERIENCE);
-    const eduIndex = currentOrder.indexOf(CVSectionType.EDUCATION);
+    // Get recommended order from definitions
+    const recommendedPatterns = this.atsSectionTypeAdapter.getPatternsByPosition();
+
+    // Check experience vs education order (common rule)
+    const expIndex = currentOrder.indexOf('experience');
+    const eduIndex = currentOrder.indexOf('education');
 
     if (expIndex !== -1 && eduIndex !== -1 && expIndex > eduIndex) {
       issues.push({
@@ -54,7 +42,8 @@ export class SectionOrderValidator {
       });
     }
 
-    const summaryIndex = currentOrder.indexOf(CVSectionType.SUMMARY);
+    // Check summary position
+    const summaryIndex = currentOrder.indexOf('summary');
     if (summaryIndex > 2 && summaryIndex !== -1) {
       issues.push({
         code: 'SUMMARY_TOO_LATE',
@@ -68,18 +57,17 @@ export class SectionOrderValidator {
       passed: issues.filter((i) => i.severity === ValidationSeverity.ERROR).length === 0,
       issues,
       metadata: {
-        currentOrder: currentOrder.map((type) => this.getSectionName(type)),
-        recommendedOrder: this.ATS_RECOMMENDED_SECTION_ORDER.map((type) =>
-          this.getSectionName(type),
-        ),
+        currentOrder,
+        recommendedOrder: recommendedPatterns.map((p) => p.semanticKind),
       },
     };
   }
 
-  private detectOrderViolations(currentOrder: CVSectionType[]): ValidationIssue[] {
+  private detectOrderViolations(currentOrder: string[]): ValidationIssue[] {
     const violations: ValidationIssue[] = [];
 
-    const refIndex = currentOrder.indexOf(CVSectionType.REFERENCES);
+    // References should be at the end
+    const refIndex = currentOrder.indexOf('references');
     if (refIndex !== -1 && refIndex < currentOrder.length - 2) {
       violations.push({
         code: 'REFERENCES_TOO_EARLY',
@@ -89,8 +77,9 @@ export class SectionOrderValidator {
       });
     }
 
-    const interestsIndex = currentOrder.indexOf(CVSectionType.INTERESTS);
-    const skillsIndex = currentOrder.indexOf(CVSectionType.SKILLS);
+    // Skills should come before interests
+    const interestsIndex = currentOrder.indexOf('interests');
+    const skillsIndex = currentOrder.indexOf('skills');
 
     if (interestsIndex !== -1 && skillsIndex !== -1 && interestsIndex < skillsIndex) {
       violations.push({

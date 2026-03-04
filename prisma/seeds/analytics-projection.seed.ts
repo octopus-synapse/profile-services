@@ -6,36 +6,60 @@
  *
  * Decision: Run this once after migration to initialize projections.
  * After that, event handlers keep projections in sync.
+ *
+ * GENERIC SECTIONS: Uses JSON sectionCounts field instead of individual columns.
+ * Keys are semanticKind strings, values are item counts.
  */
 
 import type { PrismaClient } from '@prisma/client';
 
-export async function seedAnalyticsProjections(prisma: PrismaClient): Promise<void> {
+/**
+ * Derives section counts from resume sections.
+ * Returns a JSON object with semanticKind as keys and item counts as values.
+ */
+function deriveSectionCounts(
+  resumeSections: Array<{
+    sectionType: {
+      semanticKind: string;
+    };
+    items: Array<{
+      id: string;
+    }>;
+  }>,
+): Record<string, number> {
+  const counts: Record<string, number> = {};
+
+  for (const section of resumeSections) {
+    const kind = section.sectionType.semanticKind;
+    counts[kind] = (counts[kind] ?? 0) + section.items.length;
+  }
+
+  return counts;
+}
+
+export async function seedAnalyticsProjections(
+  prisma: PrismaClient,
+): Promise<void> {
   console.log('📊 Seeding analytics projections...');
 
-  // Get all resumes with _count of each section type
+  // Get all resumes with section items
   const resumes = await prisma.resume.findMany({
     select: {
       id: true,
       userId: true,
       title: true,
-      _count: {
+      resumeSections: {
         select: {
-          experiences: true,
-          education: true,
-          skills: true,
-          certifications: true,
-          projects: true,
-          awards: true,
-          languages: true,
-          interests: true,
-          recommendations: true,
-          achievements: true,
-          publications: true,
-          talks: true,
-          hackathons: true,
-          bugBounties: true,
-          openSource: true,
+          sectionType: {
+            select: {
+              semanticKind: true,
+            },
+          },
+          items: {
+            select: {
+              id: true,
+            },
+          },
         },
       },
     },
@@ -50,24 +74,12 @@ export async function seedAnalyticsProjections(prisma: PrismaClient): Promise<vo
   let updated = 0;
 
   for (const resume of resumes) {
+    const sectionCounts = deriveSectionCounts(resume.resumeSections);
+
     const projectionData = {
       userId: resume.userId,
       title: resume.title,
-      experiencesCount: resume._count.experiences,
-      educationCount: resume._count.education,
-      skillsCount: resume._count.skills,
-      certificationsCount: resume._count.certifications,
-      projectsCount: resume._count.projects,
-      awardsCount: resume._count.awards,
-      languagesCount: resume._count.languages,
-      interestsCount: resume._count.interests,
-      recommendationsCount: resume._count.recommendations,
-      achievementsCount: resume._count.achievements,
-      publicationsCount: resume._count.publications,
-      talksCount: resume._count.talks,
-      hackathonsCount: resume._count.hackathons,
-      bugBountiesCount: resume._count.bugBounties,
-      openSourceCount: resume._count.openSource,
+      sectionCounts,
     };
 
     // Check if projection already exists

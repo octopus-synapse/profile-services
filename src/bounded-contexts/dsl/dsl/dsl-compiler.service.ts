@@ -1,29 +1,40 @@
+/**
+ * DSL Compiler Service
+ *
+ * Compiles Resume DSL into Resume AST for rendering.
+ * Uses GENERIC SECTIONS - NO type-specific knowledge.
+ *
+ * Architecture:
+ *   - All sections are compiled generically
+ *   - The compiler doesn't know what "experience" or "education" is
+ *   - Section structure comes from the resume data + SectionType.definition
+ *   - Adding a new section type requires ZERO code changes here
+ */
+
 import { Injectable } from '@nestjs/common';
-import type { ResumeAst, ResumeDsl, SectionData } from '@/shared-kernel';
+import type { ResumeAst, ResumeDsl } from '@/shared-kernel';
+import type { SectionDataV2 } from '@/shared-kernel/ast/generic-section-data.schema';
+import type { GenericResume, GenericResumeSection } from '@/shared-kernel/types';
 import {
   buildPageLayout,
   buildSectionStyles,
-  compileAwards,
-  compileCertifications,
-  compileEducation,
-  compileExperience,
-  compileInterests,
-  compileLanguages,
-  compileProjects,
-  compileReferences,
-  compileSkills,
   getPlaceholderData,
   type ItemOverride,
   mapColumnToId,
 } from '../application/compilers';
-import { type ResumeWithRelations } from '../domain/value-objects/resume-with-relations';
 import { DslValidatorService } from './dsl-validator.service';
 import { DslMigrationService } from './migrators';
 import { type ResolvedTokens, TokenResolverService } from './token-resolver.service';
 
-export type { ResumeWithRelations };
-
 const CURRENT_DSL_VERSION = '1.0.0';
+
+/**
+ * Check if an item is visible based on overrides.
+ */
+function isItemVisible(itemId: string, overrides: ItemOverride[]): boolean {
+  const override = overrides.find((o) => o.itemId === itemId);
+  return override?.visible !== false;
+}
 
 @Injectable()
 export class DslCompilerService {
@@ -33,19 +44,15 @@ export class DslCompilerService {
     private migrationService: DslMigrationService,
   ) {}
 
-  compileForHtml(dsl: ResumeDsl, resumeData?: ResumeWithRelations): ResumeAst {
+  compileForHtml(dsl: ResumeDsl, resumeData?: GenericResume): ResumeAst {
     return this.compile(dsl, 'html', resumeData);
   }
 
-  compileForPdf(dsl: ResumeDsl, resumeData?: ResumeWithRelations): ResumeAst {
+  compileForPdf(dsl: ResumeDsl, resumeData?: GenericResume): ResumeAst {
     return this.compile(dsl, 'pdf', resumeData);
   }
 
-  compile(
-    dsl: ResumeDsl,
-    _target: 'html' | 'pdf' = 'html',
-    resumeData?: ResumeWithRelations,
-  ): ResumeAst {
+  compile(dsl: ResumeDsl, _target: 'html' | 'pdf' = 'html', resumeData?: GenericResume): ResumeAst {
     const migratedDsl = this.migrateDsl(dsl);
     const validatedDsl = this.validator.validateOrThrow(migratedDsl);
     const tokens = this.tokenResolver.resolve(validatedDsl.tokens);
@@ -81,7 +88,7 @@ export class DslCompilerService {
   private placeSections(
     dsl: ResumeDsl,
     tokens: ResolvedTokens,
-    resumeData?: ResumeWithRelations,
+    resumeData?: GenericResume,
   ): ResumeAst['sections'] {
     return dsl.sections
       .filter((s) => s.visible)
@@ -102,34 +109,73 @@ export class DslCompilerService {
       });
   }
 
+  /**
+   * Generic section data compilation.
+   * NO type-specific logic - all sections compiled the same way.
+   *
+   * The DSL sectionId maps to resume.sections by matching:
+   * - sectionTypeKey (exact match), or
+   * - semanticKind (flexible match for well-known DSL IDs)
+   */
   private compileSectionData(
     sectionId: string,
-    resume: ResumeWithRelations,
+    resume: GenericResume,
     overrides: ItemOverride[],
-  ): SectionData {
-    switch (sectionId) {
-      case 'experience':
-        return compileExperience(resume.experiences, overrides);
-      case 'education':
-        return compileEducation(resume.education, overrides);
-      case 'skills':
-        return compileSkills(resume.skills, overrides);
-      case 'languages':
-        return compileLanguages(resume.languages, overrides);
-      case 'projects':
-        return compileProjects(resume.projects, overrides);
-      case 'certifications':
-        return compileCertifications(resume.certifications, overrides);
-      case 'awards':
-        return compileAwards(resume.awards, overrides);
-      case 'interests':
-        return compileInterests(resume.interests, overrides);
-      case 'references':
-        return compileReferences(resume.recommendations, overrides);
-      case 'summary':
-        return { type: 'summary', data: { content: resume.summary ?? '' } };
-      default:
-        return getPlaceholderData(sectionId);
+  ): SectionDataV2 {
+    // Find matching section in resume data
+    const section = this.findSectionForDslId(sectionId, resume.sections);
+
+    if (!section) {
+      // Special case: summary/objective come from resume root
+      if (sectionId === 'summary' || sectionId === 'objective') {
+        return {
+          semanticKind: sectionId.toUpperCase(),
+          sectionTypeKey: sectionId,
+          title: sectionId.charAt(0).toUpperCase() + sectionId.slice(1),
+          content: resume.summary ?? '',
+        };
+      }
+      return getPlaceholderData(sectionId);
     }
+
+    // Generic compilation - filter visible items
+    const visibleItems = section.items
+      .filter((item) => isItemVisible(item.id, overrides))
+      .map((item) => ({
+        id: item.id,
+        content: item.content,
+      }));
+
+    return {
+      semanticKind: section.semanticKind,
+      sectionTypeKey: section.sectionTypeKey,
+      title: section.title,
+      items: visibleItems,
+    };
+  }
+
+  /**
+   * Find a resume section matching a DSL section ID.
+   * Matches by sectionTypeKey or inferred semanticKind.
+   */
+  private findSectionForDslId(
+    dslSectionId: string,
+    sections: GenericResumeSection[],
+  ): GenericResumeSection | undefined {
+    // Direct match by sectionTypeKey
+    const direct = sections.find((s) => s.sectionTypeKey === dslSectionId);
+    if (direct) return direct;
+
+    // Match by section ID pattern (e.g., 'experience' matches any WORK_EXPERIENCE section)
+    // This allows legacy DSL files to work with new generic resume data
+    return sections.find((s) => {
+      const key = s.sectionTypeKey.toLowerCase();
+      const kind = s.semanticKind.toLowerCase().replace(/_/g, '');
+      const id = dslSectionId.toLowerCase();
+
+      return (
+        key.includes(id) || kind.includes(id.replace(/_/g, '')) || id.includes(key.split('_')[0])
+      );
+    });
   }
 }

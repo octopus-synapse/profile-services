@@ -63,7 +63,7 @@ describe('DSL Smoke Tests (e2e)', () => {
 
     // Get auth token
     const authResponse = await request(app.getHttpServer())
-      .post('/api/v1/auth/login')
+      .post('/api/auth/login')
       .send({ email: 'dsl-smoke@test.com', password: 'password' });
 
     authToken = authResponse.body.data.accessToken;

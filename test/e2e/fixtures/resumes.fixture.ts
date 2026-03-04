@@ -112,3 +112,89 @@ export const createSkillData = (name: string, category = 'Programming') => ({
   name,
   category,
 });
+
+/**
+ * Creates resume data with full contact information for CRUD testing.
+ * Includes all personal info fields for comprehensive export/display tests.
+ *
+ * @param suffix - Optional suffix for unique identifiers
+ * @returns Complete resume creation payload
+ */
+export function createResumeWithSections(suffix?: string) {
+  const uniqueSuffix = suffix || Date.now().toString();
+  return {
+    title: `Professional Resume ${uniqueSuffix}`,
+    summary:
+      'Experienced software engineer with expertise in full-stack development and modern web technologies.',
+    fullName: 'E2E Test User',
+    jobTitle: 'Senior Software Engineer',
+    emailContact: `test-${uniqueSuffix}@example.com`,
+    phone: '+1234567890',
+    location: 'San Francisco, CA',
+    linkedin: 'https://linkedin.com/in/test-user',
+    github: 'https://github.com/test-user',
+  };
+}
+
+/**
+ * Creates generic section item content based on section type.
+ * Works with the dynamic section system - discovers section types first,
+ * then creates appropriate content.
+ *
+ * @param sectionTypeKey - Section type key (e.g., 'work_experience_v1')
+ * @returns Section item payload with content object
+ */
+export function createSectionItemContent(sectionTypeKey: string) {
+  const contentMap: Record<string, Record<string, any>> = {
+    work_experience_v1: {
+      company: 'Tech Corp',
+      position: 'Senior Engineer',
+      startDate: '2020-01',
+      endDate: '2023-12',
+      description: 'Led development of microservices architecture',
+      current: false,
+      location: 'San Francisco, CA',
+    },
+    education_v1: {
+      institution: 'Tech University',
+      degree: 'Bachelor of Science',
+      field: 'Computer Science',
+      startDate: '2016-09',
+      endDate: '2020-05',
+      description: 'Focus on software engineering and algorithms',
+      gpa: '3.8',
+    },
+    skill_v1: {
+      name: 'TypeScript',
+      level: 'ADVANCED',
+      category: 'Programming',
+      yearsOfExperience: 5,
+    },
+    project_v1: {
+      name: 'E-commerce Platform',
+      description: 'Built scalable e-commerce platform using Node.js and React',
+      url: 'https://github.com/test/project',
+      startDate: '2021-01',
+      endDate: '2022-12',
+    },
+    certification_v1: {
+      name: 'AWS Certified Solutions Architect',
+      issuer: 'Amazon Web Services',
+      issueDate: '2022-06',
+      expiryDate: '2025-06',
+      credentialId: 'AWS-12345',
+      url: 'https://aws.amazon.com/verification',
+    },
+    language_v1: {
+      name: 'English',
+      level: 'NATIVE',
+    },
+  };
+
+  return {
+    content:
+      contentMap[sectionTypeKey] || {
+        description: 'Generic section item content',
+      },
+  };
+}

@@ -1,12 +1,25 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import sanitizeHtml from 'sanitize-html';
-import { ApiResponseHelper } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { ResumeVersionService } from '@/bounded-contexts/resumes/resume-versions/services/resume-version.service';
 import type { CreateResume, UpdateResume } from '@/shared-kernel';
 import { RESUME_EVENT_PUBLISHER, type ResumeEventPublisher } from '../domain/ports';
 import { ResumesRepository } from './resumes.repository';
 
 const MAX_RESUMES_PER_USER = 4;
+
+export type UserResumesPagination = {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+};
+
+export type UserResumesPaginatedResult = {
+  resumes: unknown[];
+  pagination: UserResumesPagination;
+};
 
 /**
  * Sanitize HTML content to prevent XSS attacks
@@ -41,13 +54,13 @@ export class ResumesService {
       return this.findPaginated(userId, page, limit);
     }
     const resumes = await this.repository.findAllUserResumes(userId);
-    return ApiResponseHelper.success(resumes);
+    return resumes;
   }
 
   async findResumeByIdForUser(id: string, userId: string) {
     const resume = await this.repository.findResumeByIdAndUserId(id, userId);
     if (!resume) throw new NotFoundException('Resume not found');
-    return ApiResponseHelper.success(resume);
+    return resume;
   }
 
   async createResumeForUser(userId: string, data: CreateResume) {
@@ -71,7 +84,7 @@ export class ResumesService {
       title: resume.title ?? '',
     });
 
-    return ApiResponseHelper.success(resume);
+    return resume;
   }
 
   async updateResumeForUser(id: string, userId: string, data: UpdateResume) {
@@ -92,7 +105,7 @@ export class ResumesService {
       changedFields: Object.keys(data),
     });
 
-    return ApiResponseHelper.success(resume);
+    return resume;
   }
 
   async deleteResumeForUser(id: string, userId: string) {
@@ -101,7 +114,7 @@ export class ResumesService {
 
     this.eventPublisher.publishResumeDeleted(id, { userId });
 
-    return ApiResponseHelper.message('Resume deleted successfully');
+    return;
   }
 
   async findResumeByUserId(userId: string) {
@@ -117,21 +130,29 @@ export class ResumesService {
     };
   }
 
-  private async findPaginated(userId: string, page: number, limit: number) {
+  private async findPaginated(
+    userId: string,
+    page: number,
+    limit: number,
+  ): Promise<UserResumesPaginatedResult> {
     const skip = (page - 1) * limit;
     const [resumes, total] = await Promise.all([
       this.repository.findAllUserResumesPaginated(userId, skip, limit),
       this.repository.countUserResumes(userId),
     ]);
     const totalPages = Math.ceil(total / limit);
-    return ApiResponseHelper.paginated(resumes, {
-      total,
-      page,
-      limit,
-      totalPages,
-      hasNextPage: page < totalPages,
-      hasPrevPage: page > 1,
-    });
+
+    return {
+      resumes,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      },
+    };
   }
 
   private async ensureUserHasSlots(userId: string): Promise<void> {

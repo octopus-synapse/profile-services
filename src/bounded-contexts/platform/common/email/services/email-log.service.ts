@@ -3,7 +3,6 @@
  *
  * Handles email logging and tracking for analytics and debugging.
  *
- * Uncle Bob: "Logging is a cross-cutting concern that should be isolated"
  */
 
 import { Injectable } from '@nestjs/common';

@@ -27,7 +27,7 @@ export const LANGUAGE_METADATA = {
 export const GITHUB_LINGUIST_URL =
   'https://raw.githubusercontent.com/github/linguist/master/lib/linguist/languages.yml';
 
-// Re-export individual constants for backward compatibility
+// Re-export individual constants for centralized imports
 export { LANGUAGE_TRANSLATIONS };
 export { LANGUAGE_PARADIGMS };
 export { LANGUAGE_TYPING };

@@ -17,7 +17,7 @@ import {
 import { ThemeStatus } from '@prisma/client';
 import { AuthorizationService } from '@/bounded-contexts/identity/authorization';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { ReviewTheme } from '@/shared-kernel';
+import type { ThemeApproval } from '@/shared-kernel';
 import { ERROR_MESSAGES } from '@/shared-kernel';
 import { ThemeCrudService } from './theme-crud.service';
 
@@ -58,7 +58,7 @@ export class ThemeApprovalService {
     });
   }
 
-  async review(approverId: string, dto: ReviewTheme) {
+  async review(approverId: string, dto: ThemeApproval) {
     await this.assertIsApprover(approverId);
 
     const theme = await this.crud.findThemeByIdOrThrow(dto.themeId);

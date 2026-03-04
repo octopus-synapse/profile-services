@@ -23,11 +23,12 @@ import { describe, it, expect } from 'bun:test';
 
 describe('Smoke Tests - Application Bootstrap', () => {
   describe('Core Module Imports', () => {
-    it('should import AuthModule', async () => {
-      const { AuthModule } = await import(
-        '@/bounded-contexts/identity/auth/auth.module'
+    it('should import AuthenticationModule', async () => {
+      // Import directly from the module file to avoid barrel export issues
+      const { AuthenticationModule } = await import(
+        '@/bounded-contexts/identity/authentication/authentication.module'
       );
-      expect(AuthModule).toBeDefined();
+      expect(AuthenticationModule).toBeDefined();
     });
 
     it('should import UsersModule', async () => {
@@ -71,11 +72,11 @@ describe('Smoke Tests - Application Bootstrap', () => {
   });
 
   describe('Core Services Imports', () => {
-    it('should import AuthService', async () => {
-      const { AuthService } = await import(
-        '@/bounded-contexts/identity/auth/auth.service'
+    it('should import UsersService', async () => {
+      const { UsersService } = await import(
+        '@/bounded-contexts/identity/users/users.service'
       );
-      expect(AuthService).toBeDefined();
+      expect(UsersService).toBeDefined();
     });
 
     it('should import ResumesService', async () => {
@@ -83,13 +84,6 @@ describe('Smoke Tests - Application Bootstrap', () => {
         '@/bounded-contexts/resumes/resumes/resumes.service'
       );
       expect(ResumesService).toBeDefined();
-    });
-
-    it('should import UsersService', async () => {
-      const { UsersService } = await import(
-        '@/bounded-contexts/identity/users/users.service'
-      );
-      expect(UsersService).toBeDefined();
     });
 
     it('should import CacheService', async () => {

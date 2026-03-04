@@ -1,7 +1,5 @@
 import { Field, ID, ObjectType, registerEnumType } from '@nestjs/graphql';
-import { EducationModel } from './education.model';
-import { ExperienceModel } from './experience.model';
-import { SkillModel } from './skill.model';
+import { ResumeSectionModel } from './resume-section.model';
 
 /**
  * Resume template enum for GraphQL
@@ -25,6 +23,7 @@ registerEnumType(ResumeTemplate, {
  * GraphQL ObjectType for Resume
  *
  * Maps to the Resume Prisma entity with field resolvers for relations.
+ * Uses generic sections model instead of domain-specific arrays.
  */
 @ObjectType({ description: 'Complete resume document' })
 export class ResumeModel {
@@ -67,13 +66,12 @@ export class ResumeModel {
   @Field({ description: 'Updated at timestamp' })
   updatedAt: Date;
 
-  // Field resolvers for relations (will be populated by DataLoader)
-  @Field(() => [ExperienceModel], { description: 'Work experiences' })
-  experiences?: ExperienceModel[];
-
-  @Field(() => [EducationModel], { description: 'Education entries' })
-  educations?: EducationModel[];
-
-  @Field(() => [SkillModel], { description: 'Skills' })
-  skills?: SkillModel[];
+  /**
+   * Generic sections array - replaces legacy domain-specific arrays
+   * (experiences, educations, skills, etc.)
+   */
+  @Field(() => [ResumeSectionModel], {
+    description: 'Resume sections with items',
+  })
+  sections?: ResumeSectionModel[];
 }

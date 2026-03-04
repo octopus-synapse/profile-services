@@ -1,258 +1,77 @@
 /**
- * Username Service Unit Tests
+ * Username Service (Facade) Tests
  *
- * These tests verify the ACTUAL service behavior, not fake helper functions.
+ * Tests the facade pattern, verifying delegation to use cases.
+ * Uses In-Memory repositories and Stubs for clean, behavior-focused testing.
+ *
  * Uncle Bob: "Test the system, not your imagination of the system."
  */
 
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
-import { Test, TestingModule } from '@nestjs/testing';
-import {
-  BadRequestException,
-  ConflictException,
-  NotFoundException,
-} from '@nestjs/common';
 import { UsernameService } from './username.service';
-import { UsersRepository } from '@/bounded-contexts/identity/users/users.repository';
-import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import {
+  InMemoryUsersRepository,
+  StubLogger,
+} from '../../shared-kernel/testing';
+import type {
+  UsernameUseCases,
+  UpdatedUsername,
+} from './username/ports/username.port';
 
-describe('UsernameService', () => {
+describe('UsernameService (Facade)', () => {
   let service: UsernameService;
-  let mockUsersRepository: UsersRepository;
+  let mockUseCases: UsernameUseCases;
+  let usersRepository: InMemoryUsersRepository;
+  let logger: StubLogger;
 
-  const mockUser = {
-    id: 'user-123',
-    email: 'test@example.com',
-    username: 'existinguser',
-    usernameUpdatedAt: null,
-  } as any;
+  const mockUpdatedUsername: UpdatedUsername = {
+    username: 'newuser',
+  };
 
-  beforeEach(async () => {
-    mockUsersRepository = {
-      findUserById: mock().mockResolvedValue(mockUser),
-      updateUsername: mock().mockResolvedValue({
-        ...mockUser,
-        username: 'newuser',
-      }),
-      isUsernameTaken: mock().mockResolvedValue(false),
-      findLastUsernameUpdateByUserId: mock().mockResolvedValue(null),
-    } as any;
+  beforeEach(() => {
+    mockUseCases = {
+      updateUsernameUseCase: {
+        execute: mock(async () => mockUpdatedUsername),
+      },
+    } as unknown as UsernameUseCases;
 
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        UsernameService,
-        { provide: UsersRepository, useValue: mockUsersRepository },
-        {
-          provide: AppLoggerService,
-          useValue: { debug: mock(), warn: mock() },
-        },
-      ],
-    }).compile();
+    usersRepository = new InMemoryUsersRepository();
+    logger = new StubLogger();
 
-    service = module.get<UsernameService>(UsernameService);
+    service = new UsernameService(
+      mockUseCases,
+      usersRepository as any,
+      logger as any,
+    );
   });
 
   describe('updateUsername', () => {
-    describe('User validation', () => {
-      it('should throw NotFoundException when user does not exist', async () => {
-        mockUsersRepository.findUserById.mockResolvedValue(null);
-
-        await expect(
-          service.updateUsername('nonexistent', { username: 'newuser' }),
-        ).rejects.toThrow(NotFoundException);
+    it('should delegate to updateUsernameUseCase', async () => {
+      const result = await service.updateUsername('user-123', {
+        username: 'newuser',
       });
 
-      it('should return success when username is unchanged', async () => {
-        const result = await service.updateUsername('user-123', {
-          username: 'existinguser',
-        });
-
-        expect(result.success).toBe(true);
-        expect(result.message).toBe('Username unchanged');
-        expect(mockUsersRepository.updateUsername.mock.calls.length).toBe(0);
-      });
+      expect(result).toEqual(mockUpdatedUsername);
+      expect(mockUseCases.updateUsernameUseCase.execute).toHaveBeenCalledWith(
+        'user-123',
+        'newuser',
+      );
     });
 
-    describe('Username format validation', () => {
-      it('should reject uppercase letters', async () => {
-        await expect(
-          service.updateUsername('user-123', { username: 'TestUser' }),
-        ).rejects.toThrow(BadRequestException);
-      });
+    it('should log the username update', async () => {
+      await service.updateUsername('user-123', { username: 'newuser' });
 
-      it('should reject usernames starting with number', async () => {
-        await expect(
-          service.updateUsername('user-123', { username: '123user' }),
-        ).rejects.toThrow(BadRequestException);
-      });
-
-      it('should reject special characters', async () => {
-        await expect(
-          service.updateUsername('user-123', { username: 'user@name' }),
-        ).rejects.toThrow(BadRequestException);
-      });
-
-      it('should reject consecutive underscores', async () => {
-        await expect(
-          service.updateUsername('user-123', { username: 'user__name' }),
-        ).rejects.toThrow(BadRequestException);
-      });
-
-      it('should reject trailing underscore', async () => {
-        await expect(
-          service.updateUsername('user-123', { username: 'username_' }),
-        ).rejects.toThrow(BadRequestException);
-      });
-
-      it('should accept valid lowercase username', async () => {
-        const result = await service.updateUsername('user-123', {
-          username: 'validuser',
-        });
-        expect(result.success).toBe(true);
-      });
-
-      it('should accept username with numbers', async () => {
-        const result = await service.updateUsername('user-123', {
-          username: 'user123',
-        });
-        expect(result.success).toBe(true);
-      });
-
-      it('should accept username with single underscores', async () => {
-        const result = await service.updateUsername('user-123', {
-          username: 'user_name',
-        });
-        expect(result.success).toBe(true);
-      });
-    });
-
-    describe('Reserved username validation', () => {
-      it('should reject "admin"', async () => {
-        await expect(
-          service.updateUsername('user-123', { username: 'admin' }),
-        ).rejects.toThrow(BadRequestException);
-      });
-
-      it('should reject "api"', async () => {
-        await expect(
-          service.updateUsername('user-123', { username: 'api' }),
-        ).rejects.toThrow(BadRequestException);
-      });
-
-      it('should reject "www"', async () => {
-        await expect(
-          service.updateUsername('user-123', { username: 'www' }),
-        ).rejects.toThrow(BadRequestException);
-      });
-
-      it('should reject "support"', async () => {
-        await expect(
-          service.updateUsername('user-123', { username: 'support' }),
-        ).rejects.toThrow(BadRequestException);
-      });
-    });
-
-    describe('Cooldown validation', () => {
-      it('should allow when never changed before (null)', async () => {
-        mockUsersRepository.findLastUsernameUpdateByUserId.mockResolvedValue(
-          null,
-        );
-
-        const result = await service.updateUsername('user-123', {
-          username: 'newuser',
-        });
-        expect(result.success).toBe(true);
-      });
-
-      it('should reject within 30 days of last change', async () => {
-        const fifteenDaysAgo = new Date(Date.now() - 15 * 24 * 60 * 60 * 1000);
-        mockUsersRepository.findLastUsernameUpdateByUserId.mockResolvedValue(
-          fifteenDaysAgo,
-        );
-
-        await expect(
-          service.updateUsername('user-123', { username: 'newuser' }),
-        ).rejects.toThrow(BadRequestException);
-      });
-
-      it('should allow after 30 days', async () => {
-        const thirtyOneDaysAgo = new Date(
-          Date.now() - 31 * 24 * 60 * 60 * 1000,
-        );
-        mockUsersRepository.findLastUsernameUpdateByUserId.mockResolvedValue(
-          thirtyOneDaysAgo,
-        );
-
-        const result = await service.updateUsername('user-123', {
-          username: 'newuser',
-        });
-        expect(result.success).toBe(true);
-      });
-
-      it('should show remaining days in error message', async () => {
-        const twentyDaysAgo = new Date(Date.now() - 20 * 24 * 60 * 60 * 1000);
-        mockUsersRepository.findLastUsernameUpdateByUserId.mockResolvedValue(
-          twentyDaysAgo,
-        );
-
-        try {
-          await service.updateUsername('user-123', { username: 'newuser' });
-          fail('Should have thrown');
-        } catch (error) {
-          expect((error as Error).message).toInclude('10');
-        }
-      });
-    });
-
-    describe('Username availability', () => {
-      it('should reject already taken username', async () => {
-        mockUsersRepository.isUsernameTaken.mockResolvedValue(true);
-
-        await expect(
-          service.updateUsername('user-123', { username: 'takenuser' }),
-        ).rejects.toThrow(ConflictException);
-      });
-
-      it('should accept available username', async () => {
-        mockUsersRepository.isUsernameTaken.mockResolvedValue(false);
-
-        const result = await service.updateUsername('user-123', {
-          username: 'availableuser',
-        });
-        expect(result.success).toBe(true);
-      });
-    });
-
-    describe('Successful update', () => {
-      it('should call repository with correct parameters', async () => {
-        await service.updateUsername('user-123', { username: 'newuser' });
-
-        expect(mockUsersRepository.updateUsername).toHaveBeenCalledWith(
-          'user-123',
-          'newuser',
-        );
-      });
-
-      it('should return updated username', async () => {
-        mockUsersRepository.updateUsername.mockResolvedValue({
-          ...mockUser,
-          username: 'newuser',
-        });
-
-        const result = await service.updateUsername('user-123', {
-          username: 'newuser',
-        });
-
-        expect(result.username).toBe('newuser');
-        expect(result.message).toBe('Username updated successfully');
+      expect(logger.hasLogged('Username updated', 'debug')).toBe(true);
+      const lastLog = logger.getLastLog();
+      expect(lastLog?.meta).toEqual({
+        userId: 'user-123',
+        newUsername: 'newuser',
       });
     });
   });
 
   describe('checkUsernameAvailability', () => {
     it('should return available=true when not taken', async () => {
-      mockUsersRepository.isUsernameTaken.mockResolvedValue(false);
-
       const result = await service.checkUsernameAvailability('newuser');
 
       expect(result.available).toBe(true);
@@ -260,7 +79,7 @@ describe('UsernameService', () => {
     });
 
     it('should return available=false when taken', async () => {
-      mockUsersRepository.isUsernameTaken.mockResolvedValue(true);
+      usersRepository.markUsernameTaken('takenuser');
 
       const result = await service.checkUsernameAvailability('takenuser');
 
@@ -268,12 +87,108 @@ describe('UsernameService', () => {
     });
 
     it('should normalize username to lowercase', async () => {
-      await service.checkUsernameAvailability('TestUser');
+      usersRepository.markUsernameTaken('testuser');
 
-      expect(mockUsersRepository.isUsernameTaken).toHaveBeenCalledWith(
+      const result = await service.checkUsernameAvailability('TestUser');
+
+      expect(result.available).toBe(false);
+      expect(result.username).toBe('testuser');
+    });
+
+    it('should exclude user when checking their own username', async () => {
+      usersRepository.seedUser({ id: 'user-123', username: 'testuser' });
+
+      const result = await service.checkUsernameAvailability(
         'testuser',
-        undefined,
+        'user-123',
       );
+
+      expect(result.available).toBe(true);
+    });
+  });
+
+  describe('validateUsername', () => {
+    it('should validate and return valid=true for good username', async () => {
+      const result = await service.validateUsername('validuser');
+
+      expect(result.valid).toBe(true);
+      expect(result.available).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('should reject uppercase letters', async () => {
+      const result = await service.validateUsername('TestUser');
+
+      expect(result.valid).toBe(false);
+      expect(result.errors.some((e) => e.code === 'UPPERCASE')).toBe(true);
+    });
+
+    it('should reject usernames starting with number', async () => {
+      const result = await service.validateUsername('123user');
+
+      expect(result.valid).toBe(false);
+      expect(result.errors.some((e) => e.code === 'INVALID_START')).toBe(true);
+    });
+
+    it('should reject special characters', async () => {
+      const result = await service.validateUsername('user@name');
+
+      expect(result.valid).toBe(false);
+      expect(result.errors.some((e) => e.code === 'INVALID_FORMAT')).toBe(true);
+    });
+
+    it('should reject consecutive underscores', async () => {
+      const result = await service.validateUsername('user__name');
+
+      expect(result.valid).toBe(false);
+      expect(
+        result.errors.some((e) => e.code === 'CONSECUTIVE_UNDERSCORES'),
+      ).toBe(true);
+    });
+
+    it('should reject trailing underscore', async () => {
+      const result = await service.validateUsername('username_');
+
+      expect(result.valid).toBe(false);
+      expect(result.errors.some((e) => e.code === 'INVALID_END')).toBe(true);
+    });
+
+    it('should reject reserved usernames', async () => {
+      const reserved = ['admin', 'api', 'www', 'support', 'root'];
+
+      for (const name of reserved) {
+        const result = await service.validateUsername(name);
+        expect(result.valid).toBe(false);
+        expect(
+          result.errors.some((e) => e.code === 'RESERVED'),
+          `Expected "${name}" to be rejected as reserved`,
+        ).toBe(true);
+      }
+    });
+
+    it('should accept valid usernames', async () => {
+      const validNames = ['validuser', 'user123', 'user_name'];
+
+      for (const name of validNames) {
+        const result = await service.validateUsername(name);
+        expect(result.valid, `Expected "${name}" to be valid`).toBe(true);
+      }
+    });
+
+    it('should check availability when format is valid', async () => {
+      usersRepository.markUsernameTaken('takenuser');
+
+      const result = await service.validateUsername('takenuser');
+
+      expect(result.valid).toBe(false);
+      expect(result.available).toBe(false);
+      expect(result.errors.some((e) => e.code === 'ALREADY_TAKEN')).toBe(true);
+    });
+
+    it('should not check availability when format is invalid', async () => {
+      const result = await service.validateUsername('UPPERCASE');
+
+      expect(result.available).toBeUndefined();
     });
   });
 });

@@ -13,7 +13,7 @@ import { TechNicheQueryService } from './niche-query.service';
 import { SkillQueryService } from './skill-query.service';
 import { SkillSearchService } from './skill-search.service';
 
-// Re-export DTOs for backward compatibility
+// Re-export DTOs for centralized consumption
 export type {
   ProgrammingLanguage,
   TechArea,

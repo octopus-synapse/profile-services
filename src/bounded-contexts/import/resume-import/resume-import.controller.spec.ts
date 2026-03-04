@@ -110,7 +110,8 @@ describe('ResumeImportController', () => {
 
       const result = await controller.importJson(mockUser, { data: jsonData });
 
-      expect(result).toMatchObject({
+      expect(result.success).toBe(true);
+      expect(result.data).toMatchObject({
         importId: expect.any(String),
         status: 'COMPLETED',
         resumeId: expect.any(String),
@@ -120,7 +121,7 @@ describe('ResumeImportController', () => {
     });
 
     it('should validate JSON before importing', async () => {
-      const invalidJson = { invalid: 'data' };
+      const invalidJson = { invalid: 'data' } as any;
 
       await expect(
         controller.importJson(mockUser, { data: invalidJson }),
@@ -137,7 +138,8 @@ describe('ResumeImportController', () => {
 
       const result = await controller.parseJson({ data: jsonData });
 
-      expect(result).toMatchObject({
+      expect(result.success).toBe(true);
+      expect(result.data).toMatchObject({
         personalInfo: { name: 'John Doe' },
         experiences: expect.any(Array),
       });
@@ -149,7 +151,8 @@ describe('ResumeImportController', () => {
     it('should return import status', async () => {
       const result = await controller.getStatus(mockUser, 'import-123');
 
-      expect(result).toMatchObject({
+      expect(result.success).toBe(true);
+      expect(result.data).toMatchObject({
         status: 'COMPLETED',
         resumeId: 'resume-123',
       });
@@ -173,7 +176,8 @@ describe('ResumeImportController', () => {
     it('should return import history for user', async () => {
       const result = await controller.getHistory(mockUser);
 
-      expect(result).toHaveLength(2);
+      expect(result.success).toBe(true);
+      expect(result.data).toHaveLength(2);
       expect(mockImportService.getImportHistory).toHaveBeenCalledWith(
         mockUser.userId,
       );
@@ -192,7 +196,8 @@ describe('ResumeImportController', () => {
     it('should retry failed import', async () => {
       const result = await controller.retry(mockUser, 'import-123');
 
-      expect(result).toMatchObject({
+      expect(result.success).toBe(true);
+      expect(result.data).toMatchObject({
         importId: 'import-123',
         status: 'COMPLETED',
       });

@@ -114,8 +114,3 @@ export const ForkThemeSchema = z.object({
 });
 
 export type ForkTheme = z.infer<typeof ForkThemeSchema>;
-
-/**
- * Review Theme Schema (alias for ThemeApproval)
- */
-export type ReviewTheme = ThemeApproval;

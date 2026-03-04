@@ -9,7 +9,7 @@
 
 import { SkillLevel } from '../enums/skill-level.enum';
 
-// Re-export from enums for backward compatibility
+// Re-export from enums for centralized skill-level access
 export {
   type SkillLevel,
   SkillLevelSchema,

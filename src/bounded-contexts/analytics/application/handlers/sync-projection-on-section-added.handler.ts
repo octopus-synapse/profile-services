@@ -3,6 +3,8 @@
  *
  * Maintains the analytics read model by incrementing section counts
  * when a section is added to a resume.
+ *
+ * GENERIC: Works with any section type via semanticKind.
  */
 
 import { Injectable, Logger } from '@nestjs/common';
@@ -19,37 +21,25 @@ export class SyncProjectionOnSectionAddedHandler {
   @OnEvent(SectionAddedEvent.TYPE)
   async handle(event: SectionAddedEvent): Promise<void> {
     const resumeId = event.aggregateId;
-    const { sectionType } = event.payload;
+    const semanticKind = event.payload.sectionKind;
 
-    const field = this.mapSectionTypeToField(sectionType);
-    if (!field) return;
+    if (!semanticKind) {
+      this.logger.warn(`No semanticKind in event for resume: ${resumeId}`);
+      return;
+    }
 
-    this.logger.debug(`Incrementing ${field} for resume: ${resumeId}`);
+    this.logger.debug(`Incrementing ${semanticKind} count for resume: ${resumeId}`);
 
-    await this.prisma.analyticsResumeProjection.update({
-      where: { id: resumeId },
-      data: { [field]: { increment: 1 } },
-    });
-  }
-
-  private mapSectionTypeToField(sectionType: string): string | null {
-    const mapping: Record<string, string> = {
-      experience: 'experiencesCount',
-      education: 'educationCount',
-      skills: 'skillsCount',
-      certifications: 'certificationsCount',
-      projects: 'projectsCount',
-      awards: 'awardsCount',
-      languages: 'languagesCount',
-      interests: 'interestsCount',
-      recommendations: 'recommendationsCount',
-      achievements: 'achievementsCount',
-      publications: 'publicationsCount',
-      talks: 'talksCount',
-      hackathons: 'hackathonsCount',
-      bugbounties: 'bugBountiesCount',
-      opensource: 'openSourceCount',
-    };
-    return mapping[sectionType] ?? null;
+    // Use raw query to increment JSON field value
+    await this.prisma.$executeRaw`
+      UPDATE analytics_resume_projection
+      SET "sectionCounts" = jsonb_set(
+        "sectionCounts",
+        ${[semanticKind]}::text[],
+        to_jsonb(COALESCE(("sectionCounts"->${semanticKind})::int, 0) + 1)
+      ),
+      "updatedAt" = NOW()
+      WHERE id = ${resumeId}
+    `;
   }
 }

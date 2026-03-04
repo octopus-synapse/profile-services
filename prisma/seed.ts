@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 import { seedAnalyticsProjections } from './seeds/analytics-projection.seed';
+import { seedSectionTypes } from './seeds/section-type.seed';
 import { seedSpokenLanguages } from './seeds/spoken-language.seed';
 import { seedThemes } from './seeds/theme.seed';
 import { seedUsernames } from './seeds/username.seed';
@@ -26,7 +27,7 @@ async function main() {
     admin = await prisma.user.create({
       data: {
         email: adminEmail,
-        password: hashedPassword,
+        passwordHash: hashedPassword,
         name: adminName,
         emailVerified: new Date(),
       },
@@ -45,6 +46,9 @@ async function main() {
 
   // Seed spoken languages catalog
   await seedSpokenLanguages(prisma);
+
+  // Seed semantic section types catalog
+  await seedSectionTypes(prisma);
 
   // Seed usernames for existing users without one
   await seedUsernames(prisma);

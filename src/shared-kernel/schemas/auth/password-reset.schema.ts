@@ -29,7 +29,3 @@ export const ChangePasswordSchema = z.object({
 });
 
 export type ChangePassword = z.infer<typeof ChangePasswordSchema>;
-
-// Type aliases for backward compatibility
-export type ForgotPassword = ResetPasswordRequest;
-export type ResetPassword = NewPassword;

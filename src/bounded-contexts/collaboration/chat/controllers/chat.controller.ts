@@ -1,23 +1,64 @@
 import { Body, Controller, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
-import type { AuthenticatedRequest } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
+import { ApiBearerAuth, ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger';
+import type { AuthenticatedRequest } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
+import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
+import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { createZodPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
 import {
+  type ConversationResponse,
   GetConversationsQuerySchema,
   GetMessagesQuerySchema,
+  type MessageResponse,
+  type PaginatedConversationsResponse,
+  type PaginatedMessagesResponse,
   SendMessageSchema,
   SendMessageToConversationSchema,
 } from '@/shared-kernel';
-import {
-  ChatMessageResponseDto,
-  ConversationDetailResponseDto,
-  ConversationResponseDto,
-  MarkAsReadResponseDto,
-  UnreadCountResponseDto,
-} from '@/shared-kernel/dtos/sdk-response.dto';
 import { ChatService } from '../services/chat.service';
+
+// Wrapper DTOs for responses
+export class ChatMessageDataDto {
+  @ApiProperty({ type: 'object', additionalProperties: true })
+  message!: MessageResponse;
+}
+
+export class ConversationsListDataDto {
+  @ApiProperty({ type: 'object', additionalProperties: true })
+  conversations!: PaginatedConversationsResponse;
+}
+
+export class ConversationDataDto {
+  @ApiProperty({ type: 'object', additionalProperties: true })
+  conversation!: ConversationResponse;
+}
+
+export class MessagesListDataDto {
+  @ApiProperty({ type: 'object', additionalProperties: true })
+  messages!: PaginatedMessagesResponse;
+}
+
+export class MarkAsReadDataDto {
+  @ApiProperty({ description: 'Number of messages marked as read' })
+  count!: number;
+}
+
+export class UnreadCountDataDto {
+  @ApiProperty({ description: 'Total unread messages' })
+  totalUnread!: number;
+
+  @ApiProperty({ description: 'Unread count by conversation ID' })
+  byConversation!: Record<string, number>;
+}
+
+export class ConversationNullableDataDto {
+  @ApiProperty({ type: String, nullable: true })
+  conversationId!: string | null;
+
+  @ApiProperty({ nullable: true, description: 'Conversation details' })
+  conversation?: ConversationResponse | null;
+}
 
 @SdkExport({ tag: 'chat', description: 'Chat API' })
 @ApiTags('Chat')
@@ -29,89 +70,125 @@ export class ChatController {
 
   @Post('messages')
   @ApiOperation({ summary: 'Send a message to a user' })
-  @ApiResponse({ status: 201, type: ChatMessageResponseDto })
+  @ApiDataResponse(ChatMessageDataDto, {
+    status: 201,
+    description: 'Message sent',
+  })
   async sendMessage(
     @Req() req: AuthenticatedRequest,
     @Body(createZodPipe(SendMessageSchema))
     dto: ReturnType<typeof SendMessageSchema.parse>,
-  ) {
-    return this.chatService.sendMessage(req.user.userId, dto);
+  ): Promise<DataResponse<ChatMessageDataDto>> {
+    const message = await this.chatService.sendMessage(req.user.userId, dto);
+    return { success: true, data: { message } };
   }
 
   @Post('conversations/:conversationId/messages')
   @ApiOperation({ summary: 'Send a message to an existing conversation' })
-  @ApiResponse({ status: 201, type: ChatMessageResponseDto })
+  @ApiDataResponse(ChatMessageDataDto, {
+    status: 201,
+    description: 'Message sent',
+  })
   async sendMessageToConversation(
     @Req() req: AuthenticatedRequest,
     @Param('conversationId') conversationId: string,
     @Body(createZodPipe(SendMessageToConversationSchema.pick({ content: true })))
     dto: { content: string },
-  ) {
-    return this.chatService.sendMessageToConversation(req.user.userId, conversationId, dto.content);
+  ): Promise<DataResponse<ChatMessageDataDto>> {
+    const message = await this.chatService.sendMessageToConversation(
+      req.user.userId,
+      conversationId,
+      dto.content,
+    );
+    return { success: true, data: { message } };
   }
 
   @Get('conversations')
   @ApiOperation({ summary: 'Get all conversations for the current user' })
-  @ApiResponse({ status: 200, type: [ConversationResponseDto] })
+  @ApiDataResponse(ConversationsListDataDto, {
+    description: 'List of conversations',
+  })
   async getConversations(
     @Req() req: AuthenticatedRequest,
     @Query(createZodPipe(GetConversationsQuerySchema))
     query: ReturnType<typeof GetConversationsQuerySchema.parse>,
-  ) {
-    return this.chatService.getConversations(req.user.userId, query);
+  ): Promise<DataResponse<ConversationsListDataDto>> {
+    const conversations = await this.chatService.getConversations(req.user.userId, query);
+    return { success: true, data: { conversations } };
   }
 
   @Get('conversations/:conversationId')
   @ApiOperation({ summary: 'Get a single conversation' })
-  @ApiResponse({ status: 200, type: ConversationDetailResponseDto })
+  @ApiDataResponse(ConversationDataDto, { description: 'Conversation details' })
   async getConversation(
     @Req() req: AuthenticatedRequest,
     @Param('conversationId') conversationId: string,
-  ) {
-    return this.chatService.getConversation(req.user.userId, conversationId);
+  ): Promise<DataResponse<ConversationDataDto>> {
+    const conversation = await this.chatService.getConversation(req.user.userId, conversationId);
+    return { success: true, data: { conversation } };
   }
 
   @Get('conversations/:conversationId/messages')
   @ApiOperation({ summary: 'Get messages for a conversation' })
-  @ApiResponse({ status: 200, type: [ChatMessageResponseDto] })
+  @ApiDataResponse(MessagesListDataDto, { description: 'List of messages' })
   async getMessages(
     @Req() req: AuthenticatedRequest,
     @Param('conversationId') conversationId: string,
     @Query() query: { cursor?: string; limit?: string },
-  ) {
+  ): Promise<DataResponse<MessagesListDataDto>> {
     const parsedQuery = GetMessagesQuerySchema.parse({
       conversationId,
       cursor: query.cursor,
       limit: query.limit ? parseInt(query.limit, 10) : 50,
     });
-    return this.chatService.getMessages(req.user.userId, parsedQuery);
+    const messages = await this.chatService.getMessages(req.user.userId, parsedQuery);
+    return { success: true, data: { messages } };
   }
 
   @Post('conversations/:conversationId/read')
   @ApiOperation({ summary: 'Mark all messages in a conversation as read' })
-  @ApiResponse({ status: 201, type: MarkAsReadResponseDto })
+  @ApiDataResponse(MarkAsReadDataDto, {
+    status: 201,
+    description: 'Messages marked as read',
+  })
   async markConversationAsRead(
     @Req() req: AuthenticatedRequest,
     @Param('conversationId') conversationId: string,
-  ) {
-    return this.chatService.markConversationAsRead(req.user.userId, conversationId);
+  ): Promise<DataResponse<MarkAsReadDataDto>> {
+    const result = await this.chatService.markConversationAsRead(req.user.userId, conversationId);
+    return { success: true, data: { count: result.count } };
   }
 
   @Get('unread')
   @ApiOperation({ summary: 'Get unread message count' })
-  @ApiResponse({ status: 200, type: UnreadCountResponseDto })
-  async getUnreadCount(@Req() req: AuthenticatedRequest) {
-    return this.chatService.getUnreadCount(req.user.userId);
+  @ApiDataResponse(UnreadCountDataDto, { description: 'Unread message count' })
+  async getUnreadCount(
+    @Req() req: AuthenticatedRequest,
+  ): Promise<DataResponse<UnreadCountDataDto>> {
+    const unread = await this.chatService.getUnreadCount(req.user.userId);
+    return {
+      success: true,
+      data: {
+        totalUnread: unread.totalUnread,
+        byConversation: unread.byConversation,
+      },
+    };
   }
 
   @Get('conversation-with/:userId')
   @ApiOperation({ summary: 'Get or create conversation with a user' })
-  @ApiResponse({ status: 200, type: ConversationDetailResponseDto })
-  async getConversationWith(@Req() req: AuthenticatedRequest, @Param('userId') userId: string) {
+  @ApiDataResponse(ConversationNullableDataDto, {
+    description: 'Conversation with user',
+  })
+  async getConversationWith(
+    @Req() req: AuthenticatedRequest,
+    @Param('userId') userId: string,
+  ): Promise<DataResponse<ConversationNullableDataDto>> {
     const conversationId = await this.chatService.getConversationId(req.user.userId, userId);
     if (!conversationId) {
-      return { conversationId: null };
+      return { success: true, data: { conversationId: null } };
     }
-    return this.chatService.getConversation(req.user.userId, conversationId);
+    const conversation = await this.chatService.getConversation(req.user.userId, conversationId);
+    return { success: true, data: { conversationId, conversation } };
   }
 }

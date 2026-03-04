@@ -20,10 +20,10 @@ import type { UserAuthorizationRepository } from '../infrastructure/repositories
 
 describe('AuthorizationService', () => {
   let service: AuthorizationService;
-  let mockPermissionRepo: Partial<PermissionRepository>;
-  let mockRoleRepo: Partial<RoleRepository>;
-  let mockGroupRepo: Partial<GroupRepository>;
-  let mockUserAuthRepo: Partial<UserAuthorizationRepository>;
+  let mockPermissionRepo: any;
+  let mockRoleRepo: any;
+  let mockGroupRepo: any;
+  let mockUserAuthRepo: any;
 
   const mockUserId = 'user-123';
 

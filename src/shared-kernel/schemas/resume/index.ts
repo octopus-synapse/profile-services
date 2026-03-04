@@ -1,11 +1,16 @@
 /**
  * Resume Schemas
  *
- * All resume-related validation schemas.
- * Sections are organized in the sections/ subdirectory.
+ * Resume-related validation schemas.
+ *
+ * IMPORTANT: Section-specific schemas have been removed as part of the
+ * generic sections refactoring. All section validation is now driven by
+ * SectionType.definition in the database, using SectionDefinitionZodFactory
+ * to dynamically build schemas.
+ *
+ * @see SectionDefinitionZodFactory
+ * @see SectionTypeRepository
  */
 
 // Resume aggregate schema
 export * from './resume.schema';
-// All section schemas (experience, education, skill, etc.)
-export * from './sections';

@@ -3,7 +3,6 @@
  *
  * Bug Discovery: Domain invariants and business logic validation.
  *
- * Kent Beck: "Tests are a way to communicate what the business rules are."
  *
  * These tests verify that business rules are enforced correctly.
  */
@@ -70,7 +69,7 @@ describe('Business Rules Integration', () => {
       // Create new unverified user with unique email
       const unverifiedEmail = `unverified-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.com`;
 
-      const signupRes = await getRequest().post('/api/v1/auth/signup').send({
+      const signupRes = await getRequest().post('/api/accounts').send({
         email: unverifiedEmail,
         password: 'SecurePass123!',
         name: 'Unverified User',
@@ -102,7 +101,7 @@ describe('Business Rules Integration', () => {
       // Create user without ToS
       const noTosEmail = `no-tos-${Date.now()}@example.com`;
 
-      const signupRes = await getRequest().post('/api/v1/auth/signup').send({
+      const signupRes = await getRequest().post('/api/accounts').send({
         email: noTosEmail,
         password: 'SecurePass123!',
         name: 'No ToS User',

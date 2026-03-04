@@ -4,8 +4,6 @@
  * Tests complete GDPR compliance workflows with real database and services.
  * Validates ToS/Privacy Policy acceptance enforcement across API.
  *
- * Uncle Bob: "Integration tests validate system architecture, not isolated units"
- * Kent Beck: "Test the behavior users care about"
  */
 
 import {
@@ -50,7 +48,7 @@ describe('ToS Acceptance Flow Integration', () => {
     name: string,
   ): Promise<{ userId: string; accessToken: string }> {
     const signupResponse = await request(app.getHttpServer())
-      .post('/api/v1/auth/signup')
+      .post('/api/accounts')
       .send({ email, password, name })
       .expect(201);
 

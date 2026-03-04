@@ -1,7 +1,6 @@
 /**
  * SkillSearchService Tests
  *
- * NOTA (Uncle Bob): Testes focam em comportamento observável:
  * - Retorna skills corretamente
  * - Cache hit/miss behavior
  * - Query normalização

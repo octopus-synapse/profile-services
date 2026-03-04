@@ -1,282 +1,142 @@
-/**
- * Resume Management Service Unit Tests
- *
- * Tests administrative operations on resume resources.
- * These operations require elevated permissions.
- *
- * Kent Beck: "Test the behaviors, not the implementation details"
- * Uncle Bob: "Each test should have a single reason to fail"
- */
-
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { ResumeManagementService } from './resume-management.service';
-import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { EventPublisher } from '@/shared-kernel';
-import { NotFoundException } from '@nestjs/common';
+import type {
+  ResumeManagementUseCases,
+  ResumeListItem,
+  ResumeDetails,
+} from './resume-management/ports/resume-management.port';
 
-describe('ResumeManagementService', () => {
+describe('ResumeManagementService (Facade)', () => {
   let service: ResumeManagementService;
-  let mockPrismaService: Partial<PrismaService>;
-  let mockEventPublisher: Partial<EventPublisher>;
-
-  const mockUserId = 'user-123';
-  const mockResumeId = 'resume-456';
-
-  const mockUser = {
-    id: mockUserId,
-    email: 'user@example.com',
-    name: 'Test User',
-  };
-
-  const mockResume = {
-    id: mockResumeId,
-    userId: mockUserId,
-    title: 'Software Engineer Resume',
-    slug: 'software-engineer',
-    summary: 'Experienced software engineer',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-    user: mockUser,
-    skills: [{ id: 'skill-1', name: 'TypeScript', level: 'Expert', order: 0 }],
-    experiences: [
-      { id: 'exp-1', company: 'Tech Corp', title: 'Senior Dev', order: 0 },
-    ],
-    education: [{ id: 'edu-1', school: 'MIT', degree: 'BS CS', order: 0 }],
-    projects: [],
-    certifications: [],
-    languages: [],
-    awards: [],
-    _count: {
-      skills: 5,
-      experiences: 3,
-      education: 2,
-      projects: 4,
-      certifications: 1,
-    },
-  };
+  let useCases: ResumeManagementUseCases;
 
   beforeEach(() => {
-    mockPrismaService = {
+    const mockResumeListItem = {
+      id: 'r-1',
+      title: 'Engenheiro de Software',
+      slug: 'engenheiro-software',
+      summary: 'Experiência em desenvolvimento',
+      userId: 'user-1',
+      createdAt: new Date('2026-01-01'),
+      updatedAt: new Date('2026-01-01'),
+      resumeSections: [],
+      _count: {
+        resumeSections: 0,
+      },
+    } as unknown as ResumeListItem;
+
+    const mockResumeDetails = {
+      id: 'r-1',
+      title: 'Engenheiro de Software',
+      slug: 'engenheiro-software',
+      summary: 'Experiência em desenvolvimento',
+      userId: 'user-1',
+      createdAt: new Date('2026-01-01'),
+      updatedAt: new Date('2026-01-01'),
       user: {
-        findUnique: mock(() => Promise.resolve(mockUser)),
-      } as any,
-      resume: {
-        findMany: mock(() => Promise.resolve([mockResume])),
-        findUnique: mock(() => Promise.resolve(mockResume)),
-        delete: mock(() => Promise.resolve(mockResume)),
-      } as any,
-    };
+        id: 'user-1',
+        email: 'joao@email.com',
+        name: 'João Silva',
+      },
+      resumeSections: [],
+    } as unknown as ResumeDetails;
 
-    mockEventPublisher = {
-      publish: mock(() => {}),
-    };
-
-    service = new ResumeManagementService(
-      mockPrismaService as PrismaService,
-      mockEventPublisher as EventPublisher,
-    );
-  });
-
-  describe('listResumesForUser', () => {
-    it('should return all resumes for a user', async () => {
-      const result = await service.listResumesForUser(mockUserId);
-
-      expect(result.resumes).toHaveLength(1);
-      expect(result.resumes[0].title).toBe('Software Engineer Resume');
-      expect(mockPrismaService.resume!.findMany).toHaveBeenCalledWith({
-        where: { userId: mockUserId },
-        include: expect.objectContaining({
-          skills: true,
-          experiences: true,
-          education: true,
-          _count: expect.any(Object),
-        }),
-        orderBy: { updatedAt: 'desc' },
-      });
-    });
-
-    it('should throw NotFoundException when user does not exist', async () => {
-      (
-        mockPrismaService.user!.findUnique as ReturnType<typeof mock>
-      ).mockResolvedValue(null);
-
-      await expect(
-        service.listResumesForUser('non-existent-user'),
-      ).rejects.toThrow(NotFoundException);
-    });
-
-    it('should return empty array when user has no resumes', async () => {
-      (
-        mockPrismaService.resume!.findMany as ReturnType<typeof mock>
-      ).mockResolvedValue([]);
-
-      const result = await service.listResumesForUser(mockUserId);
-
-      expect(result.resumes).toEqual([]);
-    });
-
-    it('should order resumes by updatedAt descending', async () => {
-      await service.listResumesForUser(mockUserId);
-
-      expect(mockPrismaService.resume!.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          orderBy: { updatedAt: 'desc' },
-        }),
-      );
-    });
-
-    it('should include resume counts in response', async () => {
-      const result = await service.listResumesForUser(mockUserId);
-
-      expect(result.resumes[0]._count).toEqual({
-        skills: 5,
-        experiences: 3,
-        education: 2,
-        projects: 4,
-        certifications: 1,
-      });
-    });
-  });
-
-  describe('getResumeDetails', () => {
-    it('should return full resume details with all sections', async () => {
-      const result = await service.getResumeDetails(mockResumeId);
-
-      expect(result.id).toBe(mockResumeId);
-      expect(result.title).toBe('Software Engineer Resume');
-      expect(result.user).toEqual(mockUser);
-      expect(result.skills).toBeDefined();
-      expect(result.experiences).toBeDefined();
-      expect(result.education).toBeDefined();
-    });
-
-    it('should throw NotFoundException when resume does not exist', async () => {
-      (
-        mockPrismaService.resume!.findUnique as ReturnType<typeof mock>
-      ).mockResolvedValue(null);
-
-      await expect(
-        service.getResumeDetails('non-existent-resume'),
-      ).rejects.toThrow(NotFoundException);
-    });
-
-    it('should include user info with limited fields', async () => {
-      await service.getResumeDetails(mockResumeId);
-
-      expect(mockPrismaService.resume!.findUnique).toHaveBeenCalledWith({
-        where: { id: mockResumeId },
-        include: expect.objectContaining({
-          user: {
-            select: {
-              id: true,
-              email: true,
-              name: true,
-            },
+    useCases = {
+      listResumesForUserUseCase: {
+        execute: mock(
+          async (userId: string): Promise<{ resumes: ResumeListItem[] }> => {
+            return { resumes: [mockResumeListItem] };
           },
+        ),
+      },
+      getResumeDetailsUseCase: {
+        execute: mock(async (resumeId: string): Promise<ResumeDetails> => {
+          return mockResumeDetails;
         }),
-      });
-    });
-
-    it('should order all sections by order field ascending', async () => {
-      await service.getResumeDetails(mockResumeId);
-
-      expect(mockPrismaService.resume!.findUnique).toHaveBeenCalledWith({
-        where: { id: mockResumeId },
-        include: expect.objectContaining({
-          skills: { orderBy: { order: 'asc' } },
-          experiences: { orderBy: { order: 'asc' } },
-          education: { orderBy: { order: 'asc' } },
-          projects: { orderBy: { order: 'asc' } },
-          certifications: { orderBy: { order: 'asc' } },
-          languages: { orderBy: { order: 'asc' } },
-          awards: { orderBy: { order: 'asc' } },
+      },
+      deleteResumeUseCase: {
+        execute: mock(async (resumeId: string): Promise<void> => {
+          return undefined;
         }),
-      });
-    });
+      },
+    };
+
+    service = new ResumeManagementService(useCases);
   });
 
-  describe('deleteResume', () => {
-    it('should delete resume and return success response', async () => {
-      (
-        mockPrismaService.resume!.findUnique as ReturnType<typeof mock>
-      ).mockResolvedValue({
-        id: mockResumeId,
-        userId: mockUserId,
-      });
+  it('delegates listResumesForUser to use case', async () => {
+    const result = await service.listResumesForUser('user-1');
 
-      const result = await service.deleteResume(mockResumeId);
+    expect(useCases.listResumesForUserUseCase.execute).toHaveBeenCalledWith(
+      'user-1',
+    );
 
-      expect(result.success).toBe(true);
-      expect(result.message).toBe('Resume deleted successfully');
-      expect(mockPrismaService.resume!.delete).toHaveBeenCalledWith({
-        where: { id: mockResumeId },
-      });
-    });
+    expect(result).toBeTruthy();
+    expect(result.resumes).toBeArray();
+    expect(result.resumes.length).toBe(1);
 
-    it('should throw NotFoundException when resume does not exist', async () => {
-      (
-        mockPrismaService.resume!.findUnique as ReturnType<typeof mock>
-      ).mockResolvedValue(null);
+    const resume = result.resumes[0];
 
-      await expect(service.deleteResume('non-existent-resume')).rejects.toThrow(
-        NotFoundException,
-      );
-    });
+    expect(resume.id).toBe('r-1');
+    expect(resume.title).toBe('Engenheiro de Software');
+    expect(resume.slug).toBe('engenheiro-software');
+    expect(resume.summary).toBe('Experiência em desenvolvimento');
+    expect(resume.userId).toBe('user-1');
+    expect(resume.createdAt).toBeInstanceOf(Date);
+    expect(resume.updatedAt).toBeInstanceOf(Date);
+    expect(resume.resumeSections).toBeArray();
+    expect(resume._count).toBeTruthy();
+    expect(resume._count.resumeSections).toBe(0);
+  });
 
-    it('should publish ResumeDeletedEvent before deletion', async () => {
-      (
-        mockPrismaService.resume!.findUnique as ReturnType<typeof mock>
-      ).mockResolvedValue({
-        id: mockResumeId,
-        userId: mockUserId,
-      });
+  it('delegates getResumeDetails to use case', async () => {
+    const result = await service.getResumeDetails('resume-1');
 
-      await service.deleteResume(mockResumeId);
+    expect(useCases.getResumeDetailsUseCase.execute).toHaveBeenCalledWith(
+      'resume-1',
+    );
 
-      expect(mockEventPublisher.publish).toHaveBeenCalled();
+    expect(result).toBeTruthy();
+    expect(result.id).toBe('r-1');
+    expect(result.title).toBe('Engenheiro de Software');
+    expect(result.slug).toBe('engenheiro-software');
+    expect(result.summary).toBe('Experiência em desenvolvimento');
+    expect(result.userId).toBe('user-1');
+    expect(result.createdAt).toBeInstanceOf(Date);
+    expect(result.updatedAt).toBeInstanceOf(Date);
+    expect(result.user).toBeTruthy();
+    expect(result.user.id).toBe('user-1');
+    expect(result.user.email).toBe('joao@email.com');
+    expect(result.user.name).toBe('João Silva');
+    expect(result.resumeSections).toBeArray();
+  });
 
-      // Verify event is published before delete
-      const publishCall = (
-        mockEventPublisher.publish as ReturnType<typeof mock>
-      ).mock.calls[0];
-      const deleteCall = (
-        mockPrismaService.resume!.delete as ReturnType<typeof mock>
-      ).mock.calls[0];
+  it('delegates deleteResume to use case and returns void', async () => {
+    const result = await service.deleteResume('resume-1');
 
-      expect(publishCall).toBeDefined();
-      expect(deleteCall).toBeDefined();
-    });
+    expect(useCases.deleteResumeUseCase.execute).toHaveBeenCalledWith(
+      'resume-1',
+    );
+    expect(result).toBeUndefined();
+  });
 
-    it('should publish event with correct payload', async () => {
-      (
-        mockPrismaService.resume!.findUnique as ReturnType<typeof mock>
-      ).mockResolvedValue({
-        id: mockResumeId,
-        userId: mockUserId,
-      });
+  it('propagates errors from listResumesForUser use case', async () => {
+    useCases.listResumesForUserUseCase.execute = mock(
+      async (userId: string): Promise<{ resumes: ResumeListItem[] }> => {
+        throw new Error('boom');
+      },
+    );
 
-      await service.deleteResume(mockResumeId);
+    expect(service.listResumesForUser('user-1')).rejects.toThrow('boom');
+  });
 
-      const publishedEvent = (
-        mockEventPublisher.publish as ReturnType<typeof mock>
-      ).mock.calls[0][0];
-      expect(publishedEvent.constructor.name).toBe('ResumeDeletedEvent');
-      expect(publishedEvent.payload.userId).toBe(mockUserId);
-    });
+  it('propagates errors from deleteResume use case', async () => {
+    useCases.deleteResumeUseCase.execute = mock(
+      async (resumeId: string): Promise<void> => {
+        throw new Error('cannot delete');
+      },
+    );
 
-    it('should not delete if resume not found (early exit)', async () => {
-      (
-        mockPrismaService.resume!.findUnique as ReturnType<typeof mock>
-      ).mockResolvedValue(null);
-
-      try {
-        await service.deleteResume('non-existent');
-      } catch {
-        // Expected
-      }
-
-      expect(mockPrismaService.resume!.delete).not.toHaveBeenCalled();
-      expect(mockEventPublisher.publish).not.toHaveBeenCalled();
-    });
+    expect(service.deleteResume('resume-1')).rejects.toThrow('cannot delete');
   });
 });

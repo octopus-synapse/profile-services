@@ -74,7 +74,8 @@ describe('HealthController', () => {
 
       const result = await controller.check();
 
-      expect(result).toEqual(mockResult);
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual(mockResult);
       expect(healthCheckService.check).toHaveBeenCalledWith([
         expect.any(Function),
         expect.any(Function),
@@ -118,7 +119,8 @@ describe('HealthController', () => {
 
       const result = await controller.checkDatabase();
 
-      expect(result).toEqual(mockResult);
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual(mockResult);
       expect(healthCheckService.check).toHaveBeenCalledWith([
         expect.any(Function),
       ]);
@@ -158,7 +160,8 @@ describe('HealthController', () => {
 
       const result = await controller.checkRedis();
 
-      expect(result).toEqual(mockResult);
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual(mockResult);
       expect(healthCheckService.check).toHaveBeenCalledWith([
         expect.any(Function),
       ]);
@@ -196,7 +199,8 @@ describe('HealthController', () => {
 
       const result = await controller.checkStorage();
 
-      expect(result).toEqual(mockResult);
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual(mockResult);
       expect(healthCheckService.check).toHaveBeenCalledWith([
         expect.any(Function),
       ]);
@@ -234,7 +238,8 @@ describe('HealthController', () => {
 
       const result = await controller.checkTranslate();
 
-      expect(result).toEqual(mockResult);
+      expect(result.success).toBe(true);
+      expect(result.data).toEqual(mockResult);
       expect(healthCheckService.check).toHaveBeenCalledWith([
         expect.any(Function),
       ]);
@@ -280,10 +285,10 @@ describe('HealthController', () => {
 
       const result = await controller.check();
 
-      expect(result.status).toBe('error');
-      expect(result.error).toBeDefined();
-      if (result.error) {
-        expect(Object.keys(result.error).length).toBeGreaterThan(0);
+      expect(result.data.status).toBe('error');
+      expect(result.data.error).toBeDefined();
+      if (result.data.error) {
+        expect(Object.keys(result.data.error).length).toBeGreaterThan(0);
       }
     });
 
@@ -302,8 +307,8 @@ describe('HealthController', () => {
 
       const result = await controller.checkDatabase();
 
-      expect(result.status).toBe('error');
-      expect(result.error?.database).toBeDefined();
+      expect(result.data.status).toBe('error');
+      expect(result.data.error?.database).toBeDefined();
     });
   });
 });

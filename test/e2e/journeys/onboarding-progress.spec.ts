@@ -78,9 +78,9 @@ describe('E2E: Onboarding Progress Checkpoint', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.currentStep).toBe(progressData.currentStep);
-      expect(response.body.completedSteps).toContain('welcome');
-      expect(response.body.personalInfo).toBeDefined();
+      expect(response.body.data.currentStep).toBe(progressData.currentStep);
+      expect(response.body.data.completedSteps).toContain('welcome');
+      expect(response.body.data.personalInfo).toBeDefined();
     });
 
     it('should update existing progress', async () => {
@@ -106,9 +106,9 @@ describe('E2E: Onboarding Progress Checkpoint', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(getResponse.status).toBe(200);
-      expect(getResponse.body.currentStep).toBe('professional-profile');
-      expect(getResponse.body.completedSteps).toContain('personal-info');
-      expect(getResponse.body.professionalProfile).toBeDefined();
+      expect(getResponse.body.data.currentStep).toBe('professional-profile');
+      expect(getResponse.body.data.completedSteps).toContain('personal-info');
+      expect(getResponse.body.data.professionalProfile).toBeDefined();
     });
   });
 
@@ -152,7 +152,7 @@ describe('E2E: Onboarding Progress Checkpoint', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(firstUserProgress.status).toBe(200);
-      expect(firstUserProgress.body.currentStep).not.toBe('skills');
+      expect(firstUserProgress.body.data.currentStep).not.toBe('skills');
 
       // Cleanup second user
       await cleanupHelper.deleteUserByEmail(secondUser.email);

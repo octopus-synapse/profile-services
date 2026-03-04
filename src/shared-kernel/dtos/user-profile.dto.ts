@@ -50,17 +50,35 @@ export type UpdatePreferences = z.infer<typeof UpdatePreferencesSchema>;
 
 /**
  * Update Full Preferences Schema
- * Extended preferences including language and notifications.
+ * Extended preferences including all user preference fields.
  */
 export const UpdateFullPreferencesSchema = z.object({
+  // Appearance
+  theme: z.string().optional(),
   palette: z.string().optional(),
   bannerColor: z.string().optional(),
   displayName: z.string().max(100).optional(),
   photoURL: UrlSchema.optional(),
+  // Localization
   language: z.string().max(10).optional(),
+  dateFormat: z.string().optional(),
   timezone: z.string().max(50).optional(),
+  // Notifications
   emailNotifications: z.boolean().optional(),
+  resumeExpiryAlerts: z.boolean().optional(),
+  weeklyDigest: z.boolean().optional(),
   marketingEmails: z.boolean().optional(),
+  emailMilestones: z.boolean().optional(),
+  emailShareExpiring: z.boolean().optional(),
+  digestFrequency: z.enum(['DAILY', 'WEEKLY', 'MONTHLY']).optional(),
+  // Privacy
+  profileVisibility: z.string().optional(),
+  showEmail: z.boolean().optional(),
+  showPhone: z.boolean().optional(),
+  allowSearchEngineIndex: z.boolean().optional(),
+  // Export defaults
+  defaultExportFormat: z.string().optional(),
+  includePhotoInExport: z.boolean().optional(),
 });
 
 export type UpdateFullPreferences = z.infer<typeof UpdateFullPreferencesSchema>;

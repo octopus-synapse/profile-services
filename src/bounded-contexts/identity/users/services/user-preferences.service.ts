@@ -1,72 +1,58 @@
 /**
- * User Preferences Service
- * Handles user preferences operations
+ * User Preferences Service (Facade)
+ *
+ * Delegates to use cases following Clean Architecture.
+ * Single Responsibility: Facade that delegates to specific use cases.
  */
 
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { UsersRepository } from '@/bounded-contexts/identity/users/users.repository';
-import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
-import { ERROR_MESSAGES, UpdateFullPreferences, UpdatePreferences } from '@/shared-kernel';
+import { Inject, Injectable } from '@nestjs/common';
+import type { UpdateFullPreferences, UpdatePreferences } from '@/shared-kernel';
+import {
+  type FullUserPreferences,
+  USER_PREFERENCES_USE_CASES,
+  type UserPreferences,
+  type UserPreferencesUseCases,
+} from './user-preferences/ports/user-preferences.port';
 
 @Injectable()
 export class UserPreferencesService {
   constructor(
-    private readonly usersRepository: UsersRepository,
-    private readonly logger: AppLoggerService,
+    @Inject(USER_PREFERENCES_USE_CASES)
+    private readonly useCases: UserPreferencesUseCases,
   ) {}
 
-  async getPreferences(userId: string) {
-    const userPreferences = await this.usersRepository.findUserPreferencesById(userId);
-
-    if (!userPreferences) {
-      throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
-    }
-
-    return userPreferences;
+  /**
+   * Get user preferences
+   * @returns UserPreferences (domain data, not envelope)
+   */
+  async getPreferences(userId: string): Promise<UserPreferences> {
+    return this.useCases.getPreferencesUseCase.execute(userId);
   }
 
-  async updatePreferences(userId: string, updatePreferences: UpdatePreferences) {
-    const existingUser = await this.usersRepository.findUserById(userId);
-    if (!existingUser) {
-      throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
-    }
-
-    await this.usersRepository.updateUserPreferences(userId, updatePreferences);
-
-    this.logger.debug(`User preferences updated`, 'UserPreferencesService', {
-      userId,
-    });
-
-    return {
-      success: true,
-      message: 'Preferences updated successfully',
-    };
+  /**
+   * Update user preferences
+   * @returns void (not envelope)
+   */
+  async updatePreferences(userId: string, data: UpdatePreferences): Promise<void> {
+    return this.useCases.updatePreferencesUseCase.execute(userId, data);
   }
 
-  async getFullPreferences(userId: string) {
-    const fullUserPreferences = await this.usersRepository.findFullUserPreferencesByUserId(userId);
-
-    return fullUserPreferences ?? {};
+  /**
+   * Get full user preferences
+   * @returns FullUserPreferences or empty object (domain data, not envelope)
+   */
+  async getFullPreferences(userId: string): Promise<FullUserPreferences | Record<string, never>> {
+    return this.useCases.getFullPreferencesUseCase.execute(userId);
   }
 
-  async updateFullPreferences(userId: string, updateFullPreferences: UpdateFullPreferences) {
-    const existingUser = await this.usersRepository.findUserById(userId);
-    if (!existingUser) {
-      throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
-    }
-
-    const preferences = await this.usersRepository.upsertFullUserPreferences(
-      userId,
-      updateFullPreferences,
-    );
-
-    this.logger.debug(`User full preferences updated`, 'UserPreferencesService', {
-      userId,
-    });
-
-    return {
-      success: true,
-      preferences,
-    };
+  /**
+   * Update full user preferences
+   * @returns FullUserPreferences (domain data, not envelope)
+   */
+  async updateFullPreferences(
+    userId: string,
+    data: UpdateFullPreferences,
+  ): Promise<FullUserPreferences> {
+    return this.useCases.updateFullPreferencesUseCase.execute(userId, data);
   }
 }

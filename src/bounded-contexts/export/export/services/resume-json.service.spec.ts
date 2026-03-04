@@ -25,45 +25,64 @@ describe('ResumeJsonService', () => {
       email: 'john@example.com',
       phone: '+1234567890',
     },
-    experiences: [
+    resumeSections: [
       {
-        id: 'exp-1',
-        position: 'Senior Developer',
-        company: 'Tech Corp',
-        startDate: new Date('2020-01-01'),
-        endDate: null,
-        isCurrent: true,
-        description: 'Building awesome stuff',
-        skills: ['TypeScript', 'React'],
+        sectionType: { semanticKind: 'WORK_EXPERIENCE' },
+        items: [
+          {
+            content: {
+              position: 'Senior Developer',
+              company: 'Tech Corp',
+              startDate: new Date('2020-01-01'),
+              endDate: null,
+              isCurrent: true,
+              description: 'Building awesome stuff',
+              skills: ['TypeScript', 'React'],
+            },
+          },
+        ],
+      },
+      {
+        sectionType: { semanticKind: 'EDUCATION' },
+        items: [
+          {
+            content: {
+              degree: 'Computer Science',
+              institution: 'MIT',
+              fieldOfStudy: 'Software Engineering',
+              startDate: new Date('2015-01-01'),
+              endDate: new Date('2019-01-01'),
+            },
+          },
+        ],
+      },
+      {
+        sectionType: { semanticKind: 'SKILL_SET' },
+        items: [
+          { content: { name: 'TypeScript', level: 4 } },
+          { content: { name: 'Node.js', level: 3 } },
+        ],
+      },
+      {
+        sectionType: { semanticKind: 'LANGUAGE' },
+        items: [
+          { content: { name: 'English', level: 'FLUENT' } },
+          { content: { name: 'Portuguese', level: 'NATIVE' } },
+        ],
+      },
+      {
+        sectionType: { semanticKind: 'OPEN_SOURCE' },
+        items: [
+          {
+            content: {
+              projectName: 'Cool Project',
+              description: 'Open source contribution',
+              projectUrl: 'https://github.com/example/project',
+            },
+          },
+        ],
       },
     ],
-    education: [
-      {
-        id: 'edu-1',
-        degree: 'Computer Science',
-        institution: 'MIT',
-        fieldOfStudy: 'Software Engineering',
-        startDate: new Date('2015-01-01'),
-        endDate: new Date('2019-01-01'),
-      },
-    ],
-    skills: [
-      { id: 'skill-1', name: 'TypeScript', level: 4 },
-      { id: 'skill-2', name: 'Node.js', level: 3 },
-    ],
-    languages: [
-      { id: 'lang-1', name: 'English', level: 'FLUENT' },
-      { id: 'lang-2', name: 'Portuguese', level: 'NATIVE' },
-    ],
-    openSource: [
-      {
-        id: 'os-1',
-        projectName: 'Cool Project',
-        description: 'Open source contribution',
-        repoUrl: 'https://github.com/example/project',
-      },
-    ],
-    certifications: [],
   } as any;
 
   beforeEach(() => {
@@ -94,29 +113,26 @@ describe('ResumeJsonService', () => {
       expect(result.basics.email).toBe('john@example.com');
     });
 
-    it('should include work experience', async () => {
+    it('should include generic sections', async () => {
       const result = (await service.exportAsJson('resume-123')) as any;
 
-      expect(result.work).toBeDefined();
-      expect(result.work).toHaveLength(1);
-      expect(result.work[0].company).toBe('Tech Corp');
-      expect(result.work[0].position).toBe('Senior Developer');
+      expect(result.sections).toBeDefined();
+      expect(result.sections).toHaveLength(5);
+      expect(result.sections[0].semanticKind).toBe('WORK_EXPERIENCE');
+      expect(result.sections[0].items).toHaveLength(1);
     });
 
-    it('should include education', async () => {
+    it('should preserve section item content', async () => {
       const result = (await service.exportAsJson('resume-123')) as any;
 
-      expect(result.education).toBeDefined();
-      expect(result.education).toHaveLength(1);
-      expect(result.education[0].institution).toBe('MIT');
-    });
+      const workSection = result.sections.find(
+        (section: { semanticKind: string }) =>
+          section.semanticKind === 'WORK_EXPERIENCE',
+      );
 
-    it('should include skills', async () => {
-      const result = (await service.exportAsJson('resume-123')) as any;
-
-      expect(result.skills).toBeDefined();
-      expect(result.skills).toHaveLength(2);
-      expect(result.skills[0].name).toBe('TypeScript');
+      expect(workSection).toBeDefined();
+      expect(workSection.items[0].position).toBe('Senior Developer');
+      expect(workSection.items[0].company).toBe('Tech Corp');
     });
 
     it('should throw NotFoundException when resume not found', async () => {
@@ -146,6 +162,8 @@ describe('ResumeJsonService', () => {
 
       expect(result).toHaveProperty('format', 'profile');
       expect(result).toHaveProperty('version', '1.0');
+      expect((result as any).resume.sections).toBeDefined();
+      expect((result as any).resume.sections).toHaveLength(5);
     });
   });
 });

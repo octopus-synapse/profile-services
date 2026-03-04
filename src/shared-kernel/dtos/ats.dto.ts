@@ -6,24 +6,23 @@ export const ValidateCVSchema = z.object({
   checkGrammar: z.boolean().optional(),
   checkOrder: z.boolean().optional(),
   checkLayout: z.boolean().optional(),
+  resumeId: z.string().optional(),
+  checkSemantic: z.boolean().optional(),
 });
 
 export type ValidateCV = z.infer<typeof ValidateCVSchema>;
 
 /**
- * Validation Issue Severity/Type Enum
- * Unified to support both "severity" and "type" naming
+ * Validation Issue Severity Enum
  */
 export const ValidationIssueSeverityEnum = z.enum(['error', 'warning', 'info', 'suggestion']);
 export type ValidationIssueSeverity = z.infer<typeof ValidationIssueSeverityEnum>;
 
 /**
  * Validation Issue Schema
- * Supports both frontend (severity, suggestion) and backend (type, location) fields
  */
 export const ValidationIssueSchema = z.object({
   severity: ValidationIssueSeverityEnum,
-  type: ValidationIssueSeverityEnum.optional(), // Alias for severity (backward compat)
   category: z.string(),
   message: z.string(),
   location: z.string().optional(), // Where in the document the issue was found
@@ -42,16 +41,11 @@ export const ValidationResponseSchema = z.object({
     fileType: z.string(),
     fileSize: z.number(),
     analyzedAt: z.string(),
+    semanticScore: z.number().optional(),
   }),
 });
 
 export type ValidationResponse = z.infer<typeof ValidationResponseSchema>;
-
-/**
- * Validation (alias for ValidationResponse)
- * For backward compatibility
- */
-export type Validation = ValidationResponse;
 
 /**
  * ATS Validation Result Schema (Frontend-compatible format)
@@ -70,23 +64,3 @@ export const ATSValidationResultSchema = z.object({
 });
 
 export type ATSValidationResult = z.infer<typeof ATSValidationResultSchema>;
-
-// Backward compatibility alias
-export type ValidationResult = ATSValidationResult;
-export const ValidationResultSchema = ATSValidationResultSchema;
-
-/**
- * Validation Options (Frontend-compatible format)
- */
-export const ValidateOptionsSchema = z.object({
-  checkFormat: z.boolean().optional(),
-  checkSections: z.boolean().optional(),
-  checkGrammar: z.boolean().optional(),
-  checkOrder: z.boolean().optional(),
-  checkLayout: z.boolean().optional(),
-});
-
-export type ValidateOptions = z.infer<typeof ValidateOptionsSchema>;
-
-// Alias for backward compatibility
-export type ValidateCVOptions = ValidateOptions;

@@ -9,11 +9,14 @@
 
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
 import { PermissionGuard, RequirePermission } from '@/bounded-contexts/identity/authorization';
+import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
+import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
-import type { ReviewTheme } from '@/shared-kernel';
+import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
+import type { ThemeApproval } from '@/shared-kernel';
+import { ThemeEntityDataDto, ThemeListDataDto } from '../dto/controller-response.dto';
 import { ThemeApprovalService, ThemeCrudService } from '../services';
 
 @SdkExport({ tag: 'themes', description: 'Themes API' })
@@ -30,21 +33,51 @@ export class ThemeApprovalController {
   @Get('pending')
   @RequirePermission('theme', 'approve')
   @ApiOperation({ summary: 'Get pending themes for approval' })
-  getPending(@CurrentUser('userId') userId: string) {
-    return this.approvalService.getPendingApprovals(userId);
+  @ApiDataResponse(ThemeListDataDto, { description: 'Pending approval themes returned' })
+  async getPending(@CurrentUser('userId') userId: string): Promise<DataResponse<ThemeListDataDto>> {
+    const pending = await this.approvalService.getPendingApprovals(userId);
+
+    return {
+      success: true,
+      data: {
+        themes: pending,
+      },
+    };
   }
 
   @Post('review')
   @RequirePermission('theme', 'approve')
   @ApiOperation({ summary: 'Review and approve/reject a theme' })
-  review(@CurrentUser('userId') userId: string, @Body() dto: ReviewTheme) {
-    return this.approvalService.review(userId, dto);
+  @ApiDataResponse(ThemeEntityDataDto, { description: 'Theme review applied' })
+  async review(
+    @CurrentUser('userId') userId: string,
+    @Body() dto: ThemeApproval,
+  ): Promise<DataResponse<ThemeEntityDataDto>> {
+    const reviewed = await this.approvalService.review(userId, dto);
+
+    return {
+      success: true,
+      data: {
+        theme: reviewed,
+      },
+    };
   }
 
   @Post(':id/submit')
   @RequirePermission('theme', 'update')
   @ApiOperation({ summary: 'Submit a theme for approval' })
-  submit(@CurrentUser('userId') userId: string, @Param('id') id: string) {
-    return this.approvalService.submitForApproval(userId, id);
+  @ApiDataResponse(ThemeEntityDataDto, { description: 'Theme submitted for approval' })
+  async submit(
+    @CurrentUser('userId') userId: string,
+    @Param('id') id: string,
+  ): Promise<DataResponse<ThemeEntityDataDto>> {
+    const submitted = await this.approvalService.submitForApproval(userId, id);
+
+    return {
+      success: true,
+      data: {
+        theme: submitted,
+      },
+    };
   }
 }

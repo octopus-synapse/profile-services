@@ -5,7 +5,7 @@
  * Both frontend and backend must import from here.
  */
 
-// Auth DTOs (re-exported from schemas for backward compatibility)
+// Auth DTOs (re-exported from schemas)
 export {
   type ChangeEmail,
   ChangeEmailSchema,
@@ -15,8 +15,6 @@ export {
   DeleteAccountSchema,
   type EmailVerification,
   EmailVerificationSchema,
-  // Type aliases for backward compatibility
-  type ForgotPassword,
   type LoginCredentials,
   LoginCredentialsSchema,
   type NewPassword,
@@ -27,10 +25,8 @@ export {
   RegisterCredentialsSchema,
   type RequestVerification,
   RequestVerificationSchema,
-  type ResetPassword,
   type ResetPasswordRequest,
   ResetPasswordRequestSchema,
-  type VerifyEmail,
 } from '../schemas/auth';
 // Admin DTOs (Backend-specific)
 export {
@@ -115,17 +111,12 @@ export {
   // Response schemas
   ViewStatsResponseSchema,
 } from './analytics.dto';
-// API Response DTOs
-export * from './api-response.dto';
 // ATS DTOs
 export {
   type ATSValidationResult,
   ATSValidationResultSchema,
   type ValidateCV,
   ValidateCVSchema,
-  type ValidateOptions,
-  ValidateOptionsSchema,
-  type Validation,
   type ValidationIssue,
   ValidationIssueSchema,
   type ValidationResponse,
@@ -133,6 +124,16 @@ export {
 } from './ats.dto';
 // ATS Validation DTOs
 export * from './ats-validation.dto';
+// Auth DTOs (class-based for Swagger)
+export {
+  ChangeEmailDto,
+  ChangePasswordDto,
+  ForgotPasswordDto,
+  LoginCredentialsDto,
+  RefreshTokenDto,
+  RegisterCredentialsDto,
+  ResetPasswordDto,
+} from './auth.dto';
 // Authorization DTOs
 export * from './authorization.dto';
 // Chat DTOs
@@ -161,7 +162,6 @@ export * from './export.dto';
 export * from './gdpr.dto';
 // GitHub DTOs
 export * from './github.dto';
-
 // MEC DTOs
 export {
   type Course,
@@ -213,101 +213,37 @@ export {
 } from './onboarding-progress.dto';
 // Persona DTOs
 export * from './persona.dto';
-
 // Public Profile DTOs
 export * from './public-profile.dto';
 // Resume DTOs
-// Resume Update DTOs
 export {
-  type BulkCreateSkills,
-  BulkCreateSkillsSchema,
-  type CreateCertification,
-  CreateCertificationSchema,
-  type CreateEducation,
-  CreateEducationSchema,
-  type CreateExperience,
-  CreateExperienceSchema,
-  type CreateLanguage,
-  CreateLanguageSchema,
-  type CreateProject,
-  CreateProjectSchema,
   type CreateResume,
   CreateResumeSchema,
-  type CreateSkill,
-  CreateSkillSchema,
-  type UpdateCertification,
-  UpdateCertificationSchema,
-  type UpdateEducation,
-  UpdateEducationSchema,
-  type UpdateExperience,
-  UpdateExperienceSchema,
-  type UpdateLanguage,
-  UpdateLanguageSchema,
-  type UpdateProject,
-  UpdateProjectSchema,
   type UpdateResume,
   UpdateResumeSchema,
-  type UpdateSkill,
-  UpdateSkillSchema,
 } from './resume.dto';
-// Resume Extended DTOs (Advanced Features)
-// Resume Extended Update DTOs
-export {
-  type AchievementType,
-  AchievementTypeEnum,
-  type BugBountyPlatform,
-  BugBountyPlatformEnum,
-  type BugBountySeverity,
-  BugBountySeverityEnum,
-  type CreateAchievement,
-  CreateAchievementSchema,
-  type CreateAward,
-  CreateAwardSchema,
-  type CreateBugBounty,
-  CreateBugBountySchema,
-  type CreateHackathon,
-  CreateHackathonSchema,
-  type CreateInterest,
-  CreateInterestSchema,
-  type CreateOpenSource,
-  CreateOpenSourceSchema,
-  type CreatePublication,
-  CreatePublicationSchema,
-  type CreateRecommendation,
-  CreateRecommendationSchema,
-  type CreateTalk,
-  CreateTalkSchema,
-  type OpenSourceRole,
-  OpenSourceRoleEnum,
-  type PublicationType,
-  PublicationTypeEnum,
-  type TalkType,
-  TalkTypeEnum,
-  type UpdateAchievement,
-  UpdateAchievementSchema,
-  type UpdateAward,
-  UpdateAwardSchema,
-  type UpdateBugBounty,
-  UpdateBugBountySchema,
-  type UpdateHackathon,
-  UpdateHackathonSchema,
-  type UpdateInterest,
-  UpdateInterestSchema,
-  type UpdateOpenSource,
-  UpdateOpenSourceSchema,
-  type UpdatePublication,
-  UpdatePublicationSchema,
-  type UpdateRecommendation,
-  UpdateRecommendationSchema,
-  type UpdateTalk,
-  UpdateTalkSchema,
-} from './resume-extended.dto';
+// Resume AST DTOs (for SDK generation)
+export * from './resume-ast.dto';
 // Resume Import DTOs
 export * from './resume-import.dto';
+export {
+  type PatchResumeSection,
+  PatchResumeSectionSchema,
+  type ResumeSectionItemPayload,
+  ResumeSectionItemPayloadSchema,
+  type ResumeSectionTypeRef,
+  ResumeSectionTypeRefSchema,
+  type UpsertResumeSection,
+  UpsertResumeSectionSchema,
+  type UpsertResumeSections,
+  UpsertResumeSectionsSchema,
+} from './resume-sections.dto';
 // Search DTOs
 export * from './search.dto';
 // Section Config DTOs
 export * from './section-config.dto';
+// Semantic Sections DTOs
+export * from './semantic-sections.dto';
 // Share DTOs
 export * from './share.dto';
 // Social DTOs
@@ -326,7 +262,6 @@ export {
   ForkThemeSchema,
   type QueryThemes,
   QueryThemesSchema,
-  type ReviewTheme,
   type SortDirection,
   SortDirectionSchema,
   type ThemeApplication,

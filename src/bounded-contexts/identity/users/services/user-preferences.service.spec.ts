@@ -1,201 +1,109 @@
+/**
+ * User Preferences Service (Facade) Tests
+ *
+ * Tests the facade pattern, verifying delegation to use cases.
+ * Uses bun:mock for clean test doubles.
+ */
+
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
-import { Test, TestingModule } from '@nestjs/testing';
 import { UserPreferencesService } from './user-preferences.service';
-import { UsersRepository } from '@/bounded-contexts/identity/users/users.repository';
-import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
-import { NotFoundException } from '@nestjs/common';
-import { ERROR_MESSAGES } from '@/shared-kernel';
+import type {
+  UserPreferencesUseCases,
+  UserPreferences,
+  FullUserPreferences,
+} from './user-preferences/ports/user-preferences.port';
 
-describe('UserPreferencesService', () => {
+describe('UserPreferencesService (Facade)', () => {
   let service: UserPreferencesService;
-  let usersRepository: UsersRepository;
-  let logger: AppLoggerService;
+  let mockUseCases: UserPreferencesUseCases;
 
-  beforeEach(async () => {
-    usersRepository = {
-      findUserById: mock(),
-      findUserPreferencesById: mock(),
-      updateUserPreferences: mock(),
-      findFullUserPreferencesByUserId: mock(),
-      upsertFullUserPreferences: mock(),
-    } as any;
+  const mockPreferences: UserPreferences = {
+    theme: 'dark',
+    language: 'en',
+  };
 
-    logger = {
-      debug: mock(),
-      log: mock(),
-      error: mock(),
-      warn: mock(),
-    } as any;
+  const mockFullPreferences: FullUserPreferences = {
+    id: 'pref-1',
+    userId: 'user-123',
+    theme: 'dark',
+    palette: 'ocean',
+    bannerColor: null,
+    language: 'en',
+    dateFormat: 'MM/DD/YYYY',
+    timezone: 'UTC',
+    emailNotifications: true,
+    resumeExpiryAlerts: true,
+    weeklyDigest: false,
+    marketingEmails: false,
+    emailMilestones: true,
+    emailShareExpiring: true,
+    digestFrequency: 'WEEKLY',
+    profileVisibility: 'private',
+    showEmail: false,
+    showPhone: false,
+    allowSearchEngineIndex: false,
+    defaultExportFormat: 'pdf',
+    includePhotoInExport: true,
+    createdAt: new Date('2026-01-01'),
+    updatedAt: new Date('2026-01-02'),
+  };
 
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        UserPreferencesService,
-        { provide: UsersRepository, useValue: usersRepository },
-        { provide: AppLoggerService, useValue: logger },
-      ],
-    }).compile();
+  beforeEach(() => {
+    mockUseCases = {
+      getPreferencesUseCase: {
+        execute: mock(async () => mockPreferences),
+      },
+      updatePreferencesUseCase: {
+        execute: mock(async () => undefined),
+      },
+      getFullPreferencesUseCase: {
+        execute: mock(async () => mockFullPreferences),
+      },
+      updateFullPreferencesUseCase: {
+        execute: mock(async () => mockFullPreferences),
+      },
+    } as unknown as UserPreferencesUseCases;
 
-    service = module.get<UserPreferencesService>(UserPreferencesService);
+    // Create service with injected use cases
+    service = new UserPreferencesService(mockUseCases);
   });
 
   describe('getPreferences', () => {
-    it('should return user preferences when they exist', async () => {
-      const mockPreferences = {
-        profileVisibility: 'public',
-        theme: 'dark',
-        language: 'en',
-        emailNotifications: true,
-      };
-
-      usersRepository.findUserPreferencesById.mockResolvedValue(
-        mockPreferences as any,
-      );
-
+    it('should delegate to getPreferencesUseCase', async () => {
       const result = await service.getPreferences('user-123');
 
       expect(result).toEqual(mockPreferences);
-      expect(usersRepository.findUserPreferencesById).toHaveBeenCalledWith(
+      expect(mockUseCases.getPreferencesUseCase.execute).toHaveBeenCalledWith(
         'user-123',
       );
-    });
-
-    it('should throw NotFoundException when preferences do not exist', async () => {
-      usersRepository.findUserPreferencesById.mockResolvedValue(null);
-
-      await expect(
-        async () => await service.getPreferences('nonexistent-id'),
-      ).toThrow(new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND));
-    });
-
-    it('should return empty preferences object when user exists but has no preferences', async () => {
-      const mockPreferences = {};
-
-      usersRepository.findUserPreferencesById.mockResolvedValue(
-        mockPreferences as any,
-      );
-
-      const result = await service.getPreferences('user-123');
-
-      expect(result).toEqual({});
     });
   });
 
   describe('updatePreferences', () => {
-    it('should update user preferences successfully', async () => {
-      const userId = 'user-123';
-      const updateDto = {
-        palette: 'blue',
-        bannerColor: '#003366',
-      };
-      const mockUser = { id: userId, username: 'johndoe' };
+    it('should delegate to updatePreferencesUseCase', async () => {
+      const updateData = { palette: 'sunset' };
 
-      usersRepository.findUserById.mockResolvedValue(mockUser as any);
-      usersRepository.updateUserPreferences.mockResolvedValue(undefined);
+      const result = await service.updatePreferences('user-123', updateData);
 
-      const result = await service.updatePreferences(userId, updateDto);
-
-      expect(result).toEqual({
-        success: true,
-        message: 'Preferences updated successfully',
-      });
-      expect(usersRepository.updateUserPreferences).toHaveBeenCalledWith(
-        userId,
-        updateDto,
-      );
-      expect(logger.debug).toHaveBeenCalledWith(
-        'User preferences updated',
-        'UserPreferencesService',
-        { userId },
-      );
-    });
-
-    it('should throw NotFoundException when user does not exist', async () => {
-      const updateDto = { palette: 'green' };
-
-      usersRepository.findUserById.mockResolvedValue(null);
-
-      await expect(
-        service.updatePreferences('nonexistent-id', updateDto),
-      ).rejects.toThrow(new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND));
-
-      expect(usersRepository.updateUserPreferences.mock.calls.length).toBe(0);
-      expect(logger.debug.mock.calls.length).toBe(0);
-    });
-
-    it('should handle partial preference updates', async () => {
-      const userId = 'user-123';
-      const updateDto = { displayName: 'New Display Name' };
-      const mockUser = { id: userId };
-
-      usersRepository.findUserById.mockResolvedValue(mockUser as any);
-      usersRepository.updateUserPreferences.mockResolvedValue(undefined);
-
-      const result = await service.updatePreferences(userId, updateDto);
-
-      expect(result.success).toBe(true);
-      expect(usersRepository.updateUserPreferences).toHaveBeenCalledWith(
-        userId,
-        updateDto,
-      );
-    });
-
-    it('should handle all preference fields in update', async () => {
-      const userId = 'user-123';
-      const updateDto = {
-        palette: 'red',
-        bannerColor: '#FF0000',
-        displayName: 'John Doe',
-        photoURL: 'https://example.com/photo.jpg',
-      };
-      const mockUser = { id: userId };
-
-      usersRepository.findUserById.mockResolvedValue(mockUser as any);
-      usersRepository.updateUserPreferences.mockResolvedValue(undefined);
-
-      await service.updatePreferences(userId, updateDto);
-
-      expect(usersRepository.updateUserPreferences).toHaveBeenCalledWith(
-        userId,
-        updateDto,
-      );
+      expect(result).toBeUndefined();
+      expect(
+        mockUseCases.updatePreferencesUseCase.execute,
+      ).toHaveBeenCalledWith('user-123', updateData);
     });
   });
 
   describe('getFullPreferences', () => {
-    it('should return full user preferences when they exist', async () => {
-      const mockFullPreferences = {
-        profileVisibility: 'public',
-        theme: 'dark',
-        language: 'en',
-        emailNotifications: true,
-        newsletterSubscription: false,
-        twoFactorEnabled: true,
-      };
-
-      usersRepository.findFullUserPreferencesByUserId.mockResolvedValue(
-        mockFullPreferences as any,
-      );
-
+    it('should delegate to getFullPreferencesUseCase', async () => {
       const result = await service.getFullPreferences('user-123');
 
       expect(result).toEqual(mockFullPreferences);
       expect(
-        usersRepository.findFullUserPreferencesByUserId,
+        mockUseCases.getFullPreferencesUseCase.execute,
       ).toHaveBeenCalledWith('user-123');
     });
 
-    it('should return empty object when full preferences do not exist', async () => {
-      usersRepository.findFullUserPreferencesByUserId.mockResolvedValue(null);
-
-      const result = await service.getFullPreferences('user-123');
-
-      expect(result).toEqual({});
-    });
-
-    it('should return empty object when full preferences are undefined', async () => {
-      usersRepository.findFullUserPreferencesByUserId.mockResolvedValue(
-        undefined as any,
-      );
+    it('should return empty object when preferences not found', async () => {
+      mockUseCases.getFullPreferencesUseCase.execute = mock(async () => ({}));
 
       const result = await service.getFullPreferences('user-123');
 
@@ -204,103 +112,18 @@ describe('UserPreferencesService', () => {
   });
 
   describe('updateFullPreferences', () => {
-    it('should update full user preferences successfully', async () => {
-      const userId = 'user-123';
-      const updateDto = {
-        profileVisibility: 'private',
-        theme: 'light',
-        language: 'pt',
-        emailNotifications: false,
-      };
-      const mockUser = { id: userId };
-      const mockUpdatedPreferences = {
-        ...updateDto,
-        marketingEmails: true,
-      };
+    it('should delegate to updateFullPreferencesUseCase', async () => {
+      const updateData = { theme: 'light', language: 'pt-BR' };
 
-      usersRepository.findUserById.mockResolvedValue(mockUser as any);
-      usersRepository.upsertFullUserPreferences.mockResolvedValue(
-        mockUpdatedPreferences as any,
+      const result = await service.updateFullPreferences(
+        'user-123',
+        updateData,
       );
 
-      const result = await service.updateFullPreferences(userId, updateDto);
-
-      expect(result).toEqual({
-        success: true,
-        preferences: mockUpdatedPreferences,
-      });
-      expect(usersRepository.upsertFullUserPreferences).toHaveBeenCalledWith(
-        userId,
-        updateDto,
-      );
-      expect(logger.debug).toHaveBeenCalledWith(
-        'User full preferences updated',
-        'UserPreferencesService',
-        { userId },
-      );
-    });
-
-    it('should throw NotFoundException when user does not exist', async () => {
-      const updateDto = { theme: 'dark' };
-
-      usersRepository.findUserById.mockResolvedValue(null);
-
-      await expect(
-        service.updateFullPreferences('nonexistent-id', updateDto),
-      ).rejects.toThrow(new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND));
-
-      expect(usersRepository.upsertFullUserPreferences.mock.calls.length).toBe(
-        0,
-      );
-      expect(logger.debug.mock.calls.length).toBe(0);
-    });
-
-    it('should handle creation of new full preferences (upsert behavior)', async () => {
-      const userId = 'user-123';
-      const updateDto = {
-        profileVisibility: 'public',
-        theme: 'dark',
-      };
-      const mockUser = { id: userId };
-      const mockNewPreferences = updateDto;
-
-      usersRepository.findUserById.mockResolvedValue(mockUser as any);
-      usersRepository.upsertFullUserPreferences.mockResolvedValue(
-        mockNewPreferences as any,
-      );
-
-      const result = await service.updateFullPreferences(userId, updateDto);
-
-      expect(result.success).toBe(true);
-      expect(result.preferences).toEqual(mockNewPreferences);
-    });
-
-    it('should handle complete preference set in update', async () => {
-      const userId = 'user-123';
-      const updateDto = {
-        profileVisibility: 'public',
-        theme: 'dark',
-        language: 'en',
-        emailNotifications: true,
-        marketingEmails: false,
-        timezone: 'America/New_York',
-        palette: 'blue',
-        bannerColor: '#003366',
-      };
-      const mockUser = { id: userId };
-
-      usersRepository.findUserById.mockResolvedValue(mockUser as any);
-      usersRepository.upsertFullUserPreferences.mockResolvedValue(
-        updateDto as any,
-      );
-
-      const result = await service.updateFullPreferences(userId, updateDto);
-
-      expect(result.preferences).toMatchObject(updateDto);
-      expect(usersRepository.upsertFullUserPreferences).toHaveBeenCalledWith(
-        userId,
-        updateDto,
-      );
+      expect(result).toEqual(mockFullPreferences);
+      expect(
+        mockUseCases.updateFullPreferencesUseCase.execute,
+      ).toHaveBeenCalledWith('user-123', updateData);
     });
   });
 });

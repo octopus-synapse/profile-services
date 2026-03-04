@@ -3,7 +3,7 @@
  *
  * Central export point for all theme-related schemas.
  *
- * @principle Single Source of Truth (Uncle Bob)
+ * @principle Single Source of Truth
  */
 
 export * from './theme.schema';

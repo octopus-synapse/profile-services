@@ -7,8 +7,6 @@ import { GraphQLError } from 'graphql';
 import { ResumeAnalyticsModule } from '@/bounded-contexts/analytics/resume-analytics/resume-analytics.module';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { ResumesModule } from '@/bounded-contexts/resumes/resumes/resumes.module';
-import { PrismaService } from '../prisma/prisma.service';
-import { DataLoaderService } from './dataloaders/dataloader.service';
 import { ResumeResolver } from './resolvers/resume.resolver';
 
 /**
@@ -18,7 +16,6 @@ import { ResumeResolver } from './resolvers/resume.resolver';
  *
  * Features:
  * - Code-First schema generation (Issue #76)
- * - DataLoader integration (Issue #77)
  * - GraphQL Playground (Issue #78)
  * - JWT authentication
  * - Introspection control
@@ -43,14 +40,7 @@ import { ResumeResolver } from './resolvers/resume.resolver';
           playground: !isProduction, // Disable in production for security
           introspection: !isProduction, // Disable introspection in production
 
-          // Context setup for DataLoader and authentication
-          context: ({ req }: { req: Express.Request & { prisma: PrismaService } }) => {
-            const loaders = new DataLoaderService(req.prisma);
-            return {
-              req,
-              loaders,
-            };
-          },
+          context: ({ req }: { req: Express.Request }) => ({ req }),
           /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-member-access */
 
           // Format errors for better debugging (hide in production)
@@ -77,7 +67,6 @@ import { ResumeResolver } from './resolvers/resume.resolver';
     ResumesModule,
     ResumeAnalyticsModule,
   ],
-  providers: [ResumeResolver, DataLoaderService],
-  exports: [DataLoaderService],
+  providers: [ResumeResolver],
 })
 export class GraphqlModule {}

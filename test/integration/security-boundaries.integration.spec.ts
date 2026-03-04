@@ -241,7 +241,7 @@ describe('Security Boundaries Integration', () => {
 
     it('should handle null in required fields', async () => {
       const response = await getRequest()
-        .post('/api/v1/auth/login')
+        .post('/api/auth/login')
         .send({ email: null, password: null });
 
       // 400 or 422 for validation error

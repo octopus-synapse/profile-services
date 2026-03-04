@@ -12,18 +12,11 @@ import {
   StreamableFile,
   UseGuards,
 } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiOperation,
-  ApiProduces,
-  ApiQuery,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
+import { ApiBearerAuth, ApiOperation, ApiProduces, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
+import { ApiStreamResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
-import { BannerPreviewResponseDto } from '@/shared-kernel';
 import { BannerCaptureService } from '../services/banner-capture.service';
 
 @SdkExport({ tag: 'export', description: 'Export API' })
@@ -43,7 +36,7 @@ export class ExportBannerController {
   @Header('Content-Type', 'image/png')
   @Header('Content-Disposition', 'attachment; filename="linkedin-banner.png"')
   @ApiOperation({ summary: 'Export LinkedIn banner image' })
-  @ApiResponse({ status: 200, type: BannerPreviewResponseDto })
+  @ApiStreamResponse({ mimeType: 'image/png', description: 'PNG image file' })
   @ApiProduces('image/png')
   @ApiQuery({
     name: 'palette',
@@ -55,9 +48,6 @@ export class ExportBannerController {
     required: false,
     description: 'Logo URL to include in banner',
   })
-  @ApiResponse({ status: 200, description: 'PNG image file' })
-  @ApiResponse({ status: 400, description: 'Failed to generate banner' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
   async exportBanner(
     @Query('palette') palette?: string,
     @Query('logo') logoUrl?: string,

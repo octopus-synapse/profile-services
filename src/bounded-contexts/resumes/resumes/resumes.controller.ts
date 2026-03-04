@@ -13,11 +13,13 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
-import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
+import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
+import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
+import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { ParseCuidPipe } from '@/bounded-contexts/platform/common/pipes/parse-cuid.pipe';
 import { ParseJsonBodyPipe } from '@/bounded-contexts/platform/common/pipes/parse-json-body.pipe';
 import type { CreateResume, UpdateResume } from '@/shared-kernel';
@@ -30,6 +32,12 @@ import {
 } from '@/shared-kernel/dtos/sdk-response.dto';
 import { ResumesService } from './resumes.service';
 
+// DTO for paginated resumes response data
+class PaginatedResumesDataDto {
+  data!: ResumeListItemDto[];
+  meta!: { total: number; page: number; limit: number; totalPages: number };
+}
+
 @SdkExport({ tag: 'resumes', description: 'Resume CRUD operations' })
 @ApiTags('resumes')
 @ApiBearerAuth('JWT-auth')
@@ -40,100 +48,123 @@ export class ResumesController {
 
   @Get()
   @ApiOperation({ summary: 'Get all resumes for current user' })
-  @ApiResponse({ status: 200, type: [ResumeListItemDto] })
-  @ApiResponse({ status: 200, description: 'List of resumes' })
+  @ApiDataResponse(PaginatedResumesDataDto, { description: 'List of resumes' })
   async getAllUserResumes(
     @CurrentUser() user: UserPayload,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page?: number,
     @Query('limit', new DefaultValuePipe(50), ParseIntPipe) limit?: number,
-  ) {
-    return this.resumesService.findAllUserResumes(user.userId, page, limit);
+  ): Promise<DataResponse<PaginatedResumesDataDto>> {
+    const result = await this.resumesService.findAllUserResumes(user.userId, page, limit);
+
+    const paginatedResult = result as {
+      resumes?: ResumeListItemDto[];
+      pagination?: {
+        total: number;
+        page: number;
+        limit: number;
+        totalPages: number;
+      };
+    };
+
+    if (paginatedResult.resumes && paginatedResult.pagination) {
+      return {
+        success: true,
+        data: {
+          data: paginatedResult.resumes,
+          meta: paginatedResult.pagination,
+        },
+      };
+    }
+
+    return {
+      success: true,
+      data: {
+        data: result as unknown as ResumeListItemDto[],
+        meta: {
+          total: (result as unknown[]).length,
+          page: page ?? 1,
+          limit: limit ?? 50,
+          totalPages: 1,
+        },
+      },
+    };
   }
 
   @Get('slots')
   @ApiOperation({ summary: 'Get remaining resume slots for current user' })
-  @ApiResponse({ status: 200, type: ResumeSlotsResponseDto })
-  @ApiResponse({
-    status: 200,
-    description: 'Resume slots info',
-    schema: {
-      type: 'object',
-      properties: {
-        used: { type: 'number', example: 2 },
-        limit: { type: 'number', example: 4 },
-        remaining: { type: 'number', example: 2 },
-      },
-    },
-  })
-  async getRemainingSlots(@CurrentUser() user: UserPayload) {
-    return this.resumesService.getRemainingSlots(user.userId);
+  @ApiDataResponse(ResumeSlotsResponseDto, { description: 'Resume slots info' })
+  async getRemainingSlots(
+    @CurrentUser() user: UserPayload,
+  ): Promise<DataResponse<ResumeSlotsResponseDto>> {
+    const result = await this.resumesService.getRemainingSlots(user.userId);
+    return { success: true, data: result };
   }
 
   @Get(':id/full')
   @ApiOperation({ summary: 'Get a resume with all sections' })
-  @ApiResponse({ status: 200, type: ResumeFullResponseDto })
+  @ApiDataResponse(ResumeFullResponseDto, {
+    description: 'Resume with all sections',
+  })
   @ApiParam({ name: 'id', description: 'Resume ID' })
-  @ApiResponse({ status: 200, description: 'Resume with all sections' })
-  @ApiResponse({ status: 404, description: 'Resume not found' })
   async getResumeByIdWithAllSections(
     @Param('id', ParseCuidPipe) id: string,
     @CurrentUser() user: UserPayload,
-  ) {
-    return this.resumesService.findResumeByIdForUser(id, user.userId);
+  ): Promise<DataResponse<ResumeFullResponseDto>> {
+    const result = await this.resumesService.findResumeByIdForUser(id, user.userId);
+    return { success: true, data: result as unknown as ResumeFullResponseDto };
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get a specific resume' })
-  @ApiResponse({ status: 200, type: ResumeFullResponseDto })
+  @ApiDataResponse(ResumeFullResponseDto, { description: 'Resume found' })
   @ApiParam({ name: 'id', description: 'Resume ID' })
-  @ApiResponse({ status: 200, description: 'Resume found' })
-  @ApiResponse({ status: 404, description: 'Resume not found' })
-  @ApiResponse({ status: 400, description: 'Invalid resume ID format' })
   async getResumeByIdForUser(
     @Param('id', ParseCuidPipe) id: string,
     @CurrentUser() user: UserPayload,
-  ) {
-    return this.resumesService.findResumeByIdForUser(id, user.userId);
+  ): Promise<DataResponse<ResumeFullResponseDto>> {
+    const result = await this.resumesService.findResumeByIdForUser(id, user.userId);
+    return { success: true, data: result as unknown as ResumeFullResponseDto };
   }
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new resume' })
-  @ApiResponse({ status: 201, type: ResumeResponseDto })
-  @ApiResponse({ status: 201, description: 'Resume created' })
+  @ApiDataResponse(ResumeResponseDto, {
+    status: 201,
+    description: 'Resume created',
+  })
   async createResumeForUser(
     @CurrentUser() user: UserPayload,
     @Body(ParseJsonBodyPipe) createResume: CreateResume,
-  ) {
-    return this.resumesService.createResumeForUser(user.userId, createResume);
+  ): Promise<DataResponse<ResumeResponseDto>> {
+    const result = await this.resumesService.createResumeForUser(user.userId, createResume);
+    return { success: true, data: result as unknown as ResumeResponseDto };
   }
 
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update a resume' })
-  @ApiResponse({ status: 200, type: ResumeResponseDto })
+  @ApiDataResponse(ResumeResponseDto, { description: 'Resume updated' })
   @ApiParam({ name: 'id', description: 'Resume ID' })
-  @ApiResponse({ status: 200, description: 'Resume updated' })
-  @ApiResponse({ status: 404, description: 'Resume not found' })
   async updateResumeForUser(
     @Param('id', ParseCuidPipe) id: string,
     @CurrentUser() user: UserPayload,
     @Body() updateResume: UpdateResume,
-  ) {
-    return this.resumesService.updateResumeForUser(id, user.userId, updateResume);
+  ): Promise<DataResponse<ResumeResponseDto>> {
+    const result = await this.resumesService.updateResumeForUser(id, user.userId, updateResume);
+    return { success: true, data: result as unknown as ResumeResponseDto };
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete a resume' })
-  @ApiResponse({ status: 200, type: DeleteResponseDto })
+  @ApiDataResponse(DeleteResponseDto, { description: 'Resume deleted' })
   @ApiParam({ name: 'id', description: 'Resume ID' })
-  @ApiResponse({ status: 200, description: 'Resume deleted' })
-  @ApiResponse({ status: 404, description: 'Resume not found' })
   async deleteResumeForUser(
     @Param('id', ParseCuidPipe) id: string,
     @CurrentUser() user: UserPayload,
-  ) {
-    return this.resumesService.deleteResumeForUser(id, user.userId);
+  ): Promise<DataResponse<DeleteResponseDto>> {
+    await this.resumesService.deleteResumeForUser(id, user.userId);
+    return { success: true, data: { success: true } };
   }
 }

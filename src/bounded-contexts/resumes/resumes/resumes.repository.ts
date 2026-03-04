@@ -1,38 +1,22 @@
 import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { Resume } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { type CreateResume, type UpdateResume } from '@/shared-kernel';
-
-/**
- * Repository-level DTO types.
- * Excludes nested relations which are handled separately by sub-resource repositories.
- * The API layer (CreateResume/UpdateResume) may include relations for convenience,
- * but the repository deals with flat resume data only.
- */
-type CreateResumeData = Omit<
-  CreateResume,
-  'experiences' | 'educations' | 'skills' | 'languages' | 'certifications' | 'projects'
->;
-
-type UpdateResumeData = Omit<
-  UpdateResume,
-  'experiences' | 'educations' | 'skills' | 'languages' | 'certifications' | 'projects'
->;
+import { type CreateResumeData, type UpdateResumeData } from '@/shared-kernel';
 
 @Injectable()
 export class ResumesRepository {
   private readonly logger = new Logger(ResumesRepository.name);
 
   private readonly includeRelations = {
-    experiences: { orderBy: { order: 'asc' as const } },
-    education: { orderBy: { startDate: 'desc' as const } },
-    skills: { orderBy: { order: 'asc' as const } },
-    languages: { orderBy: { order: 'asc' as const } },
-    projects: { orderBy: { createdAt: 'desc' as const } },
-    certifications: { orderBy: { issueDate: 'desc' as const } },
-    awards: { orderBy: { date: 'desc' as const } },
-    recommendations: { orderBy: { createdAt: 'desc' as const } },
-    interests: { orderBy: { order: 'asc' as const } },
+    resumeSections: {
+      orderBy: { order: 'asc' as const },
+      include: {
+        sectionType: true,
+        items: {
+          orderBy: { order: 'asc' as const },
+        },
+      },
+    },
   };
 
   constructor(private readonly prisma: PrismaService) {}

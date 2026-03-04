@@ -1,9 +1,16 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { nanoid } from 'nanoid';
 import { CacheCoreService } from '@/bounded-contexts/platform/common/cache/services/cache-core.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { EventPublisher } from '@/shared-kernel';
+import { toGenericSections } from '@/shared-kernel/types/section-projection.adapter';
 import { ResumePublishedEvent } from '../../domain/events';
 
 interface CreateShare {
@@ -23,12 +30,14 @@ export class ResumeShareService {
     private readonly eventPublisher: EventPublisher,
   ) {}
 
-  async createShare(dto: CreateShare) {
+  async createShare(userId: string, dto: CreateShare) {
     const slug = dto.slug ?? this.generateSlug();
 
     // Validate custom slug
     if (dto.slug && !this.isValidSlug(dto.slug)) {
-      throw new Error('Invalid slug format. Use alphanumeric characters and hyphens only.');
+      throw new BadRequestException(
+        'Invalid slug format. Use alphanumeric characters and hyphens only.',
+      );
     }
 
     // Check slug uniqueness
@@ -37,17 +46,25 @@ export class ResumeShareService {
     });
 
     if (existing) {
-      throw new Error('Slug already in use');
+      throw new ConflictException('Slug already in use');
     }
 
     // Hash password if provided
     const hashedPassword = dto.password ? await bcrypt.hash(dto.password, 10) : null;
 
-    // Get userId from resume before creating share
+    // Verify resume ownership
     const resume = await this.prisma.resume.findUnique({
       where: { id: dto.resumeId },
       select: { userId: true },
     });
+
+    if (!resume) {
+      throw new NotFoundException('Resume not found');
+    }
+
+    if (resume.userId !== userId) {
+      throw new ForbiddenException('You do not have access to this resume');
+    }
 
     const share = await this.prisma.resumeShare.create({
       data: {
@@ -90,13 +107,21 @@ export class ResumeShareService {
     const resume = await this.prisma.resume.findUnique({
       where: { id: resumeId },
       include: {
-        experiences: { orderBy: { startDate: 'desc' } },
-        education: { orderBy: { startDate: 'desc' } },
-        skills: { orderBy: { order: 'asc' } },
-        languages: { orderBy: { order: 'asc' } },
-        projects: { orderBy: { startDate: 'desc' } },
-        certifications: { orderBy: { issueDate: 'desc' } },
-        awards: { orderBy: { date: 'desc' } },
+        resumeSections: {
+          include: {
+            sectionType: {
+              select: {
+                semanticKind: true,
+              },
+            },
+            items: {
+              orderBy: { order: 'asc' },
+              select: {
+                content: true,
+              },
+            },
+          },
+        },
       },
     });
 
@@ -104,23 +129,70 @@ export class ResumeShareService {
       return null;
     }
 
-    // Cache for 60 seconds
-    await this.cache.set(cacheKey, resume, this.CACHE_TTL);
+    const { resumeSections, ...resumeData } = resume;
+    const sections = toGenericSections(
+      resumeSections as Array<{
+        sectionType: { semanticKind: string };
+        items: Array<{ content: unknown }>;
+      }>,
+    );
 
-    return resume;
+    const resumeToCache = {
+      ...resumeData,
+      sections: sections.map((section) => ({
+        semanticKind: section.semanticKind,
+        items: section.items.map((item) => item.content),
+      })),
+    };
+
+    // Cache for 60 seconds
+    await this.cache.set(cacheKey, resumeToCache, this.CACHE_TTL);
+
+    return resumeToCache;
   }
 
   async verifyPassword(plaintext: string, hash: string): Promise<boolean> {
     return bcrypt.compare(plaintext, hash);
   }
 
-  async deleteShare(shareId: string) {
+  async deleteShare(userId: string, shareId: string) {
+    // Check if share exists first
+    const share = await this.prisma.resumeShare.findUnique({
+      where: { id: shareId },
+      include: {
+        resume: {
+          select: { userId: true },
+        },
+      },
+    });
+
+    if (!share) {
+      throw new NotFoundException('Share not found');
+    }
+
+    if (share.resume.userId !== userId) {
+      throw new ForbiddenException('You do not have access to this share');
+    }
+
     return this.prisma.resumeShare.delete({
       where: { id: shareId },
     });
   }
 
-  async listUserShares(resumeId: string) {
+  async listUserShares(userId: string, resumeId: string) {
+    const resume = await this.prisma.resume.findUnique({
+      where: { id: resumeId },
+      select: { userId: true },
+    });
+
+    if (!resume) {
+      throw new NotFoundException('Resume not found');
+    }
+
+    if (resume.userId !== userId) {
+      throw new ForbiddenException('You do not have access to this resume');
+    }
+
     return this.prisma.resumeShare.findMany({
       where: { resumeId },
       orderBy: { createdAt: 'desc' },

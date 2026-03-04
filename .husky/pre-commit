@@ -1,43 +1,120 @@
 #!/bin/sh
-# Standardized pre-commit hook for ProFile repositories
-# Source: octopus-workflows/scripts/husky/pre-commit
+# =============================================================================
+# Pre-Commit Hook - Fast Feedback Loop + Attestation
+# =============================================================================
 #
-# Run order:
-# 1. Generate swagger.json from @SdkExport decorators (MUST be first)
-# 2. Type check
-# 3. Fast lint
-# 4. Unit tests
+# Philosophy (Uncle Bob + Kent Beck):
+#   - "Fast feedback first" - seconds, not minutes
+#   - "Test behaviors at the right level"
+#   - Unit tests catch logic errors FAST
+#   - Architecture tests enforce boundaries
+#   - Contract tests ensure API stability
 #
-# CI will run additional checks:
-# - Full ESLint with type-aware rules
-# - Integration tests (for profile-services)
-# - E2E tests (for profile-frontend)
+# What runs here (fast, no external dependencies):
+#   1. Swagger generation (decorators → openapi spec)
+#   2. Type checking (TypeScript)
+#   3. Linting (Biome)
+#   4. Unit tests (mocked, in-memory)
+#   5. Architecture tests (import boundaries)
+#   6. Contract tests (API contracts)
+#   7. Generate attestation (proves checks ran - for CI verification)
+#
+# What runs in CI/CD (requires infrastructure):
+#   - Integration tests → .github/workflows/integration.yml
+#   - E2E tests → .github/workflows/e2e.yml
+#
+# CI Verification:
+#   Instead of re-running checks, CI verifies the attestation file.
+#   This is O(1) verification vs O(n) re-execution.
+#
+# =============================================================================
 
-echo "Pre-commit checks (fast feedback loop)..."
+set -e
+
+echo "🚀 Pre-commit checks (fast feedback loop)..."
 echo ""
 
-# 0. Generate Swagger from @SdkExport decorators (FIRST - before any checks)
-echo "  -> Generating swagger.json from @SdkExport decorators..."
-bun run scripts/generate-swagger-from-decorators.ts || exit 1
+# Track check results for attestation
+CHECK_RESULTS=""
 
-# Stage the generated swagger.json if it changed
-git add swagger.json swagger-generation-report.json 2>/dev/null || true
+# -----------------------------------------------------------------------------
+# 0. Generate Swagger from @SdkExport decorators (MUST be first)
+# -----------------------------------------------------------------------------
+echo "  📄 Generating swagger.json..."
+if bun run scripts/generate-swagger-from-decorators.ts; then
+    CHECK_RESULTS="$CHECK_RESULTS swagger:pass"
+else
+    echo "❌ Swagger generation failed"
+    exit 1
+fi
 
-# 1. Type check
-echo "  -> Type checking..."
-bun run typecheck || exit 1
+# -----------------------------------------------------------------------------
+# 1. Type Check - Catch type errors before they reach CI
+# -----------------------------------------------------------------------------
+echo "  🔍 Type checking..."
+if bun run typecheck; then
+    CHECK_RESULTS="$CHECK_RESULTS typecheck:pass"
+else
+    echo "❌ Type check failed"
+    exit 1
+fi
 
-# 2. Fast lint with biome (auto-fix)
-echo "  -> Lint & auto-fix (biome)..."
-bun run lint || exit 1
+# -----------------------------------------------------------------------------
+# 2. Lint & Format - Consistent code style
+# -----------------------------------------------------------------------------
+echo "  🧹 Lint & auto-fix (biome)..."
+if bun run lint; then
+    CHECK_RESULTS="$CHECK_RESULTS lint:pass"
+else
+    echo "❌ Lint failed"
+    exit 1
+fi
 
-# 3. Swagger documentation validation
-echo "  -> Validating Swagger documentation..."
-bun test ./tests/swagger-generation.test.ts || exit 1
+# -----------------------------------------------------------------------------
+# 3. Unit Tests - Fast, isolated, no external dependencies
+# -----------------------------------------------------------------------------
+echo "  🧪 Running unit tests..."
+if bun test src/; then
+    CHECK_RESULTS="$CHECK_RESULTS unit_tests:pass"
+else
+    echo "❌ Unit tests failed"
+    exit 1
+fi
 
-# 4. Unit tests
-echo "  -> Running tests..."
-bun test || exit 1
+# -----------------------------------------------------------------------------
+# 4. Architecture Tests - Enforce bounded context boundaries
+# -----------------------------------------------------------------------------
+echo "  🏛️  Running architecture tests..."
+if bun test ./test/architecture; then
+    CHECK_RESULTS="$CHECK_RESULTS arch_tests:pass"
+else
+    echo "❌ Architecture tests failed"
+    exit 1
+fi
+
+# -----------------------------------------------------------------------------
+# 5. Contract Tests - API stability
+# -----------------------------------------------------------------------------
+echo "  📝 Running contract tests..."
+if bun test ./test/contracts; then
+    CHECK_RESULTS="$CHECK_RESULTS contract_tests:pass"
+else
+    echo "❌ Contract tests failed"
+    exit 1
+fi
+
+# -----------------------------------------------------------------------------
+# 6. Generate Attestation - Cryptographic proof that checks passed
+# -----------------------------------------------------------------------------
+echo "  🔐 Generating attestation..."
+./scripts/generate-pre-commit-attestation.sh $CHECK_RESULTS
+
+# -----------------------------------------------------------------------------
+# 7. Stage all modified files (MUST be last - after all modifications are done)
+# -----------------------------------------------------------------------------
+echo "  📦 Staging generated files..."
+git add swagger.json swagger-generation-report.json .pre-commit-attestation.json
 
 echo ""
-echo "Pre-commit passed!"
+echo "✅ Pre-commit passed! (Integration & E2E tests run in CI/CD)"
+echo "   Attestation generated for CI verification."

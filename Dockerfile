@@ -1,7 +1,7 @@
 # ==================================
 # Stage 1: Dependencies (cached when package.json doesn't change)
 # ==================================
-FROM oven/bun:1.2.23-alpine AS deps
+FROM oven/bun:1.3.10-alpine AS deps
 
 WORKDIR /app
 
@@ -11,15 +11,9 @@ COPY prisma ./prisma
 COPY prisma.config.ts ./
 
 # Layer 2: Install dependencies (cached by BuildKit)
-RUN --mount=type=secret,id=github_token \
-    --mount=type=cache,target=/root/.bun/install/cache \
-    if [ -s /run/secrets/github_token ]; then \
-      echo "//npm.pkg.github.com/:_authToken=$(cat /run/secrets/github_token)" > .npmrc && \
-      echo "@octopus-synapse:registry=https://npm.pkg.github.com" >> .npmrc; \
-    fi && \
+RUN --mount=type=cache,target=/root/.bun/install/cache \
     bun install --frozen-lockfile && \
-    bunx prisma generate && \
-    rm -f .npmrc
+    bunx prisma generate
 
 # ==================================
 # Stage 2: Build (only reruns when src/ changes)
@@ -36,19 +30,13 @@ COPY data ./data
 RUN bun run build
 
 # Clean dev dependencies
-RUN --mount=type=secret,id=github_token \
-    --mount=type=cache,target=/root/.bun/install/cache \
-    if [ -s /run/secrets/github_token ]; then \
-      echo "//npm.pkg.github.com/:_authToken=$(cat /run/secrets/github_token)" > .npmrc && \
-      echo "@octopus-synapse:registry=https://npm.pkg.github.com" >> .npmrc; \
-    fi && \
-    bun install --production --frozen-lockfile && \
-    rm -f .npmrc
+RUN --mount=type=cache,target=/root/.bun/install/cache \
+    bun install --production --frozen-lockfile
 
 # ==================================
 # Stage 3: Production Runtime
 # ==================================
-FROM oven/bun:1.2.23-alpine AS runner
+FROM oven/bun:1.3.10-alpine AS runner
 
 # Install runtime dependencies
 RUN apk add --no-cache \

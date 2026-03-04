@@ -27,7 +27,7 @@ export const TechPersonaSchema = z.enum([
 export type TechPersona = z.infer<typeof TechPersonaSchema>;
 
 /**
- * TechPersona as a TypeScript enum (for backward compatibility with NestJS services)
+ * TechPersona as a TypeScript enum for NestJS/runtime integration.
  * Use TechPersonaEnum.DEVOPS instead of 'devops' literal for type safety.
  */
 export enum TechPersonaEnum {
@@ -44,15 +44,3 @@ export enum TechPersonaEnum {
   CLOUD = 'cloud',
   GAME_DEV = 'game-dev',
 }
-
-/**
- * Alias for backward compatibility (TechPersonaKebab === TechPersona)
- */
-export const TechPersonaKebabSchema = TechPersonaSchema;
-export type TechPersonaKebab = TechPersona;
-
-/**
- * Identity mapping (both are now kebab-case)
- */
-export const techPersonaToKebab = (value: TechPersona): TechPersonaKebab => value;
-export const techPersonaFromKebab = (value: TechPersonaKebab): TechPersona => value;

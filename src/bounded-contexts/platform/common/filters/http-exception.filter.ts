@@ -3,7 +3,6 @@
  * Centralizes error logging and response transformation
  * Follows ERROR_HANDLING_STRATEGY.md principles
  *
- * Also handles ValidationError from profile-contracts,
  * converting them to HTTP 400 responses.
  */
 
@@ -12,9 +11,6 @@ import type { Request, Response } from 'express';
 import { ERROR_CODES } from '@/shared-kernel';
 import { AppLoggerService } from '../logger/logger.service';
 
-/**
- * Interface matching ValidationError from profile-contracts
- */
 interface ValidationError extends Error {
   name: 'ValidationError';
   errors: Array<{
@@ -24,9 +20,6 @@ interface ValidationError extends Error {
   }>;
 }
 
-/**
- * Type guard for ValidationError from profile-contracts
- */
 function isValidationError(error: unknown): error is ValidationError {
   return (
     error instanceof Error &&
@@ -50,7 +43,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
 
-    // Handle ValidationError from profile-contracts
     if (isValidationError(exception)) {
       const status = HttpStatus.BAD_REQUEST;
       const details = {
@@ -71,8 +63,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       });
     }
 
-    const status =
-      exception instanceof HttpException ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
+    const status = this.getStatusCode(exception);
 
     const apiErrorResponse = this.toApiErrorResponse(exception, request, status);
 
@@ -232,5 +223,27 @@ export class AllExceptionsFilter implements ExceptionFilter {
       // Successful responses logged at info level
       this.logger.log(`Request handled: ${errorMessage}`, context, metadata);
     }
+  }
+
+  /**
+   * Determines the HTTP status code from the exception.
+   * Checks HttpException, domain exceptions with statusHint, and defaults to 500.
+   */
+  private getStatusCode(exception: unknown): number {
+    if (exception instanceof HttpException) {
+      return exception.getStatus();
+    }
+
+    // Check for domain exceptions with statusHint
+    if (
+      exception &&
+      typeof exception === 'object' &&
+      'statusHint' in exception &&
+      typeof (exception as { statusHint: unknown }).statusHint === 'number'
+    ) {
+      return (exception as { statusHint: number }).statusHint;
+    }
+
+    return HttpStatus.INTERNAL_SERVER_ERROR;
   }
 }

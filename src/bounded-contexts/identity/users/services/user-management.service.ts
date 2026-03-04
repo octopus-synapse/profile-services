@@ -1,255 +1,86 @@
 /**
- * User Management Service
+ * User Management Service (Facade)
  *
+ * Delegates to use cases following Clean Architecture.
  * Operations that require elevated permissions on user resources.
- * Access controlled by permission system, not hardcoded roles.
  *
- * Single Responsibility: CRUD operations on users requiring 'user:*' permissions.
+ * Single Responsibility: Facade that delegates to specific use cases.
  */
 
-import {
-  BadRequestException,
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-import { PasswordService } from '@/bounded-contexts/identity/auth/services/password.service';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { AuthorizationService } from '@/bounded-contexts/identity/authorization';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { AdminCreateUser, AdminResetPassword, AdminUpdateUser } from '@/shared-kernel';
-import { ERROR_MESSAGES } from '@/shared-kernel';
-
-// ============================================================================
-// Types
-// ============================================================================
-
-export interface UserListOptions {
-  page: number;
-  limit: number;
-  search?: string;
-  roleName?: string;
-}
-
-const USER_LIST_SELECT = {
-  id: true,
-  email: true,
-  name: true,
-  username: true,
-  hasCompletedOnboarding: true,
-  createdAt: true,
-  updatedAt: true,
-  image: true,
-  emailVerified: true,
-  _count: {
-    select: {
-      resumes: true,
-    },
-  },
-} as const;
-
-// ============================================================================
-// Service
-// ============================================================================
+import {
+  type CreatedUser,
+  type UpdatedUser,
+  USER_MANAGEMENT_USE_CASES,
+  type UserDetails,
+  type UserListOptions,
+  type UserListResult,
+  type UserManagementUseCases,
+} from './user-management/ports/user-management.port';
 
 @Injectable()
 export class UserManagementService {
   constructor(
-    private readonly prisma: PrismaService,
-    private readonly passwordService: PasswordService,
+    @Inject(USER_MANAGEMENT_USE_CASES)
+    private readonly useCases: UserManagementUseCases,
     private readonly authService: AuthorizationService,
   ) {}
 
-  // ============================================================================
-  // Query Operations (require 'user:read' or 'user:manage')
-  // ============================================================================
-
-  async listUsers(options: UserListOptions) {
-    const { page, limit, search } = options;
-    const skip = (page - 1) * limit;
-
-    const where = this.buildWhereClause(search);
-
-    const [users, total] = await Promise.all([
-      this.prisma.user.findMany({
-        where,
-        skip,
-        take: limit,
-        select: USER_LIST_SELECT,
-        orderBy: { createdAt: 'desc' },
-      }),
-      this.prisma.user.count({ where }),
-    ]);
-
-    return {
-      users,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-      },
-    };
+  /**
+   * List users with pagination
+   * @returns UserListResult (domain data, not envelope)
+   */
+  async listUsers(options: UserListOptions): Promise<UserListResult> {
+    return this.useCases.listUsersUseCase.execute(options);
   }
 
-  async getUserDetails(userId: string) {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      include: {
-        resumes: {
-          select: {
-            id: true,
-            title: true,
-            template: true,
-            isPublic: true,
-            createdAt: true,
-            updatedAt: true,
-          },
-        },
-        preferences: true,
-        _count: {
-          select: { accounts: true, sessions: true, resumes: true },
-        },
-      },
+  /**
+   * Get user details
+   * @returns UserDetails (domain data, not envelope)
+   */
+  async getUserDetails(userId: string): Promise<UserDetails> {
+    return this.useCases.getUserDetailsUseCase.execute(userId);
+  }
+
+  /**
+   * Create a new user (elevated permission)
+   * @returns CreatedUser (domain data, not envelope)
+   */
+  async createUser(data: AdminCreateUser): Promise<CreatedUser> {
+    return this.useCases.createUserUseCase.execute({
+      email: data.email,
+      password: data.password,
+      name: data.name,
     });
-
-    if (!user) {
-      throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
-    }
-
-    const { password: _, ...userWithoutPassword } = user;
-    return userWithoutPassword;
   }
 
-  // ============================================================================
-  // Mutation Operations (require 'user:create', 'user:update', 'user:delete')
-  // ============================================================================
-
-  async createUser(data: AdminCreateUser) {
-    const { email, password, name } = data;
-    const hashedPassword = await this.passwordService.hash(password);
-
-    try {
-      const user = await this.prisma.user.create({
-        data: {
-          email,
-          password: hashedPassword,
-          name,
-        },
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          createdAt: true,
-        },
-      });
-
-      return {
-        success: true,
-        user,
-        message: 'User created successfully',
-      };
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-        throw new ConflictException(ERROR_MESSAGES.EMAIL_ALREADY_EXISTS);
-      }
-      throw error;
-    }
+  /**
+   * Update a user (elevated permission)
+   * @returns UpdatedUser (domain data, not envelope)
+   */
+  async updateUser(userId: string, data: AdminUpdateUser): Promise<UpdatedUser> {
+    return this.useCases.updateUserUseCase.execute(userId, data);
   }
 
-  async updateUser(userId: string, data: AdminUpdateUser) {
-    await this.ensureUserExists(userId);
-
-    try {
-      const user = await this.prisma.user.update({
-        where: { id: userId },
-        data,
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          username: true,
-          hasCompletedOnboarding: true,
-          updatedAt: true,
-        },
-      });
-
-      return {
-        success: true,
-        user,
-        message: 'User updated successfully',
-      };
-    } catch (error) {
-      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-        const target = error.meta?.target as string[] | undefined;
-        if (target?.includes('email')) {
-          throw new ConflictException(ERROR_MESSAGES.EMAIL_ALREADY_IN_USE);
-        }
-        if (target?.includes('username')) {
-          throw new ConflictException(ERROR_MESSAGES.USERNAME_ALREADY_IN_USE);
-        }
-        throw new ConflictException('A unique constraint was violated');
-      }
-      throw error;
-    }
-  }
-
-  async deleteUser(userId: string, requesterId: string) {
-    await this.ensureUserExists(userId);
-    this.preventSelfDeletion(userId, requesterId);
-
-    // Check if user is last with 'user:delete' permission (prevents lockout)
+  /**
+   * Delete a user (elevated permission)
+   * @returns void (not envelope)
+   */
+  async deleteUser(userId: string, requesterId: string): Promise<void> {
+    // Additional business rule: prevent deleting last privileged user
     await this.preventLastPrivilegedUserDeletion(userId);
 
-    await this.prisma.user.delete({ where: { id: userId } });
-
-    return { success: true, message: 'User deleted successfully' };
+    return this.useCases.deleteUserUseCase.execute(userId, requesterId);
   }
 
-  async resetPassword(userId: string, data: AdminResetPassword) {
-    await this.ensureUserExists(userId);
-
-    const hashedPassword = await this.passwordService.hash(data.newPassword);
-
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { password: hashedPassword },
-    });
-
-    return { success: true, message: 'Password reset successfully' };
-  }
-
-  // ============================================================================
-  // Private Helpers
-  // ============================================================================
-
-  private buildWhereClause(search?: string): Prisma.UserWhereInput {
-    if (!search) return {};
-
-    return {
-      OR: [
-        { email: { contains: search, mode: 'insensitive' } },
-        { name: { contains: search, mode: 'insensitive' } },
-        { username: { contains: search, mode: 'insensitive' } },
-      ],
-    };
-  }
-
-  private async ensureUserExists(userId: string): Promise<void> {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { id: true },
-    });
-
-    if (!user) {
-      throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
-    }
-  }
-
-  private preventSelfDeletion(userId: string, requesterId: string): void {
-    if (userId === requesterId) {
-      throw new BadRequestException('Cannot delete your own account');
-    }
+  /**
+   * Reset user password (elevated permission)
+   * @returns void (not envelope)
+   */
+  async resetPassword(userId: string, data: AdminResetPassword): Promise<void> {
+    return this.useCases.resetPasswordUseCase.execute(userId, data.newPassword);
   }
 
   /**
@@ -261,7 +92,6 @@ export class UserManagementService {
 
     if (!hasManagePermission) return;
 
-    // Count users with user:manage permission
     const usersWithManage = await this.authService.countUsersWithRole('admin');
 
     if (usersWithManage <= 1) {

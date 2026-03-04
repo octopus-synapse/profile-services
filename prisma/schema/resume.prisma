@@ -63,21 +63,7 @@ model Resume {
 
   // Relations
   users           User[]                   @relation("UserPrimaryResume")
-  experiences     Experience[]
-  education       Education[]
-  skills          Skill[]
-  languages       Language[]
-  projects        Project[]
-  certifications  Certification[]
-  awards          Award[]
-  recommendations Recommendation[]
-  interests       Interest[]
-  achievements    Achievement[]
-  publications    Publication[]
-  talks           Talk[]
-  openSource      OpenSourceContribution[]
-  bugBounties     BugBounty[]
-  hackathons      Hackathon[]
+  resumeSections  ResumeSection[]
   shares          ResumeShare[]            @relation("ResumeShares")
   versions        ResumeVersion[]          @relation("ResumeVersions")
   analytics       ResumeAnalytics[]        @relation("ResumeAnalytics")

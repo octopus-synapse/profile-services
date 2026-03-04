@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.3.14/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.4.5/schema.json",
   "vcs": {
     "enabled": true,
     "clientKind": "git",
@@ -18,7 +18,10 @@
       "!**/*.test.ts",
       "!**/*.e2e-spec.ts",
       "!**/test",
-      "!**/tests"
+      "!**/tests",
+      "!swagger.json",
+      "!swagger-test.json",
+      "!swagger-generation-report.json"
     ]
   },
   "formatter": {

@@ -11,9 +11,10 @@ export const APP_CONFIG = {
 export const RATE_LIMIT_CONFIG = {
   TTL: 60,
   TTL_MS: 60000,
-  MAX_REQUESTS: 100,
-  AUTH_MAX_REQUESTS: 5,
-} as const;
+  // Allow override via env for E2E tests (RATE_LIMIT_MAX=1000)
+  MAX_REQUESTS: parseInt(process.env.RATE_LIMIT_MAX ?? '100', 10),
+  AUTH_MAX_REQUESTS: parseInt(process.env.RATE_LIMIT_AUTH_MAX ?? '5', 10),
+};
 
 export const FILE_UPLOAD_CONFIG = {
   MAX_SIZE: 5 * 1024 * 1024,

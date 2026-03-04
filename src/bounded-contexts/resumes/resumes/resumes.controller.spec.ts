@@ -8,10 +8,10 @@
  * Uncle Bob: "Controllers should be thin, delegating to services"
  */
 
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ResumesController } from './resumes.controller';
 import type { ResumesService } from './resumes.service';
-import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
 
 describe('ResumesController', () => {
   let controller: ResumesController;
@@ -33,36 +33,35 @@ describe('ResumesController', () => {
   };
 
   const mockPaginatedResumes = {
-    data: [mockResume],
-    meta: { total: 1, page: 1, limit: 50, totalPages: 1 },
+    resumes: [mockResume],
+    pagination: { total: 1, page: 1, limit: 50, totalPages: 1 },
   };
 
   beforeEach(() => {
     mockResumesService = {
       findAllUserResumes: mock(() => Promise.resolve(mockPaginatedResumes)),
-      findResumeByIdForUser: mock(() => Promise.resolve({ data: mockResume })),
+      findResumeByIdForUser: mock(() => Promise.resolve(mockResume)),
       getRemainingSlots: mock(() =>
         Promise.resolve({ used: 2, limit: 4, remaining: 2 }),
       ),
-      createResumeForUser: mock(() =>
-        Promise.resolve({ data: mockResume, message: 'Resume created' }),
-      ),
-      updateResumeForUser: mock(() =>
-        Promise.resolve({ data: mockResume, message: 'Resume updated' }),
-      ),
-      deleteResumeForUser: mock(() =>
-        Promise.resolve({ message: 'Resume deleted' }),
-      ),
+      createResumeForUser: mock(() => Promise.resolve(mockResume)),
+      updateResumeForUser: mock(() => Promise.resolve(mockResume)),
+      deleteResumeForUser: mock(() => Promise.resolve(undefined)),
     };
 
     controller = new ResumesController(mockResumesService as ResumesService);
   });
 
   describe('getAllUserResumes', () => {
-    it('should return paginated resumes for current user', async () => {
+    it('should return DataResponse with paginated resumes', async () => {
       const result = await controller.getAllUserResumes(mockUser);
 
-      expect(result).toEqual(mockPaginatedResumes);
+      expect(result).toHaveProperty('success', true);
+      expect(result).toHaveProperty('data');
+      expect(result.data).toEqual({
+        data: mockPaginatedResumes.resumes,
+        meta: mockPaginatedResumes.pagination,
+      });
       expect(mockResumesService.findAllUserResumes).toHaveBeenCalledWith(
         mockUser.userId,
         undefined,
@@ -82,10 +81,12 @@ describe('ResumesController', () => {
   });
 
   describe('getRemainingSlots', () => {
-    it('should return resume slots info', async () => {
+    it('should return DataResponse with resume slots info', async () => {
       const result = await controller.getRemainingSlots(mockUser);
 
-      expect(result).toEqual({ used: 2, limit: 4, remaining: 2 });
+      expect(result).toHaveProperty('success', true);
+      expect(result).toHaveProperty('data');
+      expect(result.data).toEqual({ used: 2, limit: 4, remaining: 2 });
       expect(mockResumesService.getRemainingSlots).toHaveBeenCalledWith(
         mockUser.userId,
       );
@@ -93,12 +94,14 @@ describe('ResumesController', () => {
   });
 
   describe('getResumeByIdWithAllSections', () => {
-    it('should return resume with all sections', async () => {
+    it('should return DataResponse with resume', async () => {
       const result = await controller.getResumeByIdWithAllSections(
         mockResume.id,
         mockUser,
       );
 
+      expect(result).toHaveProperty('success', true);
+      expect(result).toHaveProperty('data');
       expect(result.data).toEqual(mockResume);
       expect(mockResumesService.findResumeByIdForUser).toHaveBeenCalledWith(
         mockResume.id,
@@ -108,12 +111,14 @@ describe('ResumesController', () => {
   });
 
   describe('getResumeByIdForUser', () => {
-    it('should return specific resume', async () => {
+    it('should return DataResponse with specific resume', async () => {
       const result = await controller.getResumeByIdForUser(
         mockResume.id,
         mockUser,
       );
 
+      expect(result).toHaveProperty('success', true);
+      expect(result).toHaveProperty('data');
       expect(result.data).toEqual(mockResume);
       expect(mockResumesService.findResumeByIdForUser).toHaveBeenCalledWith(
         mockResume.id,
@@ -123,7 +128,7 @@ describe('ResumesController', () => {
   });
 
   describe('createResumeForUser', () => {
-    it('should create resume and return result', async () => {
+    it('should return DataResponse with created resume', async () => {
       const createData = {
         title: 'New Resume',
         template: 'minimal',
@@ -131,7 +136,9 @@ describe('ResumesController', () => {
 
       const result = await controller.createResumeForUser(mockUser, createData);
 
-      expect(result.data).toBeDefined();
+      expect(result).toHaveProperty('success', true);
+      expect(result).toHaveProperty('data');
+      expect(result.data).toEqual(mockResume);
       expect(mockResumesService.createResumeForUser).toHaveBeenCalledWith(
         mockUser.userId,
         createData,
@@ -140,7 +147,7 @@ describe('ResumesController', () => {
   });
 
   describe('updateResumeForUser', () => {
-    it('should update resume and return result', async () => {
+    it('should return DataResponse with updated resume', async () => {
       const updateData = { title: 'Updated Title' };
 
       const result = await controller.updateResumeForUser(
@@ -149,7 +156,9 @@ describe('ResumesController', () => {
         updateData,
       );
 
-      expect(result.data).toBeDefined();
+      expect(result).toHaveProperty('success', true);
+      expect(result).toHaveProperty('data');
+      expect(result.data).toEqual(mockResume);
       expect(mockResumesService.updateResumeForUser).toHaveBeenCalledWith(
         mockResume.id,
         mockUser.userId,
@@ -159,13 +168,15 @@ describe('ResumesController', () => {
   });
 
   describe('deleteResumeForUser', () => {
-    it('should delete resume and return success message', async () => {
+    it('should return DataResponse with deleted confirmation', async () => {
       const result = await controller.deleteResumeForUser(
         mockResume.id,
         mockUser,
       );
 
-      expect(result.message).toBe('Resume deleted');
+      expect(result).toHaveProperty('success', true);
+      expect(result).toHaveProperty('data');
+      expect(result.data).toHaveProperty('success', true);
       expect(mockResumesService.deleteResumeForUser).toHaveBeenCalledWith(
         mockResume.id,
         mockUser.userId,

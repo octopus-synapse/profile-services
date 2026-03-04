@@ -10,7 +10,7 @@
 
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { UserDeletedEvent } from '@/bounded-contexts/identity/domain/events';
+import { UserDeletedEvent } from '@/bounded-contexts/identity/shared-kernel/domain/events';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 
 @Injectable()

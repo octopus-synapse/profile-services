@@ -1,4 +1,9 @@
-import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnModuleDestroy,
+  OnModuleInit,
+} from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 
 // Type-safe model accessor for cleanup operations
@@ -18,7 +23,10 @@ type PrismaModelKey = keyof Omit<
 >;
 
 @Injectable()
-export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
+export class PrismaService
+  extends PrismaClient
+  implements OnModuleInit, OnModuleDestroy
+{
   private readonly logger = new Logger(PrismaService.name);
 
   constructor() {
@@ -50,21 +58,49 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 
     // Delete in reverse order of dependencies to avoid FK constraint errors
     const modelNames = [
-      'achievement',
-      'openSourceContribution',
-      'bugBounty',
-      'hackathon',
-      'talk',
-      'publication',
-      'recommendation',
-      'interest',
-      'language',
-      'award',
-      'certification',
-      'project',
-      'skill',
-      'education',
-      'experience',
+      'message',
+      'conversation',
+      'blockedUser',
+      'resumeCollaborator',
+      'shareAnalytics',
+      'resumeShare',
+      'resumeViewEvent',
+      'resumeAnalytics',
+      'resumeVersion',
+      'sectionItem',
+      'resumeSection',
+      'sectionType',
+      'resumeImport',
+      'activity',
+      'follow',
+      'emailLog',
+      'twoFactorBackupCode',
+      'twoFactorAuth',
+      'userPermission',
+      'userGroup',
+      'userRoleAssignment',
+      'groupPermission',
+      'groupRole',
+      'rolePermission',
+      'group',
+      'role',
+      'permission',
+      'analyticsResumeProjection',
+      'mecSyncLog',
+      'mecCourse',
+      'mecInstitution',
+      'spokenLanguage',
+      'programmingLanguage',
+      'techSkill',
+      'techNiche',
+      'techArea',
+      'resumeTheme',
+      'session',
+      'account',
+      'verificationToken',
+      'auditLog',
+      'userConsent',
+      'onboardingProgress',
       'userPreferences',
       'resume',
       'user',
@@ -72,7 +108,9 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 
     for (const modelName of modelNames) {
       try {
-        const model = this[modelName as PrismaModelKey] as DeletableModel | undefined;
+        const model = this[modelName as PrismaModelKey] as
+          | DeletableModel
+          | undefined;
         if (model) {
           await model.deleteMany();
         }

@@ -8,21 +8,14 @@ import {
   StreamableFile,
   UseGuards,
 } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiOperation,
-  ApiProduces,
-  ApiQuery,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
-import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
+import { ApiBearerAuth, ApiOperation, ApiProduces, ApiQuery, ApiTags } from '@nestjs/swagger';
+import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
+import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
+import { ApiStreamResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { EventPublisher } from '@/shared-kernel';
-import { BannerPreviewResponseDto, ExportResultDto } from '@/shared-kernel/dtos/sdk-response.dto';
 import { ExportCompletedEvent, ExportFailedEvent, ExportRequestedEvent } from '../domain/events';
 import { BannerCaptureService } from './services/banner-capture.service';
 import { ResumeDOCXService } from './services/resume-docx.service';
@@ -45,10 +38,10 @@ export class ExportController {
 
   @UseGuards(JwtAuthGuard)
   @Get('banner')
+  @ApiOperation({ summary: 'Export LinkedIn banner image' })
   @Header('Content-Type', 'image/png')
   @Header('Content-Disposition', 'attachment; filename="linkedin-banner.png"')
-  @ApiOperation({ summary: 'Export LinkedIn banner image' })
-  @ApiResponse({ status: 200, type: BannerPreviewResponseDto })
+  @ApiStreamResponse({ mimeType: 'image/png', description: 'PNG image file' })
   @ApiProduces('image/png')
   @ApiQuery({
     name: 'palette',
@@ -60,9 +53,6 @@ export class ExportController {
     required: false,
     description: 'Logo URL to include in banner',
   })
-  @ApiResponse({ status: 200, description: 'PNG image file' })
-  @ApiResponse({ status: 400, description: 'Failed to generate banner' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
   async exportBanner(
     @Query('palette') palette?: string,
     @Query('logo') logoUrl?: string,
@@ -83,9 +73,13 @@ export class ExportController {
 
   @UseGuards(JwtAuthGuard)
   @Get('resume/pdf')
+  @ApiOperation({ summary: 'Export resume as PDF' })
   @Header('Content-Type', 'application/pdf')
   @Header('Content-Disposition', 'attachment; filename="resume.pdf"')
-  @ApiOperation({ summary: 'Export resume as PDF document' })
+  @ApiStreamResponse({
+    mimeType: 'application/pdf',
+    description: 'PDF document file',
+  })
   @ApiProduces('application/pdf')
   @ApiQuery({
     name: 'palette',
@@ -102,9 +96,6 @@ export class ExportController {
     required: false,
     description: 'Custom banner color (hex)',
   })
-  @ApiResponse({ status: 200, description: 'PDF document file' })
-  @ApiResponse({ status: 400, description: 'Failed to generate PDF' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
   async exportResumePDF(
     @CurrentUser() user: UserPayload,
     @Query('palette') palette?: string,
@@ -161,14 +152,14 @@ export class ExportController {
 
   @UseGuards(JwtAuthGuard)
   @Get('resume/docx')
+  @ApiOperation({ summary: 'Export resume as DOCX' })
   @Header('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
   @Header('Content-Disposition', 'attachment; filename="resume.docx"')
-  @ApiOperation({ summary: 'Export resume as DOCX document' })
-  @ApiResponse({ status: 200, type: ExportResultDto })
+  @ApiStreamResponse({
+    mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    description: 'DOCX document file',
+  })
   @ApiProduces('application/vnd.openxmlformats-officedocument.wordprocessingml.document')
-  @ApiResponse({ status: 200, description: 'DOCX document file' })
-  @ApiResponse({ status: 400, description: 'Failed to generate DOCX' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
   async exportResumeDOCX(@CurrentUser() user: UserPayload): Promise<StreamableFile> {
     const exportId = randomUUID();
 

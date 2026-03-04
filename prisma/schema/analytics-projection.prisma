@@ -6,22 +6,11 @@ model AnalyticsResumeProjection {
   userId   String
   title    String?
 
-  // Section counts for quick analytics (all 15 section types)
-  experiencesCount     Int @default(0)
-  educationCount       Int @default(0)
-  skillsCount          Int @default(0)
-  certificationsCount  Int @default(0)
-  projectsCount        Int @default(0)
-  awardsCount          Int @default(0)
-  languagesCount       Int @default(0)
-  interestsCount       Int @default(0)
-  recommendationsCount Int @default(0)
-  achievementsCount    Int @default(0)
-  publicationsCount    Int @default(0)
-  talksCount           Int @default(0)
-  hackathonsCount      Int @default(0)
-  bugBountiesCount     Int @default(0)
-  openSourceCount      Int @default(0)
+  // Generic section counts stored as JSON
+  // Keys are semanticKind strings (e.g., "WORK_EXPERIENCE", "MY_CUSTOM_SECTION")
+  // Values are integers representing item counts
+  // Example: { "WORK_EXPERIENCE": 3, "SKILL_SET": 10, "MY_CUSTOM_SECTION": 2 }
+  sectionCounts Json @default("{}")
 
   // Timestamps
   createdAt DateTime @default(now())

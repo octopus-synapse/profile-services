@@ -3,289 +3,40 @@
 # ------------------------------------------------------
 
 """
-Input for creating education entry
-"""
-input CreateEducationInput {
-  """
-  Currently studying
-  """
-  current: Boolean! = false
-
-  """
-  Degree obtained
-  """
-  degree: String!
-
-  """
-  Program description
-  """
-  description: String
-
-  """
-  End date (YYYY-MM or YYYY-MM-DD)
-  """
-  endDate: String
-
-  """
-  Field of study
-  """
-  field: String
-
-  """
-  GPA or grade
-  """
-  gpa: String
-
-  """
-  Institution name
-  """
-  institution: String!
-
-  """
-  Institution location
-  """
-  location: String
-
-  """
-  Display order
-  """
-  order: Int
-
-  """
-  Start date (YYYY-MM or YYYY-MM-DD)
-  """
-  startDate: String!
-}
-
-"""
-Input for creating work experience
-"""
-input CreateExperienceInput {
-  """
-  Key achievements in this role
-  """
-  achievements: [String!] = []
-
-  """
-  Company name
-  """
-  company: String!
-
-  """
-  Currently working here
-  """
-  current: Boolean! = false
-
-  """
-  Job description
-  """
-  description: String
-
-  """
-  End date (YYYY-MM or YYYY-MM-DD)
-  """
-  endDate: String
-
-  """
-  Work location
-  """
-  location: String
-
-  """
-  Display order
-  """
-  order: Int
-
-  """
-  Job position/title
-  """
-  position: String!
-
-  """
-  Skills used in this role
-  """
-  skills: [String!] = []
-
-  """
-  Start date (YYYY-MM or YYYY-MM-DD)
-  """
-  startDate: String!
-}
-
-"""
 A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
 """
 scalar DateTime
 
-"""
-Educational qualification entry
-"""
-type EducationModel {
-  """
-  Created at timestamp
-  """
-  createdAt: DateTime!
-
-  """
-  Degree obtained
-  """
-  degree: String!
-
-  """
-  Program description
-  """
-  description: String
-
-  """
-  End date
-  """
-  endDate: DateTime
-
-  """
-  Field of study
-  """
-  field: String
-
-  """
-  GPA or grade
-  """
-  gpa: String
-
-  """
-  Unique identifier
-  """
-  id: ID!
-
-  """
-  Institution name
-  """
-  institution: String!
-
-  """
-  Currently studying
-  """
-  isCurrent: Boolean!
-
-  """
-  Institution location
-  """
-  location: String
-
-  """
-  Display order
-  """
-  order: Int!
-
-  """
-  Resume ID this education belongs to
-  """
-  resumeId: String!
-
-  """
-  Start date
-  """
-  startDate: DateTime!
-
-  """
-  Updated at timestamp
-  """
-  updatedAt: DateTime!
-}
-
-"""
-Professional work experience entry
-"""
-type ExperienceModel {
-  """
-  Company name
-  """
-  company: String!
-
-  """
-  Created at timestamp
-  """
-  createdAt: DateTime!
-
-  """
-  Job description
-  """
-  description: String
-
-  """
-  End date
-  """
-  endDate: DateTime
-
-  """
-  Unique identifier
-  """
-  id: ID!
-
-  """
-  Currently working here
-  """
-  isCurrent: Boolean!
-
-  """
-  Work location
-  """
-  location: String
-
-  """
-  Display order
-  """
-  order: Int!
-
-  """
-  Job position/title
-  """
-  position: String!
-
-  """
-  Resume ID this experience belongs to
-  """
-  resumeId: String!
-
-  """
-  Skills used in this role
-  """
-  skills: [String!]!
-
-  """
-  Start date
-  """
-  startDate: DateTime!
-
-  """
-  Updated at timestamp
-  """
-  updatedAt: DateTime!
-}
-
 type Mutation {
   """
-  Add education entry to resume
+  Create a new section item with JSON content
   """
-  addEducation(input: CreateEducationInput!, resumeId: ID!): EducationModel!
-
-  """
-  Add work experience to resume
-  """
-  addExperience(input: CreateExperienceInput!, resumeId: ID!): ExperienceModel!
-
-  """
-  Delete work experience
-  """
-  deleteExperience(experienceId: ID!, resumeId: ID!): Boolean!
-
-  """
-  Update work experience
-  """
-  updateExperience(
-    experienceId: ID!
-    input: UpdateExperienceInput!
+  createSectionItem(
+    """
+    JSON-encoded content
+    """
+    content: String!
     resumeId: ID!
-  ): ExperienceModel!
+    sectionTypeKey: String!
+  ): SectionItemModel!
+
+  """
+  Delete a section item
+  """
+  deleteSectionItem(itemId: ID!, resumeId: ID!, sectionTypeKey: String!): Boolean!
+
+  """
+  Update an existing section item with partial JSON content
+  """
+  updateSectionItem(
+    """
+    JSON-encoded partial content
+    """
+    content: String!
+    itemId: ID!
+    resumeId: ID!
+    sectionTypeKey: String!
+  ): SectionItemModel!
 }
 
 type Query {
@@ -298,6 +49,11 @@ type Query {
   Get a single resume by ID
   """
   resume(id: ID!): ResumeModel!
+
+  """
+  List all available section types for resume sections
+  """
+  sectionTypes: [SectionTypeModel!]!
 }
 
 """
@@ -315,19 +71,9 @@ type ResumeModel {
   createdAt: DateTime!
 
   """
-  Education entries
-  """
-  educations: [EducationModel!]!
-
-  """
   Email address
   """
   emailContact: String
-
-  """
-  Work experiences
-  """
-  experiences: [ExperienceModel!]!
 
   """
   Full name
@@ -355,9 +101,9 @@ type ResumeModel {
   phone: String
 
   """
-  Skills
+  Resume sections with items
   """
-  skills: [SkillModel!]!
+  sections: [ResumeSectionModel!]!
 
   """
   Professional summary
@@ -386,6 +132,56 @@ type ResumeModel {
 }
 
 """
+Resume section containing items of the same type
+"""
+type ResumeSectionModel {
+  """
+  Created at timestamp
+  """
+  createdAt: DateTime!
+
+  """
+  Unique section identifier
+  """
+  id: ID!
+
+  """
+  Items in this section
+  """
+  items: [SectionItemModel!]!
+
+  """
+  Display order
+  """
+  order: Int!
+
+  """
+  Section type key (e.g., work_experience_v1)
+  """
+  sectionTypeKey: String!
+
+  """
+  Semantic category (e.g., WORK_EXPERIENCE, EDUCATION)
+  """
+  semanticKind: String!
+
+  """
+  Display title for the section
+  """
+  title: String!
+
+  """
+  Updated at timestamp
+  """
+  updatedAt: DateTime!
+
+  """
+  Whether section is visible
+  """
+  visible: Boolean!
+}
+
+"""
 Available resume templates
 """
 enum ResumeTemplate {
@@ -399,14 +195,9 @@ enum ResumeTemplate {
 }
 
 """
-Technical or professional skill
+Generic section item with JSON content
 """
-type SkillModel {
-  """
-  Skill category
-  """
-  category: String!
-
+type SectionItemModel {
   """
   Created at timestamp
   """
@@ -418,24 +209,14 @@ type SkillModel {
   id: ID!
 
   """
-  Proficiency level (0-5)
-  """
-  level: Int
-
-  """
-  Skill name
-  """
-  name: String!
-
-  """
-  Display order
+  Display order within section
   """
   order: Int!
 
   """
-  Resume ID this skill belongs to
+  Section type key (e.g., work_experience_v1)
   """
-  resumeId: String!
+  sectionTypeKey: String!
 
   """
   Updated at timestamp
@@ -444,56 +225,26 @@ type SkillModel {
 }
 
 """
-Input for updating work experience
+Section type definition
 """
-input UpdateExperienceInput {
+type SectionTypeModel {
   """
-  Key achievements in this role
-  """
-  achievements: [String!]
-
-  """
-  Company name
-  """
-  company: String
-
-  """
-  Currently working here
-  """
-  current: Boolean
-
-  """
-  Job description
+  Description of the section type
   """
   description: String
 
   """
-  End date (YYYY-MM or YYYY-MM-DD)
+  Human-readable display name
   """
-  endDate: String
+  displayName: String!
 
   """
-  Work location
+  Unique key for the section type (e.g., work_experience_v1)
   """
-  location: String
+  key: String!
 
   """
-  Display order
+  Semantic category (e.g., WORK_EXPERIENCE, EDUCATION)
   """
-  order: Int
-
-  """
-  Job position/title
-  """
-  position: String
-
-  """
-  Skills used in this role
-  """
-  skills: [String!]
-
-  """
-  Start date (YYYY-MM or YYYY-MM-DD)
-  """
-  startDate: String
+  semanticKind: String!
 }

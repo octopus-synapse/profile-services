@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import type { ResumeForAnalytics } from '../domain/types';
 import type {
   AnalyticsDashboard,
   ATSScoreResult,
@@ -9,19 +10,6 @@ import { ATSScoreService } from './ats-score.service';
 import { SnapshotService } from './snapshot.service';
 import { ViewTrackingService } from './view-tracking.service';
 
-type ResumeWithDetails = {
-  id: string;
-  skills: Array<{ name: string }>;
-  experiences: Array<{
-    description?: string | null;
-    startDate?: Date | null;
-    endDate?: Date | null;
-  }>;
-  summary?: string | null;
-  emailContact?: string | null;
-  phone?: string | null;
-};
-
 @Injectable()
 export class DashboardService {
   constructor(
@@ -30,7 +18,7 @@ export class DashboardService {
     private readonly snapshot: SnapshotService,
   ) {}
 
-  async build(resumeId: string, resume: ResumeWithDetails): Promise<AnalyticsDashboard> {
+  async build(resumeId: string, resume: ResumeForAnalytics): Promise<AnalyticsDashboard> {
     const [viewStats, progression] = await Promise.all([
       this.viewTracking.getViewStats(resumeId, { period: 'month' }),
       this.snapshot.getScoreProgression(resumeId, 30),

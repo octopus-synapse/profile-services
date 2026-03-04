@@ -101,11 +101,7 @@ export {
 export {
   type TechPersona,
   TechPersonaEnum,
-  type TechPersonaKebab,
-  TechPersonaKebabSchema,
   TechPersonaSchema,
-  techPersonaFromKebab,
-  techPersonaToKebab,
 } from './tech-persona.enum';
 // Theme
 export {

@@ -124,6 +124,7 @@ describe('FollowController', () => {
       const result = await controller.unfollow(mockUser as any, targetUserId);
 
       expect(result.success).toBe(true);
+      expect(result.data).toEqual({ unfollowed: true });
       expect(mockFollowService.unfollow).toHaveBeenCalledWith(
         currentUserId,
         targetUserId,
@@ -147,7 +148,7 @@ describe('FollowController', () => {
       const result = await controller.getFollowers(userId, 1, 10);
 
       expect(result.success).toBe(true);
-      expect(result.data).toEqual(mockFollowers);
+      expect(result.data).toEqual({ followers: mockFollowers });
       expect(mockFollowService.getFollowers).toHaveBeenCalledWith(userId, {
         page: 1,
         limit: 10,
@@ -171,7 +172,7 @@ describe('FollowController', () => {
       const result = await controller.getFollowing(userId, 1, 10);
 
       expect(result.success).toBe(true);
-      expect(result.data).toEqual(mockFollowing);
+      expect(result.data).toEqual({ following: mockFollowing });
     });
   });
 

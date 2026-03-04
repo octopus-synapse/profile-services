@@ -9,11 +9,26 @@ import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service
 import type { QueryThemes } from '@/shared-kernel';
 import { APP_CONFIG } from '@/shared-kernel';
 
+export type ThemePagination = {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+};
+
+export type ThemePaginatedResult<TTheme = unknown> = {
+  themes: TTheme[];
+  pagination: ThemePagination;
+};
+
 @Injectable()
 export class ThemeQueryService {
   constructor(private prisma: PrismaService) {}
 
-  async findAllThemesWithPagination(queryOptions: QueryThemes, userId?: string) {
+  async findAllThemesWithPagination(
+    queryOptions: QueryThemes,
+    userId?: string,
+  ): Promise<ThemePaginatedResult> {
     const whereClause = this.buildWhereClause(queryOptions, userId);
     const {
       sortBy = 'createdAt',
@@ -44,8 +59,8 @@ export class ThemeQueryService {
     };
 
     return {
-      data: paginatedThemes,
-      meta: paginationMetadata,
+      themes: paginatedThemes,
+      pagination: paginationMetadata,
     };
   }
 

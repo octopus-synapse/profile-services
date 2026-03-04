@@ -21,17 +21,19 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
+import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { PermissionGuard, RequirePermission } from '@/bounded-contexts/identity/authorization';
+import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
+import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import type { AdminCreateUser, AdminResetPassword, AdminUpdateUser } from '@/shared-kernel';
 import {
-  DeleteResponseDto,
-  MessageResponseDto,
-  UserDetailsResponseDto,
-  UserListItemDto,
-} from '@/shared-kernel/dtos/sdk-response.dto';
+  UserDetailsDataDto,
+  UserManagementListDataDto,
+  UserMutationDataDto,
+  UserOperationMessageDataDto,
+} from '../dto/controller-response.dto';
 import { UserManagementService } from '../services/user-management.service';
 
 @SdkExport({ tag: 'users', description: 'Users API' })
@@ -45,52 +47,80 @@ export class UserManagementController {
   @Get()
   @RequirePermission('user', 'read')
   @ApiOperation({ summary: 'List all users with pagination' })
-  @ApiResponse({ status: 200, type: [UserListItemDto] })
+  @ApiDataResponse(UserManagementListDataDto, {
+    description: 'Users retrieved successfully',
+  })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiQuery({ name: 'search', required: false, type: String })
-  @ApiResponse({ status: 200, description: 'Users retrieved successfully' })
   async listUsers(
     @Query('page') page?: number,
     @Query('limit') limit?: number,
     @Query('search') search?: string,
-  ) {
-    return this.userManagement.listUsers({
+  ): Promise<DataResponse<UserManagementListDataDto>> {
+    const users = await this.userManagement.listUsers({
       page: page ? Number(page) : 1,
       limit: limit ? Number(limit) : 20,
       search,
     });
+
+    return {
+      success: true,
+      data: {
+        users: users.users,
+        pagination: users.pagination,
+      },
+    };
   }
 
   @Get(':id')
   @RequirePermission('user', 'read')
   @ApiOperation({ summary: 'Get user details by ID' })
-  @ApiResponse({ status: 200, type: UserDetailsResponseDto })
-  @ApiResponse({ status: 200, description: 'User retrieved successfully' })
-  @ApiResponse({ status: 404, description: 'User not found' })
-  async getUserDetails(@Param('id') userId: string) {
-    return this.userManagement.getUserDetails(userId);
+  @ApiDataResponse(UserDetailsDataDto, {
+    description: 'User retrieved successfully',
+  })
+  async getUserDetails(@Param('id') userId: string): Promise<DataResponse<UserDetailsDataDto>> {
+    const user = await this.userManagement.getUserDetails(userId);
+    return { success: true, data: { user } };
   }
 
   @Post()
   @RequirePermission('user', 'create')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new user' })
-  @ApiResponse({ status: 201, type: UserDetailsResponseDto })
-  @ApiResponse({ status: 201, description: 'User created successfully' })
-  @ApiResponse({ status: 409, description: 'Email already exists' })
-  async createUser(@Body() data: AdminCreateUser) {
-    return this.userManagement.createUser(data);
+  @ApiDataResponse(UserMutationDataDto, {
+    description: 'User created successfully',
+    status: HttpStatus.CREATED,
+  })
+  async createUser(@Body() data: AdminCreateUser): Promise<DataResponse<UserMutationDataDto>> {
+    const result = await this.userManagement.createUser(data);
+    return {
+      success: true,
+      data: {
+        user: result,
+        message: 'User created successfully',
+      },
+    };
   }
 
   @Patch(':id')
   @RequirePermission('user', 'update')
   @ApiOperation({ summary: 'Update user information' })
-  @ApiResponse({ status: 200, type: UserDetailsResponseDto })
-  @ApiResponse({ status: 200, description: 'User updated successfully' })
-  @ApiResponse({ status: 404, description: 'User not found' })
-  async updateUser(@Param('id') userId: string, @Body() data: AdminUpdateUser) {
-    return this.userManagement.updateUser(userId, data);
+  @ApiDataResponse(UserMutationDataDto, {
+    description: 'User updated successfully',
+  })
+  async updateUser(
+    @Param('id') userId: string,
+    @Body() data: AdminUpdateUser,
+  ): Promise<DataResponse<UserMutationDataDto>> {
+    const result = await this.userManagement.updateUser(userId, data);
+    return {
+      success: true,
+      data: {
+        user: result,
+        message: 'User updated successfully',
+      },
+    };
   }
 
   @Delete(':id')
@@ -99,24 +129,28 @@ export class UserManagementController {
     summary: 'Delete a user',
     description: 'GDPR-compliant deletion that removes all user data.',
   })
-  @ApiResponse({ status: 200, type: DeleteResponseDto })
-  @ApiResponse({ status: 200, description: 'User deleted successfully' })
-  @ApiResponse({ status: 404, description: 'User not found' })
-  @ApiResponse({
-    status: 400,
-    description: 'Cannot delete self or last privileged user',
+  @ApiDataResponse(UserOperationMessageDataDto, {
+    description: 'User deleted successfully',
   })
-  async deleteUser(@Param('id') userId: string, @Req() req: { user: { userId: string } }) {
-    return this.userManagement.deleteUser(userId, req.user.userId);
+  async deleteUser(
+    @Param('id') userId: string,
+    @Req() req: { user: { userId: string } },
+  ): Promise<DataResponse<UserOperationMessageDataDto>> {
+    await this.userManagement.deleteUser(userId, req.user.userId);
+    return { success: true, data: { message: 'User deleted successfully' } };
   }
 
   @Post(':id/reset-password')
   @RequirePermission('user', 'update')
   @ApiOperation({ summary: 'Reset user password' })
-  @ApiResponse({ status: 201, type: MessageResponseDto })
-  @ApiResponse({ status: 200, description: 'Password reset successfully' })
-  @ApiResponse({ status: 404, description: 'User not found' })
-  async resetPassword(@Param('id') userId: string, @Body() data: AdminResetPassword) {
-    return this.userManagement.resetPassword(userId, data);
+  @ApiDataResponse(UserOperationMessageDataDto, {
+    description: 'Password reset successfully',
+  })
+  async resetPassword(
+    @Param('id') userId: string,
+    @Body() data: AdminResetPassword,
+  ): Promise<DataResponse<UserOperationMessageDataDto>> {
+    await this.userManagement.resetPassword(userId, data);
+    return { success: true, data: { message: 'Password reset successfully' } };
   }
 }

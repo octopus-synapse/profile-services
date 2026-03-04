@@ -23,22 +23,41 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
-import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
+import { ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger';
+import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
+import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
+import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
+import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
+import {
+  FollowingListDataDto,
+  FollowListDataDto,
+  UnfollowDataDto,
+} from '../dto/controller-response.dto';
 import { ActivityService } from '../services/activity.service';
 import { FollowService } from '../services/follow.service';
 
-// --- Response Types ---
+class FollowIdDto {
+  @ApiProperty({ example: 'follow-123' })
+  id!: string;
+}
 
-interface ApiResponse<T> {
-  success: boolean;
-  data: T;
-  message?: string;
+class FollowRelationshipDto {
+  @ApiProperty({ example: true })
+  isFollowing!: boolean;
+}
+
+class SocialStatsDto {
+  @ApiProperty({ example: 120 })
+  followers!: number;
+
+  @ApiProperty({ example: 75 })
+  following!: number;
 }
 
 // --- Controller ---
 
+@ApiTags('social-follow')
 @Controller('v1/users')
 export class FollowController {
   constructor(
@@ -52,10 +71,12 @@ export class FollowController {
   @Post(':userId/follow')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Follow a user' })
+  @ApiDataResponse(FollowIdDto, { description: 'User followed successfully' })
   async follow(
     @CurrentUser() user: UserPayload,
     @Param('userId') targetUserId: string,
-  ): Promise<ApiResponse<{ id: string }>> {
+  ): Promise<DataResponse<FollowIdDto>> {
     const follow = await this.followService.follow(user.userId, targetUserId);
 
     // Log activity (fire-and-forget)
@@ -84,16 +105,20 @@ export class FollowController {
   @Delete(':userId/follow')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Unfollow a user' })
+  @ApiDataResponse(UnfollowDataDto, {
+    description: 'User unfollowed successfully',
+  })
   async unfollow(
     @CurrentUser() user: UserPayload,
     @Param('userId') targetUserId: string,
-  ): Promise<ApiResponse<null>> {
+  ): Promise<DataResponse<UnfollowDataDto>> {
     await this.followService.unfollow(user.userId, targetUserId);
 
     return {
       success: true,
-      data: null,
-      message: 'Successfully unfollowed user',
+      message: 'User unfollowed successfully',
+      data: { unfollowed: true },
     };
   }
 
@@ -102,11 +127,15 @@ export class FollowController {
    */
   @Get(':userId/followers')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get followers for a user' })
+  @ApiDataResponse(FollowListDataDto, {
+    description: 'Followers list returned',
+  })
   async getFollowers(
     @Param('userId') userId: string,
     @Query('page') page = 1,
     @Query('limit') limit = 10,
-  ): Promise<ApiResponse<unknown>> {
+  ): Promise<DataResponse<FollowListDataDto>> {
     const result = await this.followService.getFollowers(userId, {
       page: Number(page),
       limit: Math.min(Number(limit), 100), // Cap at 100
@@ -114,7 +143,9 @@ export class FollowController {
 
     return {
       success: true,
-      data: result,
+      data: {
+        followers: result,
+      },
     };
   }
 
@@ -123,11 +154,15 @@ export class FollowController {
    */
   @Get(':userId/following')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get users followed by a user' })
+  @ApiDataResponse(FollowingListDataDto, {
+    description: 'Following list returned',
+  })
   async getFollowing(
     @Param('userId') userId: string,
     @Query('page') page = 1,
     @Query('limit') limit = 10,
-  ): Promise<ApiResponse<unknown>> {
+  ): Promise<DataResponse<FollowingListDataDto>> {
     const result = await this.followService.getFollowing(userId, {
       page: Number(page),
       limit: Math.min(Number(limit), 100),
@@ -135,7 +170,9 @@ export class FollowController {
 
     return {
       success: true,
-      data: result,
+      data: {
+        following: result,
+      },
     };
   }
 
@@ -145,10 +182,14 @@ export class FollowController {
   @Get(':userId/is-following')
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Check following relationship' })
+  @ApiDataResponse(FollowRelationshipDto, {
+    description: 'Following relationship returned',
+  })
   async isFollowing(
     @CurrentUser() user: UserPayload,
     @Param('userId') targetUserId: string,
-  ): Promise<ApiResponse<{ isFollowing: boolean }>> {
+  ): Promise<DataResponse<FollowRelationshipDto>> {
     const isFollowing = await this.followService.isFollowing(user.userId, targetUserId);
 
     return {
@@ -162,9 +203,9 @@ export class FollowController {
    */
   @Get(':userId/social-stats')
   @HttpCode(HttpStatus.OK)
-  async getSocialStats(
-    @Param('userId') userId: string,
-  ): Promise<ApiResponse<{ followers: number; following: number }>> {
+  @ApiOperation({ summary: 'Get social stats for a user' })
+  @ApiDataResponse(SocialStatsDto, { description: 'Social stats returned' })
+  async getSocialStats(@Param('userId') userId: string): Promise<DataResponse<SocialStatsDto>> {
     const stats = await this.followService.getSocialStats(userId);
 
     return {

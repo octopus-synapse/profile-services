@@ -58,7 +58,7 @@ describe('Resume CRUD Integration', () => {
 
     // Create test user
     const signupResponse = await request(app.getHttpServer())
-      .post('/api/v1/auth/signup')
+      .post('/api/accounts')
       .send(testUser)
       .expect(201);
 

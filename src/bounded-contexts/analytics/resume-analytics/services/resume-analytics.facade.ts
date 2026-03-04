@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { EventPublisher } from '@/shared-kernel';
 import { AtsScoreCalculatedEvent } from '../../domain/events';
+import type { ResumeForAnalytics } from '../domain/types';
 import type {
   AnalyticsDashboard,
   AnalyticsSnapshot,
@@ -156,49 +157,62 @@ export class ResumeAnalyticsFacade {
   }
 
   private async verifyOwnership(resumeId: string, userId: string): Promise<void> {
-    // First try the local projection (eliminates cross-context query)
     const projection = await this.prisma.analyticsResumeProjection.findFirst({
       where: { id: resumeId, userId },
       select: { id: true },
     });
 
-    if (projection) return;
-
-    // Fallback to resume table for backward compatibility
-    // (until projection is fully populated)
-    const resume = await this.prisma.resume.findFirst({
-      where: { id: resumeId, userId },
-      select: { id: true },
-    });
-    if (!resume) throw new NotFoundException('Resume not found or access denied');
+    if (!projection) throw new NotFoundException('Resume not found or access denied');
   }
 
   private async verifyResumeExists(resumeId: string): Promise<void> {
-    // First try the local projection
     const projection = await this.prisma.analyticsResumeProjection.findUnique({
       where: { id: resumeId },
       select: { id: true },
     });
 
-    if (projection) return;
-
-    // Fallback to resume table
-    const exists = await this.prisma.resume.findUnique({
-      where: { id: resumeId },
-      select: { id: true },
-    });
-    if (!exists) throw new NotFoundException('Resume not found');
+    if (!projection) throw new NotFoundException('Resume not found');
   }
 
-  private async getResumeWithDetails(resumeId: string) {
-    return this.prisma.resume.findUniqueOrThrow({
+  private async getResumeWithDetails(resumeId: string): Promise<ResumeForAnalytics> {
+    const resume = await this.prisma.resume.findUniqueOrThrow({
       where: { id: resumeId },
       include: {
-        experiences: true,
-        education: true,
-        skills: true,
-        certifications: true,
+        resumeSections: {
+          include: {
+            sectionType: {
+              select: {
+                semanticKind: true,
+              },
+            },
+            items: {
+              orderBy: { order: 'asc' },
+              select: {
+                id: true,
+                content: true,
+              },
+            },
+          },
+        },
       },
     });
+
+    // Transform to generic sections format
+    const sections = resume.resumeSections.map((rs) => ({
+      id: rs.id,
+      semanticKind: rs.sectionType.semanticKind,
+      items: rs.items.map((item) => ({
+        id: item.id,
+        content: item.content as Record<string, unknown>,
+      })),
+    }));
+
+    return {
+      summary: resume.summary,
+      emailContact: resume.emailContact,
+      phone: resume.phone,
+      jobTitle: resume.jobTitle,
+      sections,
+    };
   }
 }

@@ -4,7 +4,6 @@
  * Tests caching behavior with real application context.
  * Verifies decorators work properly with NestJS DI.
  *
- * Kent Beck: "Integration tests validate real collaborations."
  */
 
 import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
@@ -124,7 +123,7 @@ describe('Cache Integration', () => {
 
       // First fetch
       const firstFetch = await getRequest()
-        .get('/api/v1/auth/me')
+        .get('/api/v1/users/profile')
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(firstFetch.status).toBe(200);
@@ -132,7 +131,7 @@ describe('Cache Integration', () => {
 
       // Second fetch
       const secondFetch = await getRequest()
-        .get('/api/v1/auth/me')
+        .get('/api/v1/users/profile')
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(secondFetch.status).toBe(200);

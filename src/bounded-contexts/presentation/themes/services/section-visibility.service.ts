@@ -10,29 +10,40 @@ import { ResumeConfig, ResumeConfigRepository } from './resume-config.repository
 export class SectionVisibilityService {
   constructor(private repo: ResumeConfigRepository) {}
 
-  async toggleSection(userId: string, resumeId: string, sectionId: string, visible: boolean) {
+  /**
+   * Toggle section visibility
+   * @returns void (not envelope)
+   */
+  async toggleSection(
+    userId: string,
+    resumeId: string,
+    sectionId: string,
+    visible: boolean,
+  ): Promise<void> {
     const config = await this.repo.get(userId, resumeId);
 
     config.sections = config.sections.map((s) => (s.id === sectionId ? { ...s, visible } : s));
 
     await this.repo.save(resumeId, config);
-    return { success: true };
   }
 
+  /**
+   * Toggle item visibility
+   * @returns void (not envelope)
+   */
   async toggleItem(
     userId: string,
     resumeId: string,
     sectionId: string,
     itemId: string,
     visible: boolean,
-  ) {
+  ): Promise<void> {
     const config = await this.repo.get(userId, resumeId);
     config.itemOverrides = this.updateOverride(config, sectionId, itemId, {
       visible,
     });
 
     await this.repo.save(resumeId, config);
-    return { success: true };
   }
 
   private updateOverride(

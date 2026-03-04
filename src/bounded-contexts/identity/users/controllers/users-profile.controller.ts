@@ -14,18 +14,21 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { Public } from '@/bounded-contexts/identity/auth/decorators/public.decorator';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/auth/guards/jwt-auth.guard';
-import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
+import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
+import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
+import { JwtAuthGuard, Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { UsersService } from '@/bounded-contexts/identity/users/users.service';
+import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import type { UpdateUser as UpdateProfile, UpdateUsername } from '@/shared-kernel';
 import {
-  PublicProfileResponseDto,
-  UserProfileResponseDto,
-} from '@/shared-kernel/dtos/sdk-response.dto';
+  PublicProfileDataDto,
+  UsernameAvailabilityDataDto,
+  UsernameUpdateDataDto,
+  UserProfileDataDto,
+} from '../dto/controller-response.dto';
 
 @SdkExport({ tag: 'users', description: 'Users API' })
 @ApiTags('users')
@@ -37,64 +40,74 @@ export class UsersProfileController {
   @Public()
   @Get(':username/profile')
   @ApiOperation({ summary: "Get a user's public profile by username" })
-  @ApiResponse({ status: 200, type: PublicProfileResponseDto })
-  @ApiResponse({ status: 200, description: 'Public profile retrieved' })
-  @ApiResponse({ status: 404, description: 'Public profile not found' })
-  async getPublicProfileByUsername(@Param('username') username: string) {
-    return this.usersService.getPublicProfileByUsername(username);
+  @ApiDataResponse(PublicProfileDataDto, {
+    description: 'Public profile retrieved',
+  })
+  async getPublicProfileByUsername(
+    @Param('username') username: string,
+  ): Promise<DataResponse<PublicProfileDataDto>> {
+    const profile = await this.usersService.getPublicProfileByUsername(username);
+    return {
+      success: true,
+      data: {
+        user: profile.user,
+        resume: profile.resume,
+      },
+    };
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('profile')
   @ApiOperation({ summary: 'Get current user profile' })
-  @ApiResponse({ status: 200, type: UserProfileResponseDto })
-  @ApiResponse({
-    status: 200,
+  @ApiDataResponse(UserProfileDataDto, {
     description: 'User profile retrieved successfully',
   })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 404, description: 'User not found' })
-  async getProfile(@CurrentUser() user: UserPayload) {
-    return this.usersService.getProfile(user.userId);
+  async getProfile(@CurrentUser() user: UserPayload): Promise<DataResponse<UserProfileDataDto>> {
+    const profile = await this.usersService.getProfile(user.userId);
+    return { success: true, data: { profile } };
   }
 
   @UseGuards(JwtAuthGuard)
   @Patch('profile')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update current user profile' })
-  @ApiResponse({ status: 200, type: UserProfileResponseDto })
-  @ApiResponse({ status: 200, description: 'Profile updated successfully' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 404, description: 'User not found' })
-  @ApiResponse({ status: 400, description: 'Invalid input data' })
-  async updateProfile(@CurrentUser() user: UserPayload, @Body() updateProfile: UpdateProfile) {
-    return this.usersService.updateProfile(user.userId, updateProfile);
+  @ApiDataResponse(UserProfileDataDto, {
+    description: 'Profile updated successfully',
+  })
+  async updateProfile(
+    @CurrentUser() user: UserPayload,
+    @Body() updateProfile: UpdateProfile,
+  ): Promise<DataResponse<UserProfileDataDto>> {
+    const result = await this.usersService.updateProfile(user.userId, updateProfile);
+
+    return {
+      success: true,
+      data: {
+        profile: result,
+      },
+    };
   }
 
   @UseGuards(JwtAuthGuard)
   @Patch('username')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update username (once every 30 days)' })
-  @ApiResponse({
-    status: 200,
+  @ApiDataResponse(UsernameUpdateDataDto, {
     description: 'Username updated successfully',
-    schema: {
-      example: {
-        success: true,
+  })
+  async updateUsername(
+    @CurrentUser() user: UserPayload,
+    @Body() updateUsername: UpdateUsername,
+  ): Promise<DataResponse<UsernameUpdateDataDto>> {
+    const result = await this.usersService.updateUsername(user.userId, updateUsername);
+
+    return {
+      success: true,
+      data: {
+        username: result.username,
         message: 'Username updated successfully',
-        username: 'new_username',
       },
-    },
-  })
-  @ApiResponse({
-    status: 400,
-    description: 'Invalid username or cooldown period active',
-  })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
-  @ApiResponse({ status: 404, description: 'User not found' })
-  @ApiResponse({ status: 409, description: 'Username already taken' })
-  async updateUsername(@CurrentUser() user: UserPayload, @Body() updateUsername: UpdateUsername) {
-    return this.usersService.updateUsername(user.userId, updateUsername);
+    };
   }
 
   @UseGuards(JwtAuthGuard)
@@ -106,21 +119,21 @@ export class UsersProfileController {
     description: 'Username to check',
     example: 'john_doe',
   })
-  @ApiResponse({
-    status: 200,
+  @ApiDataResponse(UsernameAvailabilityDataDto, {
     description: 'Username availability status',
-    schema: {
-      example: {
-        username: 'john_doe',
-        available: true,
-      },
-    },
   })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
   async checkUsernameAvailability(
     @CurrentUser() user: UserPayload,
     @Query('username') username: string,
-  ) {
-    return this.usersService.checkUsernameAvailability(username, user.userId);
+  ): Promise<DataResponse<UsernameAvailabilityDataDto>> {
+    const availability = await this.usersService.checkUsernameAvailability(username, user.userId);
+
+    return {
+      success: true,
+      data: {
+        username: availability.username,
+        available: availability.available,
+      },
+    };
   }
 }

@@ -10,9 +10,9 @@ import { ERROR_MESSAGES } from '@/shared-kernel';
 
 describe('UserProfileService', () => {
   let service: UserProfileService;
-  let usersRepository: UsersRepository;
-  let resumesRepository: ResumesRepository;
-  let logger: AppLoggerService;
+  let usersRepository: any;
+  let resumesRepository: any;
+  let logger: any;
 
   beforeEach(async () => {
     usersRepository = {
@@ -216,14 +216,11 @@ describe('UserProfileService', () => {
       const result = await service.updateProfile(userId, updateDto);
 
       expect(result).toEqual({
-        success: true,
-        user: {
-          displayName: 'Updated Name',
-          photoURL: 'https://example.com/photo.jpg',
-          bio: 'Updated bio',
-          location: 'New York',
-        },
-      });
+        displayName: 'Updated Name',
+        photoURL: 'https://example.com/photo.jpg',
+        bio: 'Updated bio',
+        location: 'New York',
+      } as any);
       expect(usersRepository.updateUserProfile).toHaveBeenCalledWith(
         userId,
         updateDto,
@@ -236,7 +233,7 @@ describe('UserProfileService', () => {
     });
 
     it('should throw NotFoundException when user does not exist', async () => {
-      const updateDto = { displayName: 'New Name' };
+      const updateDto = { bio: 'New bio' };
 
       usersRepository.findUserById.mockResolvedValue(null);
 
@@ -265,8 +262,7 @@ describe('UserProfileService', () => {
 
       const result = await service.updateProfile(userId, updateDto);
 
-      expect(result.success).toBe(true);
-      expect(result.user.bio).toBe('Only updating bio');
+      expect(result.bio).toBe('Only updating bio');
     });
 
     it('should handle all profile fields in update', async () => {
@@ -290,7 +286,7 @@ describe('UserProfileService', () => {
 
       const result = await service.updateProfile(userId, updateDto);
 
-      expect(result.user).toMatchObject({
+      expect(result).toMatchObject({
         displayName: 'Complete Update',
         bio: 'Full bio',
         location: 'Remote',

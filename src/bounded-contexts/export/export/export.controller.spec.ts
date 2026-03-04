@@ -15,7 +15,7 @@ import type { ResumePDFService } from './services/resume-pdf.service';
 import type { ResumeDOCXService } from './services/resume-docx.service';
 import type { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import type { EventPublisher } from '@/shared-kernel';
-import type { UserPayload } from '@/bounded-contexts/identity/auth/interfaces/auth-request.interface';
+import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { StreamableFile, InternalServerErrorException } from '@nestjs/common';
 
 describe('ExportController', () => {

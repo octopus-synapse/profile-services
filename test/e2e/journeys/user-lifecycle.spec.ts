@@ -71,7 +71,7 @@ describe('E2E Journey 1: Complete User Lifecycle', () => {
 
     it('should reject duplicate email', async () => {
       const response = await request(app.getHttpServer())
-        .post('/api/v1/auth/signup')
+        .post('/api/accounts')
         .send({
           email: testUser.email,
           password: testUser.password,
@@ -89,7 +89,7 @@ describe('E2E Journey 1: Complete User Lifecycle', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.hasCompletedOnboarding).toBe(false);
+      expect(response.body.data.hasCompletedOnboarding).toBe(false);
     });
   });
 
@@ -106,9 +106,9 @@ describe('E2E Journey 1: Complete User Lifecycle', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
-      expect(response.body.resumeId).toBeDefined();
+      expect(response.body.data.resumeId).toBeDefined();
 
-      resumeId = response.body.resumeId;
+      resumeId = response.body.data.resumeId;
     });
 
     it('should have updated onboarding status', async () => {
@@ -117,7 +117,7 @@ describe('E2E Journey 1: Complete User Lifecycle', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.hasCompletedOnboarding).toBe(true);
+      expect(response.body.data.hasCompletedOnboarding).toBe(true);
     });
 
     it('should prevent duplicate onboarding', async () => {
@@ -140,7 +140,7 @@ describe('E2E Journey 1: Complete User Lifecycle', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.data).toBeDefined();
-      expect(Array.isArray(response.body.data)).toBe(true);
+      expect(Array.isArray(response.body.data.data)).toBe(true);
     });
 
     it('should retrieve resume with sections', async () => {
@@ -152,9 +152,8 @@ describe('E2E Journey 1: Complete User Lifecycle', () => {
       expect(response.body.data).toBeDefined();
       expect(response.body.data.id).toBe(resumeId);
       // Resume has skills, experiences, education arrays
-      expect(response.body.data).toHaveProperty('skills');
-      expect(response.body.data).toHaveProperty('experiences');
-      expect(response.body.data).toHaveProperty('education');
+      expect(response.body.data).toHaveProperty('resumeSections');
+      expect(Array.isArray(response.body.data.resumeSections)).toBe(true);
     });
   });
 
@@ -166,13 +165,13 @@ describe('E2E Journey 1: Complete User Lifecycle', () => {
         .send({ resumeId });
 
       expect(response.status).toBe(201);
-      // Shares return object directly, not wrapped in data
-      expect(response.body.slug).toBeDefined();
-      expect(response.body.resumeId).toBe(resumeId);
-      expect(response.body.isActive).toBe(true);
+      // Shares return wrapped in data.share
+      expect(response.body.data.share.slug).toBeDefined();
+      expect(response.body.data.share.resumeId).toBe(resumeId);
+      expect(response.body.data.share.isActive).toBe(true);
 
-      shareSlug = response.body.slug;
-      shareId = response.body.id;
+      shareSlug = response.body.data.share.slug;
+      shareId = response.body.data.share.id;
     });
 
     it('should list shares for resume', async () => {
@@ -181,10 +180,10 @@ describe('E2E Journey 1: Complete User Lifecycle', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(response.status).toBe(200);
-      // Returns array directly
-      expect(Array.isArray(response.body)).toBe(true);
-      expect(response.body.length).toBeGreaterThanOrEqual(1);
-      expect(response.body[0]).toHaveProperty('slug');
+      // Returns wrapped in data.shares
+      expect(Array.isArray(response.body.data.shares)).toBe(true);
+      expect(response.body.data.shares.length).toBeGreaterThanOrEqual(1);
+      expect(response.body.data.shares[0]).toHaveProperty('slug');
     });
   });
 
@@ -195,9 +194,9 @@ describe('E2E Journey 1: Complete User Lifecycle', () => {
       );
 
       expect(response.status).toBe(200);
-      // Public resume returns { resume: { id, title, ... } }
-      expect(response.body).toHaveProperty('resume');
-      expect(response.body.resume.id).toBe(resumeId);
+      // Public resume returns { success, data: { resume: {...} } }
+      expect(response.body.data).toHaveProperty('resume');
+      expect(response.body.data.resume.id).toBe(resumeId);
     });
 
     it('should fail with invalid slug', async () => {

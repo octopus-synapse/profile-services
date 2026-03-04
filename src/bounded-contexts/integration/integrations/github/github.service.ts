@@ -6,7 +6,11 @@
 
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { API_LIMITS } from '@/shared-kernel';
-import { GitHubApiService, GitHubDatabaseService, GitHubSyncService } from './services';
+import {
+  GitHubApiService,
+  GitHubDatabaseService,
+  GitHubSyncService,
+} from './services';
 
 @Injectable()
 export class GitHubService {
@@ -33,7 +37,11 @@ export class GitHubService {
 
   // ==================== Sync Operations ====================
 
-  async syncUserGitHub(userId: string, githubUsername: string, resumeId: string) {
+  async syncUserGitHub(
+    userId: string,
+    githubUsername: string,
+    resumeId: string,
+  ) {
     return this.syncService.syncUserGitHub(userId, githubUsername, resumeId);
   }
 
@@ -42,13 +50,56 @@ export class GitHubService {
   }
 
   async getSyncStatus(userId: string, resumeId: string) {
-    const resume = await this.databaseService.verifyResumeOwnership(userId, resumeId, {
-      openSource: { where: { projectUrl: { contains: 'github.com' } } },
-      achievements: { where: { type: 'github_stars' } },
-    });
+    const resume = await this.databaseService.verifyResumeOwnership(
+      userId,
+      resumeId,
+      {
+        resumeSections: {
+          where: {
+            sectionType: {
+              semanticKind: { in: ['OPEN_SOURCE', 'ACHIEVEMENT'] },
+            },
+          },
+          include: {
+            sectionType: { select: { semanticKind: true } },
+            items: {
+              select: {
+                content: true,
+              },
+            },
+          },
+        },
+      },
+    );
 
-    const openSourceList = 'openSource' in resume ? (resume.openSource as unknown[]) : [];
-    const achievementsList = 'achievements' in resume ? (resume.achievements as unknown[]) : [];
+    const sections =
+      'resumeSections' in resume
+        ? (resume.resumeSections as Array<{
+            sectionType: { semanticKind: string };
+            items: Array<{ content: unknown }>;
+          }>)
+        : [];
+
+    const openSourceList = sections
+      .filter((section) => section.sectionType.semanticKind === 'OPEN_SOURCE')
+      .flatMap((section) =>
+        section.items.filter((item) => {
+          const content = this.asRecord(item.content);
+          return (
+            typeof content.projectUrl === 'string' &&
+            content.projectUrl.includes('github.com')
+          );
+        }),
+      );
+
+    const achievementsList = sections
+      .filter((section) => section.sectionType.semanticKind === 'ACHIEVEMENT')
+      .flatMap((section) =>
+        section.items.filter((item) => {
+          const content = this.asRecord(item.content);
+          return content.type === 'github_stars';
+        }),
+      );
     const github = (resume as { github?: string | null }).github;
 
     return {
@@ -69,7 +120,10 @@ export class GitHubService {
       const repos = await this.apiService.getUserRepos(username, {
         per_page: 100,
       });
-      const totalStars = repos.reduce((sum, repo) => sum + repo.stargazers_count, 0);
+      const totalStars = repos.reduce(
+        (sum, repo) => sum + repo.stargazers_count,
+        0,
+      );
 
       const topRepos = repos
         .sort((a, b) => b.stargazers_count - a.stargazers_count)
@@ -94,7 +148,10 @@ export class GitHubService {
     } catch (error) {
       // Error transformation - see ERROR_HANDLING_STRATEGY.md
       if (error instanceof HttpException) throw error;
-      throw new HttpException('Failed to fetch GitHub summary', HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(
+        'Failed to fetch GitHub summary',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
@@ -104,5 +161,13 @@ export class GitHubService {
       .replace('http://github.com/', '')
       .replace('github.com/', '')
       .split('/')[0];
+  }
+
+  private asRecord(value: unknown): Record<string, unknown> {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      return {};
+    }
+
+    return value as Record<string, unknown>;
   }
 }

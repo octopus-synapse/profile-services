@@ -10,7 +10,7 @@
 
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { UserRegisteredEvent } from '@/bounded-contexts/identity/domain/events';
+import { UserRegisteredEvent } from '@/bounded-contexts/identity/shared-kernel/domain/events';
 import { ActivityService } from '../../social/services/activity.service';
 
 @Injectable()
