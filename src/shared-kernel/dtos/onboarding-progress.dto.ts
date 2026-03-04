@@ -151,13 +151,17 @@ export const OnboardingStatusResponseSchema = z.object({
   data: OnboardingStatusSchema,
 });
 
-export type OnboardingStatusResponseEnvelope = z.infer<typeof OnboardingStatusResponseSchema>;
+export type OnboardingStatusResponseEnvelope = z.infer<
+  typeof OnboardingStatusResponseSchema
+>;
 
 export const OnboardingProgressResponseSchema = z.object({
   data: OnboardingProgressSchema,
 });
 
-export type OnboardingProgressResponseEnvelope = z.infer<typeof OnboardingProgressResponseSchema>;
+export type OnboardingProgressResponseEnvelope = z.infer<
+  typeof OnboardingProgressResponseSchema
+>;
 
 export const OnboardingCompleteResponseSchema = z.object({
   data: z.object({
@@ -167,4 +171,6 @@ export const OnboardingCompleteResponseSchema = z.object({
   }),
 });
 
-export type OnboardingCompleteResponseEnvelope = z.infer<typeof OnboardingCompleteResponseSchema>;
+export type OnboardingCompleteResponseEnvelope = z.infer<
+  typeof OnboardingCompleteResponseSchema
+>;

@@ -17,7 +17,11 @@
  * @see ../ast/resume-ast.schema.ts for Zod validation schemas
  */
 
-import { ApiExtraModels, ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import {
+  ApiExtraModels,
+  ApiProperty,
+  ApiPropertyOptional,
+} from '@nestjs/swagger';
 
 // ============================================================================
 // Date & Location Types

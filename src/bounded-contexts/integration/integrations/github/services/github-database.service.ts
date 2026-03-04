@@ -19,24 +19,38 @@ const ACHIEVEMENT_SEMANTIC_KIND = 'ACHIEVEMENT';
 export class GitHubDatabaseService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async verifyResumeOwnership(userId: string, resumeId: string, include?: Prisma.ResumeInclude) {
+  async verifyResumeOwnership(
+    userId: string,
+    resumeId: string,
+    include?: Prisma.ResumeInclude,
+  ) {
     const resume = await this.prisma.resume.findUnique({
       where: { id: resumeId },
       include,
     });
 
     if (!resume) {
-      throw new HttpException(ERROR_MESSAGES.RESUME_NOT_FOUND, HttpStatus.NOT_FOUND);
+      throw new HttpException(
+        ERROR_MESSAGES.RESUME_NOT_FOUND,
+        HttpStatus.NOT_FOUND,
+      );
     }
 
     if (resume.userId !== userId) {
-      throw new HttpException(ERROR_MESSAGES.ACCESS_DENIED, HttpStatus.FORBIDDEN);
+      throw new HttpException(
+        ERROR_MESSAGES.ACCESS_DENIED,
+        HttpStatus.FORBIDDEN,
+      );
     }
 
     return resume;
   }
 
-  async updateResumeGitHubStats(resumeId: string, githubUsername: string, totalStars: number) {
+  async updateResumeGitHubStats(
+    resumeId: string,
+    githubUsername: string,
+    totalStars: number,
+  ) {
     return this.prisma.resume.update({
       where: { id: resumeId },
       data: {

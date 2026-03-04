@@ -34,7 +34,11 @@ export const CefrLevelEnum = z.enum(['A1', 'A2', 'B1', 'B2', 'C1', 'C2']);
 
 // PersonalInfoSchema (exported for onboarding-progress.dto.ts)
 export const PersonalInfoSchema = z.object({
-  fullName: z.string().trim().min(2, 'Name must be at least 2 characters').max(100),
+  fullName: z
+    .string()
+    .trim()
+    .min(2, 'Name must be at least 2 characters')
+    .max(100),
   email: EmailSchema,
   phone: z.string().max(20).optional(),
   location: z.string().max(100).optional(),

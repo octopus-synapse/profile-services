@@ -68,7 +68,10 @@ describe('SectionVisibilityService', () => {
         'resume-1',
         expect.objectContaining({
           sections: expect.arrayContaining([
-            expect.objectContaining({ id: 'work_experience_v1', visible: false }),
+            expect.objectContaining({
+              id: 'work_experience_v1',
+              visible: false,
+            }),
           ]),
         }),
       );
@@ -84,12 +87,7 @@ describe('SectionVisibilityService', () => {
       repo.get.mockResolvedValue(configWithHidden);
       repo.save.mockResolvedValue(undefined);
 
-      await service.toggleSection(
-        'user-1',
-        'resume-1',
-        'education_v1',
-        true,
-      );
+      await service.toggleSection('user-1', 'resume-1', 'education_v1', true);
 
       expect(repo.save).toHaveBeenCalledWith(
         'resume-1',
@@ -105,7 +103,12 @@ describe('SectionVisibilityService', () => {
       repo.get.mockResolvedValue({ ...mockConfig });
       repo.save.mockResolvedValue(undefined);
 
-      await service.toggleSection('user-1', 'resume-1', 'work_experience_v1', false);
+      await service.toggleSection(
+        'user-1',
+        'resume-1',
+        'work_experience_v1',
+        false,
+      );
 
       const savedConfig = repo.save.mock.calls[0][1] as ResumeConfig;
       const headerSection = savedConfig.sections.find((s) => s.id === 'header');
