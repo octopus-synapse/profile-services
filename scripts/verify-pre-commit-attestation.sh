@@ -43,7 +43,8 @@ ATTESTED_INTEGRITY=$(jq -r '.integrity' "$ATTESTATION_FILE")
 ATTESTED_TIMESTAMP=$(jq -r '.timestamp' "$ATTESTATION_FILE")
 
 # 1. Verify tree hash (proves code hasn't changed since pre-commit)
-CURRENT_TREE=$(git write-tree)
+# Must use same method as generation: git ls-files -s excluding attestation file, then sha256sum
+CURRENT_TREE=$(git ls-files -s | grep -v "$ATTESTATION_FILE" | sha256sum | cut -d' ' -f1)
 if [ "$CURRENT_TREE" != "$ATTESTED_TREE" ]; then
     echo -e "${RED}❌ Tree hash mismatch${NC}"
     echo "   Attested: $ATTESTED_TREE"
