@@ -17,6 +17,7 @@ permissions:
 jobs:
   # Skip CI for release-please PRs (only version bumps, no code changes)
   should-skip:
+    name: Should Skip
     runs-on: ubuntu-latest
     outputs:
       should_skip: ${{ steps.skip_check.outputs.should_skip }}
@@ -31,6 +32,7 @@ jobs:
 
   # Detect which parts of codebase changed
   detect-changes:
+    name: Detect Changes
     needs: should-skip
     if: needs.should-skip.outputs.should_skip != 'true'
     runs-on: ubuntu-latest
