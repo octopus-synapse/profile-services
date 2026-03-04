@@ -43,7 +43,6 @@ CHECK_RESULTS=""
 echo "  📄 Generating swagger.json..."
 if bun run scripts/generate-swagger-from-decorators.ts; then
     CHECK_RESULTS="$CHECK_RESULTS swagger:pass"
-    git add swagger.json swagger-generation-report.json  || true
 else
     echo "❌ Swagger generation failed"
     exit 1
@@ -109,7 +108,12 @@ fi
 # -----------------------------------------------------------------------------
 echo "  🔐 Generating attestation..."
 ./scripts/generate-pre-commit-attestation.sh $CHECK_RESULTS
-git add .pre-commit-attestation.json 2>/dev/null || true
+
+# -----------------------------------------------------------------------------
+# 7. Stage all modified files (MUST be last - after all modifications are done)
+# -----------------------------------------------------------------------------
+echo "  📦 Staging generated files..."
+git add swagger.json swagger-generation-report.json .pre-commit-attestation.json
 
 echo ""
 echo "✅ Pre-commit passed! (Integration & E2E tests run in CI/CD)"
