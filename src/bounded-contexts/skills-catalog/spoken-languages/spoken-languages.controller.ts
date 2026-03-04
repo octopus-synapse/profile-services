@@ -9,6 +9,7 @@ import { BadRequestException, Controller, Get, Param, Query } from '@nestjs/comm
 import { ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger';
 import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { SpokenLanguagesService } from './services/spoken-languages.service';
 
@@ -25,6 +26,7 @@ class SpokenLanguageDataDto {
   language!: { code: string; name: string; nativeName?: string };
 }
 
+@SdkExport({ tag: 'skills', description: 'Spoken Languages API' })
 @ApiTags('spoken-languages')
 @Controller('v1/spoken-languages')
 export class SpokenLanguagesController {

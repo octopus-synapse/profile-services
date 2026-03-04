@@ -38,6 +38,7 @@ function extractControllerInfo(filePath: string) {
   const apiOperationCount = (content.match(/@ApiOperation/g) || []).length;
   const controllerDecorator = content.match(/@Controller\(['"](.+?)['"]\)/);
   const basePath = controllerDecorator?.[1] || '';
+  const isExcluded = content.includes('@ApiExcludeController');
 
   return {
     name,
@@ -45,8 +46,19 @@ function extractControllerInfo(filePath: string) {
     hasApiTags,
     apiOperationCount,
     basePath,
+    isExcluded,
     isDocumented: hasApiTags || apiOperationCount > 0,
   };
+}
+
+function normalizePath(path: string): string {
+  return path
+    .replace(/^\/api\/?/, '/')
+    .replace(/\{[^}]+\}/g, ':param')
+    .replace(/:[^/]+/g, ':param')
+    .replace(/\/+/g, '/')
+    .replace(/\/$/, '')
+    .toLowerCase();
 }
 
 describe('Missing Endpoints Detection', () => {
@@ -63,8 +75,8 @@ describe('Missing Endpoints Detection', () => {
     const controllers = findAllControllers(controllersDir);
     const info = controllers.map(extractControllerInfo);
 
-    const documented = info.filter((c) => c.isDocumented);
-    const undocumented = info.filter((c) => !c.isDocumented);
+    const documented = info.filter((c) => c.isDocumented && !c.isExcluded);
+    const undocumented = info.filter((c) => !c.isDocumented && !c.isExcluded);
 
     console.log(`\n✅ Documented controllers: ${documented.length}`);
     console.log(`❌ Undocumented controllers: ${undocumented.length}`);
@@ -109,16 +121,16 @@ describe('Missing Endpoints Detection', () => {
     const controllers = findAllControllers(controllersDir);
     const documented = controllers
       .map(extractControllerInfo)
-      .filter((c) => c.isDocumented && c.basePath);
+      .filter((c) => c.isDocumented && c.basePath && !c.isExcluded);
 
     console.log('\n🔍 Checking if documented controllers are in swagger.json:');
 
     for (const controller of documented) {
-      const pathPattern = new RegExp(
-        `/api.*${controller.basePath.replace(/\//g, '\\/')}`,
-        'i',
-      );
-      const hasPath = swaggerPaths.some((p) => pathPattern.test(p));
+      const normalizedBasePath = normalizePath(`/${controller.basePath}`);
+      const hasPath = swaggerPaths.some((swaggerPath) => {
+        const normalizedSwaggerPath = normalizePath(swaggerPath);
+        return normalizedSwaggerPath.startsWith(normalizedBasePath);
+      });
 
       if (hasPath) {
         console.log(`  ✅ ${controller.name} - found in swagger`);

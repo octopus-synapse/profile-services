@@ -48,10 +48,15 @@ export const MINIMAL_THEME = {
     },
     sections: [
       { id: 'header', visible: true, order: 0, column: 'full-width' },
-      { id: 'summary', visible: true, order: 1, column: 'full-width' },
-      { id: 'experiences', visible: true, order: 2, column: 'full-width' },
-      { id: 'skills', visible: true, order: 3, column: 'full-width' },
-      { id: 'education', visible: true, order: 4, column: 'full-width' },
+      { id: 'summary_v1', visible: true, order: 1, column: 'full-width' },
+      {
+        id: 'work_experience_v1',
+        visible: true,
+        order: 2,
+        column: 'full-width',
+      },
+      { id: 'skill_set_v1', visible: true, order: 3, column: 'full-width' },
+      { id: 'education_v1', visible: true, order: 4, column: 'full-width' },
     ],
   },
 };

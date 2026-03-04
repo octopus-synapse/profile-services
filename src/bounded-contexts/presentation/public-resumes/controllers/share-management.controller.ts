@@ -10,8 +10,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
+import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import {
   ShareCreateDataDto,
@@ -27,6 +30,7 @@ interface CreateShare {
   expiresAt?: string;
 }
 
+@SdkExport({ tag: 'resumes', description: 'Share Management API' })
 @ApiTags('shares')
 @Controller('v1/shares')
 @UseGuards(JwtAuthGuard)
@@ -40,9 +44,12 @@ export class ShareManagementController {
     status: 201,
     description: 'Share created successfully',
   })
-  async createShare(@Body() dto: CreateShare): Promise<DataResponse<ShareCreateDataDto>> {
+  async createShare(
+    @CurrentUser() user: UserPayload,
+    @Body() dto: CreateShare,
+  ): Promise<DataResponse<ShareCreateDataDto>> {
     // Verify user owns the resume
-    const share = await this.shareService.createShare({
+    const share = await this.shareService.createShare(user.userId, {
       ...dto,
       expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : undefined,
     });
@@ -69,8 +76,9 @@ export class ShareManagementController {
   @ApiDataResponse(ShareListDataDto, { description: 'Resume shares returned' })
   async listResumeShares(
     @Param('resumeId') resumeId: string,
+    @CurrentUser() user: UserPayload,
   ): Promise<DataResponse<ShareListDataDto>> {
-    const shares = await this.shareService.listUserShares(resumeId);
+    const shares = await this.shareService.listUserShares(user.userId, resumeId);
 
     return {
       success: true,
@@ -95,8 +103,11 @@ export class ShareManagementController {
   @ApiDataResponse(ShareDeleteDataDto, {
     description: 'Share deleted successfully',
   })
-  async deleteShare(@Param('shareId') shareId: string): Promise<DataResponse<ShareDeleteDataDto>> {
-    await this.shareService.deleteShare(shareId);
+  async deleteShare(
+    @Param('shareId') shareId: string,
+    @CurrentUser() user: UserPayload,
+  ): Promise<DataResponse<ShareDeleteDataDto>> {
+    await this.shareService.deleteShare(user.userId, shareId);
 
     return {
       success: true,

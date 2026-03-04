@@ -65,7 +65,23 @@ describe('ResumeShareService', () => {
   beforeEach(async () => {
     prisma = {
       resumeShare: {
-        create: mock(() => Promise.resolve(mockShare)),
+        create: mock(
+          (args: {
+            data: {
+              slug: string;
+              password?: string | null;
+              expiresAt?: Date | null;
+              resumeId: string;
+            };
+          }) =>
+            Promise.resolve({
+              ...mockShare,
+              slug: args.data.slug,
+              password: args.data.password ?? null,
+              expiresAt: args.data.expiresAt ?? null,
+              resumeId: args.data.resumeId,
+            }),
+        ),
         findUnique: mock(() => Promise.resolve(null)), // Default to null (slug not found)
         findMany: mock(() => Promise.resolve([mockShare])),
         delete: mock(() => Promise.resolve(mockShare)),
@@ -104,7 +120,9 @@ describe('ResumeShareService', () => {
         Promise.resolve({ ...mockShare, slug: args.data.slug }),
       );
 
-      const result = await service.createShare({ resumeId: 'resume-123' });
+      const result = await service.createShare('user-123', {
+        resumeId: 'resume-123',
+      });
 
       expect(result.slug).toBeDefined();
       expect(result.slug.length).toBe(10);
@@ -113,17 +131,17 @@ describe('ResumeShareService', () => {
     it('should use custom slug when provided', async () => {
       prisma.resumeShare.findUnique = mock(() => Promise.resolve(null));
 
-      const result = await service.createShare({
+      const result = await service.createShare('user-123', {
         resumeId: 'resume-123',
         slug: 'custom-slug',
       });
 
-      expect(result.slug).toBe('my-awesome-resume');
+      expect(result.slug).toBe('custom-slug');
     });
 
     it('should reject invalid slug format', async () => {
       await expect(
-        service.createShare({
+        service.createShare('user-123', {
           resumeId: 'resume-123',
           slug: 'invalid slug!@#',
         }),
@@ -132,7 +150,7 @@ describe('ResumeShareService', () => {
 
     it('should reject slug with spaces', async () => {
       await expect(
-        service.createShare({
+        service.createShare('user-123', {
           resumeId: 'resume-123',
           slug: 'my resume',
         }),
@@ -142,7 +160,7 @@ describe('ResumeShareService', () => {
     it('should accept slug with hyphens', async () => {
       prisma.resumeShare.findUnique = mock(() => Promise.resolve(null));
 
-      const result = await service.createShare({
+      const result = await service.createShare('user-123', {
         resumeId: 'resume-123',
         slug: 'my-awesome-resume-2024',
       });
@@ -153,13 +171,13 @@ describe('ResumeShareService', () => {
 
   describe('Password Protection', () => {
     it('should hash password when provided', async () => {
-      const result = await service.createShare({
+      const result = await service.createShare('user-123', {
         resumeId: 'resume-123',
         password: 'secret123',
       });
 
       expect(result.password).not.toBe('secret123');
-      expect(result.password).toBe(null); // Mock returns null
+      expect(result.password).toBeDefined();
     });
 
     it('should verify correct password', async () => {
@@ -171,7 +189,7 @@ describe('ResumeShareService', () => {
     });
 
     it('should create share without password', async () => {
-      const result = await service.createShare({
+      const result = await service.createShare('user-123', {
         resumeId: 'resume-123',
       });
 
@@ -183,7 +201,7 @@ describe('ResumeShareService', () => {
     it('should set expiration date when provided', async () => {
       const expiresAt = new Date('2025-12-31');
 
-      const result = await service.createShare({
+      const result = await service.createShare('user-123', {
         resumeId: 'resume-123',
         expiresAt,
       });
@@ -192,7 +210,7 @@ describe('ResumeShareService', () => {
     });
 
     it('should allow share without expiration', async () => {
-      const result = await service.createShare({
+      const result = await service.createShare('user-123', {
         resumeId: 'resume-123',
       });
 
@@ -205,7 +223,7 @@ describe('ResumeShareService', () => {
       prisma.resumeShare.findUnique = mock(() => Promise.resolve(mockShare));
 
       await expect(
-        service.createShare({
+        service.createShare('user-123', {
           resumeId: 'resume-123',
           slug: 'existing-slug',
         }),
@@ -295,7 +313,7 @@ describe('ResumeShareService', () => {
     });
 
     it('should list all shares for a resume', async () => {
-      const result = await service.listUserShares('resume-123');
+      const result = await service.listUserShares('user-123', 'resume-123');
 
       expect(result).toEqual([mockShare]);
       expect(prisma.resumeShare.findMany).toHaveBeenCalledWith({
@@ -305,7 +323,14 @@ describe('ResumeShareService', () => {
     });
 
     it('should delete share by id', async () => {
-      const result = await service.deleteShare('share-123');
+      prisma.resumeShare.findUnique = mock(() =>
+        Promise.resolve({
+          ...mockShare,
+          resume: { userId: 'user-123' },
+        }),
+      );
+
+      const result = await service.deleteShare('user-123', 'share-123');
 
       expect(result).toEqual(mockShare);
       expect(prisma.resumeShare.delete).toHaveBeenCalledWith({

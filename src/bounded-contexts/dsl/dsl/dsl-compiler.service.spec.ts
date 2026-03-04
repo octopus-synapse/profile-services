@@ -129,6 +129,8 @@ describe('DslCompilerService', () => {
           {
             id: 'section-exp-1',
             semanticKind: 'WORK_EXPERIENCE',
+            sectionTypeKey: 'experience',
+            title: 'Experience',
             order: 0,
             isVisible: true,
             items: [
@@ -149,6 +151,8 @@ describe('DslCompilerService', () => {
           {
             id: 'section-skill-1',
             semanticKind: 'SKILL_SET',
+            sectionTypeKey: 'skills',
+            title: 'Skills',
             order: 1,
             isVisible: true,
             items: [
@@ -165,15 +169,6 @@ describe('DslCompilerService', () => {
             ],
           },
         ],
-        experiences: [],
-        education: [],
-        skills: [],
-        languages: [],
-        projects: [],
-        certifications: [],
-        awards: [],
-        recommendations: [],
-        interests: [],
       } as any;
 
       const ast = service.compileForHtml(validDsl, resumeData);
@@ -185,15 +180,18 @@ describe('DslCompilerService', () => {
         (section) => section.sectionId === 'skills',
       );
 
-      expect(experienceSection?.data.type).toBe('experience');
+      // New generic format uses semanticKind instead of type
+      expect(experienceSection?.data.semanticKind).toBe('WORK_EXPERIENCE');
       expect((experienceSection?.data as any).items).toHaveLength(1);
-      expect((experienceSection?.data as any).items[0].title).toBe(
+      expect((experienceSection?.data as any).items[0].content.position).toBe(
         'Backend Engineer',
       );
 
-      expect(skillsSection?.data.type).toBe('skills');
+      expect(skillsSection?.data.semanticKind).toBe('SKILL_SET');
       expect((skillsSection?.data as any).items).toHaveLength(1);
-      expect((skillsSection?.data as any).items[0].name).toBe('TypeScript');
+      expect((skillsSection?.data as any).items[0].content.name).toBe(
+        'TypeScript',
+      );
     });
   });
 });

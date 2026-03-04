@@ -1,11 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { EventPublisher } from '@/shared-kernel';
-import {
-  SectionProjectionAdapter,
-  toGenericSections,
-} from '@/shared-kernel/types/section-projection.adapter';
 import { AtsScoreCalculatedEvent } from '../../domain/events';
+import type { ResumeForAnalytics } from '../domain/types';
 import type {
   AnalyticsDashboard,
   AnalyticsSnapshot,
@@ -177,7 +174,7 @@ export class ResumeAnalyticsFacade {
     if (!projection) throw new NotFoundException('Resume not found');
   }
 
-  private async getResumeWithDetails(resumeId: string) {
+  private async getResumeWithDetails(resumeId: string): Promise<ResumeForAnalytics> {
     const resume = await this.prisma.resume.findUniqueOrThrow({
       where: { id: resumeId },
       include: {
@@ -191,6 +188,7 @@ export class ResumeAnalyticsFacade {
             items: {
               orderBy: { order: 'asc' },
               select: {
+                id: true,
                 content: true,
               },
             },
@@ -199,26 +197,22 @@ export class ResumeAnalyticsFacade {
       },
     });
 
-    const sections = toGenericSections(
-      resume.resumeSections as Array<{
-        sectionType: { semanticKind: string };
-        items: Array<{ content: unknown }>;
-      }>,
-    );
-
-    const experiences = SectionProjectionAdapter.projectExperience(sections);
-    const skills = SectionProjectionAdapter.projectSkills(sections);
+    // Transform to generic sections format
+    const sections = resume.resumeSections.map((rs) => ({
+      id: rs.id,
+      semanticKind: rs.sectionType.semanticKind,
+      items: rs.items.map((item) => ({
+        id: item.id,
+        content: item.content as Record<string, unknown>,
+      })),
+    }));
 
     return {
-      ...resume,
-      skills: skills.map((s) => ({ name: s.name })),
-      experiences: experiences.map((exp) => ({
-        description: exp.description,
-        startDate: exp.startDate,
-        endDate: exp.endDate,
-        position: exp.role,
-        company: exp.company,
-      })),
+      summary: resume.summary,
+      emailContact: resume.emailContact,
+      phone: resume.phone,
+      jobTitle: resume.jobTitle,
+      sections,
     };
   }
 }

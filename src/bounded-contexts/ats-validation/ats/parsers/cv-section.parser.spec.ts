@@ -1,12 +1,229 @@
-import { describe, it, expect, beforeEach } from 'bun:test';
+import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { CVSectionParser } from './cv-section.parser';
-import { CVSectionType, ValidationSeverity } from '../interfaces';
+import { ValidationSeverity } from '../interfaces';
+import {
+  ATSSectionTypeAdapter,
+  SectionDetectionPattern,
+} from '../services/ats-section-type.adapter';
+
+/**
+ * Create a mock ATSSectionTypeAdapter with the section detection patterns.
+ * These patterns mirror what would come from SectionType definitions.
+ */
+function createMockATSSectionTypeAdapter(): ATSSectionTypeAdapter {
+  const patterns: SectionDetectionPattern[] = [
+    {
+      semanticKind: 'personal_info',
+      sectionTypeKey: 'personal-info',
+      keywords: ['personal', 'contact', 'info', 'details'],
+      multiWord: [
+        'personal information',
+        'contact information',
+        'contact details',
+        'about me',
+      ],
+      isMandatory: false,
+      recommendedPosition: 1,
+    },
+    {
+      semanticKind: 'summary',
+      sectionTypeKey: 'summary',
+      keywords: ['summary', 'profile', 'objective', 'about'],
+      multiWord: [
+        'professional summary',
+        'career summary',
+        'professional profile',
+        'career objective',
+        'objective',
+      ],
+      isMandatory: false,
+      recommendedPosition: 2,
+    },
+    {
+      semanticKind: 'experience',
+      sectionTypeKey: 'experience',
+      keywords: ['experience', 'employment', 'work', 'career', 'history'],
+      multiWord: [
+        'work experience',
+        'professional experience',
+        'employment history',
+        'work history',
+        'career history',
+        'experience profissional',
+        'experiência',
+      ],
+      isMandatory: true,
+      recommendedPosition: 3,
+    },
+    {
+      semanticKind: 'education',
+      sectionTypeKey: 'education',
+      keywords: ['education', 'academic', 'qualification', 'degree'],
+      multiWord: [
+        'educational background',
+        'academic background',
+        'qualifications',
+        'degrees',
+        'educação',
+        'formação',
+        'formação acadêmica',
+      ],
+      isMandatory: true,
+      recommendedPosition: 4,
+    },
+    {
+      semanticKind: 'skills',
+      sectionTypeKey: 'skills',
+      keywords: ['skills', 'competencies', 'expertise', 'abilities'],
+      multiWord: [
+        'technical skills',
+        'core competencies',
+        'key skills',
+        'areas of expertise',
+        'habilidades',
+        'competências',
+      ],
+      isMandatory: true,
+      recommendedPosition: 5,
+    },
+    {
+      semanticKind: 'certifications',
+      sectionTypeKey: 'certifications',
+      keywords: ['certification', 'certificate', 'license'],
+      multiWord: [
+        'certifications',
+        'certificates',
+        'professional certifications',
+        'licenses',
+        'certificações',
+      ],
+      isMandatory: false,
+      recommendedPosition: 6,
+    },
+    {
+      semanticKind: 'projects',
+      sectionTypeKey: 'projects',
+      keywords: ['project', 'portfolio'],
+      multiWord: ['projects', 'key projects', 'portfolio', 'projetos'],
+      isMandatory: false,
+      recommendedPosition: 7,
+    },
+    {
+      semanticKind: 'awards',
+      sectionTypeKey: 'awards',
+      keywords: ['award', 'achievement', 'honor', 'recognition'],
+      multiWord: [
+        'awards',
+        'honors',
+        'achievements',
+        'recognitions',
+        'prêmios',
+      ],
+      isMandatory: false,
+      recommendedPosition: 8,
+    },
+    {
+      semanticKind: 'publications',
+      sectionTypeKey: 'publications',
+      keywords: ['publication', 'paper', 'research'],
+      multiWord: ['publications', 'research papers', 'publicações'],
+      isMandatory: false,
+      recommendedPosition: 9,
+    },
+    {
+      semanticKind: 'languages',
+      sectionTypeKey: 'languages',
+      keywords: ['language', 'idiom'],
+      multiWord: ['languages', 'language proficiency', 'idiomas'],
+      isMandatory: false,
+      recommendedPosition: 10,
+    },
+    {
+      semanticKind: 'interests',
+      sectionTypeKey: 'interests',
+      keywords: ['interest', 'hobby', 'hobbies'],
+      multiWord: ['interests', 'hobbies', 'personal interests', 'interesses'],
+      isMandatory: false,
+      recommendedPosition: 11,
+    },
+    {
+      semanticKind: 'references',
+      sectionTypeKey: 'references',
+      keywords: ['reference'],
+      multiWord: ['references', 'referências'],
+      isMandatory: false,
+      recommendedPosition: 12,
+    },
+  ];
+
+  const adapter = {
+    getDetectionPatterns: () => patterns,
+    getMandatorySectionTypes: () => patterns.filter((p) => p.isMandatory),
+    getPatternsByPosition: () =>
+      [...patterns].sort(
+        (a, b) => a.recommendedPosition - b.recommendedPosition,
+      ),
+    detectSectionType: (headerText: string) => {
+      const normalizedHeader = headerText.toLowerCase().trim();
+
+      if (
+        normalizedHeader.length < 3 ||
+        normalizedHeader.split(/\s+/).length > 5
+      ) {
+        return null;
+      }
+
+      let bestMatch: {
+        pattern: SectionDetectionPattern;
+        confidence: number;
+      } | null = null;
+
+      for (const pattern of patterns) {
+        const exactMatch = pattern.multiWord.some(
+          (phrase) => normalizedHeader === phrase.toLowerCase(),
+        );
+
+        if (exactMatch) {
+          return { pattern, confidence: 1.0 };
+        }
+
+        const phraseMatch = pattern.multiWord.some((phrase) =>
+          normalizedHeader.includes(phrase.toLowerCase()),
+        );
+
+        if (phraseMatch) {
+          if (!bestMatch || bestMatch.confidence < 0.9) {
+            bestMatch = { pattern, confidence: 0.9 };
+          }
+          continue;
+        }
+
+        const keywordMatch = pattern.keywords.some((keyword) =>
+          normalizedHeader.includes(keyword.toLowerCase()),
+        );
+
+        if (keywordMatch) {
+          if (!bestMatch || bestMatch.confidence < 0.8) {
+            bestMatch = { pattern, confidence: 0.8 };
+          }
+        }
+      }
+
+      return bestMatch && bestMatch.confidence >= 0.8 ? bestMatch : null;
+    },
+    clearCache: () => {},
+  } as ATSSectionTypeAdapter;
+
+  return adapter;
+}
 
 describe('CVSectionParser', () => {
   let parser: CVSectionParser;
+  let mockAdapter: ATSSectionTypeAdapter;
 
   beforeEach(() => {
-    parser = new CVSectionParser();
+    mockAdapter = createMockATSSectionTypeAdapter();
+    parser = new CVSectionParser(mockAdapter);
   });
 
   describe('parseCV', () => {
@@ -31,10 +248,10 @@ JavaScript, TypeScript, Python
         const result = parser.parseCV(text, 'resume.pdf', 'application/pdf');
 
         expect(result.sections).toHaveLength(4);
-        expect(result.sections[0].type).toBe(CVSectionType.PERSONAL_INFO);
-        expect(result.sections[1].type).toBe(CVSectionType.EXPERIENCE);
-        expect(result.sections[2].type).toBe(CVSectionType.EDUCATION);
-        expect(result.sections[3].type).toBe(CVSectionType.SKILLS);
+        expect(result.sections[0].semanticKind).toBe('personal_info');
+        expect(result.sections[1].semanticKind).toBe('experience');
+        expect(result.sections[2].semanticKind).toBe('education');
+        expect(result.sections[3].semanticKind).toBe('skills');
         expect(result.rawText).toBe(text);
         expect(result.metadata.fileName).toBe('resume.pdf');
         expect(result.metadata.fileType).toBe('application/pdf');
@@ -154,7 +371,7 @@ Real content here
 
         // First line has >5 words, should not be detected
         const experienceSection = result.sections.find(
-          (s) => s.type === CVSectionType.EXPERIENCE,
+          (s) => s.semanticKind === 'experience',
         );
         expect(experienceSection?.title).toBe('Experience');
       });
@@ -171,12 +388,12 @@ Skills
 
         // Skills section has no content after it
         expect(result.sections.length).toBe(1);
-        expect(result.sections[0].type).toBe(CVSectionType.EXPERIENCE);
+        expect(result.sections[0].semanticKind).toBe('experience');
       });
     });
 
     describe('Section Alias Detection', () => {
-      it('should detect "Work Experience" as EXPERIENCE', () => {
+      it('should detect "Work Experience" as experience', () => {
         const text = `
 Work Experience
 Software Developer at Company
@@ -184,10 +401,10 @@ Software Developer at Company
 
         const result = parser.parseCV(text, 'test.pdf', 'application/pdf');
 
-        expect(result.sections[0].type).toBe(CVSectionType.EXPERIENCE);
+        expect(result.sections[0].semanticKind).toBe('experience');
       });
 
-      it('should detect "Professional Experience" as EXPERIENCE', () => {
+      it('should detect "Professional Experience" as experience', () => {
         const text = `
 Professional Experience
 Backend Engineer at Startup
@@ -195,10 +412,10 @@ Backend Engineer at Startup
 
         const result = parser.parseCV(text, 'test.pdf', 'application/pdf');
 
-        expect(result.sections[0].type).toBe(CVSectionType.EXPERIENCE);
+        expect(result.sections[0].semanticKind).toBe('experience');
       });
 
-      it('should detect "Contact Information" as PERSONAL_INFO', () => {
+      it('should detect "Contact Information" as personal_info', () => {
         const text = `
 Contact Information
 john@example.com
@@ -206,10 +423,10 @@ john@example.com
 
         const result = parser.parseCV(text, 'test.pdf', 'application/pdf');
 
-        expect(result.sections[0].type).toBe(CVSectionType.PERSONAL_INFO);
+        expect(result.sections[0].semanticKind).toBe('personal_info');
       });
 
-      it('should detect "Career Objective" as SUMMARY', () => {
+      it('should detect "Career Objective" as summary', () => {
         const text = `
 Career Objective
 To obtain a challenging position...
@@ -217,10 +434,10 @@ To obtain a challenging position...
 
         const result = parser.parseCV(text, 'test.pdf', 'application/pdf');
 
-        expect(result.sections[0].type).toBe(CVSectionType.SUMMARY);
+        expect(result.sections[0].semanticKind).toBe('summary');
       });
 
-      it('should detect "Technical Skills" as SKILLS', () => {
+      it('should detect "Technical Skills" as skills', () => {
         const text = `
 Technical Skills
 JavaScript, Python, Go
@@ -228,10 +445,10 @@ JavaScript, Python, Go
 
         const result = parser.parseCV(text, 'test.pdf', 'application/pdf');
 
-        expect(result.sections[0].type).toBe(CVSectionType.SKILLS);
+        expect(result.sections[0].semanticKind).toBe('skills');
       });
 
-      it('should detect "Educational Background" as EDUCATION', () => {
+      it('should detect "Educational Background" as education', () => {
         const text = `
 Educational Background
 MIT - Computer Science
@@ -239,12 +456,12 @@ MIT - Computer Science
 
         const result = parser.parseCV(text, 'test.pdf', 'application/pdf');
 
-        expect(result.sections[0].type).toBe(CVSectionType.EDUCATION);
+        expect(result.sections[0].semanticKind).toBe('education');
       });
     });
 
     describe('Portuguese Section Detection', () => {
-      it('should detect "Experiência" as EXPERIENCE', () => {
+      it('should detect "Experiência" as experience', () => {
         const text = `
 Experiência
 Desenvolvedor na Empresa
@@ -252,10 +469,10 @@ Desenvolvedor na Empresa
 
         const result = parser.parseCV(text, 'cv.pdf', 'application/pdf');
 
-        expect(result.sections[0].type).toBe(CVSectionType.EXPERIENCE);
+        expect(result.sections[0].semanticKind).toBe('experience');
       });
 
-      it('should detect "Formação Acadêmica" as EDUCATION', () => {
+      it('should detect "Formação Acadêmica" as education', () => {
         const text = `
 Formação Acadêmica
 Universidade Federal - Ciência da Computação
@@ -263,10 +480,10 @@ Universidade Federal - Ciência da Computação
 
         const result = parser.parseCV(text, 'cv.pdf', 'application/pdf');
 
-        expect(result.sections[0].type).toBe(CVSectionType.EDUCATION);
+        expect(result.sections[0].semanticKind).toBe('education');
       });
 
-      it('should detect "Habilidades" as SKILLS', () => {
+      it('should detect "Habilidades" as skills', () => {
         const text = `
 Habilidades
 JavaScript, TypeScript, NestJS
@@ -274,10 +491,10 @@ JavaScript, TypeScript, NestJS
 
         const result = parser.parseCV(text, 'cv.pdf', 'application/pdf');
 
-        expect(result.sections[0].type).toBe(CVSectionType.SKILLS);
+        expect(result.sections[0].semanticKind).toBe('skills');
       });
 
-      it('should detect "Idiomas" as LANGUAGES', () => {
+      it('should detect "Idiomas" as languages', () => {
         const text = `
 Idiomas
 Português - Nativo
@@ -286,24 +503,24 @@ Inglês - Fluente
 
         const result = parser.parseCV(text, 'cv.pdf', 'application/pdf');
 
-        expect(result.sections[0].type).toBe(CVSectionType.LANGUAGES);
+        expect(result.sections[0].semanticKind).toBe('languages');
       });
     });
 
     describe('All Section Types', () => {
-      const sectionTests: Array<{ header: string; expected: CVSectionType }> = [
-        { header: 'Personal Info', expected: CVSectionType.PERSONAL_INFO },
-        { header: 'Summary', expected: CVSectionType.SUMMARY },
-        { header: 'Experience', expected: CVSectionType.EXPERIENCE },
-        { header: 'Education', expected: CVSectionType.EDUCATION },
-        { header: 'Skills', expected: CVSectionType.SKILLS },
-        { header: 'Certifications', expected: CVSectionType.CERTIFICATIONS },
-        { header: 'Projects', expected: CVSectionType.PROJECTS },
-        { header: 'Awards', expected: CVSectionType.AWARDS },
-        { header: 'Publications', expected: CVSectionType.PUBLICATIONS },
-        { header: 'Languages', expected: CVSectionType.LANGUAGES },
-        { header: 'Interests', expected: CVSectionType.INTERESTS },
-        { header: 'References', expected: CVSectionType.REFERENCES },
+      const sectionTests: Array<{ header: string; expected: string }> = [
+        { header: 'Personal Info', expected: 'personal_info' },
+        { header: 'Summary', expected: 'summary' },
+        { header: 'Experience', expected: 'experience' },
+        { header: 'Education', expected: 'education' },
+        { header: 'Skills', expected: 'skills' },
+        { header: 'Certifications', expected: 'certifications' },
+        { header: 'Projects', expected: 'projects' },
+        { header: 'Awards', expected: 'awards' },
+        { header: 'Publications', expected: 'publications' },
+        { header: 'Languages', expected: 'languages' },
+        { header: 'Interests', expected: 'interests' },
+        { header: 'References', expected: 'references' },
       ];
 
       sectionTests.forEach(({ header, expected }) => {
@@ -315,7 +532,7 @@ Some content here
 
           const result = parser.parseCV(text, 'test.pdf', 'application/pdf');
 
-          expect(result.sections[0].type).toBe(expected);
+          expect(result.sections[0].semanticKind).toBe(expected);
         });
       });
     });

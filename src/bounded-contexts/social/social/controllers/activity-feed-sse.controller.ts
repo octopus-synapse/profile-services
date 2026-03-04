@@ -9,11 +9,13 @@
 
 import { Controller, MessageEvent, Param, Sse, UseGuards } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { ActivityType } from '@prisma/client';
 import { filter, fromEvent, map, Observable } from 'rxjs';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 
 interface ActivityFeedEvent {
   id: string;
@@ -31,6 +33,13 @@ interface ActivityFeedEvent {
   };
 }
 
+@SdkExport({
+  tag: 'social',
+  description: 'Social Activity Feed API',
+  requiresAuth: true,
+})
+@ApiTags('Social Feed')
+@ApiBearerAuth()
 @Controller('v1/feed')
 export class ActivityFeedSseController {
   constructor(private readonly eventEmitter: EventEmitter2) {}
@@ -52,6 +61,10 @@ export class ActivityFeedSseController {
    */
   @Sse('subscribe')
   @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    summary: 'Subscribe to activity feed stream',
+    description: 'Streams real-time feed updates for the authenticated user.',
+  })
   subscribeToFeed(@CurrentUser() user: UserPayload): Observable<MessageEvent> {
     // Listen to activity events for this user's feed
     return fromEvent<ActivityFeedEvent>(this.eventEmitter, `feed:user:${user.userId}`).pipe(
@@ -71,6 +84,10 @@ export class ActivityFeedSseController {
    */
   @Sse('subscribe/:type')
   @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    summary: 'Subscribe to activity type stream',
+    description: 'Streams real-time feed updates filtered by activity type.',
+  })
   subscribeToActivityType(
     @CurrentUser() user: UserPayload,
     @Param('type') type: ActivityType,

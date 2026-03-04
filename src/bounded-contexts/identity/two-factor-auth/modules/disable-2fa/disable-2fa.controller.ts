@@ -2,6 +2,7 @@ import { Controller, Delete, HttpCode, HttpStatus, Inject, Req } from '@nestjs/c
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { ApiEmptyDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import {
   TWO_FACTOR_REPOSITORY_PORT,
   type TwoFactorRepositoryPort,
@@ -12,6 +13,11 @@ interface AuthenticatedRequest extends Request {
   user: { id: string };
 }
 
+@SdkExport({
+  tag: 'auth',
+  description: 'Two-Factor Authentication API',
+  requiresAuth: true,
+})
 @ApiTags('Two-Factor Auth')
 @ApiBearerAuth()
 @Controller('auth/2fa')

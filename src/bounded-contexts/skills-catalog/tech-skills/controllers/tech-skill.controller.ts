@@ -48,7 +48,6 @@ export class TechSkillController {
   /** Search skills */
   @Get('search')
   @Public()
-  @ApiOperation({ summary: 'Search tech skills' })
   @ApiDataResponse(TechSkillListDataDto, { description: 'Search results' })
   async searchSkills(
     @Query('q') query: string,

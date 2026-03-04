@@ -17,6 +17,11 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request, { Agent } from 'supertest';
 import { AppModule } from '../../src/app.module';
+import {
+  configureExceptionHandling,
+  configureValidation,
+} from '@/bounded-contexts/platform/common/config/validation.config';
+import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 
 // --- Test Constants ---
@@ -77,7 +82,11 @@ export async function getApp(): Promise<INestApplication> {
 
   appInstance = moduleFixture.createNestApplication();
   appInstance.setGlobalPrefix('api');
-  // Validation is handled by ZodValidationPipe at controller level
+
+  // Apply same configuration as main.ts
+  const logger = appInstance.get(AppLoggerService);
+  configureValidation(appInstance);
+  configureExceptionHandling(appInstance, logger);
 
   await appInstance.init();
   testContext.app = appInstance;
@@ -113,7 +122,8 @@ export async function createTestUserAndLogin(
     name: customUser?.name || TEST_USER.name,
   };
 
-  const signupResponse = await agent.post('/api/v1/auth/signup').send(user);
+  // Step 1: Create account
+  const signupResponse = await agent.post('/api/accounts').send(user);
 
   if (signupResponse.status !== 201) {
     throw new Error(
@@ -123,27 +133,40 @@ export async function createTestUserAndLogin(
     );
   }
 
-  const {
-    accessToken,
-    refreshToken,
-    user: createdUser,
-  } = signupResponse.body.data;
+  // Response: { success: true, data: { userId, email, message } }
+  const { userId } = signupResponse.body.data;
 
   // Verify email to allow access to protected routes
   const prisma = app.get<PrismaService>(PrismaService);
   await prisma.user.update({
-    where: { id: createdUser.id },
+    where: { id: userId },
     data: { emailVerified: new Date() },
   });
 
   // Accept ToS and Privacy Policy for GDPR compliance
-  await acceptTosForUser(createdUser.id);
+  await acceptTosForUser(userId);
+
+  // Step 2: Login to get tokens
+  const loginResponse = await agent.post('/api/auth/login').send({
+    email: user.email,
+    password: user.password,
+  });
+
+  if (loginResponse.status !== 200) {
+    throw new Error(
+      `Failed to login test user (status=${loginResponse.status}): ${JSON.stringify(
+        loginResponse.body,
+      )}`,
+    );
+  }
+
+  const { accessToken, refreshToken } = loginResponse.body.data;
 
   testContext.accessToken = accessToken;
   testContext.refreshToken = refreshToken;
-  testContext.userId = createdUser.id;
+  testContext.userId = userId;
 
-  return { accessToken, userId: createdUser.id, refreshToken };
+  return { accessToken, userId, refreshToken };
 }
 
 /**

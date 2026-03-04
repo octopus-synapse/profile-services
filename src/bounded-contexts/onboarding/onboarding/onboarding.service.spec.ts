@@ -7,10 +7,7 @@ import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { AuditLogService } from '@/bounded-contexts/platform/common/audit/audit-log.service';
 import { ResumeOnboardingService } from './services/resume-onboarding.service';
-import { SkillsOnboardingService } from './services/skills-onboarding.service';
-import { ExperienceOnboardingService } from './services/experience-onboarding.service';
-import { EducationOnboardingService } from './services/education-onboarding.service';
-import { LanguagesOnboardingService } from './services/languages-onboarding.service';
+import { ResumeSectionOnboardingService } from './services/resume-section-onboarding.service';
 import { OnboardingProgressService } from './services/onboarding-progress.service';
 import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '@/shared-kernel';
 
@@ -41,24 +38,8 @@ describe('OnboardingService', () => {
     upsertResumeWithTx: mock(),
   };
 
-  const mockSkillsOnboardingService = {
-    saveSkills: mock(),
-    saveSkillsWithTx: mock(),
-  };
-
-  const mockExperienceOnboardingService = {
-    saveExperiences: mock(),
-    saveExperiencesWithTx: mock(),
-  };
-
-  const mockEducationOnboardingService = {
-    saveEducation: mock(),
-    saveEducationWithTx: mock(),
-  };
-
-  const mockLanguagesOnboardingService = {
-    saveLanguages: mock(),
-    saveLanguagesWithTx: mock(),
+  const mockSectionOnboardingService = {
+    replaceSectionItems: mock(),
   };
 
   const mockOnboardingProgressService = {
@@ -94,20 +75,8 @@ describe('OnboardingService', () => {
           useValue: mockResumeOnboardingService,
         },
         {
-          provide: SkillsOnboardingService,
-          useValue: mockSkillsOnboardingService,
-        },
-        {
-          provide: ExperienceOnboardingService,
-          useValue: mockExperienceOnboardingService,
-        },
-        {
-          provide: EducationOnboardingService,
-          useValue: mockEducationOnboardingService,
-        },
-        {
-          provide: LanguagesOnboardingService,
-          useValue: mockLanguagesOnboardingService,
+          provide: ResumeSectionOnboardingService,
+          useValue: mockSectionOnboardingService,
         },
         {
           provide: OnboardingProgressService,
@@ -141,52 +110,69 @@ describe('OnboardingService', () => {
           github: 'https://github.com/johndoe',
           website: 'https://johndoe.com',
         },
-        skills: [
-          { name: 'JavaScript', category: 'Frontend' },
-          { name: 'Node.js', category: 'Backend' },
-        ],
-        noSkills: false,
-        experiences: [
-          {
-            company: 'Tech Corp',
-            position: 'Senior Developer',
-            startDate: '2020-01',
-            endDate: '2024-01',
-            isCurrent: false,
-            description: 'Building applications',
-          },
-        ],
-        noExperience: false,
-        education: [
-          {
-            institution: 'University',
-            degree: 'BSc',
-            field: 'Computer Science',
-            startDate: '2015-09',
-            endDate: '2019-06',
-            isCurrent: false,
-          },
-        ],
-        noEducation: false,
-        languages: [
-          { name: 'English', level: 'NATIVE' as const },
-          // Using INTERMEDIATE as CONVERSATIONAL is not in the allowed values
-          { name: 'Spanish', level: 'INTERMEDIATE' as const },
-        ],
         templateSelection: {
           template: 'PROFESSIONAL',
           palette: 'blue',
         },
+        sections: [
+          {
+            sectionTypeKey: 'skills_v1',
+            noData: false,
+            items: [
+              { content: { name: 'JavaScript', category: 'Frontend' } },
+              { content: { name: 'Node.js', category: 'Backend' } },
+            ],
+          },
+          {
+            sectionTypeKey: 'work_experience_v1',
+            noData: false,
+            items: [
+              {
+                content: {
+                  company: 'Tech Corp',
+                  position: 'Senior Developer',
+                  startDate: '2020-01',
+                  endDate: '2024-01',
+                  isCurrent: false,
+                  description: 'Building applications',
+                },
+              },
+            ],
+          },
+          {
+            sectionTypeKey: 'education_v1',
+            noData: false,
+            items: [
+              {
+                content: {
+                  institution: 'University',
+                  degree: 'BSc',
+                  field: 'Computer Science',
+                  startDate: '2015-09',
+                  endDate: '2019-06',
+                  isCurrent: false,
+                },
+              },
+            ],
+          },
+          {
+            sectionTypeKey: 'languages_v1',
+            noData: false,
+            items: [
+              { content: { name: 'English', level: 'NATIVE' } },
+              { content: { name: 'Spanish', level: 'INTERMEDIATE' } },
+            ],
+          },
+        ],
       };
 
       const mockUser = { id: userId, email: 'john@example.com' };
       const mockResume = createMockResume({ id: 'resume-123', userId });
       const mockTx = {
         resume: { findFirst: mock(), upsert: mock() },
-        skill: { deleteMany: mock(), createMany: mock() },
-        experience: { deleteMany: mock(), createMany: mock() },
-        education: { deleteMany: mock(), createMany: mock() },
-        language: { deleteMany: mock(), createMany: mock() },
+        sectionType: { findUnique: mock() },
+        resumeSection: { upsert: mock() },
+        sectionItem: { deleteMany: mock(), createMany: mock() },
         user: { update: mock() },
       };
 
@@ -194,14 +180,7 @@ describe('OnboardingService', () => {
       mockResumeOnboardingService.upsertResumeWithTx.mockResolvedValue(
         mockResume,
       );
-      mockSkillsOnboardingService.saveSkillsWithTx.mockResolvedValue(undefined);
-      mockExperienceOnboardingService.saveExperiencesWithTx.mockResolvedValue(
-        undefined,
-      );
-      mockEducationOnboardingService.saveEducationWithTx.mockResolvedValue(
-        undefined,
-      );
-      mockLanguagesOnboardingService.saveLanguagesWithTx.mockResolvedValue(
+      mockSectionOnboardingService.replaceSectionItems.mockResolvedValue(
         undefined,
       );
       mockTx.user.update.mockResolvedValue({
@@ -227,20 +206,10 @@ describe('OnboardingService', () => {
       expect(
         mockResumeOnboardingService.upsertResumeWithTx,
       ).toHaveBeenCalledWith(mockTx, userId, onboardingData);
-      expect(mockSkillsOnboardingService.saveSkillsWithTx).toHaveBeenCalledWith(
-        mockTx,
-        mockResume.id,
-        onboardingData,
-      );
+      // Verify sections are processed generically
       expect(
-        mockExperienceOnboardingService.saveExperiencesWithTx,
-      ).toHaveBeenCalledWith(mockTx, mockResume.id, onboardingData);
-      expect(
-        mockEducationOnboardingService.saveEducationWithTx,
-      ).toHaveBeenCalledWith(mockTx, mockResume.id, onboardingData);
-      expect(
-        mockLanguagesOnboardingService.saveLanguagesWithTx,
-      ).toHaveBeenCalledWith(mockTx, mockResume.id, onboardingData);
+        mockSectionOnboardingService.replaceSectionItems,
+      ).toHaveBeenCalledTimes(4);
       expect(mockTx.user.update).toHaveBeenCalledWith({
         where: { id: userId },
         data: {
@@ -281,17 +250,11 @@ describe('OnboardingService', () => {
           summary:
             'A passionate developer looking to make a difference in tech',
         },
-        skills: [],
-        noSkills: true,
-        experiences: [],
-        noExperience: true,
-        education: [],
-        noEducation: true,
-        languages: [],
         templateSelection: {
           template: 'PROFESSIONAL',
           palette: 'blue',
         },
+        sections: [],
       };
 
       mockPrismaService.user.findUnique.mockResolvedValue(null);

@@ -5,6 +5,7 @@
  * when a resume is created in the Resumes context.
  *
  * This eliminates cross-context database queries.
+ * GENERIC: Uses JSON sectionCounts instead of individual columns.
  */
 
 import { Injectable, Logger } from '@nestjs/common';
@@ -31,10 +32,7 @@ export class SyncProjectionOnResumeCreatedHandler {
         id: resumeId,
         userId,
         title,
-        experiencesCount: 0,
-        educationCount: 0,
-        skillsCount: 0,
-        certificationsCount: 0,
+        sectionCounts: {},
       },
       update: {
         userId,

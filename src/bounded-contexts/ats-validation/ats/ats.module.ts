@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
+import { SectionTypeRepository } from '@/shared-kernel/repositories/section-type.repository';
 import { ATSController } from './ats.controller';
 import { DateRangeExtractor, JobTitleExtractor, OrganizationExtractor } from './extractors';
 import { SECTION_SEMANTIC_CATALOG } from './interfaces';
@@ -13,6 +14,7 @@ import {
 } from './policies';
 import { DefinitionDrivenScoringStrategy, SemanticScoringService } from './scoring';
 import { ATSService } from './services/ats.service';
+import { ATSSectionTypeAdapter } from './services/ats-section-type.adapter';
 import { EncodingNormalizerService } from './services/encoding-normalizer.service';
 import { SectionSemanticCatalogAdapter } from './services/section-semantic-catalog.adapter';
 import { TextExtractionService } from './services/text-extraction.service';
@@ -26,6 +28,10 @@ import { SectionOrderValidator } from './validators/section-order.validator';
   imports: [PrismaModule],
   controllers: [ATSController],
   providers: [
+    // Shared-kernel dependency
+    SectionTypeRepository,
+    // ATS Definition-driven adapter
+    ATSSectionTypeAdapter,
     ATSService,
     TextExtractionService,
     EncodingNormalizerService,
@@ -51,6 +57,6 @@ import { SectionOrderValidator } from './validators/section-order.validator';
       useExisting: SectionSemanticCatalogAdapter,
     },
   ],
-  exports: [ATSService],
+  exports: [ATSService, ATSSectionTypeAdapter],
 })
 export class ATSModule {}

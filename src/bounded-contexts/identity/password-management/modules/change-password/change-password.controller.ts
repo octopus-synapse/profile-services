@@ -9,14 +9,21 @@ import {
 import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure/guards/jwt-auth.guard';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
-import { CHANGE_PASSWORD_PORT, ChangePasswordPort } from '../../ports/inbound';
+import type { ChangePasswordPort } from '../../ports/inbound';
+import { CHANGE_PASSWORD_PORT } from '../../ports/inbound';
 import { ChangePasswordDto, ChangePasswordResponseDto } from './change-password.dto';
 
 interface AuthenticatedUser {
   id: string;
 }
 
+@SdkExport({
+  tag: 'users',
+  description: 'Password Management API',
+  requiresAuth: true,
+})
 @ApiTags('Password Management')
 @Controller('password')
 export class ChangePasswordController {

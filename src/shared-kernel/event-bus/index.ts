@@ -1,3 +1,4 @@
 export { DomainEvent } from './domain';
 export { EventBusModule } from './event-bus.module';
-export { EventPublisher, type EventPublisherPort } from './event-publisher';
+export type { EventPublisherPort } from './event-publisher';
+export { EventPublisher } from './event-publisher';

@@ -124,7 +124,10 @@ describe('DslController', () => {
 
   describe('render', () => {
     it('should render resume AST for authenticated user', async () => {
-      const result = await controller.render(mockUserId, mockResumeId);
+      const result = await controller.render(
+        { userId: mockUserId } as any,
+        mockResumeId,
+      );
 
       expect(result.success).toBe(true);
       expect(result.data?.ast).toBeDefined();
@@ -136,7 +139,11 @@ describe('DslController', () => {
     });
 
     it('should support PDF target for rendering', async () => {
-      await controller.render(mockUserId, mockResumeId, 'pdf');
+      await controller.render(
+        { userId: mockUserId } as any,
+        mockResumeId,
+        'pdf',
+      );
 
       expect(mockDslRepository.render).toHaveBeenCalledWith(
         mockResumeId,

@@ -111,7 +111,7 @@ describe('Error Handling Integration', () => {
 
   describe('BUG-029: Validation Error Format', () => {
     it('should return structured validation errors', async () => {
-      const response = await getRequest().post('/api/v1/auth/signup').send({
+      const response = await getRequest().post('/api/accounts').send({
         email: 'not-an-email',
         password: 'short',
         name: '',
@@ -126,7 +126,7 @@ describe('Error Handling Integration', () => {
     });
 
     it('should list all validation errors', async () => {
-      const response = await getRequest().post('/api/v1/auth/login').send({
+      const response = await getRequest().post('/api/auth/login').send({
         email: '',
         password: '',
       });

@@ -119,6 +119,7 @@
     "zod-nestjs": "^1.9.2"
   },
   "devDependencies": {
+    "@as-integrations/express5": "^1.1.2",
     "@biomejs/biome": "^2.3.14",
     "@commitlint/cli": "^20.3.0",
     "@commitlint/config-conventional": "^20.3.0",

@@ -1,13 +1,13 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { EntityNotFoundException } from '../../../shared-kernel/exceptions';
-import { EventBusPort } from '../../../shared-kernel/ports';
+import type { EventBusPort } from '../../../shared-kernel/ports';
 import { EmailVerifiedEvent } from '../../domain/events';
 import {
   EmailAlreadyVerifiedException,
   InvalidVerificationTokenException,
 } from '../../domain/exceptions';
-import { VerifyEmailCommand, VerifyEmailPort, VerifyEmailResult } from '../../ports/inbound';
-import { EmailVerificationRepositoryPort } from '../../ports/outbound';
+import type { VerifyEmailCommand, VerifyEmailPort, VerifyEmailResult } from '../../ports/inbound';
+import type { EmailVerificationRepositoryPort } from '../../ports/outbound';
 
 const EMAIL_VERIFICATION_REPOSITORY = Symbol('EmailVerificationRepositoryPort');
 const EVENT_BUS = Symbol('EventBusPort');

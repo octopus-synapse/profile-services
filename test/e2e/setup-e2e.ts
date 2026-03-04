@@ -7,6 +7,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import type { INestApplication } from '@nestjs/common';
 import { AppModule } from '@/app.module';
+import {
+  configureExceptionHandling,
+  configureValidation,
+} from '@/bounded-contexts/platform/common/config/validation.config';
+import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { EmailSenderService } from '@/bounded-contexts/platform/common/email/services/email-sender.service';
 import { AuthHelper } from './helpers/auth.helper';
@@ -44,7 +49,10 @@ export async function createE2ETestApp(): Promise<{
   const app = moduleFixture.createNestApplication();
   app.setGlobalPrefix('api');
 
-  // Validation is handled by ZodValidationPipe at controller level
+  // Apply same configuration as main.ts
+  const logger = app.get(AppLoggerService);
+  configureValidation(app);
+  configureExceptionHandling(app, logger);
 
   await app.init();
 

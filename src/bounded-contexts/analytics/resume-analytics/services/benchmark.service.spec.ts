@@ -35,7 +35,7 @@ describe('BenchmarkService', () => {
   describe('getIndustryBenchmark', () => {
     it('should calculate percentile correctly', async () => {
       const result = await service.getIndustryBenchmark(85, {
-        industry: 'technology',
+        industry: 'software_engineering',
       });
 
       // Score of 85 is above 80 (4 scores below), so percentile = 80%
@@ -44,7 +44,7 @@ describe('BenchmarkService', () => {
 
     it('should return total in industry', async () => {
       const result = await service.getIndustryBenchmark(75, {
-        industry: 'technology',
+        industry: 'software_engineering',
       });
 
       expect(result.totalInIndustry).toBe(5);
@@ -52,7 +52,7 @@ describe('BenchmarkService', () => {
 
     it('should include comparison data', async () => {
       const result = await service.getIndustryBenchmark(75, {
-        industry: 'technology',
+        industry: 'software_engineering',
       });
 
       expect(result.comparison).toBeDefined();
@@ -62,7 +62,7 @@ describe('BenchmarkService', () => {
 
     it('should generate recommendations when below average', async () => {
       const result = await service.getIndustryBenchmark(60, {
-        industry: 'technology',
+        industry: 'software_engineering',
       });
 
       expect(result.recommendations.length).toBeGreaterThan(0);
@@ -73,7 +73,7 @@ describe('BenchmarkService', () => {
       mockPrisma.resumeAnalytics.findMany = mock(() => Promise.resolve([]));
 
       const result = await service.getIndustryBenchmark(75, {
-        industry: 'technology',
+        industry: 'software_engineering',
       });
 
       expect(result.percentile).toBe(50); // Default when no data
@@ -82,7 +82,7 @@ describe('BenchmarkService', () => {
 
     it('should include top performers profile', async () => {
       const result = await service.getIndustryBenchmark(75, {
-        industry: 'technology',
+        industry: 'software_engineering',
       });
 
       expect(result.topPerformers).toBeDefined();
@@ -92,7 +92,7 @@ describe('BenchmarkService', () => {
 
     it('should calculate correct percentile for highest score', async () => {
       const result = await service.getIndustryBenchmark(95, {
-        industry: 'technology',
+        industry: 'software_engineering',
       });
 
       expect(result.percentile).toBe(100); // Above all 5 scores
@@ -100,7 +100,7 @@ describe('BenchmarkService', () => {
 
     it('should calculate correct percentile for lowest score', async () => {
       const result = await service.getIndustryBenchmark(50, {
-        industry: 'technology',
+        industry: 'software_engineering',
       });
 
       expect(result.percentile).toBe(0); // Below all 5 scores

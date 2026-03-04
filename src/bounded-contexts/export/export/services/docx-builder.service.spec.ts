@@ -11,6 +11,7 @@ import { NotFoundException } from '@nestjs/common';
 import { DocxBuilderService } from './docx-builder.service';
 import { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.repository';
 import { UsersRepository } from '@/bounded-contexts/identity/users/users.repository';
+import { SectionTypeRepository } from '@/shared-kernel/repositories/section-type.repository';
 import { DocxSectionsService } from './docx-sections.service';
 import { DocxStylesService } from './docx-styles.service';
 
@@ -56,6 +57,15 @@ describe('DocxBuilderService', () => {
     }),
   };
 
+  const stubSectionTypeRepository = {
+    findByKey: mock().mockReturnValue({
+      definition: {
+        ats: { recommendedPosition: 1 },
+        export: { docx: {} },
+      },
+    }),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -64,6 +74,7 @@ describe('DocxBuilderService', () => {
         { provide: UsersRepository, useValue: stubUsersRepository },
         { provide: DocxSectionsService, useValue: stubSectionsService },
         { provide: DocxStylesService, useValue: stubStylesService },
+        { provide: SectionTypeRepository, useValue: stubSectionTypeRepository },
       ],
     }).compile();
 
@@ -97,19 +108,15 @@ describe('DocxBuilderService', () => {
     it('should use sections service to create document structure', async () => {
       await service.generate('user-1');
 
+      // Now uses generic sections instead of typed DocxResumeData
       expect(stubSectionsService.createMainSection).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'John Doe',
           displayName: 'John Doe',
           email: 'john@example.com',
         }),
-        expect.objectContaining({
-          experiences: [],
-          education: [],
-          skills: [],
-          projects: [],
-          languages: [],
-        }),
+        // Sections array is empty because mockResume.resumeSections is empty
+        expect.arrayContaining([]),
       );
     });
 

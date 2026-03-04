@@ -10,7 +10,8 @@ import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastr
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
-import { SEND_VERIFICATION_EMAIL_PORT, SendVerificationEmailPort } from '../../ports/inbound';
+import type { SendVerificationEmailPort } from '../../ports/inbound';
+import { SEND_VERIFICATION_EMAIL_PORT } from '../../ports/inbound';
 import { SendVerificationEmailResponseDto } from './send-verification.dto';
 
 interface AuthenticatedUser {

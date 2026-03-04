@@ -10,8 +10,10 @@ import type { SemanticPolicy } from './semantic-policy.interface';
 /**
  * Section Order Semantic Policy
  *
- * Determines the recommended section order by reading `ats.recommendedPosition`
- * from the snapshot's sectionTypeCatalog — NOT hardcoded.
+ * GENERIC: Determines section order issues by comparing actual positions
+ * against `ats.recommendedPosition` from the catalog.
+ *
+ * NO hardcoded section types - works with ANY sections defined in catalog.
  */
 @Injectable()
 export class SectionOrderSemanticPolicy implements SemanticPolicy {
@@ -25,8 +27,14 @@ export class SectionOrderSemanticPolicy implements SemanticPolicy {
       .sort((a, b) => a.ats.recommendedPosition - b.ats.recommendedPosition)
       .map((entry) => entry.kind);
 
-    this.checkExperienceBeforeEducation(currentOrder, issues);
-    this.checkSummaryNearTop(currentOrder, issues);
+    // Build position map from catalog
+    const positionMap = new Map<string, number>();
+    for (const entry of snapshot.sectionTypeCatalog) {
+      positionMap.set(entry.kind, entry.ats.recommendedPosition);
+    }
+
+    // Check for order mismatches
+    this.checkPositionMismatches(currentOrder, positionMap, issues);
 
     return {
       passed: issues.every((issue) => issue.severity !== ValidationSeverity.ERROR),
@@ -53,30 +61,36 @@ export class SectionOrderSemanticPolicy implements SemanticPolicy {
     return order;
   }
 
-  private checkExperienceBeforeEducation(order: string[], issues: ValidationIssue[]): void {
-    const experienceIndex = order.indexOf('WORK_EXPERIENCE');
-    const educationIndex = order.indexOf('EDUCATION');
+  /**
+   * Check if sections are out of their recommended order.
+   * GENERIC: Uses catalog positions, not hardcoded section names.
+   */
+  private checkPositionMismatches(
+    currentOrder: string[],
+    positionMap: Map<string, number>,
+    issues: ValidationIssue[],
+  ): void {
+    // Get positions for current order, defaulting to MAX for unknown sections
+    const maxPosition = Number.MAX_SAFE_INTEGER;
+    const currentPositions = currentOrder.map((kind) => positionMap.get(kind) ?? maxPosition);
 
-    if (experienceIndex !== -1 && educationIndex !== -1 && experienceIndex > educationIndex) {
-      issues.push({
-        code: 'WORK_EXPERIENCE_AFTER_EDUCATION',
-        message: 'WORK_EXPERIENCE should usually appear before EDUCATION',
-        severity: ValidationSeverity.INFO,
-        suggestion: 'Move work experience section above education for ATS readability',
-      });
-    }
-  }
+    // Check each pair of adjacent sections
+    for (let i = 0; i < currentPositions.length - 1; i++) {
+      const currentPos = currentPositions[i];
+      const nextPos = currentPositions[i + 1];
 
-  private checkSummaryNearTop(order: string[], issues: ValidationIssue[]): void {
-    const summaryIndex = order.indexOf('SUMMARY');
+      // If a section with higher recommended position appears before one with lower
+      if (currentPos > nextPos && currentPos !== maxPosition && nextPos !== maxPosition) {
+        const currentKind = currentOrder[i];
+        const nextKind = currentOrder[i + 1];
 
-    if (summaryIndex > 2) {
-      issues.push({
-        code: 'SUMMARY_TOO_LATE_SEMANTIC',
-        message: 'SUMMARY should appear near the top of the resume',
-        severity: ValidationSeverity.INFO,
-        suggestion: 'Move summary section to the top, after personal info',
-      });
+        issues.push({
+          code: 'SECTION_ORDER_MISMATCH',
+          message: `${currentKind} (recommended position ${currentPos}) appears before ${nextKind} (recommended position ${nextPos})`,
+          severity: ValidationSeverity.INFO,
+          suggestion: `Consider reordering sections to match recommended order`,
+        });
+      }
     }
   }
 }

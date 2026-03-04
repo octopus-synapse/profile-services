@@ -9,10 +9,12 @@
 
 import { Controller, MessageEvent, Param, Sse, UseGuards } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { fromEvent, map, merge, Observable } from 'rxjs';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 
 interface AnalyticsUpdateEvent {
   type: 'view' | 'ats_score';
@@ -24,6 +26,13 @@ interface AnalyticsUpdateEvent {
   };
 }
 
+@SdkExport({
+  tag: 'resume-analytics',
+  description: 'Resume Analytics Stream API',
+  requiresAuth: true,
+})
+@ApiTags('Resume Analytics Stream')
+@ApiBearerAuth()
 @Controller('v1/analytics')
 export class AnalyticsSseController {
   constructor(private readonly eventEmitter: EventEmitter2) {}
@@ -49,6 +58,10 @@ export class AnalyticsSseController {
    */
   @Sse(':resumeId/live')
   @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    summary: 'Subscribe to live analytics stream',
+    description: 'Streams view and ATS score updates for a resume in real time.',
+  })
   subscribeToResumeAnalytics(
     @CurrentUser() _user: UserPayload,
     @Param('resumeId') resumeId: string,
@@ -80,6 +93,10 @@ export class AnalyticsSseController {
    */
   @Sse(':resumeId/views')
   @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    summary: 'Subscribe to live views stream',
+    description: 'Streams only view-count updates for a resume.',
+  })
   subscribeToViews(
     @CurrentUser() _user: UserPayload,
     @Param('resumeId') resumeId: string,
@@ -99,6 +116,10 @@ export class AnalyticsSseController {
    */
   @Sse(':resumeId/ats-score')
   @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    summary: 'Subscribe to live ATS stream',
+    description: 'Streams only ATS-score updates for a resume.',
+  })
   subscribeToAtsScore(
     @CurrentUser() _user: UserPayload,
     @Param('resumeId') resumeId: string,

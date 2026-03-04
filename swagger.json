@@ -17,6 +17,10 @@
       "description": "Ats Validation API"
     },
     {
+      "name": "auth",
+      "description": "Two-Factor Authentication API"
+    },
+    {
       "name": "chat",
       "description": "Chat API"
     },
@@ -66,7 +70,7 @@
     },
     {
       "name": "platform",
-      "description": "Platform API"
+      "description": "Health Check API"
     },
     {
       "name": "resume-analytics",
@@ -85,8 +89,16 @@
       "description": "Resume CRUD operations"
     },
     {
+      "name": "search",
+      "description": "Resume Search API"
+    },
+    {
       "name": "skills",
-      "description": "Skills API"
+      "description": "Spoken Languages API"
+    },
+    {
+      "name": "social",
+      "description": "Social Activity Feed API"
     },
     {
       "name": "tech-areas",
@@ -114,7 +126,7 @@
     },
     {
       "name": "user-consent",
-      "description": "User Consent API"
+      "description": "GDPR Export API"
     },
     {
       "name": "users",
@@ -179,6 +191,29 @@
         "responses": {
           "200": {
             "description": "Export resume as LaTeX"
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required"
+          }
+        }
+      }
+    },
+    "/api/auth/2fa": {
+      "delete": {
+        "operationId": "auth_disable",
+        "tags": [
+          "auth"
+        ],
+        "summary": "Disable 2FA",
+        "description": "Disables 2FA and removes all backup codes.",
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Disable 2FA"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -512,6 +547,182 @@
           },
           "401": {
             "description": "Unauthorized - Authentication required"
+          }
+        }
+      }
+    },
+    "/api/gdpr/export": {
+      "get": {
+        "operationId": "user-consent_exportData",
+        "tags": [
+          "user-consent"
+        ],
+        "summary": "Export user data (GDPR Article 20)",
+        "description": "Exports all user data in machine-readable JSON format.",
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Export user data (GDPR Article 20)"
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required"
+          }
+        }
+      }
+    },
+    "/api/health": {
+      "get": {
+        "operationId": "platform_check",
+        "tags": [
+          "platform"
+        ],
+        "summary": "Run all health checks",
+        "responses": {
+          "200": {
+            "description": "Run all health checks"
+          }
+        }
+      }
+    },
+    "/api/health/db": {
+      "get": {
+        "operationId": "platform_checkDatabase",
+        "tags": [
+          "platform"
+        ],
+        "summary": "Run database health check",
+        "responses": {
+          "200": {
+            "description": "Run database health check"
+          }
+        }
+      }
+    },
+    "/api/health/redis": {
+      "get": {
+        "operationId": "platform_checkRedis",
+        "tags": [
+          "platform"
+        ],
+        "summary": "Run redis health check",
+        "responses": {
+          "200": {
+            "description": "Run redis health check"
+          }
+        }
+      }
+    },
+    "/api/health/storage": {
+      "get": {
+        "operationId": "platform_checkStorage",
+        "tags": [
+          "platform"
+        ],
+        "summary": "Run storage health check",
+        "responses": {
+          "200": {
+            "description": "Run storage health check"
+          }
+        }
+      }
+    },
+    "/api/health/translate": {
+      "get": {
+        "operationId": "platform_checkTranslate",
+        "tags": [
+          "platform"
+        ],
+        "summary": "Run translation service health check",
+        "responses": {
+          "200": {
+            "description": "Run translation service health check"
+          }
+        }
+      }
+    },
+    "/api/password/change": {
+      "post": {
+        "operationId": "users_handle",
+        "tags": [
+          "users"
+        ],
+        "summary": "Change password",
+        "description": "Changes the password for the authenticated user after verifying the current password.",
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangePasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Change password"
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required"
+          }
+        }
+      }
+    },
+    "/api/password/forgot": {
+      "post": {
+        "operationId": "users_handle",
+        "tags": [
+          "users"
+        ],
+        "summary": "Request password reset",
+        "description": "Sends a password reset email if the account exists. Always returns success to prevent email enumeration.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForgotPasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Request password reset"
+          }
+        }
+      }
+    },
+    "/api/password/reset": {
+      "post": {
+        "operationId": "users_handle",
+        "tags": [
+          "users"
+        ],
+        "summary": "Reset password with token",
+        "description": "Resets the user password using a valid reset token received via email.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Reset password with token"
           }
         }
       }
@@ -1224,6 +1435,241 @@
         }
       }
     },
+    "/api/search": {
+      "get": {
+        "operationId": "search_search",
+        "tags": [
+          "search"
+        ],
+        "summary": "Search public resumes",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "skills",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "location",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "minExp",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "maxExp",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Search public resumes"
+          }
+        }
+      }
+    },
+    "/api/search/similar/{id}": {
+      "get": {
+        "operationId": "search_similar",
+        "tags": [
+          "search"
+        ],
+        "summary": "Find similar resumes by resume id",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Find similar resumes by resume id"
+          }
+        }
+      }
+    },
+    "/api/search/suggestions": {
+      "get": {
+        "operationId": "search_suggestions",
+        "tags": [
+          "search"
+        ],
+        "summary": "Get search autocomplete suggestions",
+        "parameters": [
+          {
+            "name": "prefix",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Get search autocomplete suggestions"
+          }
+        }
+      }
+    },
+    "/api/v1/analytics/{resumeId}/ats-score": {
+      "get": {
+        "operationId": "resume-analytics_subscribeToAtsScore",
+        "tags": [
+          "resume-analytics"
+        ],
+        "summary": "Subscribe to live ATS stream",
+        "description": "Streams only ATS-score updates for a resume.",
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "resumeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Subscribe to live ATS stream"
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required"
+          }
+        }
+      }
+    },
+    "/api/v1/analytics/{resumeId}/live": {
+      "get": {
+        "operationId": "resume-analytics_subscribeToResumeAnalytics",
+        "tags": [
+          "resume-analytics"
+        ],
+        "summary": "Subscribe to live analytics stream",
+        "description": "Streams view and ATS score updates for a resume in real time.",
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "resumeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Subscribe to live analytics stream"
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required"
+          }
+        }
+      }
+    },
+    "/api/v1/analytics/{resumeId}/views": {
+      "get": {
+        "operationId": "resume-analytics_subscribeToViews",
+        "tags": [
+          "resume-analytics"
+        ],
+        "summary": "Subscribe to live views stream",
+        "description": "Streams only view-count updates for a resume.",
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "resumeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Subscribe to live views stream"
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required"
+          }
+        }
+      }
+    },
     "/api/v1/ats/validate": {
       "post": {
         "operationId": "ats-validation_postEndpoint",
@@ -1518,7 +1964,7 @@
         "tags": [
           "export"
         ],
-        "summary": "Export resume as DOCX document",
+        "summary": "Export resume as DOCX",
         "security": [
           {
             "JWT-auth": []
@@ -1526,7 +1972,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Export resume as DOCX document"
+            "description": "Export resume as DOCX"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -1540,7 +1986,7 @@
         "tags": [
           "export"
         ],
-        "summary": "Export resume as PDF document",
+        "summary": "Export resume as PDF",
         "security": [
           {
             "JWT-auth": []
@@ -1574,7 +2020,63 @@
         ],
         "responses": {
           "200": {
-            "description": "Export resume as PDF document"
+            "description": "Export resume as PDF"
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required"
+          }
+        }
+      }
+    },
+    "/api/v1/feed/subscribe": {
+      "get": {
+        "operationId": "social_subscribeToFeed",
+        "tags": [
+          "social"
+        ],
+        "summary": "Subscribe to activity feed stream",
+        "description": "Streams real-time feed updates for the authenticated user.",
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Subscribe to activity feed stream"
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required"
+          }
+        }
+      }
+    },
+    "/api/v1/feed/subscribe/{type}": {
+      "get": {
+        "operationId": "social_subscribeToActivityType",
+        "tags": [
+          "social"
+        ],
+        "summary": "Subscribe to activity type stream",
+        "description": "Streams real-time feed updates filtered by activity type.",
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "type",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Subscribe to activity type stream"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -2079,6 +2581,54 @@
           },
           "401": {
             "description": "Unauthorized - Authentication required"
+          }
+        }
+      }
+    },
+    "/api/v1/public/resumes/{slug}": {
+      "get": {
+        "operationId": "resumes_getPublicResume",
+        "tags": [
+          "resumes"
+        ],
+        "summary": "Get public resume by share slug",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Get public resume by share slug"
+          }
+        }
+      }
+    },
+    "/api/v1/public/resumes/{slug}/download": {
+      "get": {
+        "operationId": "resumes_downloadPublicResume",
+        "tags": [
+          "resumes"
+        ],
+        "summary": "Download public resume by share slug",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Download public resume by share slug"
           }
         }
       }
@@ -2627,6 +3177,310 @@
         }
       }
     },
+    "/api/v1/resumes/{resumeId}/sections": {
+      "get": {
+        "operationId": "resumes_listResumeSections",
+        "tags": [
+          "resumes"
+        ],
+        "summary": "List sections and items for a resume",
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "resumeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List sections and items for a resume"
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required"
+          }
+        }
+      }
+    },
+    "/api/v1/resumes/{resumeId}/sections/types": {
+      "get": {
+        "operationId": "resumes_listTypes",
+        "tags": [
+          "resumes"
+        ],
+        "summary": "List active dynamic section types",
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List active dynamic section types"
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required"
+          }
+        }
+      }
+    },
+    "/api/v1/resumes/{resumeId}/sections/{sectionTypeKey}/items": {
+      "post": {
+        "operationId": "resumes_createItem",
+        "tags": [
+          "resumes"
+        ],
+        "summary": "Create section item in a dynamic section type",
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "sectionTypeKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "resumeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SectionItemPayload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Create section item in a dynamic section type"
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required"
+          }
+        }
+      }
+    },
+    "/api/v1/resumes/{resumeId}/sections/{sectionTypeKey}/items/{itemId}": {
+      "delete": {
+        "operationId": "resumes_deleteItem",
+        "tags": [
+          "resumes"
+        ],
+        "summary": "Delete section item from a dynamic section type",
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "sectionTypeKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "resumeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Delete section item from a dynamic section type"
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "resumes_updateItem",
+        "tags": [
+          "resumes"
+        ],
+        "summary": "Update section item in a dynamic section type",
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "sectionTypeKey",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "resumeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SectionItemPayload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Update section item in a dynamic section type"
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required"
+          }
+        }
+      }
+    },
+    "/api/v1/shares": {
+      "post": {
+        "operationId": "resumes_createShare",
+        "tags": [
+          "resumes"
+        ],
+        "summary": "Create share link for a resume",
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateShare"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Create share link for a resume"
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required"
+          }
+        }
+      }
+    },
+    "/api/v1/shares/resume/{resumeId}": {
+      "get": {
+        "operationId": "resumes_listResumeShares",
+        "tags": [
+          "resumes"
+        ],
+        "summary": "List share links for a resume",
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "resumeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List share links for a resume"
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required"
+          }
+        }
+      }
+    },
+    "/api/v1/shares/{shareId}": {
+      "delete": {
+        "operationId": "resumes_deleteShare",
+        "tags": [
+          "resumes"
+        ],
+        "summary": "Delete a share link",
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "shareId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Delete a share link"
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required"
+          }
+        }
+      }
+    },
     "/api/v1/skills/manage/resume/{resumeId}": {
       "get": {
         "operationId": "skills_listSkillsForResume",
@@ -2771,6 +3625,100 @@
         }
       }
     },
+    "/api/v1/spoken-languages": {
+      "get": {
+        "operationId": "skills_findAllActiveLanguages",
+        "tags": [
+          "skills"
+        ],
+        "summary": "Get all active spoken languages",
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Get all active spoken languages"
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required"
+          }
+        }
+      }
+    },
+    "/api/v1/spoken-languages/search": {
+      "get": {
+        "operationId": "skills_searchLanguagesByName",
+        "tags": [
+          "skills"
+        ],
+        "summary": "Search spoken languages by name",
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Search spoken languages by name"
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required"
+          }
+        }
+      }
+    },
+    "/api/v1/spoken-languages/{code}": {
+      "get": {
+        "operationId": "skills_findLanguageByCode",
+        "tags": [
+          "skills"
+        ],
+        "summary": "Get spoken language by code",
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Get spoken language by code"
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required"
+          }
+        }
+      }
+    },
     "/api/v1/tech-areas": {
       "get": {
         "operationId": "tech-areas_getAreas",
@@ -2857,38 +3805,6 @@
         "responses": {
           "200": {
             "description": "Get all tech skills"
-          }
-        }
-      }
-    },
-    "/api/v1/tech-skills/search": {
-      "get": {
-        "operationId": "tech-skills_searchSkills",
-        "tags": [
-          "tech-skills"
-        ],
-        "summary": "Search tech skills",
-        "parameters": [
-          {
-            "name": "q",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Search tech skills"
           }
         }
       }
@@ -3805,7 +4721,7 @@
         "tags": [
           "users"
         ],
-        "summary": "Get user preferences (basic)",
+        "summary": "Get user preferences",
         "security": [
           {
             "JWT-auth": []
@@ -3813,7 +4729,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Get user preferences (basic)"
+            "description": "Get user preferences"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -3825,7 +4741,7 @@
         "tags": [
           "users"
         ],
-        "summary": "Update user preferences (basic)",
+        "summary": "Update user preferences",
         "security": [
           {
             "JWT-auth": []
@@ -3843,7 +4759,7 @@
         },
         "responses": {
           "200": {
-            "description": "Update user preferences (basic)"
+            "description": "Update user preferences"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -3857,7 +4773,7 @@
         "tags": [
           "users"
         ],
-        "summary": "Get all user preferences",
+        "summary": "Get full user preferences",
         "security": [
           {
             "JWT-auth": []
@@ -3865,7 +4781,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Get all user preferences"
+            "description": "Get full user preferences"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -3877,7 +4793,7 @@
         "tags": [
           "users"
         ],
-        "summary": "Update all user preferences",
+        "summary": "Update full user preferences",
         "security": [
           {
             "JWT-auth": []
@@ -3895,7 +4811,7 @@
         },
         "responses": {
           "200": {
-            "description": "Update all user preferences"
+            "description": "Update full user preferences"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -3909,7 +4825,7 @@
         "tags": [
           "users"
         ],
-        "summary": "Get current user profile",
+        "summary": "Get authenticated user profile",
         "security": [
           {
             "JWT-auth": []
@@ -3917,7 +4833,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Get current user profile"
+            "description": "Get authenticated user profile"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -3929,7 +4845,7 @@
         "tags": [
           "users"
         ],
-        "summary": "Update current user profile",
+        "summary": "Update authenticated user profile",
         "security": [
           {
             "JWT-auth": []
@@ -3947,7 +4863,7 @@
         },
         "responses": {
           "200": {
-            "description": "Update current user profile"
+            "description": "Update authenticated user profile"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -3961,7 +4877,7 @@
         "tags": [
           "users"
         ],
-        "summary": "Update username (once every 30 days)",
+        "summary": "Update username",
         "security": [
           {
             "JWT-auth": []
@@ -3979,7 +4895,7 @@
         },
         "responses": {
           "200": {
-            "description": "Update username (once every 30 days)"
+            "description": "Update username"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -3993,7 +4909,7 @@
         "tags": [
           "users"
         ],
-        "summary": "Check if a username is available",
+        "summary": "Check username availability",
         "security": [
           {
             "JWT-auth": []
@@ -4011,7 +4927,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Check if a username is available"
+            "description": "Check username availability"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -4058,7 +4974,7 @@
         "tags": [
           "users"
         ],
-        "summary": "Get a user",
+        "summary": "Get public profile by username",
         "security": [
           {
             "JWT-auth": []
@@ -4076,7 +4992,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Get a user"
+            "description": "Get public profile by username"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -4236,6 +5152,34 @@
           "generatedAt"
         ]
       },
+      "AuditLogDto": {
+        "type": "object",
+        "properties": {
+          "ipAddress": {
+            "type": "string",
+            "nullable": true
+          },
+          "action": {
+            "type": "string"
+          },
+          "entityType": {
+            "type": "string"
+          },
+          "entityId": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "ipAddress",
+          "action",
+          "entityType",
+          "entityId",
+          "createdAt"
+        ]
+      },
       "AwardItemDto": {
         "type": "object",
         "properties": {
@@ -4378,6 +5322,25 @@
           "items"
         ]
       },
+      "ChangePasswordDto": {
+        "type": "object",
+        "properties": {
+          "currentPassword": {
+            "type": "string",
+            "example": "oldPassword123",
+            "description": "Current password"
+          },
+          "newPassword": {
+            "type": "string",
+            "example": "NewSecurePassword123",
+            "description": "New password (min 8 chars, 1 uppercase, 1 lowercase, 1 number)"
+          }
+        },
+        "required": [
+          "currentPassword",
+          "newPassword"
+        ]
+      },
       "ChatMessageDataDto": {
         "type": "object",
         "properties": {
@@ -4446,6 +5409,35 @@
         },
         "required": [
           "resumeId"
+        ]
+      },
+      "ConsentDto": {
+        "type": "object",
+        "properties": {
+          "ipAddress": {
+            "type": "string",
+            "nullable": true
+          },
+          "userAgent": {
+            "type": "string",
+            "nullable": true
+          },
+          "documentType": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "acceptedAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "ipAddress",
+          "userAgent",
+          "documentType",
+          "version",
+          "acceptedAt"
         ]
       },
       "ConsentRecordDto": {
@@ -4583,6 +5575,24 @@
         "required": [
           "title",
           "title"
+        ]
+      },
+      "CreateShare": {
+        "type": "object",
+        "properties": {
+          "resumeId": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "resumeId",
+          "resumeId"
         ]
       },
       "CreateSkillInput": {
@@ -4898,6 +5908,49 @@
           "items"
         ]
       },
+      "ExportDataResponseDto": {
+        "type": "object",
+        "properties": {
+          "exportedAt": {
+            "type": "string",
+            "example": "2024-01-01T00:00:00.000Z",
+            "description": "Timestamp when the export was generated"
+          },
+          "dataRetentionPolicy": {
+            "type": "string",
+            "description": "Data retention policy explanation"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserDataDto"
+          },
+          "consents": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConsentDto"
+            }
+          },
+          "resumes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ResumeDto"
+            }
+          },
+          "auditLogs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AuditLogDto"
+            }
+          }
+        },
+        "required": [
+          "exportedAt",
+          "dataRetentionPolicy",
+          "user",
+          "consents",
+          "resumes",
+          "auditLogs"
+        ]
+      },
       "ExportFormatResponseDto": {
         "type": "object",
         "properties": {
@@ -4943,6 +5996,19 @@
         "required": [
           "text",
           "error"
+        ]
+      },
+      "ForgotPasswordDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "user@example.com",
+            "description": "Email address to send reset link"
+          }
+        },
+        "required": [
+          "email"
         ]
       },
       "ForkTheme": {
@@ -5068,6 +6134,32 @@
           "timestamp": {
             "type": "string",
             "example": "2024-01-01T00:00:00.000Z"
+          }
+        },
+        "required": [
+          "status"
+        ]
+      },
+      "HealthCheckResultDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "error",
+              "shutting_down"
+            ],
+            "example": "ok"
+          },
+          "info": {
+            "type": "string"
+          },
+          "error": {
+            "type": "string"
+          },
+          "details": {
+            "type": "string"
           }
         },
         "required": [
@@ -6548,6 +7640,40 @@
           "username"
         ]
       },
+      "PublicResumeDataDto": {
+        "type": "object",
+        "properties": {
+          "resume": {
+            "type": "string",
+            "nullable": true
+          },
+          "share": {
+            "$ref": "#/components/schemas/PublicShareInfoDto"
+          }
+        },
+        "required": [
+          "resume",
+          "share"
+        ]
+      },
+      "PublicShareInfoDto": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string",
+            "example": "my-resume-share"
+          },
+          "expiresAt": {
+            "type": "string",
+            "example": "2026-12-31T23:59:59.000Z",
+            "nullable": true
+          }
+        },
+        "required": [
+          "slug",
+          "expiresAt"
+        ]
+      },
       "PublicationItemDto": {
         "type": "object",
         "properties": {
@@ -6648,6 +7774,25 @@
         "required": [
           "type",
           "items"
+        ]
+      },
+      "ResetPasswordDto": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "example": "abc123def456",
+            "description": "Password reset token from email"
+          },
+          "newPassword": {
+            "type": "string",
+            "example": "NewSecurePassword123",
+            "description": "New password (min 8 chars, 1 uppercase, 1 lowercase, 1 number)"
+          }
+        },
+        "required": [
+          "token",
+          "newPassword"
         ]
       },
       "ResolvedBoxStyleDto": {
@@ -6786,6 +7931,50 @@
           "resume"
         ]
       },
+      "ResumeDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "slug": {
+            "type": "string",
+            "nullable": true
+          },
+          "sections": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ResumeSectionDto"
+            }
+          },
+          "id": {
+            "type": "string"
+          },
+          "isPublic": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          },
+          "personalInfo": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "slug",
+          "sections",
+          "id",
+          "isPublic",
+          "createdAt",
+          "updatedAt",
+          "personalInfo"
+        ]
+      },
       "ResumeFullResponseDto": {
         "type": "object",
         "properties": {
@@ -6815,6 +8004,33 @@
         },
         "required": [
           "resumeSections"
+        ]
+      },
+      "ResumeItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "order": {
+            "type": "number"
+          },
+          "content": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "order",
+          "content",
+          "createdAt",
+          "updatedAt"
         ]
       },
       "ResumeListDataDto": {
@@ -6897,6 +8113,51 @@
           "updatedAt"
         ]
       },
+      "ResumeSectionDeleteDataDto": {
+        "type": "object",
+        "properties": {
+          "deleted": {
+            "type": "boolean",
+            "example": "true"
+          }
+        },
+        "required": [
+          "deleted"
+        ]
+      },
+      "ResumeSectionDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ResumeItemDto"
+            }
+          },
+          "sectionTypeKey": {
+            "type": "string"
+          },
+          "semanticKind": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "items",
+          "sectionTypeKey",
+          "semanticKind"
+        ]
+      },
+      "ResumeSectionItemDataDto": {
+        "type": "object",
+        "properties": {
+          "item": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "item"
+        ]
+      },
       "ResumeSectionItemResponseDto": {
         "type": "object",
         "properties": {
@@ -6973,6 +8234,34 @@
         "required": [
           "id",
           "key"
+        ]
+      },
+      "ResumeSectionTypesDataDto": {
+        "type": "object",
+        "properties": {
+          "sectionTypes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "sectionTypes"
+        ]
+      },
+      "ResumeSectionsDataDto": {
+        "type": "object",
+        "properties": {
+          "sections": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "sections"
         ]
       },
       "ResumeSkillDataDto": {
@@ -7077,6 +8366,120 @@
           "completedSteps"
         ]
       },
+      "SearchResultItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "clxyz123"
+          },
+          "userId": {
+            "type": "string",
+            "example": "user123"
+          },
+          "fullName": {
+            "type": "string",
+            "nullable": true
+          },
+          "jobTitle": {
+            "type": "string",
+            "nullable": true
+          },
+          "summary": {
+            "type": "string",
+            "nullable": true
+          },
+          "slug": {
+            "type": "string",
+            "example": "john-doe",
+            "nullable": true
+          },
+          "location": {
+            "type": "string",
+            "nullable": true
+          },
+          "profileViews": {
+            "type": "number",
+            "example": "150"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2024-01-01T00:00:00.000Z"
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": "["
+          },
+          "rank": {
+            "type": "number",
+            "example": "0.95"
+          }
+        },
+        "required": [
+          "id",
+          "userId",
+          "fullName",
+          "jobTitle",
+          "summary",
+          "slug",
+          "location",
+          "profileViews",
+          "createdAt"
+        ]
+      },
+      "SearchResultsResponseDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SearchResultItemDto"
+            }
+          },
+          "total": {
+            "type": "number",
+            "example": "100"
+          },
+          "page": {
+            "type": "number",
+            "example": "1"
+          },
+          "limit": {
+            "type": "number",
+            "example": "20"
+          },
+          "totalPages": {
+            "type": "number",
+            "example": "5"
+          }
+        },
+        "required": [
+          "data",
+          "total",
+          "page",
+          "limit",
+          "totalPages"
+        ]
+      },
+      "SearchSuggestionsResponseDto": {
+        "type": "object",
+        "properties": {
+          "suggestions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": "["
+          }
+        },
+        "required": [
+          "suggestions"
+        ]
+      },
       "SectionBatch": {
         "type": "object",
         "properties": {
@@ -7107,6 +8510,10 @@
         "required": [
           "itemId"
         ]
+      },
+      "SectionItemPayload": {
+        "type": "object",
+        "properties": {}
       },
       "SectionReorder": {
         "type": "object",
@@ -7176,6 +8583,90 @@
           "types"
         ]
       },
+      "ShareCreateDataDto": {
+        "type": "object",
+        "properties": {
+          "share": {
+            "$ref": "#/components/schemas/ShareLinkDataDto"
+          }
+        },
+        "required": [
+          "share"
+        ]
+      },
+      "ShareDeleteDataDto": {
+        "type": "object",
+        "properties": {
+          "deleted": {
+            "type": "boolean",
+            "example": "true"
+          }
+        },
+        "required": [
+          "deleted"
+        ]
+      },
+      "ShareLinkDataDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "share-1"
+          },
+          "slug": {
+            "type": "string",
+            "example": "my-resume"
+          },
+          "resumeId": {
+            "type": "string",
+            "example": "resume-1"
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": "true"
+          },
+          "hasPassword": {
+            "type": "boolean",
+            "example": "false"
+          },
+          "expiresAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "publicUrl": {
+            "type": "string",
+            "example": "/api/v1/public/resumes/my-resume"
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "resumeId",
+          "isActive",
+          "hasPassword",
+          "expiresAt",
+          "createdAt",
+          "publicUrl"
+        ]
+      },
+      "ShareListDataDto": {
+        "type": "object",
+        "properties": {
+          "shares": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ShareLinkDataDto"
+            }
+          }
+        },
+        "required": [
+          "shares"
+        ]
+      },
       "SharedResumesListDataDto": {
         "type": "object",
         "properties": {
@@ -7197,6 +8688,21 @@
           "role",
           "invitedAt",
           "id"
+        ]
+      },
+      "SimilarResumesResponseDto": {
+        "type": "object",
+        "properties": {
+          "resumes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SearchResultItemDto"
+            },
+            "example": "[]"
+          }
+        },
+        "required": [
+          "resumes"
         ]
       },
       "SkillItemDto": {
@@ -7240,6 +8746,47 @@
         "required": [
           "type",
           "items"
+        ]
+      },
+      "SpokenLanguageDataDto": {
+        "type": "object",
+        "properties": {
+          "language": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "language",
+          "code",
+          "name"
+        ]
+      },
+      "SpokenLanguagesListDataDto": {
+        "type": "object",
+        "properties": {
+          "languages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "languages",
+          "code",
+          "name"
         ]
       },
       "SummarySectionDataDto": {
@@ -7921,6 +9468,44 @@
         "required": [
           "url",
           "key"
+        ]
+      },
+      "UserDataDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "username": {
+            "type": "string",
+            "nullable": true
+          },
+          "id": {
+            "type": "string"
+          },
+          "hasCompletedOnboarding": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "name",
+          "username",
+          "id",
+          "hasCompletedOnboarding",
+          "createdAt",
+          "updatedAt"
         ]
       },
       "UserDetailsDataDto": {

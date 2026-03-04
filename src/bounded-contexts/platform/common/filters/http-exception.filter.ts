@@ -63,8 +63,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       });
     }
 
-    const status =
-      exception instanceof HttpException ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
+    const status = this.getStatusCode(exception);
 
     const apiErrorResponse = this.toApiErrorResponse(exception, request, status);
 
@@ -224,5 +223,27 @@ export class AllExceptionsFilter implements ExceptionFilter {
       // Successful responses logged at info level
       this.logger.log(`Request handled: ${errorMessage}`, context, metadata);
     }
+  }
+
+  /**
+   * Determines the HTTP status code from the exception.
+   * Checks HttpException, domain exceptions with statusHint, and defaults to 500.
+   */
+  private getStatusCode(exception: unknown): number {
+    if (exception instanceof HttpException) {
+      return exception.getStatus();
+    }
+
+    // Check for domain exceptions with statusHint
+    if (
+      exception &&
+      typeof exception === 'object' &&
+      'statusHint' in exception &&
+      typeof (exception as { statusHint: unknown }).statusHint === 'number'
+    ) {
+      return (exception as { statusHint: number }).statusHint;
+    }
+
+    return HttpStatus.INTERNAL_SERVER_ERROR;
   }
 }

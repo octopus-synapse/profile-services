@@ -3,6 +3,7 @@ import { ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger';
 import { HealthCheck, HealthCheckService } from '@nestjs/terminus';
 import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { type DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import {
   DatabaseHealthIndicator,
@@ -26,6 +27,11 @@ export class HealthCheckResultDto {
   details?: Record<string, { status: string }>;
 }
 
+@SdkExport({
+  tag: 'platform',
+  description: 'Health Check API',
+  requiresAuth: false,
+})
 @ApiTags('health')
 @Controller('health')
 export class HealthController {

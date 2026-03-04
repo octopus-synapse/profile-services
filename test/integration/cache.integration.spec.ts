@@ -123,7 +123,7 @@ describe('Cache Integration', () => {
 
       // First fetch
       const firstFetch = await getRequest()
-        .get('/api/v1/auth/me')
+        .get('/api/v1/users/profile')
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(firstFetch.status).toBe(200);
@@ -131,7 +131,7 @@ describe('Cache Integration', () => {
 
       // Second fetch
       const secondFetch = await getRequest()
-        .get('/api/v1/auth/me')
+        .get('/api/v1/users/profile')
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(secondFetch.status).toBe(200);

@@ -6,12 +6,9 @@ import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service
 import type { OnboardingProgress } from '@/shared-kernel';
 import { ERROR_MESSAGES } from '@/shared-kernel';
 import { type OnboardingData, onboardingDataSchema } from './schemas/onboarding.schema';
-import { EducationOnboardingService } from './services/education-onboarding.service';
-import { ExperienceOnboardingService } from './services/experience-onboarding.service';
-import { LanguagesOnboardingService } from './services/languages-onboarding.service';
 import { OnboardingProgressService } from './services/onboarding-progress.service';
 import { ResumeOnboardingService } from './services/resume-onboarding.service';
-import { SkillsOnboardingService } from './services/skills-onboarding.service';
+import { ResumeSectionOnboardingService } from './services/resume-section-onboarding.service';
 
 @Injectable()
 export class OnboardingService {
@@ -20,10 +17,7 @@ export class OnboardingService {
     private readonly logger: AppLoggerService,
     private readonly auditLog: AuditLogService,
     private readonly resumeService: ResumeOnboardingService,
-    private readonly skillsService: SkillsOnboardingService,
-    private readonly experienceService: ExperienceOnboardingService,
-    private readonly educationService: EducationOnboardingService,
-    private readonly languagesService: LanguagesOnboardingService,
+    private readonly sectionService: ResumeSectionOnboardingService,
     private readonly progressService: OnboardingProgressService,
   ) {}
 
@@ -47,13 +41,17 @@ export class OnboardingService {
             resumeId: resume.id,
           });
 
-          // Save all sections in parallel
-          await Promise.all([
-            this.skillsService.saveSkillsWithTx(tx, resume.id, validatedData),
-            this.experienceService.saveExperiencesWithTx(tx, resume.id, validatedData),
-            this.educationService.saveEducationWithTx(tx, resume.id, validatedData),
-            this.languagesService.saveLanguagesWithTx(tx, resume.id, validatedData),
-          ]);
+          // Save all sections - generic sections format
+          // Each section is processed independently, no hardcoded section types
+          for (const section of validatedData.sections) {
+            if (!section.noData && section.items.length > 0) {
+              await this.sectionService.replaceSectionItems(tx, {
+                resumeId: resume.id,
+                sectionTypeKey: section.sectionTypeKey,
+                items: section.items.map((item) => item.content as Prisma.InputJsonValue),
+              });
+            }
+          }
 
           // Mark onboarding complete and update username
           await this.markOnboardingCompleteWithTx(tx, user.id, validatedData);

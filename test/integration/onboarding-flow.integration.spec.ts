@@ -139,7 +139,7 @@ describe('Complete Onboarding Flow', () => {
     });
 
     it('should create account with valid credentials', async () => {
-      const response = await getRequest().post('/api/v1/auth/signup').send({
+      const response = await getRequest().post('/api/accounts').send({
         email: testEmail,
         password: 'SecurePass123!',
         name: 'Test User',
@@ -156,7 +156,7 @@ describe('Complete Onboarding Flow', () => {
 
     it('should reject signup with existing email', async () => {
       // First signup
-      const first = await getRequest().post('/api/v1/auth/signup').send({
+      const first = await getRequest().post('/api/accounts').send({
         email: testEmail,
         password: 'SecurePass123!',
         name: 'First User',
@@ -165,7 +165,7 @@ describe('Complete Onboarding Flow', () => {
       userId = first.body.data?.user?.id;
 
       // Second signup with same email
-      const response = await getRequest().post('/api/v1/auth/signup').send({
+      const response = await getRequest().post('/api/accounts').send({
         email: testEmail,
         password: 'DifferentPass123!',
         name: 'Second User',
@@ -176,7 +176,7 @@ describe('Complete Onboarding Flow', () => {
 
     it('should reject signup with weak password', async () => {
       const response = await getRequest()
-        .post('/api/v1/auth/signup')
+        .post('/api/accounts')
         .send({
           email: uniqueEmail('weak-pass'),
           password: '123',
@@ -188,7 +188,7 @@ describe('Complete Onboarding Flow', () => {
     });
 
     it('should reject signup with invalid email format', async () => {
-      const response = await getRequest().post('/api/v1/auth/signup').send({
+      const response = await getRequest().post('/api/accounts').send({
         email: 'not-an-email',
         password: 'SecurePass123!',
         name: 'Invalid Email User',
@@ -199,7 +199,7 @@ describe('Complete Onboarding Flow', () => {
     });
 
     it('should reject signup without required fields', async () => {
-      const response = await getRequest().post('/api/v1/auth/signup').send({});
+      const response = await getRequest().post('/api/accounts').send({});
 
       // 400 or 422 for validation error
       expect([400, 422]).toContain(response.status);
@@ -214,7 +214,7 @@ describe('Complete Onboarding Flow', () => {
     beforeEach(async () => {
       // Generate unique email for each test
       testEmail = `email-verify-${Date.now()}-${Math.random().toString(36).slice(2)}@test.com`;
-      const signupRes = await getRequest().post('/api/v1/auth/signup').send({
+      const signupRes = await getRequest().post('/api/accounts').send({
         email: testEmail,
         password: 'SecurePass123!',
         name: 'Email Verify User',
@@ -237,7 +237,7 @@ describe('Complete Onboarding Flow', () => {
 
     it('should request email verification', async () => {
       const response = await getRequest()
-        .post('/api/v1/auth/verify-email/request')
+        .post('/api/email-verification/send')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({}); // Send empty body - email should be taken from token
 
@@ -269,7 +269,7 @@ describe('Complete Onboarding Flow', () => {
 
     beforeEach(async () => {
       const signupRes = await getRequest()
-        .post('/api/v1/auth/signup')
+        .post('/api/accounts')
         .send({
           email: uniqueEmail('tos'),
           password: 'SecurePass123!',
@@ -323,7 +323,7 @@ describe('Complete Onboarding Flow', () => {
 
     beforeEach(async () => {
       const signupRes = await getRequest()
-        .post('/api/v1/auth/signup')
+        .post('/api/accounts')
         .send({
           email: uniqueEmail('status'),
           password: 'SecurePass123!',
@@ -369,7 +369,7 @@ describe('Complete Onboarding Flow', () => {
 
     beforeEach(async () => {
       const signupRes = await getRequest()
-        .post('/api/v1/auth/signup')
+        .post('/api/accounts')
         .send({
           email: uniqueEmail('progress'),
           password: 'SecurePass123!',
@@ -559,7 +559,7 @@ describe('Complete Onboarding Flow', () => {
 
     beforeEach(async () => {
       const signupRes = await getRequest()
-        .post('/api/v1/auth/signup')
+        .post('/api/accounts')
         .send({
           email: uniqueEmail('complete'),
           password: 'SecurePass123!',
@@ -645,7 +645,7 @@ describe('Complete Onboarding Flow', () => {
 
       // Create another user
       const signup2 = await getRequest()
-        .post('/api/v1/auth/signup')
+        .post('/api/accounts')
         .send({
           email: uniqueEmail('second'),
           password: 'SecurePass123!',
@@ -714,7 +714,7 @@ describe('Complete Onboarding Flow', () => {
 
     beforeAll(async () => {
       const signupRes = await getRequest()
-        .post('/api/v1/auth/signup')
+        .post('/api/accounts')
         .send({
           email: uniqueEmail('verify'),
           password: 'SecurePass123!',
@@ -803,7 +803,7 @@ describe('Complete Onboarding Flow', () => {
 
     beforeEach(async () => {
       const signupRes = await getRequest()
-        .post('/api/v1/auth/signup')
+        .post('/api/accounts')
         .send({
           email: uniqueEmail('edge'),
           password: 'SecurePass123!',

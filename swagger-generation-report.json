@@ -1,10 +1,11 @@
 {
   "success": true,
-  "controllers": 37,
-  "endpoints": 144,
-  "schemas": 186,
+  "controllers": 50,
+  "endpoints": 174,
+  "schemas": 215,
   "tags": [
     "resume-analytics",
+    "search",
     "ats-validation",
     "chat---block-users",
     "chat",
@@ -13,6 +14,7 @@
     "export",
     "user-consent",
     "users",
+    "auth",
     "resume-import",
     "github",
     "mec-courses",
@@ -23,21 +25,34 @@
     "onboarding",
     "enums",
     "platform",
+    "resumes",
     "themes",
     "resume-config",
-    "resumes",
     "skills",
     "tech-areas",
     "tech-niches",
     "tech-skills",
+    "social",
     "translation"
   ],
   "details": [
+    {
+      "controller": "AnalyticsSseController",
+      "tag": "resume-analytics",
+      "endpoints": 3,
+      "file": "bounded-contexts/analytics/resume-analytics/controllers/analytics-sse.controller.ts"
+    },
     {
       "controller": "ResumeAnalyticsController",
       "tag": "resume-analytics",
       "endpoints": 10,
       "file": "bounded-contexts/analytics/resume-analytics/controllers/resume-analytics.controller.ts"
+    },
+    {
+      "controller": "SearchController",
+      "tag": "search",
+      "endpoints": 3,
+      "file": "bounded-contexts/analytics/search/search.controller.ts"
     },
     {
       "controller": "ATSController",
@@ -104,6 +119,36 @@
       "tag": "user-consent",
       "endpoints": 1,
       "file": "bounded-contexts/identity/account-lifecycle/modules/accept-consent/accept-consent.controller.ts"
+    },
+    {
+      "controller": "ExportDataController",
+      "tag": "user-consent",
+      "endpoints": 1,
+      "file": "bounded-contexts/identity/account-lifecycle/modules/export-data/export-data.controller.ts"
+    },
+    {
+      "controller": "ChangePasswordController",
+      "tag": "users",
+      "endpoints": 1,
+      "file": "bounded-contexts/identity/password-management/modules/change-password/change-password.controller.ts"
+    },
+    {
+      "controller": "ForgotPasswordController",
+      "tag": "users",
+      "endpoints": 1,
+      "file": "bounded-contexts/identity/password-management/modules/forgot-password/forgot-password.controller.ts"
+    },
+    {
+      "controller": "ResetPasswordController",
+      "tag": "users",
+      "endpoints": 1,
+      "file": "bounded-contexts/identity/password-management/modules/reset-password/reset-password.controller.ts"
+    },
+    {
+      "controller": "Disable2faController",
+      "tag": "auth",
+      "endpoints": 1,
+      "file": "bounded-contexts/identity/two-factor-auth/modules/disable-2fa/disable-2fa.controller.ts"
     },
     {
       "controller": "UserManagementController",
@@ -190,6 +235,24 @@
       "file": "bounded-contexts/platform/common/controllers/platform-stats.controller.ts"
     },
     {
+      "controller": "HealthController",
+      "tag": "platform",
+      "endpoints": 5,
+      "file": "bounded-contexts/platform/health/health.controller.ts"
+    },
+    {
+      "controller": "PublicResumeController",
+      "tag": "resumes",
+      "endpoints": 2,
+      "file": "bounded-contexts/presentation/public-resumes/controllers/public-resume.controller.ts"
+    },
+    {
+      "controller": "ShareManagementController",
+      "tag": "resumes",
+      "endpoints": 3,
+      "file": "bounded-contexts/presentation/public-resumes/controllers/share-management.controller.ts"
+    },
+    {
       "controller": "PublicThemeController",
       "tag": "themes",
       "endpoints": 4,
@@ -214,6 +277,12 @@
       "file": "bounded-contexts/presentation/themes/controllers/user-theme.controller.ts"
     },
     {
+      "controller": "GenericResumeSectionsController",
+      "tag": "resumes",
+      "endpoints": 5,
+      "file": "bounded-contexts/resumes/resumes/controllers/generic-resume-sections.controller.ts"
+    },
+    {
       "controller": "ResumeManagementController",
       "tag": "resumes",
       "endpoints": 3,
@@ -232,6 +301,12 @@
       "file": "bounded-contexts/skills-catalog/skills/controllers/skill-management.controller.ts"
     },
     {
+      "controller": "SpokenLanguagesController",
+      "tag": "skills",
+      "endpoints": 3,
+      "file": "bounded-contexts/skills-catalog/spoken-languages/spoken-languages.controller.ts"
+    },
+    {
       "controller": "TechAreaController",
       "tag": "tech-areas",
       "endpoints": 2,
@@ -246,8 +321,14 @@
     {
       "controller": "TechSkillController",
       "tag": "tech-skills",
-      "endpoints": 3,
+      "endpoints": 2,
       "file": "bounded-contexts/skills-catalog/tech-skills/controllers/tech-skill.controller.ts"
+    },
+    {
+      "controller": "ActivityFeedSseController",
+      "tag": "social",
+      "endpoints": 2,
+      "file": "bounded-contexts/social/social/controllers/activity-feed-sse.controller.ts"
     },
     {
       "controller": "TranslationController",

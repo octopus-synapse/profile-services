@@ -1,22 +1,66 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { z } from 'zod';
 import {
+  type SectionDefinition,
   SectionDefinitionSchema,
   type SectionFieldDefinition,
 } from '@/shared-kernel/dtos/semantic-sections.dto';
 
+/**
+ * Factory that dynamically builds Zod validation schemas from SectionType definitions.
+ *
+ * This is a core component of the section-agnostic architecture:
+ * - Code doesn't know what "experience" or "education" fields are
+ * - All field knowledge comes from SectionType.definition (DB)
+ * - Validation rules are driven by the definition, not hardcoded
+ */
 @Injectable()
 export class SectionDefinitionZodFactory {
+  private readonly schemaCache = new Map<string, z.ZodType<Record<string, unknown>>>();
+
+  /**
+   * Build a Zod schema from a section definition.
+   * Results are cached by definition content hash for performance.
+   */
   buildSchema(definition: unknown): z.ZodType<Record<string, unknown>> {
     const parsed = SectionDefinitionSchema.safeParse(definition);
     if (!parsed.success) {
       throw new BadRequestException('Invalid section type definition');
     }
 
+    // Cache by content hash to handle same kind with different fields
+    const cacheKey = this.computeCacheKey(parsed.data);
+    const cached = this.schemaCache.get(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const schema = this.buildSchemaFromParsed(parsed.data);
+    this.schemaCache.set(cacheKey, schema);
+    return schema;
+  }
+
+  /**
+   * Compute a cache key from definition content.
+   */
+  private computeCacheKey(definition: SectionDefinition): string {
+    // Use full JSON for deterministic caching - different field definitions = different schema
+    return JSON.stringify({
+      kind: definition.kind,
+      version: definition.schemaVersion,
+      fields: definition.fields,
+    });
+  }
+
+  /**
+   * Build schema from already-parsed definition.
+   * Use when you've already validated the definition.
+   */
+  buildSchemaFromParsed(definition: SectionDefinition): z.ZodType<Record<string, unknown>> {
     const shape: Record<string, z.ZodTypeAny> = {};
     const uniqueKeys = new Set<string>();
 
-    for (const field of parsed.data.fields) {
+    for (const field of definition.fields) {
       if (!field.key) {
         throw new BadRequestException('Top-level section fields must define a key');
       }
@@ -32,6 +76,43 @@ export class SectionDefinitionZodFactory {
     }
 
     return z.object(shape) as z.ZodType<Record<string, unknown>>;
+  }
+
+  /**
+   * Validate content against a section definition.
+   * Returns validation result with detailed errors.
+   */
+  validateContent(
+    definition: unknown,
+    content: unknown,
+  ): { success: true; data: Record<string, unknown> } | { success: false; errors: z.ZodError } {
+    const schema = this.buildSchema(definition);
+    const result = schema.safeParse(content);
+
+    if (result.success) {
+      return { success: true, data: result.data };
+    }
+
+    return { success: false, errors: result.error };
+  }
+
+  /**
+   * Clear the schema cache.
+   * Call when section type definitions are updated.
+   */
+  clearCache(): void {
+    this.schemaCache.clear();
+  }
+
+  /**
+   * Clear cache for a specific section kind.
+   */
+  clearCacheForKind(kind: string): void {
+    for (const key of this.schemaCache.keys()) {
+      if (key.includes(`"kind":"${kind}"`)) {
+        this.schemaCache.delete(key);
+      }
+    }
   }
 
   private buildFieldSchema(field: SectionFieldDefinition, allowOptional: boolean): z.ZodTypeAny {
@@ -96,7 +177,21 @@ export class SectionDefinitionZodFactory {
       return z.array(z.unknown());
     }
 
-    return z.array(this.buildFieldSchema(field.items, false));
+    let arraySchema = z.array(this.buildFieldSchema(field.items, false));
+
+    // Apply array constraints from meta
+    const minItems = this.parseNumber(field.meta?.minItems);
+    const maxItems = this.parseNumber(field.meta?.maxItems);
+
+    if (minItems !== undefined) {
+      arraySchema = arraySchema.min(minItems);
+    }
+
+    if (maxItems !== undefined) {
+      arraySchema = arraySchema.max(maxItems);
+    }
+
+    return arraySchema;
   }
 
   private buildObjectSchema(field: SectionFieldDefinition): z.ZodTypeAny {
@@ -127,8 +222,12 @@ export class SectionDefinitionZodFactory {
       currentSchema = currentSchema.max(maxLength);
     }
 
-    if (meta?.format === 'uri') {
+    // Support common formats
+    const format = meta?.format;
+    if (format === 'uri' || format === 'url') {
       currentSchema = currentSchema.url();
+    } else if (format === 'email') {
+      currentSchema = currentSchema.email();
     }
 
     return currentSchema;

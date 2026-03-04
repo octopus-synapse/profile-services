@@ -2,4 +2,5 @@
  * Ports - Identity Shared Kernel
  */
 
-export { EVENT_BUS_PORT, type EventBusPort } from './event-bus.port';
+export type { EventBusPort } from './event-bus.port';
+export { EVENT_BUS_PORT } from './event-bus.port';

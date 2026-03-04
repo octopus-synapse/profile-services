@@ -79,14 +79,14 @@ describe('E2E Journey 4: Public Resume (Shares)', () => {
 
       const onboardingData = createFullOnboardingData('public-resume');
       const onboardingResponse = await request(app.getHttpServer())
-        .post('/api/v1/onboarding/complete')
+        .post('/api/v1/onboarding')
         .set('Authorization', `Bearer ${testUser.token}`)
         .send(onboardingData);
 
-      expect(onboardingResponse.status).toBe(201);
-      expect(onboardingResponse.body.resumeId).toBeDefined();
+      expect(onboardingResponse.status).toBe(200);
+      expect(onboardingResponse.body.data.resumeId).toBeDefined();
 
-      resumeId = onboardingResponse.body.resumeId;
+      resumeId = onboardingResponse.body.data.resumeId;
     });
   });
 
@@ -104,17 +104,16 @@ describe('E2E Journey 4: Public Resume (Shares)', () => {
 
       expect(response.status).toBe(201);
 
-      // Based on integration test (line 63-69), response is direct object
-      // Not wrapped in data.share
-      expect(response.body.slug).toBe(shareData.slug);
-      expect(response.body.resumeId).toBe(resumeId);
-      expect(response.body.isActive).toBe(true);
-      expect(response.body.hasPassword).toBe(false);
-      expect(response.body.publicUrl).toBeDefined();
-      expect(response.body.publicUrl).toContain(shareData.slug);
+      // Response wrapped in data.share
+      expect(response.body.data.share.slug).toBe(shareData.slug);
+      expect(response.body.data.share.resumeId).toBe(resumeId);
+      expect(response.body.data.share.isActive).toBe(true);
+      expect(response.body.data.share.hasPassword).toBe(false);
+      expect(response.body.data.share.publicUrl).toBeDefined();
+      expect(response.body.data.share.publicUrl).toContain(shareData.slug);
 
-      shareSlug = response.body.slug;
-      shareId = response.body.id;
+      shareSlug = response.body.data.share.slug;
+      shareId = response.body.data.share.id;
     });
 
     it('should reject share creation without authentication', async () => {
@@ -162,8 +161,9 @@ describe('E2E Journey 4: Public Resume (Shares)', () => {
 
   describe('Step 4: Public Access', () => {
     it('should access public resume without authentication', async () => {
-      const response = await request(app.getHttpServer())
-        .get(`/api/v1/public/resumes/${shareSlug}`);
+      const response = await request(app.getHttpServer()).get(
+        `/api/v1/public/resumes/${shareSlug}`,
+      );
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
@@ -183,8 +183,9 @@ describe('E2E Journey 4: Public Resume (Shares)', () => {
 
   describe('Step 5: Public Download', () => {
     it('should access download endpoint without authentication', async () => {
-      const response = await request(app.getHttpServer())
-        .get(`/api/v1/public/resumes/${shareSlug}/download`);
+      const response = await request(app.getHttpServer()).get(
+        `/api/v1/public/resumes/${shareSlug}/download`,
+      );
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
@@ -204,16 +205,17 @@ describe('E2E Journey 4: Public Resume (Shares)', () => {
         .send(shareData);
 
       expect(response.status).toBe(201);
-      expect(response.body.hasPassword).toBe(true);
-      expect(response.body.password).toBeUndefined(); // Password not returned
+      expect(response.body.data.share.hasPassword).toBe(true);
+      expect(response.body.data.share.password).toBeUndefined(); // Password not returned
 
-      passwordProtectedSlug = response.body.slug;
-      passwordProtectedId = response.body.id;
+      passwordProtectedSlug = response.body.data.share.slug;
+      passwordProtectedId = response.body.data.share.id;
     });
 
     it('should deny access without password', async () => {
-      const response = await request(app.getHttpServer())
-        .get(`/api/v1/public/resumes/${passwordProtectedSlug}`);
+      const response = await request(app.getHttpServer()).get(
+        `/api/v1/public/resumes/${passwordProtectedSlug}`,
+      );
 
       expect(response.status).toBe(403);
       expect(response.body.success).toBe(false);
@@ -249,14 +251,15 @@ describe('E2E Journey 4: Public Resume (Shares)', () => {
         .send(shareData);
 
       expect(response.status).toBe(201);
-      expect(response.body.expiresAt).toBeDefined();
+      expect(response.body.data.share.expiresAt).toBeDefined();
 
-      expiredShareSlug = response.body.slug;
+      expiredShareSlug = response.body.data.share.slug;
     });
 
     it('should return 404 for expired share', async () => {
-      const response = await request(app.getHttpServer())
-        .get(`/api/v1/public/resumes/${expiredShareSlug}`);
+      const response = await request(app.getHttpServer()).get(
+        `/api/v1/public/resumes/${expiredShareSlug}`,
+      );
 
       expect(response.status).toBe(404);
     });
@@ -272,11 +275,12 @@ describe('E2E Journey 4: Public Resume (Shares)', () => {
 
       expect(response.status).toBe(201);
 
-      const futureSlug = response.body.slug;
+      const futureSlug = response.body.data.share.slug;
 
       // Should be accessible
-      const accessResponse = await request(app.getHttpServer())
-        .get(`/api/v1/public/resumes/${futureSlug}`);
+      const accessResponse = await request(app.getHttpServer()).get(
+        `/api/v1/public/resumes/${futureSlug}`,
+      );
 
       expect(accessResponse.status).toBe(200);
     });
@@ -290,8 +294,9 @@ describe('E2E Journey 4: Public Resume (Shares)', () => {
         data: { isActive: false },
       });
 
-      const response = await request(app.getHttpServer())
-        .get(`/api/v1/public/resumes/${shareSlug}`);
+      const response = await request(app.getHttpServer()).get(
+        `/api/v1/public/resumes/${shareSlug}`,
+      );
 
       expect([403, 404]).toContain(response.status);
 
@@ -314,8 +319,9 @@ describe('E2E Journey 4: Public Resume (Shares)', () => {
     });
 
     it('should require authentication to delete share', async () => {
-      const response = await request(app.getHttpServer())
-        .delete(`/api/v1/shares/${passwordProtectedId}`);
+      const response = await request(app.getHttpServer()).delete(
+        `/api/v1/shares/${passwordProtectedId}`,
+      );
 
       expect(response.status).toBe(401);
     });
@@ -323,8 +329,9 @@ describe('E2E Journey 4: Public Resume (Shares)', () => {
 
   describe('Step 10: Verify Deleted', () => {
     it('should return 404 when accessing deleted share', async () => {
-      const response = await request(app.getHttpServer())
-        .get(`/api/v1/public/resumes/${shareSlug}`);
+      const response = await request(app.getHttpServer()).get(
+        `/api/v1/public/resumes/${shareSlug}`,
+      );
 
       expect(response.status).toBe(404);
     });

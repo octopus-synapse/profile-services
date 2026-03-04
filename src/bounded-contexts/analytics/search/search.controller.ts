@@ -13,6 +13,7 @@ import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger';
 import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { ResumeSearchService, SearchParams } from './resume-search.service';
 
@@ -82,6 +83,11 @@ export class SimilarResumesResponseDto {
   resumes!: SearchResultItemDto[];
 }
 
+@SdkExport({
+  tag: 'search',
+  description: 'Resume Search API',
+  requiresAuth: false,
+})
 @ApiTags('search')
 @Controller('search')
 export class SearchController {

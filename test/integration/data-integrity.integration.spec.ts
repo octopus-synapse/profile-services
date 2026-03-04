@@ -121,14 +121,14 @@ describe('Data Integrity Integration', () => {
       const duplicateEmail = `duplicate-${Date.now()}@example.com`;
 
       // First registration
-      await getRequest().post('/api/v1/auth/signup').send({
+      await getRequest().post('/api/accounts').send({
         email: duplicateEmail,
         password: 'SecurePass123!',
         name: 'First User',
       });
 
       // Second registration with same email
-      const response = await getRequest().post('/api/v1/auth/signup').send({
+      const response = await getRequest().post('/api/accounts').send({
         email: duplicateEmail,
         password: 'DifferentPass123!',
         name: 'Second User',

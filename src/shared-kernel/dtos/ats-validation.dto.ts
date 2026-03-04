@@ -143,9 +143,13 @@ export const ATSScoreResultSchema = z.object({
 export type ATSScoreResult = z.infer<typeof ATSScoreResultSchema>;
 
 // ============================================================================
-// CV Section (for parsing)
+// CV Section (for parsing) - Definition-Driven
 // ============================================================================
 
+/**
+ * @deprecated Use SemanticKindSchema below instead.
+ * CVSectionTypeSchema is kept for backward compatibility during migration.
+ */
 export const CVSectionTypeSchema = z.enum([
   'personal_info',
   'summary',
@@ -162,10 +166,12 @@ export const CVSectionTypeSchema = z.enum([
   'other',
 ]);
 
+/** @deprecated Use SemanticKind string type instead */
 export type CVSectionType = z.infer<typeof CVSectionTypeSchema>;
 
 /**
- * CVSectionType as TypeScript enum for NestJS compatibility
+ * @deprecated Use SemanticKind string instead.
+ * CVSectionTypeEnum is kept for backward compatibility during migration.
  */
 export enum CVSectionTypeEnum {
   PERSONAL_INFO = 'personal_info',
@@ -183,13 +189,27 @@ export enum CVSectionTypeEnum {
   OTHER = 'other',
 }
 
+/**
+ * SemanticKind - Dynamic section type identifier.
+ * Validated as non-empty string, actual values come from SectionType definitions.
+ */
+export const SemanticKindSchema = z.string().min(1).max(100);
+export type SemanticKind = z.infer<typeof SemanticKindSchema>;
+
+/**
+ * CV Section schema with dynamic semantic kind.
+ * The semanticKind value comes from SectionType.semanticKind.
+ */
 export const CVSectionSchema = z.object({
-  type: CVSectionTypeSchema,
+  /** Semantic kind from SectionType definitions (e.g., 'experience', 'education') */
+  semanticKind: SemanticKindSchema,
   title: z.string().optional(),
   content: z.string(),
   startLine: z.number().int().nonnegative().optional(),
   endLine: z.number().int().nonnegative().optional(),
   order: z.number().int().nonnegative().optional(),
+  /** Detection confidence (0.0 - 1.0) */
+  confidence: z.number().min(0).max(1).optional(),
 });
 
 export type CVSection = z.infer<typeof CVSectionSchema>;

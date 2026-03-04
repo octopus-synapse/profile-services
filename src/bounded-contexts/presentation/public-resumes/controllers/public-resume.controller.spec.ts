@@ -5,15 +5,20 @@ import { ShareAnalyticsService } from '@/bounded-contexts/analytics/share-analyt
 import { ResumeShareService } from '../services/resume-share.service';
 
 const createShareService = () => ({
-  getBySlug: mock(() => Promise.resolve({
-    id: 'share-1',
-    slug: 'my-resume',
-    resumeId: 'resume-1',
-    password: null,
-    expiresAt: null,
-  })),
+  getBySlug: mock(() =>
+    Promise.resolve({
+      id: 'share-1',
+      slug: 'my-resume',
+      resumeId: 'resume-1',
+      isActive: true,
+      password: null,
+      expiresAt: null,
+    }),
+  ),
   verifyPassword: mock(() => Promise.resolve(true)),
-  getResumeWithCache: mock(() => Promise.resolve({ id: 'resume-1', title: 'Resume' })),
+  getResumeWithCache: mock(() =>
+    Promise.resolve({ id: 'resume-1', title: 'Resume' }),
+  ),
 });
 
 const createAnalyticsService = () => ({
@@ -45,7 +50,11 @@ describe('PublicResumeController - Contract', () => {
   });
 
   it('getPublicResume returns data with resume and share', async () => {
-    const result = await controller.getPublicResume('my-resume', undefined, mockRequest);
+    const result = await controller.getPublicResume(
+      'my-resume',
+      undefined,
+      mockRequest,
+    );
 
     expect(result.success).toBe(true);
     expect(result.data).toHaveProperty('resume');
@@ -53,7 +62,11 @@ describe('PublicResumeController - Contract', () => {
   });
 
   it('downloadPublicResume returns data with resume and share', async () => {
-    const result = await controller.downloadPublicResume('my-resume', undefined, mockRequest);
+    const result = await controller.downloadPublicResume(
+      'my-resume',
+      undefined,
+      mockRequest,
+    );
 
     expect(result.success).toBe(true);
     expect(result.data).toHaveProperty('resume');

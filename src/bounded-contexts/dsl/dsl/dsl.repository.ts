@@ -46,16 +46,24 @@ export class DslRepository {
     target: RenderTarget = 'html',
   ): Promise<{ ast: ResumeAst; slug: string }> {
     this.logger.log(`Rendering public resume: ${slug}`);
-    const resume = await this.prisma.resume.findFirst({
-      where: { slug, isPublic: true },
-      include: RESUME_RELATIONS_INCLUDE,
+    const share = await this.prisma.resumeShare.findUnique({
+      where: { slug },
+      include: {
+        resume: {
+          include: RESUME_RELATIONS_INCLUDE,
+        },
+      },
     });
 
-    if (!resume) {
+    if (!share || !share.isActive) {
       throw new BadRequestException('Resume not found or not public');
     }
 
-    const normalizedResume = this.normalizeToGenericResume(resume);
+    if (share.expiresAt && new Date() > share.expiresAt) {
+      throw new BadRequestException('Resume not found or not public');
+    }
+
+    const normalizedResume = this.normalizeToGenericResume(share.resume);
     const mergedDsl = this.buildMergedDsl(normalizedResume);
     const ast = this.compileWithResumeData(mergedDsl, normalizedResume, target);
     return { ast, slug };

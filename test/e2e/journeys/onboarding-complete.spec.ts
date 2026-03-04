@@ -67,7 +67,7 @@ describe('E2E: Onboarding Completion', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.hasCompletedOnboarding).toBe(false);
+      expect(response.body.data.hasCompletedOnboarding).toBe(false);
     });
 
     it('should complete onboarding with minimal data', async () => {
@@ -82,7 +82,7 @@ describe('E2E: Onboarding Completion', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
-      expect(response.body.resumeId).toBeDefined();
+      expect(response.body.data.resumeId).toBeDefined();
     });
 
     it('should show completed onboarding status after completion', async () => {
@@ -91,7 +91,7 @@ describe('E2E: Onboarding Completion', () => {
         .set('Authorization', `Bearer ${testUser.token}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.hasCompletedOnboarding).toBe(true);
+      expect(response.body.data.hasCompletedOnboarding).toBe(true);
     });
 
     it('should prevent duplicate onboarding completion', async () => {
@@ -131,9 +131,9 @@ describe('E2E: Onboarding Completion', () => {
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
-      expect(response.body.resumeId).toBeDefined();
+      expect(response.body.data.resumeId).toBeDefined();
 
-      createdResumeId = response.body.resumeId;
+      createdResumeId = response.body.data.resumeId;
     });
 
     it('should have created resume with sections', async () => {
@@ -145,9 +145,8 @@ describe('E2E: Onboarding Completion', () => {
       expect(response.body.data).toBeDefined();
       expect(response.body.data.id).toBe(createdResumeId);
       // Verify resume has the expected sections
-      expect(response.body.data).toHaveProperty('skills');
-      expect(response.body.data).toHaveProperty('experiences');
-      expect(response.body.data).toHaveProperty('education');
+      expect(response.body.data).toHaveProperty('resumeSections');
+      expect(Array.isArray(response.body.data.resumeSections)).toBe(true);
     });
   });
 

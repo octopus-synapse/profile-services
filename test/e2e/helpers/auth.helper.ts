@@ -48,7 +48,7 @@ export class AuthHelper {
 
     // Register
     const signupResponse = await request(this.app.getHttpServer())
-      .post('/api/v1/auth/signup')
+      .post('/api/accounts')
       .send({
         email: testUser.email,
         password: testUser.password,
@@ -61,10 +61,9 @@ export class AuthHelper {
       );
     }
 
-    // Response format: { success: true, data: { accessToken, refreshToken, user } }
+    // Response format: { success: true, data: { userId, email, message } }
     const responseData = signupResponse.body.data || signupResponse.body;
-    testUser.token = responseData.accessToken || responseData.token;
-    testUser.userId = responseData.user?.id;
+    testUser.userId = responseData.userId;
 
     // Verify email directly in database (simulates email verification)
     if (this.prisma && testUser.userId) {
@@ -91,11 +90,10 @@ export class AuthHelper {
           },
         ],
       });
-
-      // Login again to get a fresh token that reflects the updated state
-      const newToken = await this.login(testUser.email, testUser.password);
-      testUser.token = newToken;
     }
+
+    // Login to get access token
+    testUser.token = await this.login(testUser.email, testUser.password);
 
     return testUser;
   }
@@ -105,7 +103,7 @@ export class AuthHelper {
    */
   async login(email: string, password: string): Promise<string> {
     const response = await request(this.app.getHttpServer())
-      .post('/api/v1/auth/login')
+      .post('/api/auth/login')
       .send({ email, password });
 
     if (response.status !== 200) {
@@ -124,7 +122,7 @@ export class AuthHelper {
    */
   async refreshToken(token: string): Promise<string> {
     const response = await request(this.app.getHttpServer())
-      .post('/api/v1/auth/refresh')
+      .post('/api/auth/refresh')
       .set('Authorization', `Bearer ${token}`);
 
     if (response.status !== 200) {
@@ -139,7 +137,7 @@ export class AuthHelper {
    */
   async getCurrentUser(token: string) {
     const response = await request(this.app.getHttpServer())
-      .get('/api/v1/auth/me')
+      .get('/api/v1/users/profile')
       .set('Authorization', `Bearer ${token}`);
 
     return response.body;
@@ -181,7 +179,7 @@ export class AuthHelper {
    */
   async requestEmailVerification(token: string): Promise<void> {
     await request(this.app.getHttpServer())
-      .post('/api/v1/auth/verify-email/request')
+      .post('/api/email-verification/send')
       .set('Authorization', `Bearer ${token}`);
   }
 }

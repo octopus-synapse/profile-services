@@ -1,10 +1,14 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Password } from '../../../password-management/domain/value-objects';
-import { EventBusPort } from '../../../shared-kernel/ports';
+import type { EventBusPort } from '../../../shared-kernel/ports';
 import { AccountCreatedEvent } from '../../domain/events';
 import { AccountAlreadyExistsException } from '../../domain/exceptions';
-import { CreateAccountCommand, CreateAccountPort, CreateAccountResult } from '../../ports/inbound';
-import { AccountLifecycleRepositoryPort, PasswordHasherPort } from '../../ports/outbound';
+import type {
+  CreateAccountCommand,
+  CreateAccountPort,
+  CreateAccountResult,
+} from '../../ports/inbound';
+import type { AccountLifecycleRepositoryPort, PasswordHasherPort } from '../../ports/outbound';
 
 const ACCOUNT_REPOSITORY = Symbol('AccountLifecycleRepositoryPort');
 const PASSWORD_HASHER = Symbol('PasswordHasherPort');

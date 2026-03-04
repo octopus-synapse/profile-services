@@ -26,7 +26,11 @@ describe('ResumeLatexService', () => {
     },
     resumeSections: [
       {
-        sectionType: { semanticKind: 'WORK_EXPERIENCE' },
+        sectionType: {
+          key: 'experience',
+          semanticKind: 'WORK_EXPERIENCE',
+          title: 'Experience',
+        },
         items: [
           {
             content: {
@@ -42,7 +46,11 @@ describe('ResumeLatexService', () => {
         ],
       },
       {
-        sectionType: { semanticKind: 'EDUCATION' },
+        sectionType: {
+          key: 'education',
+          semanticKind: 'EDUCATION',
+          title: 'Education',
+        },
         items: [
           {
             content: {
@@ -55,14 +63,22 @@ describe('ResumeLatexService', () => {
         ],
       },
       {
-        sectionType: { semanticKind: 'SKILL_SET' },
+        sectionType: {
+          key: 'skills',
+          semanticKind: 'SKILL_SET',
+          title: 'Skills',
+        },
         items: [
           { content: { name: 'TypeScript', level: 4 } },
           { content: { name: 'Node.js', level: 3 } },
         ],
       },
       {
-        sectionType: { semanticKind: 'PROJECT' },
+        sectionType: {
+          key: 'projects',
+          semanticKind: 'PROJECT',
+          title: 'Projects',
+        },
         items: [
           {
             content: {
@@ -73,7 +89,11 @@ describe('ResumeLatexService', () => {
         ],
       },
       {
-        sectionType: { semanticKind: 'LANGUAGE' },
+        sectionType: {
+          key: 'languages',
+          semanticKind: 'LANGUAGE',
+          title: 'Languages',
+        },
         items: [{ content: { name: 'English', level: 'FLUENT' } }],
       },
     ],
@@ -146,7 +166,11 @@ describe('ResumeLatexService', () => {
         ...mockResume,
         resumeSections: [
           {
-            sectionType: { semanticKind: 'WORK_EXPERIENCE' },
+            sectionType: {
+              key: 'experience',
+              semanticKind: 'WORK_EXPERIENCE',
+              title: 'Experience',
+            },
             items: [
               {
                 content: {

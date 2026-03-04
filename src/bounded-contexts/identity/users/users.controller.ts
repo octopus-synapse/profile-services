@@ -68,7 +68,7 @@ export class UsersController {
 
   @Public()
   @Get(':username/profile')
-  @ApiOperation({ summary: "Get a user's public profile by username" })
+  @ApiOperation({ summary: 'Get public profile by username' })
   @ApiDataResponse(PublicProfileResponseDto, {
     description: 'Public profile retrieved',
   })
@@ -84,7 +84,7 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Get('profile')
-  @ApiOperation({ summary: 'Get current user profile' })
+  @ApiOperation({ summary: 'Get authenticated user profile' })
   @ApiDataResponse(UserProfileResponseDto, {
     description: 'User profile retrieved successfully',
   })
@@ -98,7 +98,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Patch('profile')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Update current user profile' })
+  @ApiOperation({ summary: 'Update authenticated user profile' })
   @ApiDataResponse(UserProfileResponseDto, {
     description: 'Profile updated successfully',
   })
@@ -112,7 +112,7 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Get('preferences')
-  @ApiOperation({ summary: 'Get user preferences (basic)' })
+  @ApiOperation({ summary: 'Get user preferences' })
   @ApiDataResponse(UserPreferencesResponseDto, {
     description: 'Preferences retrieved successfully',
   })
@@ -129,7 +129,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Patch('preferences')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Update user preferences (basic)' })
+  @ApiOperation({ summary: 'Update user preferences' })
   @ApiDataResponse(UserPreferencesResponseDto, {
     description: 'Preferences updated successfully',
   })
@@ -146,7 +146,7 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Get('preferences/full')
-  @ApiOperation({ summary: 'Get all user preferences' })
+  @ApiOperation({ summary: 'Get full user preferences' })
   @ApiDataResponse(UserFullPreferencesResponseDto, {
     description: 'Full preferences retrieved successfully',
   })
@@ -163,7 +163,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Patch('preferences/full')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Update all user preferences' })
+  @ApiOperation({ summary: 'Update full user preferences' })
   @ApiDataResponse(UserFullPreferencesResponseDto, {
     description: 'Full preferences updated successfully',
   })
@@ -184,7 +184,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Patch('username')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Update username (once every 30 days)' })
+  @ApiOperation({ summary: 'Update username' })
   @ApiDataResponse(UpdateUsernameResponseDto, {
     description: 'Username updated successfully',
   })
@@ -201,7 +201,7 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Get('username/check')
-  @ApiOperation({ summary: 'Check if a username is available' })
+  @ApiOperation({ summary: 'Check username availability' })
   @ApiQuery({
     name: 'username',
     required: true,

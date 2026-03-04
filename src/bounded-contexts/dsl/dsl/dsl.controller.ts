@@ -4,7 +4,17 @@
  * Thin layer that delegates to DslRepository
  */
 
-import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -13,6 +23,7 @@ import {
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
+import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { JwtAuthGuard, Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
@@ -62,6 +73,7 @@ export class DslController {
    */
   @Public()
   @Post('validate')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Validate DSL schema' })
   @ApiBody({ description: 'DSL object to validate' })
   @ApiDataResponse(DslValidationResultDto, {
@@ -78,6 +90,7 @@ export class DslController {
    */
   @Public()
   @Post('preview')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Compile DSL to AST (preview, no persistence)' })
   @ApiQuery({ name: 'target', enum: ['html', 'pdf'], required: false })
   @ApiBody({ description: 'DSL object to compile' })
@@ -102,12 +115,12 @@ export class DslController {
   @ApiDataResponse(DslAstResponseDto, { description: 'AST for resume' })
   @ApiQuery({ name: 'target', enum: ['html', 'pdf'], required: false })
   async render(
-    @CurrentUser('userId') userId: string,
+    @CurrentUser() user: UserPayload,
     @Param('resumeId') resumeId: string,
     @Query('target') target: RenderTarget = 'html',
   ): Promise<DataResponse<DslAstResponseDto>> {
-    const result = await this.repository.render(resumeId, userId, target);
-    return { success: true, data: result as DslAstResponseDto };
+    const result = await this.repository.render(resumeId, user.userId, target);
+    return { success: true, data: result as unknown as DslAstResponseDto };
   }
 
   /**
@@ -123,6 +136,6 @@ export class DslController {
     @Query('target') target: RenderTarget = 'html',
   ): Promise<DataResponse<DslAstResponseDto>> {
     const result = await this.repository.renderPublic(slug, target);
-    return { success: true, data: result as DslAstResponseDto };
+    return { success: true, data: result as unknown as DslAstResponseDto };
   }
 }

@@ -1,107 +1,22 @@
 import { Injectable } from '@nestjs/common';
 import {
   CVSection,
-  CVSectionType,
   ParsedCV,
   SectionValidationResult,
   ValidationIssue,
   ValidationSeverity,
 } from '../interfaces';
+import { ATSSectionTypeAdapter } from '../services/ats-section-type.adapter';
 
+/**
+ * CVSectionParser - Parses CV text and detects sections using definition-driven patterns.
+ *
+ * All section detection keywords and mandatory requirements are loaded from
+ * SectionType definitions via ATSSectionTypeAdapter. No hardcoded section knowledge.
+ */
 @Injectable()
 export class CVSectionParser {
-  private getSectionName(type: CVSectionType): string {
-    return CVSectionType[type] as string;
-  }
-
-  private readonly SECTION_PATTERNS: Record<
-    CVSectionType,
-    { keywords: string[]; aliases: string[] }
-  > = {
-    [CVSectionType.PERSONAL_INFO]: {
-      keywords: ['personal', 'contact', 'info', 'details'],
-      aliases: ['personal information', 'contact information', 'contact details', 'about me'],
-    },
-    [CVSectionType.SUMMARY]: {
-      keywords: ['summary', 'profile', 'objective', 'about'],
-      aliases: [
-        'professional summary',
-        'career summary',
-        'professional profile',
-        'career objective',
-        'objective',
-      ],
-    },
-    [CVSectionType.EXPERIENCE]: {
-      keywords: ['experience', 'employment', 'work', 'career', 'history'],
-      aliases: [
-        'work experience',
-        'professional experience',
-        'employment history',
-        'work history',
-        'career history',
-        'experience profissional',
-        'experiência',
-      ],
-    },
-    [CVSectionType.EDUCATION]: {
-      keywords: ['education', 'academic', 'qualification', 'degree'],
-      aliases: [
-        'educational background',
-        'academic background',
-        'qualifications',
-        'degrees',
-        'educação',
-        'formação',
-        'formação acadêmica',
-      ],
-    },
-    [CVSectionType.SKILLS]: {
-      keywords: ['skills', 'competencies', 'expertise', 'abilities'],
-      aliases: [
-        'technical skills',
-        'core competencies',
-        'key skills',
-        'areas of expertise',
-        'habilidades',
-        'competências',
-      ],
-    },
-    [CVSectionType.CERTIFICATIONS]: {
-      keywords: ['certification', 'certificate', 'license'],
-      aliases: [
-        'certifications',
-        'certificates',
-        'professional certifications',
-        'licenses',
-        'certificações',
-      ],
-    },
-    [CVSectionType.PROJECTS]: {
-      keywords: ['project', 'portfolio'],
-      aliases: ['projects', 'key projects', 'portfolio', 'projetos'],
-    },
-    [CVSectionType.AWARDS]: {
-      keywords: ['award', 'achievement', 'honor', 'recognition'],
-      aliases: ['awards', 'honors', 'achievements', 'recognitions', 'prêmios'],
-    },
-    [CVSectionType.PUBLICATIONS]: {
-      keywords: ['publication', 'paper', 'research'],
-      aliases: ['publications', 'research papers', 'publicações'],
-    },
-    [CVSectionType.LANGUAGES]: {
-      keywords: ['language', 'idiom'],
-      aliases: ['languages', 'language proficiency', 'idiomas'],
-    },
-    [CVSectionType.INTERESTS]: {
-      keywords: ['interest', 'hobby', 'hobbies'],
-      aliases: ['interests', 'hobbies', 'personal interests', 'interesses'],
-    },
-    [CVSectionType.REFERENCES]: {
-      keywords: ['reference'],
-      aliases: ['references', 'referências'],
-    },
-  };
+  constructor(private readonly atsSectionTypeAdapter: ATSSectionTypeAdapter) {}
 
   parseCV(text: string, fileName: string, fileType: string): ParsedCV {
     const lines = text.split('\n').map((line) => line.trim());
@@ -117,23 +32,25 @@ export class CVSectionParser {
         // Save previous section if exists
         if (currentSection !== null && currentContent.length > 0) {
           const section: CVSection = {
-            type: currentSection.type,
+            semanticKind: currentSection.semanticKind,
             title: currentSection.title,
             content: currentContent.join('\n').trim(),
             startLine: currentSection.startLine,
             endLine: index - 1,
             order: currentSection.order,
+            confidence: currentSection.confidence,
           };
           sections.push(section);
         }
 
         // Start new section
         currentSection = {
-          type: detectedSection.type,
+          semanticKind: detectedSection.semanticKind,
           title: line,
           content: '',
           startLine: index,
           order: sections.length,
+          confidence: detectedSection.confidence,
         };
         currentContent = [];
       } else if (currentSection !== null) {
@@ -148,12 +65,13 @@ export class CVSectionParser {
     const finalSection = currentSection as CVSection | null;
     if (finalSection && currentContent.length > 0) {
       sections.push({
-        type: finalSection.type,
+        semanticKind: finalSection.semanticKind,
         title: finalSection.title,
         content: currentContent.join('\n').trim(),
         startLine: finalSection.startLine ?? 0,
         endLine: lines.length - 1,
         order: finalSection.order ?? 0,
+        confidence: finalSection.confidence,
       });
     }
 
@@ -170,26 +88,19 @@ export class CVSectionParser {
 
   validateSections(parsedCV: ParsedCV): SectionValidationResult {
     const issues: ValidationIssue[] = [];
-    const detectedSectionTypes = parsedCV.sections.map((s) => s.type);
-    const detectedSections = Array.from(new Set(detectedSectionTypes)).map((type) =>
-      this.getSectionName(type),
-    );
+    const detectedSemanticKinds = parsedCV.sections.map((s) => s.semanticKind);
+    const detectedSections = Array.from(new Set(detectedSemanticKinds));
 
-    // Check for mandatory sections
-    const mandatorySections = [
-      CVSectionType.EXPERIENCE,
-      CVSectionType.EDUCATION,
-      CVSectionType.SKILLS,
-    ];
-
+    // Check for mandatory sections from SectionType definitions
+    const mandatorySections = this.atsSectionTypeAdapter.getMandatorySectionTypes();
     const missingSections = mandatorySections.filter(
-      (section) => !detectedSectionTypes.includes(section),
+      (section) => !detectedSemanticKinds.includes(section.semanticKind),
     );
 
     if (missingSections.length > 0) {
       issues.push({
         code: 'MISSING_MANDATORY_SECTIONS',
-        message: `Missing mandatory sections: ${missingSections.map((s) => this.getSectionName(s)).join(', ')}`,
+        message: `Missing mandatory sections: ${missingSections.map((s) => s.semanticKind).join(', ')}`,
         severity: ValidationSeverity.ERROR,
         suggestion:
           'Add these sections to improve ATS compatibility and provide complete information',
@@ -210,16 +121,16 @@ export class CVSectionParser {
     });
 
     // Check for duplicate sections
-    const sectionCounts = new Map<CVSectionType, number>();
-    detectedSectionTypes.forEach((type) => {
-      sectionCounts.set(type, (sectionCounts.get(type) ?? 0) + 1);
+    const sectionCounts = new Map<string, number>();
+    detectedSemanticKinds.forEach((kind) => {
+      sectionCounts.set(kind, (sectionCounts.get(kind) ?? 0) + 1);
     });
 
-    sectionCounts.forEach((count, type) => {
+    sectionCounts.forEach((count, semanticKind) => {
       if (count > 1) {
         issues.push({
           code: 'DUPLICATE_SECTION',
-          message: `Section "${this.getSectionName(type)}" appears ${count} times`,
+          message: `Section "${semanticKind}" appears ${count} times`,
           severity: ValidationSeverity.WARNING,
           suggestion: 'Combine duplicate sections into one',
         });
@@ -240,7 +151,7 @@ export class CVSectionParser {
       passed: issues.filter((i) => i.severity === ValidationSeverity.ERROR).length === 0,
       issues,
       detectedSections,
-      missingSections: missingSections.map((s) => this.getSectionName(s)),
+      missingSections: missingSections.map((s) => s.semanticKind),
       metadata: {
         totalSections: parsedCV.sections.length,
         uniqueSections: detectedSections.length,
@@ -248,57 +159,20 @@ export class CVSectionParser {
     };
   }
 
-  private detectSection(line: string): { type: CVSectionType; confidence: number } | null {
-    const normalizedLine = line.toLowerCase().trim();
+  /**
+   * Detect section type from a line using definition-driven patterns.
+   * Returns the semantic kind and confidence level.
+   */
+  private detectSection(line: string): { semanticKind: string; confidence: number } | null {
+    const result = this.atsSectionTypeAdapter.detectSectionType(line);
 
-    // Skip very short lines or lines with too many words (likely not a header)
-    if (normalizedLine.length < 3 || normalizedLine.split(/\s+/).length > 5) {
-      return null;
+    if (result) {
+      return {
+        semanticKind: result.pattern.semanticKind,
+        confidence: result.confidence,
+      };
     }
 
-    let bestMatch: { type: CVSectionType; confidence: number } | null = null;
-
-    Object.entries(this.SECTION_PATTERNS).forEach(([type, patterns]) => {
-      const sectionType = type as CVSectionType;
-
-      // Check exact alias matches first
-      const exactMatch = patterns.aliases.some((alias) => normalizedLine === alias.toLowerCase());
-
-      if (exactMatch) {
-        if (bestMatch === null) {
-          bestMatch = { type: sectionType, confidence: 1.0 };
-        } else if (bestMatch.confidence < 1.0) {
-          bestMatch = { type: sectionType, confidence: 1.0 };
-        }
-        return;
-      }
-
-      // Check if line contains section keywords
-      const keywordMatch = patterns.keywords.some((keyword) =>
-        normalizedLine.includes(keyword.toLowerCase()),
-      );
-
-      if (keywordMatch) {
-        const confidence = 0.8;
-        if (bestMatch === null) {
-          bestMatch = { type: sectionType, confidence };
-        } else if (bestMatch.confidence < confidence) {
-          bestMatch = { type: sectionType, confidence };
-        }
-      }
-    });
-
-    const finalMatch = bestMatch as {
-      type: CVSectionType;
-      confidence: number;
-    } | null;
-    if (!finalMatch) {
-      return null;
-    }
-
-    if (finalMatch.confidence >= 0.8) {
-      return finalMatch;
-    }
     return null;
   }
 }

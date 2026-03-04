@@ -2,6 +2,7 @@ import { Controller, Get, Inject, Req } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { AUDIT_LOGGER_PORT, type AuditLoggerPort } from '../../ports/outbound/audit-logger.port';
 import {
   DATA_EXPORT_REPOSITORY_PORT,
@@ -14,6 +15,7 @@ interface AuthenticatedRequest extends Request {
   user: { id: string };
 }
 
+@SdkExport({ tag: 'user-consent', description: 'GDPR Export API' })
 @ApiTags('GDPR')
 @ApiBearerAuth()
 @Controller('gdpr')

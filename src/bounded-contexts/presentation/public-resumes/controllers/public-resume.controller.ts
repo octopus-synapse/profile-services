@@ -12,10 +12,16 @@ import type { Request } from 'express';
 import { ShareAnalyticsService } from '@/bounded-contexts/analytics/share-analytics/services/share-analytics.service';
 import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { PublicResumeDataDto } from '../dto/public-resume-response.dto';
 import { ResumeShareService } from '../services/resume-share.service';
 
+@SdkExport({
+  tag: 'resumes',
+  description: 'Public Resume API',
+  requiresAuth: false,
+})
 @ApiTags('public-resumes')
 @Controller('v1/public/resumes')
 @Public() // Public endpoint - no auth required
@@ -27,7 +33,9 @@ export class PublicResumeController {
 
   @Get(':slug')
   @ApiOperation({ summary: 'Get public resume by share slug' })
-  @ApiDataResponse(PublicResumeDataDto, { description: 'Public resume returned' })
+  @ApiDataResponse(PublicResumeDataDto, {
+    description: 'Public resume returned',
+  })
   async getPublicResume(
     @Param('slug') slug: string,
     @Headers('x-share-password') password: string | undefined,
@@ -36,6 +44,10 @@ export class PublicResumeController {
     const share = await this.shareService.getBySlug(slug);
 
     if (!share) {
+      throw new NotFoundException('Resume not found');
+    }
+
+    if (!share.isActive) {
       throw new NotFoundException('Resume not found');
     }
 
@@ -99,6 +111,10 @@ export class PublicResumeController {
     const share = await this.shareService.getBySlug(slug);
 
     if (!share) {
+      throw new NotFoundException('Resume not found');
+    }
+
+    if (!share.isActive) {
       throw new NotFoundException('Resume not found');
     }
 

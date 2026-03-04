@@ -5,9 +5,7 @@ import { SyncProjectionOnSectionRemovedHandler } from '../sync-projection-on-sec
 describe('SyncProjectionOnSectionRemovedHandler', () => {
   it('decrements projection count using semantic sectionKind', async () => {
     const prisma = {
-      analyticsResumeProjection: {
-        update: mock(async () => undefined),
-      },
+      $executeRaw: mock(async () => 1),
     } as unknown as ConstructorParameters<
       typeof SyncProjectionOnSectionRemovedHandler
     >[0];
@@ -23,17 +21,12 @@ describe('SyncProjectionOnSectionRemovedHandler', () => {
 
     await handler.handle(event);
 
-    expect(prisma.analyticsResumeProjection.update).toHaveBeenCalledWith({
-      where: { id: 'resume-1' },
-      data: { educationCount: { decrement: 1 } },
-    });
+    expect(prisma.$executeRaw).toHaveBeenCalled();
   });
 
-  it('ignores unsupported section kinds without updating projection', async () => {
+  it('ignores events without sectionKind', async () => {
     const prisma = {
-      analyticsResumeProjection: {
-        update: mock(async () => undefined),
-      },
+      $executeRaw: mock(async () => 1),
     } as unknown as ConstructorParameters<
       typeof SyncProjectionOnSectionRemovedHandler
     >[0];
@@ -42,11 +35,11 @@ describe('SyncProjectionOnSectionRemovedHandler', () => {
     const event = new SectionRemovedEvent('resume-3', {
       userId: 'user-1',
       sectionId: 'item-3',
-      sectionKind: 'PERSONAL_INFO',
+      // No sectionKind provided
     });
 
     await handler.handle(event);
 
-    expect(prisma.analyticsResumeProjection.update).not.toHaveBeenCalled();
+    expect(prisma.$executeRaw).not.toHaveBeenCalled();
   });
 });

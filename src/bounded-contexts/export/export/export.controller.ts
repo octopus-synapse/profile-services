@@ -38,9 +38,9 @@ export class ExportController {
 
   @UseGuards(JwtAuthGuard)
   @Get('banner')
+  @ApiOperation({ summary: 'Export LinkedIn banner image' })
   @Header('Content-Type', 'image/png')
   @Header('Content-Disposition', 'attachment; filename="linkedin-banner.png"')
-  @ApiOperation({ summary: 'Export LinkedIn banner image' })
   @ApiStreamResponse({ mimeType: 'image/png', description: 'PNG image file' })
   @ApiProduces('image/png')
   @ApiQuery({
@@ -73,9 +73,9 @@ export class ExportController {
 
   @UseGuards(JwtAuthGuard)
   @Get('resume/pdf')
+  @ApiOperation({ summary: 'Export resume as PDF' })
   @Header('Content-Type', 'application/pdf')
   @Header('Content-Disposition', 'attachment; filename="resume.pdf"')
-  @ApiOperation({ summary: 'Export resume as PDF document' })
   @ApiStreamResponse({
     mimeType: 'application/pdf',
     description: 'PDF document file',
@@ -152,9 +152,9 @@ export class ExportController {
 
   @UseGuards(JwtAuthGuard)
   @Get('resume/docx')
+  @ApiOperation({ summary: 'Export resume as DOCX' })
   @Header('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
   @Header('Content-Disposition', 'attachment; filename="resume.docx"')
-  @ApiOperation({ summary: 'Export resume as DOCX document' })
   @ApiStreamResponse({
     mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     description: 'DOCX document file',

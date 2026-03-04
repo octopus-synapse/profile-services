@@ -1,15 +1,15 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { EntityNotFoundException } from '../../../shared-kernel/exceptions';
-import { EventBusPort } from '../../../shared-kernel/ports';
+import type { EventBusPort } from '../../../shared-kernel/ports';
 import { PasswordChangedEvent } from '../../domain/events';
 import { InvalidCurrentPasswordException, SamePasswordException } from '../../domain/exceptions';
 import { Password } from '../../domain/value-objects';
-import {
+import type {
   ChangePasswordCommand,
   ChangePasswordPort,
   ChangePasswordResult,
 } from '../../ports/inbound';
-import { PasswordHasherPort, PasswordRepositoryPort } from '../../ports/outbound';
+import type { PasswordHasherPort, PasswordRepositoryPort } from '../../ports/outbound';
 
 const PASSWORD_REPOSITORY = Symbol('PasswordRepositoryPort');
 const PASSWORD_HASHER = Symbol('PasswordHasherPort');

@@ -1,9 +1,11 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
 // Shared providers
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { NestEventBusAdapter } from '../shared-kernel/adapters';
+import { JwtStrategy } from '../shared-kernel/infrastructure/strategies';
 import type { EventBusPort } from '../shared-kernel/ports/event-bus.port';
 // Outbound Adapters (Infrastructure)
 import {
@@ -37,6 +39,7 @@ const EVENT_BUS = Symbol('EventBusPort');
   imports: [
     PrismaModule,
     ConfigModule,
+    PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
@@ -51,6 +54,8 @@ const EVENT_BUS = Symbol('EventBusPort');
   ],
   controllers: [LoginController, LogoutController, RefreshTokenController],
   providers: [
+    // JWT Strategy for passport auth
+    JwtStrategy,
     // Outbound Adapters
     {
       provide: AUTH_REPOSITORY,
@@ -101,6 +106,13 @@ const EVENT_BUS = Symbol('EventBusPort');
       inject: [AUTH_REPOSITORY, TOKEN_GENERATOR, EVENT_BUS],
     },
   ],
-  exports: [LOGIN_PORT, LOGOUT_PORT, REFRESH_TOKEN_PORT, TOKEN_GENERATOR],
+  exports: [
+    LOGIN_PORT,
+    LOGOUT_PORT,
+    REFRESH_TOKEN_PORT,
+    TOKEN_GENERATOR,
+    PassportModule,
+    JwtStrategy,
+  ],
 })
 export class AuthenticationModule {}

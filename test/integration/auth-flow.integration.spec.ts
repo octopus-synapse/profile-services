@@ -92,7 +92,7 @@ describe('Auth Flow Integration', () => {
     it('should complete full auth lifecycle', async () => {
       // Step 1: Signup
       const signupResponse = await request(app.getHttpServer())
-        .post('/api/v1/auth/signup')
+        .post('/api/accounts')
         .send(testUser)
         .expect(201);
 
@@ -109,7 +109,7 @@ describe('Auth Flow Integration', () => {
 
       // Step 2: Login with same credentials
       const loginResponse = await request(app.getHttpServer())
-        .post('/api/v1/auth/login')
+        .post('/api/auth/login')
         .send({
           email: testUser.email,
           password: testUser.password,
@@ -124,7 +124,7 @@ describe('Auth Flow Integration', () => {
 
       // Step 3: Access protected route
       const meResponse = await request(app.getHttpServer())
-        .get('/api/v1/auth/me')
+        .get('/api/v1/users/profile')
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
 
@@ -135,13 +135,13 @@ describe('Auth Flow Integration', () => {
     it('should reject duplicate email signup', async () => {
       // First signup
       await request(app.getHttpServer())
-        .post('/api/v1/auth/signup')
+        .post('/api/accounts')
         .send(testUser)
         .expect(201);
 
       // Duplicate signup
       const duplicateResponse = await request(app.getHttpServer())
-        .post('/api/v1/auth/signup')
+        .post('/api/accounts')
         .send(testUser)
         .expect(409);
 
@@ -154,13 +154,13 @@ describe('Auth Flow Integration', () => {
     it('should reject invalid credentials on login', async () => {
       // Signup first
       await request(app.getHttpServer())
-        .post('/api/v1/auth/signup')
+        .post('/api/accounts')
         .send(testUser)
         .expect(201);
 
       // Invalid password
       const response = await request(app.getHttpServer())
-        .post('/api/v1/auth/login')
+        .post('/api/auth/login')
         .send({
           email: testUser.email,
           password: 'WrongPassword123!',
@@ -171,12 +171,12 @@ describe('Auth Flow Integration', () => {
     });
 
     it('should reject access to protected route without token', async () => {
-      await request(app.getHttpServer()).get('/api/v1/auth/me').expect(401);
+      await request(app.getHttpServer()).get('/api/v1/users/profile').expect(401);
     });
 
     it('should reject access with invalid token', async () => {
       await request(app.getHttpServer())
-        .get('/api/v1/auth/me')
+        .get('/api/v1/users/profile')
         .set('Authorization', 'Bearer invalid-token-123')
         .expect(401);
     });
@@ -191,7 +191,7 @@ describe('Auth Flow Integration', () => {
 
     beforeEach(async () => {
       const signupResponse = await request(app.getHttpServer())
-        .post('/api/v1/auth/signup')
+        .post('/api/accounts')
         .send(testUser)
         .expect(201);
 
@@ -205,7 +205,7 @@ describe('Auth Flow Integration', () => {
 
     it('should refresh access token using refresh token', async () => {
       const response = await request(app.getHttpServer())
-        .post('/api/v1/auth/refresh')
+        .post('/api/auth/refresh')
         .send({ refreshToken })
         .expect(200);
 
@@ -215,14 +215,14 @@ describe('Auth Flow Integration', () => {
 
       // Verify new token works
       await request(app.getHttpServer())
-        .get('/api/v1/auth/me')
+        .get('/api/v1/users/profile')
         .set('Authorization', `Bearer ${response.body.data.accessToken}`)
         .expect(200);
     });
 
     it('should reject invalid refresh token', async () => {
       await request(app.getHttpServer())
-        .post('/api/v1/auth/refresh')
+        .post('/api/auth/refresh')
         .send({ refreshToken: 'invalid-refresh-token' })
         .expect(401);
     });
@@ -235,7 +235,7 @@ describe('Auth Flow Integration', () => {
       // Generate unique email for each test
       const testEmail = `verify-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.com`;
       const signupResponse = await request(app.getHttpServer())
-        .post('/api/v1/auth/signup')
+        .post('/api/accounts')
         .send({
           email: testEmail,
           password: 'SecurePass123!',
@@ -249,7 +249,7 @@ describe('Auth Flow Integration', () => {
     it('should request email verification', async () => {
       // Endpoint requires authentication - email is taken from token
       const response = await request(app.getHttpServer())
-        .post('/api/v1/auth/verify-email/request')
+        .post('/api/email-verification/send')
         .set('Authorization', `Bearer ${testAccessToken}`)
         .send({})
         .expect(200);
@@ -277,7 +277,7 @@ describe('Auth Flow Integration', () => {
 
     beforeEach(async () => {
       await request(app.getHttpServer())
-        .post('/api/v1/auth/signup')
+        .post('/api/accounts')
         .send(testUser)
         .expect(201);
     });
@@ -316,7 +316,7 @@ describe('Auth Flow Integration', () => {
       };
 
       const signupResponse = await request(app.getHttpServer())
-        .post('/api/v1/auth/signup')
+        .post('/api/accounts')
         .send(testUser)
         .expect(201);
 
@@ -341,7 +341,7 @@ describe('Auth Flow Integration', () => {
 
       // Verify new password works
       const loginResponse = await request(app.getHttpServer())
-        .post('/api/v1/auth/login')
+        .post('/api/auth/login')
         .send({
           email: testUser.email,
           password: newPassword,
@@ -377,7 +377,7 @@ describe('Auth Flow Integration', () => {
 
       // Verify user can't login
       await request(app.getHttpServer())
-        .post('/api/v1/auth/login')
+        .post('/api/auth/login')
         .send({
           email: testUser.email,
           password: testUser.password,

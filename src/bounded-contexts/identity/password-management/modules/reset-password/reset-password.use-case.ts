@@ -1,9 +1,13 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { EventBusPort } from '../../../shared-kernel/ports';
+import type { EventBusPort } from '../../../shared-kernel/ports';
 import { PasswordChangedEvent } from '../../domain/events';
 import { Password } from '../../domain/value-objects';
-import { ResetPasswordCommand, ResetPasswordPort, ResetPasswordResult } from '../../ports/inbound';
-import {
+import type {
+  ResetPasswordCommand,
+  ResetPasswordPort,
+  ResetPasswordResult,
+} from '../../ports/inbound';
+import type {
   PasswordHasherPort,
   PasswordRepositoryPort,
   PasswordResetTokenPort,

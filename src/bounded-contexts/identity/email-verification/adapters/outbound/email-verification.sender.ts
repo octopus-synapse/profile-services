@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { VerificationEmailSenderPort } from '../../ports/outbound';
+import type { VerificationEmailSenderPort } from '../../ports/outbound';
 
 // Interface for the email service port from shared kernel
 interface EmailServicePort {

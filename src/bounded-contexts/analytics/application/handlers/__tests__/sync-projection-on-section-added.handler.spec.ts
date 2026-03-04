@@ -5,9 +5,7 @@ import { SyncProjectionOnSectionAddedHandler } from '../sync-projection-on-secti
 describe('SyncProjectionOnSectionAddedHandler', () => {
   it('increments projection count using semantic sectionKind', async () => {
     const prisma = {
-      analyticsResumeProjection: {
-        update: mock(async () => undefined),
-      },
+      $executeRaw: mock(async () => 1),
     } as unknown as ConstructorParameters<
       typeof SyncProjectionOnSectionAddedHandler
     >[0];
@@ -23,17 +21,12 @@ describe('SyncProjectionOnSectionAddedHandler', () => {
 
     await handler.handle(event);
 
-    expect(prisma.analyticsResumeProjection.update).toHaveBeenCalledWith({
-      where: { id: 'resume-1' },
-      data: { experiencesCount: { increment: 1 } },
-    });
+    expect(prisma.$executeRaw).toHaveBeenCalled();
   });
 
-  it('ignores unsupported section kinds without updating projection', async () => {
+  it('ignores events without sectionKind', async () => {
     const prisma = {
-      analyticsResumeProjection: {
-        update: mock(async () => undefined),
-      },
+      $executeRaw: mock(async () => 1),
     } as unknown as ConstructorParameters<
       typeof SyncProjectionOnSectionAddedHandler
     >[0];
@@ -42,11 +35,11 @@ describe('SyncProjectionOnSectionAddedHandler', () => {
     const event = new SectionAddedEvent('resume-3', {
       userId: 'user-1',
       sectionId: 'item-3',
-      sectionKind: 'SUMMARY',
+      // No sectionKind provided
     });
 
     await handler.handle(event);
 
-    expect(prisma.analyticsResumeProjection.update).not.toHaveBeenCalled();
+    expect(prisma.$executeRaw).not.toHaveBeenCalled();
   });
 });

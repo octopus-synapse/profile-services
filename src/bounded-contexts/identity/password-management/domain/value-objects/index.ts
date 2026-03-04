@@ -2,5 +2,6 @@
  * Value Objects - Password Management BC
  */
 
-export { Password, type PasswordStrengthViolation } from './password.vo';
+export type { PasswordStrengthViolation } from './password.vo';
+export { Password } from './password.vo';
 export { PasswordResetToken } from './password-reset-token.vo';

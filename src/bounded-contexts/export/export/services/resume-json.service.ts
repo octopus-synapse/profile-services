@@ -1,9 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import {
-  type ProjectionSection,
-  SectionProjectionAdapter,
-} from '@/shared-kernel/types/section-projection.adapter';
 
 interface JsonResumeBasics {
   name: string;
@@ -40,6 +36,14 @@ export interface JsonExportOptions {
   language?: 'en' | 'pt';
 }
 
+/**
+ * Generic section structure for JSON export.
+ */
+interface GenericSection {
+  semanticKind: string;
+  items: Array<{ content: Record<string, unknown> }>;
+}
+
 type ResumeWithRelations = {
   id: string;
   title: string | null;
@@ -53,9 +57,15 @@ type ResumeWithRelations = {
     email: string | null;
     phone: string | null;
   };
-  sections: ProjectionSection[];
+  sections: GenericSection[];
 };
 
+/**
+ * ResumeJsonService - Definition-driven JSON export.
+ *
+ * Exports resume data in JSON Resume or Profile format.
+ * No type-specific logic - sections exported generically.
+ */
 @Injectable()
 export class ResumeJsonService {
   constructor(private readonly prisma: PrismaService) {}
@@ -143,6 +153,9 @@ export class ResumeJsonService {
     };
   }
 
+  /**
+   * Normalize resume data - inline generic mapping, no adapter needed.
+   */
   private normalizeResume(resume: {
     id: string;
     title: string | null;
@@ -161,7 +174,13 @@ export class ResumeJsonService {
       items: Array<{ content: unknown }>;
     }>;
   }): ResumeWithRelations {
-    const genericSections = SectionProjectionAdapter.toGenericSections(resume.resumeSections);
+    // Direct mapping - no adapter dependency
+    const sections: GenericSection[] = resume.resumeSections.map((rs) => ({
+      semanticKind: rs.sectionType.semanticKind,
+      items: rs.items.map((item) => ({
+        content: item.content as Record<string, unknown>,
+      })),
+    }));
 
     return {
       id: resume.id,
@@ -172,7 +191,7 @@ export class ResumeJsonService {
       createdAt: resume.createdAt,
       updatedAt: resume.updatedAt,
       user: resume.user,
-      sections: genericSections,
+      sections,
     };
   }
 }

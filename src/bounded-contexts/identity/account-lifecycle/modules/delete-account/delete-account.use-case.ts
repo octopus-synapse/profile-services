@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { EntityNotFoundException } from '../../../shared-kernel/exceptions';
-import { EventBusPort } from '../../../shared-kernel/ports';
+import type { EventBusPort } from '../../../shared-kernel/ports';
 import { AccountDeletedEvent } from '../../domain/events';
 import { AccountDeletionRequiresConfirmationException } from '../../domain/exceptions';
 import {
@@ -9,7 +9,7 @@ import {
   DeleteAccountPort,
   DeleteAccountResult,
 } from '../../ports/inbound';
-import { AccountLifecycleRepositoryPort } from '../../ports/outbound';
+import type { AccountLifecycleRepositoryPort } from '../../ports/outbound';
 
 const ACCOUNT_REPOSITORY = Symbol('AccountLifecycleRepositoryPort');
 const EVENT_BUS = Symbol('EventBusPort');

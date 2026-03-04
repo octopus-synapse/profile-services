@@ -61,13 +61,22 @@ export type SectionItemConstraints = z.infer<typeof SectionItemConstraintsSchema
 export const AtsScoringConfigSchema = z.object({
   baseScore: z.number().int().min(0).max(100).default(30),
   fieldWeights: z.record(z.string(), z.number().min(0).max(100)).default({}),
+  requiredSemanticRoles: z.array(z.string()).optional(),
 });
 
 export type AtsScoringConfig = z.infer<typeof AtsScoringConfigSchema>;
 
+export const AtsSectionDetectionSchema = z.object({
+  keywords: z.array(z.string()).default([]),
+  multiWord: z.array(z.string()).default([]),
+});
+
+export type AtsSectionDetection = z.infer<typeof AtsSectionDetectionSchema>;
+
 export const AtsConfigSchema = z.object({
   isMandatory: z.boolean().default(false),
   recommendedPosition: z.number().int().min(0).default(99),
+  sectionDetection: AtsSectionDetectionSchema.optional(),
   scoring: AtsScoringConfigSchema.default({}),
 });
 
@@ -80,6 +89,16 @@ export type AtsConfig = z.infer<typeof AtsConfigSchema>;
 export const ExportFieldMappingSchema = z.record(z.string(), z.string());
 
 export type ExportFieldMapping = z.infer<typeof ExportFieldMappingSchema>;
+
+export const DocxExportConfigSchema = z.object({
+  titleField: z.string().optional(),
+  subtitleField: z.string().optional(),
+  dateFields: z.array(z.string()).optional(),
+  descriptionField: z.string().optional(),
+  listFields: z.array(z.string()).optional(),
+});
+
+export type DocxExportConfig = z.infer<typeof DocxExportConfigSchema>;
 
 export const ExportConfigSchema = z.object({
   jsonResume: z
@@ -94,6 +113,7 @@ export const ExportConfigSchema = z.object({
       astType: z.string(),
     })
     .optional(),
+  docx: DocxExportConfigSchema.optional(),
 });
 
 export type ExportConfig = z.infer<typeof ExportConfigSchema>;

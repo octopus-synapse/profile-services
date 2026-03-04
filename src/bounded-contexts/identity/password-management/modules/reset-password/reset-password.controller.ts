@@ -1,10 +1,17 @@
 import { Body, Controller, HttpCode, HttpStatus, Inject, Post } from '@nestjs/common';
 import { ApiBadRequestResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
-import { RESET_PASSWORD_PORT, ResetPasswordPort } from '../../ports/inbound';
+import type { ResetPasswordPort } from '../../ports/inbound';
+import { RESET_PASSWORD_PORT } from '../../ports/inbound';
 import { ResetPasswordDto, ResetPasswordResponseDto } from './reset-password.dto';
 
+@SdkExport({
+  tag: 'users',
+  description: 'Password Management API',
+  requiresAuth: false,
+})
 @ApiTags('Password Management')
 @Controller('password')
 export class ResetPasswordController {

@@ -64,7 +64,7 @@ describe('Onboarding Flow Integration', () => {
   beforeEach(async () => {
     // Create fresh test user for each test
     const signupResponse = await request(app.getHttpServer())
-      .post('/api/v1/auth/signup')
+      .post('/api/accounts')
       .send({
         ...testUser,
         email: `onboarding-${Date.now()}@test.com`,

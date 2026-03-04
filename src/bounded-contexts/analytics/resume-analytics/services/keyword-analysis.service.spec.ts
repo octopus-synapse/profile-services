@@ -2,30 +2,53 @@
  * Keyword Analysis Service Tests
  *
  * Tests for keyword analysis and job matching
+ * Uses GENERIC sections - no type-specific knowledge
  */
 
 import { describe, it, expect, beforeEach } from 'bun:test';
+import type { ResumeForAnalytics, AnalyticsSection } from '../domain/types';
 import { KeywordAnalysisService } from './keyword-analysis.service';
 
 describe('KeywordAnalysisService', () => {
   let service: KeywordAnalysisService;
 
-  const createResume = (overrides = {}) => ({
+  /**
+   * Create generic section with items.
+   */
+  const createSection = (
+    semanticKind: string,
+    items: Record<string, unknown>[],
+  ): AnalyticsSection => ({
+    id: `section-${semanticKind.toLowerCase()}`,
+    semanticKind,
+    items: items.map((content, idx) => ({
+      id: `item-${idx}`,
+      content,
+    })),
+  });
+
+  const createResume = (
+    overrides: Partial<ResumeForAnalytics> = {},
+  ): ResumeForAnalytics => ({
     summary: 'Full-stack developer with expertise in React and Node.js',
     jobTitle: 'Senior Software Engineer',
-    skills: [
-      { name: 'JavaScript' },
-      { name: 'React' },
-      { name: 'Node.js' },
-      { name: 'TypeScript' },
-    ],
-    experiences: [
-      {
-        position: 'Senior Developer',
-        company: 'Tech Corp',
-        description:
-          'Developed web applications using React and Node.js. Managed agile teams.',
-      },
+    emailContact: 'test@example.com',
+    phone: '+1234567890',
+    sections: [
+      createSection('SKILL', [
+        { name: 'JavaScript' },
+        { name: 'React' },
+        { name: 'Node.js' },
+        { name: 'TypeScript' },
+      ]),
+      createSection('EXPERIENCE', [
+        {
+          position: 'Senior Developer',
+          company: 'Tech Corp',
+          description:
+            'Developed web applications using React and Node.js. Managed agile teams.',
+        },
+      ]),
     ],
     ...overrides,
   });
@@ -46,7 +69,7 @@ describe('KeywordAnalysisService', () => {
 
     it('should identify missing keywords', () => {
       const resume = createResume({
-        skills: [{ name: 'JavaScript' }],
+        sections: [createSection('SKILL', [{ name: 'JavaScript' }])],
       });
       const result = service.getKeywordSuggestions(resume, {
         industry: 'software_engineering',
@@ -69,12 +92,14 @@ describe('KeywordAnalysisService', () => {
       const resume = createResume({
         summary:
           'React React React React React React developer React React React',
-        experiences: [
-          {
-            position: 'React Developer',
-            company: 'React Corp',
-            description: 'React React React React React React React',
-          },
+        sections: [
+          createSection('EXPERIENCE', [
+            {
+              position: 'React Developer',
+              company: 'React Corp',
+              description: 'React React React React React React React',
+            },
+          ]),
         ],
       });
       const result = service.getKeywordSuggestions(resume, {
@@ -91,7 +116,7 @@ describe('KeywordAnalysisService', () => {
 
     it('should generate recommendations for missing keywords', () => {
       const resume = createResume({
-        skills: [],
+        sections: [],
       });
       const result = service.getKeywordSuggestions(resume, {
         industry: 'software_engineering',
@@ -157,7 +182,7 @@ describe('KeywordAnalysisService', () => {
 
     it('should identify missing keywords', () => {
       const resume = createResume({
-        skills: [{ name: 'Python' }],
+        sections: [createSection('SKILL', [{ name: 'Python' }])],
       });
       const result = service.matchJobDescription(resume, jobDescription);
 
@@ -166,7 +191,7 @@ describe('KeywordAnalysisService', () => {
 
     it('should generate match recommendations', () => {
       const resume = createResume({
-        skills: [],
+        sections: [],
       });
       const result = service.matchJobDescription(resume, jobDescription);
 
@@ -176,12 +201,14 @@ describe('KeywordAnalysisService', () => {
     it('should return high score for matching resume', () => {
       const resume = createResume({
         summary: 'React Redux TypeScript Node.js Agile Team Leadership',
-        skills: [
-          { name: 'React' },
-          { name: 'Redux' },
-          { name: 'TypeScript' },
-          { name: 'Node.js' },
-          { name: 'Agile' },
+        sections: [
+          createSection('SKILL', [
+            { name: 'React' },
+            { name: 'Redux' },
+            { name: 'TypeScript' },
+            { name: 'Node.js' },
+            { name: 'Agile' },
+          ]),
         ],
       });
       const result = service.matchJobDescription(resume, jobDescription);
@@ -192,13 +219,19 @@ describe('KeywordAnalysisService', () => {
     it('should return low score for non-matching resume', () => {
       const resume = createResume({
         summary: 'Python Django Flask developer',
-        skills: [{ name: 'Python' }, { name: 'Django' }, { name: 'Flask' }],
-        experiences: [
-          {
-            position: 'Python Developer',
-            company: 'Other Corp',
-            description: 'Built Python applications',
-          },
+        sections: [
+          createSection('SKILL', [
+            { name: 'Python' },
+            { name: 'Django' },
+            { name: 'Flask' },
+          ]),
+          createSection('EXPERIENCE', [
+            {
+              position: 'Python Developer',
+              company: 'Other Corp',
+              description: 'Built Python applications',
+            },
+          ]),
         ],
       });
       const result = service.matchJobDescription(resume, jobDescription);
@@ -209,13 +242,15 @@ describe('KeywordAnalysisService', () => {
     it('should return Great match for perfect match', () => {
       const resume = createResume({
         summary: 'Perfect match for all requirements',
-        skills: [
-          { name: 'React' },
-          { name: 'Redux' },
-          { name: 'TypeScript' },
-          { name: 'Node.js' },
-          { name: 'Agile' },
-          { name: 'leadership' },
+        sections: [
+          createSection('SKILL', [
+            { name: 'React' },
+            { name: 'Redux' },
+            { name: 'TypeScript' },
+            { name: 'Node.js' },
+            { name: 'Agile' },
+            { name: 'leadership' },
+          ]),
         ],
       });
       const result = service.matchJobDescription(resume, jobDescription);

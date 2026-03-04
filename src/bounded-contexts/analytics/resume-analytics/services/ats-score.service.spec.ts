@@ -2,9 +2,11 @@
  * ATS Score Service Tests
  *
  * Tests for ATS (Applicant Tracking System) score calculation
+ * Uses GENERIC sections - no type-specific knowledge
  */
 
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import type { ResumeForAnalytics, AnalyticsSection } from '../domain/types';
 import { ATSScoreService } from './ats-score.service';
 
 describe('ATSScoreService', () => {
@@ -13,19 +15,45 @@ describe('ATSScoreService', () => {
     emit: ReturnType<typeof mock>;
   };
 
-  const createResume = (overrides = {}) => ({
-    id: 'resume-1',
-    skills: [{ name: 'JavaScript' }, { name: 'React' }, { name: 'Node.js' }],
-    experiences: [
-      {
-        description: 'Developed and managed web applications using React',
-        startDate: new Date('2020-01-01'),
-        endDate: new Date('2023-01-01'),
-      },
-    ],
+  /**
+   * Create generic section with items.
+   */
+  const createSection = (
+    semanticKind: string,
+    items: Record<string, unknown>[],
+  ): AnalyticsSection => ({
+    id: `section-${semanticKind.toLowerCase()}`,
+    semanticKind,
+    items: items.map((content, idx) => ({
+      id: `item-${idx}`,
+      content,
+    })),
+  });
+
+  /**
+   * Create resume with generic sections.
+   */
+  const createResume = (
+    overrides: Partial<ResumeForAnalytics> = {},
+  ): ResumeForAnalytics => ({
     summary: 'Experienced full-stack developer with 5 years of experience',
     emailContact: 'test@example.com',
     phone: '+1234567890',
+    jobTitle: 'Software Engineer',
+    sections: [
+      createSection('SKILL', [
+        { name: 'JavaScript' },
+        { name: 'React' },
+        { name: 'Node.js' },
+      ]),
+      createSection('EXPERIENCE', [
+        {
+          description: 'Developed and managed web applications using React',
+          startDate: '2020-01-01',
+          endDate: '2023-01-01',
+        },
+      ]),
+    ],
     ...overrides,
   });
 
@@ -86,12 +114,21 @@ describe('ATSScoreService', () => {
 
     it('should reward more skills with higher keyword score', () => {
       const fewSkills = createResume({
-        skills: [{ name: 'JavaScript' }],
+        sections: [
+          createSection('SKILL', [{ name: 'JavaScript' }]),
+          createSection('EXPERIENCE', [{ description: 'Worked on projects' }]),
+        ],
       });
       const manySkills = createResume({
-        skills: Array(10)
-          .fill(null)
-          .map((_, i) => ({ name: `Skill${i}` })),
+        sections: [
+          createSection(
+            'SKILL',
+            Array(10)
+              .fill(null)
+              .map((_, i) => ({ name: `Skill${i}` })),
+          ),
+          createSection('EXPERIENCE', [{ description: 'Worked on projects' }]),
+        ],
       });
 
       const fewResult = service.calculate(fewSkills);
@@ -135,12 +172,15 @@ describe('ATSScoreService', () => {
 
     it('should detect weak action verbs', () => {
       const resume = createResume({
-        experiences: [
-          {
-            description: 'Was responsible for things',
-            startDate: new Date('2020-01-01'),
-            endDate: new Date('2023-01-01'),
-          },
+        sections: [
+          createSection('SKILL', [{ name: 'JavaScript' }]),
+          createSection('EXPERIENCE', [
+            {
+              description: 'Was responsible for things',
+              startDate: '2020-01-01',
+              endDate: '2023-01-01',
+            },
+          ]),
         ],
       });
       const result = service.calculate(resume);
@@ -154,22 +194,26 @@ describe('ATSScoreService', () => {
 
     it('should give higher format score with action verbs', () => {
       const weakVerbs = createResume({
-        experiences: [
-          {
-            description: 'Was doing stuff',
-            startDate: new Date('2020-01-01'),
-            endDate: null,
-          },
+        sections: [
+          createSection('SKILL', [{ name: 'JavaScript' }]),
+          createSection('EXPERIENCE', [
+            {
+              description: 'Was doing stuff',
+              startDate: '2020-01-01',
+            },
+          ]),
         ],
       });
       const strongVerbs = createResume({
-        experiences: [
-          {
-            description:
-              'Developed, managed, and implemented solutions. Led team to success.',
-            startDate: new Date('2020-01-01'),
-            endDate: null,
-          },
+        sections: [
+          createSection('SKILL', [{ name: 'JavaScript' }]),
+          createSection('EXPERIENCE', [
+            {
+              description:
+                'Developed, managed, and implemented solutions. Led team to success.',
+              startDate: '2020-01-01',
+            },
+          ]),
         ],
       });
 
@@ -183,9 +227,15 @@ describe('ATSScoreService', () => {
 
     it('should cap keyword score at maximum', () => {
       const resume = createResume({
-        skills: Array(50)
-          .fill(null)
-          .map((_, i) => ({ name: `Skill${i}` })),
+        sections: [
+          createSection(
+            'SKILL',
+            Array(50)
+              .fill(null)
+              .map((_, i) => ({ name: `Skill${i}` })),
+          ),
+          createSection('EXPERIENCE', [{ description: 'Worked on something' }]),
+        ],
       });
       const result = service.calculate(resume);
 

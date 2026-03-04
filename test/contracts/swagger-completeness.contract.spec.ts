@@ -99,8 +99,8 @@ describe('Swagger Completeness - Endpoint Coverage', () => {
     const swagger = JSON.parse(readFileSync(SWAGGER_PATH, 'utf-8'));
 
     // Auth endpoints should NOT be in the public SDK
-    expect(swagger.paths['/api/v1/auth/signup']).toBeUndefined();
-    expect(swagger.paths['/api/v1/auth/login']).toBeUndefined();
+    expect(swagger.paths['/api/accounts']).toBeUndefined();
+    expect(swagger.paths['/api/auth/login']).toBeUndefined();
     expect(swagger.paths['/api/auth/login']).toBeUndefined();
     expect(swagger.paths['/api/auth/logout']).toBeUndefined();
     expect(swagger.paths['/api/auth/refresh']).toBeUndefined();

@@ -80,6 +80,7 @@ interface DtoSchema {
 
 const CONFIG = {
   srcDir: resolve(__dirname, '../src'),
+  controllersDir: resolve(__dirname, '../src/bounded-contexts'),
   outputPath: resolve(__dirname, '../swagger.json'),
   apiPrefix: '/api',
   serverUrl: 'http://localhost:3001',
@@ -126,10 +127,9 @@ function parseController(filePath: string): ControllerInfo | null {
   // Check for @SdkExport decorator
   const sdkExportMatch = content.match(/@SdkExport\(\s*\{([^}]+)\}\s*\)/s);
   if (!sdkExportMatch) {
-    return null; // Controller not marked for SDK export
+    return null;
   }
 
-  // Parse SdkExport options
   const optionsStr = sdkExportMatch[1];
   const sdkExport = parseSdkExportOptions(optionsStr);
 
@@ -178,6 +178,7 @@ function parseEndpoints(content: string, tag: string): EndpointInfo[] {
 
   const methodPatterns = [
     { decorator: 'Get', method: 'get' as const, defaultStatus: 200 },
+    { decorator: 'Sse', method: 'get' as const, defaultStatus: 200 },
     { decorator: 'Post', method: 'post' as const, defaultStatus: 201 },
     { decorator: 'Put', method: 'put' as const, defaultStatus: 200 },
     { decorator: 'Patch', method: 'patch' as const, defaultStatus: 200 },
@@ -200,7 +201,7 @@ function parseEndpoints(content: string, tag: string): EndpointInfo[] {
       // Limit search to content before the next HTTP decorator to avoid mixing methods
       const remainingContent = content.substring(decoratorEnd);
       const nextDecoratorMatch = remainingContent.match(
-        /@(?:Get|Post|Put|Patch|Delete|Head|Options)\s*\(/,
+        /@(?:Get|Sse|Post|Put|Patch|Delete|Head|Options)\s*\(/,
       );
       const searchLimit = nextDecoratorMatch?.index ?? Math.min(800, remainingContent.length);
       const afterDecorator = remainingContent.substring(0, searchLimit);
@@ -209,7 +210,11 @@ function parseEndpoints(content: string, tag: string): EndpointInfo[] {
       const apiOpMatch = afterDecorator.match(
         /@ApiOperation\(\s*\{[^}]*summary:\s*['"`]([^'"`]+)['"`]/s,
       );
-      const summary = apiOpMatch ? apiOpMatch[1] : `${decorator} ${pathArg || 'endpoint'}`;
+      if (!apiOpMatch) {
+        continue;
+      }
+
+      const summary = apiOpMatch[1];
 
       // Extract @ApiOperation description
       const descMatch = afterDecorator.match(
@@ -1117,6 +1122,33 @@ interface GenerationReport {
   warnings: string[];
 }
 
+function ensureReferencedSchemas(
+  controllers: ControllerInfo[],
+  schemas: Record<string, DtoSchema>,
+): void {
+  const referencedDtos = new Set<string>();
+
+  for (const controller of controllers) {
+    for (const endpoint of controller.endpoints) {
+      if (endpoint.requestBodyDto && endpoint.requestBodyDto !== '__InlineObject__') {
+        referencedDtos.add(endpoint.requestBodyDto);
+      }
+      if (endpoint.responseDto) {
+        referencedDtos.add(endpoint.responseDto);
+      }
+    }
+  }
+
+  for (const dtoName of referencedDtos) {
+    if (!schemas[dtoName]) {
+      schemas[dtoName] = {
+        type: 'object',
+        properties: {},
+      };
+    }
+  }
+}
+
 function generateReport(
   controllers: ControllerInfo[],
   schemas: Record<string, DtoSchema>,
@@ -1176,7 +1208,7 @@ function main() {
   console.log('🔍 Scanning controllers with @SdkExport...\n');
 
   // Find and parse controllers (sorted for deterministic output across platforms)
-  const controllerFiles = findFiles(CONFIG.srcDir, /\.controller\.ts$/).sort();
+  const controllerFiles = findFiles(CONFIG.controllersDir, /\.controller\.ts$/).sort();
   const controllers: ControllerInfo[] = [];
   const allDtos = new Set<string>();
 
@@ -1220,6 +1252,7 @@ function main() {
   // Parse DTOs
   console.log('\n🔍 Parsing DTOs...');
   const schemas = findAndParseDtos(CONFIG.srcDir, Array.from(allDtos));
+  ensureReferencedSchemas(controllers, schemas);
   console.log(`  📋 Found ${Object.keys(schemas).length} DTOs`);
 
   // Generate OpenAPI spec

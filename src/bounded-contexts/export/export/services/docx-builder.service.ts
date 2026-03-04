@@ -1,6 +1,10 @@
 /**
  * DOCX Builder Service
- * Orchestrates DOCX document generation
+ *
+ * Definition-driven DOCX document generation.
+ * No hardcoded section knowledge - rendering rules come from SectionType definitions.
+ *
+ * Milestone 5 - Issue #39
  */
 
 import { Injectable, NotFoundException } from '@nestjs/common';
@@ -8,14 +12,16 @@ import { Document, Packer } from 'docx';
 import { UsersRepository } from '@/bounded-contexts/identity/users/users.repository';
 import { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.repository';
 import { ERROR_MESSAGES } from '@/shared-kernel';
-import { SectionProjectionAdapter } from '@/shared-kernel/types/section-projection.adapter';
-import { DocxResumeData, DocxUserData } from './docx.types';
-import { DocxSectionsService } from './docx-sections.service';
+import { SectionTypeRepository } from '@/shared-kernel/repositories/section-type.repository';
+import { DocxUserData } from './docx.types';
+import { DocxSectionsService, GenericResumeSectionData } from './docx-sections.service';
 import { DocxStylesService } from './docx-styles.service';
 
 type ResumeSectionWithItems = {
   sectionType: {
+    key: string;
     semanticKind: string;
+    title: string;
   };
   items: Array<{
     content: unknown;
@@ -33,18 +39,19 @@ export class DocxBuilderService {
     private readonly usersRepository: UsersRepository,
     private readonly sectionsService: DocxSectionsService,
     private readonly stylesService: DocxStylesService,
+    private readonly sectionTypeRepo: SectionTypeRepository,
   ) {}
 
   /**
-   * Generate DOCX document for user resume
+   * Generate DOCX document for user resume - DEFINITION-DRIVEN
    */
   async generate(userId: string): Promise<Buffer> {
     const { user, resume } = await this.loadUserAndResume(userId);
-    const normalizedResume = this.normalizeResume(resume);
     const normalizedUser = this.normalizeUser(user);
+    const genericSections = this.extractGenericSections(resume);
 
     const doc = new Document({
-      sections: [this.sectionsService.createMainSection(normalizedUser, normalizedResume)],
+      sections: [this.sectionsService.createMainSection(normalizedUser, genericSections)],
       styles: this.stylesService.getDocumentStyles(),
     });
 
@@ -88,46 +95,32 @@ export class DocxBuilderService {
     };
   }
 
-  private normalizeResume(resume: ResumeWithSections): DocxResumeData {
-    const genericSections = SectionProjectionAdapter.toGenericSections(
-      resume.resumeSections as Array<{
-        sectionType: { semanticKind: string };
-        items: Array<{ content: unknown }>;
-      }>,
-    );
+  /**
+   * Extract generic sections from resume - NO TYPE-SPECIFIC PROJECTION
+   */
+  private extractGenericSections(resume: ResumeWithSections): GenericResumeSectionData[] {
+    const sections: GenericResumeSectionData[] = [];
 
-    const experiences = SectionProjectionAdapter.projectExperience(genericSections);
-    const educationItems = SectionProjectionAdapter.projectEducation(genericSections);
-    const skills = SectionProjectionAdapter.projectSkills(genericSections);
-    const projects = SectionProjectionAdapter.projectProjects(genericSections);
-    const languages = SectionProjectionAdapter.projectLanguages(genericSections);
+    // Sort sections by recommended position from definitions
+    const sortedResumeSections = [...resume.resumeSections].sort((a, b) => {
+      const aType = this.sectionTypeRepo.getByKey(a.sectionType.key);
+      const bType = this.sectionTypeRepo.getByKey(b.sectionType.key);
+      const aPos = aType?.definition.ats?.recommendedPosition ?? 99;
+      const bPos = bType?.definition.ats?.recommendedPosition ?? 99;
+      return aPos - bPos;
+    });
 
-    return {
-      experiences: experiences.map((exp) => ({
-        position: exp.role,
-        company: exp.company,
-        startDate: exp.startDate,
-        endDate: exp.endDate,
-        location: exp.location ?? null,
-        description: exp.description ?? null,
-      })),
-      education: educationItems.map((edu) => ({
-        degree: edu.degree,
-        field: edu.field ?? '',
-        institution: edu.institution,
-        startDate: edu.startDate,
-        endDate: edu.endDate,
-      })),
-      skills: skills.map((s) => ({ name: s.name })),
-      projects: projects.map((proj) => ({
-        name: proj.name,
-        description: proj.description ?? null,
-        url: proj.url ?? null,
-      })),
-      languages: languages.map((lang) => ({
-        name: lang.name,
-        level: lang.level ?? null,
-      })),
-    };
+    for (const resumeSection of sortedResumeSections) {
+      const items = resumeSection.items.map((item) => item.content as Record<string, unknown>);
+
+      sections.push({
+        semanticKind: resumeSection.sectionType.semanticKind,
+        sectionTypeKey: resumeSection.sectionType.key,
+        title: resumeSection.sectionType.title,
+        items,
+      });
+    }
+
+    return sections;
   }
 }

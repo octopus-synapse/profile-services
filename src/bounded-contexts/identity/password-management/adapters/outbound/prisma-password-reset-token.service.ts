@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { InvalidResetTokenException } from '../../domain/exceptions';
-import { PasswordResetTokenPort } from '../../ports/outbound';
+import type { PasswordResetTokenPort } from '../../ports/outbound';
 
 const TOKEN_EXPIRATION_HOURS = 24;
 

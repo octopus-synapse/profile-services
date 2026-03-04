@@ -1,14 +1,14 @@
 /**
- * Section Projection Adapter
+ * Section Projection Utilities
  *
- * Central adapter for transforming generic section data into context-specific projections.
- * This eliminates duplicate mapping logic across DSL, Export, Analytics, GDPR, etc.
+ * Generic field extraction utilities for working with section content.
+ * NO type-specific knowledge - all functions work with generic JSON content.
  *
  * Architecture:
- *   - Field extraction utilities are GENERIC (getString, getDate, etc.)
- *   - Well-known projectors exist for backward-compat but are NOT the only path.
- *   - `projectGenericItem` works for ANY section type by reading content directly.
- *   - `projectItemsByKind` accepts plain `string` kinds — no union needed.
+ *   - All functions are GENERIC (getString, getDate, etc.)
+ *   - NO projectExperience, projectEducation, etc.
+ *   - Field names come from SectionType.definition, not code
+ *   - Adding a new section type requires ZERO code changes here
  */
 
 import type { GenericSectionItem } from './generic-section.types';
@@ -25,7 +25,6 @@ export interface SectionItemInput {
 
 /**
  * Minimal section interface for projection operations.
- * Accepts both full GenericResumeSection and lightweight ProjectionSection.
  */
 export interface SectionInput {
   id: string;
@@ -35,8 +34,18 @@ export interface SectionInput {
   items: SectionItemInput[];
 }
 
+/**
+ * Generic projection section for transforms.
+ */
+export interface ProjectionSection {
+  semanticKind: string;
+  items: Array<{
+    content: Record<string, unknown>;
+  }>;
+}
+
 // ============================================================================
-// Field Extraction Utilities
+// Field Extraction Utilities (GENERIC)
 // ============================================================================
 
 /**
@@ -98,485 +107,86 @@ export function getStringArray(content: Record<string, unknown>, key: string): s
   return value.filter((item): item is string => typeof item === 'string');
 }
 
-// ============================================================================
-// Raw Data Normalization
-// ============================================================================
-
-type RawSectionItem = {
-  id?: string;
-  order?: number;
-  content: unknown;
-  isVisible?: boolean;
-};
-
-type RawSection = {
-  id?: string;
-  sectionType: { semanticKind: string };
-  items: RawSectionItem[];
-  isVisible?: boolean;
-  order?: number;
-};
-
 /**
- * Lightweight section for projection operations.
- * Compatible with both full GenericResumeSection and minimal projection needs.
+ * Map a numeric skill level (0-5) to a string label.
  */
-export interface ProjectionSection {
-  id: string;
-  semanticKind: string;
-  order: number;
-  isVisible: boolean;
-  items: {
-    id: string;
-    order: number;
-    content: Record<string, unknown>;
-    isVisible: boolean;
-  }[];
-}
-
-/**
- * Convert raw Prisma section data to ProjectionSection[].
- */
-export function toGenericSections(rawSections: RawSection[]): ProjectionSection[] {
-  return rawSections.map((section, sectionIndex) => ({
-    id: section.id ?? `section-${sectionIndex}`,
-    semanticKind: section.sectionType.semanticKind,
-    order: section.order ?? sectionIndex,
-    isVisible: section.isVisible ?? true,
-    items: section.items.map((item, itemIndex) => ({
-      id: item.id ?? `item-${sectionIndex}-${itemIndex}`,
-      order: item.order ?? itemIndex,
-      content: (item.content ?? {}) as Record<string, unknown>,
-      isVisible: item.isVisible ?? true,
-    })),
-  }));
+export function mapSkillLevelToString(level: number): string {
+  const levels = ['Beginner', 'Elementary', 'Intermediate', 'Advanced', 'Expert', 'Master'];
+  return levels[Math.min(Math.max(level, 0), levels.length - 1)];
 }
 
 // ============================================================================
-// Projected Item Types (Context-Specific)
+// Section Query Utilities (GENERIC)
 // ============================================================================
 
 /**
- * Work experience item projection.
- */
-export interface ExperienceProjection {
-  id: string;
-  order: number;
-  company: string;
-  role: string;
-  employmentType: string | null;
-  location: string | null;
-  startDate: Date;
-  endDate: Date | null;
-  isCurrent: boolean;
-  description: string | null;
-  achievements: string[];
-}
-
-/**
- * Education item projection.
- */
-export interface EducationProjection {
-  id: string;
-  order: number;
-  institution: string;
-  degree: string;
-  field: string | null;
-  location: string | null;
-  startDate: Date | null;
-  endDate: Date | null;
-  isCurrent: boolean;
-  gpa: string | null;
-}
-
-/**
- * Skill item projection.
- */
-export interface SkillProjection {
-  id: string;
-  order: number;
-  name: string;
-  level: number | null;
-  category: string | null;
-}
-
-/**
- * Language item projection.
- */
-export interface LanguageProjection {
-  id: string;
-  order: number;
-  name: string;
-  level: string;
-}
-
-/**
- * Project item projection.
- */
-export interface ProjectProjection {
-  id: string;
-  order: number;
-  name: string;
-  description: string | null;
-  url: string | null;
-  repositoryUrl: string | null;
-  startDate: Date | null;
-  endDate: Date | null;
-  isCurrent: boolean;
-  technologies: string[];
-}
-
-/**
- * Certification item projection.
- */
-export interface CertificationProjection {
-  id: string;
-  order: number;
-  name: string;
-  issuer: string;
-  issueDate: Date;
-  expiryDate: Date | null;
-  credentialUrl: string | null;
-}
-
-/**
- * Award item projection.
- */
-export interface AwardProjection {
-  id: string;
-  order: number;
-  title: string;
-  issuer: string;
-  date: Date;
-  description: string | null;
-}
-
-/**
- * Interest item projection.
- */
-export interface InterestProjection {
-  id: string;
-  order: number;
-  name: string;
-  description: string | null;
-  keywords: string[];
-}
-
-/**
- * Recommendation/Reference item projection.
- */
-export interface RecommendationProjection {
-  id: string;
-  order: number;
-  author: string;
-  role: string | null;
-  company: string | null;
-  relationship: string | null;
-  text: string | null;
-}
-
-/**
- * Publication item projection.
- */
-export interface PublicationProjection {
-  id: string;
-  order: number;
-  title: string;
-  publisher: string;
-  date: Date | null;
-  url: string | null;
-  description: string | null;
-}
-
-// ============================================================================
-// Section Projection Adapter
-// ============================================================================
-
-/**
- * Project a generic section item to an experience projection.
- */
-export function projectExperience(item: GenericSectionItem): ExperienceProjection {
-  const { content } = item;
-  const endDate = getDate(content, 'endDate');
-
-  return {
-    id: item.id,
-    order: item.order,
-    company: getStringRequired(content, 'company'),
-    role: getStringRequired(content, 'role') || getStringRequired(content, 'position'),
-    employmentType: getString(content, 'employmentType'),
-    location: getString(content, 'location'),
-    startDate: getDate(content, 'startDate') ?? new Date(),
-    endDate,
-    isCurrent: getBoolean(content, 'isCurrent') ?? !endDate,
-    description: getString(content, 'description'),
-    achievements: getStringArray(content, 'achievements'),
-  };
-}
-
-/**
- * Project a generic section item to an education projection.
- */
-export function projectEducation(item: GenericSectionItem): EducationProjection {
-  const { content } = item;
-  const endDate = getDate(content, 'endDate');
-
-  return {
-    id: item.id,
-    order: item.order,
-    institution: getStringRequired(content, 'institution'),
-    degree: getStringRequired(content, 'degree'),
-    field: getString(content, 'field') || getString(content, 'fieldOfStudy'),
-    location: getString(content, 'location'),
-    startDate: getDate(content, 'startDate'),
-    endDate,
-    isCurrent: getBoolean(content, 'isCurrent') ?? !endDate,
-    gpa: getString(content, 'gpa') || getString(content, 'grade'),
-  };
-}
-
-/**
- * Project a generic section item to a skill projection.
- */
-export function projectSkill(item: GenericSectionItem): SkillProjection {
-  const { content } = item;
-
-  return {
-    id: item.id,
-    order: item.order,
-    name: getStringRequired(content, 'name'),
-    level: getNumber(content, 'level'),
-    category: getString(content, 'category'),
-  };
-}
-
-/**
- * Project a generic section item to a language projection.
- */
-export function projectLanguage(item: GenericSectionItem): LanguageProjection {
-  const { content } = item;
-
-  return {
-    id: item.id,
-    order: item.order,
-    name: getStringRequired(content, 'name'),
-    level: getStringRequired(content, 'level', 'BASIC'),
-  };
-}
-
-/**
- * Project a generic section item to a project projection.
- */
-export function projectProject(item: GenericSectionItem): ProjectProjection {
-  const { content } = item;
-  const endDate = getDate(content, 'endDate');
-
-  return {
-    id: item.id,
-    order: item.order,
-    name: getStringRequired(content, 'name'),
-    description: getString(content, 'description'),
-    url: getString(content, 'url'),
-    repositoryUrl: getString(content, 'repositoryUrl'),
-    startDate: getDate(content, 'startDate'),
-    endDate,
-    isCurrent: getBoolean(content, 'isCurrent') ?? false,
-    technologies: getStringArray(content, 'technologies'),
-  };
-}
-
-/**
- * Project a generic section item to a certification projection.
- */
-export function projectCertification(item: GenericSectionItem): CertificationProjection {
-  const { content } = item;
-
-  return {
-    id: item.id,
-    order: item.order,
-    name: getStringRequired(content, 'name'),
-    issuer: getStringRequired(content, 'issuer'),
-    issueDate: getDate(content, 'issueDate') ?? new Date(),
-    expiryDate: getDate(content, 'expiryDate'),
-    credentialUrl: getString(content, 'credentialUrl') || getString(content, 'url'),
-  };
-}
-
-/**
- * Project a generic section item to an award projection.
- */
-export function projectAward(item: GenericSectionItem): AwardProjection {
-  const { content } = item;
-
-  return {
-    id: item.id,
-    order: item.order,
-    title: getStringRequired(content, 'title'),
-    issuer: getStringRequired(content, 'issuer'),
-    date: getDate(content, 'date') ?? new Date(),
-    description: getString(content, 'description'),
-  };
-}
-
-/**
- * Project a generic section item to an interest projection.
- */
-export function projectInterest(item: GenericSectionItem): InterestProjection {
-  const { content } = item;
-
-  return {
-    id: item.id,
-    order: item.order,
-    name: getStringRequired(content, 'name'),
-    description: getString(content, 'description'),
-    keywords: getStringArray(content, 'keywords'),
-  };
-}
-
-/**
- * Project a generic section item to a recommendation projection.
- */
-export function projectRecommendation(item: GenericSectionItem): RecommendationProjection {
-  const { content } = item;
-
-  return {
-    id: item.id,
-    order: item.order,
-    author: getStringRequired(content, 'author') || getStringRequired(content, 'name'),
-    role: getString(content, 'role') || getString(content, 'position'),
-    company: getString(content, 'company'),
-    relationship: getString(content, 'relationship'),
-    text: getString(content, 'text') || getString(content, 'content'),
-  };
-}
-
-/**
- * Project a generic section item to a publication projection.
- */
-export function projectPublication(item: GenericSectionItem): PublicationProjection {
-  const { content } = item;
-
-  return {
-    id: item.id,
-    order: item.order,
-    title: getStringRequired(content, 'title'),
-    publisher: getStringRequired(content, 'publisher'),
-    date: getDate(content, 'date'),
-    url: getString(content, 'url'),
-    description: getString(content, 'description'),
-  };
-}
-
-// ============================================================================
-// Section-Level Projection Functions
-// ============================================================================
-
-/**
- * Get all visible and sorted items from a section.
+ * Get visible items from a section.
  */
 export function getVisibleItems(section: SectionInput): SectionItemInput[] {
-  return section.items.filter((item) => item.isVisible).sort((a, b) => a.order - b.order);
+  return section.items.filter((item) => item.isVisible);
 }
 
 /**
  * Find a section by semantic kind.
  */
 export function findSectionByKind(sections: SectionInput[], kind: string): SectionInput | null {
-  return sections.find((s) => s.semanticKind === kind && s.isVisible) ?? null;
+  return sections.find((s) => s.semanticKind === kind) ?? null;
 }
 
 /**
- * Find all sections matching a semantic kind.
+ * Find all sections with a given semantic kind.
  */
 export function findAllSectionsByKind(sections: SectionInput[], kind: string): SectionInput[] {
-  return sections.filter((s) => s.semanticKind === kind && s.isVisible);
+  return sections.filter((s) => s.semanticKind === kind);
 }
 
 /**
- * Project all items from sections of a given kind.
+ * Get visible items from all sections with a given semantic kind.
  */
-export function projectItemsByKind<T>(
-  sections: SectionInput[],
+export function getVisibleItemsByKind(
+  sections: Array<{
+    semanticKind: string;
+    items: GenericSectionItem[];
+  }>,
   kind: string,
-  projector: (item: GenericSectionItem) => T,
-): T[] {
-  return findAllSectionsByKind(sections, kind)
-    .flatMap((section) => getVisibleItems(section))
-    .sort((a, b) => a.order - b.order)
-    .map(projector);
-}
-
-// ============================================================================
-// Aggregate Projection (Full Resume)
-// ============================================================================
-
-/**
- * Full resume projection with all section types.
- */
-export interface ResumeProjection {
-  experiences: ExperienceProjection[];
-  education: EducationProjection[];
-  skills: SkillProjection[];
-  languages: LanguageProjection[];
-  projects: ProjectProjection[];
-  certifications: CertificationProjection[];
-  awards: AwardProjection[];
-  interests: InterestProjection[];
-  recommendations: RecommendationProjection[];
-  publications: PublicationProjection[];
+): GenericSectionItem[] {
+  const section = sections.find((s) => s.semanticKind === kind);
+  if (!section) return [];
+  return section.items.filter((item) => item.isVisible !== false);
 }
 
 /**
- * Project a full resume's sections into typed projections.
- */
-export function projectResumeSections(sections: SectionInput[]): ResumeProjection {
-  return {
-    experiences: projectItemsByKind(sections, 'WORK_EXPERIENCE', projectExperience),
-    education: projectItemsByKind(sections, 'EDUCATION', projectEducation),
-    skills: projectItemsByKind(sections, 'SKILL_SET', projectSkill),
-    languages: projectItemsByKind(sections, 'LANGUAGE', projectLanguage),
-    projects: projectItemsByKind(sections, 'PROJECT', projectProject),
-    certifications: projectItemsByKind(sections, 'CERTIFICATION', projectCertification),
-    awards: projectItemsByKind(sections, 'AWARD', projectAward),
-    interests: projectItemsByKind(sections, 'INTEREST', projectInterest),
-    recommendations: projectItemsByKind(sections, 'RECOMMENDATION', projectRecommendation),
-    publications: projectItemsByKind(sections, 'PUBLICATION', projectPublication),
-  };
-}
-
-// ============================================================================
-// Analytics-Specific Projections
-// ============================================================================
-
-/**
- * Count items per section kind.
+ * Count items in each section by semantic kind.
  */
 export function countItemsByKind(sections: SectionInput[]): Record<string, number> {
   const counts: Record<string, number> = {};
-
   for (const section of sections) {
-    if (!section.isVisible) continue;
-    const visibleCount = section.items.filter((i) => i.isVisible).length;
-    counts[section.semanticKind] = (counts[section.semanticKind] ?? 0) + visibleCount;
+    const visible = getVisibleItems(section);
+    counts[section.semanticKind] = (counts[section.semanticKind] ?? 0) + visible.length;
   }
-
   return counts;
 }
 
 /**
- * Get total experience years from work experience items.
+ * Calculate total experience years from date fields.
+ * Works with any section that has startDate/endDate fields.
  */
-export function calculateTotalExperienceYears(sections: SectionInput[]): number {
-  const experiences = projectItemsByKind(sections, 'WORK_EXPERIENCE', projectExperience);
-
+export function calculateTotalYearsFromDates(
+  items: Array<{ content: Record<string, unknown> }>,
+): number {
   let totalMonths = 0;
   const now = new Date();
 
-  for (const exp of experiences) {
-    const start = exp.startDate;
-    const end = exp.isCurrent ? now : (exp.endDate ?? now);
+  for (const item of items) {
+    const startDate = getDate(item.content, 'startDate');
+    const endDate = getDate(item.content, 'endDate') ?? now;
+    const isCurrent = getBoolean(item.content, 'isCurrent');
+
+    if (!startDate) continue;
+
+    const end = isCurrent ? now : endDate;
     const months =
-      (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+      (end.getFullYear() - startDate.getFullYear()) * 12 + (end.getMonth() - startDate.getMonth());
     totalMonths += Math.max(0, months);
   }
 
@@ -584,282 +194,52 @@ export function calculateTotalExperienceYears(sections: SectionInput[]): number 
 }
 
 // ============================================================================
-// Export-Specific Projections (JSON Resume format)
+// Generic Section Transformation
 // ============================================================================
 
 /**
- * Project experience to JSON Resume format.
+ * Raw section from Prisma query.
  */
-export function toJsonResumeWork(exp: ExperienceProjection) {
-  return {
-    name: exp.company,
-    position: exp.role,
-    startDate: exp.startDate.toISOString().split('T')[0],
-    endDate: exp.endDate?.toISOString().split('T')[0],
-    summary: exp.description ?? '',
-    highlights: exp.achievements,
-  };
+interface RawSection {
+  sectionType: { semanticKind: string };
+  items: Array<{ content: unknown }>;
 }
 
 /**
- * Project education to JSON Resume format.
+ * Transform raw Prisma sections to generic projection format.
  */
-export function toJsonResumeEducation(edu: EducationProjection) {
-  return {
-    institution: edu.institution,
-    area: edu.field ?? '',
-    studyType: edu.degree,
-    startDate: edu.startDate?.toISOString().split('T')[0],
-    endDate: edu.endDate?.toISOString().split('T')[0],
-    gpa: edu.gpa ?? undefined,
-  };
+export function toGenericSections(rawSections: RawSection[]): ProjectionSection[] {
+  return rawSections.map((rs) => ({
+    semanticKind: rs.sectionType.semanticKind,
+    items: rs.items.map((item) => ({
+      content: item.content as Record<string, unknown>,
+    })),
+  }));
 }
 
 /**
- * Project skill to JSON Resume format.
+ * Generic item extractor - works for ANY section type.
+ * Extracts fields by name without knowing section type.
  */
-export function toJsonResumeSkill(skill: SkillProjection) {
-  return {
-    name: skill.name,
-    level: skill.level ? mapSkillLevelToString(skill.level) : undefined,
-    keywords: skill.category ? [skill.category] : [],
-  };
-}
-
-/**
- * Map numeric skill level to string representation.
- */
-export function mapSkillLevelToString(level: number): string {
-  if (level >= 5) return 'Expert';
-  if (level >= 4) return 'Advanced';
-  if (level >= 3) return 'Intermediate';
-  if (level >= 2) return 'Elementary';
-  return 'Beginner';
-}
-
-/**
- * Project language to JSON Resume format.
- */
-export function toJsonResumeLanguage(lang: LanguageProjection) {
-  return {
-    language: lang.name,
-    fluency: lang.level,
-  };
-}
-
-/**
- * Project project to JSON Resume format.
- */
-export function toJsonResumeProject(proj: ProjectProjection) {
-  return {
-    name: proj.name,
-    description: proj.description ?? '',
-    url: proj.url ?? undefined,
-    startDate: proj.startDate?.toISOString().split('T')[0],
-    endDate: proj.endDate?.toISOString().split('T')[0],
-    keywords: proj.technologies,
-  };
-}
-
-/**
- * Project certification to JSON Resume format.
- */
-export function toJsonResumeCertificate(cert: CertificationProjection) {
-  return {
-    name: cert.name,
-    issuer: cert.issuer,
-    date: cert.issueDate.toISOString().split('T')[0],
-    url: cert.credentialUrl ?? undefined,
-  };
-}
-
-/**
- * Project award to JSON Resume format.
- */
-export function toJsonResumeAward(award: AwardProjection) {
-  return {
-    title: award.title,
-    awarder: award.issuer,
-    date: award.date.toISOString().split('T')[0],
-    summary: award.description ?? '',
-  };
-}
-
-/**
- * Project publication to JSON Resume format.
- */
-export function toJsonResumePublication(pub: PublicationProjection) {
-  return {
-    name: pub.title,
-    publisher: pub.publisher,
-    releaseDate: pub.date?.toISOString().split('T')[0],
-    url: pub.url ?? undefined,
-    summary: pub.description ?? '',
-  };
-}
-
-/**
- * Project interest to JSON Resume format.
- */
-export function toJsonResumeInterest(interest: InterestProjection) {
-  return {
-    name: interest.name,
-    keywords: interest.keywords,
-  };
-}
-
-/**
- * Project reference to JSON Resume format.
- */
-export function toJsonResumeReference(rec: RecommendationProjection) {
-  return {
-    name: rec.author,
-    reference: rec.text ?? '',
-  };
-}
-
-// ============================================================================
-// Generic Projection (works for ANY section type without code changes)
-// ============================================================================
-
-/**
- * Generic projected item — works for any section type.
- * Consumers read fields by key from content, using the definition to know what's available.
- */
-export interface GenericProjectedItem {
-  id: string;
-  order: number;
-  content: Record<string, unknown>;
-}
-
-/**
- * Get visible items for a section kind as generic projections.
- * No type-specific mapping — just gives you raw content for rendering/export.
- */
-export function getVisibleItemsByKind(
-  sections: SectionInput[],
-  kind: string,
-): GenericProjectedItem[] {
-  return findAllSectionsByKind(sections, kind)
-    .flatMap((section) => getVisibleItems(section))
-    .sort((a, b) => a.order - b.order)
-    .map((item) => ({
-      id: item.id,
-      order: item.order,
-      content: item.content,
-    }));
-}
-
-// ============================================================================
-// Well-Known Type Registry (backward-compat — NOT the only path)
-// ============================================================================
-
-type ItemProjector<T> = (item: GenericSectionItem) => T;
-
-/**
- * Registry of well-known projectors indexed by semantic kind.
- * For unknown kinds, consumers should use `getVisibleItemsByKind` + field extraction.
- */
-const WELL_KNOWN_PROJECTORS: Record<string, ItemProjector<unknown>> = {
-  WORK_EXPERIENCE: projectExperience,
-  EDUCATION: projectEducation,
-  SKILL_SET: projectSkill,
-  LANGUAGE: projectLanguage,
-  PROJECT: projectProject,
-  CERTIFICATION: projectCertification,
-  AWARD: projectAward,
-  INTEREST: projectInterest,
-  RECOMMENDATION: projectRecommendation,
-  PUBLICATION: projectPublication,
-};
-
-// ============================================================================
-// SectionProjectionAdapter - Consolidated API
-// ============================================================================
-
-/**
- * Adapter object that consolidates all projection functions.
- * Provides a clean namespace for import and use.
- */
-export const SectionProjectionAdapter = {
-  /** Convert raw Prisma section data to SectionInput[] */
-  toGenericSections,
-
-  /**
-   * Generic: get visible items for any kind — no type mapping needed.
-   */
-  getVisibleItemsByKind,
-
-  /**
-   * Project items using the well-known projector registry.
-   * Falls back to generic content projection for unknown kinds.
-   */
-  projectByKind<T = unknown>(
-    sections: SectionInput[],
-    kind: string,
-    customProjector?: ItemProjector<T>,
-  ): T[] {
-    const projector = customProjector ?? (WELL_KNOWN_PROJECTORS[kind] as ItemProjector<T>);
-    if (projector) {
-      return projectItemsByKind(sections, kind, projector);
+export function extractFields(
+  content: Record<string, unknown>,
+  fieldNames: string[],
+): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
+  for (const field of fieldNames) {
+    if (content[field] !== undefined) {
+      result[field] = content[field];
     }
-    // Fallback: return generic projected items
-    return getVisibleItemsByKind(sections, kind) as unknown as T[];
-  },
+  }
+  return result;
+}
 
-  /** Project experiences from sections */
-  projectExperience(sections: SectionInput[]): ExperienceProjection[] {
-    return projectItemsByKind(sections, 'WORK_EXPERIENCE', projectExperience);
-  },
-
-  /** Project education from sections */
-  projectEducation(sections: SectionInput[]): EducationProjection[] {
-    return projectItemsByKind(sections, 'EDUCATION', projectEducation);
-  },
-
-  /** Project skills from sections */
-  projectSkills(sections: SectionInput[]): SkillProjection[] {
-    return projectItemsByKind(sections, 'SKILL_SET', projectSkill);
-  },
-
-  /** Project languages from sections */
-  projectLanguages(sections: SectionInput[]): LanguageProjection[] {
-    return projectItemsByKind(sections, 'LANGUAGE', projectLanguage);
-  },
-
-  /** Project projects from sections */
-  projectProjects(sections: SectionInput[]): ProjectProjection[] {
-    return projectItemsByKind(sections, 'PROJECT', projectProject);
-  },
-
-  /** Project certifications from sections */
-  projectCertifications(sections: SectionInput[]): CertificationProjection[] {
-    return projectItemsByKind(sections, 'CERTIFICATION', projectCertification);
-  },
-
-  /** Project awards from sections */
-  projectAwards(sections: SectionInput[]): AwardProjection[] {
-    return projectItemsByKind(sections, 'AWARD', projectAward);
-  },
-
-  /** Project interests from sections */
-  projectInterests(sections: SectionInput[]): InterestProjection[] {
-    return projectItemsByKind(sections, 'INTEREST', projectInterest);
-  },
-
-  /** Project recommendations from sections */
-  projectRecommendations(sections: SectionInput[]): RecommendationProjection[] {
-    return projectItemsByKind(sections, 'RECOMMENDATION', projectRecommendation);
-  },
-
-  /** Project publications from sections */
-  projectPublications(sections: SectionInput[]): PublicationProjection[] {
-    return projectItemsByKind(sections, 'PUBLICATION', projectPublication);
-  },
-
-  /** Project full resume sections */
-  projectAll: projectResumeSections,
-
-  /** Count items by kind */
-  countByKind: countItemsByKind,
-} as const;
+/**
+ * Generic item projection - returns all content fields.
+ */
+export function projectGenericItem(item: GenericSectionItem): Record<string, unknown> {
+  return {
+    id: item.id,
+    ...item.content,
+  };
+}

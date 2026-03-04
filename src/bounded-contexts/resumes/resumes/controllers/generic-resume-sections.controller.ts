@@ -4,6 +4,7 @@ import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infr
 import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { ParseCuidPipe } from '@/bounded-contexts/platform/common/pipes/parse-cuid.pipe';
 import {
@@ -18,6 +19,7 @@ interface SectionItemPayload {
   content: Record<string, string | number | boolean | null>;
 }
 
+@SdkExport({ tag: 'resumes', description: 'Generic Resume Sections API' })
 @ApiTags('resumes')
 @ApiBearerAuth('JWT-auth')
 @Controller('v1/resumes/:resumeId/sections')

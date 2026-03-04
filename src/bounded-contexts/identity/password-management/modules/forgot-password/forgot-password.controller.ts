@@ -1,10 +1,17 @@
 import { Body, Controller, HttpCode, HttpStatus, Inject, Post } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
-import { FORGOT_PASSWORD_PORT, ForgotPasswordPort } from '../../ports/inbound';
+import type { ForgotPasswordPort } from '../../ports/inbound';
+import { FORGOT_PASSWORD_PORT } from '../../ports/inbound';
 import { ForgotPasswordDto, ForgotPasswordResponseDto } from './forgot-password.dto';
 
+@SdkExport({
+  tag: 'users',
+  description: 'Password Management API',
+  requiresAuth: false,
+})
 @ApiTags('Password Management')
 @Controller('password')
 export class ForgotPasswordController {

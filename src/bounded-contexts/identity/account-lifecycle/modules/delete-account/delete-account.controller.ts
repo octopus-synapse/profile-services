@@ -4,7 +4,8 @@ import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastr
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
-import { DELETE_ACCOUNT_PORT, DeleteAccountPort } from '../../ports/inbound';
+import type { DeleteAccountPort } from '../../ports/inbound';
+import { DELETE_ACCOUNT_PORT } from '../../ports/inbound';
 import { DeleteAccountDto, DeleteAccountResponseDto } from './delete-account.dto';
 
 interface AuthenticatedUser {

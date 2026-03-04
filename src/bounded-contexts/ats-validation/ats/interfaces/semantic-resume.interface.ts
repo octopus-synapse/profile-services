@@ -22,6 +22,7 @@ export interface SectionTypeAtsEntry {
     scoring: {
       baseScore: number;
       fieldWeights: Record<string, number>;
+      requiredSemanticRoles?: string[];
     };
   };
 }

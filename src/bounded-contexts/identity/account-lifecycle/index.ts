@@ -7,29 +7,33 @@ export * from './adapters';
 export * from './domain';
 // Modules (Vertical Slices)
 export * from './modules';
-// Ports - use combined export style to avoid isolatedModules issues
+export type {
+  CreateAccountCommand,
+  CreateAccountPort,
+  CreateAccountResult,
+  DeactivateAccountCommand,
+  DeactivateAccountPort,
+  DeactivateAccountResult,
+  DeleteAccountCommand,
+  DeleteAccountPort,
+  DeleteAccountResult,
+} from './ports/inbound';
+// Ports - separate value and type exports for Bun compatibility
 export {
   CREATE_ACCOUNT_PORT,
-  type CreateAccountCommand,
-  type CreateAccountPort,
-  type CreateAccountResult,
   DEACTIVATE_ACCOUNT_PORT,
   DELETE_ACCOUNT_PORT,
   DELETION_CONFIRMATION_PHRASE,
-  type DeactivateAccountCommand,
-  type DeactivateAccountPort,
-  type DeactivateAccountResult,
-  type DeleteAccountCommand,
-  type DeleteAccountPort,
-  type DeleteAccountResult,
 } from './ports/inbound';
+export type {
+  AccountData,
+  AccountLifecycleRepositoryPort,
+  AuditLoggerPort,
+  CreateAccountData,
+  DataExportRepositoryPort,
+  PasswordHasherPort,
+} from './ports/outbound';
 export {
-  type AccountData,
-  type AccountLifecycleRepositoryPort,
   AUDIT_LOGGER_PORT,
-  type AuditLoggerPort,
-  type CreateAccountData,
   DATA_EXPORT_REPOSITORY_PORT,
-  type DataExportRepositoryPort,
-  type PasswordHasherPort,
 } from './ports/outbound';

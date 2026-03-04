@@ -72,6 +72,9 @@ describe('DslRepository', () => {
             resume: {
               findFirst: mock(),
             },
+            resumeShare: {
+              findUnique: mock(),
+            },
           },
         },
       ],
@@ -198,7 +201,13 @@ describe('DslRepository', () => {
 
   describe('renderPublic', () => {
     it('should render public resume AST', async () => {
-      spyOn(prisma.resume, 'findFirst').mockResolvedValue(mockResume);
+      spyOn(prisma.resumeShare, 'findUnique').mockResolvedValue({
+        id: 'share-123',
+        slug: 'john-doe',
+        isActive: true,
+        expiresAt: null,
+        resume: mockResume,
+      } as any);
       spyOn(validator, 'validateOrThrow').mockReturnValue(
         mockResume.activeTheme.styleConfig,
       );
@@ -206,8 +215,8 @@ describe('DslRepository', () => {
 
       const result = await repository.renderPublic('john-doe', 'html');
 
-      expect(prisma.resume.findFirst).toHaveBeenCalledWith({
-        where: { slug: 'john-doe', isPublic: true },
+      expect(prisma.resumeShare.findUnique).toHaveBeenCalledWith({
+        where: { slug: 'john-doe' },
         include: expect.any(Object),
       });
       expect(result).toEqual({
@@ -217,7 +226,7 @@ describe('DslRepository', () => {
     });
 
     it('should throw if public resume not found', async () => {
-      spyOn(prisma.resume, 'findFirst').mockResolvedValue(null);
+      spyOn(prisma.resumeShare, 'findUnique').mockResolvedValue(null);
 
       await expect(
         async () => await repository.renderPublic('john-doe'),

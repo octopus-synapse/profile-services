@@ -3,26 +3,14 @@
  *
  * Maintains the analytics read model by decrementing section counts
  * when a section is removed from a resume.
+ *
+ * GENERIC: Works with any section type via semanticKind.
  */
 
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { SectionRemovedEvent } from '@/bounded-contexts/resumes';
-import type { SectionKind } from '@/shared-kernel/dtos/semantic-sections.dto';
-
-const SECTION_KIND_TO_FIELD: Partial<Record<SectionKind, string>> = {
-  WORK_EXPERIENCE: 'experiencesCount',
-  EDUCATION: 'educationCount',
-  SKILL_SET: 'skillsCount',
-  CERTIFICATION: 'certificationsCount',
-  PROJECT: 'projectsCount',
-  AWARD: 'awardsCount',
-  LANGUAGE: 'languagesCount',
-  INTEREST: 'interestsCount',
-  RECOMMENDATION: 'recommendationsCount',
-  PUBLICATION: 'publicationsCount',
-};
 
 @Injectable()
 export class SyncProjectionOnSectionRemovedHandler {
@@ -33,22 +21,25 @@ export class SyncProjectionOnSectionRemovedHandler {
   @OnEvent(SectionRemovedEvent.TYPE)
   async handle(event: SectionRemovedEvent): Promise<void> {
     const resumeId = event.aggregateId;
-    const field = this.resolveProjectionField(event.payload.sectionKind);
-    if (!field) return;
+    const semanticKind = event.payload.sectionKind;
 
-    this.logger.debug(`Decrementing ${field} for resume: ${resumeId}`);
-
-    await this.prisma.analyticsResumeProjection.update({
-      where: { id: resumeId },
-      data: { [field]: { decrement: 1 } },
-    });
-  }
-
-  private resolveProjectionField(sectionKind?: SectionKind): string | null {
-    if (!sectionKind) {
-      return null;
+    if (!semanticKind) {
+      this.logger.warn(`No semanticKind in event for resume: ${resumeId}`);
+      return;
     }
 
-    return SECTION_KIND_TO_FIELD[sectionKind] ?? null;
+    this.logger.debug(`Decrementing ${semanticKind} count for resume: ${resumeId}`);
+
+    // Use raw query to decrement JSON field value (minimum 0)
+    await this.prisma.$executeRaw`
+      UPDATE analytics_resume_projection
+      SET "sectionCounts" = jsonb_set(
+        "sectionCounts",
+        ${[semanticKind]}::text[],
+        to_jsonb(GREATEST(COALESCE(("sectionCounts"->${semanticKind})::int, 0) - 1, 0))
+      ),
+      "updatedAt" = NOW()
+      WHERE id = ${resumeId}
+    `;
   }
 }

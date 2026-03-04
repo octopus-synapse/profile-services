@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { SectionDataSchema } from './section-data.schema';
+import { SectionDataV2Schema } from './generic-section-data.schema';
 
 export const ResolvedTypographySchema = z.object({
   fontFamily: z.string(),
@@ -42,7 +42,7 @@ export const PlacedSectionSchema = z.object({
   sectionId: z.string(),
   columnId: z.string(),
   order: z.number(),
-  data: SectionDataSchema,
+  data: SectionDataV2Schema,
   styles: z.object({
     container: ResolvedBoxStyleSchema,
     title: ResolvedTypographySchema,

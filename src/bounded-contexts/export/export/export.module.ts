@@ -1,7 +1,10 @@
 import { Module } from '@nestjs/common';
 import { UsersModule } from '@/bounded-contexts/identity/users/users.module';
 import { LoggerModule } from '@/bounded-contexts/platform/common/logger/logger.module';
+import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { ResumesModule } from '@/bounded-contexts/resumes/resumes/resumes.module';
+import { SectionTypeRepository } from '@/shared-kernel/repositories/section-type.repository';
+import { GenericDocxSectionBuilder } from './builders/generic-docx-section.builder';
 import {
   ExportBannerController,
   ExportDocxController,
@@ -21,7 +24,7 @@ import { ResumeLatexService } from './services/resume-latex.service';
 import { ResumePDFService } from './services/resume-pdf.service';
 
 @Module({
-  imports: [ResumesModule, UsersModule, LoggerModule],
+  imports: [ResumesModule, UsersModule, LoggerModule, PrismaModule],
   controllers: [
     ExportBannerController,
     ExportPdfController,
@@ -29,6 +32,10 @@ import { ResumePDFService } from './services/resume-pdf.service';
     ExportMultiFormatController,
   ],
   providers: [
+    // Shared-kernel repository for definition-driven export
+    SectionTypeRepository,
+    // Generic builder for definition-driven DOCX rendering
+    GenericDocxSectionBuilder,
     BannerCaptureService,
     ResumePDFService,
     BrowserManagerService,

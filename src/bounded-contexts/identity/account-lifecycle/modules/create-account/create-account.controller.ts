@@ -2,7 +2,8 @@ import { Body, Controller, HttpCode, HttpStatus, Inject, Post } from '@nestjs/co
 import { ApiBadRequestResponse, ApiConflictResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
-import { CREATE_ACCOUNT_PORT, CreateAccountPort } from '../../ports/inbound';
+import type { CreateAccountPort } from '../../ports/inbound';
+import { CREATE_ACCOUNT_PORT } from '../../ports/inbound';
 import { CreateAccountDto, CreateAccountResponseDto } from './create-account.dto';
 
 @ApiTags('Account Lifecycle')

@@ -48,7 +48,7 @@ describe('ToS Acceptance Flow Integration', () => {
     name: string,
   ): Promise<{ userId: string; accessToken: string }> {
     const signupResponse = await request(app.getHttpServer())
-      .post('/api/v1/auth/signup')
+      .post('/api/accounts')
       .send({ email, password, name })
       .expect(201);
 

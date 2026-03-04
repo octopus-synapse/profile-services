@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import type { SectionKind } from '@/shared-kernel/dtos/semantic-sections.dto';
-import type { SemanticResumeSnapshot, SemanticSectionItem } from '../interfaces';
+import type {
+  SectionTypeAtsEntry,
+  SemanticResumeSnapshot,
+  SemanticSectionItem,
+} from '../interfaces';
 import {
   type ValidationIssue,
   type ValidationResult,
@@ -8,19 +11,20 @@ import {
 } from '../interfaces/validation-result.interface';
 import type { SemanticPolicy } from './semantic-policy.interface';
 
+/**
+ * Content Quality Semantic Policy
+ *
+ * Validates that section items contain required semantic roles.
+ * Reads `requiredSemanticRoles` from the sectionTypeCatalog — NOT hardcoded.
+ */
 @Injectable()
 export class ContentQualitySemanticPolicy implements SemanticPolicy {
-  private readonly requiredRolesByKind: Partial<Record<SectionKind, string[]>> = {
-    WORK_EXPERIENCE: ['ORGANIZATION', 'JOB_TITLE'],
-    EDUCATION: ['ORGANIZATION', 'DEGREE'],
-    CERTIFICATION: ['TITLE', 'ORGANIZATION'],
-  };
-
   validate(snapshot: SemanticResumeSnapshot): ValidationResult {
     const issues: ValidationIssue[] = [];
+    const catalogByKind = this.buildCatalogByKind(snapshot.sectionTypeCatalog);
 
     for (const item of snapshot.items) {
-      this.checkRequiredRoles(item, issues);
+      this.checkRequiredRoles(item, catalogByKind, issues);
       this.checkTextQuality(item, issues);
     }
 
@@ -33,14 +37,24 @@ export class ContentQualitySemanticPolicy implements SemanticPolicy {
     };
   }
 
-  private checkRequiredRoles(item: SemanticSectionItem, issues: ValidationIssue[]): void {
-    const requiredRoles = this.requiredRolesByKind[item.sectionKind];
-    if (!requiredRoles || requiredRoles.length === 0) {
+  private buildCatalogByKind(catalog: SectionTypeAtsEntry[]): Map<string, SectionTypeAtsEntry> {
+    return new Map(catalog.map((entry) => [entry.kind, entry]));
+  }
+
+  private checkRequiredRoles(
+    item: SemanticSectionItem,
+    catalogByKind: Map<string, SectionTypeAtsEntry>,
+    issues: ValidationIssue[],
+  ): void {
+    const catalogEntry = catalogByKind.get(item.sectionKind);
+    const requiredRoles = catalogEntry?.ats.scoring.requiredSemanticRoles ?? [];
+
+    if (requiredRoles.length === 0) {
       return;
     }
 
     const availableRoles = new Set(item.values.map((value) => value.role));
-    const missingRoles = requiredRoles.filter((role) => !availableRoles.has(role as never));
+    const missingRoles = requiredRoles.filter((role) => !availableRoles.has(role));
 
     if (missingRoles.length > 0) {
       issues.push({

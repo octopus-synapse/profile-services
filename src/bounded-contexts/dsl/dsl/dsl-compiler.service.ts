@@ -2,42 +2,19 @@
  * DSL Compiler Service
  *
  * Compiles Resume DSL into Resume AST for rendering.
- * Uses generic sections exclusively - no legacy bucket arrays.
+ * Uses GENERIC SECTIONS - NO type-specific knowledge.
  *
  * Architecture:
- *   - A SECTION_COMPILERS registry maps sectionId → compiler function.
- *   - Well-known section types (experience, education, etc.) have typed compilers.
- *   - Unknown/custom section types use a generic fallback compiler.
- *   - Adding a new section type requires ZERO code changes here — the generic
- *     compiler reads fields from content and produces a generic AST node.
+ *   - All sections are compiled generically
+ *   - The compiler doesn't know what "experience" or "education" is
+ *   - Section structure comes from the resume data + SectionType.definition
+ *   - Adding a new section type requires ZERO code changes here
  */
 
 import { Injectable } from '@nestjs/common';
 import type { ResumeAst, ResumeDsl } from '@/shared-kernel';
-import type {
-  AwardItem,
-  CertificationItem,
-  EducationItem,
-  ExperienceItem,
-  InterestItem,
-  LanguageItem,
-  ProjectItem,
-  PublicationItem,
-  ReferenceItem,
-  SectionData,
-  SkillItem,
-} from '@/shared-kernel/ast/section-data.schema';
+import type { SectionDataV2 } from '@/shared-kernel/ast/generic-section-data.schema';
 import type { GenericResume, GenericResumeSection } from '@/shared-kernel/types';
-import {
-  getBoolean,
-  getDate,
-  getNumber,
-  getString,
-  getStringArray,
-  getStringRequired,
-  getVisibleItemsByKind,
-  mapSkillLevelToString,
-} from '@/shared-kernel/types/section-projection.adapter';
 import {
   buildPageLayout,
   buildSectionStyles,
@@ -51,258 +28,13 @@ import { type ResolvedTokens, TokenResolverService } from './token-resolver.serv
 
 const CURRENT_DSL_VERSION = '1.0.0';
 
-// ============================================================================
-// Section Compiler Registry
-// ============================================================================
-
-type SectionCompilerFn = (
-  sections: GenericResumeSection[],
-  overrides: ItemOverride[],
-  resume: GenericResume,
-) => SectionData;
-
 /**
- * Registry entry: maps a DSL sectionId to its semantic kind and compiler.
+ * Check if an item is visible based on overrides.
  */
-interface SectionCompilerEntry {
-  kind: string;
-  compile: SectionCompilerFn;
-}
-
 function isItemVisible(itemId: string, overrides: ItemOverride[]): boolean {
   const override = overrides.find((o) => o.itemId === itemId);
   return override?.visible !== false;
 }
-
-/**
- * Well-known section compilers — backward-compatible typed AST output.
- */
-const SECTION_COMPILERS: Record<string, SectionCompilerEntry> = {
-  experience: {
-    kind: 'WORK_EXPERIENCE',
-    compile: (sections, overrides) => {
-      const items = getVisibleItemsByKind(sections, 'WORK_EXPERIENCE')
-        .filter((item) => isItemVisible(item.id, overrides))
-        .map((item): ExperienceItem => {
-          const c = item.content;
-          const endDate = getDate(c, 'endDate');
-          return {
-            id: item.id,
-            title: getStringRequired(c, 'role') || getStringRequired(c, 'position'),
-            company: getStringRequired(c, 'company'),
-            location: getString(c, 'location')
-              ? { city: getString(c, 'location') ?? '' }
-              : undefined,
-            dateRange: {
-              startDate: (getDate(c, 'startDate') ?? new Date()).toISOString(),
-              endDate: endDate?.toISOString(),
-              isCurrent: getBoolean(c, 'isCurrent') ?? !endDate,
-            },
-            description: getString(c, 'description') ?? undefined,
-            achievements: getStringArray(c, 'achievements'),
-            skills: [],
-          };
-        });
-      return { type: 'experience', items };
-    },
-  },
-
-  education: {
-    kind: 'EDUCATION',
-    compile: (sections, overrides) => {
-      const items = getVisibleItemsByKind(sections, 'EDUCATION')
-        .filter((item) => isItemVisible(item.id, overrides))
-        .map((item): EducationItem => {
-          const c = item.content;
-          const endDate = getDate(c, 'endDate');
-          return {
-            id: item.id,
-            institution: getStringRequired(c, 'institution'),
-            degree: getStringRequired(c, 'degree'),
-            fieldOfStudy: getString(c, 'field') || getString(c, 'fieldOfStudy') || '',
-            location: getString(c, 'location')
-              ? { city: getString(c, 'location') ?? '' }
-              : undefined,
-            dateRange: {
-              startDate: getDate(c, 'startDate')?.toISOString() ?? '',
-              endDate: endDate?.toISOString(),
-              isCurrent: getBoolean(c, 'isCurrent') ?? !endDate,
-            },
-            grade: getString(c, 'gpa') || getString(c, 'grade') || undefined,
-            activities: [],
-          };
-        });
-      return { type: 'education', items };
-    },
-  },
-
-  skills: {
-    kind: 'SKILL_SET',
-    compile: (sections, overrides) => {
-      const items = getVisibleItemsByKind(sections, 'SKILL_SET')
-        .filter((item) => isItemVisible(item.id, overrides))
-        .filter((item) => getStringRequired(item.content, 'name').length > 0)
-        .map((item): SkillItem => {
-          const c = item.content;
-          const level = getNumber(c, 'level');
-          return {
-            id: item.id,
-            name: getStringRequired(c, 'name'),
-            level: level ? mapSkillLevelToString(level) : undefined,
-            category: getString(c, 'category') ?? undefined,
-          };
-        });
-      return { type: 'skills', items };
-    },
-  },
-
-  languages: {
-    kind: 'LANGUAGE',
-    compile: (sections, overrides) => {
-      const items = getVisibleItemsByKind(sections, 'LANGUAGE')
-        .filter((item) => isItemVisible(item.id, overrides))
-        .filter((item) => getStringRequired(item.content, 'name').length > 0)
-        .map(
-          (item): LanguageItem => ({
-            id: item.id,
-            name: getStringRequired(item.content, 'name'),
-            proficiency: getStringRequired(item.content, 'level', 'BASIC'),
-          }),
-        );
-      return { type: 'languages', items };
-    },
-  },
-
-  projects: {
-    kind: 'PROJECT',
-    compile: (sections, overrides) => {
-      const items = getVisibleItemsByKind(sections, 'PROJECT')
-        .filter((item) => isItemVisible(item.id, overrides))
-        .filter((item) => getStringRequired(item.content, 'name').length > 0)
-        .map((item): ProjectItem => {
-          const c = item.content;
-          return {
-            id: item.id,
-            name: getStringRequired(c, 'name'),
-            dateRange: getDate(c, 'startDate')
-              ? {
-                  startDate: getDate(c, 'startDate')?.toISOString() ?? '',
-                  endDate: getDate(c, 'endDate')?.toISOString(),
-                  isCurrent: getBoolean(c, 'isCurrent') ?? false,
-                }
-              : undefined,
-            url: getString(c, 'url') ?? undefined,
-            repositoryUrl: getString(c, 'repositoryUrl') ?? undefined,
-            description: getString(c, 'description') ?? undefined,
-            highlights: [],
-            technologies: getStringArray(c, 'technologies'),
-          };
-        });
-      return { type: 'projects', items };
-    },
-  },
-
-  certifications: {
-    kind: 'CERTIFICATION',
-    compile: (sections, overrides) => {
-      const items = getVisibleItemsByKind(sections, 'CERTIFICATION')
-        .filter((item) => isItemVisible(item.id, overrides))
-        .filter((item) => getStringRequired(item.content, 'name').length > 0)
-        .map((item): CertificationItem => {
-          const c = item.content;
-          return {
-            id: item.id,
-            name: getStringRequired(c, 'name'),
-            issuer: getStringRequired(c, 'issuer'),
-            date: (getDate(c, 'issueDate') ?? new Date()).toISOString(),
-            url: getString(c, 'credentialUrl') || getString(c, 'url') || undefined,
-          };
-        });
-      return { type: 'certifications', items };
-    },
-  },
-
-  awards: {
-    kind: 'AWARD',
-    compile: (sections, overrides) => {
-      const items = getVisibleItemsByKind(sections, 'AWARD')
-        .filter((item) => isItemVisible(item.id, overrides))
-        .map((item): AwardItem => {
-          const c = item.content;
-          return {
-            id: item.id,
-            title: getStringRequired(c, 'title'),
-            issuer: getStringRequired(c, 'issuer'),
-            date: (getDate(c, 'date') ?? new Date()).toISOString(),
-            description: getString(c, 'description') ?? undefined,
-          };
-        });
-      return { type: 'awards', items };
-    },
-  },
-
-  interests: {
-    kind: 'INTEREST',
-    compile: (sections, overrides) => {
-      const items = getVisibleItemsByKind(sections, 'INTEREST')
-        .filter((item) => isItemVisible(item.id, overrides))
-        .map(
-          (item): InterestItem => ({
-            id: item.id,
-            name: getStringRequired(item.content, 'name'),
-            keywords: getStringArray(item.content, 'keywords'),
-          }),
-        );
-      return { type: 'interests', items };
-    },
-  },
-
-  references: {
-    kind: 'RECOMMENDATION',
-    compile: (sections, overrides) => {
-      const items = getVisibleItemsByKind(sections, 'RECOMMENDATION')
-        .filter((item) => isItemVisible(item.id, overrides))
-        .map((item): ReferenceItem => {
-          const c = item.content;
-          return {
-            id: item.id,
-            name: getStringRequired(c, 'author') || getStringRequired(c, 'name'),
-            role: getString(c, 'role') || getString(c, 'position') || '',
-            company: getString(c, 'company') ?? undefined,
-          };
-        });
-      return { type: 'references', items };
-    },
-  },
-
-  publications: {
-    kind: 'PUBLICATION',
-    compile: (sections, overrides) => {
-      const items = getVisibleItemsByKind(sections, 'PUBLICATION')
-        .filter((item) => isItemVisible(item.id, overrides))
-        .map((item): PublicationItem => {
-          const c = item.content;
-          return {
-            id: item.id,
-            title: getStringRequired(c, 'title'),
-            publisher: getStringRequired(c, 'publisher'),
-            date: getDate(c, 'date')?.toISOString() ?? '',
-            url: getString(c, 'url') ?? undefined,
-            description: getString(c, 'description') ?? undefined,
-          };
-        });
-      return { type: 'publications', items };
-    },
-  },
-
-  summary: {
-    kind: 'SUMMARY',
-    compile: (_sections, _overrides, resume) => ({
-      type: 'summary',
-      data: { content: resume.summary ?? '' },
-    }),
-  },
-};
 
 @Injectable()
 export class DslCompilerService {
@@ -378,19 +110,72 @@ export class DslCompilerService {
   }
 
   /**
-   * Compile section data from generic resume sections.
-   * Uses the SECTION_COMPILERS registry — no switch statement.
-   * Unknown section IDs get placeholder data (future: generic compilation).
+   * Generic section data compilation.
+   * NO type-specific logic - all sections compiled the same way.
+   *
+   * The DSL sectionId maps to resume.sections by matching:
+   * - sectionTypeKey (exact match), or
+   * - semanticKind (flexible match for well-known DSL IDs)
    */
   private compileSectionData(
     sectionId: string,
     resume: GenericResume,
     overrides: ItemOverride[],
-  ): SectionData {
-    const compiler = SECTION_COMPILERS[sectionId];
-    if (compiler) {
-      return compiler.compile(resume.sections, overrides, resume);
+  ): SectionDataV2 {
+    // Find matching section in resume data
+    const section = this.findSectionForDslId(sectionId, resume.sections);
+
+    if (!section) {
+      // Special case: summary/objective come from resume root
+      if (sectionId === 'summary' || sectionId === 'objective') {
+        return {
+          semanticKind: sectionId.toUpperCase(),
+          sectionTypeKey: sectionId,
+          title: sectionId.charAt(0).toUpperCase() + sectionId.slice(1),
+          content: resume.summary ?? '',
+        };
+      }
+      return getPlaceholderData(sectionId);
     }
-    return getPlaceholderData(sectionId);
+
+    // Generic compilation - filter visible items
+    const visibleItems = section.items
+      .filter((item) => isItemVisible(item.id, overrides))
+      .map((item) => ({
+        id: item.id,
+        content: item.content,
+      }));
+
+    return {
+      semanticKind: section.semanticKind,
+      sectionTypeKey: section.sectionTypeKey,
+      title: section.title,
+      items: visibleItems,
+    };
+  }
+
+  /**
+   * Find a resume section matching a DSL section ID.
+   * Matches by sectionTypeKey or inferred semanticKind.
+   */
+  private findSectionForDslId(
+    dslSectionId: string,
+    sections: GenericResumeSection[],
+  ): GenericResumeSection | undefined {
+    // Direct match by sectionTypeKey
+    const direct = sections.find((s) => s.sectionTypeKey === dslSectionId);
+    if (direct) return direct;
+
+    // Match by section ID pattern (e.g., 'experience' matches any WORK_EXPERIENCE section)
+    // This allows legacy DSL files to work with new generic resume data
+    return sections.find((s) => {
+      const key = s.sectionTypeKey.toLowerCase();
+      const kind = s.semanticKind.toLowerCase().replace(/_/g, '');
+      const id = dslSectionId.toLowerCase();
+
+      return (
+        key.includes(id) || kind.includes(id.replace(/_/g, '')) || id.includes(key.split('_')[0])
+      );
+    });
   }
 }

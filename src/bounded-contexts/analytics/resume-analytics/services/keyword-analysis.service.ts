@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { ResumeForKeywords } from '../domain/types';
+import type { ResumeForAnalytics } from '../domain/types';
 import { INDUSTRY_KEYWORDS } from '../domain/value-objects/industry-keywords';
 import type {
   Industry,
@@ -8,10 +8,32 @@ import type {
   KeywordSuggestionsOptions,
 } from '../interfaces';
 
+/**
+ * Extract all string values from a content object recursively.
+ */
+function extractStrings(content: Record<string, unknown>): string[] {
+  const parts: string[] = [];
+  for (const value of Object.values(content)) {
+    if (typeof value === 'string' && value.trim()) {
+      parts.push(value);
+    } else if (Array.isArray(value)) {
+      for (const item of value) {
+        if (typeof item === 'string') parts.push(item);
+        else if (typeof item === 'object' && item !== null) {
+          parts.push(...extractStrings(item as Record<string, unknown>));
+        }
+      }
+    } else if (typeof value === 'object' && value !== null) {
+      parts.push(...extractStrings(value as Record<string, unknown>));
+    }
+  }
+  return parts;
+}
+
 @Injectable()
 export class KeywordAnalysisService {
   getKeywordSuggestions(
-    resume: ResumeForKeywords,
+    resume: ResumeForAnalytics,
     options: KeywordSuggestionsOptions,
   ): KeywordSuggestions {
     const resumeText = this.extractResumeText(resume);
@@ -32,7 +54,7 @@ export class KeywordAnalysisService {
     };
   }
 
-  matchJobDescription(resume: ResumeForKeywords, jobDescription: string): JobMatchResult {
+  matchJobDescription(resume: ResumeForAnalytics, jobDescription: string): JobMatchResult {
     const resumeText = this.extractResumeText(resume).toLowerCase();
     const jobKeywords = this.extractJobKeywords(jobDescription);
     const matchedKeywords = jobKeywords.filter((kw) => resumeText.includes(kw.toLowerCase()));
@@ -48,15 +70,20 @@ export class KeywordAnalysisService {
     };
   }
 
-  private extractResumeText(resume: ResumeForKeywords): string {
+  /**
+   * Extract text from resume generically.
+   * Pulls strings from all sections without knowing their types.
+   */
+  private extractResumeText(resume: ResumeForAnalytics): string {
     const parts: string[] = [];
     if (resume.summary) parts.push(resume.summary);
     if (resume.jobTitle) parts.push(resume.jobTitle);
-    parts.push(...resume.skills.map((s) => s.name));
-    for (const exp of resume.experiences) {
-      if (exp.position) parts.push(exp.position);
-      if (exp.company) parts.push(exp.company);
-      if (exp.description) parts.push(exp.description);
+
+    // Extract all strings from all sections generically
+    for (const section of resume.sections) {
+      for (const item of section.items) {
+        parts.push(...extractStrings(item.content));
+      }
     }
     return parts.join(' ');
   }

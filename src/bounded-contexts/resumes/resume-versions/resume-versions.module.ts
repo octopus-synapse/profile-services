@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { RESUME_EVENT_PUBLISHER } from '@/bounded-contexts/resumes/domain/ports';
+import { ResumeEventPublisherAdapter } from '@/bounded-contexts/resumes/infrastructure/adapters';
 import { ResumeVersionController } from './controllers/resume-version.controller';
 import {
   buildResumeVersionUseCases,
@@ -15,11 +16,15 @@ import { ResumeVersionService } from './services/resume-version.service';
   providers: [
     ResumeVersionService,
     {
+      provide: RESUME_EVENT_PUBLISHER,
+      useClass: ResumeEventPublisherAdapter,
+    },
+    {
       provide: RESUME_VERSION_USE_CASES,
       useFactory: buildResumeVersionUseCases,
       inject: [PrismaService, RESUME_EVENT_PUBLISHER],
     },
   ],
-  exports: [ResumeVersionService],
+  exports: [ResumeVersionService, RESUME_EVENT_PUBLISHER],
 })
 export class ResumeVersionsModule {}
