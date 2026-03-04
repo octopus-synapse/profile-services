@@ -9,13 +9,9 @@ on:
       - ".release-please-manifest.json"
       - "*.md"
       - "docs/**"
-  # REMOVED: push trigger
-  # Why: Causes duplicate runs after merge. Branch protection + PR checks are sufficient.
-  # See: docs/E2E_TESTS_AND_CI_OPTIMIZATION.md
 
 permissions:
   contents: write
-  packages: read
   pull-requests: write
 
 jobs:
@@ -63,19 +59,35 @@ jobs:
               - 'tsconfig*.json'
               - 'bunfig*.toml'
 
-  # Centralized dependency installation - runs once, cached for all jobs
-  # Eliminates duplicate "bun install" across 5+ jobs (saves 2-4 minutes)
-  setup:
-    name: Setup Dependencies
-    needs: should-skip
+  # ==========================================================================
+  # Verify Pre-Commit Attestation (O(1) - no re-execution of checks)
+  # ==========================================================================
+  verify-attestation:
+    name: Verify Pre-Commit Attestation
+    needs: [should-skip]
     if: needs.should-skip.outputs.should_skip != 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
+      - name: Verify Pre-Commit Ran (O(1) check)
+        run: |
+          chmod +x ./scripts/verify-pre-commit-attestation.sh
+          ./scripts/verify-pre-commit-attestation.sh
+
+  # Centralized dependency installation - runs once, cached for all jobs
+  setup:
+    name: Setup Dependencies
+    needs: [should-skip, detect-changes]
+    if: |
+      needs.should-skip.outputs.should_skip != 'true' &&
+      needs.detect-changes.outputs.src == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Reads version from .bun-version file
       - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: 1.2.23
 
       - name: Cache Dependencies
         id: cache-deps
@@ -87,12 +99,6 @@ jobs:
           key: deps-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
           restore-keys: |
             deps-${{ runner.os }}-
-
-      - name: Configure npm registry
-        if: steps.cache-deps.outputs.cache-hit != 'true'
-        run: |
-          echo "@octopus-synapse:registry=https://npm.pkg.github.com" >> .npmrc
-          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> .npmrc
 
       - name: Install dependencies
         if: steps.cache-deps.outputs.cache-hit != 'true'
@@ -115,91 +121,11 @@ jobs:
   # NOTE: Integration and E2E tests are in separate workflow files
   # - integration.yml → runs on PR with infrastructure (Postgres, Redis)
   # - e2e.yml → runs on PR to main + nightly schedule
-  # This follows Single Responsibility Principle (Uncle Bob)
   # ==========================================================================
-
-  hook-compliance:
-    name: Verify Pre-Commit Hooks Ran
-    needs: [setup, detect-changes, should-skip]
-    if: needs.should-skip.outputs.should_skip != 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: 1.2.23
-
-      - name: Restore Dependencies
-        uses: actions/cache/restore@v4
-        with:
-          path: |
-            node_modules
-            ~/.bun/install/cache
-          key: deps-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
-          fail-on-cache-miss: true
-
-      - name: Restore Prisma Client
-        uses: actions/cache/restore@v4
-        with:
-          path: node_modules/.prisma
-          key: prisma-${{ hashFiles('prisma/schema/**/*.prisma') }}
-          fail-on-cache-miss: true
-
-      - name: Quick lint verification (biome)
-        run: bun run lint:fast
-
-      - name: Check if pre-commit hooks were bypassed
-        run: |
-          echo "🔍 Verificando se pre-commit foi executado..."
-
-          # Generate swagger to check if it's up-to-date
-          bun run scripts/generate-swagger-from-decorators.ts
-
-          if ! git diff --quiet swagger.json; then
-            echo "❌ swagger.json desatualizado - pre-commit hooks foram ignorados"
-            echo "Execute: bun run scripts/generate-swagger-from-decorators.ts"
-            exit 1
-          fi
-
-          echo "✅ Pre-commit hooks foram executados corretamente"
-
-  lint:
-    name: Biome Check (Full)
-    needs: [setup, detect-changes, should-skip]
-    if: |
-      needs.should-skip.outputs.should_skip != 'true' &&
-      needs.detect-changes.outputs.src == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: 1.2.23
-
-      - name: Restore Dependencies
-        uses: actions/cache/restore@v4
-        with:
-          path: |
-            node_modules
-            ~/.bun/install/cache
-          key: deps-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
-          fail-on-cache-miss: true
-
-      - name: Restore Prisma Client
-        uses: actions/cache/restore@v4
-        with:
-          path: node_modules/.prisma
-          key: prisma-${{ hashFiles('prisma/schema/**/*.prisma') }}
-          fail-on-cache-miss: true
-
-      - name: Run Biome Check
-        run: bun run lint
 
   build:
     name: Build
-    needs: [setup, detect-changes, should-skip]
+    needs: [setup, detect-changes, should-skip, verify-attestation]
     if: |
       needs.should-skip.outputs.should_skip != 'true' &&
       needs.detect-changes.outputs.src == 'true'
@@ -208,8 +134,6 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: 1.2.23
 
       - name: Restore Dependencies
         uses: actions/cache/restore@v4
@@ -259,7 +183,5 @@ jobs:
           file: Dockerfile
           push: false
           tags: profile-services:${{ github.sha }}
-          secrets: |
-            github_token=${{ secrets.GITHUB_TOKEN }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

@@ -55,8 +55,6 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}:${{ steps.version.outputs.version }}
             ghcr.io/${{ github.repository }}:latest
-          secrets: |
-            github_token=${{ secrets.GITHUB_TOKEN }}
 
       - name: Update release notes with Docker info
         env:

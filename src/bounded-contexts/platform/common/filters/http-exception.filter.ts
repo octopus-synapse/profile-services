@@ -3,18 +3,20 @@
  * Centralizes error logging and response transformation
  * Follows ERROR_HANDLING_STRATEGY.md principles
  *
- * Also handles ValidationError from profile-contracts,
  * converting them to HTTP 400 responses.
  */
 
-import { ArgumentsHost, Catch, ExceptionFilter, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  ArgumentsHost,
+  Catch,
+  ExceptionFilter,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { ERROR_CODES } from '@/shared-kernel';
 import { AppLoggerService } from '../logger/logger.service';
 
-/**
- * Interface matching ValidationError from profile-contracts
- */
 interface ValidationError extends Error {
   name: 'ValidationError';
   errors: Array<{
@@ -24,9 +26,6 @@ interface ValidationError extends Error {
   }>;
 }
 
-/**
- * Type guard for ValidationError from profile-contracts
- */
 function isValidationError(error: unknown): error is ValidationError {
   return (
     error instanceof Error &&
@@ -50,7 +49,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
 
-    // Handle ValidationError from profile-contracts
     if (isValidationError(exception)) {
       const status = HttpStatus.BAD_REQUEST;
       const details = {
@@ -72,9 +70,15 @@ export class AllExceptionsFilter implements ExceptionFilter {
     }
 
     const status =
-      exception instanceof HttpException ? exception.getStatus() : HttpStatus.INTERNAL_SERVER_ERROR;
+      exception instanceof HttpException
+        ? exception.getStatus()
+        : HttpStatus.INTERNAL_SERVER_ERROR;
 
-    const apiErrorResponse = this.toApiErrorResponse(exception, request, status);
+    const apiErrorResponse = this.toApiErrorResponse(
+      exception,
+      request,
+      status,
+    );
 
     // Centralized logging based on severity
     this.logException(exception, request, status);
@@ -117,9 +121,13 @@ export class AllExceptionsFilter implements ExceptionFilter {
             success: false,
             error: {
               code: typeof errorObj.code === 'string' ? errorObj.code : code,
-              message: typeof errorObj.message === 'string' ? errorObj.message : message,
+              message:
+                typeof errorObj.message === 'string'
+                  ? errorObj.message
+                  : message,
               details:
-                typeof errorObj.details === 'object' && errorObj.details !== null
+                typeof errorObj.details === 'object' &&
+                errorObj.details !== null
                   ? (errorObj.details as Record<string, unknown>)
                   : undefined,
             },
@@ -132,7 +140,9 @@ export class AllExceptionsFilter implements ExceptionFilter {
           message = payloadMessage;
         } else if (Array.isArray(payloadMessage)) {
           // Nest can return string[] for validation errors
-          message = payloadMessage.filter((m) => typeof m === 'string').join(', ') || message;
+          message =
+            payloadMessage.filter((m) => typeof m === 'string').join(', ') ||
+            message;
         }
 
         // Support custom "code" field if provided
@@ -207,9 +217,14 @@ export class AllExceptionsFilter implements ExceptionFilter {
     }
   }
 
-  private logException(exception: unknown, request: Request, status: number): void {
+  private logException(
+    exception: unknown,
+    request: Request,
+    status: number,
+  ): void {
     const context = 'AllExceptionsFilter';
-    const errorMessage = exception instanceof Error ? exception.message : String(exception);
+    const errorMessage =
+      exception instanceof Error ? exception.message : String(exception);
     const errorStack = exception instanceof Error ? exception.stack : undefined;
 
     const metadata = {
@@ -224,7 +239,12 @@ export class AllExceptionsFilter implements ExceptionFilter {
     // Log based on HTTP status severity
     if (status >= 500) {
       // Server errors - full stack trace
-      this.logger.error(`Server Error: ${errorMessage}`, errorStack, context, metadata);
+      this.logger.error(
+        `Server Error: ${errorMessage}`,
+        errorStack,
+        context,
+        metadata,
+      );
     } else if (status >= 400) {
       // Client errors - warning level, no stack trace
       this.logger.warn(`Client Error: ${errorMessage}`, context, metadata);

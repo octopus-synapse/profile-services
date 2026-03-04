@@ -36,9 +36,10 @@ permissions:
     pull-requests: write
 
 env:
-    DATABASE_URL: postgresql://postgres:postgres@localhost:5432/integration_test_db
+    # Using non-standard ports (5433/6380) to avoid conflicts with local services
+    DATABASE_URL: postgresql://postgres:postgres@localhost:5433/integration_test_db
     REDIS_HOST: localhost
-    REDIS_PORT: 6379
+    REDIS_PORT: 6380
     JWT_SECRET: integration-test-secret-key-minimum-32-characters
     NODE_ENV: test
 
@@ -56,7 +57,7 @@ jobs:
                     POSTGRES_PASSWORD: postgres
                     POSTGRES_DB: integration_test_db
                 ports:
-                    - 5432:5432
+                    - 5433:5432
                 options: >-
                     --health-cmd pg_isready
                     --health-interval 10s
@@ -66,7 +67,7 @@ jobs:
             redis:
                 image: redis:7-alpine
                 ports:
-                    - 6379:6379
+                    - 6380:6379
                 options: >-
                     --health-cmd "redis-cli ping"
                     --health-interval 10s
@@ -77,12 +78,10 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v4
 
+            # Reads version from .bun-version file
             - name: Setup Bun
               uses: oven-sh/setup-bun@v2
-              with:
-                  bun-version: 1.2.23
 
-            # Restore cached dependencies (shared with ci.yml setup job)
             - name: Restore Dependencies Cache
               id: cache-deps
               uses: actions/cache/restore@v4
@@ -93,17 +92,10 @@ jobs:
                   key: deps-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
                   restore-keys: deps-${{ runner.os }}-
 
-            - name: Configure npm registry
-              if: steps.cache-deps.outputs.cache-hit != 'true'
-              run: |
-                  echo "@octopus-synapse:registry=https://npm.pkg.github.com" >> .npmrc
-                  echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> .npmrc
-
             - name: Install Dependencies
               if: steps.cache-deps.outputs.cache-hit != 'true'
               run: bun install --frozen-lockfile
 
-            # Restore cached Prisma Client
             - name: Restore Prisma Cache
               id: cache-prisma
               uses: actions/cache/restore@v4
@@ -164,7 +156,7 @@ jobs:
                         '<summary>Test Output</summary>',
                         '',
                         '```',
-                        output.slice(-3000), // Last 3000 chars
+                        output.slice(-3000),
                         '```',
                         '</details>',
                         '',

@@ -13,11 +13,6 @@ on:
         required: false
         default: "false"
 
-env:
-  NODE_VERSION: "20"
-  BACKEND_URL: ${{ secrets.BACKEND_URL }}
-  INTERNAL_API_TOKEN: ${{ secrets.INTERNAL_API_TOKEN }}
-
 jobs:
   sync-tech-skills:
     name: Sync Tech Skills
@@ -25,40 +20,35 @@ jobs:
     timeout-minutes: 30
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-
-      - name: Trigger Tech Skills Sync
+      - name: Trigger Tech Skills Sync (with retry)
         id: sync
-        run: |
-          echo "Triggering tech skills sync..."
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 5
+          max_attempts: 3
+          retry_wait_seconds: 30
+          command: |
+            echo "Triggering tech skills sync..."
 
-          RESPONSE=$(curl -s -w "\n%{http_code}" \
-            -X POST \
-            -H "Content-Type: application/json" \
-            -H "X-Internal-Token: ${{ env.INTERNAL_API_TOKEN }}" \
-            "${{ env.BACKEND_URL }}/api/tech-skills/sync")
+            RESPONSE=$(curl -sf -w "\n%{http_code}" \
+              -X POST \
+              -H "Content-Type: application/json" \
+              -H "X-Internal-Token: ${{ secrets.INTERNAL_API_TOKEN }}" \
+              "${{ secrets.BACKEND_URL }}/api/tech-skills/sync")
 
-          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
-          BODY=$(echo "$RESPONSE" | sed '$d')
+            HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+            BODY=$(echo "$RESPONSE" | sed '$d')
 
-          echo "HTTP Status: $HTTP_CODE"
-          echo "Response: $BODY"
+            echo "HTTP Status: $HTTP_CODE"
+            echo "Response: $BODY"
 
-          if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 300 ]; then
-            echo "✅ Tech skills sync completed successfully"
-            echo "sync_status=success" >> $GITHUB_OUTPUT
-            echo "$BODY" | jq '.' || echo "$BODY"
-          else
-            echo "❌ Tech skills sync failed"
-            echo "sync_status=failed" >> $GITHUB_OUTPUT
-            exit 1
-          fi
+            if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 300 ]; then
+              echo "✅ Tech skills sync completed successfully"
+              echo "$BODY" | jq '.' || echo "$BODY"
+            else
+              echo "❌ Tech skills sync failed"
+              exit 1
+            fi
 
       - name: Create Summary
         if: always()
@@ -66,7 +56,6 @@ jobs:
           echo "## Tech Skills Sync Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Date:** $(date -u '+%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
-          echo "**Status:** ${{ steps.sync.outputs.sync_status || 'unknown' }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Sources" >> $GITHUB_STEP_SUMMARY
           echo "- GitHub Linguist (Programming Languages)" >> $GITHUB_STEP_SUMMARY
