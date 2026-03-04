@@ -153,10 +153,7 @@ export class OnboardingProgressRepository extends OnboardingProgressRepositoryPo
     await this.prisma.onboardingProgress.deleteMany({ where: { userId } });
   }
 
-  async deleteProgressWithTx(
-    tx: TransactionClient,
-    userId: string,
-  ): Promise<void> {
+  async deleteProgressWithTx(tx: TransactionClient, userId: string): Promise<void> {
     const prismaTx = tx as Prisma.TransactionClient;
     await prismaTx.onboardingProgress.deleteMany({ where: { userId } });
   }

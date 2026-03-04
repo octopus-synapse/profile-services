@@ -9,8 +9,8 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ERROR_MESSAGES } from '@/shared-kernel';
-import { GitHubContributionInput } from './github-contribution.service';
 import type { GitHubAchievementContent } from './github-achievement.service';
+import { GitHubContributionInput } from './github-contribution.service';
 
 const OPEN_SOURCE_SEMANTIC_KIND = 'OPEN_SOURCE';
 const ACHIEVEMENT_SEMANTIC_KIND = 'ACHIEVEMENT';
@@ -116,7 +116,12 @@ export class GitHubDatabaseService {
           },
           OR: [
             { content: { path: ['type'], equals: 'github_stars' } },
-            { content: { path: ['verificationUrl'], string_contains: `github.com/${githubUsername}` } },
+            {
+              content: {
+                path: ['verificationUrl'],
+                string_contains: `github.com/${githubUsername}`,
+              },
+            },
           ],
         },
       }),
