@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { describe, it, expect, beforeEach } from 'bun:test';
 import { CVSectionParser } from './cv-section.parser';
 import { ValidationSeverity } from '../interfaces';
 import {
