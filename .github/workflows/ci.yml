@@ -116,49 +116,10 @@ jobs:
         secrets: inherit
 
     # ═══════════════════════════════════════════════════════════════════════════
-    # Test: Unit
+    # NOTE: Unit tests are NOT run in CI.
+    # They already run in pre-commit (verified by attestation).
+    # Running them again here would be pure duplication.
     # ═══════════════════════════════════════════════════════════════════════════
-    unit-tests:
-        name: Unit Tests
-        needs: [should-skip, detect-changes, verify-attestation]
-        if: |
-            needs.should-skip.outputs.should_skip != 'true' &&
-            (needs.detect-changes.outputs.src == 'true' || needs.detect-changes.outputs.tests == 'true')
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v4
-            - uses: oven-sh/setup-bun@v2
-
-            - name: Restore Cache
-              id: cache
-              uses: actions/cache/restore@v4
-              with:
-                  path: |
-                      node_modules
-                      ~/.bun/install/cache
-                  key: deps-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
-
-            - name: Install
-              if: steps.cache.outputs.cache-hit != 'true'
-              run: bun install --frozen-lockfile
-
-            - name: Save Cache
-              if: steps.cache.outputs.cache-hit != 'true'
-              uses: actions/cache/save@v4
-              with:
-                  path: |
-                      node_modules
-                      ~/.bun/install/cache
-                  key: deps-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
-
-            - name: Prisma Generate
-              run: bunx prisma generate
-
-            - name: Test
-              run: |
-                  echo "## 🧪 Unit Tests" >> $GITHUB_STEP_SUMMARY
-                  bun test --config=bunfig.toml
-                  echo "✅ All unit tests passed" >> $GITHUB_STEP_SUMMARY
 
     # ═══════════════════════════════════════════════════════════════════════════
     # Test: Integration
@@ -193,7 +154,7 @@ jobs:
     # ═══════════════════════════════════════════════════════════════════════════
     status:
         name: CI Status
-        needs: [verify-attestation, build, unit-tests, integration, e2e]
+        needs: [verify-attestation, build, integration, e2e]
         if: always()
         runs-on: ubuntu-latest
         steps:
@@ -205,13 +166,11 @@ jobs:
                   echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
                   echo "| Attestation | ${{ needs.verify-attestation.result }} |" >> $GITHUB_STEP_SUMMARY
                   echo "| Build | ${{ needs.build.result }} |" >> $GITHUB_STEP_SUMMARY
-                  echo "| Unit | ${{ needs.unit-tests.result }} |" >> $GITHUB_STEP_SUMMARY
                   echo "| Integration | ${{ needs.integration.result }} |" >> $GITHUB_STEP_SUMMARY
                   echo "| E2E | ${{ needs.e2e.result }} |" >> $GITHUB_STEP_SUMMARY
 
                   if [[ "${{ needs.verify-attestation.result }}" == "failure" ]] || \
                      [[ "${{ needs.build.result }}" == "failure" ]] || \
-                     [[ "${{ needs.unit-tests.result }}" == "failure" ]] || \
                      [[ "${{ needs.integration.result }}" == "failure" ]] || \
                      [[ "${{ needs.e2e.result }}" == "failure" ]]; then
                     echo "" >> $GITHUB_STEP_SUMMARY
@@ -230,7 +189,6 @@ jobs:
                       const results = {
                         attestation: '${{ needs.verify-attestation.result }}',
                         build: '${{ needs.build.result }}',
-                        unit: '${{ needs.unit-tests.result }}',
                         integration: '${{ needs.integration.result }}',
                         e2e: '${{ needs.e2e.result }}'
                       };
