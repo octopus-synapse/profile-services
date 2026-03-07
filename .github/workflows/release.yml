@@ -10,15 +10,18 @@ permissions:
   pull-requests: write
   packages: write
 
+env:
+  RELEASE_BRANCH: release/next
+
 jobs:
-  release:
+  # Job 1: Create or update release PR when code is pushed to main
+  create-release-pr:
     runs-on: ubuntu-latest
-    # Skip if this is a release commit (avoid infinite loop)
+    # Skip if this is a release commit (the merge of the release PR)
     if: "!startsWith(github.event.head_commit.message, 'chore(release):')"
     outputs:
-      released: ${{ steps.release.outputs.released }}
-      version: ${{ steps.release.outputs.version }}
-      tag: ${{ steps.release.outputs.tag }}
+      pr_number: ${{ steps.create-pr.outputs.pr_number }}
+      next_version: ${{ steps.calc-version.outputs.next }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -30,14 +33,13 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Find merged PR and check for stable label
+      - name: Check for stable label on merged PR
         id: pr-info
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           echo "🔍 Looking for merged PR for commit: ${{ github.sha }}"
-
-          # Find PR that was merged with this commit
+          
           PR_DATA=$(gh api graphql -f query='
             query($sha: String!, $owner: String!, $repo: String!) {
               repository(owner: $owner, name: $repo) {
@@ -60,11 +62,11 @@ jobs:
               }
             }
           ' -f sha="${{ github.sha }}" -f owner="${{ github.repository_owner }}" -f repo="${{ github.event.repository.name }}" 2>/dev/null || echo "{}")
-
+          
           PR_NUMBER=$(echo "$PR_DATA" | jq -r '.data.repository.commit.associatedPullRequests.nodes[0].number // empty')
           PR_MERGED=$(echo "$PR_DATA" | jq -r '.data.repository.commit.associatedPullRequests.nodes[0].merged // false')
           HAS_STABLE=$(echo "$PR_DATA" | jq -r '.data.repository.commit.associatedPullRequests.nodes[0].labels.nodes[].name | select(. == "stable")' | head -1)
-
+          
           if [ -n "$PR_NUMBER" ] && [ "$PR_MERGED" == "true" ]; then
             echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
             echo "📋 Found merged PR #$PR_NUMBER"
@@ -81,102 +83,220 @@ jobs:
             echo "⚠️ No merged PR found (direct push) - will bump PATCH version"
           fi
 
-      - name: Calculate and apply new version
-        id: release
+      - name: Calculate next version
+        id: calc-version
         run: |
-          # Get current version
           CURRENT=$(jq -r '.version' package.json)
           echo "📌 Current version: $CURRENT"
-
+          
           IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT"
-
+          
           if [ "${{ steps.pr-info.outputs.is_stable }}" == "true" ]; then
-            # Stable: bump minor, reset patch
-            NEW_VERSION="${MAJOR}.$((MINOR + 1)).0"
-            echo "🚀 Stable release: $CURRENT → $NEW_VERSION"
+            NEXT="${MAJOR}.$((MINOR + 1)).0"
+            echo "🚀 Next stable version: $NEXT"
           else
-            # Normal: bump patch only
-            NEW_VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))"
-            echo "📦 Patch release: $CURRENT → $NEW_VERSION"
+            NEXT="${MAJOR}.${MINOR}.$((PATCH + 1))"
+            echo "📦 Next patch version: $NEXT"
+          fi
+          
+          echo "next=$NEXT" >> $GITHUB_OUTPUT
+          echo "current=$CURRENT" >> $GITHUB_OUTPUT
+
+      - name: Create or update release branch
+        id: release-branch
+        env:
+          NEXT_VERSION: ${{ steps.calc-version.outputs.next }}
+        run: |
+          # Delete existing release branch if it exists
+          git push origin --delete "$RELEASE_BRANCH" 2>/dev/null || true
+          git branch -D "$RELEASE_BRANCH" 2>/dev/null || true
+          
+          # Create fresh release branch from main
+          git checkout -b "$RELEASE_BRANCH"
+          
+          # Update version in package.json
+          jq ".version = \"$NEXT_VERSION\"" package.json > package.json.tmp && mv package.json.tmp package.json
+          
+          # Update manifest
+          echo "{
+            \".\": \"$NEXT_VERSION\"
+          }" > .release-please-manifest.json
+          
+          # Generate changelog entry
+          PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          
+          if [ -n "$PREV_TAG" ]; then
+            COMMITS=$(git log --pretty=format:"- %s (%h)" "${PREV_TAG}..HEAD" 2>/dev/null | head -50 || echo "")
+            COMPARE="https://github.com/${{ github.repository }}/compare/${PREV_TAG}...v${NEXT_VERSION}"
+          else
+            COMMITS="- Initial release"
+            COMPARE="https://github.com/${{ github.repository }}/commits/v${NEXT_VERSION}"
+          fi
+          
+          # Create changelog content for PR body
+          cat > /tmp/pr-body.md << EOF
+          ## Release v${NEXT_VERSION}
+          
+          ### Changes
+          
+          ${COMMITS}
+          
+          ---
+          
+          **Full Changelog**: ${COMPARE}
+          
+          ---
+          
+          > ⚠️ **Merging this PR will create release v${NEXT_VERSION}**
+          EOF
+          
+          # Commit changes
+          git add package.json .release-please-manifest.json
+          git commit -m "chore(release): v${NEXT_VERSION}"
+          
+          # Push release branch
+          git push origin "$RELEASE_BRANCH" --force
+          
+          echo "✅ Release branch created/updated"
+
+      - name: Create or update release PR
+        id: create-pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NEXT_VERSION: ${{ steps.calc-version.outputs.next }}
+        run: |
+          PR_BODY=$(cat /tmp/pr-body.md)
+          
+          # Check if PR already exists
+          EXISTING_PR=$(gh pr list --head "$RELEASE_BRANCH" --base main --json number --jq '.[0].number' 2>/dev/null || echo "")
+          
+          if [ -n "$EXISTING_PR" ]; then
+            echo "📝 Updating existing PR #$EXISTING_PR"
+            gh pr edit "$EXISTING_PR" \
+              --title "chore(release): v${NEXT_VERSION}" \
+              --body "$PR_BODY"
+            echo "pr_number=$EXISTING_PR" >> $GITHUB_OUTPUT
+          else
+            echo "📝 Creating new release PR"
+            PR_URL=$(gh pr create \
+              --head "$RELEASE_BRANCH" \
+              --base main \
+              --title "chore(release): v${NEXT_VERSION}" \
+              --body "$PR_BODY" \
+              --label "autorelease: pending")
+            
+            PR_NUM=$(echo "$PR_URL" | grep -oE '[0-9]+$')
+            echo "pr_number=$PR_NUM" >> $GITHUB_OUTPUT
+            echo "✅ Created PR #$PR_NUM"
           fi
 
-          TAG="v${NEW_VERSION}"
+  # Job 2: Finalize release when the release PR is merged
+  finalize-release:
+    runs-on: ubuntu-latest
+    # Only run when a release commit is pushed (release PR was merged)
+    if: startsWith(github.event.head_commit.message, 'chore(release):')
+    outputs:
+      released: ${{ steps.create-release.outputs.released }}
+      version: ${{ steps.extract-version.outputs.version }}
+      tag: ${{ steps.extract-version.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-          # Update package.json
-          jq ".version = \"$NEW_VERSION\"" package.json > package.json.tmp && mv package.json.tmp package.json
-
-          # Update release-please manifest (keep it in sync)
-          echo "{
-            \".\": \"$NEW_VERSION\"
-          }" > .release-please-manifest.json
-
-          # Commit version bump
-          git add package.json .release-please-manifest.json
-          git commit -m "chore(release): v${NEW_VERSION}"
-
-          # Create annotated tag
-          git tag -a "$TAG" -m "Release $TAG"
-
-          # Push commit and tag
-          git push origin main
-          git push origin "$TAG"
-
-          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
-          echo "released=true" >> $GITHUB_OUTPUT
-
-          echo "✅ Released $TAG"
-
-      - name: Generate changelog for this release
-        id: changelog
+      - name: Setup Git
         run: |
-          TAG="${{ steps.release.outputs.tag }}"
-          VERSION="${{ steps.release.outputs.version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Get previous tag
+      - name: Extract version from commit message
+        id: extract-version
+        run: |
+          COMMIT_MSG="${{ github.event.head_commit.message }}"
+          VERSION=$(echo "$COMMIT_MSG" | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+' | head -1)
+          
+          if [ -z "$VERSION" ]; then
+            # Fallback: read from package.json
+            VERSION="v$(jq -r '.version' package.json)"
+          fi
+          
+          echo "version=${VERSION#v}" >> $GITHUB_OUTPUT
+          echo "tag=$VERSION" >> $GITHUB_OUTPUT
+          echo "📦 Releasing: $VERSION"
+
+      - name: Create and push tag
+        id: create-tag
+        env:
+          TAG: ${{ steps.extract-version.outputs.tag }}
+        run: |
+          # Check if tag already exists
+          if git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "⚠️ Tag $TAG already exists, skipping"
+            echo "tag_exists=true" >> $GITHUB_OUTPUT
+          else
+            git tag -a "$TAG" -m "Release $TAG"
+            git push origin "$TAG"
+            echo "✅ Created and pushed tag $TAG"
+            echo "tag_exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate changelog
+        id: changelog
+        env:
+          TAG: ${{ steps.extract-version.outputs.tag }}
+        run: |
           PREV_TAG=$(git describe --tags --abbrev=0 "$TAG^" 2>/dev/null || echo "")
-
+          
           if [ -n "$PREV_TAG" ]; then
             COMPARE_URL="https://github.com/${{ github.repository }}/compare/${PREV_TAG}...${TAG}"
-            COMMITS=$(git log --pretty=format:"- %s (%h)" "${PREV_TAG}..${TAG}^" 2>/dev/null || echo "")
+            COMMITS=$(git log --pretty=format:"- %s (%h)" "${PREV_TAG}..${TAG}^" 2>/dev/null | head -50 || echo "")
           else
             COMPARE_URL="https://github.com/${{ github.repository }}/commits/${TAG}"
             COMMITS="- Initial release"
           fi
-
-          # Build changelog
-          CHANGELOG="## What's Changed
-
+          
+          cat > /tmp/changelog.md << EOF
+          ## What's Changed
+          
           ${COMMITS}
-
-          **Full Changelog**: ${COMPARE_URL}"
-
-          # Save to file for later use
-          echo "$CHANGELOG" > /tmp/changelog.md
-
-          echo "changelog_file=/tmp/changelog.md" >> $GITHUB_OUTPUT
+          
+          **Full Changelog**: ${COMPARE_URL}
+          EOF
 
       - name: Create GitHub Release
+        id: create-release
+        if: steps.create-tag.outputs.tag_exists != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.extract-version.outputs.tag }}
         run: |
-          TAG="${{ steps.release.outputs.tag }}"
           CHANGELOG=$(cat /tmp/changelog.md)
-
+          
           gh release create "$TAG" \
             --title "Release $TAG" \
             --notes "$CHANGELOG" \
             --target main
+          
+          echo "released=true" >> $GITHUB_OUTPUT
+          echo "✅ Created GitHub Release $TAG"
 
+      - name: Clean up release branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git push origin --delete "$RELEASE_BRANCH" 2>/dev/null || echo "Release branch already deleted"
+
+  # Job 3: Build and push Docker image after release
   build-and-push:
-    needs: release
-    if: needs.release.outputs.released == 'true'
+    needs: finalize-release
+    if: needs.finalize-release.outputs.released == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ needs.release.outputs.tag }}
+          ref: ${{ needs.finalize-release.outputs.tag }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -195,7 +315,7 @@ jobs:
           file: Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}:${{ needs.release.outputs.tag }}
+            ghcr.io/${{ github.repository }}:${{ needs.finalize-release.outputs.tag }}
             ghcr.io/${{ github.repository }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -203,21 +323,19 @@ jobs:
       - name: Update release notes with Docker info
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.finalize-release.outputs.tag }}
         run: |
-          TAG="${{ needs.release.outputs.tag }}"
-
-          # Append Docker info to existing release notes
           CURRENT_NOTES=$(gh release view "$TAG" --json body -q '.body')
-
+          
           DOCKER_INFO="
 
-          ---
+---
 
-          ## Docker Images
+## Docker Images
 
-          \`\`\`bash
-          docker pull ghcr.io/${{ github.repository }}:${TAG}
-          docker pull ghcr.io/${{ github.repository }}:latest
-          \`\`\`"
-
+\`\`\`bash
+docker pull ghcr.io/${{ github.repository }}:${TAG}
+docker pull ghcr.io/${{ github.repository }}:latest
+\`\`\`"
+          
           gh release edit "$TAG" --notes "${CURRENT_NOTES}${DOCKER_INFO}"
