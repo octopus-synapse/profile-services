@@ -30,7 +30,11 @@ import {
   ResumeResponseDto,
   ResumeSlotsResponseDto,
 } from '@/shared-kernel/dtos/sdk-response.dto';
-import { ResumesService } from './resumes.service';
+import {
+  type ResumeResult,
+  ResumesServicePort,
+  type UserResumesPaginatedResult,
+} from './ports/resumes-service.port';
 
 // DTO for paginated resumes response data
 class PaginatedResumesDataDto {
@@ -44,7 +48,7 @@ class PaginatedResumesDataDto {
 @Controller('v1/resumes')
 @UseGuards(JwtAuthGuard)
 export class ResumesController {
-  constructor(private readonly resumesService: ResumesService) {}
+  constructor(private readonly resumesService: ResumesServicePort) {}
 
   @Get()
   @ApiOperation({ summary: 'Get all resumes for current user' })
@@ -56,22 +60,17 @@ export class ResumesController {
   ): Promise<DataResponse<PaginatedResumesDataDto>> {
     const result = await this.resumesService.findAllUserResumes(user.userId, page, limit);
 
-    const paginatedResult = result as {
-      resumes?: ResumeListItemDto[];
-      pagination?: {
-        total: number;
-        page: number;
-        limit: number;
-        totalPages: number;
-      };
-    };
-
-    if (paginatedResult.resumes && paginatedResult.pagination) {
+    if (this.isPaginatedResult(result)) {
       return {
         success: true,
         data: {
-          data: paginatedResult.resumes,
-          meta: paginatedResult.pagination,
+          data: result.resumes.map((resume) => this.toResumeListItemDto(resume)),
+          meta: {
+            total: result.pagination.total,
+            page: result.pagination.page,
+            limit: result.pagination.limit,
+            totalPages: result.pagination.totalPages,
+          },
         },
       };
     }
@@ -79,9 +78,9 @@ export class ResumesController {
     return {
       success: true,
       data: {
-        data: result as unknown as ResumeListItemDto[],
+        data: result.map((resume) => this.toResumeListItemDto(resume)),
         meta: {
-          total: (result as unknown[]).length,
+          total: result.length,
           page: page ?? 1,
           limit: limit ?? 50,
           totalPages: 1,
@@ -111,7 +110,7 @@ export class ResumesController {
     @CurrentUser() user: UserPayload,
   ): Promise<DataResponse<ResumeFullResponseDto>> {
     const result = await this.resumesService.findResumeByIdForUser(id, user.userId);
-    return { success: true, data: result as unknown as ResumeFullResponseDto };
+    return { success: true, data: this.toResumeFullResponseDto(result) };
   }
 
   @Get(':id')
@@ -123,7 +122,7 @@ export class ResumesController {
     @CurrentUser() user: UserPayload,
   ): Promise<DataResponse<ResumeFullResponseDto>> {
     const result = await this.resumesService.findResumeByIdForUser(id, user.userId);
-    return { success: true, data: result as unknown as ResumeFullResponseDto };
+    return { success: true, data: this.toResumeFullResponseDto(result) };
   }
 
   @Post()
@@ -138,7 +137,7 @@ export class ResumesController {
     @Body(ParseJsonBodyPipe) createResume: CreateResume,
   ): Promise<DataResponse<ResumeResponseDto>> {
     const result = await this.resumesService.createResumeForUser(user.userId, createResume);
-    return { success: true, data: result as unknown as ResumeResponseDto };
+    return { success: true, data: this.toResumeResponseDto(result) };
   }
 
   @Patch(':id')
@@ -152,7 +151,7 @@ export class ResumesController {
     @Body() updateResume: UpdateResume,
   ): Promise<DataResponse<ResumeResponseDto>> {
     const result = await this.resumesService.updateResumeForUser(id, user.userId, updateResume);
-    return { success: true, data: result as unknown as ResumeResponseDto };
+    return { success: true, data: this.toResumeResponseDto(result) };
   }
 
   @Delete(':id')
@@ -166,5 +165,55 @@ export class ResumesController {
   ): Promise<DataResponse<DeleteResponseDto>> {
     await this.resumesService.deleteResumeForUser(id, user.userId);
     return { success: true, data: { success: true } };
+  }
+
+  private isPaginatedResult(
+    result: ResumeResult[] | UserResumesPaginatedResult,
+  ): result is UserResumesPaginatedResult {
+    return 'resumes' in result && 'pagination' in result;
+  }
+
+  private toResumeResponseDto(resume: ResumeResult): ResumeResponseDto {
+    return {
+      id: resume.id,
+      title: resume.title ?? '',
+      language: resume.language ?? undefined,
+      targetRole: resume.targetRole ?? undefined,
+      isPublic: resume.isPublic ?? false,
+      slug: resume.slug ?? undefined,
+      createdAt: resume.createdAt.toISOString(),
+      updatedAt: resume.updatedAt.toISOString(),
+    };
+  }
+
+  private toResumeListItemDto(resume: ResumeResult): ResumeListItemDto {
+    return this.toResumeResponseDto(resume);
+  }
+
+  private toResumeFullResponseDto(resume: ResumeResult): ResumeFullResponseDto {
+    return {
+      ...this.toResumeResponseDto(resume),
+      resumeSections: (resume.resumeSections ?? []).map((section) => ({
+        id: section.id,
+        order: section.order,
+        sectionType: {
+          id: section.sectionType.id,
+          key: section.sectionType.key,
+          semanticKind: section.sectionType.semanticKind ?? undefined,
+          title: section.sectionType.title ?? undefined,
+          version: section.sectionType.version ?? undefined,
+        },
+        items: section.items.map((item) => ({
+          id: item.id,
+          order: item.order,
+          content: item.content ?? undefined,
+        })),
+      })),
+      fullName: resume.fullName ?? undefined,
+      email: resume.email ?? undefined,
+      phone: resume.phone ?? undefined,
+      location: resume.location ?? undefined,
+      summary: resume.summary ?? undefined,
+    };
   }
 }

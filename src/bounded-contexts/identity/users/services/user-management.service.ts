@@ -8,7 +8,7 @@
  */
 
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
-import { AuthorizationService } from '@/bounded-contexts/identity/authorization';
+import { AuthorizationServicePort } from '@/bounded-contexts/identity/authorization';
 import type { AdminCreateUser, AdminResetPassword, AdminUpdateUser } from '@/shared-kernel';
 import {
   type CreatedUser,
@@ -25,7 +25,7 @@ export class UserManagementService {
   constructor(
     @Inject(USER_MANAGEMENT_USE_CASES)
     private readonly useCases: UserManagementUseCases,
-    private readonly authService: AuthorizationService,
+    private readonly authService: AuthorizationServicePort,
   ) {}
 
   /**

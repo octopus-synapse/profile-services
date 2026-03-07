@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import type { ResumeForAnalytics } from '../domain/types';
 import type {
   AnalyticsDashboard,
@@ -6,16 +6,22 @@ import type {
   ScoreProgressionPoint,
   ViewStats,
 } from '../interfaces';
+import {
+  SNAPSHOT_PORT,
+  type SnapshotPort,
+  VIEW_TRACKING_PORT,
+  type ViewTrackingPort,
+} from '../ports';
 import { ATSScoreService } from './ats-score.service';
-import { SnapshotService } from './snapshot.service';
-import { ViewTrackingService } from './view-tracking.service';
 
 @Injectable()
 export class DashboardService {
   constructor(
-    private readonly viewTracking: ViewTrackingService,
+    @Inject(VIEW_TRACKING_PORT)
+    private readonly viewTracking: ViewTrackingPort,
     private readonly atsScore: ATSScoreService,
-    private readonly snapshot: SnapshotService,
+    @Inject(SNAPSHOT_PORT)
+    private readonly snapshot: SnapshotPort,
   ) {}
 
   async build(resumeId: string, resume: ResumeForAnalytics): Promise<AnalyticsDashboard> {
@@ -23,7 +29,7 @@ export class DashboardService {
       this.viewTracking.getViewStats(resumeId, { period: 'month' }),
       this.snapshot.getScoreProgression(resumeId, 30),
     ]);
-    const atsResult = this.atsScore.calculate(resume);
+    const atsResult = await this.atsScore.calculate(resume);
     const trend = this.calculateTrend(progression);
 
     return this.assembleDashboard(resumeId, viewStats, atsResult, trend);
@@ -35,25 +41,33 @@ export class DashboardService {
     atsResult: ATSScoreResult,
     trend: 'improving' | 'stable' | 'declining',
   ): AnalyticsDashboard {
+    const avgSectionScore =
+      atsResult.sectionBreakdown.length > 0
+        ? Math.round(
+            atsResult.sectionBreakdown.reduce((s, b) => s + b.score, 0) /
+              atsResult.sectionBreakdown.length,
+          )
+        : 0;
+
     return {
       resumeId,
       overview: {
         totalViews: viewStats.totalViews,
         uniqueVisitors: viewStats.uniqueVisitors,
         atsScore: atsResult.score,
-        keywordScore: atsResult.breakdown.keywords,
+        keywordScore: avgSectionScore,
         industryPercentile: 0,
       },
       viewTrend: viewStats.viewsByDay,
       topSources: viewStats.topSources,
       keywordHealth: {
-        score: atsResult.breakdown.keywords,
+        score: avgSectionScore,
         topKeywords: [],
         missingCritical: [],
       },
       industryPosition: { percentile: 0, trend },
       recommendations: atsResult.recommendations.map((msg) => ({
-        type: 'add_keywords' as const,
+        type: 'improve_content' as const,
         priority: 'medium' as const,
         message: msg,
       })),

@@ -5,16 +5,13 @@
  */
 
 import * as path from 'node:path';
+import { CLEAN_ARCHITECTURE_MODULES, CLEAN_ARCHITECTURE_SERVICES } from '../constants';
 import {
-  CLEAN_ARCHITECTURE_MODULES,
-  CLEAN_ARCHITECTURE_SERVICES,
-} from '../constants';
-import {
-  SOURCE_ROOT,
   directoryExists,
   fileExists,
   getFilesInDirectory,
   getSubdirectories,
+  SOURCE_ROOT,
 } from '../helpers';
 import { type RuleResult, runRule } from '../rule-runner';
 
@@ -42,9 +39,7 @@ export function checkNoMultipleSubServices(): RuleResult {
         // Each sub-service must have proper structure
         for (const subService of cleanArchSubdirs) {
           const subServicePath = path.join(servicesPath, subService);
-          const hasUseCases = directoryExists(
-            path.join(subServicePath, 'use-cases'),
-          );
+          const hasUseCases = directoryExists(path.join(subServicePath, 'use-cases'));
           const hasPorts = directoryExists(path.join(subServicePath, 'ports'));
 
           if (hasUseCases && !hasPorts) {
@@ -60,110 +55,75 @@ export function checkNoMultipleSubServices(): RuleResult {
 }
 
 export function checkPortsDirectory(): RuleResult {
-  return runRule(
-    'services MUST have ports/ directory',
-    'Service Structure',
-    () => {
-      const violations: string[] = [];
-      for (const servicePath of CLEAN_ARCHITECTURE_SERVICES) {
-        const portsPath = path.join(SOURCE_ROOT, servicePath, 'ports');
-        if (!directoryExists(portsPath)) {
-          violations.push(`${servicePath}: MISSING ports/ directory`);
-        }
+  return runRule('services MUST have ports/ directory', 'Service Structure', () => {
+    const violations: string[] = [];
+    for (const servicePath of CLEAN_ARCHITECTURE_SERVICES) {
+      const portsPath = path.join(SOURCE_ROOT, servicePath, 'ports');
+      if (!directoryExists(portsPath)) {
+        violations.push(`${servicePath}: MISSING ports/ directory`);
       }
-      return violations;
-    },
-  );
+    }
+    return violations;
+  });
 }
 
 export function checkRepositoryDirectory(): RuleResult {
-  return runRule(
-    'services MUST have repository/ directory',
-    'Service Structure',
-    () => {
-      const violations: string[] = [];
-      for (const servicePath of CLEAN_ARCHITECTURE_SERVICES) {
-        const repositoryPath = path.join(
-          SOURCE_ROOT,
-          servicePath,
-          'repository',
-        );
-        if (!directoryExists(repositoryPath)) {
-          violations.push(`${servicePath}: MISSING repository/ directory`);
-        }
+  return runRule('services MUST have repository/ directory', 'Service Structure', () => {
+    const violations: string[] = [];
+    for (const servicePath of CLEAN_ARCHITECTURE_SERVICES) {
+      const repositoryPath = path.join(SOURCE_ROOT, servicePath, 'repository');
+      if (!directoryExists(repositoryPath)) {
+        violations.push(`${servicePath}: MISSING repository/ directory`);
       }
-      return violations;
-    },
-  );
+    }
+    return violations;
+  });
 }
 
 export function checkUseCasesDirectory(): RuleResult {
-  return runRule(
-    'services MUST have use-cases/ directory',
-    'Service Structure',
-    () => {
-      const violations: string[] = [];
-      for (const servicePath of CLEAN_ARCHITECTURE_SERVICES) {
-        const useCasesPath = path.join(SOURCE_ROOT, servicePath, 'use-cases');
-        if (!directoryExists(useCasesPath)) {
-          violations.push(`${servicePath}: MISSING use-cases/ directory`);
-        }
+  return runRule('services MUST have use-cases/ directory', 'Service Structure', () => {
+    const violations: string[] = [];
+    for (const servicePath of CLEAN_ARCHITECTURE_SERVICES) {
+      const useCasesPath = path.join(SOURCE_ROOT, servicePath, 'use-cases');
+      if (!directoryExists(useCasesPath)) {
+        violations.push(`${servicePath}: MISSING use-cases/ directory`);
       }
-      return violations;
-    },
-  );
+    }
+    return violations;
+  });
 }
 
 export function checkCompositionFile(): RuleResult {
-  return runRule(
-    'services MUST have .composition.ts file',
-    'Service Structure',
-    () => {
-      const violations: string[] = [];
-      for (const servicePath of CLEAN_ARCHITECTURE_SERVICES) {
-        const fullPath = path.join(SOURCE_ROOT, servicePath);
-        const compositionFiles = getFilesInDirectory(
-          fullPath,
-          '.composition.ts',
-        );
-        if (compositionFiles.length === 0) {
-          violations.push(`${servicePath}: MISSING .composition.ts file`);
-        }
+  return runRule('services MUST have .composition.ts file', 'Service Structure', () => {
+    const violations: string[] = [];
+    for (const servicePath of CLEAN_ARCHITECTURE_SERVICES) {
+      const fullPath = path.join(SOURCE_ROOT, servicePath);
+      const compositionFiles = getFilesInDirectory(fullPath, '.composition.ts');
+      if (compositionFiles.length === 0) {
+        violations.push(`${servicePath}: MISSING .composition.ts file`);
       }
-      return violations;
-    },
-  );
+    }
+    return violations;
+  });
 }
 
 export function checkFacadeService(): RuleResult {
-  return runRule(
-    'services MUST have facade .service.ts file',
-    'Facade Service',
-    () => {
-      const violations: string[] = [];
-      for (const servicePath of CLEAN_ARCHITECTURE_SERVICES) {
-        const parts = servicePath.split('/');
-        const serviceName = parts[parts.length - 1];
-        const parentServicesPath = path.join(
-          SOURCE_ROOT,
-          parts.slice(0, -1).join('/'),
-        );
+  return runRule('services MUST have facade .service.ts file', 'Facade Service', () => {
+    const violations: string[] = [];
+    for (const servicePath of CLEAN_ARCHITECTURE_SERVICES) {
+      const parts = servicePath.split('/');
+      const serviceName = parts[parts.length - 1];
+      const parentServicesPath = path.join(SOURCE_ROOT, parts.slice(0, -1).join('/'));
 
-        const facadeServiceFile = `${serviceName}.service.ts`;
-        const facadeServicePath = path.join(
-          parentServicesPath,
-          facadeServiceFile,
-        );
+      const facadeServiceFile = `${serviceName}.service.ts`;
+      const facadeServicePath = path.join(parentServicesPath, facadeServiceFile);
 
-        if (!fileExists(facadeServicePath)) {
-          violations.push(
-            `${servicePath}: MISSING facade service at services/${facadeServiceFile}`,
-          );
-        }
+      if (!fileExists(facadeServicePath)) {
+        violations.push(`${servicePath}: MISSING facade service at services/${facadeServiceFile}`);
       }
-      return violations;
-    },
-  );
+    }
+    return violations;
+  });
 }
 
 export const serviceStructureRules = [

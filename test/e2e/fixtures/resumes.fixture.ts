@@ -23,13 +23,13 @@ export function createMinimalOnboardingData(suffix?: string) {
       jobTitle: 'Software Developer',
       summary: 'Experienced developer with modern web technologies.',
     },
-    skills: [],
-    noSkills: true,
-    experiences: [],
-    noExperience: true,
-    education: [],
-    noEducation: true,
-    languages: [{ name: 'English', level: 'NATIVE' }],
+    sections: [
+      {
+        sectionTypeKey: 'language_v1',
+        items: [{ content: { name: 'English', level: 'NATIVE' } }],
+        noData: false,
+      },
+    ],
     templateSelection: { template: 'PROFESSIONAL', palette: 'DEFAULT' },
   };
 }
@@ -49,36 +49,54 @@ export function createFullOnboardingData(suffix?: string) {
     },
     professionalProfile: {
       jobTitle: 'Lead Engineer',
-      summary:
-        'Full-stack engineer with 10+ years building scalable applications.',
+      summary: 'Full-stack engineer with 10+ years building scalable applications.',
     },
-    skills: [
-      { name: 'TypeScript', category: 'Programming' },
-      { name: 'Node.js', category: 'Programming' },
-      { name: 'React', category: 'Programming' },
-    ],
-    noSkills: false,
-    experiences: [
+    sections: [
       {
-        company: 'Tech Corp',
-        position: 'Senior Engineer',
-        startDate: '2020-01',
-        endDate: '2023-12',
-        description: 'Led development of microservices architecture',
+        sectionTypeKey: 'skill_v1',
+        items: [
+          { content: { name: 'TypeScript', category: 'Programming' } },
+          { content: { name: 'Node.js', category: 'Programming' } },
+          { content: { name: 'React', category: 'Programming' } },
+        ],
+        noData: false,
+      },
+      {
+        sectionTypeKey: 'work_experience_v1',
+        items: [
+          {
+            content: {
+              company: 'Tech Corp',
+              position: 'Senior Engineer',
+              startDate: '2020-01',
+              endDate: '2023-12',
+              description: 'Led development of microservices architecture',
+            },
+          },
+        ],
+        noData: false,
+      },
+      {
+        sectionTypeKey: 'education_v1',
+        items: [
+          {
+            content: {
+              institution: 'Tech University',
+              degree: 'Bachelor of Science',
+              field: 'Computer Science',
+              startDate: '2014-09',
+              endDate: '2018-05',
+            },
+          },
+        ],
+        noData: false,
+      },
+      {
+        sectionTypeKey: 'language_v1',
+        items: [{ content: { name: 'English', level: 'NATIVE' } }],
+        noData: false,
       },
     ],
-    noExperience: false,
-    education: [
-      {
-        institution: 'Tech University',
-        degree: 'Bachelor of Science',
-        field: 'Computer Science',
-        startDate: '2014-09',
-        endDate: '2018-05',
-      },
-    ],
-    noEducation: false,
-    languages: [{ name: 'English', level: 'NATIVE' }],
     templateSelection: { template: 'PROFESSIONAL', palette: 'DEFAULT' },
   };
 }
@@ -145,7 +163,7 @@ export function createResumeWithSections(suffix?: string) {
  * @returns Section item payload with content object
  */
 export function createSectionItemContent(sectionTypeKey: string) {
-  const contentMap: Record<string, Record<string, any>> = {
+  const contentMap: Record<string, Record<string, unknown>> = {
     work_experience_v1: {
       company: 'Tech Corp',
       position: 'Senior Engineer',
@@ -192,9 +210,8 @@ export function createSectionItemContent(sectionTypeKey: string) {
   };
 
   return {
-    content:
-      contentMap[sectionTypeKey] || {
-        description: 'Generic section item content',
-      },
+    content: contentMap[sectionTypeKey] || {
+      description: 'Generic section item content',
+    },
   };
 }

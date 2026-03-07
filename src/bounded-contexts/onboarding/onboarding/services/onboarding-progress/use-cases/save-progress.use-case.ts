@@ -1,9 +1,5 @@
 import type { OnboardingProgress } from '@/shared-kernel';
-import {
-  ConflictException,
-  ERROR_MESSAGES,
-  ValidationException,
-} from '@/shared-kernel';
+import { ConflictException, ERROR_MESSAGES, ValidationException } from '@/shared-kernel';
 import type {
   OnboardingProgressRepositoryPort,
   SaveProgressResult,
@@ -12,16 +8,12 @@ import type {
 /**
  * Save Progress Use Case
  *
- * GENERIC SECTIONS: This use case now works with sections array
- * instead of hard-coded fields like experiences, education, skills.
+ * GENERIC SECTIONS: This use case persists canonical section progress data.
  */
 export class SaveProgressUseCase {
   constructor(private readonly repository: OnboardingProgressRepositoryPort) {}
 
-  async execute(
-    userId: string,
-    data: OnboardingProgress,
-  ): Promise<SaveProgressResult> {
+  async execute(userId: string, data: OnboardingProgress): Promise<SaveProgressResult> {
     // Validate flag + array combinations for all sections
     this.validateFlagArrayConsistency(data);
 
@@ -43,10 +35,7 @@ export class SaveProgressUseCase {
     return result;
   }
 
-  private async validateUsernameUniqueness(
-    username: string,
-    userId: string,
-  ): Promise<void> {
+  private async validateUsernameUniqueness(username: string, userId: string): Promise<void> {
     const existingUser = await this.repository.findUserByUsername(username);
 
     // Allow if same user

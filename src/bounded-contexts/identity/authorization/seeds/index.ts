@@ -4,8 +4,6 @@
  * Authorization seed data decomposed by resource domain.
  */
 
-// Legacy mapping
-export { LEGACY_ROLE_MAPPING, resolveLegacyRole } from './legacy-role-mapping';
 export * from './permissions';
 // Permissions (decomposed by resource)
 export { SYSTEM_PERMISSIONS } from './permissions';

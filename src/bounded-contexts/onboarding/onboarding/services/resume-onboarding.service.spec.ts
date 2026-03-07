@@ -4,55 +4,81 @@
  * NOTA (Uncle Bob): Testes focam em comportamento observável:
  * - Resume criado/atualizado corretamente
  * - Primary resume definido quando é o primeiro
+ *
+ * Pure Bun tests with In-Memory stores.
  */
 
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
-import { Test, TestingModule } from '@nestjs/testing';
-import { ResumeOnboardingService } from './resume-onboarding.service';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { beforeEach, describe, expect, it } from 'bun:test';
+import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { OnboardingData } from '../schemas/onboarding.schema';
+import { ResumeOnboardingService } from './resume-onboarding.service';
 
-describe('ResumeOnboardingService', () => {
-  let service: ResumeOnboardingService;
+// ============================================================================
+// In-Memory Fake Prisma
+// ============================================================================
 
-  // In-memory stores
-  const resumeStore = new Map<string, any>();
-  const userStore = new Map<string, any>();
+interface ResumeRecord {
+  id: string;
+  userId: string;
+  fullName?: string;
+  emailContact?: string;
+  phone?: string;
+  location?: string;
+  jobTitle?: string;
+  summary?: string;
+  linkedin?: string;
+  github?: string;
+  website?: string;
+  template?: string;
+  [key: string]: unknown;
+}
+
+interface UserRecord {
+  id: string;
+  primaryResumeId?: string;
+}
+
+function createFakePrismaStore() {
+  const resumeStore = new Map<string, ResumeRecord>();
+  const userStore = new Map<string, UserRecord>();
   let idCounter = 1;
 
-  const createFakePrisma = () => ({
-    resume: {
-      findFirst: mock(({ where }: { where: { userId: string } }) => {
-        const resume = Array.from(resumeStore.values()).find(
-          (r) => r.userId === where.userId,
-        );
-        return Promise.resolve(resume ?? null);
-      }),
-      upsert: mock(
-        ({
+  return {
+    resumeStore,
+    userStore,
+    reset() {
+      resumeStore.clear();
+      userStore.clear();
+      idCounter = 1;
+    },
+    prisma: {
+      resume: {
+        findFirst: async ({ where }: { where: { userId: string } }) => {
+          const resume = Array.from(resumeStore.values()).find((r) => r.userId === where.userId);
+          return resume ?? null;
+        },
+        upsert: async ({
           where,
           update,
           create,
         }: {
           where: { id: string };
-          update: any;
-          create: any;
+          update: Partial<ResumeRecord>;
+          create: Partial<ResumeRecord>;
         }) => {
           const existing = resumeStore.get(where.id);
           if (existing) {
             const updated = { ...existing, ...update };
             resumeStore.set(where.id, updated);
-            return Promise.resolve(updated);
+            return updated;
           }
-          const newResume = { id: `resume-${idCounter++}`, ...create };
+          const newResume = { id: `resume-${idCounter++}`, ...create } as ResumeRecord;
           resumeStore.set(newResume.id, newResume);
-          return Promise.resolve(newResume);
+          return newResume;
         },
-      ),
-    },
-    user: {
-      update: mock(
-        ({
+      },
+      user: {
+        update: async ({
           where,
           data,
         }: {
@@ -62,59 +88,47 @@ describe('ResumeOnboardingService', () => {
           const user = userStore.get(where.id) ?? { id: where.id };
           const updated = { ...user, ...data };
           userStore.set(where.id, updated);
-          return Promise.resolve(updated);
+          return updated;
         },
-      ),
-    },
-  });
+      },
+    } as unknown as PrismaService,
+  };
+}
 
-  let fakePrisma: ReturnType<typeof createFakePrisma>;
+// ============================================================================
+// Test Helper
+// ============================================================================
 
-  const createValidOnboardingData = (
-    overrides: Partial<OnboardingData> = {},
-  ): OnboardingData => ({
-    username: 'johndoe',
-    personalInfo: {
-      fullName: 'John Doe',
-      email: 'john@example.com',
-      phone: '+1234567890',
-      location: 'New York, USA',
-    },
-    professionalProfile: {
-      jobTitle: 'Software Engineer',
-      summary: 'Experienced developer',
-      linkedin: 'https://linkedin.com/in/johndoe',
-      github: 'https://github.com/johndoe',
-      website: 'https://johndoe.dev',
-    },
-    templateSelection: {
-      template: 'CLASSIC',
-      palette: 'DEFAULT',
-    },
-    experiences: [],
-    education: [],
-    skills: [],
-    languages: [],
-    noExperience: false,
-    noEducation: false,
-    noSkills: false,
-    ...overrides,
-  });
+const createValidOnboardingData = (overrides: Partial<OnboardingData> = {}): OnboardingData => ({
+  username: 'johndoe',
+  personalInfo: {
+    fullName: 'John Doe',
+    email: 'john@example.com',
+    phone: '+1234567890',
+    location: 'New York, USA',
+  },
+  professionalProfile: {
+    jobTitle: 'Software Engineer',
+    summary: 'Experienced developer',
+    linkedin: 'https://linkedin.com/in/johndoe',
+    github: 'https://github.com/johndoe',
+    website: 'https://johndoe.dev',
+  },
+  templateSelection: {
+    template: 'CLASSIC',
+    palette: 'DEFAULT',
+  },
+  sections: [],
+  ...overrides,
+});
 
-  beforeEach(async () => {
-    resumeStore.clear();
-    userStore.clear();
-    idCounter = 1;
-    fakePrisma = createFakePrisma();
+describe('ResumeOnboardingService', () => {
+  let service: ResumeOnboardingService;
+  let store: ReturnType<typeof createFakePrismaStore>;
 
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        ResumeOnboardingService,
-        { provide: PrismaService, useValue: fakePrisma },
-      ],
-    }).compile();
-
-    service = module.get<ResumeOnboardingService>(ResumeOnboardingService);
+  beforeEach(() => {
+    store = createFakePrismaStore();
+    service = new ResumeOnboardingService(store.prisma);
   });
 
   describe('upsertResume', () => {
@@ -153,8 +167,8 @@ describe('ResumeOnboardingService', () => {
 
       const result = await service.upsertResume('user-1', data);
 
-      const user = userStore.get('user-1');
-      expect(user.primaryResumeId).toBe(result.id);
+      const user = store.userStore.get('user-1');
+      expect(user?.primaryResumeId).toBe(result.id);
     });
 
     it('should not change primary resume when updating existing resume', async () => {
@@ -173,8 +187,8 @@ describe('ResumeOnboardingService', () => {
       await service.upsertResume('user-1', updatedData);
 
       // Primary should still point to first resume
-      const user = userStore.get('user-1');
-      expect(user.primaryResumeId).toBe(firstResume.id);
+      const user = store.userStore.get('user-1');
+      expect(user?.primaryResumeId).toBe(firstResume.id);
     });
 
     it('should update existing resume instead of creating new one', async () => {
@@ -191,7 +205,7 @@ describe('ResumeOnboardingService', () => {
       await service.upsertResume('user-1', updatedData);
 
       // Should still have only one resume
-      const userResumes = Array.from(resumeStore.values()).filter(
+      const userResumes = Array.from(store.resumeStore.values()).filter(
         (r) => r.userId === 'user-1',
       );
       expect(userResumes).toHaveLength(1);

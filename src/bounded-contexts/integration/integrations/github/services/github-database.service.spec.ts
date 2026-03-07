@@ -8,12 +8,14 @@
  * - Contribution/achievement reconciliation
  */
 
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
-import { createMockResume } from '@test/factories/resume.factory';
-import { Test, TestingModule } from '@nestjs/testing';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { HttpException, HttpStatus } from '@nestjs/common';
-import { GitHubDatabaseService } from './github-database.service';
+import { Test, TestingModule } from '@nestjs/testing';
+import { createMockResume } from '@test/factories/resume.factory';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import type { GitHubAchievementContent } from './github-achievement.service';
+import type { GitHubContributionInput } from './github-contribution.service';
+import { GitHubDatabaseService } from './github-database.service';
 
 describe('GitHubDatabaseService', () => {
   let service: GitHubDatabaseService;
@@ -54,25 +56,16 @@ describe('GitHubDatabaseService', () => {
         count: mock(() => Promise.resolve(0)),
       },
       sectionType: {
-        findFirst: mock(() =>
-          Promise.resolve({ id: 'section-type-open-source' }),
-        ),
+        findFirst: mock(() => Promise.resolve({ id: 'section-type-open-source' })),
       },
       resumeSection: {
-        upsert: mock(() =>
-          Promise.resolve({ id: 'resume-section-open-source' }),
-        ),
+        upsert: mock(() => Promise.resolve({ id: 'resume-section-open-source' })),
       },
-      $transaction: mock((operations: unknown[]) =>
-        Promise.resolve(operations),
-      ),
+      $transaction: mock((operations: unknown[]) => Promise.resolve(operations)),
     };
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        GitHubDatabaseService,
-        { provide: PrismaService, useValue: fakePrisma },
-      ],
+      providers: [GitHubDatabaseService, { provide: PrismaService, useValue: fakePrisma }],
     }).compile();
 
     service = module.get<GitHubDatabaseService>(GitHubDatabaseService);
@@ -80,10 +73,7 @@ describe('GitHubDatabaseService', () => {
 
   describe('verifyResumeOwnership', () => {
     it('should return resume when user owns it', async () => {
-      const result = await service.verifyResumeOwnership(
-        'user-123',
-        'resume-123',
-      );
+      const result = await service.verifyResumeOwnership('user-123', 'resume-123');
 
       expect(result).toEqual(mockResume);
       expect(fakePrisma.resume.findUnique).toHaveBeenCalledWith({
@@ -147,15 +137,33 @@ describe('GitHubDatabaseService', () => {
 
   describe('reconcileDbEntries', () => {
     it('should execute transaction with delete and create operations', async () => {
-      const contributions = [{ resumeId: 'resume-123', projectName: 'test' }];
-      const achievements = [{ resumeId: 'resume-123', title: 'Stars' }];
+      const contributions: GitHubContributionInput[] = [
+        {
+          resumeId: 'resume-123',
+          projectName: 'test',
+          projectUrl: 'https://github.com/test/repo',
+          role: 'contributor',
+          description: 'OSS contribution',
+          technologies: ['TypeScript'],
+          commits: 10,
+          prsCreated: 2,
+          stars: 20,
+          startDate: new Date('2024-01-01'),
+          isCurrent: true,
+        },
+      ];
+      const achievements: GitHubAchievementContent[] = [
+        {
+          type: 'github_stars',
+          title: 'Stars',
+          description: 'Reached 100 stars',
+          verificationUrl: 'https://github.com/testuser',
+          achievedAt: new Date().toISOString(),
+          value: 100,
+        },
+      ];
 
-      await service.reconcileDbEntries(
-        'resume-123',
-        'testuser',
-        contributions as any,
-        achievements as any,
-      );
+      await service.reconcileDbEntries('resume-123', 'testuser', contributions, achievements);
 
       expect(fakePrisma.$transaction).toHaveBeenCalled();
     });
@@ -169,14 +177,23 @@ describe('GitHubDatabaseService', () => {
     });
 
     it('should delete existing GitHub contributions before creating new', async () => {
-      const contributions = [{ resumeId: 'resume-123', projectName: 'test' }];
+      const contributions: GitHubContributionInput[] = [
+        {
+          resumeId: 'resume-123',
+          projectName: 'test',
+          projectUrl: 'https://github.com/test/repo',
+          role: 'contributor',
+          description: 'OSS contribution',
+          technologies: ['TypeScript'],
+          commits: 10,
+          prsCreated: 2,
+          stars: 20,
+          startDate: new Date('2024-01-01'),
+          isCurrent: true,
+        },
+      ];
 
-      await service.reconcileDbEntries(
-        'resume-123',
-        'testuser',
-        contributions as any,
-        [],
-      );
+      await service.reconcileDbEntries('resume-123', 'testuser', contributions, []);
 
       expect(fakePrisma.sectionItem.deleteMany).toHaveBeenCalledWith({
         where: {

@@ -35,7 +35,14 @@ export class PlatformStatsController {
     const stats = await this.statsService.getStatistics();
     return {
       success: true,
-      data: stats as unknown as PlatformStatsResponseDto,
+      data: {
+        totalUsers: stats.users.total,
+        totalResumes: stats.resumes.total,
+        totalViews: 0,
+        activeUsersToday: stats.users.recentSignups,
+        activeUsersWeek: stats.users.recentSignups,
+        updatedAt: new Date().toISOString(),
+      },
     };
   }
 }

@@ -81,14 +81,41 @@ export class GitHubApiService {
 
   private handleApiError(response: Response): never {
     if (response.status === 404) {
-      throw new HttpException('GitHub resource not found', HttpStatus.NOT_FOUND);
+      throw this.createHttpException(
+        HttpStatus.NOT_FOUND,
+        'GitHub resource not found',
+        'Not Found',
+      );
     }
     if (response.status === 403) {
-      throw new HttpException('GitHub API rate limit exceeded', HttpStatus.FORBIDDEN);
+      throw this.createHttpException(
+        HttpStatus.FORBIDDEN,
+        'GitHub API rate limit exceeded',
+        'Forbidden',
+      );
     }
-    throw new HttpException(
-      `Failed to fetch from GitHub: ${response.statusText}`,
+    throw this.createHttpException(
       HttpStatus.BAD_GATEWAY,
+      `Failed to fetch from GitHub: ${response.statusText}`,
+      'Bad Gateway',
     );
+  }
+
+  private createHttpException(status: HttpStatus, message: string, error: string): HttpException {
+    const exceptionResponse = {
+      statusCode: status,
+      message,
+      error,
+    };
+    const exception = new HttpException(exceptionResponse, status);
+
+    Object.defineProperty(exception, 'response', {
+      value: exceptionResponse,
+      enumerable: true,
+      configurable: true,
+      writable: false,
+    });
+
+    return exception;
   }
 }

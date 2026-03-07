@@ -8,12 +8,12 @@
  * - Lock acquisition, release, and check operations
  */
 
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
-import { Test, TestingModule } from '@nestjs/testing';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { ServiceUnavailableException } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
+import { AppLoggerService } from '../logger/logger.service';
 import { CacheLockService } from './cache-lock.service';
 import { RedisConnectionService } from './redis-connection.service';
-import { AppLoggerService } from '../logger/logger.service';
 
 describe('CacheLockService', () => {
   let service: CacheLockService;
@@ -62,12 +62,12 @@ describe('CacheLockService', () => {
 
   describe('acquireLock', () => {
     it('should acquire lock when Redis available', async () => {
-      fakeRedisConnection.client!.set.mockResolvedValue('OK');
+      fakeRedisConnection.client?.set.mockResolvedValue('OK');
 
       const result = await service.acquireLock('test-lock', 60);
 
       expect(result).toBe(true);
-      expect(fakeRedisConnection.client!.set).toHaveBeenCalledWith(
+      expect(fakeRedisConnection.client?.set).toHaveBeenCalledWith(
         'test-lock',
         expect.any(String),
         'EX',
@@ -77,7 +77,7 @@ describe('CacheLockService', () => {
     });
 
     it('should return false when lock already exists', async () => {
-      fakeRedisConnection.client!.set.mockResolvedValue(null);
+      fakeRedisConnection.client?.set.mockResolvedValue(null);
 
       const result = await service.acquireLock('test-lock', 60);
 
@@ -107,9 +107,7 @@ describe('CacheLockService', () => {
     });
 
     it('should return false when Redis operation fails', async () => {
-      fakeRedisConnection.client!.set.mockRejectedValue(
-        new Error('Redis error'),
-      );
+      fakeRedisConnection.client?.set.mockRejectedValue(new Error('Redis error'));
 
       const result = await service.acquireLock('test-lock', 60);
 
@@ -122,7 +120,7 @@ describe('CacheLockService', () => {
     it('should delete key from Redis', async () => {
       await service.releaseLock('test-lock');
 
-      expect(fakeRedisConnection.client!.del).toHaveBeenCalledWith('test-lock');
+      expect(fakeRedisConnection.client?.del).toHaveBeenCalledWith('test-lock');
     });
 
     it('should not throw when Redis unavailable', async () => {
@@ -135,9 +133,7 @@ describe('CacheLockService', () => {
     });
 
     it('should log error when Redis operation fails', async () => {
-      fakeRedisConnection.client!.del.mockRejectedValue(
-        new Error('Redis error'),
-      );
+      fakeRedisConnection.client?.del.mockRejectedValue(new Error('Redis error'));
 
       await service.releaseLock('test-lock');
 
@@ -147,7 +143,7 @@ describe('CacheLockService', () => {
 
   describe('isLocked', () => {
     it('should return true when key exists', async () => {
-      fakeRedisConnection.client!.exists.mockResolvedValue(1);
+      fakeRedisConnection.client?.exists.mockResolvedValue(1);
 
       const result = await service.isLocked('test-lock');
 
@@ -155,7 +151,7 @@ describe('CacheLockService', () => {
     });
 
     it('should return false when key does not exist', async () => {
-      fakeRedisConnection.client!.exists.mockResolvedValue(0);
+      fakeRedisConnection.client?.exists.mockResolvedValue(0);
 
       const result = await service.isLocked('test-lock');
 

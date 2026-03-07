@@ -1,7 +1,7 @@
 /**
  * In-Memory User Preferences Repository for Testing
  *
- * Implements UserPreferencesRepositoryPort interface with in-memory storage.
+ * Extends UserPreferencesRepositoryPort abstract class with in-memory storage.
  * Provides helper methods for test setup and assertions.
  */
 
@@ -12,7 +12,9 @@ import type {
   UserPreferences,
 } from '../../../users/domain/types';
 
-export class InMemoryUserPreferencesRepository {
+import { UserPreferencesRepositoryPort } from '../../../users/services/user-preferences/ports/user-preferences.port';
+
+export class InMemoryUserPreferencesRepository extends UserPreferencesRepositoryPort {
   private users = new Set<string>();
   private preferences = new Map<string, UserPreferences>();
   private fullPreferences = new Map<string, FullUserPreferences>();

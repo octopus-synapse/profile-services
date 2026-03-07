@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
-import { PublicResumeController } from './public-resume.controller';
 import { ShareAnalyticsService } from '@/bounded-contexts/analytics/share-analytics/services/share-analytics.service';
 import { ResumeShareService } from '../services/resume-share.service';
+import { PublicResumeController } from './public-resume.controller';
 
 const createShareService = () => ({
   getBySlug: mock(() =>
@@ -16,9 +16,7 @@ const createShareService = () => ({
     }),
   ),
   verifyPassword: mock(() => Promise.resolve(true)),
-  getResumeWithCache: mock(() =>
-    Promise.resolve({ id: 'resume-1', title: 'Resume' }),
-  ),
+  getResumeWithCache: mock(() => Promise.resolve({ id: 'resume-1', title: 'Resume' })),
 });
 
 const createAnalyticsService = () => ({
@@ -32,7 +30,7 @@ const mockRequest = {
     referer: 'https://example.com',
   },
   socket: { remoteAddress: '127.0.0.1' },
-} as any;
+} as unknown as Parameters<PublicResumeController['getPublicResume']>[2];
 
 describe('PublicResumeController - Contract', () => {
   let controller: PublicResumeController;
@@ -50,11 +48,7 @@ describe('PublicResumeController - Contract', () => {
   });
 
   it('getPublicResume returns data with resume and share', async () => {
-    const result = await controller.getPublicResume(
-      'my-resume',
-      undefined,
-      mockRequest,
-    );
+    const result = await controller.getPublicResume('my-resume', undefined, mockRequest);
 
     expect(result.success).toBe(true);
     expect(result.data).toHaveProperty('resume');
@@ -62,11 +56,7 @@ describe('PublicResumeController - Contract', () => {
   });
 
   it('downloadPublicResume returns data with resume and share', async () => {
-    const result = await controller.downloadPublicResume(
-      'my-resume',
-      undefined,
-      mockRequest,
-    );
+    const result = await controller.downloadPublicResume('my-resume', undefined, mockRequest);
 
     expect(result.success).toBe(true);
     expect(result.data).toHaveProperty('resume');

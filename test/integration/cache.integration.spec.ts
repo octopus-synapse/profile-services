@@ -6,14 +6,8 @@
  *
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
-import {
-  getApp,
-  closeApp,
-  createTestUserAndLogin,
-  getRequest,
-  getPrisma,
-} from './setup';
+import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
+import { closeApp, createTestUserAndLogin, getApp, getPrisma, getRequest } from './setup';
 
 describe('Cache Integration', () => {
   let accessToken: string;
@@ -74,17 +68,13 @@ describe('Cache Integration', () => {
       });
 
       // First fetch (cache miss - should hit database)
-      const firstFetch = await getRequest().get(
-        `/api/v1/public/resumes/${slug}`,
-      );
+      const firstFetch = await getRequest().get(`/api/v1/public/resumes/${slug}`);
 
       expect(firstFetch.status).toBe(200);
       expect(firstFetch.body.resume).toHaveProperty('id', resumeId);
 
       // Second fetch (should potentially hit cache)
-      const secondFetch = await getRequest().get(
-        `/api/v1/public/resumes/${slug}`,
-      );
+      const secondFetch = await getRequest().get(`/api/v1/public/resumes/${slug}`);
 
       expect(secondFetch.status).toBe(200);
       expect(secondFetch.body.resume).toHaveProperty('id', resumeId);

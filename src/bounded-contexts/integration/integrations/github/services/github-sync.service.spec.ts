@@ -9,15 +9,15 @@
  * - Handle errors gracefully
  */
 
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
-import { createMockResume } from '@test/factories/resume.factory';
-import { Test, TestingModule } from '@nestjs/testing';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { HttpException, HttpStatus } from '@nestjs/common';
-import { GitHubSyncService } from './github-sync.service';
+import { Test, TestingModule } from '@nestjs/testing';
+import { createMockResume } from '@test/factories/resume.factory';
+import { GitHubAchievementService } from './github-achievement.service';
 import { GitHubApiService } from './github-api.service';
 import { GitHubContributionService } from './github-contribution.service';
-import { GitHubAchievementService } from './github-achievement.service';
 import { GitHubDatabaseService } from './github-database.service';
+import { GitHubSyncService } from './github-sync.service';
 
 describe('GitHubSyncService', () => {
   let service: GitHubSyncService;
@@ -79,9 +79,7 @@ describe('GitHubSyncService', () => {
     };
 
     fakeContributionService = {
-      processContributions: mock(() =>
-        Promise.resolve([{ projectName: 'test' }]),
-      ),
+      processContributions: mock(() => Promise.resolve([{ projectName: 'test' }])),
     };
 
     fakeAchievementService = {
@@ -141,11 +139,7 @@ describe('GitHubSyncService', () => {
     });
 
     it('should return profile and stats', async () => {
-      const result = await service.syncUserGitHub(
-        'user-123',
-        'testuser',
-        'resume-123',
-      );
+      const result = await service.syncUserGitHub('user-123', 'testuser', 'resume-123');
 
       expect(result.profile.username).toBe('testuser');
       expect(result.stats.totalStars).toBe(150);
@@ -154,25 +148,20 @@ describe('GitHubSyncService', () => {
     });
 
     it('should wrap unknown errors in HttpException', async () => {
-      fakeApiService.getUserProfile.mockRejectedValue(
-        new Error('Network error'),
-      );
+      fakeApiService.getUserProfile.mockRejectedValue(new Error('Network error'));
 
-      await expect(
-        service.syncUserGitHub('user-123', 'testuser', 'resume-123'),
-      ).rejects.toThrow(HttpException);
+      await expect(service.syncUserGitHub('user-123', 'testuser', 'resume-123')).rejects.toThrow(
+        HttpException,
+      );
     });
 
     it('should rethrow HttpException as-is', async () => {
-      const originalError = new HttpException(
-        'Not found',
-        HttpStatus.NOT_FOUND,
-      );
+      const originalError = new HttpException('Not found', HttpStatus.NOT_FOUND);
       fakeApiService.getUserProfile.mockRejectedValue(originalError);
 
-      await expect(
-        service.syncUserGitHub('user-123', 'testuser', 'resume-123'),
-      ).rejects.toThrow('Not found');
+      await expect(service.syncUserGitHub('user-123', 'testuser', 'resume-123')).rejects.toThrow(
+        'Not found',
+      );
     });
   });
 
@@ -189,9 +178,9 @@ describe('GitHubSyncService', () => {
         github: null,
       });
 
-      await expect(
-        service.autoSyncGitHubFromResume('user-123', 'resume-123'),
-      ).rejects.toThrow('No GitHub username found in resume');
+      await expect(service.autoSyncGitHubFromResume('user-123', 'resume-123')).rejects.toThrow(
+        'No GitHub username found in resume',
+      );
     });
 
     it('should handle various GitHub URL formats', async () => {

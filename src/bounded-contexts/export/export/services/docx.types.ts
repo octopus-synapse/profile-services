@@ -1,42 +1,9 @@
-export type DocxExperience = {
-  position: string;
-  company: string;
-  startDate: Date | null;
-  endDate: Date | null;
-  location: string | null;
-  description: string | null;
-};
-
-export type DocxEducation = {
-  degree: string;
-  field: string;
-  institution: string;
-  startDate: Date | null;
-  endDate: Date | null;
-};
-
-export type DocxProject = {
-  name: string;
-  description: string | null;
-  url: string | null;
-};
-
-export type DocxSkill = {
-  name: string;
-};
-
-export type DocxLanguage = {
-  name: string;
-  level: string | null;
-};
-
-export type DocxResumeData = {
-  experiences: DocxExperience[];
-  education: DocxEducation[];
-  skills: DocxSkill[];
-  projects: DocxProject[];
-  languages: DocxLanguage[];
-};
+/**
+ * DOCX Export Types
+ *
+ * Only user data is typed explicitly here.
+ * Resume section data uses the generic GenericResumeSectionData from docx-sections.service.
+ */
 
 export type DocxUserData = {
   name: string | null;

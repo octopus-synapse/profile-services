@@ -4,8 +4,8 @@ import {
   EntityNotFoundException,
   ValidationException,
 } from '@/shared-kernel/exceptions';
-import { UpdateUsernameUseCase } from './update-username.use-case';
 import type { UsernameRepositoryPort } from '../ports/username.port';
+import { UpdateUsernameUseCase } from './update-username.use-case';
 
 describe('UpdateUsernameUseCase', () => {
   let useCase: UpdateUsernameUseCase;
@@ -50,30 +50,22 @@ describe('UpdateUsernameUseCase', () => {
   });
 
   it('throws ValidationException for uppercase username', async () => {
-    await expect(useCase.execute('user-1', 'NewUser')).rejects.toThrow(
-      ValidationException,
-    );
+    await expect(useCase.execute('user-1', 'NewUser')).rejects.toThrow(ValidationException);
   });
 
   it('throws ValidationException for reserved username', async () => {
-    await expect(useCase.execute('user-1', 'admin')).rejects.toThrow(
-      ValidationException,
-    );
+    await expect(useCase.execute('user-1', 'admin')).rejects.toThrow(ValidationException);
   });
 
   it('throws ValidationException during cooldown period', async () => {
     repository.findLastUsernameUpdateByUserId = mock(async () => new Date());
 
-    await expect(useCase.execute('user-1', 'newuser')).rejects.toThrow(
-      ValidationException,
-    );
+    await expect(useCase.execute('user-1', 'newuser')).rejects.toThrow(ValidationException);
   });
 
   it('throws ConflictException when username is taken', async () => {
     repository.isUsernameTaken = mock(async () => true);
 
-    await expect(useCase.execute('user-1', 'takenuser')).rejects.toThrow(
-      ConflictException,
-    );
+    await expect(useCase.execute('user-1', 'takenuser')).rejects.toThrow(ConflictException);
   });
 });

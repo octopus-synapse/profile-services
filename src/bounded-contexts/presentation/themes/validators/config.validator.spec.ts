@@ -1,9 +1,9 @@
-import { describe, it, expect } from 'bun:test';
+import { describe, expect, it } from 'bun:test';
 import { BadRequestException } from '@nestjs/common';
 import {
+  validateItemOverrides,
   validateLayoutConfig,
   validateSectionsConfig,
-  validateItemOverrides,
 } from './config.validator';
 
 /**
@@ -15,24 +15,16 @@ import {
 describe('ConfigValidator', () => {
   describe('validateLayoutConfig', () => {
     it('should accept valid layout types', () => {
-      expect(() =>
-        validateLayoutConfig({ type: 'single-column' }),
-      ).not.toThrow();
+      expect(() => validateLayoutConfig({ type: 'single-column' })).not.toThrow();
       expect(() => validateLayoutConfig({ type: 'two-column' })).not.toThrow();
-      expect(() =>
-        validateLayoutConfig({ type: 'sidebar-left' }),
-      ).not.toThrow();
-      expect(() =>
-        validateLayoutConfig({ type: 'sidebar-right' }),
-      ).not.toThrow();
+      expect(() => validateLayoutConfig({ type: 'sidebar-left' })).not.toThrow();
+      expect(() => validateLayoutConfig({ type: 'sidebar-right' })).not.toThrow();
       expect(() => validateLayoutConfig({ type: 'magazine' })).not.toThrow();
       expect(() => validateLayoutConfig({ type: 'compact' })).not.toThrow();
     });
 
     it('should throw for invalid layout type', () => {
-      expect(() => validateLayoutConfig({ type: 'invalid' })).toThrow(
-        BadRequestException,
-      );
+      expect(() => validateLayoutConfig({ type: 'invalid' })).toThrow(BadRequestException);
     });
 
     it('should throw for non-object layout', () => {
@@ -98,9 +90,7 @@ describe('ConfigValidator', () => {
         // Use semantic keys like "work_experience_v1", "education_v1", "skill_set_v1"
         const legacySections = [{ id: 'experiences', visible: true, order: 1 }];
 
-        expect(() => validateSectionsConfig(legacySections)).toThrow(
-          BadRequestException,
-        );
+        expect(() => validateSectionsConfig(legacySections)).toThrow(BadRequestException);
       });
 
       it('should REJECT all old legacy IDs', () => {
@@ -116,9 +106,9 @@ describe('ConfigValidator', () => {
         ];
 
         for (const legacyId of legacyIds) {
-          expect(() =>
-            validateSectionsConfig([{ id: legacyId, visible: true, order: 1 }]),
-          ).toThrow(BadRequestException);
+          expect(() => validateSectionsConfig([{ id: legacyId, visible: true, order: 1 }])).toThrow(
+            BadRequestException,
+          );
         }
       });
     });
@@ -130,26 +120,18 @@ describe('ConfigValidator', () => {
 
     it('should throw for section without visible property', () => {
       const sections = [{ id: 'header_v1', order: 1 }];
-      expect(() => validateSectionsConfig(sections)).toThrow(
-        BadRequestException,
-      );
+      expect(() => validateSectionsConfig(sections)).toThrow(BadRequestException);
     });
 
     it('should throw for section without order property', () => {
       const sections = [{ id: 'header_v1', visible: true }];
-      expect(() => validateSectionsConfig(sections)).toThrow(
-        BadRequestException,
-      );
+      expect(() => validateSectionsConfig(sections)).toThrow(BadRequestException);
     });
 
     it('should throw for invalid section ID format', () => {
       // Section IDs must be snake_case
-      const invalidSections = [
-        { id: 'InvalidCamelCase', visible: true, order: 1 },
-      ];
-      expect(() => validateSectionsConfig(invalidSections)).toThrow(
-        BadRequestException,
-      );
+      const invalidSections = [{ id: 'InvalidCamelCase', visible: true, order: 1 }];
+      expect(() => validateSectionsConfig(invalidSections)).toThrow(BadRequestException);
     });
   });
 
@@ -180,22 +162,16 @@ describe('ConfigValidator', () => {
         experiences: [{ id: 'exp-1', style: { highlight: true } }],
       };
 
-      expect(() => validateItemOverrides(overrides)).toThrow(
-        BadRequestException,
-      );
+      expect(() => validateItemOverrides(overrides)).toThrow(BadRequestException);
     });
 
     it('should throw for non-object overrides', () => {
-      expect(() => validateItemOverrides('invalid')).toThrow(
-        BadRequestException,
-      );
+      expect(() => validateItemOverrides('invalid')).toThrow(BadRequestException);
     });
 
     it('should throw for non-array override items', () => {
       const overrides = { header_v1: 'not-an-array' };
-      expect(() => validateItemOverrides(overrides)).toThrow(
-        BadRequestException,
-      );
+      expect(() => validateItemOverrides(overrides)).toThrow(BadRequestException);
     });
   });
 });

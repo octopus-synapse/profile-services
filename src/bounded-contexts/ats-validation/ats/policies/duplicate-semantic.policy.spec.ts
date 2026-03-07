@@ -27,10 +27,8 @@ describe('DuplicateSemanticPolicy', () => {
 
     const result = policy.validate(snapshot);
 
-    expect(
-      result.issues.some(
-        (issue) => issue.code === 'DUPLICATE_SEMANTIC_SECTION_TYPE',
-      ),
-    ).toBe(true);
+    expect(result.issues.some((issue) => issue.code === 'DUPLICATE_SEMANTIC_SECTION_TYPE')).toBe(
+      true,
+    );
   });
 });

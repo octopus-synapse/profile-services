@@ -3,13 +3,24 @@
  *
  * Type definitions for resume import functionality.
  *
- * Uncle Bob: "Types are contracts - they document intent"
+ * ARCHITECTURE: External format types (JsonResumeSchema) are section-specific
+ * because external standards define explicit structures. The internal
+ * ParsedResumeData uses generic sections to align with the generic sections model.
  */
 
 import type { ImportSource, ImportStatus } from '@prisma/client';
 
 /**
- * Parsed resume data from any source
+ * A parsed section from an imported resume.
+ * Maps to the generic SectionItem.content model.
+ */
+export interface ParsedSection {
+  sectionTypeKey: string;
+  items: Array<Record<string, unknown>>;
+}
+
+/**
+ * Parsed resume data from any source - uses generic sections.
  */
 export interface ParsedResumeData {
   personalInfo: {
@@ -22,40 +33,7 @@ export interface ParsedResumeData {
     github?: string;
   };
   summary?: string;
-  experiences: Array<{
-    title: string;
-    company: string;
-    location?: string;
-    startDate: string;
-    endDate?: string;
-    description?: string;
-    highlights?: string[];
-  }>;
-  education: Array<{
-    degree: string;
-    institution: string;
-    location?: string;
-    startDate?: string;
-    endDate?: string;
-    description?: string;
-  }>;
-  skills: string[];
-  certifications?: Array<{
-    name: string;
-    issuer?: string;
-    date?: string;
-    url?: string;
-  }>;
-  languages?: Array<{
-    name: string;
-    level?: string;
-  }>;
-  projects?: Array<{
-    name: string;
-    description?: string;
-    url?: string;
-    technologies?: string[];
-  }>;
+  sections: ParsedSection[];
 }
 
 /**

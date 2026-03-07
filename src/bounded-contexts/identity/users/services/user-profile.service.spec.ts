@@ -1,18 +1,18 @@
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
-import { createMockResume } from '@test/factories/resume.factory';
-import { Test, TestingModule } from '@nestjs/testing';
-import { UserProfileService } from './user-profile.service';
-import { UsersRepository } from '@/bounded-contexts/identity/users/users.repository';
-import { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.repository';
-import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { NotFoundException } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
+import { createMockResume } from '@test/factories/resume.factory';
+import { UsersRepository } from '@/bounded-contexts/identity/users/users.repository';
+import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.repository';
 import { ERROR_MESSAGES } from '@/shared-kernel';
+import { UserProfileService } from './user-profile.service';
 
 describe('UserProfileService', () => {
   let service: UserProfileService;
-  let usersRepository: any;
-  let resumesRepository: any;
-  let logger: any;
+  let usersRepository: Record<string, ReturnType<typeof mock>>;
+  let resumesRepository: Record<string, ReturnType<typeof mock>>;
+  let logger: Record<string, ReturnType<typeof mock>>;
 
   beforeEach(async () => {
     usersRepository = {
@@ -20,25 +20,34 @@ describe('UserProfileService', () => {
       findUserProfileById: mock(),
       findUserById: mock(),
       updateUserProfile: mock(),
-    } as any;
+    };
 
     resumesRepository = {
       findResumeByUserId: mock(),
-    } as any;
+    };
 
     logger = {
       debug: mock(),
       log: mock(),
       error: mock(),
       warn: mock(),
-    } as any;
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         UserProfileService,
-        { provide: UsersRepository, useValue: usersRepository },
-        { provide: ResumesRepository, useValue: resumesRepository },
-        { provide: AppLoggerService, useValue: logger },
+        {
+          provide: UsersRepository,
+          useValue: usersRepository as unknown as UsersRepository,
+        },
+        {
+          provide: ResumesRepository,
+          useValue: resumesRepository as unknown as ResumesRepository,
+        },
+        {
+          provide: AppLoggerService,
+          useValue: logger as unknown as AppLoggerService,
+        },
       ],
     }).compile();
 
@@ -66,8 +75,8 @@ describe('UserProfileService', () => {
         title: 'My Resume',
       });
 
-      usersRepository.findUserByUsername.mockResolvedValue(mockUser as any);
-      resumesRepository.findResumeByUserId.mockResolvedValue(mockResume as any);
+      usersRepository.findUserByUsername.mockResolvedValue(mockUser);
+      resumesRepository.findResumeByUserId.mockResolvedValue(mockResume);
 
       const result = await service.getPublicProfileByUsername('johndoe');
 
@@ -83,20 +92,14 @@ describe('UserProfileService', () => {
         },
         resume: mockResume,
       });
-      expect(usersRepository.findUserByUsername).toHaveBeenCalledWith(
-        'johndoe',
-      );
-      expect(resumesRepository.findResumeByUserId).toHaveBeenCalledWith(
-        'user-123',
-      );
+      expect(usersRepository.findUserByUsername).toHaveBeenCalledWith('johndoe');
+      expect(resumesRepository.findResumeByUserId).toHaveBeenCalledWith('user-123');
     });
 
     it('should throw NotFoundException when user does not exist', async () => {
       usersRepository.findUserByUsername.mockResolvedValue(null);
 
-      await expect(
-        service.getPublicProfileByUsername('nonexistent'),
-      ).rejects.toThrow(
+      await expect(service.getPublicProfileByUsername('nonexistent')).rejects.toThrow(
         new NotFoundException(ERROR_MESSAGES.PUBLIC_PROFILE_NOT_FOUND),
       );
 
@@ -112,11 +115,9 @@ describe('UserProfileService', () => {
         },
       };
 
-      usersRepository.findUserByUsername.mockResolvedValue(mockUser as any);
+      usersRepository.findUserByUsername.mockResolvedValue(mockUser);
 
-      await expect(
-        service.getPublicProfileByUsername('private-user'),
-      ).rejects.toThrow(
+      await expect(service.getPublicProfileByUsername('private-user')).rejects.toThrow(
         new NotFoundException(ERROR_MESSAGES.PUBLIC_PROFILE_NOT_FOUND),
       );
 
@@ -130,11 +131,9 @@ describe('UserProfileService', () => {
         preferences: undefined,
       };
 
-      usersRepository.findUserByUsername.mockResolvedValue(mockUser as any);
+      usersRepository.findUserByUsername.mockResolvedValue(mockUser);
 
-      await expect(
-        service.getPublicProfileByUsername('no-prefs-user'),
-      ).rejects.toThrow(
+      await expect(service.getPublicProfileByUsername('no-prefs-user')).rejects.toThrow(
         new NotFoundException(ERROR_MESSAGES.PUBLIC_PROFILE_NOT_FOUND),
       );
     });
@@ -149,7 +148,7 @@ describe('UserProfileService', () => {
         },
       };
 
-      usersRepository.findUserByUsername.mockResolvedValue(mockUser as any);
+      usersRepository.findUserByUsername.mockResolvedValue(mockUser);
       resumesRepository.findResumeByUserId.mockResolvedValue(null);
 
       const result = await service.getPublicProfileByUsername('no-resume-user');
@@ -172,22 +171,20 @@ describe('UserProfileService', () => {
         },
       };
 
-      usersRepository.findUserProfileById.mockResolvedValue(mockProfile as any);
+      usersRepository.findUserProfileById.mockResolvedValue(mockProfile);
 
       const result = await service.getProfile('user-123');
 
-      expect(result).toEqual(mockProfile);
-      expect(usersRepository.findUserProfileById).toHaveBeenCalledWith(
-        'user-123',
-      );
+      expect(result).toMatchObject(mockProfile);
+      expect(usersRepository.findUserProfileById).toHaveBeenCalledWith('user-123');
     });
 
     it('should throw NotFoundException when profile does not exist', async () => {
       usersRepository.findUserProfileById.mockResolvedValue(null);
 
-      await expect(
-        async () => await service.getProfile('nonexistent-id'),
-      ).toThrow(new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND));
+      await expect(async () => await service.getProfile('nonexistent-id')).toThrow(
+        new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND),
+      );
     });
   });
 
@@ -208,28 +205,21 @@ describe('UserProfileService', () => {
         location: 'New York',
       };
 
-      usersRepository.findUserById.mockResolvedValue(mockUser as any);
-      usersRepository.updateUserProfile.mockResolvedValue(
-        mockUpdatedUser as any,
-      );
+      usersRepository.findUserById.mockResolvedValue(mockUser);
+      usersRepository.updateUserProfile.mockResolvedValue(mockUpdatedUser);
 
       const result = await service.updateProfile(userId, updateDto);
 
-      expect(result).toEqual({
+      expect(result).toMatchObject({
         displayName: 'Updated Name',
         photoURL: 'https://example.com/photo.jpg',
         bio: 'Updated bio',
         location: 'New York',
-      } as any);
-      expect(usersRepository.updateUserProfile).toHaveBeenCalledWith(
+      });
+      expect(usersRepository.updateUserProfile).toHaveBeenCalledWith(userId, updateDto);
+      expect(logger.debug).toHaveBeenCalledWith('User profile updated', 'UserProfileService', {
         userId,
-        updateDto,
-      );
-      expect(logger.debug).toHaveBeenCalledWith(
-        'User profile updated',
-        'UserProfileService',
-        { userId },
-      );
+      });
     });
 
     it('should throw NotFoundException when user does not exist', async () => {
@@ -237,9 +227,9 @@ describe('UserProfileService', () => {
 
       usersRepository.findUserById.mockResolvedValue(null);
 
-      await expect(
-        service.updateProfile('nonexistent-id', updateDto),
-      ).rejects.toThrow(new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND));
+      await expect(service.updateProfile('nonexistent-id', updateDto)).rejects.toThrow(
+        new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND),
+      );
 
       expect(usersRepository.updateUserProfile.mock.calls.length).toBe(0);
       expect(logger.debug.mock.calls.length).toBe(0);
@@ -255,10 +245,8 @@ describe('UserProfileService', () => {
         bio: 'Only updating bio',
       };
 
-      usersRepository.findUserById.mockResolvedValue(mockUser as any);
-      usersRepository.updateUserProfile.mockResolvedValue(
-        mockUpdatedUser as any,
-      );
+      usersRepository.findUserById.mockResolvedValue(mockUser);
+      usersRepository.updateUserProfile.mockResolvedValue(mockUpdatedUser);
 
       const result = await service.updateProfile(userId, updateDto);
 
@@ -279,10 +267,8 @@ describe('UserProfileService', () => {
       const mockUser = { id: userId };
       const mockUpdatedUser = { id: userId, ...updateDto };
 
-      usersRepository.findUserById.mockResolvedValue(mockUser as any);
-      usersRepository.updateUserProfile.mockResolvedValue(
-        mockUpdatedUser as any,
-      );
+      usersRepository.findUserById.mockResolvedValue(mockUser);
+      usersRepository.updateUserProfile.mockResolvedValue(mockUpdatedUser);
 
       const result = await service.updateProfile(userId, updateDto);
 

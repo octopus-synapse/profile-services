@@ -10,7 +10,6 @@ import { API_LIMITS, CRYPTO_CONSTANTS } from '@/shared-kernel';
 import { MEC_CSV_URL, PUPPETEER_ARGS, PUPPETEER_CONFIG } from '../constants';
 import { CloudflareHandlerService } from './cloudflare-handler.service';
 
-/* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment */
 const puppeteerExtra: {
   use: (plugin: unknown) => void;
   launch: (options: Record<string, unknown>) => Promise<Browser>;

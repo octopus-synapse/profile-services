@@ -1,45 +1,108 @@
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
+/**
+ * QueueService Unit Tests
+ *
+ * Clean Architecture tests using in-memory queue implementations.
+ * Tests job queuing for exports and emails.
+ */
+
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { getQueueToken } from '@nestjs/bullmq';
+import { Test, TestingModule } from '@nestjs/testing';
 import { QueueService } from './queue.service';
+
+// ============================================================================
+// In-Memory Queue Implementation
+// ============================================================================
+
+interface MockJob {
+  id: string;
+  name: string;
+  data: unknown;
+  opts: unknown;
+  progress: number;
+  returnvalue?: unknown;
+  getState(): Promise<string>;
+}
+
+class InMemoryQueue {
+  private jobs: Map<string, MockJob> = new Map();
+  private jobCounter = 0;
+  private defaultJobState = 'completed';
+  private defaultProgress = 100;
+  private defaultReturnValue: unknown = undefined;
+
+  readonly add = mock(async (name: string, data: unknown, opts?: unknown): Promise<MockJob> => {
+    const id = `job-${++this.jobCounter}`;
+    const job: MockJob = {
+      id,
+      name,
+      data,
+      opts,
+      progress: this.defaultProgress,
+      returnvalue: this.defaultReturnValue,
+      getState: async () => this.defaultJobState,
+    };
+    this.jobs.set(id, job);
+    return job;
+  });
+
+  readonly getJob = mock(async (id: string): Promise<MockJob | null> => {
+    return this.jobs.get(id) ?? null;
+  });
+
+  seedJob(job: MockJob): void {
+    this.jobs.set(job.id, job);
+  }
+
+  setDefaults(options: { state?: string; progress?: number; returnValue?: unknown }): void {
+    if (options.state !== undefined) this.defaultJobState = options.state;
+    if (options.progress !== undefined) this.defaultProgress = options.progress;
+    if (options.returnValue !== undefined) this.defaultReturnValue = options.returnValue;
+  }
+
+  clear(): void {
+    this.jobs.clear();
+    this.jobCounter = 0;
+    this.add.mockClear();
+    this.getJob.mockClear();
+  }
+
+  getJobs(): MockJob[] {
+    return Array.from(this.jobs.values());
+  }
+}
+
+// ============================================================================
+// Tests
+// ============================================================================
 
 describe('QueueService', () => {
   let service: QueueService;
-  let mockExportQueue: {
-    add: ReturnType<typeof mock>;
-    getJob: ReturnType<typeof mock>;
+  let exportQueue: InMemoryQueue;
+  let emailQueue: InMemoryQueue;
+
+  const setupService = async () => {
+    exportQueue = new InMemoryQueue();
+    emailQueue = new InMemoryQueue();
+
+    // Set default return value for export jobs
+    exportQueue.setDefaults({
+      returnValue: { downloadUrl: 'https://example.com/file.pdf' },
+    });
+
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        QueueService,
+        { provide: getQueueToken('export'), useValue: exportQueue },
+        { provide: getQueueToken('email'), useValue: emailQueue },
+      ],
+    }).compile();
+
+    service = module.get<QueueService>(QueueService);
   };
-  let mockEmailQueue: {
-    add: ReturnType<typeof mock>;
-    getJob: ReturnType<typeof mock>;
-  };
 
-  beforeEach(() => {
-    mockExportQueue = {
-      add: mock(() => Promise.resolve({ id: 'job-123', name: 'generate-pdf' })),
-      getJob: mock(() =>
-        Promise.resolve({
-          id: 'job-123',
-          getState: () => Promise.resolve('completed'),
-          progress: 100,
-          returnvalue: { downloadUrl: 'https://example.com/file.pdf' },
-        }),
-      ),
-    };
-
-    mockEmailQueue = {
-      add: mock(() =>
-        Promise.resolve({ id: 'email-job-123', name: 'send-email' }),
-      ),
-      getJob: mock(() => Promise.resolve(null)),
-    };
-
-    service = new QueueService(
-      mockExportQueue as unknown as Parameters<
-        (typeof QueueService.prototype)['constructor']
-      >[0],
-      mockEmailQueue as unknown as Parameters<
-        (typeof QueueService.prototype)['constructor']
-      >[1],
-    );
+  beforeEach(async () => {
+    await setupService();
   });
 
   describe('Export Jobs', () => {
@@ -51,8 +114,8 @@ describe('QueueService', () => {
           userId: 'user-456',
         });
 
-        expect(result.jobId).toBe('job-123');
-        expect(mockExportQueue.add).toHaveBeenCalledWith(
+        expect(result.jobId).toBe('job-1');
+        expect(exportQueue.add).toHaveBeenCalledWith(
           'generate-pdf',
           expect.objectContaining({
             type: 'pdf',
@@ -70,7 +133,7 @@ describe('QueueService', () => {
           userId: 'user-456',
         });
 
-        expect(mockExportQueue.add).toHaveBeenCalledWith(
+        expect(exportQueue.add).toHaveBeenCalledWith(
           'generate-docx',
           expect.objectContaining({ type: 'docx' }),
           expect.any(Object),
@@ -84,7 +147,7 @@ describe('QueueService', () => {
           userId: 'user-456',
         });
 
-        expect(mockExportQueue.add).toHaveBeenCalledWith(
+        expect(exportQueue.add).toHaveBeenCalledWith(
           expect.any(String),
           expect.any(Object),
           expect.objectContaining({
@@ -100,19 +163,25 @@ describe('QueueService', () => {
 
     describe('getExportJobStatus', () => {
       it('should return job status', async () => {
-        const status = await service.getExportJobStatus('job-123');
+        // First create a job
+        await service.queueExportJob({
+          type: 'pdf',
+          resumeId: 'resume-123',
+          userId: 'user-456',
+        });
 
-        expect(status.jobId).toBe('job-123');
-        expect(status.status).toBe('completed');
-        expect(status.progress).toBe(100);
-        expect(status.result).toEqual({
+        const status = await service.getExportJobStatus('job-1');
+
+        expect(status).not.toBeNull();
+        expect(status?.jobId).toBe('job-1');
+        expect(status?.status).toBe('completed');
+        expect(status?.progress).toBe(100);
+        expect(status?.result).toEqual({
           downloadUrl: 'https://example.com/file.pdf',
         });
       });
 
       it('should return null for non-existent job', async () => {
-        mockExportQueue.getJob = mock(() => Promise.resolve(null));
-
         const status = await service.getExportJobStatus('non-existent');
 
         expect(status).toBeNull();
@@ -129,8 +198,8 @@ describe('QueueService', () => {
           data: { name: 'John' },
         });
 
-        expect(result.jobId).toBe('email-job-123');
-        expect(mockEmailQueue.add).toHaveBeenCalledWith(
+        expect(result.jobId).toBe('job-1');
+        expect(emailQueue.add).toHaveBeenCalledWith(
           'send-email',
           expect.objectContaining({
             to: 'user@example.com',
@@ -151,7 +220,7 @@ describe('QueueService', () => {
           { priority: 1 },
         );
 
-        expect(mockEmailQueue.add).toHaveBeenCalledWith(
+        expect(emailQueue.add).toHaveBeenCalledWith(
           expect.any(String),
           expect.any(Object),
           expect.objectContaining({ priority: 1 }),

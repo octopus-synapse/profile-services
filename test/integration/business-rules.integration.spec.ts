@@ -7,14 +7,9 @@
  * These tests verify that business rules are enforced correctly.
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
-import {
-  getApp,
-  getRequest,
-  closeApp,
-  createTestUserAndLogin,
-  getPrisma,
-} from './setup';
+import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
+import type { Response } from 'supertest';
+import { closeApp, createTestUserAndLogin, getApp, getPrisma, getRequest } from './setup';
 
 describe('Business Rules Integration', () => {
   let accessToken: string;
@@ -42,7 +37,7 @@ describe('Business Rules Integration', () => {
   describe('BUG-019: Resume Limits', () => {
     it('should enforce maximum resume count per user', async () => {
       // Create many resumes to test limit
-      const results = [];
+      const results: Response[] = [];
       for (let i = 0; i < 15; i++) {
         const response = await getRequest()
           .post('/api/v1/resumes')
@@ -157,9 +152,7 @@ describe('Business Rules Integration', () => {
         const shareToken = shareRes.body.data?.shareToken;
         if (shareToken) {
           // Try to access expired share
-          const accessRes = await getRequest().get(
-            `/api/v1/public/resumes/${shareToken}`,
-          );
+          const accessRes = await getRequest().get(`/api/v1/public/resumes/${shareToken}`);
           expect([404, 410]).toContain(accessRes.status); // Not found or Gone
         }
       }
@@ -192,9 +185,7 @@ describe('Business Rules Integration', () => {
 
       if (shareToken) {
         // Try to access without password
-        const accessRes = await getRequest().get(
-          `/api/v1/public/resumes/${shareToken}`,
-        );
+        const accessRes = await getRequest().get(`/api/v1/public/resumes/${shareToken}`);
 
         // Should require password or return partial response
         expect([401, 403, 200]).toContain(accessRes.status);
@@ -217,7 +208,7 @@ describe('Business Rules Integration', () => {
       const otherUser = await prisma.user.create({
         data: {
           email: `other-${Date.now()}@example.com`,
-          password: 'hashed',
+          passwordHash: 'hashed',
           name: 'Other User',
           emailVerified: new Date(),
         },

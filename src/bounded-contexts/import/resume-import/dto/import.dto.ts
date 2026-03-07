@@ -331,85 +331,18 @@ class ParsedPersonalInfoDto {
   github?: string;
 }
 
-class ParsedExperienceDto {
-  @ApiProperty({ example: 'Senior Developer' })
-  title!: string;
-
-  @ApiProperty({ example: 'ACME Corp' })
-  company!: string;
-
-  @ApiPropertyOptional({ example: 'San Francisco, CA' })
-  location?: string;
-
-  @ApiProperty({ example: '2020-01-15' })
-  startDate!: string;
-
-  @ApiPropertyOptional({ example: '2023-05-30' })
-  endDate?: string;
-
-  @ApiPropertyOptional({ example: 'Led development team' })
-  description?: string;
-
-  @ApiPropertyOptional({
-    example: ['Migrated to microservices', 'Reduced latency by 40%'],
+class ParsedSectionDto {
+  @ApiProperty({
+    example: 'work_experience_v1',
+    description: 'Section type key',
   })
-  highlights?: string[];
-}
+  sectionTypeKey!: string;
 
-class ParsedEducationDto {
-  @ApiProperty({ example: 'Bachelor of Computer Science' })
-  degree!: string;
-
-  @ApiProperty({ example: 'Stanford University' })
-  institution!: string;
-
-  @ApiPropertyOptional({ example: 'Stanford, CA' })
-  location?: string;
-
-  @ApiPropertyOptional({ example: '2015-09-01' })
-  startDate?: string;
-
-  @ApiPropertyOptional({ example: '2019-06-15' })
-  endDate?: string;
-
-  @ApiPropertyOptional({ example: 'Focused on distributed systems' })
-  description?: string;
-}
-
-class ParsedCertificationDto {
-  @ApiProperty({ example: 'AWS Solutions Architect' })
-  name!: string;
-
-  @ApiPropertyOptional({ example: 'Amazon Web Services' })
-  issuer?: string;
-
-  @ApiPropertyOptional({ example: '2023-03-15' })
-  date?: string;
-
-  @ApiPropertyOptional({ example: 'https://aws.amazon.com/certification/' })
-  url?: string;
-}
-
-class ParsedLanguageDto {
-  @ApiProperty({ example: 'English' })
-  name!: string;
-
-  @ApiPropertyOptional({ example: 'Native' })
-  level?: string;
-}
-
-class ParsedProjectDto {
-  @ApiProperty({ example: 'E-commerce Platform' })
-  name!: string;
-
-  @ApiPropertyOptional({ example: 'Built scalable online store' })
-  description?: string;
-
-  @ApiPropertyOptional({ example: 'https://github.com/johndoe/ecommerce' })
-  url?: string;
-
-  @ApiPropertyOptional({ example: ['TypeScript', 'React', 'PostgreSQL'] })
-  technologies?: string[];
+  @ApiProperty({
+    example: [{ company: 'ACME Corp', position: 'Senior Developer' }],
+    description: 'Section items as generic content objects',
+  })
+  items!: Array<Record<string, unknown>>;
 }
 
 export class ParsedResumeDataDto {
@@ -419,23 +352,11 @@ export class ParsedResumeDataDto {
   @ApiPropertyOptional({ example: 'Experienced full-stack developer' })
   summary?: string;
 
-  @ApiProperty({ type: [ParsedExperienceDto] })
-  experiences!: ParsedExperienceDto[];
-
-  @ApiProperty({ type: [ParsedEducationDto] })
-  education!: ParsedEducationDto[];
-
-  @ApiProperty({ example: ['TypeScript', 'React', 'Node.js'] })
-  skills!: string[];
-
-  @ApiPropertyOptional({ type: [ParsedCertificationDto] })
-  certifications?: ParsedCertificationDto[];
-
-  @ApiPropertyOptional({ type: [ParsedLanguageDto] })
-  languages?: ParsedLanguageDto[];
-
-  @ApiPropertyOptional({ type: [ParsedProjectDto] })
-  projects?: ParsedProjectDto[];
+  @ApiProperty({
+    type: [ParsedSectionDto],
+    description: 'Generic sections with items',
+  })
+  sections!: ParsedSectionDto[];
 }
 
 export class ImportJobDto {

@@ -10,7 +10,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger';
 import type { AuthenticatedRequest } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import {
@@ -20,7 +20,7 @@ import {
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { createZodPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
-import { type BlockedUserResponse, BlockUserSchema } from '@/shared-kernel';
+import { type BlockedUserResponse, BlockUserRequestDto, BlockUserSchema } from '@/shared-kernel';
 import { BlockService } from '../services/block.service';
 
 // Wrapper DTOs for responses
@@ -49,6 +49,7 @@ export class BlockController {
 
   @Post()
   @ApiOperation({ summary: 'Block a user' })
+  @ApiBody({ type: BlockUserRequestDto })
   @ApiDataResponse(BlockUserDataDto, {
     status: 201,
     description: 'User blocked',

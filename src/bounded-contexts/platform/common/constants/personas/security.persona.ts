@@ -19,7 +19,7 @@ export const SECURITY_PERSONA: PersonaConfig = {
     'Incident Response',
   ],
   achievementTypes: ['cve_discovered', 'bug_bounty_total', 'ctf_wins', 'hall_of_fame'],
-  prioritySections: ['bugBounties', 'certifications', 'publications', 'achievements'],
+  contentPriorities: ['security_research', 'credentials', 'publications', 'recognition'],
   keywords: [
     'oscp',
     'ceh',

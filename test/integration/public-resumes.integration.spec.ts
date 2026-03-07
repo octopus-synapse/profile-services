@@ -1,11 +1,11 @@
-import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
+import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import {
-  getRequest,
-  getApp,
-  closeApp,
   authHeader,
+  closeApp,
   createTestUserAndLogin,
+  getApp,
   getPrisma,
+  getRequest,
 } from './setup';
 
 describe('Public Resumes Integration', () => {
@@ -55,9 +55,7 @@ describe('Public Resumes Integration', () => {
         .send({
           resumeId,
           slug: 'my-awesome-resume',
-          expiresAt: new Date(
-            Date.now() + 7 * 24 * 60 * 60 * 1000,
-          ).toISOString(),
+          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
         });
 
       expect(response.status).toBe(201);
@@ -70,13 +68,10 @@ describe('Public Resumes Integration', () => {
     });
 
     it('should create a password-protected share', async () => {
-      const response = await getRequest()
-        .post('/api/v1/shares')
-        .set(authHeader())
-        .send({
-          resumeId,
-          password: 'secret123',
-        });
+      const response = await getRequest().post('/api/v1/shares').set(authHeader()).send({
+        resumeId,
+        password: 'secret123',
+      });
 
       expect(response.status).toBe(201);
       expect(response.body).toHaveProperty('slug');
@@ -96,9 +91,7 @@ describe('Public Resumes Integration', () => {
     });
 
     it('should access public resume via slug', async () => {
-      const response = await getRequest().get(
-        `/api/v1/public/resumes/${shareSlug}`,
-      );
+      const response = await getRequest().get(`/api/v1/public/resumes/${shareSlug}`);
 
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('resume');
@@ -121,9 +114,7 @@ describe('Public Resumes Integration', () => {
         },
       });
 
-      const failResponse = await getRequest().get(
-        `/api/v1/public/resumes/${protectedShare.slug}`,
-      );
+      const failResponse = await getRequest().get(`/api/v1/public/resumes/${protectedShare.slug}`);
       expect(failResponse.status).toBe(403);
 
       const successResponse = await getRequest()
@@ -144,9 +135,7 @@ describe('Public Resumes Integration', () => {
         },
       });
 
-      const response = await getRequest().get(
-        `/api/v1/public/resumes/${expiredShare.slug}`,
-      );
+      const response = await getRequest().get(`/api/v1/public/resumes/${expiredShare.slug}`);
       expect(response.status).toBe(404);
     });
 
@@ -156,9 +145,10 @@ describe('Public Resumes Integration', () => {
         where: { slug: shareSlug },
       });
 
-      const response = await getRequest()
-        .delete(`/api/v1/shares/${share.id}`)
-        .set(authHeader());
+      expect(share).not.toBeNull();
+      if (!share) return;
+
+      const response = await getRequest().delete(`/api/v1/shares/${share.id}`).set(authHeader());
 
       expect(response.status).toBe(200);
 
@@ -180,16 +170,12 @@ describe('Public Resumes Integration', () => {
       });
 
       // First call - should populate cache
-      const firstResponse = await getRequest().get(
-        `/api/v1/public/resumes/${share.slug}`,
-      );
+      const firstResponse = await getRequest().get(`/api/v1/public/resumes/${share.slug}`);
       expect(firstResponse.status).toBe(200);
       const firstResumeId = firstResponse.body.resume.id;
 
       // Second call - should use cache
-      const secondResponse = await getRequest().get(
-        `/api/v1/public/resumes/${share.slug}`,
-      );
+      const secondResponse = await getRequest().get(`/api/v1/public/resumes/${share.slug}`);
       expect(secondResponse.status).toBe(200);
       expect(secondResponse.body.resume.id).toBe(firstResumeId);
 

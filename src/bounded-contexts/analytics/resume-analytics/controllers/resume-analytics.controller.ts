@@ -14,7 +14,7 @@
  */
 
 import { Body, Controller, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
@@ -37,6 +37,7 @@ import type {
   ViewStatsQuery,
   ViewStatsResponse,
 } from '@/shared-kernel';
+import { CreateSnapshotRequestDto } from '@/shared-kernel/dtos/sdk-request.dto';
 import { MessageResponseDto } from '@/shared-kernel/dtos/sdk-response.dto';
 import { ResumeAnalyticsFacade } from '../services/resume-analytics.facade';
 
@@ -198,6 +199,7 @@ export class ResumeAnalyticsController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Save analytics snapshot for tracking progress' })
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
+  @ApiBody({ type: CreateSnapshotRequestDto })
   @ApiDataResponse(Object, { status: 201, description: 'Snapshot created' })
   async createSnapshot(
     @Param('resumeId') resumeId: string,

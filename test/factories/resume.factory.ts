@@ -91,9 +91,7 @@ const defaultResume: Resume = {
   updatedAt: new Date('2024-01-01'),
 };
 
-export function createMockResume(
-  options: CreateMockResumeOptions = {},
-): Resume {
+export function createMockResume(options: CreateMockResumeOptions = {}): Resume {
   const result: Resume = {
     ...defaultResume,
     ...options,
@@ -103,9 +101,7 @@ export function createMockResume(
   return result;
 }
 
-export function createMockPublicResume(
-  options: CreateMockResumeOptions = {},
-): Resume {
+export function createMockPublicResume(options: CreateMockResumeOptions = {}): Resume {
   return createMockResume({
     ...options,
     isPublic: true,
@@ -114,77 +110,34 @@ export function createMockPublicResume(
 }
 
 /**
- * Resume with all relations included
+ * Resume with generic sections included
  */
-export interface ResumeWithRelations extends Resume {
-  skills?: Array<{
+export interface ResumeWithSections extends Resume {
+  resumeSections?: Array<{
     id: string;
-    name: string;
-    category: string;
-    level: number | null;
+    sectionTypeId: string;
     order: number;
-  }>;
-  experiences?: Array<{
-    id: string;
-    company: string;
-    position: string;
-    startDate: Date;
-    endDate: Date | null;
-    current: boolean;
-    description: string | null;
-    order: number;
-  }>;
-  educations?: Array<{
-    id: string;
-    institution: string;
-    degree: string;
-    field: string | null;
-    startDate: Date;
-    endDate: Date | null;
-    current: boolean;
-    order: number;
-  }>;
-  projects?: Array<{
-    id: string;
-    name: string;
-    description: string | null;
-    url: string | null;
-    order: number;
-  }>;
-  languages?: Array<{
-    id: string;
-    name: string;
-    level: string;
-    order: number;
-  }>;
-  certifications?: Array<{
-    id: string;
-    name: string;
-    issuer: string;
-    date: Date | null;
-    order: number;
+    isVisible: boolean;
+    sectionType: {
+      key: string;
+      semanticKind: string;
+      title: string;
+    };
+    items: Array<{
+      id: string;
+      content: Record<string, unknown>;
+      order: number;
+      isVisible: boolean;
+    }>;
   }>;
 }
 
-export function createMockResumeWithRelations(
-  options: Partial<ResumeWithRelations> = {},
-): ResumeWithRelations {
-  const {
-    skills,
-    experiences,
-    educations,
-    projects,
-    languages,
-    certifications,
-    ...resumeOptions
-  } = options;
+export function createMockResumeWithSections(
+  options: Partial<ResumeWithSections> = {},
+): ResumeWithSections {
+  const { resumeSections, ...resumeOptions } = options;
   return {
     ...createMockResume(resumeOptions as CreateMockResumeOptions),
-    skills: skills ?? [],
-    experiences: experiences ?? [],
-    educations: educations ?? [],
-    projects: projects ?? [],
-    languages: languages ?? [],
-    certifications: certifications ?? [],
+    resumeSections: resumeSections ?? [],
   };
 }

@@ -29,10 +29,7 @@ describe('Setup2faUseCase', () => {
 
     // Configure defaults
     repository.seedEmail(userId, email);
-    totpService.setGeneratedSecret(
-      'SECRET123',
-      'otpauth://totp/ProFile?secret=SECRET123',
-    );
+    totpService.setGeneratedSecret('SECRET123', 'otpauth://totp/ProFile?secret=SECRET123');
     qrCodeService.setDataUrl('data:image/png;base64,QRCODE');
 
     useCase = new Setup2faUseCase(repository, totpService, qrCodeService);
@@ -78,8 +75,6 @@ describe('Setup2faUseCase', () => {
       lastUsedAt: null,
     });
 
-    await expect(useCase.execute(userId)).rejects.toThrow(
-      TwoFactorAlreadyEnabledException,
-    );
+    await expect(useCase.execute(userId)).rejects.toThrow(TwoFactorAlreadyEnabledException);
   });
 });

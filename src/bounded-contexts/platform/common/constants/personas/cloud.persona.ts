@@ -24,7 +24,7 @@ export const CLOUD_PERSONA: PersonaConfig = {
     'architecture_design',
     'cloud_certifications',
   ],
-  prioritySections: ['certifications', 'experiences', 'projects', 'talks'],
+  contentPriorities: ['credentials', 'career_history', 'project_portfolio', 'thought_leadership'],
   keywords: [
     'aws',
     'azure',

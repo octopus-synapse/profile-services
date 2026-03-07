@@ -21,20 +21,20 @@
  * Target Time: < 20 seconds
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
+import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import type { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { createE2ETestApp } from '../setup-e2e';
-import type { AuthHelper } from '../helpers/auth.helper';
-import type { CleanupHelper } from '../helpers/cleanup.helper';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { createFullOnboardingData } from '../fixtures/resumes.fixture';
 import {
-  createShareData,
-  createPasswordProtectedShare,
   createExpiringShare,
+  createPasswordProtectedShare,
+  createShareData,
   createShareWithCustomSlug,
 } from '../fixtures/shares.fixture';
+import type { AuthHelper } from '../helpers/auth.helper';
+import type { CleanupHelper } from '../helpers/cleanup.helper';
+import { createE2ETestApp } from '../setup-e2e';
 
 describe('E2E Journey 4: Public Resume (Shares)', () => {
   let app: INestApplication;
@@ -92,10 +92,7 @@ describe('E2E Journey 4: Public Resume (Shares)', () => {
 
   describe('Step 2: Create Share', () => {
     it('should create a public share with custom slug', async () => {
-      const shareData = createShareWithCustomSlug(
-        resumeId,
-        `my-awesome-resume-${Date.now()}`,
-      );
+      const shareData = createShareWithCustomSlug(resumeId, `my-awesome-resume-${Date.now()}`);
 
       const response = await request(app.getHttpServer())
         .post('/api/v1/shares')
@@ -119,9 +116,7 @@ describe('E2E Journey 4: Public Resume (Shares)', () => {
     it('should reject share creation without authentication', async () => {
       const shareData = createShareData(resumeId, 'unauthorized');
 
-      const response = await request(app.getHttpServer())
-        .post('/api/v1/shares')
-        .send(shareData);
+      const response = await request(app.getHttpServer()).post('/api/v1/shares').send(shareData);
 
       expect(response.status).toBe(401);
     });
@@ -151,9 +146,7 @@ describe('E2E Journey 4: Public Resume (Shares)', () => {
       expect(Array.isArray(response.body.data.shares)).toBe(true);
       expect(response.body.data.shares.length).toBeGreaterThan(0);
 
-      const share = response.body.data.shares.find(
-        (s: any) => s.slug === shareSlug,
-      );
+      const share = response.body.data.shares.find((s: { slug: string }) => s.slug === shareSlug);
       expect(share).toBeDefined();
       expect(share.isActive).toBe(true);
     });

@@ -1,23 +1,4 @@
 /**
- * @deprecated Use SemanticKind string from SectionType definitions instead.
- * Keeping for backward compatibility during migration.
- */
-export enum CVSectionType {
-  PERSONAL_INFO = 'personal_info',
-  SUMMARY = 'summary',
-  EXPERIENCE = 'experience',
-  EDUCATION = 'education',
-  SKILLS = 'skills',
-  CERTIFICATIONS = 'certifications',
-  PROJECTS = 'projects',
-  AWARDS = 'awards',
-  PUBLICATIONS = 'publications',
-  LANGUAGES = 'languages',
-  INTERESTS = 'interests',
-  REFERENCES = 'references',
-}
-
-/**
  * Parsed CV section with dynamic semantic kind.
  * The `semanticKind` is loaded from SectionType definitions.
  */

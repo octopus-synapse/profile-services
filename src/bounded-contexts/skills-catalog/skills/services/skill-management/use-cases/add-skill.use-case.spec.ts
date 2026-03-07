@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions';
+import type { SkillManagementRepositoryPort } from '../ports/skill-management-repository.port';
 import { AddSkillUseCase } from './add-skill.use-case';
-import type { SkillManagementRepositoryPort } from '../ports/skill-management.port';
 
 describe('AddSkillUseCase', () => {
   let useCase: AddSkillUseCase;
@@ -75,9 +75,9 @@ describe('AddSkillUseCase', () => {
   it('throws EntityNotFoundException when resume does not exist', async () => {
     repository.resumeExists = mock(async () => false);
 
-    await expect(
-      useCase.execute('non-existent', { name: 'TS', category: 'Lang' }),
-    ).rejects.toThrow(EntityNotFoundException);
+    await expect(useCase.execute('non-existent', { name: 'TS', category: 'Lang' })).rejects.toThrow(
+      EntityNotFoundException,
+    );
   });
 
   it('uses correct order for new skill', async () => {

@@ -1,8 +1,8 @@
 {
   "success": true,
-  "controllers": 50,
-  "endpoints": 174,
-  "schemas": 215,
+  "controllers": 49,
+  "endpoints": 170,
+  "schemas": 202,
   "tags": [
     "resume-analytics",
     "search",
@@ -295,12 +295,6 @@
       "file": "bounded-contexts/resumes/resumes/resumes.controller.ts"
     },
     {
-      "controller": "SkillManagementController",
-      "tag": "skills",
-      "endpoints": 4,
-      "file": "bounded-contexts/skills-catalog/skills/controllers/skill-management.controller.ts"
-    },
-    {
       "controller": "SpokenLanguagesController",
       "tag": "skills",
       "endpoints": 3,
@@ -337,22 +331,5 @@
       "file": "bounded-contexts/translation/translation/translation.controller.ts"
     }
   ],
-  "warnings": [
-    "ResumeAnalyticsController.resume-analytics_createSnapshot: POST endpoint without request body DTO",
-    "ATSController.ats-validation_postEndpoint: POST endpoint without request body DTO",
-    "BlockController.chat---block-users_blockUser: POST endpoint without request body DTO",
-    "ChatController.chat_sendMessage: POST endpoint without request body DTO",
-    "ChatController.chat_sendMessageToConversation: POST endpoint without request body DTO",
-    "ChatController.chat_markConversationAsRead: POST endpoint without request body DTO",
-    "AcceptConsentController.user-consent_postEndpoint: POST endpoint without request body DTO",
-    "ResumeImportController.resume-import_retry: POST endpoint without request body DTO",
-    "GitHubController.github_autoSyncGitHub: POST endpoint without request body DTO",
-    "MecSyncInternalController.mec-internal_triggerSync: POST endpoint without request body DTO",
-    "UploadController.upload_uploadProfileImage: POST endpoint without request body DTO",
-    "UploadController.upload_uploadCompanyLogo: POST endpoint without request body DTO",
-    "OnboardingController.onboarding_completeOnboarding: POST endpoint without request body DTO",
-    "ThemeApprovalController.themes_submit: POST endpoint without request body DTO",
-    "TranslationController.translation_translatePtToEn: POST endpoint without request body DTO",
-    "TranslationController.translation_translateEnToPt: POST endpoint without request body DTO"
-  ]
+  "warnings": []
 }

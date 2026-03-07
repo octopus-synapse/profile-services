@@ -35,21 +35,9 @@ export class UserQueryRepository {
     });
   }
 
-  async findUserProfileById(userId: string): Promise<Partial<User> | null> {
+  async findUserProfileById(userId: string): Promise<User | null> {
     return await this.prisma.user.findUnique({
       where: { id: userId },
-      select: {
-        username: true,
-        usernameUpdatedAt: true,
-        displayName: true,
-        photoURL: true,
-        bio: true,
-        location: true,
-        phone: true,
-        website: true,
-        linkedin: true,
-        github: true,
-      },
     });
   }
 

@@ -1,6 +1,44 @@
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { Test, type TestingModule } from '@nestjs/testing';
 import { createMockResume } from '@test/factories/resume.factory';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ResumeJsonService } from './resume-json.service';
+
+type JsonResumeLike = {
+  $schema: string;
+  basics: {
+    name: string;
+    email?: string;
+  };
+  sections: Array<{
+    semanticKind: string;
+    items: Record<string, unknown>[];
+  }>;
+};
+
+type ProfileExportLike = {
+  format: 'profile';
+  version: string;
+  resume: {
+    sections: unknown[];
+  };
+};
+
+function isJsonResumeLike(value: unknown): value is JsonResumeLike {
+  if (!value || typeof value !== 'object') return false;
+  if (!('$schema' in value) || !('basics' in value) || !('sections' in value)) return false;
+  const maybeSections = (value as { sections?: unknown }).sections;
+  return Array.isArray(maybeSections);
+}
+
+function isProfileExportLike(value: unknown): value is ProfileExportLike {
+  if (!value || typeof value !== 'object') return false;
+  if (!('format' in value) || !('resume' in value)) return false;
+  const format = (value as { format?: unknown }).format;
+  const resume = (value as { resume?: unknown }).resume;
+  if (format !== 'profile' || !resume || typeof resume !== 'object') return false;
+  return Array.isArray((resume as { sections?: unknown }).sections);
+}
 
 describe('ResumeJsonService', () => {
   let service: ResumeJsonService;
@@ -83,16 +121,26 @@ describe('ResumeJsonService', () => {
         ],
       },
     ],
-  } as any;
+  };
 
-  beforeEach(() => {
+  beforeEach(async () => {
     mockPrismaService = {
       resume: {
         findUnique: mock(() => Promise.resolve(mockResume)),
       },
     };
 
-    service = new ResumeJsonService(mockPrismaService as any);
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        ResumeJsonService,
+        {
+          provide: PrismaService,
+          useValue: mockPrismaService,
+        },
+      ],
+    }).compile();
+
+    service = module.get<ResumeJsonService>(ResumeJsonService);
   });
 
   describe('exportAsJson', () => {
@@ -100,13 +148,22 @@ describe('ResumeJsonService', () => {
       const result = await service.exportAsJson('resume-123');
 
       expect(result).toBeDefined();
+      expect(isJsonResumeLike(result)).toBe(true);
+      if (!isJsonResumeLike(result)) {
+        throw new Error('Expected JSON Resume format');
+      }
       expect(result.$schema).toBe(
         'https://raw.githubusercontent.com/jsonresume/resume-schema/v1.0.0/schema.json',
       );
     });
 
     it('should include basics section with personal info', async () => {
-      const result = (await service.exportAsJson('resume-123')) as any;
+      const result = await service.exportAsJson('resume-123');
+
+      expect(isJsonResumeLike(result)).toBe(true);
+      if (!isJsonResumeLike(result)) {
+        throw new Error('Expected JSON Resume format');
+      }
 
       expect(result.basics).toBeDefined();
       expect(result.basics.name).toBe('John Doe');
@@ -114,7 +171,12 @@ describe('ResumeJsonService', () => {
     });
 
     it('should include generic sections', async () => {
-      const result = (await service.exportAsJson('resume-123')) as any;
+      const result = await service.exportAsJson('resume-123');
+
+      expect(isJsonResumeLike(result)).toBe(true);
+      if (!isJsonResumeLike(result)) {
+        throw new Error('Expected JSON Resume format');
+      }
 
       expect(result.sections).toBeDefined();
       expect(result.sections).toHaveLength(5);
@@ -123,14 +185,21 @@ describe('ResumeJsonService', () => {
     });
 
     it('should preserve section item content', async () => {
-      const result = (await service.exportAsJson('resume-123')) as any;
+      const result = await service.exportAsJson('resume-123');
+
+      expect(isJsonResumeLike(result)).toBe(true);
+      if (!isJsonResumeLike(result)) {
+        throw new Error('Expected JSON Resume format');
+      }
 
       const workSection = result.sections.find(
-        (section: { semanticKind: string }) =>
-          section.semanticKind === 'WORK_EXPERIENCE',
+        (section: { semanticKind: string }) => section.semanticKind === 'WORK_EXPERIENCE',
       );
 
       expect(workSection).toBeDefined();
+      if (!workSection) {
+        throw new Error('Expected WORK_EXPERIENCE section');
+      }
       expect(workSection.items[0].position).toBe('Senior Developer');
       expect(workSection.items[0].company).toBe('Tech Corp');
     });
@@ -138,9 +207,7 @@ describe('ResumeJsonService', () => {
     it('should throw NotFoundException when resume not found', async () => {
       mockPrismaService.resume.findUnique = mock(() => Promise.resolve(null));
 
-      await expect(service.exportAsJson('unknown')).rejects.toThrow(
-        'Resume not found',
-      );
+      await expect(service.exportAsJson('unknown')).rejects.toThrow('Resume not found');
     });
   });
 
@@ -160,10 +227,15 @@ describe('ResumeJsonService', () => {
         format: 'profile',
       });
 
-      expect(result).toHaveProperty('format', 'profile');
-      expect(result).toHaveProperty('version', '1.0');
-      expect((result as any).resume.sections).toBeDefined();
-      expect((result as any).resume.sections).toHaveLength(5);
+      expect(isProfileExportLike(result)).toBe(true);
+      if (!isProfileExportLike(result)) {
+        throw new Error('Expected Profile format');
+      }
+
+      expect(result.format).toBe('profile');
+      expect(result.version).toBe('1.0');
+      expect(result.resume.sections).toBeDefined();
+      expect(result.resume.sections).toHaveLength(5);
     });
   });
 });

@@ -4,7 +4,7 @@
  * Tests for resume view tracking and statistics
  */
 
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { ViewTrackingService } from './view-tracking.service';
 
 describe('ViewTrackingService', () => {
@@ -26,21 +26,14 @@ describe('ViewTrackingService', () => {
         create: mock(() => Promise.resolve({ id: 'view-1' })),
         count: mock(() => Promise.resolve(100)),
         groupBy: mock(() =>
-          Promise.resolve([
-            { ipHash: 'hash1' },
-            { ipHash: 'hash2' },
-            { ipHash: 'hash3' },
-          ]),
+          Promise.resolve([{ ipHash: 'hash1' }, { ipHash: 'hash2' }, { ipHash: 'hash3' }]),
         ),
       },
     };
     mockEventEmitter = {
       emit: mock(() => {}),
     };
-    service = new ViewTrackingService(
-      mockPrisma as never,
-      mockEventEmitter as never,
-    );
+    service = new ViewTrackingService(mockPrisma as never, mockEventEmitter as never);
   });
 
   describe('trackView', () => {
@@ -136,9 +129,7 @@ describe('ViewTrackingService', () => {
 
       const countCall = mockPrisma.resumeViewEvent.count.mock.calls[0][0];
       const startDate = countCall.where.createdAt.gte;
-      const daysDiff = Math.round(
-        (Date.now() - startDate.getTime()) / (1000 * 60 * 60 * 24),
-      );
+      const daysDiff = Math.round((Date.now() - startDate.getTime()) / (1000 * 60 * 60 * 24));
       expect(daysDiff).toBeLessThanOrEqual(1);
     });
 
@@ -147,9 +138,7 @@ describe('ViewTrackingService', () => {
 
       const countCall = mockPrisma.resumeViewEvent.count.mock.calls[0][0];
       const startDate = countCall.where.createdAt.gte;
-      const daysDiff = Math.round(
-        (Date.now() - startDate.getTime()) / (1000 * 60 * 60 * 24),
-      );
+      const daysDiff = Math.round((Date.now() - startDate.getTime()) / (1000 * 60 * 60 * 24));
       expect(daysDiff).toBeGreaterThanOrEqual(6);
       expect(daysDiff).toBeLessThanOrEqual(8);
     });
@@ -159,9 +148,7 @@ describe('ViewTrackingService', () => {
 
       const countCall = mockPrisma.resumeViewEvent.count.mock.calls[0][0];
       const startDate = countCall.where.createdAt.gte;
-      const daysDiff = Math.round(
-        (Date.now() - startDate.getTime()) / (1000 * 60 * 60 * 24),
-      );
+      const daysDiff = Math.round((Date.now() - startDate.getTime()) / (1000 * 60 * 60 * 24));
       expect(daysDiff).toBeGreaterThanOrEqual(28);
       expect(daysDiff).toBeLessThanOrEqual(32);
     });
@@ -171,9 +158,7 @@ describe('ViewTrackingService', () => {
 
       const countCall = mockPrisma.resumeViewEvent.count.mock.calls[0][0];
       const startDate = countCall.where.createdAt.gte;
-      const daysDiff = Math.round(
-        (Date.now() - startDate.getTime()) / (1000 * 60 * 60 * 24),
-      );
+      const daysDiff = Math.round((Date.now() - startDate.getTime()) / (1000 * 60 * 60 * 24));
       expect(daysDiff).toBeGreaterThanOrEqual(364);
       expect(daysDiff).toBeLessThanOrEqual(366);
     });

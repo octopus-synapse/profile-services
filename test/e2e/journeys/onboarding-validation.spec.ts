@@ -15,12 +15,12 @@
  * Target Time: < 10 seconds
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
+import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import type { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { createE2ETestApp } from '../setup-e2e';
 import type { AuthHelper } from '../helpers/auth.helper';
 import type { CleanupHelper } from '../helpers/cleanup.helper';
+import { createE2ETestApp } from '../setup-e2e';
 
 /**
  * Creates a valid base payload that can be modified for validation tests.
@@ -113,8 +113,7 @@ describe('E2E: Onboarding Validation', () => {
 
     it('should reject missing personalInfo', async () => {
       const payload = createValidBasePayload('missing_personal');
-      const { personalInfo: _personalInfo, ...payloadWithoutPersonal } =
-        payload;
+      const { personalInfo: _personalInfo, ...payloadWithoutPersonal } = payload;
 
       const response = await request(app.getHttpServer())
         .post('/api/v1/onboarding')
@@ -126,8 +125,7 @@ describe('E2E: Onboarding Validation', () => {
 
     it('should reject missing templateSelection', async () => {
       const payload = createValidBasePayload('missing_template');
-      const { templateSelection: _template, ...payloadWithoutTemplate } =
-        payload;
+      const { templateSelection: _template, ...payloadWithoutTemplate } = payload;
 
       const response = await request(app.getHttpServer())
         .post('/api/v1/onboarding')
@@ -205,7 +203,7 @@ describe('E2E: Onboarding Validation', () => {
   describe('Languages Validation', () => {
     it('should reject invalid language level', async () => {
       const payload = createValidBasePayload('invalid_lang_level');
-      payload.languages = [{ name: 'English', level: 'INVALID_LEVEL' as any }];
+      payload.languages = [{ name: 'English', level: 'INVALID_LEVEL' as never }];
 
       const response = await request(app.getHttpServer())
         .post('/api/v1/onboarding')

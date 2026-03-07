@@ -34,15 +34,11 @@ export class GitHubAchievementService {
     const achievements: GitHubAchievementContent[] = [];
 
     if (totalStars >= STAR_THRESHOLD) {
-      achievements.push(
-        this.createStarsAchievement(githubUsername, totalStars),
-      );
+      achievements.push(this.createStarsAchievement(githubUsername, totalStars));
     }
 
     if (profile.public_repos >= REPO_THRESHOLD) {
-      achievements.push(
-        this.createReposAchievement(githubUsername, profile.public_repos),
-      );
+      achievements.push(this.createReposAchievement(githubUsername, profile.public_repos));
     }
 
     return achievements;
@@ -69,8 +65,7 @@ export class GitHubAchievementService {
     return {
       type: 'custom',
       title: `${repoCount} Public Repositories`,
-      description:
-        'Active open source contributor with multiple public projects',
+      description: 'Active open source contributor with multiple public projects',
       verificationUrl: `https://github.com/${githubUsername}?tab=repositories`,
       achievedAt: new Date().toISOString(),
       value: repoCount,

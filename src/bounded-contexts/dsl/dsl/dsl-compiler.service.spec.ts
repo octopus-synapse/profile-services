@@ -8,13 +8,26 @@
  * Uncle Bob: "Test boundary conditions and delegation"
  */
 
-import { describe, it, expect, beforeEach } from 'bun:test';
-import { DslCompilerService } from './dsl-compiler.service';
-import { DslValidatorService } from './dsl-validator.service';
-import { TokenResolverService } from './token-resolver.service';
-import { DslMigrationService } from './migrators';
+import { beforeEach, describe, expect, it } from 'bun:test';
 import { BadRequestException } from '@nestjs/common';
 import type { ResumeDsl } from '@/shared-kernel';
+import type { GenericResume } from '@/shared-kernel/types/generic-section.types';
+import { DslCompilerService } from './dsl-compiler.service';
+import { DslValidatorService } from './dsl-validator.service';
+import { DslMigrationService } from './migrators';
+import { TokenResolverService } from './token-resolver.service';
+
+function extractSectionItems(section: { data: unknown } | undefined): unknown[] {
+  if (!section || !section.data || typeof section.data !== 'object') return [];
+  const items = (section.data as { items?: unknown }).items;
+  return Array.isArray(items) ? items : [];
+}
+
+function getItemContent(item: unknown): Record<string, unknown> {
+  if (!item || typeof item !== 'object') return {};
+  const content = (item as { content?: unknown }).content;
+  return content && typeof content === 'object' ? (content as Record<string, unknown>) : {};
+}
 
 describe('DslCompilerService', () => {
   let service: DslCompilerService;
@@ -70,11 +83,7 @@ describe('DslCompilerService', () => {
     const tokenResolver = new TokenResolverService();
     const migrationService = new DslMigrationService();
 
-    service = new DslCompilerService(
-      validator,
-      tokenResolver,
-      migrationService,
-    );
+    service = new DslCompilerService(validator, tokenResolver, migrationService);
   });
 
   describe('constructor', () => {
@@ -93,9 +102,7 @@ describe('DslCompilerService', () => {
     });
 
     it('should throw BadRequestException for invalid structure', () => {
-      expect(() => service.compileFromRaw({ invalid: 'data' })).toThrow(
-        BadRequestException,
-      );
+      expect(() => service.compileFromRaw({ invalid: 'data' })).toThrow(BadRequestException);
     });
   });
 
@@ -122,7 +129,18 @@ describe('DslCompilerService', () => {
       const resumeData = {
         id: 'resume-1',
         userId: 'user-1',
+        title: 'Resume',
+        fullName: 'John Doe',
+        jobTitle: 'Backend Engineer',
         summary: null,
+        phone: null,
+        emailContact: null,
+        location: null,
+        linkedin: null,
+        github: null,
+        website: null,
+        createdAt: new Date('2024-01-01'),
+        updatedAt: new Date('2024-01-01'),
         activeTheme: null,
         customTheme: null,
         sections: [
@@ -169,29 +187,27 @@ describe('DslCompilerService', () => {
             ],
           },
         ],
-      } as any;
+      };
 
-      const ast = service.compileForHtml(validDsl, resumeData);
+      const ast = service.compileForHtml(validDsl, resumeData as unknown as GenericResume);
 
       const experienceSection = ast.sections.find(
         (section) => section.sectionId === 'work_experience_v1',
       );
-      const skillsSection = ast.sections.find(
-        (section) => section.sectionId === 'skill_set_v1',
-      );
+      const skillsSection = ast.sections.find((section) => section.sectionId === 'skill_set_v1');
 
       // New generic format uses semanticKind instead of type
       expect(experienceSection?.data.semanticKind).toBe('WORK_EXPERIENCE');
-      expect((experienceSection?.data as any).items).toHaveLength(1);
-      expect((experienceSection?.data as any).items[0].content.position).toBe(
-        'Backend Engineer',
-      );
+      const experienceItems = extractSectionItems(experienceSection);
+      expect(experienceItems).toHaveLength(1);
+      const experienceContent = getItemContent(experienceItems[0]);
+      expect(experienceContent.position).toBe('Backend Engineer');
 
       expect(skillsSection?.data.semanticKind).toBe('SKILL_SET');
-      expect((skillsSection?.data as any).items).toHaveLength(1);
-      expect((skillsSection?.data as any).items[0].content.name).toBe(
-        'TypeScript',
-      );
+      const skillItems = extractSectionItems(skillsSection);
+      expect(skillItems).toHaveLength(1);
+      const skillContent = getItemContent(skillItems[0]);
+      expect(skillContent.name).toBe('TypeScript');
     });
   });
 });

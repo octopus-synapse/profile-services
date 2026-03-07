@@ -33,7 +33,7 @@ export class UsersRepository {
     return this.queryRepo.findUserByUsername(username);
   }
 
-  async findUserProfileById(userId: string): Promise<Partial<User> | null> {
+  async findUserProfileById(userId: string): Promise<User | null> {
     return this.queryRepo.findUserProfileById(userId);
   }
 

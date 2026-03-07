@@ -1,23 +1,95 @@
 /**
- * ATS Score Service Tests
+ * ATS Score Service Tests — Definition-Driven
  *
- * Tests for ATS (Applicant Tracking System) score calculation
- * Uses GENERIC sections - no type-specific knowledge
+ * Tests that ATS scoring reads ALL configuration from SectionType definitions.
+ * ZERO hardcoded section knowledge — the catalog drives everything.
  */
 
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
-import type { ResumeForAnalytics, AnalyticsSection } from '../domain/types';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import type { AnalyticsSection, ResumeForAnalytics } from '../domain/types';
 import { ATSScoreService } from './ats-score.service';
+
+/**
+ * Section type definitions used in tests.
+ * These mirror what the database seed provides.
+ */
+const MOCK_SECTION_TYPES = [
+  {
+    key: 'work_experience_v1',
+    semanticKind: 'WORK_EXPERIENCE',
+    definition: {
+      schemaVersion: 1,
+      kind: 'WORK_EXPERIENCE',
+      fields: [
+        { key: 'company', type: 'string', semanticRole: 'ORGANIZATION' },
+        { key: 'role', type: 'string', semanticRole: 'JOB_TITLE' },
+        { key: 'startDate', type: 'date', semanticRole: 'START_DATE' },
+        { key: 'description', type: 'string', semanticRole: 'DESCRIPTION' },
+      ],
+      ats: {
+        isMandatory: true,
+        recommendedPosition: 2,
+        scoring: {
+          baseScore: 30,
+          fieldWeights: {
+            ORGANIZATION: 20,
+            JOB_TITLE: 20,
+            START_DATE: 15,
+            DESCRIPTION: 5,
+          },
+        },
+      },
+    },
+  },
+  {
+    key: 'skill_set_v1',
+    semanticKind: 'SKILL_SET',
+    definition: {
+      schemaVersion: 1,
+      kind: 'SKILL_SET',
+      fields: [
+        { key: 'name', type: 'string', semanticRole: 'SKILL_NAME' },
+        { key: 'category', type: 'string', semanticRole: 'CATEGORY' },
+      ],
+      ats: {
+        isMandatory: true,
+        recommendedPosition: 4,
+        scoring: {
+          baseScore: 40,
+          fieldWeights: { SKILL_NAME: 50, CATEGORY: 10 },
+        },
+      },
+    },
+  },
+  {
+    key: 'education_v1',
+    semanticKind: 'EDUCATION',
+    definition: {
+      schemaVersion: 1,
+      kind: 'EDUCATION',
+      fields: [
+        { key: 'institution', type: 'string', semanticRole: 'ORGANIZATION' },
+        { key: 'degree', type: 'string', semanticRole: 'DEGREE' },
+      ],
+      ats: {
+        isMandatory: true,
+        recommendedPosition: 3,
+        scoring: {
+          baseScore: 35,
+          fieldWeights: { ORGANIZATION: 20, DEGREE: 25 },
+        },
+      },
+    },
+  },
+];
 
 describe('ATSScoreService', () => {
   let service: ATSScoreService;
-  let mockEventEmitter: {
-    emit: ReturnType<typeof mock>;
+  let mockEventEmitter: { emit: ReturnType<typeof mock> };
+  let mockPrisma: {
+    sectionType: { findMany: ReturnType<typeof mock> };
   };
 
-  /**
-   * Create generic section with items.
-   */
   const createSection = (
     semanticKind: string,
     items: Record<string, unknown>[],
@@ -30,27 +102,22 @@ describe('ATSScoreService', () => {
     })),
   });
 
-  /**
-   * Create resume with generic sections.
-   */
-  const createResume = (
-    overrides: Partial<ResumeForAnalytics> = {},
-  ): ResumeForAnalytics => ({
+  const createResume = (overrides: Partial<ResumeForAnalytics> = {}): ResumeForAnalytics => ({
     summary: 'Experienced full-stack developer with 5 years of experience',
     emailContact: 'test@example.com',
     phone: '+1234567890',
     jobTitle: 'Software Engineer',
     sections: [
-      createSection('SKILL', [
-        { name: 'JavaScript' },
-        { name: 'React' },
-        { name: 'Node.js' },
+      createSection('SKILL_SET', [
+        { name: 'JavaScript', category: 'Frontend' },
+        { name: 'React', category: 'Frontend' },
       ]),
-      createSection('EXPERIENCE', [
+      createSection('WORK_EXPERIENCE', [
         {
-          description: 'Developed and managed web applications using React',
+          company: 'Acme Corp',
+          role: 'Developer',
           startDate: '2020-01-01',
-          endDate: '2023-01-01',
+          description: 'Built features',
         },
       ]),
     ],
@@ -58,102 +125,140 @@ describe('ATSScoreService', () => {
   });
 
   beforeEach(() => {
-    mockEventEmitter = {
-      emit: mock(() => {}),
+    mockEventEmitter = { emit: mock(() => {}) };
+    mockPrisma = {
+      sectionType: {
+        findMany: mock(() => Promise.resolve(MOCK_SECTION_TYPES)),
+      },
     };
-    service = new ATSScoreService(mockEventEmitter as never);
+    service = new ATSScoreService(mockPrisma as never, mockEventEmitter as never);
   });
 
   describe('calculate', () => {
-    it('should return score between 0 and 100', () => {
-      const resume = createResume();
-      const result = service.calculate(resume);
-
+    it('should return score between 0 and 100', async () => {
+      const result = await service.calculate(createResume());
       expect(result.score).toBeGreaterThanOrEqual(0);
       expect(result.score).toBeLessThanOrEqual(100);
     });
 
-    it('should include breakdown with all categories', () => {
-      const resume = createResume();
-      const result = service.calculate(resume);
+    it('should return per-section breakdown from definitions', async () => {
+      const result = await service.calculate(createResume());
+      expect(result.sectionBreakdown.length).toBeGreaterThan(0);
 
-      expect(result.breakdown).toHaveProperty('keywords');
-      expect(result.breakdown).toHaveProperty('format');
-      expect(result.breakdown).toHaveProperty('completeness');
-      expect(result.breakdown).toHaveProperty('experience');
+      for (const entry of result.sectionBreakdown) {
+        expect(entry).toHaveProperty('sectionKind');
+        expect(entry).toHaveProperty('sectionTypeKey');
+        expect(entry).toHaveProperty('score');
+        expect(entry.score).toBeGreaterThanOrEqual(0);
+        expect(entry.score).toBeLessThanOrEqual(100);
+      }
     });
 
-    it('should detect missing contact info', () => {
-      const resume = createResume({
-        emailContact: null,
-        phone: null,
-      });
-      const result = service.calculate(resume);
-
+    it('should detect missing contact info', async () => {
+      const result = await service.calculate(createResume({ emailContact: null, phone: null }));
       expect(result.issues).toContainEqual(
         expect.objectContaining({
-          type: 'missing_contact',
+          code: 'MISSING_CONTACT_INFO',
           severity: 'high',
         }),
       );
     });
 
-    it('should detect short summary', () => {
-      const resume = createResume({
-        summary: 'Short',
-      });
-      const result = service.calculate(resume);
-
+    it('should detect short summary', async () => {
+      const result = await service.calculate(createResume({ summary: 'Short' }));
       expect(result.issues).toContainEqual(
         expect.objectContaining({
-          type: 'short_summary',
+          code: 'SHORT_SUMMARY',
           severity: 'medium',
         }),
       );
     });
 
-    it('should reward more skills with higher keyword score', () => {
-      const fewSkills = createResume({
-        sections: [
-          createSection('SKILL', [{ name: 'JavaScript' }]),
-          createSection('EXPERIENCE', [{ description: 'Worked on projects' }]),
-        ],
-      });
-      const manySkills = createResume({
-        sections: [
-          createSection(
-            'SKILL',
-            Array(10)
-              .fill(null)
-              .map((_, i) => ({ name: `Skill${i}` })),
-          ),
-          createSection('EXPERIENCE', [{ description: 'Worked on projects' }]),
-        ],
-      });
-
-      const fewResult = service.calculate(fewSkills);
-      const manyResult = service.calculate(manySkills);
-
-      expect(manyResult.breakdown.keywords).toBeGreaterThan(
-        fewResult.breakdown.keywords,
+    it('should detect missing mandatory sections from catalog', async () => {
+      const result = await service.calculate(
+        createResume({
+          sections: [createSection('SKILL_SET', [{ name: 'JS', category: 'FE' }])],
+        }),
       );
+
+      // WORK_EXPERIENCE and EDUCATION are mandatory per catalog
+      const mandatoryIssues = result.issues.filter((i) => i.code === 'MISSING_MANDATORY_SECTION');
+      expect(mandatoryIssues.length).toBeGreaterThanOrEqual(1);
+      expect(mandatoryIssues.some((i) => i.context?.sectionKind === 'WORK_EXPERIENCE')).toBe(true);
     });
 
-    it('should generate recommendations for issues', () => {
-      const resume = createResume({
-        summary: 'Too short',
-        emailContact: null,
-        phone: null,
+    it('should score sections based on fieldWeights from definition', async () => {
+      const fullExperience = createResume({
+        sections: [
+          createSection('WORK_EXPERIENCE', [
+            {
+              company: 'Acme',
+              role: 'Dev',
+              startDate: '2020-01-01',
+              description: 'Built things',
+            },
+          ]),
+          createSection('SKILL_SET', [{ name: 'JS', category: 'FE' }]),
+        ],
       });
-      const result = service.calculate(resume);
 
+      const partialExperience = createResume({
+        sections: [
+          createSection('WORK_EXPERIENCE', [
+            { company: 'Acme' }, // Missing role, startDate, description
+          ]),
+          createSection('SKILL_SET', [{ name: 'JS', category: 'FE' }]),
+        ],
+      });
+
+      const fullResult = await service.calculate(fullExperience);
+      const partialResult = await service.calculate(partialExperience);
+
+      const fullExpScore = fullResult.sectionBreakdown.find(
+        (b) => b.sectionKind === 'WORK_EXPERIENCE',
+      )?.score;
+      const partialExpScore = partialResult.sectionBreakdown.find(
+        (b) => b.sectionKind === 'WORK_EXPERIENCE',
+      )?.score;
+
+      expect(fullExpScore).toBeDefined();
+      expect(partialExpScore).toBeDefined();
+      if (fullExpScore === undefined || partialExpScore === undefined) {
+        throw new Error('Expected scores to be defined');
+      }
+      expect(fullExpScore).toBeGreaterThan(partialExpScore);
+    });
+
+    it('should detect missing weighted fields', async () => {
+      const result = await service.calculate(
+        createResume({
+          sections: [
+            createSection('WORK_EXPERIENCE', [
+              { company: 'Acme' }, // Missing role, startDate, description
+            ]),
+            createSection('SKILL_SET', [{ name: 'JS' }]),
+          ],
+        }),
+      );
+
+      const fieldIssues = result.issues.filter((i) => i.code === 'MISSING_WEIGHTED_FIELDS');
+      expect(fieldIssues.length).toBeGreaterThan(0);
+      expect(fieldIssues.some((i) => i.context?.sectionKind === 'WORK_EXPERIENCE')).toBe(true);
+    });
+
+    it('should generate recommendations from issues', async () => {
+      const result = await service.calculate(
+        createResume({
+          summary: 'Too short',
+          emailContact: null,
+          phone: null,
+        }),
+      );
       expect(result.recommendations.length).toBeGreaterThan(0);
     });
 
-    it('should emit SSE event when resumeId is provided', () => {
-      const resume = createResume();
-      service.calculate(resume, 'resume-123');
-
+    it('should emit SSE event when resumeId is provided', async () => {
+      await service.calculate(createResume(), 'resume-123');
       expect(mockEventEmitter.emit).toHaveBeenCalledWith(
         'analytics:resume-123:ats_score',
         expect.objectContaining({
@@ -163,83 +268,59 @@ describe('ATSScoreService', () => {
       );
     });
 
-    it('should not emit event when resumeId is not provided', () => {
-      const resume = createResume();
-      service.calculate(resume);
-
+    it('should not emit event when resumeId is not provided', async () => {
+      await service.calculate(createResume());
       expect(mockEventEmitter.emit).not.toHaveBeenCalled();
     });
 
-    it('should detect weak action verbs', () => {
-      const resume = createResume({
-        sections: [
-          createSection('SKILL', [{ name: 'JavaScript' }]),
-          createSection('EXPERIENCE', [
-            {
-              description: 'Was responsible for things',
-              startDate: '2020-01-01',
-              endDate: '2023-01-01',
-            },
-          ]),
-        ],
-      });
-      const result = service.calculate(resume);
-
-      expect(result.issues).toContainEqual(
+    it('should load catalog from database', async () => {
+      await service.calculate(createResume());
+      expect(mockPrisma.sectionType.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          type: 'weak_action_verbs',
+          where: { isActive: true },
         }),
       );
     });
 
-    it('should give higher format score with action verbs', () => {
-      const weakVerbs = createResume({
-        sections: [
-          createSection('SKILL', [{ name: 'JavaScript' }]),
-          createSection('EXPERIENCE', [
-            {
-              description: 'Was doing stuff',
-              startDate: '2020-01-01',
+    it('should use density fallback for sections with no fieldWeights', async () => {
+      mockPrisma.sectionType.findMany = mock(() =>
+        Promise.resolve([
+          {
+            key: 'custom_v1',
+            semanticKind: 'CUSTOM',
+            definition: {
+              fields: [],
+              ats: {
+                isMandatory: false,
+                recommendedPosition: 99,
+                scoring: { baseScore: 30, fieldWeights: {} },
+              },
             },
-          ]),
-        ],
-      });
-      const strongVerbs = createResume({
-        sections: [
-          createSection('SKILL', [{ name: 'JavaScript' }]),
-          createSection('EXPERIENCE', [
-            {
-              description:
-                'Developed, managed, and implemented solutions. Led team to success.',
-              startDate: '2020-01-01',
-            },
-          ]),
-        ],
-      });
+          },
+        ]),
+      );
 
-      const weakResult = service.calculate(weakVerbs);
-      const strongResult = service.calculate(strongVerbs);
+      const result = await service.calculate(
+        createResume({
+          sections: [createSection('CUSTOM', [{ foo: 'bar', baz: 'qux' }])],
+        }),
+      );
 
-      expect(strongResult.breakdown.format).toBeGreaterThan(
-        weakResult.breakdown.format,
+      expect(result.sectionBreakdown).toContainEqual(
+        expect.objectContaining({ sectionKind: 'CUSTOM' }),
       );
     });
 
-    it('should cap keyword score at maximum', () => {
-      const resume = createResume({
-        sections: [
-          createSection(
-            'SKILL',
-            Array(50)
-              .fill(null)
-              .map((_, i) => ({ name: `Skill${i}` })),
-          ),
-          createSection('EXPERIENCE', [{ description: 'Worked on something' }]),
-        ],
-      });
-      const result = service.calculate(resume);
-
-      expect(result.breakdown.keywords).toBeLessThanOrEqual(100);
+    it('should return zero score for empty resume', async () => {
+      const result = await service.calculate(
+        createResume({
+          summary: '',
+          emailContact: null,
+          phone: null,
+          sections: [],
+        }),
+      );
+      expect(result.score).toBe(0);
     });
   });
 });

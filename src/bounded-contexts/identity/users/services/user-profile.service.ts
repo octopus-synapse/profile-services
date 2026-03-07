@@ -66,15 +66,6 @@ export class UserProfileService {
 
     this.logger.debug(`User profile updated`, 'UserProfileService', { userId });
 
-    return {
-      displayName: updatedUserProfile.displayName,
-      photoURL: updatedUserProfile.photoURL,
-      bio: updatedUserProfile.bio,
-      location: updatedUserProfile.location,
-      phone: updatedUserProfile.phone,
-      website: updatedUserProfile.website,
-      linkedin: updatedUserProfile.linkedin,
-      github: updatedUserProfile.github,
-    };
+    return updatedUserProfile;
   }
 }

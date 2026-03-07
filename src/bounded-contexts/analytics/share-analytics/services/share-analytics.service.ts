@@ -1,7 +1,20 @@
+/**
+ * Share Analytics Service
+ *
+ * Business logic for tracking and analyzing resume share analytics.
+ * Uses repository port for data access (clean architecture).
+ *
+ * Features:
+ * - Event tracking (VIEW, DOWNLOAD)
+ * - IP anonymization (GDPR compliance)
+ * - Analytics aggregation
+ * - Geo tracking
+ */
+
 import { createHash } from 'node:crypto';
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { ForbiddenException, Inject, Injectable } from '@nestjs/common';
 import type { AnalyticsEvent } from '@prisma/client';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { SHARE_ANALYTICS_REPOSITORY, type ShareAnalyticsRepositoryPort } from '../ports';
 
 interface TrackEvent {
   shareId: string;
@@ -15,31 +28,29 @@ interface TrackEvent {
 
 @Injectable()
 export class ShareAnalyticsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(SHARE_ANALYTICS_REPOSITORY)
+    private readonly repository: ShareAnalyticsRepositoryPort,
+  ) {}
 
   async trackEvent(dto: TrackEvent) {
     // Anonymize IP (GDPR compliance)
     const ipHash = this.anonymizeIP(dto.ip);
 
-    return this.prisma.shareAnalytics.create({
-      data: {
-        shareId: dto.shareId,
-        event: dto.event,
-        ipHash,
-        userAgent: dto.userAgent,
-        referer: dto.referer,
-        country: dto.country,
-        city: dto.city,
-      },
+    return this.repository.create({
+      shareId: dto.shareId,
+      event: dto.event,
+      ipHash,
+      userAgent: dto.userAgent,
+      referer: dto.referer,
+      country: dto.country,
+      city: dto.city,
     });
   }
 
   async getAnalytics(shareId: string, userId: string) {
     // Verify ownership
-    const share = await this.prisma.resumeShare.findUnique({
-      where: { id: shareId },
-      include: { resume: { select: { userId: true } } },
-    });
+    const share = await this.repository.findShareWithOwner(shareId);
 
     if (!share) {
       throw new ForbiddenException('Share not found');
@@ -50,40 +61,16 @@ export class ShareAnalyticsService {
     }
 
     // Get event counts
-    const analytics = await this.prisma.shareAnalytics.groupBy({
-      by: ['event'],
-      where: { shareId },
-      _count: { event: true },
-    });
+    const analytics = await this.repository.groupByEvent(shareId);
 
     // Get unique views (unique IP hashes)
-    const uniqueViews = await this.prisma.shareAnalytics.groupBy({
-      by: ['ipHash'],
-      where: { shareId, event: 'VIEW' },
-      _count: { ipHash: true },
-    });
+    const uniqueViews = await this.repository.groupByIpHash(shareId);
 
     // Get geo data
-    const byCountry = await this.prisma.shareAnalytics.groupBy({
-      by: ['country'],
-      where: { shareId, country: { not: null } },
-      _count: { country: true },
-      orderBy: { _count: { country: 'desc' } },
-      take: 10,
-    });
+    const byCountry = await this.repository.groupByCountry(shareId, 10);
 
     // Recent events
-    const recentEvents = await this.prisma.shareAnalytics.findMany({
-      where: { shareId },
-      orderBy: { createdAt: 'desc' },
-      take: 20,
-      select: {
-        event: true,
-        country: true,
-        city: true,
-        createdAt: true,
-      },
-    });
+    const recentEvents = await this.repository.getRecentEvents(shareId, 20);
 
     return {
       shareId,
@@ -108,10 +95,7 @@ export class ShareAnalyticsService {
     },
   ) {
     // Verify ownership
-    const share = await this.prisma.resumeShare.findUnique({
-      where: { id: shareId },
-      include: { resume: { select: { userId: true } } },
-    });
+    const share = await this.repository.findShareWithOwner(shareId);
 
     if (!share) {
       throw new ForbiddenException('Share not found');
@@ -121,39 +105,7 @@ export class ShareAnalyticsService {
       throw new ForbiddenException('Not authorized');
     }
 
-    const where: {
-      shareId: string;
-      createdAt?: { gte?: Date; lte?: Date };
-      event?: 'VIEW' | 'DOWNLOAD';
-    } = { shareId };
-
-    if (filters?.startDate || filters?.endDate) {
-      where.createdAt = {};
-      if (filters.startDate) {
-        where.createdAt.gte = filters.startDate;
-      }
-      if (filters.endDate) {
-        where.createdAt.lte = filters.endDate;
-      }
-    }
-
-    if (filters?.eventType) {
-      where.event = filters.eventType;
-    }
-
-    const events = await this.prisma.shareAnalytics.findMany({
-      where,
-      orderBy: { createdAt: 'desc' },
-      select: {
-        event: true,
-        ipHash: true,
-        userAgent: true,
-        referer: true,
-        country: true,
-        city: true,
-        createdAt: true,
-      },
-    });
+    const events = await this.repository.getDetailedEvents(shareId, filters);
 
     return events.map((event) => ({
       eventType: event.event,

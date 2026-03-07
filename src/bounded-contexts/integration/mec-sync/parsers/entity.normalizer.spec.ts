@@ -1,6 +1,6 @@
-import { describe, it, expect } from 'bun:test';
-import { normalizeInstitution, normalizeCourse } from './entity.normalizer';
+import { describe, expect, it } from 'bun:test';
 import { MecCsvRow } from '../interfaces/mec-data.interface';
+import { normalizeCourse, normalizeInstitution } from './entity.normalizer';
 
 describe('Entity Normalizer', () => {
   const createMockRow = (overrides: Partial<MecCsvRow> = {}): MecCsvRow => ({

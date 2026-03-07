@@ -1,11 +1,11 @@
-import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
+import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import {
-  getRequest,
-  getApp,
-  closeApp,
-  testContext,
-  createTestUserAndLogin,
   authHeader,
+  closeApp,
+  createTestUserAndLogin,
+  getApp,
+  getRequest,
+  testContext,
 } from './setup';
 
 /**
@@ -224,12 +224,9 @@ describe('Sub-Resources Smoke Tests', () => {
     accessToken = login.accessToken;
 
     // Create a resume for testing sub-resources
-    const res = await getRequest()
-      .post('/api/v1/resumes')
-      .set(authHeader(accessToken))
-      .send({
-        title: 'Sub-Resources Test Resume',
-      });
+    const res = await getRequest().post('/api/v1/resumes').set(authHeader(accessToken)).send({
+      title: 'Sub-Resources Test Resume',
+    });
 
     if (res.status !== 201) {
       throw new Error(`Failed to create resume: ${JSON.stringify(res.body)}`);
@@ -243,85 +240,85 @@ describe('Sub-Resources Smoke Tests', () => {
     await closeApp();
   });
 
-  describe.each(SUB_RESOURCES)(
-    '$name CRUD operations',
-    ({ name, endpoint, createPayload, updatePayload }) => {
-      let itemId: string;
+  describe.each(SUB_RESOURCES)('$name CRUD operations', ({
+    name,
+    endpoint,
+    createPayload,
+    updatePayload,
+  }) => {
+    let itemId: string;
 
-      it(`POST /api/resumes/:id/${endpoint} - should create ${name}`, async () => {
-        const res = await getRequest()
-          .post(`/api/v1/resumes/${resumeId}/${endpoint}`)
-          .set(authHeader(accessToken))
-          .send(createPayload);
+    it(`POST /api/resumes/:id/${endpoint} - should create ${name}`, async () => {
+      const res = await getRequest()
+        .post(`/api/v1/resumes/${resumeId}/${endpoint}`)
+        .set(authHeader(accessToken))
+        .send(createPayload);
 
-        // Accept both 200 and 201 as success
-        expect([200, 201].includes(res.status)).toBe(true);
-        expect(res.body).toHaveProperty('data');
-        expect(res.body.data).toHaveProperty('id');
+      // Accept both 200 and 201 as success
+      expect([200, 201].includes(res.status)).toBe(true);
+      expect(res.body).toHaveProperty('data');
+      expect(res.body.data).toHaveProperty('id');
 
-        itemId = res.body.data.id;
-      });
+      itemId = res.body.data.id;
+    });
 
-      it(`GET /api/resumes/:id/${endpoint} - should list ${name}`, async () => {
-        const res = await getRequest()
-          .get(`/api/v1/resumes/${resumeId}/${endpoint}`)
-          .set(authHeader(accessToken));
+    it(`GET /api/resumes/:id/${endpoint} - should list ${name}`, async () => {
+      const res = await getRequest()
+        .get(`/api/v1/resumes/${resumeId}/${endpoint}`)
+        .set(authHeader(accessToken));
 
-        expect(res.status).toBe(200);
-        expect(res.body).toHaveProperty('data');
-        expect(Array.isArray(res.body.data)).toBe(true);
-      });
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty('data');
+      expect(Array.isArray(res.body.data)).toBe(true);
+    });
 
-      it(`GET /api/resumes/:id/${endpoint}/:itemId - should get single ${name}`, async () => {
-        if (!itemId) {
-          console.warn(`Skipping single ${name} test - no item created`);
-          return;
-        }
+    it(`GET /api/resumes/:id/${endpoint}/:itemId - should get single ${name}`, async () => {
+      if (!itemId) {
+        console.warn(`Skipping single ${name} test - no item created`);
+        return;
+      }
 
-        const res = await getRequest()
-          .get(`/api/v1/resumes/${resumeId}/${endpoint}/${itemId}`)
-          .set(authHeader(accessToken));
+      const res = await getRequest()
+        .get(`/api/v1/resumes/${resumeId}/${endpoint}/${itemId}`)
+        .set(authHeader(accessToken));
 
-        expect(res.status).toBe(200);
-        expect(res.body).toHaveProperty('data');
-        expect(res.body.data.id).toBe(itemId);
-      });
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty('data');
+      expect(res.body.data.id).toBe(itemId);
+    });
 
-      it(`PATCH /api/resumes/:id/${endpoint}/:itemId - should update ${name}`, async () => {
-        if (!itemId) {
-          console.warn(`Skipping update ${name} test - no item created`);
-          return;
-        }
+    it(`PATCH /api/resumes/:id/${endpoint}/:itemId - should update ${name}`, async () => {
+      if (!itemId) {
+        console.warn(`Skipping update ${name} test - no item created`);
+        return;
+      }
 
-        const res = await getRequest()
-          .patch(`/api/v1/resumes/${resumeId}/${endpoint}/${itemId}`)
-          .set(authHeader(accessToken))
-          .send(updatePayload);
+      const res = await getRequest()
+        .patch(`/api/v1/resumes/${resumeId}/${endpoint}/${itemId}`)
+        .set(authHeader(accessToken))
+        .send(updatePayload);
 
-        expect(res.status).toBe(200);
-        expect(res.body).toHaveProperty('data');
-      });
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty('data');
+    });
 
-      it(`DELETE /api/resumes/:id/${endpoint}/:itemId - should delete ${name}`, async () => {
-        if (!itemId) {
-          console.warn(`Skipping delete ${name} test - no item created`);
-          return;
-        }
+    it(`DELETE /api/resumes/:id/${endpoint}/:itemId - should delete ${name}`, async () => {
+      if (!itemId) {
+        console.warn(`Skipping delete ${name} test - no item created`);
+        return;
+      }
 
-        const res = await getRequest()
-          .delete(`/api/v1/resumes/${resumeId}/${endpoint}/${itemId}`)
-          .set(authHeader(accessToken));
+      const res = await getRequest()
+        .delete(`/api/v1/resumes/${resumeId}/${endpoint}/${itemId}`)
+        .set(authHeader(accessToken));
 
-        expect(res.status).toBe(200);
-      });
-    },
-  );
+      expect(res.status).toBe(200);
+    });
+  });
 
   describe('Authorization checks', () => {
     it('should reject sub-resource access without auth', async () => {
-      const res = await getRequest().get(
-        `/api/v1/resumes/${resumeId}/experiences`,
-      );
+      const res = await getRequest().get(`/api/v1/resumes/${resumeId}/experiences`);
 
       expect(res.status).toBe(401);
     });

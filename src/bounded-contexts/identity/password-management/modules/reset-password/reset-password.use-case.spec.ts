@@ -12,10 +12,7 @@ import {
   StubTokenService,
 } from '../../../shared-kernel/testing';
 import { PasswordChangedEvent } from '../../domain/events';
-import {
-  InvalidResetTokenException,
-  WeakPasswordException,
-} from '../../domain/exceptions';
+import { InvalidResetTokenException, WeakPasswordException } from '../../domain/exceptions';
 
 /**
  * Simplified version of ResetPasswordUseCase for testing without NestJS DI
@@ -28,17 +25,12 @@ class TestResetPasswordUseCase {
     private readonly eventBus: StubEventBus,
   ) {}
 
-  async execute(command: {
-    token: string;
-    newPassword: string;
-  }): Promise<{ success: boolean }> {
+  async execute(command: { token: string; newPassword: string }): Promise<{ success: boolean }> {
     const { token, newPassword } = command;
 
     // Validate password strength first
     if (!this.isStrongPassword(newPassword)) {
-      throw new WeakPasswordException([
-        'Password does not meet security requirements',
-      ]);
+      throw new WeakPasswordException(['Password does not meet security requirements']);
     }
 
     // Validate token

@@ -6,9 +6,9 @@
  */
 
 import { mock } from 'bun:test';
-import { EventPublisher } from '@/shared-kernel';
 import type { ResumeEventPublisher } from '@/bounded-contexts/resumes/domain/ports';
 import { RESUME_EVENT_PUBLISHER } from '@/bounded-contexts/resumes/domain/ports';
+import { EventPublisher } from '@/shared-kernel';
 
 /**
  * Creates a mock EventPublisher for testing services that use it.

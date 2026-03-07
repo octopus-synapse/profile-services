@@ -19,7 +19,7 @@ export const DATA_PERSONA: PersonaConfig = {
     'Programming Languages',
   ],
   achievementTypes: ['kaggle_medal', 'paper_published', 'dataset_created', 'model_deployed'],
-  prioritySections: ['publications', 'projects', 'achievements', 'certifications'],
+  contentPriorities: ['publications', 'project_portfolio', 'recognition', 'credentials'],
   keywords: [
     'python',
     'r',

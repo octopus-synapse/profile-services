@@ -17,12 +17,12 @@
  * Target Time: < 15 seconds
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
+import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import type { INestApplication } from '@nestjs/common';
-import request from 'supertest';
-import { createE2ETestApp } from '../setup-e2e';
+import request, { type Test } from 'supertest';
 import type { AuthHelper } from '../helpers/auth.helper';
 import type { CleanupHelper } from '../helpers/cleanup.helper';
+import { createE2ETestApp } from '../setup-e2e';
 
 describe('E2E Journey 2: Authentication', () => {
   let app: INestApplication;
@@ -61,12 +61,10 @@ describe('E2E Journey 2: Authentication', () => {
 
   describe('Step 1: Login Flow', () => {
     it('should login with valid credentials', async () => {
-      const response = await request(app.getHttpServer())
-        .post('/api/auth/login')
-        .send({
-          email: testUser.email,
-          password: testUser.password,
-        });
+      const response = await request(app.getHttpServer()).post('/api/auth/login').send({
+        email: testUser.email,
+        password: testUser.password,
+      });
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
@@ -79,34 +77,28 @@ describe('E2E Journey 2: Authentication', () => {
     });
 
     it('should reject invalid password', async () => {
-      const response = await request(app.getHttpServer())
-        .post('/api/auth/login')
-        .send({
-          email: testUser.email,
-          password: 'WrongPassword123!',
-        });
+      const response = await request(app.getHttpServer()).post('/api/auth/login').send({
+        email: testUser.email,
+        password: 'WrongPassword123!',
+      });
 
       expect(response.status).toBe(401);
     });
 
     it('should reject non-existent email', async () => {
-      const response = await request(app.getHttpServer())
-        .post('/api/auth/login')
-        .send({
-          email: 'nonexistent@test.com',
-          password: testUser.password,
-        });
+      const response = await request(app.getHttpServer()).post('/api/auth/login').send({
+        email: 'nonexistent@test.com',
+        password: testUser.password,
+      });
 
       expect(response.status).toBe(401);
     });
 
     it('should reject malformed email', async () => {
-      const response = await request(app.getHttpServer())
-        .post('/api/auth/login')
-        .send({
-          email: 'not-an-email',
-          password: testUser.password,
-        });
+      const response = await request(app.getHttpServer()).post('/api/auth/login').send({
+        email: 'not-an-email',
+        password: testUser.password,
+      });
 
       // API returns 401 for all invalid login attempts (including malformed emails)
       expect(response.status).toBe(401);
@@ -124,9 +116,7 @@ describe('E2E Journey 2: Authentication', () => {
     });
 
     it('should reject request without token', async () => {
-      const response = await request(app.getHttpServer()).get(
-        '/api/v1/users/profile',
-      );
+      const response = await request(app.getHttpServer()).get('/api/v1/users/profile');
 
       expect(response.status).toBe(401);
     });
@@ -167,11 +157,9 @@ describe('E2E Journey 2: Authentication', () => {
         return;
       }
 
-      const response = await request(app.getHttpServer())
-        .post('/api/auth/refresh')
-        .send({
-          refreshToken,
-        });
+      const response = await request(app.getHttpServer()).post('/api/auth/refresh').send({
+        refreshToken,
+      });
 
       expect(response.status).toBe(200);
       expect(response.body.data).toBeDefined();
@@ -179,23 +167,19 @@ describe('E2E Journey 2: Authentication', () => {
     });
 
     it('should reject invalid refresh token', async () => {
-      const response = await request(app.getHttpServer())
-        .post('/api/auth/refresh')
-        .send({
-          refreshToken: 'invalid-refresh-token',
-        });
+      const response = await request(app.getHttpServer()).post('/api/auth/refresh').send({
+        refreshToken: 'invalid-refresh-token',
+      });
 
       expect(response.status).toBe(401);
     });
 
     it('should use new token to access protected resources', async () => {
       // Get a fresh login to ensure we have valid tokens
-      const loginResponse = await request(app.getHttpServer())
-        .post('/api/auth/login')
-        .send({
-          email: testUser.email,
-          password: testUser.password,
-        });
+      const loginResponse = await request(app.getHttpServer()).post('/api/auth/login').send({
+        email: testUser.email,
+        password: testUser.password,
+      });
 
       const newToken = loginResponse.body.data?.accessToken;
       if (!newToken) {
@@ -244,7 +228,7 @@ describe('E2E Journey 2: Authentication', () => {
   describe('Step 5: Rate Limiting (if implemented)', () => {
     it('should handle multiple login attempts gracefully', async () => {
       // Make several login attempts
-      const attempts = [];
+      const attempts: Test[] = [];
       for (let i = 0; i < 5; i++) {
         attempts.push(
           request(app.getHttpServer()).post('/api/auth/login').send({

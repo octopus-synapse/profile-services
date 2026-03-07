@@ -19,15 +19,15 @@
  * Target Time: < 15 seconds
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
+import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import type { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { createE2ETestApp } from '../setup-e2e';
+import { createInvalidDsl, createValidDsl } from '../fixtures/dsl.fixture';
+import { createFullOnboardingData } from '../fixtures/resumes.fixture';
+import { createShareData } from '../fixtures/shares.fixture';
 import type { AuthHelper } from '../helpers/auth.helper';
 import type { CleanupHelper } from '../helpers/cleanup.helper';
-import { createFullOnboardingData } from '../fixtures/resumes.fixture';
-import { createValidDsl, createInvalidDsl } from '../fixtures/dsl.fixture';
-import { createShareData } from '../fixtures/shares.fixture';
+import { createE2ETestApp } from '../setup-e2e';
 
 describe('E2E Journey 6: DSL Integration', () => {
   let app: INestApplication;
@@ -114,9 +114,7 @@ describe('E2E Journey 6: DSL Integration', () => {
     });
 
     it('should handle empty payload gracefully', async () => {
-      const response = await request(app.getHttpServer())
-        .post('/api/v1/dsl/validate')
-        .send({});
+      const response = await request(app.getHttpServer()).post('/api/v1/dsl/validate').send({});
 
       expect(response.status).toBe(200);
       expect(response.body.data.valid).toBe(false);

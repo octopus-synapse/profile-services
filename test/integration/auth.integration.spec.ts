@@ -1,12 +1,5 @@
-import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
-import {
-  getRequest,
-  getApp,
-  closeApp,
-  testContext,
-  TEST_USER,
-  verifyUserEmail,
-} from './setup';
+import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
+import { closeApp, getApp, getRequest, TEST_USER, testContext, verifyUserEmail } from './setup';
 
 describe('Auth Smoke Tests', () => {
   const uniqueEmail = `smoke-auth-${Date.now()}@test.com`;
@@ -185,8 +178,7 @@ describe('Auth Smoke Tests', () => {
         email: uniqueEmail,
         password: TEST_USER.password,
       });
-      const currentRefreshToken =
-        loginRes.body.data?.refreshToken || refreshToken;
+      const currentRefreshToken = loginRes.body.data?.refreshToken || refreshToken;
 
       const res = await getRequest().post('/api/auth/refresh').send({
         refreshToken: currentRefreshToken,

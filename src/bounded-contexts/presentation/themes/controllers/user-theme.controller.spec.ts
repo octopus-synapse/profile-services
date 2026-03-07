@@ -1,11 +1,7 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
+import { ThemeApplicationService, ThemeCrudService, ThemeQueryService } from '../services';
 import { UserThemeController } from './user-theme.controller';
-import {
-  ThemeApplicationService,
-  ThemeCrudService,
-  ThemeQueryService,
-} from '../services';
 
 const createCrudService = () => ({
   createThemeForUser: mock(() => Promise.resolve({ id: 'theme-1', name: 'Theme 1' })),
@@ -25,6 +21,10 @@ const createAppService = () => ({
 
 describe('UserThemeController - Contract', () => {
   let controller: UserThemeController;
+  type CreateThemeInput = Parameters<UserThemeController['createThemeForUser']>[1];
+  type UpdateThemeInput = Parameters<UserThemeController['updateThemeForUser']>[2];
+  type ForkInput = Parameters<UserThemeController['fork']>[1];
+  type ApplyInput = Parameters<UserThemeController['apply']>[1];
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -45,22 +45,32 @@ describe('UserThemeController - Contract', () => {
   });
 
   it('createThemeForUser returns data with theme', async () => {
-    const result = await controller.createThemeForUser('user-1', { name: 'Theme 1' } as any);
+    const result = await controller.createThemeForUser('user-1', {
+      name: 'Theme 1',
+    } as unknown as CreateThemeInput);
     expect(result.data).toHaveProperty('theme');
   });
 
   it('updateThemeForUser returns data with theme', async () => {
-    const result = await controller.updateThemeForUser('user-1', 'theme-1', { name: 'Updated' } as any);
+    const result = await controller.updateThemeForUser('user-1', 'theme-1', {
+      name: 'Updated',
+    } as unknown as UpdateThemeInput);
     expect(result.data).toHaveProperty('theme');
   });
 
   it('fork returns data with theme', async () => {
-    const result = await controller.fork('user-1', { themeId: 'theme-1', name: 'Forked' } as any);
+    const result = await controller.fork('user-1', {
+      themeId: 'theme-1',
+      name: 'Forked',
+    } as unknown as ForkInput);
     expect(result.data).toHaveProperty('theme');
   });
 
   it('apply returns data with success', async () => {
-    const result = await controller.apply('user-1', { resumeId: 'resume-1', themeId: 'theme-1' } as any);
+    const result = await controller.apply('user-1', {
+      resumeId: 'resume-1',
+      themeId: 'theme-1',
+    } as unknown as ApplyInput);
     expect(result.data).toHaveProperty('success');
   });
 

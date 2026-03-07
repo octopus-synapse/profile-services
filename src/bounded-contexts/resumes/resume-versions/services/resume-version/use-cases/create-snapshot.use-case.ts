@@ -29,14 +29,14 @@ export class CreateSnapshotUseCase {
     const version = await this.repository.createResumeVersion({
       resumeId,
       versionNumber,
-      snapshot: snapshot as never,
+      snapshot,
       label,
     });
 
     this.eventPublisher.publishVersionCreated(resumeId, {
       userId: resume.userId,
       versionNumber,
-      snapshotData: snapshot as Record<string, unknown>,
+      snapshotData: snapshot,
     });
 
     await this.cleanupOldVersions(resumeId);
@@ -53,7 +53,7 @@ export class CreateSnapshotUseCase {
     }
   }
 
-  private normalizeSnapshot(resume: ResumeForSnapshot) {
+  private normalizeSnapshot(resume: ResumeForSnapshot): Record<string, unknown> {
     const { resumeSections, ...baseResume } = resume;
 
     const genericSnapshot = {
@@ -67,8 +67,42 @@ export class CreateSnapshotUseCase {
     return this.toJsonValue(genericSnapshot);
   }
 
-  private toJsonValue(value: unknown): unknown {
-    // Deep clone to ensure the value is JSON-serializable
-    return JSON.parse(JSON.stringify(value));
+  private toJsonValue(value: unknown): Record<string, unknown> {
+    const cloned = JSON.parse(JSON.stringify(value));
+
+    if (!this.isJsonObject(cloned)) {
+      throw new Error('Snapshot contains non-JSON-serializable value');
+    }
+
+    return cloned;
+  }
+
+  private isJsonValue(value: unknown): boolean {
+    if (
+      value === null ||
+      typeof value === 'string' ||
+      typeof value === 'number' ||
+      typeof value === 'boolean'
+    ) {
+      return true;
+    }
+
+    if (Array.isArray(value)) {
+      return value.every((item) => this.isJsonValue(item));
+    }
+
+    if (typeof value === 'object') {
+      return Object.values(value).every((item) => this.isJsonValue(item));
+    }
+
+    return false;
+  }
+
+  private isJsonObject(value: unknown): value is Record<string, unknown> {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      return false;
+    }
+
+    return Object.values(value).every((item) => this.isJsonValue(item));
   }
 }

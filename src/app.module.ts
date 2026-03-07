@@ -45,7 +45,6 @@ import { ResumeVersionsModule } from '@/bounded-contexts/resumes/resume-versions
 // Resumes Context
 import { ResumesModule } from '@/bounded-contexts/resumes/resumes/resumes.module';
 // Skills Catalog Context
-import { SkillsManagementModule } from '@/bounded-contexts/skills-catalog/skills/skills-management.module';
 import { SpokenLanguagesModule } from '@/bounded-contexts/skills-catalog/spoken-languages/spoken-languages.module';
 import { TechSkillsModule } from '@/bounded-contexts/skills-catalog/tech-skills/tech-skills.module';
 // Social Context (Activity Feed)
@@ -95,7 +94,6 @@ import { AppService } from './app.service';
     ResumeImportModule,
     UploadModule,
     GitHubModule,
-    SkillsManagementModule,
     ThemesModule,
     MecSyncModule,
     TechSkillsModule,

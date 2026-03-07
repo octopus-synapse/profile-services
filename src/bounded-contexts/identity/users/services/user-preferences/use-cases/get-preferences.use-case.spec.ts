@@ -3,10 +3,10 @@
  *
  * Uses In-Memory repository for clean, behavior-focused testing.
  */
-import { describe, it, expect, beforeEach } from 'bun:test';
+import { beforeEach, describe, expect, it } from 'bun:test';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions';
-import { GetPreferencesUseCase } from './get-preferences.use-case';
 import { InMemoryUserPreferencesRepository } from '../../../../shared-kernel/testing';
+import { GetPreferencesUseCase } from './get-preferences.use-case';
 
 describe('GetPreferencesUseCase', () => {
   let useCase: GetPreferencesUseCase;
@@ -14,13 +14,11 @@ describe('GetPreferencesUseCase', () => {
 
   beforeEach(() => {
     repository = new InMemoryUserPreferencesRepository();
-    useCase = new GetPreferencesUseCase(repository as any);
+    useCase = new GetPreferencesUseCase(repository);
   });
 
   it('should throw EntityNotFoundException when preferences not found', async () => {
-    await expect(useCase.execute('user-123')).rejects.toThrow(
-      EntityNotFoundException,
-    );
+    await expect(useCase.execute('user-123')).rejects.toThrow(EntityNotFoundException);
   });
 
   it('should return preferences when they exist', async () => {

@@ -9,19 +9,23 @@
  * for common entities like resumes, users, and analytics.
  */
 
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
-import { CacheInvalidationService } from './cache-invalidation.service';
-import { CacheService } from '../cache.service';
 import { AppLoggerService } from '../../logger/logger.service';
+import { CacheService } from '../cache.service';
+import { CacheInvalidationService } from './cache-invalidation.service';
 
 // --- Mocks ---
 
 const createMockCacheService = () => ({
   get: mock(() => Promise.resolve(null)),
   set: mock(() => Promise.resolve()),
-  delete: mock(() => Promise.resolve()),
-  deletePattern: mock(() => Promise.resolve()),
+  delete: mock(() => Promise.resolve()) as ReturnType<typeof mock> & {
+    mockRejectedValue: (error: Error) => void;
+  },
+  deletePattern: mock(() => Promise.resolve()) as ReturnType<typeof mock> & {
+    mockRejectedValue: (error: Error) => void;
+  },
   flush: mock(() => Promise.resolve()),
   isEnabled: true,
 });
@@ -61,18 +65,10 @@ describe('CacheInvalidationService', () => {
 
       await service.invalidateResume({ resumeId, slug, userId });
 
-      expect(mockCacheService.delete).toHaveBeenCalledWith(
-        `resume:${resumeId}`,
-      );
-      expect(mockCacheService.delete).toHaveBeenCalledWith(
-        `public:resume:${slug}`,
-      );
-      expect(mockCacheService.delete).toHaveBeenCalledWith(
-        `user:${userId}:resumes`,
-      );
-      expect(mockCacheService.deletePattern).toHaveBeenCalledWith(
-        `analytics:*:${resumeId}`,
-      );
+      expect(mockCacheService.delete).toHaveBeenCalledWith(`resume:${resumeId}`);
+      expect(mockCacheService.delete).toHaveBeenCalledWith(`public:resume:${slug}`);
+      expect(mockCacheService.delete).toHaveBeenCalledWith(`user:${userId}:resumes`);
+      expect(mockCacheService.deletePattern).toHaveBeenCalledWith(`analytics:*:${resumeId}`);
     });
 
     it('should handle missing slug gracefully', async () => {
@@ -81,29 +77,34 @@ describe('CacheInvalidationService', () => {
 
       await service.invalidateResume({ resumeId, userId });
 
-      expect(mockCacheService.delete).toHaveBeenCalledWith(
-        `resume:${resumeId}`,
-      );
-      expect(mockCacheService.delete).toHaveBeenCalledWith(
-        `user:${userId}:resumes`,
-      );
+      expect(mockCacheService.delete).toHaveBeenCalledWith(`resume:${resumeId}`);
+      expect(mockCacheService.delete).toHaveBeenCalledWith(`user:${userId}:resumes`);
       // Should not attempt to delete public:resume:undefined
-      const deleteCallArgs = mockCacheService.delete.mock.calls.map(
-        (c) => c[0],
-      );
-      expect(deleteCallArgs.some((arg) => arg.includes('undefined'))).toBe(
-        false,
-      );
+      const calls = mockCacheService.delete.mock.calls as unknown[][];
+      const deleteCallArgs = calls.map((c) => c[0] as string);
+      expect(deleteCallArgs.some((arg) => arg?.includes('undefined'))).toBe(false);
     });
 
     it('should not fail if cache operations fail', async () => {
-      mockCacheService.delete.mockRejectedValue(new Error('Redis error'));
-      mockCacheService.deletePattern.mockRejectedValue(
-        new Error('Pattern error'),
-      );
+      // Recreate service with failing cache
+      const failingCacheService = {
+        ...createMockCacheService(),
+        delete: mock(() => Promise.reject(new Error('Redis error'))),
+        deletePattern: mock(() => Promise.reject(new Error('Pattern error'))),
+      };
+
+      const module = await Test.createTestingModule({
+        providers: [
+          CacheInvalidationService,
+          { provide: CacheService, useValue: failingCacheService },
+          { provide: AppLoggerService, useValue: mockLogger },
+        ],
+      }).compile();
+
+      const failingService = module.get<CacheInvalidationService>(CacheInvalidationService);
 
       // Should not throw - errors are caught and logged
-      const result = await service.invalidateResume({
+      const result = await failingService.invalidateResume({
         resumeId: 'res-123',
         userId: 'user-456',
       });
@@ -118,15 +119,9 @@ describe('CacheInvalidationService', () => {
 
       await service.invalidateUser(userId);
 
-      expect(mockCacheService.delete).toHaveBeenCalledWith(
-        `user:${userId}:profile`,
-      );
-      expect(mockCacheService.delete).toHaveBeenCalledWith(
-        `user:${userId}:preferences`,
-      );
-      expect(mockCacheService.deletePattern).toHaveBeenCalledWith(
-        `user:${userId}:*`,
-      );
+      expect(mockCacheService.delete).toHaveBeenCalledWith(`user:${userId}:profile`);
+      expect(mockCacheService.delete).toHaveBeenCalledWith(`user:${userId}:preferences`);
+      expect(mockCacheService.deletePattern).toHaveBeenCalledWith(`user:${userId}:*`);
     });
   });
 
@@ -140,9 +135,7 @@ describe('CacheInvalidationService', () => {
       expect(mockCacheService.deletePattern).toHaveBeenCalledWith(
         `analytics:${entityType}:${entityId}:*`,
       );
-      expect(mockCacheService.delete).toHaveBeenCalledWith(
-        `analytics:dashboard:${entityId}`,
-      );
+      expect(mockCacheService.delete).toHaveBeenCalledWith(`analytics:dashboard:${entityId}`);
     });
   });
 
@@ -150,9 +143,7 @@ describe('CacheInvalidationService', () => {
     it('should invalidate public resume listings cache', async () => {
       await service.invalidatePublicResumes();
 
-      expect(mockCacheService.deletePattern).toHaveBeenCalledWith(
-        'public:resumes:*',
-      );
+      expect(mockCacheService.deletePattern).toHaveBeenCalledWith('public:resumes:*');
     });
   });
 
@@ -191,12 +182,8 @@ describe('CacheInvalidationService', () => {
       await service.invalidatePatterns(patterns);
 
       expect(mockCacheService.deletePattern).toHaveBeenCalledTimes(2);
-      expect(mockCacheService.deletePattern).toHaveBeenCalledWith(
-        'user:*:profile',
-      );
-      expect(mockCacheService.deletePattern).toHaveBeenCalledWith(
-        'analytics:*',
-      );
+      expect(mockCacheService.deletePattern).toHaveBeenCalledWith('user:*:profile');
+      expect(mockCacheService.deletePattern).toHaveBeenCalledWith('analytics:*');
     });
   });
 });

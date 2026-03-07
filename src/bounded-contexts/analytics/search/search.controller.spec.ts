@@ -1,61 +1,47 @@
 /**
  * Search Controller Tests
  *
- * TDD tests for search REST endpoints.
+ * Pure tests using in-memory implementations (no mocks).
  */
 
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
-import { Test, TestingModule } from '@nestjs/testing';
+import { beforeEach, describe, expect, it } from 'bun:test';
 import { SearchController } from './search.controller';
-import { ResumeSearchService } from './resume-search.service';
+import { InMemorySearchService } from './testing';
 
 describe('SearchController', () => {
   let controller: SearchController;
-  let mockSearchService: {
-    search: ReturnType<typeof mock>;
-    suggest: ReturnType<typeof mock>;
-    findSimilar: ReturnType<typeof mock>;
-  };
+  let searchService: InMemorySearchService;
 
-  const mockSearchResult = {
-    data: [
-      {
-        id: 'resume-1',
-        userId: 'user-1',
-        fullName: 'John Doe',
-        jobTitle: 'Senior Developer',
-        summary: 'Experienced developer',
-        slug: 'john-doe',
-        location: 'São Paulo',
-        profileViews: 100,
-        createdAt: new Date(),
-      },
-    ],
-    total: 1,
-    page: 1,
-    limit: 20,
-    totalPages: 1,
-  };
+  beforeEach(() => {
+    searchService = new InMemorySearchService();
+    controller = new SearchController(searchService);
 
-  beforeEach(async () => {
-    mockSearchService = {
-      search: mock(() => Promise.resolve(mockSearchResult)),
-      suggest: mock(() => Promise.resolve(['developer', 'designer'])),
-      findSimilar: mock(() =>
-        Promise.resolve([
-          { id: 'resume-2', fullName: 'Jane Smith', jobTitle: 'Developer' },
-        ]),
-      ),
-    };
+    // Seed test data
+    searchService.seedResume({
+      id: 'resume-1',
+      userId: 'user-1',
+      fullName: 'John Doe',
+      jobTitle: 'Senior Developer',
+      summary: 'Experienced developer',
+      slug: 'john-doe',
+      location: 'São Paulo',
+      profileViews: 100,
+      skills: ['TypeScript', 'React'],
+    });
 
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [SearchController],
-      providers: [
-        { provide: ResumeSearchService, useValue: mockSearchService },
-      ],
-    }).compile();
+    searchService.seedResume({
+      id: 'resume-2',
+      userId: 'user-2',
+      fullName: 'Jane Smith',
+      jobTitle: 'Developer',
+      summary: 'Junior developer',
+      slug: 'jane-smith',
+      location: 'Rio de Janeiro',
+      profileViews: 50,
+      skills: ['JavaScript', 'React'],
+    });
 
-    controller = module.get<SearchController>(SearchController);
+    searchService.seedSuggestions(['developer', 'designer', 'devops']);
   });
 
   describe('search', () => {
@@ -64,37 +50,36 @@ describe('SearchController', () => {
 
       expect(result).toBeDefined();
       expect(result.success).toBe(true);
-      expect(result.data.data).toHaveLength(1);
-      expect(mockSearchService.search).toHaveBeenCalled();
+      expect(result.data?.data.length).toBeGreaterThan(0);
     });
 
     it('should parse skills from comma-separated string', async () => {
-      await controller.search('developer', 'react,typescript');
+      const result = await controller.search('', 'react,typescript');
 
-      expect(mockSearchService.search).toHaveBeenCalledWith(
-        expect.objectContaining({
-          skills: ['react', 'typescript'],
-        }),
-      );
+      expect(result.data?.data).toHaveLength(2); // Both have React
     });
 
     it('should parse pagination params', async () => {
-      await controller.search(
-        'developer',
+      const result = await controller.search(
+        '',
         undefined,
         undefined,
         undefined,
         undefined,
-        '2',
-        '10',
+        '1',
+        '1',
       );
 
-      expect(mockSearchService.search).toHaveBeenCalledWith(
-        expect.objectContaining({
-          page: 2,
-          limit: 10,
-        }),
-      );
+      expect(result.data?.page).toBe(1);
+      expect(result.data?.limit).toBe(1);
+      expect(result.data?.data).toHaveLength(1);
+    });
+
+    it('should filter by location', async () => {
+      const result = await controller.search('', undefined, 'São Paulo');
+
+      expect(result.data?.data).toHaveLength(1);
+      expect(result.data?.data[0].fullName).toBe('John Doe');
     });
   });
 
@@ -104,14 +89,14 @@ describe('SearchController', () => {
 
       expect(result).toBeDefined();
       expect(result.success).toBe(true);
-      expect(result.data.suggestions).toBeDefined();
-      expect(mockSearchService.suggest).toHaveBeenCalledWith('dev', 10);
+      expect(result.data?.suggestions).toContain('developer');
+      expect(result.data?.suggestions).toContain('devops');
     });
 
     it('should respect limit parameter', async () => {
-      await controller.suggestions('dev', '5');
+      const result = await controller.suggestions('dev', '1');
 
-      expect(mockSearchService.suggest).toHaveBeenCalledWith('dev', 5);
+      expect(result.data?.suggestions).toHaveLength(1);
     });
   });
 
@@ -121,17 +106,21 @@ describe('SearchController', () => {
 
       expect(result).toBeDefined();
       expect(result.success).toBe(true);
-      expect(result.data.resumes).toBeDefined();
-      expect(mockSearchService.findSimilar).toHaveBeenCalledWith('resume-1', 5);
+      // resume-2 shares 'React' with resume-1
+      expect(result.data?.resumes.some((r) => r.id === 'resume-2')).toBe(true);
     });
 
     it('should respect limit parameter', async () => {
-      await controller.similar('resume-1', '10');
+      // Add more resumes with shared skills
+      searchService.seedResume({
+        id: 'resume-3',
+        fullName: 'Bob',
+        skills: ['TypeScript', 'React', 'Node.js'],
+      });
 
-      expect(mockSearchService.findSimilar).toHaveBeenCalledWith(
-        'resume-1',
-        10,
-      );
+      const result = await controller.similar('resume-1', '1');
+
+      expect(result.data?.resumes).toHaveLength(1);
     });
   });
 });

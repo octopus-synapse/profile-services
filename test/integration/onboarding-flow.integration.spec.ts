@@ -18,21 +18,13 @@
  * See docs/BUG_DISCOVERY_REPORT.md for known issues.
  */
 
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'bun:test';
 import {
-  describe,
-  it,
-  expect,
-  beforeAll,
-  afterAll,
-  beforeEach,
-  afterEach,
-} from 'bun:test';
-import {
-  getApp,
-  getRequest,
-  closeApp,
-  getPrisma,
   acceptTosForUser,
+  closeApp,
+  getApp,
+  getPrisma,
+  getRequest,
   verifyUserEmail,
 } from './setup';
 
@@ -466,12 +458,7 @@ describe('Complete Onboarding Flow', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
           currentStep: 'education',
-          completedSteps: [
-            'welcome',
-            'personal-info',
-            'professional-profile',
-            'experiences',
-          ],
+          completedSteps: ['welcome', 'personal-info', 'professional-profile', 'experiences'],
           noEducation: false,
           education: [
             {
@@ -577,10 +564,13 @@ describe('Complete Onboarding Flow', () => {
     afterEach(async () => {
       if (userId) {
         const prisma = getPrisma();
-        await prisma.skill.deleteMany({ where: { resume: { userId } } });
-        await prisma.experience.deleteMany({ where: { resume: { userId } } });
-        await prisma.education.deleteMany({ where: { resume: { userId } } });
-        await prisma.language.deleteMany({ where: { resume: { userId } } });
+        // Clean up section items and sections (new generic sections model)
+        await prisma.sectionItem.deleteMany({
+          where: { resumeSection: { resume: { userId } } },
+        });
+        await prisma.resumeSection.deleteMany({
+          where: { resume: { userId } },
+        });
         await prisma.resume.deleteMany({ where: { userId } });
         await prisma.userConsent.deleteMany({ where: { userId } });
         await prisma.onboardingProgress.deleteMany({ where: { userId } });
@@ -747,10 +737,13 @@ describe('Complete Onboarding Flow', () => {
     afterAll(async () => {
       if (userId) {
         const prisma = getPrisma();
-        await prisma.skill.deleteMany({ where: { resume: { userId } } });
-        await prisma.experience.deleteMany({ where: { resume: { userId } } });
-        await prisma.education.deleteMany({ where: { resume: { userId } } });
-        await prisma.language.deleteMany({ where: { resume: { userId } } });
+        // Clean up section items and sections (new generic sections model)
+        await prisma.sectionItem.deleteMany({
+          where: { resumeSection: { resume: { userId } } },
+        });
+        await prisma.resumeSection.deleteMany({
+          where: { resume: { userId } },
+        });
         await prisma.resume.deleteMany({ where: { userId } });
         await prisma.userConsent.deleteMany({ where: { userId } });
         await prisma.onboardingProgress.deleteMany({ where: { userId } });
@@ -821,10 +814,13 @@ describe('Complete Onboarding Flow', () => {
     afterEach(async () => {
       if (userId) {
         const prisma = getPrisma();
-        await prisma.skill.deleteMany({ where: { resume: { userId } } });
-        await prisma.experience.deleteMany({ where: { resume: { userId } } });
-        await prisma.education.deleteMany({ where: { resume: { userId } } });
-        await prisma.language.deleteMany({ where: { resume: { userId } } });
+        // Clean up section items and sections (new generic sections model)
+        await prisma.sectionItem.deleteMany({
+          where: { resumeSection: { resume: { userId } } },
+        });
+        await prisma.resumeSection.deleteMany({
+          where: { resume: { userId } },
+        });
         await prisma.resume.deleteMany({ where: { userId } });
         await prisma.userConsent.deleteMany({ where: { userId } });
         await prisma.onboardingProgress.deleteMany({ where: { userId } });

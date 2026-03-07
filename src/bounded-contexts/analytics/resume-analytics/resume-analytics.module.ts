@@ -34,6 +34,7 @@ import {
 import { AnalyticsRecorderAdapter, ViewTrackerAdapter } from '../infrastructure/adapters';
 import { AnalyticsSseController } from './controllers/analytics-sse.controller';
 import { ResumeAnalyticsController } from './controllers/resume-analytics.controller';
+import { SNAPSHOT_PORT, VIEW_TRACKING_PORT } from './ports';
 import { ATSScoreService } from './services/ats-score.service';
 import { BenchmarkService } from './services/benchmark.service';
 import { DashboardService } from './services/dashboard.service';
@@ -72,6 +73,15 @@ import { ViewTrackingService } from './services/view-tracking.service';
     {
       provide: VIEW_TRACKER,
       useClass: ViewTrackerAdapter,
+    },
+    // Dashboard Ports
+    {
+      provide: VIEW_TRACKING_PORT,
+      useExisting: ViewTrackingService,
+    },
+    {
+      provide: SNAPSHOT_PORT,
+      useExisting: SnapshotService,
     },
   ],
   exports: [ResumeAnalyticsFacade],

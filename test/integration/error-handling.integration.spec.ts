@@ -8,14 +8,8 @@
  * These tests verify that errors are handled gracefully.
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
-import {
-  getApp,
-  getRequest,
-  closeApp,
-  createTestUserAndLogin,
-  getPrisma,
-} from './setup';
+import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
+import { closeApp, createTestUserAndLogin, getApp, getPrisma, getRequest } from './setup';
 
 describe('Error Handling Integration', () => {
   let accessToken: string;
@@ -95,7 +89,7 @@ describe('Error Handling Integration', () => {
       const otherUser = await prisma.user.create({
         data: {
           email: `other-403-${Date.now()}@example.com`,
-          password: 'hashed',
+          passwordHash: 'hashed',
           name: 'Other User',
           emailVerified: new Date(),
         },
@@ -120,8 +114,7 @@ describe('Error Handling Integration', () => {
       // 400 or 422 for validation errors (Zod returns 422 by default)
       expect([400, 422]).toContain(response.status);
       // Check for message OR errors array (Zod format)
-      const hasMessage =
-        response.body.message || response.body.errors || response.body.error;
+      const hasMessage = response.body.message || response.body.errors || response.body.error;
       expect(hasMessage).toBeTruthy();
     });
 
@@ -164,17 +157,13 @@ describe('Error Handling Integration', () => {
   describe('BUG-031: Rate Limiting', () => {
     it('should not crash under rapid requests', async () => {
       const promises = Array.from({ length: 20 }, () =>
-        getRequest()
-          .get('/api/v1/resumes')
-          .set('Authorization', `Bearer ${accessToken}`),
+        getRequest().get('/api/v1/resumes').set('Authorization', `Bearer ${accessToken}`),
       );
 
       const results = await Promise.all(promises);
 
       // Should either all succeed or return 429 (rate limited)
-      const validStatuses = results.filter(
-        (r) => r.status === 200 || r.status === 429,
-      );
+      const validStatuses = results.filter((r) => r.status === 200 || r.status === 429);
       expect(validStatuses.length).toBe(20);
     });
   });

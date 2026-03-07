@@ -7,11 +7,11 @@
  * Kent Beck: "Tests describe expected behavior"
  */
 
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ResumeImportController } from './resume-import.controller';
 import { ResumeImportService } from './resume-import.service';
-import { NotFoundException, BadRequestException } from '@nestjs/common';
 
 describe('ResumeImportController', () => {
   let controller: ResumeImportController;
@@ -84,17 +84,19 @@ describe('ResumeImportController', () => {
       ),
       parseJsonResume: mock(() => ({
         personalInfo: { name: 'John Doe' },
-        experiences: [],
-        education: [],
-        skills: [],
+        summary: 'Parsed summary',
+        sections: [
+          {
+            sectionTypeKey: 'work_experience_v1',
+            items: [],
+          },
+        ],
       })),
     };
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ResumeImportController],
-      providers: [
-        { provide: ResumeImportService, useValue: mockImportService },
-      ],
+      providers: [{ provide: ResumeImportService, useValue: mockImportService }],
     }).compile();
 
     controller = module.get<ResumeImportController>(ResumeImportController);
@@ -121,11 +123,11 @@ describe('ResumeImportController', () => {
     });
 
     it('should validate JSON before importing', async () => {
-      const invalidJson = { invalid: 'data' } as any;
+      const invalidJson = { invalid: 'data' } as never;
 
-      await expect(
-        controller.importJson(mockUser, { data: invalidJson }),
-      ).rejects.toThrow(BadRequestException);
+      await expect(controller.importJson(mockUser, { data: invalidJson })).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -141,7 +143,12 @@ describe('ResumeImportController', () => {
       expect(result.success).toBe(true);
       expect(result.data).toMatchObject({
         personalInfo: { name: 'John Doe' },
-        experiences: expect.any(Array),
+        sections: [
+          {
+            sectionTypeKey: 'work_experience_v1',
+            items: expect.any(Array),
+          },
+        ],
       });
       expect(mockImportService.parseJsonResume).toHaveBeenCalledWith(jsonData);
     });
@@ -156,9 +163,7 @@ describe('ResumeImportController', () => {
         status: 'COMPLETED',
         resumeId: 'resume-123',
       });
-      expect(mockImportService.getImportById).toHaveBeenCalledWith(
-        'import-123',
-      );
+      expect(mockImportService.getImportById).toHaveBeenCalledWith('import-123');
     });
 
     it('should throw NotFoundException for unknown import', async () => {
@@ -166,9 +171,7 @@ describe('ResumeImportController', () => {
         Promise.reject(new NotFoundException('Import not found')),
       );
 
-      await expect(controller.getStatus(mockUser, 'unknown')).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(controller.getStatus(mockUser, 'unknown')).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -178,9 +181,7 @@ describe('ResumeImportController', () => {
 
       expect(result.success).toBe(true);
       expect(result.data).toHaveLength(2);
-      expect(mockImportService.getImportHistory).toHaveBeenCalledWith(
-        mockUser.userId,
-      );
+      expect(mockImportService.getImportHistory).toHaveBeenCalledWith(mockUser.userId);
     });
   });
 

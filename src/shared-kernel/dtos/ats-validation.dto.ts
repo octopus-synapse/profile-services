@@ -86,48 +86,34 @@ export const TextExtractionResultSchema = ATSValidationResultBaseSchema.extend({
 export type TextExtractionResult = z.infer<typeof TextExtractionResultSchema>;
 
 // ============================================================================
-// ATS Issue Type
-// ============================================================================
-
-export const ATSIssueTypeSchema = z.enum([
-  'missing_contact',
-  'short_summary',
-  'missing_skills',
-  'no_experience',
-  'missing_education',
-  'weak_action_verbs',
-  'no_quantified_achievements',
-  'keyword_stuffing',
-  'format_issue',
-]);
-
-export type ATSIssueType = z.infer<typeof ATSIssueTypeSchema>;
-
-// ============================================================================
-// ATS Issue (Detailed)
+// ATS Issue (Detailed) — Generic codes with contextual data
 // ============================================================================
 
 export const ATSIssueDetailedSchema = z.object({
-  type: ATSIssueTypeSchema,
+  code: z.string(),
   severity: z.enum(['low', 'medium', 'high']),
   message: z.string(),
-  field: z.string().optional(),
+  context: z
+    .object({
+      sectionKind: z.string().optional(),
+      missingFields: z.array(z.string()).optional(),
+    })
+    .optional(),
 });
 
 export type ATSIssueDetailed = z.infer<typeof ATSIssueDetailedSchema>;
 
 // ============================================================================
-// ATS Score Breakdown
+// ATS Section Score Breakdown — per-section, definition-driven
 // ============================================================================
 
-export const ATSScoreBreakdownSchema = z.object({
-  keywords: z.number().min(0).max(100),
-  format: z.number().min(0).max(100),
-  completeness: z.number().min(0).max(100),
-  experience: z.number().min(0).max(100),
+export const SectionScoreBreakdownSchema = z.object({
+  sectionKind: z.string(),
+  sectionTypeKey: z.string(),
+  score: z.number().min(0).max(100),
 });
 
-export type ATSScoreBreakdown = z.infer<typeof ATSScoreBreakdownSchema>;
+export type SectionScoreBreakdown = z.infer<typeof SectionScoreBreakdownSchema>;
 
 // ============================================================================
 // ATS Score Result
@@ -135,7 +121,7 @@ export type ATSScoreBreakdown = z.infer<typeof ATSScoreBreakdownSchema>;
 
 export const ATSScoreResultSchema = z.object({
   score: z.number().min(0).max(100),
-  breakdown: ATSScoreBreakdownSchema,
+  sectionBreakdown: z.array(SectionScoreBreakdownSchema),
   issues: z.array(ATSIssueDetailedSchema),
   recommendations: z.array(z.string()),
 });
@@ -145,49 +131,6 @@ export type ATSScoreResult = z.infer<typeof ATSScoreResultSchema>;
 // ============================================================================
 // CV Section (for parsing) - Definition-Driven
 // ============================================================================
-
-/**
- * @deprecated Use SemanticKindSchema below instead.
- * CVSectionTypeSchema is kept for backward compatibility during migration.
- */
-export const CVSectionTypeSchema = z.enum([
-  'personal_info',
-  'summary',
-  'experience',
-  'education',
-  'skills',
-  'certifications',
-  'projects',
-  'languages',
-  'awards',
-  'publications',
-  'references',
-  'interests',
-  'other',
-]);
-
-/** @deprecated Use SemanticKind string type instead */
-export type CVSectionType = z.infer<typeof CVSectionTypeSchema>;
-
-/**
- * @deprecated Use SemanticKind string instead.
- * CVSectionTypeEnum is kept for backward compatibility during migration.
- */
-export enum CVSectionTypeEnum {
-  PERSONAL_INFO = 'personal_info',
-  SUMMARY = 'summary',
-  EXPERIENCE = 'experience',
-  EDUCATION = 'education',
-  SKILLS = 'skills',
-  CERTIFICATIONS = 'certifications',
-  PROJECTS = 'projects',
-  LANGUAGES = 'languages',
-  AWARDS = 'awards',
-  PUBLICATIONS = 'publications',
-  REFERENCES = 'references',
-  INTERESTS = 'interests',
-  OTHER = 'other',
-}
 
 /**
  * SemanticKind - Dynamic section type identifier.
@@ -201,7 +144,7 @@ export type SemanticKind = z.infer<typeof SemanticKindSchema>;
  * The semanticKind value comes from SectionType.semanticKind.
  */
 export const CVSectionSchema = z.object({
-  /** Semantic kind from SectionType definitions (e.g., 'experience', 'education') */
+  /** Semantic kind from SectionType definitions. */
   semanticKind: SemanticKindSchema,
   title: z.string().optional(),
   content: z.string(),

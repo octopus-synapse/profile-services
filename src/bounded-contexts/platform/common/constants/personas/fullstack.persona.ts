@@ -19,7 +19,12 @@ export const FULLSTACK_PERSONA: PersonaConfig = {
     'Testing',
   ],
   achievementTypes: ['github_stars', 'npm_downloads', 'open_source_contribution', 'hackathon_win'],
-  prioritySections: ['projects', 'openSource', 'experiences', 'hackathons'],
+  contentPriorities: [
+    'project_portfolio',
+    'open_source_work',
+    'career_history',
+    'competitive_builds',
+  ],
   keywords: [
     'react',
     'vue',

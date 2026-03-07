@@ -6,9 +6,7 @@ describe('SyncProjectionOnSectionRemovedHandler', () => {
   it('decrements projection count using semantic sectionKind', async () => {
     const prisma = {
       $executeRaw: mock(async () => 1),
-    } as unknown as ConstructorParameters<
-      typeof SyncProjectionOnSectionRemovedHandler
-    >[0];
+    } as unknown as ConstructorParameters<typeof SyncProjectionOnSectionRemovedHandler>[0];
 
     const handler = new SyncProjectionOnSectionRemovedHandler(prisma);
     const event = new SectionRemovedEvent('resume-1', {
@@ -27,9 +25,7 @@ describe('SyncProjectionOnSectionRemovedHandler', () => {
   it('ignores events without sectionKind', async () => {
     const prisma = {
       $executeRaw: mock(async () => 1),
-    } as unknown as ConstructorParameters<
-      typeof SyncProjectionOnSectionRemovedHandler
-    >[0];
+    } as unknown as ConstructorParameters<typeof SyncProjectionOnSectionRemovedHandler>[0];
 
     const handler = new SyncProjectionOnSectionRemovedHandler(prisma);
     const event = new SectionRemovedEvent('resume-3', {

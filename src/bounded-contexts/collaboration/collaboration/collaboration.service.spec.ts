@@ -6,17 +6,13 @@
  * Kent Beck: "Tests describe behavior, not implementation"
  */
 
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
-import { createMockResume } from '@test/factories/resume.factory';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { ConflictException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { CollaborationService } from './collaboration.service';
+import { createMockResume } from '@test/factories/resume.factory';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { EventPublisher } from '@/shared-kernel';
-import {
-  ForbiddenException,
-  NotFoundException,
-  ConflictException,
-} from '@nestjs/common';
+import { CollaborationService } from './collaboration.service';
 
 describe('CollaborationService', () => {
   let service: CollaborationService;
@@ -151,13 +147,11 @@ describe('CollaborationService', () => {
       mockPrismaService.resume.findUnique = mock(() =>
         Promise.resolve({ ...mockResume, userId: 'other-owner' }),
       );
-      mockPrismaService.resumeCollaborator.findFirst = mock(() =>
-        Promise.resolve(null),
-      );
+      mockPrismaService.resumeCollaborator.findFirst = mock(() => Promise.resolve(null));
 
-      await expect(
-        service.getCollaborators('resume-1', 'random-user'),
-      ).rejects.toThrow(ForbiddenException);
+      await expect(service.getCollaborators('resume-1', 'random-user')).rejects.toThrow(
+        ForbiddenException,
+      );
     });
   });
 
@@ -262,9 +256,7 @@ describe('CollaborationService', () => {
       mockPrismaService.resume.findUnique = mock(() =>
         Promise.resolve({ ...mockResume, userId: 'other-owner' }),
       );
-      mockPrismaService.resumeCollaborator.findFirst = mock(() =>
-        Promise.resolve(null),
-      );
+      mockPrismaService.resumeCollaborator.findFirst = mock(() => Promise.resolve(null));
 
       const result = await service.hasAccess('resume-1', 'random-user');
 

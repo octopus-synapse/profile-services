@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { EntityNotFoundException } from '@/shared-kernel';
-import { GetOnboardingStatusUseCase } from './get-onboarding-status.use-case';
 import type { OnboardingRepositoryPort } from '../ports/onboarding.port';
+import { GetOnboardingStatusUseCase } from './get-onboarding-status.use-case';
 
 describe('GetOnboardingStatusUseCase', () => {
   let useCase: GetOnboardingStatusUseCase;
@@ -37,8 +37,6 @@ describe('GetOnboardingStatusUseCase', () => {
   it('throws EntityNotFoundException when user does not exist', async () => {
     repository.getOnboardingStatus = mock(async () => null);
 
-    await expect(useCase.execute('non-existent')).rejects.toThrow(
-      EntityNotFoundException,
-    );
+    await expect(useCase.execute('non-existent')).rejects.toThrow(EntityNotFoundException);
   });
 });

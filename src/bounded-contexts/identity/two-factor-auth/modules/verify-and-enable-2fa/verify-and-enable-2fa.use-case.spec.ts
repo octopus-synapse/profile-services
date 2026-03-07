@@ -10,10 +10,7 @@ import {
   StubHashService,
   StubTotpService,
 } from '../../../shared-kernel/testing';
-import {
-  InvalidTotpTokenException,
-  TwoFactorNotSetupException,
-} from '../../domain/exceptions';
+import { InvalidTotpTokenException, TwoFactorNotSetupException } from '../../domain/exceptions';
 import { VerifyAndEnable2faUseCase } from './verify-and-enable-2fa.use-case';
 
 describe('VerifyAndEnable2faUseCase', () => {
@@ -39,11 +36,7 @@ describe('VerifyAndEnable2faUseCase', () => {
     });
     repository.seedEmail(userId, 'test@example.com');
 
-    useCase = new VerifyAndEnable2faUseCase(
-      repository,
-      totpService,
-      hashService,
-    );
+    useCase = new VerifyAndEnable2faUseCase(repository, totpService, hashService);
   });
 
   it('should enable 2FA and return backup codes', async () => {
@@ -63,17 +56,13 @@ describe('VerifyAndEnable2faUseCase', () => {
   it('should throw if 2FA is not setup', async () => {
     repository.clear();
 
-    await expect(useCase.execute(userId, validToken)).rejects.toThrow(
-      TwoFactorNotSetupException,
-    );
+    await expect(useCase.execute(userId, validToken)).rejects.toThrow(TwoFactorNotSetupException);
   });
 
   it('should throw if token is invalid', async () => {
     totpService.setShouldVerify(false);
 
-    await expect(useCase.execute(userId, validToken)).rejects.toThrow(
-      InvalidTotpTokenException,
-    );
+    await expect(useCase.execute(userId, validToken)).rejects.toThrow(InvalidTotpTokenException);
   });
 
   it('should delete existing backup codes before generating new ones', async () => {

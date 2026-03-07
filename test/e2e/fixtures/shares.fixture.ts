@@ -26,10 +26,7 @@ export function createShareData(resumeId: string, suffix?: string) {
  * @param password - Password to protect the share (min 8 chars)
  * @returns Password-protected share creation payload
  */
-export function createPasswordProtectedShare(
-  resumeId: string,
-  password: string,
-) {
+export function createPasswordProtectedShare(resumeId: string, password: string) {
   if (password.length < 8) {
     throw new Error('Password must be at least 8 characters');
   }
@@ -48,10 +45,7 @@ export function createPasswordProtectedShare(
  * @param expiresInMinutes - Minutes until expiration (can be negative for past dates)
  * @returns Expiring share creation payload
  */
-export function createExpiringShare(
-  resumeId: string,
-  expiresInMinutes: number,
-) {
+export function createExpiringShare(resumeId: string, expiresInMinutes: number) {
   const expiresAt = new Date(Date.now() + expiresInMinutes * 60 * 1000);
 
   return {
@@ -95,16 +89,11 @@ export function createSecureExpiringShare(
  * @param customSlug - Custom slug (alphanumeric + hyphens only, 3-50 chars)
  * @returns Share creation payload with custom slug
  */
-export function createShareWithCustomSlug(
-  resumeId: string,
-  customSlug: string,
-) {
+export function createShareWithCustomSlug(resumeId: string, customSlug: string) {
   // Validate slug format (lowercase alphanumeric + hyphens)
   const slugRegex = /^[a-z0-9-]{3,50}$/;
   if (!slugRegex.test(customSlug)) {
-    throw new Error(
-      'Slug must be lowercase alphanumeric with hyphens (3-50 chars)',
-    );
+    throw new Error('Slug must be lowercase alphanumeric with hyphens (3-50 chars)');
   }
 
   return {

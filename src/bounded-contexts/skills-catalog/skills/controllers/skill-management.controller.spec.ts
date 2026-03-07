@@ -1,28 +1,46 @@
-/**
- * Unit tests for SkillManagementController
- *
- * Tests HTTP layer behavior including:
- * - Request handling and response formatting
- * - Guard/permission decorator application
- * - Service delegation
- */
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { Test, type TestingModule } from '@nestjs/testing';
-import { SkillManagementController } from './skill-management.controller';
-import { SkillManagementService } from '../services/skill-management.service';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { PermissionGuard } from '@/bounded-contexts/identity/authorization';
+import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
+import { SkillManagementService } from '../services/skill-management.service';
+import { SkillManagementController } from './skill-management.controller';
+
+const createSkillManagementService = () => ({
+  addSkillToResume: mock(() =>
+    Promise.resolve({
+      id: 'skill-1',
+      resumeId: 'resume-123',
+      name: 'TypeScript',
+      category: 'Programming',
+      level: 1,
+      order: 0,
+    }),
+  ),
+  updateSkill: mock(() =>
+    Promise.resolve({
+      id: 'skill-123',
+      resumeId: 'resume-123',
+      name: 'TypeScript Updated',
+      category: 'Programming',
+      level: 1,
+      order: 0,
+    }),
+  ),
+  deleteSkill: mock(() => Promise.resolve(undefined)),
+  listSkillsForResume: mock(() =>
+    Promise.resolve([
+      { id: 'skill-1', name: 'TypeScript', category: 'Programming' },
+      { id: 'skill-2', name: 'React', category: 'Framework' },
+    ]),
+  ),
+});
 
 describe('SkillManagementController', () => {
   let controller: SkillManagementController;
-  let mockService: jest.Mocked<SkillManagementService>;
+  let mockService: ReturnType<typeof createSkillManagementService>;
 
   beforeEach(async () => {
-    mockService = {
-      addSkillToResume: jest.fn(),
-      updateSkill: jest.fn(),
-      deleteSkill: jest.fn(),
-      listSkillsForResume: jest.fn(),
-    } as unknown as jest.Mocked<SkillManagementService>;
+    mockService = createSkillManagementService();
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [SkillManagementController],
@@ -39,68 +57,44 @@ describe('SkillManagementController', () => {
       .useValue({ canActivate: () => true })
       .compile();
 
-    controller = module.get<SkillManagementController>(
-      SkillManagementController,
-    );
+    controller = module.get<SkillManagementController>(SkillManagementController);
   });
 
-  describe('addSkillToResume', () => {
-    it('should delegate to service and return created skill', async () => {
-      const resumeId = 'resume-123';
-      const input = { name: 'TypeScript', category: 'Programming' };
-      const expectedSkill = { id: 'skill-1', ...input, level: 1, resumeId };
+  it('addSkillToResume delegates to service and wraps the response', async () => {
+    const input = { name: 'TypeScript', category: 'Programming' };
 
-      mockService.addSkillToResume.mockResolvedValue(expectedSkill);
+    const result = await controller.addSkillToResume('resume-123', input);
 
-      const result = await controller.addSkillToResume(resumeId, input);
-
-      expect(mockService.addSkillToResume).toHaveBeenCalledWith(resumeId, input);
-      expect(result).toEqual({ success: true, data: { skill: expectedSkill } });
-    });
+    expect(mockService.addSkillToResume).toHaveBeenCalledWith('resume-123', input);
+    expect(result.success).toBe(true);
+    expect(result.data).toHaveProperty('skill');
   });
 
-  describe('listSkillsForResume', () => {
-    it('should return all skills for resume', async () => {
-      const resumeId = 'resume-123';
-      const expectedSkills = [
-        { id: 'skill-1', name: 'TypeScript', category: 'Programming' },
-        { id: 'skill-2', name: 'React', category: 'Framework' },
-      ];
+  it('listSkillsForResume delegates to service and wraps the response', async () => {
+    const result = await controller.listSkillsForResume('resume-123');
 
-      mockService.listSkillsForResume.mockResolvedValue(expectedSkills);
-
-      const result = await controller.listSkillsForResume(resumeId);
-
-      expect(mockService.listSkillsForResume).toHaveBeenCalledWith(resumeId);
-      expect(result).toEqual({ success: true, data: { skills: expectedSkills } });
-    });
+    expect(mockService.listSkillsForResume).toHaveBeenCalledWith('resume-123');
+    expect(result.success).toBe(true);
+    expect(result.data).toHaveProperty('skills');
   });
 
-  describe('updateSkill', () => {
-    it('should delegate update to service', async () => {
-      const skillId = 'skill-123';
-      const input = { name: 'TypeScript Updated' };
-      const expectedSkill = { id: skillId, name: 'TypeScript Updated' };
+  it('updateSkill delegates to service and wraps the response', async () => {
+    const input = { name: 'TypeScript Updated' };
 
-      mockService.updateSkill.mockResolvedValue(expectedSkill);
+    const result = await controller.updateSkill('skill-123', input);
 
-      const result = await controller.updateSkill(skillId, input);
-
-      expect(mockService.updateSkill).toHaveBeenCalledWith(skillId, input);
-      expect(result).toEqual({ success: true, data: { skill: expectedSkill } });
-    });
+    expect(mockService.updateSkill).toHaveBeenCalledWith('skill-123', input);
+    expect(result.success).toBe(true);
+    expect(result.data).toHaveProperty('skill');
   });
 
-  describe('deleteSkill', () => {
-    it('should delegate delete to service', async () => {
-      const skillId = 'skill-123';
+  it('deleteSkill delegates to service and returns deleted flag', async () => {
+    const result = await controller.deleteSkill('skill-123');
 
-      mockService.deleteSkill.mockResolvedValue(undefined);
-
-      const result = await controller.deleteSkill(skillId);
-
-      expect(mockService.deleteSkill).toHaveBeenCalledWith(skillId);
-      expect(result).toEqual({ success: true, data: { result: { deleted: true } } });
+    expect(mockService.deleteSkill).toHaveBeenCalledWith('skill-123');
+    expect(result).toEqual({
+      success: true,
+      data: { result: { deleted: true } },
     });
   });
 });

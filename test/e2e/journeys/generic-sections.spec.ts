@@ -11,14 +11,14 @@
  * Target Time: < 45 seconds
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
+import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
+import { randomUUID } from 'node:crypto';
 import type { INestApplication } from '@nestjs/common';
-import { randomUUID } from 'crypto';
 import request from 'supertest';
-import { createE2ETestApp } from '../setup-e2e';
+import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { AuthHelper } from '../helpers/auth.helper';
 import type { CleanupHelper } from '../helpers/cleanup.helper';
-import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { createE2ETestApp } from '../setup-e2e';
 
 describe('E2E Journey: Generic Resume Sections', () => {
   let app: INestApplication;
@@ -172,7 +172,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
 
       // Our custom section type should be in the list
       const customType = response.body.data.sectionTypes.find(
-        (t: any) => t.key === sectionTypeKey,
+        (t: { key: string }) => t.key === sectionTypeKey,
       );
       expect(customType).toBeDefined();
       expect(customType.isActive).toBe(true);
@@ -242,9 +242,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
       };
 
       const response = await request(app.getHttpServer())
-        .post(
-          `/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items`,
-        )
+        .post(`/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items`)
         .set('Authorization', `Bearer ${userA.token}`)
         .send(payload);
 
@@ -266,9 +264,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
       };
 
       const response = await request(app.getHttpServer())
-        .post(
-          `/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items`,
-        )
+        .post(`/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items`)
         .set('Authorization', `Bearer ${userA.token}`)
         .send(payload);
 
@@ -287,9 +283,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
       };
 
       const response = await request(app.getHttpServer())
-        .post(
-          `/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items`,
-        )
+        .post(`/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items`)
         .send(payload);
 
       expect(response.status).toBe(401);
@@ -303,9 +297,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
       };
 
       const response = await request(app.getHttpServer())
-        .post(
-          `/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items`,
-        )
+        .post(`/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items`)
         .set('Authorization', `Bearer ${userB.token}`)
         .send(payload);
 
@@ -320,9 +312,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
       };
 
       const response = await request(app.getHttpServer())
-        .post(
-          `/api/v1/resumes/${userAResumeId}/sections/invalid_section_key_xyz/items`,
-        )
+        .post(`/api/v1/resumes/${userAResumeId}/sections/invalid_section_key_xyz/items`)
         .set('Authorization', `Bearer ${userA.token}`)
         .send(payload);
 
@@ -337,9 +327,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
       };
 
       const response = await request(app.getHttpServer())
-        .post(
-          `/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items`,
-        )
+        .post(`/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items`)
         .set('Authorization', `Bearer ${userA.token}`)
         .send(payload);
 
@@ -361,7 +349,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
 
       // Find our custom section
       const customSection = sections.find(
-        (s: any) => s.sectionType?.key === sectionTypeKey,
+        (s: { sectionType?: { key: string } }) => s.sectionType?.key === sectionTypeKey,
       );
 
       expect(customSection).toBeDefined();
@@ -369,7 +357,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
       expect(customSection.items.length).toBeGreaterThanOrEqual(2);
 
       // Verify our created items are present
-      const firstItem = customSection.items.find((i: any) => i.id === itemId);
+      const firstItem = customSection.items.find((i: { id: string }) => i.id === itemId);
       expect(firstItem).toBeDefined();
       expect(firstItem.content.title).toBe('First Item Title');
     });
@@ -385,18 +373,14 @@ describe('E2E Journey: Generic Resume Sections', () => {
       };
 
       const response = await request(app.getHttpServer())
-        .patch(
-          `/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items/${itemId}`,
-        )
+        .patch(`/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items/${itemId}`)
         .set('Authorization', `Bearer ${userA.token}`)
         .send(payload);
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
       expect(response.body.data.item.content.title).toBe('Updated Item Title');
-      expect(response.body.data.item.content.description).toBe(
-        'Updated description',
-      );
+      expect(response.body.data.item.content.description).toBe('Updated description');
     });
 
     it('should require authentication to update items', async () => {
@@ -407,9 +391,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
       };
 
       const response = await request(app.getHttpServer())
-        .patch(
-          `/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items/${itemId}`,
-        )
+        .patch(`/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items/${itemId}`)
         .send(payload);
 
       expect(response.status).toBe(401);
@@ -423,9 +405,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
       };
 
       const response = await request(app.getHttpServer())
-        .patch(
-          `/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items/${itemId}`,
-        )
+        .patch(`/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items/${itemId}`)
         .set('Authorization', `Bearer ${userB.token}`)
         .send(payload);
 
@@ -453,9 +433,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
   describe('Delete Section Items', () => {
     it('should delete a section item', async () => {
       const response = await request(app.getHttpServer())
-        .delete(
-          `/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items/${secondItemId}`,
-        )
+        .delete(`/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items/${secondItemId}`)
         .set('Authorization', `Bearer ${userA.token}`);
 
       expect(response.status).toBe(200);
@@ -469,13 +447,11 @@ describe('E2E Journey: Generic Resume Sections', () => {
 
       const sections = response.body.data.sections;
       const customSection = sections.find(
-        (s: any) => s.sectionType?.key === sectionTypeKey,
+        (s: { sectionType?: { key: string } }) => s.sectionType?.key === sectionTypeKey,
       );
 
       if (customSection) {
-        const deletedItem = customSection.items.find(
-          (i: any) => i.id === secondItemId,
-        );
+        const deletedItem = customSection.items.find((i: { id: string }) => i.id === secondItemId);
         expect(deletedItem).toBeUndefined();
       }
     });
@@ -490,9 +466,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
 
     it('should prevent user B from deleting user A items', async () => {
       const response = await request(app.getHttpServer())
-        .delete(
-          `/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items/${itemId}`,
-        )
+        .delete(`/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items/${itemId}`)
         .set('Authorization', `Bearer ${userB.token}`);
 
       expect([403, 404]).toContain(response.status);
@@ -519,9 +493,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
       };
 
       const response = await request(app.getHttpServer())
-        .post(
-          `/api/v1/resumes/${userBResumeId}/sections/${sectionTypeKey}/items`,
-        )
+        .post(`/api/v1/resumes/${userBResumeId}/sections/${sectionTypeKey}/items`)
         .set('Authorization', `Bearer ${userB.token}`)
         .send(payload);
 
@@ -539,18 +511,18 @@ describe('E2E Journey: Generic Resume Sections', () => {
 
       const sections = response.body.data.sections;
       const customSection = sections.find(
-        (s: any) => s.sectionType?.key === sectionTypeKey,
+        (s: { sectionType?: { key: string } }) => s.sectionType?.key === sectionTypeKey,
       );
 
       if (customSection) {
         // Should only contain user B's items, not user A's
         const userAItem = customSection.items.find(
-          (i: any) => i.content?.title === 'Updated Item Title',
+          (i: { content?: { title?: string } }) => i.content?.title === 'Updated Item Title',
         );
         expect(userAItem).toBeUndefined();
 
         const userBItem = customSection.items.find(
-          (i: any) => i.content?.title === 'User B Item',
+          (i: { content?: { title?: string } }) => i.content?.title === 'User B Item',
         );
         expect(userBItem).toBeDefined();
       }
@@ -560,9 +532,7 @@ describe('E2E Journey: Generic Resume Sections', () => {
   describe('Cleanup: Delete Remaining Items', () => {
     it('should delete remaining item from user A', async () => {
       const response = await request(app.getHttpServer())
-        .delete(
-          `/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items/${itemId}`,
-        )
+        .delete(`/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items/${itemId}`)
         .set('Authorization', `Bearer ${userA.token}`);
 
       expect(response.status).toBe(200);

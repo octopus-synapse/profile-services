@@ -8,10 +8,10 @@
  * Uncle Bob: "Clean tests are precise specifications"
  */
 
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
-import { RateLimitService } from './rate-limit.service';
 import { CacheService } from '../cache/cache.service';
+import { RateLimitService } from './rate-limit.service';
 import type { RateLimitResult } from './rate-limit.types';
 
 describe('RateLimitService', () => {
@@ -30,10 +30,7 @@ describe('RateLimitService', () => {
     };
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        RateLimitService,
-        { provide: CacheService, useValue: mockCacheService },
-      ],
+      providers: [RateLimitService, { provide: CacheService, useValue: mockCacheService }],
     }).compile();
 
     service = module.get<RateLimitService>(RateLimitService);
@@ -164,9 +161,7 @@ describe('RateLimitService', () => {
 
       expect(headers['X-RateLimit-Limit']).toBe(100);
       expect(headers['X-RateLimit-Remaining']).toBe(95);
-      expect(headers['X-RateLimit-Reset']).toBeGreaterThan(
-        Math.floor(Date.now() / 1000),
-      );
+      expect(headers['X-RateLimit-Reset']).toBeGreaterThan(Math.floor(Date.now() / 1000));
     });
 
     it('should include Retry-After header when blocked', () => {

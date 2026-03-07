@@ -6,10 +6,10 @@
  * Kent Beck: "Test behavior, not implementation"
  */
 
-import { describe, it, expect, beforeEach, mock, spyOn } from 'bun:test';
-import { Test, TestingModule } from '@nestjs/testing';
+import { beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 import { ExecutionContext, HttpException, HttpStatus } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { Test, TestingModule } from '@nestjs/testing';
 import { RateLimitGuard } from './rate-limit.guard';
 import { RateLimitService } from './rate-limit.service';
 
@@ -118,14 +118,8 @@ describe('RateLimitGuard', () => {
 
       await guard.canActivate(createMockContext());
 
-      expect(mockResponse.setHeader).toHaveBeenCalledWith(
-        'X-RateLimit-Limit',
-        100,
-      );
-      expect(mockResponse.setHeader).toHaveBeenCalledWith(
-        'X-RateLimit-Remaining',
-        99,
-      );
+      expect(mockResponse.setHeader).toHaveBeenCalledWith('X-RateLimit-Limit', 100);
+      expect(mockResponse.setHeader).toHaveBeenCalledWith('X-RateLimit-Remaining', 99);
     });
   });
 
@@ -141,9 +135,7 @@ describe('RateLimitGuard', () => {
     });
 
     it('should throw TooManyRequestsException', async () => {
-      await expect(guard.canActivate(createMockContext())).rejects.toThrow(
-        HttpException,
-      );
+      await expect(guard.canActivate(createMockContext())).rejects.toThrow(HttpException);
     });
 
     it('should include retry-after in error', async () => {

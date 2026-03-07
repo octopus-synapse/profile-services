@@ -13,21 +13,17 @@ import { z } from 'zod';
 /**
  * Standard resource names in the system.
  * Resources represent entities that can be accessed.
+ *
+ * Section-specific resources (skill, education, experience, etc.) are
+ * consolidated into 'section' and 'section-item' - section types are
+ * definition-driven, not hard-coded.
  */
 export const StandardResources = [
   'user',
   'resume',
   'theme',
-  'skill',
-  'education',
-  'experience',
-  'project',
-  'certification',
-  'language',
-  'publication',
-  'open-source',
-  'volunteer',
-  'award',
+  'section',
+  'section-item',
   'stats',
   'audit',
   'permission',

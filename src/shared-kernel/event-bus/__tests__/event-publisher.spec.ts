@@ -1,6 +1,6 @@
-import { describe, it, expect, mock, beforeEach } from 'bun:test';
-import { EventPublisher } from '../event-publisher';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { DomainEvent } from '../domain';
+import { EventPublisher } from '../event-publisher';
 
 class TestEvent extends DomainEvent<{ value: string }> {
   static readonly TYPE = 'test.event';

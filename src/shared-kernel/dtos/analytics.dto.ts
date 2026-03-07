@@ -82,17 +82,24 @@ export const ViewStatsResponseSchema = z.object({
 
 export const ATSScoreResponseSchema = z.object({
   score: z.number().min(0).max(100),
-  breakdown: z.object({
-    keywords: z.number().min(0).max(100),
-    format: z.number().min(0).max(100),
-    completeness: z.number().min(0).max(100),
-    experience: z.number().min(0).max(100),
-  }),
+  sectionBreakdown: z.array(
+    z.object({
+      sectionKind: z.string(),
+      sectionTypeKey: z.string(),
+      score: z.number().min(0).max(100),
+    }),
+  ),
   issues: z.array(
     z.object({
-      type: z.string(),
+      code: z.string(),
       severity: SeverityEnum,
       message: z.string(),
+      context: z
+        .object({
+          sectionKind: z.string().optional(),
+          missingFields: z.array(z.string()).optional(),
+        })
+        .optional(),
     }),
   ),
   recommendations: z.array(z.string()),
@@ -133,16 +140,16 @@ export const BenchmarkResponseSchema = z.object({
     yourATSScore: z.number().min(0).max(100),
     avgViews: z.number().nonnegative(),
     yourViews: z.number().nonnegative(),
-    avgSkillsCount: z.number().int().nonnegative(),
-    yourSkillsCount: z.number().int().nonnegative(),
-    avgExperienceYears: z.number().nonnegative(),
-    yourExperienceYears: z.number().nonnegative(),
+    avgStructuredItemCount: z.number().int().nonnegative(),
+    yourStructuredItemCount: z.number().int().nonnegative(),
+    avgCareerDepthYears: z.number().nonnegative(),
+    yourCareerDepthYears: z.number().nonnegative(),
   }),
   topPerformers: z.object({
-    commonSkills: z.array(z.string()),
-    avgExperienceYears: z.number().nonnegative(),
-    avgSkillsCount: z.number().int().nonnegative(),
-    commonCertifications: z.array(z.string()),
+    commonKeywords: z.array(z.string()),
+    avgCareerDepthYears: z.number().nonnegative(),
+    avgStructuredItemCount: z.number().int().nonnegative(),
+    commonCredentials: z.array(z.string()),
   }),
   recommendations: z.array(
     z.object({

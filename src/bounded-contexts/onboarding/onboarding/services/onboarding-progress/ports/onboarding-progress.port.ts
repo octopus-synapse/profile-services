@@ -4,8 +4,7 @@
  * Defines domain types and repository abstraction for onboarding progress.
  *
  * ARCHITECTURE: Uses GENERIC SECTIONS model.
- * Instead of hard-coded fields (experiences, education, skills, languages),
- * we now use a sections array with sectionTypeKey identifiers.
+ * Progress is represented through a sections array keyed by SectionType.
  */
 
 import type { OnboardingProgress as OnboardingProgressInput } from '@/shared-kernel';
@@ -67,10 +66,7 @@ export abstract class OnboardingProgressRepositoryPort {
 
   abstract deleteProgress(userId: string): Promise<void>;
 
-  abstract deleteProgressWithTx(
-    tx: TransactionClient,
-    userId: string,
-  ): Promise<void>;
+  abstract deleteProgressWithTx(tx: TransactionClient, userId: string): Promise<void>;
 
   abstract findUserByUsername(username: string): Promise<{ id: string } | null>;
 }
@@ -79,16 +75,11 @@ export abstract class OnboardingProgressRepositoryPort {
 // Use Cases Interface
 // ============================================================================
 
-export const ONBOARDING_PROGRESS_USE_CASES = Symbol(
-  'ONBOARDING_PROGRESS_USE_CASES',
-);
+export const ONBOARDING_PROGRESS_USE_CASES = Symbol('ONBOARDING_PROGRESS_USE_CASES');
 
 export interface OnboardingProgressUseCases {
   saveProgressUseCase: {
-    execute: (
-      userId: string,
-      data: OnboardingProgressInput,
-    ) => Promise<SaveProgressResult>;
+    execute: (userId: string, data: OnboardingProgressInput) => Promise<SaveProgressResult>;
   };
   getProgressUseCase: {
     execute: (userId: string) => Promise<OnboardingProgressData>;

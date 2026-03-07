@@ -1,70 +1,186 @@
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
-import { Test, TestingModule } from '@nestjs/testing';
+/**
+ * TranslationService Unit Tests
+ *
+ * Tests the orchestration of translation services.
+ * Pure Bun tests with typed stubs - no NestJS testing utilities.
+ */
+
+import { beforeEach, describe, expect, it } from 'bun:test';
+import type { ResumeTranslationService } from './services/resume-translation.service';
+import type { TranslationBatchService } from './services/translation-batch.service';
+import type { TranslationCoreService } from './services/translation-core.service';
 import { TranslationService } from './translation.service';
-import { TranslationCoreService } from './services/translation-core.service';
-import { TranslationBatchService } from './services/translation-batch.service';
-import { ResumeTranslationService } from './services/resume-translation.service';
-import {
-  TranslationResult,
+import type {
   BatchTranslationResult,
+  TranslationLanguage,
+  TranslationResult,
 } from './types/translation.types';
+
+// ============================================================================
+// Stub Services - track calls and return configured results
+// ============================================================================
+
+class StubTranslationCoreService implements Partial<TranslationCoreService> {
+  calls: Array<{ method: string; args: unknown[] }> = [];
+  private healthResult = true;
+  private availableResult = true;
+  private translateResult: TranslationResult | null = null;
+
+  setHealthResult(result: boolean): void {
+    this.healthResult = result;
+  }
+
+  setAvailableResult(result: boolean): void {
+    this.availableResult = result;
+  }
+
+  setTranslateResult(result: TranslationResult): void {
+    this.translateResult = result;
+  }
+
+  async checkServiceHealth(): Promise<boolean> {
+    this.calls.push({ method: 'checkServiceHealth', args: [] });
+    return this.healthResult;
+  }
+
+  async translate(
+    text: string,
+    sourceLanguage: TranslationLanguage,
+    targetLanguage: TranslationLanguage,
+  ): Promise<TranslationResult> {
+    this.calls.push({
+      method: 'translate',
+      args: [text, sourceLanguage, targetLanguage],
+    });
+    return (
+      this.translateResult ?? {
+        original: text,
+        translated: `[translated] ${text}`,
+        sourceLanguage,
+        targetLanguage,
+      }
+    );
+  }
+
+  isAvailable(): boolean {
+    this.calls.push({ method: 'isAvailable', args: [] });
+    return this.availableResult;
+  }
+
+  getLastCall(method: string) {
+    return this.calls.filter((c) => c.method === method).pop();
+  }
+}
+
+class StubTranslationBatchService implements Partial<TranslationBatchService> {
+  calls: Array<{ method: string; args: unknown[] }> = [];
+  private batchResult: BatchTranslationResult | null = null;
+
+  setBatchResult(result: BatchTranslationResult): void {
+    this.batchResult = result;
+  }
+
+  async translateBatch(
+    texts: string[],
+    sourceLanguage: TranslationLanguage,
+    targetLanguage: TranslationLanguage,
+  ): Promise<BatchTranslationResult> {
+    this.calls.push({
+      method: 'translateBatch',
+      args: [texts, sourceLanguage, targetLanguage],
+    });
+    return (
+      this.batchResult ?? {
+        translations: texts.map((t) => ({
+          original: t,
+          translated: `[translated] \${t}`,
+          sourceLanguage,
+          targetLanguage,
+        })),
+        failed: [],
+      }
+    );
+  }
+
+  getLastCall(method: string) {
+    return this.calls.filter((c) => c.method === method).pop();
+  }
+}
+
+class StubResumeTranslationService implements Partial<ResumeTranslationService> {
+  calls: Array<{ method: string; args: unknown[] }> = [];
+  private englishResult: Record<string, unknown> | null = null;
+  private portugueseResult: Record<string, unknown> | null = null;
+
+  setEnglishResult(result: Record<string, unknown>): void {
+    this.englishResult = result;
+  }
+
+  setPortugueseResult(result: Record<string, unknown>): void {
+    this.portugueseResult = result;
+  }
+
+  async translateToEnglish(resumeData: Record<string, unknown>): Promise<Record<string, unknown>> {
+    this.calls.push({ method: 'translateToEnglish', args: [resumeData] });
+    return this.englishResult ?? resumeData;
+  }
+
+  async translateToPortuguese(
+    resumeData: Record<string, unknown>,
+  ): Promise<Record<string, unknown>> {
+    this.calls.push({ method: 'translateToPortuguese', args: [resumeData] });
+    return this.portugueseResult ?? resumeData;
+  }
+
+  getLastCall(method: string) {
+    return this.calls.filter((c) => c.method === method).pop();
+  }
+}
+
+// ============================================================================
+// Tests
+// ============================================================================
 
 describe('TranslationService', () => {
   let service: TranslationService;
-  let mockCoreService: TranslationCoreService;
-  let mockBatchService: TranslationBatchService;
-  let mockResumeService: ResumeTranslationService;
+  let coreService: StubTranslationCoreService;
+  let batchService: StubTranslationBatchService;
+  let resumeService: StubResumeTranslationService;
 
-  beforeEach(async () => {
-    mockCoreService = {
-      checkServiceHealth: mock(),
-      translate: mock(),
-      isAvailable: mock(),
-    } as any;
+  beforeEach(() => {
+    coreService = new StubTranslationCoreService();
+    batchService = new StubTranslationBatchService();
+    resumeService = new StubResumeTranslationService();
 
-    mockBatchService = {
-      translateBatch: mock(),
-    } as any;
-
-    mockResumeService = {
-      translateToEnglish: mock(),
-      translateToPortuguese: mock(),
-    } as any;
-
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        TranslationService,
-        { provide: TranslationCoreService, useValue: mockCoreService },
-        { provide: TranslationBatchService, useValue: mockBatchService },
-        { provide: ResumeTranslationService, useValue: mockResumeService },
-      ],
-    }).compile();
-
-    service = module.get<TranslationService>(TranslationService);
+    service = new TranslationService(
+      coreService as unknown as TranslationCoreService,
+      batchService as unknown as TranslationBatchService,
+      resumeService as unknown as ResumeTranslationService,
+    );
   });
 
   describe('onModuleInit', () => {
     it('should check service health on initialization', async () => {
-      mockCoreService.checkServiceHealth.mockResolvedValue(true);
+      coreService.setHealthResult(true);
 
       await service.onModuleInit();
 
-      expect(mockCoreService.checkServiceHealth).toHaveBeenCalled();
+      expect(coreService.getLastCall('checkServiceHealth')).toBeDefined();
     });
   });
 
   describe('checkServiceHealth', () => {
     it('should delegate health check to core service', async () => {
-      mockCoreService.checkServiceHealth.mockResolvedValue(true);
+      coreService.setHealthResult(true);
 
       const result = await service.checkServiceHealth();
 
       expect(result).toBe(true);
-      expect(mockCoreService.checkServiceHealth).toHaveBeenCalled();
+      expect(coreService.getLastCall('checkServiceHealth')).toBeDefined();
     });
 
     it('should return false when service is unavailable', async () => {
-      mockCoreService.checkServiceHealth.mockResolvedValue(false);
+      coreService.setHealthResult(false);
 
       const result = await service.checkServiceHealth();
 
@@ -80,16 +196,12 @@ describe('TranslationService', () => {
         sourceLanguage: 'pt',
         targetLanguage: 'en',
       };
-      mockCoreService.translate.mockResolvedValue(mockResult);
+      coreService.setTranslateResult(mockResult);
 
       const result = await service.translatePtToEn('Olá mundo');
 
       expect(result).toEqual(mockResult);
-      expect(mockCoreService.translate).toHaveBeenCalledWith(
-        'Olá mundo',
-        'pt',
-        'en',
-      );
+      expect(coreService.getLastCall('translate')?.args).toEqual(['Olá mundo', 'pt', 'en']);
     });
   });
 
@@ -101,16 +213,12 @@ describe('TranslationService', () => {
         sourceLanguage: 'en',
         targetLanguage: 'pt',
       };
-      mockCoreService.translate.mockResolvedValue(mockResult);
+      coreService.setTranslateResult(mockResult);
 
       const result = await service.translateEnToPt('Hello world');
 
       expect(result).toEqual(mockResult);
-      expect(mockCoreService.translate).toHaveBeenCalledWith(
-        'Hello world',
-        'en',
-        'pt',
-      );
+      expect(coreService.getLastCall('translate')?.args).toEqual(['Hello world', 'en', 'pt']);
     });
   });
 
@@ -122,12 +230,12 @@ describe('TranslationService', () => {
         sourceLanguage: 'pt',
         targetLanguage: 'en',
       };
-      mockCoreService.translate.mockResolvedValue(mockResult);
+      coreService.setTranslateResult(mockResult);
 
       const result = await service.translate('Olá', 'pt', 'en');
 
       expect(result).toEqual(mockResult);
-      expect(mockCoreService.translate).toHaveBeenCalledWith('Olá', 'pt', 'en');
+      expect(coreService.getLastCall('translate')?.args).toEqual(['Olá', 'pt', 'en']);
     });
 
     it('should handle English to Portuguese translation', async () => {
@@ -137,7 +245,7 @@ describe('TranslationService', () => {
         sourceLanguage: 'en',
         targetLanguage: 'pt',
       };
-      mockCoreService.translate.mockResolvedValue(mockResult);
+      coreService.setTranslateResult(mockResult);
 
       const result = await service.translate('Goodbye', 'en', 'pt');
 
@@ -164,28 +272,20 @@ describe('TranslationService', () => {
         ],
         failed: [],
       };
-      mockBatchService.translateBatch.mockResolvedValue(mockResult);
+      batchService.setBatchResult(mockResult);
 
-      const result = await service.translateBatch(
-        ['Hello', 'World'],
-        'en',
-        'pt',
-      );
+      const result = await service.translateBatch(['Hello', 'World'], 'en', 'pt');
 
       expect(result).toEqual(mockResult);
-      expect(mockBatchService.translateBatch).toHaveBeenCalledWith(
+      expect(batchService.getLastCall('translateBatch')?.args).toEqual([
         ['Hello', 'World'],
         'en',
         'pt',
-      );
+      ]);
     });
 
     it('should handle empty batch gracefully', async () => {
-      const mockResult: BatchTranslationResult = {
-        translations: [],
-        failed: [],
-      };
-      mockBatchService.translateBatch.mockResolvedValue(mockResult);
+      batchService.setBatchResult({ translations: [], failed: [] });
 
       const result = await service.translateBatch([], 'en', 'pt');
 
@@ -204,14 +304,12 @@ describe('TranslationService', () => {
         title: 'Senior Developer',
         summary: 'Experience in TypeScript',
       };
-      mockResumeService.translateToEnglish.mockResolvedValue(translatedData);
+      resumeService.setEnglishResult(translatedData);
 
       const result = await service.translateResumeToEnglish(resumeData);
 
       expect(result).toEqual(translatedData);
-      expect(mockResumeService.translateToEnglish).toHaveBeenCalledWith(
-        resumeData,
-      );
+      expect(resumeService.getLastCall('translateToEnglish')?.args).toEqual([resumeData]);
     });
 
     it('should handle complex resume structure', async () => {
@@ -231,7 +329,7 @@ describe('TranslationService', () => {
         skills: ['TypeScript', 'Node.js'],
         experience: [{ company: 'Empresa A', role: 'Developer' }],
       };
-      mockResumeService.translateToEnglish.mockResolvedValue(translatedResume);
+      resumeService.setEnglishResult(translatedResume);
 
       const result = await service.translateResumeToEnglish(complexResume);
 
@@ -249,29 +347,27 @@ describe('TranslationService', () => {
         title: 'Desenvolvedor Senior',
         summary: 'Experiência em TypeScript',
       };
-      mockResumeService.translateToPortuguese.mockResolvedValue(translatedData);
+      resumeService.setPortugueseResult(translatedData);
 
       const result = await service.translateResumeToPortuguese(resumeData);
 
       expect(result).toEqual(translatedData);
-      expect(mockResumeService.translateToPortuguese).toHaveBeenCalledWith(
-        resumeData,
-      );
+      expect(resumeService.getLastCall('translateToPortuguese')?.args).toEqual([resumeData]);
     });
   });
 
   describe('isAvailable', () => {
     it('should return true when service is available', () => {
-      mockCoreService.isAvailable.mockReturnValue(true);
+      coreService.setAvailableResult(true);
 
       const result = service.isAvailable();
 
       expect(result).toBe(true);
-      expect(mockCoreService.isAvailable).toHaveBeenCalled();
+      expect(coreService.getLastCall('isAvailable')).toBeDefined();
     });
 
     it('should return false when service is unavailable', () => {
-      mockCoreService.isAvailable.mockReturnValue(false);
+      coreService.setAvailableResult(false);
 
       const result = service.isAvailable();
 
@@ -281,13 +377,13 @@ describe('TranslationService', () => {
 
   describe('service availability delegation', () => {
     it('should consistently reflect core service availability state', () => {
-      mockCoreService.isAvailable.mockReturnValue(true);
+      coreService.setAvailableResult(true);
       expect(service.isAvailable()).toBe(true);
 
-      mockCoreService.isAvailable.mockReturnValue(false);
+      coreService.setAvailableResult(false);
       expect(service.isAvailable()).toBe(false);
 
-      mockCoreService.isAvailable.mockReturnValue(true);
+      coreService.setAvailableResult(true);
       expect(service.isAvailable()).toBe(true);
     });
   });

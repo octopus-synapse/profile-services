@@ -1,13 +1,13 @@
-#!/usr/bin/env npx ts-node
+#!/usr/bin/env bunx ts-node
 /**
  * MEC CSV Download Script
  * Downloads the MEC courses CSV by navigating to the page and clicking the download link
  * This approach bypasses Cloudflare by simulating real user behavior
  *
  * Usage:
- *   npx ts-node scripts/mec-download.ts
+ *   bunx ts-node scripts/mec-download.ts
  *   # or with xvfb for headless servers:
- *   xvfb-run --auto-servernum npx ts-node scripts/mec-download.ts
+ *   xvfb-run --auto-servernum bunx ts-node scripts/mec-download.ts
  */
 
 import * as fs from 'node:fs';

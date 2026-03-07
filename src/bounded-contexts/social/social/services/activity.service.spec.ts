@@ -1,105 +1,176 @@
 /**
  * ActivityService Tests
  *
- * TDD approach: RED -> GREEN -> REFACTOR
- *
- * Kent Beck: "Test observable behavior."
- *
- * Key scenarios:
- * - Create activity
- * - Get user's activity feed (from followed users)
- * - Get user's own activities
- * - Activity pagination
+ * Clean architecture: Stub dependencies, Pure Bun tests
  */
 
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
-import { Test, TestingModule } from '@nestjs/testing';
-import { ActivityService } from './activity.service';
-import { FollowService } from './follow.service';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
-import { EventPublisher } from '@/shared-kernel';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { beforeEach, describe, expect, it } from 'bun:test';
 import { ActivityType } from '@prisma/client';
+import { ActivityService } from './activity.service';
 
-// --- Mocks ---
+/**
+ * Activity record with user information
+ */
+interface ActivityRecord {
+  id: string;
+  userId: string;
+  type: ActivityType;
+  metadata?: unknown;
+  entityId?: string | null;
+  entityType?: string | null;
+  createdAt: Date;
+  user?: {
+    id: string;
+    name: string | null;
+    username: string | null;
+    displayName: string | null;
+    photoURL: string | null;
+  };
+}
 
-const createMockPrismaService = () => ({
-  activity: {
-    create: mock(() => Promise.resolve({ id: 'activity-1' })),
-    findMany: mock(() => Promise.resolve([])),
-    findUnique: mock(() =>
-      Promise.resolve({
-        id: 'activity-1',
-        userId: 'user-1',
-        type: 'RESUME_CREATED',
-        metadata: {},
-        createdAt: new Date(),
-        user: {
-          id: 'user-1',
-          name: 'Test User',
-          username: 'testuser',
-          displayName: 'Test',
-          photoURL: null,
-        },
-      }),
-    ),
-    count: mock(() => Promise.resolve(0)),
-    deleteMany: mock(() => Promise.resolve({ count: 0 })),
-  },
-  follow: {
-    findMany: mock(() => Promise.resolve([])),
-  },
-});
+/**
+ * Create a default activity record for testing
+ */
+function createActivityRecord(overrides: Partial<ActivityRecord> = {}): ActivityRecord {
+  return {
+    id: 'activity-1',
+    userId: 'user-1',
+    type: ActivityType.RESUME_CREATED,
+    metadata: {},
+    entityId: null,
+    entityType: null,
+    createdAt: new Date(),
+    user: {
+      id: 'user-1',
+      name: 'Test User',
+      username: 'testuser',
+      displayName: 'Test',
+      photoURL: null,
+    },
+    ...overrides,
+  };
+}
 
-const createMockFollowService = () => ({
-  getFollowingIds: mock(() => Promise.resolve(['user-2', 'user-3'])),
-});
+/**
+ * Stub Prisma Service for testing
+ */
+class StubPrismaService {
+  private createResult: ActivityRecord = createActivityRecord();
+  private findManyResult: ActivityRecord[] = [];
+  private findUniqueResult: ActivityRecord | null = createActivityRecord();
+  private countResult = 0;
+  private deleteManyResult = { count: 0 };
 
-const createMockLogger = () => ({
-  log: mock(() => {}),
-  error: mock(() => {}),
-  warn: mock(() => {}),
-  debug: mock(() => {}),
-});
+  calls: Array<{ method: string; args: unknown[] }> = [];
 
-const createMockEventPublisher = () => ({
-  publish: mock(),
-  publishAsync: mock(() => Promise.resolve()),
-});
+  activity = {
+    create: async (args: unknown): Promise<ActivityRecord> => {
+      this.calls.push({ method: 'activity.create', args: [args] });
+      return this.createResult;
+    },
+    findMany: async (args: unknown): Promise<ActivityRecord[]> => {
+      this.calls.push({ method: 'activity.findMany', args: [args] });
+      return this.findManyResult;
+    },
+    findUnique: async (args: unknown): Promise<ActivityRecord | null> => {
+      this.calls.push({ method: 'activity.findUnique', args: [args] });
+      return this.findUniqueResult;
+    },
+    count: async (args: unknown): Promise<number> => {
+      this.calls.push({ method: 'activity.count', args: [args] });
+      return this.countResult;
+    },
+    deleteMany: async (args: unknown): Promise<{ count: number }> => {
+      this.calls.push({ method: 'activity.deleteMany', args: [args] });
+      return this.deleteManyResult;
+    },
+  };
 
-const createMockEventEmitter = () => ({
-  emit: mock(() => true),
-  emitAsync: mock(() => Promise.resolve([])),
-});
+  follow = {
+    findMany: async (): Promise<unknown[]> => [],
+  };
+
+  setCreateResult(result: ActivityRecord): void {
+    this.createResult = result;
+  }
+
+  setFindManyResult(result: ActivityRecord[]): void {
+    this.findManyResult = result;
+  }
+
+  setCountResult(result: number): void {
+    this.countResult = result;
+  }
+
+  setDeleteManyResult(count: number): void {
+    this.deleteManyResult = { count };
+  }
+
+  getCallsFor(method: string): Array<{ method: string; args: unknown[] }> {
+    return this.calls.filter((c) => c.method === method);
+  }
+}
+
+/**
+ * Stub FollowService for testing
+ */
+class StubFollowService {
+  private followingIdsResult: string[] = ['user-2', 'user-3'];
+
+  calls: Array<{ method: string; args: unknown[] }> = [];
+
+  setFollowingIdsResult(ids: string[]): void {
+    this.followingIdsResult = ids;
+  }
+
+  async getFollowingIds(userId: string): Promise<string[]> {
+    this.calls.push({ method: 'getFollowingIds', args: [userId] });
+    return this.followingIdsResult;
+  }
+}
+
+/**
+ * Stub Logger
+ */
+const stubLogger = {
+  log: () => {},
+  error: () => {},
+  warn: () => {},
+  debug: () => {},
+};
+
+/**
+ * Stub Event Publisher
+ */
+const stubEventPublisher = {
+  publish: () => {},
+  publishAsync: () => Promise.resolve(),
+};
+
+/**
+ * Stub Event Emitter
+ */
+const stubEventEmitter = {
+  emit: () => true,
+  emitAsync: () => Promise.resolve([]),
+};
 
 describe('ActivityService', () => {
   let service: ActivityService;
-  let mockPrisma: ReturnType<typeof createMockPrismaService>;
-  let mockFollowService: ReturnType<typeof createMockFollowService>;
-  let mockLogger: ReturnType<typeof createMockLogger>;
-  let mockEventPublisher: ReturnType<typeof createMockEventPublisher>;
-  let mockEventEmitter: ReturnType<typeof createMockEventEmitter>;
+  let stubPrisma: StubPrismaService;
+  let stubFollowService: StubFollowService;
 
-  beforeEach(async () => {
-    mockPrisma = createMockPrismaService();
-    mockFollowService = createMockFollowService();
-    mockLogger = createMockLogger();
-    mockEventPublisher = createMockEventPublisher();
-    mockEventEmitter = createMockEventEmitter();
+  beforeEach(() => {
+    stubPrisma = new StubPrismaService();
+    stubFollowService = new StubFollowService();
 
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        ActivityService,
-        { provide: PrismaService, useValue: mockPrisma },
-        { provide: FollowService, useValue: mockFollowService },
-        { provide: AppLoggerService, useValue: mockLogger },
-        { provide: EventPublisher, useValue: mockEventPublisher },
-        { provide: EventEmitter2, useValue: mockEventEmitter },
-      ],
-    }).compile();
-
-    service = module.get<ActivityService>(ActivityService);
+    service = new ActivityService(
+      stubPrisma as never,
+      stubFollowService as never,
+      stubLogger as never,
+      stubEventPublisher as never,
+      stubEventEmitter as never,
+    );
   });
 
   describe('createActivity', () => {
@@ -108,20 +179,12 @@ describe('ActivityService', () => {
       const type = ActivityType.RESUME_CREATED;
       const metadata = { resumeId: 'res-1', title: 'My Resume' };
 
-      mockPrisma.activity.create.mockImplementation(() =>
-        Promise.resolve({
-          id: 'activity-1',
-          userId,
-          type,
-          metadata,
-          createdAt: new Date(),
-        }),
-      );
+      stubPrisma.setCreateResult(createActivityRecord({ userId, type, metadata }));
 
       const result = await service.createActivity(userId, type, metadata);
 
       expect(result).toHaveProperty('id', 'activity-1');
-      expect(mockPrisma.activity.create.mock.calls.length).toBe(1);
+      expect(stubPrisma.getCallsFor('activity.create').length).toBe(1);
     });
 
     it('should create activity with entityId and entityType', async () => {
@@ -131,76 +194,59 @@ describe('ActivityService', () => {
       const entityId = 'res-123';
       const entityType = 'resume';
 
-      mockPrisma.activity.create.mockImplementation(() =>
-        Promise.resolve({
+      stubPrisma.setCreateResult(
+        createActivityRecord({
           id: 'activity-2',
           userId,
           type,
           metadata,
           entityId,
           entityType,
-          createdAt: new Date(),
         }),
       );
 
-      const result = await service.createActivity(
-        userId,
-        type,
-        metadata,
-        entityId,
-        entityType,
-      );
+      const result = await service.createActivity(userId, type, metadata, entityId, entityType);
 
       expect(result).toHaveProperty('id', 'activity-2');
-      expect(mockPrisma.activity.create.mock.calls.length).toBeGreaterThan(0);
+      expect(stubPrisma.getCallsFor('activity.create').length).toBeGreaterThan(0);
     });
   });
 
   describe('getFeed', () => {
     it('should return activities from followed users', async () => {
       const userId = 'user-1';
-      const activities = [
-        {
+      const activities: ActivityRecord[] = [
+        createActivityRecord({
           id: 'activity-1',
           userId: 'user-2',
           type: ActivityType.RESUME_CREATED,
-          createdAt: new Date(),
-          user: { id: 'user-2', name: 'User 2' },
-        },
-        {
+        }),
+        createActivityRecord({
           id: 'activity-2',
           userId: 'user-3',
           type: ActivityType.SKILL_ADDED,
-          createdAt: new Date(),
-          user: { id: 'user-3', name: 'User 3' },
-        },
+        }),
       ];
 
-      mockFollowService.getFollowingIds.mockImplementation(() =>
-        Promise.resolve(['user-2', 'user-3']),
-      );
-      mockPrisma.activity.findMany.mockImplementation(() =>
-        Promise.resolve(activities),
-      );
-      mockPrisma.activity.count.mockImplementation(() => Promise.resolve(2));
+      stubFollowService.setFollowingIdsResult(['user-2', 'user-3']);
+      stubPrisma.setFindManyResult(activities);
+      stubPrisma.setCountResult(2);
 
       const result = await service.getFeed(userId, { page: 1, limit: 10 });
 
       expect(result.data).toHaveLength(2);
       expect(result.total).toBe(2);
       expect(
-        mockFollowService.getFollowingIds.mock.calls.length,
+        stubFollowService.calls.filter((c) => c.method === 'getFollowingIds').length,
       ).toBeGreaterThan(0);
-      expect(mockPrisma.activity.findMany.mock.calls.length).toBeGreaterThan(0);
+      expect(stubPrisma.getCallsFor('activity.findMany').length).toBeGreaterThan(0);
     });
 
     it('should return empty feed when not following anyone', async () => {
       const userId = 'user-1';
 
-      mockFollowService.getFollowingIds.mockImplementation(() =>
-        Promise.resolve([]),
-      );
-      mockPrisma.activity.count.mockImplementation(() => Promise.resolve(0));
+      stubFollowService.setFollowingIdsResult([]);
+      stubPrisma.setCountResult(0);
 
       const result = await service.getFeed(userId, { page: 1, limit: 10 });
 
@@ -212,19 +258,15 @@ describe('ActivityService', () => {
   describe('getUserActivities', () => {
     it('should return activities for a specific user', async () => {
       const userId = 'user-1';
-      const activities = [
-        {
-          id: 'activity-1',
+      const activities: ActivityRecord[] = [
+        createActivityRecord({
           userId,
           type: ActivityType.RESUME_CREATED,
-          createdAt: new Date(),
-        },
+        }),
       ];
 
-      mockPrisma.activity.findMany.mockImplementation(() =>
-        Promise.resolve(activities),
-      );
-      mockPrisma.activity.count.mockImplementation(() => Promise.resolve(1));
+      stubPrisma.setFindManyResult(activities);
+      stubPrisma.setCountResult(1);
 
       const result = await service.getUserActivities(userId, {
         page: 1,
@@ -233,7 +275,7 @@ describe('ActivityService', () => {
 
       expect(result.data).toHaveLength(1);
       expect(result.total).toBe(1);
-      expect(mockPrisma.activity.findMany.mock.calls.length).toBeGreaterThan(0);
+      expect(stubPrisma.getCallsFor('activity.findMany').length).toBeGreaterThan(0);
     });
   });
 
@@ -242,28 +284,22 @@ describe('ActivityService', () => {
       const userId = 'user-1';
       const type = ActivityType.RESUME_CREATED;
 
-      mockPrisma.activity.findMany.mockImplementation(() =>
-        Promise.resolve([]),
-      );
-      mockPrisma.activity.count.mockImplementation(() => Promise.resolve(0));
+      stubPrisma.setFindManyResult([]);
+      stubPrisma.setCountResult(0);
 
       await service.getActivitiesByType(userId, type, { page: 1, limit: 10 });
 
-      expect(mockPrisma.activity.findMany.mock.calls.length).toBeGreaterThan(0);
+      expect(stubPrisma.getCallsFor('activity.findMany').length).toBeGreaterThan(0);
     });
   });
 
   describe('deleteOldActivities', () => {
     it('should delete activities older than specified days', async () => {
-      mockPrisma.activity.deleteMany.mockImplementation(() =>
-        Promise.resolve({ count: 5 }),
-      );
+      stubPrisma.setDeleteManyResult(5);
 
       await service.deleteOldActivities(30);
 
-      expect(mockPrisma.activity.deleteMany.mock.calls.length).toBeGreaterThan(
-        0,
-      );
+      expect(stubPrisma.getCallsFor('activity.deleteMany').length).toBeGreaterThan(0);
     });
   });
 });

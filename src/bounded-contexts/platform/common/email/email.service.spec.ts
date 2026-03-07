@@ -9,7 +9,7 @@
  * o comportamento observável (promise resolve/reject).
  */
 
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { EmailService } from './email.service';
 import { EmailSenderService } from './services/email-sender.service';
@@ -55,9 +55,7 @@ describe('EmailService (Adapter)', () => {
     });
 
     it('should propagate error when sending fails', async () => {
-      stubSenderService.sendEmail.mockRejectedValueOnce(
-        new Error('SMTP error'),
-      );
+      stubSenderService.sendEmail.mockRejectedValueOnce(new Error('SMTP error'));
 
       const options = {
         to: 'user@example.com',
@@ -65,27 +63,19 @@ describe('EmailService (Adapter)', () => {
         html: '<p>Content</p>',
       };
 
-      await expect(async () => await service.sendEmail(options)).toThrow(
-        'SMTP error',
-      );
+      await expect(async () => await service.sendEmail(options)).toThrow('SMTP error');
     });
   });
 
   describe('sendVerificationEmail', () => {
     it('should complete successfully when sending verification email', async () => {
       await expect(
-        service.sendVerificationEmail(
-          'user@example.com',
-          'John Doe',
-          'token-123',
-        ),
+        service.sendVerificationEmail('user@example.com', 'John Doe', 'token-123'),
       ).resolves.toBeUndefined();
     });
 
     it('should propagate error when sending fails', async () => {
-      stubTemplateService.sendVerificationEmail.mockRejectedValueOnce(
-        new Error('Template error'),
-      );
+      stubTemplateService.sendVerificationEmail.mockRejectedValueOnce(new Error('Template error'));
 
       await expect(
         service.sendVerificationEmail('user@example.com', 'John', 'token'),
@@ -96,18 +86,12 @@ describe('EmailService (Adapter)', () => {
   describe('sendPasswordResetEmail', () => {
     it('should complete successfully when sending password reset email', async () => {
       await expect(
-        service.sendPasswordResetEmail(
-          'user@example.com',
-          'Jane Smith',
-          'reset-token',
-        ),
+        service.sendPasswordResetEmail('user@example.com', 'Jane Smith', 'reset-token'),
       ).resolves.toBeUndefined();
     });
 
     it('should propagate error when sending fails', async () => {
-      stubTemplateService.sendPasswordResetEmail.mockRejectedValueOnce(
-        new Error('Send failed'),
-      );
+      stubTemplateService.sendPasswordResetEmail.mockRejectedValueOnce(new Error('Send failed'));
 
       await expect(
         service.sendPasswordResetEmail('user@example.com', 'Jane', 'token'),
@@ -123,13 +107,11 @@ describe('EmailService (Adapter)', () => {
     });
 
     it('should propagate error when sending fails', async () => {
-      stubTemplateService.sendWelcomeEmail.mockRejectedValueOnce(
-        new Error('Welcome email failed'),
-      );
+      stubTemplateService.sendWelcomeEmail.mockRejectedValueOnce(new Error('Welcome email failed'));
 
-      await expect(
-        service.sendWelcomeEmail('user@example.com', 'Alex'),
-      ).rejects.toThrow('Welcome email failed');
+      await expect(service.sendWelcomeEmail('user@example.com', 'Alex')).rejects.toThrow(
+        'Welcome email failed',
+      );
     });
   });
 
@@ -141,13 +123,11 @@ describe('EmailService (Adapter)', () => {
     });
 
     it('should propagate error when sending fails', async () => {
-      stubTemplateService.sendPasswordChangedEmail.mockRejectedValueOnce(
-        new Error('Email failed'),
-      );
+      stubTemplateService.sendPasswordChangedEmail.mockRejectedValueOnce(new Error('Email failed'));
 
-      await expect(
-        service.sendPasswordChangedEmail('user@example.com', 'Sam'),
-      ).rejects.toThrow('Email failed');
+      await expect(service.sendPasswordChangedEmail('user@example.com', 'Sam')).rejects.toThrow(
+        'Email failed',
+      );
     });
   });
 });

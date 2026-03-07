@@ -5,7 +5,6 @@
  */
 
 export { UserMutationRepository } from '../../repositories/user-mutation.repository';
-// Re-export from existing locations for backward compatibility
 export { UserQueryRepository } from '../../repositories/user-query.repository';
 export { UserManagementRepository } from '../../services/user-management/repository/user-management.repository';
 export { UserPreferencesRepository } from '../../services/user-preferences/repository/user-preferences.repository';

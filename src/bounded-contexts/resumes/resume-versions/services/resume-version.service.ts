@@ -1,18 +1,21 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { ResumeVersionServicePort } from '@/bounded-contexts/resumes/resumes/ports/resume-version-service.port';
 import {
   RESUME_VERSION_USE_CASES,
   type ResumeVersionUseCases,
 } from './resume-version/ports/resume-version.port';
 
 @Injectable()
-export class ResumeVersionService {
+export class ResumeVersionService extends ResumeVersionServicePort {
   constructor(
     @Inject(RESUME_VERSION_USE_CASES)
     private readonly useCases: ResumeVersionUseCases,
-  ) {}
+  ) {
+    super();
+  }
 
-  async createSnapshot(resumeId: string, label?: string) {
-    return this.useCases.createSnapshotUseCase.execute(resumeId, label);
+  async createSnapshot(resumeId: string, label?: string): Promise<void> {
+    await this.useCases.createSnapshotUseCase.execute(resumeId, label);
   }
 
   async getVersions(resumeId: string, userId: string) {

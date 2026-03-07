@@ -13,12 +13,12 @@
  * Target Time: < 15 seconds
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
+import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import type { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { createE2ETestApp } from '../setup-e2e';
 import type { AuthHelper } from '../helpers/auth.helper';
 import type { CleanupHelper } from '../helpers/cleanup.helper';
+import { createE2ETestApp } from '../setup-e2e';
 
 describe('E2E: Onboarding Progress Checkpoint', () => {
   let app: INestApplication;
@@ -122,9 +122,7 @@ describe('E2E: Onboarding Progress Checkpoint', () => {
     });
 
     it('should reject progress retrieval without token', async () => {
-      const response = await request(app.getHttpServer()).get(
-        '/api/v1/onboarding/progress',
-      );
+      const response = await request(app.getHttpServer()).get('/api/v1/onboarding/progress');
 
       expect(response.status).toBe(401);
     });

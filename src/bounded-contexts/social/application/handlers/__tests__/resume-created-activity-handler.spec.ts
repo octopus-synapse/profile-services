@@ -1,7 +1,7 @@
-import { describe, it, expect, mock, beforeEach } from 'bun:test';
-import { ResumeCreatedActivityHandler } from '../resume-created-activity.handler';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { ResumeCreatedEvent } from '@/bounded-contexts/resumes';
 import { ActivityService } from '../../../social/services/activity.service';
+import { ResumeCreatedActivityHandler } from '../resume-created-activity.handler';
 
 describe('ResumeCreatedActivityHandler', () => {
   let handler: ResumeCreatedActivityHandler;
@@ -11,9 +11,7 @@ describe('ResumeCreatedActivityHandler', () => {
     mockActivityService = {
       createActivity: mock(() => Promise.resolve({ id: 'activity-1' })),
     };
-    handler = new ResumeCreatedActivityHandler(
-      mockActivityService as unknown as ActivityService,
-    );
+    handler = new ResumeCreatedActivityHandler(mockActivityService as unknown as ActivityService);
   });
 
   it('creates activity with RESUME_CREATED type', async () => {
@@ -41,9 +39,7 @@ describe('ResumeCreatedActivityHandler', () => {
 
     await handler.handle(event);
 
-    expect(mockActivityService.createActivity.mock.calls[0][0]).toBe(
-      'user-abc',
-    );
+    expect(mockActivityService.createActivity.mock.calls[0][0]).toBe('user-abc');
   });
 
   it('creates activity with resumeId as entityId', async () => {
@@ -54,8 +50,6 @@ describe('ResumeCreatedActivityHandler', () => {
 
     await handler.handle(event);
 
-    expect(mockActivityService.createActivity.mock.calls[0][3]).toBe(
-      'resume-xyz',
-    );
+    expect(mockActivityService.createActivity.mock.calls[0][3]).toBe('resume-xyz');
   });
 });

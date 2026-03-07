@@ -6,74 +6,80 @@
  * - Include repo when has stars or owned by user
  * - Role determination (maintainer/core_contributor/contributor)
  * - Recent activity detection (90 days)
+ *
+ * Pure Bun tests with typed stubs.
  */
 
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
-import { Test, TestingModule } from '@nestjs/testing';
-import { GitHubContributionService } from './github-contribution.service';
+import { beforeEach, describe, expect, it } from 'bun:test';
 import type { GitHubRepo } from '../types/github.types';
-import { GitHubApiService } from './github-api.service';
+import type { GitHubApiService } from './github-api.service';
+import { GitHubContributionService } from './github-contribution.service';
+
+// ============================================================================
+// Stub API Service
+// ============================================================================
+
+class StubGitHubApiService {
+  private commitCounts: Map<string, number> = new Map();
+  private prCounts: Map<string, number> = new Map();
+
+  setCommitCount(repo: string, count: number): void {
+    this.commitCounts.set(repo, count);
+  }
+
+  setPRCount(repo: string, count: number): void {
+    this.prCounts.set(repo, count);
+  }
+
+  async getRepoCommitCount(owner: string, repo: string, _username: string): Promise<number> {
+    return this.commitCounts.get(`${owner}/${repo}`) ?? 5;
+  }
+
+  async getRepoPullRequests(owner: string, repo: string, _username: string): Promise<number> {
+    return this.prCounts.get(`${owner}/${repo}`) ?? 2;
+  }
+}
+
+// ============================================================================
+// Test Helpers
+// ============================================================================
+
+const createRepo = (overrides: Partial<GitHubRepo> = {}): GitHubRepo => ({
+  id: 12345,
+  name: 'test-repo',
+  full_name: 'testuser/test-repo',
+  html_url: 'https://github.com/testuser/test-repo',
+  description: 'A test repository',
+  owner: {
+    login: 'testuser',
+  },
+  stargazers_count: 10,
+  forks_count: 5,
+  language: 'TypeScript',
+  topics: ['testing', 'typescript'],
+  created_at: '2023-01-01T00:00:00Z',
+  updated_at: '2024-01-01T00:00:00Z',
+  pushed_at: new Date().toISOString(), // recent
+  ...overrides,
+});
 
 describe('GitHubContributionService', () => {
   let service: GitHubContributionService;
-  let fakeApiService: {
-    getRepoCommitCount: ReturnType<typeof mock>;
-    getRepoPullRequests: ReturnType<typeof mock>;
-  };
+  let stubApiService: StubGitHubApiService;
 
-  const createRepo = (overrides: Partial<GitHubRepo> = {}): GitHubRepo => ({
-    id: 12345,
-    name: 'test-repo',
-    full_name: 'testuser/test-repo',
-    html_url: 'https://github.com/testuser/test-repo',
-    description: 'A test repository',
-    owner: {
-      login: 'testuser',
-      id: 1,
-      avatar_url: 'https://avatars.githubusercontent.com/u/1',
-      html_url: 'https://github.com/testuser',
-    },
-    stargazers_count: 10,
-    forks_count: 5,
-    language: 'TypeScript',
-    topics: ['testing', 'typescript'],
-    created_at: '2023-01-01T00:00:00Z',
-    updated_at: '2024-01-01T00:00:00Z',
-    pushed_at: new Date().toISOString(), // recent
-    default_branch: 'main',
-    fork: false,
-    private: false,
-    ...overrides,
-  });
-
-  beforeEach(async () => {
-    fakeApiService = {
-      getRepoCommitCount: mock(() => Promise.resolve(5)),
-      getRepoPullRequests: mock(() => Promise.resolve(2)),
-    };
-
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        GitHubContributionService,
-        { provide: GitHubApiService, useValue: fakeApiService },
-      ],
-    }).compile();
-
-    service = module.get<GitHubContributionService>(GitHubContributionService);
+  beforeEach(() => {
+    stubApiService = new StubGitHubApiService();
+    service = new GitHubContributionService(stubApiService as unknown as GitHubApiService);
   });
 
   describe('processContributions', () => {
     it('should include repo owned by user even with 0 stars', async () => {
       const repo = createRepo({
         stargazers_count: 0,
-        owner: { login: 'testuser', id: 1, avatar_url: '', html_url: '' },
+        owner: { login: 'testuser' },
       });
 
-      const result = await service.processContributions(
-        'resume-123',
-        'testuser',
-        [repo],
-      );
+      const result = await service.processContributions('resume-123', 'testuser', [repo]);
 
       expect(result).toHaveLength(1);
       expect(result[0].projectName).toBe('test-repo');
@@ -82,14 +88,10 @@ describe('GitHubContributionService', () => {
     it('should include repo with stars even if not owned by user', async () => {
       const repo = createRepo({
         stargazers_count: 5,
-        owner: { login: 'otheruser', id: 2, avatar_url: '', html_url: '' },
+        owner: { login: 'otheruser' },
       });
 
-      const result = await service.processContributions(
-        'resume-123',
-        'testuser',
-        [repo],
-      );
+      const result = await service.processContributions('resume-123', 'testuser', [repo]);
 
       expect(result).toHaveLength(1);
     });
@@ -97,79 +99,62 @@ describe('GitHubContributionService', () => {
     it('should exclude repo with 0 stars not owned by user', async () => {
       const repo = createRepo({
         stargazers_count: 0,
-        owner: { login: 'otheruser', id: 2, avatar_url: '', html_url: '' },
+        owner: { login: 'otheruser' },
       });
 
-      const result = await service.processContributions(
-        'resume-123',
-        'testuser',
-        [repo],
-      );
+      const result = await service.processContributions('resume-123', 'testuser', [repo]);
 
       expect(result).toHaveLength(0);
     });
 
     it('should determine role as maintainer when user owns repo', async () => {
       const repo = createRepo({
-        owner: { login: 'testuser', id: 1, avatar_url: '', html_url: '' },
+        owner: { login: 'testuser' },
       });
 
-      const result = await service.processContributions(
-        'resume-123',
-        'testuser',
-        [repo],
-      );
+      const result = await service.processContributions('resume-123', 'testuser', [repo]);
 
       expect(result[0].role).toBe('maintainer');
     });
 
     it('should determine role as core_contributor with high commits', async () => {
-      fakeApiService.getRepoCommitCount.mockResolvedValue(15); // > 10 commits
-      fakeApiService.getRepoPullRequests.mockResolvedValue(2);
+      stubApiService.setCommitCount('otheruser/test-repo', 15); // > 10 commits
+      stubApiService.setPRCount('otheruser/test-repo', 2);
 
       const repo = createRepo({
-        owner: { login: 'otheruser', id: 2, avatar_url: '', html_url: '' },
+        full_name: 'otheruser/test-repo',
+        owner: { login: 'otheruser' },
       });
 
-      const result = await service.processContributions(
-        'resume-123',
-        'testuser',
-        [repo],
-      );
+      const result = await service.processContributions('resume-123', 'testuser', [repo]);
 
       expect(result[0].role).toBe('core_contributor');
     });
 
     it('should determine role as core_contributor with high PRs', async () => {
-      fakeApiService.getRepoCommitCount.mockResolvedValue(3);
-      fakeApiService.getRepoPullRequests.mockResolvedValue(8); // > 5 PRs
+      stubApiService.setCommitCount('otheruser/test-repo', 3);
+      stubApiService.setPRCount('otheruser/test-repo', 8); // > 5 PRs
 
       const repo = createRepo({
-        owner: { login: 'otheruser', id: 2, avatar_url: '', html_url: '' },
+        full_name: 'otheruser/test-repo',
+        owner: { login: 'otheruser' },
       });
 
-      const result = await service.processContributions(
-        'resume-123',
-        'testuser',
-        [repo],
-      );
+      const result = await service.processContributions('resume-123', 'testuser', [repo]);
 
       expect(result[0].role).toBe('core_contributor');
     });
 
     it('should determine role as contributor with low activity', async () => {
-      fakeApiService.getRepoCommitCount.mockResolvedValue(3);
-      fakeApiService.getRepoPullRequests.mockResolvedValue(2);
+      stubApiService.setCommitCount('otheruser/test-repo', 3);
+      stubApiService.setPRCount('otheruser/test-repo', 2);
 
       const repo = createRepo({
-        owner: { login: 'otheruser', id: 2, avatar_url: '', html_url: '' },
+        full_name: 'otheruser/test-repo',
+        owner: { login: 'otheruser' },
       });
 
-      const result = await service.processContributions(
-        'resume-123',
-        'testuser',
-        [repo],
-      );
+      const result = await service.processContributions('resume-123', 'testuser', [repo]);
 
       expect(result[0].role).toBe('contributor');
     });
@@ -182,11 +167,7 @@ describe('GitHubContributionService', () => {
         pushed_at: recentDate.toISOString(),
       });
 
-      const result = await service.processContributions(
-        'resume-123',
-        'testuser',
-        [repo],
-      );
+      const result = await service.processContributions('resume-123', 'testuser', [repo]);
 
       expect(result[0].isCurrent).toBe(true);
     });
@@ -199,11 +180,7 @@ describe('GitHubContributionService', () => {
         pushed_at: oldDate.toISOString(),
       });
 
-      const result = await service.processContributions(
-        'resume-123',
-        'testuser',
-        [repo],
-      );
+      const result = await service.processContributions('resume-123', 'testuser', [repo]);
 
       expect(result[0].isCurrent).toBe(false);
     });
@@ -214,17 +191,9 @@ describe('GitHubContributionService', () => {
         language: 'JavaScript',
       });
 
-      const result = await service.processContributions(
-        'resume-123',
-        'testuser',
-        [repo],
-      );
+      const result = await service.processContributions('resume-123', 'testuser', [repo]);
 
-      expect(result[0].technologies).toEqual([
-        'react',
-        'typescript',
-        'testing',
-      ]);
+      expect(result[0].technologies).toEqual(['react', 'typescript', 'testing']);
     });
 
     it('should fallback to language when no topics', async () => {
@@ -233,11 +202,7 @@ describe('GitHubContributionService', () => {
         language: 'Python',
       });
 
-      const result = await service.processContributions(
-        'resume-123',
-        'testuser',
-        [repo],
-      );
+      const result = await service.processContributions('resume-123', 'testuser', [repo]);
 
       expect(result[0].technologies).toEqual(['Python']);
     });

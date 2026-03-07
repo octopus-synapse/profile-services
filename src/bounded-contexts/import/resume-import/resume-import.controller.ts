@@ -19,7 +19,7 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import {
@@ -30,6 +30,7 @@ import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/curre
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { ImportJobDto } from '@/shared-kernel';
+import { RetryImportRequestDto } from '@/shared-kernel/dtos/sdk-request.dto';
 import { ImportJsonDto, ImportResultDto, ParsedResumeDataDto } from './dto/import.dto';
 import { toImportJobDto, toImportResultDto, toParsedResumeDataDto } from './mappers/import.mapper';
 import { ResumeImportService } from './resume-import.service';
@@ -155,6 +156,7 @@ export class ResumeImportController {
     description: 'UUID of failed import job',
     example: 'uuid-v4-string',
   })
+  @ApiBody({ type: RetryImportRequestDto })
   @ApiDataResponse(ImportResultDto, { description: 'Import retry initiated' })
   async retry(
     @CurrentUser() _user: UserPayload,

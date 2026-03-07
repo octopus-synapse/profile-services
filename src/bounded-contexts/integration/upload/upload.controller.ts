@@ -26,6 +26,10 @@ import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/curre
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { DeleteResponseDto } from '@/shared-kernel';
+import {
+  UploadCompanyLogoRequestDto,
+  UploadProfileImageRequestDto,
+} from '@/shared-kernel/dtos/sdk-request.dto';
 import { UploadService } from './upload.service';
 
 /** DTO for upload response */
@@ -52,18 +56,7 @@ export class UploadController {
   @UseInterceptors(FileInterceptor('file'))
   @ApiOperation({ summary: 'Upload user profile image' })
   @ApiConsumes('multipart/form-data')
-  @ApiBody({
-    description: 'Profile image file',
-    schema: {
-      type: 'object',
-      properties: {
-        file: {
-          type: 'string',
-          format: 'binary',
-        },
-      },
-    },
-  })
+  @ApiBody({ type: UploadProfileImageRequestDto })
   @ApiDataResponse(UploadResponseDto, {
     description: 'Profile image uploaded successfully',
   })
@@ -86,18 +79,7 @@ export class UploadController {
   @ApiOperation({ summary: 'Upload company logo for resume' })
   @ApiConsumes('multipart/form-data')
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
-  @ApiBody({
-    description: 'Company logo file',
-    schema: {
-      type: 'object',
-      properties: {
-        file: {
-          type: 'string',
-          format: 'binary',
-        },
-      },
-    },
-  })
+  @ApiBody({ type: UploadCompanyLogoRequestDto })
   @ApiDataResponse(UploadResponseDto, {
     description: 'Company logo uploaded successfully',
   })

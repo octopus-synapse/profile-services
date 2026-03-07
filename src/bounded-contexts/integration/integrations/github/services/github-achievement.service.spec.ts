@@ -7,37 +7,30 @@
  * - Repos threshold (20+) generates achievement
  * - Below thresholds generates no achievements
  *
- * GENERIC SECTIONS: Returns achievement content for SectionItem, not legacy Achievement model.
+ * Pure Bun tests - service has no dependencies.
  */
 
-import { describe, it, expect, beforeEach } from 'bun:test';
-import { Test, TestingModule } from '@nestjs/testing';
-import { GitHubAchievementService } from './github-achievement.service';
+import { beforeEach, describe, expect, it } from 'bun:test';
 import type { GitHubUser } from '../types/github.types';
+import { GitHubAchievementService } from './github-achievement.service';
 
 describe('GitHubAchievementService', () => {
   let service: GitHubAchievementService;
 
+  // Only include fields that exist in GitHubUser interface
   const baseProfile: GitHubUser = {
-    id: 123456,
     login: 'testuser',
-    avatar_url: 'https://avatars.githubusercontent.com/u/123456',
-    html_url: 'https://github.com/testuser',
     name: 'Test User',
     bio: 'A developer',
     public_repos: 5,
     followers: 10,
     following: 20,
     created_at: '2020-01-01T00:00:00Z',
-    updated_at: '2024-01-01T00:00:00Z',
   };
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [GitHubAchievementService],
-    }).compile();
-
-    service = module.get<GitHubAchievementService>(GitHubAchievementService);
+  beforeEach(() => {
+    // Direct instantiation - no NestJS needed, no dependencies
+    service = new GitHubAchievementService();
   });
 
   describe('generateAchievements', () => {
@@ -100,9 +93,7 @@ describe('GitHubAchievementService', () => {
       const starsAchievement = result.find((a) => a.type === 'github_stars');
       const reposAchievement = result.find((a) => a.type === 'custom');
 
-      expect(starsAchievement?.verificationUrl).toBe(
-        'https://github.com/testuser',
-      );
+      expect(starsAchievement?.verificationUrl).toBe('https://github.com/testuser');
       expect(reposAchievement?.verificationUrl).toBe(
         'https://github.com/testuser?tab=repositories',
       );

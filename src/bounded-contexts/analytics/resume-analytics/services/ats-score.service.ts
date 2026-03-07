@@ -1,175 +1,288 @@
 /**
- * ATS Score Service
+ * ATS Score Service — Definition-Driven
  *
- * Calculates ATS compatibility scores from generic resume sections.
- * NO type-specific knowledge - uses semanticKind to find sections.
+ * Calculates ATS compatibility scores using section type definitions
+ * loaded from the database. ZERO hardcoded section knowledge.
+ *
+ * Scoring algorithm:
+ *   Per section: baseScore + Σ(fieldWeight for each filled field)
+ *   Overall:     average of section scores − resume-level deductions
+ *
+ * All scoring configuration (baseScore, fieldWeights, isMandatory)
+ * comes from SectionType.definition.ats in the database.
  */
 
 import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { getString } from '@/shared-kernel/types/section-projection.adapter';
-import { generateATSRecommendations } from '../domain/services';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { generateRecommendations } from '../domain/services';
 import type { AnalyticsSection, ResumeForAnalytics } from '../domain/types';
-import { ACTION_VERBS } from '../domain/value-objects/action-verbs';
-import type { ATSIssue, ATSScoreBreakdown, ATSScoreResult } from '../interfaces';
+import type { ATSIssue, ATSScoreResult, SectionScoreBreakdown } from '../interfaces';
 
-/**
- * Count items across sections matching a semanticKind pattern.
- */
-function countItemsMatchingKind(
-  sections: readonly AnalyticsSection[],
-  kindPattern: RegExp,
-): number {
-  return sections
-    .filter((s) => kindPattern.test(s.semanticKind))
-    .reduce((sum, s) => sum + s.items.length, 0);
-}
-
-/**
- * Extract all description-like text from sections.
- */
-function extractDescriptions(sections: readonly AnalyticsSection[]): string {
-  return sections
-    .flatMap((s) =>
-      s.items.map(
-        (item) =>
-          getString(item.content, 'description') ?? getString(item.content, 'summary') ?? '',
-      ),
-    )
-    .join(' ')
-    .toLowerCase();
+interface SectionTypeAtsConfig {
+  key: string;
+  kind: string;
+  ats: {
+    isMandatory: boolean;
+    recommendedPosition: number;
+    scoring: {
+      baseScore: number;
+      fieldWeights: Record<string, number>;
+    };
+  };
+  /** Maps semantic roles (e.g. ORGANIZATION) → content field keys (e.g. company) */
+  roleToFieldKey: Record<string, string>;
 }
 
 @Injectable()
 export class ATSScoreService {
-  constructor(private readonly eventEmitter: EventEmitter2) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly eventEmitter: EventEmitter2,
+  ) {}
 
-  calculate(resume: ResumeForAnalytics, resumeId?: string): ATSScoreResult {
-    const issues: ATSIssue[] = [];
-    const keywordsScore = this.calculateKeywordsScore(resume);
-    const formatScore = this.calculateFormatScore(resume, issues);
-    const completenessScore = this.calculateCompletenessScore(resume, issues);
-    const experienceScore = this.calculateExperienceScore(resume, issues);
+  async calculate(resume: ResumeForAnalytics, resumeId?: string): Promise<ATSScoreResult> {
+    const catalog = await this.loadCatalog();
 
-    const breakdown: ATSScoreBreakdown = {
-      keywords: keywordsScore,
-      format: formatScore,
-      completeness: completenessScore,
-      experience: experienceScore,
-    };
-    const score = Math.round(
-      keywordsScore * 0.3 + formatScore * 0.2 + completenessScore * 0.25 + experienceScore * 0.25,
-    );
+    const resumeIssues = this.checkResumeLevel(resume);
+    const mandatoryIssues = this.checkMandatorySections(resume.sections, catalog);
+    const sectionBreakdown = this.scoreSections(resume.sections, catalog);
+    const contentIssues = this.checkContentQuality(resume.sections, catalog);
 
-    const result = {
-      score: Math.max(0, Math.min(100, score)),
-      breakdown,
-      issues,
-      recommendations: generateATSRecommendations(issues),
+    const allIssues = [...resumeIssues, ...mandatoryIssues, ...contentIssues];
+    const score = this.calculateOverallScore(sectionBreakdown, resumeIssues);
+
+    const result: ATSScoreResult = {
+      score,
+      sectionBreakdown,
+      issues: allIssues,
+      recommendations: generateRecommendations(allIssues),
     };
 
-    // Emit SSE event if resumeId is provided
     if (resumeId) {
       this.eventEmitter.emit(`analytics:${resumeId}:ats_score`, {
         type: 'ats_score',
         resumeId,
-        data: {
-          atsScore: result.score,
-          timestamp: new Date(),
-        },
+        data: { atsScore: result.score, timestamp: new Date() },
       });
     }
 
     return result;
   }
 
-  /**
-   * Calculate keywords score from skill-like sections.
-   * Matches SKILL, SKILL_SET, SKILLS, etc.
-   */
-  private calculateKeywordsScore(resume: ResumeForAnalytics): number {
-    const skillCount = countItemsMatchingKind(resume.sections, /skill/i);
-    return Math.min(skillCount * 5, 50) + 30;
+  // ---------------------------------------------------------------------------
+  // Catalog loading — single source of truth from SectionType definitions
+  // ---------------------------------------------------------------------------
+
+  private async loadCatalog(): Promise<SectionTypeAtsConfig[]> {
+    const sectionTypes = await this.prisma.sectionType.findMany({
+      where: { isActive: true },
+      select: { key: true, semanticKind: true, definition: true },
+    });
+
+    return sectionTypes.map((st) => {
+      const def = (st.definition ?? {}) as Record<string, unknown>;
+      const ats = (def.ats ?? {}) as Record<string, unknown>;
+      const scoring = (ats.scoring ?? {}) as Record<string, unknown>;
+      const fields = (def.fields ?? []) as Array<Record<string, unknown>>;
+
+      const roleToFieldKey: Record<string, string> = {};
+      for (const field of fields) {
+        if (typeof field.semanticRole === 'string' && typeof field.key === 'string') {
+          roleToFieldKey[field.semanticRole] = field.key;
+        }
+      }
+
+      return {
+        key: st.key,
+        kind: st.semanticKind,
+        ats: {
+          isMandatory: (ats.isMandatory as boolean) ?? false,
+          recommendedPosition: (ats.recommendedPosition as number) ?? 99,
+          scoring: {
+            baseScore: (scoring.baseScore as number) ?? 30,
+            fieldWeights: (scoring.fieldWeights as Record<string, number>) ?? {},
+          },
+        },
+        roleToFieldKey,
+      };
+    });
   }
 
-  /**
-   * Calculate format score from experience-like sections.
-   * Matches WORK_EXPERIENCE, EXPERIENCE, PROJECT, VOLUNTEER, etc.
-   */
-  private calculateFormatScore(resume: ResumeForAnalytics, issues: ATSIssue[]): number {
-    let score = 100;
-    const allDescriptions = extractDescriptions(resume.sections);
-    const actionVerbCount = ACTION_VERBS.filter((verb) => allDescriptions.includes(verb)).length;
-    if (actionVerbCount < 3) {
-      score -= 20;
-      issues.push({
-        type: 'weak_action_verbs',
-        severity: 'medium',
-        message: 'Use more action verbs',
-      });
-    }
-    return Math.max(score, 0);
-  }
+  // ---------------------------------------------------------------------------
+  // Resume-level checks (contact info, summary)
+  // ---------------------------------------------------------------------------
 
-  /**
-   * Calculate completeness score.
-   * Checks for contact info, summary, and skill-like sections.
-   */
-  private calculateCompletenessScore(resume: ResumeForAnalytics, issues: ATSIssue[]): number {
-    let score = 100;
+  private checkResumeLevel(resume: ResumeForAnalytics): ATSIssue[] {
+    const issues: ATSIssue[] = [];
+
     if (!resume.emailContact && !resume.phone) {
-      score -= 30;
       issues.push({
-        type: 'missing_contact',
+        code: 'MISSING_CONTACT_INFO',
         severity: 'high',
-        message: 'Add contact info',
+        message: 'Add your email address and phone number',
       });
     }
+
     if ((resume.summary ?? '').length < 50) {
-      score -= 20;
       issues.push({
-        type: 'short_summary',
+        code: 'SHORT_SUMMARY',
         severity: 'medium',
-        message: 'Expand summary',
+        message: 'Write a professional summary of at least 50 characters',
       });
     }
-    const skillCount = countItemsMatchingKind(resume.sections, /skill/i);
-    if (skillCount === 0) {
-      score -= 25;
-      issues.push({
-        type: 'missing_skills',
-        severity: 'high',
-        message: 'Add skills',
-      });
-    }
-    return Math.max(score, 0);
+
+    return issues;
   }
 
-  /**
-   * Calculate experience score from experience-like sections.
-   * Matches WORK_EXPERIENCE, EXPERIENCE, etc.
-   */
-  private calculateExperienceScore(resume: ResumeForAnalytics, issues: ATSIssue[]): number {
-    // Match experience-like sections
-    const experienceCount = countItemsMatchingKind(resume.sections, /experience/i);
-    if (experienceCount === 0) {
-      issues.push({
-        type: 'no_experience',
-        severity: 'high',
-        message: 'Add experience',
-      });
-      return 0;
+  // ---------------------------------------------------------------------------
+  // Mandatory section checks — reads isMandatory from definitions
+  // ---------------------------------------------------------------------------
+
+  private checkMandatorySections(
+    sections: readonly AnalyticsSection[],
+    catalog: SectionTypeAtsConfig[],
+  ): ATSIssue[] {
+    const issues: ATSIssue[] = [];
+    const presentKinds = new Set(sections.map((s) => s.semanticKind));
+
+    for (const entry of catalog) {
+      if (entry.ats.isMandatory && !presentKinds.has(entry.kind)) {
+        issues.push({
+          code: 'MISSING_MANDATORY_SECTION',
+          severity: 'high',
+          message: `Missing mandatory section: ${entry.kind}`,
+          context: { sectionKind: entry.kind },
+        });
+      }
     }
 
-    const descriptions = extractDescriptions(resume.sections);
-    const hasNumbers = /\d+%|\$\d+|\d+ (years?|months?|people|engineers?|team)/i.test(descriptions);
-    if (!hasNumbers) {
-      issues.push({
-        type: 'no_quantified_achievements',
-        severity: 'medium',
-        message: 'Add metrics',
+    return issues;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Per-section scoring — reads baseScore + fieldWeights from definitions
+  // ---------------------------------------------------------------------------
+
+  private scoreSections(
+    sections: readonly AnalyticsSection[],
+    catalog: SectionTypeAtsConfig[],
+  ): SectionScoreBreakdown[] {
+    const catalogByKind = new Map(catalog.map((c) => [c.kind, c]));
+    const breakdown: SectionScoreBreakdown[] = [];
+
+    for (const section of sections) {
+      const entry = catalogByKind.get(section.semanticKind);
+      if (!entry || section.items.length === 0) continue;
+
+      const { baseScore, fieldWeights } = entry.ats.scoring;
+      let totalScore = 0;
+
+      for (const item of section.items) {
+        let itemScore = baseScore;
+
+        if (Object.keys(fieldWeights).length === 0) {
+          // Density-based fallback when no weights are defined
+          const values = Object.values(item.content);
+          const nonEmpty = values.filter((v) => this.isNonEmpty(v)).length;
+          const density = values.length > 0 ? nonEmpty / values.length : 0;
+          itemScore = Math.round(baseScore + density * 45);
+        } else {
+          for (const [role, weight] of Object.entries(fieldWeights)) {
+            const fieldKey = entry.roleToFieldKey[role];
+            const value = fieldKey ? item.content[fieldKey] : item.content[role.toLowerCase()];
+            if (this.isNonEmpty(value)) {
+              itemScore += weight;
+            }
+          }
+        }
+
+        totalScore += Math.min(100, Math.max(0, itemScore));
+      }
+
+      breakdown.push({
+        sectionKind: section.semanticKind,
+        sectionTypeKey: entry.key,
+        score: Math.min(100, Math.round(totalScore / section.items.length)),
       });
     }
-    return hasNumbers ? 90 : 70;
+
+    return breakdown;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Content quality — checks for missing weighted fields per definition
+  // ---------------------------------------------------------------------------
+
+  private checkContentQuality(
+    sections: readonly AnalyticsSection[],
+    catalog: SectionTypeAtsConfig[],
+  ): ATSIssue[] {
+    const issues: ATSIssue[] = [];
+    const catalogByKind = new Map(catalog.map((c) => [c.kind, c]));
+
+    for (const section of sections) {
+      const entry = catalogByKind.get(section.semanticKind);
+      if (!entry) continue;
+
+      const { fieldWeights } = entry.ats.scoring;
+      if (Object.keys(fieldWeights).length === 0) continue;
+
+      for (const item of section.items) {
+        const missingRoles: string[] = [];
+
+        for (const role of Object.keys(fieldWeights)) {
+          const fieldKey = entry.roleToFieldKey[role];
+          const value = fieldKey ? item.content[fieldKey] : item.content[role.toLowerCase()];
+          if (!this.isNonEmpty(value)) {
+            missingRoles.push(role);
+          }
+        }
+
+        if (missingRoles.length > 0) {
+          issues.push({
+            code: 'MISSING_WEIGHTED_FIELDS',
+            severity: missingRoles.length > 2 ? 'high' : 'medium',
+            message: `Section ${section.semanticKind} item is missing fields: ${missingRoles.join(', ')}`,
+            context: {
+              sectionKind: section.semanticKind,
+              missingFields: missingRoles,
+            },
+          });
+        }
+      }
+    }
+
+    return issues;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Overall score — weighted average of section scores minus deductions
+  // ---------------------------------------------------------------------------
+
+  private calculateOverallScore(
+    sectionBreakdown: SectionScoreBreakdown[],
+    resumeIssues: ATSIssue[],
+  ): number {
+    if (sectionBreakdown.length === 0) return 0;
+
+    const avgSectionScore =
+      sectionBreakdown.reduce((sum, b) => sum + b.score, 0) / sectionBreakdown.length;
+
+    let deduction = 0;
+    for (const issue of resumeIssues) {
+      if (issue.severity === 'high') deduction += 15;
+      else if (issue.severity === 'medium') deduction += 10;
+      else deduction += 5;
+    }
+
+    return Math.max(0, Math.min(100, Math.round(avgSectionScore - deduction)));
+  }
+
+  private isNonEmpty(value: unknown): boolean {
+    if (value === null || value === undefined) return false;
+    if (typeof value === 'string') return value.trim().length > 0;
+    if (Array.isArray(value)) return value.length > 0;
+    return true;
   }
 }

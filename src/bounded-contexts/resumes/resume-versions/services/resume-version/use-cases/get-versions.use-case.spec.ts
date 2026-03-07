@@ -1,87 +1,77 @@
 /**
  * Unit tests for GetVersionsUseCase
  *
- * Tests version listing business logic:
- * - Authorization checks
- * - Version retrieval
+ * Tests version listing business logic using in-memory implementations.
+ * Pure tests - no mocks.
  */
-import {
-  EntityNotFoundException,
-  ForbiddenException,
-} from '@/shared-kernel/exceptions';
+import { beforeEach, describe, expect, it } from 'bun:test';
+import { EntityNotFoundException, ForbiddenException } from '@/shared-kernel/exceptions';
+import { InMemoryResumeVersionRepository } from '../testing';
 import { GetVersionsUseCase } from './get-versions.use-case';
-import type { ResumeVersionRepositoryPort } from '../ports/resume-version.port';
 
 describe('GetVersionsUseCase', () => {
   let useCase: GetVersionsUseCase;
-  let mockRepository: jest.Mocked<ResumeVersionRepositoryPort>;
+  let repository: InMemoryResumeVersionRepository;
+
+  const resumeId = 'resume-123';
+  const userId = 'user-789';
 
   beforeEach(() => {
-    mockRepository = {
-      findResumeOwner: jest.fn(),
-      findResumeVersions: jest.fn(),
-    } as unknown as jest.Mocked<ResumeVersionRepositoryPort>;
-
-    useCase = new GetVersionsUseCase(mockRepository);
+    repository = new InMemoryResumeVersionRepository();
+    useCase = new GetVersionsUseCase(repository);
   });
 
   describe('execute', () => {
-    const resumeId = 'resume-123';
-    const userId = 'user-789';
-
     it('should throw EntityNotFoundException when resume not found', async () => {
-      mockRepository.findResumeOwner.mockResolvedValue(null);
-
-      await expect(useCase.execute(resumeId, userId)).rejects.toThrow(
-        EntityNotFoundException,
-      );
+      await expect(useCase.execute(resumeId, userId)).rejects.toThrow(EntityNotFoundException);
     });
 
     it('should throw ForbiddenException when user is not owner', async () => {
-      mockRepository.findResumeOwner.mockResolvedValue({
+      repository.seedResume({
         id: resumeId,
         userId: 'other-user',
+        resumeSections: [],
       });
 
-      await expect(useCase.execute(resumeId, userId)).rejects.toThrow(
-        ForbiddenException,
-      );
+      await expect(useCase.execute(resumeId, userId)).rejects.toThrow(ForbiddenException);
     });
 
     it('should return versions when user is owner', async () => {
-      const expectedVersions = [
-        {
-          id: 'version-1',
-          versionNumber: 1,
-          title: 'Version 1',
-          createdAt: new Date(),
-        },
-        {
-          id: 'version-2',
-          versionNumber: 2,
-          title: 'Version 2',
-          createdAt: new Date(),
-        },
-      ];
-
-      mockRepository.findResumeOwner.mockResolvedValue({
+      repository.seedResume({
         id: resumeId,
         userId,
+        resumeSections: [],
       });
-      mockRepository.findResumeVersions.mockResolvedValue(expectedVersions);
+      repository.seedVersion({
+        id: 'version-1',
+        resumeId,
+        versionNumber: 1,
+        snapshot: {},
+        label: 'Version 1',
+        createdAt: new Date('2024-01-01'),
+      });
+      repository.seedVersion({
+        id: 'version-2',
+        resumeId,
+        versionNumber: 2,
+        snapshot: {},
+        label: 'Version 2',
+        createdAt: new Date('2024-01-02'),
+      });
 
       const result = await useCase.execute(resumeId, userId);
 
-      expect(mockRepository.findResumeVersions).toHaveBeenCalledWith(resumeId);
-      expect(result).toEqual(expectedVersions);
+      expect(result).toHaveLength(2);
+      expect(result[0].versionNumber).toBe(2); // Sorted desc
+      expect(result[1].versionNumber).toBe(1);
     });
 
     it('should return empty array when no versions exist', async () => {
-      mockRepository.findResumeOwner.mockResolvedValue({
+      repository.seedResume({
         id: resumeId,
         userId,
+        resumeSections: [],
       });
-      mockRepository.findResumeVersions.mockResolvedValue([]);
 
       const result = await useCase.execute(resumeId, userId);
 

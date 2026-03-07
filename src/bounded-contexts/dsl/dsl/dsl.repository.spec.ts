@@ -1,21 +1,83 @@
 /**
  * DSL Repository Tests
+ *
+ * Pure tests using in-memory implementations.
  */
 
-import { describe, it, expect, beforeEach, mock, spyOn } from 'bun:test';
-import { createMockResume } from '@test/factories/resume.factory';
-import { Test, TestingModule } from '@nestjs/testing';
+import { beforeEach, describe, expect, it } from 'bun:test';
 import { BadRequestException } from '@nestjs/common';
+import { createMockResume } from '@test/factories/resume.factory';
 import { DslRepository } from './dsl.repository';
-import { DslCompilerService } from './dsl-compiler.service';
-import { DslValidatorService } from './dsl-validator.service';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { InMemoryDslCompiler, InMemoryDslValidator, mockAst } from './testing';
+
+type ResumeLike = {
+  id: string;
+  userId: string;
+  slug?: string | null;
+  isPublic?: boolean;
+  customTheme?: unknown;
+  activeTheme?: {
+    styleConfig: {
+      version: string;
+      layout?: Record<string, unknown>;
+      tokens?: Record<string, unknown>;
+      sections?: unknown[];
+    };
+  };
+  resumeSections?: unknown[];
+};
+
+type ShareLike = {
+  id: string;
+  slug: string;
+  isActive: boolean;
+  expiresAt: Date | null;
+  resume: ResumeLike;
+};
+
+/**
+ * Simple in-memory Prisma service for testing
+ */
+class InMemoryPrismaService {
+  private resumes = new Map<string, ResumeLike>();
+  private shares = new Map<string, ShareLike>();
+
+  resume = {
+    findFirst: async (args: { where: { id: string; userId: string } }) => {
+      const resume = this.resumes.get(args.where.id);
+      if (resume && resume.userId === args.where.userId) {
+        return resume;
+      }
+      return null;
+    },
+  };
+
+  resumeShare = {
+    findUnique: async (args: { where: { slug: string } }) => {
+      return this.shares.get(args.where.slug) ?? null;
+    },
+  };
+
+  // Test helpers
+  seedResume(resume: ResumeLike): void {
+    this.resumes.set(resume.id, resume);
+  }
+
+  seedShare(share: ShareLike): void {
+    this.shares.set(share.slug, share);
+  }
+
+  clear(): void {
+    this.resumes.clear();
+    this.shares.clear();
+  }
+}
 
 describe('DslRepository', () => {
   let repository: DslRepository;
-  let compiler: DslCompilerService;
-  let validator: DslValidatorService;
-  let prisma: PrismaService;
+  let compiler: InMemoryDslCompiler;
+  let validator: InMemoryDslValidator;
+  let prisma: InMemoryPrismaService;
 
   const mockResume = {
     ...createMockResume({
@@ -33,67 +95,30 @@ describe('DslRepository', () => {
         sections: [],
       },
     },
-  } as any;
-
-  const mockAst = {
-    meta: { version: '1.0.0', generatedAt: '2026-01-02T12:00:00.000Z' },
-    page: { widthPx: 794, heightPx: 1123, columns: [] },
-    sections: [],
-    globalStyles: {
-      background: '#ffffff',
-      textPrimary: '#000000',
-      textSecondary: '#666666',
-      accent: '#0066cc',
-    },
   };
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        DslRepository,
-        {
-          provide: DslCompilerService,
-          useValue: {
-            compileFromRaw: mock(),
-            compileForHtml: mock(),
-            compileForPdf: mock(),
-          },
-        },
-        {
-          provide: DslValidatorService,
-          useValue: {
-            validate: mock(),
-            validateOrThrow: mock(),
-          },
-        },
-        {
-          provide: PrismaService,
-          useValue: {
-            resume: {
-              findFirst: mock(),
-            },
-            resumeShare: {
-              findUnique: mock(),
-            },
-          },
-        },
-      ],
-    }).compile();
+  beforeEach(() => {
+    compiler = new InMemoryDslCompiler();
+    validator = new InMemoryDslValidator();
+    prisma = new InMemoryPrismaService();
 
-    repository = module.get<DslRepository>(DslRepository);
-    compiler = module.get<DslCompilerService>(DslCompilerService);
-    validator = module.get<DslValidatorService>(DslValidatorService);
-    prisma = module.get<PrismaService>(PrismaService);
+    repository = new DslRepository(
+      prisma as unknown as ConstructorParameters<typeof DslRepository>[0],
+      compiler,
+      validator as unknown as ConstructorParameters<typeof DslRepository>[2],
+    );
+
+    // Seed default data
+    prisma.seedResume(mockResume);
   });
 
   describe('preview', () => {
     it('should compile DSL for preview', () => {
       const mockDsl = { version: '1.0.0' };
-      spyOn(compiler, 'compileFromRaw').mockReturnValue(mockAst as any);
 
       const result = repository.preview(mockDsl, 'html');
 
-      expect(compiler.compileFromRaw).toHaveBeenCalledWith(mockDsl, 'html');
+      expect(compiler.getLastCompiledDsl()).toEqual(mockDsl);
       expect(result).toEqual(mockAst);
     });
   });
@@ -101,30 +126,31 @@ describe('DslRepository', () => {
   describe('validate', () => {
     it('should validate DSL', () => {
       const mockDsl = { version: '1.0.0' };
-      const mockValidation = { valid: true, errors: null };
-      spyOn(validator, 'validate').mockReturnValue(mockValidation as any);
 
       const result = repository.validate(mockDsl);
 
-      expect(validator.validate).toHaveBeenCalledWith(mockDsl);
-      expect(result).toEqual(mockValidation);
+      expect(validator.getLastValidatedDsl()).toEqual(mockDsl);
+      expect(result).toEqual({ valid: true, errors: null });
+    });
+
+    it('should return errors when validation fails', () => {
+      validator.setValidationResult({
+        valid: false,
+        errors: [{ message: 'Invalid version' }],
+      });
+      const mockDsl = { version: 'invalid' };
+
+      const result = repository.validate(mockDsl);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors).toHaveLength(1);
     });
   });
 
   describe('render', () => {
     it('should render resume AST', async () => {
-      spyOn(prisma.resume, 'findFirst').mockResolvedValue(mockResume);
-      spyOn(validator, 'validateOrThrow').mockReturnValue(
-        mockResume.activeTheme.styleConfig,
-      );
-      spyOn(compiler, 'compileForHtml').mockReturnValue(mockAst as any);
-
       const result = await repository.render('resume-123', 'user-123', 'html');
 
-      expect(prisma.resume.findFirst).toHaveBeenCalledWith({
-        where: { id: 'resume-123', userId: 'user-123' },
-        include: expect.any(Object),
-      });
       expect(result).toEqual({
         ast: mockAst,
         resumeId: 'resume-123',
@@ -132,11 +158,15 @@ describe('DslRepository', () => {
     });
 
     it('should throw if resume not found', async () => {
-      spyOn(prisma.resume, 'findFirst').mockResolvedValue(null);
+      await expect(async () => await repository.render('non-existent', 'user-123')).toThrow(
+        BadRequestException,
+      );
+    });
 
-      await expect(
-        async () => await repository.render('resume-123', 'user-123'),
-      ).toThrow(BadRequestException);
+    it('should throw if user does not own resume', async () => {
+      await expect(async () => await repository.render('resume-123', 'other-user')).toThrow(
+        BadRequestException,
+      );
     });
 
     it('should pass generic sections to compiler data', async () => {
@@ -168,57 +198,39 @@ describe('DslRepository', () => {
         ],
       };
 
-      spyOn(prisma.resume, 'findFirst').mockResolvedValue(
-        resumeWithSections as any,
-      );
-      spyOn(validator, 'validateOrThrow').mockReturnValue(
-        mockResume.activeTheme.styleConfig,
-      );
-      spyOn(compiler, 'compileForHtml').mockReturnValue(mockAst as any);
+      prisma.seedResume(resumeWithSections);
 
       await repository.render('resume-123', 'user-123', 'html');
 
-      expect(compiler.compileForHtml).toHaveBeenCalledWith(
-        expect.any(Object),
-        expect.objectContaining({
-          sections: expect.arrayContaining([
-            expect.objectContaining({
-              id: 'section-1',
-              semanticKind: 'WORK_EXPERIENCE',
-              items: expect.arrayContaining([
-                expect.objectContaining({
-                  id: 'item-1',
-                  order: 0,
-                  content: { position: 'Dev', company: 'Acme' },
-                }),
-              ]),
-            }),
-          ]),
-        }),
-      );
+      const compiledData = compiler.getLastCompiledData();
+      expect(compiledData).toBeTruthy();
+      if (!compiledData || typeof compiledData !== 'object') {
+        throw new Error('Expected compiled data object');
+      }
+      const sections = (compiledData as { sections?: unknown }).sections;
+      expect(Array.isArray(sections)).toBe(true);
+      if (!Array.isArray(sections)) {
+        throw new Error('Expected sections array');
+      }
+      expect(sections).toBeDefined();
+      expect(sections).toHaveLength(1);
+      const firstSection = sections[0] as { semanticKind?: string };
+      expect(firstSection.semanticKind).toBe('WORK_EXPERIENCE');
     });
   });
 
   describe('renderPublic', () => {
     it('should render public resume AST', async () => {
-      spyOn(prisma.resumeShare, 'findUnique').mockResolvedValue({
+      prisma.seedShare({
         id: 'share-123',
         slug: 'john-doe',
         isActive: true,
         expiresAt: null,
         resume: mockResume,
-      } as any);
-      spyOn(validator, 'validateOrThrow').mockReturnValue(
-        mockResume.activeTheme.styleConfig,
-      );
-      spyOn(compiler, 'compileForHtml').mockReturnValue(mockAst as any);
+      });
 
       const result = await repository.renderPublic('john-doe', 'html');
 
-      expect(prisma.resumeShare.findUnique).toHaveBeenCalledWith({
-        where: { slug: 'john-doe' },
-        include: expect.any(Object),
-      });
       expect(result).toEqual({
         ast: mockAst,
         slug: 'john-doe',
@@ -226,11 +238,37 @@ describe('DslRepository', () => {
     });
 
     it('should throw if public resume not found', async () => {
-      spyOn(prisma.resumeShare, 'findUnique').mockResolvedValue(null);
+      await expect(async () => await repository.renderPublic('non-existent')).toThrow(
+        BadRequestException,
+      );
+    });
 
-      await expect(
-        async () => await repository.renderPublic('john-doe'),
-      ).toThrow(BadRequestException);
+    it('should throw if share is not active', async () => {
+      prisma.seedShare({
+        id: 'share-123',
+        slug: 'inactive-share',
+        isActive: false,
+        expiresAt: null,
+        resume: mockResume,
+      });
+
+      await expect(async () => await repository.renderPublic('inactive-share')).toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('should throw if share is expired', async () => {
+      prisma.seedShare({
+        id: 'share-123',
+        slug: 'expired-share',
+        isActive: true,
+        expiresAt: new Date('2020-01-01'), // Past date
+        resume: mockResume,
+      });
+
+      await expect(async () => await repository.renderPublic('expired-share')).toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -249,25 +287,23 @@ describe('DslRepository', () => {
         },
       };
 
-      spyOn(prisma.resume, 'findFirst').mockResolvedValue(resumeWithCustom);
-      spyOn(validator, 'validateOrThrow').mockImplementation(
-        (dsl) => dsl as any,
-      );
-      spyOn(compiler, 'compileForHtml').mockReturnValue(mockAst as any);
+      prisma.seedResume(resumeWithCustom);
 
       await repository.render('resume-123', 'user-123');
 
-      expect(validator.validateOrThrow).toHaveBeenCalledWith(
-        expect.objectContaining({
-          version: '1.0.0',
-          tokens: {
-            colors: {
-              primary: '#000000',
-              accent: '#ff0000',
-            },
-          },
-        }),
-      );
+      const validatedDsl = validator.getLastValidatedDsl();
+      expect(validatedDsl).toBeTruthy();
+      if (!validatedDsl || typeof validatedDsl !== 'object') {
+        throw new Error('Expected validated DSL object');
+      }
+      const tokens = (validatedDsl as { tokens?: { colors?: Record<string, string> } }).tokens;
+      if (!tokens?.colors) {
+        throw new Error('Expected DSL token colors');
+      }
+      const validatedDslVersion = (validatedDsl as { version?: string }).version;
+      expect(validatedDslVersion).toBe('1.0.0');
+      expect(tokens.colors.primary).toBe('#000000');
+      expect(tokens.colors.accent).toBe('#ff0000');
     });
   });
 });

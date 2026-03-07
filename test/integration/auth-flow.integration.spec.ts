@@ -6,22 +6,13 @@
  *
  */
 
-import {
-  describe,
-  it,
-  expect,
-  beforeAll,
-  afterAll,
-  beforeEach,
-  afterEach,
-  mock,
-} from 'bun:test';
-import { Test, TestingModule } from '@nestjs/testing';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, mock } from 'bun:test';
 import { INestApplication } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
-import { AppModule } from '../../src/app.module';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { EmailSenderService } from '@/bounded-contexts/platform/common/email/services/email-sender.service';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { AppModule } from '../../src/app.module';
 import { acceptTosWithPrisma } from './setup';
 
 describe('Auth Flow Integration', () => {
@@ -134,10 +125,7 @@ describe('Auth Flow Integration', () => {
 
     it('should reject duplicate email signup', async () => {
       // First signup
-      await request(app.getHttpServer())
-        .post('/api/accounts')
-        .send(testUser)
-        .expect(201);
+      await request(app.getHttpServer()).post('/api/accounts').send(testUser).expect(201);
 
       // Duplicate signup
       const duplicateResponse = await request(app.getHttpServer())
@@ -146,17 +134,12 @@ describe('Auth Flow Integration', () => {
         .expect(409);
 
       // Error message should indicate email is already registered
-      expect(duplicateResponse.body.message).toMatch(
-        /already|registered|exists/i,
-      );
+      expect(duplicateResponse.body.message).toMatch(/already|registered|exists/i);
     });
 
     it('should reject invalid credentials on login', async () => {
       // Signup first
-      await request(app.getHttpServer())
-        .post('/api/accounts')
-        .send(testUser)
-        .expect(201);
+      await request(app.getHttpServer()).post('/api/accounts').send(testUser).expect(201);
 
       // Invalid password
       const response = await request(app.getHttpServer())
@@ -276,10 +259,7 @@ describe('Auth Flow Integration', () => {
     };
 
     beforeEach(async () => {
-      await request(app.getHttpServer())
-        .post('/api/accounts')
-        .send(testUser)
-        .expect(201);
+      await request(app.getHttpServer()).post('/api/accounts').send(testUser).expect(201);
     });
 
     it('should complete password reset flow', async () => {

@@ -14,17 +14,25 @@
  * - Handles cache failures gracefully (falls back to method call)
  */
 
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
-import { Test, TestingModule } from '@nestjs/testing';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { Injectable } from '@nestjs/common';
-import { Cacheable, buildCacheKey } from './cacheable.decorator';
+import { Test, TestingModule } from '@nestjs/testing';
 import { CacheService } from '../cache.service';
+import { buildCacheKey, Cacheable } from './cacheable.decorator';
 
-// --- Mock CacheService ---
+// --- Mock CacheService Factory ---
 
-const createMockCacheService = () => ({
-  get: mock(() => Promise.resolve(null)),
-  set: mock(() => Promise.resolve()),
+const createMockCacheService = (options?: {
+  getReturns?: unknown;
+  getFails?: boolean;
+  setFails?: boolean;
+}) => ({
+  get: options?.getFails
+    ? mock(() => Promise.reject(new Error('Redis unavailable')))
+    : mock(() => Promise.resolve(options?.getReturns ?? null)),
+  set: options?.setFails
+    ? mock(() => Promise.reject(new Error('Redis write failed')))
+    : mock(() => Promise.resolve()),
   delete: mock(() => Promise.resolve()),
   isEnabled: true,
 });
@@ -53,18 +61,13 @@ class TestService {
   }
 
   @Cacheable({ key: 'resume:{slug}', ttl: 300 })
-  async getResumeBySlug(
-    slug: string,
-  ): Promise<{ slug: string; title: string }> {
+  async getResumeBySlug(slug: string): Promise<{ slug: string; title: string }> {
     this.callCount++;
     return { slug, title: `Resume ${slug}` };
   }
 
   @Cacheable({ key: 'analytics:{userId}:{period}', ttl: 3600 })
-  async getAnalytics(
-    _userId: string,
-    _period: string,
-  ): Promise<{ views: number }> {
+  async getAnalytics(_userId: string, _period: string): Promise<{ views: number }> {
     this.callCount++;
     return { views: 100 };
   }
@@ -98,9 +101,7 @@ describe('buildCacheKey', () => {
   });
 
   it('should interpolate nested object properties', () => {
-    const key = buildCacheKey('object:{data.id}', [
-      { id: 'obj-123', value: 42 },
-    ]);
+    const key = buildCacheKey('object:{data.id}', [{ id: 'obj-123', value: 42 }]);
     expect(key).toBe('object:obj-123');
   });
 
@@ -114,46 +115,39 @@ describe('@Cacheable decorator', () => {
   let service: TestService;
   let mockCacheService: ReturnType<typeof createMockCacheService>;
 
-  beforeEach(async () => {
-    mockCacheService = createMockCacheService();
+  const setupService = async (
+    cacheServiceOptions?: Parameters<typeof createMockCacheService>[0],
+  ) => {
+    mockCacheService = createMockCacheService(cacheServiceOptions);
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        TestService,
-        { provide: CacheService, useValue: mockCacheService },
-      ],
+      providers: [TestService, { provide: CacheService, useValue: mockCacheService }],
     }).compile();
 
     service = module.get<TestService>(TestService);
     service.cacheService = mockCacheService as unknown as CacheService;
     service.callCount = 0;
+  };
+
+  beforeEach(async () => {
+    await setupService();
   });
 
   describe('cache miss', () => {
     it('should call method and cache result on cache miss', async () => {
-      mockCacheService.get.mockResolvedValue(null);
-
       const result = await service.getStaticData();
 
       expect(result).toBe('computed-value');
       expect(service.callCount).toBe(1);
       expect(mockCacheService.get).toHaveBeenCalledWith('test:static');
-      expect(mockCacheService.set).toHaveBeenCalledWith(
-        'test:static',
-        'computed-value',
-        60,
-      );
+      expect(mockCacheService.set).toHaveBeenCalledWith('test:static', 'computed-value', 60);
     });
 
     it('should use interpolated key for cache operations', async () => {
-      mockCacheService.get.mockResolvedValue(null);
-
       const result = await service.getUserProfile('user-456');
 
       expect(result).toEqual({ id: 'user-456', name: 'User user-456' });
-      expect(mockCacheService.get).toHaveBeenCalledWith(
-        'user:user-456:profile',
-      );
+      expect(mockCacheService.get).toHaveBeenCalledWith('user:user-456:profile');
       expect(mockCacheService.set).toHaveBeenCalledWith(
         'user:user-456:profile',
         { id: 'user-456', name: 'User user-456' },
@@ -164,7 +158,7 @@ describe('@Cacheable decorator', () => {
 
   describe('cache hit', () => {
     it('should return cached value without calling method', async () => {
-      mockCacheService.get.mockResolvedValue('cached-value');
+      await setupService({ getReturns: 'cached-value' });
 
       const result = await service.getStaticData();
 
@@ -175,7 +169,7 @@ describe('@Cacheable decorator', () => {
 
     it('should return cached object value', async () => {
       const cachedProfile = { id: 'user-123', name: 'Cached User' };
-      mockCacheService.get.mockResolvedValue(cachedProfile);
+      await setupService({ getReturns: cachedProfile });
 
       const result = await service.getUserProfile('user-123');
 
@@ -186,13 +180,9 @@ describe('@Cacheable decorator', () => {
 
   describe('multiple arguments', () => {
     it('should build key with multiple arguments', async () => {
-      mockCacheService.get.mockResolvedValue(null);
-
       await service.getAnalytics('user-789', 'monthly');
 
-      expect(mockCacheService.get).toHaveBeenCalledWith(
-        'analytics:user-789:monthly',
-      );
+      expect(mockCacheService.get).toHaveBeenCalledWith('analytics:user-789:monthly');
       expect(mockCacheService.set).toHaveBeenCalledWith(
         'analytics:user-789:monthly',
         { views: 100 },
@@ -203,7 +193,7 @@ describe('@Cacheable decorator', () => {
 
   describe('error handling', () => {
     it('should call method if cache get fails', async () => {
-      mockCacheService.get.mockRejectedValue(new Error('Redis unavailable'));
+      await setupService({ getFails: true });
 
       const result = await service.getStaticData();
 
@@ -212,8 +202,7 @@ describe('@Cacheable decorator', () => {
     });
 
     it('should not fail if cache set fails after method call', async () => {
-      mockCacheService.get.mockResolvedValue(null);
-      mockCacheService.set.mockRejectedValue(new Error('Redis write failed'));
+      await setupService({ setFails: true });
 
       const result = await service.getStaticData();
 

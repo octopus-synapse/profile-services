@@ -5,17 +5,32 @@
  * Kent Beck: "Test the error paths as thoroughly as the happy paths."
  */
 
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
-import { CacheCoreService } from './cache-core.service';
-import { RedisConnectionService } from '../redis-connection.service';
 import { AppLoggerService } from '../../logger/logger.service';
+import { RedisConnectionService } from '../redis-connection.service';
+import { CacheCoreService } from './cache-core.service';
 
 describe('CacheCoreService', () => {
   let service: CacheCoreService;
-  let mockClient: any;
-  let mockLogger: AppLoggerService;
-  let mockRedisConnection: any;
+  let mockClient: {
+    get: ReturnType<typeof mock>;
+    set: ReturnType<typeof mock>;
+    setex: ReturnType<typeof mock>;
+    del: ReturnType<typeof mock>;
+    keys: ReturnType<typeof mock>;
+    flushdb: ReturnType<typeof mock>;
+  };
+  let mockLogger: {
+    log: ReturnType<typeof mock>;
+    error: ReturnType<typeof mock>;
+    warn: ReturnType<typeof mock>;
+    debug: ReturnType<typeof mock>;
+  };
+  let mockRedisConnection: {
+    client: typeof mockClient | null;
+    isEnabled: boolean;
+  };
 
   beforeEach(async () => {
     mockClient = {
@@ -32,7 +47,7 @@ describe('CacheCoreService', () => {
       error: mock(),
       warn: mock(),
       debug: mock(),
-    } as any;
+    };
 
     mockRedisConnection = {
       client: mockClient,
@@ -104,10 +119,7 @@ describe('CacheCoreService', () => {
 
       await service.set('key', { data: 'value' });
 
-      expect(mockClient.set).toHaveBeenCalledWith(
-        'key',
-        JSON.stringify({ data: 'value' }),
-      );
+      expect(mockClient.set).toHaveBeenCalledWith('key', JSON.stringify({ data: 'value' }));
     });
 
     it('should set value with TTL', async () => {
@@ -115,11 +127,7 @@ describe('CacheCoreService', () => {
 
       await service.set('key', { data: 'value' }, 3600);
 
-      expect(mockClient.setex).toHaveBeenCalledWith(
-        'key',
-        3600,
-        JSON.stringify({ data: 'value' }),
-      );
+      expect(mockClient.setex).toHaveBeenCalledWith('key', 3600, JSON.stringify({ data: 'value' }));
     });
 
     it('should log error on Redis failure', async () => {
@@ -220,10 +228,7 @@ describe('CacheCoreService', () => {
       await service.flush();
 
       expect(mockClient.flushdb).toHaveBeenCalled();
-      expect(mockLogger.log).toHaveBeenCalledWith(
-        'Cache flushed successfully',
-        'CacheCoreService',
-      );
+      expect(mockLogger.log).toHaveBeenCalledWith('Cache flushed successfully', 'CacheCoreService');
     });
 
     it('should log error on Redis failure', async () => {

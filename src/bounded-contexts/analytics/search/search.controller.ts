@@ -9,13 +9,14 @@
  * - GET /search/similar/:id - Find similar resumes
  */
 
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Controller, Get, Inject, Param, Query } from '@nestjs/common';
 import { ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger';
 import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
-import { ResumeSearchService, SearchParams } from './resume-search.service';
+import { SEARCH_SERVICE_PORT, type SearchServicePort } from './ports';
+import type { SearchParams } from './resume-search.service';
 
 /** DTO for search result item */
 export class SearchResultItemDto {
@@ -91,7 +92,10 @@ export class SimilarResumesResponseDto {
 @ApiTags('search')
 @Controller('search')
 export class SearchController {
-  constructor(private readonly searchService: ResumeSearchService) {}
+  constructor(
+    @Inject(SEARCH_SERVICE_PORT)
+    private readonly searchService: SearchServicePort,
+  ) {}
 
   /**
    * Search public resumes

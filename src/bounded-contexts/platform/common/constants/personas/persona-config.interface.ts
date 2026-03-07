@@ -4,7 +4,7 @@ import { TechPersona } from './tech-persona.enum';
  * Persona Configuration Interface
  *
  * Defines the structure for each tech persona's configuration,
- * including visual styling, relevant skills, and priority sections.
+ * including visual styling, relevant skills, and content priorities.
  */
 export interface PersonaConfig {
   /** Unique persona identifier */
@@ -34,8 +34,8 @@ export interface PersonaConfig {
   /** Types of achievements relevant to this persona */
   achievementTypes: string[];
 
-  /** Resume sections that should be highlighted */
-  prioritySections: string[];
+  /** Content priorities that should be highlighted */
+  contentPriorities: string[];
 
   /** Keywords for persona detection and suggestions */
   keywords: string[];

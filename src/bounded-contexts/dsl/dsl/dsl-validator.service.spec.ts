@@ -7,9 +7,9 @@
  * Uncle Bob: "Test boundary conditions"
  */
 
-import { describe, it, expect, beforeEach } from 'bun:test';
-import { DslValidatorService } from './dsl-validator.service';
+import { beforeEach, describe, expect, it } from 'bun:test';
 import { BadRequestException } from '@nestjs/common';
+import { DslValidatorService } from './dsl-validator.service';
 
 describe('DslValidatorService', () => {
   let service: DslValidatorService;
@@ -54,15 +54,11 @@ describe('DslValidatorService', () => {
     });
 
     it('should throw BadRequestException for invalid structure', () => {
-      expect(() => service.validateOrThrow({ invalid: 'data' })).toThrow(
-        BadRequestException,
-      );
+      expect(() => service.validateOrThrow({ invalid: 'data' })).toThrow(BadRequestException);
     });
 
     it('should throw BadRequestException for missing required fields', () => {
-      expect(() => service.validateOrThrow({ version: '1.0.0' })).toThrow(
-        BadRequestException,
-      );
+      expect(() => service.validateOrThrow({ version: '1.0.0' })).toThrow(BadRequestException);
     });
   });
 

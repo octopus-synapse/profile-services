@@ -1,9 +1,6 @@
-import { describe, it, expect, mock, beforeEach } from 'bun:test';
-import {
-  ResumeCreatedHandler,
-  AnalyticsRecorder,
-} from '../resume-created.handler';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { ResumeCreatedEvent } from '@/bounded-contexts/resumes';
+import { AnalyticsRecorder, ResumeCreatedHandler } from '../resume-created.handler';
 
 describe('ResumeCreatedHandler', () => {
   let handler: ResumeCreatedHandler;
@@ -22,9 +19,6 @@ describe('ResumeCreatedHandler', () => {
 
     await handler.handle(event);
 
-    expect(mockRecorder.recordResumeCreation).toHaveBeenCalledWith(
-      'resume-123',
-      'user-1',
-    );
+    expect(mockRecorder.recordResumeCreation).toHaveBeenCalledWith('resume-123', 'user-1');
   });
 });

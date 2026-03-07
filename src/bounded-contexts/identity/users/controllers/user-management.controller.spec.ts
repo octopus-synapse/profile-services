@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { PermissionGuard } from '@/bounded-contexts/identity/authorization';
-import { UserManagementController } from './user-management.controller';
+import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { UserManagementService } from '../services/user-management.service';
+import { UserManagementController } from './user-management.controller';
 
 const createMockService = () => ({
   listUsers: mock(() =>
@@ -12,15 +12,9 @@ const createMockService = () => ({
       pagination: { page: 1, limit: 20, total: 1, totalPages: 1 },
     }),
   ),
-  getUserDetails: mock(() =>
-    Promise.resolve({ id: 'user-1', email: 'user@example.com' }),
-  ),
-  createUser: mock(() =>
-    Promise.resolve({ id: 'user-1', email: 'new@example.com' }),
-  ),
-  updateUser: mock(() =>
-    Promise.resolve({ id: 'user-1', name: 'Updated User' }),
-  ),
+  getUserDetails: mock(() => Promise.resolve({ id: 'user-1', email: 'user@example.com' })),
+  createUser: mock(() => Promise.resolve({ id: 'user-1', email: 'new@example.com' })),
+  updateUser: mock(() => Promise.resolve({ id: 'user-1', name: 'Updated User' })),
   deleteUser: mock(() => Promise.resolve(undefined)),
   resetPassword: mock(() => Promise.resolve(undefined)),
 });

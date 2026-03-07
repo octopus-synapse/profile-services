@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
-import { PublicThemeController } from './public-theme.controller';
 import { ThemeQueryService } from '../services/theme-query.service';
+import { PublicThemeController } from './public-theme.controller';
 
 const createQueryService = () => ({
   findAllThemesWithPagination: mock(() =>
@@ -17,13 +17,12 @@ const createQueryService = () => ({
 
 describe('PublicThemeController - Contract', () => {
   let controller: PublicThemeController;
+  type FindAllQuery = Parameters<PublicThemeController['findAllThemesWithPagination']>[0];
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [PublicThemeController],
-      providers: [
-        { provide: ThemeQueryService, useValue: createQueryService() },
-      ],
+      providers: [{ provide: ThemeQueryService, useValue: createQueryService() }],
     }).compile();
 
     controller = module.get<PublicThemeController>(PublicThemeController);
@@ -33,7 +32,7 @@ describe('PublicThemeController - Contract', () => {
     const result = await controller.findAllThemesWithPagination({
       page: 1,
       limit: 20,
-    } as any);
+    } as unknown as FindAllQuery);
 
     expect(result.success).toBe(true);
     expect(result.data).toHaveProperty('themes');

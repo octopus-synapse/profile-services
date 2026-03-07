@@ -4,12 +4,13 @@
  */
 
 import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import type { TranslateBatch, TranslateText } from '@/shared-kernel';
+import { TranslateSimpleRequestDto } from '@/shared-kernel/dtos/sdk-request.dto';
 import { HealthCheckResponseDto } from '@/shared-kernel/dtos/sdk-response.dto';
 import { TranslationService } from './translation.service';
 import type { TranslationLanguage } from './types/translation.types';
@@ -109,12 +110,15 @@ export class TranslationController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Translate Portuguese to English' })
+  @ApiBody({ type: TranslateSimpleRequestDto })
   @ApiDataResponse(TranslationResultDto, {
     status: 201,
     description: 'Translation result',
   })
-  async translatePtToEn(@Body('text') text: string): Promise<DataResponse<TranslationResultDto>> {
-    const result = await this.translationService.translatePtToEn(text);
+  async translatePtToEn(
+    @Body() body: TranslateSimpleRequestDto,
+  ): Promise<DataResponse<TranslationResultDto>> {
+    const result = await this.translationService.translatePtToEn(body.text);
     return { success: true, data: result };
   }
 
@@ -122,12 +126,15 @@ export class TranslationController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Translate English to Portuguese' })
+  @ApiBody({ type: TranslateSimpleRequestDto })
   @ApiDataResponse(TranslationResultDto, {
     status: 201,
     description: 'Translation result',
   })
-  async translateEnToPt(@Body('text') text: string): Promise<DataResponse<TranslationResultDto>> {
-    const result = await this.translationService.translateEnToPt(text);
+  async translateEnToPt(
+    @Body() body: TranslateSimpleRequestDto,
+  ): Promise<DataResponse<TranslationResultDto>> {
+    const result = await this.translationService.translateEnToPt(body.text);
     return { success: true, data: result };
   }
 }

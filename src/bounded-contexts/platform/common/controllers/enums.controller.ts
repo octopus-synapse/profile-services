@@ -3,6 +3,9 @@
  *
  * Exposes domain enums through API endpoints.
  * This ensures enums appear in OpenAPI/Swagger for frontend SDK generation.
+ *
+ * Section types come from the SectionType table (definition-driven),
+ * not from hardcoded enums.
  */
 
 import { Controller, Get } from '@nestjs/common';
@@ -11,12 +14,23 @@ import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
-import {
-  ExportFormatResponseDto,
-  SECTION_TYPE_VALUES,
-  SectionTypeResponseDto,
-  UserRoleResponseDto,
-} from '@/shared-kernel/dtos/enums.dto';
+import { SectionTypesService } from '@/bounded-contexts/platform/common/services/section-types.service';
+import { ExportFormatResponseDto, UserRoleResponseDto } from '@/shared-kernel/dtos/enums.dto';
+
+/** Dynamic section type response */
+export class SectionTypeResponseDto {
+  @ApiProperty({
+    example: 'work_experience_v1',
+    description: 'Section type key',
+  })
+  key!: string;
+
+  @ApiProperty({ example: 'EDUCATION', description: 'Semantic kind' })
+  semanticKind!: string;
+
+  @ApiProperty({ example: 'Work Experience', description: 'Display title' })
+  title!: string;
+}
 
 // Wrapper DTOs for array responses
 export class ExportFormatsDataDto {
@@ -38,6 +52,8 @@ export class SectionTypesDataDto {
 @ApiTags('enums')
 @Controller('v1/enums')
 export class EnumsController {
+  constructor(private readonly sectionTypesService: SectionTypesService) {}
+
   @Public()
   @Get('export-formats')
   @ApiOperation({
@@ -48,10 +64,14 @@ export class EnumsController {
     description: 'List of export formats',
   })
   getExportFormats(): DataResponse<ExportFormatsDataDto> {
-    const formats = [{ format: 'PDF' }, { format: 'DOCX' }, { format: 'JSON' }];
+    const formats: ExportFormatResponseDto[] = [
+      { format: 'PDF' },
+      { format: 'DOCX' },
+      { format: 'JSON' },
+    ];
     return {
       success: true,
-      data: { formats: formats as unknown as ExportFormatResponseDto[] },
+      data: { formats },
     };
   }
 
@@ -63,10 +83,14 @@ export class EnumsController {
   })
   @ApiDataResponse(UserRolesDataDto, { description: 'List of user roles' })
   getUserRoles(): DataResponse<UserRolesDataDto> {
-    const roles = [{ role: 'USER' }, { role: 'ADMIN' }, { role: 'APPROVER' }];
+    const roles: UserRoleResponseDto[] = [
+      { role: 'USER' },
+      { role: 'ADMIN' },
+      { role: 'APPROVER' },
+    ];
     return {
       success: true,
-      data: { roles: roles as unknown as UserRoleResponseDto[] },
+      data: { roles },
     };
   }
 
@@ -74,16 +98,21 @@ export class EnumsController {
   @Get('section-types')
   @ApiOperation({
     summary: 'Get available section types',
-    description: 'Returns all available resume section types',
+    description: 'Returns all available resume section types from definitions',
   })
   @ApiDataResponse(SectionTypesDataDto, {
     description: 'List of section types',
   })
   getSectionTypes(): DataResponse<SectionTypesDataDto> {
-    const types = SECTION_TYPE_VALUES.map((type) => ({ type }));
+    const allTypes = this.sectionTypesService.getAll();
+    const types: SectionTypeResponseDto[] = allTypes.map((st) => ({
+      key: st.key,
+      semanticKind: st.semanticKind,
+      title: st.title,
+    }));
     return {
       success: true,
-      data: { types: types as unknown as SectionTypeResponseDto[] },
+      data: { types },
     };
   }
 }

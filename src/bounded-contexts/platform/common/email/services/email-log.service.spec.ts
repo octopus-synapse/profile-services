@@ -7,10 +7,10 @@
  * Kent Beck: "Tests describe behavior, not implementation"
  */
 
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
-import { EmailLogService } from './email-log.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { EmailLogService } from './email-log.service';
 
 describe('EmailLogService', () => {
   let service: EmailLogService;
@@ -46,10 +46,7 @@ describe('EmailLogService', () => {
     };
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        EmailLogService,
-        { provide: PrismaService, useValue: mockPrismaService },
-      ],
+      providers: [EmailLogService, { provide: PrismaService, useValue: mockPrismaService }],
     }).compile();
 
     service = module.get<EmailLogService>(EmailLogService);

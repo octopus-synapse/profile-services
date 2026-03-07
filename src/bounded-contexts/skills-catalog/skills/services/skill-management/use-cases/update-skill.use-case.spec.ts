@@ -1,10 +1,8 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions';
+import type { SectionItem } from '../ports/skill-management.port';
+import type { SkillManagementRepositoryPort } from '../ports/skill-management-repository.port';
 import { UpdateSkillUseCase } from './update-skill.use-case';
-import type {
-  SkillManagementRepositoryPort,
-  SectionItem,
-} from '../ports/skill-management.port';
 
 const SKILL_SECTION_TYPE_KEY = 'skill_set_v1';
 
@@ -97,8 +95,6 @@ describe('UpdateSkillUseCase', () => {
       },
     }));
 
-    await expect(useCase.execute('skill-1', { level: 5 })).rejects.toThrow(
-      EntityNotFoundException,
-    );
+    await expect(useCase.execute('skill-1', { level: 5 })).rejects.toThrow(EntityNotFoundException);
   });
 });

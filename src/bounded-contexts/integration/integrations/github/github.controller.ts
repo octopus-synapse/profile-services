@@ -14,8 +14,9 @@ import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/a
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
-import { MecSyncStatusResponseDto } from '@/shared-kernel';
+import { AutoSyncGitHubRequestDto, MecSyncStatusResponseDto } from '@/shared-kernel';
 import { GitHubService } from './github.service';
+import type { GitHubSyncResult } from './services/github-sync.service';
 
 /** DTO for GitHub profile summary */
 export class GitHubSummaryDto {
@@ -70,7 +71,7 @@ export class GitHubController {
     @Param('username') username: string,
   ): Promise<DataResponse<GitHubSummaryDto>> {
     const result = await this.githubService.getGitHubSummary(username);
-    return { success: true, data: result as unknown as GitHubSummaryDto };
+    return { success: true, data: this.toGitHubSummaryDto(result) };
   }
 
   @Post('sync')
@@ -107,7 +108,7 @@ export class GitHubController {
       body.githubUsername,
       body.resumeId,
     );
-    return { success: true, data: result as unknown as GitHubSyncResponseDto };
+    return { success: true, data: this.toGitHubSyncResponseDto(result) };
   }
 
   @Post('sync/:resumeId/auto')
@@ -115,6 +116,7 @@ export class GitHubController {
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Auto-sync GitHub from resume GitHub link' })
   @ApiParam({ name: 'resumeId', description: 'Resume ID to sync' })
+  @ApiBody({ type: AutoSyncGitHubRequestDto })
   @ApiDataResponse(GitHubSyncResponseDto, {
     description: 'GitHub data auto-synced successfully',
   })
@@ -123,7 +125,7 @@ export class GitHubController {
     @Param('resumeId') resumeId: string,
   ): Promise<DataResponse<GitHubSyncResponseDto>> {
     const result = await this.githubService.autoSyncGitHubFromResume(user.userId, resumeId);
-    return { success: true, data: result as unknown as GitHubSyncResponseDto };
+    return { success: true, data: this.toGitHubSyncResponseDto(result) };
   }
 
   @Get('sync-status/:resumeId')
@@ -139,7 +141,50 @@ export class GitHubController {
     const result = await this.githubService.getSyncStatus(user.userId, resumeId);
     return {
       success: true,
-      data: result as unknown as MecSyncStatusResponseDto,
+      data: {
+        status: result.hasSynced ? 'COMPLETED' : 'IDLE',
+        progress: result.hasSynced ? 100 : 0,
+        startedAt: result.lastSyncedAt ? this.toIsoString(result.lastSyncedAt) : undefined,
+        currentTask: undefined,
+      },
     };
+  }
+
+  private toGitHubSummaryDto(result: {
+    username: string;
+    name?: string | null;
+    bio?: string | null;
+    publicRepos: number;
+    topRepos?: Array<{
+      name: string;
+      description?: string | null;
+      url: string;
+    }>;
+  }): GitHubSummaryDto {
+    return {
+      username: result.username,
+      name: result.name ?? undefined,
+      bio: result.bio ?? undefined,
+      publicRepos: result.publicRepos,
+      followers: 0,
+      following: 0,
+      topLanguages: [],
+      pinnedRepos: (result.topRepos ?? []).map((repo) => ({
+        name: repo.name,
+        description: repo.description ?? undefined,
+        url: repo.url,
+      })),
+    };
+  }
+
+  private toGitHubSyncResponseDto(result: GitHubSyncResult): GitHubSyncResponseDto {
+    return {
+      synced: true,
+      message: `Synced GitHub profile for ${result.profile.username}`,
+    };
+  }
+
+  private toIsoString(value: Date | string): string {
+    return value instanceof Date ? value.toISOString() : value;
   }
 }

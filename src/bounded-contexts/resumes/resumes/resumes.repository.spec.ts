@@ -8,12 +8,12 @@
  * - Efeitos de persistência (via stubs que simulam estado)
  */
 
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
-import { Test, TestingModule } from '@nestjs/testing';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { ForbiddenException } from '@nestjs/common';
-import { ResumesRepository } from './resumes.repository';
+import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { CreateResume, UpdateResume } from '@/shared-kernel';
+import { ResumesRepository } from './resumes.repository';
 
 describe('ResumesRepository', () => {
   let repository: ResumesRepository;
@@ -33,46 +33,34 @@ describe('ResumesRepository', () => {
           .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
         return Promise.resolve(resumes);
       }),
-      findFirst: mock(
-        ({ where }: { where: { id?: string; userId: string } }) => {
-          if (where.id) {
-            const resume = dataStore.get(where.id);
-            if (resume && resume.userId === where.userId) {
-              return Promise.resolve(resume);
-            }
-            return Promise.resolve(null);
-          }
-          // findByUserId case
-          const resume = Array.from(dataStore.values()).find(
-            (r) => r.userId === where.userId,
-          );
-          return Promise.resolve(resume ?? null);
-        },
-      ),
-      create: mock(
-        ({
-          data,
-        }: {
-          data: { userId: string; title: string; summary?: string };
-        }) => {
-          const newResume = {
-            id: `resume-${idCounter++}`,
-            ...data,
-            updatedAt: new Date(),
-          };
-          dataStore.set(newResume.id, newResume);
-          return Promise.resolve(newResume);
-        },
-      ),
-      update: mock(
-        ({ where, data }: { where: { id: string }; data: UpdateResume }) => {
+      findFirst: mock(({ where }: { where: { id?: string; userId: string } }) => {
+        if (where.id) {
           const resume = dataStore.get(where.id);
-          if (!resume) return Promise.resolve(null);
-          const updated = { ...resume, ...data, updatedAt: new Date() };
-          dataStore.set(where.id, updated);
-          return Promise.resolve(updated);
-        },
-      ),
+          if (resume && resume.userId === where.userId) {
+            return Promise.resolve(resume);
+          }
+          return Promise.resolve(null);
+        }
+        // findByUserId case
+        const resume = Array.from(dataStore.values()).find((r) => r.userId === where.userId);
+        return Promise.resolve(resume ?? null);
+      }),
+      create: mock(({ data }: { data: { userId: string; title: string; summary?: string } }) => {
+        const newResume = {
+          id: `resume-${idCounter++}`,
+          ...data,
+          updatedAt: new Date(),
+        };
+        dataStore.set(newResume.id, newResume);
+        return Promise.resolve(newResume);
+      }),
+      update: mock(({ where, data }: { where: { id: string }; data: UpdateResume }) => {
+        const resume = dataStore.get(where.id);
+        if (!resume) return Promise.resolve(null);
+        const updated = { ...resume, ...data, updatedAt: new Date() };
+        dataStore.set(where.id, updated);
+        return Promise.resolve(updated);
+      }),
       delete: mock(({ where }: { where: { id: string } }) => {
         const resume = dataStore.get(where.id);
         if (resume) {
@@ -92,10 +80,7 @@ describe('ResumesRepository', () => {
     fakePrisma = createFakePrismaService();
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        ResumesRepository,
-        { provide: PrismaService, useValue: fakePrisma },
-      ],
+      providers: [ResumesRepository, { provide: PrismaService, useValue: fakePrisma }],
     }).compile();
 
     repository = module.get<ResumesRepository>(ResumesRepository);
@@ -155,10 +140,7 @@ describe('ResumesRepository', () => {
     });
 
     it('should return null when resume does not exist', async () => {
-      const result = await repository.findResumeByIdAndUserId(
-        'non-existent',
-        'user-1',
-      );
+      const result = await repository.findResumeByIdAndUserId('non-existent', 'user-1');
 
       expect(result).toBeNull();
     });
@@ -179,7 +161,11 @@ describe('ResumesRepository', () => {
 
   describe('create', () => {
     it('should create resume and return it with generated id', async () => {
-      const createDto: CreateResume = { title: 'New Resume' };
+      const createDto: CreateResume = {
+        title: 'New Resume',
+        template: 'PROFESSIONAL',
+        isPublic: false,
+      };
 
       const result = await repository.createResumeForUser('user-1', createDto);
 
@@ -193,6 +179,8 @@ describe('ResumesRepository', () => {
     it('should persist resume to storage', async () => {
       await repository.createResumeForUser('user-1', {
         title: 'Persisted Resume',
+        template: 'PROFESSIONAL',
+        isPublic: false,
       });
 
       const allResumes = await repository.findAllUserResumes('user-1');
@@ -260,8 +248,7 @@ describe('ResumesRepository', () => {
 
     it('should throw ForbiddenException when resume does not exist', async () => {
       await expect(
-        async () =>
-          await repository.deleteResumeForUser('non-existent', 'user-1'),
+        async () => await repository.deleteResumeForUser('non-existent', 'user-1'),
       ).toThrow(ForbiddenException);
     });
 
@@ -273,9 +260,9 @@ describe('ResumesRepository', () => {
         updatedAt: new Date(),
       });
 
-      await expect(
-        async () => await repository.deleteResumeForUser('r1', 'user-2'),
-      ).toThrow(ForbiddenException);
+      await expect(async () => await repository.deleteResumeForUser('r1', 'user-2')).toThrow(
+        ForbiddenException,
+      );
     });
   });
 

@@ -18,21 +18,31 @@ import {
 import { ProfessionalProfileSchema } from '../validations/professional-profile.schema';
 import { UsernameSchema } from '../validations/username.schema';
 
-/**
- * Onboarding Step Enum
- */
-export const OnboardingStepSchema = z.enum([
+const StaticOnboardingStepSchema = z.enum([
   'welcome',
   'personal-info',
   'username',
   'professional-profile',
-  'experience',
-  'education',
-  'skills',
-  'languages',
   'template',
   'review',
   'complete',
+]);
+
+const DynamicSectionOnboardingStepSchema = z
+  .string()
+  .regex(
+    /^section:[a-z][a-z0-9]*(_[a-z0-9]+)+$/,
+    'Section steps must use the format section:<section_type_key>',
+  );
+
+/**
+ * Onboarding Step
+ *
+ * Static onboarding flow steps plus dynamic section steps driven by SectionType.
+ */
+export const OnboardingStepSchema = z.union([
+  StaticOnboardingStepSchema,
+  DynamicSectionOnboardingStepSchema,
 ]);
 
 export type OnboardingStep = z.infer<typeof OnboardingStepSchema>;
@@ -57,7 +67,7 @@ const PartialTemplateSelectionSchema = TemplateSelectionSchema.partial();
  * Generic Section Progress Schema
  *
  * Tracks progress for a single section type during onboarding.
- * sectionTypeKey references the SectionType (e.g., 'work_experience_v1').
+ * sectionTypeKey references the SectionType.
  */
 const SectionProgressSchema = z.object({
   sectionTypeKey: z.string(),
@@ -69,8 +79,8 @@ const SectionProgressSchema = z.object({
  * Onboarding Progress Schema
  * Used for saving partial progress during onboarding.
  *
- * ARCHITECTURE: Uses generic sections format. Each section is identified
- * by sectionTypeKey, not hard-coded field names like 'experiences'.
+ * ARCHITECTURE: Uses generic sections format. Section progress is data-driven
+ * through sectionTypeKey and dynamic section steps.
  */
 export const OnboardingProgressSchema = z.object({
   currentStep: OnboardingStepSchema,
@@ -124,7 +134,7 @@ export type SaveProgressResult = z.infer<typeof SaveProgressResultSchema>;
  * Complete data required to submit onboarding
  *
  * ARCHITECTURE: Uses generic sections format.
- * Each section is identified by sectionTypeKey (e.g., 'skill_set_v1').
+ * Each section is identified by sectionTypeKey.
  * Field-level validation happens server-side using SectionDefinitionZodFactory.
  */
 export const SubmitOnboardingDtoSchema = z.object({
@@ -151,17 +161,13 @@ export const OnboardingStatusResponseSchema = z.object({
   data: OnboardingStatusSchema,
 });
 
-export type OnboardingStatusResponseEnvelope = z.infer<
-  typeof OnboardingStatusResponseSchema
->;
+export type OnboardingStatusResponseEnvelope = z.infer<typeof OnboardingStatusResponseSchema>;
 
 export const OnboardingProgressResponseSchema = z.object({
   data: OnboardingProgressSchema,
 });
 
-export type OnboardingProgressResponseEnvelope = z.infer<
-  typeof OnboardingProgressResponseSchema
->;
+export type OnboardingProgressResponseEnvelope = z.infer<typeof OnboardingProgressResponseSchema>;
 
 export const OnboardingCompleteResponseSchema = z.object({
   data: z.object({
@@ -171,6 +177,4 @@ export const OnboardingCompleteResponseSchema = z.object({
   }),
 });
 
-export type OnboardingCompleteResponseEnvelope = z.infer<
-  typeof OnboardingCompleteResponseSchema
->;
+export type OnboardingCompleteResponseEnvelope = z.infer<typeof OnboardingCompleteResponseSchema>;

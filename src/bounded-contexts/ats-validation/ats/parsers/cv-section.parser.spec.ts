@@ -1,10 +1,10 @@
-import { describe, it, expect, beforeEach } from 'bun:test';
-import { CVSectionParser } from './cv-section.parser';
+import { beforeEach, describe, expect, it } from 'bun:test';
 import { ValidationSeverity } from '../interfaces';
 import {
   ATSSectionTypeAdapter,
   SectionDetectionPattern,
 } from '../services/ats-section-type.adapter';
+import { CVSectionParser } from './cv-section.parser';
 
 /**
  * Create a mock ATSSectionTypeAdapter with the section detection patterns.
@@ -16,12 +16,7 @@ function createMockATSSectionTypeAdapter(): ATSSectionTypeAdapter {
       semanticKind: 'personal_info',
       sectionTypeKey: 'personal-info',
       keywords: ['personal', 'contact', 'info', 'details'],
-      multiWord: [
-        'personal information',
-        'contact information',
-        'contact details',
-        'about me',
-      ],
+      multiWord: ['personal information', 'contact information', 'contact details', 'about me'],
       isMandatory: false,
       recommendedPosition: 1,
     },
@@ -112,13 +107,7 @@ function createMockATSSectionTypeAdapter(): ATSSectionTypeAdapter {
       semanticKind: 'awards',
       sectionTypeKey: 'awards',
       keywords: ['award', 'achievement', 'honor', 'recognition'],
-      multiWord: [
-        'awards',
-        'honors',
-        'achievements',
-        'recognitions',
-        'prêmios',
-      ],
+      multiWord: ['awards', 'honors', 'achievements', 'recognitions', 'prêmios'],
       isMandatory: false,
       recommendedPosition: 8,
     },
@@ -160,16 +149,11 @@ function createMockATSSectionTypeAdapter(): ATSSectionTypeAdapter {
     getDetectionPatterns: () => patterns,
     getMandatorySectionTypes: () => patterns.filter((p) => p.isMandatory),
     getPatternsByPosition: () =>
-      [...patterns].sort(
-        (a, b) => a.recommendedPosition - b.recommendedPosition,
-      ),
+      [...patterns].sort((a, b) => a.recommendedPosition - b.recommendedPosition),
     detectSectionType: (headerText: string) => {
       const normalizedHeader = headerText.toLowerCase().trim();
 
-      if (
-        normalizedHeader.length < 3 ||
-        normalizedHeader.split(/\s+/).length > 5
-      ) {
+      if (normalizedHeader.length < 3 || normalizedHeader.split(/\s+/).length > 5) {
         return null;
       }
 
@@ -287,13 +271,9 @@ Expert in distributed systems.
         const result = parser.parseCV(text, 'test.pdf', 'application/pdf');
 
         expect(result.sections).toHaveLength(1);
-        expect(result.sections[0].content.includes('highly motivated')).toBe(
-          true,
-        );
+        expect(result.sections[0].content.includes('highly motivated')).toBe(true);
         expect(result.sections[0].content.includes('clean code')).toBe(true);
-        expect(result.sections[0].content.includes('distributed systems')).toBe(
-          true,
-        );
+        expect(result.sections[0].content.includes('distributed systems')).toBe(true);
       });
 
       it('should track line numbers for sections', () => {
@@ -321,11 +301,7 @@ School 1
       });
 
       it('should handle whitespace-only input', () => {
-        const result = parser.parseCV(
-          '   \n\n   \n',
-          'ws.pdf',
-          'application/pdf',
-        );
+        const result = parser.parseCV('   \n\n   \n', 'ws.pdf', 'application/pdf');
 
         expect(result.sections).toHaveLength(0);
       });
@@ -370,9 +346,7 @@ Real content here
         const result = parser.parseCV(text, 'long.pdf', 'application/pdf');
 
         // First line has >5 words, should not be detected
-        const experienceSection = result.sections.find(
-          (s) => s.semanticKind === 'experience',
-        );
+        const experienceSection = result.sections.find((s) => s.semanticKind === 'experience');
         expect(experienceSection?.title).toBe('Experience');
       });
 
@@ -601,9 +575,9 @@ JavaScript, TypeScript, Python, React, Node.js, PostgreSQL, Redis, Docker
         const result = parser.validateSections(parsedCV);
 
         expect(result.passed).toBe(true);
-        expect(
-          result.issues.filter((i) => i.severity === ValidationSeverity.ERROR),
-        ).toHaveLength(0);
+        expect(result.issues.filter((i) => i.severity === ValidationSeverity.ERROR)).toHaveLength(
+          0,
+        );
       });
 
       it('should report detected sections correctly', () => {
@@ -732,9 +706,7 @@ JavaScript, TypeScript, Python
 
         const result = parser.validateSections(parsedCV);
 
-        const emptyWarnings = result.issues.filter(
-          (i) => i.code === 'EMPTY_SECTION',
-        );
+        const emptyWarnings = result.issues.filter((i) => i.code === 'EMPTY_SECTION');
         expect(emptyWarnings.length).toBeGreaterThanOrEqual(1);
       });
     });
@@ -826,12 +798,10 @@ More random content here.
 
         const result = parser.validateSections(parsedCV);
 
-        const noSectionsIssue = result.issues.find(
-          (i) => i.code === 'NO_SECTIONS_DETECTED',
-        );
-        expect(noSectionsIssue?.suggestion.includes('section headers')).toBe(
-          true,
-        );
+        const noSectionsIssue = result.issues.find((i) => i.code === 'NO_SECTIONS_DETECTED');
+        if (!noSectionsIssue?.suggestion)
+          throw new Error('Expected noSectionsIssue with suggestion to be defined');
+        expect(noSectionsIssue.suggestion.includes('section headers')).toBe(true);
       });
     });
 

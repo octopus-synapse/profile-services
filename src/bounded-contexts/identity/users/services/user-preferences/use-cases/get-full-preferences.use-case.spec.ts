@@ -3,9 +3,9 @@
  *
  * Uses In-Memory repository for clean, behavior-focused testing.
  */
-import { describe, it, expect, beforeEach } from 'bun:test';
-import { GetFullPreferencesUseCase } from './get-full-preferences.use-case';
+import { beforeEach, describe, expect, it } from 'bun:test';
 import { InMemoryUserPreferencesRepository } from '../../../../shared-kernel/testing';
+import { GetFullPreferencesUseCase } from './get-full-preferences.use-case';
 
 describe('GetFullPreferencesUseCase', () => {
   let useCase: GetFullPreferencesUseCase;
@@ -13,7 +13,7 @@ describe('GetFullPreferencesUseCase', () => {
 
   beforeEach(() => {
     repository = new InMemoryUserPreferencesRepository();
-    useCase = new GetFullPreferencesUseCase(repository as any);
+    useCase = new GetFullPreferencesUseCase(repository);
   });
 
   it('should return empty object when preferences not found', async () => {

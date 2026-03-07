@@ -3,19 +3,16 @@
  * Tests for showing/hiding sections and items
  */
 
-import { describe, it, expect, beforeEach, afterEach, mock } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
+import { ResumeConfig, ResumeConfigRepository } from './resume-config.repository';
 import { SectionVisibilityService } from './section-visibility.service';
-import {
-  ResumeConfigRepository,
-  ResumeConfig,
-} from './resume-config.repository';
 
 describe('SectionVisibilityService', () => {
   let service: SectionVisibilityService;
   let repo: {
-    get: any;
-    save: any;
+    get: ReturnType<typeof mock>;
+    save: ReturnType<typeof mock>;
   };
 
   const mockConfig: ResumeConfig = {
@@ -57,12 +54,7 @@ describe('SectionVisibilityService', () => {
       repo.get.mockResolvedValue({ ...mockConfig });
       repo.save.mockResolvedValue(undefined);
 
-      await service.toggleSection(
-        'user-1',
-        'resume-1',
-        'work_experience_v1',
-        false,
-      );
+      await service.toggleSection('user-1', 'resume-1', 'work_experience_v1', false);
 
       expect(repo.save).toHaveBeenCalledWith(
         'resume-1',
@@ -103,12 +95,7 @@ describe('SectionVisibilityService', () => {
       repo.get.mockResolvedValue({ ...mockConfig });
       repo.save.mockResolvedValue(undefined);
 
-      await service.toggleSection(
-        'user-1',
-        'resume-1',
-        'work_experience_v1',
-        false,
-      );
+      await service.toggleSection('user-1', 'resume-1', 'work_experience_v1', false);
 
       const savedConfig = repo.save.mock.calls[0][1] as ResumeConfig;
       const headerSection = savedConfig.sections.find((s) => s.id === 'header');
@@ -131,13 +118,7 @@ describe('SectionVisibilityService', () => {
       repo.get.mockResolvedValue({ ...mockConfig });
       repo.save.mockResolvedValue(undefined);
 
-      await service.toggleItem(
-        'user-1',
-        'resume-1',
-        'work_experience_v1',
-        'exp-1',
-        false,
-      );
+      await service.toggleItem('user-1', 'resume-1', 'work_experience_v1', 'exp-1', false);
 
       expect(repo.save).toHaveBeenCalledWith(
         'resume-1',
@@ -164,13 +145,7 @@ describe('SectionVisibilityService', () => {
       repo.get.mockResolvedValue(configWithHiddenItem);
       repo.save.mockResolvedValue(undefined);
 
-      await service.toggleItem(
-        'user-1',
-        'resume-1',
-        'work_experience_v1',
-        'exp-1',
-        true,
-      );
+      await service.toggleItem('user-1', 'resume-1', 'work_experience_v1', 'exp-1', true);
 
       expect(repo.save).toHaveBeenCalledWith(
         'resume-1',
@@ -191,13 +166,7 @@ describe('SectionVisibilityService', () => {
       });
       repo.save.mockResolvedValue(undefined);
 
-      await service.toggleItem(
-        'user-1',
-        'resume-1',
-        'education_v1',
-        'edu-1',
-        false,
-      );
+      await service.toggleItem('user-1', 'resume-1', 'education_v1', 'edu-1', false);
 
       expect(repo.save).toHaveBeenCalledWith(
         'resume-1',
@@ -219,18 +188,10 @@ describe('SectionVisibilityService', () => {
       repo.get.mockResolvedValue({ ...mockConfig });
       repo.save.mockResolvedValue(undefined);
 
-      await service.toggleItem(
-        'user-1',
-        'resume-1',
-        'work_experience_v1',
-        'exp-1',
-        false,
-      );
+      await service.toggleItem('user-1', 'resume-1', 'work_experience_v1', 'exp-1', false);
 
       const savedConfig = repo.save.mock.calls[0][1] as ResumeConfig;
-      const exp1 = savedConfig.itemOverrides.work_experience_v1.find(
-        (i) => i.itemId === 'exp-1',
-      );
+      const exp1 = savedConfig.itemOverrides.work_experience_v1.find((i) => i.itemId === 'exp-1');
       expect(exp1?.order).toBe(0);
     });
 
@@ -238,18 +199,10 @@ describe('SectionVisibilityService', () => {
       repo.get.mockResolvedValue({ ...mockConfig });
       repo.save.mockResolvedValue(undefined);
 
-      await service.toggleItem(
-        'user-1',
-        'resume-1',
-        'work_experience_v1',
-        'exp-1',
-        false,
-      );
+      await service.toggleItem('user-1', 'resume-1', 'work_experience_v1', 'exp-1', false);
 
       const savedConfig = repo.save.mock.calls[0][1] as ResumeConfig;
-      const exp2 = savedConfig.itemOverrides.work_experience_v1.find(
-        (i) => i.itemId === 'exp-2',
-      );
+      const exp2 = savedConfig.itemOverrides.work_experience_v1.find((i) => i.itemId === 'exp-2');
       expect(exp2?.visible).toBe(true);
     });
 
@@ -260,13 +213,7 @@ describe('SectionVisibilityService', () => {
       });
       repo.save.mockResolvedValue(undefined);
 
-      await service.toggleItem(
-        'user-1',
-        'resume-1',
-        'projects',
-        'proj-1',
-        false,
-      );
+      await service.toggleItem('user-1', 'resume-1', 'projects', 'proj-1', false);
 
       const savedConfig = repo.save.mock.calls[0][1] as ResumeConfig;
       expect(savedConfig.itemOverrides.projects).toBeDefined();

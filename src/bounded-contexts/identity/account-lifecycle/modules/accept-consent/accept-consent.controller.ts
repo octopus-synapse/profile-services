@@ -22,6 +22,7 @@ import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-exp
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { createZodPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
 import { type AcceptConsent, AcceptConsentResponseDto, AcceptConsentSchema } from '@/shared-kernel';
+import { AcceptConsentRequestDto } from '@/shared-kernel/dtos/sdk-request.dto';
 import {
   AllowUnverifiedEmail,
   JwtAuthGuard,
@@ -56,20 +57,7 @@ export class AcceptConsentController {
       'Records user acceptance of legal documents with IP and user agent for audit trail. ' +
       'Required before accessing protected API endpoints.',
   })
-  @ApiBody({
-    schema: {
-      type: 'object',
-      required: ['documentType'],
-      properties: {
-        documentType: {
-          type: 'string',
-          enum: ['TERMS_OF_SERVICE', 'PRIVACY_POLICY', 'MARKETING_CONSENT'],
-        },
-        ipAddress: { type: 'string' },
-        userAgent: { type: 'string' },
-      },
-    },
-  })
+  @ApiBody({ type: AcceptConsentRequestDto })
   @ApiDataResponse(AcceptConsentResponseDto, {
     description: 'Consent recorded successfully',
     status: HttpStatus.CREATED,
@@ -100,8 +88,16 @@ export class AcceptConsentController {
       success: true,
       data: {
         message: `${documentName} accepted successfully`,
-        consent,
-      } as unknown as AcceptConsentResponseDto,
+        consent: {
+          id: consent.id,
+          userId: consent.userId,
+          documentType: consent.documentType,
+          version: consent.version,
+          acceptedAt: consent.acceptedAt.toISOString(),
+          ipAddress,
+          userAgent,
+        },
+      },
     };
   }
 }

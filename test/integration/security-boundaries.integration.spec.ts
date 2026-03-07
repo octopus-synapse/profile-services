@@ -5,14 +5,8 @@
  * See docs/BUG_DISCOVERY_REPORT.md for discovered issues.
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
-import {
-  getApp,
-  getRequest,
-  closeApp,
-  createTestUserAndLogin,
-  getPrisma,
-} from './setup';
+import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
+import { closeApp, createTestUserAndLogin, getApp, getPrisma, getRequest } from './setup';
 
 describe('Security Boundaries Integration', () => {
   let accessToken: string;
@@ -81,9 +75,7 @@ describe('Security Boundaries Integration', () => {
           .set('Authorization', `Bearer ${accessToken}`);
 
         expect(response.status).not.toBe(500);
-        expect(response.body.message || '').not.toMatch(
-          /syntax error|SQL|database/i,
-        );
+        expect(response.body.message || '').not.toMatch(/syntax error|SQL|database/i);
       }
     });
 
@@ -105,7 +97,7 @@ describe('Security Boundaries Integration', () => {
       const otherUser = await prisma.user.create({
         data: {
           email: `other-user-${Date.now()}@example.com`,
-          password: 'hashed',
+          passwordHash: 'hashed',
           name: 'Other User',
           emailVerified: new Date(),
         },
@@ -160,7 +152,7 @@ describe('Security Boundaries Integration', () => {
 
   describe('BUG-004: Token Manipulation', () => {
     it('should reject tampered JWT token', async () => {
-      const tamperedToken = accessToken.slice(0, -10) + 'TAMPERED!!';
+      const tamperedToken = `${accessToken.slice(0, -10)}TAMPERED!!`;
       const response = await getRequest()
         .get('/api/v1/resumes')
         .set('Authorization', `Bearer ${tamperedToken}`);
@@ -177,17 +169,13 @@ describe('Security Boundaries Integration', () => {
     });
 
     it('should reject missing Bearer prefix', async () => {
-      const response = await getRequest()
-        .get('/api/v1/resumes')
-        .set('Authorization', accessToken);
+      const response = await getRequest().get('/api/v1/resumes').set('Authorization', accessToken);
 
       expect(response.status).toBe(401);
     });
 
     it('should reject empty Authorization header', async () => {
-      const response = await getRequest()
-        .get('/api/v1/resumes')
-        .set('Authorization', '');
+      const response = await getRequest().get('/api/v1/resumes').set('Authorization', '');
 
       expect(response.status).toBe(401);
     });

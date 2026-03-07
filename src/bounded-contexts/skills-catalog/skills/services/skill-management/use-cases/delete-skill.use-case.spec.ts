@@ -1,10 +1,8 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions';
+import type { SectionItem } from '../ports/skill-management.port';
+import type { SkillManagementRepositoryPort } from '../ports/skill-management-repository.port';
 import { DeleteSkillUseCase } from './delete-skill.use-case';
-import type {
-  SkillManagementRepositoryPort,
-  SectionItem,
-} from '../ports/skill-management.port';
 
 const SKILL_SECTION_TYPE_KEY = 'skill_set_v1';
 
@@ -56,9 +54,7 @@ describe('DeleteSkillUseCase', () => {
   it('throws EntityNotFoundException when skill does not exist', async () => {
     repository.findSkillById = mock(async () => null);
 
-    await expect(useCase.execute('non-existent')).rejects.toThrow(
-      EntityNotFoundException,
-    );
+    await expect(useCase.execute('non-existent')).rejects.toThrow(EntityNotFoundException);
   });
 
   it('throws EntityNotFoundException when item is not a skill', async () => {

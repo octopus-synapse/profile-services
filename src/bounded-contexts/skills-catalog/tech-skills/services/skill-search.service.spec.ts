@@ -6,11 +6,11 @@
  * - Query normalização
  */
 
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
-import { SkillSearchService } from './skill-search.service';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { SkillSearchService } from './skill-search.service';
 
 describe('SkillSearchService', () => {
   let service: SkillSearchService;

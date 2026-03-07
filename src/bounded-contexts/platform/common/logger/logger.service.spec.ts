@@ -5,7 +5,7 @@
  * que os métodos funcionam corretamente.
  */
 
-import { describe, it, expect, beforeEach } from 'bun:test';
+import { beforeEach, describe, expect, it } from 'bun:test';
 import { AppLoggerService } from './logger.service';
 
 describe('AppLoggerService', () => {
@@ -25,9 +25,7 @@ describe('AppLoggerService', () => {
     });
 
     it('should log with metadata', () => {
-      expect(() =>
-        service.log('Test message', 'TestContext', { userId: 'user-1' }),
-      ).not.toThrow();
+      expect(() => service.log('Test message', 'TestContext', { userId: 'user-1' })).not.toThrow();
     });
   });
 
@@ -55,9 +53,7 @@ describe('AppLoggerService', () => {
     });
 
     it('should log warning with context and metadata', () => {
-      expect(() =>
-        service.warn('Warning message', 'WarnContext', { level: 'high' }),
-      ).not.toThrow();
+      expect(() => service.warn('Warning message', 'WarnContext', { level: 'high' })).not.toThrow();
     });
   });
 
@@ -94,9 +90,7 @@ describe('AppLoggerService', () => {
   describe('errorWithMeta', () => {
     it('should log error with metadata using default context', () => {
       service.setContext('ErrorService');
-      expect(() =>
-        service.errorWithMeta('Error occurred', { errorCode: 'E500' }),
-      ).not.toThrow();
+      expect(() => service.errorWithMeta('Error occurred', { errorCode: 'E500' })).not.toThrow();
     });
   });
 });

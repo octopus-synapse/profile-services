@@ -2,7 +2,7 @@
  * Section Configuration DTOs
  *
  * Domain types and validation schemas for managing resume section visibility
- * and ordering (e.g., showing/hiding experiences, education, skills sections).
+ * and ordering.
  */
 
 import { z } from 'zod';

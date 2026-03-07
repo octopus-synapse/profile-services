@@ -2,12 +2,8 @@
  * Username Schema Tests
  */
 
-import { describe, it, expect } from 'bun:test';
-import {
-  UsernameSchema,
-  RESERVED_USERNAMES,
-  validateUsernameFormat,
-} from '../username.schema';
+import { describe, expect, it } from 'bun:test';
+import { RESERVED_USERNAMES, UsernameSchema, validateUsernameFormat } from '../username.schema';
 
 describe('UsernameSchema', () => {
   describe('valid usernames', () => {
@@ -91,14 +87,7 @@ describe('UsernameSchema', () => {
   });
 
   describe('invalid usernames - reserved', () => {
-    const reservedSample = [
-      'admin',
-      'api',
-      'root',
-      'login',
-      'logout',
-      'register',
-    ];
+    const reservedSample = ['admin', 'api', 'root', 'login', 'logout', 'register'];
 
     reservedSample.forEach((reserved) => {
       it(`should reject reserved username "${reserved}"`, () => {

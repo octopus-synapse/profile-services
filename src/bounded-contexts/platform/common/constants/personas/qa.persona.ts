@@ -19,7 +19,12 @@ export const QA_PERSONA: PersonaConfig = {
     'Bug Tracking',
   ],
   achievementTypes: ['bugs_found', 'test_coverage', 'automation_rate', 'quality_improvement'],
-  prioritySections: ['experiences', 'certifications', 'projects', 'skills'],
+  contentPriorities: [
+    'career_history',
+    'credentials',
+    'project_portfolio',
+    'technical_capabilities',
+  ],
   keywords: [
     'selenium',
     'cypress',

@@ -19,7 +19,7 @@ export const GAME_DEV_PERSONA: PersonaConfig = {
     'Optimization',
   ],
   achievementTypes: ['game_downloads', 'game_awards', 'jam_wins', 'player_count'],
-  prioritySections: ['projects', 'hackathons', 'awards', 'experiences'],
+  contentPriorities: ['project_portfolio', 'competitive_builds', 'recognition', 'career_history'],
   keywords: [
     'unity',
     'unreal-engine',

@@ -78,7 +78,7 @@ export class UsersController {
     const result = await this.usersService.getPublicProfileByUsername(username);
     return {
       success: true,
-      data: result as unknown as PublicProfileResponseDto,
+      data: this.toPublicProfileResponseDto(result, username),
     };
   }
 
@@ -92,7 +92,7 @@ export class UsersController {
     @CurrentUser() user: UserPayload,
   ): Promise<DataResponse<UserProfileResponseDto>> {
     const result = await this.usersService.getProfile(user.userId);
-    return { success: true, data: result as unknown as UserProfileResponseDto };
+    return { success: true, data: this.toUserProfileResponseDto(result) };
   }
 
   @UseGuards(JwtAuthGuard)
@@ -107,7 +107,7 @@ export class UsersController {
     @Body() updateProfile: UpdateProfile,
   ): Promise<DataResponse<UserProfileResponseDto>> {
     const result = await this.usersService.updateProfile(user.userId, updateProfile);
-    return { success: true, data: result as unknown as UserProfileResponseDto };
+    return { success: true, data: this.toUserProfileResponseDto(result) };
   }
 
   @UseGuards(JwtAuthGuard)
@@ -122,7 +122,7 @@ export class UsersController {
     const result = await this.usersService.getPreferences(user.userId);
     return {
       success: true,
-      data: result as unknown as UserPreferencesResponseDto,
+      data: this.toUserPreferencesResponseDto(result),
     };
   }
 
@@ -137,10 +137,11 @@ export class UsersController {
     @CurrentUser() user: UserPayload,
     @Body() updatePreferences: UpdatePreferences,
   ): Promise<DataResponse<UserPreferencesResponseDto>> {
-    const result = await this.usersService.updatePreferences(user.userId, updatePreferences);
+    await this.usersService.updatePreferences(user.userId, updatePreferences);
+    const result = await this.usersService.getPreferences(user.userId);
     return {
       success: true,
-      data: result as unknown as UserPreferencesResponseDto,
+      data: this.toUserPreferencesResponseDto(result),
     };
   }
 
@@ -156,7 +157,7 @@ export class UsersController {
     const result = await this.usersService.getFullPreferences(user.userId);
     return {
       success: true,
-      data: result as unknown as UserFullPreferencesResponseDto,
+      data: this.toUserFullPreferencesResponseDto(result),
     };
   }
 
@@ -177,7 +178,7 @@ export class UsersController {
     );
     return {
       success: true,
-      data: result as unknown as UserFullPreferencesResponseDto,
+      data: this.toUserFullPreferencesResponseDto(result),
     };
   }
 
@@ -195,7 +196,11 @@ export class UsersController {
     const result = await this.usersService.updateUsername(user.userId, updateUsername);
     return {
       success: true,
-      data: result as unknown as UpdateUsernameResponseDto,
+      data: {
+        success: true,
+        message: 'Username updated successfully',
+        username: result.username,
+      },
     };
   }
 
@@ -249,7 +254,106 @@ export class UsersController {
     const result = await this.usersService.validateUsername(body.username);
     return {
       success: true,
-      data: result as unknown as ValidateUsernameResponseDto,
+      data: {
+        username: result.username,
+        valid: result.valid,
+        available: result.available,
+        errors: result.errors,
+      },
     };
+  }
+
+  private toPublicProfileResponseDto(
+    result: {
+      user?: {
+        displayName?: string | null;
+        photoURL?: string | null;
+        bio?: string | null;
+        location?: string | null;
+      };
+    },
+    username: string,
+  ): PublicProfileResponseDto {
+    return {
+      username,
+      displayName: result.user?.displayName ?? undefined,
+      photoURL: result.user?.photoURL ?? undefined,
+      bio: result.user?.bio ?? undefined,
+      location: result.user?.location ?? undefined,
+    };
+  }
+
+  private toUserProfileResponseDto(result: {
+    id: string;
+    email: string | null;
+    username?: string | null;
+    displayName?: string | null;
+    photoURL?: string | null;
+    bio?: string | null;
+    location?: string | null;
+    phone?: string | null;
+    website?: string | null;
+    linkedin?: string | null;
+    github?: string | null;
+    twitter?: string | null;
+    createdAt: Date | string;
+    updatedAt: Date | string;
+  }): UserProfileResponseDto {
+    return {
+      id: result.id,
+      email: result.email ?? '',
+      username: result.username ?? undefined,
+      displayName: result.displayName ?? undefined,
+      photoURL: result.photoURL ?? undefined,
+      bio: result.bio ?? undefined,
+      location: result.location ?? undefined,
+      phone: result.phone ?? undefined,
+      website: result.website ?? undefined,
+      linkedin: result.linkedin ?? undefined,
+      github: result.github ?? undefined,
+      twitter: result.twitter ?? undefined,
+      createdAt: this.toIsoString(result.createdAt),
+      updatedAt: this.toIsoString(result.updatedAt),
+    };
+  }
+
+  private toUserPreferencesResponseDto(result: {
+    palette?: string | null;
+    bannerColor?: string | null;
+    displayName?: string | null;
+    photoURL?: string | null;
+    theme?: string | null;
+    language?: string | null;
+    emailNotifications?: boolean | null;
+  }): UserPreferencesResponseDto {
+    return {
+      palette: result.palette ?? undefined,
+      bannerColor: result.bannerColor ?? undefined,
+      displayName: result.displayName ?? undefined,
+      photoURL: result.photoURL ?? undefined,
+    };
+  }
+
+  private toUserFullPreferencesResponseDto(result: {
+    palette?: string | null;
+    bannerColor?: string | null;
+    displayName?: string | null;
+    photoURL?: string | null;
+    language?: string | null;
+    timezone?: string | null;
+    emailNotifications?: boolean | null;
+    marketingEmails?: boolean | null;
+  }): UserFullPreferencesResponseDto {
+    return {
+      ...this.toUserPreferencesResponseDto(result),
+      language: result.language ?? undefined,
+      timezone: result.timezone ?? undefined,
+      emailNotifications: result.emailNotifications ?? undefined,
+      marketingEmails: result.marketingEmails ?? undefined,
+    };
+  }
+
+  private toIsoString(value: Date | string): string {
+    return value instanceof Date ? value.toISOString() : value;
   }
 }

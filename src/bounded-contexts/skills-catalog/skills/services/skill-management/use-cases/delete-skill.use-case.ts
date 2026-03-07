@@ -1,5 +1,5 @@
 import { EntityNotFoundException } from '@/shared-kernel/exceptions';
-import type { SkillManagementRepositoryPort } from '../ports/skill-management.port';
+import type { SkillManagementRepositoryPort } from '../ports/skill-management-repository.port';
 
 const SKILL_SECTION_TYPE_KEY = 'skill_set_v1';
 

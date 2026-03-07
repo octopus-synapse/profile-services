@@ -22,17 +22,17 @@
  * Target Time: < 30 seconds
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
+import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import type { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { createE2ETestApp } from '../setup-e2e';
-import type { AuthHelper } from '../helpers/auth.helper';
-import type { CleanupHelper } from '../helpers/cleanup.helper';
 import {
   createFullOnboardingData,
   createResumeWithSections,
   createSectionItemContent,
 } from '../fixtures/resumes.fixture';
+import type { AuthHelper } from '../helpers/auth.helper';
+import type { CleanupHelper } from '../helpers/cleanup.helper';
+import { createE2ETestApp } from '../setup-e2e';
 
 describe('E2E Journey 3: Resume CRUD Operations', () => {
   let app: INestApplication;
@@ -150,9 +150,7 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
     it('should reject resume creation without authentication', async () => {
       const resumeData = createResumeWithSections('unauthorized');
 
-      const response = await request(app.getHttpServer())
-        .post('/api/v1/resumes')
-        .send(resumeData);
+      const response = await request(app.getHttpServer()).post('/api/v1/resumes').send(resumeData);
 
       expect(response.status).toBe(401);
     });
@@ -231,11 +229,11 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
       ];
 
       const workExpType =
-        response.body.data.sectionTypes.find((t: any) =>
+        response.body.data.sectionTypes.find((t: { key: string }) =>
           supportedKeys.includes(t.key),
         ) ??
         response.body.data.sectionTypes.find(
-          (t: any) =>
+          (t: { key?: string; semanticKind?: string }) =>
             t.semanticKind === 'WORK_EXPERIENCE' ||
             t.semanticKind === 'EXPERIENCE' ||
             t.key?.includes('work') ||
@@ -266,14 +264,10 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
 
   describe('Step 9: Section Item CRUD', () => {
     it('should create a section item (experience)', async () => {
-      const itemContent = createSectionItemContent(
-        workExperienceSectionTypeKey,
-      );
+      const itemContent = createSectionItemContent(workExperienceSectionTypeKey);
 
       const response = await request(app.getHttpServer())
-        .post(
-          `/api/v1/resumes/${secondResumeId}/sections/${workExperienceSectionTypeKey}/items`,
-        )
+        .post(`/api/v1/resumes/${secondResumeId}/sections/${workExperienceSectionTypeKey}/items`)
         .set('Authorization', `Bearer ${testUser.token}`)
         .send(itemContent);
 
@@ -333,9 +327,7 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
 
     it('should return 404 for non-existent section type', async () => {
       const response = await request(app.getHttpServer())
-        .post(
-          `/api/v1/resumes/${secondResumeId}/sections/invalid_type_v1/items`,
-        )
+        .post(`/api/v1/resumes/${secondResumeId}/sections/invalid_type_v1/items`)
         .set('Authorization', `Bearer ${testUser.token}`)
         .send({ content: {} });
 
@@ -344,7 +336,7 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
   });
 
   describe('Step 10: Test Resume Limit', () => {
-    let thirdResumeId: string;
+    let _thirdResumeId: string;
     let fourthResumeId: string;
 
     it('should create 3rd resume successfully', async () => {
@@ -358,7 +350,7 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
       expect(response.status).toBe(201);
       expect(response.body.success).toBe(true);
 
-      thirdResumeId = response.body.data.id;
+      _thirdResumeId = response.body.data.id;
     });
 
     it('should create 4th resume successfully (at limit)', async () => {

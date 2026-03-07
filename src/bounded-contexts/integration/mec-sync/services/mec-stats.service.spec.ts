@@ -2,10 +2,10 @@
  * MecStatsService Tests
  */
 
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
+import { CourseRepository, InstitutionRepository } from '../repositories';
 import { MecStatsService } from './mec-stats.service';
-import { InstitutionRepository, CourseRepository } from '../repositories';
 
 describe('MecStatsService', () => {
   let service: MecStatsService;

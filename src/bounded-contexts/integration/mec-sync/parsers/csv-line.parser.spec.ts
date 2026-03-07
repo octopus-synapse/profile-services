@@ -1,9 +1,5 @@
-import { describe, it, expect, beforeEach } from 'bun:test';
-import {
-  parseCsvLine,
-  buildColumnMap,
-  getColumnValue,
-} from './csv-line.parser';
+import { beforeEach, describe, expect, it } from 'bun:test';
+import { buildColumnMap, getColumnValue, parseCsvLine } from './csv-line.parser';
 
 describe('CSV Line Parser', () => {
   describe('parseCsvLine', () => {
@@ -141,9 +137,7 @@ describe('CSV Line Parser', () => {
           '100,"Faculdade de Tecnologia, Ciências e Administração",FATEC,Faculdade,Privada';
         const result = parseCsvLine(line);
 
-        expect(result[1]).toBe(
-          'Faculdade de Tecnologia, Ciências e Administração',
-        );
+        expect(result[1]).toBe('Faculdade de Tecnologia, Ciências e Administração');
       });
     });
   });
@@ -234,12 +228,7 @@ describe('CSV Line Parser', () => {
     });
 
     it('should return empty string when no key matches', () => {
-      const result = getColumnValue(
-        values,
-        columnMap,
-        'NONEXISTENT1',
-        'NONEXISTENT2',
-      );
+      const result = getColumnValue(values, columnMap, 'NONEXISTENT1', 'NONEXISTENT2');
 
       expect(result).toBe('');
     });

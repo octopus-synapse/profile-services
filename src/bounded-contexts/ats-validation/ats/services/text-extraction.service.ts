@@ -14,7 +14,6 @@ if (typeof globalThis.DOMMatrix === 'undefined') {
   }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
 const pdfParse = require('pdf-parse') as (
   buffer: Buffer,
 ) => Promise<{ text: string; numpages: number }>;

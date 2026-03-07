@@ -8,7 +8,7 @@
  * - Return both successful and failed translations
  */
 
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { TranslationBatchService } from './translation-batch.service';
 import { TranslationCoreService } from './translation-core.service';
@@ -86,11 +86,7 @@ describe('TranslationBatchService', () => {
     it('should pass correct language parameters', async () => {
       await service.translateBatch(['test'], 'pt', 'en');
 
-      expect(fakeCoreService.translate).toHaveBeenCalledWith(
-        'test',
-        'pt',
-        'en',
-      );
+      expect(fakeCoreService.translate).toHaveBeenCalledWith('test', 'pt', 'en');
     });
   });
 });

@@ -7,11 +7,11 @@
  * Kent Beck: "Tests describe behavior, not implementation"
  */
 
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
-import { ResumeImportService } from './resume-import.service';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { ResumeImportService } from './resume-import.service';
 import type { JsonResumeSchema } from './resume-import.types';
 
 describe('ResumeImportService', () => {
@@ -149,14 +149,18 @@ describe('ResumeImportService', () => {
 
       expect(parsed.personalInfo.name).toBe('John Doe');
       expect(parsed.personalInfo.email).toBe('john@example.com');
-      expect(parsed.personalInfo.linkedin).toBe(
-        'https://linkedin.com/in/johndoe',
-      );
-      expect(parsed.experiences).toHaveLength(1);
-      expect(parsed.experiences[0].company).toBe('TechCorp');
-      expect(parsed.experiences[0].title).toBe('Senior Engineer');
-      expect(parsed.education).toHaveLength(1);
-      expect(parsed.skills).toContain('JavaScript');
+      expect(parsed.personalInfo.linkedin).toBe('https://linkedin.com/in/johndoe');
+
+      const workSection = parsed.sections.find((s) => s.sectionTypeKey === 'work_experience_v1');
+      expect(workSection?.items).toHaveLength(1);
+      expect(workSection?.items[0].company).toBe('TechCorp');
+      expect(workSection?.items[0].position).toBe('Senior Engineer');
+
+      const eduSection = parsed.sections.find((s) => s.sectionTypeKey === 'education_v1');
+      expect(eduSection?.items).toHaveLength(1);
+
+      const skillSection = parsed.sections.find((s) => s.sectionTypeKey === 'skill_v1');
+      expect(skillSection?.items.map((i) => i.name)).toContain('JavaScript');
     });
 
     it('should handle missing optional fields', () => {
@@ -169,9 +173,7 @@ describe('ResumeImportService', () => {
       const parsed = service.parseJsonResume(minimalJson);
 
       expect(parsed.personalInfo.name).toBe('Jane Doe');
-      expect(parsed.experiences).toHaveLength(0);
-      expect(parsed.education).toHaveLength(0);
-      expect(parsed.skills).toHaveLength(0);
+      expect(parsed.sections).toHaveLength(0);
     });
 
     it('should flatten skills from nested structure', () => {
@@ -184,9 +186,11 @@ describe('ResumeImportService', () => {
 
       const parsed = service.parseJsonResume(jsonResume);
 
-      expect(parsed.skills).toContain('React');
-      expect(parsed.skills).toContain('Vue');
-      expect(parsed.skills).toContain('Node.js');
+      const skillSection = parsed.sections.find((s) => s.sectionTypeKey === 'skill_v1');
+      const skillNames = skillSection?.items.map((i) => i.name) ?? [];
+      expect(skillNames).toContain('React');
+      expect(skillNames).toContain('Vue');
+      expect(skillNames).toContain('Node.js');
     });
   });
 
@@ -235,9 +239,7 @@ describe('ResumeImportService', () => {
     it('should handle import not found', async () => {
       mockPrismaService.resumeImport.findUnique.mockResolvedValue(null);
 
-      await expect(service.processImport('invalid-id')).rejects.toThrow(
-        'Import not found',
-      );
+      await expect(service.processImport('invalid-id')).rejects.toThrow('Import not found');
     });
 
     it('should mark as failed on error', async () => {

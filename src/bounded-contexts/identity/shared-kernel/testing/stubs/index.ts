@@ -1,3 +1,4 @@
+export { StubAuthorizationService } from './stub-authorization-service';
 export type { SentEmail } from './stub-email-sender';
 export { StubEmailSender } from './stub-email-sender';
 export { StubEventBus } from './stub-event-bus';

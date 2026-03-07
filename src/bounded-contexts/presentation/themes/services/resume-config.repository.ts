@@ -47,7 +47,42 @@ export class ResumeConfigRepository {
   async save(resumeId: string, config: ResumeConfig): Promise<void> {
     await this.prisma.resume.update({
       where: { id: resumeId },
-      data: { customTheme: config as unknown as Prisma.InputJsonValue },
+      data: { customTheme: this.toInputJsonValue(config) },
     });
+  }
+
+  private toInputJsonValue(value: unknown): Prisma.InputJsonValue {
+    if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+      return value;
+    }
+
+    if (Array.isArray(value)) {
+      return value
+        .map((item) => this.toInputJsonValueOrNull(item))
+        .filter((item): item is Prisma.InputJsonValue => item !== null);
+    }
+
+    if (value && typeof value === 'object') {
+      const record: Record<string, Prisma.InputJsonValue> = {};
+
+      for (const [key, item] of Object.entries(value)) {
+        const parsed = this.toInputJsonValueOrNull(item);
+        if (parsed !== null) {
+          record[key] = parsed;
+        }
+      }
+
+      return record;
+    }
+
+    return {};
+  }
+
+  private toInputJsonValueOrNull(value: unknown): Prisma.InputJsonValue | null {
+    if (value === null) {
+      return null;
+    }
+
+    return this.toInputJsonValue(value);
   }
 }

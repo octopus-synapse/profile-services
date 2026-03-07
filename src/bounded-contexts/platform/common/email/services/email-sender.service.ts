@@ -37,10 +37,8 @@ export class EmailSenderService {
 
     if (apiKey) {
       try {
-        // Dynamic require to handle cases where SendGrid is not available
-        // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
         const sendgrid = require('@sendgrid/mail');
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+
         sgMail = sendgrid.default ?? sendgrid;
         if (sgMail && typeof sgMail.setApiKey === 'function') {
           sgMail.setApiKey(apiKey);

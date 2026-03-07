@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
-import { MecCourseController } from './mec-course.controller';
 import { CourseQueryService } from '../services/course-query.service';
+import { MecCourseController } from './mec-course.controller';
 
 const createMockService = () => ({
   searchCoursesByName: mock(() => Promise.resolve([{ codigoCurso: 123 }])),
@@ -16,9 +16,7 @@ describe('MecCourseController - Contract', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [MecCourseController],
-      providers: [
-        { provide: CourseQueryService, useValue: createMockService() },
-      ],
+      providers: [{ provide: CourseQueryService, useValue: createMockService() }],
     }).compile();
 
     controller = module.get<MecCourseController>(MecCourseController);

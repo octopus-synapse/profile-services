@@ -11,19 +11,19 @@
  * These tests verify the public API contract and caching behavior.
  */
 
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
-import { AuthorizationService } from './authorization.service';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import type { GroupRepository } from '../infrastructure/repositories/group.repository';
 import type { PermissionRepository } from '../infrastructure/repositories/permission.repository';
 import type { RoleRepository } from '../infrastructure/repositories/role.repository';
-import type { GroupRepository } from '../infrastructure/repositories/group.repository';
 import type { UserAuthorizationRepository } from '../infrastructure/repositories/user-authorization.repository';
+import { AuthorizationService } from './authorization.service';
 
 describe('AuthorizationService', () => {
   let service: AuthorizationService;
-  let mockPermissionRepo: any;
-  let mockRoleRepo: any;
-  let mockGroupRepo: any;
-  let mockUserAuthRepo: any;
+  let mockPermissionRepo: Record<string, ReturnType<typeof mock>>;
+  let mockRoleRepo: Record<string, ReturnType<typeof mock>>;
+  let mockGroupRepo: Record<string, ReturnType<typeof mock>>;
+  let mockUserAuthRepo: Record<string, ReturnType<typeof mock>>;
 
   const mockUserId = 'user-123';
 
@@ -61,9 +61,7 @@ describe('AuthorizationService', () => {
     };
 
     mockRoleRepo = {
-      findById: mock((id: string) =>
-        Promise.resolve(mockRoles.find((r) => r.id === id) ?? null),
-      ),
+      findById: mock((id: string) => Promise.resolve(mockRoles.find((r) => r.id === id) ?? null)),
       findByIds: mock((ids: string[]) =>
         Promise.resolve(mockRoles.filter((r) => ids.includes(r.id))),
       ),
@@ -77,18 +75,16 @@ describe('AuthorizationService', () => {
     };
 
     mockUserAuthRepo = {
-      getUserPermissions: mock(() =>
-        Promise.resolve([{ permissionId: 'perm-3', granted: true }]),
-      ),
+      getUserPermissions: mock(() => Promise.resolve([{ permissionId: 'perm-3', granted: true }])),
       getUserRoles: mock(() => Promise.resolve([{ roleId: 'role-1' }])),
       getUserGroups: mock(() => Promise.resolve([])),
     };
 
     service = new AuthorizationService(
-      mockPermissionRepo as PermissionRepository,
-      mockRoleRepo as RoleRepository,
-      mockGroupRepo as GroupRepository,
-      mockUserAuthRepo as UserAuthorizationRepository,
+      mockPermissionRepo as unknown as PermissionRepository,
+      mockRoleRepo as unknown as RoleRepository,
+      mockGroupRepo as unknown as GroupRepository,
+      mockUserAuthRepo as unknown as UserAuthorizationRepository,
     );
   });
 
@@ -181,20 +177,14 @@ describe('AuthorizationService', () => {
 
   describe('getResourcePermissions', () => {
     it('should return permissions for a specific resource', async () => {
-      const permissions = await service.getResourcePermissions(
-        mockUserId,
-        'resume',
-      );
+      const permissions = await service.getResourcePermissions(mockUserId, 'resume');
 
       expect(permissions).toContain('read');
       expect(permissions).toContain('write');
     });
 
     it('should return empty array for resource without permissions', async () => {
-      const permissions = await service.getResourcePermissions(
-        mockUserId,
-        'unknown',
-      );
+      const permissions = await service.getResourcePermissions(mockUserId, 'unknown');
 
       expect(permissions).toEqual([]);
     });

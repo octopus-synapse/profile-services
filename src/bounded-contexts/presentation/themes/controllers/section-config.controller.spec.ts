@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
-import { SectionConfigController } from './section-config.controller';
 import { SectionOrderingService, SectionVisibilityService } from '../services';
+import { SectionConfigController } from './section-config.controller';
 
 const createVisibilityService = () => ({
   toggleSection: mock(() => Promise.resolve({ success: true })),
@@ -30,7 +30,9 @@ describe('SectionConfigController - Contract', () => {
   });
 
   it('toggleSection returns data with success', async () => {
-    const result = await controller.toggleSection('user-1', 'resume-1', 'section-1', { visible: true });
+    const result = await controller.toggleSection('user-1', 'resume-1', 'section-1', {
+      visible: true,
+    });
     expect(result.data).toHaveProperty('success');
   });
 
@@ -40,17 +42,25 @@ describe('SectionConfigController - Contract', () => {
   });
 
   it('toggleItem returns data with success', async () => {
-    const result = await controller.toggleItem('user-1', 'resume-1', 'section-1', { itemId: 'item-1', visible: true });
+    const result = await controller.toggleItem('user-1', 'resume-1', 'section-1', {
+      itemId: 'item-1',
+      visible: true,
+    });
     expect(result.data).toHaveProperty('success');
   });
 
   it('reorderItem returns data with success', async () => {
-    const result = await controller.reorderItem('user-1', 'resume-1', 'section-1', { itemId: 'item-1', order: 1 });
+    const result = await controller.reorderItem('user-1', 'resume-1', 'section-1', {
+      itemId: 'item-1',
+      order: 1,
+    });
     expect(result.data).toHaveProperty('success');
   });
 
   it('batchUpdate returns data with success', async () => {
-    const result = await controller.batchUpdate('user-1', 'resume-1', { sections: [{ id: 'section-1', order: 1 }] });
+    const result = await controller.batchUpdate('user-1', 'resume-1', {
+      sections: [{ id: 'section-1', order: 1 }],
+    });
     expect(result.data).toHaveProperty('success');
   });
 });

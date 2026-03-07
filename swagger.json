@@ -253,6 +253,16 @@
             "JWT-auth": []
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BlockUserRequestDto"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Block a user"
@@ -465,6 +475,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendMessageToConversationRequestDto"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Send a message to an existing conversation"
@@ -497,6 +517,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MarkConversationAsReadRequestDto"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Mark all messages in a conversation as read"
@@ -519,6 +549,16 @@
             "JWT-auth": []
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendMessageRequestDto"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Send a message to a user"
@@ -983,6 +1023,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSnapshotRequestDto"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Save analytics snapshot for tracking progress"
@@ -1243,6 +1293,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RetryImportRequestDto"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Retry failed import"
@@ -1672,7 +1732,7 @@
     },
     "/api/v1/ats/validate": {
       "post": {
-        "operationId": "ats-validation_postEndpoint",
+        "operationId": "ats-validation_validateCV",
         "tags": [
           "ats-validation"
         ],
@@ -1683,6 +1743,16 @@
             "JWT-auth": []
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ValidateCVRequestDto"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Validate CV for ATS compatibility"
@@ -1879,7 +1949,7 @@
           "enums"
         ],
         "summary": "Get available section types",
-        "description": "Returns all available resume section types",
+        "description": "Returns all available resume section types from definitions",
         "security": [
           {
             "JWT-auth": []
@@ -2203,6 +2273,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AutoSyncGitHubRequestDto"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Auto-sync GitHub from resume GitHub link"
@@ -2394,6 +2474,16 @@
           "mec-internal"
         ],
         "summary": "Trigger MEC data synchronization",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TriggerMecSyncRequestDto"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Trigger MEC data synchronization"
@@ -2479,6 +2569,16 @@
             "JWT-auth": []
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompleteOnboardingRequestDto"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Complete user onboarding with resume data"
@@ -3481,150 +3581,6 @@
         }
       }
     },
-    "/api/v1/skills/manage/resume/{resumeId}": {
-      "get": {
-        "operationId": "skills_listSkillsForResume",
-        "tags": [
-          "skills"
-        ],
-        "summary": "List all skills for a resume",
-        "security": [
-          {
-            "JWT-auth": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "resumeId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "List all skills for a resume"
-          },
-          "401": {
-            "description": "Unauthorized - Authentication required"
-          }
-        }
-      },
-      "post": {
-        "operationId": "skills_addSkillToResume",
-        "tags": [
-          "skills"
-        ],
-        "summary": "Add a skill to a resume",
-        "security": [
-          {
-            "JWT-auth": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "resumeId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/CreateSkillInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Add a skill to a resume"
-          },
-          "401": {
-            "description": "Unauthorized - Authentication required"
-          }
-        }
-      }
-    },
-    "/api/v1/skills/manage/{id}": {
-      "delete": {
-        "operationId": "skills_deleteSkill",
-        "tags": [
-          "skills"
-        ],
-        "summary": "Delete a skill",
-        "security": [
-          {
-            "JWT-auth": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Delete a skill"
-          },
-          "401": {
-            "description": "Unauthorized - Authentication required"
-          }
-        }
-      },
-      "patch": {
-        "operationId": "skills_updateSkill",
-        "tags": [
-          "skills"
-        ],
-        "summary": "Update a skill",
-        "security": [
-          {
-            "JWT-auth": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/UpdateSkillInput"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Update a skill"
-          },
-          "401": {
-            "description": "Unauthorized - Authentication required"
-          }
-        }
-      }
-    },
     "/api/v1/spoken-languages": {
       "get": {
         "operationId": "skills_findAllActiveLanguages",
@@ -4001,6 +3957,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitThemeRequestDto"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Submit a theme for approval"
@@ -4297,6 +4263,16 @@
             "JWT-auth": []
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TranslateSimpleRequestDto"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Translate English to Portuguese"
@@ -4341,6 +4317,16 @@
             "JWT-auth": []
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TranslateSimpleRequestDto"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Translate Portuguese to English"
@@ -4405,6 +4391,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UploadCompanyLogoRequestDto"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Upload company logo for resume"
@@ -4459,6 +4455,16 @@
             "JWT-auth": []
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UploadProfileImageRequestDto"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Upload user profile image"
@@ -4694,7 +4700,7 @@
     },
     "/api/v1/users/me/accept-consent": {
       "post": {
-        "operationId": "user-consent_postEndpoint",
+        "operationId": "user-consent_acceptConsent",
         "tags": [
           "user-consent"
         ],
@@ -4705,6 +4711,16 @@
             "JWT-auth": []
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AcceptConsentRequestDto"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Accept Terms of Service or Privacy Policy"
@@ -5048,6 +5064,34 @@
           "message"
         ]
       },
+      "AcceptConsentRequestDto": {
+        "type": "object",
+        "properties": {
+          "documentType": {
+            "type": "string",
+            "enum": [
+              "TERMS_OF_SERVICE",
+              "PRIVACY_POLICY",
+              "MARKETING_CONSENT"
+            ],
+            "example": "TERMS_OF_SERVICE",
+            "description": "Type of document being accepted"
+          },
+          "ipAddress": {
+            "type": "string",
+            "example": "192.168.1.1",
+            "description": "Client IP address (auto-detected if not provided)"
+          },
+          "userAgent": {
+            "type": "string",
+            "example": "Mozilla/5.0...",
+            "description": "Client user agent (auto-detected if not provided)"
+          }
+        },
+        "required": [
+          "documentType"
+        ]
+      },
       "AcceptConsentResponseDto": {
         "type": "object",
         "properties": {
@@ -5180,52 +5224,15 @@
           "createdAt"
         ]
       },
-      "AwardItemDto": {
+      "AutoSyncGitHubRequestDto": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string",
-            "example": "award_123"
-          },
-          "title": {
-            "type": "string"
-          },
-          "issuer": {
-            "type": "string"
-          },
-          "date": {
-            "type": "string",
-            "example": "2023-12"
-          },
-          "description": {
-            "type": "string"
+          "force": {
+            "type": "boolean",
+            "example": "false",
+            "description": "Force sync even if recently synced"
           }
-        },
-        "required": [
-          "id",
-          "title",
-          "issuer",
-          "date"
-        ]
-      },
-      "AwardsSectionDataDto": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "example": "awards"
-          },
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AwardItemDto"
-            }
-          }
-        },
-        "required": [
-          "type",
-          "items"
-        ]
+        }
       },
       "BatchTranslationResultDto": {
         "type": "object",
@@ -5259,6 +5266,23 @@
           "block"
         ]
       },
+      "BlockUserRequestDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "example": "cuid_user123",
+            "description": "The ID of the user to block"
+          },
+          "reason": {
+            "type": "string",
+            "description": "Optional reason for blocking"
+          }
+        },
+        "required": [
+          "userId"
+        ]
+      },
       "BlockedUsersListDataDto": {
         "type": "object",
         "properties": {
@@ -5272,54 +5296,6 @@
         },
         "required": [
           "blockedUsers"
-        ]
-      },
-      "CertificationItemDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "example": "cert_123"
-          },
-          "name": {
-            "type": "string"
-          },
-          "issuer": {
-            "type": "string"
-          },
-          "date": {
-            "type": "string",
-            "example": "2023-01"
-          },
-          "url": {
-            "type": "string",
-            "example": "https://aws.amazon.com/verify/..."
-          }
-        },
-        "required": [
-          "id",
-          "name",
-          "issuer",
-          "date"
-        ]
-      },
-      "CertificationsSectionDataDto": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "example": "certifications"
-          },
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/CertificationItemDto"
-            }
-          }
-        },
-        "required": [
-          "type",
-          "items"
         ]
       },
       "ChangePasswordDto": {
@@ -5397,6 +5373,38 @@
           "id",
           "widthPercentage",
           "order"
+        ]
+      },
+      "CompleteOnboardingRequestDto": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "example": "johndoe",
+            "description": "Unique username"
+          },
+          "personalInfo": {
+            "$ref": "#/components/schemas/OnboardingPersonalInfoDto"
+          },
+          "professionalProfile": {
+            "$ref": "#/components/schemas/OnboardingProfessionalProfileDto"
+          },
+          "templateSelection": {
+            "$ref": "#/components/schemas/OnboardingTemplateSelectionDto"
+          },
+          "sections": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OnboardingSectionDto"
+            },
+            "description": "Generic sections array"
+          }
+        },
+        "required": [
+          "username",
+          "personalInfo",
+          "professionalProfile",
+          "templateSelection"
         ]
       },
       "CompleteOnboardingResponseDto": {
@@ -5595,26 +5603,18 @@
           "resumeId"
         ]
       },
-      "CreateSkillInput": {
+      "CreateSnapshotRequestDto": {
         "type": "object",
         "properties": {
-          "name": {
+          "label": {
             "type": "string",
-            "description": "Skill name"
+            "description": "Optional label for the snapshot"
           },
-          "category": {
+          "notes": {
             "type": "string",
-            "description": "Skill category"
-          },
-          "level": {
-            "type": "number",
-            "description": "Skill level (1-5)"
+            "description": "Optional notes about the snapshot"
           }
-        },
-        "required": [
-          "name",
-          "category"
-        ]
+        }
       },
       "CreateTheme": {
         "type": "object",
@@ -5651,43 +5651,6 @@
           "styleConfig"
         ]
       },
-      "CustomSectionDataDto": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "example": "custom"
-          },
-          "content": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "type",
-          "content"
-        ]
-      },
-      "DateRangeDto": {
-        "type": "object",
-        "properties": {
-          "startDate": {
-            "type": "string",
-            "example": "2020-01"
-          },
-          "endDate": {
-            "type": "string",
-            "example": "2023-06"
-          },
-          "isCurrent": {
-            "type": "boolean",
-            "example": "false"
-          }
-        },
-        "required": [
-          "startDate",
-          "isCurrent"
-        ]
-      },
       "DeleteResponseDto": {
         "type": "object",
         "properties": {
@@ -5701,17 +5664,6 @@
         },
         "required": [
           "success"
-        ]
-      },
-      "DeleteSkillDataDto": {
-        "type": "object",
-        "properties": {
-          "result": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "result"
         ]
       },
       "DslAstResponseDto": {
@@ -5737,7 +5689,7 @@
         "type": "object",
         "properties": {
           "ast": {
-            "type": "string",
+            "$ref": "#/components/schemas/ResumeAstDto",
             "description": "Compiled AST"
           }
         },
@@ -5779,133 +5731,6 @@
         "required": [
           "valid",
           "errors"
-        ]
-      },
-      "EducationItemDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "example": "edu_123"
-          },
-          "institution": {
-            "type": "string"
-          },
-          "degree": {
-            "type": "string"
-          },
-          "fieldOfStudy": {
-            "type": "string"
-          },
-          "location": {
-            "$ref": "#/components/schemas/LocationDto"
-          },
-          "dateRange": {
-            "$ref": "#/components/schemas/DateRangeDto"
-          },
-          "grade": {
-            "type": "string",
-            "example": "3.8"
-          },
-          "activities": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "example": "["
-          }
-        },
-        "required": [
-          "id",
-          "institution",
-          "degree",
-          "fieldOfStudy",
-          "dateRange",
-          "activities"
-        ]
-      },
-      "EducationSectionDataDto": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "example": "education"
-          },
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/EducationItemDto"
-            }
-          }
-        },
-        "required": [
-          "type",
-          "items"
-        ]
-      },
-      "ExperienceItemDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "example": "exp_123"
-          },
-          "title": {
-            "type": "string"
-          },
-          "company": {
-            "type": "string"
-          },
-          "location": {
-            "$ref": "#/components/schemas/LocationDto"
-          },
-          "dateRange": {
-            "$ref": "#/components/schemas/DateRangeDto"
-          },
-          "description": {
-            "type": "string"
-          },
-          "achievements": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "example": "["
-          },
-          "skills": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "example": "["
-          }
-        },
-        "required": [
-          "id",
-          "title",
-          "company",
-          "dateRange",
-          "achievements",
-          "skills"
-        ]
-      },
-      "ExperienceSectionDataDto": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "example": "experience"
-          },
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ExperienceItemDto"
-            }
-          }
-        },
-        "required": [
-          "type",
-          "items"
         ]
       },
       "ExportDataResponseDto": {
@@ -6031,6 +5856,59 @@
           "themeId",
           "name",
           "description"
+        ]
+      },
+      "GenericSectionDataDto": {
+        "type": "object",
+        "properties": {
+          "sectionTypeKey": {
+            "type": "string",
+            "example": "section_type_v1"
+          },
+          "semanticKind": {
+            "type": "string",
+            "example": "custom_section"
+          },
+          "title": {
+            "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GenericSectionItemDto"
+            }
+          },
+          "content": {
+            "type": "string"
+          },
+          "metadata": {
+            "type": "string",
+            "example": "{"
+          }
+        },
+        "required": [
+          "sectionTypeKey"
+        ]
+      },
+      "GenericSectionItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "item_123"
+          },
+          "order": {
+            "type": "number",
+            "example": "0"
+          },
+          "content": {
+            "type": "string",
+            "example": "{"
+          }
+        },
+        "required": [
+          "id",
+          "content"
         ]
       },
       "GitHubSummaryDto": {
@@ -6275,49 +6153,6 @@
         "required": [
           "importId",
           "status"
-        ]
-      },
-      "InterestItemDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "example": "int_123"
-          },
-          "name": {
-            "type": "string"
-          },
-          "keywords": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "example": "["
-          }
-        },
-        "required": [
-          "id",
-          "name",
-          "keywords"
-        ]
-      },
-      "InterestsSectionDataDto": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "example": "interests"
-          },
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/InterestItemDto"
-            }
-          }
-        },
-        "required": [
-          "type",
-          "items"
         ]
       },
       "InviteCollaboratorDto": {
@@ -6615,63 +6450,6 @@
           }
         }
       },
-      "LanguageItemDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "example": "lang_123"
-          },
-          "name": {
-            "type": "string",
-            "example": "English"
-          },
-          "proficiency": {
-            "type": "string",
-            "example": "Fluent"
-          }
-        },
-        "required": [
-          "id",
-          "name",
-          "proficiency"
-        ]
-      },
-      "LanguagesSectionDataDto": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "example": "languages"
-          },
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/LanguageItemDto"
-            }
-          }
-        },
-        "required": [
-          "type",
-          "items"
-        ]
-      },
-      "LocationDto": {
-        "type": "object",
-        "properties": {
-          "city": {
-            "type": "string"
-          },
-          "country": {
-            "type": "string",
-            "example": "Brazil"
-          },
-          "remote": {
-            "type": "boolean",
-            "example": "true"
-          }
-        }
-      },
       "MarkAsReadDataDto": {
         "type": "object",
         "properties": {
@@ -6683,6 +6461,10 @@
         "required": [
           "count"
         ]
+      },
+      "MarkConversationAsReadRequestDto": {
+        "type": "object",
+        "properties": {}
       },
       "MecCourseDataDto": {
         "type": "object",
@@ -6903,6 +6685,33 @@
           "messages"
         ]
       },
+      "OnboardingPersonalInfoDto": {
+        "type": "object",
+        "properties": {
+          "fullName": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "example": "john@example.com"
+          }
+        },
+        "required": [
+          "fullName",
+          "email"
+        ]
+      },
+      "OnboardingProfessionalProfileDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          }
+        }
+      },
       "OnboardingProgress": {
         "type": "object",
         "properties": {
@@ -6957,45 +6766,12 @@
           "professionalProfile": {
             "type": "string"
           },
-          "experiences": {
+          "sections": {
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/SectionProgressDto"
             },
-            "example": "[]"
-          },
-          "noExperience": {
-            "type": "boolean",
-            "example": "false"
-          },
-          "education": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "example": "[]"
-          },
-          "noEducation": {
-            "type": "boolean",
-            "example": "false"
-          },
-          "skills": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "example": "[]"
-          },
-          "noSkills": {
-            "type": "boolean",
-            "example": "false"
-          },
-          "languages": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "example": "[]"
+            "description": "Generic sections progress"
           },
           "templateSelection": {
             "type": "string"
@@ -7007,13 +6783,6 @@
         "required": [
           "currentStep",
           "completedSteps",
-          "experiences",
-          "noExperience",
-          "education",
-          "noEducation",
-          "skills",
-          "noSkills",
-          "languages",
           "fullName"
         ]
       },
@@ -7056,6 +6825,49 @@
           "steps"
         ]
       },
+      "OnboardingSectionDto": {
+        "type": "object",
+        "properties": {
+          "sectionTypeKey": {
+            "type": "string",
+            "example": "section_type_v1",
+            "description": "Section type key from SectionType"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OnboardingSectionItemDto"
+            },
+            "description": "Section items"
+          },
+          "noData": {
+            "type": "boolean",
+            "example": "false",
+            "description": "User has no data for this section"
+          }
+        },
+        "required": [
+          "sectionTypeKey"
+        ]
+      },
+      "OnboardingSectionItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "item_123",
+            "description": "Optional item ID"
+          },
+          "content": {
+            "type": "string",
+            "example": "{",
+            "description": "Item content - structure depends on section type"
+          }
+        },
+        "required": [
+          "content"
+        ]
+      },
       "OnboardingStepResponseDto": {
         "type": "object",
         "properties": {
@@ -7083,6 +6895,19 @@
           "title",
           "completed"
         ]
+      },
+      "OnboardingTemplateSelectionDto": {
+        "type": "object",
+        "properties": {
+          "templateId": {
+            "type": "string",
+            "example": "modern"
+          },
+          "colorScheme": {
+            "type": "string",
+            "example": "blue"
+          }
+        }
       },
       "PageLayoutDto": {
         "type": "object",
@@ -7181,110 +7006,6 @@
           "totalPages"
         ]
       },
-      "ParsedCertificationDto": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "issuer": {
-            "type": "string"
-          },
-          "date": {
-            "type": "string",
-            "example": "2023-03-15"
-          },
-          "url": {
-            "type": "string",
-            "example": "https://aws.amazon.com/certification/"
-          }
-        },
-        "required": [
-          "name"
-        ]
-      },
-      "ParsedEducationDto": {
-        "type": "object",
-        "properties": {
-          "degree": {
-            "type": "string"
-          },
-          "institution": {
-            "type": "string"
-          },
-          "location": {
-            "type": "string"
-          },
-          "startDate": {
-            "type": "string",
-            "example": "2015-09-01"
-          },
-          "endDate": {
-            "type": "string",
-            "example": "2019-06-15"
-          },
-          "description": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "degree",
-          "institution"
-        ]
-      },
-      "ParsedExperienceDto": {
-        "type": "object",
-        "properties": {
-          "title": {
-            "type": "string"
-          },
-          "company": {
-            "type": "string"
-          },
-          "location": {
-            "type": "string"
-          },
-          "startDate": {
-            "type": "string",
-            "example": "2020-01-15"
-          },
-          "endDate": {
-            "type": "string",
-            "example": "2023-05-30"
-          },
-          "description": {
-            "type": "string"
-          },
-          "highlights": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "example": "["
-          }
-        },
-        "required": [
-          "title",
-          "company",
-          "startDate"
-        ]
-      },
-      "ParsedLanguageDto": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "example": "English"
-          },
-          "level": {
-            "type": "string",
-            "example": "Native"
-          }
-        },
-        "required": [
-          "name"
-        ]
-      },
       "ParsedPersonalInfoDto": {
         "type": "object",
         "properties": {
@@ -7316,31 +7037,6 @@
           }
         }
       },
-      "ParsedProjectDto": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "url": {
-            "type": "string",
-            "example": "https://github.com/johndoe/ecommerce"
-          },
-          "technologies": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "example": "["
-          }
-        },
-        "required": [
-          "name"
-        ]
-      },
       "ParsedResumeDataDto": {
         "type": "object",
         "properties": {
@@ -7350,49 +7046,39 @@
           "summary": {
             "type": "string"
           },
-          "experiences": {
+          "sections": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ParsedExperienceDto"
-            }
-          },
-          "education": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ParsedEducationDto"
-            }
-          },
-          "skills": {
-            "type": "array",
-            "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/ParsedSectionDto"
             },
-            "example": "["
-          },
-          "certifications": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ParsedCertificationDto"
-            }
-          },
-          "languages": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ParsedLanguageDto"
-            }
-          },
-          "projects": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ParsedProjectDto"
-            }
+            "description": "Generic sections with items"
           }
         },
         "required": [
           "personalInfo",
-          "experiences",
-          "education",
-          "skills"
+          "sections"
+        ]
+      },
+      "ParsedSectionDto": {
+        "type": "object",
+        "properties": {
+          "sectionTypeKey": {
+            "type": "string",
+            "example": "work_experience_v1",
+            "description": "Section type key"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": "[{",
+            "description": "Section items as generic content objects"
+          }
+        },
+        "required": [
+          "sectionTypeKey",
+          "items"
         ]
       },
       "PlacedSectionDto": {
@@ -7411,49 +7097,9 @@
             "example": "0"
           },
           "data": {
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/ExperienceSectionDataDto"
-              },
-              {
-                "$ref": "#/components/schemas/EducationSectionDataDto"
-              },
-              {
-                "$ref": "#/components/schemas/SkillsSectionDataDto"
-              },
-              {
-                "$ref": "#/components/schemas/ProjectsSectionDataDto"
-              },
-              {
-                "$ref": "#/components/schemas/LanguagesSectionDataDto"
-              },
-              {
-                "$ref": "#/components/schemas/CertificationsSectionDataDto"
-              },
-              {
-                "$ref": "#/components/schemas/InterestsSectionDataDto"
-              },
-              {
-                "$ref": "#/components/schemas/ReferencesSectionDataDto"
-              },
-              {
-                "$ref": "#/components/schemas/VolunteerSectionDataDto"
-              },
-              {
-                "$ref": "#/components/schemas/AwardsSectionDataDto"
-              },
-              {
-                "$ref": "#/components/schemas/PublicationsSectionDataDto"
-              },
-              {
-                "$ref": "#/components/schemas/SummarySectionDataDto"
-              },
-              {
-                "$ref": "#/components/schemas/CustomSectionDataDto"
-              }
-            ],
+            "$ref": "#/components/schemas/GenericSectionDataDto",
             "example": "{",
-            "description": "Section data object with discriminated type field. Type can be: experience, education, skills, projects, languages, certifications, interests, references, volunteer, awards, publications, summary, custom"
+            "description": "Generic section data. Structure is defined by sectionTypeKey and SectionType metadata."
           },
           "styles": {
             "$ref": "#/components/schemas/SectionStylesDto"
@@ -7502,74 +7148,6 @@
           "activeUsersToday",
           "activeUsersWeek",
           "updatedAt"
-        ]
-      },
-      "ProjectItemDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "example": "proj_123"
-          },
-          "name": {
-            "type": "string"
-          },
-          "role": {
-            "type": "string"
-          },
-          "dateRange": {
-            "$ref": "#/components/schemas/DateRangeDto"
-          },
-          "url": {
-            "type": "string",
-            "example": "https://example.com"
-          },
-          "repositoryUrl": {
-            "type": "string",
-            "example": "https://github.com/user/repo"
-          },
-          "description": {
-            "type": "string"
-          },
-          "highlights": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "example": "["
-          },
-          "technologies": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "example": "["
-          }
-        },
-        "required": [
-          "id",
-          "name",
-          "highlights",
-          "technologies"
-        ]
-      },
-      "ProjectsSectionDataDto": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "example": "projects"
-          },
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ProjectItemDto"
-            }
-          }
-        },
-        "required": [
-          "type",
-          "items"
         ]
       },
       "PublicProfileDataDto": {
@@ -7645,108 +7223,6 @@
         "required": [
           "slug",
           "expiresAt"
-        ]
-      },
-      "PublicationItemDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "example": "pub_123"
-          },
-          "title": {
-            "type": "string"
-          },
-          "publisher": {
-            "type": "string"
-          },
-          "date": {
-            "type": "string",
-            "example": "2023-06"
-          },
-          "url": {
-            "type": "string",
-            "example": "https://example.com/book"
-          },
-          "description": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "title",
-          "publisher",
-          "date"
-        ]
-      },
-      "PublicationsSectionDataDto": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "example": "publications"
-          },
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/PublicationItemDto"
-            }
-          }
-        },
-        "required": [
-          "type",
-          "items"
-        ]
-      },
-      "ReferenceItemDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "example": "ref_123"
-          },
-          "name": {
-            "type": "string"
-          },
-          "role": {
-            "type": "string",
-            "example": "CTO"
-          },
-          "company": {
-            "type": "string"
-          },
-          "email": {
-            "type": "string",
-            "example": "john@example.com"
-          },
-          "phone": {
-            "type": "string",
-            "example": "+1234567890"
-          }
-        },
-        "required": [
-          "id",
-          "name",
-          "role"
-        ]
-      },
-      "ReferencesSectionDataDto": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "example": "references"
-          },
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ReferenceItemDto"
-            }
-          }
-        },
-        "required": [
-          "type",
-          "items"
         ]
       },
       "ResetPasswordDto": {
@@ -8189,15 +7665,14 @@
           },
           "key": {
             "type": "string",
-            "example": "work_experience_v1"
+            "example": "section_type_v1"
           },
           "semanticKind": {
             "type": "string",
-            "example": "WORK_EXPERIENCE"
+            "example": "CUSTOM_SECTION"
           },
           "title": {
-            "type": "string",
-            "example": "Experience"
+            "type": "string"
           },
           "version": {
             "type": "number",
@@ -8237,66 +7712,6 @@
           "sections"
         ]
       },
-      "ResumeSkillDataDto": {
-        "type": "object",
-        "properties": {
-          "skill": {
-            "$ref": "#/components/schemas/ResumeSkillResponseDto"
-          }
-        },
-        "required": [
-          "skill"
-        ]
-      },
-      "ResumeSkillListDataDto": {
-        "type": "object",
-        "properties": {
-          "skills": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ResumeSkillResponseDto"
-            }
-          }
-        },
-        "required": [
-          "skills"
-        ]
-      },
-      "ResumeSkillResponseDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "example": "clxxx..."
-          },
-          "resumeId": {
-            "type": "string",
-            "example": "clxxx..."
-          },
-          "name": {
-            "type": "string",
-            "example": "TypeScript"
-          },
-          "level": {
-            "type": "string",
-            "example": "expert"
-          },
-          "category": {
-            "type": "string",
-            "example": "programming"
-          },
-          "order": {
-            "type": "number",
-            "example": "0"
-          }
-        },
-        "required": [
-          "id",
-          "resumeId",
-          "name",
-          "order"
-        ]
-      },
       "ResumeSlotsResponseDto": {
         "type": "object",
         "properties": {
@@ -8318,6 +7733,16 @@
           "limit",
           "remaining"
         ]
+      },
+      "RetryImportRequestDto": {
+        "type": "object",
+        "properties": {
+          "force": {
+            "type": "boolean",
+            "example": "false",
+            "description": "Optional flag to force retry even if not failed"
+          }
+        }
       },
       "SaveProgressResponseDto": {
         "type": "object",
@@ -8488,6 +7913,31 @@
         "type": "object",
         "properties": {}
       },
+      "SectionProgressDto": {
+        "type": "object",
+        "properties": {
+          "sectionTypeKey": {
+            "type": "string",
+            "example": "section_type_v1",
+            "description": "Section type key from SectionType"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Section items (content varies by section type)"
+          },
+          "noData": {
+            "type": "boolean",
+            "example": "false",
+            "description": "User has no data for this section"
+          }
+        },
+        "required": [
+          "sectionTypeKey"
+        ]
+      },
       "SectionReorder": {
         "type": "object",
         "properties": {
@@ -8532,14 +7982,25 @@
       "SectionTypeResponseDto": {
         "type": "object",
         "properties": {
-          "type": {
+          "key": {
             "type": "string",
-            "example": "experience",
-            "description": "Available resume section types"
+            "example": "work_experience_v1",
+            "description": "Section type key"
+          },
+          "semanticKind": {
+            "type": "string",
+            "example": "EDUCATION",
+            "description": "Semantic kind"
+          },
+          "title": {
+            "type": "string",
+            "description": "Display title"
           }
         },
         "required": [
-          "type"
+          "key",
+          "semanticKind",
+          "title"
         ]
       },
       "SectionTypesDataDto": {
@@ -8554,6 +8015,36 @@
         },
         "required": [
           "types"
+        ]
+      },
+      "SendMessageRequestDto": {
+        "type": "object",
+        "properties": {
+          "recipientId": {
+            "type": "string",
+            "example": "cuid_recipient123",
+            "description": "The ID of the user to send the message to"
+          },
+          "content": {
+            "type": "string",
+            "description": "The message content"
+          }
+        },
+        "required": [
+          "recipientId",
+          "content"
+        ]
+      },
+      "SendMessageToConversationRequestDto": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string",
+            "description": "The message content"
+          }
+        },
+        "required": [
+          "content"
         ]
       },
       "ShareCreateDataDto": {
@@ -8678,66 +8169,15 @@
           "resumes"
         ]
       },
-      "SkillItemDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "example": "skill_123"
-          },
-          "name": {
-            "type": "string",
-            "example": "TypeScript"
-          },
-          "level": {
-            "type": "string",
-            "example": "Advanced"
-          },
-          "category": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "name"
-        ]
-      },
-      "SkillsSectionDataDto": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "example": "skills"
-          },
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SkillItemDto"
-            }
-          }
-        },
-        "required": [
-          "type",
-          "items"
-        ]
-      },
       "SpokenLanguageDataDto": {
         "type": "object",
         "properties": {
           "language": {
             "type": "string"
-          },
-          "code": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
           }
         },
         "required": [
-          "language",
-          "code",
-          "name"
+          "language"
         ]
       },
       "SpokenLanguagesListDataDto": {
@@ -8748,35 +8188,20 @@
             "items": {
               "type": "string"
             }
-          },
-          "code": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
           }
         },
         "required": [
-          "languages",
-          "code",
-          "name"
+          "languages"
         ]
       },
-      "SummarySectionDataDto": {
+      "SubmitThemeRequestDto": {
         "type": "object",
         "properties": {
-          "type": {
+          "message": {
             "type": "string",
-            "example": "summary"
-          },
-          "content": {
-            "type": "string"
+            "description": "Optional message for reviewers"
           }
-        },
-        "required": [
-          "type",
-          "content"
-        ]
+        }
       },
       "TechAreaDto": {
         "type": "object",
@@ -9087,6 +8512,18 @@
           "targetLanguage"
         ]
       },
+      "TranslateSimpleRequestDto": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "description": "The text to translate"
+          }
+        },
+        "required": [
+          "text"
+        ]
+      },
       "TranslateText": {
         "type": "object",
         "properties": {
@@ -9133,6 +8570,21 @@
           "sourceLanguage",
           "targetLanguage"
         ]
+      },
+      "TriggerMecSyncRequestDto": {
+        "type": "object",
+        "properties": {
+          "fullSync": {
+            "type": "boolean",
+            "example": "false",
+            "description": "Force full sync instead of incremental"
+          },
+          "source": {
+            "type": "string",
+            "example": "scheduled",
+            "description": "Sync source identifier"
+          }
+        }
       },
       "UnreadCountDataDto": {
         "type": "object",
@@ -9345,23 +8797,6 @@
           "role"
         ]
       },
-      "UpdateSkillInput": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "Skill name"
-          },
-          "category": {
-            "type": "string",
-            "description": "Skill category"
-          },
-          "level": {
-            "type": "number",
-            "description": "Skill level (1-5)"
-          }
-        }
-      },
       "UpdateTheme": {
         "type": "object",
         "properties": {
@@ -9424,6 +8859,30 @@
           "success",
           "message",
           "username"
+        ]
+      },
+      "UploadCompanyLogoRequestDto": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "type": "string",
+            "description": "The company logo file to upload (JPEG, PNG, WebP, SVG)"
+          }
+        },
+        "required": [
+          "file"
+        ]
+      },
+      "UploadProfileImageRequestDto": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "type": "string",
+            "description": "The profile image file to upload (JPEG, PNG, WebP)"
+          }
+        },
+        "required": [
+          "file"
         ]
       },
       "UploadResponseDto": {
@@ -9812,6 +9271,53 @@
           }
         }
       },
+      "ValidateCVRequestDto": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "type": "string",
+            "description": "CV file (PDF or DOCX)"
+          },
+          "checkFormat": {
+            "type": "boolean",
+            "example": "true",
+            "description": "Check document format (default: true)"
+          },
+          "checkSections": {
+            "type": "boolean",
+            "example": "true",
+            "description": "Check CV sections (default: true)"
+          },
+          "checkGrammar": {
+            "type": "boolean",
+            "example": "false",
+            "description": "Check grammar and spelling (default: false)"
+          },
+          "checkOrder": {
+            "type": "boolean",
+            "example": "true",
+            "description": "Check section order (default: true)"
+          },
+          "checkLayout": {
+            "type": "boolean",
+            "example": "true",
+            "description": "Check layout safety (default: true)"
+          },
+          "resumeId": {
+            "type": "string",
+            "example": "cuid_resume123",
+            "description": "Optional resume ID for semantic snapshot lookup"
+          },
+          "checkSemantic": {
+            "type": "boolean",
+            "example": "true",
+            "description": "Run semantic ATS policies (default: true)"
+          }
+        },
+        "required": [
+          "file"
+        ]
+      },
       "ValidateUsernameRequest": {
         "type": "object",
         "properties": {
@@ -9926,53 +9432,6 @@
           "fileType",
           "fileSize",
           "analyzedAt"
-        ]
-      },
-      "VolunteerItemDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "example": "vol_123"
-          },
-          "organization": {
-            "type": "string"
-          },
-          "role": {
-            "type": "string",
-            "example": "Mentor"
-          },
-          "dateRange": {
-            "$ref": "#/components/schemas/DateRangeDto"
-          },
-          "description": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "id",
-          "organization",
-          "role",
-          "dateRange"
-        ]
-      },
-      "VolunteerSectionDataDto": {
-        "type": "object",
-        "properties": {
-          "type": {
-            "type": "string",
-            "example": "volunteer"
-          },
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/VolunteerItemDto"
-            }
-          }
-        },
-        "required": [
-          "type",
-          "items"
         ]
       }
     }

@@ -1,11 +1,11 @@
-import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
+import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import {
-  getRequest,
-  getApp,
-  closeApp,
   authHeader,
+  closeApp,
   createTestUserAndLogin,
+  getApp,
   getPrisma,
+  getRequest,
 } from './setup';
 
 describe('Resume Versions Integration', () => {
@@ -55,9 +55,7 @@ describe('Resume Versions Integration', () => {
         },
       });
 
-      const response = await getRequest()
-        .get(`/api/v1/versions/${resumeId}`)
-        .set(authHeader());
+      const response = await getRequest().get(`/api/v1/versions/${resumeId}`).set(authHeader());
 
       expect(response.status).toBe(200);
       expect(response.body.length).toBeGreaterThanOrEqual(1);
@@ -88,9 +86,7 @@ describe('Resume Versions Integration', () => {
         },
       });
 
-      const response = await getRequest()
-        .get(`/api/v1/versions/${resumeId}`)
-        .set(authHeader());
+      const response = await getRequest().get(`/api/v1/versions/${resumeId}`).set(authHeader());
 
       expect(response.status).toBe(200);
       expect(response.body.length).toBe(2);
@@ -139,9 +135,15 @@ describe('Resume Versions Integration', () => {
         where: { id: resumeId },
       });
 
+      expect(updatedResume).not.toBeNull();
+      if (!updatedResume) return;
+
       // snapshot contains full resume, but only contentPtBr is restored
-      const expectedContent = (firstVersion.snapshot as any).contentPtBr;
-      expect(updatedResume.contentPtBr).toEqual(expectedContent);
+      type SnapshotWithContent = { contentPtBr: unknown };
+      const snapshot = firstVersion.snapshot as SnapshotWithContent;
+      expect(JSON.stringify(updatedResume.contentPtBr)).toEqual(
+        JSON.stringify(snapshot.contentPtBr),
+      );
     });
 
     it('should create new version after rollback', async () => {
@@ -173,6 +175,9 @@ describe('Resume Versions Integration', () => {
       const versions = await prisma.resumeVersion.findFirst({
         where: { resumeId },
       });
+
+      expect(versions).not.toBeNull();
+      if (!versions) return;
 
       const response = await getRequest().post(
         `/api/v1/versions/${resumeId}/restore/${versions.id}`,

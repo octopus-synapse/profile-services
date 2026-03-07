@@ -7,34 +7,39 @@
  * Uncle Bob: "A test that passes when it should fail is worse than no test at all."
  */
 
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { Test, TestingModule } from '@nestjs/testing';
+import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import { InMemoryUsersRepository, StubLogger } from '../../shared-kernel/testing';
+import { UsersRepository } from '../users.repository';
+import { USERNAME_USE_CASES, type UsernameUseCases } from './username/ports/username.port';
 import { UsernameService } from './username.service';
-import {
-  InMemoryUsersRepository,
-  StubLogger,
-} from '../../shared-kernel/testing';
-import type { UsernameUseCases } from './username/ports/username.port';
 
 describe('UsernameService - Bug Detection', () => {
   let service: UsernameService;
   let usersRepository: InMemoryUsersRepository;
   let logger: StubLogger;
 
-  beforeEach(() => {
-    const mockUseCases = {
+  beforeEach(async () => {
+    const mockUseCases: UsernameUseCases = {
       updateUsernameUseCase: {
         execute: mock(async () => ({ username: 'newuser' })),
       },
-    } as unknown as UsernameUseCases;
+    };
 
     usersRepository = new InMemoryUsersRepository();
     logger = new StubLogger();
 
-    service = new UsernameService(
-      mockUseCases,
-      usersRepository as any,
-      logger as any,
-    );
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        UsernameService,
+        { provide: USERNAME_USE_CASES, useValue: mockUseCases },
+        { provide: UsersRepository, useValue: usersRepository },
+        { provide: AppLoggerService, useValue: logger },
+      ],
+    }).compile();
+
+    service = module.get<UsernameService>(UsernameService);
   });
 
   /**
@@ -131,9 +136,7 @@ describe('UsernameService - Bug Detection', () => {
     it('should REJECT username with consecutive underscores', async () => {
       const result = await service.validateUsername('user__name');
       expect(result.valid).toBe(false);
-      expect(
-        result.errors.some((e) => e.code === 'CONSECUTIVE_UNDERSCORES'),
-      ).toBe(true);
+      expect(result.errors.some((e) => e.code === 'CONSECUTIVE_UNDERSCORES')).toBe(true);
     });
 
     it('should REJECT username ending with underscore', async () => {

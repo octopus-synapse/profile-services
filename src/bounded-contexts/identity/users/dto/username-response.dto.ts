@@ -30,7 +30,7 @@ export class UsernameValidationErrorDto {
     description: 'Error code identifying the validation failure',
     example: UsernameValidationErrorCode.TOO_SHORT,
   })
-  code: UsernameValidationErrorCode;
+  code!: `${UsernameValidationErrorCode}`;
 
   @ApiProperty({
     description: 'Human-readable error message',

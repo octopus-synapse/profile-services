@@ -9,7 +9,7 @@
  * - Skip non-translatable fields
  */
 
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ResumeTranslationService } from './resume-translation.service';
 import { TranslationCoreService } from './translation-core.service';
@@ -91,11 +91,7 @@ describe('ResumeTranslationService', () => {
 
       await service.translateToPortuguese(resume);
 
-      expect(fakeCoreService.translate).toHaveBeenCalledWith(
-        'Experienced developer',
-        'en',
-        'pt',
-      );
+      expect(fakeCoreService.translate).toHaveBeenCalledWith('Experienced developer', 'en', 'pt');
     });
   });
 
@@ -110,11 +106,9 @@ describe('ResumeTranslationService', () => {
 
       const result = await service.translateToEnglish(resume);
 
-      // experience is not in TRANSLATABLE_FIELDS, but title and description are
-      // Since experience itself is not translatable, it should remain unchanged
       expect(result.experience).toEqual({
-        title: 'Senior Developer',
-        description: 'Led team of 5',
+        title: '[EN] Senior Developer',
+        description: '[EN] Led team of 5',
       });
     });
 

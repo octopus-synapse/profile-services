@@ -2,12 +2,12 @@
  * DSL Migration Service Tests
  */
 
-import { describe, it, expect, beforeEach } from 'bun:test';
-import { Test, TestingModule } from '@nestjs/testing';
+import { beforeEach, describe, expect, it } from 'bun:test';
 import { BadRequestException } from '@nestjs/common';
-import { DslMigrationService } from './dsl-migration.service';
-import type { DslMigrator } from './base.migrator';
+import { Test, TestingModule } from '@nestjs/testing';
 import type { ResumeDsl } from '@/shared-kernel';
+import type { DslMigrator } from './base.migrator';
+import { DslMigrationService } from './dsl-migration.service';
 
 describe('DslMigrationService', () => {
   let service: DslMigrationService;
@@ -94,14 +94,13 @@ describe('DslMigrationService', () => {
 
     it('should migrate to next version', () => {
       const result = service.migrate(mockDslV1, '2.0.0');
+      const layout = result.layout as { pageBreakBehavior?: string };
       expect(result.version).toBe('2.0.0');
-      expect((result.layout as any).pageBreakBehavior).toBe('auto');
+      expect(layout.pageBreakBehavior).toBe('auto');
     });
 
     it('should throw if no migrator found', () => {
-      expect(() => service.migrate(mockDslV1, '3.0.0')).toThrow(
-        BadRequestException,
-      );
+      expect(() => service.migrate(mockDslV1, '3.0.0')).toThrow(BadRequestException);
     });
 
     it('should apply migration chain', () => {
@@ -120,9 +119,7 @@ describe('DslMigrationService', () => {
 
       service.registerMigrators([circularMigrator]);
 
-      expect(() => service.migrate(mockDslV1, '2.0.0')).toThrow(
-        BadRequestException,
-      );
+      expect(() => service.migrate(mockDslV1, '2.0.0')).toThrow(BadRequestException);
     });
 
     it('should throw if migration result has wrong version', () => {
@@ -134,9 +131,7 @@ describe('DslMigrationService', () => {
 
       service.registerMigrators([badMigrator]);
 
-      expect(() => service.migrate(mockDslV1, '2.0.0')).toThrow(
-        BadRequestException,
-      );
+      expect(() => service.migrate(mockDslV1, '2.0.0')).toThrow(BadRequestException);
     });
   });
 
@@ -175,9 +170,7 @@ describe('DslMigrationService', () => {
     });
 
     it('should throw if no path exists', () => {
-      expect(() => service.getMigrationPath('1.0.0', '4.0.0')).toThrow(
-        BadRequestException,
-      );
+      expect(() => service.getMigrationPath('1.0.0', '4.0.0')).toThrow(BadRequestException);
     });
   });
 });

@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
-import { MecSyncInternalController } from './mec-sync-internal.controller';
 import { InternalAuthGuard } from '../guards/internal-auth.guard';
 import { MecSyncOrchestratorService } from '../services/mec-sync.service';
+import { MecSyncInternalController } from './mec-sync-internal.controller';
 
 const createSyncService = () => ({
   sync: mock(() =>
@@ -25,18 +25,14 @@ describe('MecSyncInternalController - Contract', () => {
   beforeEach(async () => {
     const moduleBuilder = Test.createTestingModule({
       controllers: [MecSyncInternalController],
-      providers: [
-        { provide: MecSyncOrchestratorService, useValue: createSyncService() },
-      ],
+      providers: [{ provide: MecSyncOrchestratorService, useValue: createSyncService() }],
     })
       .overrideGuard(InternalAuthGuard)
       .useValue({ canActivate: () => true });
 
     const module: TestingModule = await moduleBuilder.compile();
 
-    controller = module.get<MecSyncInternalController>(
-      MecSyncInternalController,
-    );
+    controller = module.get<MecSyncInternalController>(MecSyncInternalController);
   });
 
   it('triggerSync returns data with execution summary keys', async () => {

@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach } from 'bun:test';
+import { beforeEach, describe, expect, it } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
-import { GrammarValidator } from './grammar.validator';
 import { ValidationSeverity } from '../interfaces';
+import { GrammarValidator } from './grammar.validator';
 
 describe('GrammarValidator', () => {
   let validator: GrammarValidator;
@@ -25,15 +25,12 @@ describe('GrammarValidator', () => {
 
       // Assert
       expect(result.passed).toBe(true);
-      expect(
-        result.issues.filter((i) => i.severity === ValidationSeverity.ERROR),
-      ).toHaveLength(0);
+      expect(result.issues.filter((i) => i.severity === ValidationSeverity.ERROR)).toHaveLength(0);
     });
 
     it('should return passed=false when spelling errors exist', () => {
       // Arrange
-      const textWithSpelling =
-        'I recieve emails daily. My experiance has been great.';
+      const textWithSpelling = 'I recieve emails daily. My experiance has been great.';
 
       // Act
       const result = validator.validate(textWithSpelling);
@@ -62,20 +59,15 @@ describe('GrammarValidator', () => {
   describe('spelling validation', () => {
     it('should detect common spelling mistakes', () => {
       // Arrange
-      const textWithMistakes =
-        'I definately recieve emails. The developement was sucessful.';
+      const textWithMistakes = 'I definately recieve emails. The developement was sucessful.';
 
       // Act
       const result = validator.validate(textWithMistakes);
 
       // Assert
-      const spellingIssues = result.issues.filter(
-        (i) => i.code === 'SPELLING_ERROR',
-      );
+      const spellingIssues = result.issues.filter((i) => i.code === 'SPELLING_ERROR');
       expect(spellingIssues.length).toBeGreaterThan(0);
-      expect(
-        spellingIssues.every((i) => i.severity === ValidationSeverity.ERROR),
-      ).toBe(true);
+      expect(spellingIssues.every((i) => i.severity === ValidationSeverity.ERROR)).toBe(true);
     });
 
     it('should suggest correct spelling for mistakes', () => {
@@ -86,17 +78,15 @@ describe('GrammarValidator', () => {
       const result = validator.validate(text);
 
       // Assert
-      const spellingIssue = result.issues.find(
-        (i) => i.code === 'SPELLING_ERROR',
-      );
-      expect(spellingIssue).toBeDefined();
-      expect(spellingIssue?.suggestion.includes('receive')).toBe(true);
+      const spellingIssue = result.issues.find((i) => i.code === 'SPELLING_ERROR');
+      if (!spellingIssue?.suggestion)
+        throw new Error('Expected spellingIssue with suggestion to be defined');
+      expect(spellingIssue.suggestion.includes('receive')).toBe(true);
     });
 
     it('should not report duplicate spelling mistakes', () => {
       // Arrange
-      const text =
-        'I recieve emails. I recieve notifications. I recieve updates.';
+      const text = 'I recieve emails. I recieve notifications. I recieve updates.';
 
       // Act
       const result = validator.validate(text);
@@ -116,9 +106,7 @@ describe('GrammarValidator', () => {
       const result = validator.validate(text);
 
       // Assert
-      const spellingIssues = result.issues.filter(
-        (i) => i.code === 'SPELLING_ERROR',
-      );
+      const spellingIssues = result.issues.filter((i) => i.code === 'SPELLING_ERROR');
       expect(spellingIssues).toHaveLength(1); // Only one unique mistake
     });
 
@@ -131,9 +119,7 @@ describe('GrammarValidator', () => {
       const result = validator.validate(text);
 
       // Assert
-      const spellingIssues = result.issues.filter(
-        (i) => i.code === 'SPELLING_ERROR',
-      );
+      const spellingIssues = result.issues.filter((i) => i.code === 'SPELLING_ERROR');
       expect(spellingIssues.length).toBeGreaterThanOrEqual(4); // developement, sucessful, recieve, enviroment
     });
   });
@@ -147,13 +133,9 @@ describe('GrammarValidator', () => {
       const result = validator.validate(text);
 
       // Assert
-      const grammarIssues = result.issues.filter(
-        (i) => i.code === 'GRAMMAR_WARNING',
-      );
+      const grammarIssues = result.issues.filter((i) => i.code === 'GRAMMAR_WARNING');
       // The pattern checks for 'a' followed by vowel letters, not perfect but catches some cases
-      const hasArticleWarning = grammarIssues.some((i) =>
-        i.message.includes('article error'),
-      );
+      const hasArticleWarning = grammarIssues.some((i) => i.message.includes('article error'));
       // This test may be fragile - the regex may not catch all cases
       if (hasArticleWarning) {
         expect(hasArticleWarning).toBe(true);
@@ -171,9 +153,7 @@ describe('GrammarValidator', () => {
       const result = validator.validate(text);
 
       // Assert
-      const spaceIssue = result.issues.find((i) =>
-        i.message.includes('consecutive spaces'),
-      );
+      const spaceIssue = result.issues.find((i) => i.message.includes('consecutive spaces'));
       expect(spaceIssue).toBeDefined();
       expect(spaceIssue?.severity).toBe(ValidationSeverity.INFO);
     });
@@ -186,9 +166,7 @@ describe('GrammarValidator', () => {
       const result = validator.validate(text);
 
       // Assert
-      const capitalIssue = result.issues.find((i) =>
-        i.message.includes('capital letter'),
-      );
+      const capitalIssue = result.issues.find((i) => i.message.includes('capital letter'));
       expect(capitalIssue).toBeDefined();
       expect(capitalIssue?.severity).toBe(ValidationSeverity.WARNING);
     });
@@ -204,9 +182,7 @@ describe('GrammarValidator', () => {
       // Act & Assert
       confusingWords.forEach((text) => {
         const result = validator.validate(text);
-        const infoIssues = result.issues.filter(
-          (i) => i.severity === ValidationSeverity.INFO,
-        );
+        const infoIssues = result.issues.filter((i) => i.severity === ValidationSeverity.INFO);
         expect(infoIssues.length).toBeGreaterThan(0);
       });
     });
@@ -222,14 +198,11 @@ describe('GrammarValidator', () => {
       const result = validator.validate(longSentence);
 
       // Assert
-      const longSentenceIssue = result.issues.find(
-        (i) => i.code === 'LONG_SENTENCE',
-      );
-      expect(longSentenceIssue).toBeDefined();
-      expect(longSentenceIssue?.severity).toBe(ValidationSeverity.INFO);
-      expect(longSentenceIssue?.suggestion.includes('shorter sentences')).toBe(
-        true,
-      );
+      const longSentenceIssue = result.issues.find((i) => i.code === 'LONG_SENTENCE');
+      if (!longSentenceIssue?.suggestion)
+        throw new Error('Expected longSentenceIssue with suggestion to be defined');
+      expect(longSentenceIssue.severity).toBe(ValidationSeverity.INFO);
+      expect(longSentenceIssue.suggestion.includes('shorter sentences')).toBe(true);
     });
 
     it('should not flag reasonably sized sentences', () => {
@@ -241,9 +214,7 @@ describe('GrammarValidator', () => {
       const result = validator.validate(normalText);
 
       // Assert
-      const longSentenceIssue = result.issues.find(
-        (i) => i.code === 'LONG_SENTENCE',
-      );
+      const longSentenceIssue = result.issues.find((i) => i.code === 'LONG_SENTENCE');
       expect(longSentenceIssue).toBeUndefined();
     });
 
@@ -255,9 +226,7 @@ describe('GrammarValidator', () => {
       const result = validator.validate(shortText);
 
       // Assert
-      const fewSentencesIssue = result.issues.find(
-        (i) => i.code === 'FEW_SENTENCES',
-      );
+      const fewSentencesIssue = result.issues.find((i) => i.code === 'FEW_SENTENCES');
       expect(fewSentencesIssue).toBeDefined();
       expect(fewSentencesIssue?.severity).toBe(ValidationSeverity.WARNING);
     });
@@ -271,9 +240,7 @@ describe('GrammarValidator', () => {
       const result = validator.validate(adequateText);
 
       // Assert
-      const fewSentencesIssue = result.issues.find(
-        (i) => i.code === 'FEW_SENTENCES',
-      );
+      const fewSentencesIssue = result.issues.find((i) => i.code === 'FEW_SENTENCES');
       expect(fewSentencesIssue).toBeUndefined();
     });
   });
@@ -287,9 +254,7 @@ describe('GrammarValidator', () => {
       const result = validator.validate(text);
 
       // Assert
-      const repeatedIssue = result.issues.find(
-        (i) => i.code === 'REPEATED_WORDS',
-      );
+      const repeatedIssue = result.issues.find((i) => i.code === 'REPEATED_WORDS');
       expect(repeatedIssue).toBeDefined();
       expect(repeatedIssue?.severity).toBe(ValidationSeverity.WARNING);
       expect(repeatedIssue?.message.includes('repeated word')).toBe(true);
@@ -303,9 +268,7 @@ describe('GrammarValidator', () => {
       const result = validator.validate(text);
 
       // Assert
-      const repeatedIssue = result.issues.find(
-        (i) => i.code === 'REPEATED_WORDS',
-      );
+      const repeatedIssue = result.issues.find((i) => i.code === 'REPEATED_WORDS');
       // Should still detect 'the the' as it's consecutive
       expect(repeatedIssue).toBeDefined();
     });
@@ -318,9 +281,7 @@ describe('GrammarValidator', () => {
       const result = validator.validate(text);
 
       // Assert
-      const repeatedIssue = result.issues.find(
-        (i) => i.code === 'REPEATED_WORDS',
-      );
+      const repeatedIssue = result.issues.find((i) => i.code === 'REPEATED_WORDS');
       expect(repeatedIssue).toBeDefined();
       expect(repeatedIssue?.message).toMatch(/\d+ repeated word/);
     });
@@ -340,9 +301,7 @@ describe('GrammarValidator', () => {
       expect(result.metadata).toBeDefined();
       // Empty text has no error-level issues, so it technically passes
       // but will have warnings about few sentences
-      const hasWarnings = result.issues.some(
-        (i) => i.severity === ValidationSeverity.WARNING,
-      );
+      const hasWarnings = result.issues.some((i) => i.severity === ValidationSeverity.WARNING);
       expect(hasWarnings || result.passed).toBeTruthy();
     });
 
@@ -371,19 +330,11 @@ describe('GrammarValidator', () => {
       const result = validator.validate(text);
 
       // Assert
-      const errors = result.issues.filter(
-        (i) => i.severity === ValidationSeverity.ERROR,
-      );
-      const warnings = result.issues.filter(
-        (i) => i.severity === ValidationSeverity.WARNING,
-      );
-      const infos = result.issues.filter(
-        (i) => i.severity === ValidationSeverity.INFO,
-      );
+      const errors = result.issues.filter((i) => i.severity === ValidationSeverity.ERROR);
+      const warnings = result.issues.filter((i) => i.severity === ValidationSeverity.WARNING);
+      const infos = result.issues.filter((i) => i.severity === ValidationSeverity.INFO);
 
-      expect(errors.length + warnings.length + infos.length).toBe(
-        result.issues.length,
-      );
+      expect(errors.length + warnings.length + infos.length).toBe(result.issues.length);
     });
   });
 });

@@ -6,6 +6,7 @@
  */
 
 import type { User, UserPreferences } from '@prisma/client';
+import type { UpdateFullPreferences, UpdatePreferences, UpdateProfile } from '@/shared-kernel';
 
 export type UserWithPreferences = User & {
   preferences: UserPreferences | null;
@@ -31,21 +32,11 @@ export abstract class UsersRepositoryPort {
   }): Promise<User>;
   abstract updateUserAccount(userId: string, userData: Partial<User>): Promise<User>;
   abstract deleteUserAccount(userId: string): Promise<void>;
-  abstract updateUserProfile(
-    userId: string,
-    profile: { name?: string; image?: string; email?: string },
-  ): Promise<User>;
-  abstract updateUserPreferences(
-    userId: string,
-    preferences: {
-      theme?: string;
-      language?: string;
-      emailNotifications?: boolean;
-    },
-  ): Promise<void>;
+  abstract updateUserProfile(userId: string, profile: UpdateProfile): Promise<User>;
+  abstract updateUserPreferences(userId: string, preferences: UpdatePreferences): Promise<void>;
   abstract upsertFullUserPreferences(
     userId: string,
-    preferences: Record<string, unknown>,
+    preferences: UpdateFullPreferences,
   ): Promise<UserPreferences>;
   abstract updatePalette(userId: string, palette: string): Promise<void>;
   abstract updateBannerColor(userId: string, bannerColor: string): Promise<void>;

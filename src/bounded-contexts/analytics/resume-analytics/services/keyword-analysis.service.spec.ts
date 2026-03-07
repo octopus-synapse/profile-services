@@ -5,8 +5,8 @@
  * Uses GENERIC sections - no type-specific knowledge
  */
 
-import { describe, it, expect, beforeEach } from 'bun:test';
-import type { ResumeForAnalytics, AnalyticsSection } from '../domain/types';
+import { beforeEach, describe, expect, it } from 'bun:test';
+import type { AnalyticsSection, ResumeForAnalytics } from '../domain/types';
 import { KeywordAnalysisService } from './keyword-analysis.service';
 
 describe('KeywordAnalysisService', () => {
@@ -27,9 +27,7 @@ describe('KeywordAnalysisService', () => {
     })),
   });
 
-  const createResume = (
-    overrides: Partial<ResumeForAnalytics> = {},
-  ): ResumeForAnalytics => ({
+  const createResume = (overrides: Partial<ResumeForAnalytics> = {}): ResumeForAnalytics => ({
     summary: 'Full-stack developer with expertise in React and Node.js',
     jobTitle: 'Senior Software Engineer',
     emailContact: 'test@example.com',
@@ -45,8 +43,7 @@ describe('KeywordAnalysisService', () => {
         {
           position: 'Senior Developer',
           company: 'Tech Corp',
-          description:
-            'Developed web applications using React and Node.js. Managed agile teams.',
+          description: 'Developed web applications using React and Node.js. Managed agile teams.',
         },
       ]),
     ],
@@ -90,8 +87,7 @@ describe('KeywordAnalysisService', () => {
 
     it('should detect keyword stuffing', () => {
       const resume = createResume({
-        summary:
-          'React React React React React React developer React React React',
+        summary: 'React React React React React React developer React React React',
         sections: [
           createSection('EXPERIENCE', [
             {
@@ -106,9 +102,7 @@ describe('KeywordAnalysisService', () => {
         industry: 'software_engineering',
       });
 
-      const stuffingWarning = result.warnings.find(
-        (w) => w.type === 'keyword_stuffing',
-      );
+      const stuffingWarning = result.warnings.find((w) => w.type === 'keyword_stuffing');
       if (result.warnings.length > 0) {
         expect(stuffingWarning).toBeDefined();
       }
@@ -133,9 +127,7 @@ describe('KeywordAnalysisService', () => {
         industry: 'software_engineering',
       });
 
-      const reactKeyword = result.existingKeywords.find(
-        (k) => k.keyword.toLowerCase() === 'react',
-      );
+      const reactKeyword = result.existingKeywords.find((k) => k.keyword.toLowerCase() === 'react');
       if (reactKeyword) {
         expect(reactKeyword.count).toBeGreaterThan(1);
       }
@@ -220,11 +212,7 @@ describe('KeywordAnalysisService', () => {
       const resume = createResume({
         summary: 'Python Django Flask developer',
         sections: [
-          createSection('SKILL', [
-            { name: 'Python' },
-            { name: 'Django' },
-            { name: 'Flask' },
-          ]),
+          createSection('SKILL', [{ name: 'Python' }, { name: 'Django' }, { name: 'Flask' }]),
           createSection('EXPERIENCE', [
             {
               position: 'Python Developer',

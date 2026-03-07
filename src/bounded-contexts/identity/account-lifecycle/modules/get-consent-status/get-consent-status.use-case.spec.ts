@@ -4,12 +4,9 @@
  * Uses In-Memory repositories for clean, behavior-focused testing.
  */
 
-import { describe, it, expect, beforeEach } from 'bun:test';
+import { beforeEach, describe, expect, it } from 'bun:test';
 import { ConsentDocumentType } from '@prisma/client';
-import {
-  InMemoryConsentRepository,
-  StubVersionConfig,
-} from '../../../shared-kernel/testing';
+import { InMemoryConsentRepository, StubVersionConfig } from '../../../shared-kernel/testing';
 import { GetConsentStatusUseCase } from './get-consent-status.use-case';
 
 describe('GetConsentStatusUseCase', () => {

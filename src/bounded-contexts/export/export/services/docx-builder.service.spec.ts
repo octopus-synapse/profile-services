@@ -4,14 +4,14 @@
  * NOTA (Uncle Bob): Testes focam em comportamento observável.
  */
 
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
-import { createMockResume } from '@test/factories/resume.factory';
-import { Test, TestingModule } from '@nestjs/testing';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { NotFoundException } from '@nestjs/common';
-import { DocxBuilderService } from './docx-builder.service';
-import { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.repository';
+import { Test, TestingModule } from '@nestjs/testing';
+import { createMockResume } from '@test/factories/resume.factory';
 import { UsersRepository } from '@/bounded-contexts/identity/users/users.repository';
+import { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.repository';
 import { SectionTypeRepository } from '@/shared-kernel/repositories/section-type.repository';
+import { DocxBuilderService } from './docx-builder.service';
 import { DocxSectionsService } from './docx-sections.service';
 import { DocxStylesService } from './docx-styles.service';
 
@@ -92,17 +92,13 @@ describe('DocxBuilderService', () => {
     it('should throw NotFoundException when user not found', async () => {
       stubUsersRepository.findUserById.mockResolvedValueOnce(null);
 
-      await expect(async () => await service.generate('nonexistent')).toThrow(
-        NotFoundException,
-      );
+      await expect(async () => await service.generate('nonexistent')).toThrow(NotFoundException);
     });
 
     it('should throw NotFoundException when resume not found', async () => {
       stubResumesRepository.findResumeByUserId.mockResolvedValueOnce(null);
 
-      await expect(async () => await service.generate('user-1')).toThrow(
-        NotFoundException,
-      );
+      await expect(async () => await service.generate('user-1')).toThrow(NotFoundException);
     });
 
     it('should use sections service to create document structure', async () => {

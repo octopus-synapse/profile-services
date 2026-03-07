@@ -37,9 +37,7 @@ function listSourceFiles(dirPath: string): string[] {
 }
 
 function listServiceFiles(dirPath: string): string[] {
-  return listSourceFiles(dirPath).filter((filePath) =>
-    filePath.endsWith('.service.ts'),
-  );
+  return listSourceFiles(dirPath).filter((filePath) => filePath.endsWith('.service.ts'));
 }
 
 function isEnvelopeLikeObject(objectLiteralBody: string): boolean {
@@ -51,9 +49,7 @@ function isEnvelopeLikeObject(objectLiteralBody: string): boolean {
 }
 
 function hasReturnedEnvelopeVariable(content: string): boolean {
-  const returnVarMatches = [
-    ...content.matchAll(/return\s+([A-Za-z_$][\w$]*)\s*;/g),
-  ];
+  const returnVarMatches = [...content.matchAll(/return\s+([A-Za-z_$][\w$]*)\s*;/g)];
 
   for (const match of returnVarMatches) {
     const variableName = match[1];
@@ -86,20 +82,12 @@ describe('Architecture - Layer Separation', () => {
 
         // Services MUST NOT use ApiResponseHelper (transport concern)
         if (content.includes('ApiResponseHelper')) {
-          violations.push(
-            `${filePath}: service uses ApiResponseHelper (transport concern)`,
-          );
+          violations.push(`${filePath}: service uses ApiResponseHelper (transport concern)`);
         }
 
         // Services MUST NOT import api-response.dto (transport concern)
-        if (
-          content.includes(
-            "from '@/bounded-contexts/platform/common/dto/api-response.dto'",
-          )
-        ) {
-          violations.push(
-            `${filePath}: service imports api-response.dto (transport concern)`,
-          );
+        if (content.includes("from '@/bounded-contexts/platform/common/dto/api-response.dto'")) {
+          violations.push(`${filePath}: service imports api-response.dto (transport concern)`);
         }
 
         // Services MUST NOT return DataResponse<T> (transport concern)
@@ -111,21 +99,13 @@ describe('Architecture - Layer Separation', () => {
 
         // Services MUST NOT return envelope objects with 'success' field
         if (/return\s*\{[^}]*\bsuccess\s*:/s.test(content)) {
-          violations.push(
-            `${filePath}: service returns envelope-like object with success field`,
-          );
+          violations.push(`${filePath}: service returns envelope-like object with success field`);
         }
 
         // Check for direct return of envelope-like objects
-        const directReturnObjectMatches = [
-          ...content.matchAll(/return\s*\{([\s\S]*?)\};/g),
-        ];
+        const directReturnObjectMatches = [...content.matchAll(/return\s*\{([\s\S]*?)\};/g)];
 
-        if (
-          directReturnObjectMatches.some((match) =>
-            isEnvelopeLikeObject(match[1]),
-          )
-        ) {
+        if (directReturnObjectMatches.some((match) => isEnvelopeLikeObject(match[1]))) {
           violations.push(
             `${filePath}: service returns envelope-like response object (success or data+meta)`,
           );

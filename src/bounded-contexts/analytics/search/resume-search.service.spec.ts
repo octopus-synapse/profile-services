@@ -6,10 +6,10 @@
  * Kent Beck: "Tests describe behavior, not implementation"
  */
 
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
-import { ResumeSearchService } from './resume-search.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { ResumeSearchService } from './resume-search.service';
 
 describe('ResumeSearchService', () => {
   let service: ResumeSearchService;
@@ -53,10 +53,7 @@ describe('ResumeSearchService', () => {
     id: 'resume-1',
     resumeSections: [
       {
-        items: [
-          { content: { name: 'React' } },
-          { content: { name: 'TypeScript' } },
-        ],
+        items: [{ content: { name: 'React' } }, { content: { name: 'TypeScript' } }],
       },
     ],
   };
@@ -71,7 +68,10 @@ describe('ResumeSearchService', () => {
       sectionItem: {
         findMany: mock(() =>
           Promise.resolve([
-            { resumeSection: { resumeId: 'resume-1' }, content: { name: 'React' } },
+            {
+              resumeSection: { resumeId: 'resume-1' },
+              content: { name: 'React' },
+            },
             {
               resumeSection: { resumeId: 'resume-2' },
               content: { name: 'TypeScript' },
@@ -82,10 +82,7 @@ describe('ResumeSearchService', () => {
     };
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        ResumeSearchService,
-        { provide: PrismaService, useValue: mockPrismaService },
-      ],
+      providers: [ResumeSearchService, { provide: PrismaService, useValue: mockPrismaService }],
     }).compile();
 
     service = module.get<ResumeSearchService>(ResumeSearchService);
@@ -183,10 +180,7 @@ describe('ResumeSearchService', () => {
   describe('suggest', () => {
     it('should return search suggestions', async () => {
       mockPrismaService.$queryRaw = mock(() =>
-        Promise.resolve([
-          { suggestion: 'react developer' },
-          { suggestion: 'react native' },
-        ]),
+        Promise.resolve([{ suggestion: 'react developer' }, { suggestion: 'react native' }]),
       );
 
       const result = await service.suggest('react');
@@ -210,10 +204,7 @@ describe('ResumeSearchService', () => {
             ...mockSearchResults[1],
             resumeSections: [
               {
-                items: [
-                  { content: { name: 'React' } },
-                  { content: { name: 'Node.js' } },
-                ],
+                items: [{ content: { name: 'React' } }, { content: { name: 'Node.js' } }],
               },
             ],
           },
@@ -243,7 +234,7 @@ describe('ResumeSearchService', () => {
 
       const result = await service.findSimilar('resume-1');
 
-      const hasSourceResume = result.some((r: any) => r.id === 'resume-1');
+      const hasSourceResume = result.some((r: { id: string }) => r.id === 'resume-1');
       expect(hasSourceResume).toBe(false);
     });
 

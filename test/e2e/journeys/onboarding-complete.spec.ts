@@ -16,16 +16,13 @@
  * Target Time: < 15 seconds
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
+import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import type { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { createE2ETestApp } from '../setup-e2e';
+import { createFullOnboardingData, createMinimalOnboardingData } from '../fixtures/resumes.fixture';
 import type { AuthHelper } from '../helpers/auth.helper';
 import type { CleanupHelper } from '../helpers/cleanup.helper';
-import {
-  createMinimalOnboardingData,
-  createFullOnboardingData,
-} from '../fixtures/resumes.fixture';
+import { createE2ETestApp } from '../setup-e2e';
 
 describe('E2E: Onboarding Completion', () => {
   let app: INestApplication;
@@ -71,9 +68,7 @@ describe('E2E: Onboarding Completion', () => {
     });
 
     it('should complete onboarding with minimal data', async () => {
-      const onboardingData = createMinimalOnboardingData(
-        `minimal_${Date.now()}`,
-      );
+      const onboardingData = createMinimalOnboardingData(`minimal_${Date.now()}`);
 
       const response = await request(app.getHttpServer())
         .post('/api/v1/onboarding')
@@ -160,9 +155,7 @@ describe('E2E: Onboarding Completion', () => {
     });
 
     it('should reject status check without authentication', async () => {
-      const response = await request(app.getHttpServer()).get(
-        '/api/v1/onboarding/status',
-      );
+      const response = await request(app.getHttpServer()).get('/api/v1/onboarding/status');
 
       expect(response.status).toBe(401);
     });

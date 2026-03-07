@@ -140,13 +140,7 @@ model OnboardingProgress {
   // Form data (JSON)
   personalInfo        Json?
   professionalProfile Json?
-  experiences         Json?
-  noExperience        Boolean @default(false)
-  education           Json?
-  noEducation         Boolean @default(false)
-  skills              Json?
-  noSkills            Boolean @default(false)
-  languages           Json?
+  sections            Json?  // Generic sections array: [{ sectionTypeKey, items, noData }]
   templateSelection   Json?
 
   createdAt DateTime  @default(now())

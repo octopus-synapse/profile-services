@@ -37,9 +37,7 @@ function deriveSectionCounts(
   return counts;
 }
 
-export async function seedAnalyticsProjections(
-  prisma: PrismaClient,
-): Promise<void> {
+export async function seedAnalyticsProjections(prisma: PrismaClient): Promise<void> {
   console.log('📊 Seeding analytics projections...');
 
   // Get all resumes with section items
