@@ -9,3 +9,5 @@ export class SkillManagementFacadeService {
     return this.skillManagementService.listSkills();
   }
 }
+
+export { SkillManagementService } from './skill-management/skill-management.service';
