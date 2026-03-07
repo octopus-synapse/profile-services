@@ -1,5 +1,16 @@
 # Changelog
 
+## [9.0.0](https://github.com/octopus-synapse/profile-services/compare/profile-services-v8.0.0...profile-services-v9.0.0) (2026-03-07)
+
+
+### ⚠ BREAKING CHANGES
+
+* Complete migration from legacy per-type section arrays to unified GenericResumeSection model
+
+### Styles
+
+* fix formatting in openapi.json and generate-openapi.ts ([#149](https://github.com/octopus-synapse/profile-services/issues/149)) ([6668712](https://github.com/octopus-synapse/profile-services/commit/666871275c92494c9ea37d6ae6ec23a06d21f690))
+
 ## [8.0.0](https://github.com/octopus-synapse/profile-services/compare/profile-services-v7.3.0...profile-services-v8.0.0) (2026-03-04)
 
 
