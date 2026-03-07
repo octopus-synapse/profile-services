@@ -1,24 +1,38 @@
 #!/bin/bash
 # =============================================================================
-# Pre-Commit Attestation Generator
+# Pre-Commit Attestation Generator (Content-Addressed)
 # =============================================================================
 #
 # Generates a cryptographic attestation proving pre-commit checks ran.
-# This allows CI to verify compliance in O(1) instead of re-running checks.
+# Uses content-addressed storage: .attestations/<tree_hash>.json
+#
+# Benefits:
+#   - No merge conflicts: each tree has its own attestation file
+#   - Immutable: attestation represents one specific code snapshot
+#   - O(1) verification in CI
 #
 # Usage: ./scripts/generate-pre-commit-attestation.sh [check_results...]
-# Example: ./scripts/generate-pre-commit-attestation.sh typecheck:pass lint:pass tests:pass
+# Example: ./scripts/generate-pre-commit-attestation.sh typecheck:pass lint:pass
 #
 # =============================================================================
 
 set -e
 
-ATTESTATION_FILE=".pre-commit-attestation.json"
+ATTESTATION_DIR=".attestations"
 
-# Calculate tree hash (represents staged files EXCLUDING the attestation itself)
-# This avoids chicken-and-egg: attestation contains tree hash, but adding attestation changes tree hash
-# We use git ls-files -s to get staged file info, exclude attestation, and hash the result
-TREE_HASH=$(git ls-files -s | grep -v "$ATTESTATION_FILE" | sha256sum | cut -d' ' -f1)
+# Ensure attestation directory exists
+mkdir -p "$ATTESTATION_DIR"
+
+# Calculate tree hash (represents staged files EXCLUDING attestation directory)
+# This is the content address - unique per code snapshot
+TREE_HASH=$(git ls-files -s | grep -v "^.*$ATTESTATION_DIR" | sha256sum | cut -d' ' -f1)
+
+# Attestation file is named by its tree hash
+ATTESTATION_FILE="$ATTESTATION_DIR/$TREE_HASH.json"
+
+# Clean up ALL previous attestation files (keep only current)
+# This prevents accumulation and ensures only one attestation exists
+find "$ATTESTATION_DIR" -name "*.json" -type f -delete 2>/dev/null || true
 
 # Calculate swagger hash specifically (critical for API contracts)
 SWAGGER_HASH=""
@@ -26,8 +40,7 @@ if [ -f "swagger.json" ]; then
     SWAGGER_HASH=$(sha256sum swagger.json | cut -d' ' -f1)
 fi
 
-# Get metadata
-TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+# Get tool versions (deterministic metadata)
 BUN_VERSION=$(bun --version 2>/dev/null || echo "unknown")
 NODE_VERSION=$(node --version 2>/dev/null || echo "unknown")
 
@@ -44,7 +57,7 @@ for arg in "$@"; do
     fi
 done
 
-# Build checks JSON using jq for consistent formatting
+# Build checks JSON
 CHECKS_JSON=$(jq -n \
     --argjson swagger "${CHECKS[swagger]:-false}" \
     --argjson typecheck "${CHECKS[typecheck]:-false}" \
@@ -54,30 +67,16 @@ CHECKS_JSON=$(jq -n \
     --argjson contract_tests "${CHECKS[contract_tests]:-false}" \
     '{swagger: $swagger, typecheck: $typecheck, lint: $lint, unit_tests: $unit_tests, arch_tests: $arch_tests, contract_tests: $contract_tests}')
 
-# Generate attestation JSON without integrity (for hash calculation)
-ATTESTATION_WITHOUT_INTEGRITY=$(jq -n -c \
-    --arg tree_hash "$TREE_HASH" \
-    --arg swagger_hash "$SWAGGER_HASH" \
-    --argjson checks "$CHECKS_JSON" \
-    --arg timestamp "$TIMESTAMP" \
-    --arg bun "$BUN_VERSION" \
-    --arg node "$NODE_VERSION" \
-    '{tree_hash: $tree_hash, swagger_hash: $swagger_hash, checks: $checks, timestamp: $timestamp, tool_versions: {bun: $bun, node: $node}}')
-
-# Calculate integrity hash of the compact JSON
-INTEGRITY_HASH=$(echo -n "$ATTESTATION_WITHOUT_INTEGRITY" | sha256sum | cut -d' ' -f1)
-
-# Generate final attestation with integrity hash (pretty printed for readability)
+# Generate attestation (deterministic - no timestamp for reproducibility)
+# The tree_hash in the filename IS the integrity guarantee
 jq -n \
     --arg tree_hash "$TREE_HASH" \
     --arg swagger_hash "$SWAGGER_HASH" \
     --argjson checks "$CHECKS_JSON" \
-    --arg timestamp "$TIMESTAMP" \
     --arg bun "$BUN_VERSION" \
     --arg node "$NODE_VERSION" \
-    --arg integrity "$INTEGRITY_HASH" \
-    '{tree_hash: $tree_hash, swagger_hash: $swagger_hash, checks: $checks, timestamp: $timestamp, tool_versions: {bun: $bun, node: $node}, integrity: $integrity}' > "$ATTESTATION_FILE"
+    '{tree_hash: $tree_hash, swagger_hash: $swagger_hash, checks: $checks, tool_versions: {bun: $bun, node: $node}}' > "$ATTESTATION_FILE"
 
 echo "✅ Attestation generated: $ATTESTATION_FILE"
-echo "   Tree hash: $TREE_HASH"
+echo "   Tree hash: ${TREE_HASH:0:16}..."
 echo "   Swagger hash: ${SWAGGER_HASH:0:16}..."

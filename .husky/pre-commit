@@ -113,7 +113,7 @@ echo "  🔐 Generating attestation..."
 # 7. Stage all modified files (MUST be last - after all modifications are done)
 # -----------------------------------------------------------------------------
 echo "  📦 Staging generated files..."
-git add swagger.json swagger-generation-report.json .pre-commit-attestation.json
+git add swagger.json swagger-generation-report.json .attestations/
 
 echo ""
 echo "✅ Pre-commit passed! (Integration & E2E tests run in CI/CD)"
