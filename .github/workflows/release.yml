@@ -11,19 +11,111 @@ permissions:
   packages: write
 
 jobs:
+  # First: Check if the merged PR has "stable" label and calculate version
+  prepare-version:
+    runs-on: ubuntu-latest
+    outputs:
+      next_version: ${{ steps.version.outputs.next }}
+      current_version: ${{ steps.version.outputs.current }}
+      is_stable: ${{ steps.check-stable.outputs.is_stable }}
+      should_release: ${{ steps.version.outputs.should_release }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check for stable label on merged PR
+        id: check-stable
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Find PR associated with this commit
+          PR_DATA=$(gh pr list --state merged --base main --json number,labels,mergeCommit \
+            --jq ".[] | select(.mergeCommit.oid == \"${{ github.sha }}\")" 2>/dev/null || echo "")
+          
+          if [ -n "$PR_DATA" ]; then
+            PR_NUMBER=$(echo "$PR_DATA" | jq -r '.number')
+            HAS_STABLE=$(echo "$PR_DATA" | jq -r '.labels[].name | select(. == "stable")' | head -1)
+            
+            echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+            if [ -n "$HAS_STABLE" ]; then
+              echo "is_stable=true" >> $GITHUB_OUTPUT
+              echo "🏷️ Found 'stable' label on PR #$PR_NUMBER - will bump minor version"
+            else
+              echo "is_stable=false" >> $GITHUB_OUTPUT
+              echo "📦 No 'stable' label on PR #$PR_NUMBER - will bump patch version"
+            fi
+          else
+            echo "is_stable=false" >> $GITHUB_OUTPUT
+            echo "⚠️ No merged PR found for this commit - will bump patch version"
+          fi
+
+      - name: Calculate next version
+        id: version
+        run: |
+          # Get current version from package.json
+          CURRENT=$(jq -r '.version' package.json)
+          echo "current=$CURRENT" >> $GITHUB_OUTPUT
+          
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT"
+          
+          if [ "${{ steps.check-stable.outputs.is_stable }}" == "true" ]; then
+            # Stable release: bump minor, reset patch to 0
+            NEXT="${MAJOR}.$((MINOR + 1)).0"
+            echo "🚀 Stable release: $CURRENT → $NEXT"
+          else
+            # Normal release: bump patch only
+            NEXT="${MAJOR}.${MINOR}.$((PATCH + 1))"
+            echo "📦 Patch release: $CURRENT → $NEXT"
+          fi
+          
+          echo "next=$NEXT" >> $GITHUB_OUTPUT
+          echo "should_release=true" >> $GITHUB_OUTPUT
+
+  # Second: Run release-please with version override
   release-please:
+    needs: prepare-version
+    if: needs.prepare-version.outputs.should_release == 'true'
     runs-on: ubuntu-latest
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
       version: ${{ steps.release.outputs.version }}
       sha: ${{ steps.release.outputs.sha }}
+      pr: ${{ steps.release.outputs.pr }}
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Force version via Release-As commit (if needed)
+        if: needs.prepare-version.outputs.is_stable == 'true'
+        run: |
+          NEXT_VERSION="${{ needs.prepare-version.outputs.next_version }}"
+          
+          # Create an empty commit with Release-As directive
+          # This tells release-please to use this specific version
+          git commit --allow-empty -m "chore: release v${NEXT_VERSION}
+
+          Release-As: ${NEXT_VERSION}"
+          
+          git push origin main
+          
+          echo "✅ Committed Release-As directive for v${NEXT_VERSION}"
+
       - uses: googleapis/release-please-action@v4
         id: release
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
+  # Third: Build and push Docker image when release is created
   build-and-push:
     needs: release-please
     if: ${{ needs.release-please.outputs.release_created == 'true' }}
@@ -58,7 +150,6 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}:${{ steps.version.outputs.version }}
             ghcr.io/${{ github.repository }}:latest
-          # Cache consistente com PR validation
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
