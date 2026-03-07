@@ -1,5 +1,16 @@
 # Changelog
 
+## [10.0.0](https://github.com/octopus-synapse/profile-services/compare/profile-services-v9.0.0...profile-services-v10.0.0) (2026-03-07)
+
+
+### ⚠ BREAKING CHANGES
+
+* **pre commit:** Complete migration from legacy per-type section arrays to unified GenericResumeSection model
+
+### Code Refactoring
+
+* **pre commit:** migrate to content-addressed attestation storage ([#151](https://github.com/octopus-synapse/profile-services/issues/151)) ([503ab22](https://github.com/octopus-synapse/profile-services/commit/503ab220da2815b873499a708d884b041068991b))
+
 ## [9.0.0](https://github.com/octopus-synapse/profile-services/compare/profile-services-v8.0.0...profile-services-v9.0.0) (2026-03-07)
 
 
