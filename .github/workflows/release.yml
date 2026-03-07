@@ -36,7 +36,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           echo "🔍 Looking for merged PR for commit: ${{ github.sha }}"
-          
+
           # Find PR that was merged with this commit
           PR_DATA=$(gh api graphql -f query='
             query($sha: String!, $owner: String!, $repo: String!) {
@@ -60,11 +60,11 @@ jobs:
               }
             }
           ' -f sha="${{ github.sha }}" -f owner="${{ github.repository_owner }}" -f repo="${{ github.event.repository.name }}" 2>/dev/null || echo "{}")
-          
+
           PR_NUMBER=$(echo "$PR_DATA" | jq -r '.data.repository.commit.associatedPullRequests.nodes[0].number // empty')
           PR_MERGED=$(echo "$PR_DATA" | jq -r '.data.repository.commit.associatedPullRequests.nodes[0].merged // false')
           HAS_STABLE=$(echo "$PR_DATA" | jq -r '.data.repository.commit.associatedPullRequests.nodes[0].labels.nodes[].name | select(. == "stable")' | head -1)
-          
+
           if [ -n "$PR_NUMBER" ] && [ "$PR_MERGED" == "true" ]; then
             echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
             echo "📋 Found merged PR #$PR_NUMBER"
@@ -87,9 +87,9 @@ jobs:
           # Get current version
           CURRENT=$(jq -r '.version' package.json)
           echo "📌 Current version: $CURRENT"
-          
+
           IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT"
-          
+
           if [ "${{ steps.pr-info.outputs.is_stable }}" == "true" ]; then
             # Stable: bump minor, reset patch
             NEW_VERSION="${MAJOR}.$((MINOR + 1)).0"
@@ -99,32 +99,32 @@ jobs:
             NEW_VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))"
             echo "📦 Patch release: $CURRENT → $NEW_VERSION"
           fi
-          
+
           TAG="v${NEW_VERSION}"
-          
+
           # Update package.json
           jq ".version = \"$NEW_VERSION\"" package.json > package.json.tmp && mv package.json.tmp package.json
-          
+
           # Update release-please manifest (keep it in sync)
           echo "{
             \".\": \"$NEW_VERSION\"
           }" > .release-please-manifest.json
-          
+
           # Commit version bump
           git add package.json .release-please-manifest.json
           git commit -m "chore(release): v${NEW_VERSION}"
-          
+
           # Create annotated tag
           git tag -a "$TAG" -m "Release $TAG"
-          
+
           # Push commit and tag
           git push origin main
           git push origin "$TAG"
-          
+
           echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
           echo "tag=$TAG" >> $GITHUB_OUTPUT
           echo "released=true" >> $GITHUB_OUTPUT
-          
+
           echo "✅ Released $TAG"
 
       - name: Generate changelog for this release
@@ -132,10 +132,10 @@ jobs:
         run: |
           TAG="${{ steps.release.outputs.tag }}"
           VERSION="${{ steps.release.outputs.version }}"
-          
+
           # Get previous tag
           PREV_TAG=$(git describe --tags --abbrev=0 "$TAG^" 2>/dev/null || echo "")
-          
+
           if [ -n "$PREV_TAG" ]; then
             COMPARE_URL="https://github.com/${{ github.repository }}/compare/${PREV_TAG}...${TAG}"
             COMMITS=$(git log --pretty=format:"- %s (%h)" "${PREV_TAG}..${TAG}^" 2>/dev/null || echo "")
@@ -143,17 +143,17 @@ jobs:
             COMPARE_URL="https://github.com/${{ github.repository }}/commits/${TAG}"
             COMMITS="- Initial release"
           fi
-          
+
           # Build changelog
           CHANGELOG="## What's Changed
-          
+
           ${COMMITS}
-          
+
           **Full Changelog**: ${COMPARE_URL}"
-          
+
           # Save to file for later use
           echo "$CHANGELOG" > /tmp/changelog.md
-          
+
           echo "changelog_file=/tmp/changelog.md" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release
@@ -162,7 +162,7 @@ jobs:
         run: |
           TAG="${{ steps.release.outputs.tag }}"
           CHANGELOG=$(cat /tmp/changelog.md)
-          
+
           gh release create "$TAG" \
             --title "Release $TAG" \
             --notes "$CHANGELOG" \
@@ -205,19 +205,19 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           TAG="${{ needs.release.outputs.tag }}"
-          
+
           # Append Docker info to existing release notes
           CURRENT_NOTES=$(gh release view "$TAG" --json body -q '.body')
-          
+
           DOCKER_INFO="
-          
+
           ---
-          
+
           ## Docker Images
-          
+
           \`\`\`bash
           docker pull ghcr.io/${{ github.repository }}:${TAG}
           docker pull ghcr.io/${{ github.repository }}:latest
           \`\`\`"
-          
+
           gh release edit "$TAG" --notes "${CURRENT_NOTES}${DOCKER_INFO}"
