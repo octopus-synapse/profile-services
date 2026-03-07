@@ -33,7 +33,7 @@ jobs:
           # Find PR associated with this commit
           PR_DATA=$(gh pr list --state merged --base main --json number,labels,mergeCommit \
             --jq ".[] | select(.mergeCommit.oid == \"${{ github.sha }}\")" 2>/dev/null || echo "")
-          
+
           if [ -n "$PR_DATA" ]; then
             PR_NUMBER=$(echo "$PR_DATA" | jq -r '.number')
             HAS_STABLE=$(echo "$PR_DATA" | jq -r '.labels[].name | select(. == "stable")' | head -1)
@@ -57,9 +57,9 @@ jobs:
           # Get current version from package.json
           CURRENT=$(jq -r '.version' package.json)
           echo "current=$CURRENT" >> $GITHUB_OUTPUT
-          
+
           IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT"
-          
+
           if [ "${{ steps.check-stable.outputs.is_stable }}" == "true" ]; then
             # Stable release: bump minor, reset patch to 0
             NEXT="${MAJOR}.$((MINOR + 1)).0"
@@ -69,7 +69,7 @@ jobs:
             NEXT="${MAJOR}.${MINOR}.$((PATCH + 1))"
             echo "📦 Patch release: $CURRENT → $NEXT"
           fi
-          
+
           echo "next=$NEXT" >> $GITHUB_OUTPUT
           echo "should_release=true" >> $GITHUB_OUTPUT
 
@@ -99,15 +99,15 @@ jobs:
         if: needs.prepare-version.outputs.is_stable == 'true'
         run: |
           NEXT_VERSION="${{ needs.prepare-version.outputs.next_version }}"
-          
+
           # Create an empty commit with Release-As directive
           # This tells release-please to use this specific version
           git commit --allow-empty -m "chore: release v${NEXT_VERSION}
 
           Release-As: ${NEXT_VERSION}"
-          
+
           git push origin main
-          
+
           echo "✅ Committed Release-As directive for v${NEXT_VERSION}"
 
       - uses: googleapis/release-please-action@v4
