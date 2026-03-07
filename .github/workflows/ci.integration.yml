@@ -1,0 +1,95 @@
+# =============================================================================
+# Reusable: Integration Tests
+# =============================================================================
+#
+# Filosofia (Uncle Bob + Kent Beck):
+#   - "Test the real thing when it matters"
+#   - Testes de integração verificam componentes trabalhando juntos
+#   - Requer banco de dados e cache reais (Docker services)
+#
+# =============================================================================
+
+name: _integration
+
+on:
+  workflow_call:
+
+env:
+  DATABASE_URL: postgresql://postgres:postgres@localhost:5433/integration_test_db
+  REDIS_HOST: localhost
+  REDIS_PORT: 6380
+  JWT_SECRET: integration-test-secret-key-minimum-32-characters
+  NODE_ENV: test
+
+jobs:
+  test:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: integration_test_db
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6380:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Restore Cache
+        id: cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            node_modules
+            ~/.bun/install/cache
+          key: deps-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
+
+      - name: Install
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: bun install --frozen-lockfile
+
+      # db:setup:test já inclui prisma generate
+      - name: Setup DB
+        run: bun run db:setup:test
+
+      - name: Test
+        run: |
+          echo "## 🧪 Integration Tests" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if bun test --config=bunfig.integration.toml 2>&1 | tee test-output.txt; then
+            echo "✅ All integration tests passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Integration tests failed" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+
+      - name: Upload Results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-results
+          path: |
+            test-output.txt
+            test-results/
+          retention-days: 7

@@ -1,193 +1,257 @@
+# =============================================================================
+# CI - Pipeline Orquestrador
+# =============================================================================
+#
+# Coordena todos os checks de PR com dependências explícitas.
+# Cada etapa é um reusable workflow separado para legibilidade.
+#
+# Arquitetura:
+#   should-skip ──► detect-changes ──► verify-attestation
+#                         │
+#                         ├──► build (Docker)
+#                         │         │
+#                         │    ┌────┴────┐
+#                         │    ▼         ▼
+#                         ├──► integration  e2e
+#                         │
+#                         └──► unit-tests
+#
+# =============================================================================
+
 name: CI
 
 on:
-  pull_request:
-    branches: [main, dev]
-    paths-ignore:
-      - "CHANGELOG.md"
-      - "package.json"
-      - ".release-please-manifest.json"
-      - "*.md"
-      - "docs/**"
+    pull_request:
+        branches: [main, dev]
+        paths-ignore:
+            - "CHANGELOG.md"
+            - ".release-please-manifest.json"
+            - "*.md"
+            - "docs/**"
+    workflow_dispatch:
+
+concurrency:
+    group: ci-${{ github.event.pull_request.number || github.ref }}
+    cancel-in-progress: true
 
 permissions:
-  contents: write
-  pull-requests: write
+    contents: read
+    pull-requests: write
+    packages: write
 
 jobs:
-  # Skip CI for release-please PRs (only version bumps, no code changes)
-  should-skip:
-    name: Should Skip
-    runs-on: ubuntu-latest
-    outputs:
-      should_skip: ${{ steps.skip_check.outputs.should_skip }}
-    steps:
-      - id: skip_check
-        uses: fkirc/skip-duplicate-actions@v5
+    # ═══════════════════════════════════════════════════════════════════════════
+    # Gate: Skip duplicates
+    # ═══════════════════════════════════════════════════════════════════════════
+    should-skip:
+        name: Should Skip
+        runs-on: ubuntu-latest
+        outputs:
+            should_skip: ${{ steps.skip.outputs.should_skip }}
+        steps:
+            - id: skip
+              uses: fkirc/skip-duplicate-actions@v5
+              with:
+                  concurrent_skipping: "same_content_newer"
+                  skip_after_successful_duplicate: "true"
+                  paths_ignore: '["CHANGELOG.md", ".release-please-manifest.json", "*.md", "docs/**"]'
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # Gate: Detect changes
+    # ═══════════════════════════════════════════════════════════════════════════
+    detect-changes:
+        name: Detect Changes
+        needs: [should-skip]
+        if: needs.should-skip.outputs.should_skip != 'true'
+        runs-on: ubuntu-latest
+        outputs:
+            src: ${{ steps.filter.outputs.src }}
+            tests: ${{ steps.filter.outputs.tests }}
+            prisma: ${{ steps.filter.outputs.prisma }}
+        steps:
+            - uses: actions/checkout@v4
+            - uses: dorny/paths-filter@v3
+              id: filter
+              with:
+                  filters: |
+                      src:
+                        - 'src/**'
+                        - 'package.json'
+                        - 'bun.lockb'
+                        - 'tsconfig*.json'
+                      tests:
+                        - 'test/**'
+                      prisma:
+                        - 'prisma/**'
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # Gate: Verify pre-commit attestation
+    # ═══════════════════════════════════════════════════════════════════════════
+    verify-attestation:
+        name: Verify Pre-Commit
+        needs: [should-skip]
+        if: needs.should-skip.outputs.should_skip != 'true'
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  ref: ${{ github.event.pull_request.head.sha }}
+            - name: Verify Attestation
+              run: |
+                  chmod +x ./scripts/verify-pre-commit-attestation.sh
+                  ./scripts/verify-pre-commit-attestation.sh
+
+    # ═══════════════════════════════════════════════════════════════════════════
+    # Build: Docker Image
+    # ═══════════════════════════════════════════════════════════════════════════
+    build:
+        name: Build
+        needs: [should-skip, detect-changes]
+        if: |
+            needs.should-skip.outputs.should_skip != 'true' &&
+            (needs.detect-changes.outputs.src == 'true' || needs.detect-changes.outputs.prisma == 'true')
+        uses: ./.github/workflows/ci.build.yml
         with:
-          concurrent_skipping: "same_content_newer"
-          skip_after_successful_duplicate: "true"
-          paths_ignore: '["CHANGELOG.md", "package.json", ".release-please-manifest.json", "*.md", "docs/**"]'
-          do_not_skip: '["workflow_dispatch", "schedule"]'
+            image_tag: pr-${{ github.event.pull_request.number || github.run_number }}-${{ github.sha }}
+        secrets: inherit
 
-  # Detect which parts of codebase changed
-  detect-changes:
-    name: Detect Changes
-    needs: should-skip
-    if: needs.should-skip.outputs.should_skip != 'true'
-    runs-on: ubuntu-latest
-    outputs:
-      src: ${{ steps.filter.outputs.src }}
-      tests: ${{ steps.filter.outputs.tests }}
-      e2e: ${{ steps.filter.outputs.e2e }}
-      prisma: ${{ steps.filter.outputs.prisma }}
-      config: ${{ steps.filter.outputs.config }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v3
-        id: filter
-        with:
-          filters: |
-            src:
-              - 'src/**'
-            tests:
-              - 'test/**'
-            e2e:
-              - 'test/e2e/**'
-            prisma:
-              - 'prisma/**'
-            config:
-              - 'package.json'
-              - 'tsconfig*.json'
-              - 'bunfig*.toml'
+    # ═══════════════════════════════════════════════════════════════════════════
+    # Test: Unit
+    # ═══════════════════════════════════════════════════════════════════════════
+    unit-tests:
+        name: Unit Tests
+        needs: [should-skip, detect-changes, verify-attestation]
+        if: |
+            needs.should-skip.outputs.should_skip != 'true' &&
+            (needs.detect-changes.outputs.src == 'true' || needs.detect-changes.outputs.tests == 'true')
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - uses: oven-sh/setup-bun@v2
 
-  # ==========================================================================
-  # Verify Pre-Commit Attestation (O(1) - no re-execution of checks)
-  # ==========================================================================
-  verify-attestation:
-    name: Verify Pre-Commit Attestation
-    needs: [should-skip]
-    if: needs.should-skip.outputs.should_skip != 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          # Must checkout the actual PR head commit, not the merge commit (refs/pull/N/merge).
-          # The merge commit has a different tree hash, which breaks attestation verification.
-          ref: ${{ github.event.pull_request.head.sha }}
+            - name: Restore Cache
+              id: cache
+              uses: actions/cache/restore@v4
+              with:
+                  path: |
+                      node_modules
+                      ~/.bun/install/cache
+                  key: deps-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
 
-      - name: Verify Pre-Commit Ran (O(1) check)
-        run: |
-          chmod +x ./scripts/verify-pre-commit-attestation.sh
-          ./scripts/verify-pre-commit-attestation.sh
+            - name: Install
+              if: steps.cache.outputs.cache-hit != 'true'
+              run: bun install --frozen-lockfile
 
-  # Centralized dependency installation - runs once, cached for all jobs
-  setup:
-    name: Setup Dependencies
-    needs: [should-skip, detect-changes]
-    if: |
-      needs.should-skip.outputs.should_skip != 'true' &&
-      needs.detect-changes.outputs.src == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+            - name: Save Cache
+              if: steps.cache.outputs.cache-hit != 'true'
+              uses: actions/cache/save@v4
+              with:
+                  path: |
+                      node_modules
+                      ~/.bun/install/cache
+                  key: deps-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
 
-      # Reads version from .bun-version file
-      - uses: oven-sh/setup-bun@v2
+            - name: Prisma Generate
+              run: bunx prisma generate
 
-      - name: Cache Dependencies
-        id: cache-deps
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            ~/.bun/install/cache
-          key: deps-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
-          restore-keys: |
-            deps-${{ runner.os }}-
+            - name: Test
+              run: |
+                  echo "## 🧪 Unit Tests" >> $GITHUB_STEP_SUMMARY
+                  bun test --config=bunfig.toml
+                  echo "✅ All unit tests passed" >> $GITHUB_STEP_SUMMARY
 
-      - name: Install dependencies
-        if: steps.cache-deps.outputs.cache-hit != 'true'
-        run: bun install --frozen-lockfile
+    # ═══════════════════════════════════════════════════════════════════════════
+    # Test: Integration
+    # ═══════════════════════════════════════════════════════════════════════════
+    integration:
+        name: Integration
+        needs: [should-skip, detect-changes, build, verify-attestation]
+        if: |
+            always() &&
+            needs.should-skip.outputs.should_skip != 'true' &&
+            (needs.detect-changes.outputs.src == 'true' || needs.detect-changes.outputs.prisma == 'true') &&
+            (needs.build.result == 'success' || needs.build.result == 'skipped')
+        uses: ./.github/workflows/ci.integration.yml
+        secrets: inherit
 
-      - name: Cache Prisma Client
-        id: cache-prisma
-        uses: actions/cache@v4
-        with:
-          path: node_modules/.prisma
-          key: prisma-${{ hashFiles('prisma/schema/**/*.prisma') }}
-          restore-keys: |
-            prisma-
+    # ═══════════════════════════════════════════════════════════════════════════
+    # Test: E2E
+    # ═══════════════════════════════════════════════════════════════════════════
+    e2e:
+        name: E2E
+        needs: [should-skip, detect-changes, build, verify-attestation]
+        if: |
+            always() &&
+            needs.should-skip.outputs.should_skip != 'true' &&
+            (needs.detect-changes.outputs.src == 'true' || needs.detect-changes.outputs.prisma == 'true') &&
+            (needs.build.result == 'success' || needs.build.result == 'skipped')
+        uses: ./.github/workflows/ci.e2e.yml
+        secrets: inherit
 
-      - name: Generate Prisma Client
-        if: steps.cache-prisma.outputs.cache-hit != 'true'
-        run: bunx prisma generate
+    # ═══════════════════════════════════════════════════════════════════════════
+    # Summary
+    # ═══════════════════════════════════════════════════════════════════════════
+    status:
+        name: CI Status
+        needs: [verify-attestation, build, unit-tests, integration, e2e]
+        if: always()
+        runs-on: ubuntu-latest
+        steps:
+            - name: Check Results
+              run: |
+                  echo "## 📊 CI Summary" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
+                  echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+                  echo "| Attestation | ${{ needs.verify-attestation.result }} |" >> $GITHUB_STEP_SUMMARY
+                  echo "| Build | ${{ needs.build.result }} |" >> $GITHUB_STEP_SUMMARY
+                  echo "| Unit | ${{ needs.unit-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+                  echo "| Integration | ${{ needs.integration.result }} |" >> $GITHUB_STEP_SUMMARY
+                  echo "| E2E | ${{ needs.e2e.result }} |" >> $GITHUB_STEP_SUMMARY
 
-  # ==========================================================================
-  # NOTE: Integration and E2E tests are in separate workflow files
-  # - integration.yml → runs on PR with infrastructure (Postgres, Redis)
-  # - e2e.yml → runs on PR to main + nightly schedule
-  # ==========================================================================
+                  if [[ "${{ needs.verify-attestation.result }}" == "failure" ]] || \
+                     [[ "${{ needs.build.result }}" == "failure" ]] || \
+                     [[ "${{ needs.unit-tests.result }}" == "failure" ]] || \
+                     [[ "${{ needs.integration.result }}" == "failure" ]] || \
+                     [[ "${{ needs.e2e.result }}" == "failure" ]]; then
+                    echo "" >> $GITHUB_STEP_SUMMARY
+                    echo "❌ **CI failed**" >> $GITHUB_STEP_SUMMARY
+                    exit 1
+                  fi
 
-  build:
-    name: Build
-    needs: [setup, detect-changes, should-skip, verify-attestation]
-    if: |
-      needs.should-skip.outputs.should_skip != 'true' &&
-      needs.detect-changes.outputs.src == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo "✅ **CI passed**" >> $GITHUB_STEP_SUMMARY
 
-      - uses: oven-sh/setup-bun@v2
+            - name: Comment on PR (Failure)
+              if: failure() && github.event_name == 'pull_request'
+              uses: actions/github-script@v7
+              with:
+                  script: |
+                      const results = {
+                        attestation: '${{ needs.verify-attestation.result }}',
+                        build: '${{ needs.build.result }}',
+                        unit: '${{ needs.unit-tests.result }}',
+                        integration: '${{ needs.integration.result }}',
+                        e2e: '${{ needs.e2e.result }}'
+                      };
 
-      - name: Restore Dependencies
-        uses: actions/cache/restore@v4
-        with:
-          path: |
-            node_modules
-            ~/.bun/install/cache
-          key: deps-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
-          fail-on-cache-miss: true
+                      const failures = Object.entries(results)
+                        .filter(([_, status]) => status === 'failure')
+                        .map(([name, _]) => `- ❌ ${name}`)
+                        .join('\n');
 
-      - name: Restore Prisma Client
-        uses: actions/cache/restore@v4
-        with:
-          path: node_modules/.prisma
-          key: prisma-${{ hashFiles('prisma/schema/**/*.prisma') }}
-          fail-on-cache-miss: true
+                      const body = [
+                        '## ❌ CI Failed',
+                        '',
+                        'The following checks failed:',
+                        failures,
+                        '',
+                        '> Check the workflow run for details.'
+                      ].join('\n');
 
-      - name: Cache Build Artifacts
-        uses: actions/cache@v4
-        id: build-cache
-        with:
-          path: dist
-          key: build-${{ hashFiles('src/**', 'tsconfig*.json') }}
-
-      - name: Build
-        if: steps.build-cache.outputs.cache-hit != 'true'
-        run: bun run build
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: build-artifacts
-          path: dist
-          retention-days: 7
-
-  docker-build:
-    name: Docker Build
-    runs-on: ubuntu-latest
-    needs: [build]
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: docker/setup-buildx-action@v3
-
-      - uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: Dockerfile
-          push: false
-          tags: profile-services:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+                      github.rest.issues.createComment({
+                        issue_number: context.issue.number,
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        body
+                      });
