@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach } from 'bun:test';
-import { LayoutSafetyValidator } from './layout-safety.validator';
+import { beforeEach, describe, expect, it } from 'bun:test';
 import { ValidationSeverity } from '../interfaces';
+import { LayoutSafetyValidator } from './layout-safety.validator';
 
 describe('LayoutSafetyValidator', () => {
   let validator: LayoutSafetyValidator;
@@ -57,10 +57,11 @@ Company A | Senior Developer | 2020-2024
 
       const result = validator.validate(textWithUnsafeBullets);
 
-      expect(result.issues[0].suggestion.includes('-, *, •')).toBe(true);
-      expect(result.issues[0].suggestion.includes('ATS compatibility')).toBe(
-        true,
-      );
+      const firstIssue = result.issues[0];
+      if (!firstIssue?.suggestion)
+        throw new Error('Expected first issue with suggestion to be defined');
+      expect(firstIssue.suggestion.includes('-, *, •')).toBe(true);
+      expect(firstIssue.suggestion.includes('ATS compatibility')).toBe(true);
     });
 
     it('should detect text inside shapes', () => {
@@ -74,10 +75,10 @@ Company A | Senior Developer | 2020-2024
       expect(result.passed).toBe(true); // WARNING, not ERROR
       expect(result.issues.some((i) => i.code === 'TEXT_IN_SHAPES')).toBe(true);
       const shapeIssue = result.issues.find((i) => i.code === 'TEXT_IN_SHAPES');
-      expect(shapeIssue?.severity).toBe(ValidationSeverity.WARNING);
-      expect(shapeIssue?.suggestion.includes('Move text out of shapes')).toBe(
-        true,
-      );
+      if (!shapeIssue?.suggestion)
+        throw new Error('Expected shapeIssue with suggestion to be defined');
+      expect(shapeIssue.severity).toBe(ValidationSeverity.WARNING);
+      expect(shapeIssue.suggestion.includes('Move text out of shapes')).toBe(true);
       expect(result.metadata?.hasTextInShapes).toBe(true);
     });
 
@@ -114,16 +115,12 @@ Skills: TypeScript          Location: Remote`;
       const result = validator.validate(multiColumnText);
 
       expect(result.passed).toBe(true); // WARNING, not ERROR
-      expect(
-        result.issues.some((i) => i.code === 'MULTI_COLUMN_LAYOUT_DETECTED'),
-      ).toBe(true);
-      const columnIssue = result.issues.find(
-        (i) => i.code === 'MULTI_COLUMN_LAYOUT_DETECTED',
-      );
-      expect(columnIssue?.severity).toBe(ValidationSeverity.WARNING);
-      expect(columnIssue?.suggestion.includes('single-column layout')).toBe(
-        true,
-      );
+      expect(result.issues.some((i) => i.code === 'MULTI_COLUMN_LAYOUT_DETECTED')).toBe(true);
+      const columnIssue = result.issues.find((i) => i.code === 'MULTI_COLUMN_LAYOUT_DETECTED');
+      if (!columnIssue?.suggestion)
+        throw new Error('Expected columnIssue with suggestion to be defined');
+      expect(columnIssue.severity).toBe(ValidationSeverity.WARNING);
+      expect(columnIssue.suggestion.includes('single-column layout')).toBe(true);
       expect(result.metadata?.hasMultiColumn).toBe(true);
     });
 
@@ -134,9 +131,7 @@ Duration: 3 years`;
 
       const result = validator.validate(normalText);
 
-      expect(
-        result.issues.some((i) => i.code === 'MULTI_COLUMN_LAYOUT_DETECTED'),
-      ).toBe(false);
+      expect(result.issues.some((i) => i.code === 'MULTI_COLUMN_LAYOUT_DETECTED')).toBe(false);
       expect(result.metadata?.hasMultiColumn).toBe(false);
     });
 
@@ -154,14 +149,12 @@ End`;
 
       const result = validator.validate(textWithExcessiveBreaks);
 
-      expect(
-        result.issues.some((i) => i.code === 'EXCESSIVE_LINE_BREAKS'),
-      ).toBe(true);
-      const breakIssue = result.issues.find(
-        (i) => i.code === 'EXCESSIVE_LINE_BREAKS',
-      );
-      expect(breakIssue?.severity).toBe(ValidationSeverity.INFO);
-      expect(breakIssue?.suggestion.includes('1-2 blank lines')).toBe(true);
+      expect(result.issues.some((i) => i.code === 'EXCESSIVE_LINE_BREAKS')).toBe(true);
+      const breakIssue = result.issues.find((i) => i.code === 'EXCESSIVE_LINE_BREAKS');
+      if (!breakIssue?.suggestion)
+        throw new Error('Expected breakIssue with suggestion to be defined');
+      expect(breakIssue.severity).toBe(ValidationSeverity.INFO);
+      expect(breakIssue.suggestion.includes('1-2 blank lines')).toBe(true);
     });
 
     it('should allow moderate blank lines (1-2)', () => {
@@ -175,9 +168,7 @@ More content`;
 
       const result = validator.validate(normalSpacing);
 
-      expect(
-        result.issues.some((i) => i.code === 'EXCESSIVE_LINE_BREAKS'),
-      ).toBe(false);
+      expect(result.issues.some((i) => i.code === 'EXCESSIVE_LINE_BREAKS')).toBe(false);
     });
 
     it('should detect horizontal lines with dashes', () => {
@@ -187,12 +178,8 @@ Professional developer`;
 
       const result = validator.validate(textWithHorizontalLines);
 
-      expect(
-        result.issues.some((i) => i.code === 'HORIZONTAL_LINES_DETECTED'),
-      ).toBe(true);
-      const lineIssue = result.issues.find(
-        (i) => i.code === 'HORIZONTAL_LINES_DETECTED',
-      );
+      expect(result.issues.some((i) => i.code === 'HORIZONTAL_LINES_DETECTED')).toBe(true);
+      const lineIssue = result.issues.find((i) => i.code === 'HORIZONTAL_LINES_DETECTED');
       expect(lineIssue?.severity).toBe(ValidationSeverity.INFO);
     });
 
@@ -203,9 +190,7 @@ Senior Role`;
 
       const result = validator.validate(textWithEqualsLine);
 
-      expect(
-        result.issues.some((i) => i.code === 'HORIZONTAL_LINES_DETECTED'),
-      ).toBe(true);
+      expect(result.issues.some((i) => i.code === 'HORIZONTAL_LINES_DETECTED')).toBe(true);
     });
 
     it('should detect horizontal lines with underscores', () => {
@@ -215,9 +200,7 @@ University Degree`;
 
       const result = validator.validate(textWithUnderscores);
 
-      expect(
-        result.issues.some((i) => i.code === 'HORIZONTAL_LINES_DETECTED'),
-      ).toBe(true);
+      expect(result.issues.some((i) => i.code === 'HORIZONTAL_LINES_DETECTED')).toBe(true);
     });
 
     it('should detect horizontal lines with Unicode characters', () => {
@@ -227,9 +210,7 @@ TypeScript`;
 
       const result = validator.validate(textWithUnicodeLine);
 
-      expect(
-        result.issues.some((i) => i.code === 'HORIZONTAL_LINES_DETECTED'),
-      ).toBe(true);
+      expect(result.issues.some((i) => i.code === 'HORIZONTAL_LINES_DETECTED')).toBe(true);
     });
 
     it('should not detect short dash sequences as horizontal lines', () => {
@@ -238,9 +219,7 @@ React - Frontend library`;
 
       const result = validator.validate(textWithShortDashes);
 
-      expect(
-        result.issues.some((i) => i.code === 'HORIZONTAL_LINES_DETECTED'),
-      ).toBe(false);
+      expect(result.issues.some((i) => i.code === 'HORIZONTAL_LINES_DETECTED')).toBe(false);
     });
 
     it('should detect multiple ATS layout issues simultaneously', () => {
@@ -263,19 +242,11 @@ More content`;
       expect(result.issues.length).toBeGreaterThan(3);
 
       // Should detect unsafe bullets, multi-column, text in shapes, horizontal lines, excessive breaks
-      expect(
-        result.issues.some((i) => i.code === 'UNSAFE_BULLET_CHARACTERS'),
-      ).toBe(true);
-      expect(
-        result.issues.some((i) => i.code === 'MULTI_COLUMN_LAYOUT_DETECTED'),
-      ).toBe(true);
+      expect(result.issues.some((i) => i.code === 'UNSAFE_BULLET_CHARACTERS')).toBe(true);
+      expect(result.issues.some((i) => i.code === 'MULTI_COLUMN_LAYOUT_DETECTED')).toBe(true);
       expect(result.issues.some((i) => i.code === 'TEXT_IN_SHAPES')).toBe(true);
-      expect(
-        result.issues.some((i) => i.code === 'HORIZONTAL_LINES_DETECTED'),
-      ).toBe(true);
-      expect(
-        result.issues.some((i) => i.code === 'EXCESSIVE_LINE_BREAKS'),
-      ).toBe(true);
+      expect(result.issues.some((i) => i.code === 'HORIZONTAL_LINES_DETECTED')).toBe(true);
+      expect(result.issues.some((i) => i.code === 'EXCESSIVE_LINE_BREAKS')).toBe(true);
     });
 
     it('should never fail with ERROR severity (all issues are WARNING/INFO)', () => {
@@ -302,9 +273,7 @@ More content`;
       const result = validator.validate(worstCaseText);
 
       expect(result.passed).toBe(true);
-      const errorIssues = result.issues.filter(
-        (i) => i.severity === ValidationSeverity.ERROR,
-      );
+      const errorIssues = result.issues.filter((i) => i.severity === ValidationSeverity.ERROR);
       expect(errorIssues).toHaveLength(0);
     });
 
@@ -371,9 +340,7 @@ Skills: TypeScript                      Location: Remote
 
       const result = validator.validate(allUnsafeBullets);
 
-      const bulletIssue = result.issues.find(
-        (i) => i.code === 'UNSAFE_BULLET_CHARACTERS',
-      );
+      const bulletIssue = result.issues.find((i) => i.code === 'UNSAFE_BULLET_CHARACTERS');
       expect(bulletIssue).toBeDefined();
       expect(result.metadata?.unsafeBulletCount).toBe(20); // All 20 unsafe bullets
     });

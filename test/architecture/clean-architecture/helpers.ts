@@ -17,10 +17,7 @@ export function fileExists(filePath: string): boolean {
   return fs.existsSync(filePath) && fs.statSync(filePath).isFile();
 }
 
-export function getFilesInDirectory(
-  dirPath: string,
-  extension?: string,
-): string[] {
+export function getFilesInDirectory(dirPath: string, extension?: string): string[] {
   if (!directoryExists(dirPath)) return [];
 
   return fs.readdirSync(dirPath).filter((file) => {
@@ -48,11 +45,7 @@ export function getAllTypeScriptFiles(dirPath: string): string[] {
     const fullPath = path.join(dirPath, entry.name);
     if (entry.isDirectory()) {
       files.push(...getAllTypeScriptFiles(fullPath));
-    } else if (
-      entry.isFile() &&
-      entry.name.endsWith('.ts') &&
-      !entry.name.endsWith('.spec.ts')
-    ) {
+    } else if (entry.isFile() && entry.name.endsWith('.ts') && !entry.name.endsWith('.spec.ts')) {
       files.push(fullPath);
     }
   }
@@ -64,5 +57,5 @@ export function readFileContent(filePath: string): string {
 }
 
 export function relativePath(file: string): string {
-  return file.replace(SOURCE_ROOT + '/', '');
+  return file.replace(`${SOURCE_ROOT}/`, '');
 }

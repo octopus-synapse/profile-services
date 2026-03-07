@@ -20,13 +20,13 @@
  * Target Time: < 30 seconds
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
+import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import type { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { createE2ETestApp } from '../setup-e2e';
+import { createMinimalOnboardingData } from '../fixtures/resumes.fixture';
 import type { AuthHelper } from '../helpers/auth.helper';
 import type { CleanupHelper } from '../helpers/cleanup.helper';
-import { createMinimalOnboardingData } from '../fixtures/resumes.fixture';
+import { createE2ETestApp } from '../setup-e2e';
 
 describe('E2E Journey 1: Complete User Lifecycle', () => {
   let app: INestApplication;
@@ -70,13 +70,11 @@ describe('E2E Journey 1: Complete User Lifecycle', () => {
     });
 
     it('should reject duplicate email', async () => {
-      const response = await request(app.getHttpServer())
-        .post('/api/accounts')
-        .send({
-          email: testUser.email,
-          password: testUser.password,
-          name: testUser.name,
-        });
+      const response = await request(app.getHttpServer()).post('/api/accounts').send({
+        email: testUser.email,
+        password: testUser.password,
+        name: testUser.name,
+      });
 
       expect(response.status).toBe(409);
     });
@@ -95,9 +93,7 @@ describe('E2E Journey 1: Complete User Lifecycle', () => {
 
   describe('Step 3: Onboarding Completion', () => {
     it('should complete onboarding with minimal data', async () => {
-      const onboardingData = createMinimalOnboardingData(
-        `lifecycle_${Date.now()}`,
-      );
+      const onboardingData = createMinimalOnboardingData(`lifecycle_${Date.now()}`);
 
       const response = await request(app.getHttpServer())
         .post('/api/v1/onboarding')

@@ -5,13 +5,13 @@
  * Uses bun:mock for clean test doubles.
  */
 
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
-import { UserPreferencesService } from './user-preferences.service';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import type {
-  UserPreferencesUseCases,
-  UserPreferences,
   FullUserPreferences,
+  UserPreferences,
+  UserPreferencesUseCases,
 } from './user-preferences/ports/user-preferences.port';
+import { UserPreferencesService } from './user-preferences.service';
 
 describe('UserPreferencesService (Facade)', () => {
   let service: UserPreferencesService;
@@ -62,7 +62,7 @@ describe('UserPreferencesService (Facade)', () => {
       updateFullPreferencesUseCase: {
         execute: mock(async () => mockFullPreferences),
       },
-    } as unknown as UserPreferencesUseCases;
+    };
 
     // Create service with injected use cases
     service = new UserPreferencesService(mockUseCases);
@@ -73,9 +73,7 @@ describe('UserPreferencesService (Facade)', () => {
       const result = await service.getPreferences('user-123');
 
       expect(result).toEqual(mockPreferences);
-      expect(mockUseCases.getPreferencesUseCase.execute).toHaveBeenCalledWith(
-        'user-123',
-      );
+      expect(mockUseCases.getPreferencesUseCase.execute).toHaveBeenCalledWith('user-123');
     });
   });
 
@@ -86,9 +84,10 @@ describe('UserPreferencesService (Facade)', () => {
       const result = await service.updatePreferences('user-123', updateData);
 
       expect(result).toBeUndefined();
-      expect(
-        mockUseCases.updatePreferencesUseCase.execute,
-      ).toHaveBeenCalledWith('user-123', updateData);
+      expect(mockUseCases.updatePreferencesUseCase.execute).toHaveBeenCalledWith(
+        'user-123',
+        updateData,
+      );
     });
   });
 
@@ -97,9 +96,7 @@ describe('UserPreferencesService (Facade)', () => {
       const result = await service.getFullPreferences('user-123');
 
       expect(result).toEqual(mockFullPreferences);
-      expect(
-        mockUseCases.getFullPreferencesUseCase.execute,
-      ).toHaveBeenCalledWith('user-123');
+      expect(mockUseCases.getFullPreferencesUseCase.execute).toHaveBeenCalledWith('user-123');
     });
 
     it('should return empty object when preferences not found', async () => {
@@ -115,15 +112,13 @@ describe('UserPreferencesService (Facade)', () => {
     it('should delegate to updateFullPreferencesUseCase', async () => {
       const updateData = { theme: 'light', language: 'pt-BR' };
 
-      const result = await service.updateFullPreferences(
+      const result = await service.updateFullPreferences('user-123', updateData);
+
+      expect(result).toEqual(mockFullPreferences);
+      expect(mockUseCases.updateFullPreferencesUseCase.execute).toHaveBeenCalledWith(
         'user-123',
         updateData,
       );
-
-      expect(result).toEqual(mockFullPreferences);
-      expect(
-        mockUseCases.updateFullPreferencesUseCase.execute,
-      ).toHaveBeenCalledWith('user-123', updateData);
     });
   });
 });

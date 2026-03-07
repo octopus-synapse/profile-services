@@ -13,11 +13,11 @@
  * - Choose invalidation timing (before or after)
  */
 
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
-import { Test, TestingModule } from '@nestjs/testing';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { Injectable } from '@nestjs/common';
-import { CacheInvalidate } from './cache-invalidate.decorator';
+import { Test, TestingModule } from '@nestjs/testing';
 import { CacheService } from '../cache.service';
+import { CacheInvalidate } from './cache-invalidate.decorator';
 
 // --- Mock CacheService ---
 
@@ -55,10 +55,7 @@ class TestService {
   @CacheInvalidate({
     keys: ['resume:{0}', 'user:{0}:resumes', 'public:resume:{1}'],
   })
-  async updateResume(
-    resumeId: string,
-    slug: string,
-  ): Promise<{ id: string; slug: string }> {
+  async updateResume(resumeId: string, slug: string): Promise<{ id: string; slug: string }> {
     this.callCount++;
     return { id: resumeId, slug };
   }
@@ -91,10 +88,7 @@ describe('@CacheInvalidate decorator', () => {
     mockCacheService = createMockCacheService();
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        TestService,
-        { provide: CacheService, useValue: mockCacheService },
-      ],
+      providers: [TestService, { provide: CacheService, useValue: mockCacheService }],
     }).compile();
 
     service = module.get<TestService>(TestService);
@@ -108,18 +102,14 @@ describe('@CacheInvalidate decorator', () => {
 
       expect(result).toBe('updated');
       expect(service.callCount).toBe(1);
-      expect(mockCacheService.delete).toHaveBeenCalledWith(
-        'user:profile:cache',
-      );
+      expect(mockCacheService.delete).toHaveBeenCalledWith('user:profile:cache');
     });
 
     it('should interpolate key with method arguments', async () => {
       const result = await service.updateUserProfile('user-123');
 
       expect(result).toEqual({ id: 'user-123' });
-      expect(mockCacheService.delete).toHaveBeenCalledWith(
-        'user:user-123:profile',
-      );
+      expect(mockCacheService.delete).toHaveBeenCalledWith('user:user-123:profile');
     });
   });
 
@@ -130,12 +120,8 @@ describe('@CacheInvalidate decorator', () => {
       expect(result).toEqual({ id: 'res-456', slug: 'my-resume' });
       expect(mockCacheService.delete).toHaveBeenCalledTimes(3);
       expect(mockCacheService.delete).toHaveBeenCalledWith('resume:res-456');
-      expect(mockCacheService.delete).toHaveBeenCalledWith(
-        'user:res-456:resumes',
-      );
-      expect(mockCacheService.delete).toHaveBeenCalledWith(
-        'public:resume:my-resume',
-      );
+      expect(mockCacheService.delete).toHaveBeenCalledWith('user:res-456:resumes');
+      expect(mockCacheService.delete).toHaveBeenCalledWith('public:resume:my-resume');
     });
   });
 
@@ -143,20 +129,14 @@ describe('@CacheInvalidate decorator', () => {
     it('should invalidate pattern with interpolation', async () => {
       await service.clearAnalytics('user-789');
 
-      expect(mockCacheService.deletePattern).toHaveBeenCalledWith(
-        'analytics:*:user-789',
-      );
+      expect(mockCacheService.deletePattern).toHaveBeenCalledWith('analytics:*:user-789');
     });
 
     it('should handle both keys and patterns', async () => {
       await service.clearUserData('user-abc');
 
-      expect(mockCacheService.delete).toHaveBeenCalledWith(
-        'user:user-abc:data',
-      );
-      expect(mockCacheService.deletePattern).toHaveBeenCalledWith(
-        'user:user-abc:analytics:*',
-      );
+      expect(mockCacheService.delete).toHaveBeenCalledWith('user:user-abc:data');
+      expect(mockCacheService.deletePattern).toHaveBeenCalledWith('user:user-abc:analytics:*');
     });
   });
 
@@ -190,9 +170,7 @@ describe('@CacheInvalidate decorator', () => {
     });
 
     it('should not fail method if pattern invalidation fails', async () => {
-      mockCacheService.deletePattern.mockRejectedValue(
-        new Error('Redis pattern failed'),
-      );
+      mockCacheService.deletePattern.mockRejectedValue(new Error('Redis pattern failed'));
 
       await service.clearAnalytics('user-123');
 

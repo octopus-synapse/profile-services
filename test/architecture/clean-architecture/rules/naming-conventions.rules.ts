@@ -6,91 +6,71 @@
 
 import * as path from 'node:path';
 import { CLEAN_ARCHITECTURE_SERVICES } from '../constants';
-import {
-  SOURCE_ROOT,
-  directoryExists,
-  getFilesInDirectory,
-  readFileContent,
-} from '../helpers';
+import { directoryExists, getFilesInDirectory, readFileContent, SOURCE_ROOT } from '../helpers';
 import { type RuleResult, runRule } from '../rule-runner';
 
 export function checkPortFileNaming(): RuleResult {
-  return runRule(
-    'port files MUST end with ".port.ts"',
-    'Naming Conventions',
-    () => {
-      const violations: string[] = [];
-      for (const servicePath of CLEAN_ARCHITECTURE_SERVICES) {
-        const portsPath = path.join(SOURCE_ROOT, servicePath, 'ports');
-        if (!directoryExists(portsPath)) continue;
+  return runRule('port files MUST end with ".port.ts"', 'Naming Conventions', () => {
+    const violations: string[] = [];
+    for (const servicePath of CLEAN_ARCHITECTURE_SERVICES) {
+      const portsPath = path.join(SOURCE_ROOT, servicePath, 'ports');
+      if (!directoryExists(portsPath)) continue;
 
-        const allFiles = getFilesInDirectory(portsPath, '.ts');
-        const nonPortFiles = allFiles.filter((f) => !f.endsWith('.port.ts'));
+      const allFiles = getFilesInDirectory(portsPath, '.ts');
+      const nonPortFiles = allFiles.filter((f) => !f.endsWith('.port.ts'));
 
-        for (const file of nonPortFiles) {
-          violations.push(
-            `${servicePath}/ports/${file}: DOES NOT follow ".port.ts" naming convention`,
-          );
-        }
+      for (const file of nonPortFiles) {
+        violations.push(
+          `${servicePath}/ports/${file}: DOES NOT follow ".port.ts" naming convention`,
+        );
       }
-      return violations;
-    },
-  );
+    }
+    return violations;
+  });
 }
 
 export function checkUseCaseFileNaming(): RuleResult {
-  return runRule(
-    'use-case files MUST end with ".use-case.ts"',
-    'Naming Conventions',
-    () => {
-      const violations: string[] = [];
-      for (const servicePath of CLEAN_ARCHITECTURE_SERVICES) {
-        const useCasesPath = path.join(SOURCE_ROOT, servicePath, 'use-cases');
-        if (!directoryExists(useCasesPath)) continue;
+  return runRule('use-case files MUST end with ".use-case.ts"', 'Naming Conventions', () => {
+    const violations: string[] = [];
+    for (const servicePath of CLEAN_ARCHITECTURE_SERVICES) {
+      const useCasesPath = path.join(SOURCE_ROOT, servicePath, 'use-cases');
+      if (!directoryExists(useCasesPath)) continue;
 
-        const allFiles = getFilesInDirectory(useCasesPath, '.ts');
-        const invalidFiles = allFiles.filter(
-          (f) =>
-            !f.endsWith('.use-case.ts') &&
-            !f.endsWith('.use-case.spec.ts') &&
-            f !== 'index.ts',
+      const allFiles = getFilesInDirectory(useCasesPath, '.ts');
+      const invalidFiles = allFiles.filter(
+        (f) => !f.endsWith('.use-case.ts') && !f.endsWith('.use-case.spec.ts') && f !== 'index.ts',
+      );
+
+      for (const file of invalidFiles) {
+        violations.push(
+          `${servicePath}/use-cases/${file}: DOES NOT follow ".use-case.ts" naming convention`,
         );
-
-        for (const file of invalidFiles) {
-          violations.push(
-            `${servicePath}/use-cases/${file}: DOES NOT follow ".use-case.ts" naming convention`,
-          );
-        }
       }
-      return violations;
-    },
-  );
+    }
+    return violations;
+  });
 }
 
 export function checkRepositoryFileNaming(): RuleResult {
-  return runRule(
-    'repository files MUST end with ".repository.ts"',
-    'Naming Conventions',
-    () => {
-      const violations: string[] = [];
-      for (const servicePath of CLEAN_ARCHITECTURE_SERVICES) {
-        const repoPath = path.join(SOURCE_ROOT, servicePath, 'repository');
-        if (!directoryExists(repoPath)) continue;
+  return runRule('repository files MUST end with ".repository.ts"', 'Naming Conventions', () => {
+    const violations: string[] = [];
+    for (const servicePath of CLEAN_ARCHITECTURE_SERVICES) {
+      const repoPath = path.join(SOURCE_ROOT, servicePath, 'repository');
+      if (!directoryExists(repoPath)) continue;
 
-        const allFiles = getFilesInDirectory(repoPath, '.ts');
-        const invalidFiles = allFiles.filter(
-          (f) => !f.endsWith('.repository.ts') && f !== 'index.ts',
+      const allFiles = getFilesInDirectory(repoPath, '.ts');
+      const invalidFiles = allFiles.filter(
+        (f) => !f.endsWith('.repository.ts') && f !== 'index.ts',
+      );
+
+      for (const file of invalidFiles) {
+        violations.push(
+          `${servicePath}/repository/${file}: DOES NOT follow ".repository.ts" naming convention`,
         );
-
-        for (const file of invalidFiles) {
-          violations.push(
-            `${servicePath}/repository/${file}: DOES NOT follow ".repository.ts" naming convention`,
-          );
-        }
       }
-      return violations;
-    },
-  );
+    }
+    return violations;
+  });
 }
 
 export function checkCompositionFileNaming(): RuleResult {
@@ -101,18 +81,11 @@ export function checkCompositionFileNaming(): RuleResult {
       const violations: string[] = [];
       for (const servicePath of CLEAN_ARCHITECTURE_SERVICES) {
         const serviceName = servicePath.split('/').pop();
-        const compositionsDir = path.join(
-          SOURCE_ROOT,
-          servicePath,
-          'compositions',
-        );
+        const compositionsDir = path.join(SOURCE_ROOT, servicePath, 'compositions');
 
         if (!directoryExists(compositionsDir)) continue;
 
-        const compositionFiles = getFilesInDirectory(
-          compositionsDir,
-          '.composition.ts',
-        );
+        const compositionFiles = getFilesInDirectory(compositionsDir, '.composition.ts');
         const expectedFileName = `${serviceName}.composition.ts`;
 
         if (!compositionFiles.includes(expectedFileName)) {
@@ -174,10 +147,9 @@ export function checkUseCaseClassNaming(): RuleResult {
         const useCasesPath = path.join(SOURCE_ROOT, servicePath, 'use-cases');
         if (!directoryExists(useCasesPath)) continue;
 
-        const useCaseFiles = getFilesInDirectory(
-          useCasesPath,
-          '.use-case.ts',
-        ).filter((f) => !f.endsWith('.spec.ts'));
+        const useCaseFiles = getFilesInDirectory(useCasesPath, '.use-case.ts').filter(
+          (f) => !f.endsWith('.spec.ts'),
+        );
         for (const file of useCaseFiles) {
           const content = readFileContent(path.join(useCasesPath, file));
           if (!content) continue;

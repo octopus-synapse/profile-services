@@ -112,8 +112,8 @@ export class ActivityService {
       RESUME_SHARED: 'resume_published',
       RESUME_PUBLISHED: 'resume_published',
       THEME_PUBLISHED: 'resume_published',
-      ACHIEVEMENT_EARNED: 'skill_added',
-      SKILL_ADDED: 'skill_added',
+      ACHIEVEMENT_EARNED: 'section_item_added',
+      SKILL_ADDED: 'section_item_added',
       PROFILE_UPDATED: 'resume_created',
       FOLLOWED_USER: 'user_followed',
     };

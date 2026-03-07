@@ -29,8 +29,8 @@ import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/a
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
-import { DslAstResponseDto } from '@/shared-kernel';
-import { DslRepository } from './dsl.repository';
+import { DslAstResponseDto, ResumeAstDto } from '@/shared-kernel';
+import { DslService } from './dsl.service';
 
 /** DTO for DSL validation error */
 export class DslValidationErrorDto {
@@ -57,7 +57,7 @@ export class DslValidationResultDto {
 /** DTO for DSL preview result */
 export class DslPreviewResultDto {
   @ApiProperty({ description: 'Compiled AST', type: Object })
-  ast!: Record<string, object>;
+  ast!: ResumeAstDto;
 }
 
 type RenderTarget = 'html' | 'pdf';
@@ -66,7 +66,7 @@ type RenderTarget = 'html' | 'pdf';
 @ApiTags('dsl')
 @Controller('v1/dsl')
 export class DslController {
-  constructor(private readonly repository: DslRepository) {}
+  constructor(private readonly dslService: DslService) {}
 
   /**
    * Validate DSL without compiling
@@ -79,8 +79,8 @@ export class DslController {
   @ApiDataResponse(DslValidationResultDto, {
     description: 'DSL validation result',
   })
-  validate(@Body() body: Record<string, object>): DataResponse<DslValidationResultDto> {
-    const result = this.repository.validate(body);
+  validate(@Body() body: Record<string, unknown>): DataResponse<DslValidationResultDto> {
+    const result = this.dslService.validate(body);
     return { success: true, data: result as DslValidationResultDto };
   }
 
@@ -98,11 +98,11 @@ export class DslController {
     description: 'Preview AST compiled successfully',
   })
   preview(
-    @Body() body: Record<string, object>,
+    @Body() body: Record<string, unknown>,
     @Query('target') target: RenderTarget = 'html',
   ): DataResponse<DslPreviewResultDto> {
-    const ast = this.repository.preview(body, target);
-    return { success: true, data: { ast: ast as Record<string, object> } };
+    const ast = this.dslService.preview(body, target);
+    return { success: true, data: { ast } };
   }
 
   /**
@@ -119,8 +119,8 @@ export class DslController {
     @Param('resumeId') resumeId: string,
     @Query('target') target: RenderTarget = 'html',
   ): Promise<DataResponse<DslAstResponseDto>> {
-    const result = await this.repository.render(resumeId, user.userId, target);
-    return { success: true, data: result as unknown as DslAstResponseDto };
+    const result = await this.dslService.render(resumeId, user.userId, target);
+    return { success: true, data: { ast: result.ast } };
   }
 
   /**
@@ -135,7 +135,7 @@ export class DslController {
     @Param('slug') slug: string,
     @Query('target') target: RenderTarget = 'html',
   ): Promise<DataResponse<DslAstResponseDto>> {
-    const result = await this.repository.renderPublic(slug, target);
-    return { success: true, data: result as unknown as DslAstResponseDto };
+    const result = await this.dslService.renderPublic(slug, target);
+    return { success: true, data: { ast: result.ast } };
   }
 }

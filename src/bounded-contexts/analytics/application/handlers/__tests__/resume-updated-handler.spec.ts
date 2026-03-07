@@ -1,6 +1,6 @@
-import { describe, it, expect, mock, beforeEach } from 'bun:test';
-import { ResumeUpdatedHandler, ViewTracker } from '../resume-updated.handler';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { ResumeUpdatedEvent } from '@/bounded-contexts/resumes';
+import { ResumeUpdatedHandler, ViewTracker } from '../resume-updated.handler';
 
 describe('ResumeUpdatedHandler', () => {
   let handler: ResumeUpdatedHandler;
@@ -19,9 +19,6 @@ describe('ResumeUpdatedHandler', () => {
 
     await handler.handle(event);
 
-    expect(mockTracker.trackResumeUpdate).toHaveBeenCalledWith('resume-123', [
-      'title',
-      'summary',
-    ]);
+    expect(mockTracker.trackResumeUpdate).toHaveBeenCalledWith('resume-123', ['title', 'summary']);
   });
 });

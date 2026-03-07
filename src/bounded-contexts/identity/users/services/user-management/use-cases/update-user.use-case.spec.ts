@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions';
-import { UpdateUserUseCase } from './update-user.use-case';
 import { InMemoryUserManagementRepository } from '../../../../shared-kernel/testing';
+import { UpdateUserUseCase } from './update-user.use-case';
 
 describe('UpdateUserUseCase', () => {
   let useCase: UpdateUserUseCase;
@@ -16,7 +16,7 @@ describe('UpdateUserUseCase', () => {
       username: 'testuser',
       hasCompletedOnboarding: true,
     });
-    useCase = new UpdateUserUseCase(repository as any);
+    useCase = new UpdateUserUseCase(repository);
   });
 
   it('updates user and returns domain entity (not envelope)', async () => {
@@ -39,8 +39,8 @@ describe('UpdateUserUseCase', () => {
   });
 
   it('throws EntityNotFoundException when user does not exist', async () => {
-    await expect(
-      useCase.execute('non-existent', { name: 'Test' }),
-    ).rejects.toThrow(EntityNotFoundException);
+    await expect(useCase.execute('non-existent', { name: 'Test' })).rejects.toThrow(
+      EntityNotFoundException,
+    );
   });
 });

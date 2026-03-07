@@ -3,6 +3,10 @@
  *
  * Exposes domain enums in swagger for frontend SDK generation.
  * These DTOs ensure enums appear in the generated OpenAPI spec.
+ *
+ * NOTE: Section types are NOT hardcoded here - they come from the
+ * SectionType table in the database (generic sections model).
+ * Use the /v1/section-types endpoint to list available section types.
  */
 
 import { ApiProperty } from '@nestjs/swagger';
@@ -29,37 +33,4 @@ export class UserRoleResponseDto {
     example: 'USER',
   })
   role!: 'USER' | 'ADMIN' | 'APPROVER';
-}
-
-/**
- * Resume section type enum values
- */
-export const SECTION_TYPE_VALUES = [
-  'experience',
-  'education',
-  'skills',
-  'projects',
-  'languages',
-  'certifications',
-  'interests',
-  'references',
-  'volunteer',
-  'awards',
-  'publications',
-  'summary',
-  'custom',
-] as const;
-
-export type SectionType = (typeof SECTION_TYPE_VALUES)[number];
-
-/**
- * Section type enum response for swagger documentation
- */
-export class SectionTypeResponseDto {
-  @ApiProperty({
-    enum: SECTION_TYPE_VALUES,
-    description: 'Available resume section types',
-    example: 'experience',
-  })
-  type!: SectionType;
 }

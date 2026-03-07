@@ -13,8 +13,6 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 
-const SKILL_SECTION_TYPE_KEY = 'skill_set_v1';
-
 /**
  * Search query parameters
  */
@@ -199,7 +197,7 @@ export class ResumeSearchService {
         resumeSections: {
           where: {
             sectionType: {
-              key: SKILL_SECTION_TYPE_KEY,
+              semanticKind: { contains: 'SKILL', mode: 'insensitive' },
             },
           },
           include: {
@@ -241,7 +239,7 @@ export class ResumeSearchService {
         resumeSections: {
           where: {
             sectionType: {
-              key: SKILL_SECTION_TYPE_KEY,
+              semanticKind: { contains: 'SKILL', mode: 'insensitive' },
             },
           },
           include: {
@@ -329,7 +327,7 @@ export class ResumeSearchService {
         resumeSection: {
           resumeId: { in: resumeIds },
           sectionType: {
-            key: SKILL_SECTION_TYPE_KEY,
+            semanticKind: { contains: 'SKILL', mode: 'insensitive' },
           },
         },
       },

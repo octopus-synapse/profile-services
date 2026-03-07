@@ -5,7 +5,7 @@
  * Tests for analytics snapshot persistence and retrieval
  */
 
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { SnapshotService } from './snapshot.service';
 
 describe('SnapshotService', () => {
@@ -151,9 +151,7 @@ describe('SnapshotService', () => {
     ];
 
     beforeEach(() => {
-      mockPrisma.resumeAnalytics.findMany = mock(() =>
-        Promise.resolve(progressionSnapshots),
-      );
+      mockPrisma.resumeAnalytics.findMany = mock(() => Promise.resolve(progressionSnapshots));
     });
 
     it('should return score progression points', async () => {
@@ -184,9 +182,7 @@ describe('SnapshotService', () => {
 
       const call = mockPrisma.resumeAnalytics.findMany.mock.calls[0][0];
       const startDate = call.where.createdAt.gte;
-      const daysDiff = Math.round(
-        (Date.now() - startDate.getTime()) / (1000 * 60 * 60 * 24),
-      );
+      const daysDiff = Math.round((Date.now() - startDate.getTime()) / (1000 * 60 * 60 * 24));
       expect(daysDiff).toBeGreaterThanOrEqual(29);
       expect(daysDiff).toBeLessThanOrEqual(31);
     });

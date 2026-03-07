@@ -1,59 +1,92 @@
-import { describe, it, expect, beforeEach, afterEach, mock } from 'bun:test';
-import { Test, TestingModule } from '@nestjs/testing';
-import { ResumePDFService } from './resume-pdf.service';
+/**
+ * Resume PDF Service Unit Tests
+ *
+ * Pure tests using in-memory implementations.
+ */
+
+import { beforeEach, describe, expect, it } from 'bun:test';
+import { Test, type TestingModule } from '@nestjs/testing';
+import type { ResumePDFOptions } from '../helpers';
 import { PdfGeneratorService } from './pdf-generator.service';
+import { ResumePDFService } from './resume-pdf.service';
+
+/**
+ * In-Memory PDF Generator for testing
+ */
+class InMemoryPdfGenerator {
+  private buffer = Buffer.from('pdf-content');
+  private lastOptions: ResumePDFOptions | null = null;
+  private shouldFail = false;
+  private error: Error | null = null;
+
+  async generate(options: ResumePDFOptions = {}): Promise<Buffer> {
+    this.lastOptions = options;
+    if (this.shouldFail && this.error) {
+      throw this.error;
+    }
+    return this.buffer;
+  }
+
+  getLastOptions(): ResumePDFOptions | null {
+    return this.lastOptions;
+  }
+
+  setFailure(error: Error): void {
+    this.shouldFail = true;
+    this.error = error;
+  }
+
+  reset(): void {
+    this.lastOptions = null;
+    this.shouldFail = false;
+    this.error = null;
+  }
+}
 
 describe('ResumePDFService', () => {
   let service: ResumePDFService;
-  let generatorService: PdfGeneratorService;
+  let generatorService: InMemoryPdfGenerator;
 
   beforeEach(async () => {
-    const mockGeneratorService = {
-      generate: mock().mockResolvedValue(Buffer.from('pdf-content')),
-    };
+    generatorService = new InMemoryPdfGenerator();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ResumePDFService,
         {
           provide: PdfGeneratorService,
-          useValue: mockGeneratorService,
+          useValue: generatorService,
         },
       ],
     }).compile();
 
     service = module.get<ResumePDFService>(ResumePDFService);
-    generatorService = module.get(PdfGeneratorService);
   });
-
-  afterEach(() => {});
 
   describe('generate', () => {
     it('should generate PDF for valid resume with default options', async () => {
       const result = await service.generate();
 
       expect(result).toBeInstanceOf(Buffer);
-      expect(generatorService.generate).toHaveBeenCalledWith({});
+      expect(generatorService.getLastOptions()).toEqual({});
     });
 
     it('should use custom palette parameter', async () => {
       await service.generate({ palette: 'ocean' });
 
-      expect(generatorService.generate).toHaveBeenCalledWith({
-        palette: 'ocean',
-      });
+      expect(generatorService.getLastOptions()).toEqual({ palette: 'ocean' });
     });
 
     it('should use custom language parameter', async () => {
       await service.generate({ lang: 'en' });
 
-      expect(generatorService.generate).toHaveBeenCalledWith({ lang: 'en' });
+      expect(generatorService.getLastOptions()).toEqual({ lang: 'en' });
     });
 
     it('should include bannerColor when provided', async () => {
       await service.generate({ bannerColor: 'blue' });
 
-      expect(generatorService.generate).toHaveBeenCalledWith({
+      expect(generatorService.getLastOptions()).toEqual({
         bannerColor: 'blue',
       });
     });
@@ -61,9 +94,7 @@ describe('ResumePDFService', () => {
     it('should include userId when provided', async () => {
       await service.generate({ userId: 'user-123' });
 
-      expect(generatorService.generate).toHaveBeenCalledWith({
-        userId: 'user-123',
-      });
+      expect(generatorService.getLastOptions()).toEqual({ userId: 'user-123' });
     });
 
     it('should pass through all options to generator', async () => {
@@ -76,16 +107,13 @@ describe('ResumePDFService', () => {
 
       await service.generate(options);
 
-      expect(generatorService.generate).toHaveBeenCalledWith(options);
+      expect(generatorService.getLastOptions()).toEqual(options);
     });
 
     it('should handle errors from generator', async () => {
-      const error = new Error('PDF generation failed');
-      generatorService.generate.mockRejectedValueOnce(error);
+      generatorService.setFailure(new Error('PDF generation failed'));
 
-      await expect(async () => await service.generate()).toThrow(
-        'PDF generation failed',
-      );
+      await expect(async () => await service.generate()).toThrow('PDF generation failed');
     });
   });
 });

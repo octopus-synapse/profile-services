@@ -15,7 +15,8 @@ describe('AppController', () => {
       const result = appController.getHello();
       expect(result).toHaveProperty('success', true);
       expect(result).toHaveProperty('data');
-      const data = result.data!; // data is guaranteed to exist after the check
+      if (!result.data) throw new Error('Expected data');
+      const data = result.data;
       expect(data).toHaveProperty('message');
       expect(typeof data.message).toBe('string');
     });
@@ -26,7 +27,8 @@ describe('AppController', () => {
       const result = appController.getHealth();
       expect(result).toHaveProperty('success', true);
       expect(result).toHaveProperty('data');
-      const data = result.data!;
+      if (!result.data) throw new Error('Expected data');
+      const data = result.data;
       expect(data).toHaveProperty('status', 'ok');
       expect(data).toHaveProperty('timestamp');
       expect(typeof data.timestamp).toBe('string');
@@ -38,7 +40,8 @@ describe('AppController', () => {
       const result = appController.getVersion();
       expect(result).toHaveProperty('success', true);
       expect(result).toHaveProperty('data');
-      const data = result.data!;
+      if (!result.data) throw new Error('Expected data');
+      const data = result.data;
       expect(data).toHaveProperty('service', 'profile-services');
       expect(data).toHaveProperty('version');
       expect(data).toHaveProperty('contracts_version');
@@ -52,7 +55,8 @@ describe('AppController', () => {
     it('should use development environment when manifest not available', () => {
       const result = appController.getVersion();
       expect(result).toHaveProperty('data');
-      const data = result.data!;
+      if (!result.data) throw new Error('Expected data');
+      const data = result.data;
       expect(data.environment).toBe('development');
     });
   });
@@ -62,7 +66,8 @@ describe('AppController', () => {
       const result = appController.getOpenApiSpec();
       expect(result).toHaveProperty('success', true);
       expect(result).toHaveProperty('data');
-      const data = result.data!;
+      if (!result.data) throw new Error('Expected data');
+      const data = result.data;
       expect(data).toHaveProperty('spec');
       expect(typeof data.spec).toBe('object');
     });

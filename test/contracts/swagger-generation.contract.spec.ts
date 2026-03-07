@@ -11,10 +11,10 @@
  * 5. Coverage Verification - No documented controllers are missing
  */
 
-import { describe, test, expect, beforeAll } from 'bun:test';
-import { readFileSync, existsSync, readdirSync, statSync } from 'fs';
-import { resolve, join, relative } from 'path';
-import { execSync } from 'child_process';
+import { beforeAll, describe, expect, test } from 'bun:test';
+import { execSync } from 'node:child_process';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { join, resolve } from 'node:path';
 import { validateSwaggerCoverage } from '../../src/scripts/validate-swagger-coverage';
 
 const SCRIPTS_DIR = resolve(__dirname, '../../scripts');
@@ -59,12 +59,53 @@ function countDecorators(content: string, decorator: string): number {
 }
 
 // ============================================================================
+// Types for parsed swagger/report JSON
+// ============================================================================
+
+interface SwaggerOperation {
+  operationId: string;
+  tags: string[];
+  responses: Record<string, unknown>;
+  requestBody?: unknown;
+  security?: Array<Record<string, string[]>>;
+  summary?: string;
+  description?: string;
+}
+
+interface SwaggerDocument {
+  openapi: string;
+  info: { title: string; version: string };
+  servers: Array<{ url: string }>;
+  tags: Array<{ name: string }>;
+  paths: Record<string, Record<string, SwaggerOperation>>;
+  components: {
+    schemas: Record<string, unknown>;
+    securitySchemes: Record<string, { type: string; scheme: string; bearerFormat?: string }>;
+  };
+}
+
+interface GenerationReportDetail {
+  controller: string;
+  endpoints: number;
+}
+
+interface GenerationReport {
+  success: boolean;
+  controllers: number;
+  endpoints: number;
+  schemas: number;
+  tags: number;
+  warnings: string[];
+  details: GenerationReportDetail[];
+}
+
+// ============================================================================
 // Test Suite
 // ============================================================================
 
 describe('Swagger Generation Script', () => {
-  let swagger: any;
-  let report: any;
+  let swagger: SwaggerDocument;
+  let report: GenerationReport;
 
   beforeAll(() => {
     // Run the generation script
@@ -88,10 +129,7 @@ describe('Swagger Generation Script', () => {
 
   describe('@SdkExport Detection', () => {
     test('script exists and is executable', () => {
-      const scriptPath = join(
-        SCRIPTS_DIR,
-        'generate-swagger-from-decorators.ts',
-      );
+      const scriptPath = join(SCRIPTS_DIR, 'generate-swagger-from-decorators.ts');
       expect(existsSync(scriptPath)).toBe(true);
     });
 
@@ -141,26 +179,25 @@ describe('Swagger Generation Script', () => {
     });
 
     test('ResumeImportController is included', () => {
-      const controllerNames = report.details.map((d: any) => d.controller);
+      const controllerNames = report.details.map((d) => d.controller);
       expect(controllerNames).toContain('ResumeImportController');
     });
 
     test('ResumesController is included', () => {
-      const controllerNames = report.details.map((d: any) => d.controller);
+      const controllerNames = report.details.map((d) => d.controller);
       expect(controllerNames).toContain('ResumesController');
     });
 
     test('UsersController is included', () => {
-      const controllerNames = report.details.map((d: any) => d.controller);
+      const controllerNames = report.details.map((d) => d.controller);
       expect(controllerNames).toContain('UsersController');
     });
   });
 
   describe('Endpoint Extraction', () => {
     test('ResumeImportController has 6 endpoints', () => {
-      const resumeImport = report.details.find(
-        (d: any) => d.controller === 'ResumeImportController',
-      );
+      const resumeImport = report.details.find((d) => d.controller === 'ResumeImportController');
+      if (!resumeImport) throw new Error('Expected ResumeImportController in report');
       expect(resumeImport.endpoints).toBe(6);
     });
 
@@ -190,12 +227,10 @@ describe('Swagger Generation Script', () => {
 
     test('resume-import endpoints have correct operation IDs', () => {
       const paths = swagger.paths;
-      const resumeImportPaths = Object.keys(paths).filter((p) =>
-        p.includes('resume-import'),
-      );
+      const resumeImportPaths = Object.keys(paths).filter((p) => p.includes('resume-import'));
 
       const operationIds = resumeImportPaths.flatMap((p) =>
-        Object.values(paths[p]).map((m: any) => m.operationId),
+        Object.values(paths[p]).map((m) => m.operationId),
       );
 
       // Should start with 'resume-import_'
@@ -263,10 +298,8 @@ describe('Swagger Generation Script', () => {
   describe('Endpoint Definitions', () => {
     test('all endpoints have operationId', () => {
       const paths = swagger.paths;
-      for (const [path, methods] of Object.entries(paths)) {
-        for (const [method, def] of Object.entries(
-          methods as Record<string, any>,
-        )) {
+      for (const [_path, methods] of Object.entries(paths)) {
+        for (const [_method, def] of Object.entries(methods)) {
           expect(def.operationId).toBeDefined();
           expect(typeof def.operationId).toBe('string');
         }
@@ -275,10 +308,8 @@ describe('Swagger Generation Script', () => {
 
     test('all endpoints have tags', () => {
       const paths = swagger.paths;
-      for (const [path, methods] of Object.entries(paths)) {
-        for (const [method, def] of Object.entries(
-          methods as Record<string, any>,
-        )) {
+      for (const [_path, methods] of Object.entries(paths)) {
+        for (const [_method, def] of Object.entries(methods)) {
           expect(def.tags).toBeDefined();
           expect(def.tags.length).toBeGreaterThan(0);
         }
@@ -287,10 +318,8 @@ describe('Swagger Generation Script', () => {
 
     test('all endpoints have responses', () => {
       const paths = swagger.paths;
-      for (const [path, methods] of Object.entries(paths)) {
-        for (const [method, def] of Object.entries(
-          methods as Record<string, any>,
-        )) {
+      for (const [_path, methods] of Object.entries(paths)) {
+        for (const [_method, def] of Object.entries(methods)) {
           expect(def.responses).toBeDefined();
           expect(Object.keys(def.responses).length).toBeGreaterThan(0);
         }
@@ -303,9 +332,7 @@ describe('Swagger Generation Script', () => {
       let withSecurityCount = 0;
 
       for (const [path, methods] of Object.entries(paths)) {
-        for (const [method, def] of Object.entries(
-          methods as Record<string, any>,
-        )) {
+        for (const [_method, def] of Object.entries(methods)) {
           // Skip auth endpoints which are typically public
           if (!path.includes('/auth/signup') && !path.includes('/auth/login')) {
             protectedCount++;
@@ -357,17 +384,12 @@ describe('Swagger Generation Script', () => {
         const content = readFileSync(f, 'utf-8');
 
         // Only check controllers that SHOULD be exported
-        if (
-          hasDecorator(content, 'SdkExport') &&
-          hasDecorator(content, 'ApiOperation')
-        ) {
+        if (hasDecorator(content, 'SdkExport') && hasDecorator(content, 'ApiOperation')) {
           // Extract class name
           const classMatch = content.match(/export class (\w+Controller)/);
           if (classMatch) {
             const className = classMatch[1];
-            const inReport = report.details.some(
-              (d: any) => d.controller === className,
-            );
+            const inReport = report.details.some((d) => d.controller === className);
             if (!inReport) {
               missing.push(className);
             }
@@ -385,10 +407,8 @@ describe('Swagger Generation Script', () => {
     test('all exported tags have at least one endpoint', () => {
       const tagEndpoints: Record<string, number> = {};
 
-      for (const [path, methods] of Object.entries(swagger.paths)) {
-        for (const [method, def] of Object.entries(
-          methods as Record<string, any>,
-        )) {
+      for (const [_path, methods] of Object.entries(swagger.paths)) {
+        for (const [_method, def] of Object.entries(methods)) {
           for (const tag of def.tags || []) {
             tagEndpoints[tag] = (tagEndpoints[tag] || 0) + 1;
           }
@@ -412,18 +432,16 @@ describe('SDK Generation Compatibility', () => {
     const swagger = JSON.parse(readFileSync(SWAGGER_PATH, 'utf-8'));
     const operationIds: string[] = [];
 
-    for (const [path, methods] of Object.entries(swagger.paths)) {
-      for (const [method, def] of Object.entries(
-        methods as Record<string, any>,
+    for (const [_path, methods] of Object.entries(swagger.paths)) {
+      for (const [_method, def] of Object.entries(
+        methods as Record<string, Record<string, unknown>>,
       )) {
-        operationIds.push(def.operationId);
+        operationIds.push(def.operationId as string);
       }
     }
 
-    const uniqueIds = new Set(operationIds);
-    const duplicates = operationIds.filter(
-      (id, index) => operationIds.indexOf(id) !== index,
-    );
+    const _uniqueIds = new Set(operationIds);
+    const duplicates = operationIds.filter((id, index) => operationIds.indexOf(id) !== index);
 
     if (duplicates.length > 0) {
       console.log(`\n⚠️  Duplicate operationIds: ${duplicates.join(', ')}`);
@@ -443,7 +461,7 @@ describe('SDK Generation Compatibility', () => {
       expect(path).not.toMatch(/:\w+/);
 
       // If has path params, should be in {} format
-      const params = path.match(/\{(\w+)\}/g) || [];
+      const _params = path.match(/\{(\w+)\}/g) || [];
       // That's valid
     }
   });
@@ -452,15 +470,15 @@ describe('SDK Generation Compatibility', () => {
     const swagger = JSON.parse(readFileSync(SWAGGER_PATH, 'utf-8'));
     const schemaNames = Object.keys(swagger.components?.schemas || {});
 
-    function findRefs(obj: any, refs: string[] = []): string[] {
+    function findRefs(obj: unknown, refs: string[] = []): string[] {
       if (typeof obj !== 'object' || obj === null) return refs;
 
-      if (obj.$ref && typeof obj.$ref === 'string') {
-        refs.push(obj.$ref);
-      }
-
-      for (const value of Object.values(obj)) {
-        findRefs(value, refs);
+      for (const [key, value] of Object.entries(obj)) {
+        if (key === '$ref' && typeof value === 'string') {
+          refs.push(value);
+        } else {
+          findRefs(value, refs);
+        }
       }
 
       return refs;

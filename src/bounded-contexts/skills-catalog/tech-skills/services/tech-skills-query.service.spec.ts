@@ -4,8 +4,80 @@
  * Tests for the facade that delegates to specialized query services
  */
 
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import type { ProgrammingLanguage, TechArea, TechNiche, TechSkill } from '../dtos';
+import type { SkillType, TechAreaType } from '../interfaces';
 import { TechSkillsQueryService } from './tech-skills-query.service';
+
+/**
+ * Factory functions for creating complete test objects
+ */
+function createTechArea(overrides: Partial<TechArea> = {}): TechArea {
+  return {
+    id: 'area-1',
+    type: 'DEVELOPMENT' as TechAreaType,
+    nameEn: 'Development',
+    namePtBr: 'Desenvolvimento',
+    descriptionEn: null,
+    descriptionPtBr: null,
+    icon: null,
+    color: null,
+    order: 1,
+    ...overrides,
+  };
+}
+
+function createTechNiche(overrides: Partial<TechNiche> = {}): TechNiche {
+  return {
+    id: 'niche-1',
+    slug: 'frontend',
+    nameEn: 'Frontend',
+    namePtBr: 'Frontend',
+    descriptionEn: null,
+    descriptionPtBr: null,
+    icon: null,
+    color: null,
+    order: 1,
+    areaType: 'DEVELOPMENT' as TechAreaType,
+    ...overrides,
+  };
+}
+
+function createProgrammingLanguage(
+  overrides: Partial<ProgrammingLanguage> = {},
+): ProgrammingLanguage {
+  return {
+    id: 'lang-1',
+    slug: 'javascript',
+    nameEn: 'JavaScript',
+    namePtBr: 'JavaScript',
+    color: null,
+    website: null,
+    aliases: [],
+    fileExtensions: ['.js'],
+    paradigms: [],
+    typing: null,
+    popularity: 100,
+    ...overrides,
+  };
+}
+
+function createTechSkill(overrides: Partial<TechSkill> = {}): TechSkill {
+  return {
+    id: 'skill-1',
+    slug: 'react',
+    nameEn: 'React',
+    namePtBr: 'React',
+    type: 'FRAMEWORK' as SkillType,
+    icon: null,
+    color: null,
+    website: null,
+    aliases: [],
+    popularity: 95,
+    niche: { slug: 'frontend', nameEn: 'Frontend', namePtBr: 'Frontend' },
+    ...overrides,
+  };
+}
 
 describe('TechSkillsQueryService', () => {
   let service: TechSkillsQueryService;
@@ -29,16 +101,10 @@ describe('TechSkillsQueryService', () => {
     searchSkills: ReturnType<typeof mock>;
   };
 
-  const mockAreas = [
-    { slug: 'development', nameEn: 'Development', namePtBr: 'Desenvolvimento' },
-  ];
-  const mockNiches = [
-    { slug: 'frontend', nameEn: 'Frontend', namePtBr: 'Frontend' },
-  ];
-  const mockLanguages = [
-    { slug: 'javascript', name: 'JavaScript', popularity: 100 },
-  ];
-  const mockSkills = [{ slug: 'react', name: 'React', type: 'framework' }];
+  const mockAreas: TechArea[] = [createTechArea()];
+  const mockNiches: TechNiche[] = [createTechNiche()];
+  const mockLanguages: ProgrammingLanguage[] = [createProgrammingLanguage()];
+  const mockSkills: TechSkill[] = [createTechSkill()];
 
   beforeEach(() => {
     mockAreaQuery = {
@@ -90,11 +156,9 @@ describe('TechSkillsQueryService', () => {
 
   describe('getNichesByArea', () => {
     it('should delegate to niche query service with area type', async () => {
-      const result = await service.getNichesByArea('development');
+      const result = await service.getNichesByArea('DEVELOPMENT');
 
-      expect(mockNicheQuery.getNichesByArea).toHaveBeenCalledWith(
-        'development',
-      );
+      expect(mockNicheQuery.getNichesByArea).toHaveBeenCalledWith('DEVELOPMENT');
       expect(result).toEqual(mockNiches);
     });
   });
@@ -112,20 +176,14 @@ describe('TechSkillsQueryService', () => {
     it('should delegate to language query service', async () => {
       const result = await service.searchLanguages('java', 10);
 
-      expect(mockLanguageQuery.searchLanguages).toHaveBeenCalledWith(
-        'java',
-        10,
-      );
+      expect(mockLanguageQuery.searchLanguages).toHaveBeenCalledWith('java', 10);
       expect(result).toEqual(mockLanguages);
     });
 
     it('should use default limit of 20', async () => {
       await service.searchLanguages('python');
 
-      expect(mockLanguageQuery.searchLanguages).toHaveBeenCalledWith(
-        'python',
-        20,
-      );
+      expect(mockLanguageQuery.searchLanguages).toHaveBeenCalledWith('python', 20);
     });
   });
 
@@ -149,22 +207,16 @@ describe('TechSkillsQueryService', () => {
 
   describe('getSkillsByType', () => {
     it('should delegate to skill query service', async () => {
-      const result = await service.getSkillsByType('framework', 25);
+      const result = await service.getSkillsByType('FRAMEWORK', 25);
 
-      expect(mockSkillQuery.getSkillsByType).toHaveBeenCalledWith(
-        'framework',
-        25,
-      );
+      expect(mockSkillQuery.getSkillsByType).toHaveBeenCalledWith('FRAMEWORK', 25);
       expect(result).toEqual(mockSkills);
     });
 
     it('should use default limit of 50', async () => {
-      await service.getSkillsByType('library');
+      await service.getSkillsByType('LIBRARY');
 
-      expect(mockSkillQuery.getSkillsByType).toHaveBeenCalledWith(
-        'library',
-        50,
-      );
+      expect(mockSkillQuery.getSkillsByType).toHaveBeenCalledWith('LIBRARY', 50);
     });
   });
 
@@ -196,10 +248,7 @@ describe('TechSkillsQueryService', () => {
     it('should split limit between languages and skills', async () => {
       await service.searchAll('python', 20);
 
-      expect(mockLanguageQuery.searchLanguages).toHaveBeenCalledWith(
-        'python',
-        10,
-      );
+      expect(mockLanguageQuery.searchLanguages).toHaveBeenCalledWith('python', 10);
       expect(mockSkillSearch.searchSkills).toHaveBeenCalledWith('python', 10);
     });
 

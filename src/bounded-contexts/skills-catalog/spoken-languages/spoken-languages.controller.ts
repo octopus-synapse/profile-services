@@ -5,25 +5,32 @@
  * BUG-035 FIX: Added parseInt validation with NaN handling
  */
 
-import { BadRequestException, Controller, Get, Param, Query } from '@nestjs/common';
+import {
+  BadRequestException,
+  Controller,
+  Get,
+  NotFoundException,
+  Param,
+  Query,
+} from '@nestjs/common';
 import { ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger';
 import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
-import { SpokenLanguagesService } from './services/spoken-languages.service';
+import { type SpokenLanguage, SpokenLanguagesService } from './services/spoken-languages.service';
 
 class SpokenLanguagesListDataDto {
   @ApiProperty({
     type: 'array',
     items: { type: 'object', additionalProperties: true },
   })
-  languages!: Array<{ code: string; name: string; nativeName?: string }>;
+  languages!: SpokenLanguage[];
 }
 
 class SpokenLanguageDataDto {
   @ApiProperty({ type: 'object', additionalProperties: true })
-  language!: { code: string; name: string; nativeName?: string };
+  language!: SpokenLanguage;
 }
 
 @SdkExport({ tag: 'skills', description: 'Spoken Languages API' })
@@ -47,11 +54,7 @@ export class SpokenLanguagesController {
     return {
       success: true,
       data: {
-        languages: languages as unknown as Array<{
-          code: string;
-          name: string;
-          nativeName?: string;
-        }>,
+        languages,
       },
     };
   }
@@ -84,11 +87,7 @@ export class SpokenLanguagesController {
     return {
       success: true,
       data: {
-        languages: languages as unknown as Array<{
-          code: string;
-          name: string;
-          nativeName?: string;
-        }>,
+        languages,
       },
     };
   }
@@ -106,14 +105,13 @@ export class SpokenLanguagesController {
     @Param('code') languageCode: string,
   ): Promise<DataResponse<SpokenLanguageDataDto>> {
     const language = await this.spokenLanguagesService.findLanguageByCode(languageCode);
+    if (!language) {
+      throw new NotFoundException(`Language with code '${languageCode}' not found`);
+    }
     return {
       success: true,
       data: {
-        language: language as unknown as {
-          code: string;
-          name: string;
-          nativeName?: string;
-        },
+        language,
       },
     };
   }

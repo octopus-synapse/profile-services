@@ -64,7 +64,7 @@ export class SectionTypeRepository implements OnModuleInit {
   }
 
   /**
-   * Get section type by key (e.g., 'work_experience_v1').
+   * Get section type by key.
    */
   getByKey(key: string): SectionTypeWithDefinition | undefined {
     this.ensureInitialized();
@@ -72,7 +72,7 @@ export class SectionTypeRepository implements OnModuleInit {
   }
 
   /**
-   * Get section type by semantic kind (e.g., 'WORK_EXPERIENCE').
+   * Get section type by semantic kind.
    */
   getByKind(kind: string): SectionTypeWithDefinition | undefined {
     this.ensureInitialized();
@@ -80,7 +80,7 @@ export class SectionTypeRepository implements OnModuleInit {
   }
 
   /**
-   * Get section type by slug (e.g., 'work-experience').
+   * Get section type by slug.
    */
   getBySlug(slug: string): SectionTypeWithDefinition | undefined {
     this.ensureInitialized();

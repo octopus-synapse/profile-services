@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger';
 import type { AuthenticatedRequest } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
@@ -10,10 +10,13 @@ import {
   type ConversationResponse,
   GetConversationsQuerySchema,
   GetMessagesQuerySchema,
+  MarkConversationAsReadRequestDto,
   type MessageResponse,
   type PaginatedConversationsResponse,
   type PaginatedMessagesResponse,
+  SendMessageRequestDto,
   SendMessageSchema,
+  SendMessageToConversationRequestDto,
   SendMessageToConversationSchema,
 } from '@/shared-kernel';
 import { ChatService } from '../services/chat.service';
@@ -70,6 +73,7 @@ export class ChatController {
 
   @Post('messages')
   @ApiOperation({ summary: 'Send a message to a user' })
+  @ApiBody({ type: SendMessageRequestDto })
   @ApiDataResponse(ChatMessageDataDto, {
     status: 201,
     description: 'Message sent',
@@ -85,6 +89,7 @@ export class ChatController {
 
   @Post('conversations/:conversationId/messages')
   @ApiOperation({ summary: 'Send a message to an existing conversation' })
+  @ApiBody({ type: SendMessageToConversationRequestDto })
   @ApiDataResponse(ChatMessageDataDto, {
     status: 201,
     description: 'Message sent',
@@ -147,6 +152,7 @@ export class ChatController {
 
   @Post('conversations/:conversationId/read')
   @ApiOperation({ summary: 'Mark all messages in a conversation as read' })
+  @ApiBody({ type: MarkConversationAsReadRequestDto })
   @ApiDataResponse(MarkAsReadDataDto, {
     status: 201,
     description: 'Messages marked as read',

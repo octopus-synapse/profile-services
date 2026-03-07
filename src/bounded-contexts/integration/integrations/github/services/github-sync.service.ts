@@ -54,16 +54,9 @@ export class GitHubSyncService {
         sort: 'updated',
         per_page: 100,
       });
-      const totalStars = repos.reduce(
-        (sum, repo) => sum + repo.stargazers_count,
-        0,
-      );
+      const totalStars = repos.reduce((sum, repo) => sum + repo.stargazers_count, 0);
 
-      await this.databaseService.updateResumeGitHubStats(
-        resumeId,
-        githubUsername,
-        totalStars,
-      );
+      await this.databaseService.updateResumeGitHubStats(resumeId, githubUsername, totalStars);
 
       const contributions = await this.contributionService.processContributions(
         resumeId,
@@ -101,10 +94,7 @@ export class GitHubSyncService {
     } catch (error) {
       // Error transformation - see ERROR_HANDLING_STRATEGY.md
       if (error instanceof HttpException) throw error;
-      throw new HttpException(
-        'Failed to sync GitHub data',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      throw new HttpException('Failed to sync GitHub data', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -112,20 +102,11 @@ export class GitHubSyncService {
    * Auto-sync GitHub data using username from resume
    * @returns GitHubSyncResult (domain data, not envelope)
    */
-  async autoSyncGitHubFromResume(
-    userId: string,
-    resumeId: string,
-  ): Promise<GitHubSyncResult> {
-    const resume = await this.databaseService.verifyResumeOwnership(
-      userId,
-      resumeId,
-    );
+  async autoSyncGitHubFromResume(userId: string, resumeId: string): Promise<GitHubSyncResult> {
+    const resume = await this.databaseService.verifyResumeOwnership(userId, resumeId);
 
     if (!resume.github) {
-      throw new HttpException(
-        'No GitHub username found in resume',
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new HttpException('No GitHub username found in resume', HttpStatus.BAD_REQUEST);
     }
 
     const githubUsername = this.extractUsername(resume.github);

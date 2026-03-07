@@ -1,7 +1,7 @@
 /**
  * In-Memory User Management Repository for Testing
  *
- * Implements UserManagementRepositoryPort interface with in-memory storage.
+ * Extends UserManagementRepositoryPort abstract class with in-memory storage.
  * Provides helper methods for test setup and assertions.
  */
 
@@ -13,6 +13,8 @@ import type {
   UserListItem,
   UserListOptions,
 } from '../../../users/domain/types';
+
+import { UserManagementRepositoryPort } from '../../../users/services/user-management/ports/user-management.port';
 
 interface StoredUser {
   id: string;
@@ -41,7 +43,7 @@ interface StoredUser {
   };
 }
 
-export class InMemoryUserManagementRepository {
+export class InMemoryUserManagementRepository extends UserManagementRepositoryPort {
   private users = new Map<string, StoredUser>();
 
   // ============ Test Helpers ============

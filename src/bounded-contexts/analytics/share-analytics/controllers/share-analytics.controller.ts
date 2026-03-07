@@ -10,7 +10,7 @@ import {
 } from '../dto/controller-response.dto';
 import { ShareAnalyticsService } from '../services/share-analytics.service';
 
-interface RequestWithUser extends Request {
+export interface RequestWithUser extends Request {
   user: { userId: string; email: string };
 }
 

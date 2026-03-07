@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
-import { Test, TestingModule } from '@nestjs/testing';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
-import { BlockService } from './block.service';
+import { Test, TestingModule } from '@nestjs/testing';
 import { BlockedUserRepository } from '../repositories/blocked-user.repository';
+import { BlockService } from './block.service';
 
 // Helper to type mocked repository methods
 type Mocked<T> = {
@@ -10,8 +10,6 @@ type Mocked<T> = {
     ? ReturnType<typeof mock> & ((...args: A) => R)
     : T[K];
 };
-
-
 
 describe('BlockService', () => {
   let service: BlockService;
@@ -34,33 +32,19 @@ describe('BlockService', () => {
   beforeEach(async () => {
     // Create mock functions using Bun's mock()
     const mockRepo = {
-      block:
-        mock<
-          (
-            blockerId: string,
-            blockedId: string,
-            reason?: string,
-          ) => Promise<any>
-        >(),
-      unblock: mock<(blockerId: string, blockedId: string) => Promise<any>>(),
-      isBlocked:
-        mock<(blockerId: string, blockedId: string) => Promise<boolean>>(),
-      isBlockedBetween:
-        mock<(userId1: string, userId2: string) => Promise<boolean>>(),
-      getBlockedUsers: mock<(userId: string) => Promise<any[]>>(),
+      block: mock<(blockerId: string, blockedId: string, reason?: string) => Promise<void>>(),
+      unblock: mock<(blockerId: string, blockedId: string) => Promise<void>>(),
+      isBlocked: mock<(blockerId: string, blockedId: string) => Promise<boolean>>(),
+      isBlockedBetween: mock<(userId1: string, userId2: string) => Promise<boolean>>(),
+      getBlockedUsers: mock<(userId: string) => Promise<unknown[]>>(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        BlockService,
-        { provide: BlockedUserRepository, useValue: mockRepo },
-      ],
+      providers: [BlockService, { provide: BlockedUserRepository, useValue: mockRepo }],
     }).compile();
 
     service = module.get<BlockService>(BlockService);
-    blockedUserRepo = module.get(
-      BlockedUserRepository,
-    ) as Mocked<BlockedUserRepository>;
+    blockedUserRepo = module.get(BlockedUserRepository) as Mocked<BlockedUserRepository>;
   });
 
   describe('blockUser', () => {
@@ -75,17 +59,13 @@ describe('BlockService', () => {
       expect(result).toBeDefined();
       expect(result.user.id).toBe('user2');
       expect(result.reason).toBe('spam');
-      expect(blockedUserRepo.block).toHaveBeenCalledWith(
-        'user1',
-        'user2',
-        'spam',
-      );
+      expect(blockedUserRepo.block).toHaveBeenCalledWith('user1', 'user2', 'spam');
     });
 
     it('should throw BadRequestException when blocking yourself', async () => {
-      await expect(
-        service.blockUser('user1', { userId: 'user1' }),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.blockUser('user1', { userId: 'user1' })).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -102,9 +82,7 @@ describe('BlockService', () => {
     it('should throw NotFoundException if user is not blocked', async () => {
       blockedUserRepo.isBlocked.mockResolvedValue(false);
 
-      await expect(service.unblockUser('user1', 'user2')).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(service.unblockUser('user1', 'user2')).rejects.toThrow(NotFoundException);
     });
   });
 

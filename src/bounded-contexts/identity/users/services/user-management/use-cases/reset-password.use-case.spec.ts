@@ -3,11 +3,13 @@
  *
  * Uses In-Memory repository for clean, behavior-focused testing.
  */
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { beforeEach, describe, expect, it } from 'bun:test';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions';
+import {
+  InMemoryUserManagementRepository,
+  StubHashService,
+} from '../../../../shared-kernel/testing';
 import { ResetPasswordUseCase } from './reset-password.use-case';
-import { InMemoryUserManagementRepository } from '../../../../shared-kernel/testing';
-import { StubHashService } from '../../../../shared-kernel/testing';
 
 describe('ResetPasswordUseCase', () => {
   let useCase: ResetPasswordUseCase;
@@ -17,7 +19,7 @@ describe('ResetPasswordUseCase', () => {
   beforeEach(() => {
     repository = new InMemoryUserManagementRepository();
     hashService = new StubHashService();
-    useCase = new ResetPasswordUseCase(repository as any, (password: string) =>
+    useCase = new ResetPasswordUseCase(repository, (password: string) =>
       hashService.hash(password),
     );
   });

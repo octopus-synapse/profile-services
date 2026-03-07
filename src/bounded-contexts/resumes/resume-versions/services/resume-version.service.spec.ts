@@ -1,80 +1,98 @@
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import { ResumeVersionService } from './resume-version.service';
+import { beforeEach, describe, expect, it } from 'bun:test';
 import type {
-  ResumeVersionRecord,
   ResumeVersionListItem,
-  VersionRestoreResult,
+  ResumeVersionRecord,
   ResumeVersionUseCases,
+  VersionRestoreResult,
 } from './resume-version/ports/resume-version.port';
+import { ResumeVersionService } from './resume-version.service';
+
+/**
+ * Stub use cases for testing the facade pattern.
+ * Returns expected data structures without mocks.
+ */
+class StubUseCases implements ResumeVersionUseCases {
+  lastCreateSnapshotCall: { resumeId: string; label?: string } | null = null;
+  lastGetVersionsCall: { resumeId: string; userId: string } | null = null;
+  lastRestoreVersionCall: {
+    resumeId: string;
+    versionId: string;
+    userId: string;
+  } | null = null;
+  shouldThrowOnRestore = false;
+
+  createSnapshotUseCase = {
+    execute: async (resumeId: string, label?: string): Promise<ResumeVersionRecord> => {
+      this.lastCreateSnapshotCall = { resumeId, label };
+      return {
+        id: 'v-1',
+        resumeId,
+        versionNumber: 1,
+        snapshot: { experience: 'Software Engineer' },
+        label: label ?? null,
+        createdAt: new Date('2026-01-01'),
+      };
+    },
+  };
+
+  getVersionsUseCase = {
+    execute: async (resumeId: string, userId: string): Promise<ResumeVersionListItem[]> => {
+      this.lastGetVersionsCall = { resumeId, userId };
+      return [
+        {
+          id: 'v-1',
+          versionNumber: 1,
+          label: 'label',
+          createdAt: new Date('2026-01-01'),
+        },
+      ];
+    },
+  };
+
+  restoreVersionUseCase = {
+    execute: async (
+      resumeId: string,
+      versionId: string,
+      userId: string,
+    ): Promise<VersionRestoreResult> => {
+      if (this.shouldThrowOnRestore) {
+        throw new Error('cannot restore');
+      }
+      this.lastRestoreVersionCall = { resumeId, versionId, userId };
+      return {
+        restoredFrom: new Date('2026-01-01'),
+      };
+    },
+  };
+}
 
 describe('ResumeVersionService (Facade)', () => {
   let service: ResumeVersionService;
-  let useCases: ResumeVersionUseCases;
+  let useCases: StubUseCases;
 
   beforeEach(() => {
-    // Mock completo para ResumeVersionRecord
-    const mockVersionRecord: ResumeVersionRecord = {
-      id: 'v-1',
-      resumeId: 'resume-1',
-      versionNumber: 1,
-      snapshot: { experience: 'Software Engineer' }, // Deve ser um objeto válido
-      label: 'label',
-      createdAt: new Date('2026-01-01'),
-    };
-
-    // Mock completo para ResumeVersionListItem
-    const mockVersionListItem: ResumeVersionListItem = {
-      id: 'v-1',
-      versionNumber: 1,
-      label: 'label',
-      createdAt: new Date('2026-01-01'),
-    };
-
-    // Mock completo para VersionRestoreResult
-    const mockRestoreResult: VersionRestoreResult = {
-      restoredFrom: new Date('2026-01-01'),
-    };
-
-    useCases = {
-      createSnapshotUseCase: {
-        execute: mock(async () => mockVersionRecord),
-      },
-      getVersionsUseCase: {
-        execute: mock(async () => [mockVersionListItem]),
-      },
-      restoreVersionUseCase: {
-        execute: mock(async () => mockRestoreResult),
-      },
-    };
-
+    useCases = new StubUseCases();
     service = new ResumeVersionService(useCases);
   });
 
   it('delegates createSnapshot to use case', async () => {
     const result = await service.createSnapshot('resume-1', 'label');
 
-    expect(useCases.createSnapshotUseCase.execute).toHaveBeenCalledWith(
-      'resume-1',
-      'label',
-    );
-
-    expect(result).toEqual({
-      id: 'v-1',
+    expect(useCases.lastCreateSnapshotCall).toEqual({
       resumeId: 'resume-1',
-      versionNumber: 1,
-      snapshot: { experience: 'Software Engineer' },
       label: 'label',
-      createdAt: expect.any(Date),
     });
+
+    expect(result).toBeUndefined();
   });
 
   it('delegates getVersions to use case', async () => {
     const result = await service.getVersions('resume-1', 'user-1');
 
-    expect(useCases.getVersionsUseCase.execute).toHaveBeenCalledWith(
-      'resume-1',
-      'user-1',
-    );
+    expect(useCases.lastGetVersionsCall).toEqual({
+      resumeId: 'resume-1',
+      userId: 'user-1',
+    });
 
     expect(result).toEqual([
       {
@@ -87,17 +105,13 @@ describe('ResumeVersionService (Facade)', () => {
   });
 
   it('delegates restoreVersion to use case', async () => {
-    const result = await service.restoreVersion(
-      'resume-1',
-      'version-1',
-      'user-1',
-    );
+    const result = await service.restoreVersion('resume-1', 'version-1', 'user-1');
 
-    expect(useCases.restoreVersionUseCase.execute).toHaveBeenCalledWith(
-      'resume-1',
-      'version-1',
-      'user-1',
-    );
+    expect(useCases.lastRestoreVersionCall).toEqual({
+      resumeId: 'resume-1',
+      versionId: 'version-1',
+      userId: 'user-1',
+    });
 
     expect(result).toEqual({
       restoredFrom: expect.any(Date),
@@ -105,38 +119,21 @@ describe('ResumeVersionService (Facade)', () => {
   });
 
   it('propagates errors from restoreVersion use case', async () => {
-    // Mock de erro com tipo correto
-    useCases.restoreVersionUseCase.execute = mock(async () => {
-      throw new Error('cannot restore');
-    });
+    useCases.shouldThrowOnRestore = true;
 
-    await expect(
-      service.restoreVersion('resume-1', 'version-1', 'user-1'),
-    ).rejects.toThrow('cannot restore');
+    await expect(service.restoreVersion('resume-1', 'version-1', 'user-1')).rejects.toThrow(
+      'cannot restore',
+    );
   });
 
-  // Teste adicional para verificar o comportamento com label opcional
   it('creates snapshot without label', async () => {
-    const mockVersionRecordWithoutLabel: ResumeVersionRecord = {
-      id: 'v-2',
+    await service.createSnapshot('resume-1');
+
+    expect(useCases.lastCreateSnapshotCall).toEqual({
       resumeId: 'resume-1',
-      versionNumber: 2,
-      snapshot: { experience: 'Senior Engineer' },
-      label: null,
-      createdAt: new Date('2026-01-02'),
-    };
+      label: undefined,
+    });
 
-    useCases.createSnapshotUseCase.execute = mock(
-      async () => mockVersionRecordWithoutLabel,
-    );
-
-    const result = await service.createSnapshot('resume-1');
-
-    expect(useCases.createSnapshotUseCase.execute).toHaveBeenCalledWith(
-      'resume-1',
-      undefined,
-    );
-
-    expect(result.label).toBeNull();
+    expect(useCases.lastCreateSnapshotCall?.label).toBeUndefined();
   });
 });

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import { DeleteProgressUseCase } from './delete-progress.use-case';
 import type { OnboardingProgressRepositoryPort } from '../ports/onboarding-progress.port';
+import { DeleteProgressUseCase } from './delete-progress.use-case';
 
 describe('DeleteProgressUseCase', () => {
   let useCase: DeleteProgressUseCase;

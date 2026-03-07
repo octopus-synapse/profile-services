@@ -61,3 +61,4 @@ export { RoleRepository } from './infrastructure/repositories/role.repository';
 export { UserAuthorizationRepository } from './infrastructure/repositories/user-authorization.repository';
 // Services
 export { AuthorizationService } from './services/authorization.service';
+export { AuthorizationServicePort } from './services/authorization-service.port';

@@ -70,16 +70,16 @@ prod-logs:
 # Database Commands
 # ==========================================
 db-migrate:
-	docker-compose exec frontend npx prisma migrate dev
+	docker-compose exec frontend bunx prisma migrate dev
 
 db-migrate-deploy:
-	docker-compose exec frontend npx prisma migrate deploy
+	docker-compose exec frontend bunx prisma migrate deploy
 
 db-studio:
-	docker-compose exec frontend npx prisma studio
+	docker-compose exec frontend bunx prisma studio
 
 db-seed:
-	docker-compose exec frontend npx prisma db seed
+	docker-compose exec frontend bunx prisma db seed
 
 db-backup:
 	@echo "Creating database backup..."

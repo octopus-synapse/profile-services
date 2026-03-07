@@ -7,12 +7,7 @@
 
 import * as path from 'node:path';
 import { CLEAN_ARCHITECTURE_SERVICES } from '../constants';
-import {
-  SOURCE_ROOT,
-  directoryExists,
-  getAllTypeScriptFiles,
-  readFileContent,
-} from '../helpers';
+import { directoryExists, getAllTypeScriptFiles, readFileContent, SOURCE_ROOT } from '../helpers';
 import { type RuleResult, runRule } from '../rule-runner';
 
 const FORBIDDEN_IMPORTS_IN_PORTS = [
@@ -116,37 +111,33 @@ export function checkUseCasesNoInfrastructureImports(): RuleResult {
 }
 
 export function checkUseCasesNoNestJSDecorators(): RuleResult {
-  return runRule(
-    'use-cases MUST NOT use any NestJS decorators',
-    'Framework Independence',
-    () => {
-      const violations: string[] = [];
-      for (const servicePath of CLEAN_ARCHITECTURE_SERVICES) {
-        const useCasesPath = path.join(SOURCE_ROOT, servicePath, 'use-cases');
-        if (!directoryExists(useCasesPath)) continue;
+  return runRule('use-cases MUST NOT use any NestJS decorators', 'Framework Independence', () => {
+    const violations: string[] = [];
+    for (const servicePath of CLEAN_ARCHITECTURE_SERVICES) {
+      const useCasesPath = path.join(SOURCE_ROOT, servicePath, 'use-cases');
+      if (!directoryExists(useCasesPath)) continue;
 
-        const useCaseFiles = getAllTypeScriptFiles(useCasesPath).filter(
-          (f) => !f.endsWith('.spec.ts'),
-        );
-        for (const file of useCaseFiles) {
-          const content = readFileContent(file);
-          if (!content) continue;
+      const useCaseFiles = getAllTypeScriptFiles(useCasesPath).filter(
+        (f) => !f.endsWith('.spec.ts'),
+      );
+      for (const file of useCaseFiles) {
+        const content = readFileContent(file);
+        if (!content) continue;
 
-          for (const decorator of FORBIDDEN_NESTJS_DECORATORS) {
-            // Match decorator usage (e.g., "@Injectable()" or "@Injectable")
-            const decoratorRegex = new RegExp(`\\${decorator}\\s*\\(`, 'g');
-            if (decoratorRegex.test(content)) {
-              const relativePath = path.relative(SOURCE_ROOT, file);
-              violations.push(
-                `${relativePath}: Uses NestJS decorator "${decorator}" (use-cases MUST be framework-independent)`,
-              );
-            }
+        for (const decorator of FORBIDDEN_NESTJS_DECORATORS) {
+          // Match decorator usage (e.g., "@Injectable()" or "@Injectable")
+          const decoratorRegex = new RegExp(`\\${decorator}\\s*\\(`, 'g');
+          if (decoratorRegex.test(content)) {
+            const relativePath = path.relative(SOURCE_ROOT, file);
+            violations.push(
+              `${relativePath}: Uses NestJS decorator "${decorator}" (use-cases MUST be framework-independent)`,
+            );
           }
         }
       }
-      return violations;
-    },
-  );
+    }
+    return violations;
+  });
 }
 
 export function checkRepositoryOnlyInfraImplementation(): RuleResult {
@@ -175,9 +166,7 @@ export function checkRepositoryOnlyInfraImplementation(): RuleResult {
 
           if (!implementsPort && !extendsPort) {
             const relativePath = path.relative(SOURCE_ROOT, file);
-            violations.push(
-              `${relativePath}: Repository MUST implement/extend a port abstraction`,
-            );
+            violations.push(`${relativePath}: Repository MUST implement/extend a port abstraction`);
           }
         }
       }
@@ -204,11 +193,7 @@ export function checkCompositionOnlyWiringNoLogic(): RuleResult {
       ];
 
       for (const servicePath of CLEAN_ARCHITECTURE_SERVICES) {
-        const compositionsDir = path.join(
-          SOURCE_ROOT,
-          servicePath,
-          'compositions',
-        );
+        const compositionsDir = path.join(SOURCE_ROOT, servicePath, 'compositions');
         if (!directoryExists(compositionsDir)) continue;
 
         const compositionFiles = getAllTypeScriptFiles(compositionsDir);

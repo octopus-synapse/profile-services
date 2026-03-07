@@ -3,14 +3,14 @@
  * End-to-end validation of DSL compilation flow
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
-import { Test, TestingModule } from '@nestjs/testing';
+import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import { INestApplication } from '@nestjs/common';
-import request from 'supertest';
+import { Test, TestingModule } from '@nestjs/testing';
 import { Prisma } from '@prisma/client';
-import { AppModule } from '../../src/app.module';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import request from 'supertest';
 import { EmailSenderService } from '@/bounded-contexts/platform/common/email/services/email-sender.service';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { AppModule } from '../../src/app.module';
 import { createMockResume } from '../factories/resume.factory';
 import { createMockUser } from '../factories/user.factory';
 import { acceptTosWithPrisma } from './setup';
@@ -45,13 +45,12 @@ describe('DSL Smoke Tests (e2e)', () => {
 
     // Create test user with hashed password
     // bcrypt hash for 'password'
-    const passwordHash =
-      '$2a$10$wziTKTFkXzbG64jFsH0.6Ocq2oGB5biff.ytUoXa14yegt5V8krm.';
+    const passwordHash = '$2a$10$wziTKTFkXzbG64jFsH0.6Ocq2oGB5biff.ytUoXa14yegt5V8krm.';
     const user = await prisma.user.create({
       data: {
         ...createMockUser({
           email: 'dsl-smoke@test.com',
-          password: passwordHash,
+          passwordHash: passwordHash,
         }),
         emailVerified: new Date(), // Verify email for protected route access
       },
@@ -274,9 +273,7 @@ describe('DSL Smoke Tests (e2e)', () => {
     });
 
     it('should reject unauthenticated requests', () => {
-      return request(app.getHttpServer())
-        .get(`/api/v1/dsl/render/${resumeId}`)
-        .expect(401);
+      return request(app.getHttpServer()).get(`/api/v1/dsl/render/${resumeId}`).expect(401);
     });
 
     it('should return 400 for non-existent resume', () => {
@@ -363,9 +360,7 @@ describe('DSL Smoke Tests (e2e)', () => {
       };
 
       // Step 1: Validate
-      const validateRes = await request(app.getHttpServer())
-        .post('/api/v1/dsl/validate')
-        .send(dsl);
+      const validateRes = await request(app.getHttpServer()).post('/api/v1/dsl/validate').send(dsl);
 
       expect(validateRes.body.valid).toBe(true);
 

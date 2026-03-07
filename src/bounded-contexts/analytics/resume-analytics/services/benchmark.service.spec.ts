@@ -4,7 +4,7 @@
  * Tests for industry benchmark calculations and comparisons
  */
 
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { BenchmarkService } from './benchmark.service';
 
 describe('BenchmarkService', () => {
@@ -86,8 +86,8 @@ describe('BenchmarkService', () => {
       });
 
       expect(result.topPerformers).toBeDefined();
-      expect(result.topPerformers.avgExperienceYears).toBe(5);
-      expect(result.topPerformers.avgSkillsCount).toBe(10);
+      expect(result.topPerformers.avgCareerDepthYears).toBe(5);
+      expect(result.topPerformers.avgStructuredItemCount).toBe(10);
     });
 
     it('should calculate correct percentile for highest score', async () => {

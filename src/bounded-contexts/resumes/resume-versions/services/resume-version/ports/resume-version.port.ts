@@ -16,8 +16,16 @@ export type ResumeVersionListItem = {
   createdAt: Date;
 };
 
+export type JsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: JsonValue | undefined }
+  | JsonValue[];
+
 export type ResumeSectionItem = {
-  content: unknown;
+  content: JsonValue;
 };
 
 export type ResumeSectionForSnapshot = {
@@ -36,7 +44,7 @@ export type ResumeVersionRecord = {
   id: string;
   resumeId: string;
   versionNumber: number;
-  snapshot: unknown;
+  snapshot: JsonValue;
   label: string | null;
   createdAt: Date;
 };
@@ -57,7 +65,7 @@ export abstract class ResumeVersionRepositoryPort {
   abstract createResumeVersion(data: {
     resumeId: string;
     versionNumber: number;
-    snapshot: unknown;
+    snapshot: Record<string, unknown>;
     label?: string;
   }): Promise<ResumeVersionRecord>;
 

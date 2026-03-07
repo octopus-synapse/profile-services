@@ -5,9 +5,9 @@
  * Helps identify which endpoints are missing from documentation.
  */
 
-import { describe, test, expect } from 'bun:test';
-import { readFileSync, readdirSync } from 'fs';
-import { resolve, join } from 'path';
+import { describe, expect, test } from 'bun:test';
+import { readdirSync, readFileSync } from 'node:fs';
+import { join, resolve } from 'node:path';
 
 const SWAGGER_PATH = resolve(__dirname, '../../swagger.json');
 
@@ -18,10 +18,7 @@ function findAllControllers(dir: string, controllers: string[] = []): string[] {
     const fullPath = join(dir, file.name);
     if (file.isDirectory()) {
       findAllControllers(fullPath, controllers);
-    } else if (
-      file.name.endsWith('.controller.ts') &&
-      !file.name.endsWith('.spec.ts')
-    ) {
+    } else if (file.name.endsWith('.controller.ts') && !file.name.endsWith('.spec.ts')) {
       controllers.push(fullPath);
     }
   }
@@ -84,9 +81,7 @@ describe('Missing Endpoints Detection', () => {
     if (documented.length > 0) {
       console.log('\nDocumented:');
       documented.forEach((c) => {
-        console.log(
-          `  - ${c.name} (${c.apiOperationCount} operations) at /${c.basePath}`,
-        );
+        console.log(`  - ${c.name} (${c.apiOperationCount} operations) at /${c.basePath}`);
       });
     }
 
@@ -146,12 +141,9 @@ describe('Missing Endpoints Detection', () => {
 describe('Swagger Coverage Analysis', () => {
   test('count total endpoints in swagger vs documented controllers', () => {
     const swagger = JSON.parse(readFileSync(SWAGGER_PATH, 'utf-8'));
-    const swaggerEndpointCount = Object.entries(swagger.paths).reduce(
-      (count, [_, methods]) => {
-        return count + Object.keys(methods as object).length;
-      },
-      0,
-    );
+    const swaggerEndpointCount = Object.entries(swagger.paths).reduce((count, [_, methods]) => {
+      return count + Object.keys(methods as object).length;
+    }, 0);
 
     const controllersDir = resolve(__dirname, '../../src/bounded-contexts');
     const controllers = findAllControllers(controllersDir);
@@ -162,9 +154,7 @@ describe('Swagger Coverage Analysis', () => {
     console.log(`\n📊 Swagger Coverage:`);
     console.log(`  Endpoints in swagger.json: ${swaggerEndpointCount}`);
     console.log(`  @ApiOperation in controllers: ${totalDocumented}`);
-    console.log(
-      `  Coverage: ${((swaggerEndpointCount / totalDocumented) * 100).toFixed(1)}%`,
-    );
+    console.log(`  Coverage: ${((swaggerEndpointCount / totalDocumented) * 100).toFixed(1)}%`);
 
     // We expect at least some coverage
     expect(swaggerEndpointCount).toBeGreaterThan(0);
@@ -172,7 +162,7 @@ describe('Swagger Coverage Analysis', () => {
 
   test('list all tags in swagger', () => {
     const swagger = JSON.parse(readFileSync(SWAGGER_PATH, 'utf-8'));
-    const tags = swagger.tags?.map((t: any) => t.name) || [];
+    const tags = swagger.tags?.map((t: { name: string }) => t.name) || [];
 
     console.log(`\n🏷️  Tags in swagger.json: ${tags.join(', ')}`);
     expect(tags.length).toBeGreaterThan(0);
@@ -182,20 +172,24 @@ describe('Swagger Coverage Analysis', () => {
     const swagger = JSON.parse(readFileSync(SWAGGER_PATH, 'utf-8'));
     const endpointsByTag: Record<string, string[]> = {};
 
-    Object.entries(swagger.paths).forEach(([path, methods]: [string, any]) => {
-      Object.entries(methods).forEach(([method, operation]: [string, any]) => {
-        const tags = operation.tags || ['untagged'];
-        tags.forEach((tag: string) => {
-          if (!endpointsByTag[tag]) endpointsByTag[tag] = [];
-          endpointsByTag[tag].push(`${method.toUpperCase()} ${path}`);
-        });
-      });
+    Object.entries(swagger.paths).forEach(([path, methods]) => {
+      Object.entries(methods as Record<string, Record<string, unknown>>).forEach(
+        ([method, operation]) => {
+          const tags = (operation.tags as string[]) || ['untagged'];
+          tags.forEach((tag: string) => {
+            if (!endpointsByTag[tag]) endpointsByTag[tag] = [];
+            endpointsByTag[tag].push(`${method.toUpperCase()} ${path}`);
+          });
+        },
+      );
     });
 
     console.log('\n📍 Endpoints by tag:');
     Object.entries(endpointsByTag).forEach(([tag, endpoints]) => {
       console.log(`\n  ${tag}:`);
-      endpoints.forEach((e) => console.log(`    - ${e}`));
+      endpoints.forEach((e) => {
+        console.log(`    - ${e}`);
+      });
     });
 
     expect(Object.keys(endpointsByTag).length).toBeGreaterThan(0);
@@ -240,12 +234,8 @@ describe('Backend DTO vs Swagger Schema Comparison', () => {
     const dtoContent = readFileSync(dtoPath, 'utf-8');
 
     // Extract property names that have @ApiProperty
-    const apiPropertyMatches = dtoContent.matchAll(
-      /@ApiProperty.*?\n\s+(\w+):/g,
-    );
-    const propertiesWithDecorator = Array.from(apiPropertyMatches).map(
-      (m) => m[1],
-    );
+    const apiPropertyMatches = dtoContent.matchAll(/@ApiProperty.*?\n\s+(\w+):/g);
+    const propertiesWithDecorator = Array.from(apiPropertyMatches).map((m) => m[1]);
 
     console.log(
       `\n🔧 Properties with @ApiProperty in backend: ${propertiesWithDecorator.join(', ')}`,

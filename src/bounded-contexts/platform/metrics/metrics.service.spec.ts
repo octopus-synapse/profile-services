@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'bun:test';
+import { beforeEach, describe, expect, it } from 'bun:test';
 import { MetricsService } from './metrics.service';
 
 describe('MetricsService', () => {
@@ -55,16 +55,12 @@ describe('MetricsService', () => {
         service.incrementExportCompleted({ format: 'docx' });
         service.incrementExportCompleted({ format: 'pdf' });
 
-        const pdfValue = await service.getMetricValue(
-          'export_completed_total',
-          {
-            format: 'pdf',
-          },
-        );
-        const docxValue = await service.getMetricValue(
-          'export_completed_total',
-          { format: 'docx' },
-        );
+        const pdfValue = await service.getMetricValue('export_completed_total', {
+          format: 'pdf',
+        });
+        const docxValue = await service.getMetricValue('export_completed_total', {
+          format: 'docx',
+        });
 
         expect(pdfValue).toBe(2);
         expect(docxValue).toBe(1);
@@ -159,9 +155,7 @@ describe('MetricsService', () => {
     });
 
     it('should return correct content type', () => {
-      expect(service.getContentType()).toBe(
-        'text/plain; version=0.0.4; charset=utf-8',
-      );
+      expect(service.getContentType()).toBe('text/plain; version=0.0.4; charset=utf-8');
     });
   });
 

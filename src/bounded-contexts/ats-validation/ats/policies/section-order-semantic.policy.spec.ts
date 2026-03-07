@@ -1,8 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import type {
-  SemanticResumeSnapshot,
-  SectionTypeAtsEntry,
-} from '../interfaces';
+import type { SectionTypeAtsEntry, SemanticResumeSnapshot } from '../interfaces';
 import { SectionOrderSemanticPolicy } from './section-order-semantic.policy';
 
 /**
@@ -77,9 +74,7 @@ describe('SectionOrderSemanticPolicy', () => {
 
     const result = policy.validate(snapshot);
 
-    expect(result.issues.some((i) => i.code === 'SECTION_ORDER_MISMATCH')).toBe(
-      true,
-    );
+    expect(result.issues.some((i) => i.code === 'SECTION_ORDER_MISMATCH')).toBe(true);
   });
 
   it('flags early sections appearing too late based on catalog positions', () => {
@@ -97,9 +92,7 @@ describe('SectionOrderSemanticPolicy', () => {
 
     const result = policy.validate(snapshot);
 
-    expect(result.issues.some((i) => i.code === 'SECTION_ORDER_MISMATCH')).toBe(
-      true,
-    );
+    expect(result.issues.some((i) => i.code === 'SECTION_ORDER_MISMATCH')).toBe(true);
   });
 
   it('returns recommendedOrder from catalog in metadata', () => {
@@ -130,11 +123,7 @@ describe('SectionOrderSemanticPolicy', () => {
     const snapshot: SemanticResumeSnapshot = {
       resumeId: 'resume-5',
       sectionTypeCatalog: customCatalog,
-      items: [
-        createItem('PORTFOLIO'),
-        createItem('TESTIMONIALS'),
-        createItem('MY_CUSTOM_SECTION'),
-      ],
+      items: [createItem('PORTFOLIO'), createItem('TESTIMONIALS'), createItem('MY_CUSTOM_SECTION')],
     };
 
     const result = policy.validate(snapshot);

@@ -1,17 +1,29 @@
-import {
-  BadRequestException,
-  ForbiddenException,
-  NotFoundException,
-} from '@nestjs/common';
 import { describe, expect, it, mock } from 'bun:test';
+import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
+import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { buildGenericResumeSectionsUseCases } from './generic-resume-sections/generic-resume-sections.composition';
 import { GenericResumeSectionsService } from './generic-resume-sections.service';
 import { SectionDefinitionZodFactory } from './section-definition-zod.factory';
 
-function createServiceWithPrismaMock(prisma: unknown) {
+/** Mock model where each method is a bun:test mock. */
+type MockModel = Record<string, ReturnType<typeof mock>>;
+
+/** Partial Prisma mock with only the models used in these tests. */
+type PrismaMock = {
+  resume?: MockModel;
+  sectionType?: MockModel;
+  resumeSection?: MockModel;
+  sectionItem?: MockModel;
+};
+
+/**
+ * Factory to create service with a partial Prisma mock.
+ * Encapsulates internal type handling to keep test code clean.
+ */
+function createServiceWithPrismaMock(prisma: PrismaMock): GenericResumeSectionsService {
   const schemaFactory = new SectionDefinitionZodFactory();
   const useCases = buildGenericResumeSectionsUseCases(
-    prisma as never,
+    prisma as unknown as PrismaService,
     schemaFactory,
   );
   return new GenericResumeSectionsService(useCases);
@@ -19,7 +31,7 @@ function createServiceWithPrismaMock(prisma: unknown) {
 
 describe('GenericResumeSectionsService', () => {
   it('enforces maxItems from section definition constraints', async () => {
-    const prisma = {
+    const prisma: PrismaMock = {
       resume: {
         findUnique: mock(async () => ({ id: 'resume-1', userId: 'user-1' })),
       },
@@ -48,9 +60,7 @@ describe('GenericResumeSectionsService', () => {
         aggregate: mock(async () => ({ _max: { order: 0 } })),
         create: mock(async () => ({ id: 'item-1' })),
       },
-    } as unknown as ConstructorParameters<
-      typeof GenericResumeSectionsService
-    >[0];
+    };
 
     const service = createServiceWithPrismaMock(prisma);
 
@@ -62,7 +72,7 @@ describe('GenericResumeSectionsService', () => {
   });
 
   it('enforces single item when definition disallows multiple items', async () => {
-    const prisma = {
+    const prisma: PrismaMock = {
       resume: {
         findUnique: mock(async () => ({ id: 'resume-1', userId: 'user-1' })),
       },
@@ -87,9 +97,7 @@ describe('GenericResumeSectionsService', () => {
       sectionItem: {
         count: mock(async () => 1),
       },
-    } as unknown as ConstructorParameters<
-      typeof GenericResumeSectionsService
-    >[0];
+    };
 
     const service = createServiceWithPrismaMock(prisma);
 
@@ -101,7 +109,11 @@ describe('GenericResumeSectionsService', () => {
   });
 
   it('creates resume section automatically when missing', async () => {
-    const prisma = {
+    const resumeSectionCreate = mock(async () => ({
+      id: 'resume-section-new',
+      order: 3,
+    }));
+    const prisma: PrismaMock = {
       resume: {
         findUnique: mock(async () => ({ id: 'resume-1', userId: 'user-1' })),
       },
@@ -120,53 +132,44 @@ describe('GenericResumeSectionsService', () => {
       resumeSection: {
         findUnique: mock(async () => null),
         aggregate: mock(async () => ({ _max: { order: 2 } })),
-        create: mock(async () => ({ id: 'resume-section-new', order: 3 })),
+        create: resumeSectionCreate,
       },
       sectionItem: {
         count: mock(async () => 0),
         aggregate: mock(async () => ({ _max: { order: null } })),
         create: mock(async () => ({ id: 'item-1', order: 0 })),
       },
-    } as unknown as ConstructorParameters<
-      typeof GenericResumeSectionsService
-    >[0];
+    };
 
     const service = createServiceWithPrismaMock(prisma);
 
-    const created = await service.createItem(
-      'resume-1',
-      'work_experience_v1',
-      'user-1',
-      {
-        company: 'Octopus',
-      },
-    );
+    const created = await service.createItem('resume-1', 'work_experience_v1', 'user-1', {
+      company: 'Octopus',
+    });
 
     expect(created.id).toBe('item-1');
-    expect(prisma.resumeSection.create).toHaveBeenCalled();
+    expect(resumeSectionCreate).toHaveBeenCalled();
   });
 
   it('throws ForbiddenException when user does not own resume', async () => {
-    const prisma = {
+    const prisma: PrismaMock = {
       resume: {
         findUnique: mock(async () => ({ id: 'resume-1', userId: 'user-2' })),
       },
       resumeSection: {
         findMany: mock(async () => []),
       },
-    } as unknown as ConstructorParameters<
-      typeof GenericResumeSectionsService
-    >[0];
+    };
 
     const service = createServiceWithPrismaMock(prisma);
 
-    await expect(
-      service.listResumeSections('resume-1', 'user-1'),
-    ).rejects.toThrow(ForbiddenException);
+    await expect(service.listResumeSections('resume-1', 'user-1')).rejects.toThrow(
+      ForbiddenException,
+    );
   });
 
   it('throws NotFoundException when updating missing section item', async () => {
-    const prisma = {
+    const prisma: PrismaMock = {
       resume: {
         findUnique: mock(async () => ({ id: 'resume-1', userId: 'user-1' })),
       },
@@ -185,9 +188,7 @@ describe('GenericResumeSectionsService', () => {
       sectionItem: {
         findFirst: mock(async () => null),
       },
-    } as unknown as ConstructorParameters<
-      typeof GenericResumeSectionsService
-    >[0];
+    };
 
     const service = createServiceWithPrismaMock(prisma);
 

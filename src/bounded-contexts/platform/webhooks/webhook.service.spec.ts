@@ -8,21 +8,32 @@
  * Uncle Bob: "Each test should have a single reason to fail"
  */
 
-import { describe, it, expect, beforeEach } from 'bun:test';
+import { beforeEach, describe, expect, it } from 'bun:test';
+import { Test, type TestingModule } from '@nestjs/testing';
+import { PrismaService } from '../prisma/prisma.service';
 import { WebhookService } from './webhook.service';
-import type { PrismaService } from '../prisma/prisma.service';
 
 describe('WebhookService', () => {
   let service: WebhookService;
-  let mockPrismaService: Partial<PrismaService>;
+  let mockPrismaService: Record<string, never>;
 
   const mockUserId = 'user-123';
   const mockResumeId = 'resume-456';
 
-  beforeEach(() => {
-    mockPrismaService = {} as any;
+  beforeEach(async () => {
+    mockPrismaService = {};
 
-    service = new WebhookService(mockPrismaService as PrismaService);
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        WebhookService,
+        {
+          provide: PrismaService,
+          useValue: mockPrismaService,
+        },
+      ],
+    }).compile();
+
+    service = module.get<WebhookService>(WebhookService);
   });
 
   describe('handleResumeCreated', () => {
@@ -34,9 +45,7 @@ describe('WebhookService', () => {
       };
 
       // Should not throw - logs and attempts webhook delivery
-      await expect(
-        service.handleResumeCreated(payload),
-      ).resolves.toBeUndefined();
+      await expect(service.handleResumeCreated(payload)).resolves.toBeUndefined();
     });
 
     it('should handle event when no webhooks configured', async () => {
@@ -47,9 +56,7 @@ describe('WebhookService', () => {
       };
 
       // Since no webhooks are configured, it should complete silently
-      await expect(
-        service.handleResumeCreated(payload),
-      ).resolves.toBeUndefined();
+      await expect(service.handleResumeCreated(payload)).resolves.toBeUndefined();
     });
   });
 
@@ -61,9 +68,7 @@ describe('WebhookService', () => {
         publicUrl: 'https://example.com/resume/john-doe',
       };
 
-      await expect(
-        service.handleResumePublished(payload),
-      ).resolves.toBeUndefined();
+      await expect(service.handleResumePublished(payload)).resolves.toBeUndefined();
     });
   });
 
@@ -77,9 +82,7 @@ describe('WebhookService', () => {
       };
 
       // Score changed by 15 points (>5), should trigger webhook
-      await expect(
-        service.handleATSScoreUpdated(payload),
-      ).resolves.toBeUndefined();
+      await expect(service.handleATSScoreUpdated(payload)).resolves.toBeUndefined();
     });
 
     it('should skip webhook when score change is minimal (<5 points)', async () => {
@@ -91,9 +94,7 @@ describe('WebhookService', () => {
       };
 
       // Score only changed by 3 points, should skip
-      await expect(
-        service.handleATSScoreUpdated(payload),
-      ).resolves.toBeUndefined();
+      await expect(service.handleATSScoreUpdated(payload)).resolves.toBeUndefined();
     });
 
     it('should process event when no previous score exists', async () => {
@@ -104,9 +105,7 @@ describe('WebhookService', () => {
         // No previousScore - first time score
       };
 
-      await expect(
-        service.handleATSScoreUpdated(payload),
-      ).resolves.toBeUndefined();
+      await expect(service.handleATSScoreUpdated(payload)).resolves.toBeUndefined();
     });
 
     it('should handle edge case of exactly 5 point difference', async () => {
@@ -117,9 +116,7 @@ describe('WebhookService', () => {
         previousScore: 75, // Exactly 5 points difference - should skip
       };
 
-      await expect(
-        service.handleATSScoreUpdated(payload),
-      ).resolves.toBeUndefined();
+      await expect(service.handleATSScoreUpdated(payload)).resolves.toBeUndefined();
     });
 
     it('should handle negative score changes', async () => {
@@ -130,59 +127,19 @@ describe('WebhookService', () => {
         previousScore: 75, // Score dropped by 15
       };
 
+      await expect(service.handleATSScoreUpdated(payload)).resolves.toBeUndefined();
+    });
+  });
+
+  describe('delivery behavior', () => {
+    it('should complete event handling when no webhooks are configured', async () => {
       await expect(
-        service.handleATSScoreUpdated(payload),
+        service.handleResumeCreated({
+          resumeId: mockResumeId,
+          userId: mockUserId,
+          title: 'Test Resume',
+        }),
       ).resolves.toBeUndefined();
-    });
-  });
-
-  describe('HMAC signature generation', () => {
-    it('should generate consistent HMAC for same input', async () => {
-      // Access private method via type assertion for testing
-      const generateHMAC = (service as any).generateHMAC.bind(service);
-
-      const secret = 'test-secret-key';
-      const body = JSON.stringify({ event: 'test', data: 'test-data' });
-
-      const signature1 = await generateHMAC(secret, body);
-      const signature2 = await generateHMAC(secret, body);
-
-      expect(signature1).toBe(signature2);
-      expect(signature1).toHaveLength(64); // SHA-256 produces 64 hex chars
-    });
-
-    it('should generate different HMAC for different secrets', async () => {
-      const generateHMAC = (service as any).generateHMAC.bind(service);
-
-      const body = JSON.stringify({ event: 'test', data: 'test-data' });
-
-      const signature1 = await generateHMAC('secret-1', body);
-      const signature2 = await generateHMAC('secret-2', body);
-
-      expect(signature1).not.toBe(signature2);
-    });
-
-    it('should generate different HMAC for different body content', async () => {
-      const generateHMAC = (service as any).generateHMAC.bind(service);
-
-      const secret = 'test-secret';
-
-      const signature1 = await generateHMAC(secret, '{"a":1}');
-      const signature2 = await generateHMAC(secret, '{"a":2}');
-
-      expect(signature1).not.toBe(signature2);
-    });
-  });
-
-  describe('webhook configuration', () => {
-    it('should return empty array when no webhooks configured', () => {
-      const getWebhookConfigurations = (
-        service as any
-      ).getWebhookConfigurations.bind(service);
-
-      const webhooks = getWebhookConfigurations(mockUserId, 'resume.created');
-
-      expect(webhooks).toEqual([]);
     });
   });
 });

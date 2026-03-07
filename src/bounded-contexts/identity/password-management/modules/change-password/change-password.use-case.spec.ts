@@ -5,6 +5,7 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { EntityNotFoundException } from '../../../shared-kernel/exceptions';
 import {
   InMemoryPasswordRepository,
   StubEventBus,
@@ -16,7 +17,6 @@ import {
   SamePasswordException,
   WeakPasswordException,
 } from '../../domain/exceptions';
-import { EntityNotFoundException } from '../../../shared-kernel/exceptions';
 
 /**
  * Simplified version of ChangePasswordUseCase for testing without NestJS DI
@@ -37,9 +37,7 @@ class TestChangePasswordUseCase {
 
     // Validate new password strength first
     if (!this.isStrongPassword(newPassword)) {
-      throw new WeakPasswordException([
-        'Password does not meet security requirements',
-      ]);
+      throw new WeakPasswordException(['Password does not meet security requirements']);
     }
 
     // Find user
@@ -49,19 +47,13 @@ class TestChangePasswordUseCase {
     }
 
     // Verify current password
-    const isCurrentValid = await this.passwordHasher.compare(
-      currentPassword,
-      user.passwordHash,
-    );
+    const isCurrentValid = await this.passwordHasher.compare(currentPassword, user.passwordHash);
     if (!isCurrentValid) {
       throw new InvalidCurrentPasswordException();
     }
 
     // Check if new password is same as current
-    const isSamePassword = await this.passwordHasher.compare(
-      newPassword,
-      user.passwordHash,
-    );
+    const isSamePassword = await this.passwordHasher.compare(newPassword, user.passwordHash);
     if (isSamePassword) {
       throw new SamePasswordException();
     }
@@ -111,11 +103,7 @@ describe('ChangePasswordUseCase', () => {
       passwordHash: `hashed_${currentPassword}`, // Matches StubHashService format
     });
 
-    useCase = new TestChangePasswordUseCase(
-      passwordRepository,
-      passwordHasher,
-      eventBus,
-    );
+    useCase = new TestChangePasswordUseCase(passwordRepository, passwordHasher, eventBus);
   });
 
   it('should be defined', () => {

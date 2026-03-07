@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { ResumeAst, ResumeDsl } from '@/shared-kernel';
 import type { GenericResume, GenericResumeSection, SemanticKind } from '@/shared-kernel/types';
@@ -9,14 +9,90 @@ import { DslValidatorService } from './dsl-validator.service';
 
 type RenderTarget = 'html' | 'pdf';
 
+type PrismaResumeData = {
+  id: string;
+  userId: string;
+  title?: string | null;
+  summary?: string | null;
+  fullName?: string | null;
+  jobTitle?: string | null;
+  phone?: string | null;
+  emailContact?: string | null;
+  location?: string | null;
+  linkedin?: string | null;
+  github?: string | null;
+  website?: string | null;
+  activeTheme?: { id: string; name: string; styleConfig: unknown } | null;
+  customTheme?: unknown;
+  createdAt: Date;
+  updatedAt: Date;
+  resumeSections?: Array<{
+    id: string;
+    sectionTypeId: string;
+    titleOverride: string | null;
+    isVisible: boolean;
+    order: number;
+    sectionType: {
+      key: string;
+      title: string;
+      semanticKind: string;
+    };
+    items: Array<{
+      id: string;
+      order: number;
+      isVisible: boolean;
+      content: unknown;
+      createdAt: Date;
+      updatedAt: Date;
+    }>;
+  }>;
+};
+
+type DslPrismaPort = {
+  resume: {
+    findFirst: (args: {
+      where: { id: string; userId: string };
+      include: typeof RESUME_RELATIONS_INCLUDE;
+    }) => Promise<PrismaResumeData | null>;
+  };
+  resumeShare: {
+    findUnique: (args: {
+      where: { slug: string };
+      include: {
+        resume: {
+          include: typeof RESUME_RELATIONS_INCLUDE;
+        };
+      };
+    }) => Promise<{
+      isActive: boolean;
+      expiresAt: Date | null;
+      resume: PrismaResumeData;
+    } | null>;
+  };
+};
+type DslCompilerPort = Pick<
+  DslCompilerService,
+  'compileFromRaw' | 'compileForHtml' | 'compileForPdf'
+>;
+type DslValidatorPort = {
+  validate: (dsl: unknown) => {
+    valid: boolean;
+    errors?: unknown[] | null;
+  };
+  validateOrThrow: (dsl: unknown) => ResumeDsl;
+};
+
 @Injectable()
 export class DslRepository {
   private readonly logger = new Logger(DslRepository.name);
 
   constructor(
-    private readonly prisma: PrismaService,
-    private readonly compiler: DslCompilerService,
-    private readonly validator: DslValidatorService,
+    @Inject(PrismaService)
+    private readonly prisma: DslPrismaPort,
+    @Inject(DslCompilerService)
+    private readonly compiler: DslCompilerPort,
+    @Inject(DslValidatorService)
+    private readonly validator: DslValidatorPort,
   ) {}
 
   preview(dsl: unknown, target: RenderTarget = 'html'): ResumeAst {
@@ -86,44 +162,7 @@ export class DslRepository {
    * Normalizes Prisma resume to GenericResume format.
    * This is the single canonical transformation point.
    */
-  private normalizeToGenericResume(resume: {
-    id: string;
-    userId: string;
-    title?: string | null;
-    summary?: string | null;
-    fullName?: string | null;
-    jobTitle?: string | null;
-    phone?: string | null;
-    emailContact?: string | null;
-    location?: string | null;
-    linkedin?: string | null;
-    github?: string | null;
-    website?: string | null;
-    activeTheme?: { id: string; name: string; styleConfig: unknown } | null;
-    customTheme?: unknown;
-    createdAt: Date;
-    updatedAt: Date;
-    resumeSections?: Array<{
-      id: string;
-      sectionTypeId: string;
-      titleOverride: string | null;
-      isVisible: boolean;
-      order: number;
-      sectionType: {
-        key: string;
-        title: string;
-        semanticKind: string;
-      };
-      items: Array<{
-        id: string;
-        order: number;
-        isVisible: boolean;
-        content: unknown;
-        createdAt: Date;
-        updatedAt: Date;
-      }>;
-    }>;
-  }): GenericResume {
+  private normalizeToGenericResume(resume: PrismaResumeData): GenericResume {
     const sections: GenericResumeSection[] = (resume.resumeSections ?? [])
       .filter((section) => section.isVisible)
       .sort((a, b) => a.order - b.order)

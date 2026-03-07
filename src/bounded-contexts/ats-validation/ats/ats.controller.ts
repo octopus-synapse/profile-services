@@ -12,6 +12,7 @@ import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/a
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import type { ValidateCV } from '@/shared-kernel';
+import { ValidateCVRequestDto } from '@/shared-kernel/dtos/sdk-request.dto';
 import { ATSService } from './services/ats.service';
 
 /** DTO wrapper for ValidationResponse to satisfy Dto suffix rule */
@@ -75,52 +76,7 @@ export class ATSController {
       'Upload a CV (PDF or DOCX) to validate its compatibility with Applicant Tracking Systems. Returns detailed validation results including issues and suggestions.',
   })
   @ApiConsumes('multipart/form-data')
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        file: {
-          type: 'string',
-          format: 'binary',
-          description: 'CV file (PDF or DOCX)',
-        },
-        checkFormat: {
-          type: 'boolean',
-          description: 'Check document format (default: true)',
-          default: true,
-        },
-        checkSections: {
-          type: 'boolean',
-          description: 'Check CV sections (default: true)',
-          default: true,
-        },
-        checkGrammar: {
-          type: 'boolean',
-          description: 'Check grammar and spelling (default: false)',
-          default: false,
-        },
-        checkOrder: {
-          type: 'boolean',
-          description: 'Check section order (default: true)',
-          default: true,
-        },
-        checkLayout: {
-          type: 'boolean',
-          description: 'Check layout safety (default: true)',
-          default: true,
-        },
-        resumeId: {
-          type: 'string',
-          description: 'Optional resume ID for semantic snapshot lookup',
-        },
-        checkSemantic: {
-          type: 'boolean',
-          description: 'Run semantic ATS policies (default: true)',
-          default: true,
-        },
-      },
-    },
-  })
+  @ApiBody({ type: ValidateCVRequestDto })
   @UseInterceptors(FileInterceptor('file'))
   async validateCV(
     @UploadedFile() file: Express.Multer.File | undefined,

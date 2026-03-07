@@ -7,9 +7,9 @@
  * Run: bun test test/contracts/sdk-generation.test.ts
  */
 
-import { describe, test, expect } from 'bun:test';
-import { readFileSync } from 'fs';
-import { resolve } from 'path';
+import { describe, expect, test } from 'bun:test';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 describe('SDK Generation - Swagger Spec Validation', () => {
   test('swagger-test.json has correct structure', () => {
@@ -22,9 +22,7 @@ describe('SDK Generation - Swagger Spec Validation', () => {
     // Should have paths
     expect(swagger.paths).toBeDefined();
     expect(Object.keys(swagger.paths)).toContain('/api/resume-import/json');
-    expect(Object.keys(swagger.paths)).toContain(
-      '/api/resume-import/{importId}',
-    );
+    expect(Object.keys(swagger.paths)).toContain('/api/resume-import/{importId}');
   });
 
   test('resume-import endpoints have correct operations', () => {

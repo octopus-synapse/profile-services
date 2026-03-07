@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
-import { MecMetadataController } from './mec-metadata.controller';
 import { CourseQueryService } from '../services/course-query.service';
 import { InstitutionQueryService } from '../services/institution-query.service';
 import { MecStatsService } from '../services/mec-stats.service';
+import { MecMetadataController } from './mec-metadata.controller';
 
 const createInstitutionQueryService = () => ({
   findAllStateCodes: mock(() => Promise.resolve(['SP', 'RJ'])),

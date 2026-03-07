@@ -48,8 +48,6 @@ describe('Disable2faUseCase', () => {
   it('should throw if 2FA is not setup', async () => {
     repository.clear();
 
-    await expect(useCase.execute(userId)).rejects.toThrow(
-      TwoFactorNotSetupException,
-    );
+    await expect(useCase.execute(userId)).rejects.toThrow(TwoFactorNotSetupException);
   });
 });

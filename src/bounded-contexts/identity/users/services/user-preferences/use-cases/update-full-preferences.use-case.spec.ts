@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions';
-import { UpdateFullPreferencesUseCase } from './update-full-preferences.use-case';
 import type { UserPreferencesRepositoryPort } from '../ports/user-preferences.port';
+import { UpdateFullPreferencesUseCase } from './update-full-preferences.use-case';
 
 describe('UpdateFullPreferencesUseCase', () => {
   let useCase: UpdateFullPreferencesUseCase;
@@ -66,8 +66,8 @@ describe('UpdateFullPreferencesUseCase', () => {
   it('throws EntityNotFoundException when user does not exist', async () => {
     repository.userExists = mock(async () => false);
 
-    await expect(
-      useCase.execute('non-existent', { theme: 'dark' }),
-    ).rejects.toThrow(EntityNotFoundException);
+    await expect(useCase.execute('non-existent', { theme: 'dark' })).rejects.toThrow(
+      EntityNotFoundException,
+    );
   });
 });

@@ -1,8 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import type {
-  SectionTypeAtsEntry,
-  SemanticResumeSnapshot,
-} from '../interfaces';
+import type { SectionTypeAtsEntry, SemanticResumeSnapshot } from '../interfaces';
 import { MandatorySemanticPolicy } from './mandatory-semantic.policy';
 
 const defaultCatalog: SectionTypeAtsEntry[] = [
@@ -96,11 +93,9 @@ describe('MandatorySemanticPolicy', () => {
     const result = policy.validate(snapshot);
 
     expect(result.passed).toBe(true);
-    expect(
-      result.issues.some(
-        (issue) => issue.code === 'MISSING_MANDATORY_SEMANTIC_KINDS',
-      ),
-    ).toBe(true);
+    expect(result.issues.some((issue) => issue.code === 'MISSING_MANDATORY_SEMANTIC_KINDS')).toBe(
+      true,
+    );
   });
 
   it('fails when snapshot has no items', () => {
@@ -113,10 +108,6 @@ describe('MandatorySemanticPolicy', () => {
     const result = policy.validate(snapshot);
 
     expect(result.passed).toBe(false);
-    expect(
-      result.issues.some(
-        (issue) => issue.code === 'NO_SEMANTIC_ITEMS_DETECTED',
-      ),
-    ).toBe(true);
+    expect(result.issues.some((issue) => issue.code === 'NO_SEMANTIC_ITEMS_DETECTED')).toBe(true);
   });
 });

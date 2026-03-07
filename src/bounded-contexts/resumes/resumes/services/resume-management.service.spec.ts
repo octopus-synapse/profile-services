@@ -1,61 +1,76 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import { ResumeManagementService } from './resume-management.service';
 import type {
-  ResumeManagementUseCases,
-  ResumeListItem,
   ResumeDetails,
+  ResumeListItem,
+  ResumeManagementUseCases,
 } from './resume-management/ports/resume-management.port';
+import { ResumeManagementService } from './resume-management.service';
+
+/**
+ * Creates a mock ResumeListItem with test data.
+ * Uses type assertion in factory to keep test code clean.
+ */
+function createMockResumeListItem(overrides: Partial<ResumeListItem> = {}): ResumeListItem {
+  return {
+    id: 'r-1',
+    title: 'Engenheiro de Software',
+    slug: 'engenheiro-software',
+    summary: 'Experiência em desenvolvimento',
+    userId: 'user-1',
+    createdAt: new Date('2026-01-01'),
+    updatedAt: new Date('2026-01-01'),
+    resumeSections: [],
+    _count: {
+      resumeSections: 0,
+    },
+    ...overrides,
+  } as ResumeListItem;
+}
+
+/**
+ * Creates a mock ResumeDetails with test data.
+ * Uses type assertion in factory to keep test code clean.
+ */
+function createMockResumeDetails(overrides: Partial<ResumeDetails> = {}): ResumeDetails {
+  return {
+    id: 'r-1',
+    title: 'Engenheiro de Software',
+    slug: 'engenheiro-software',
+    summary: 'Experiência em desenvolvimento',
+    userId: 'user-1',
+    createdAt: new Date('2026-01-01'),
+    updatedAt: new Date('2026-01-01'),
+    user: {
+      id: 'user-1',
+      email: 'joao@email.com',
+      name: 'João Silva',
+    },
+    resumeSections: [],
+    ...overrides,
+  } as ResumeDetails;
+}
 
 describe('ResumeManagementService (Facade)', () => {
   let service: ResumeManagementService;
   let useCases: ResumeManagementUseCases;
 
   beforeEach(() => {
-    const mockResumeListItem = {
-      id: 'r-1',
-      title: 'Engenheiro de Software',
-      slug: 'engenheiro-software',
-      summary: 'Experiência em desenvolvimento',
-      userId: 'user-1',
-      createdAt: new Date('2026-01-01'),
-      updatedAt: new Date('2026-01-01'),
-      resumeSections: [],
-      _count: {
-        resumeSections: 0,
-      },
-    } as unknown as ResumeListItem;
-
-    const mockResumeDetails = {
-      id: 'r-1',
-      title: 'Engenheiro de Software',
-      slug: 'engenheiro-software',
-      summary: 'Experiência em desenvolvimento',
-      userId: 'user-1',
-      createdAt: new Date('2026-01-01'),
-      updatedAt: new Date('2026-01-01'),
-      user: {
-        id: 'user-1',
-        email: 'joao@email.com',
-        name: 'João Silva',
-      },
-      resumeSections: [],
-    } as unknown as ResumeDetails;
+    const mockResumeListItem = createMockResumeListItem();
+    const mockResumeDetails = createMockResumeDetails();
 
     useCases = {
       listResumesForUserUseCase: {
-        execute: mock(
-          async (userId: string): Promise<{ resumes: ResumeListItem[] }> => {
-            return { resumes: [mockResumeListItem] };
-          },
-        ),
+        execute: mock(async (_userId: string): Promise<{ resumes: ResumeListItem[] }> => {
+          return { resumes: [mockResumeListItem] };
+        }),
       },
       getResumeDetailsUseCase: {
-        execute: mock(async (resumeId: string): Promise<ResumeDetails> => {
+        execute: mock(async (_resumeId: string): Promise<ResumeDetails> => {
           return mockResumeDetails;
         }),
       },
       deleteResumeUseCase: {
-        execute: mock(async (resumeId: string): Promise<void> => {
+        execute: mock(async (_resumeId: string): Promise<void> => {
           return undefined;
         }),
       },
@@ -67,9 +82,7 @@ describe('ResumeManagementService (Facade)', () => {
   it('delegates listResumesForUser to use case', async () => {
     const result = await service.listResumesForUser('user-1');
 
-    expect(useCases.listResumesForUserUseCase.execute).toHaveBeenCalledWith(
-      'user-1',
-    );
+    expect(useCases.listResumesForUserUseCase.execute).toHaveBeenCalledWith('user-1');
 
     expect(result).toBeTruthy();
     expect(result.resumes).toBeArray();
@@ -92,9 +105,7 @@ describe('ResumeManagementService (Facade)', () => {
   it('delegates getResumeDetails to use case', async () => {
     const result = await service.getResumeDetails('resume-1');
 
-    expect(useCases.getResumeDetailsUseCase.execute).toHaveBeenCalledWith(
-      'resume-1',
-    );
+    expect(useCases.getResumeDetailsUseCase.execute).toHaveBeenCalledWith('resume-1');
 
     expect(result).toBeTruthy();
     expect(result.id).toBe('r-1');
@@ -114,15 +125,13 @@ describe('ResumeManagementService (Facade)', () => {
   it('delegates deleteResume to use case and returns void', async () => {
     const result = await service.deleteResume('resume-1');
 
-    expect(useCases.deleteResumeUseCase.execute).toHaveBeenCalledWith(
-      'resume-1',
-    );
+    expect(useCases.deleteResumeUseCase.execute).toHaveBeenCalledWith('resume-1');
     expect(result).toBeUndefined();
   });
 
   it('propagates errors from listResumesForUser use case', async () => {
     useCases.listResumesForUserUseCase.execute = mock(
-      async (userId: string): Promise<{ resumes: ResumeListItem[] }> => {
+      async (_userId: string): Promise<{ resumes: ResumeListItem[] }> => {
         throw new Error('boom');
       },
     );
@@ -131,11 +140,9 @@ describe('ResumeManagementService (Facade)', () => {
   });
 
   it('propagates errors from deleteResume use case', async () => {
-    useCases.deleteResumeUseCase.execute = mock(
-      async (resumeId: string): Promise<void> => {
-        throw new Error('cannot delete');
-      },
-    );
+    useCases.deleteResumeUseCase.execute = mock(async (_resumeId: string): Promise<void> => {
+      throw new Error('cannot delete');
+    });
 
     expect(service.deleteResume('resume-1')).rejects.toThrow('cannot delete');
   });

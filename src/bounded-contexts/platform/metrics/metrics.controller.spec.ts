@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { MetricsController } from './metrics.controller';
 import type { MetricsService } from './metrics.service';
 
@@ -8,15 +8,11 @@ describe('MetricsController', () => {
 
   beforeEach(() => {
     mockMetricsService = {
-      getMetrics: mock(() =>
-        Promise.resolve('# HELP test_metric\ntest_metric 1'),
-      ),
+      getMetrics: mock(() => Promise.resolve('# HELP test_metric\ntest_metric 1')),
       getContentType: mock(() => 'text/plain; version=0.0.4; charset=utf-8'),
     };
 
-    controller = new MetricsController(
-      mockMetricsService as unknown as MetricsService,
-    );
+    controller = new MetricsController(mockMetricsService as unknown as MetricsService);
   });
 
   describe('GET /metrics', () => {

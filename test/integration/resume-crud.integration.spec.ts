@@ -7,22 +7,13 @@
  * Kent Beck: "Test behavior, not implementation"
  */
 
-import {
-  describe,
-  it,
-  expect,
-  beforeAll,
-  afterAll,
-  beforeEach,
-  afterEach,
-  mock,
-} from 'bun:test';
-import { Test, TestingModule } from '@nestjs/testing';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, mock } from 'bun:test';
 import { INestApplication } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
-import { AppModule } from '../../src/app.module';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { EmailSenderService } from '@/bounded-contexts/platform/common/email/services/email-sender.service';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { AppModule } from '../../src/app.module';
 import { acceptTosWithPrisma } from './setup';
 
 describe('Resume CRUD Integration', () => {

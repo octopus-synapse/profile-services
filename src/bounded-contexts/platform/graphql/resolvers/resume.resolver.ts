@@ -14,8 +14,7 @@ import { SectionTypeModel } from '../models/section-type.model';
  * GraphQL Resolver for Resume queries and mutations
  *
  * Uses generic sections API for all section operations.
- * Domain-specific mutations (addExperience, addEducation, etc.) have been
- * removed in favor of the unified createSectionItem/updateSectionItem/deleteSectionItem API.
+ * Section mutations use the unified createSectionItem/updateSectionItem/deleteSectionItem API.
  *
  * Issue #76: Design GraphQL schema with Code-First approach
  * Issue #77: Implement DataLoader for N+1 optimization

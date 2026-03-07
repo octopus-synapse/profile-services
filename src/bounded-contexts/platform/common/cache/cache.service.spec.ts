@@ -6,12 +6,12 @@
  * Testes detalhados de implementação estão nos serviços especializados.
  */
 
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { CacheService } from './cache.service';
+import { RedisConnectionService } from './redis-connection.service';
 import { CacheCoreService } from './services/cache-core.service';
 import { CachePatternsService } from './services/cache-patterns.service';
-import { RedisConnectionService } from './redis-connection.service';
 
 describe('CacheService (Adapter)', () => {
   let service: CacheService;
@@ -55,15 +55,13 @@ describe('CacheService (Adapter)', () => {
         return Promise.resolve();
       }),
       isLocked: mock((key: string) => Promise.resolve(lockStore.has(key))),
-      getOrSet: mock(
-        async <T>(key: string, computeFn: () => Promise<T>, _ttl?: number) => {
-          const cached = cacheStore.get(key) as T | undefined;
-          if (cached !== undefined) return cached;
-          const value = await computeFn();
-          cacheStore.set(key, value);
-          return value;
-        },
-      ),
+      getOrSet: mock(async <T>(key: string, computeFn: () => Promise<T>, _ttl?: number) => {
+        const cached = cacheStore.get(key) as T | undefined;
+        if (cached !== undefined) return cached;
+        const value = await computeFn();
+        cacheStore.set(key, value);
+        return value;
+      }),
     },
     redisConnection: {
       onModuleDestroy: mock().mockResolvedValue(undefined),

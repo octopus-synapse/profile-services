@@ -40,8 +40,8 @@ export const PersonaConfigSchema = z.object({
   /** Types of achievements relevant to this persona */
   achievementTypes: z.array(z.string()),
 
-  /** Resume sections that should be highlighted */
-  prioritySections: z.array(z.string()),
+  /** Content priorities that should be highlighted */
+  contentPriorities: z.array(z.string()),
 
   /** Keywords for persona detection and suggestions */
   keywords: z.array(z.string()),
@@ -72,7 +72,7 @@ export const PersonaDetectionResultSchema = z.object({
   analyzed: z.object({
     skills: z.number().int().nonnegative(),
     keywords: z.number().int().nonnegative(),
-    experiences: z.number().int().nonnegative(),
+    sectionItems: z.number().int().nonnegative(),
   }),
 });
 

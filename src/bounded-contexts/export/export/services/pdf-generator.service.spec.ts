@@ -5,10 +5,10 @@
  * Como PDF generation envolve Puppeteer, usamos stubs para isolar.
  */
 
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
-import { PdfGeneratorService } from './pdf-generator.service';
 import { BrowserManagerService } from './browser-manager.service';
+import { PdfGeneratorService } from './pdf-generator.service';
 import { PdfTemplateService } from './pdf-template.service';
 
 describe('PdfGeneratorService', () => {

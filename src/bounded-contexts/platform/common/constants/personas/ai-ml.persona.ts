@@ -24,7 +24,7 @@ export const AI_ML_PERSONA: PersonaConfig = {
     'research_contribution',
     'open_source_ml_lib',
   ],
-  prioritySections: ['publications', 'openSource', 'projects', 'achievements'],
+  contentPriorities: ['publications', 'open_source_work', 'project_portfolio', 'recognition'],
   keywords: [
     'tensorflow',
     'pytorch',

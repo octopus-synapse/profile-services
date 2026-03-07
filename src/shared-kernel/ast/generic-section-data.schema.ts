@@ -5,8 +5,7 @@
  * No discriminated union - all sections have the same structure.
  *
  * ARCHITECTURE NOTE:
- * Instead of { type: 'experience', items: ExperienceItem[] },
- * we now use { semanticKind: 'WORK_EXPERIENCE', items: GenericItem[] }.
+ * Section rendering is driven by section metadata rather than shape-specific unions.
  *
  * The rendering logic (frontend) uses semanticKind + SectionType.definition
  * to determine how to display each item. This enables:

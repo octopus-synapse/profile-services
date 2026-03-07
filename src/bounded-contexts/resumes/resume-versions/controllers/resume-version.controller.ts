@@ -4,12 +4,12 @@ import type { Request } from 'express';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
+import { ResumeVersionServicePort } from '@/bounded-contexts/resumes/resumes/ports/resume-version-service.port';
 import {
   ResumeVersionDataDto,
   ResumeVersionListDataDto,
   ResumeVersionRestoreDataDto,
 } from '../dto/controller-response.dto';
-import { ResumeVersionService } from '../services/resume-version.service';
 
 interface RequestWithUser extends Request {
   user: { userId: string; email: string };
@@ -19,7 +19,7 @@ interface RequestWithUser extends Request {
 @Controller('v1')
 @UseGuards(JwtAuthGuard)
 export class ResumeVersionController {
-  constructor(private readonly versionService: ResumeVersionService) {}
+  constructor(private readonly versionService: ResumeVersionServicePort) {}
 
   // Original endpoints
   @Get('resumes/:resumeId/versions')

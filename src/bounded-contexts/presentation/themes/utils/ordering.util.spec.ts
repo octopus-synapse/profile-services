@@ -3,13 +3,8 @@
  * Tests for section and item ordering functions
  */
 
-import { describe, it, expect } from 'bun:test';
-import {
-  sortByOrder,
-  normalizeOrders,
-  moveItem,
-  applyItemOverrides,
-} from './ordering.util';
+import { describe, expect, it } from 'bun:test';
+import { applyItemOverrides, moveItem, normalizeOrders, sortByOrder } from './ordering.util';
 
 describe('sortByOrder', () => {
   it('should sort items by order property ascending', () => {

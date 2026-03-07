@@ -5,12 +5,12 @@
  * These tests ensure we don't miss any backend endpoints.
  */
 
-import { describe, test, expect } from 'bun:test';
-import { readFileSync, readdirSync } from 'fs';
-import { resolve, join } from 'path';
+import { describe, expect, test } from 'bun:test';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 const SWAGGER_PATH = resolve(__dirname, '../../swagger.json');
-const CONTROLLERS_PATH = resolve(__dirname, '../../src/bounded-contexts');
+const _CONTROLLERS_PATH = resolve(__dirname, '../../src/bounded-contexts');
 
 describe('Swagger Completeness - Endpoint Coverage', () => {
   test('swagger.json exists and is valid JSON', () => {
@@ -44,17 +44,13 @@ describe('Swagger Completeness - Endpoint Coverage', () => {
     expect(swagger.paths['/api/resume-import/{importId}']?.get).toBeDefined();
 
     // DELETE /{importId}
-    expect(
-      swagger.paths['/api/resume-import/{importId}']?.delete,
-    ).toBeDefined();
+    expect(swagger.paths['/api/resume-import/{importId}']?.delete).toBeDefined();
 
     // GET /history
     expect(swagger.paths['/api/resume-import']?.get).toBeDefined();
 
     // POST /{importId}/retry
-    expect(
-      swagger.paths['/api/resume-import/{importId}/retry']?.post,
-    ).toBeDefined();
+    expect(swagger.paths['/api/resume-import/{importId}/retry']?.post).toBeDefined();
   });
 
   test('all resume-import endpoints have operationId', () => {
@@ -279,16 +275,14 @@ describe('Swagger Structure Validation', () => {
     expect(swagger.components.securitySchemes).toBeDefined();
     expect(swagger.components.securitySchemes['JWT-auth']).toBeDefined();
     expect(swagger.components.securitySchemes['JWT-auth'].type).toBe('http');
-    expect(swagger.components.securitySchemes['JWT-auth'].scheme).toBe(
-      'bearer',
-    );
+    expect(swagger.components.securitySchemes['JWT-auth'].scheme).toBe('bearer');
   });
 
   test('has proper tags', () => {
     const swagger = JSON.parse(readFileSync(SWAGGER_PATH, 'utf-8'));
 
     expect(swagger.tags).toBeDefined();
-    const tagNames = swagger.tags.map((t: any) => t.name);
+    const tagNames = swagger.tags.map((t: { name: string }) => t.name);
     // Auth tag not present since auth is internal (not SDK-exported)
     expect(tagNames).toContain('resume-import');
   });
@@ -296,11 +290,13 @@ describe('Swagger Structure Validation', () => {
   test('all endpoints have tags', () => {
     const swagger = JSON.parse(readFileSync(SWAGGER_PATH, 'utf-8'));
 
-    Object.entries(swagger.paths).forEach(([path, methods]: [string, any]) => {
-      Object.entries(methods).forEach(([method, operation]: [string, any]) => {
-        expect(operation.tags).toBeDefined();
-        expect(operation.tags.length).toBeGreaterThan(0);
-      });
+    Object.entries(swagger.paths).forEach(([_path, methods]) => {
+      Object.entries(methods as Record<string, Record<string, unknown>>).forEach(
+        ([_method, operation]) => {
+          expect(operation.tags).toBeDefined();
+          expect((operation.tags as unknown[]).length).toBeGreaterThan(0);
+        },
+      );
     });
   });
 
@@ -344,18 +340,14 @@ describe('Swagger Structure Validation', () => {
     const shouldHaveBody = (path: string) =>
       !noBodyEndpoints.some((action) => path.includes(action));
 
-    Object.entries(swagger.paths).forEach(([path, methods]: [string, any]) => {
+    Object.entries(
+      swagger.paths as Record<string, Record<string, Record<string, unknown>>>,
+    ).forEach(([path, methods]) => {
       if (methods.post && shouldHaveBody(path)) {
-        expect(
-          methods.post.requestBody,
-          `POST ${path} should have requestBody`,
-        ).toBeDefined();
+        expect(methods.post.requestBody, `POST ${path} should have requestBody`).toBeDefined();
       }
       if (methods.put) {
-        expect(
-          methods.put.requestBody,
-          `PUT ${path} should have requestBody`,
-        ).toBeDefined();
+        expect(methods.put.requestBody, `PUT ${path} should have requestBody`).toBeDefined();
       }
     });
   });
@@ -363,11 +355,15 @@ describe('Swagger Structure Validation', () => {
   test('all endpoints have responses', () => {
     const swagger = JSON.parse(readFileSync(SWAGGER_PATH, 'utf-8'));
 
-    Object.entries(swagger.paths).forEach(([path, methods]: [string, any]) => {
-      Object.entries(methods).forEach(([method, operation]: [string, any]) => {
-        expect(operation.responses).toBeDefined();
-        expect(Object.keys(operation.responses).length).toBeGreaterThan(0);
-      });
+    Object.entries(swagger.paths).forEach(([_path, methods]) => {
+      Object.entries(methods as Record<string, Record<string, unknown>>).forEach(
+        ([_method, operation]) => {
+          expect(operation.responses).toBeDefined();
+          expect(
+            Object.keys(operation.responses as Record<string, unknown>).length,
+          ).toBeGreaterThan(0);
+        },
+      );
     });
   });
 });

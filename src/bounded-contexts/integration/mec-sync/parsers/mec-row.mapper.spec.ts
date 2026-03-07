@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'bun:test';
+import { describe, expect, it } from 'bun:test';
 import { mapToMecRow } from './mec-row.mapper';
 
 describe('MEC Row Mapper', () => {
@@ -242,16 +242,11 @@ describe('MEC Row Mapper', () => {
           ['NO_IES', 0],
           ['NO_MUNICIPIO_IES', 1],
         ]);
-        const values = [
-          'Universidade São Paulo - USP (Campus Ribeirão Preto)',
-          'Ribeirão Preto',
-        ];
+        const values = ['Universidade São Paulo - USP (Campus Ribeirão Preto)', 'Ribeirão Preto'];
 
         const result = mapToMecRow(values, columnMap);
 
-        expect(result.NO_IES).toBe(
-          'Universidade São Paulo - USP (Campus Ribeirão Preto)',
-        );
+        expect(result.NO_IES).toBe('Universidade São Paulo - USP (Campus Ribeirão Preto)');
         expect(result.NO_MUNICIPIO_IES).toBe('Ribeirão Preto');
       });
 

@@ -19,7 +19,7 @@ export const MOBILE_PERSONA: PersonaConfig = {
     'Testing',
   ],
   achievementTypes: ['app_downloads', 'app_rating', 'featured_app', 'app_revenue'],
-  prioritySections: ['projects', 'experiences', 'achievements', 'certifications'],
+  contentPriorities: ['project_portfolio', 'career_history', 'recognition', 'credentials'],
   keywords: [
     'react-native',
     'flutter',

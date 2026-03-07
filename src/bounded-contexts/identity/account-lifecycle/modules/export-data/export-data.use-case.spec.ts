@@ -6,10 +6,7 @@
 
 import { beforeEach, describe, expect, it } from 'bun:test';
 import { EntityNotFoundException } from '../../../shared-kernel/exceptions';
-import {
-  InMemoryAuditLogger,
-  InMemoryDataExportRepository,
-} from '../../../shared-kernel/testing';
+import { InMemoryAuditLogger, InMemoryDataExportRepository } from '../../../shared-kernel/testing';
 import { ExportDataUseCase } from './export-data.use-case';
 
 describe('ExportDataUseCase', () => {
@@ -59,9 +56,7 @@ describe('ExportDataUseCase', () => {
   it('should throw if user not found', async () => {
     repository.clear();
 
-    await expect(useCase.execute(userId)).rejects.toThrow(
-      EntityNotFoundException,
-    );
+    await expect(useCase.execute(userId)).rejects.toThrow(EntityNotFoundException);
   });
 
   it('should log export request', async () => {

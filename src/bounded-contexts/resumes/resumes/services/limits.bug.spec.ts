@@ -1,4 +1,5 @@
-import { describe, it, expect, mock } from 'bun:test';
+import { describe, expect, it, mock } from 'bun:test';
+
 /**
  * Resource Limits Bug Detection Tests
  *

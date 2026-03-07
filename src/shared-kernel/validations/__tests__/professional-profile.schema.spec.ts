@@ -2,14 +2,14 @@
  * Professional Profile Schema Tests
  */
 
-import { describe, it, expect } from 'bun:test';
+import { describe, expect, it } from 'bun:test';
 import {
-  JobTitleSchema,
-  SummarySchema,
-  LinkedInUrlSchema,
   GitHubUrlSchema,
-  SocialUrlSchema,
+  JobTitleSchema,
+  LinkedInUrlSchema,
   ProfessionalProfileSchema,
+  SocialUrlSchema,
+  SummarySchema,
 } from '../professional-profile.schema';
 
 describe('JobTitleSchema', () => {
@@ -39,8 +39,7 @@ describe('JobTitleSchema', () => {
 
 describe('SummarySchema', () => {
   it('should accept valid summary', () => {
-    const summary =
-      'Experienced software engineer with 5+ years in full-stack development.';
+    const summary = 'Experienced software engineer with 5+ years in full-stack development.';
     expect(() => SummarySchema.parse(summary)).not.toThrow();
   });
 
@@ -73,11 +72,7 @@ describe('LinkedInUrlSchema', () => {
     expect(() => LinkedInUrlSchema.parse(undefined)).not.toThrow();
   });
 
-  const invalidUrls = [
-    'linkedin.com/in/user',
-    'https://twitter.com/user',
-    'not-a-url',
-  ];
+  const invalidUrls = ['linkedin.com/in/user', 'https://twitter.com/user', 'not-a-url'];
 
   invalidUrls.forEach((url) => {
     it(`should reject ${url}`, () => {
@@ -104,11 +99,7 @@ describe('GitHubUrlSchema', () => {
     expect(() => GitHubUrlSchema.parse(undefined)).not.toThrow();
   });
 
-  const invalidUrls = [
-    'github.com/user',
-    'https://gitlab.com/user',
-    'not-a-url',
-  ];
+  const invalidUrls = ['github.com/user', 'https://gitlab.com/user', 'not-a-url'];
 
   invalidUrls.forEach((url) => {
     it(`should reject ${url}`, () => {
@@ -119,11 +110,7 @@ describe('GitHubUrlSchema', () => {
 });
 
 describe('SocialUrlSchema', () => {
-  const validUrls = [
-    'https://example.com',
-    'http://my-portfolio.dev',
-    'https://blog.user.co.uk',
-  ];
+  const validUrls = ['https://example.com', 'http://my-portfolio.dev', 'https://blog.user.co.uk'];
 
   validUrls.forEach((url) => {
     it(`should accept ${url}`, () => {

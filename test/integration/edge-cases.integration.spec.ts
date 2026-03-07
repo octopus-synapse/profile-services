@@ -8,14 +8,8 @@
  * These tests push the system to its limits with real API calls.
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
-import {
-  getApp,
-  getRequest,
-  closeApp,
-  createTestUserAndLogin,
-  getPrisma,
-} from './setup';
+import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
+import { closeApp, createTestUserAndLogin, getApp, getPrisma, getRequest } from './setup';
 
 describe('Edge Cases Integration', () => {
   let accessToken: string;

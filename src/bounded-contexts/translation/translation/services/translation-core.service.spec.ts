@@ -1,6 +1,8 @@
 /**
  * Translation Core Service Tests
  *
+ * Clean architecture: Stub HttpService, Pure Bun tests
+ *
  * Business Rules Tested:
  * 1. Fallback: Service failure returns original text with error flag
  * 2. Supported languages: Only PT-BR ↔ EN
@@ -8,46 +10,86 @@
  * 4. Service availability check
  */
 
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
-import { Test, TestingModule } from '@nestjs/testing';
+import { beforeEach, describe, expect, it } from 'bun:test';
+import type { AxiosResponse } from 'axios';
+import { type Observable, of, throwError } from 'rxjs';
 import { TranslationCoreService } from './translation-core.service';
-import { HttpService } from '@nestjs/axios';
-import { ConfigService } from '@nestjs/config';
-import { of, throwError } from 'rxjs';
+
+/**
+ * Stub HttpService for testing
+ */
+class StubHttpService {
+  private postResult: Observable<AxiosResponse<unknown>> = of({
+    data: {},
+    status: 200,
+    statusText: 'OK',
+    headers: {},
+    config: {} as never,
+  });
+  private getResult: Observable<AxiosResponse<unknown>> = of({
+    data: {},
+    status: 200,
+    statusText: 'OK',
+    headers: {},
+    config: {} as never,
+  });
+
+  calls: Array<{ method: string; args: unknown[] }> = [];
+
+  setPostResult(result: Observable<AxiosResponse<unknown>>): void {
+    this.postResult = result;
+  }
+
+  setGetResult(result: Observable<AxiosResponse<unknown>>): void {
+    this.getResult = result;
+  }
+
+  setPostError(error: Error): void {
+    this.postResult = throwError(() => error);
+  }
+
+  setGetError(error: Error): void {
+    this.getResult = throwError(() => error);
+  }
+
+  post(url: string, data?: unknown): Observable<AxiosResponse<unknown>> {
+    this.calls.push({ method: 'post', args: [url, data] });
+    return this.postResult;
+  }
+
+  get(url: string): Observable<AxiosResponse<unknown>> {
+    this.calls.push({ method: 'get', args: [url] });
+    return this.getResult;
+  }
+
+  getCallsFor(method: string): Array<{ method: string; args: unknown[] }> {
+    return this.calls.filter((c) => c.method === method);
+  }
+}
+
+/**
+ * Stub ConfigService
+ */
+const stubConfigService = {
+  get: (key: string, defaultValue?: string): string | undefined => {
+    if (key === 'LIBRETRANSLATE_URL') return 'http://localhost:5000';
+    return defaultValue;
+  },
+};
 
 describe('TranslationCoreService', () => {
   let service: TranslationCoreService;
-  let httpService: HttpService;
-  let configService: ConfigService;
+  let stubHttpService: StubHttpService;
 
-  beforeEach(async () => {
-    httpService = {
-      post: mock(),
-      get: mock(),
-    } as any;
-
-    configService = {
-      get: mock((key: string) => {
-        if (key === 'LIBRETRANSLATE_URL') return 'http://localhost:5000';
-        return undefined;
-      }),
-    } as any;
-
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        TranslationCoreService,
-        { provide: HttpService, useValue: httpService },
-        { provide: ConfigService, useValue: configService },
-      ],
-    }).compile();
-
-    service = module.get<TranslationCoreService>(TranslationCoreService);
+  beforeEach(() => {
+    stubHttpService = new StubHttpService();
+    service = new TranslationCoreService(stubConfigService as never, stubHttpService as never);
   });
 
   describe('Fallback Behavior', () => {
     it('should return original text when service is unavailable', async () => {
       // Mark service as unavailable
-      (service as any).isServiceAvailable = false;
+      (service as unknown as { isServiceAvailable: boolean }).isServiceAvailable = false;
 
       const result = await service.translate('Hello world', 'en', 'pt');
 
@@ -58,10 +100,8 @@ describe('TranslationCoreService', () => {
     });
 
     it('should return original text on HTTP error', async () => {
-      (service as any).isServiceAvailable = true;
-      httpService.post.mockReturnValue(
-        throwError(() => new Error('Connection refused')),
-      );
+      (service as unknown as { isServiceAvailable: boolean }).isServiceAvailable = true;
+      stubHttpService.setPostError(new Error('Connection refused'));
 
       const result = await service.translate('Hello world', 'en', 'pt');
 
@@ -70,8 +110,8 @@ describe('TranslationCoreService', () => {
     });
 
     it('should return original text on timeout', async () => {
-      (service as any).isServiceAvailable = true;
-      httpService.post.mockReturnValue(throwError(() => new Error('Timeout')));
+      (service as unknown as { isServiceAvailable: boolean }).isServiceAvailable = true;
+      stubHttpService.setPostError(new Error('Timeout'));
 
       const result = await service.translate('Hello world', 'en', 'pt');
 
@@ -81,10 +121,8 @@ describe('TranslationCoreService', () => {
 
     it('should continue main flow on translation failure', async () => {
       // Rule: Translation failure should not break main flow
-      (service as any).isServiceAvailable = true;
-      httpService.post.mockReturnValue(
-        throwError(() => new Error('Service error')),
-      );
+      (service as unknown as { isServiceAvailable: boolean }).isServiceAvailable = true;
+      stubHttpService.setPostError(new Error('Service error'));
 
       // This should NOT throw
       const result = await service.translate('Test text', 'pt', 'en');
@@ -96,12 +134,15 @@ describe('TranslationCoreService', () => {
 
   describe('Successful Translation', () => {
     it('should translate PT to EN', async () => {
-      (service as any).isServiceAvailable = true;
-      httpService.post.mockReturnValue(
+      (service as unknown as { isServiceAvailable: boolean }).isServiceAvailable = true;
+      stubHttpService.setPostResult(
         of({
           data: { translatedText: 'Hello world' },
           status: 200,
-        } as any),
+          statusText: 'OK',
+          headers: {},
+          config: {} as never,
+        }),
       );
 
       const result = await service.translate('Olá mundo', 'pt', 'en');
@@ -113,12 +154,15 @@ describe('TranslationCoreService', () => {
     });
 
     it('should translate EN to PT', async () => {
-      (service as any).isServiceAvailable = true;
-      httpService.post.mockReturnValue(
+      (service as unknown as { isServiceAvailable: boolean }).isServiceAvailable = true;
+      stubHttpService.setPostResult(
         of({
           data: { translatedText: 'Olá mundo' },
           status: 200,
-        } as any),
+          statusText: 'OK',
+          headers: {},
+          config: {} as never,
+        }),
       );
 
       const result = await service.translate('Hello world', 'en', 'pt');
@@ -130,37 +174,49 @@ describe('TranslationCoreService', () => {
 
   describe('Supported Languages (PT-BR and EN only)', () => {
     it('should support pt as source language', async () => {
-      (service as any).isServiceAvailable = true;
-      httpService.post.mockReturnValue(
-        of({ data: { translatedText: 'Translated' }, status: 200 } as any),
+      (service as unknown as { isServiceAvailable: boolean }).isServiceAvailable = true;
+      stubHttpService.setPostResult(
+        of({
+          data: { translatedText: 'Translated' },
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config: {} as never,
+        }),
       );
 
       await service.translate('Text', 'pt', 'en');
 
-      expect(httpService.post).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({
-          source: 'pt',
-          target: 'en',
-        }),
-      );
+      const postCalls = stubHttpService.getCallsFor('post');
+      expect(postCalls.length).toBeGreaterThan(0);
+      const lastCall = postCalls[postCalls.length - 1];
+      expect(lastCall.args[1]).toMatchObject({
+        source: 'pt',
+        target: 'en',
+      });
     });
 
     it('should support en as source language', async () => {
-      (service as any).isServiceAvailable = true;
-      httpService.post.mockReturnValue(
-        of({ data: { translatedText: 'Traduzido' }, status: 200 } as any),
+      (service as unknown as { isServiceAvailable: boolean }).isServiceAvailable = true;
+      stubHttpService.setPostResult(
+        of({
+          data: { translatedText: 'Traduzido' },
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config: {} as never,
+        }),
       );
 
       await service.translate('Text', 'en', 'pt');
 
-      expect(httpService.post).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({
-          source: 'en',
-          target: 'pt',
-        }),
-      );
+      const postCalls = stubHttpService.getCallsFor('post');
+      expect(postCalls.length).toBeGreaterThan(0);
+      const lastCall = postCalls[postCalls.length - 1];
+      expect(lastCall.args[1]).toMatchObject({
+        source: 'en',
+        target: 'pt',
+      });
     });
   });
 
@@ -171,7 +227,7 @@ describe('TranslationCoreService', () => {
       expect(result.original).toBe('');
       expect(result.translated).toBe('');
       // Should not call API for empty text
-      expect(httpService.post.mock.calls.length).toBe(0);
+      expect(stubHttpService.getCallsFor('post').length).toBe(0);
     });
 
     it('should return whitespace string as-is', async () => {
@@ -179,14 +235,20 @@ describe('TranslationCoreService', () => {
 
       expect(result.original).toBe('   ');
       expect(result.translated).toBe('   ');
-      expect(httpService.post.mock.calls.length).toBe(0);
+      expect(stubHttpService.getCallsFor('post').length).toBe(0);
     });
   });
 
   describe('Service Availability', () => {
     it('should check service health on init', async () => {
-      httpService.get.mockReturnValue(
-        of({ data: { status: 'ok' }, status: 200 } as any),
+      stubHttpService.setGetResult(
+        of({
+          data: { status: 'ok' },
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config: {} as never,
+        }),
       );
 
       const healthResult = await service.checkServiceHealth();
@@ -195,9 +257,7 @@ describe('TranslationCoreService', () => {
     });
 
     it('should mark service unavailable on health check failure', async () => {
-      httpService.get.mockReturnValue(
-        throwError(() => new Error('Connection failed')),
-      );
+      stubHttpService.setGetError(new Error('Connection failed'));
 
       const healthResult = await service.checkServiceHealth();
 
@@ -206,10 +266,10 @@ describe('TranslationCoreService', () => {
     });
 
     it('should report availability status', () => {
-      (service as any).isServiceAvailable = true;
+      (service as unknown as { isServiceAvailable: boolean }).isServiceAvailable = true;
       expect(service.isAvailable()).toBe(true);
 
-      (service as any).isServiceAvailable = false;
+      (service as unknown as { isServiceAvailable: boolean }).isServiceAvailable = false;
       expect(service.isAvailable()).toBe(false);
     });
   });

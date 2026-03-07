@@ -9,11 +9,11 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { BOUNDED_CONTEXTS, CLEAN_ARCHITECTURE_SERVICES } from '../constants';
 import {
-  SOURCE_ROOT,
   directoryExists,
   getAllTypeScriptFiles,
   getFilesInDirectory,
   readFileContent,
+  SOURCE_ROOT,
 } from '../helpers';
 import { type RuleResult, runRule } from '../rule-runner';
 
@@ -102,16 +102,13 @@ export function checkInterfaceSegregationPrinciple(): RuleResult {
     'Uncle Bob Fury - ISP',
     () => {
       const violations: string[] = [];
-      const methodRegex =
-        /^\s+\w+\s*\([^)]*\)\s*:\s*(?:Promise<)?[\w<>[\]|, ]+/gm;
+      const methodRegex = /^\s+\w+\s*\([^)]*\)\s*:\s*(?:Promise<)?[\w<>[\]|, ]+/gm;
 
       for (const servicePath of CLEAN_ARCHITECTURE_SERVICES) {
         const portsPath = path.join(SOURCE_ROOT, servicePath, 'ports');
         if (!directoryExists(portsPath)) continue;
 
-        const portFiles = getAllTypeScriptFiles(portsPath).filter((f) =>
-          f.endsWith('.port.ts'),
-        );
+        const portFiles = getAllTypeScriptFiles(portsPath).filter((f) => f.endsWith('.port.ts'));
 
         for (const file of portFiles) {
           const content = readFileContent(file);
@@ -158,10 +155,7 @@ export function checkBoundedContextIsolation(): RuleResult {
           for (const context of BOUNDED_CONTEXTS) {
             if (context === boundedContext) continue;
 
-            const importPattern = new RegExp(
-              `from\\s+['"].*bounded-contexts/${context}/`,
-              'g',
-            );
+            const importPattern = new RegExp(`from\\s+['"].*bounded-contexts/${context}/`, 'g');
             if (importPattern.test(content)) {
               const relativePath = path.relative(SOURCE_ROOT, file);
               violations.push(
@@ -184,11 +178,7 @@ export function checkNoCircularDependencies(): RuleResult {
       const violations: string[] = [];
 
       for (const servicePath of CLEAN_ARCHITECTURE_SERVICES) {
-        const compositionsDir = path.join(
-          SOURCE_ROOT,
-          servicePath,
-          'compositions',
-        );
+        const compositionsDir = path.join(SOURCE_ROOT, servicePath, 'compositions');
         if (!directoryExists(compositionsDir)) continue;
 
         const compositionFiles = getAllTypeScriptFiles(compositionsDir);
@@ -198,15 +188,10 @@ export function checkNoCircularDependencies(): RuleResult {
 
           // Check for self-imports (simplistic circular check)
           const serviceName = servicePath.split('/').pop();
-          const selfImportPattern = new RegExp(
-            `from\\s+['"].*${serviceName}.*composition`,
-            'g',
-          );
+          const selfImportPattern = new RegExp(`from\\s+['"].*${serviceName}.*composition`, 'g');
           if (selfImportPattern.test(content)) {
             const relativePath = path.relative(SOURCE_ROOT, file);
-            violations.push(
-              `${relativePath}: Contains suspicious circular reference pattern`,
-            );
+            violations.push(`${relativePath}: Contains suspicious circular reference pattern`);
           }
         }
       }
@@ -264,11 +249,7 @@ export function checkFacadeIsMinimal(): RuleResult {
 
       for (const servicePath of CLEAN_ARCHITECTURE_SERVICES) {
         const serviceName = servicePath.split('/').pop();
-        const servicePath2 = path.join(
-          SOURCE_ROOT,
-          servicePath,
-          `${serviceName}.service.ts`,
-        );
+        const servicePath2 = path.join(SOURCE_ROOT, servicePath, `${serviceName}.service.ts`);
 
         if (!fs.existsSync(servicePath2)) continue;
 
@@ -302,24 +283,17 @@ export function checkTestCoverage(): RuleResult {
         const useCasesPath = path.join(SOURCE_ROOT, servicePath, 'use-cases');
         if (!directoryExists(useCasesPath)) continue;
 
-        const useCaseFiles = getFilesInDirectory(
-          useCasesPath,
-          '.use-case.ts',
-        ).filter((f) => !f.endsWith('.spec.ts'));
+        const useCaseFiles = getFilesInDirectory(useCasesPath, '.use-case.ts').filter(
+          (f) => !f.endsWith('.spec.ts'),
+        );
         const specFiles = getFilesInDirectory(useCasesPath, '.spec.ts');
 
-        const useCaseNames = useCaseFiles.map((f) =>
-          f.replace('.use-case.ts', ''),
-        );
-        const specNames = specFiles.map((f) =>
-          f.replace('.use-case.spec.ts', ''),
-        );
+        const useCaseNames = useCaseFiles.map((f) => f.replace('.use-case.ts', ''));
+        const specNames = specFiles.map((f) => f.replace('.use-case.spec.ts', ''));
 
         for (const useCase of useCaseNames) {
           if (!specNames.includes(useCase)) {
-            violations.push(
-              `${servicePath}/use-cases/${useCase}.use-case.ts: MISSING test file!`,
-            );
+            violations.push(`${servicePath}/use-cases/${useCase}.use-case.ts: MISSING test file!`);
           }
         }
       }

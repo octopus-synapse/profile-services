@@ -24,7 +24,7 @@ export const DEVOPS_PERSONA: PersonaConfig = {
     'uptime_achievement',
     'cost_optimization',
   ],
-  prioritySections: ['openSource', 'certifications', 'talks', 'experiences'],
+  contentPriorities: ['open_source_work', 'credentials', 'thought_leadership', 'career_history'],
   keywords: [
     'kubernetes',
     'docker',

@@ -36,8 +36,10 @@ interface CacheEntry {
 // Service
 // ============================================================================
 
+import { AuthorizationServicePort } from './authorization-service.port';
+
 @Injectable()
-export class AuthorizationService {
+export class AuthorizationService extends AuthorizationServicePort {
   private readonly cache = new Map<UserId, CacheEntry>();
   private readonly resolver: PermissionResolverService;
 
@@ -47,6 +49,7 @@ export class AuthorizationService {
     private readonly groupRepo: GroupRepository,
     private readonly userAuthRepo: UserAuthorizationRepository,
   ) {
+    super();
     this.resolver = new PermissionResolverService(
       permissionRepo,
       roleRepo,

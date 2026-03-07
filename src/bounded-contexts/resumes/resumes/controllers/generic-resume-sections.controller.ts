@@ -68,7 +68,7 @@ export class GenericResumeSectionsController {
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
   @ApiParam({
     name: 'sectionTypeKey',
-    description: 'Section type key (e.g. work_experience_v1)',
+    description: 'Section type key',
   })
   @ApiDataResponse(ResumeSectionItemDataDto, {
     status: 201,

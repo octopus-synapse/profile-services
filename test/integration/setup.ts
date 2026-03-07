@@ -6,23 +6,23 @@
  *
  */
 
+import { randomUUID } from 'node:crypto';
+import { join } from 'node:path';
 import { config } from 'dotenv';
-import { join } from 'path';
-import { randomUUID } from 'crypto';
 
 // Load test environment BEFORE importing AppModule
 config({ path: join(__dirname, '..', '..', '.env.test'), override: false });
 
-import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
 import request, { Agent } from 'supertest';
-import { AppModule } from '../../src/app.module';
 import {
   configureExceptionHandling,
   configureValidation,
 } from '@/bounded-contexts/platform/common/config/validation.config';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { AppModule } from '../../src/app.module';
 
 // --- Test Constants ---
 
@@ -99,9 +99,7 @@ export async function getApp(): Promise<INestApplication> {
  */
 export function getRequest(): Agent {
   if (!appInstance) {
-    throw new Error(
-      'App not initialized. Call getApp() first or use createTestUserAndLogin()',
-    );
+    throw new Error('App not initialized. Call getApp() first or use createTestUserAndLogin()');
   }
   return request(appInstance.getHttpServer());
 }
@@ -276,10 +274,7 @@ export function getPrisma(): PrismaService {
  * Accepts ToS and Privacy Policy for a user using provided PrismaService.
  * Use this when tests create their own app instance.
  */
-export async function acceptTosWithPrisma(
-  prisma: PrismaService,
-  userId: string,
-): Promise<void> {
+export async function acceptTosWithPrisma(prisma: PrismaService, userId: string): Promise<void> {
   const tosVersion = process.env.TOS_VERSION || '1.0.0';
   const privacyPolicyVersion = process.env.PRIVACY_POLICY_VERSION || '1.0.0';
 

@@ -79,10 +79,7 @@ export function createInvalidDsl() {
  * @param secondaryColor - Secondary color hex code
  * @returns Valid DSL with custom colors
  */
-export function createDslWithCustomColors(
-  primaryColor: string,
-  secondaryColor: string,
-) {
+export function createDslWithCustomColors(primaryColor: string, secondaryColor: string) {
   const baseDsl = createValidDsl();
   return {
     ...baseDsl,
@@ -102,6 +99,7 @@ export function createDslWithCustomColors(
 
 /**
  * Creates a DSL with visible sections for testing section compilation.
+ * Uses sectionTypeKey references instead of hardcoded type names.
  *
  * @returns Valid DSL with predefined sections
  */
@@ -110,10 +108,10 @@ export function createDslWithSections() {
   return {
     ...baseDsl,
     sections: [
-      { type: 'header', visible: true, order: 0 },
-      { type: 'experience', visible: true, order: 1 },
-      { type: 'education', visible: true, order: 2 },
-      { type: 'skills', visible: true, order: 3 },
+      { sectionTypeKey: 'header_v1', visible: true, order: 0 },
+      { sectionTypeKey: 'work_experience_v1', visible: true, order: 1 },
+      { sectionTypeKey: 'education_v1', visible: true, order: 2 },
+      { sectionTypeKey: 'skill_v1', visible: true, order: 3 },
     ],
   };
 }

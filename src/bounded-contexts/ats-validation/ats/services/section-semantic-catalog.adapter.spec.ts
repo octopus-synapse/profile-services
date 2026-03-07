@@ -5,16 +5,11 @@ import { SectionSemanticCatalogAdapter } from './section-semantic-catalog.adapte
  * Helper to build a mock PrismaService with both resumeSection.findMany
  * and sectionType.findMany resolvers.
  */
-function buildPrismaMock(
-  resumeSections: unknown[],
-  sectionTypes: unknown[] = [],
-) {
+function buildPrismaMock(resumeSections: unknown[], sectionTypes: unknown[] = []) {
   return {
     resumeSection: { findMany: mock(async () => resumeSections) },
     sectionType: { findMany: mock(async () => sectionTypes) },
-  } as unknown as ConstructorParameters<
-    typeof SectionSemanticCatalogAdapter
-  >[0];
+  } as unknown as ConstructorParameters<typeof SectionSemanticCatalogAdapter>[0];
 }
 
 describe('SectionSemanticCatalogAdapter', () => {

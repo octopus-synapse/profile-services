@@ -21,6 +21,17 @@ export interface AuditMetadata {
   [key: string]: string | undefined;
 }
 
+export interface RequestMetadataSource {
+  ip?: string;
+  headers?: Request['headers'];
+  method?: string;
+  originalUrl?: string;
+  path?: string;
+  socket?: {
+    remoteAddress?: string;
+  };
+}
+
 @Injectable()
 export class AuditLogService {
   constructor(
@@ -46,7 +57,7 @@ export class AuditLogService {
       before?: Prisma.InputJsonValue;
       after?: Prisma.InputJsonValue;
     },
-    request?: Request,
+    request?: RequestMetadataSource,
   ): Promise<void> {
     try {
       const metadata = this.extractMetadata(request);
@@ -260,7 +271,7 @@ export class AuditLogService {
   /**
    * Extract metadata from Express request
    */
-  private extractMetadata(request?: Request): {
+  private extractMetadata(request?: RequestMetadataSource): {
     ipAddress?: string;
     userAgent?: string;
     metadata?: Prisma.InputJsonValue;
@@ -269,17 +280,26 @@ export class AuditLogService {
       return {};
     }
 
-    const forwardedFor = request.headers['x-forwarded-for'];
+    const headers = request.headers ?? {};
+    const forwardedForValue = headers['x-forwarded-for'];
+    const forwardedFor = Array.isArray(forwardedForValue)
+      ? forwardedForValue[0]
+      : forwardedForValue;
+    const userAgentValue = headers['user-agent'];
+    const userAgent = Array.isArray(userAgentValue) ? userAgentValue[0] : userAgentValue;
+    const refererValue = headers.referer;
+    const referer = Array.isArray(refererValue) ? refererValue[0] : refererValue;
+
     const ipAddress =
       (typeof forwardedFor === 'string' ? forwardedFor.split(',')[0]?.trim() : undefined) ??
       request.ip ??
-      request.socket.remoteAddress;
+      request.socket?.remoteAddress;
 
     return {
       ipAddress,
-      userAgent: request.headers['user-agent'],
+      userAgent: typeof userAgent === 'string' ? userAgent : undefined,
       metadata: {
-        referer: request.headers.referer,
+        referer: typeof referer === 'string' ? referer : undefined,
         method: request.method,
         path: request.path,
       },

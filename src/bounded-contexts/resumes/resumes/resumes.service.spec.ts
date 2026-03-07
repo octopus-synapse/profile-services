@@ -8,130 +8,100 @@
  * 4. Skills in experiences are entity references, not free text
  */
 
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { beforeEach, describe, expect, it } from 'bun:test';
+import { NotFoundException, UnprocessableEntityException } from '@nestjs/common';
 import { createMockResume } from '@test/factories/resume.factory';
-import { Test, TestingModule } from '@nestjs/testing';
 import { ResumesService } from './resumes.service';
-import { ResumesRepository } from './resumes.repository';
-import { ResumeVersionService } from '@/bounded-contexts/resumes/resume-versions/services/resume-version.service';
 import {
-  RESUME_EVENT_PUBLISHER,
-  type ResumeEventPublisher,
-} from '../domain/ports';
-import {
-  NotFoundException,
-  UnprocessableEntityException,
-} from '@nestjs/common';
+  createTestResumesService,
+  InMemoryResumesEventPublisher,
+  InMemoryResumesRepository,
+  StubResumeVersionService,
+} from './testing';
 
 describe('ResumesService', () => {
   let service: ResumesService;
-  let repository: ResumesRepository;
-  let versionService: ResumeVersionService;
-  let eventPublisher: ResumeEventPublisher;
+  let repository: InMemoryResumesRepository;
+  let versionService: StubResumeVersionService;
+  let eventPublisher: InMemoryResumesEventPublisher;
 
-  const _MAX_RESUMES_PER_USER = 4; // Used in business logic, stored for reference
+  const userId = 'user-123';
 
-  const mockResume = createMockResume({
-    id: 'resume-1',
-    userId: 'user-123',
-    title: 'Software Engineer',
-    summary: 'Experienced developer',
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  });
+  const createTestResume = (overrides: Partial<{ id: string; title: string }> = {}) =>
+    createMockResume({
+      id: overrides.id ?? 'resume-1',
+      userId,
+      title: overrides.title ?? 'Software Engineer',
+      summary: 'Experienced developer',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
 
-  beforeEach(async () => {
-    repository = {
-      findAllUserResumes: mock(),
-      findResumeByIdAndUserId: mock(),
-      createResumeForUser: mock(),
-      updateResumeForUser: mock(),
-      deleteResumeForUser: mock(),
-      findResumeByUserId: mock(),
-      findAllUserResumesPaginated: mock(),
-      countUserResumes: mock(),
-    } as any;
-
-    versionService = {
-      createSnapshot: mock(() => Promise.resolve()),
-    } as any;
-
-    eventPublisher = {
-      publishResumeCreated: mock(),
-      publishResumeUpdated: mock(),
-      publishResumeDeleted: mock(),
-      publishSectionAdded: mock(),
-      publishSectionUpdated: mock(),
-      publishSectionRemoved: mock(),
-      publishVersionCreated: mock(),
-      publishVersionRestored: mock(),
-    };
-
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        ResumesService,
-        { provide: ResumesRepository, useValue: repository },
-        { provide: ResumeVersionService, useValue: versionService },
-        { provide: RESUME_EVENT_PUBLISHER, useValue: eventPublisher },
-      ],
-    }).compile();
-
-    service = module.get<ResumesService>(ResumesService);
+  beforeEach(() => {
+    repository = new InMemoryResumesRepository();
+    versionService = new StubResumeVersionService();
+    eventPublisher = new InMemoryResumesEventPublisher();
+    service = createTestResumesService(repository, versionService, eventPublisher);
   });
 
   describe('Resume Limit (Maximum 4)', () => {
     it('should allow creating resume when under limit', async () => {
-      repository.findAllUserResumes.mockResolvedValue([
-        mockResume,
-        mockResume,
-        mockResume,
-      ] as any); // 3 existing
-      repository.createResumeForUser.mockResolvedValue(mockResume as any);
+      // Seed 3 existing resumes
+      repository.seedResume(createTestResume({ id: 'r1' }));
+      repository.seedResume(createTestResume({ id: 'r2' }));
+      repository.seedResume(createTestResume({ id: 'r3' }));
 
-      const result = await service.createResumeForUser('user-123', {
+      const result = await service.createResumeForUser(userId, {
         title: 'New Resume',
+        template: 'PROFESSIONAL',
+        isPublic: false,
       });
 
       expect(result).toBeDefined();
     });
 
     it('should reject creating 5th resume with error', async () => {
-      // 4 existing resumes
-      repository.findAllUserResumes.mockResolvedValue([
-        mockResume,
-        mockResume,
-        mockResume,
-        mockResume,
-      ] as any);
+      // Seed 4 existing resumes
+      repository.seedResume(createTestResume({ id: 'r1' }));
+      repository.seedResume(createTestResume({ id: 'r2' }));
+      repository.seedResume(createTestResume({ id: 'r3' }));
+      repository.seedResume(createTestResume({ id: 'r4' }));
 
       await expect(
-        service.createResumeForUser('user-123', { title: 'Fifth Resume' }),
+        service.createResumeForUser(userId, {
+          title: 'Fifth Resume',
+          template: 'PROFESSIONAL',
+          isPublic: false,
+        }),
       ).rejects.toThrow(UnprocessableEntityException);
     });
 
     it('should show clear error message about 4 resume limit', async () => {
-      repository.findAllUserResumes.mockResolvedValue([
-        mockResume,
-        mockResume,
-        mockResume,
-        mockResume,
-      ] as any);
+      // Seed 4 existing resumes
+      repository.seedResume(createTestResume({ id: 'r1' }));
+      repository.seedResume(createTestResume({ id: 'r2' }));
+      repository.seedResume(createTestResume({ id: 'r3' }));
+      repository.seedResume(createTestResume({ id: 'r4' }));
 
       await expect(
-        service.createResumeForUser('user-123', { title: 'Fifth Resume' }),
+        service.createResumeForUser(userId, {
+          title: 'Fifth Resume',
+          template: 'PROFESSIONAL',
+          isPublic: false,
+        }),
       ).rejects.toThrow(/4.*resumes/i);
     });
 
     it('should allow creating exactly 4 resumes', async () => {
-      repository.findAllUserResumes.mockResolvedValue([
-        mockResume,
-        mockResume,
-        mockResume,
-      ] as any);
-      repository.createResumeForUser.mockResolvedValue(mockResume as any);
+      // Seed 3 existing resumes
+      repository.seedResume(createTestResume({ id: 'r1' }));
+      repository.seedResume(createTestResume({ id: 'r2' }));
+      repository.seedResume(createTestResume({ id: 'r3' }));
 
-      const result = await service.createResumeForUser('user-123', {
+      const result = await service.createResumeForUser(userId, {
         title: 'Fourth Resume',
+        template: 'PROFESSIONAL',
+        isPublic: false,
       });
 
       expect(result).toBeDefined();
@@ -140,41 +110,32 @@ describe('ResumesService', () => {
 
   describe('Resume CRUD Operations', () => {
     it('should return all resumes for a user', async () => {
-      const resumes = [mockResume, { ...mockResume, id: 'resume-2' }];
-      repository.findAllUserResumes.mockResolvedValue(resumes as any);
+      repository.seedResume(createTestResume({ id: 'r1' }));
+      repository.seedResume(createTestResume({ id: 'r2' }));
 
-      const result = await service.findAllUserResumes('user-123');
+      const result = await service.findAllUserResumes(userId);
 
       expect(result).toHaveLength(2);
     });
 
     it('should return resume by id if owned by user', async () => {
-      repository.findResumeByIdAndUserId.mockResolvedValue(mockResume as any);
+      repository.seedResume(createTestResume({ id: 'resume-1' }));
 
-      const result = await service.findResumeByIdForUser(
-        'resume-1',
-        'user-123',
-      );
+      const result = await service.findResumeByIdForUser('resume-1', userId);
 
       expect(result?.id).toBe('resume-1');
     });
 
     it('should throw NotFoundException for non-existent resume', async () => {
-      repository.findResumeByIdAndUserId.mockResolvedValue(null);
-
-      await expect(
-        async () =>
-          await service.findResumeByIdForUser('nonexistent', 'user-123'),
-      ).toThrow(NotFoundException);
+      await expect(async () => await service.findResumeByIdForUser('nonexistent', userId)).toThrow(
+        NotFoundException,
+      );
     });
 
     it('should update resume if owned by user', async () => {
-      repository.updateResumeForUser.mockResolvedValue({
-        ...mockResume,
-        title: 'Updated Title',
-      } as any);
+      repository.seedResume(createTestResume({ id: 'resume-1' }));
 
-      const result = await service.updateResumeForUser('resume-1', 'user-123', {
+      const result = await service.updateResumeForUser('resume-1', userId, {
         title: 'Updated Title',
       });
 
@@ -182,23 +143,18 @@ describe('ResumesService', () => {
     });
 
     it('should delete resume if owned by user', async () => {
-      repository.deleteResumeForUser.mockResolvedValue(true);
+      repository.seedResume(createTestResume({ id: 'resume-1' }));
 
-      // deleteResumeForUser returns void, just verify it doesn't throw
-      await expect(
-        service.deleteResumeForUser('resume-1', 'user-123'),
-      ).resolves.toBeUndefined();
+      await expect(service.deleteResumeForUser('resume-1', userId)).resolves.toBeUndefined();
     });
   });
 
   describe('Remaining Slots', () => {
     it('should correctly calculate remaining slots', async () => {
-      repository.findAllUserResumes.mockResolvedValue([
-        mockResume,
-        mockResume,
-      ] as any);
+      repository.seedResume(createTestResume({ id: 'r1' }));
+      repository.seedResume(createTestResume({ id: 'r2' }));
 
-      const slots = await service.getRemainingSlots('user-123');
+      const slots = await service.getRemainingSlots(userId);
 
       expect(slots.used).toBe(2);
       expect(slots.limit).toBe(4);
@@ -206,14 +162,12 @@ describe('ResumesService', () => {
     });
 
     it('should show 0 remaining when at limit', async () => {
-      repository.findAllUserResumes.mockResolvedValue([
-        mockResume,
-        mockResume,
-        mockResume,
-        mockResume,
-      ] as any);
+      repository.seedResume(createTestResume({ id: 'r1' }));
+      repository.seedResume(createTestResume({ id: 'r2' }));
+      repository.seedResume(createTestResume({ id: 'r3' }));
+      repository.seedResume(createTestResume({ id: 'r4' }));
 
-      const slots = await service.getRemainingSlots('user-123');
+      const slots = await service.getRemainingSlots(userId);
 
       expect(slots.remaining).toBe(0);
     });
@@ -282,6 +236,7 @@ describe('isCurrent and endDate Validation', () => {
   it('should reject isCurrent=true with non-null endDate', () => {
     const result = validateCurrentEndDate(true, '2024-01-01');
     expect(result.valid).toBe(false);
+    if (!result.error) throw new Error('Expected error to be defined');
     expect(result.error.includes('isCurrent')).toBe(true);
   });
 
@@ -317,11 +272,7 @@ describe('Skills Reference Validation', () => {
 
   it('should accept valid skill references', () => {
     const skillIds = ['skill-1', 'skill-2'];
-    const resumeSkills = [
-      { id: 'skill-1' },
-      { id: 'skill-2' },
-      { id: 'skill-3' },
-    ];
+    const resumeSkills = [{ id: 'skill-1' }, { id: 'skill-2' }, { id: 'skill-3' }];
 
     const result = validateSkillReferences(skillIds, resumeSkills);
 

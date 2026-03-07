@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
-import { randomUUID } from 'crypto';
+import { randomUUID } from 'node:crypto';
 import {
   authHeader,
   closeApp,

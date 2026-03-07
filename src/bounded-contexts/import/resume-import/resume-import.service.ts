@@ -61,7 +61,7 @@ export class ResumeImportService {
   }
 
   /**
-   * Parse JSON Resume format to internal structure
+   * Parse JSON Resume format to generic sections
    */
   parseJsonResume(jsonResume: JsonResumeSchema): ParsedResumeData {
     const basics = jsonResume.basics ?? {};
@@ -72,7 +72,37 @@ export class ResumeImportService {
     // Extract LinkedIn profile URL
     const linkedinProfile = basics.profiles?.find((p) => p.network?.toLowerCase() === 'linkedin');
 
-    // Flatten skills from nested structure
+    const sections: ParsedResumeData['sections'] = [];
+
+    // Map work experiences to generic section items
+    if (work.length > 0) {
+      sections.push({
+        sectionTypeKey: 'work_experience_v1',
+        items: work.map((w) => ({
+          position: w.position ?? '',
+          company: w.name ?? '',
+          startDate: w.startDate ?? '',
+          endDate: w.endDate,
+          description: w.summary,
+          highlights: w.highlights,
+        })),
+      });
+    }
+
+    // Map education to generic section items
+    if (education.length > 0) {
+      sections.push({
+        sectionTypeKey: 'education_v1',
+        items: education.map((e) => ({
+          degree: e.studyType ?? '',
+          institution: e.institution ?? '',
+          startDate: e.startDate,
+          endDate: e.endDate,
+        })),
+      });
+    }
+
+    // Flatten and map skills to generic section items
     const flattenedSkills: string[] = [];
     for (const skillGroup of skills) {
       if (skillGroup.name) {
@@ -81,6 +111,49 @@ export class ResumeImportService {
       if (skillGroup.keywords) {
         flattenedSkills.push(...skillGroup.keywords);
       }
+    }
+    if (flattenedSkills.length > 0) {
+      sections.push({
+        sectionTypeKey: 'skill_v1',
+        items: flattenedSkills.map((name) => ({ name })),
+      });
+    }
+
+    // Map certifications
+    if (jsonResume.certificates && jsonResume.certificates.length > 0) {
+      sections.push({
+        sectionTypeKey: 'certification_v1',
+        items: jsonResume.certificates.map((c) => ({
+          name: c.name ?? '',
+          issuer: c.issuer,
+          issueDate: c.date,
+          url: c.url,
+        })),
+      });
+    }
+
+    // Map languages
+    if (jsonResume.languages && jsonResume.languages.length > 0) {
+      sections.push({
+        sectionTypeKey: 'language_v1',
+        items: jsonResume.languages.map((l) => ({
+          name: l.language ?? '',
+          level: l.fluency,
+        })),
+      });
+    }
+
+    // Map projects
+    if (jsonResume.projects && jsonResume.projects.length > 0) {
+      sections.push({
+        sectionTypeKey: 'project_v1',
+        items: jsonResume.projects.map((p) => ({
+          name: p.name ?? '',
+          description: p.description,
+          url: p.url,
+          technologies: p.keywords,
+        })),
+      });
     }
 
     return {
@@ -95,40 +168,7 @@ export class ResumeImportService {
         website: basics.url,
       },
       summary: basics.summary,
-      experiences: work.map((w) => ({
-        title: w.position ?? '',
-        company: w.name ?? '',
-        startDate: w.startDate ?? '',
-        endDate: w.endDate,
-        description: w.summary,
-        highlights: w.highlights,
-      })),
-      education: education.map((e) => ({
-        degree: e.studyType ?? '',
-        institution: e.institution ?? '',
-        startDate: e.startDate,
-        endDate: e.endDate,
-      })),
-      skills: flattenedSkills,
-      certifications:
-        jsonResume.certificates?.map((c) => ({
-          name: c.name ?? '',
-          issuer: c.issuer,
-          date: c.date,
-          url: c.url,
-        })) ?? [],
-      languages:
-        jsonResume.languages?.map((l) => ({
-          name: l.language ?? '',
-          level: l.fluency,
-        })) ?? [],
-      projects:
-        jsonResume.projects?.map((p) => ({
-          name: p.name ?? '',
-          description: p.description,
-          url: p.url,
-          technologies: p.keywords,
-        })) ?? [],
+      sections,
     };
   }
 
@@ -160,7 +200,16 @@ export class ResumeImportService {
 
       // Parse the JSON Resume
       await this.updateStatus(importId, 'MAPPING');
-      const parsedData = this.parseJsonResume(importJob.rawData as unknown as JsonResumeSchema);
+      if (!this.isJsonResumeSchema(importJob.rawData)) {
+        await this.updateStatus(importId, 'FAILED', 'Invalid JSON Resume format');
+        return {
+          importId,
+          status: 'FAILED',
+          errors: ['Invalid JSON Resume format'],
+        };
+      }
+
+      const parsedData = this.parseJsonResume(importJob.rawData);
 
       // Validate parsed data
       await this.updateStatus(importId, 'VALIDATING');
@@ -346,5 +395,9 @@ export class ResumeImportService {
     });
 
     return resume;
+  }
+
+  private isJsonResumeSchema(value: unknown): value is JsonResumeSchema {
+    return !!value && typeof value === 'object' && !Array.isArray(value);
   }
 }

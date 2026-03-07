@@ -1,59 +1,36 @@
 /**
  * User Management Service (Facade) Tests
  *
- * Uses In-Memory repository + simple fakes for behavior-focused testing.
+ * Uses In-Memory repository + Stub services for behavior-focused testing.
  */
 
-import { describe, it, expect, beforeEach } from 'bun:test';
+import { beforeEach, describe, expect, it } from 'bun:test';
 import { BadRequestException } from '@nestjs/common';
-import { UserManagementService } from './user-management.service';
-import type { AuthorizationService } from '@/bounded-contexts/identity/authorization';
-import { InMemoryUserManagementRepository } from '../../shared-kernel/testing';
-import { ListUsersUseCase } from './user-management/use-cases/list-users.use-case';
-import { GetUserDetailsUseCase } from './user-management/use-cases/get-user-details.use-case';
-import { CreateUserUseCase } from './user-management/use-cases/create-user.use-case';
-import { UpdateUserUseCase } from './user-management/use-cases/update-user.use-case';
-import { DeleteUserUseCase } from './user-management/use-cases/delete-user.use-case';
-import { ResetPasswordUseCase } from './user-management/use-cases/reset-password.use-case';
+import {
+  InMemoryUserManagementRepository,
+  StubAuthorizationService,
+} from '../../shared-kernel/testing';
 import type { UserManagementUseCases } from './user-management/ports/user-management.port';
-
-class FakeAuthorizationService {
-  private privilegedUsers = new Set<string>();
-  private usersWithAdminRole = 5;
-
-  setPrivilegedUser(userId: string, isPrivileged: boolean): void {
-    if (isPrivileged) {
-      this.privilegedUsers.add(userId);
-      return;
-    }
-    this.privilegedUsers.delete(userId);
-  }
-
-  setUsersWithAdminRole(count: number): void {
-    this.usersWithAdminRole = count;
-  }
-
-  async hasPermission(userId: string): Promise<boolean> {
-    return this.privilegedUsers.has(userId);
-  }
-
-  async countUsersWithRole(): Promise<number> {
-    return this.usersWithAdminRole;
-  }
-}
+import { CreateUserUseCase } from './user-management/use-cases/create-user.use-case';
+import { DeleteUserUseCase } from './user-management/use-cases/delete-user.use-case';
+import { GetUserDetailsUseCase } from './user-management/use-cases/get-user-details.use-case';
+import { ListUsersUseCase } from './user-management/use-cases/list-users.use-case';
+import { ResetPasswordUseCase } from './user-management/use-cases/reset-password.use-case';
+import { UpdateUserUseCase } from './user-management/use-cases/update-user.use-case';
+import { UserManagementService } from './user-management.service';
 
 describe('UserManagementService (Facade)', () => {
   let service: UserManagementService;
   let repository: InMemoryUserManagementRepository;
   let useCases: UserManagementUseCases;
-  let authService: FakeAuthorizationService;
+  let authService: StubAuthorizationService;
 
   const mockUserId = 'user-123';
   const mockRequesterId = 'admin-456';
 
   beforeEach(() => {
     repository = new InMemoryUserManagementRepository();
-    authService = new FakeAuthorizationService();
+    authService = new StubAuthorizationService();
 
     repository.seedUser({
       id: mockUserId,
@@ -66,24 +43,21 @@ describe('UserManagementService (Facade)', () => {
     repository.seedUser({ id: mockRequesterId, email: 'admin@example.com' });
 
     useCases = {
-      listUsersUseCase: new ListUsersUseCase(repository as any),
-      getUserDetailsUseCase: new GetUserDetailsUseCase(repository as any),
+      listUsersUseCase: new ListUsersUseCase(repository),
+      getUserDetailsUseCase: new GetUserDetailsUseCase(repository),
       createUserUseCase: new CreateUserUseCase(
-        repository as any,
+        repository,
         async (password: string) => `hashed_${password}`,
       ),
-      updateUserUseCase: new UpdateUserUseCase(repository as any),
-      deleteUserUseCase: new DeleteUserUseCase(repository as any),
+      updateUserUseCase: new UpdateUserUseCase(repository),
+      deleteUserUseCase: new DeleteUserUseCase(repository),
       resetPasswordUseCase: new ResetPasswordUseCase(
-        repository as any,
+        repository,
         async (password: string) => `hashed_${password}`,
       ),
     };
 
-    service = new UserManagementService(
-      useCases,
-      authService as unknown as AuthorizationService,
-    );
+    service = new UserManagementService(useCases, authService);
   });
 
   describe('listUsers', () => {
@@ -161,9 +135,9 @@ describe('UserManagementService (Facade)', () => {
       authService.setPrivilegedUser(mockUserId, true);
       authService.setUsersWithAdminRole(1);
 
-      await expect(
-        service.deleteUser(mockUserId, mockRequesterId),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.deleteUser(mockUserId, mockRequesterId)).rejects.toThrow(
+        BadRequestException,
+      );
 
       expect(repository.getUser(mockUserId)).toBeDefined();
     });
@@ -184,9 +158,7 @@ describe('UserManagementService (Facade)', () => {
 
       await service.resetPassword(mockUserId, { newPassword });
 
-      expect(repository.getUser(mockUserId)?.passwordHash).toBe(
-        `hashed_${newPassword}`,
-      );
+      expect(repository.getUser(mockUserId)?.passwordHash).toBe(`hashed_${newPassword}`);
     });
   });
 });

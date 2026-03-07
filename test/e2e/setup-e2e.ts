@@ -4,16 +4,16 @@
  * Creates and configures NestJS application for E2E testing
  */
 
-import { Test, TestingModule } from '@nestjs/testing';
 import type { INestApplication } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from '@/app.module';
 import {
   configureExceptionHandling,
   configureValidation,
 } from '@/bounded-contexts/platform/common/config/validation.config';
+import { EmailSenderService } from '@/bounded-contexts/platform/common/email/services/email-sender.service';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { EmailSenderService } from '@/bounded-contexts/platform/common/email/services/email-sender.service';
 import { AuthHelper } from './helpers/auth.helper';
 import { CleanupHelper } from './helpers/cleanup.helper';
 

@@ -4,11 +4,11 @@
  * Uses In-Memory repositories for clean, behavior-focused testing.
  */
 
-import { describe, it, expect, beforeEach } from 'bun:test';
+import { beforeEach, describe, expect, it } from 'bun:test';
 import { AuditAction, ConsentDocumentType } from '@prisma/client';
 import {
-  InMemoryConsentRepository,
   InMemoryAuditLogger,
+  InMemoryConsentRepository,
   StubVersionConfig,
 } from '../../../shared-kernel/testing';
 import { AcceptConsentUseCase } from './accept-consent.use-case';
@@ -24,11 +24,7 @@ describe('AcceptConsentUseCase', () => {
     auditLogger = new InMemoryAuditLogger();
     versionConfig = new StubVersionConfig('1.0.0', '2.0.0', '1.0.0');
 
-    useCase = new AcceptConsentUseCase(
-      consentRepository,
-      versionConfig,
-      auditLogger,
-    );
+    useCase = new AcceptConsentUseCase(consentRepository, versionConfig, auditLogger);
   });
 
   describe('execute', () => {
@@ -55,9 +51,7 @@ describe('AcceptConsentUseCase', () => {
       expect(storedConsents[0].userAgent).toBe('Mozilla/5.0');
 
       // Verify audit log
-      expect(
-        auditLogger.hasLoggedAction('user-123', AuditAction.TOS_ACCEPTED),
-      ).toBe(true);
+      expect(auditLogger.hasLoggedAction('user-123', AuditAction.TOS_ACCEPTED)).toBe(true);
       const auditEntry = auditLogger.getLastEntry();
       expect(auditEntry?.entityType).toBe('UserConsent');
       expect(auditEntry?.entityId).toBe(result.id);
@@ -75,12 +69,9 @@ describe('AcceptConsentUseCase', () => {
       expect(result.version).toBe('2.0.0'); // Privacy policy has version 2.0.0
 
       // Verify audit
-      expect(
-        auditLogger.hasLoggedAction(
-          'user-123',
-          AuditAction.PRIVACY_POLICY_ACCEPTED,
-        ),
-      ).toBe(true);
+      expect(auditLogger.hasLoggedAction('user-123', AuditAction.PRIVACY_POLICY_ACCEPTED)).toBe(
+        true,
+      );
     });
 
     it('should accept Marketing Consent', async () => {

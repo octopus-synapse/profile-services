@@ -5,7 +5,7 @@
 
 import { type Mock, mock } from 'bun:test';
 
-type MockFn = Mock<(...args: any[]) => any>;
+type MockFn = Mock<(...args: unknown[]) => Promise<unknown>>;
 
 export interface MockPage {
   setViewport: MockFn;

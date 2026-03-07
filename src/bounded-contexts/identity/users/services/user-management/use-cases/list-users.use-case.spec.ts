@@ -3,9 +3,9 @@
  *
  * Uses In-Memory repository for clean, behavior-focused testing.
  */
-import { describe, it, expect, beforeEach } from 'bun:test';
-import { ListUsersUseCase } from './list-users.use-case';
+import { beforeEach, describe, expect, it } from 'bun:test';
 import { InMemoryUserManagementRepository } from '../../../../shared-kernel/testing';
+import { ListUsersUseCase } from './list-users.use-case';
 
 describe('ListUsersUseCase', () => {
   let useCase: ListUsersUseCase;
@@ -13,7 +13,7 @@ describe('ListUsersUseCase', () => {
 
   beforeEach(() => {
     repository = new InMemoryUserManagementRepository();
-    useCase = new ListUsersUseCase(repository as any);
+    useCase = new ListUsersUseCase(repository);
   });
 
   it('should return paginated users list', async () => {

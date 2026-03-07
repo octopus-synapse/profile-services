@@ -2,7 +2,7 @@
  * Style Config JSON Schema Validation
  *
  * Validates theme configuration for resume rendering.
- * Uses semantic section type keys exclusively - legacy IDs have been removed.
+ * Uses pattern-based validation for section keys - no hardcoded section types.
  */
 
 import { BadRequestException } from '@nestjs/common';
@@ -18,55 +18,23 @@ const VALID_LAYOUT_TYPES = [
 ];
 
 /**
- * Semantic section type keys
- * These map to SectionType.key in the database
+ * Section key pattern: snake_case with at least one underscore.
+ * Examples: section_type_v1, custom_section, portfolio_block_v2
+ *
+ * This pattern enforces that all section keys follow the convention
+ * established by SectionType.key in the database.
  */
-const SEMANTIC_SECTION_KEYS = [
-  // Core resume sections
-  'header_v1',
-  'summary_v1',
-  'work_experience_v1',
-  'education_v1',
-  'skill_set_v1',
-  'language_v1',
-  'certification_v1',
-  'project_v1',
-  // Extended sections
-  'award_v1',
-  'publication_v1',
-  'talk_v1',
-  'open_source_v1',
-  'hackathon_v1',
-  'bug_bounty_v1',
-  'interest_v1',
-  'recommendation_v1',
-  'achievement_v1',
-];
+const SECTION_KEY_PATTERN = /^[a-z][a-z0-9]*(_[a-z0-9]+)+$/;
 
 /**
- * Validates if a section ID is acceptable.
- * Accepts:
- * 1. Semantic section type keys (e.g., work_experience_v1)
- * 2. Custom section keys with snake_case containing at least one underscore
+ * Validates if a section ID follows the valid pattern.
+ * Accepts snake_case identifiers with at least one underscore.
  *
- * Legacy section IDs (experiences, education, skills, etc.) have been REMOVED.
- * Single-word IDs without underscores are now rejected.
+ * Valid: section_type_v1, custom_section, portfolio_block_v2
+ * Invalid: section, block, content
  */
 function isValidSectionId(sectionId: string): boolean {
-  // Check semantic keys first
-  if (SEMANTIC_SECTION_KEYS.includes(sectionId)) {
-    return true;
-  }
-
-  // Allow custom sections following snake_case pattern WITH at least one underscore
-  // This prevents legacy single-word IDs like "experiences", "skills", etc.
-  // Valid: custom_section, my_portfolio, work_experience_custom
-  // Invalid: experiences, skills, education (legacy single-word IDs)
-  if (/^[a-z][a-z0-9]*(_[a-z0-9]+)+$/.test(sectionId)) {
-    return true;
-  }
-
-  return false;
+  return SECTION_KEY_PATTERN.test(sectionId);
 }
 
 export function validateLayoutConfig(layout: unknown): void {

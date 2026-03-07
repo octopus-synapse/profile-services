@@ -8,7 +8,7 @@
  */
 
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { PermissionGuard, RequirePermission } from '@/bounded-contexts/identity/authorization';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
@@ -16,6 +16,7 @@ import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/curre
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import type { ThemeApproval } from '@/shared-kernel';
+import { SubmitThemeRequestDto } from '@/shared-kernel/dtos/sdk-request.dto';
 import { ThemeEntityDataDto, ThemeListDataDto } from '../dto/controller-response.dto';
 import { ThemeApprovalService, ThemeCrudService } from '../services';
 
@@ -33,7 +34,9 @@ export class ThemeApprovalController {
   @Get('pending')
   @RequirePermission('theme', 'approve')
   @ApiOperation({ summary: 'Get pending themes for approval' })
-  @ApiDataResponse(ThemeListDataDto, { description: 'Pending approval themes returned' })
+  @ApiDataResponse(ThemeListDataDto, {
+    description: 'Pending approval themes returned',
+  })
   async getPending(@CurrentUser('userId') userId: string): Promise<DataResponse<ThemeListDataDto>> {
     const pending = await this.approvalService.getPendingApprovals(userId);
 
@@ -66,7 +69,10 @@ export class ThemeApprovalController {
   @Post(':id/submit')
   @RequirePermission('theme', 'update')
   @ApiOperation({ summary: 'Submit a theme for approval' })
-  @ApiDataResponse(ThemeEntityDataDto, { description: 'Theme submitted for approval' })
+  @ApiBody({ type: SubmitThemeRequestDto })
+  @ApiDataResponse(ThemeEntityDataDto, {
+    description: 'Theme submitted for approval',
+  })
   async submit(
     @CurrentUser('userId') userId: string,
     @Param('id') id: string,

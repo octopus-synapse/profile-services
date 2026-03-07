@@ -7,8 +7,8 @@
  * - Session handling
  */
 
+import { randomUUID } from 'node:crypto';
 import { INestApplication } from '@nestjs/common';
-import { randomUUID } from 'crypto';
 import request from 'supertest';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 
@@ -47,13 +47,11 @@ export class AuthHelper {
     const testUser = user || this.createTestUser();
 
     // Register
-    const signupResponse = await request(this.app.getHttpServer())
-      .post('/api/accounts')
-      .send({
-        email: testUser.email,
-        password: testUser.password,
-        name: testUser.name,
-      });
+    const signupResponse = await request(this.app.getHttpServer()).post('/api/accounts').send({
+      email: testUser.email,
+      password: testUser.password,
+      name: testUser.name,
+    });
 
     if (signupResponse.status !== 201) {
       throw new Error(
@@ -107,9 +105,7 @@ export class AuthHelper {
       .send({ email, password });
 
     if (response.status !== 200) {
-      throw new Error(
-        `Login failed: ${response.status} - ${JSON.stringify(response.body)}`,
-      );
+      throw new Error(`Login failed: ${response.status} - ${JSON.stringify(response.body)}`);
     }
 
     // Response format: { success: true, data: { accessToken, refreshToken, user } }

@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
-import { UsersProfileController } from './users-profile.controller';
+import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { UsersService } from '../users.service';
+import { UsersProfileController } from './users-profile.controller';
 
 const createMockService = () => ({
   getPublicProfileByUsername: mock(() =>
@@ -10,9 +11,7 @@ const createMockService = () => ({
       resume: { id: 'resume-1' },
     }),
   ),
-  getProfile: mock(() =>
-    Promise.resolve({ id: 'user-1', email: 'john@example.com' }),
-  ),
+  getProfile: mock(() => Promise.resolve({ id: 'user-1', email: 'john@example.com' })),
   updateProfile: mock(() => Promise.resolve({ displayName: 'John Updated' })),
   updateUsername: mock(() =>
     Promise.resolve({
@@ -21,13 +20,25 @@ const createMockService = () => ({
       message: 'Username updated successfully',
     }),
   ),
-  checkUsernameAvailability: mock(() =>
-    Promise.resolve({ username: 'john_doe', available: true }),
-  ),
+  checkUsernameAvailability: mock(() => Promise.resolve({ username: 'john_doe', available: true })),
 });
+
+/**
+ * Factory function to create a properly typed UserPayload for tests
+ */
+function createAuthUser(overrides: Partial<UserPayload> = {}): UserPayload {
+  return {
+    userId: 'user-1',
+    email: 'test@test.com',
+    hasCompletedOnboarding: true,
+    ...overrides,
+  };
+}
 
 describe('UsersProfileController - Contract', () => {
   let controller: UsersProfileController;
+  type UpdateProfileDto = Parameters<UsersProfileController['updateProfile']>[1];
+  type UpdateUsernameDto = Parameters<UsersProfileController['updateUsername']>[1];
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -47,27 +58,23 @@ describe('UsersProfileController - Contract', () => {
   });
 
   it('getProfile returns data with profile', async () => {
-    const result = await controller.getProfile({ userId: 'user-1' } as any);
+    const result = await controller.getProfile(createAuthUser());
 
     expect(result.success).toBe(true);
     expect(result.data).toHaveProperty('profile');
   });
 
   it('updateProfile returns data with profile', async () => {
-    const result = await controller.updateProfile(
-      { userId: 'user-1' } as any,
-      { displayName: 'John Updated' } as any,
-    );
+    const updateDto: UpdateProfileDto = { name: 'John Updated' };
+    const result = await controller.updateProfile(createAuthUser(), updateDto);
 
     expect(result.success).toBe(true);
     expect(result.data).toHaveProperty('profile');
   });
 
   it('updateUsername returns data with username and message', async () => {
-    const result = await controller.updateUsername(
-      { userId: 'user-1' } as any,
-      { username: 'john_doe' } as any,
-    );
+    const updateDto: UpdateUsernameDto = { username: 'john_doe' };
+    const result = await controller.updateUsername(createAuthUser(), updateDto);
 
     expect(result.success).toBe(true);
     expect(result.data).toHaveProperty('username');
@@ -75,10 +82,7 @@ describe('UsersProfileController - Contract', () => {
   });
 
   it('checkUsernameAvailability returns data with username and available', async () => {
-    const result = await controller.checkUsernameAvailability(
-      { userId: 'user-1' } as any,
-      'john_doe',
-    );
+    const result = await controller.checkUsernameAvailability(createAuthUser(), 'john_doe');
 
     expect(result.success).toBe(true);
     expect(result.data).toHaveProperty('username');

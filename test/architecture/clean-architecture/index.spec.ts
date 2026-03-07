@@ -7,15 +7,14 @@
  * Run with: bun test test/architecture/clean-architecture/index.spec.ts
  */
 
-import { describe, expect, test, beforeAll } from 'bun:test';
+import { beforeAll, describe, expect, test } from 'bun:test';
 import { type RuleResult } from './rule-runner';
-
+import { dependencyInversionRules } from './rules/dependency-inversion.rules';
 // Import all rule modules
 import { moduleStructureRules } from './rules/module-structure.rules';
-import { serviceStructureRules } from './rules/service-structure.rules';
-import { portUseCaseMappingRules } from './rules/port-usecase-mapping.rules';
 import { namingConventionRules } from './rules/naming-conventions.rules';
-import { dependencyInversionRules } from './rules/dependency-inversion.rules';
+import { portUseCaseMappingRules } from './rules/port-usecase-mapping.rules';
+import { serviceStructureRules } from './rules/service-structure.rules';
 import { uncleBobFuryRules } from './rules/uncle-bob-fury.rules';
 
 // Aggregate all rules
@@ -72,13 +71,10 @@ describe('📊 TOTAL VIOLATION COUNT', () => {
   test('should have ZERO violations across all rules', () => {
     // Re-run all rules for final count
     const finalResults = ALL_RULES.map((rule) => rule());
-    const totalViolations = finalResults.reduce(
-      (sum, r) => sum + r.violations.length,
-      0,
-    );
+    const totalViolations = finalResults.reduce((sum, r) => sum + r.violations.length, 0);
     const failingRules = finalResults.filter((r) => r.violations.length > 0);
 
-    console.log('\n' + '='.repeat(80));
+    console.log(`\n${'='.repeat(80)}`);
     console.log('🏛️  CLEAN ARCHITECTURE SUMMARY');
     console.log('='.repeat(80));
     console.log(`📊 Total Rules Executed: ${finalResults.length}`);

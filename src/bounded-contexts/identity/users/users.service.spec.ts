@@ -10,12 +10,12 @@
  * - username.service.spec.ts
  */
 
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
-import { UsersService } from './users.service';
-import { UserProfileService } from './services/user-profile.service';
 import { UserPreferencesService } from './services/user-preferences.service';
+import { UserProfileService } from './services/user-profile.service';
 import { UsernameService } from './services/username.service';
+import { UsersService } from './users.service';
 
 describe('UsersService (Facade)', () => {
   let service: UsersService;

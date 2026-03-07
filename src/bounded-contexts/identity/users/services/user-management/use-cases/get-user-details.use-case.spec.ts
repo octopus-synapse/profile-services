@@ -3,10 +3,10 @@
  *
  * Uses In-Memory repository for clean, behavior-focused testing.
  */
-import { describe, it, expect, beforeEach } from 'bun:test';
+import { beforeEach, describe, expect, it } from 'bun:test';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions';
-import { GetUserDetailsUseCase } from './get-user-details.use-case';
 import { InMemoryUserManagementRepository } from '../../../../shared-kernel/testing';
+import { GetUserDetailsUseCase } from './get-user-details.use-case';
 
 describe('GetUserDetailsUseCase', () => {
   let useCase: GetUserDetailsUseCase;
@@ -14,13 +14,11 @@ describe('GetUserDetailsUseCase', () => {
 
   beforeEach(() => {
     repository = new InMemoryUserManagementRepository();
-    useCase = new GetUserDetailsUseCase(repository as any);
+    useCase = new GetUserDetailsUseCase(repository);
   });
 
   it('should throw EntityNotFoundException when user not found', async () => {
-    await expect(useCase.execute('user-123')).rejects.toThrow(
-      EntityNotFoundException,
-    );
+    await expect(useCase.execute('user-123')).rejects.toThrow(EntityNotFoundException);
   });
 
   it('should return user details when user exists', async () => {

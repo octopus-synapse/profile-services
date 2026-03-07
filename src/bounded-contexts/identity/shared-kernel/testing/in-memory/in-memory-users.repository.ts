@@ -1,18 +1,19 @@
 /**
  * In-Memory Users Repository for Testing
  *
- * Implements UsersRepository interface with in-memory storage.
+ * Extends UsersRepositoryPort abstract class with in-memory storage.
  * Provides helper methods for test setup and assertions.
  */
 
 import type { User, UserPreferences } from '@prisma/client';
 import type { UpdateFullPreferences, UpdatePreferences, UpdateProfile } from '@/shared-kernel';
+import { UsersRepositoryPort } from '../../../users/ports/outbound/users-repository.port';
 
 interface StoredUser extends User {
   preferences?: UserPreferences | null;
 }
 
-export class InMemoryUsersRepository {
+export class InMemoryUsersRepository extends UsersRepositoryPort {
   private users = new Map<string, StoredUser>();
   private preferences = new Map<string, UserPreferences>();
   private takenUsernames = new Set<string>();

@@ -183,6 +183,8 @@ export {
 } from './dtos';
 // Resume AST DTOs (for SDK generation)
 export * from './dtos/resume-ast.dto';
+// SDK Request DTOs (for @ApiBody decorators)
+export * from './dtos/sdk-request.dto';
 // SDK Response DTOs (for @ApiResponse decorators)
 export * from './dtos/sdk-response.dto';
 // Semantic section contracts

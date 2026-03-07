@@ -19,13 +19,13 @@
  * Validates Content-Type and Content-Disposition headers.
  */
 
-import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
+import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import type { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { createE2ETestApp } from '../setup-e2e';
+import { createFullOnboardingData } from '../fixtures/resumes.fixture';
 import type { AuthHelper } from '../helpers/auth.helper';
 import type { CleanupHelper } from '../helpers/cleanup.helper';
-import { createFullOnboardingData } from '../fixtures/resumes.fixture';
+import { createE2ETestApp } from '../setup-e2e';
 
 describe('E2E Journey 5: Export Pipeline', () => {
   let app: INestApplication;
@@ -38,7 +38,7 @@ describe('E2E Journey 5: Export Pipeline', () => {
     token?: string;
     userId?: string;
   };
-  let resumeId: string;
+  let _resumeId: string;
 
   beforeAll(async () => {
     const testApp = await createE2ETestApp();
@@ -71,7 +71,7 @@ describe('E2E Journey 5: Export Pipeline', () => {
       expect(onboardingResponse.status).toBe(200);
       expect(onboardingResponse.body.data.resumeId).toBeDefined();
 
-      resumeId = onboardingResponse.body.data.resumeId;
+      _resumeId = onboardingResponse.body.data.resumeId;
     });
   });
 
@@ -105,9 +105,7 @@ describe('E2E Journey 5: Export Pipeline', () => {
     }, 30000); // 30s timeout (DOCX is faster than PDF)
 
     it('should require authentication for DOCX export', async () => {
-      const response = await request(app.getHttpServer()).get(
-        '/api/v1/export/resume/docx',
-      );
+      const response = await request(app.getHttpServer()).get('/api/v1/export/resume/docx');
 
       expect(response.status).toBe(401);
     });
@@ -129,9 +127,7 @@ describe('E2E Journey 5: Export Pipeline', () => {
 
         // Validate Content-Disposition header
         expect(response.headers['content-disposition']).toBeDefined();
-        expect(response.headers['content-disposition']).toContain(
-          'linkedin-banner.png',
-        );
+        expect(response.headers['content-disposition']).toContain('linkedin-banner.png');
 
         // Validate response is Buffer
         expect(Buffer.isBuffer(response.body)).toBe(true);
@@ -235,17 +231,13 @@ describe('E2E Journey 5: Export Pipeline', () => {
 
   describe('Step 6: Error Cases', () => {
     it('should require authentication for PDF export', async () => {
-      const response = await request(app.getHttpServer()).get(
-        '/api/v1/export/resume/pdf',
-      );
+      const response = await request(app.getHttpServer()).get('/api/v1/export/resume/pdf');
 
       expect(response.status).toBe(401);
     });
 
     it('should require authentication for banner export', async () => {
-      const response = await request(app.getHttpServer()).get(
-        '/api/v1/export/banner',
-      );
+      const response = await request(app.getHttpServer()).get('/api/v1/export/banner');
 
       expect(response.status).toBe(401);
     });

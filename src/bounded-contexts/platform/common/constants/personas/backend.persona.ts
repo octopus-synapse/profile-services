@@ -24,7 +24,7 @@ export const BACKEND_PERSONA: PersonaConfig = {
     'api_usage',
     'open_source_library',
   ],
-  prioritySections: ['experiences', 'openSource', 'projects', 'certifications'],
+  contentPriorities: ['career_history', 'open_source_work', 'project_portfolio', 'credentials'],
   keywords: [
     'nodejs',
     'python',

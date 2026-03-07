@@ -115,15 +115,11 @@ function listProductionFiles(dirPath: string): string[] {
 }
 
 function isAllowedLegacyPath(filePath: string): boolean {
-  return ALLOWED_LEGACY_PATHS.some((allowedPath) =>
-    filePath.includes(allowedPath),
-  );
+  return ALLOWED_LEGACY_PATHS.some((allowedPath) => filePath.includes(allowedPath));
 }
 
 function isAllowedSemanticKindPath(filePath: string): boolean {
-  return ALLOWED_SEMANTIC_KIND_PATHS.some((allowedPath) =>
-    filePath.includes(allowedPath),
-  );
+  return ALLOWED_SEMANTIC_KIND_PATHS.some((allowedPath) => filePath.includes(allowedPath));
 }
 
 /**
@@ -157,10 +153,7 @@ describe('Architecture - Generic Sections Guardrail', () => {
       const lines = fs.readFileSync(filePath, 'utf-8').split(/\r?\n/);
 
       for (const [index, line] of lines.entries()) {
-        if (
-          !line.includes("from '@prisma/client'") &&
-          !line.includes('from "@prisma/client"')
-        ) {
+        if (!line.includes("from '@prisma/client'") && !line.includes('from "@prisma/client"')) {
           continue;
         }
 
@@ -223,9 +216,7 @@ describe('Architecture - Generic Sections Guardrail', () => {
       const content = fs.readFileSync(filePath, 'utf-8');
 
       // Find all @InputType() class declarations
-      const inputTypeMatches = content.matchAll(
-        /@InputType\([^)]*\)\s*export\s+class\s+(\w+)/g,
-      );
+      const inputTypeMatches = content.matchAll(/@InputType\([^)]*\)\s*export\s+class\s+(\w+)/g);
 
       for (const match of inputTypeMatches) {
         const inputName = match[1];
@@ -269,9 +260,7 @@ describe('Architecture - Generic Sections Guardrail', () => {
 
     // Report all violations for visibility
     if (violations.length > 0) {
-      console.warn(
-        `\n⚠️  Found ${violations.length} hardcoded semantic kinds:`,
-      );
+      console.warn(`\n⚠️  Found ${violations.length} hardcoded semantic kinds:`);
       for (const v of violations.slice(0, 10)) {
         console.warn(`  - ${v}`);
       }

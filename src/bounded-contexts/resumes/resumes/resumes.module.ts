@@ -4,6 +4,7 @@ import { CacheModule } from '@/bounded-contexts/platform/common/cache/cache.modu
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ResumeVersionsModule } from '@/bounded-contexts/resumes/resume-versions/resume-versions.module';
+import { ResumeVersionService } from '@/bounded-contexts/resumes/resume-versions/services/resume-version.service';
 import {
   CleanupResumesOnUserDeleteHandler,
   InvalidateCacheOnResumeDelete,
@@ -13,6 +14,9 @@ import { RESUME_EVENT_PUBLISHER } from '../domain/ports';
 import { ResumeEventPublisherAdapter } from '../infrastructure/adapters';
 import { GenericResumeSectionsController } from './controllers';
 import { ResumeManagementController } from './controllers/resume-management.controller';
+import { ResumeVersionServicePort } from './ports/resume-version-service.port';
+import { ResumesRepositoryPort } from './ports/resumes-repository.port';
+import { ResumesServicePort } from './ports/resumes-service.port';
 import { ResumesController } from './resumes.controller';
 import { ResumesRepository } from './resumes.repository';
 import { ResumesService } from './resumes.service';
@@ -33,6 +37,19 @@ import { ResumeManagementService } from './services/resume-management.service';
   providers: [
     ResumesService,
     ResumesRepository,
+    // Port bindings
+    {
+      provide: ResumesServicePort,
+      useExisting: ResumesService,
+    },
+    {
+      provide: ResumesRepositoryPort,
+      useExisting: ResumesRepository,
+    },
+    {
+      provide: ResumeVersionServicePort,
+      useExisting: ResumeVersionService,
+    },
     ResumeManagementService,
     GenericResumeSectionsService,
     SectionDefinitionZodFactory,

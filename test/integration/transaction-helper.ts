@@ -17,6 +17,7 @@
  */
 
 import { PrismaClient } from '@prisma/client';
+import { createPrismaClientOptions } from '@/bounded-contexts/platform/prisma/prisma-client-options';
 
 let prismaTransaction: PrismaClient | null = null;
 
@@ -26,7 +27,7 @@ let prismaTransaction: PrismaClient | null = null;
  */
 export async function beginTransaction(): Promise<PrismaClient> {
   // Create a new Prisma client for this transaction
-  const prisma = new PrismaClient();
+  const prisma = new PrismaClient(createPrismaClientOptions());
 
   // Start an interactive transaction
   // We'll manually control commit/rollback

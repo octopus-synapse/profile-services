@@ -5,10 +5,7 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import {
-  InMemoryTwoFactorRepository,
-  StubHashService,
-} from '../../../shared-kernel/testing';
+import { InMemoryTwoFactorRepository, StubHashService } from '../../../shared-kernel/testing';
 import { TwoFactorNotSetupException } from '../../domain/exceptions';
 import { RegenerateBackupCodesUseCase } from './regenerate-backup-codes.use-case';
 
@@ -64,16 +61,12 @@ describe('RegenerateBackupCodesUseCase', () => {
       lastUsedAt: null,
     });
 
-    await expect(useCase.execute(userId)).rejects.toThrow(
-      TwoFactorNotSetupException,
-    );
+    await expect(useCase.execute(userId)).rejects.toThrow(TwoFactorNotSetupException);
   });
 
   it('should throw if 2FA record does not exist', async () => {
     repository.clear();
 
-    await expect(useCase.execute(userId)).rejects.toThrow(
-      TwoFactorNotSetupException,
-    );
+    await expect(useCase.execute(userId)).rejects.toThrow(TwoFactorNotSetupException);
   });
 });

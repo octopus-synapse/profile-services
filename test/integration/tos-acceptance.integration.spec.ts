@@ -6,22 +6,14 @@
  *
  */
 
-import {
-  describe,
-  it,
-  expect,
-  beforeAll,
-  afterAll,
-  afterEach,
-  mock,
-} from 'bun:test';
-import { Test, TestingModule } from '@nestjs/testing';
+import { afterAll, afterEach, beforeAll, describe, expect, it, mock } from 'bun:test';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
-import request from 'supertest';
-import { AppModule } from '../../src/app.module';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { EmailSenderService } from '@/bounded-contexts/platform/common/email/services/email-sender.service';
+import { Test, TestingModule } from '@nestjs/testing';
 import { ConsentDocumentType } from '@prisma/client';
+import request from 'supertest';
+import { EmailSenderService } from '@/bounded-contexts/platform/common/email/services/email-sender.service';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { AppModule } from '../../src/app.module';
 
 describe('ToS Acceptance Flow Integration', () => {
   let app: INestApplication;
@@ -129,9 +121,7 @@ describe('ToS Acceptance Flow Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(403);
 
-      expect(blockedResponse.body.message).toMatch(
-        /Terms of Service|ToS|consent/i,
-      );
+      expect(blockedResponse.body.message).toMatch(/Terms of Service|ToS|consent/i);
 
       // Step 3: Accept ToS
       await request(app.getHttpServer())
@@ -291,11 +281,11 @@ describe('ToS Acceptance Flow Integration', () => {
         .expect(200);
 
       const tosConsents = historyResponse.body.filter(
-        (c: any) => c.documentType === 'TERMS_OF_SERVICE',
+        (c: { documentType: string }) => c.documentType === 'TERMS_OF_SERVICE',
       );
 
       expect(tosConsents).toHaveLength(2);
-      expect(tosConsents.map((c: any) => c.version).sort()).toEqual([
+      expect(tosConsents.map((c: { version: string }) => c.version).sort()).toEqual([
         '1.0.0',
         '2.0.0',
       ]);
@@ -393,19 +383,27 @@ describe('ToS Acceptance Flow Integration', () => {
       expect(historyResponse.body).toHaveLength(3);
 
       const documentTypes = historyResponse.body.map(
-        (c: any) => c.documentType,
+        (c: { documentType: string }) => c.documentType,
       );
       expect(documentTypes).toContain('TERMS_OF_SERVICE');
       expect(documentTypes).toContain('PRIVACY_POLICY');
 
       // Verify all have required audit fields
-      historyResponse.body.forEach((consent: any) => {
-        expect(consent.id).toBeDefined();
-        expect(consent.version).toBeDefined();
-        expect(consent.acceptedAt).toBeDefined();
-        expect(consent.ipAddress).toBeDefined();
-        expect(consent.userAgent).toBeDefined();
-      });
+      historyResponse.body.forEach(
+        (consent: {
+          id: string;
+          version: string;
+          acceptedAt: string;
+          ipAddress: string;
+          userAgent: string;
+        }) => {
+          expect(consent.id).toBeDefined();
+          expect(consent.version).toBeDefined();
+          expect(consent.acceptedAt).toBeDefined();
+          expect(consent.ipAddress).toBeDefined();
+          expect(consent.userAgent).toBeDefined();
+        },
+      );
     });
 
     it('should return accurate consent status for current versions', async () => {
@@ -484,13 +482,9 @@ describe('ToS Acceptance Flow Integration', () => {
 
     it('should require authentication for all consent endpoints', async () => {
       // No token
-      await request(app.getHttpServer())
-        .get('/api/v1/users/me/consent-status')
-        .expect(401);
+      await request(app.getHttpServer()).get('/api/v1/users/me/consent-status').expect(401);
 
-      await request(app.getHttpServer())
-        .get('/api/v1/users/me/consent-history')
-        .expect(401);
+      await request(app.getHttpServer()).get('/api/v1/users/me/consent-history').expect(401);
 
       await request(app.getHttpServer())
         .post('/api/v1/users/me/accept-consent')

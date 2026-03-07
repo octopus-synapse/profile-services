@@ -3,13 +3,13 @@
  * Tests for merging nested config objects
  */
 
-import { describe, it, expect } from 'bun:test';
+import { describe, expect, it } from 'bun:test';
 import { deepMerge } from './deep-merge.util';
 
 describe('deepMerge', () => {
   describe('basic merging', () => {
     it('should merge flat objects', () => {
-      const base = { a: 1, b: 2 };
+      const base: { a: number; b: number; c?: number } = { a: 1, b: 2 };
       const overrides = { b: 3, c: 4 };
 
       const result = deepMerge(base, overrides);
@@ -89,17 +89,20 @@ describe('deepMerge', () => {
       const base = { a: { nested: 'value' }, b: 2 };
       const overrides = { a: null };
 
-      const result = deepMerge(base, overrides as any);
+      const result = deepMerge(base, overrides as unknown as Partial<typeof base>);
 
       expect(result.a).toBeNull();
       expect(result.b).toBe(2);
     });
 
     it('should handle null in base object', () => {
-      const base = { a: null, b: 2 };
+      const base: { a: { nested: string } | null; b: number } = {
+        a: null,
+        b: 2,
+      };
       const overrides = { a: { nested: 'value' } };
 
-      const result = deepMerge(base, overrides as any);
+      const result = deepMerge(base, overrides);
 
       expect(result.a).toEqual({ nested: 'value' });
     });
@@ -138,19 +141,21 @@ describe('deepMerge', () => {
 
   describe('type coercion edge cases', () => {
     it('should handle primitive override over object', () => {
-      const base = { value: { nested: true } };
+      const base: { value: { nested: boolean } | number } = {
+        value: { nested: true },
+      };
       const overrides = { value: 42 };
 
-      const result = deepMerge(base, overrides as any);
+      const result = deepMerge(base, overrides);
 
       expect(result.value).toBe(42);
     });
 
     it('should handle object override over primitive', () => {
-      const base = { value: 42 };
+      const base: { value: number | { nested: boolean } } = { value: 42 };
       const overrides = { value: { nested: true } };
 
-      const result = deepMerge(base, overrides as any);
+      const result = deepMerge(base, overrides);
 
       expect(result.value).toEqual({ nested: true });
     });

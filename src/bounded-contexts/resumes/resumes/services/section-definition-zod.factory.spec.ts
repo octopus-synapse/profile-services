@@ -1,5 +1,5 @@
-import { BadRequestException } from '@nestjs/common';
 import { describe, expect, it } from 'bun:test';
+import { BadRequestException } from '@nestjs/common';
 import { SectionDefinitionZodFactory } from './section-definition-zod.factory';
 
 describe('SectionDefinitionZodFactory', () => {
@@ -35,9 +35,7 @@ describe('SectionDefinitionZodFactory', () => {
   });
 
   it('rejects invalid definition', () => {
-    expect(() => factory.buildSchema({ kind: 'WORK_EXPERIENCE' })).toThrow(
-      BadRequestException,
-    );
+    expect(() => factory.buildSchema({ kind: 'WORK_EXPERIENCE' })).toThrow(BadRequestException);
   });
 
   it('validates arrays and dates', () => {
@@ -112,12 +110,8 @@ describe('SectionDefinitionZodFactory', () => {
     }) as Record<string, unknown>;
 
     expect(parsed.period).toBeDefined();
-    expect((parsed.period as Record<string, unknown>).start).toBeInstanceOf(
-      Date,
-    );
-    expect(parsed.highlights).toEqual([
-      { title: 'Latency -40%', impact: 'SRE gains' },
-    ]);
+    expect((parsed.period as Record<string, unknown>).start).toBeInstanceOf(Date);
+    expect(parsed.highlights).toEqual([{ title: 'Latency -40%', impact: 'SRE gains' }]);
   });
 
   it('rejects invalid nested payload', () => {

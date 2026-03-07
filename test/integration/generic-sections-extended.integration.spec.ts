@@ -9,7 +9,7 @@
  */
 
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
-import { randomUUID } from 'crypto';
+import { randomUUID } from 'node:crypto';
 import {
   authHeader,
   closeApp,
@@ -42,7 +42,9 @@ describe('Generic Resume Sections Extended Integration', () => {
     const prisma = getPrisma();
 
     // Create User A
-    const loginA = await createTestUserAndLogin('gen-sections-ext-a');
+    const loginA = await createTestUserAndLogin({
+      email: `gen-sections-ext-a-${Date.now()}@example.com`,
+    });
     userAToken = loginA.accessToken;
 
     const createResumeA = await getRequest()
@@ -54,7 +56,9 @@ describe('Generic Resume Sections Extended Integration', () => {
     userAResumeId = unwrapData<{ id: string }>(createResumeA.body).id;
 
     // Create User B
-    const loginB = await createTestUserAndLogin('gen-sections-ext-b');
+    const loginB = await createTestUserAndLogin({
+      email: `gen-sections-ext-b-${Date.now()}@example.com`,
+    });
     userBToken = loginB.accessToken;
 
     const createResumeB = await getRequest()
@@ -191,9 +195,7 @@ describe('Generic Resume Sections Extended Integration', () => {
         .set(authHeader(userAToken));
 
       expect(res.status).toBe(200);
-      const body = unwrapData<{ sectionTypes: Array<{ key: string }> }>(
-        res.body,
-      );
+      const body = unwrapData<{ sectionTypes: Array<{ key: string }> }>(res.body);
       const types = body.sectionTypes;
 
       const inactiveType = types.find((t) => t.key === sectionTypeKey);
@@ -210,9 +212,7 @@ describe('Generic Resume Sections Extended Integration', () => {
   describe('Content Validation', () => {
     it('should accept valid content matching schema', async () => {
       const res = await getRequest()
-        .post(
-          `/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items`,
-        )
+        .post(`/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items`)
         .set(authHeader(userAToken))
         .send({
           content: { title: 'Valid Title', description: 'Optional desc' },
@@ -223,9 +223,7 @@ describe('Generic Resume Sections Extended Integration', () => {
 
     it('should reject content missing required field', async () => {
       const res = await getRequest()
-        .post(
-          `/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items`,
-        )
+        .post(`/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items`)
         .set(authHeader(userAToken))
         .send({ content: { description: 'Missing title field' } });
 
@@ -234,9 +232,7 @@ describe('Generic Resume Sections Extended Integration', () => {
 
     it('should accept content with only required fields', async () => {
       const res = await getRequest()
-        .post(
-          `/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items`,
-        )
+        .post(`/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items`)
         .set(authHeader(userAToken))
         .send({ content: { title: 'Only Required Field' } });
 
@@ -245,9 +241,7 @@ describe('Generic Resume Sections Extended Integration', () => {
 
     it('should handle numeric fields correctly', async () => {
       const res = await getRequest()
-        .post(
-          `/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items`,
-        )
+        .post(`/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items`)
         .set(authHeader(userAToken))
         .send({ content: { title: 'With Priority', priority: 10 } });
 
@@ -259,9 +253,7 @@ describe('Generic Resume Sections Extended Integration', () => {
 
     it('should reject empty content object', async () => {
       const res = await getRequest()
-        .post(
-          `/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items`,
-        )
+        .post(`/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items`)
         .set(authHeader(userAToken))
         .send({ content: {} });
 
@@ -270,9 +262,7 @@ describe('Generic Resume Sections Extended Integration', () => {
 
     it('should reject missing content field', async () => {
       const res = await getRequest()
-        .post(
-          `/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items`,
-        )
+        .post(`/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items`)
         .set(authHeader(userAToken))
         .send({});
 
@@ -286,14 +276,11 @@ describe('Generic Resume Sections Extended Integration', () => {
     beforeAll(async () => {
       // Create an item for user A
       const createRes = await getRequest()
-        .post(
-          `/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items`,
-        )
+        .post(`/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items`)
         .set(authHeader(userAToken))
         .send({ content: { title: 'User A Protected Item' } });
 
-      userAItemId = unwrapData<{ item: { id: string } }>(createRes.body).item
-        .id;
+      userAItemId = unwrapData<{ item: { id: string } }>(createRes.body).item.id;
     });
 
     it('should prevent user B from reading user A sections', async () => {
@@ -306,9 +293,7 @@ describe('Generic Resume Sections Extended Integration', () => {
 
     it('should prevent user B from creating items in user A resume', async () => {
       const res = await getRequest()
-        .post(
-          `/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items`,
-        )
+        .post(`/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items`)
         .set(authHeader(userBToken))
         .send({ content: { title: 'Cross User Attempt' } });
 
@@ -317,9 +302,7 @@ describe('Generic Resume Sections Extended Integration', () => {
 
     it('should prevent user B from updating user A items', async () => {
       const res = await getRequest()
-        .patch(
-          `/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items/${userAItemId}`,
-        )
+        .patch(`/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items/${userAItemId}`)
         .set(authHeader(userBToken))
         .send({ content: { title: 'Unauthorized Update' } });
 
@@ -328,9 +311,7 @@ describe('Generic Resume Sections Extended Integration', () => {
 
     it('should prevent user B from deleting user A items', async () => {
       const res = await getRequest()
-        .delete(
-          `/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items/${userAItemId}`,
-        )
+        .delete(`/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items/${userAItemId}`)
         .set(authHeader(userBToken));
 
       expect([403, 404]).toContain(res.status);
@@ -338,30 +319,23 @@ describe('Generic Resume Sections Extended Integration', () => {
 
     it('should allow user B to manage their own resume sections', async () => {
       const createRes = await getRequest()
-        .post(
-          `/api/v1/resumes/${userBResumeId}/sections/${sectionTypeKey}/items`,
-        )
+        .post(`/api/v1/resumes/${userBResumeId}/sections/${sectionTypeKey}/items`)
         .set(authHeader(userBToken))
         .send({ content: { title: 'User B Own Item' } });
 
       expect([200, 201]).toContain(createRes.status);
 
-      const itemId = unwrapData<{ item: { id: string } }>(createRes.body).item
-        .id;
+      const itemId = unwrapData<{ item: { id: string } }>(createRes.body).item.id;
 
       const updateRes = await getRequest()
-        .patch(
-          `/api/v1/resumes/${userBResumeId}/sections/${sectionTypeKey}/items/${itemId}`,
-        )
+        .patch(`/api/v1/resumes/${userBResumeId}/sections/${sectionTypeKey}/items/${itemId}`)
         .set(authHeader(userBToken))
         .send({ content: { title: 'User B Updated' } });
 
       expect(updateRes.status).toBe(200);
 
       const deleteRes = await getRequest()
-        .delete(
-          `/api/v1/resumes/${userBResumeId}/sections/${sectionTypeKey}/items/${itemId}`,
-        )
+        .delete(`/api/v1/resumes/${userBResumeId}/sections/${sectionTypeKey}/items/${itemId}`)
         .set(authHeader(userBToken));
 
       expect(deleteRes.status).toBe(200);
@@ -370,26 +344,20 @@ describe('Generic Resume Sections Extended Integration', () => {
 
   describe('Authentication Requirements', () => {
     it('should reject unauthenticated section types request', async () => {
-      const res = await getRequest().get(
-        `/api/v1/resumes/${userAResumeId}/sections/types`,
-      );
+      const res = await getRequest().get(`/api/v1/resumes/${userAResumeId}/sections/types`);
 
       expect(res.status).toBe(401);
     });
 
     it('should reject unauthenticated sections list request', async () => {
-      const res = await getRequest().get(
-        `/api/v1/resumes/${userAResumeId}/sections`,
-      );
+      const res = await getRequest().get(`/api/v1/resumes/${userAResumeId}/sections`);
 
       expect(res.status).toBe(401);
     });
 
     it('should reject unauthenticated create request', async () => {
       const res = await getRequest()
-        .post(
-          `/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items`,
-        )
+        .post(`/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items`)
         .send({ content: { title: 'Unauthed' } });
 
       expect(res.status).toBe(401);
@@ -423,9 +391,7 @@ describe('Generic Resume Sections Extended Integration', () => {
 
     it('should handle non-existent section type key', async () => {
       const res = await getRequest()
-        .post(
-          `/api/v1/resumes/${userAResumeId}/sections/nonexistent_section_type_v99/items`,
-        )
+        .post(`/api/v1/resumes/${userAResumeId}/sections/nonexistent_section_type_v99/items`)
         .set(authHeader(userAToken))
         .send({ content: { title: 'Test' } });
 
@@ -459,23 +425,18 @@ describe('Generic Resume Sections Extended Integration', () => {
 
     beforeAll(async () => {
       const createRes = await getRequest()
-        .post(
-          `/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items`,
-        )
+        .post(`/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items`)
         .set(authHeader(userAToken))
         .send({
           content: { title: 'Original Title', description: 'Original Desc' },
         });
 
-      itemToUpdate = unwrapData<{ item: { id: string } }>(createRes.body).item
-        .id;
+      itemToUpdate = unwrapData<{ item: { id: string } }>(createRes.body).item.id;
     });
 
     it('should update single field retaining others', async () => {
       const res = await getRequest()
-        .patch(
-          `/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items/${itemToUpdate}`,
-        )
+        .patch(`/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items/${itemToUpdate}`)
         .set(authHeader(userAToken))
         .send({
           content: { title: 'Updated Title', description: 'Original Desc' },
@@ -491,9 +452,7 @@ describe('Generic Resume Sections Extended Integration', () => {
 
     it('should allow adding new optional field on update', async () => {
       const res = await getRequest()
-        .patch(
-          `/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items/${itemToUpdate}`,
-        )
+        .patch(`/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items/${itemToUpdate}`)
         .set(authHeader(userAToken))
         .send({ content: { title: 'With Priority Now', priority: 5 } });
 
@@ -505,9 +464,7 @@ describe('Generic Resume Sections Extended Integration', () => {
 
     it('should reject update that removes required field', async () => {
       const res = await getRequest()
-        .patch(
-          `/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items/${itemToUpdate}`,
-        )
+        .patch(`/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items/${itemToUpdate}`)
         .set(authHeader(userAToken))
         .send({ content: { description: 'Only description, no title' } });
 
@@ -519,21 +476,16 @@ describe('Generic Resume Sections Extended Integration', () => {
     it('should successfully delete an item', async () => {
       // Create item to delete
       const createRes = await getRequest()
-        .post(
-          `/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items`,
-        )
+        .post(`/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items`)
         .set(authHeader(userAToken))
         .send({ content: { title: 'To Be Deleted' } });
 
       expect([200, 201]).toContain(createRes.status);
-      const itemId = unwrapData<{ item: { id: string } }>(createRes.body).item
-        .id;
+      const itemId = unwrapData<{ item: { id: string } }>(createRes.body).item.id;
 
       // Delete it
       const deleteRes = await getRequest()
-        .delete(
-          `/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items/${itemId}`,
-        )
+        .delete(`/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items/${itemId}`)
         .set(authHeader(userAToken));
 
       expect(deleteRes.status).toBe(200);
@@ -542,9 +494,7 @@ describe('Generic Resume Sections Extended Integration', () => {
     it('should verify item is removed after deletion', async () => {
       // Create item
       const createRes = await getRequest()
-        .post(
-          `/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items`,
-        )
+        .post(`/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items`)
         .set(authHeader(userAToken))
         .send({ content: { title: 'Verify Deletion' } });
 
@@ -553,9 +503,7 @@ describe('Generic Resume Sections Extended Integration', () => {
 
       // Delete it
       await getRequest()
-        .delete(
-          `/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items/${itemId}`,
-        )
+        .delete(`/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items/${itemId}`)
         .set(authHeader(userAToken));
 
       // Verify not in list
@@ -571,9 +519,7 @@ describe('Generic Resume Sections Extended Integration', () => {
       }>(listRes.body);
       const sections = body.sections;
 
-      const targetSection = sections.find(
-        (s) => s.sectionType.key === sectionTypeKey,
-      );
+      const targetSection = sections.find((s) => s.sectionType.key === sectionTypeKey);
       if (targetSection) {
         const deletedItem = targetSection.items.find((i) => i.id === itemId);
         expect(deletedItem).toBeUndefined();
@@ -583,9 +529,7 @@ describe('Generic Resume Sections Extended Integration', () => {
     it('should not allow double deletion', async () => {
       // Create item
       const createRes = await getRequest()
-        .post(
-          `/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items`,
-        )
+        .post(`/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items`)
         .set(authHeader(userAToken))
         .send({ content: { title: 'Double Delete Test' } });
 
@@ -594,16 +538,12 @@ describe('Generic Resume Sections Extended Integration', () => {
 
       // Delete once
       await getRequest()
-        .delete(
-          `/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items/${itemId}`,
-        )
+        .delete(`/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items/${itemId}`)
         .set(authHeader(userAToken));
 
       // Try to delete again
       const secondDelete = await getRequest()
-        .delete(
-          `/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items/${itemId}`,
-        )
+        .delete(`/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items/${itemId}`)
         .set(authHeader(userAToken));
 
       expect([400, 404]).toContain(secondDelete.status);
@@ -614,16 +554,12 @@ describe('Generic Resume Sections Extended Integration', () => {
     beforeAll(async () => {
       // Ensure we have some items
       await getRequest()
-        .post(
-          `/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items`,
-        )
+        .post(`/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items`)
         .set(authHeader(userAToken))
         .send({ content: { title: 'List Test Item 1' } });
 
       await getRequest()
-        .post(
-          `/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items`,
-        )
+        .post(`/api/v1/resumes/${userAResumeId}/sections/${sectionTypeKey}/items`)
         .set(authHeader(userAToken))
         .send({ content: { title: 'List Test Item 2' } });
     });
@@ -666,11 +602,9 @@ describe('Generic Resume Sections Extended Integration', () => {
       }>(res.body);
       const sections = body.sections;
 
-      const customSection = sections.find(
-        (s) => s.sectionType.key === sectionTypeKey,
-      );
+      const customSection = sections.find((s) => s.sectionType.key === sectionTypeKey);
       expect(customSection).toBeDefined();
-      expect(customSection!.items.length).toBeGreaterThanOrEqual(2);
+      expect(customSection?.items.length).toBeGreaterThanOrEqual(2);
     });
   });
 
@@ -679,9 +613,7 @@ describe('Generic Resume Sections Extended Integration', () => {
 
     it('should allow creating first item in singleton section', async () => {
       const res = await getRequest()
-        .post(
-          `/api/v1/resumes/${userAResumeId}/sections/${nonRepeatableSectionTypeKey}/items`,
-        )
+        .post(`/api/v1/resumes/${userAResumeId}/sections/${nonRepeatableSectionTypeKey}/items`)
         .set(authHeader(userAToken))
         .send({ content: { bio: 'First and only bio entry' } });
 
@@ -710,9 +642,7 @@ describe('Generic Resume Sections Extended Integration', () => {
 
       // Create new one
       const res = await getRequest()
-        .post(
-          `/api/v1/resumes/${userAResumeId}/sections/${nonRepeatableSectionTypeKey}/items`,
-        )
+        .post(`/api/v1/resumes/${userAResumeId}/sections/${nonRepeatableSectionTypeKey}/items`)
         .set(authHeader(userAToken))
         .send({ content: { bio: 'New bio after deletion' } });
 

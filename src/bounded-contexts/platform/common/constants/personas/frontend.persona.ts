@@ -19,7 +19,7 @@ export const FRONTEND_PERSONA: PersonaConfig = {
     'Testing',
   ],
   achievementTypes: ['npm_package', 'lighthouse_score', 'github_stars', 'performance_improvement'],
-  prioritySections: ['projects', 'openSource', 'experiences', 'achievements'],
+  contentPriorities: ['project_portfolio', 'open_source_work', 'career_history', 'recognition'],
   keywords: [
     'react',
     'vue',

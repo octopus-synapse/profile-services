@@ -1,25 +1,12 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import sanitizeHtml from 'sanitize-html';
-import { ResumeVersionService } from '@/bounded-contexts/resumes/resume-versions/services/resume-version.service';
 import type { CreateResume, UpdateResume } from '@/shared-kernel';
 import { RESUME_EVENT_PUBLISHER, type ResumeEventPublisher } from '../domain/ports';
-import { ResumesRepository } from './resumes.repository';
+import { ResumeVersionServicePort } from './ports/resume-version-service.port';
+import { ResumesRepositoryPort } from './ports/resumes-repository.port';
+import { ResumesServicePort, type UserResumesPaginatedResult } from './ports/resumes-service.port';
 
 const MAX_RESUMES_PER_USER = 4;
-
-export type UserResumesPagination = {
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-  hasNextPage: boolean;
-  hasPrevPage: boolean;
-};
-
-export type UserResumesPaginatedResult = {
-  resumes: unknown[];
-  pagination: UserResumesPagination;
-};
 
 /**
  * Sanitize HTML content to prevent XSS attacks
@@ -36,13 +23,15 @@ function sanitizeContent(text: string | undefined | null): string | undefined {
 }
 
 @Injectable()
-export class ResumesService {
+export class ResumesService extends ResumesServicePort {
   constructor(
-    private readonly repository: ResumesRepository,
-    private readonly versionService: ResumeVersionService,
+    private readonly repository: ResumesRepositoryPort,
+    private readonly versionService: ResumeVersionServicePort,
     @Inject(RESUME_EVENT_PUBLISHER)
     private readonly eventPublisher: ResumeEventPublisher,
-  ) {}
+  ) {
+    super();
+  }
 
   async findAllUserResumes(userId: string, page?: number, limit?: number) {
     if (page !== undefined && limit !== undefined) {

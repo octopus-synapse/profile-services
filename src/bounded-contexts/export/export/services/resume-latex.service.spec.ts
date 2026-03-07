@@ -1,5 +1,7 @@
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { Test, type TestingModule } from '@nestjs/testing';
 import { createMockResume } from '@test/factories/resume.factory';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ResumeLatexService } from './resume-latex.service';
 
 describe('ResumeLatexService', () => {
@@ -97,16 +99,26 @@ describe('ResumeLatexService', () => {
         items: [{ content: { name: 'English', level: 'FLUENT' } }],
       },
     ],
-  } as any;
+  };
 
-  beforeEach(() => {
+  beforeEach(async () => {
     mockPrismaService = {
       resume: {
         findUnique: mock(() => Promise.resolve(mockResume)),
       },
     };
 
-    service = new ResumeLatexService(mockPrismaService as any);
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        ResumeLatexService,
+        {
+          provide: PrismaService,
+          useValue: mockPrismaService,
+        },
+      ],
+    }).compile();
+
+    service = module.get<ResumeLatexService>(ResumeLatexService);
   });
 
   describe('exportAsLatex', () => {
@@ -186,9 +198,7 @@ describe('ResumeLatexService', () => {
           },
         ],
       };
-      mockPrismaService.resume.findUnique = mock(() =>
-        Promise.resolve(resumeWithSpecialChars),
-      );
+      mockPrismaService.resume.findUnique = mock(() => Promise.resolve(resumeWithSpecialChars));
 
       const result = await service.exportAsLatex('resume-123');
 
@@ -201,9 +211,7 @@ describe('ResumeLatexService', () => {
     it('should throw NotFoundException when resume not found', async () => {
       mockPrismaService.resume.findUnique = mock(() => Promise.resolve(null));
 
-      await expect(service.exportAsLatex('unknown')).rejects.toThrow(
-        'Resume not found',
-      );
+      await expect(service.exportAsLatex('unknown')).rejects.toThrow('Resume not found');
     });
   });
 

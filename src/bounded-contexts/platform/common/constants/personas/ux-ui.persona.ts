@@ -24,7 +24,7 @@ export const UX_UI_PERSONA: PersonaConfig = {
     'user_satisfaction',
     'design_system_adoption',
   ],
-  prioritySections: ['projects', 'awards', 'experiences', 'certifications'],
+  contentPriorities: ['project_portfolio', 'recognition', 'career_history', 'credentials'],
   keywords: [
     'figma',
     'sketch',

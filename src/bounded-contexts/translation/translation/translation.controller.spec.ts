@@ -5,13 +5,10 @@
  * Focus: Request handling, service delegation.
  */
 
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { TranslationController } from './translation.controller';
 import type { TranslationService } from './translation.service';
-import type {
-  TranslationLanguage,
-  TranslationResult,
-} from './types/translation.types';
+import type { TranslationLanguage, TranslationResult } from './types/translation.types';
 
 describe('TranslationController', () => {
   let controller: TranslationController;
@@ -35,36 +32,17 @@ describe('TranslationController', () => {
       checkServiceHealth: mock(() => Promise.resolve(true)),
 
       // Agora os mocks retornam TranslationResult, não TranslationResultDto
-      translate: mock(
-        (
-          text: string,
-          source: TranslationLanguage,
-          target: TranslationLanguage,
-        ) =>
-          Promise.resolve(
-            createTranslationResult(
-              text,
-              text === 'Hello' ? 'Olá' : 'Mundo',
-              source,
-              target,
-            ),
-          ),
+      translate: mock((text: string, source: TranslationLanguage, target: TranslationLanguage) =>
+        Promise.resolve(
+          createTranslationResult(text, text === 'Hello' ? 'Olá' : 'Mundo', source, target),
+        ),
       ),
 
       translateBatch: mock(
-        (
-          texts: string[],
-          source: TranslationLanguage,
-          target: TranslationLanguage,
-        ) =>
+        (texts: string[], source: TranslationLanguage, target: TranslationLanguage) =>
           Promise.resolve({
             translations: texts.map((text) =>
-              createTranslationResult(
-                text,
-                text === 'Hello' ? 'Olá' : 'Mundo',
-                source,
-                target,
-              ),
+              createTranslationResult(text, text === 'Hello' ? 'Olá' : 'Mundo', source, target),
             ),
             failed: [],
           }),
@@ -79,9 +57,7 @@ describe('TranslationController', () => {
       ),
     };
 
-    controller = new TranslationController(
-      mockTranslationService as TranslationService,
-    );
+    controller = new TranslationController(mockTranslationService as TranslationService);
   });
 
   describe('healthCheck', () => {
@@ -94,9 +70,7 @@ describe('TranslationController', () => {
     });
 
     it('should return unavailable status when service is down', async () => {
-      (
-        mockTranslationService.checkServiceHealth as ReturnType<typeof mock>
-      ).mockResolvedValue(false);
+      mockTranslationService.checkServiceHealth = mock(() => Promise.resolve(false));
 
       const result = await controller.healthCheck();
 
@@ -122,11 +96,7 @@ describe('TranslationController', () => {
       expect(result.data?.targetLanguage).toBe('pt');
 
       // Verifica se foi chamado com os parâmetros corretos
-      expect(mockTranslationService.translate).toHaveBeenCalledWith(
-        'Hello',
-        'en',
-        'pt',
-      );
+      expect(mockTranslationService.translate).toHaveBeenCalledWith('Hello', 'en', 'pt');
     });
 
     it('should handle different language pairs', async () => {
@@ -172,31 +142,27 @@ describe('TranslationController', () => {
 
   describe('translatePtToEn', () => {
     it('should translate Portuguese to English', async () => {
-      const result = await controller.translatePtToEn('Olá');
+      const result = await controller.translatePtToEn({ text: 'Olá' });
 
       expect(result.success).toBe(true);
       expect(result.data?.translated).toBe('Hello');
       expect(result.data?.original).toBe('Olá');
       expect(result.data?.sourceLanguage).toBe('pt');
       expect(result.data?.targetLanguage).toBe('en');
-      expect(mockTranslationService.translatePtToEn).toHaveBeenCalledWith(
-        'Olá',
-      );
+      expect(mockTranslationService.translatePtToEn).toHaveBeenCalledWith('Olá');
     });
   });
 
   describe('translateEnToPt', () => {
     it('should translate English to Portuguese', async () => {
-      const result = await controller.translateEnToPt('Hello');
+      const result = await controller.translateEnToPt({ text: 'Hello' });
 
       expect(result.success).toBe(true);
       expect(result.data?.translated).toBe('Olá');
       expect(result.data?.original).toBe('Hello');
       expect(result.data?.sourceLanguage).toBe('en');
       expect(result.data?.targetLanguage).toBe('pt');
-      expect(mockTranslationService.translateEnToPt).toHaveBeenCalledWith(
-        'Hello',
-      );
+      expect(mockTranslationService.translateEnToPt).toHaveBeenCalledWith('Hello');
     });
   });
 });

@@ -8,10 +8,10 @@
  * Uncle Bob: "Each test should have a single reason to fail"
  */
 
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
-import { AuthorizationManagementService } from './authorization-management.service';
-import type { UserAuthorizationRepository } from '../infrastructure/repositories/user-authorization.repository';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import type { EventPublisher } from '@/shared-kernel';
+import type { UserAuthorizationRepository } from '../infrastructure/repositories/user-authorization.repository';
+import { AuthorizationManagementService } from './authorization-management.service';
 
 describe('AuthorizationManagementService', () => {
   let service: AuthorizationManagementService;
@@ -91,10 +91,7 @@ describe('AuthorizationManagementService', () => {
         roleId: mockRoleId,
       });
 
-      expect(mockUserAuthRepo.revokeRole).toHaveBeenCalledWith(
-        mockUserId,
-        mockRoleId,
-      );
+      expect(mockUserAuthRepo.revokeRole).toHaveBeenCalledWith(mockUserId, mockRoleId);
     });
 
     it('should publish RoleRevokedEvent', async () => {
@@ -185,10 +182,7 @@ describe('AuthorizationManagementService', () => {
     it('should remove user from group', async () => {
       await service.removeFromGroup(mockUserId, mockGroupId);
 
-      expect(mockUserAuthRepo.removeFromGroup).toHaveBeenCalledWith(
-        mockUserId,
-        mockGroupId,
-      );
+      expect(mockUserAuthRepo.removeFromGroup).toHaveBeenCalledWith(mockUserId, mockGroupId);
     });
 
     it('should publish GroupMembershipChangedEvent', async () => {

@@ -20,38 +20,15 @@ export class SectionOrderValidator {
     // Get recommended order from definitions
     const recommendedPatterns = this.atsSectionTypeAdapter.getPatternsByPosition();
 
-    // Check experience vs education order (common rule)
-    const expIndex = currentOrder.indexOf('experience');
-    const eduIndex = currentOrder.indexOf('education');
-
-    if (expIndex !== -1 && eduIndex !== -1 && expIndex > eduIndex) {
-      issues.push({
-        code: 'EXPERIENCE_AFTER_EDUCATION',
-        message:
-          'Experience section should typically come before Education for experienced professionals',
-        severity: ValidationSeverity.WARNING,
-        suggestion:
-          'Consider placing Experience before Education (unless you are a recent graduate)',
-      });
+    // Build a position map from definition-driven recommended positions
+    const positionMap = new Map<string, number>();
+    for (const pattern of recommendedPatterns) {
+      positionMap.set(pattern.semanticKind, pattern.recommendedPosition);
     }
 
-    const orderViolations = this.detectOrderViolations(currentOrder);
-    if (orderViolations.length > 0) {
-      orderViolations.forEach((violation) => {
-        issues.push(violation);
-      });
-    }
-
-    // Check summary position
-    const summaryIndex = currentOrder.indexOf('summary');
-    if (summaryIndex > 2 && summaryIndex !== -1) {
-      issues.push({
-        code: 'SUMMARY_TOO_LATE',
-        message: 'Professional Summary should appear near the beginning of the CV',
-        severity: ValidationSeverity.INFO,
-        suggestion: 'Move Summary/Profile section to the top, after contact information',
-      });
-    }
+    // Check for ordering violations based on recommended positions
+    const orderViolations = this.detectPositionViolations(currentOrder, positionMap);
+    issues.push(...orderViolations);
 
     return {
       passed: issues.filter((i) => i.severity === ValidationSeverity.ERROR).length === 0,
@@ -63,31 +40,40 @@ export class SectionOrderValidator {
     };
   }
 
-  private detectOrderViolations(currentOrder: string[]): ValidationIssue[] {
+  /**
+   * Detect ordering violations by comparing actual section positions
+   * against definition-recommended positions.
+   */
+  private detectPositionViolations(
+    currentOrder: string[],
+    positionMap: Map<string, number>,
+  ): ValidationIssue[] {
     const violations: ValidationIssue[] = [];
 
-    // References should be at the end
-    const refIndex = currentOrder.indexOf('references');
-    if (refIndex !== -1 && refIndex < currentOrder.length - 2) {
-      violations.push({
-        code: 'REFERENCES_TOO_EARLY',
-        message: 'References section should typically appear at the end',
-        severity: ValidationSeverity.INFO,
-        suggestion: 'Move References to the end of your CV',
-      });
-    }
+    for (let i = 0; i < currentOrder.length; i++) {
+      const currentKind = currentOrder[i];
+      const recommendedPos = positionMap.get(currentKind);
 
-    // Skills should come before interests
-    const interestsIndex = currentOrder.indexOf('interests');
-    const skillsIndex = currentOrder.indexOf('skills');
+      if (recommendedPos === undefined) continue;
 
-    if (interestsIndex !== -1 && skillsIndex !== -1 && interestsIndex < skillsIndex) {
-      violations.push({
-        code: 'INTERESTS_BEFORE_SKILLS',
-        message: 'Interests section should come after Skills',
-        severity: ValidationSeverity.INFO,
-        suggestion: 'Place Skills before Interests to emphasize professional qualifications',
-      });
+      // Check if this section is significantly out of position relative to its neighbors
+      for (let j = i + 1; j < currentOrder.length; j++) {
+        const laterKind = currentOrder[j];
+        const laterRecommendedPos = positionMap.get(laterKind);
+
+        if (laterRecommendedPos === undefined) continue;
+
+        // A section with a higher recommended position appears before one with a lower position
+        if (recommendedPos > laterRecommendedPos) {
+          violations.push({
+            code: 'SECTION_ORDER_SUBOPTIMAL',
+            message: `Section '${laterKind}' is recommended to appear before '${currentKind}' for ATS optimization`,
+            severity: ValidationSeverity.INFO,
+            suggestion: `Consider reordering: place '${laterKind}' before '${currentKind}'`,
+          });
+          break; // One violation per section is enough
+        }
+      }
     }
 
     return violations;

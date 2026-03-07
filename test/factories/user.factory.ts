@@ -16,7 +16,7 @@ export interface CreateMockUserOptions {
   emailVerified?: Date | null;
   createdAt?: Date;
   updatedAt?: Date;
-  password?: string | null;
+  passwordHash?: string | null;
   image?: string | null;
   displayName?: string | null;
   photoURL?: string | null;
@@ -29,6 +29,8 @@ export interface CreateMockUserOptions {
   github?: string | null;
   hasCompletedOnboarding?: boolean;
   onboardingCompletedAt?: Date | null;
+  isActive?: boolean;
+  lastLoginAt?: Date | null;
 }
 
 const defaultUser: User = {
@@ -39,7 +41,7 @@ const defaultUser: User = {
   emailVerified: null,
   createdAt: new Date('2024-01-01'),
   updatedAt: new Date('2024-01-01'),
-  password: 'hashed-password',
+  passwordHash: 'hashed-password',
   image: null,
   primaryResumeId: null,
   displayName: null,
@@ -53,6 +55,8 @@ const defaultUser: User = {
   github: null,
   hasCompletedOnboarding: false,
   onboardingCompletedAt: null,
+  isActive: true,
+  lastLoginAt: null,
 };
 
 export function createMockUser(options: CreateMockUserOptions = {}): User {
@@ -76,9 +80,7 @@ export function createMockAdmin(options: CreateMockUserOptions = {}): User {
   });
 }
 
-export function createMockVerifiedUser(
-  options: CreateMockUserOptions = {},
-): User {
+export function createMockVerifiedUser(options: CreateMockUserOptions = {}): User {
   return createMockUser({
     ...options,
     emailVerified: new Date(),

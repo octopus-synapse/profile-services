@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach, afterEach, mock } from 'bun:test';
-import { Test, TestingModule } from '@nestjs/testing';
+import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
 import { NotFoundException } from '@nestjs/common';
-import { ResumeDOCXService } from './resume-docx.service';
+import { Test, TestingModule } from '@nestjs/testing';
 import { DocxBuilderService } from './docx-builder.service';
+import { ResumeDOCXService } from './resume-docx.service';
 
 describe('ResumeDOCXService', () => {
   let service: ResumeDOCXService;
@@ -42,16 +42,14 @@ describe('ResumeDOCXService', () => {
     });
 
     it('should throw NotFoundException when user not found', async () => {
-      mockBuilderService.generate.mockRejectedValue(
-        new NotFoundException('User not found'),
-      );
+      mockBuilderService.generate.mockRejectedValue(new NotFoundException('User not found'));
 
-      await expect(
-        async () => await service.generate('non-existent-user'),
-      ).toThrow(NotFoundException);
-      await expect(
-        async () => await service.generate('non-existent-user'),
-      ).toThrow('User not found');
+      await expect(async () => await service.generate('non-existent-user')).toThrow(
+        NotFoundException,
+      );
+      await expect(async () => await service.generate('non-existent-user')).toThrow(
+        'User not found',
+      );
     });
 
     it('should throw NotFoundException when resume not found', async () => {
@@ -59,9 +57,7 @@ describe('ResumeDOCXService', () => {
         new NotFoundException('Resume not found for this user'),
       );
 
-      await expect(async () => await service.generate('user-123')).toThrow(
-        NotFoundException,
-      );
+      await expect(async () => await service.generate('user-123')).toThrow(NotFoundException);
       await expect(async () => await service.generate('user-123')).toThrow(
         'Resume not found for this user',
       );
@@ -71,9 +67,7 @@ describe('ResumeDOCXService', () => {
       const error = new Error('Builder service error');
       mockBuilderService.generate.mockRejectedValue(error);
 
-      await expect(async () => await service.generate('user-123')).toThrow(
-        'Builder service error',
-      );
+      await expect(async () => await service.generate('user-123')).toThrow('Builder service error');
     });
   });
 });

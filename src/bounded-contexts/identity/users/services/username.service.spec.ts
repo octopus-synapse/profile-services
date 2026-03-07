@@ -7,16 +7,17 @@
  * Uncle Bob: "Test the system, not your imagination of the system."
  */
 
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
-import { UsernameService } from './username.service';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { Test, TestingModule } from '@nestjs/testing';
+import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import { InMemoryUsersRepository, StubLogger } from '../../shared-kernel/testing';
+import { UsersRepository } from '../users.repository';
 import {
-  InMemoryUsersRepository,
-  StubLogger,
-} from '../../shared-kernel/testing';
-import type {
-  UsernameUseCases,
-  UpdatedUsername,
+  type UpdatedUsername,
+  USERNAME_USE_CASES,
+  type UsernameUseCases,
 } from './username/ports/username.port';
+import { UsernameService } from './username.service';
 
 describe('UsernameService (Facade)', () => {
   let service: UsernameService;
@@ -28,21 +29,26 @@ describe('UsernameService (Facade)', () => {
     username: 'newuser',
   };
 
-  beforeEach(() => {
+  beforeEach(async () => {
     mockUseCases = {
       updateUsernameUseCase: {
         execute: mock(async () => mockUpdatedUsername),
       },
-    } as unknown as UsernameUseCases;
+    };
 
     usersRepository = new InMemoryUsersRepository();
     logger = new StubLogger();
 
-    service = new UsernameService(
-      mockUseCases,
-      usersRepository as any,
-      logger as any,
-    );
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        UsernameService,
+        { provide: USERNAME_USE_CASES, useValue: mockUseCases },
+        { provide: UsersRepository, useValue: usersRepository },
+        { provide: AppLoggerService, useValue: logger },
+      ],
+    }).compile();
+
+    service = module.get<UsernameService>(UsernameService);
   });
 
   describe('updateUsername', () => {
@@ -98,10 +104,7 @@ describe('UsernameService (Facade)', () => {
     it('should exclude user when checking their own username', async () => {
       usersRepository.seedUser({ id: 'user-123', username: 'testuser' });
 
-      const result = await service.checkUsernameAvailability(
-        'testuser',
-        'user-123',
-      );
+      const result = await service.checkUsernameAvailability('testuser', 'user-123');
 
       expect(result.available).toBe(true);
     });
@@ -141,9 +144,7 @@ describe('UsernameService (Facade)', () => {
       const result = await service.validateUsername('user__name');
 
       expect(result.valid).toBe(false);
-      expect(
-        result.errors.some((e) => e.code === 'CONSECUTIVE_UNDERSCORES'),
-      ).toBe(true);
+      expect(result.errors.some((e) => e.code === 'CONSECUTIVE_UNDERSCORES')).toBe(true);
     });
 
     it('should reject trailing underscore', async () => {

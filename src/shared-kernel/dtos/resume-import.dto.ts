@@ -5,13 +5,9 @@
  * (PDF, DOCX, LinkedIn, etc.).
  *
  * ARCHITECTURE NOTE (GENERIC SECTIONS):
- * These section-specific schemas (ImportedExperienceSchema, ParsedEducationSchema, etc.)
- * exist ONLY for parsing external data sources. External sources like PDF/DOCX/LinkedIn
- * have well-defined structures that we need to parse.
- *
- * IMPORTANT: After parsing, the import service MUST convert these structures to the
- * generic SectionItem.content format using the appropriate SectionType definitions.
- * The code should NOT use these types for storing or processing data internally.
+ * The Imported* schemas exist ONLY for parsing external data sources.
+ * After parsing, data is converted to the generic ParsedSectionSchema format.
+ * Internal storage and processing use the generic SectionItem.content model.
  */
 
 import { z } from 'zod';
@@ -36,9 +32,6 @@ export type ImportSource = z.infer<typeof ImportSourceSchema>;
 // Import Request
 // ============================================================================
 
-// Note: File upload itself is handled separately (multipart/form-data)
-// This schema covers the metadata and options
-
 export const ImportResumeRequestSchema = z.object({
   targetResumeId: z.string().cuid().optional(),
   autoMerge: z.boolean().default(false),
@@ -47,7 +40,7 @@ export const ImportResumeRequestSchema = z.object({
 export type ImportResumeRequest = z.infer<typeof ImportResumeRequestSchema>;
 
 // ============================================================================
-// Parsed Data Structure
+// Parsed Data Structure (Generic Sections)
 // ============================================================================
 
 export const ImportedPersonalInfoSchema = z.object({
@@ -60,47 +53,19 @@ export const ImportedPersonalInfoSchema = z.object({
 
 export type ImportedPersonalInfo = z.infer<typeof ImportedPersonalInfoSchema>;
 
-export const ImportedExperienceSchema = z.object({
-  title: z.string(),
-  company: z.string(),
-  startDate: z.string().optional(),
-  endDate: z.string().optional(),
-  description: z.string().optional(),
+/**
+ * Generic parsed section - maps to SectionType key + content items.
+ */
+export const ParsedSectionSchema = z.object({
+  sectionTypeKey: z.string(),
+  items: z.array(z.record(z.unknown())),
 });
 
-export type ImportedExperience = z.infer<typeof ImportedExperienceSchema>;
-
-export const ImportedEducationSchema = z.object({
-  degree: z.string(),
-  institution: z.string(),
-  startDate: z.string().optional(),
-  endDate: z.string().optional(),
-});
-
-export type ImportedEducation = z.infer<typeof ImportedEducationSchema>;
-
-export const ImportedLanguageSchema = z.object({
-  language: z.string(),
-  proficiency: z.string().optional(),
-});
-
-export type ImportedLanguage = z.infer<typeof ImportedLanguageSchema>;
-
-export const ImportedCertificationSchema = z.object({
-  name: z.string(),
-  issuer: z.string().optional(),
-  date: z.string().optional(),
-});
-
-export type ImportedCertification = z.infer<typeof ImportedCertificationSchema>;
+export type ParsedSection = z.infer<typeof ParsedSectionSchema>;
 
 export const ImportedResumeDataSchema = z.object({
   personalInfo: ImportedPersonalInfoSchema.optional(),
-  experiences: z.array(ImportedExperienceSchema).optional(),
-  education: z.array(ImportedEducationSchema).optional(),
-  skills: z.array(z.string()).optional(),
-  languages: z.array(ImportedLanguageSchema).optional(),
-  certifications: z.array(ImportedCertificationSchema).optional(),
+  sections: z.array(ParsedSectionSchema).optional(),
 });
 
 export type ImportedResumeData = z.infer<typeof ImportedResumeDataSchema>;
@@ -117,6 +82,7 @@ export const ImportResultSchema = z.object({
 });
 
 export type ImportResult = z.infer<typeof ImportResultSchema>;
+
 // ============================================================================
 // Import Job (for tracking import status)
 // ============================================================================
@@ -136,7 +102,7 @@ export const ImportJobSchema = z.object({
 export type ImportJob = z.infer<typeof ImportJobSchema>;
 
 // ============================================================================
-// Parsed Resume Data (detailed version for import preview)
+// Parsed Resume Data (generic sections format for import preview)
 // ============================================================================
 
 export const ParsedPersonalInfoSchema = z.object({
@@ -151,63 +117,10 @@ export const ParsedPersonalInfoSchema = z.object({
 
 export type ParsedPersonalInfo = z.infer<typeof ParsedPersonalInfoSchema>;
 
-export const ParsedExperienceSchema = z.object({
-  title: z.string(),
-  company: z.string(),
-  location: z.string().optional(),
-  startDate: z.string(),
-  endDate: z.string().optional(),
-  description: z.string().optional(),
-  highlights: z.array(z.string()).optional(),
-});
-
-export type ParsedExperience = z.infer<typeof ParsedExperienceSchema>;
-
-export const ParsedEducationSchema = z.object({
-  degree: z.string(),
-  institution: z.string(),
-  location: z.string().optional(),
-  startDate: z.string().optional(),
-  endDate: z.string().optional(),
-  description: z.string().optional(),
-});
-
-export type ParsedEducation = z.infer<typeof ParsedEducationSchema>;
-
-export const ParsedCertificationSchema = z.object({
-  name: z.string(),
-  issuer: z.string().optional(),
-  date: z.string().optional(),
-  url: z.string().optional(),
-});
-
-export type ParsedCertification = z.infer<typeof ParsedCertificationSchema>;
-
-export const ParsedSpokenLanguageSchema = z.object({
-  name: z.string(),
-  level: z.string().optional(),
-});
-
-export type ParsedSpokenLanguage = z.infer<typeof ParsedSpokenLanguageSchema>;
-
-export const ParsedProjectSchema = z.object({
-  name: z.string(),
-  description: z.string().optional(),
-  url: z.string().optional(),
-  technologies: z.array(z.string()).optional(),
-});
-
-export type ParsedProject = z.infer<typeof ParsedProjectSchema>;
-
 export const ParsedResumeDataSchema = z.object({
   personalInfo: ParsedPersonalInfoSchema,
   summary: z.string().optional(),
-  experiences: z.array(ParsedExperienceSchema),
-  education: z.array(ParsedEducationSchema),
-  skills: z.array(z.string()),
-  certifications: z.array(ParsedCertificationSchema).optional(),
-  languages: z.array(ParsedSpokenLanguageSchema).optional(),
-  projects: z.array(ParsedProjectSchema).optional(),
+  sections: z.array(ParsedSectionSchema),
 });
 
 export type ParsedResumeData = z.infer<typeof ParsedResumeDataSchema>;

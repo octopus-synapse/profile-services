@@ -1,11 +1,11 @@
-import { describe, it, expect, beforeAll, afterAll } from 'bun:test';
+import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import {
-  getRequest,
-  getApp,
-  closeApp,
   authHeader,
+  closeApp,
   createTestUserAndLogin,
+  getApp,
   getPrisma,
+  getRequest,
 } from './setup';
 
 describe('Share Analytics Integration', () => {
@@ -70,7 +70,9 @@ describe('Share Analytics Integration', () => {
         where: { shareId, event: 'VIEW' },
       });
 
-      expect(analytics).toBeDefined();
+      expect(analytics).not.toBeNull();
+      if (!analytics) return;
+
       expect(analytics.userAgent).toContain('Test Browser');
       expect(analytics.ipHash).toBeDefined();
       expect(analytics.ipHash).not.toBe('203.0.113.42'); // Should be anonymized
@@ -89,22 +91,25 @@ describe('Share Analytics Integration', () => {
         where: { shareId, event: 'DOWNLOAD' },
       });
 
-      expect(analytics).toBeDefined();
+      expect(analytics).not.toBeNull();
+      if (!analytics) return;
+
       expect(analytics.userAgent).toContain('DownloadBot');
     });
 
     it('should anonymize IP addresses (GDPR compliance)', async () => {
       const testIp = '192.0.2.146';
 
-      await getRequest()
-        .get(`/api/v1/public/resumes/${shareSlug}`)
-        .set('X-Forwarded-For', testIp);
+      await getRequest().get(`/api/v1/public/resumes/${shareSlug}`).set('X-Forwarded-For', testIp);
 
       const prisma = getPrisma();
       const analytics = await prisma.shareAnalytics.findFirst({
         where: { shareId },
         orderBy: { createdAt: 'desc' },
       });
+
+      expect(analytics).not.toBeNull();
+      if (!analytics) return;
 
       // IP should be hashed (SHA-256 = 64 chars hex)
       expect(analytics.ipHash).not.toBe(testIp);
@@ -121,6 +126,9 @@ describe('Share Analytics Integration', () => {
         where: { shareId },
         orderBy: { createdAt: 'desc' },
       });
+
+      expect(analytics).not.toBeNull();
+      if (!analytics) return;
 
       expect(analytics.referer).toBe('https://linkedin.com/in/johndoe');
     });
@@ -210,9 +218,7 @@ describe('Share Analytics Integration', () => {
         },
       });
 
-      const response = await getRequest().get(
-        `/api/v1/public/resumes/${expiredShare.slug}`,
-      );
+      const response = await getRequest().get(`/api/v1/public/resumes/${expiredShare.slug}`);
 
       expect(response.status).toBe(404);
 

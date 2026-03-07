@@ -4,370 +4,67 @@
  * NestJS DTOs with Swagger decorators for the Resume Abstract Syntax Tree.
  * These DTOs expose the AST structure through the SDK.
  *
- * ARCHITECTURE NOTE (GENERIC SECTIONS):
- * The section-specific DTOs in this file (ExperienceItemDto, EducationItemDto, etc.)
- * are DEPRECATED for internal use. They exist only for Swagger documentation and
- * backward compatibility with existing SDK consumers.
- *
- * New endpoints should use GenericSectionItemDto and GenericSectionDataDto which
- * work with any section type. The section-specific field structure comes from
- * SectionType.definition, not from hardcoded DTOs.
+ * ARCHITECTURE: The AST is fully generic. Section structure comes from
+ * SectionType definitions and section item content, not from hardcoded DTOs.
  *
  * @see ../ast/generic-section-data.schema.ts for generic section schemas
  * @see ../ast/resume-ast.schema.ts for Zod validation schemas
  */
 
-import {
-  ApiExtraModels,
-  ApiProperty,
-  ApiPropertyOptional,
-} from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 // ============================================================================
-// Date & Location Types
+// Generic Section Types
 // ============================================================================
 
-export class DateRangeDto {
-  @ApiProperty({ example: '2020-01' })
-  startDate!: string;
-
-  @ApiPropertyOptional({ example: '2023-06' })
-  endDate?: string;
-
-  @ApiProperty({ example: false })
-  isCurrent!: boolean;
-}
-
-export class LocationDto {
-  @ApiPropertyOptional({ example: 'São Paulo' })
-  city?: string;
-
-  @ApiPropertyOptional({ example: 'Brazil' })
-  country?: string;
-
-  @ApiPropertyOptional({ example: true })
-  remote?: boolean;
-}
-
-// ============================================================================
-// Section Item Types
-// ============================================================================
-
-export class ExperienceItemDto {
-  @ApiProperty({ example: 'exp_123' })
+export class GenericSectionItemDto {
+  @ApiProperty({ example: 'item_123' })
   id!: string;
 
-  @ApiProperty({ example: 'Senior Software Engineer' })
-  title!: string;
+  @ApiPropertyOptional({ example: 0 })
+  order?: number;
 
-  @ApiProperty({ example: 'Tech Company Inc.' })
-  company!: string;
-
-  @ApiPropertyOptional({ type: LocationDto })
-  location?: LocationDto;
-
-  @ApiProperty({ type: DateRangeDto })
-  dateRange!: DateRangeDto;
-
-  @ApiPropertyOptional({ example: 'Led development of microservices...' })
-  description?: string;
-
-  @ApiProperty({ type: [String], example: ['Reduced latency by 40%'] })
-  achievements!: string[];
-
-  @ApiProperty({ type: [String], example: ['TypeScript', 'Node.js'] })
-  skills!: string[];
+  @ApiProperty({
+    type: 'object',
+    additionalProperties: true,
+    example: {
+      title: 'Senior Software Engineer',
+      company: 'Tech Company Inc.',
+      startDate: '2020-01',
+    },
+  })
+  content!: Record<string, unknown>;
 }
 
-export class EducationItemDto {
-  @ApiProperty({ example: 'edu_123' })
-  id!: string;
+export class GenericSectionDataDto {
+  @ApiProperty({ example: 'section_type_v1' })
+  sectionTypeKey!: string;
 
-  @ApiProperty({ example: 'University of Technology' })
-  institution!: string;
+  @ApiPropertyOptional({ example: 'custom_section' })
+  semanticKind?: string;
 
-  @ApiProperty({ example: "Bachelor's" })
-  degree!: string;
+  @ApiPropertyOptional({ example: 'Selected Highlights' })
+  title?: string;
 
-  @ApiProperty({ example: 'Computer Science' })
-  fieldOfStudy!: string;
+  @ApiPropertyOptional({ type: [GenericSectionItemDto] })
+  items?: GenericSectionItemDto[];
 
-  @ApiPropertyOptional({ type: LocationDto })
-  location?: LocationDto;
+  @ApiPropertyOptional({ example: 'Markdown or plain text content' })
+  content?: string;
 
-  @ApiProperty({ type: DateRangeDto })
-  dateRange!: DateRangeDto;
-
-  @ApiPropertyOptional({ example: '3.8' })
-  grade?: string;
-
-  @ApiProperty({ type: [String], example: ['Computer Science Club'] })
-  activities!: string[];
-}
-
-export class SkillItemDto {
-  @ApiProperty({ example: 'skill_123' })
-  id!: string;
-
-  @ApiProperty({ example: 'TypeScript' })
-  name!: string;
-
-  @ApiPropertyOptional({ example: 'Advanced' })
-  level?: string;
-
-  @ApiPropertyOptional({ example: 'Programming Languages' })
-  category?: string;
-}
-
-export class ProjectItemDto {
-  @ApiProperty({ example: 'proj_123' })
-  id!: string;
-
-  @ApiProperty({ example: 'Resume Builder' })
-  name!: string;
-
-  @ApiPropertyOptional({ example: 'Lead Developer' })
-  role?: string;
-
-  @ApiPropertyOptional({ type: DateRangeDto })
-  dateRange?: DateRangeDto;
-
-  @ApiPropertyOptional({ example: 'https://example.com' })
-  url?: string;
-
-  @ApiPropertyOptional({ example: 'https://github.com/user/repo' })
-  repositoryUrl?: string;
-
-  @ApiPropertyOptional({ example: 'A modern resume builder' })
-  description?: string;
-
-  @ApiProperty({ type: [String], example: ['Built CI/CD pipeline'] })
-  highlights!: string[];
-
-  @ApiProperty({ type: [String], example: ['React', 'TypeScript'] })
-  technologies!: string[];
-}
-
-export class LanguageItemDto {
-  @ApiProperty({ example: 'lang_123' })
-  id!: string;
-
-  @ApiProperty({ example: 'English' })
-  name!: string;
-
-  @ApiProperty({ example: 'Fluent' })
-  proficiency!: string;
-}
-
-export class CertificationItemDto {
-  @ApiProperty({ example: 'cert_123' })
-  id!: string;
-
-  @ApiProperty({ example: 'AWS Solutions Architect' })
-  name!: string;
-
-  @ApiProperty({ example: 'Amazon Web Services' })
-  issuer!: string;
-
-  @ApiProperty({ example: '2023-01' })
-  date!: string;
-
-  @ApiPropertyOptional({ example: 'https://aws.amazon.com/verify/...' })
-  url?: string;
-}
-
-export class InterestItemDto {
-  @ApiProperty({ example: 'int_123' })
-  id!: string;
-
-  @ApiProperty({ example: 'Open Source' })
-  name!: string;
-
-  @ApiProperty({ type: [String], example: ['Linux', 'Contributing'] })
-  keywords!: string[];
-}
-
-export class ReferenceItemDto {
-  @ApiProperty({ example: 'ref_123' })
-  id!: string;
-
-  @ApiProperty({ example: 'John Smith' })
-  name!: string;
-
-  @ApiProperty({ example: 'CTO' })
-  role!: string;
-
-  @ApiPropertyOptional({ example: 'Tech Corp' })
-  company?: string;
-
-  @ApiPropertyOptional({ example: 'john@example.com' })
-  email?: string;
-
-  @ApiPropertyOptional({ example: '+1234567890' })
-  phone?: string;
-}
-
-export class VolunteerItemDto {
-  @ApiProperty({ example: 'vol_123' })
-  id!: string;
-
-  @ApiProperty({ example: 'Code for Good' })
-  organization!: string;
-
-  @ApiProperty({ example: 'Mentor' })
-  role!: string;
-
-  @ApiProperty({ type: DateRangeDto })
-  dateRange!: DateRangeDto;
-
-  @ApiPropertyOptional({ example: 'Mentored junior developers' })
-  description?: string;
-}
-
-export class AwardItemDto {
-  @ApiProperty({ example: 'award_123' })
-  id!: string;
-
-  @ApiProperty({ example: 'Employee of the Year' })
-  title!: string;
-
-  @ApiProperty({ example: 'Tech Company' })
-  issuer!: string;
-
-  @ApiProperty({ example: '2023-12' })
-  date!: string;
-
-  @ApiPropertyOptional({ example: 'For outstanding contributions' })
-  description?: string;
-}
-
-export class PublicationItemDto {
-  @ApiProperty({ example: 'pub_123' })
-  id!: string;
-
-  @ApiProperty({ example: 'Building Scalable Systems' })
-  title!: string;
-
-  @ApiProperty({ example: "O'Reilly Media" })
-  publisher!: string;
-
-  @ApiProperty({ example: '2023-06' })
-  date!: string;
-
-  @ApiPropertyOptional({ example: 'https://example.com/book' })
-  url?: string;
-
-  @ApiPropertyOptional({ example: 'A comprehensive guide...' })
-  description?: string;
+  @ApiPropertyOptional({
+    type: 'object',
+    additionalProperties: true,
+    example: { variant: 'timeline' },
+  })
+  metadata?: Record<string, unknown>;
 }
 
 // ============================================================================
-// Section Data Types (discriminated union as separate DTOs)
+// Section Data Types
 // ============================================================================
 
-export class ExperienceSectionDataDto {
-  @ApiProperty({ example: 'experience' })
-  type!: 'experience';
-
-  @ApiProperty({ type: [ExperienceItemDto] })
-  items!: ExperienceItemDto[];
-}
-
-export class EducationSectionDataDto {
-  @ApiProperty({ example: 'education' })
-  type!: 'education';
-
-  @ApiProperty({ type: [EducationItemDto] })
-  items!: EducationItemDto[];
-}
-
-export class SkillsSectionDataDto {
-  @ApiProperty({ example: 'skills' })
-  type!: 'skills';
-
-  @ApiProperty({ type: [SkillItemDto] })
-  items!: SkillItemDto[];
-}
-
-export class ProjectsSectionDataDto {
-  @ApiProperty({ example: 'projects' })
-  type!: 'projects';
-
-  @ApiProperty({ type: [ProjectItemDto] })
-  items!: ProjectItemDto[];
-}
-
-export class LanguagesSectionDataDto {
-  @ApiProperty({ example: 'languages' })
-  type!: 'languages';
-
-  @ApiProperty({ type: [LanguageItemDto] })
-  items!: LanguageItemDto[];
-}
-
-export class CertificationsSectionDataDto {
-  @ApiProperty({ example: 'certifications' })
-  type!: 'certifications';
-
-  @ApiProperty({ type: [CertificationItemDto] })
-  items!: CertificationItemDto[];
-}
-
-export class InterestsSectionDataDto {
-  @ApiProperty({ example: 'interests' })
-  type!: 'interests';
-
-  @ApiProperty({ type: [InterestItemDto] })
-  items!: InterestItemDto[];
-}
-
-export class ReferencesSectionDataDto {
-  @ApiProperty({ example: 'references' })
-  type!: 'references';
-
-  @ApiProperty({ type: [ReferenceItemDto] })
-  items!: ReferenceItemDto[];
-}
-
-export class VolunteerSectionDataDto {
-  @ApiProperty({ example: 'volunteer' })
-  type!: 'volunteer';
-
-  @ApiProperty({ type: [VolunteerItemDto] })
-  items!: VolunteerItemDto[];
-}
-
-export class AwardsSectionDataDto {
-  @ApiProperty({ example: 'awards' })
-  type!: 'awards';
-
-  @ApiProperty({ type: [AwardItemDto] })
-  items!: AwardItemDto[];
-}
-
-export class PublicationsSectionDataDto {
-  @ApiProperty({ example: 'publications' })
-  type!: 'publications';
-
-  @ApiProperty({ type: [PublicationItemDto] })
-  items!: PublicationItemDto[];
-}
-
-export class SummarySectionDataDto {
-  @ApiProperty({ example: 'summary' })
-  type!: 'summary';
-
-  @ApiProperty({ example: 'Experienced software engineer...' })
-  content!: string;
-}
-
-export class CustomSectionDataDto {
-  @ApiProperty({ example: 'custom' })
-  type!: 'custom';
-
-  @ApiProperty({ example: 'Custom section content' })
-  content!: string;
-}
+export class SectionDataDto extends GenericSectionDataDto {}
 
 // ============================================================================
 // Style Types
@@ -494,48 +191,9 @@ export class AstMetaDto {
 }
 
 // ============================================================================
-// Section Data Union Type (for discriminated union)
-// ============================================================================
-
-/**
- * Discriminated union of all section data types.
- * This type is used by PlacedSectionDto.data and enables type-safe access
- * based on the `type` discriminator field.
- */
-export type SectionDataDto =
-  | ExperienceSectionDataDto
-  | EducationSectionDataDto
-  | SkillsSectionDataDto
-  | ProjectsSectionDataDto
-  | LanguagesSectionDataDto
-  | CertificationsSectionDataDto
-  | InterestsSectionDataDto
-  | ReferencesSectionDataDto
-  | VolunteerSectionDataDto
-  | AwardsSectionDataDto
-  | PublicationsSectionDataDto
-  | SummarySectionDataDto
-  | CustomSectionDataDto;
-
-// ============================================================================
 // Placed Section (combines data + styles + position)
 // ============================================================================
 
-@ApiExtraModels(
-  ExperienceSectionDataDto,
-  EducationSectionDataDto,
-  SkillsSectionDataDto,
-  ProjectsSectionDataDto,
-  LanguagesSectionDataDto,
-  CertificationsSectionDataDto,
-  InterestsSectionDataDto,
-  ReferencesSectionDataDto,
-  VolunteerSectionDataDto,
-  AwardsSectionDataDto,
-  PublicationsSectionDataDto,
-  SummarySectionDataDto,
-  CustomSectionDataDto,
-)
 export class PlacedSectionDto {
   @ApiProperty({ example: 'sec_experience_1' })
   sectionId!: string;
@@ -548,37 +206,29 @@ export class PlacedSectionDto {
 
   @ApiProperty({
     description:
-      'Section data object with discriminated type field. Type can be: experience, education, skills, projects, languages, certifications, interests, references, volunteer, awards, publications, summary, custom',
-    oneOf: [
-      { $ref: '#/components/schemas/ExperienceSectionDataDto' },
-      { $ref: '#/components/schemas/EducationSectionDataDto' },
-      { $ref: '#/components/schemas/SkillsSectionDataDto' },
-      { $ref: '#/components/schemas/ProjectsSectionDataDto' },
-      { $ref: '#/components/schemas/LanguagesSectionDataDto' },
-      { $ref: '#/components/schemas/CertificationsSectionDataDto' },
-      { $ref: '#/components/schemas/InterestsSectionDataDto' },
-      { $ref: '#/components/schemas/ReferencesSectionDataDto' },
-      { $ref: '#/components/schemas/VolunteerSectionDataDto' },
-      { $ref: '#/components/schemas/AwardsSectionDataDto' },
-      { $ref: '#/components/schemas/PublicationsSectionDataDto' },
-      { $ref: '#/components/schemas/SummarySectionDataDto' },
-      { $ref: '#/components/schemas/CustomSectionDataDto' },
-    ],
+      'Generic section data. Structure is defined by sectionTypeKey and SectionType metadata.',
+    type: GenericSectionDataDto,
     example: {
-      type: 'experience',
+      sectionTypeKey: 'section_type_v1',
+      semanticKind: 'custom_section',
+      title: 'Selected Highlights',
       items: [
         {
-          id: 'exp_1',
-          title: 'Senior Engineer',
-          company: 'Tech Corp',
-          dateRange: { startDate: '2020-01', isCurrent: true },
-          achievements: ['Led team of 5'],
-          skills: ['TypeScript'],
+          id: 'item_1',
+          order: 0,
+          content: {
+            headline: 'Senior Engineer',
+            organization: 'Tech Corp',
+            startedAt: '2020-01',
+            isActive: true,
+            highlights: ['Led team of 5'],
+            tags: ['TypeScript'],
+          },
         },
       ],
     },
   })
-  data!: SectionDataDto;
+  data!: GenericSectionDataDto;
 
   @ApiProperty({ type: SectionStylesDto })
   styles!: SectionStylesDto;

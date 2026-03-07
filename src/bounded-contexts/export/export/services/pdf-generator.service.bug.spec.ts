@@ -7,17 +7,30 @@
  * BUG-038: Banner Capture logoUrl Not Validated (SSRF)
  */
 
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
-import { PdfGeneratorService } from './pdf-generator.service';
 import { BrowserManagerService } from './browser-manager.service';
+import { PdfGeneratorService } from './pdf-generator.service';
 import { PdfTemplateService } from './pdf-template.service';
 
 describe('PdfGeneratorService - BUG DETECTION', () => {
   let service: PdfGeneratorService;
-  let mockBrowserManager: any;
-  let mockTemplateService: any;
-  let mockPage: any;
+  let mockBrowserManager: {
+    getBrowser: ReturnType<typeof mock>;
+  };
+  let mockTemplateService: {
+    getPageSetup: ReturnType<typeof mock>;
+    getStyleExtractor: ReturnType<typeof mock>;
+    getPdfConfig: ReturnType<typeof mock>;
+  };
+  let mockPage: {
+    close: ReturnType<typeof mock>;
+    evaluate: ReturnType<typeof mock>;
+    pdf: ReturnType<typeof mock>;
+    $: ReturnType<typeof mock>;
+    goto: ReturnType<typeof mock>;
+    setViewport: ReturnType<typeof mock>;
+  };
 
   beforeEach(async () => {
     mockPage = {

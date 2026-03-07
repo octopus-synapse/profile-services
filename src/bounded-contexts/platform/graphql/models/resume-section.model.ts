@@ -4,20 +4,18 @@ import { SectionItemModel } from './section-item.model';
 /**
  * GraphQL model representing a resume section
  *
- * A section groups items of the same type (e.g., all work experiences,
- * all education entries). This is the new generic structure that replaces
- * domain-specific arrays like experiences[], educations[], skills[].
+ * A section groups items under a single section type.
  */
 @ObjectType({ description: 'Resume section containing items of the same type' })
 export class ResumeSectionModel {
   @Field(() => ID, { description: 'Unique section identifier' })
   id: string;
 
-  @Field({ description: 'Section type key (e.g., work_experience_v1)' })
+  @Field({ description: 'Section type key' })
   sectionTypeKey: string;
 
   @Field({
-    description: 'Semantic category (e.g., WORK_EXPERIENCE, EDUCATION)',
+    description: 'Semantic category for the section',
   })
   semanticKind: string;
 

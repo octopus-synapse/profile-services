@@ -5,17 +5,18 @@
  * Audit é crítico para compliance, então testamos a criação de logs.
  */
 
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
-import { AuditLogService } from './audit-log.service';
+import { AuditAction } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { AppLoggerService } from '../logger/logger.service';
-import { AuditAction } from '@prisma/client';
+import type { RequestMetadataSource } from './audit-log.service';
+import { AuditLogService } from './audit-log.service';
 
 describe('AuditLogService', () => {
   let service: AuditLogService;
 
-  const auditLogs: any[] = [];
+  const auditLogs: Record<string, unknown>[] = [];
 
   const stubPrisma = {
     auditLog: {
@@ -63,13 +64,10 @@ describe('AuditLogService', () => {
 
   describe('log', () => {
     it('should create audit log entry', async () => {
-      await service.log(
-        'user-1',
-        AuditAction.USERNAME_CHANGED,
-        'User',
-        'user-1',
-        { before: { username: 'old' }, after: { username: 'new' } },
-      );
+      await service.log('user-1', AuditAction.USERNAME_CHANGED, 'User', 'user-1', {
+        before: { username: 'old' },
+        after: { username: 'new' },
+      });
 
       expect(auditLogs).toHaveLength(1);
       expect(auditLogs[0]).toMatchObject({
@@ -81,7 +79,7 @@ describe('AuditLogService', () => {
     });
 
     it('should extract request metadata when provided', async () => {
-      const mockRequest = {
+      const mockRequest: RequestMetadataSource = {
         ip: '192.168.1.1',
         headers: {
           'user-agent': 'Mozilla/5.0',
@@ -91,7 +89,7 @@ describe('AuditLogService', () => {
         method: 'POST',
         path: '/api/users',
         socket: { remoteAddress: '127.0.0.1' },
-      } as any;
+      };
 
       await service.log(
         'user-1',
@@ -172,18 +170,8 @@ describe('AuditLogService', () => {
   describe('getUserLogs', () => {
     it('should return logs for specific user', async () => {
       // Create some logs
-      await service.log(
-        'user-1',
-        AuditAction.USERNAME_CHANGED,
-        'User',
-        'user-1',
-      );
-      await service.log(
-        'user-2',
-        AuditAction.USERNAME_CHANGED,
-        'User',
-        'user-2',
-      );
+      await service.log('user-1', AuditAction.USERNAME_CHANGED, 'User', 'user-1');
+      await service.log('user-2', AuditAction.USERNAME_CHANGED, 'User', 'user-2');
       await service.log('user-1', AuditAction.RESUME_DELETED, 'Resume', 'r-1');
 
       const result = await service.getUserLogs('user-1');

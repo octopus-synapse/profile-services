@@ -29,17 +29,17 @@ export class BenchmarkService {
       yourATSScore: yourScore,
       avgViews: 0,
       yourViews: 0,
-      avgSkillsCount: 0,
-      yourSkillsCount: 0,
-      avgExperienceYears: 0,
-      yourExperienceYears: 0,
+      avgStructuredItemCount: 0,
+      yourStructuredItemCount: 0,
+      avgCareerDepthYears: 0,
+      yourCareerDepthYears: 0,
     };
 
     const topPerformers: TopPerformersProfile = {
-      commonSkills: [],
-      avgExperienceYears: 5,
-      avgSkillsCount: 10,
-      commonCertifications: [],
+      commonKeywords: [],
+      avgCareerDepthYears: 5,
+      avgStructuredItemCount: 10,
+      commonCredentials: [],
     };
 
     return {
@@ -75,10 +75,10 @@ export class BenchmarkService {
     }
 
     recommendations.push({
-      type: 'skill',
+      type: 'content',
       priority: 'medium',
-      message: 'Add trending skills in your industry',
-      action: 'Research top skills in job postings',
+      message: 'Add more high-signal structured content for your industry',
+      action: 'Review top job postings and enrich the strongest sections',
     });
 
     return recommendations;

@@ -7,12 +7,12 @@
  * catastrophic backtracking on crafted input.
  */
 
-import { describe, it, expect, beforeEach } from 'bun:test';
-import { CVSectionParser } from './cv-section.parser';
+import { beforeEach, describe, expect, it } from 'bun:test';
 import {
   ATSSectionTypeAdapter,
   SectionDetectionPattern,
 } from '../services/ats-section-type.adapter';
+import { CVSectionParser } from './cv-section.parser';
 
 /**
  * Create a mock ATSSectionTypeAdapter for ReDoS testing
@@ -49,28 +49,17 @@ function createMockATSSectionTypeAdapter(): ATSSectionTypeAdapter {
     getDetectionPatterns: () => patterns,
     getMandatorySectionTypes: () => patterns.filter((p) => p.isMandatory),
     getPatternsByPosition: () =>
-      [...patterns].sort(
-        (a, b) => a.recommendedPosition - b.recommendedPosition,
-      ),
+      [...patterns].sort((a, b) => a.recommendedPosition - b.recommendedPosition),
     detectSectionType: (headerText: string) => {
       const normalizedHeader = headerText.toLowerCase().trim();
-      if (
-        normalizedHeader.length < 3 ||
-        normalizedHeader.split(/\s+/).length > 5
-      ) {
+      if (normalizedHeader.length < 3 || normalizedHeader.split(/\s+/).length > 5) {
         return null;
       }
       for (const pattern of patterns) {
-        if (
-          pattern.multiWord.some((p) => normalizedHeader === p.toLowerCase())
-        ) {
+        if (pattern.multiWord.some((p) => normalizedHeader === p.toLowerCase())) {
           return { pattern, confidence: 1.0 };
         }
-        if (
-          pattern.keywords.some((k) =>
-            normalizedHeader.includes(k.toLowerCase()),
-          )
-        ) {
+        if (pattern.keywords.some((k) => normalizedHeader.includes(k.toLowerCase()))) {
           return { pattern, confidence: 0.8 };
         }
       }
@@ -95,8 +84,7 @@ describe('CVSectionParser - ReDoS BUG DETECTION', () => {
      */
     it('should not hang on repeated section headers', async () => {
       // Craft input with many potential section matches
-      const maliciousInput =
-        'EXPERIENCE '.repeat(1000) + '\n' + 'a'.repeat(10000);
+      const maliciousInput = `${'EXPERIENCE '.repeat(1000)}\n${'a'.repeat(10000)}`;
 
       const startTime = Date.now();
 
@@ -104,10 +92,7 @@ describe('CVSectionParser - ReDoS BUG DETECTION', () => {
       await Promise.race([
         Promise.resolve(parser.parseCV(maliciousInput, 'cv.txt', 'text/plain')),
         new Promise((_, reject) =>
-          setTimeout(
-            () => reject(new Error('TIMEOUT - Possible ReDoS!')),
-            1000,
-          ),
+          setTimeout(() => reject(new Error('TIMEOUT - Possible ReDoS!')), 1000),
         ),
       ]);
 
@@ -119,15 +104,13 @@ describe('CVSectionParser - ReDoS BUG DETECTION', () => {
 
     it('should not hang on nested special characters', async () => {
       // Patterns like (.*?)* are vulnerable
-      const maliciousInput = '(' + 'x'.repeat(30) + ')'.repeat(10);
+      const maliciousInput = `(${'x'.repeat(30)}${')'.repeat(10)}`;
 
       const startTime = Date.now();
 
       await Promise.race([
         Promise.resolve(parser.parseCV(maliciousInput, 'cv.txt', 'text/plain')),
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('TIMEOUT')), 1000),
-        ),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT')), 1000)),
       ]);
 
       expect(Date.now() - startTime).toBeLessThan(1000);
@@ -135,16 +118,13 @@ describe('CVSectionParser - ReDoS BUG DETECTION', () => {
 
     it('should not hang on overlapping patterns', async () => {
       // Long strings of characters that match multiple patterns
-      const maliciousInput =
-        'a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]';
+      const maliciousInput = 'a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]';
 
       const startTime = Date.now();
 
       await Promise.race([
         Promise.resolve(parser.parseCV(maliciousInput, 'cv.txt', 'text/plain')),
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('TIMEOUT')), 1000),
-        ),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('TIMEOUT')), 1000)),
       ]);
 
       expect(Date.now() - startTime).toBeLessThan(1000);

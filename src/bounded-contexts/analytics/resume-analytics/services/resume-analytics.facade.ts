@@ -55,12 +55,12 @@ export class ResumeAnalyticsFacade {
   async calculateATSScore(resumeId: string, userId: string): Promise<ATSScoreResult> {
     await this.verifyOwnership(resumeId, userId);
     const resume = await this.getResumeWithDetails(resumeId);
-    const result = this.atsScore.calculate(resume);
+    const result = await this.atsScore.calculate(resume);
 
     this.eventPublisher.publish(
       new AtsScoreCalculatedEvent(resumeId, {
         score: result.score,
-        issues: result.issues.map((i) => i.type),
+        issues: result.issues.map((i) => i.code),
       }),
     );
 
@@ -94,7 +94,7 @@ export class ResumeAnalyticsFacade {
   ): Promise<IndustryBenchmark> {
     await this.verifyOwnership(resumeId, userId);
     const resume = await this.getResumeWithDetails(resumeId);
-    const atsResult = this.atsScore.calculate(resume);
+    const atsResult = await this.atsScore.calculate(resume);
     return this.benchmark.getIndustryBenchmark(atsResult.score, options);
   }
 
@@ -107,12 +107,19 @@ export class ResumeAnalyticsFacade {
   async saveSnapshot(resumeId: string, userId: string): Promise<AnalyticsSnapshot> {
     await this.verifyOwnership(resumeId, userId);
     const resume = await this.getResumeWithDetails(resumeId);
-    const atsResult = this.atsScore.calculate(resume);
+    const atsResult = await this.atsScore.calculate(resume);
+    const avgSectionScore =
+      atsResult.sectionBreakdown.length > 0
+        ? Math.round(
+            atsResult.sectionBreakdown.reduce((s, b) => s + b.score, 0) /
+              atsResult.sectionBreakdown.length,
+          )
+        : 0;
     return this.snapshot.save({
       resumeId,
       atsScore: atsResult.score,
-      keywordScore: atsResult.breakdown.keywords,
-      completenessScore: atsResult.breakdown.completeness,
+      keywordScore: avgSectionScore,
+      completenessScore: avgSectionScore,
     });
   }
 

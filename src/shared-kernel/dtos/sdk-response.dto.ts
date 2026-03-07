@@ -270,92 +270,17 @@ export class ResumeSlotsResponseDto {
   remaining!: number;
 }
 
-export class ExperienceResponseDto {
-  @ApiProperty({ example: 'clxxx...' })
-  id!: string;
-
-  @ApiProperty({ example: 'Software Engineer' })
-  title!: string;
-
-  @ApiProperty({ example: 'Tech Company' })
-  company!: string;
-
-  @ApiPropertyOptional({ example: 'San Francisco, CA' })
-  location?: string;
-
-  @ApiPropertyOptional({ example: '2020-01-01' })
-  startDate?: string;
-
-  @ApiPropertyOptional({ example: '2023-12-31' })
-  endDate?: string;
-
-  @ApiPropertyOptional({ example: true })
-  current?: boolean;
-
-  @ApiPropertyOptional({ example: 'Developed and maintained...' })
-  description?: string;
-
-  @ApiProperty({ example: 0 })
-  order!: number;
-}
-
-export class EducationResponseDto {
-  @ApiProperty({ example: 'clxxx...' })
-  id!: string;
-
-  @ApiProperty({ example: 'Stanford University' })
-  institution!: string;
-
-  @ApiPropertyOptional({ example: 'Computer Science' })
-  degree?: string;
-
-  @ApiPropertyOptional({ example: 'Bachelor' })
-  field?: string;
-
-  @ApiPropertyOptional({ example: '2016-09-01' })
-  startDate?: string;
-
-  @ApiPropertyOptional({ example: '2020-06-15' })
-  endDate?: string;
-
-  @ApiPropertyOptional({ example: '3.8' })
-  gpa?: string;
-
-  @ApiPropertyOptional({ example: 'Graduated with honors' })
-  description?: string;
-
-  @ApiProperty({ example: 0 })
-  order!: number;
-}
-
-export class SkillResponseDto {
-  @ApiProperty({ example: 'clxxx...' })
-  id!: string;
-
-  @ApiProperty({ example: 'TypeScript' })
-  name!: string;
-
-  @ApiPropertyOptional({ example: 'expert' })
-  level?: string;
-
-  @ApiPropertyOptional({ example: 'programming' })
-  category?: string;
-
-  @ApiProperty({ example: 0 })
-  order!: number;
-}
-
 export class ResumeSectionTypeResponseDto {
   @ApiProperty({ example: 'section-type-1' })
   id!: string;
 
-  @ApiProperty({ example: 'work_experience_v1' })
+  @ApiProperty({ example: 'section_type_v1' })
   key!: string;
 
-  @ApiPropertyOptional({ example: 'WORK_EXPERIENCE' })
+  @ApiPropertyOptional({ example: 'CUSTOM_SECTION' })
   semanticKind?: string;
 
-  @ApiPropertyOptional({ example: 'Experience' })
+  @ApiPropertyOptional({ example: 'Selected Highlights' })
   title?: string;
 
   @ApiPropertyOptional({ example: 1 })
@@ -405,26 +330,6 @@ export class ResumeFullResponseDto extends ResumeResponseDto {
 
   @ApiPropertyOptional({ example: 'Experienced software engineer...' })
   summary?: string;
-}
-
-export class ResumeSkillResponseDto {
-  @ApiProperty({ example: 'clxxx...' })
-  id!: string;
-
-  @ApiProperty({ example: 'clxxx...' })
-  resumeId!: string;
-
-  @ApiProperty({ example: 'TypeScript' })
-  name!: string;
-
-  @ApiPropertyOptional({ example: 'expert' })
-  level?: string;
-
-  @ApiPropertyOptional({ example: 'programming' })
-  category?: string;
-
-  @ApiProperty({ example: 0 })
-  order!: number;
 }
 
 // ============================================================================
@@ -894,14 +799,11 @@ export class ImportResultDto {
   @ApiProperty({ example: 'clxxx...' })
   resumeId!: string;
 
-  @ApiPropertyOptional({ example: 5 })
-  experiencesImported?: number;
-
-  @ApiPropertyOptional({ example: 2 })
-  educationsImported?: number;
-
-  @ApiPropertyOptional({ example: 10 })
-  skillsImported?: number;
+  @ApiPropertyOptional({
+    example: { section_type_v1: 5, another_section_v2: 2 },
+    description: 'Count of items imported per section type',
+  })
+  sectionsImported?: Record<string, number>;
 
   @ApiPropertyOptional({ type: [String], example: ['Unknown field: hobby'] })
   warnings?: string[];

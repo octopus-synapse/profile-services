@@ -18,6 +18,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Inject,
   Param,
   Patch,
   Post,
@@ -31,8 +32,9 @@ import {
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
-import { CollaborationService, type CollaboratorWithUser } from './collaboration.service';
+import type { CollaboratorWithUser } from './collaboration.service';
 import { InviteCollaboratorDto, UpdateRoleDto } from './dto/collaboration.dto';
+import { COLLABORATION_SERVICE_PORT, type CollaborationServicePort } from './ports';
 
 // Wrapper DTOs for responses
 export class CollaboratorDataDto {
@@ -58,7 +60,10 @@ export class SharedResumesListDataDto {
 @ApiTags('Collaboration')
 @Controller('resumes')
 export class CollaborationController {
-  constructor(private readonly collaborationService: CollaborationService) {}
+  constructor(
+    @Inject(COLLABORATION_SERVICE_PORT)
+    private readonly collaborationService: CollaborationServicePort,
+  ) {}
 
   /**
    * Invite a collaborator

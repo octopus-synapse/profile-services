@@ -36,35 +36,26 @@ export interface ViewStats {
 
 export interface ATSScoreResult {
   score: number;
-  breakdown: ATSScoreBreakdown;
+  sectionBreakdown: SectionScoreBreakdown[];
   issues: ATSIssue[];
   recommendations: string[];
 }
 
-export interface ATSScoreBreakdown {
-  keywords: number;
-  format: number;
-  completeness: number;
-  experience: number;
+export interface SectionScoreBreakdown {
+  sectionKind: string;
+  sectionTypeKey: string;
+  score: number;
 }
 
 export interface ATSIssue {
-  type: ATSIssueType;
+  code: string;
   severity: 'low' | 'medium' | 'high';
   message: string;
-  field?: string;
+  context?: {
+    sectionKind?: string;
+    missingFields?: string[];
+  };
 }
-
-export type ATSIssueType =
-  | 'missing_contact'
-  | 'short_summary'
-  | 'missing_skills'
-  | 'no_experience'
-  | 'missing_education'
-  | 'weak_action_verbs'
-  | 'no_quantified_achievements'
-  | 'keyword_stuffing'
-  | 'format_issue';
 
 export interface KeywordSuggestionsOptions {
   industry: Industry;
@@ -119,21 +110,21 @@ export interface IndustryComparison {
   yourATSScore: number;
   avgViews: number;
   yourViews: number;
-  avgSkillsCount: number;
-  yourSkillsCount: number;
-  avgExperienceYears: number;
-  yourExperienceYears: number;
+  avgStructuredItemCount: number;
+  yourStructuredItemCount: number;
+  avgCareerDepthYears: number;
+  yourCareerDepthYears: number;
 }
 
 export interface TopPerformersProfile {
-  commonSkills: string[];
-  avgExperienceYears: number;
-  avgSkillsCount: number;
-  commonCertifications: string[];
+  commonKeywords: string[];
+  avgCareerDepthYears: number;
+  avgStructuredItemCount: number;
+  commonCredentials: string[];
 }
 
 export interface BenchmarkRecommendation {
-  type: 'skill' | 'experience' | 'certification' | 'keyword';
+  type: 'content' | 'career' | 'credential' | 'keyword';
   priority: 'high' | 'medium' | 'low';
   message: string;
   action: string;
@@ -169,7 +160,7 @@ export interface IndustryPosition {
 }
 
 export interface DashboardRecommendation {
-  type: 'add_skills' | 'improve_summary' | 'add_experience' | 'add_keywords';
+  type: 'add_section' | 'improve_content' | 'add_keywords' | 'optimize_format';
   priority: 'high' | 'medium' | 'low';
   message: string;
 }
@@ -204,9 +195,6 @@ export interface ScoreProgressionPoint {
 export interface AnalyticsSnapshotInput {
   resumeId: string;
   atsScore: number;
-  keywordsScore: number;
-  formatScore: number;
-  experienceScore: number;
   completenessScore: number;
   industry?: string;
   totalViews: number;

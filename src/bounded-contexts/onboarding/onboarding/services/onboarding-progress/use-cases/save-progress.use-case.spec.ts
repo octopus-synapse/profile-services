@@ -1,29 +1,83 @@
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+/**
+ * Save Progress Use Case Tests
+ *
+ * Tests business logic for saving onboarding progress.
+ * Uses In-Memory Repository - Clean Architecture pattern.
+ */
+
+import { beforeEach, describe, expect, it } from 'bun:test';
+import type { OnboardingProgress } from '@/shared-kernel';
 import { ConflictException, ValidationException } from '@/shared-kernel';
+import type {
+  OnboardingProgressData,
+  OnboardingProgressRepositoryPort,
+  ProgressRecord,
+  SaveProgressResult,
+} from '../ports/onboarding-progress.port';
 import { SaveProgressUseCase } from './save-progress.use-case';
-import type { OnboardingProgressRepositoryPort } from '../ports/onboarding-progress.port';
+
+// ============================================================================
+// In-Memory Repository Implementation
+// ============================================================================
+
+class InMemoryOnboardingProgressRepository implements OnboardingProgressRepositoryPort {
+  private progressMap: Map<string, ProgressRecord> = new Map();
+  private usersMap: Map<string, { id: string; username: string }> = new Map();
+
+  // Test helpers
+  addUser(username: string, userId: string): void {
+    this.usersMap.set(username.toLowerCase(), { id: userId, username });
+  }
+
+  async findProgressByUserId(userId: string): Promise<ProgressRecord | null> {
+    return this.progressMap.get(userId) ?? null;
+  }
+
+  async upsertProgress(userId: string, data: OnboardingProgressData): Promise<SaveProgressResult> {
+    const existing = this.progressMap.get(userId);
+    const record: ProgressRecord = {
+      userId,
+      currentStep: data.currentStep ?? existing?.currentStep ?? 'welcome',
+      completedSteps: data.completedSteps ?? existing?.completedSteps ?? [],
+      username: data.username ?? existing?.username ?? null,
+      personalInfo: data.personalInfo ?? existing?.personalInfo ?? null,
+      professionalProfile: data.professionalProfile ?? existing?.professionalProfile ?? null,
+      sections: data.sections ?? existing?.sections ?? null,
+      templateSelection: data.templateSelection ?? existing?.templateSelection ?? null,
+      updatedAt: new Date(),
+    };
+    this.progressMap.set(userId, record);
+    return {
+      currentStep: record.currentStep,
+      completedSteps: record.completedSteps,
+    };
+  }
+
+  async deleteProgress(userId: string): Promise<void> {
+    this.progressMap.delete(userId);
+  }
+
+  async deleteProgressWithTx(_tx: unknown, userId: string): Promise<void> {
+    this.progressMap.delete(userId);
+  }
+
+  async findUserByUsername(username: string): Promise<{ id: string } | null> {
+    const user = this.usersMap.get(username.toLowerCase());
+    return user ? { id: user.id } : null;
+  }
+}
 
 describe('SaveProgressUseCase', () => {
   let useCase: SaveProgressUseCase;
-  let repository: OnboardingProgressRepositoryPort;
+  let repository: InMemoryOnboardingProgressRepository;
 
   beforeEach(() => {
-    repository = {
-      findProgressByUserId: mock(async () => null),
-      upsertProgress: mock(async () => ({
-        currentStep: 'personal-info',
-        completedSteps: ['welcome'],
-      })),
-      deleteProgress: mock(async () => undefined),
-      deleteProgressWithTx: mock(async () => undefined),
-      findUserByUsername: mock(async () => null),
-    } as OnboardingProgressRepositoryPort;
-
+    repository = new InMemoryOnboardingProgressRepository();
     useCase = new SaveProgressUseCase(repository);
   });
 
   it('saves progress and returns result (not envelope)', async () => {
-    const data = {
+    const data: OnboardingProgress = {
       currentStep: 'personal-info',
       completedSteps: ['welcome'],
       username: 'johndoe',
@@ -31,7 +85,6 @@ describe('SaveProgressUseCase', () => {
 
     const result = await useCase.execute('user-1', data);
 
-    expect(repository.upsertProgress).toHaveBeenCalled();
     expect(result).toEqual({
       currentStep: 'personal-info',
       completedSteps: ['welcome'],
@@ -41,83 +94,94 @@ describe('SaveProgressUseCase', () => {
   });
 
   it('validates username uniqueness', async () => {
-    repository.findUserByUsername = mock(async () => ({ id: 'other-user' }));
+    repository.addUser('taken_username', 'other-user');
 
-    const data = {
+    const data: OnboardingProgress = {
       currentStep: 'personal-info',
       completedSteps: ['welcome'],
       username: 'taken_username',
     };
 
-    await expect(useCase.execute('user-1', data)).rejects.toThrow(
-      ConflictException,
-    );
+    await expect(useCase.execute('user-1', data)).rejects.toThrow(ConflictException);
   });
 
   it('allows same user to keep their username', async () => {
-    repository.findUserByUsername = mock(async () => ({ id: 'user-1' }));
+    repository.addUser('my_username', 'user-1');
 
-    const data = {
+    const data: OnboardingProgress = {
       currentStep: 'personal-info',
       completedSteps: ['welcome'],
       username: 'my_username',
     };
 
     const result = await useCase.execute('user-1', data);
+
     expect(result.currentStep).toBe('personal-info');
   });
 
-  it('throws when noData is true but items provided for section', async () => {
-    const data = {
-      currentStep: 'experience',
-      completedSteps: ['welcome', 'personal-info'],
-      sections: [
-        {
-          sectionTypeKey: 'work_experience_v1',
-          noData: true,
-          items: [{ content: { company: 'Test' } }],
-        },
-      ],
+  it('allows new username when not taken', async () => {
+    const data: OnboardingProgress = {
+      currentStep: 'personal-info',
+      completedSteps: ['welcome'],
+      username: 'available_username',
     };
 
-    await expect(useCase.execute('user-1', data)).rejects.toThrow(
-      ValidationException,
-    );
+    const result = await useCase.execute('user-1', data);
+
+    expect(result.currentStep).toBe('personal-info');
   });
 
-  it('throws when noData is true but items provided for education', async () => {
-    const data = {
-      currentStep: 'education',
-      completedSteps: ['welcome'],
-      sections: [
-        {
-          sectionTypeKey: 'education_v1',
-          noData: true,
-          items: [{ content: { institution: 'Test' } }],
-        },
-      ],
-    };
+  describe('Section validation', () => {
+    it('rejects sections with noData=true but non-empty items', async () => {
+      const data: OnboardingProgress = {
+        currentStep: 'experience',
+        completedSteps: ['welcome'],
+        sections: [
+          {
+            sectionTypeKey: 'work_experience_v1',
+            noData: true,
+            items: [{ content: { company: 'Acme Inc' } }],
+          },
+        ],
+      };
 
-    await expect(useCase.execute('user-1', data)).rejects.toThrow(
-      ValidationException,
-    );
-  });
+      await expect(useCase.execute('user-1', data)).rejects.toThrow(ValidationException);
+    });
 
-  it('throws when noData is true but items provided for skills', async () => {
-    const data = {
-      currentStep: 'skills',
-      completedSteps: ['welcome'],
-      sections: [
-        {
-          sectionTypeKey: 'skill_set_v1',
-          noData: true,
-          items: [{ content: { name: 'Test' } }],
-        },
-      ],
-    };
+    it('accepts sections with noData=true and empty items', async () => {
+      const data: OnboardingProgress = {
+        currentStep: 'experience',
+        completedSteps: ['welcome'],
+        sections: [
+          {
+            sectionTypeKey: 'work_experience_v1',
+            noData: true,
+            items: [],
+          },
+        ],
+      };
 
-    await expect(useCase.execute('user-1', data)).rejects.toThrow(
-      ValidationException,
-    );
+      const result = await useCase.execute('user-1', data);
+
+      expect(result.currentStep).toBe('experience');
+    });
+
+    it('accepts sections with noData=false and items', async () => {
+      const data: OnboardingProgress = {
+        currentStep: 'experience',
+        completedSteps: ['welcome'],
+        sections: [
+          {
+            sectionTypeKey: 'work_experience_v1',
+            noData: false,
+            items: [{ content: { company: 'Acme Inc' } }],
+          },
+        ],
+      };
+
+      const result = await useCase.execute('user-1', data);
+
+      expect(result.currentStep).toBe('experience');
+    });
   });
 });

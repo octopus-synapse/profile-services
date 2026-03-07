@@ -1,17 +1,13 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { PermissionGuard } from '@/bounded-contexts/identity/authorization';
-import { ResumeManagementController } from './resume-management.controller';
+import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ResumeManagementService } from '../services/resume-management.service';
+import { ResumeManagementController } from './resume-management.controller';
 
 const createMockService = () => ({
-  listResumesForUser: mock(() =>
-    Promise.resolve({ resumes: [{ id: 'resume-1' }] }),
-  ),
-  getResumeDetails: mock(() =>
-    Promise.resolve({ id: 'resume-1', title: 'My Resume' }),
-  ),
+  listResumesForUser: mock(() => Promise.resolve({ resumes: [{ id: 'resume-1' }] })),
+  getResumeDetails: mock(() => Promise.resolve({ id: 'resume-1', title: 'My Resume' })),
   deleteResume: mock(() => Promise.resolve(undefined)),
 });
 
@@ -21,9 +17,7 @@ describe('ResumeManagementController - Contract', () => {
   beforeEach(async () => {
     const moduleBuilder = Test.createTestingModule({
       controllers: [ResumeManagementController],
-      providers: [
-        { provide: ResumeManagementService, useValue: createMockService() },
-      ],
+      providers: [{ provide: ResumeManagementService, useValue: createMockService() }],
     })
       .overrideGuard(JwtAuthGuard)
       .useValue({ canActivate: () => true })
@@ -32,9 +26,7 @@ describe('ResumeManagementController - Contract', () => {
 
     const module: TestingModule = await moduleBuilder.compile();
 
-    controller = module.get<ResumeManagementController>(
-      ResumeManagementController,
-    );
+    controller = module.get<ResumeManagementController>(ResumeManagementController);
   });
 
   it('listResumesForUser returns data with resumes', async () => {

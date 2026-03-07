@@ -7,8 +7,87 @@
  * Uncle Bob: "Test boundary conditions"
  */
 
-import { describe, it, expect, beforeEach } from 'bun:test';
+import { beforeEach, describe, expect, it } from 'bun:test';
+import type { DesignTokens } from '@/shared-kernel';
 import { TokenResolverService } from './token-resolver.service';
+
+// ============================================================================
+// Test Data Factory
+// ============================================================================
+
+type FontFamily =
+  | 'inter'
+  | 'merriweather'
+  | 'roboto'
+  | 'open-sans'
+  | 'playfair-display'
+  | 'source-serif'
+  | 'lato'
+  | 'poppins';
+type FontSize = 'sm' | 'base' | 'lg';
+type HeadingStyle = 'bold' | 'underline' | 'uppercase' | 'accent-border' | 'minimal';
+type BorderRadius = 'none' | 'sm' | 'md' | 'lg' | 'full';
+type Shadow = 'none' | 'subtle' | 'medium' | 'strong';
+type SpacingSize = 'sm' | 'md' | 'lg' | 'xl';
+type SpacingDensity = 'compact' | 'comfortable' | 'spacious';
+
+interface TokenConfigOptions {
+  fontFamily?: { heading: FontFamily; body: FontFamily };
+  fontSize?: FontSize;
+  headingStyle?: HeadingStyle;
+  colors?: {
+    primary?: string;
+    secondary?: string;
+    background?: string;
+    surface?: string;
+    text?: { primary?: string; secondary?: string; accent?: string };
+    border?: string;
+    divider?: string;
+  };
+  borderRadius?: BorderRadius;
+  shadows?: Shadow;
+  spacing?: {
+    sectionGap?: SpacingSize;
+    itemGap?: SpacingSize;
+    contentPadding?: SpacingSize;
+    density?: SpacingDensity;
+  };
+}
+
+const createTokenConfig = (options: TokenConfigOptions = {}): DesignTokens => ({
+  typography: {
+    fontFamily: options.fontFamily ?? { heading: 'inter', body: 'inter' },
+    fontSize: options.fontSize ?? 'base',
+    headingStyle: options.headingStyle ?? 'bold',
+  },
+  colors: {
+    colors: {
+      primary: options.colors?.primary ?? '#2563eb',
+      secondary: options.colors?.secondary ?? '#64748b',
+      background: options.colors?.background ?? '#ffffff',
+      surface: options.colors?.surface ?? '#f8fafc',
+      text: {
+        primary: options.colors?.text?.primary ?? '#1e293b',
+        secondary: options.colors?.text?.secondary ?? '#64748b',
+        accent: options.colors?.text?.accent ?? '#2563eb',
+      },
+      border: options.colors?.border ?? '#e2e8f0',
+      divider: options.colors?.divider ?? '#e2e8f0',
+    },
+    borderRadius: options.borderRadius ?? 'md',
+    shadows: options.shadows ?? 'none',
+  },
+  spacing: {
+    sectionGap: options.spacing?.sectionGap ?? 'md',
+    itemGap: options.spacing?.itemGap ?? 'sm',
+    contentPadding: options.spacing?.contentPadding ?? 'md',
+    density: options.spacing?.density ?? 'comfortable',
+  },
+});
+
+// ============================================================================
+// Tests
+// ============================================================================
 
 describe('TokenResolverService', () => {
   let service: TokenResolverService;
@@ -25,36 +104,7 @@ describe('TokenResolverService', () => {
 
   describe('resolve', () => {
     it('should resolve token configuration to pixel values', () => {
-      const tokenConfig = {
-        typography: {
-          fontFamily: { heading: 'inter', body: 'inter' },
-          fontSize: 'base',
-          headingStyle: 'default',
-        },
-        colors: {
-          colors: {
-            primary: '#2563eb',
-            secondary: '#64748b',
-            background: '#ffffff',
-            surface: '#f8fafc',
-            text: {
-              primary: '#1e293b',
-              secondary: '#64748b',
-              accent: '#2563eb',
-            },
-            border: '#e2e8f0',
-            divider: '#e2e8f0',
-          },
-          borderRadius: 'md',
-          shadows: 'none',
-        },
-        spacing: {
-          sectionGap: 'md',
-          itemGap: 'sm',
-          contentPadding: 'md',
-          density: 'comfortable',
-        },
-      };
+      const tokenConfig = createTokenConfig();
 
       const result = service.resolve(tokenConfig);
 
@@ -65,32 +115,11 @@ describe('TokenResolverService', () => {
     });
 
     it('should resolve typography tokens', () => {
-      const tokenConfig = {
-        typography: {
-          fontFamily: { heading: 'inter', body: 'system' },
-          fontSize: 'lg',
-          headingStyle: 'bold',
-        },
-        colors: {
-          colors: {
-            primary: '#000',
-            secondary: '#000',
-            background: '#fff',
-            surface: '#fff',
-            text: { primary: '#000', secondary: '#666', accent: '#000' },
-            border: '#ccc',
-            divider: '#ccc',
-          },
-          borderRadius: 'sm',
-          shadows: 'none',
-        },
-        spacing: {
-          sectionGap: 'sm',
-          itemGap: 'sm',
-          contentPadding: 'sm',
-          density: 'compact',
-        },
-      };
+      const tokenConfig = createTokenConfig({
+        fontFamily: { heading: 'inter', body: 'roboto' },
+        fontSize: 'lg',
+        headingStyle: 'bold',
+      });
 
       const result = service.resolve(tokenConfig);
 
@@ -99,36 +128,15 @@ describe('TokenResolverService', () => {
     });
 
     it('should resolve color tokens', () => {
-      const tokenConfig = {
-        typography: {
-          fontFamily: { heading: 'inter', body: 'inter' },
-          fontSize: 'base',
-          headingStyle: 'default',
-        },
+      const tokenConfig = createTokenConfig({
         colors: {
-          colors: {
-            primary: '#ff0000',
-            secondary: '#00ff00',
-            background: '#0000ff',
-            surface: '#ffffff',
-            text: {
-              primary: '#111111',
-              secondary: '#222222',
-              accent: '#333333',
-            },
-            border: '#444444',
-            divider: '#555555',
-          },
-          borderRadius: 'lg',
-          shadows: 'sm',
+          primary: '#ff0000',
+          secondary: '#00ff00',
+          background: '#0000ff',
         },
-        spacing: {
-          sectionGap: 'lg',
-          itemGap: 'md',
-          contentPadding: 'lg',
-          density: 'relaxed',
-        },
-      };
+        borderRadius: 'lg',
+        shadows: 'subtle',
+      });
 
       const result = service.resolve(tokenConfig);
 
@@ -137,38 +145,53 @@ describe('TokenResolverService', () => {
     });
 
     it('should resolve spacing tokens', () => {
-      const tokenConfig = {
-        typography: {
-          fontFamily: { heading: 'inter', body: 'inter' },
-          fontSize: 'base',
-          headingStyle: 'default',
-        },
-        colors: {
-          colors: {
-            primary: '#000',
-            secondary: '#000',
-            background: '#fff',
-            surface: '#fff',
-            text: { primary: '#000', secondary: '#000', accent: '#000' },
-            border: '#000',
-            divider: '#000',
-          },
-          borderRadius: 'md',
-          shadows: 'none',
-        },
+      const tokenConfig = createTokenConfig({
         spacing: {
           sectionGap: 'xl',
           itemGap: 'lg',
           contentPadding: 'xl',
-          density: 'relaxed',
+          density: 'spacious',
         },
-      };
+      });
 
       const result = service.resolve(tokenConfig);
 
       expect(result.spacing).toBeDefined();
       expect(typeof result.spacing.sectionGapPx).toBe('number');
       expect(typeof result.spacing.itemGapPx).toBe('number');
+    });
+
+    it('should use different font families for heading and body', () => {
+      const tokenConfig = createTokenConfig({
+        fontFamily: { heading: 'playfair-display', body: 'source-serif' },
+      });
+
+      const result = service.resolve(tokenConfig);
+
+      expect(result.typography.headingFontFamily).toBeDefined();
+      expect(result.typography.bodyFontFamily).toBeDefined();
+    });
+
+    it('should handle small font size', () => {
+      const tokenConfig = createTokenConfig({
+        fontSize: 'sm',
+      });
+
+      const result = service.resolve(tokenConfig);
+
+      expect(result.typography.baseFontSizePx).toBeDefined();
+    });
+
+    it('should handle compact spacing density', () => {
+      const tokenConfig = createTokenConfig({
+        spacing: {
+          density: 'compact',
+        },
+      });
+
+      const result = service.resolve(tokenConfig);
+
+      expect(result.spacing.densityFactor).toBeDefined();
     });
   });
 

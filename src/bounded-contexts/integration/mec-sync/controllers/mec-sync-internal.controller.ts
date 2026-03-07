@@ -4,12 +4,13 @@
  */
 
 import { Controller, Get, HttpCode, HttpStatus, Post, Query, UseGuards } from '@nestjs/common';
-import { ApiHeader, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiHeader, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { APP_CONFIG } from '@/shared-kernel';
+import { TriggerMecSyncRequestDto } from '@/shared-kernel/dtos/sdk-request.dto';
 import {
   MecSyncExecutionDataDto,
   MecSyncHistoryDataDto,
@@ -33,6 +34,7 @@ export class MecSyncInternalController {
   @UseGuards(InternalAuthGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Trigger MEC data synchronization' })
+  @ApiBody({ type: TriggerMecSyncRequestDto })
   @ApiDataResponse(MecSyncExecutionDataDto, {
     description: 'Sync completed successfully',
     status: 201,

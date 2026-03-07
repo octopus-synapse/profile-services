@@ -1,17 +1,22 @@
-import type { ATSIssue, ATSIssueType } from '../../interfaces';
+import type { ATSIssue } from '../../interfaces';
 
-const RECOMMENDATION_MAP: Record<ATSIssueType, string> = {
-  missing_contact: 'Add your email and phone number',
-  short_summary: 'Write a compelling 2-3 sentence professional summary',
-  missing_skills: 'Add 5-10 relevant technical and soft skills',
-  no_experience: 'Add your work experience with detailed descriptions',
-  missing_education: 'Add your education history',
-  weak_action_verbs: 'Start bullet points with action verbs',
-  no_quantified_achievements: 'Include metrics and numbers',
-  keyword_stuffing: 'Reduce keyword repetition',
-  format_issue: 'Improve document formatting',
-};
-
-export function generateATSRecommendations(issues: ATSIssue[]): string[] {
-  return issues.map((issue) => RECOMMENDATION_MAP[issue.type] || issue.message);
+/**
+ * Generates actionable recommendations from generic ATS issues.
+ * No hardcoded section types — maps generic issue codes to guidance.
+ */
+export function generateRecommendations(issues: ATSIssue[]): string[] {
+  return issues.map((issue) => {
+    switch (issue.code) {
+      case 'MISSING_CONTACT_INFO':
+        return 'Add your email and phone number';
+      case 'SHORT_SUMMARY':
+        return 'Write a compelling 2-3 sentence professional summary';
+      case 'MISSING_MANDATORY_SECTION':
+        return `Add the required section: ${issue.context?.sectionKind ?? 'unknown'}`;
+      case 'MISSING_WEIGHTED_FIELDS':
+        return `Complete fields in ${issue.context?.sectionKind ?? 'section'}: ${issue.context?.missingFields?.join(', ') ?? 'check required fields'}`;
+      default:
+        return issue.message;
+    }
+  });
 }

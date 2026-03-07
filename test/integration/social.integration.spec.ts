@@ -7,20 +7,18 @@
  * developed software modules work together correctly."
  */
 
-import { describe, it, expect, beforeEach } from 'bun:test';
-import { Test, TestingModule } from '@nestjs/testing';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { FollowService } from '@/bounded-contexts/social/social/services/follow.service';
-import { ActivityService } from '@/bounded-contexts/social/social/services/activity.service';
-import { SocialModule } from '@/bounded-contexts/social/social/social.module';
-import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
+import { beforeEach, describe, expect, it } from 'bun:test';
 import { BadRequestException } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
+import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { ActivityService } from '@/bounded-contexts/social/social/services/activity.service';
+import { FollowService } from '@/bounded-contexts/social/social/services/follow.service';
+import { SocialModule } from '@/bounded-contexts/social/social/social.module';
 
 // Skip integration tests in CI unless database is available
 const describeIntegration =
-  process.env.DATABASE_URL && !process.env.SKIP_INTEGRATION
-    ? describe
-    : describe.skip;
+  process.env.DATABASE_URL && !process.env.SKIP_INTEGRATION ? describe : describe.skip;
 
 describeIntegration('Social Integration Tests', () => {
   let followService: FollowService;
@@ -48,19 +46,14 @@ describeIntegration('Social Integration Tests', () => {
 
       // This will fail in tests without proper user setup
       // But demonstrates the integration pattern
-      const isFollowingBefore = await followService.isFollowing(
-        followerId,
-        followingId,
-      );
+      const isFollowingBefore = await followService.isFollowing(followerId, followingId);
       expect(isFollowingBefore).toBe(false);
     });
 
     it('should prevent self-follow', async () => {
       const userId = 'integration-user-1';
 
-      await expect(followService.follow(userId, userId)).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(followService.follow(userId, userId)).rejects.toThrow(BadRequestException);
     });
 
     it('should return empty followers for new user', async () => {

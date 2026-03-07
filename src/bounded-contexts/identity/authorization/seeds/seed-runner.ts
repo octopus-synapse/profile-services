@@ -6,11 +6,12 @@
  */
 
 import { PrismaClient } from '@prisma/client';
+import { createPrismaClientOptions } from '@/bounded-contexts/platform/prisma/prisma-client-options';
 import { SYSTEM_PERMISSIONS } from './permissions';
 import { SYSTEM_GROUPS } from './system-groups';
 import { SYSTEM_ROLES } from './system-roles';
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient(createPrismaClientOptions());
 
 async function seedPermissions(): Promise<Map<string, string>> {
   console.log('🔐 Seeding permissions...');

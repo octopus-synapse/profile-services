@@ -1,12 +1,13 @@
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
+import { createPrismaClientOptions } from '../src/bounded-contexts/platform/prisma/prisma-client-options';
 import { seedAnalyticsProjections } from './seeds/analytics-projection.seed';
 import { seedSectionTypes } from './seeds/section-type.seed';
 import { seedSpokenLanguages } from './seeds/spoken-language.seed';
 import { seedThemes } from './seeds/theme.seed';
 import { seedUsernames } from './seeds/username.seed';
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient(createPrismaClientOptions());
 
 async function main() {
   console.log('🌱 Starting database seed...');

@@ -1,15 +1,7 @@
-import {
-  describe,
-  it,
-  expect,
-  beforeEach,
-  afterEach,
-  mock,
-  spyOn,
-} from 'bun:test';
+import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
-import { BrowserManagerService } from './browser-manager.service';
 import puppeteer, { Browser } from 'puppeteer';
+import { BrowserManagerService } from './browser-manager.service';
 
 describe('BrowserManagerService', () => {
   let service: BrowserManagerService;
@@ -19,7 +11,7 @@ describe('BrowserManagerService', () => {
     mockBrowser = {
       newPage: mock(),
       close: mock().mockResolvedValue(undefined),
-    } as unknown as any;
+    } as unknown as Browser;
 
     spyOn(puppeteer, 'launch').mockResolvedValue(mockBrowser);
 
@@ -56,11 +48,9 @@ describe('BrowserManagerService', () => {
 
     it('should handle browser launch failure', async () => {
       const error = new Error('Browser launch failed');
-      (puppeteer.launch as any).mockRejectedValueOnce(error);
+      spyOn(puppeteer, 'launch').mockRejectedValueOnce(error);
 
-      await expect(async () => await service.getBrowser()).toThrow(
-        'Browser launch failed',
-      );
+      await expect(async () => await service.getBrowser()).toThrow('Browser launch failed');
     });
   });
 
@@ -78,7 +68,7 @@ describe('BrowserManagerService', () => {
     it('should do nothing if browser not initialized', async () => {
       await service.closeBrowser();
 
-      expect(mockBrowser.close.mock.calls.length).toBe(0);
+      expect(mockBrowser.close).not.toHaveBeenCalled();
     });
 
     it('should allow launching new browser after close', async () => {

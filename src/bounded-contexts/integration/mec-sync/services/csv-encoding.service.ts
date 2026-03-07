@@ -6,7 +6,6 @@
 import { Injectable } from '@nestjs/common';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 
-/* eslint-disable @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment */
 const iconv: {
   decode: (buffer: Buffer, encoding: string) => string;
 } = require('iconv-lite');

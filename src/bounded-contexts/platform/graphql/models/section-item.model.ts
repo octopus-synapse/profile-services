@@ -3,9 +3,6 @@ import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
 /**
  * Generic GraphQL model for section items
  *
- * Issue: Migration from domain-specific models (Experience, Education, Skill)
- * to a unified generic sections model with JSON content.
- *
  * This model represents any item within a resume section, with the actual
  * data stored as JSON in the 'content' field.
  *
@@ -17,7 +14,7 @@ export class SectionItemModel {
   @Field(() => ID, { description: 'Unique identifier' })
   id: string;
 
-  @Field({ description: 'Section type key (e.g., work_experience_v1)' })
+  @Field({ description: 'Section type key' })
   sectionTypeKey: string;
 
   /**

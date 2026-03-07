@@ -19,38 +19,24 @@ const ACHIEVEMENT_SEMANTIC_KIND = 'ACHIEVEMENT';
 export class GitHubDatabaseService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async verifyResumeOwnership(
-    userId: string,
-    resumeId: string,
-    include?: Prisma.ResumeInclude,
-  ) {
+  async verifyResumeOwnership(userId: string, resumeId: string, include?: Prisma.ResumeInclude) {
     const resume = await this.prisma.resume.findUnique({
       where: { id: resumeId },
       include,
     });
 
     if (!resume) {
-      throw new HttpException(
-        ERROR_MESSAGES.RESUME_NOT_FOUND,
-        HttpStatus.NOT_FOUND,
-      );
+      throw new HttpException(ERROR_MESSAGES.RESUME_NOT_FOUND, HttpStatus.NOT_FOUND);
     }
 
     if (resume.userId !== userId) {
-      throw new HttpException(
-        ERROR_MESSAGES.ACCESS_DENIED,
-        HttpStatus.FORBIDDEN,
-      );
+      throw new HttpException(ERROR_MESSAGES.ACCESS_DENIED, HttpStatus.FORBIDDEN);
     }
 
     return resume;
   }
 
-  async updateResumeGitHubStats(
-    resumeId: string,
-    githubUsername: string,
-    totalStars: number,
-  ) {
+  async updateResumeGitHubStats(resumeId: string, githubUsername: string, totalStars: number) {
     return this.prisma.resume.update({
       where: { id: resumeId },
       data: {
@@ -91,7 +77,6 @@ export class GitHubDatabaseService {
       const openSourceSection = await this.getOrCreateResumeSection(
         resumeId,
         OPEN_SOURCE_SEMANTIC_KIND,
-        'open_source_v1',
       );
 
       if (openSourceSection) {
@@ -146,7 +131,6 @@ export class GitHubDatabaseService {
       const achievementSection = await this.getOrCreateResumeSection(
         resumeId,
         ACHIEVEMENT_SEMANTIC_KIND,
-        'achievement_v1',
       );
 
       if (achievementSection) {
@@ -159,7 +143,7 @@ export class GitHubDatabaseService {
             data: achievements.map((achievement, index) => ({
               resumeSectionId: achievementSection.id,
               order: existingCount + index,
-              content: achievement as unknown as Prisma.InputJsonValue,
+              content: this.toAchievementJson(achievement),
             })),
           }),
         );
@@ -172,14 +156,10 @@ export class GitHubDatabaseService {
   /**
    * Get or create a ResumeSection for a given semantic kind.
    */
-  private async getOrCreateResumeSection(
-    resumeId: string,
-    semanticKind: string,
-    sectionTypeKey: string,
-  ) {
+  private async getOrCreateResumeSection(resumeId: string, semanticKind: string) {
     const sectionType = await this.prisma.sectionType.findFirst({
       where: {
-        key: sectionTypeKey,
+        semanticKind,
         isActive: true,
       },
       select: { id: true },
@@ -203,5 +183,16 @@ export class GitHubDatabaseService {
       },
       select: { id: true },
     });
+  }
+
+  private toAchievementJson(achievement: GitHubAchievementContent): Prisma.InputJsonObject {
+    return {
+      type: achievement.type,
+      title: achievement.title,
+      description: achievement.description,
+      verificationUrl: achievement.verificationUrl,
+      achievedAt: achievement.achievedAt,
+      value: achievement.value,
+    };
   }
 }

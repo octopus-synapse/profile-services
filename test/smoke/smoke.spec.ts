@@ -19,7 +19,7 @@
  * - External integrations
  */
 
-import { describe, it, expect } from 'bun:test';
+import { describe, expect, it } from 'bun:test';
 
 describe('Smoke Tests - Application Bootstrap', () => {
   describe('Core Module Imports', () => {
@@ -32,30 +32,22 @@ describe('Smoke Tests - Application Bootstrap', () => {
     });
 
     it('should import UsersModule', async () => {
-      const { UsersModule } = await import(
-        '@/bounded-contexts/identity/users/users.module'
-      );
+      const { UsersModule } = await import('@/bounded-contexts/identity/users/users.module');
       expect(UsersModule).toBeDefined();
     });
 
     it('should import ResumesModule', async () => {
-      const { ResumesModule } = await import(
-        '@/bounded-contexts/resumes/resumes/resumes.module'
-      );
+      const { ResumesModule } = await import('@/bounded-contexts/resumes/resumes/resumes.module');
       expect(ResumesModule).toBeDefined();
     });
 
     it('should import HealthModule', async () => {
-      const { HealthModule } = await import(
-        '@/bounded-contexts/platform/health/health.module'
-      );
+      const { HealthModule } = await import('@/bounded-contexts/platform/health/health.module');
       expect(HealthModule).toBeDefined();
     });
 
     it('should import PrismaModule', async () => {
-      const { PrismaModule } = await import(
-        '@/bounded-contexts/platform/prisma/prisma.module'
-      );
+      const { PrismaModule } = await import('@/bounded-contexts/platform/prisma/prisma.module');
       expect(PrismaModule).toBeDefined();
     });
 
@@ -73,16 +65,12 @@ describe('Smoke Tests - Application Bootstrap', () => {
 
   describe('Core Services Imports', () => {
     it('should import UsersService', async () => {
-      const { UsersService } = await import(
-        '@/bounded-contexts/identity/users/users.service'
-      );
+      const { UsersService } = await import('@/bounded-contexts/identity/users/users.service');
       expect(UsersService).toBeDefined();
     });
 
     it('should import ResumesService', async () => {
-      const { ResumesService } = await import(
-        '@/bounded-contexts/resumes/resumes/resumes.service'
-      );
+      const { ResumesService } = await import('@/bounded-contexts/resumes/resumes/resumes.service');
       expect(ResumesService).toBeDefined();
     });
 
@@ -135,9 +123,7 @@ describe('Smoke Tests - Application Bootstrap', () => {
 
   describe('Social Module Imports', () => {
     it('should import SocialModule', async () => {
-      const { SocialModule } = await import(
-        '@/bounded-contexts/social/social/social.module'
-      );
+      const { SocialModule } = await import('@/bounded-contexts/social/social/social.module');
       expect(SocialModule).toBeDefined();
     });
 
@@ -215,7 +201,7 @@ describe('Smoke Tests - Application Bootstrap', () => {
     });
 
     it('should be able to resolve paths', async () => {
-      const path = await import('path');
+      const path = await import('node:path');
       const resolved = path.resolve(__dirname, '../../src');
       expect(resolved).toContain('profile-services');
     });

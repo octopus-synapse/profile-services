@@ -8,19 +8,21 @@
  * Uncle Bob: "Controllers should be thin, delegating to services"
  */
 
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { DslController } from './dsl.controller';
-import type { DslRepository } from './dsl.repository';
+import type { DslService } from './dsl.service';
 
 describe('DslController', () => {
   let controller: DslController;
-  let mockDslRepository: Partial<DslRepository>;
+  let mockDslService: Record<string, ReturnType<typeof mock>>;
+  type RenderRequest = Parameters<DslController['render']>[0];
+  type ValidateInput = Parameters<DslController['validate']>[0];
 
   const mockUserId = 'user-123';
   const mockResumeId = 'resume-456';
   const mockSlug = 'john-doe-software-engineer';
 
-  const mockDsl: any = {
+  const mockDsl = {
     version: '2.0',
     content: {
       name: 'John Doe',
@@ -31,7 +33,7 @@ describe('DslController', () => {
     },
   };
 
-  const mockAst: any = {
+  const mockAst = {
     meta: {
       version: '1.0',
       generatedAt: '2024-01-01T00:00:00.000Z',
@@ -57,18 +59,14 @@ describe('DslController', () => {
   };
 
   beforeEach(() => {
-    mockDslRepository = {
+    mockDslService = {
       validate: mock(() => mockValidationResult),
       preview: mock(() => mockAst),
-      render: mock(() =>
-        Promise.resolve({ ast: mockAst, resumeId: mockResumeId }),
-      ),
-      renderPublic: mock(() =>
-        Promise.resolve({ ast: mockAst, slug: mockSlug }),
-      ),
+      render: mock(() => Promise.resolve({ ast: mockAst, resumeId: mockResumeId })),
+      renderPublic: mock(() => Promise.resolve({ ast: mockAst, slug: mockSlug })),
     };
 
-    controller = new DslController(mockDslRepository as DslRepository);
+    controller = new DslController(mockDslService as unknown as DslService);
   });
 
   describe('validate', () => {
@@ -77,7 +75,7 @@ describe('DslController', () => {
 
       expect(result.success).toBe(true);
       expect(result.data).toEqual(mockValidationResult);
-      expect(mockDslRepository.validate).toHaveBeenCalledWith(mockDsl);
+      expect(mockDslService.validate).toHaveBeenCalledWith(mockDsl);
     });
 
     it('should handle invalid DSL', () => {
@@ -86,11 +84,10 @@ describe('DslController', () => {
         errors: [{ path: 'version', message: 'Invalid version' }],
         warnings: [],
       };
-      (mockDslRepository.validate as ReturnType<typeof mock>).mockReturnValue(
-        invalidResult,
-      );
+      (mockDslService.validate as ReturnType<typeof mock>).mockReturnValue(invalidResult);
 
-      const result = controller.validate({ invalid: 'dsl' } as any);
+      const invalidDsl = { invalid: 'dsl' } as unknown as ValidateInput;
+      const result = controller.validate(invalidDsl);
 
       expect(result.success).toBe(true);
       expect(result.data?.valid).toBe(false);
@@ -104,7 +101,7 @@ describe('DslController', () => {
 
       expect(result.success).toBe(true);
       expect(result.data?.ast).toBeDefined();
-      expect(mockDslRepository.preview).toHaveBeenCalledWith(mockDsl, 'html');
+      expect(mockDslService.preview).toHaveBeenCalledWith(mockDsl, 'html');
     });
 
     it('should compile DSL to AST with PDF target', () => {
@@ -112,44 +109,36 @@ describe('DslController', () => {
 
       expect(result.success).toBe(true);
       expect(result.data?.ast).toBeDefined();
-      expect(mockDslRepository.preview).toHaveBeenCalledWith(mockDsl, 'pdf');
+      expect(mockDslService.preview).toHaveBeenCalledWith(mockDsl, 'pdf');
     });
 
     it('should compile DSL to AST with HTML target', () => {
       controller.preview(mockDsl, 'html');
 
-      expect(mockDslRepository.preview).toHaveBeenCalledWith(mockDsl, 'html');
+      expect(mockDslService.preview).toHaveBeenCalledWith(mockDsl, 'html');
     });
   });
 
   describe('render', () => {
     it('should render resume AST for authenticated user', async () => {
       const result = await controller.render(
-        { userId: mockUserId } as any,
+        { userId: mockUserId } as unknown as RenderRequest,
         mockResumeId,
       );
 
       expect(result.success).toBe(true);
       expect(result.data?.ast).toBeDefined();
-      expect(mockDslRepository.render).toHaveBeenCalledWith(
-        mockResumeId,
-        mockUserId,
-        'html',
-      );
+      expect(mockDslService.render).toHaveBeenCalledWith(mockResumeId, mockUserId, 'html');
     });
 
     it('should support PDF target for rendering', async () => {
       await controller.render(
-        { userId: mockUserId } as any,
+        { userId: mockUserId } as unknown as RenderRequest,
         mockResumeId,
         'pdf',
       );
 
-      expect(mockDslRepository.render).toHaveBeenCalledWith(
-        mockResumeId,
-        mockUserId,
-        'pdf',
-      );
+      expect(mockDslService.render).toHaveBeenCalledWith(mockResumeId, mockUserId, 'pdf');
     });
   });
 
@@ -159,19 +148,13 @@ describe('DslController', () => {
 
       expect(result.success).toBe(true);
       expect(result.data?.ast).toBeDefined();
-      expect(mockDslRepository.renderPublic).toHaveBeenCalledWith(
-        mockSlug,
-        'html',
-      );
+      expect(mockDslService.renderPublic).toHaveBeenCalledWith(mockSlug, 'html');
     });
 
     it('should support PDF target for public rendering', async () => {
       await controller.renderPublic(mockSlug, 'pdf');
 
-      expect(mockDslRepository.renderPublic).toHaveBeenCalledWith(
-        mockSlug,
-        'pdf',
-      );
+      expect(mockDslService.renderPublic).toHaveBeenCalledWith(mockSlug, 'pdf');
     });
   });
 });

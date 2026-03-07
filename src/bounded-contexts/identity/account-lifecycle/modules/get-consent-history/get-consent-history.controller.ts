@@ -51,7 +51,14 @@ export class GetConsentHistoryController {
 
     return {
       success: true,
-      data: result as unknown as ConsentHistoryResponseDto[],
+      data: result.map((record) => ({
+        id: record.id,
+        documentType: record.documentType,
+        version: record.version,
+        acceptedAt: record.acceptedAt.toISOString(),
+        ipAddress: record.ipAddress ?? '',
+        userAgent: record.userAgent ?? '',
+      })),
     };
   }
 }

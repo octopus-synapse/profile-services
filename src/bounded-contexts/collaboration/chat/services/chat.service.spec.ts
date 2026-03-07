@@ -1,17 +1,24 @@
-import { describe, it, expect, beforeEach, mock } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { ForbiddenException, BadRequestException } from '@nestjs/common';
-import { ChatService } from './chat.service';
+import { EventPublisher } from '@/shared-kernel';
+import { BlockedUserRepository } from '../repositories/blocked-user.repository';
 import { ConversationRepository } from '../repositories/conversation.repository';
 import { MessageRepository } from '../repositories/message.repository';
-import { BlockedUserRepository } from '../repositories/blocked-user.repository';
-import { EventPublisher } from '@/shared-kernel';
+import { ChatService } from './chat.service';
+
+// Helper to type mocked repository methods
+type Mocked<T> = {
+  [K in keyof T]: T[K] extends (...args: infer A) => infer R
+    ? ReturnType<typeof mock> & ((...args: A) => R)
+    : T[K];
+};
 
 describe('ChatService', () => {
   let service: ChatService;
-  let conversationRepo: any;
-  let messageRepo: any;
-  let blockedUserRepo: any;
+  let conversationRepo: Mocked<ConversationRepository>;
+  let messageRepo: Mocked<MessageRepository>;
+  let blockedUserRepo: Mocked<BlockedUserRepository>;
 
   const mockUser1 = {
     id: 'user1',
@@ -108,14 +115,8 @@ describe('ChatService', () => {
 
       expect(result).toBeDefined();
       expect(result.content).toBe('Hello!');
-      expect(blockedUserRepo.isBlockedBetween).toHaveBeenCalledWith(
-        'user1',
-        'user2',
-      );
-      expect(conversationRepo.findOrCreate).toHaveBeenCalledWith(
-        'user1',
-        'user2',
-      );
+      expect(blockedUserRepo.isBlockedBetween).toHaveBeenCalledWith('user1', 'user2');
+      expect(conversationRepo.findOrCreate).toHaveBeenCalledWith('user1', 'user2');
       expect(messageRepo.create).toHaveBeenCalled();
     });
 
@@ -150,11 +151,7 @@ describe('ChatService', () => {
       messageRepo.create.mockResolvedValue(mockMessage);
       conversationRepo.updateLastMessage.mockResolvedValue(mockConversation);
 
-      const result = await service.sendMessageToConversation(
-        'user1',
-        'conv1',
-        'Hello!',
-      );
+      const result = await service.sendMessageToConversation('user1', 'conv1', 'Hello!');
 
       expect(result).toBeDefined();
       expect(result.content).toBe('Hello!');
@@ -163,9 +160,9 @@ describe('ChatService', () => {
     it('should throw ForbiddenException if not a participant', async () => {
       conversationRepo.isParticipant.mockResolvedValue(false);
 
-      await expect(
-        service.sendMessageToConversation('user3', 'conv1', 'Hello!'),
-      ).rejects.toThrow(ForbiddenException);
+      await expect(service.sendMessageToConversation('user3', 'conv1', 'Hello!')).rejects.toThrow(
+        ForbiddenException,
+      );
     });
 
     it('should throw ForbiddenException if blocked', async () => {
@@ -173,9 +170,9 @@ describe('ChatService', () => {
       conversationRepo.getOtherParticipant.mockResolvedValue(mockUser2);
       blockedUserRepo.isBlockedBetween.mockResolvedValue(true);
 
-      await expect(
-        service.sendMessageToConversation('user1', 'conv1', 'Hello!'),
-      ).rejects.toThrow(ForbiddenException);
+      await expect(service.sendMessageToConversation('user1', 'conv1', 'Hello!')).rejects.toThrow(
+        ForbiddenException,
+      );
     });
   });
 
@@ -235,9 +232,9 @@ describe('ChatService', () => {
     it('should throw ForbiddenException if not a participant', async () => {
       conversationRepo.isParticipant.mockResolvedValue(false);
 
-      await expect(
-        service.markConversationAsRead('user3', 'conv1'),
-      ).rejects.toThrow(ForbiddenException);
+      await expect(service.markConversationAsRead('user3', 'conv1')).rejects.toThrow(
+        ForbiddenException,
+      );
     });
   });
 

@@ -6,10 +6,10 @@
  *
  */
 
-import { describe, it, expect } from 'bun:test';
-import { execSync } from 'child_process';
-import * as fs from 'fs';
-import * as path from 'path';
+import { describe, expect, it } from 'bun:test';
+import { execSync } from 'node:child_process';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
 
 describe('Architecture', () => {
   describe('Dependency Direction', () => {
@@ -36,19 +36,11 @@ describe('Architecture', () => {
 
         // Check for infrastructure imports
         // Note: @nestjs/common is allowed (decorators unavoidable in NestJS)
-        const forbiddenImports = [
-          'express',
-          '@sendgrid',
-          'aws-sdk',
-          '@aws-sdk',
-          'puppeteer',
-        ];
+        const forbiddenImports = ['express', '@sendgrid', 'aws-sdk', '@aws-sdk', 'puppeteer'];
 
         forbiddenImports.forEach((forbidden) => {
           if (content.includes(`from '${forbidden}`)) {
-            violations.push(
-              `${file} imports infrastructure dependency: ${forbidden}`,
-            );
+            violations.push(`${file} imports infrastructure dependency: ${forbidden}`);
           }
         });
       });
@@ -74,9 +66,7 @@ describe('Architecture', () => {
               line.includes('Repository') &&
               !line.includes('ResumesRepository') // Exception for resume sub-resources
             ) {
-              violations.push(
-                `${file}:${index + 1} - Controller imports Repository directly`,
-              );
+              violations.push(`${file}:${index + 1} - Controller imports Repository directly`);
             }
           });
         }
@@ -90,9 +80,9 @@ describe('Architecture', () => {
     it.skip('should not have circular dependencies between modules', () => {
       // Use madge to detect circular dependencies
       // TODO: This test times out in CI/pre-commit hooks due to slow madge execution
-      // Run manually with: npx madge --circular --extensions ts src/
+      // Run manually with: bunx madge --circular --extensions ts src/
       try {
-        const result = execSync('npx madge --circular --extensions ts src/', {
+        const result = execSync('bunx madge --circular --extensions ts src/', {
           encoding: 'utf-8',
           stdio: 'pipe',
         });
@@ -100,17 +90,22 @@ describe('Architecture', () => {
         // madge exits with 0 if no circular deps found
         // Result should be empty or contain success message
         expect(result.toLowerCase()).not.toInclude('circular');
-      } catch (error: any) {
+      } catch (error: unknown) {
         // If madge not installed, skip test
-        if (error.message?.includes('command not found')) {
-          console.warn(
-            '⚠️  madge not installed - skipping circular dependency check',
-          );
+        if (error instanceof Error && error.message?.includes('command not found')) {
+          console.warn('⚠️  madge not installed - skipping circular dependency check');
           return;
         }
 
         // Otherwise, circular deps detected (madge exits with code 1)
-        const output = error.stdout || error.stderr || error.message;
+        let output = '';
+        if (error instanceof Error) {
+          if ('stdout' in error && error.stdout) output = String(error.stdout);
+          else if ('stderr' in error && error.stderr) output = String(error.stderr);
+          else output = error.message;
+        } else {
+          output = String(error);
+        }
         throw new Error(`Circular dependencies detected:\n${output}`);
       }
     });
@@ -155,9 +150,7 @@ describe('Architecture', () => {
           forbidden.forEach((forbiddenModule) => {
             const relativePath = forbiddenModule.replace('src/', '../');
             if (content.includes(`from '${relativePath}`)) {
-              violations.push(
-                `${file} violates boundary: imports from ${forbiddenModule}`,
-              );
+              violations.push(`${file} violates boundary: imports from ${forbiddenModule}`);
             }
           });
         });
@@ -190,9 +183,7 @@ describe('Architecture', () => {
         lines.forEach((line, index) => {
           businessLogicPatterns.forEach((pattern) => {
             if (pattern.test(line) && !line.includes('//')) {
-              violations.push(
-                `${file}:${index + 1} - Controller contains business logic`,
-              );
+              violations.push(`${file}:${index + 1} - Controller contains business logic`);
             }
           });
         });
@@ -275,9 +266,7 @@ function getAllTypeScriptFiles(dir: string, includes: string[] = []): string[] {
           if (includes.length === 0) {
             files.push(fullPath);
           } else {
-            const shouldInclude = includes.some((pattern) =>
-              fullPath.includes(pattern),
-            );
+            const shouldInclude = includes.some((pattern) => fullPath.includes(pattern));
             if (shouldInclude) {
               files.push(fullPath);
             }

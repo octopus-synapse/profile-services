@@ -2,9 +2,10 @@ import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { Resume } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { type CreateResumeData, type UpdateResumeData } from '@/shared-kernel';
+import { ResumesRepositoryPort } from './ports/resumes-repository.port';
 
 @Injectable()
-export class ResumesRepository {
+export class ResumesRepository extends ResumesRepositoryPort {
   private readonly logger = new Logger(ResumesRepository.name);
 
   private readonly includeRelations = {
@@ -19,7 +20,9 @@ export class ResumesRepository {
     },
   };
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {
+    super();
+  }
 
   async findAllUserResumes(userId: string): Promise<Resume[]> {
     return await this.prisma.resume.findMany({

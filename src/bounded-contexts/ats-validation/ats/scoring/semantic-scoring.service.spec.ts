@@ -73,8 +73,7 @@ describe('SemanticScoringService', () => {
             { role: 'END_DATE', value: '2021-12-01' },
             {
               role: 'DESCRIPTION',
-              value:
-                'Built backend systems and improved reliability significantly.',
+              value: 'Built backend systems and improved reliability significantly.',
             },
           ],
         },

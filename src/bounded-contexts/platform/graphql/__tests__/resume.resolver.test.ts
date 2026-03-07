@@ -1,10 +1,11 @@
-import { describe, it, expect, beforeEach, mock, type Mock } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
-import { ResumeResolver } from '../resolvers/resume.resolver';
+import type { User } from '@prisma/client';
 import { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.repository';
 import { GenericResumeSectionsService } from '@/bounded-contexts/resumes/resumes/services/generic-resume-sections.service';
+import type { ResumeModel } from '../models/resume.model';
 import { ResumeTemplate } from '../models/resume.model';
-import type { User } from '@prisma/client';
+import { ResumeResolver } from '../resolvers/resume.resolver';
 
 /**
  * Resume Resolver Tests
@@ -17,15 +18,15 @@ import type { User } from '@prisma/client';
 describe('ResumeResolver', () => {
   let resolver: ResumeResolver;
   let resumesRepository: {
-    findResumeByIdAndUserId: Mock<any>;
-    findAllUserResumes: Mock<any>;
+    findResumeByIdAndUserId: ReturnType<typeof mock>;
+    findAllUserResumes: ReturnType<typeof mock>;
   };
   let sectionsService: {
-    createItem: Mock<any>;
-    updateItem: Mock<any>;
-    deleteItem: Mock<any>;
-    listResumeSections: Mock<any>;
-    listSectionTypes: Mock<any>;
+    createItem: ReturnType<typeof mock>;
+    updateItem: ReturnType<typeof mock>;
+    deleteItem: ReturnType<typeof mock>;
+    listResumeSections: ReturnType<typeof mock>;
+    listSectionTypes: ReturnType<typeof mock>;
   };
 
   const mockUser = {
@@ -34,7 +35,7 @@ describe('ResumeResolver', () => {
     username: 'testuser',
   } as unknown as User;
 
-  const mockResume = {
+  const mockResume: ResumeModel = {
     id: 'resume-123',
     userId: 'user-123',
     title: 'Software Engineer Resume',
@@ -86,18 +87,14 @@ describe('ResumeResolver', () => {
       const result = await resolver.getResume('resume-123', mockUser);
 
       expect(result).toEqual(mockResume);
-      expect(resumesRepository.findResumeByIdAndUserId.mock.calls.length).toBe(
-        1,
-      );
+      expect(resumesRepository.findResumeByIdAndUserId.mock.calls.length).toBe(1);
     });
   });
 
   describe('getMyResumes', () => {
     it('should return all resumes for current user', async () => {
       const resumes = [mockResume];
-      resumesRepository.findAllUserResumes.mockImplementation(() =>
-        Promise.resolve(resumes),
-      );
+      resumesRepository.findAllUserResumes.mockImplementation(() => Promise.resolve(resumes));
 
       const result = await resolver.getMyResumes(mockUser);
 
@@ -126,9 +123,7 @@ describe('ResumeResolver', () => {
         },
       ];
 
-      sectionsService.listSectionTypes.mockImplementation(() =>
-        Promise.resolve(mockSectionTypes),
-      );
+      sectionsService.listSectionTypes.mockImplementation(() => Promise.resolve(mockSectionTypes));
 
       const result = await resolver.sectionTypes(mockUser);
 
@@ -183,11 +178,9 @@ describe('ResumeResolver', () => {
         },
       ];
 
-      sectionsService.listResumeSections.mockImplementation(() =>
-        Promise.resolve(mockSections),
-      );
+      sectionsService.listResumeSections.mockImplementation(() => Promise.resolve(mockSections));
 
-      const result = await resolver.sections(mockResume as any);
+      const result = await resolver.sections(mockResume);
 
       expect(result).toHaveLength(2);
       expect(result[0].sectionTypeKey).toBe('work_experience_v1');
@@ -215,11 +208,9 @@ describe('ResumeResolver', () => {
         },
       ];
 
-      sectionsService.listResumeSections.mockImplementation(() =>
-        Promise.resolve(mockSections),
-      );
+      sectionsService.listResumeSections.mockImplementation(() => Promise.resolve(mockSections));
 
-      const result = await resolver.sections(mockResume as any);
+      const result = await resolver.sections(mockResume);
 
       expect(result).toHaveLength(1);
       expect(result[0].sectionTypeKey).toBe('unknown');
@@ -241,9 +232,7 @@ describe('ResumeResolver', () => {
         updatedAt: new Date(),
       };
 
-      sectionsService.createItem.mockImplementation(() =>
-        Promise.resolve(mockSectionItem),
-      );
+      sectionsService.createItem.mockImplementation(() => Promise.resolve(mockSectionItem));
 
       const result = await resolver.createSectionItem(
         'resume-123',
@@ -278,9 +267,7 @@ describe('ResumeResolver', () => {
         updatedAt: new Date(),
       };
 
-      sectionsService.createItem.mockImplementation(() =>
-        Promise.resolve(mockItem),
-      );
+      sectionsService.createItem.mockImplementation(() => Promise.resolve(mockItem));
 
       const result = await resolver.createSectionItem(
         'resume-123',
@@ -313,9 +300,7 @@ describe('ResumeResolver', () => {
         updatedAt: new Date(),
       };
 
-      sectionsService.createItem.mockImplementation(() =>
-        Promise.resolve(mockItem),
-      );
+      sectionsService.createItem.mockImplementation(() => Promise.resolve(mockItem));
 
       const result = await resolver.createSectionItem(
         'resume-123',
@@ -345,9 +330,7 @@ describe('ResumeResolver', () => {
         updatedAt: new Date(),
       };
 
-      sectionsService.updateItem.mockImplementation(() =>
-        Promise.resolve(mockUpdatedItem),
-      );
+      sectionsService.updateItem.mockImplementation(() => Promise.resolve(mockUpdatedItem));
 
       const result = await resolver.updateSectionItem(
         'resume-123',
@@ -365,9 +348,7 @@ describe('ResumeResolver', () => {
 
   describe('deleteSectionItem', () => {
     it('should delete a section item and return true', async () => {
-      sectionsService.deleteItem.mockImplementation(() =>
-        Promise.resolve(undefined),
-      );
+      sectionsService.deleteItem.mockImplementation(() => Promise.resolve(undefined));
 
       const result = await resolver.deleteSectionItem(
         'resume-123',
