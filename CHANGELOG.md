@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.0](https://github.com/octopus-synapse/profile-services/compare/v0.0.25...v1.0.0) (2026-03-07)
+
+
+### ⚠ BREAKING CHANGES
+
+* All previous release tags have been rewritten
+
+### Miscellaneous Chores
+
+* reset versioning to 0.0.25, implement stable-label workflow ([85099c5](https://github.com/octopus-synapse/profile-services/commit/85099c51853c7db79a516e11b6c47acf32cd485b))
+
 ## [10.0.0](https://github.com/octopus-synapse/profile-services/compare/profile-services-v9.0.0...profile-services-v10.0.0) (2026-03-07)
 
 
