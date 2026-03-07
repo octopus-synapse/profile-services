@@ -13,9 +13,9 @@
 import { writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import {
+  extendZodWithOpenApi,
   OpenAPIRegistry,
   OpenApiGeneratorV31,
-  extendZodWithOpenApi,
 } from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
 
