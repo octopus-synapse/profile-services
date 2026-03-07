@@ -12,7 +12,11 @@
 
 import { writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { OpenAPIRegistry, OpenApiGeneratorV31 } from '@asteasolutions/zod-to-openapi';
+import {
+  OpenAPIRegistry,
+  OpenApiGeneratorV31,
+  extendZodWithOpenApi,
+} from '@asteasolutions/zod-to-openapi';
 import { z } from 'zod';
 
 // Import schemas from shared-kernel
@@ -21,6 +25,8 @@ import {
   RefreshTokenSchema,
   RegisterCredentialsSchema,
 } from '../shared-kernel/schemas';
+
+extendZodWithOpenApi(z);
 
 // Define response schemas inline (these are API-specific)
 const AuthTokensSchema = z.object({
