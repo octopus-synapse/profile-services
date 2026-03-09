@@ -1,5 +1,17 @@
-import { Body, Controller, HttpCode, HttpStatus, Inject, Post, Req } from '@nestjs/common';
-import { ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Inject,
+  Post,
+  Req,
+} from '@nestjs/common';
+import {
+  ApiOperation,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 import type { Request } from 'express';
 import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
@@ -32,7 +44,10 @@ export class LoginController {
   @ApiUnauthorizedResponse({
     description: 'Invalid credentials',
   })
-  async login(@Body() dto: LoginDto, @Req() req: Request): Promise<DataResponse<LoginResponseDto>> {
+  async login(
+    @Body() dto: LoginDto,
+    @Req() req: Request,
+  ): Promise<DataResponse<LoginResponseDto>> {
     const result = await this.loginService.execute({
       email: dto.email,
       password: dto.password,

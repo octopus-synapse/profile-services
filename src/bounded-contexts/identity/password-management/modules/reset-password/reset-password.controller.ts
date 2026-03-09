@@ -1,4 +1,11 @@
-import { Body, Controller, HttpCode, HttpStatus, Inject, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Inject,
+  Post,
+} from '@nestjs/common';
 import { ApiBadRequestResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
@@ -6,7 +13,10 @@ import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-exp
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import type { ResetPasswordPort } from '../../ports/inbound';
 import { RESET_PASSWORD_PORT } from '../../ports/inbound';
-import { ResetPasswordDto, ResetPasswordResponseDto } from './reset-password.dto';
+import {
+  ResetPasswordDto,
+  ResetPasswordResponseDto,
+} from './reset-password.dto';
 
 @SdkExport({
   tag: 'users',
@@ -26,7 +36,8 @@ export class ResetPasswordController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Reset password with token',
-    description: 'Resets the user password using a valid reset token received via email.',
+    description:
+      'Resets the user password using a valid reset token received via email.',
   })
   @ApiDataResponse(ResetPasswordResponseDto, {
     description: 'Password reset successful',
@@ -34,7 +45,9 @@ export class ResetPasswordController {
   @ApiBadRequestResponse({
     description: 'Invalid or expired token, or weak password',
   })
-  async handle(@Body() dto: ResetPasswordDto): Promise<DataResponse<ResetPasswordResponseDto>> {
+  async handle(
+    @Body() dto: ResetPasswordDto,
+  ): Promise<DataResponse<ResetPasswordResponseDto>> {
     await this.resetPassword.execute({
       token: dto.token,
       newPassword: dto.newPassword,
