@@ -13,6 +13,10 @@
   ],
   "tags": [
     {
+      "name": "accounts",
+      "description": "Account creation - signup"
+    },
+    {
       "name": "ats-validation",
       "description": "Ats Validation API"
     },
@@ -134,6 +138,39 @@
     }
   ],
   "paths": {
+    "/api/accounts": {
+      "post": {
+        "operationId": "accounts_signup",
+        "tags": [
+          "accounts"
+        ],
+        "summary": "Create new account",
+        "description": "Registers a new user account.",
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAccountDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Create new account"
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required"
+          }
+        }
+      }
+    },
     "/api/api/v1/export/{resumeId}/json": {
       "get": {
         "operationId": "export_exportJson",
@@ -214,6 +251,105 @@
         "responses": {
           "204": {
             "description": "Disable 2FA"
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required"
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "operationId": "auth_login",
+        "tags": [
+          "auth"
+        ],
+        "summary": "Login",
+        "description": "Authenticates user with email and password.",
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Login"
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required"
+          }
+        }
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "operationId": "auth_logout",
+        "tags": [
+          "auth"
+        ],
+        "summary": "Logout",
+        "description": "Logs out the user by invalidating refresh token(s).",
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LogoutDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Logout"
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required"
+          }
+        }
+      }
+    },
+    "/api/auth/refresh": {
+      "post": {
+        "operationId": "auth_refresh",
+        "tags": [
+          "auth"
+        ],
+        "summary": "Refresh access token",
+        "description": "Issues new access and refresh tokens using a valid refresh token.",
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshTokenDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Refresh access token"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -3321,6 +3457,16 @@
             "JWT-auth": []
           }
         ],
+        "parameters": [
+          {
+            "name": "resumeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "List active dynamic section types"
@@ -5174,8 +5320,6 @@
         },
         "required": [
           "resumeId",
-          "themeId",
-          "resumeId",
           "themeId"
         ]
       },
@@ -5302,19 +5446,26 @@
         "type": "object",
         "properties": {
           "currentPassword": {
-            "type": "string",
-            "example": "oldPassword123",
-            "description": "Current password"
+            "type": "string"
           },
           "newPassword": {
-            "type": "string",
-            "example": "NewSecurePassword123",
-            "description": "New password (min 8 chars, 1 uppercase, 1 lowercase, 1 number)"
+            "type": "string"
           }
         },
         "required": [
           "currentPassword",
           "newPassword"
+        ]
+      },
+      "ChangePasswordResponseDto": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
         ]
       },
       "ChatMessageDataDto": {
@@ -5534,6 +5685,43 @@
           "conversations"
         ]
       },
+      "CreateAccountDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "CreateAccountResponseDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "userId",
+          "email",
+          "message"
+        ]
+      },
       "CreateResume": {
         "type": "object",
         "properties": {
@@ -5581,7 +5769,6 @@
           }
         },
         "required": [
-          "title",
           "title"
         ]
       },
@@ -5599,7 +5786,6 @@
           }
         },
         "required": [
-          "resumeId",
           "resumeId"
         ]
       },
@@ -5645,10 +5831,7 @@
           "name",
           "description",
           "styleConfig",
-          "category",
-          "name",
-          "description",
-          "styleConfig"
+          "category"
         ]
       },
       "DeleteResponseDto": {
@@ -5827,13 +6010,22 @@
         "type": "object",
         "properties": {
           "email": {
-            "type": "string",
-            "example": "user@example.com",
-            "description": "Email address to send reset link"
+            "type": "string"
           }
         },
         "required": [
           "email"
+        ]
+      },
+      "ForgotPasswordResponseDto": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
         ]
       },
       "ForkTheme": {
@@ -5850,9 +6042,6 @@
           }
         },
         "required": [
-          "themeId",
-          "name",
-          "description",
           "themeId",
           "name",
           "description"
@@ -6113,8 +6302,7 @@
         "type": "object",
         "properties": {
           "data": {
-            "$ref": "#/components/schemas/JsonResumeSchemaDto",
-            "description": "JSON Resume format data (jsonresume.org)"
+            "type": "string"
           }
         },
         "required": [
@@ -6159,14 +6347,10 @@
         "type": "object",
         "properties": {
           "userId": {
-            "type": "string",
-            "example": "user-uuid-v4",
-            "description": "User ID to invite as collaborator"
+            "type": "string"
           },
           "role": {
-            "type": "string",
-            "example": "EDITOR",
-            "description": "Role to assign to the collaborator"
+            "type": "string"
           }
         },
         "required": [
@@ -6194,261 +6378,68 @@
           }
         },
         "required": [
-          "jobDescription",
           "jobDescription"
         ]
       },
-      "JsonResumeBasicsDto": {
+      "LoginDto": {
         "type": "object",
         "properties": {
-          "name": {
-            "type": "string"
-          },
-          "label": {
-            "type": "string"
-          },
           "email": {
-            "type": "string",
-            "example": "john@example.com"
-          },
-          "phone": {
-            "type": "string",
-            "example": "+1-555-123-4567"
-          },
-          "url": {
-            "type": "string",
-            "example": "https://johndoe.com"
-          },
-          "summary": {
             "type": "string"
           },
-          "location": {
-            "$ref": "#/components/schemas/JsonResumeBasicsLocationDto"
-          },
-          "profiles": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/JsonResumeProfileDto"
-            }
+          "password": {
+            "type": "string"
           }
         },
         "required": [
-          "name"
+          "email",
+          "password"
         ]
       },
-      "JsonResumeBasicsLocationDto": {
+      "LoginResponseDto": {
         "type": "object",
         "properties": {
-          "city": {
+          "accessToken": {
             "type": "string"
           },
-          "countryCode": {
-            "type": "string",
-            "example": "US"
-          },
-          "region": {
-            "type": "string",
-            "example": "California"
-          }
-        }
-      },
-      "JsonResumeCertificateDto": {
-        "type": "object",
-        "properties": {
-          "name": {
+          "refreshToken": {
             "type": "string"
           },
-          "date": {
-            "type": "string",
-            "example": "2023-03-15"
+          "expiresIn": {
+            "type": "number"
           },
-          "issuer": {
+          "userId": {
             "type": "string"
-          },
-          "url": {
-            "type": "string",
-            "example": "https://aws.amazon.com/certification/"
-          }
-        }
-      },
-      "JsonResumeEducationDto": {
-        "type": "object",
-        "properties": {
-          "institution": {
-            "type": "string"
-          },
-          "area": {
-            "type": "string"
-          },
-          "studyType": {
-            "type": "string",
-            "example": "Bachelor"
-          },
-          "startDate": {
-            "type": "string",
-            "example": "2015-09-01"
-          },
-          "endDate": {
-            "type": "string",
-            "example": "2019-06-15"
-          },
-          "score": {
-            "type": "string",
-            "example": "3.8"
-          }
-        }
-      },
-      "JsonResumeLanguageDto": {
-        "type": "object",
-        "properties": {
-          "language": {
-            "type": "string",
-            "example": "English"
-          },
-          "fluency": {
-            "type": "string",
-            "example": "Native"
-          }
-        }
-      },
-      "JsonResumeProfileDto": {
-        "type": "object",
-        "properties": {
-          "network": {
-            "type": "string",
-            "example": "GitHub"
-          },
-          "url": {
-            "type": "string",
-            "example": "https://github.com/johndoe"
-          },
-          "username": {
-            "type": "string",
-            "example": "johndoe"
-          }
-        }
-      },
-      "JsonResumeProjectDto": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
-          },
-          "description": {
-            "type": "string"
-          },
-          "url": {
-            "type": "string",
-            "example": "https://github.com/johndoe/ecommerce"
-          },
-          "keywords": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "example": "["
-          }
-        }
-      },
-      "JsonResumeSchemaDto": {
-        "type": "object",
-        "properties": {
-          "basics": {
-            "$ref": "#/components/schemas/JsonResumeBasicsDto"
-          },
-          "work": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/JsonResumeWorkDto"
-            }
-          },
-          "education": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/JsonResumeEducationDto"
-            }
-          },
-          "skills": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/JsonResumeSkillDto"
-            }
-          },
-          "languages": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/JsonResumeLanguageDto"
-            }
-          },
-          "certificates": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/JsonResumeCertificateDto"
-            }
-          },
-          "projects": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/JsonResumeProjectDto"
-            }
           }
         },
         "required": [
-          "basics"
+          "accessToken",
+          "refreshToken",
+          "expiresIn",
+          "userId"
         ]
       },
-      "JsonResumeSkillDto": {
+      "LogoutDto": {
         "type": "object",
         "properties": {
-          "name": {
-            "type": "string",
-            "example": "TypeScript"
+          "refreshToken": {
+            "type": "string"
           },
-          "level": {
-            "type": "string",
-            "example": "Advanced"
-          },
-          "keywords": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "example": "["
+          "logoutAllSessions": {
+            "type": "boolean"
           }
         }
       },
-      "JsonResumeWorkDto": {
+      "LogoutResponseDto": {
         "type": "object",
         "properties": {
-          "name": {
+          "message": {
             "type": "string"
-          },
-          "position": {
-            "type": "string"
-          },
-          "url": {
-            "type": "string",
-            "example": "https://acme.com"
-          },
-          "startDate": {
-            "type": "string",
-            "example": "2020-01-15"
-          },
-          "endDate": {
-            "type": "string",
-            "example": "2023-05-30"
-          },
-          "summary": {
-            "type": "string"
-          },
-          "highlights": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "example": "["
           }
-        }
+        },
+        "required": [
+          "message"
+        ]
       },
       "MarkAsReadDataDto": {
         "type": "object",
@@ -6745,8 +6736,7 @@
         },
         "required": [
           "completedSteps",
-          "currentStep",
-          "completedSteps"
+          "currentStep"
         ]
       },
       "OnboardingProgressDto": {
@@ -7225,23 +7215,60 @@
           "expiresAt"
         ]
       },
+      "RefreshTokenDto": {
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "refreshToken"
+        ]
+      },
+      "RefreshTokenResponseDto": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          },
+          "refreshToken": {
+            "type": "string"
+          },
+          "expiresIn": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "accessToken",
+          "refreshToken",
+          "expiresIn"
+        ]
+      },
       "ResetPasswordDto": {
         "type": "object",
         "properties": {
           "token": {
-            "type": "string",
-            "example": "abc123def456",
-            "description": "Password reset token from email"
+            "type": "string"
           },
           "newPassword": {
-            "type": "string",
-            "example": "NewSecurePassword123",
-            "description": "New password (min 8 chars, 1 uppercase, 1 lowercase, 1 number)"
+            "type": "string"
           }
         },
         "required": [
           "token",
           "newPassword"
+        ]
+      },
+      "ResetPasswordResponseDto": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
         ]
       },
       "ResolvedBoxStyleDto": {
@@ -8368,10 +8395,6 @@
           "themeId",
           "approved",
           "feedback",
-          "rejectionReason",
-          "themeId",
-          "approved",
-          "feedback",
           "rejectionReason"
         ]
       },
@@ -8483,7 +8506,6 @@
           }
         },
         "required": [
-          "resumeId",
           "resumeId"
         ]
       },
@@ -8504,9 +8526,6 @@
           }
         },
         "required": [
-          "texts",
-          "sourceLanguage",
-          "targetLanguage",
           "texts",
           "sourceLanguage",
           "targetLanguage"
@@ -8538,9 +8557,6 @@
           }
         },
         "required": [
-          "text",
-          "sourceLanguage",
-          "targetLanguage",
           "text",
           "sourceLanguage",
           "targetLanguage"
@@ -8693,7 +8709,6 @@
           }
         },
         "required": [
-          "displayName",
           "displayName"
         ]
       },
@@ -8732,9 +8747,7 @@
           "displayName",
           "bio",
           "location",
-          "phone",
-          "displayName",
-          "bio"
+          "phone"
         ]
       },
       "UpdateResume": {
@@ -8788,9 +8801,7 @@
         "type": "object",
         "properties": {
           "role": {
-            "type": "string",
-            "example": "VIEWER",
-            "description": "New role for the collaborator"
+            "type": "string"
           }
         },
         "required": [
@@ -8820,8 +8831,6 @@
           }
         },
         "required": [
-          "name",
-          "description",
           "name",
           "description"
         ]
@@ -9326,7 +9335,6 @@
           }
         },
         "required": [
-          "username",
           "username"
         ]
       },

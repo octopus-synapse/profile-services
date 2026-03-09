@@ -90,16 +90,15 @@ describe('Swagger Completeness - Endpoint Coverage', () => {
     });
   });
 
-  // Auth endpoints are internal (not SDK-exported) - verify they're NOT in swagger
-  test('auth endpoints are internal and not SDK-exported', () => {
+  // Auth endpoints are exported to SDK for frontend integration
+  test('auth endpoints are SDK-exported', () => {
     const swagger = JSON.parse(readFileSync(SWAGGER_PATH, 'utf-8'));
 
-    // Auth endpoints should NOT be in the public SDK
-    expect(swagger.paths['/api/accounts']).toBeUndefined();
-    expect(swagger.paths['/api/auth/login']).toBeUndefined();
-    expect(swagger.paths['/api/auth/login']).toBeUndefined();
-    expect(swagger.paths['/api/auth/logout']).toBeUndefined();
-    expect(swagger.paths['/api/auth/refresh']).toBeUndefined();
+    // Auth endpoints SHOULD be in the public SDK
+    expect(swagger.paths['/api/accounts']).toBeDefined();
+    expect(swagger.paths['/api/auth/login']).toBeDefined();
+    expect(swagger.paths['/api/auth/logout']).toBeDefined();
+    expect(swagger.paths['/api/auth/refresh']).toBeDefined();
   });
 });
 
@@ -108,13 +107,14 @@ describe('Swagger Completeness - Schema Validation', () => {
     const swagger = JSON.parse(readFileSync(SWAGGER_PATH, 'utf-8'));
     const schemas = swagger.components?.schemas;
 
-    // Auth-related schemas (RegisterCredentials, LoginCredentials, AuthResponse, AuthTokens, UserInfo)
-    // are not SDK-exported since authentication is internal
+    // Core schemas that must be present for SDK consumers
     const requiredSchemas = [
-      'JsonResumeSchemaDto',
       'ImportResultDto',
       'ImportJobDto',
       'ParsedResumeDataDto',
+      // Auth DTOs (now exported)
+      'LoginDto',
+      'CreateAccountDto',
     ];
 
     requiredSchemas.forEach((schema) => {
@@ -178,14 +178,19 @@ describe('Swagger Completeness - Schema Validation', () => {
     expect(source.enum).toContain('LINKEDIN');
   });
 
-  test('JsonResumeSchemaDto has main sections', () => {
+  test('auth DTOs have required fields', () => {
     const swagger = JSON.parse(readFileSync(SWAGGER_PATH, 'utf-8'));
-    const schema = swagger.components.schemas.JsonResumeSchemaDto;
+    const loginDto = swagger.components.schemas.LoginDto;
+    const createAccountDto = swagger.components.schemas.CreateAccountDto;
 
-    expect(schema.properties.basics).toBeDefined();
-    expect(schema.properties.work).toBeDefined();
-    expect(schema.properties.education).toBeDefined();
-    expect(schema.properties.skills).toBeDefined();
+    // LoginDto should have email and password
+    expect(loginDto.properties.email).toBeDefined();
+    expect(loginDto.properties.password).toBeDefined();
+
+    // CreateAccountDto should have name, email, password
+    expect(createAccountDto.properties.name).toBeDefined();
+    expect(createAccountDto.properties.email).toBeDefined();
+    expect(createAccountDto.properties.password).toBeDefined();
   });
 });
 

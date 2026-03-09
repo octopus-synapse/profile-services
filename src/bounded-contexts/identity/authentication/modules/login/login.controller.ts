@@ -2,22 +2,25 @@ import { Body, Controller, HttpCode, HttpStatus, Inject, Post, Req } from '@nest
 import { ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import type { LoginPort } from '../../ports/inbound';
 import { LOGIN_PORT } from '../../ports/inbound';
 import { LoginDto, LoginResponseDto } from './login.dto';
 
+@SdkExport({ tag: 'auth', description: 'User authentication - login' })
 @ApiTags('Authentication')
 @Controller('auth')
 export class LoginController {
   constructor(
     @Inject(LOGIN_PORT)
-    private readonly login: LoginPort,
+    private readonly loginService: LoginPort,
   ) {}
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
+    operationId: 'auth_login',
     summary: 'Login',
     description: 'Authenticates user with email and password.',
   })
@@ -27,11 +30,8 @@ export class LoginController {
   @ApiUnauthorizedResponse({
     description: 'Invalid credentials',
   })
-  async handle(
-    @Body() dto: LoginDto,
-    @Req() req: Request,
-  ): Promise<DataResponse<LoginResponseDto>> {
-    const result = await this.login.execute({
+  async login(@Body() dto: LoginDto, @Req() req: Request): Promise<DataResponse<LoginResponseDto>> {
+    const result = await this.loginService.execute({
       email: dto.email,
       password: dto.password,
       ipAddress: req.ip,

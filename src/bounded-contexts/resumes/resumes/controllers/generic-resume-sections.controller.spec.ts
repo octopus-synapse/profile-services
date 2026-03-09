@@ -43,7 +43,7 @@ describe('GenericResumeSectionsController - Contract', () => {
   const controller = createTestController(sectionsService);
 
   it('listTypes returns data with sectionTypes', async () => {
-    const result = await controller.listTypes();
+    const result = await controller.listTypes('resume-1');
 
     expect(result.success).toBe(true);
     expect(result.data).toHaveProperty('sectionTypes');

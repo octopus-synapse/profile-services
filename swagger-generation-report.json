@@ -1,8 +1,8 @@
 {
   "success": true,
-  "controllers": 49,
-  "endpoints": 170,
-  "schemas": 202,
+  "controllers": 53,
+  "endpoints": 174,
+  "schemas": 203,
   "tags": [
     "resume-analytics",
     "search",
@@ -13,8 +13,9 @@
     "dsl",
     "export",
     "user-consent",
-    "users",
+    "accounts",
     "auth",
+    "users",
     "resume-import",
     "github",
     "mec-courses",
@@ -121,10 +122,34 @@
       "file": "bounded-contexts/identity/account-lifecycle/modules/accept-consent/accept-consent.controller.ts"
     },
     {
+      "controller": "CreateAccountController",
+      "tag": "accounts",
+      "endpoints": 1,
+      "file": "bounded-contexts/identity/account-lifecycle/modules/create-account/create-account.controller.ts"
+    },
+    {
       "controller": "ExportDataController",
       "tag": "user-consent",
       "endpoints": 1,
       "file": "bounded-contexts/identity/account-lifecycle/modules/export-data/export-data.controller.ts"
+    },
+    {
+      "controller": "LoginController",
+      "tag": "auth",
+      "endpoints": 1,
+      "file": "bounded-contexts/identity/authentication/modules/login/login.controller.ts"
+    },
+    {
+      "controller": "LogoutController",
+      "tag": "auth",
+      "endpoints": 1,
+      "file": "bounded-contexts/identity/authentication/modules/logout/logout.controller.ts"
+    },
+    {
+      "controller": "RefreshTokenController",
+      "tag": "auth",
+      "endpoints": 1,
+      "file": "bounded-contexts/identity/authentication/modules/refresh-token/refresh-token.controller.ts"
     },
     {
       "controller": "ChangePasswordController",

@@ -552,6 +552,40 @@ function parseDtoClass(content: string, className: string): DtoSchema | null {
   const classStart = content.search(classRegex);
   if (classStart === -1) return null;
 
+  // Check if this class extends createZodDto(SchemaName)
+  const createZodDtoRegex = new RegExp(
+    `(?:export\\s+)?class ${className}\\s+extends\\s+createZodDto\\((\\w+)\\)`,
+  );
+  const createZodDtoMatch = content.match(createZodDtoRegex);
+
+  if (createZodDtoMatch) {
+    // This class extends createZodDto - parse the referenced Zod schema
+    const schemaName = createZodDtoMatch[1];
+
+    // Find the schema definition: const SchemaName = z.object({ ... })
+    const zodSchemaRegex = new RegExp(
+      `(?:const|let)\\s+${schemaName}\\s*=\\s*z\\.object\\s*\\(\\s*\\{([\\s\\S]*?)\\}\\s*\\)`,
+    );
+    const zodSchemaMatch = content.match(zodSchemaRegex);
+
+    if (zodSchemaMatch) {
+      const schemaBody = zodSchemaMatch[1];
+      const properties: Record<string, DtoProperty> = {};
+      const required: string[] = [];
+
+      // Parse Zod fields from the schema
+      parseZodFields(schemaBody, properties, required);
+
+      if (Object.keys(properties).length > 0) {
+        return {
+          type: 'object',
+          properties,
+          required: required.length > 0 ? [...new Set(required)] : undefined,
+        };
+      }
+    }
+  }
+
   // Find the matching closing brace
   let braceCount = 0;
   let classEnd = classStart;
@@ -785,15 +819,12 @@ function parseZodSchema(content: string, typeName: string): DtoSchema | null {
   const properties: Record<string, DtoProperty> = {};
   const required: string[] = [];
 
-  parseZodFields(schemaBody, properties, required);
-
   // Parse Zod field definitions - multiple patterns:
   // 1. fieldName: z.string().min(1),
   // 2. fieldName: z.number().optional(),
   // 3. fieldName: SomeSchema (reference to another schema)
   // 4. fieldName: SomeSchema.optional()
   // 5. fieldName: z.coerce.number()
-
   parseZodFields(schemaBody, properties, required);
 
   if (Object.keys(properties).length === 0) return null;
@@ -801,7 +832,7 @@ function parseZodSchema(content: string, typeName: string): DtoSchema | null {
   return {
     type: 'object',
     properties,
-    required: required.length > 0 ? required : undefined,
+    required: required.length > 0 ? [...new Set(required)] : undefined,
   };
 }
 

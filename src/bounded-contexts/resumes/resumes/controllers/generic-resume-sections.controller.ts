@@ -29,10 +29,16 @@ export class GenericResumeSectionsController {
 
   @Get('types')
   @ApiOperation({ summary: 'List active dynamic section types' })
+  @ApiParam({
+    name: 'resumeId',
+    description: 'Resume ID (ignored, types are global)',
+  })
   @ApiDataResponse(ResumeSectionTypesDataDto, {
     description: 'Section types list',
   })
-  async listTypes(): Promise<DataResponse<ResumeSectionTypesDataDto>> {
+  async listTypes(
+    @Param('resumeId') _resumeId: string,
+  ): Promise<DataResponse<ResumeSectionTypesDataDto>> {
     const sectionTypes = await this.sectionsService.listSectionTypes();
 
     return {

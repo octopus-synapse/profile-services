@@ -45,6 +45,7 @@ import {
 // Application
 import { AuthorizationService } from './services/authorization.service';
 import { AuthorizationManagementService } from './services/authorization-management.service';
+import { AuthorizationServicePort } from './services/authorization-service.port';
 
 @Global()
 @Module({
@@ -62,11 +63,19 @@ import { AuthorizationManagementService } from './services/authorization-managem
     // Services
     AuthorizationService,
     AuthorizationManagementService,
+    // Port abstraction (uses AuthorizationService as concrete implementation)
+    {
+      provide: AuthorizationServicePort,
+      useExisting: AuthorizationService,
+    },
   ],
   exports: [
     // Export service for use in other modules
     AuthorizationService,
     AuthorizationManagementService,
+
+    // Export port abstraction for dependency injection
+    AuthorizationServicePort,
 
     // Export guards for use in controllers
     PermissionGuard,
