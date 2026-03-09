@@ -3,6 +3,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure/guards/jwt-auth.guard';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import type { LogoutPort } from '../../ports/inbound';
 import { LOGOUT_PORT } from '../../ports/inbound';
@@ -12,12 +13,13 @@ interface AuthenticatedUser {
   id: string;
 }
 
+@SdkExport({ tag: 'auth', description: 'User authentication - logout' })
 @ApiTags('Authentication')
 @Controller('auth')
 export class LogoutController {
   constructor(
     @Inject(LOGOUT_PORT)
-    private readonly logout: LogoutPort,
+    private readonly logoutService: LogoutPort,
   ) {}
 
   @Post('logout')
@@ -25,17 +27,18 @@ export class LogoutController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({
+    operationId: 'auth_logout',
     summary: 'Logout',
     description: 'Logs out the user by invalidating refresh token(s).',
   })
   @ApiDataResponse(LogoutResponseDto, {
     description: 'Logout successful',
   })
-  async handle(
+  async logout(
     @Body() dto: LogoutDto,
     @CurrentUser() user: AuthenticatedUser,
   ): Promise<DataResponse<LogoutResponseDto>> {
-    await this.logout.execute({
+    await this.logoutService.execute({
       userId: user.id,
       refreshToken: dto.refreshToken,
       logoutAllSessions: dto.logoutAllSessions,
