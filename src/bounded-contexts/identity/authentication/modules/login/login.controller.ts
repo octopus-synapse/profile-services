@@ -1,6 +1,7 @@
 import { Body, Controller, HttpCode, HttpStatus, Inject, Post, Req } from '@nestjs/common';
 import { ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import type { Request } from 'express';
+import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
@@ -18,6 +19,7 @@ export class LoginController {
   ) {}
 
   @Post('login')
+  @Public()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     operationId: 'auth_login',
