@@ -8,30 +8,20 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 scalar DateTime
 
 type Mutation {
-  """
-  Create a new section item with JSON content
-  """
+  """Create a new section item with JSON content"""
   createSectionItem(
-    """
-    JSON-encoded content
-    """
+    """JSON-encoded content"""
     content: String!
     resumeId: ID!
     sectionTypeKey: String!
   ): SectionItemModel!
 
-  """
-  Delete a section item
-  """
+  """Delete a section item"""
   deleteSectionItem(itemId: ID!, resumeId: ID!, sectionTypeKey: String!): Boolean!
 
-  """
-  Update an existing section item with partial JSON content
-  """
+  """Update an existing section item with partial JSON content"""
   updateSectionItem(
-    """
-    JSON-encoded partial content
-    """
+    """JSON-encoded partial content"""
     content: String!
     itemId: ID!
     resumeId: ID!
@@ -40,150 +30,92 @@ type Mutation {
 }
 
 type Query {
-  """
-  Get all resumes for current user
-  """
+  """Get all resumes for current user"""
   myResumes: [ResumeModel!]!
 
-  """
-  Get a single resume by ID
-  """
+  """Get a single resume by ID"""
   resume(id: ID!): ResumeModel!
 
-  """
-  List all available section types for resume sections
-  """
+  """List all available section types for resume sections"""
   sectionTypes: [SectionTypeModel!]!
 }
 
-"""
-Complete resume document
-"""
+"""Complete resume document"""
 type ResumeModel {
-  """
-  Accent color
-  """
+  """Accent color"""
   accentColor: String
 
-  """
-  Created at timestamp
-  """
+  """Created at timestamp"""
   createdAt: DateTime!
 
-  """
-  Email address
-  """
+  """Email address"""
   emailContact: String
 
-  """
-  Full name
-  """
+  """Full name"""
   fullName: String
 
-  """
-  Unique identifier
-  """
+  """Unique identifier"""
   id: ID!
 
-  """
-  Is this resume public
-  """
+  """Is this resume public"""
   isPublic: Boolean!
 
-  """
-  Location/City
-  """
+  """Location/City"""
   location: String
 
-  """
-  Phone number
-  """
+  """Phone number"""
   phone: String
 
-  """
-  Resume sections with items
-  """
+  """Resume sections with items"""
   sections: [ResumeSectionModel!]!
 
-  """
-  Professional summary
-  """
+  """Professional summary"""
   summary: String
 
-  """
-  Resume template
-  """
+  """Resume template"""
   template: ResumeTemplate!
 
-  """
-  Resume title
-  """
+  """Resume title"""
   title: String
 
-  """
-  Updated at timestamp
-  """
+  """Updated at timestamp"""
   updatedAt: DateTime!
 
-  """
-  User ID who owns this resume
-  """
+  """User ID who owns this resume"""
   userId: String!
 }
 
-"""
-Resume section containing items of the same type
-"""
+"""Resume section containing items of the same type"""
 type ResumeSectionModel {
-  """
-  Created at timestamp
-  """
+  """Created at timestamp"""
   createdAt: DateTime!
 
-  """
-  Unique section identifier
-  """
+  """Unique section identifier"""
   id: ID!
 
-  """
-  Items in this section
-  """
+  """Items in this section"""
   items: [SectionItemModel!]!
 
-  """
-  Display order
-  """
+  """Display order"""
   order: Int!
 
-  """
-  Section type key (e.g., work_experience_v1)
-  """
+  """Section type key"""
   sectionTypeKey: String!
 
-  """
-  Semantic category (e.g., WORK_EXPERIENCE, EDUCATION)
-  """
+  """Semantic category for the section"""
   semanticKind: String!
 
-  """
-  Display title for the section
-  """
+  """Display title for the section"""
   title: String!
 
-  """
-  Updated at timestamp
-  """
+  """Updated at timestamp"""
   updatedAt: DateTime!
 
-  """
-  Whether section is visible
-  """
+  """Whether section is visible"""
   visible: Boolean!
 }
 
-"""
-Available resume templates
-"""
+"""Available resume templates"""
 enum ResumeTemplate {
   ACADEMIC
   CLASSIC
@@ -194,57 +126,35 @@ enum ResumeTemplate {
   TECH
 }
 
-"""
-Generic section item with JSON content
-"""
+"""Generic section item with JSON content"""
 type SectionItemModel {
-  """
-  Created at timestamp
-  """
+  """Created at timestamp"""
   createdAt: DateTime!
 
-  """
-  Unique identifier
-  """
+  """Unique identifier"""
   id: ID!
 
-  """
-  Display order within section
-  """
+  """Display order within section"""
   order: Int!
 
-  """
-  Section type key (e.g., work_experience_v1)
-  """
+  """Section type key"""
   sectionTypeKey: String!
 
-  """
-  Updated at timestamp
-  """
+  """Updated at timestamp"""
   updatedAt: DateTime!
 }
 
-"""
-Section type definition
-"""
+"""Section type definition"""
 type SectionTypeModel {
-  """
-  Description of the section type
-  """
+  """Description of the section type"""
   description: String
 
-  """
-  Human-readable display name
-  """
+  """Human-readable display name"""
   displayName: String!
 
-  """
-  Unique key for the section type (e.g., work_experience_v1)
-  """
+  """Unique key for the section type"""
   key: String!
 
-  """
-  Semantic category (e.g., WORK_EXPERIENCE, EDUCATION)
-  """
+  """Semantic category for the section type"""
   semanticKind: String!
 }
