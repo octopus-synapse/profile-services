@@ -1,8 +1,8 @@
 {
   "success": true,
-  "controllers": 53,
-  "endpoints": 174,
-  "schemas": 203,
+  "controllers": 54,
+  "endpoints": 175,
+  "schemas": 204,
   "tags": [
     "resume-analytics",
     "search",
@@ -150,6 +150,12 @@
       "tag": "auth",
       "endpoints": 1,
       "file": "bounded-contexts/identity/authentication/modules/refresh-token/refresh-token.controller.ts"
+    },
+    {
+      "controller": "SessionController",
+      "tag": "auth",
+      "endpoints": 1,
+      "file": "bounded-contexts/identity/authentication/modules/session/session.controller.ts"
     },
     {
       "controller": "ChangePasswordController",

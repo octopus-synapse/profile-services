@@ -11,6 +11,19 @@ export interface AuthUser {
   isActive: boolean;
 }
 
+/**
+ * User data returned for session-based auth
+ * Contains minimal auth-relevant data for the frontend
+ */
+export interface SessionAuthUser {
+  id: string;
+  email: string;
+  name: string | null;
+  username: string | null;
+  hasCompletedOnboarding: boolean;
+  emailVerified: boolean;
+}
+
 export interface RefreshTokenData {
   id: string;
   userId: string;
@@ -28,6 +41,12 @@ export interface AuthenticationRepositoryPort {
    * Finds a user by ID with authentication data
    */
   findUserById(userId: string): Promise<AuthUser | null>;
+
+  /**
+   * Finds a user by ID with session-relevant data
+   * Used for session cookie creation/validation
+   */
+  findSessionUser(userId: string): Promise<SessionAuthUser | null>;
 
   /**
    * Stores a refresh token

@@ -1,4 +1,5 @@
 import { NestFactory } from '@nestjs/core';
+import cookieParser from 'cookie-parser';
 import {
   configureCors,
   configureSecurityHeaders,
@@ -27,6 +28,9 @@ async function bootstrap() {
 
   app.useLogger(logger);
   app.setGlobalPrefix('api');
+
+  // Cookie Parser (for session-based auth)
+  app.use(cookieParser());
 
   // Security Configuration
   configureSecurityHeaders(app, isSwaggerEnabled());

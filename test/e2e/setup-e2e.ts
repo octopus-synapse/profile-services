@@ -6,6 +6,7 @@
 
 import type { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import cookieParser from 'cookie-parser';
 import { AppModule } from '@/app.module';
 import {
   configureExceptionHandling,
@@ -48,6 +49,9 @@ export async function createE2ETestApp(): Promise<{
 
   const app = moduleFixture.createNestApplication();
   app.setGlobalPrefix('api');
+
+  // Cookie parser for session-based auth testing
+  app.use(cookieParser());
 
   // Apply same configuration as main.ts
   const logger = app.get(AppLoggerService);

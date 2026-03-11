@@ -1,6 +1,6 @@
 {
-  "tree_hash": "2422cab0cf55532aeb16d45a9254d2707f28eb99ca5ff548e3f89983dc80a278",
-  "swagger_hash": "793c2ce88aef023df6319f5dd8300c9dd8f6546089ec4cabbddf65cb9804051a",
+  "tree_hash": "a31871db4c694eb85e52d0284d4791ec41ff3316cccc5d87370f63a284f996f0",
+  "swagger_hash": "7e991c81f7b7fb4b1e13467deb409230dedb197bb75b3ef59697c1a4ff46b570",
   "checks": {
     "swagger": true,
     "typecheck": true,

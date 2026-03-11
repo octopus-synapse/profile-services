@@ -1,7 +1,8 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
-import { ExtractJwt, Strategy } from 'passport-jwt';
+import type { Request } from 'express';
+import { Strategy } from 'passport-jwt';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 
 export interface JwtPayload {
@@ -10,6 +11,8 @@ export interface JwtPayload {
   role?: string;
   hasCompletedOnboarding?: boolean;
   iat?: number;
+  // Session token specific fields
+  sessionId?: string;
 }
 
 export interface AuthenticatedUser {
@@ -21,11 +24,35 @@ export interface AuthenticatedUser {
 }
 
 const USER_NOT_FOUND_MESSAGE = 'User not found';
+const SESSION_COOKIE_NAME = 'session';
+
+/**
+ * Custom JWT extractor that checks both cookie and Authorization header
+ * Priority: Cookie first (for browser requests), then Authorization header (for API clients)
+ */
+function extractJwtFromCookieOrHeader(req: Request): string | null {
+  // 1. Try to extract from cookie first
+  if (req.cookies?.[SESSION_COOKIE_NAME]) {
+    return req.cookies[SESSION_COOKIE_NAME];
+  }
+
+  // 2. Fall back to Authorization header
+  const authHeader = req.headers.authorization;
+  if (authHeader?.startsWith('Bearer ')) {
+    return authHeader.substring(7);
+  }
+
+  return null;
+}
 
 /**
  * JWT Strategy for Passport
  *
  * Validates JWT tokens and returns authenticated user data.
+ * Supports both:
+ * - Cookie-based sessions (httpOnly cookie with session token)
+ * - Bearer token authentication (for API clients/SDK)
+ *
  * Works with JwtAuthGuard to protect routes.
  */
 @Injectable()
@@ -39,7 +66,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new Error('JWT_SECRET environment variable is required');
     }
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: extractJwtFromCookieOrHeader,
       ignoreExpiration: false,
       secretOrKey: jwtSecret,
     });

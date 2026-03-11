@@ -4,6 +4,7 @@ import type {
   AuthenticationRepositoryPort,
   AuthUser,
   RefreshTokenData,
+  SessionAuthUser,
 } from '../../ports/outbound';
 
 @Injectable()
@@ -53,6 +54,33 @@ export class PrismaAuthenticationRepository implements AuthenticationRepositoryP
       email: user.email ?? '',
       passwordHash: user.passwordHash,
       isActive: user.isActive ?? true,
+    };
+  }
+
+  async findSessionUser(userId: string): Promise<SessionAuthUser | null> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        username: true,
+        hasCompletedOnboarding: true,
+        emailVerified: true,
+      },
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    return {
+      id: user.id,
+      email: user.email ?? '',
+      name: user.name,
+      username: user.username,
+      hasCompletedOnboarding: user.hasCompletedOnboarding ?? false,
+      emailVerified: !!user.emailVerified,
     };
   }
 

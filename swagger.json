@@ -298,7 +298,7 @@
           "auth"
         ],
         "summary": "Logout",
-        "description": "Logs out the user by invalidating refresh token(s).",
+        "description": "Logs out the user by invalidating refresh token(s) and clearing session cookie.",
         "security": [
           {
             "JWT-auth": []
@@ -350,6 +350,29 @@
         "responses": {
           "201": {
             "description": "Refresh access token"
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required"
+          }
+        }
+      }
+    },
+    "/api/auth/session": {
+      "get": {
+        "operationId": "auth_getSession",
+        "tags": [
+          "auth"
+        ],
+        "summary": "Get Session",
+        "description": "Validates session cookie and returns current user data if authenticated.",
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Get Session"
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -8072,6 +8095,25 @@
         },
         "required": [
           "content"
+        ]
+      },
+      "SessionResponseDto": {
+        "type": "object",
+        "properties": {
+          "authenticated": {
+            "type": "boolean",
+            "example": "true",
+            "description": "Whether session is valid"
+          },
+          "user": {
+            "type": "string",
+            "description": "User data if authenticated",
+            "nullable": true
+          }
+        },
+        "required": [
+          "authenticated",
+          "user"
         ]
       },
       "ShareCreateDataDto": {

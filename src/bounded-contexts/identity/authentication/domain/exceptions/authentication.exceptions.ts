@@ -47,3 +47,15 @@ export class AccountLockedException extends DomainException {
     super(`Account is temporarily locked. Try again in ${remainingMinutes} minutes.`);
   }
 }
+
+/**
+ * Invalid Session Exception
+ *
+ * Thrown when session data is malformed or invalid.
+ */
+export class InvalidSessionException extends DomainException {
+  readonly code = 'INVALID_SESSION';
+  constructor(reason: string) {
+    super(`Invalid session: ${reason}`);
+  }
+}

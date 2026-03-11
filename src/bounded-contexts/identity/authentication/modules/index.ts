@@ -20,3 +20,13 @@ export {
   RefreshTokenResponseDto,
 } from './refresh-token/refresh-token.dto';
 export { RefreshTokenUseCase } from './refresh-token/refresh-token.use-case';
+
+// Session Use Cases
+export { CreateSessionUseCase } from './session/create-session.use-case';
+export { SessionController } from './session/session.controller';
+export {
+  SessionResponseDto,
+  SessionUserResponseDto,
+} from './session/session.dto';
+export { TerminateSessionUseCase } from './session/terminate-session.use-case';
+export { ValidateSessionUseCase } from './session/validate-session.use-case';
