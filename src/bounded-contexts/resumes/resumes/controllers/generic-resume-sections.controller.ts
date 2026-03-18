@@ -1,5 +1,15 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
@@ -7,6 +17,7 @@ import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/curre
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { ParseCuidPipe } from '@/bounded-contexts/platform/common/pipes/parse-cuid.pipe';
+import { parseLocale, resolveSectionTypeForLocale } from '@/shared-kernel/utils/locale-resolver';
 import {
   ResumeSectionDeleteDataDto,
   ResumeSectionItemDataDto,
@@ -28,23 +39,36 @@ export class GenericResumeSectionsController {
   constructor(private readonly sectionsService: GenericResumeSectionsService) {}
 
   @Get('types')
-  @ApiOperation({ summary: 'List active dynamic section types' })
+  @ApiOperation({ summary: 'List active dynamic section types with resolved translations' })
   @ApiParam({
     name: 'resumeId',
     description: 'Resume ID (ignored, types are global)',
   })
+  @ApiQuery({
+    name: 'locale',
+    required: false,
+    description: 'Locale for translations (en, pt-BR, es). Defaults to en.',
+    example: 'pt-BR',
+  })
   @ApiDataResponse(ResumeSectionTypesDataDto, {
-    description: 'Section types list',
+    description: 'Section types list with resolved translations',
   })
   async listTypes(
     @Param('resumeId') _resumeId: string,
+    @Query('locale') localeParam?: string,
   ): Promise<DataResponse<ResumeSectionTypesDataDto>> {
-    const sectionTypes = await this.sectionsService.listSectionTypes();
+    const locale = parseLocale(localeParam);
+    const rawSectionTypes = await this.sectionsService.listSectionTypes();
+
+    // Resolve translations for requested locale
+    const sectionTypes = rawSectionTypes.map((st) =>
+      resolveSectionTypeForLocale(st as Parameters<typeof resolveSectionTypeForLocale>[0], locale),
+    );
 
     return {
       success: true,
       data: {
-        sectionTypes,
+        sectionTypes: sectionTypes as unknown as Record<string, unknown>[],
       },
     };
   }

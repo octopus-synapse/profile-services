@@ -41,6 +41,10 @@
       "description": "Dsl API"
     },
     {
+      "name": "email-verification",
+      "description": "Email verification"
+    },
+    {
       "name": "enums",
       "description": "Domain Enums API"
     },
@@ -87,6 +91,10 @@
     {
       "name": "resume-import",
       "description": "Resume import from JSON Resume format"
+    },
+    {
+      "name": "resume-skills",
+      "description": "Resume skill management"
     },
     {
       "name": "resumes",
@@ -163,7 +171,14 @@
         },
         "responses": {
           "201": {
-            "description": "Create new account"
+            "description": "Create new account",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateAccountResponseDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -283,7 +298,14 @@
         },
         "responses": {
           "201": {
-            "description": "Login"
+            "description": "Login",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponseDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -316,7 +338,14 @@
         },
         "responses": {
           "201": {
-            "description": "Logout"
+            "description": "Logout",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LogoutResponseDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -349,7 +378,14 @@
         },
         "responses": {
           "201": {
-            "description": "Refresh access token"
+            "description": "Refresh access token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefreshTokenResponseDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -372,7 +408,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get Session"
+            "description": "Get Session",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionResponseDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -394,7 +437,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get all blocked users"
+            "description": "Get all blocked users",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BlockedUsersListDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -424,7 +474,14 @@
         },
         "responses": {
           "201": {
-            "description": "Block a user"
+            "description": "Block a user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BlockUserDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -488,7 +545,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Check if a user is blocked"
+            "description": "Check if a user is blocked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IsBlockedDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -520,7 +584,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get or create conversation with a user"
+            "description": "Get or create conversation with a user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConversationNullableDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -542,7 +613,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get all conversations for the current user"
+            "description": "Get all conversations for the current user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConversationsListDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -574,7 +652,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get a single conversation"
+            "description": "Get a single conversation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConversationDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -606,7 +691,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get messages for a conversation"
+            "description": "Get messages for a conversation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessagesListDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -646,7 +738,14 @@
         },
         "responses": {
           "201": {
-            "description": "Send a message to an existing conversation"
+            "description": "Send a message to an existing conversation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatMessageDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -688,7 +787,14 @@
         },
         "responses": {
           "201": {
-            "description": "Mark all messages in a conversation as read"
+            "description": "Mark all messages in a conversation as read",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MarkAsReadDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -720,7 +826,14 @@
         },
         "responses": {
           "201": {
-            "description": "Send a message to a user"
+            "description": "Send a message to a user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatMessageDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -742,7 +855,94 @@
         ],
         "responses": {
           "200": {
-            "description": "Get unread message count"
+            "description": "Get unread message count",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnreadCountDataDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required"
+          }
+        }
+      }
+    },
+    "/api/email-verification/send": {
+      "post": {
+        "operationId": "email-verification_handle",
+        "tags": [
+          "email-verification"
+        ],
+        "summary": "Send verification email",
+        "description": "Sends a verification email to the authenticated user.",
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/__NoBody__"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Send verification email",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SendVerificationEmailResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required"
+          }
+        }
+      }
+    },
+    "/api/email-verification/verify": {
+      "post": {
+        "operationId": "email-verification_handle",
+        "tags": [
+          "email-verification"
+        ],
+        "summary": "Verify email with token",
+        "description": "Verifies the user email using the token received via email.",
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyEmailDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Verify email with token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifyEmailResponseDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -765,7 +965,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Export user data (GDPR Article 20)"
+            "description": "Export user data (GDPR Article 20)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExportDataResponseDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -782,7 +989,14 @@
         "summary": "Run all health checks",
         "responses": {
           "200": {
-            "description": "Run all health checks"
+            "description": "Run all health checks",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthCheckResultDto"
+                }
+              }
+            }
           }
         }
       }
@@ -796,7 +1010,14 @@
         "summary": "Run database health check",
         "responses": {
           "200": {
-            "description": "Run database health check"
+            "description": "Run database health check",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthCheckResultDto"
+                }
+              }
+            }
           }
         }
       }
@@ -810,7 +1031,14 @@
         "summary": "Run redis health check",
         "responses": {
           "200": {
-            "description": "Run redis health check"
+            "description": "Run redis health check",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthCheckResultDto"
+                }
+              }
+            }
           }
         }
       }
@@ -824,7 +1052,14 @@
         "summary": "Run storage health check",
         "responses": {
           "200": {
-            "description": "Run storage health check"
+            "description": "Run storage health check",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthCheckResultDto"
+                }
+              }
+            }
           }
         }
       }
@@ -838,7 +1073,14 @@
         "summary": "Run translation service health check",
         "responses": {
           "200": {
-            "description": "Run translation service health check"
+            "description": "Run translation service health check",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthCheckResultDto"
+                }
+              }
+            }
           }
         }
       }
@@ -868,7 +1110,14 @@
         },
         "responses": {
           "201": {
-            "description": "Change password"
+            "description": "Change password",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangePasswordResponseDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -896,7 +1145,14 @@
         },
         "responses": {
           "201": {
-            "description": "Request password reset"
+            "description": "Request password reset",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ForgotPasswordResponseDto"
+                }
+              }
+            }
           }
         }
       }
@@ -921,7 +1177,14 @@
         },
         "responses": {
           "201": {
-            "description": "Reset password with token"
+            "description": "Reset password with token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResetPasswordResponseDto"
+                }
+              }
+            }
           }
         }
       }
@@ -950,7 +1213,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Calculate ATS compatibility score"
+            "description": "Calculate ATS compatibility score",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Object"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -982,7 +1252,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get industry benchmark comparison"
+            "description": "Get industry benchmark comparison",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Object"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -1014,7 +1291,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get complete analytics dashboard"
+            "description": "Get complete analytics dashboard",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Object"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -1046,7 +1330,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get analytics history"
+            "description": "Get analytics history",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Object"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -1078,7 +1369,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get keyword optimization suggestions"
+            "description": "Get keyword optimization suggestions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Object"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -1120,7 +1418,14 @@
         },
         "responses": {
           "201": {
-            "description": "Match resume against job description"
+            "description": "Match resume against job description",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Object"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -1152,7 +1457,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get score progression over time"
+            "description": "Get score progression over time",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Object"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -1194,7 +1506,14 @@
         },
         "responses": {
           "201": {
-            "description": "Save analytics snapshot for tracking progress"
+            "description": "Save analytics snapshot for tracking progress",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Object"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -1236,7 +1555,14 @@
         },
         "responses": {
           "201": {
-            "description": "Track resume view (public endpoint)"
+            "description": "Track resume view (public endpoint)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessageResponseDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -1268,7 +1594,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get view statistics"
+            "description": "Get view statistics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Object"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -1291,7 +1624,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get import history"
+            "description": "Get import history",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportJobDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -1324,7 +1664,14 @@
         },
         "responses": {
           "201": {
-            "description": "Import resume from JSON Resume format"
+            "description": "Import resume from JSON Resume format",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportResultDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -1357,7 +1704,14 @@
         },
         "responses": {
           "201": {
-            "description": "Parse JSON Resume without importing"
+            "description": "Parse JSON Resume without importing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParsedResumeDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -1421,7 +1775,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get import job status"
+            "description": "Get import job status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportJobDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -1464,7 +1825,14 @@
         },
         "responses": {
           "201": {
-            "description": "Retry failed import"
+            "description": "Retry failed import",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportResultDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -1486,7 +1854,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get resumes shared with current user"
+            "description": "Get resumes shared with current user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SharedResumesListDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -1518,7 +1893,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get collaborators for a resume"
+            "description": "Get collaborators for a resume",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CollaboratorsListDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -1558,7 +1940,14 @@
         },
         "responses": {
           "201": {
-            "description": "Invite user to collaborate on resume"
+            "description": "Invite user to collaborate on resume",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CollaboratorDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -1646,7 +2035,14 @@
         },
         "responses": {
           "200": {
-            "description": "Update collaborator role"
+            "description": "Update collaborator role",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CollaboratorDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -1721,7 +2117,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Search public resumes"
+            "description": "Search public resumes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResultsResponseDto"
+                }
+              }
+            }
           }
         }
       }
@@ -1753,7 +2156,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Find similar resumes by resume id"
+            "description": "Find similar resumes by resume id",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimilarResumesResponseDto"
+                }
+              }
+            }
           }
         }
       }
@@ -1785,7 +2195,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get search autocomplete suggestions"
+            "description": "Get search autocomplete suggestions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchSuggestionsResponseDto"
+                }
+              }
+            }
           }
         }
       }
@@ -1914,7 +2331,14 @@
         },
         "responses": {
           "201": {
-            "description": "Validate CV for ATS compatibility"
+            "description": "Validate CV for ATS compatibility",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ATSValidationResponseDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -1957,7 +2381,14 @@
         },
         "responses": {
           "201": {
-            "description": "Compile DSL to AST (preview, no persistence)"
+            "description": "Compile DSL to AST (preview, no persistence)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DslPreviewResultDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -1997,7 +2428,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get compiled AST for a public resume"
+            "description": "Get compiled AST for a public resume",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DslAstResponseDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -2037,7 +2475,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get compiled AST for a resume"
+            "description": "Get compiled AST for a resume",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DslAstResponseDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -2070,7 +2515,14 @@
         },
         "responses": {
           "201": {
-            "description": "Validate DSL schema"
+            "description": "Validate DSL schema",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DslValidationResultDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -2093,7 +2545,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get available export formats"
+            "description": "Get available export formats",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExportFormatsDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -2116,7 +2575,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get available section types"
+            "description": "Get available section types",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SectionTypesDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -2139,7 +2605,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get available user roles"
+            "description": "Get available user roles",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserRolesDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -2337,7 +2810,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get GitHub profile summary for a username"
+            "description": "Get GitHub profile summary for a username",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GitHubSummaryDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -2370,7 +2850,14 @@
         },
         "responses": {
           "201": {
-            "description": "Sync GitHub data to user resume"
+            "description": "Sync GitHub data to user resume",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GitHubSyncResponseDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -2402,7 +2889,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get GitHub sync status for a resume"
+            "description": "Get GitHub sync status for a resume",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MecSyncStatusResponseDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -2444,7 +2938,14 @@
         },
         "responses": {
           "201": {
-            "description": "Auto-sync GitHub from resume GitHub link"
+            "description": "Auto-sync GitHub from resume GitHub link",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GitHubSyncResponseDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -2461,7 +2962,14 @@
         "summary": "List knowledge areas",
         "responses": {
           "200": {
-            "description": "List knowledge areas"
+            "description": "List knowledge areas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MecKnowledgeAreasDataDto"
+                }
+              }
+            }
           }
         }
       }
@@ -2493,7 +3001,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Search courses"
+            "description": "Search courses",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MecCourseListDataDto"
+                }
+              }
+            }
           }
         }
       }
@@ -2517,7 +3032,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get course by MEC code"
+            "description": "Get course by MEC code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MecCourseDataDto"
+                }
+              }
+            }
           }
         }
       }
@@ -2541,7 +3063,14 @@
         ],
         "responses": {
           "200": {
-            "description": "List institutions"
+            "description": "List institutions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MecInstitutionListDataDto"
+                }
+              }
+            }
           }
         }
       }
@@ -2573,7 +3102,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Search institutions"
+            "description": "Search institutions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MecInstitutionListDataDto"
+                }
+              }
+            }
           }
         }
       }
@@ -2597,7 +3133,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get institution by MEC code"
+            "description": "Get institution by MEC code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MecInstitutionDataDto"
+                }
+              }
+            }
           }
         }
       }
@@ -2621,7 +3164,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get courses by institution"
+            "description": "Get courses by institution",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MecInstitutionCoursesDataDto"
+                }
+              }
+            }
           }
         }
       }
@@ -2645,7 +3195,14 @@
         },
         "responses": {
           "201": {
-            "description": "Trigger MEC data synchronization"
+            "description": "Trigger MEC data synchronization",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MecSyncExecutionDataDto"
+                }
+              }
+            }
           }
         }
       }
@@ -2669,7 +3226,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get sync history"
+            "description": "Get sync history",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MecSyncHistoryDataDto"
+                }
+              }
+            }
           }
         }
       }
@@ -2683,7 +3247,14 @@
         "summary": "Get sync status",
         "responses": {
           "200": {
-            "description": "Get sync status"
+            "description": "Get sync status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MecSyncStatusDataDto"
+                }
+              }
+            }
           }
         }
       }
@@ -2697,7 +3268,14 @@
         "summary": "Get MEC statistics",
         "responses": {
           "200": {
-            "description": "Get MEC statistics"
+            "description": "Get MEC statistics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MecStatisticsDataDto"
+                }
+              }
+            }
           }
         }
       }
@@ -2711,7 +3289,14 @@
         "summary": "List all states (UFs)",
         "responses": {
           "200": {
-            "description": "List all states (UFs)"
+            "description": "List all states (UFs)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MecStateCodesDataDto"
+                }
+              }
+            }
           }
         }
       }
@@ -2722,7 +3307,7 @@
         "tags": [
           "onboarding"
         ],
-        "summary": "Complete user onboarding with resume data",
+        "summary": "[Legacy] Complete onboarding with explicit payload",
         "security": [
           {
             "JWT-auth": []
@@ -2740,7 +3325,14 @@
         },
         "responses": {
           "201": {
-            "description": "Complete user onboarding with resume data"
+            "description": "[Legacy] Complete onboarding with explicit payload",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompleteOnboardingResponseDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -2754,7 +3346,7 @@
         "tags": [
           "onboarding"
         ],
-        "summary": "Get user onboarding progress (checkpoint)",
+        "summary": "[Legacy] Get onboarding progress",
         "security": [
           {
             "JWT-auth": []
@@ -2762,7 +3354,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get user onboarding progress (checkpoint)"
+            "description": "[Legacy] Get onboarding progress",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OnboardingSessionDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -2774,7 +3373,7 @@
         "tags": [
           "onboarding"
         ],
-        "summary": "Save user onboarding progress (checkpoint)",
+        "summary": "[Legacy] Save onboarding progress",
         "security": [
           {
             "JWT-auth": []
@@ -2785,14 +3384,21 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/OnboardingProgress"
+                "$ref": "#/components/schemas/SaveProgressRequestDto"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Save user onboarding progress (checkpoint)"
+            "description": "[Legacy] Save onboarding progress",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaveProgressResponseDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -2800,21 +3406,273 @@
         }
       }
     },
-    "/api/v1/onboarding/status": {
+    "/api/v1/onboarding/session": {
       "get": {
-        "operationId": "onboarding_getStatus",
+        "operationId": "onboarding_getSession",
         "tags": [
           "onboarding"
         ],
-        "summary": "Get user onboarding status",
+        "summary": "Get onboarding session with field definitions and navigation",
         "security": [
           {
             "JWT-auth": []
           }
         ],
+        "parameters": [
+          {
+            "name": "locale",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "Get user onboarding status"
+            "description": "Get onboarding session with field definitions and navigation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OnboardingSessionDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required"
+          }
+        }
+      }
+    },
+    "/api/v1/onboarding/session/complete": {
+      "post": {
+        "operationId": "onboarding_completeFromSession",
+        "tags": [
+          "onboarding"
+        ],
+        "summary": "Complete onboarding — backend builds payload from saved progress",
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/__NoBody__"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Complete onboarding — backend builds payload from saved progress",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompleteOnboardingResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required"
+          }
+        }
+      }
+    },
+    "/api/v1/onboarding/session/goto": {
+      "post": {
+        "operationId": "onboarding_gotoStep",
+        "tags": [
+          "onboarding"
+        ],
+        "summary": "Jump to an accessible step",
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "locale",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GotoStepRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Jump to an accessible step",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OnboardingSessionDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required"
+          }
+        }
+      }
+    },
+    "/api/v1/onboarding/session/next": {
+      "post": {
+        "operationId": "onboarding_nextStep",
+        "tags": [
+          "onboarding"
+        ],
+        "summary": "Save current step data and advance to next step",
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "locale",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NextStepRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Save current step data and advance to next step",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OnboardingSessionDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required"
+          }
+        }
+      }
+    },
+    "/api/v1/onboarding/session/previous": {
+      "post": {
+        "operationId": "onboarding_previousStep",
+        "tags": [
+          "onboarding"
+        ],
+        "summary": "Go back to previous step",
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "locale",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/__NoBody__"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Go back to previous step",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OnboardingSessionDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required"
+          }
+        }
+      }
+    },
+    "/api/v1/onboarding/session/save": {
+      "post": {
+        "operationId": "onboarding_saveStepData",
+        "tags": [
+          "onboarding"
+        ],
+        "summary": "Save current step data without advancing",
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "locale",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveStepDataRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Save current step data without advancing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OnboardingSessionDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -2836,7 +3694,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get platform statistics"
+            "description": "Get platform statistics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlatformStatsResponseDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -2863,7 +3728,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get public resume by share slug"
+            "description": "Get public resume by share slug",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicResumeDataDto"
+                }
+              }
+            }
           }
         }
       }
@@ -2887,7 +3759,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Download public resume by share slug"
+            "description": "Download public resume by share slug",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicResumeDataDto"
+                }
+              }
+            }
           }
         }
       }
@@ -2906,7 +3785,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get all resumes for current user"
+            "description": "Get all resumes for current user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedResumesDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -2936,7 +3822,14 @@
         },
         "responses": {
           "201": {
-            "description": "Create a new resume"
+            "description": "Create a new resume",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumeResponseDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -2968,7 +3861,14 @@
         ],
         "responses": {
           "200": {
-            "description": "List all resumes for a specific user"
+            "description": "List all resumes for a specific user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumeListDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -3000,7 +3900,14 @@
         ],
         "responses": {
           "204": {
-            "description": "Delete a resume"
+            "description": "Delete a resume",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumeOperationMessageDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -3030,7 +3937,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get full resume details"
+            "description": "Get full resume details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumeDetailsDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -3052,7 +3966,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get remaining resume slots for current user"
+            "description": "Get remaining resume slots for current user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumeSlotsResponseDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -3084,7 +4005,14 @@
         ],
         "responses": {
           "204": {
-            "description": "Delete a resume"
+            "description": "Delete a resume",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteResponseDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -3114,7 +4042,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get a specific resume"
+            "description": "Get a specific resume",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumeFullResponseDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -3154,7 +4089,14 @@
         },
         "responses": {
           "200": {
-            "description": "Update a resume"
+            "description": "Update a resume",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumeResponseDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -3186,7 +4128,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get a resume with all sections"
+            "description": "Get a resume with all sections",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumeFullResponseDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -3228,7 +4177,14 @@
         },
         "responses": {
           "201": {
-            "description": "Batch update sections"
+            "description": "Batch update sections",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumeConfigOperationDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -3250,7 +4206,7 @@
         ],
         "parameters": [
           {
-            "name": "sectionId",
+            "name": "resumeId",
             "in": "path",
             "required": true,
             "schema": {
@@ -3258,7 +4214,7 @@
             }
           },
           {
-            "name": "resumeId",
+            "name": "sectionId",
             "in": "path",
             "required": true,
             "schema": {
@@ -3278,7 +4234,14 @@
         },
         "responses": {
           "201": {
-            "description": "Reorder item"
+            "description": "Reorder item",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumeConfigOperationDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -3300,7 +4263,7 @@
         ],
         "parameters": [
           {
-            "name": "sectionId",
+            "name": "resumeId",
             "in": "path",
             "required": true,
             "schema": {
@@ -3308,7 +4271,7 @@
             }
           },
           {
-            "name": "resumeId",
+            "name": "sectionId",
             "in": "path",
             "required": true,
             "schema": {
@@ -3328,7 +4291,14 @@
         },
         "responses": {
           "201": {
-            "description": "Toggle item visibility"
+            "description": "Toggle item visibility",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumeConfigOperationDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -3350,7 +4320,7 @@
         ],
         "parameters": [
           {
-            "name": "sectionId",
+            "name": "resumeId",
             "in": "path",
             "required": true,
             "schema": {
@@ -3358,7 +4328,7 @@
             }
           },
           {
-            "name": "resumeId",
+            "name": "sectionId",
             "in": "path",
             "required": true,
             "schema": {
@@ -3378,7 +4348,14 @@
         },
         "responses": {
           "201": {
-            "description": "Reorder section"
+            "description": "Reorder section",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumeConfigOperationDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -3400,7 +4377,7 @@
         ],
         "parameters": [
           {
-            "name": "sectionId",
+            "name": "resumeId",
             "in": "path",
             "required": true,
             "schema": {
@@ -3408,7 +4385,7 @@
             }
           },
           {
-            "name": "resumeId",
+            "name": "sectionId",
             "in": "path",
             "required": true,
             "schema": {
@@ -3428,7 +4405,14 @@
         },
         "responses": {
           "201": {
-            "description": "Toggle section visibility"
+            "description": "Toggle section visibility",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumeConfigOperationDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -3460,7 +4444,14 @@
         ],
         "responses": {
           "200": {
-            "description": "List sections and items for a resume"
+            "description": "List sections and items for a resume",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumeSectionsDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -3474,7 +4465,7 @@
         "tags": [
           "resumes"
         ],
-        "summary": "List active dynamic section types",
+        "summary": "List active dynamic section types with resolved translations",
         "security": [
           {
             "JWT-auth": []
@@ -3488,11 +4479,26 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "locale",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": "List active dynamic section types"
+            "description": "List active dynamic section types with resolved translations",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumeSectionTypesDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -3514,7 +4520,7 @@
         ],
         "parameters": [
           {
-            "name": "sectionTypeKey",
+            "name": "resumeId",
             "in": "path",
             "required": true,
             "schema": {
@@ -3522,7 +4528,7 @@
             }
           },
           {
-            "name": "resumeId",
+            "name": "sectionTypeKey",
             "in": "path",
             "required": true,
             "schema": {
@@ -3542,7 +4548,14 @@
         },
         "responses": {
           "201": {
-            "description": "Create section item in a dynamic section type"
+            "description": "Create section item in a dynamic section type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumeSectionItemDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -3564,6 +4577,14 @@
         ],
         "parameters": [
           {
+            "name": "resumeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "sectionTypeKey",
             "in": "path",
             "required": true,
@@ -3578,19 +4599,18 @@
             "schema": {
               "type": "string"
             }
-          },
-          {
-            "name": "resumeId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
           }
         ],
         "responses": {
           "204": {
-            "description": "Delete section item from a dynamic section type"
+            "description": "Delete section item from a dynamic section type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumeSectionDeleteDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -3610,6 +4630,14 @@
         ],
         "parameters": [
           {
+            "name": "resumeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "sectionTypeKey",
             "in": "path",
             "required": true,
@@ -3619,14 +4647,6 @@
           },
           {
             "name": "itemId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "resumeId",
             "in": "path",
             "required": true,
             "schema": {
@@ -3646,7 +4666,202 @@
         },
         "responses": {
           "200": {
-            "description": "Update section item in a dynamic section type"
+            "description": "Update section item in a dynamic section type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResumeSectionItemDataDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required"
+          }
+        }
+      }
+    },
+    "/api/v1/resumes/{resumeId}/skills": {
+      "get": {
+        "operationId": "resume-skills_listSkillsForResume",
+        "tags": [
+          "resume-skills"
+        ],
+        "summary": "List skills for a resume",
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "resumeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List skills for a resume",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SkillsDataDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required"
+          }
+        }
+      },
+      "post": {
+        "operationId": "resume-skills_addSkillToResume",
+        "tags": [
+          "resume-skills"
+        ],
+        "summary": "Add a skill to a resume",
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "resumeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSkillData"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Add a skill to a resume",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SkillDataDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required"
+          }
+        }
+      }
+    },
+    "/api/v1/resumes/{resumeId}/skills/{skillId}": {
+      "delete": {
+        "operationId": "resume-skills_deleteSkill",
+        "tags": [
+          "resume-skills"
+        ],
+        "summary": "Delete a resume skill",
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "resumeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "skillId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Delete a resume skill",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteSkillDataDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Authentication required"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "resume-skills_updateSkill",
+        "tags": [
+          "resume-skills"
+        ],
+        "summary": "Update a resume skill",
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "resumeId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "skillId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSkillData"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Update a resume skill",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SkillDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -3678,7 +4893,14 @@
         },
         "responses": {
           "201": {
-            "description": "Create share link for a resume"
+            "description": "Create share link for a resume",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShareCreateDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -3710,7 +4932,14 @@
         ],
         "responses": {
           "200": {
-            "description": "List share links for a resume"
+            "description": "List share links for a resume",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShareListDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -3742,7 +4971,14 @@
         ],
         "responses": {
           "204": {
-            "description": "Delete a share link"
+            "description": "Delete a share link",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShareDeleteDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -3764,7 +5000,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get all active spoken languages"
+            "description": "Get all active spoken languages",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpokenLanguagesListDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -3804,7 +5047,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Search spoken languages by name"
+            "description": "Search spoken languages by name",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpokenLanguagesListDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -3836,7 +5086,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get spoken language by code"
+            "description": "Get spoken language by code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpokenLanguageDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -3853,7 +5110,14 @@
         "summary": "Get all tech areas",
         "responses": {
           "200": {
-            "description": "Get all tech areas"
+            "description": "Get all tech areas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TechAreaListDataDto"
+                }
+              }
+            }
           }
         }
       }
@@ -3877,7 +5141,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get niches by area type"
+            "description": "Get niches by area type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TechNicheListDataDto"
+                }
+              }
+            }
           }
         }
       }
@@ -3891,7 +5162,14 @@
         "summary": "Get all tech niches",
         "responses": {
           "200": {
-            "description": "Get all tech niches"
+            "description": "Get all tech niches",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TechNicheListDataDto"
+                }
+              }
+            }
           }
         }
       }
@@ -3915,7 +5193,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get skills by niche slug"
+            "description": "Get skills by niche slug",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TechSkillListDataDto"
+                }
+              }
+            }
           }
         }
       }
@@ -3929,7 +5214,14 @@
         "summary": "Get all tech skills",
         "responses": {
           "200": {
-            "description": "Get all tech skills"
+            "description": "Get all tech skills",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TechSkillListDataDto"
+                }
+              }
+            }
           }
         }
       }
@@ -3961,7 +5253,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get skills by type"
+            "description": "Get skills by type",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TechSkillListDataDto"
+                }
+              }
+            }
           }
         }
       }
@@ -3980,7 +5279,14 @@
         ],
         "responses": {
           "200": {
-            "description": "List published themes"
+            "description": "List published themes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThemePaginatedListDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -4010,7 +5316,14 @@
         },
         "responses": {
           "201": {
-            "description": "Create theme"
+            "description": "Create theme",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThemeEntityDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -4042,7 +5355,14 @@
         },
         "responses": {
           "201": {
-            "description": "Apply theme to resume"
+            "description": "Apply theme to resume",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThemeApplyDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -4064,7 +5384,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get pending themes for approval"
+            "description": "Get pending themes for approval",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThemeListDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -4096,7 +5423,14 @@
         },
         "responses": {
           "201": {
-            "description": "Review and approve/reject a theme"
+            "description": "Review and approve/reject a theme",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThemeEntityDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -4138,7 +5472,14 @@
         },
         "responses": {
           "201": {
-            "description": "Submit a theme for approval"
+            "description": "Submit a theme for approval",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThemeEntityDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -4170,7 +5511,14 @@
         },
         "responses": {
           "201": {
-            "description": "Fork a theme"
+            "description": "Fork a theme",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThemeEntityDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -4192,7 +5540,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get my themes"
+            "description": "Get my themes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThemeListDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -4224,7 +5579,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get popular themes"
+            "description": "Get popular themes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThemeListDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -4256,7 +5618,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get resolved config for resume"
+            "description": "Get resolved config for resume",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThemeResolvedConfigDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -4278,7 +5647,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get system themes"
+            "description": "Get system themes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThemeListDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -4340,7 +5716,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get theme by ID"
+            "description": "Get theme by ID",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThemeNullableEntityDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -4380,7 +5763,14 @@
         },
         "responses": {
           "200": {
-            "description": "Update theme"
+            "description": "Update theme",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThemeEntityDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -4412,7 +5802,14 @@
         },
         "responses": {
           "201": {
-            "description": "Translate multiple texts in batch"
+            "description": "Translate multiple texts in batch",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchTranslationResultDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -4444,7 +5841,14 @@
         },
         "responses": {
           "201": {
-            "description": "Translate English to Portuguese"
+            "description": "Translate English to Portuguese",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TranslationResultDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -4466,7 +5870,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Check translation service health"
+            "description": "Check translation service health",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthCheckResponseDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -4498,7 +5909,14 @@
         },
         "responses": {
           "201": {
-            "description": "Translate Portuguese to English"
+            "description": "Translate Portuguese to English",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TranslationResultDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -4530,7 +5948,14 @@
         },
         "responses": {
           "201": {
-            "description": "Translate a single text"
+            "description": "Translate a single text",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TranslationResultDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -4572,7 +5997,14 @@
         },
         "responses": {
           "201": {
-            "description": "Upload company logo for resume"
+            "description": "Upload company logo for resume",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadResponseDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -4604,7 +6036,14 @@
         ],
         "responses": {
           "204": {
-            "description": "Delete uploaded file"
+            "description": "Delete uploaded file",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteResponseDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -4636,7 +6075,14 @@
         },
         "responses": {
           "201": {
-            "description": "Upload user profile image"
+            "description": "Upload user profile image",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadResponseDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -4684,7 +6130,14 @@
         ],
         "responses": {
           "200": {
-            "description": "List all users with pagination"
+            "description": "List all users with pagination",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserManagementListDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -4714,7 +6167,14 @@
         },
         "responses": {
           "201": {
-            "description": "Create a new user"
+            "description": "Create a new user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserMutationDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -4747,7 +6207,14 @@
         ],
         "responses": {
           "204": {
-            "description": "Delete a user"
+            "description": "Delete a user",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserOperationMessageDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -4777,7 +6244,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get user details by ID"
+            "description": "Get user details by ID",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserDetailsDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -4817,7 +6291,14 @@
         },
         "responses": {
           "200": {
-            "description": "Update user information"
+            "description": "Update user information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserMutationDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -4859,7 +6340,14 @@
         },
         "responses": {
           "201": {
-            "description": "Reset user password"
+            "description": "Reset user password",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserOperationMessageDataDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -4892,7 +6380,14 @@
         },
         "responses": {
           "201": {
-            "description": "Accept Terms of Service or Privacy Policy"
+            "description": "Accept Terms of Service or Privacy Policy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AcceptConsentResponseDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -4914,7 +6409,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get user preferences"
+            "description": "Get user preferences",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserPreferencesResponseDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -4944,7 +6446,14 @@
         },
         "responses": {
           "200": {
-            "description": "Update user preferences"
+            "description": "Update user preferences",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserPreferencesResponseDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -4966,7 +6475,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get full user preferences"
+            "description": "Get full user preferences",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserFullPreferencesResponseDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -4996,7 +6512,14 @@
         },
         "responses": {
           "200": {
-            "description": "Update full user preferences"
+            "description": "Update full user preferences",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserFullPreferencesResponseDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -5018,7 +6541,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get authenticated user profile"
+            "description": "Get authenticated user profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfileResponseDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -5048,7 +6578,14 @@
         },
         "responses": {
           "200": {
-            "description": "Update authenticated user profile"
+            "description": "Update authenticated user profile",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfileResponseDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -5080,7 +6617,14 @@
         },
         "responses": {
           "200": {
-            "description": "Update username"
+            "description": "Update username",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateUsernameResponseDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -5112,7 +6656,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Check username availability"
+            "description": "Check username availability",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsernameAvailabilityResponseDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -5145,7 +6696,14 @@
         },
         "responses": {
           "201": {
-            "description": "Validate username format and availability"
+            "description": "Validate username format and availability",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidateUsernameResponseDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -5177,7 +6735,14 @@
         ],
         "responses": {
           "200": {
-            "description": "Get public profile by username"
+            "description": "Get public profile by username",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicProfileResponseDto"
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Authentication required"
@@ -5812,6 +7377,10 @@
           "resumeId"
         ]
       },
+      "CreateSkillData": {
+        "type": "object",
+        "properties": {}
+      },
       "CreateSnapshotRequestDto": {
         "type": "object",
         "properties": {
@@ -5872,6 +7441,17 @@
           "success"
         ]
       },
+      "DeleteSkillDataDto": {
+        "type": "object",
+        "properties": {
+          "result": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "result"
+        ]
+      },
       "DslAstResponseDto": {
         "type": "object",
         "properties": {
@@ -5895,7 +7475,7 @@
         "type": "object",
         "properties": {
           "ast": {
-            "$ref": "#/components/schemas/ResumeAstDto",
+            "type": "string",
             "description": "Compiled AST"
           }
         },
@@ -5930,7 +7510,10 @@
             "example": "true"
           },
           "errors": {
-            "type": "string",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DslValidationErrorDto"
+            },
             "nullable": true
           }
         },
@@ -6212,6 +7795,19 @@
           "textPrimary",
           "textSecondary",
           "accent"
+        ]
+      },
+      "GotoStepRequestDto": {
+        "type": "object",
+        "properties": {
+          "stepId": {
+            "type": "string",
+            "example": "personal-info",
+            "description": "Step ID to navigate to"
+          }
+        },
+        "required": [
+          "stepId"
         ]
       },
       "HealthCheckResponseDto": {
@@ -6699,6 +8295,19 @@
           "messages"
         ]
       },
+      "NextStepRequestDto": {
+        "type": "object",
+        "properties": {
+          "stepData": {
+            "type": "string",
+            "description": "Data to save for the current step"
+          }
+        }
+      },
+      "Object": {
+        "type": "object",
+        "properties": {}
+      },
       "OnboardingPersonalInfoDto": {
         "type": "object",
         "properties": {
@@ -6708,6 +8317,12 @@
           "email": {
             "type": "string",
             "example": "john@example.com"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string"
           }
         },
         "required": [
@@ -6718,124 +8333,28 @@
       "OnboardingProfessionalProfileDto": {
         "type": "object",
         "properties": {
-          "title": {
-            "type": "string"
+          "jobTitle": {
+            "type": "string",
+            "description": "Job title (required)"
           },
           "summary": {
             "type": "string"
-          }
-        }
-      },
-      "OnboardingProgress": {
-        "type": "object",
-        "properties": {
-          "completedSteps": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
           },
-          "sections": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "currentStep": {
-            "type": "string"
-          },
-          "username": {
-            "type": "string"
-          },
-          "personalInfo": {
-            "type": "string"
-          },
-          "professionalProfile": {
-            "type": "string"
-          },
-          "templateSelection": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "completedSteps",
-          "currentStep"
-        ]
-      },
-      "OnboardingProgressDto": {
-        "type": "object",
-        "properties": {
-          "currentStep": {
+          "linkedin": {
             "type": "string",
-            "example": "professional-profile"
+            "example": "https://linkedin.com/in/johndoe"
           },
-          "completedSteps": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "example": "["
-          },
-          "professionalProfile": {
-            "type": "string"
-          },
-          "sections": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SectionProgressDto"
-            },
-            "description": "Generic sections progress"
-          },
-          "templateSelection": {
-            "type": "string"
-          },
-          "fullName": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "currentStep",
-          "completedSteps",
-          "fullName"
-        ]
-      },
-      "OnboardingProgressResponseDto": {
-        "type": "object",
-        "properties": {
-          "userId": {
+          "github": {
             "type": "string",
-            "example": "clxxx..."
+            "example": "https://github.com/johndoe"
           },
-          "currentStep": {
-            "type": "number",
-            "example": "3"
-          },
-          "totalSteps": {
-            "type": "number",
-            "example": "5"
-          },
-          "progressPercentage": {
-            "type": "number",
-            "example": "60"
-          },
-          "completed": {
-            "type": "boolean",
-            "example": "false"
-          },
-          "steps": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/OnboardingStepResponseDto"
-            }
+          "website": {
+            "type": "string",
+            "example": "https://johndoe.dev"
           }
         },
         "required": [
-          "userId",
-          "currentStep",
-          "totalSteps",
-          "progressPercentage",
-          "completed",
-          "steps"
+          "jobTitle"
         ]
       },
       "OnboardingSectionDto": {
@@ -6881,32 +8400,73 @@
           "content"
         ]
       },
-      "OnboardingStepResponseDto": {
+      "OnboardingSessionDto": {
         "type": "object",
         "properties": {
-          "stepId": {
+          "currentStep": {
             "type": "string",
-            "example": "PROFILE_SETUP"
+            "example": "personal-info"
           },
-          "title": {
-            "type": "string"
+          "completedSteps": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": "["
           },
-          "description": {
-            "type": "string"
+          "progress": {
+            "type": "number",
+            "example": "25",
+            "description": "Progress percentage 0-100"
           },
-          "completed": {
+          "canProceed": {
             "type": "boolean",
-            "example": "true"
+            "example": "true",
+            "description": "Can proceed to next step"
           },
-          "completedAt": {
+          "nextStep": {
             "type": "string",
-            "example": "2024-01-01T00:00:00.000Z"
+            "example": "username",
+            "description": "Next step ID or null"
+          },
+          "previousStep": {
+            "type": "string",
+            "example": "welcome",
+            "description": "Previous step ID or null"
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StepMetaDto"
+            },
+            "description": "All onboarding steps with field defs"
+          },
+          "username": {
+            "type": "string",
+            "example": "johndoe"
+          },
+          "personalInfo": {
+            "$ref": "#/components/schemas/OnboardingPersonalInfoDto"
+          },
+          "professionalProfile": {
+            "$ref": "#/components/schemas/OnboardingProfessionalProfileDto"
+          },
+          "sections": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SectionProgressDto"
+            }
+          },
+          "templateSelection": {
+            "$ref": "#/components/schemas/OnboardingTemplateSelectionDto"
           }
         },
         "required": [
-          "stepId",
-          "title",
-          "completed"
+          "currentStep",
+          "completedSteps",
+          "progress",
+          "canProceed",
+          "steps"
         ]
       },
       "OnboardingTemplateSelectionDto": {
@@ -6914,11 +8474,13 @@
         "properties": {
           "templateId": {
             "type": "string",
-            "example": "modern"
+            "example": "professional",
+            "description": "Template ID"
           },
           "colorScheme": {
             "type": "string",
-            "example": "blue"
+            "example": "ocean",
+            "description": "Color scheme/palette"
           }
         }
       },
@@ -7208,7 +8770,7 @@
         "type": "object",
         "properties": {
           "resume": {
-            "type": "string",
+            "type": "object",
             "nullable": true
           },
           "share": {
@@ -7794,6 +9356,45 @@
           }
         }
       },
+      "SaveProgressRequestDto": {
+        "type": "object",
+        "properties": {
+          "currentStep": {
+            "type": "string",
+            "example": "professional-profile"
+          },
+          "completedSteps": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": "["
+          },
+          "username": {
+            "type": "string",
+            "example": "johndoe"
+          },
+          "personalInfo": {
+            "$ref": "#/components/schemas/OnboardingPersonalInfoDto"
+          },
+          "professionalProfile": {
+            "$ref": "#/components/schemas/OnboardingProfessionalProfileDto"
+          },
+          "sections": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SectionProgressInputDto"
+            }
+          },
+          "templateSelection": {
+            "$ref": "#/components/schemas/OnboardingTemplateSelectionDto"
+          }
+        },
+        "required": [
+          "currentStep",
+          "completedSteps"
+        ]
+      },
       "SaveProgressResponseDto": {
         "type": "object",
         "properties": {
@@ -7812,6 +9413,18 @@
         "required": [
           "currentStep",
           "completedSteps"
+        ]
+      },
+      "SaveStepDataRequestDto": {
+        "type": "object",
+        "properties": {
+          "stepData": {
+            "type": "string",
+            "description": "Data to save for the current step"
+          }
+        },
+        "required": [
+          "stepData"
         ]
       },
       "SearchResultItemDto": {
@@ -7959,6 +9572,18 @@
           "itemId"
         ]
       },
+      "SectionItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "item-123"
+          },
+          "content": {
+            "type": "string"
+          }
+        }
+      },
       "SectionItemPayload": {
         "type": "object",
         "properties": {}
@@ -7968,20 +9593,39 @@
         "properties": {
           "sectionTypeKey": {
             "type": "string",
-            "example": "section_type_v1",
-            "description": "Section type key from SectionType"
+            "example": "work_experience_v1"
           },
           "items": {
             "type": "array",
             "items": {
-              "type": "string"
-            },
-            "description": "Section items (content varies by section type)"
+              "$ref": "#/components/schemas/SectionItemDto"
+            }
           },
           "noData": {
             "type": "boolean",
-            "example": "false",
-            "description": "User has no data for this section"
+            "example": "false"
+          }
+        },
+        "required": [
+          "sectionTypeKey"
+        ]
+      },
+      "SectionProgressInputDto": {
+        "type": "object",
+        "properties": {
+          "sectionTypeKey": {
+            "type": "string",
+            "example": "work_experience_v1"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SectionItemDto"
+            }
+          },
+          "noData": {
+            "type": "boolean",
+            "example": "false"
           }
         },
         "required": [
@@ -8097,6 +9741,18 @@
           "content"
         ]
       },
+      "SendVerificationEmailResponseDto": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Confirmation message"
+          }
+        },
+        "required": [
+          "message"
+        ]
+      },
       "SessionResponseDto": {
         "type": "object",
         "properties": {
@@ -8106,7 +9762,7 @@
             "description": "Whether session is valid"
           },
           "user": {
-            "type": "string",
+            "$ref": "#/components/schemas/SessionUserResponseDto",
             "description": "User data if authenticated",
             "nullable": true
           }
@@ -8114,6 +9770,85 @@
         "required": [
           "authenticated",
           "user"
+        ]
+      },
+      "SessionUserResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "clxxxxx",
+            "description": "User ID"
+          },
+          "email": {
+            "type": "string",
+            "example": "user@example.com",
+            "description": "User email"
+          },
+          "name": {
+            "type": "string",
+            "description": "User display name",
+            "nullable": true
+          },
+          "username": {
+            "type": "string",
+            "example": "johndoe",
+            "description": "Username",
+            "nullable": true
+          },
+          "hasCompletedOnboarding": {
+            "type": "boolean",
+            "example": "true",
+            "description": "Whether user has completed onboarding"
+          },
+          "emailVerified": {
+            "type": "boolean",
+            "example": "true",
+            "description": "Whether email is verified"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "USER",
+              "ADMIN",
+              "APPROVER"
+            ],
+            "example": "USER",
+            "description": "User role"
+          },
+          "isAdmin": {
+            "type": "boolean",
+            "example": "false",
+            "description": "Whether user is admin (calculated from role)"
+          },
+          "isApprover": {
+            "type": "boolean",
+            "example": "false",
+            "description": "Whether user is approver (calculated from role)"
+          },
+          "needsOnboarding": {
+            "type": "boolean",
+            "example": "false",
+            "description": "Whether user needs to complete onboarding"
+          },
+          "needsEmailVerification": {
+            "type": "boolean",
+            "example": "false",
+            "description": "Whether user needs email verification"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "name",
+          "username",
+          "hasCompletedOnboarding",
+          "emailVerified",
+          "role",
+          "isAdmin",
+          "isApprover",
+          "needsOnboarding",
+          "needsEmailVerification"
         ]
       },
       "ShareCreateDataDto": {
@@ -8167,8 +9902,7 @@
             "nullable": true
           },
           "createdAt": {
-            "type": "string",
-            "format": "date-time"
+            "type": "string"
           },
           "publicUrl": {
             "type": "string",
@@ -8238,6 +9972,31 @@
           "resumes"
         ]
       },
+      "SkillDataDto": {
+        "type": "object",
+        "properties": {
+          "skill": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "skill"
+        ]
+      },
+      "SkillsDataDto": {
+        "type": "object",
+        "properties": {
+          "skills": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "skills"
+        ]
+      },
       "SpokenLanguageDataDto": {
         "type": "object",
         "properties": {
@@ -8261,6 +10020,110 @@
         },
         "required": [
           "languages"
+        ]
+      },
+      "StepFieldDto": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "example": "company",
+            "description": "Field key"
+          },
+          "type": {
+            "type": "string",
+            "example": "text",
+            "description": "UI input type"
+          },
+          "label": {
+            "type": "string",
+            "example": "Company",
+            "description": "Display label"
+          },
+          "required": {
+            "type": "boolean",
+            "example": "true",
+            "description": "Whether the field is required"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "example": "[",
+            "description": "Options for select fields"
+          },
+          "widget": {
+            "type": "string",
+            "example": "textarea",
+            "description": "Widget hint (textarea, text)"
+          }
+        },
+        "required": [
+          "key",
+          "type",
+          "label",
+          "required"
+        ]
+      },
+      "StepMetaDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "personal-info",
+            "description": "Unique step identifier"
+          },
+          "label": {
+            "type": "string",
+            "example": "user",
+            "description": "Short label for UI"
+          },
+          "description": {
+            "type": "string",
+            "description": "Human-readable description"
+          },
+          "required": {
+            "type": "boolean",
+            "example": "true",
+            "description": "Whether this step must be completed"
+          },
+          "component": {
+            "type": "string",
+            "example": "personal-info",
+            "description": "Component type hint for frontend rendering"
+          },
+          "icon": {
+            "type": "string",
+            "example": "💼",
+            "description": "Icon emoji or identifier"
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StepFieldDto"
+            },
+            "description": "Field definitions for form rendering (section steps)"
+          },
+          "noDataLabel": {
+            "type": "string",
+            "description": "Label for the "
+          },
+          "placeholder": {
+            "type": "string",
+            "description": "Placeholder / helper text"
+          },
+          "addLabel": {
+            "type": "string",
+            "description": "Label for the add-item button (section steps)"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "description",
+          "required",
+          "component"
         ]
       },
       "SubmitThemeRequestDto": {
@@ -8849,6 +10712,10 @@
         "required": [
           "role"
         ]
+      },
+      "UpdateSkillData": {
+        "type": "object",
+        "properties": {}
       },
       "UpdateTheme": {
         "type": "object",
@@ -9483,6 +11350,36 @@
           "fileSize",
           "analyzedAt"
         ]
+      },
+      "VerifyEmailDto": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "token"
+        ]
+      },
+      "VerifyEmailResponseDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "message"
+        ]
+      },
+      "__NoBody__": {
+        "type": "object",
+        "properties": {}
       }
     }
   }

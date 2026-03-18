@@ -13,7 +13,7 @@ import {
   Param,
   Query,
 } from '@nestjs/common';
-import { ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiProperty, ApiTags } from '@nestjs/swagger';
 import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
@@ -98,6 +98,7 @@ export class SpokenLanguagesController {
   @Public()
   @Get(':code')
   @ApiOperation({ summary: 'Get spoken language by code' })
+  @ApiParam({ name: 'code', description: 'Language code', type: String })
   @ApiDataResponse(SpokenLanguageDataDto, {
     description: 'Spoken language returned',
   })

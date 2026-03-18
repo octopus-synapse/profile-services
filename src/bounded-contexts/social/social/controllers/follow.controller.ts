@@ -23,7 +23,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiProperty, ApiTags } from '@nestjs/swagger';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
@@ -72,6 +72,7 @@ export class FollowController {
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Follow a user' })
+  @ApiParam({ name: 'userId', type: 'string' })
   @ApiDataResponse(FollowIdDto, { description: 'User followed successfully' })
   async follow(
     @CurrentUser() user: UserPayload,
@@ -106,6 +107,7 @@ export class FollowController {
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Unfollow a user' })
+  @ApiParam({ name: 'userId', type: 'string' })
   @ApiDataResponse(UnfollowDataDto, {
     description: 'User unfollowed successfully',
   })
@@ -128,6 +130,7 @@ export class FollowController {
   @Get(':userId/followers')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get followers for a user' })
+  @ApiParam({ name: 'userId', type: 'string' })
   @ApiDataResponse(FollowListDataDto, {
     description: 'Followers list returned',
   })
@@ -155,6 +158,7 @@ export class FollowController {
   @Get(':userId/following')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get users followed by a user' })
+  @ApiParam({ name: 'userId', type: 'string' })
   @ApiDataResponse(FollowingListDataDto, {
     description: 'Following list returned',
   })
@@ -183,6 +187,7 @@ export class FollowController {
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Check following relationship' })
+  @ApiParam({ name: 'userId', type: 'string' })
   @ApiDataResponse(FollowRelationshipDto, {
     description: 'Following relationship returned',
   })
@@ -204,6 +209,7 @@ export class FollowController {
   @Get(':userId/social-stats')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get social stats for a user' })
+  @ApiParam({ name: 'userId', type: 'string' })
   @ApiDataResponse(SocialStatsDto, { description: 'Social stats returned' })
   async getSocialStats(@Param('userId') userId: string): Promise<DataResponse<SocialStatsDto>> {
     const stats = await this.followService.getSocialStats(userId);

@@ -115,8 +115,8 @@ const createValidOnboardingData = (overrides: Partial<OnboardingData> = {}): Onb
     website: 'https://johndoe.dev',
   },
   templateSelection: {
-    template: 'CLASSIC',
-    palette: 'DEFAULT',
+    templateId: 'PROFESSIONAL',
+    colorScheme: 'ocean',
   },
   sections: [],
   ...overrides,
@@ -146,7 +146,7 @@ describe('ResumeOnboardingService', () => {
         location: 'New York, USA',
         jobTitle: 'Software Engineer',
         summary: 'Experienced developer',
-        template: 'CLASSIC',
+        template: 'PROFESSIONAL',
       });
     });
 

@@ -86,9 +86,12 @@ export type GitHubUrl = z.infer<typeof GitHubUrlSchema>;
  * Professional Profile Complete Schema
  *
  * Combines all professional information fields.
+ * Accepts both SDK format (title) and backend format (jobTitle)
  */
 export const ProfessionalProfileSchema = z.object({
-  jobTitle: JobTitleSchema,
+  // Both title and jobTitle are accepted for compatibility
+  title: JobTitleSchema.optional(),
+  jobTitle: JobTitleSchema.optional(),
   summary: SummarySchema,
   linkedin: LinkedInUrlSchema,
   github: GitHubUrlSchema,
@@ -96,3 +99,10 @@ export const ProfessionalProfileSchema = z.object({
 });
 
 export type ProfessionalProfile = z.infer<typeof ProfessionalProfileSchema>;
+
+/**
+ * Get the job title from profile data, accepting both formats
+ */
+export function getJobTitle(profile: ProfessionalProfile): string | undefined {
+  return profile.title || profile.jobTitle;
+}

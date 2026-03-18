@@ -14,6 +14,7 @@ import {
   ApiBearerAuth,
   ApiBody,
   ApiOperation,
+  ApiParam,
   ApiProperty,
   ApiQuery,
   ApiTags,
@@ -69,6 +70,7 @@ export class UsersController {
   @Public()
   @Get(':username/profile')
   @ApiOperation({ summary: 'Get public profile by username' })
+  @ApiParam({ name: 'username', type: 'string' })
   @ApiDataResponse(PublicProfileResponseDto, {
     description: 'Public profile retrieved',
   })

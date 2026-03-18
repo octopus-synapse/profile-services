@@ -1,6 +1,7 @@
 import { Controller, HttpCode, HttpStatus, Inject, Post, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiBody,
   ApiConflictResponse,
   ApiOperation,
   ApiTags,
@@ -9,6 +10,7 @@ import {
 import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure/guards/jwt-auth.guard';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import type { SendVerificationEmailPort } from '../../ports/inbound';
 import { SEND_VERIFICATION_EMAIL_PORT } from '../../ports/inbound';
@@ -18,6 +20,10 @@ interface AuthenticatedUser {
   id: string;
 }
 
+@SdkExport({
+  tag: 'email-verification',
+  description: 'Send verification email',
+})
 @ApiTags('Email Verification')
 @Controller('email-verification')
 export class SendVerificationController {
@@ -34,6 +40,7 @@ export class SendVerificationController {
     summary: 'Send verification email',
     description: 'Sends a verification email to the authenticated user.',
   })
+  @ApiBody({ required: false, description: 'No body required - uses authenticated user' })
   @ApiDataResponse(SendVerificationEmailResponseDto, {
     description: 'Verification email sent',
   })

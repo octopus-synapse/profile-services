@@ -102,6 +102,16 @@ export const ApiPaginatedDataResponse = (
 export const ApiEmptyDataResponse = (options?: ApiDataResponseOptions): MethodDecorator => {
   const status = options?.status ?? HttpStatus.OK;
 
+  // 204 No Content should not have a response body
+  if (status === HttpStatus.NO_CONTENT) {
+    return applyDecorators(
+      ApiResponse({
+        status,
+        description: options?.description,
+      }),
+    );
+  }
+
   return applyDecorators(
     ApiExtraModels(CommonResponse.ApiResponse),
     ApiResponse({

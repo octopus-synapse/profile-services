@@ -3,6 +3,7 @@ import { ApiBearerAuth, ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagg
 import { PermissionGuard, RequirePermission } from '@/bounded-contexts/identity/authorization';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import type {
   CreateSkillData,
@@ -29,7 +30,8 @@ class DeleteSkillDataDto {
   result!: { deleted: boolean };
 }
 
-@ApiTags('skills')
+@SdkExport({ tag: 'resume-skills', description: 'Resume skill management' })
+@ApiTags('Resume Skills')
 @Controller('v1/resumes/:resumeId/skills')
 @UseGuards(JwtAuthGuard, PermissionGuard)
 @ApiBearerAuth()

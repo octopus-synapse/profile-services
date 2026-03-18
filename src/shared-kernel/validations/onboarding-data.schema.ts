@@ -41,13 +41,31 @@ export const PersonalInfoSchema = z.object({
 
 /**
  * Template Selection Schema
+ * Accepts both SDK format (templateId/colorScheme) and legacy format (template/palette)
  */
 export const TemplateSelectionSchema = z.object({
-  template: z.string().min(1, 'Template is required'),
-  palette: z.string().min(1, 'Color palette is required'),
+  // SDK format (primary)
+  templateId: z.string().optional(),
+  colorScheme: z.string().optional(),
+  // Legacy format (backward compat)
+  template: z.string().optional(),
+  palette: z.string().optional(),
 });
 
 export type TemplateSelection = z.infer<typeof TemplateSelectionSchema>;
+
+/**
+ * Validates and normalizes template selection data.
+ * Ensures at least template+palette or templateId+colorScheme is present.
+ */
+export function normalizeTemplateSelection(data: TemplateSelection): {
+  templateId: string;
+  colorScheme: string;
+} {
+  const templateId = data.templateId || data.template || 'professional';
+  const colorScheme = data.colorScheme || data.palette || 'ocean';
+  return { templateId, colorScheme };
+}
 
 /**
  * Generic Section Item Schema

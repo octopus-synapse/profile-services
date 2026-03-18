@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
+import { seedAuthorization } from '../src/bounded-contexts/identity/authorization/seeds/seed-runner';
 import { createPrismaClientOptions } from '../src/bounded-contexts/platform/prisma/prisma-client-options';
 import { seedAnalyticsProjections } from './seeds/analytics-projection.seed';
 import { seedSectionTypes } from './seeds/section-type.seed';
@@ -40,6 +41,31 @@ async function main() {
     console.log('\n⚠️  IMPORTANT: Change admin password after first login!');
   } else {
     console.log('✅ Admin user already exists');
+  }
+
+  // Seed authorization (roles, permissions, groups)
+  await seedAuthorization();
+
+  // Assign admin role to admin user
+  const adminRole = await prisma.role.findUnique({
+    where: { name: 'admin' },
+  });
+
+  if (adminRole) {
+    await prisma.userRoleAssignment.upsert({
+      where: {
+        userId_roleId: {
+          userId: admin.id,
+          roleId: adminRole.id,
+        },
+      },
+      create: {
+        userId: admin.id,
+        roleId: adminRole.id,
+      },
+      update: {},
+    });
+    console.log('✅ Admin role assigned to admin user');
   }
 
   // Seed system themes

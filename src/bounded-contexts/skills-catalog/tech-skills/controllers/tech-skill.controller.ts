@@ -4,7 +4,7 @@
  */
 
 import { Controller, Get, Param, Query } from '@nestjs/common';
-import { ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiProperty, ApiTags } from '@nestjs/swagger';
 import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
@@ -61,6 +61,7 @@ export class TechSkillController {
   @Get('type/:type')
   @Public()
   @ApiOperation({ summary: 'Get skills by type' })
+  @ApiParam({ name: 'type', description: 'Skill type', type: String })
   @ApiDataResponse(TechSkillListDataDto, {
     description: 'List of skills by type',
   })

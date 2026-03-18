@@ -81,6 +81,7 @@ export class PrismaAuthenticationRepository implements AuthenticationRepositoryP
       username: user.username,
       hasCompletedOnboarding: user.hasCompletedOnboarding ?? false,
       emailVerified: !!user.emailVerified,
+      role: 'USER', // TODO: Add role field to User model when RBAC is implemented
     };
   }
 

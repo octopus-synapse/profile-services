@@ -22,6 +22,7 @@ export interface SessionAuthUser {
   username: string | null;
   hasCompletedOnboarding: boolean;
   emailVerified: boolean;
+  role: string;
 }
 
 export interface RefreshTokenData {

@@ -16,7 +16,21 @@ model SectionType {
   maxItems     Int?
 
   definition Json
-  uiSchema    Json?
+  uiSchema   Json?
+
+  // Style DSL - Backend-driven rendering configuration
+  // renderHints: { layout: "timeline"|"list"|"grid"|"cards", groupBy?: string, dateFormat?: string }
+  renderHints Json @default("{}")
+  // fieldStyles: { [fieldKey]: { semantic: "title"|"subtitle"|"date"|"link", widget?: string, width?: string } }
+  fieldStyles Json @default("{}")
+
+  // Icon system: "emoji" (💼) or "lucide" (briefcase)
+  iconType String @default("emoji")
+  icon     String @default("📄")
+
+  // i18n: Translations stored as JSON per locale
+  // Format: { "en": { "title": "...", "label": "...", ... }, "pt-BR": { ... }, "es": { ... } }
+  translations Json @default("{}")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
