@@ -7,6 +7,7 @@
 export * from './env.schema';
 // From onboarding-data.schema - only export unique items (avoid conflicts with schemas/)
 export {
+  normalizeTemplateSelection,
   type OnboardingData,
   OnboardingDataSchema,
   PersonalInfoSchema,

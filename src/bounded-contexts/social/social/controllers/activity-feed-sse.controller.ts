@@ -9,7 +9,7 @@
 
 import { Controller, MessageEvent, Param, Sse, UseGuards } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import type { ActivityType } from '@prisma/client';
 import { filter, fromEvent, map, Observable } from 'rxjs';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
@@ -88,6 +88,7 @@ export class ActivityFeedSseController {
     summary: 'Subscribe to activity type stream',
     description: 'Streams real-time feed updates filtered by activity type.',
   })
+  @ApiParam({ name: 'type', type: 'string' })
   subscribeToActivityType(
     @CurrentUser() user: UserPayload,
     @Param('type') type: ActivityType,

@@ -10,7 +10,7 @@
  */
 
 import { Controller, Get, HttpCode, HttpStatus, Param, Query, UseGuards } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import type { ActivityType } from '@prisma/client';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
@@ -35,6 +35,7 @@ export class ActivityController {
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get authenticated user activity feed' })
+  @ApiParam({ name: 'userId', type: 'string' })
   @ApiDataResponse(ActivityFeedDataDto, {
     description: 'Activity feed returned',
   })
@@ -63,6 +64,7 @@ export class ActivityController {
   @Get(':userId/activities')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get public activities for a user' })
+  @ApiParam({ name: 'userId', type: 'string' })
   @ApiDataResponse(ActivityListDataDto, {
     description: 'User activities returned',
   })
@@ -90,6 +92,8 @@ export class ActivityController {
   @Get(':userId/activities/by-type/:type')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get user activities filtered by type' })
+  @ApiParam({ name: 'userId', type: 'string' })
+  @ApiParam({ name: 'type', type: 'string' })
   @ApiDataResponse(ActivityListDataDto, {
     description: 'Filtered activities returned',
   })

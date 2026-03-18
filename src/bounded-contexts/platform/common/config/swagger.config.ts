@@ -19,7 +19,7 @@ export function configureSwagger(app: INestApplication): void {
   const config = buildSwaggerConfig();
   const document = SwaggerModule.createDocument(app, config, {
     operationIdFactory: (controllerKey: string, methodKey: string) =>
-      `${controllerKey}_${methodKey}`,
+      `${controllerKey.replace(/Controller$/, '')}_${methodKey}`,
   });
 
   SwaggerModule.setup('api/docs', app, document, {
@@ -42,9 +42,7 @@ function buildSwaggerConfig() {
         type: 'http',
         scheme: 'bearer',
         bearerFormat: 'JWT',
-        name: 'Authorization',
         description: 'Enter your JWT token obtained from /api/auth/login',
-        in: 'header',
       },
       'JWT-auth',
     )

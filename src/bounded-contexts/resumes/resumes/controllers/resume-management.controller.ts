@@ -8,7 +8,7 @@
  */
 
 import { Controller, Delete, Get, HttpCode, HttpStatus, Param, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { PermissionGuard, RequirePermission } from '@/bounded-contexts/identity/authorization';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
@@ -32,6 +32,7 @@ export class ResumeManagementController {
   @Get('user/:userId')
   @RequirePermission('resume', 'read')
   @ApiOperation({ summary: 'List all resumes for a specific user' })
+  @ApiParam({ name: 'userId', type: 'string' })
   @ApiDataResponse(ResumeListDataDto, {
     description: 'Resumes retrieved successfully',
   })
@@ -45,6 +46,7 @@ export class ResumeManagementController {
   @Get(':id')
   @RequirePermission('resume', 'read')
   @ApiOperation({ summary: 'Get full resume details' })
+  @ApiParam({ name: 'id', type: 'string' })
   @ApiDataResponse(ResumeDetailsDataDto, {
     description: 'Resume retrieved successfully',
   })
@@ -59,6 +61,7 @@ export class ResumeManagementController {
   @RequirePermission('resume', 'delete')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete a resume' })
+  @ApiParam({ name: 'id', type: 'string' })
   @ApiDataResponse(ResumeOperationMessageDataDto, {
     description: 'Resume deleted successfully',
   })

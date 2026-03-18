@@ -44,6 +44,41 @@ export class SessionUserResponseDto {
     example: true,
   })
   emailVerified!: boolean;
+
+  @ApiProperty({
+    description: 'User role',
+    example: 'USER',
+    enum: ['USER', 'ADMIN', 'APPROVER'],
+  })
+  role!: string;
+
+  // ============================================================================
+  // Calculated fields - frontend should NOT calculate these
+  // ============================================================================
+
+  @ApiProperty({
+    description: 'Whether user is admin (calculated from role)',
+    example: false,
+  })
+  isAdmin!: boolean;
+
+  @ApiProperty({
+    description: 'Whether user is approver (calculated from role)',
+    example: false,
+  })
+  isApprover!: boolean;
+
+  @ApiProperty({
+    description: 'Whether user needs to complete onboarding',
+    example: false,
+  })
+  needsOnboarding!: boolean;
+
+  @ApiProperty({
+    description: 'Whether user needs email verification',
+    example: false,
+  })
+  needsEmailVerification!: boolean;
 }
 
 export class SessionResponseDto {

@@ -40,6 +40,11 @@ describe('CreateSessionUseCase', () => {
     username: 'testuser',
     hasCompletedOnboarding: true,
     emailVerified: true,
+    role: 'USER',
+    isAdmin: false,
+    isApprover: false,
+    needsOnboarding: false,
+    needsEmailVerification: false,
   };
 
   beforeEach(() => {

@@ -1,5 +1,12 @@
 import { Body, Controller, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiParam,
+  ApiProperty,
+  ApiTags,
+} from '@nestjs/swagger';
 import type { AuthenticatedRequest } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
@@ -89,6 +96,7 @@ export class ChatController {
 
   @Post('conversations/:conversationId/messages')
   @ApiOperation({ summary: 'Send a message to an existing conversation' })
+  @ApiParam({ name: 'conversationId', type: 'string' })
   @ApiBody({ type: SendMessageToConversationRequestDto })
   @ApiDataResponse(ChatMessageDataDto, {
     status: 201,
@@ -124,6 +132,7 @@ export class ChatController {
 
   @Get('conversations/:conversationId')
   @ApiOperation({ summary: 'Get a single conversation' })
+  @ApiParam({ name: 'conversationId', type: 'string' })
   @ApiDataResponse(ConversationDataDto, { description: 'Conversation details' })
   async getConversation(
     @Req() req: AuthenticatedRequest,
@@ -135,6 +144,7 @@ export class ChatController {
 
   @Get('conversations/:conversationId/messages')
   @ApiOperation({ summary: 'Get messages for a conversation' })
+  @ApiParam({ name: 'conversationId', type: 'string' })
   @ApiDataResponse(MessagesListDataDto, { description: 'List of messages' })
   async getMessages(
     @Req() req: AuthenticatedRequest,
@@ -152,6 +162,7 @@ export class ChatController {
 
   @Post('conversations/:conversationId/read')
   @ApiOperation({ summary: 'Mark all messages in a conversation as read' })
+  @ApiParam({ name: 'conversationId', type: 'string' })
   @ApiBody({ type: MarkConversationAsReadRequestDto })
   @ApiDataResponse(MarkAsReadDataDto, {
     status: 201,
@@ -183,6 +194,7 @@ export class ChatController {
 
   @Get('conversation-with/:userId')
   @ApiOperation({ summary: 'Get or create conversation with a user' })
+  @ApiParam({ name: 'userId', type: 'string' })
   @ApiDataResponse(ConversationNullableDataDto, {
     description: 'Conversation with user',
   })

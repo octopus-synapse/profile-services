@@ -4,7 +4,7 @@
  */
 
 import { Controller, Get, Param, Query } from '@nestjs/common';
-import { ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiProperty, ApiTags } from '@nestjs/swagger';
 import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
@@ -80,6 +80,7 @@ export class TechSkillsQueryController {
   @Get('areas/:areaType/niches')
   @Public()
   @ApiOperation({ summary: 'Get niches by tech area type' })
+  @ApiParam({ name: 'areaType', description: 'Tech area type', type: String })
   @ApiDataResponse(TechNichesListDataDto, {
     description: 'Niches by area returned',
   })
@@ -151,6 +152,7 @@ export class TechSkillsQueryController {
   @Get('niches/:nicheSlug/skills')
   @Public()
   @ApiOperation({ summary: 'Get skills by niche' })
+  @ApiParam({ name: 'nicheSlug', description: 'Niche slug', type: String })
   @ApiDataResponse(TechSkillsListDataDto, {
     description: 'Skills by niche returned',
   })
@@ -165,6 +167,7 @@ export class TechSkillsQueryController {
   @Get('skills/type/:type')
   @Public()
   @ApiOperation({ summary: 'Get skills by type' })
+  @ApiParam({ name: 'type', description: 'Skill type', type: String })
   @ApiDataResponse(TechSkillsListDataDto, {
     description: 'Skills by type returned',
   })

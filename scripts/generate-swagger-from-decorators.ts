@@ -140,11 +140,13 @@ function parseController(filePath: string): ControllerInfo | null {
 
   // Extract base path from @Controller
   const controllerMatch = content.match(/@Controller\(\s*['"`]([^'"`]+)['"`]\s*\)/);
+  // Keep original basePath with :param format for param extraction
+  const basePathOriginal = controllerMatch ? controllerMatch[1] : '';
   // Convert :param to {param} for OpenAPI in base path
-  const basePath = controllerMatch ? controllerMatch[1].replace(/:(\w+)/g, '{$1}') : '';
+  const basePath = basePathOriginal.replace(/:(\w+)/g, '{$1}');
 
-  // Extract endpoints
-  const endpoints = parseEndpoints(content, sdkExport.tag);
+  // Extract endpoints (pass original basePath for param extraction)
+  const endpoints = parseEndpoints(content, sdkExport.tag, basePathOriginal);
 
   // Extract ALL DTOs used in this controller (automatic discovery)
   const dtoImports = extractAllDtosFromController(content);
@@ -173,7 +175,7 @@ function parseSdkExportOptions(optionsStr: string): SdkExportMetadata {
   };
 }
 
-function parseEndpoints(content: string, tag: string): EndpointInfo[] {
+function parseEndpoints(content: string, tag: string, basePath: string): EndpointInfo[] {
   const endpoints: EndpointInfo[] = [];
 
   const methodPatterns = [
@@ -244,9 +246,12 @@ function parseEndpoints(content: string, tag: string): EndpointInfo[] {
           httpStatusMap[statusMatch[1]] || parseInt(statusMatch[1], 10) || defaultStatus;
       }
 
-      // Extract @ApiResponse type (for response DTO)
-      const responseTypeMatch = afterDecorator.match(/@ApiResponse\(\s*\{[^}]*type:\s*(\w+)/);
-      const responseDto = responseTypeMatch ? responseTypeMatch[1] : undefined;
+      // Extract response DTO from:
+      // 1. @ApiResponse({ type: SomeDto }) - standard NestJS Swagger
+      // 2. @ApiDataResponse(SomeDto, ...) - custom wrapper decorator
+      const apiResponseMatch = afterDecorator.match(/@ApiResponse\(\s*\{[^}]*type:\s*(\w+)/);
+      const apiDataResponseMatch = afterDecorator.match(/@ApiDataResponse\(\s*(\w+)/);
+      const responseDto = apiDataResponseMatch?.[1] || apiResponseMatch?.[1] || undefined;
 
       // Extract method name for operationId
       // Look for "async methodName(" pattern - the actual function definition
@@ -262,6 +267,8 @@ function parseEndpoints(content: string, tag: string): EndpointInfo[] {
         funcDefMatch?.[1] || fallbackMatch?.[1] || methodMatch?.[1] || `${method}Endpoint`;
 
       // Extract @Body DTO - try multiple patterns
+      // 0. Check for explicitly no body: @ApiBody({ required: false }) — marks endpoint as intentionally bodyless
+      const noBodyMarker = afterDecorator.match(/@ApiBody\(\s*\{[^}]*required:\s*false/);
       // 1. From @ApiBody decorator: @ApiBody({ type: SomeDto })
       const apiBodyMatch = afterDecorator.match(/@ApiBody\(\s*\{[^}]*type:\s*(\w+)/);
       // 2. Direct type annotation: @Body() dto: SomeType (any capitalized type, not just *Dto)
@@ -284,15 +291,27 @@ function parseEndpoints(content: string, tag: string): EndpointInfo[] {
       const extractedBody = apiBodyMatch?.[1] || bodyMatch?.[1];
       const isBuiltInType = extractedBody && builtInTypes.includes(extractedBody);
 
-      const requestBodyDto =
-        (extractedBody && !isBuiltInType ? extractedBody : undefined) ||
-        (inlineBodyMatch || isBuiltInType ? '__InlineObject__' : undefined);
+      // __NoBody__ marker indicates endpoint intentionally has no request body
+      const requestBodyDto = noBodyMarker
+        ? '__NoBody__'
+        : (extractedBody && !isBuiltInType ? extractedBody : undefined) ||
+          (inlineBodyMatch || isBuiltInType ? '__InlineObject__' : undefined);
 
-      // Extract path params
+      // Extract path params from both basePath AND method path
       const pathParams: Array<{ name: string; type: string }> = [];
+
+      // First extract from controller basePath (e.g., :resumeId)
+      const baseParamMatches = basePath.matchAll(/:(\w+)/g);
+      for (const pm of baseParamMatches) {
+        pathParams.push({ name: pm[1], type: 'string' });
+      }
+
+      // Then extract from method path (e.g., :skillId)
       const paramMatches = pathArg.matchAll(/:(\w+)/g);
       for (const pm of paramMatches) {
-        pathParams.push({ name: pm[1], type: 'string' });
+        if (!pathParams.find((p) => p.name === pm[1])) {
+          pathParams.push({ name: pm[1], type: 'string' });
+        }
       }
 
       // Map TypeScript types to OpenAPI types
@@ -489,9 +508,9 @@ function _discoverAllDtos(srcDir: string): string[] {
 function findAndParseDtos(srcDir: string, dtoNames: string[]): Record<string, DtoSchema> {
   const schemas: Record<string, DtoSchema> = {};
 
-  // Search in .dto.ts, .controller.ts AND .schema.ts files (for Zod schemas)
+  // Search in .dto.ts, .controller.ts, .schema.ts, AND .config.ts files (for DTOs with Swagger decorators)
   // Sort for deterministic output across platforms
-  const dtoFiles = findFiles(srcDir, /\.(dto|controller|schema)\.ts$/).sort();
+  const dtoFiles = findFiles(srcDir, /\.(dto|controller|schema|config)\.ts$/).sort();
 
   // Keep track of DTOs to process (start with initial list, sorted for determinism)
   const toProcess = new Set(dtoNames.sort());
@@ -619,6 +638,15 @@ function parseDtoClass(content: string, className: string): DtoSchema | null {
     const propName = propMatch[2];
     const isOptional = propMatch[3] === '?';
     let propType = propMatch[4].trim();
+
+    // Check for explicit type in @ApiProperty({ type: SomeDto })
+    const apiPropTypeMatch = apiPropOptions.match(/type:\s*(\w+)/);
+    if (apiPropTypeMatch) {
+      propType = apiPropTypeMatch[1];
+    } else {
+      // Handle union types (e.g., "SomeDto | null" -> "SomeDto")
+      propType = propType.split('|')[0].trim();
+    }
 
     // Handle array types
     const isArray = propType.endsWith('[]') || propType.includes('Array<');
@@ -1189,7 +1217,12 @@ function generateReport(
   // Check for endpoints without DTOs
   for (const controller of controllers) {
     for (const endpoint of controller.endpoints) {
-      if (['post', 'put', 'patch'].includes(endpoint.method) && !endpoint.requestBodyDto) {
+      // __NoBody__ marker indicates endpoint intentionally has no request body (e.g., action using JWT user)
+      if (
+        ['post', 'put', 'patch'].includes(endpoint.method) &&
+        !endpoint.requestBodyDto &&
+        endpoint.requestBodyDto !== '__NoBody__'
+      ) {
         warnings.push(
           `${controller.className}.${endpoint.operationId}: ${endpoint.method.toUpperCase()} endpoint without request body DTO`,
         );
@@ -1305,10 +1338,19 @@ function main() {
   console.log(`  Tags:        ${report.tags.join(', ')}`);
 
   if (report.warnings.length > 0) {
-    console.log('\n⚠️  Warnings:');
+    console.log('\n❌ Errors (warnings treated as errors):');
     for (const warning of report.warnings) {
       console.log(`    - ${warning}`);
     }
+    console.log(`\n${'='.repeat(60)}`);
+    console.log('❌ Swagger generation FAILED due to warnings');
+    console.log(`${'='.repeat(60)}\n`);
+
+    // Write report before failing
+    const reportPath = resolve(__dirname, '../swagger-generation-report.json');
+    writeFileSync(reportPath, JSON.stringify(report, null, 2));
+
+    process.exit(1);
   }
 
   console.log(`\n${'='.repeat(60)}`);

@@ -4,7 +4,7 @@
  */
 
 import { Controller, Get, Param } from '@nestjs/common';
-import { ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiProperty, ApiTags } from '@nestjs/swagger';
 import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
@@ -52,6 +52,7 @@ export class TechAreaController {
   @Get(':areaType/niches')
   @Public()
   @ApiOperation({ summary: 'Get niches by area type' })
+  @ApiParam({ name: 'areaType', description: 'Tech area type', type: String })
   @ApiDataResponse(TechNicheListDataDto, {
     description: 'List of niches for the area',
   })

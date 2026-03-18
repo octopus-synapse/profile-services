@@ -44,6 +44,8 @@ import { ThemesModule } from '@/bounded-contexts/presentation/themes/themes.modu
 import { ResumeVersionsModule } from '@/bounded-contexts/resumes/resume-versions/resume-versions.module';
 // Resumes Context
 import { ResumesModule } from '@/bounded-contexts/resumes/resumes/resumes.module';
+// Admin Modules
+import { AdminSectionTypesModule } from '@/bounded-contexts/resumes/section-types';
 // Skills Catalog Context
 import { SpokenLanguagesModule } from '@/bounded-contexts/skills-catalog/spoken-languages/spoken-languages.module';
 import { TechSkillsModule } from '@/bounded-contexts/skills-catalog/tech-skills/tech-skills.module';
@@ -108,6 +110,9 @@ import { AppService } from './app.service';
     SearchModule,
     CollaborationModule,
     SocialModule,
+
+    // Admin Modules
+    AdminSectionTypesModule,
   ],
   controllers: [AppController],
   providers: [

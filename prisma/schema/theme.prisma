@@ -11,7 +11,13 @@ model ResumeTheme {
 
   category    ThemeCategory @default(MODERN)
   tags        String[]
+  
+  // Core style configuration (design tokens)
   styleConfig Json
+  
+  // Style DSL - Per-section style overrides
+  // Format: { "work_experience_v1": { container: {...}, title: {...}, content: {...} } }
+  sectionStyles Json @default("{}")
 
   thumbnailUrl  String?
   previewImages String[]

@@ -33,8 +33,8 @@ describe('ValidateSessionUseCase', () => {
     sub: testUserId,
     email: testEmail,
     sessionId: 'sess-123',
-    iat: Date.now(),
-    exp: Date.now() + 86400000, // 1 day from now
+    iat: Math.floor(Date.now() / 1000),
+    exp: Math.floor(Date.now() / 1000) + 86400, // 1 day from now (in seconds)
   };
   const testUserData: SessionUserData = {
     id: testUserId,
@@ -43,6 +43,11 @@ describe('ValidateSessionUseCase', () => {
     username: 'testuser',
     hasCompletedOnboarding: true,
     emailVerified: true,
+    role: 'USER',
+    isAdmin: false,
+    isApprover: false,
+    needsOnboarding: false,
+    needsEmailVerification: false,
   };
 
   beforeEach(() => {
@@ -122,7 +127,7 @@ describe('ValidateSessionUseCase', () => {
     it('should return invalid when token is expired', async () => {
       const expiredPayload: SessionPayload = {
         ...testPayload,
-        exp: Date.now() - 1000, // Expired 1 second ago
+        exp: Math.floor(Date.now() / 1000) - 1, // Expired 1 second ago (in seconds)
       };
       mockTokenGenerator.verifySessionToken = mock(() => Promise.resolve(expiredPayload));
 

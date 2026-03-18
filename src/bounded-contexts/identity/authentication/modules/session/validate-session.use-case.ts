@@ -60,8 +60,9 @@ export class ValidateSessionUseCase implements ValidateSessionPort {
       return { success: false, user: null };
     }
 
-    // 3. Check expiration
-    if (Date.now() > payload.exp) {
+    // 3. Check expiration (exp is in seconds, Date.now() is in milliseconds)
+    const nowInSeconds = Math.floor(Date.now() / 1000);
+    if (nowInSeconds > payload.exp) {
       return { success: false, user: null };
     }
 
@@ -71,7 +72,8 @@ export class ValidateSessionUseCase implements ValidateSessionPort {
       return { success: false, user: null };
     }
 
-    // 5. Return validated session data
+    // 5. Return validated session data with calculated fields
+    const role = userData.role ?? 'USER';
     const sessionUserData: SessionUserData = {
       id: userData.id,
       email: userData.email,
@@ -79,6 +81,12 @@ export class ValidateSessionUseCase implements ValidateSessionPort {
       username: userData.username,
       hasCompletedOnboarding: userData.hasCompletedOnboarding,
       emailVerified: userData.emailVerified,
+      role,
+      // Calculated fields - frontend should NOT calculate these
+      isAdmin: role === 'ADMIN',
+      isApprover: role === 'APPROVER',
+      needsOnboarding: !userData.hasCompletedOnboarding,
+      needsEmailVerification: !userData.emailVerified,
     };
 
     return {

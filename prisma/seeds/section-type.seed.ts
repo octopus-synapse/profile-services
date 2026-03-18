@@ -1,4 +1,6 @@
 import type { Prisma, PrismaClient } from '@prisma/client';
+import { injectFieldTranslations } from './field-translations';
+import { sectionTypeIcons, sectionTypeTranslations } from './section-type-translations';
 
 export interface SectionTypeSeedData {
   key: string;
@@ -12,6 +14,11 @@ export interface SectionTypeSeedData {
   maxItems?: number;
   definition: Prisma.InputJsonValue;
   uiSchema?: Prisma.InputJsonValue;
+  renderHints?: Prisma.InputJsonValue;
+  fieldStyles?: Prisma.InputJsonValue;
+  iconType?: string;
+  icon?: string;
+  translations?: Prisma.InputJsonValue;
 }
 
 export const sectionTypes: SectionTypeSeedData[] = [
@@ -24,6 +31,15 @@ export const sectionTypes: SectionTypeSeedData[] = [
     version: 1,
     isRepeatable: true,
     minItems: 0,
+    renderHints: {
+      layout: 'grid',
+      columns: 3,
+      itemLayout: 'horizontal',
+    },
+    fieldStyles: {
+      name: { semantic: 'chip', widget: 'text', width: 'auto' },
+      category: { semantic: 'badge', widget: 'select', width: 'auto' },
+    },
     definition: {
       schemaVersion: 1,
       kind: 'SKILL_SET',
@@ -73,6 +89,15 @@ export const sectionTypes: SectionTypeSeedData[] = [
     version: 1,
     isRepeatable: true,
     minItems: 0,
+    renderHints: {
+      layout: 'list',
+      itemLayout: 'horizontal',
+      showDividers: false,
+    },
+    fieldStyles: {
+      name: { semantic: 'title', widget: 'text', width: 'half' },
+      level: { semantic: 'badge', widget: 'select', width: 'half' },
+    },
     definition: {
       schemaVersion: 1,
       kind: 'LANGUAGE',
@@ -123,6 +148,21 @@ export const sectionTypes: SectionTypeSeedData[] = [
     version: 1,
     isRepeatable: true,
     minItems: 0,
+    renderHints: {
+      layout: 'timeline',
+      itemLayout: 'vertical',
+      dateFormat: 'MMM YYYY',
+      showDividers: true,
+    },
+    fieldStyles: {
+      company: { semantic: 'title', widget: 'text', width: 'full' },
+      role: { semantic: 'subtitle', widget: 'text', width: 'full' },
+      employmentType: { semantic: 'badge', widget: 'select', width: 'auto' },
+      startDate: { semantic: 'date', widget: 'date', width: 'half' },
+      endDate: { semantic: 'date', widget: 'date', width: 'half' },
+      description: { semantic: 'description', widget: 'textarea', width: 'full' },
+      achievements: { semantic: 'description', widget: 'chips', width: 'full' },
+    },
     definition: {
       schemaVersion: 1,
       kind: 'WORK_EXPERIENCE',
@@ -316,6 +356,20 @@ export const sectionTypes: SectionTypeSeedData[] = [
     version: 1,
     isRepeatable: true,
     minItems: 0,
+    renderHints: {
+      layout: 'timeline',
+      itemLayout: 'vertical',
+      dateFormat: 'YYYY',
+      showDividers: true,
+    },
+    fieldStyles: {
+      institution: { semantic: 'title', widget: 'text', width: 'full' },
+      degree: { semantic: 'subtitle', widget: 'text', width: 'half' },
+      field: { semantic: 'subtitle', widget: 'text', width: 'half' },
+      startDate: { semantic: 'date', widget: 'date', width: 'half' },
+      endDate: { semantic: 'date', widget: 'date', width: 'half' },
+      description: { semantic: 'description', widget: 'textarea', width: 'full' },
+    },
     definition: {
       schemaVersion: 1,
       kind: 'EDUCATION',
@@ -1212,17 +1266,53 @@ export async function seedSectionTypes(prisma: PrismaClient) {
   console.log('🧩 Seeding section types...');
 
   for (const sectionType of sectionTypes) {
-    const { key, ...data } = sectionType;
+    const { key, renderHints, fieldStyles, ...restData } = sectionType;
+
+    // Get icon and translations from the translation file
+    const iconData = sectionTypeIcons[key] ?? { iconType: 'emoji', icon: '📄' };
+    const translations = sectionTypeTranslations[key] ?? {};
+
+    // Inject field-level translations into definition
+    const enrichedDefinition = injectFieldTranslations(
+      key,
+      restData.definition as {
+        fields?: Array<{
+          key?: string;
+          meta?: Record<string, unknown>;
+          fields?: Array<unknown>;
+          items?: unknown;
+        }>;
+      },
+    );
+
+    // Debug: log if this type has renderHints
+    if (renderHints) {
+      console.log(`  📐 ${key} has renderHints: ${JSON.stringify(renderHints)}`);
+    }
 
     await prisma.sectionType.upsert({
       where: { key },
-      update: data,
+      update: {
+        ...restData,
+        definition: enrichedDefinition as Prisma.InputJsonValue,
+        renderHints: (renderHints ?? null) as Prisma.InputJsonValue,
+        fieldStyles: (fieldStyles ?? null) as Prisma.InputJsonValue,
+        iconType: iconData.iconType,
+        icon: iconData.icon,
+        translations: translations as unknown as Prisma.InputJsonValue,
+      },
       create: {
         key,
-        ...data,
+        ...restData,
+        definition: enrichedDefinition as Prisma.InputJsonValue,
+        renderHints: (renderHints ?? null) as Prisma.InputJsonValue,
+        fieldStyles: (fieldStyles ?? null) as Prisma.InputJsonValue,
+        iconType: iconData.iconType,
+        icon: iconData.icon,
+        translations: translations as unknown as Prisma.InputJsonValue,
       },
     });
   }
 
-  console.log(`✅ Seeded ${sectionTypes.length} section types`);
+  console.log(`✅ Seeded ${sectionTypes.length} section types (with field translations)`);
 }

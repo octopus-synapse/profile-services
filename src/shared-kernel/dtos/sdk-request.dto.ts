@@ -202,27 +202,45 @@ export class OnboardingPersonalInfoDto {
 
   @ApiProperty({ example: 'john@example.com' })
   email!: string;
+
+  @ApiPropertyOptional({ example: '+1 555-123-4567' })
+  phone?: string;
+
+  @ApiPropertyOptional({ example: 'San Francisco, CA' })
+  location?: string;
 }
 
 /**
  * Professional profile section for onboarding
  */
 export class OnboardingProfessionalProfileDto {
-  @ApiPropertyOptional({ example: 'Software Engineer' })
-  title?: string;
+  @ApiProperty({ example: 'Software Engineer', description: 'Job title (required)' })
+  jobTitle!: string;
 
   @ApiPropertyOptional({ example: 'Experienced developer...' })
   summary?: string;
+
+  @ApiPropertyOptional({ example: 'https://linkedin.com/in/johndoe' })
+  linkedin?: string;
+
+  @ApiPropertyOptional({ example: 'https://github.com/johndoe' })
+  github?: string;
+
+  @ApiPropertyOptional({ example: 'https://johndoe.dev' })
+  website?: string;
 }
 
 /**
  * Template selection for onboarding
  */
 export class OnboardingTemplateSelectionDto {
-  @ApiPropertyOptional({ example: 'modern' })
+  @ApiPropertyOptional({ example: 'professional', description: 'Template ID' })
   templateId?: string;
 
-  @ApiPropertyOptional({ example: 'blue' })
+  @ApiPropertyOptional({
+    example: 'ocean',
+    description: 'Color scheme/palette',
+  })
   colorScheme?: string;
 }
 

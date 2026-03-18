@@ -1,8 +1,8 @@
 {
   "success": true,
-  "controllers": 54,
-  "endpoints": 175,
-  "schemas": 204,
+  "controllers": 57,
+  "endpoints": 186,
+  "schemas": 220,
   "tags": [
     "resume-analytics",
     "search",
@@ -15,6 +15,7 @@
     "user-consent",
     "accounts",
     "auth",
+    "email-verification",
     "users",
     "resume-import",
     "github",
@@ -29,6 +30,7 @@
     "resumes",
     "themes",
     "resume-config",
+    "resume-skills",
     "skills",
     "tech-areas",
     "tech-niches",
@@ -158,6 +160,18 @@
       "file": "bounded-contexts/identity/authentication/modules/session/session.controller.ts"
     },
     {
+      "controller": "SendVerificationController",
+      "tag": "email-verification",
+      "endpoints": 1,
+      "file": "bounded-contexts/identity/email-verification/modules/send-verification/send-verification.controller.ts"
+    },
+    {
+      "controller": "VerifyEmailController",
+      "tag": "email-verification",
+      "endpoints": 1,
+      "file": "bounded-contexts/identity/email-verification/modules/verify-email/verify-email.controller.ts"
+    },
+    {
       "controller": "ChangePasswordController",
       "tag": "users",
       "endpoints": 1,
@@ -250,7 +264,7 @@
     {
       "controller": "OnboardingController",
       "tag": "onboarding",
-      "endpoints": 4,
+      "endpoints": 9,
       "file": "bounded-contexts/onboarding/onboarding/onboarding.controller.ts"
     },
     {
@@ -324,6 +338,12 @@
       "tag": "resumes",
       "endpoints": 7,
       "file": "bounded-contexts/resumes/resumes/resumes.controller.ts"
+    },
+    {
+      "controller": "SkillManagementController",
+      "tag": "resume-skills",
+      "endpoints": 4,
+      "file": "bounded-contexts/skills-catalog/skills/controllers/skill-management.controller.ts"
     },
     {
       "controller": "SpokenLanguagesController",

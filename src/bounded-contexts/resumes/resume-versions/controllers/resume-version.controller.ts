@@ -1,5 +1,5 @@
 import { Controller, Get, NotFoundException, Param, Post, Req, UseGuards } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
@@ -24,6 +24,7 @@ export class ResumeVersionController {
   // Original endpoints
   @Get('resumes/:resumeId/versions')
   @ApiOperation({ summary: 'List resume versions (nested route)' })
+  @ApiParam({ name: 'resumeId', type: 'string' })
   @ApiDataResponse(ResumeVersionListDataDto, {
     description: 'Resume versions returned',
   })
@@ -43,6 +44,8 @@ export class ResumeVersionController {
 
   @Post('resumes/:resumeId/versions/:versionId/restore')
   @ApiOperation({ summary: 'Restore resume version (nested route)' })
+  @ApiParam({ name: 'resumeId', type: 'string' })
+  @ApiParam({ name: 'versionId', type: 'string' })
   @ApiDataResponse(ResumeVersionRestoreDataDto, {
     description: 'Resume version restored',
   })
@@ -65,6 +68,7 @@ export class ResumeVersionController {
   // Alternative flat endpoints for easier testing
   @Get('versions/:resumeId')
   @ApiOperation({ summary: 'List resume versions' })
+  @ApiParam({ name: 'resumeId', type: 'string' })
   @ApiDataResponse(ResumeVersionListDataDto, {
     description: 'Resume versions returned',
   })
@@ -84,6 +88,8 @@ export class ResumeVersionController {
 
   @Get('versions/:resumeId/:versionId')
   @ApiOperation({ summary: 'Get a specific resume version' })
+  @ApiParam({ name: 'resumeId', type: 'string' })
+  @ApiParam({ name: 'versionId', type: 'string' })
   @ApiDataResponse(ResumeVersionDataDto, {
     description: 'Resume version returned',
   })
@@ -109,6 +115,8 @@ export class ResumeVersionController {
 
   @Post('versions/:resumeId/restore/:versionId')
   @ApiOperation({ summary: 'Restore resume version' })
+  @ApiParam({ name: 'resumeId', type: 'string' })
+  @ApiParam({ name: 'versionId', type: 'string' })
   @ApiDataResponse(ResumeVersionRestoreDataDto, {
     description: 'Resume version restored',
   })

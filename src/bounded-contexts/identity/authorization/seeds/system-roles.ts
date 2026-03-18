@@ -35,6 +35,7 @@ export const SYSTEM_ROLES: RoleDefinition[] = [
       'resume:manage',
       'theme:manage',
       'skill:manage',
+      'section_types:manage',
       'role:read',
       'role:list',
       'group:read',

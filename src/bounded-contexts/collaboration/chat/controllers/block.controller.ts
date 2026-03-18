@@ -10,7 +10,14 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiParam,
+  ApiProperty,
+  ApiTags,
+} from '@nestjs/swagger';
 import type { AuthenticatedRequest } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import {
@@ -66,6 +73,7 @@ export class BlockController {
   @Delete(':userId')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Unblock a user' })
+  @ApiParam({ name: 'userId', type: 'string' })
   @ApiEmptyDataResponse({
     status: HttpStatus.NO_CONTENT,
     description: 'User unblocked',
@@ -91,6 +99,7 @@ export class BlockController {
 
   @Get(':userId/status')
   @ApiOperation({ summary: 'Check if a user is blocked' })
+  @ApiParam({ name: 'userId', type: 'string' })
   @ApiDataResponse(IsBlockedDataDto, { description: 'Block status' })
   async isBlocked(
     @Req() req: AuthenticatedRequest,

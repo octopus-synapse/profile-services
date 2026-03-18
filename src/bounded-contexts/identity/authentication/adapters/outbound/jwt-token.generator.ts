@@ -46,16 +46,20 @@ export class JwtTokenGenerator implements TokenGeneratorPort {
   async generateSessionToken(payload: SessionPayload): Promise<string> {
     // Session tokens have all session info embedded
     // They are used for cookie-based auth
+    // Calculate expiresIn based on payload.exp (JWT library conflicts if both exp and expiresIn are set)
+    const nowInSeconds = Math.floor(Date.now() / 1000);
+    const expiresInSeconds = Math.max(payload.exp - nowInSeconds, 0);
+
     return this.jwtService.signAsync(
       {
         sub: payload.sub,
         email: payload.email,
         sessionId: payload.sessionId,
         iat: payload.iat,
-        exp: payload.exp,
+        // Don't include exp here - use expiresIn option instead
       },
       {
-        expiresIn: `${this.sessionExpiryDays}d`,
+        expiresIn: expiresInSeconds,
       },
     );
   }

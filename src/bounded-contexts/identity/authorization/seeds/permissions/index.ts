@@ -11,6 +11,7 @@ import {
   ROLE_PERMISSIONS,
 } from './authorization-permissions';
 import { RESUME_PERMISSIONS } from './resume-permissions';
+import { SECTION_TYPE_PERMISSIONS } from './section-type-permissions';
 import { SKILL_PERMISSIONS } from './skill-permissions';
 import {
   ANALYTICS_PERMISSIONS,
@@ -25,13 +26,14 @@ import { USER_PERMISSIONS } from './user-permissions';
 
 /**
  * All system permissions aggregated.
- * Order: user → resume → theme → skill → authorization → system
+ * Order: user → resume → theme → skill → section-types → authorization → system
  */
 export const SYSTEM_PERMISSIONS: CreatePermissionInput[] = [
   ...USER_PERMISSIONS,
   ...RESUME_PERMISSIONS,
   ...THEME_PERMISSIONS,
   ...SKILL_PERMISSIONS,
+  ...SECTION_TYPE_PERMISSIONS,
   ...ROLE_PERMISSIONS,
   ...GROUP_PERMISSIONS,
   ...PERMISSION_PERMISSIONS,
@@ -48,6 +50,7 @@ export {
   RESUME_PERMISSIONS,
   THEME_PERMISSIONS,
   SKILL_PERMISSIONS,
+  SECTION_TYPE_PERMISSIONS,
   ROLE_PERMISSIONS,
   GROUP_PERMISSIONS,
   PERMISSION_PERMISSIONS,
