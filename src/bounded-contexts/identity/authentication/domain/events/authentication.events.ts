@@ -14,7 +14,7 @@ export class UserLoggedInEvent extends DomainEvent {
 
   constructor(
     public readonly userId: string,
-    public readonly loginMethod: 'password' | 'oauth' | 'token',
+    public readonly loginMethod: 'password' | 'oauth' | 'token' | '2fa_totp' | '2fa_backup_code',
     public readonly ipAddress?: string,
     public readonly userAgent?: string,
   ) {
@@ -68,7 +68,11 @@ export class LoginFailedEvent extends DomainEvent {
 
   constructor(
     public readonly email: string,
-    public readonly reason: 'invalid_credentials' | 'account_locked' | 'account_inactive',
+    public readonly reason:
+      | 'invalid_credentials'
+      | 'account_locked'
+      | 'account_inactive'
+      | 'invalid_2fa',
     public readonly ipAddress?: string,
   ) {
     super();

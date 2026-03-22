@@ -15,6 +15,17 @@ export class InvalidCredentialsException extends UnauthorizedException {
 }
 
 /**
+ * Invalid 2FA Code Exception
+ *
+ * Thrown when a 2FA code is invalid during login verification.
+ */
+export class Invalid2faCodeException extends UnauthorizedException {
+  constructor() {
+    super('Invalid two-factor authentication code');
+  }
+}
+
+/**
  * Session Expired Exception
  *
  * Thrown when the user's session has expired.
