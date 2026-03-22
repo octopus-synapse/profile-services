@@ -51,8 +51,8 @@ export const DEBUG_PATH = {
 
 // ==================== DEFAULT VALUES ====================
 export const DEFAULT = {
-  HOST: '127.0.0.1',
-  PORT: 3000,
+  HOST: process.env.PUPPETEER_HOST ?? '127.0.0.1',
+  PORT: Number(process.env.PUPPETEER_PORT) || 3000,
   LANGUAGE: 'pt-br',
   PALETTE: 'darkGreen',
   BG_BANNER: 'midnightSlate',

@@ -54,7 +54,8 @@ export class EmailTemplateService {
    * Send welcome email
    */
   async sendWelcomeEmail(email: string, name: string): Promise<void> {
-    const html = getWelcomeEmailTemplate(name);
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL') ?? 'http://localhost:3000';
+    const html = getWelcomeEmailTemplate(name, frontendUrl);
 
     await this.senderService.sendEmail({
       to: email,
@@ -67,7 +68,8 @@ export class EmailTemplateService {
    * Send password changed email
    */
   async sendPasswordChangedEmail(email: string, name: string): Promise<void> {
-    const html = getPasswordChangedTemplate(name);
+    const frontendUrl = this.configService.get<string>('FRONTEND_URL') ?? 'http://localhost:3000';
+    const html = getPasswordChangedTemplate(name, frontendUrl);
 
     await this.senderService.sendEmail({
       to: email,

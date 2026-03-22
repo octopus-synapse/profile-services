@@ -1,5 +1,4 @@
-export const getBaseTemplate = (content: string, title: string) => {
-  const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:3000';
+export const getBaseTemplate = (content: string, title: string, frontendUrl = 'http://localhost:3000') => {
 
   return `
 <!DOCTYPE html>
