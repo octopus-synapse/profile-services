@@ -3,32 +3,73 @@
  * Handles user profile operations
  */
 
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Patch, Query } from '@nestjs/common';
 import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Param,
-  Patch,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiPropertyOptional,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
-import { JwtAuthGuard, Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
+import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { UsersService } from '@/bounded-contexts/identity/users/users.service';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import type { UpdateUser as UpdateProfile, UpdateUsername } from '@/shared-kernel';
+import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import {
   PublicProfileDataDto,
   UsernameAvailabilityDataDto,
   UsernameUpdateDataDto,
   UserProfileDataDto,
 } from '../dto/controller-response.dto';
+
+class UpdateUserProfileRequestDto {
+  @ApiPropertyOptional()
+  name?: string;
+
+  @ApiPropertyOptional()
+  username?: string;
+
+  @ApiPropertyOptional({ maxLength: 500 })
+  bio?: string;
+
+  @ApiPropertyOptional({ maxLength: 100 })
+  location?: string;
+
+  @ApiPropertyOptional({ format: 'uri' })
+  website?: string;
+
+  @ApiPropertyOptional({ maxLength: 100 })
+  company?: string;
+
+  @ApiPropertyOptional({ maxLength: 100 })
+  title?: string;
+
+  @ApiPropertyOptional({ maxLength: 20 })
+  phone?: string;
+
+  @ApiPropertyOptional({ format: 'uri' })
+  linkedin?: string;
+
+  @ApiPropertyOptional({ format: 'uri' })
+  github?: string;
+
+  @ApiPropertyOptional({ format: 'uri' })
+  twitter?: string;
+
+  @ApiPropertyOptional({ format: 'uri' })
+  image?: string;
+}
+
+class UpdateUsernameRequestDto {
+  @ApiPropertyOptional()
+  username?: string;
+}
 
 @SdkExport({ tag: 'users', description: 'Users API' })
 @ApiTags('users')
@@ -56,7 +97,7 @@ export class UsersProfileController {
     };
   }
 
-  @UseGuards(JwtAuthGuard)
+  @RequirePermission(Permission.USER_PROFILE_READ)
   @Get('profile')
   @ApiOperation({ summary: 'Get current user profile' })
   @ApiDataResponse(UserProfileDataDto, {
@@ -67,10 +108,11 @@ export class UsersProfileController {
     return { success: true, data: { profile } };
   }
 
-  @UseGuards(JwtAuthGuard)
+  @RequirePermission(Permission.USER_PROFILE_UPDATE)
   @Patch('profile')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update current user profile' })
+  @ApiBody({ type: UpdateUserProfileRequestDto })
   @ApiDataResponse(UserProfileDataDto, {
     description: 'Profile updated successfully',
   })
@@ -88,10 +130,11 @@ export class UsersProfileController {
     };
   }
 
-  @UseGuards(JwtAuthGuard)
+  @RequirePermission(Permission.USER_PROFILE_UPDATE)
   @Patch('username')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update username (once every 30 days)' })
+  @ApiBody({ type: UpdateUsernameRequestDto })
   @ApiDataResponse(UsernameUpdateDataDto, {
     description: 'Username updated successfully',
   })
@@ -110,7 +153,7 @@ export class UsersProfileController {
     };
   }
 
-  @UseGuards(JwtAuthGuard)
+  @RequirePermission(Permission.USER_PROFILE_READ)
   @Get('username/check')
   @ApiOperation({ summary: 'Check if a username is available' })
   @ApiQuery({

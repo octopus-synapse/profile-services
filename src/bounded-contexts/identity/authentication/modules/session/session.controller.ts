@@ -28,7 +28,7 @@ function createCookieReader(req: Request): CookieReader {
 }
 
 @SdkExport({ tag: 'auth', description: 'Session validation' })
-@ApiTags('Authentication')
+@ApiTags('auth')
 @Controller('auth')
 export class SessionController {
   constructor(

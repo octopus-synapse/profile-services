@@ -1,16 +1,15 @@
-import { Controller, Get, Param, Query, Res, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Query, Res } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiStreamResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import { ResumeJsonService } from '../services/resume-json.service';
 import { ResumeLatexService } from '../services/resume-latex.service';
 
 @SdkExport({ tag: 'export', description: 'Export API' })
 @ApiTags('Export')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('api/v1/export')
 export class ExportMultiFormatController {
   constructor(
@@ -18,6 +17,7 @@ export class ExportMultiFormatController {
     private readonly resumeLatexService: ResumeLatexService,
   ) {}
 
+  @RequirePermission(Permission.RESUME_EXPORT)
   @Get(':resumeId/json')
   @ApiOperation({ summary: 'Export resume as JSON' })
   @ApiStreamResponse({
@@ -47,6 +47,7 @@ export class ExportMultiFormatController {
     }
   }
 
+  @RequirePermission(Permission.RESUME_EXPORT)
   @Get(':resumeId/latex')
   @ApiOperation({ summary: 'Export resume as LaTeX' })
   @ApiStreamResponse({

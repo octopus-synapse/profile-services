@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { SUPPORTED_LOCALES, VALIDATION_PATTERNS } from '@/shared-kernel/constants';
 
 /**
  * Style DSL - Render hints for section layout
@@ -60,38 +61,43 @@ export const FieldStylesSchema = z.record(z.string(), FieldStyleSchema);
 export type FieldStylesDto = z.infer<typeof FieldStylesSchema>;
 
 /**
- * Translation schema for a single locale (create)
+ * Translation schema for a single locale (create).
+ * title and label are required; other fields are optional.
  */
 export const SectionTypeTranslationSchema = z.object({
   title: z.string().min(1),
   description: z.string().optional(),
   label: z.string().min(1),
-  noDataLabel: z.string().min(1),
-  placeholder: z.string().min(1),
-  addLabel: z.string().min(1),
+  noDataLabel: z.string().optional(),
+  placeholder: z.string().optional(),
+  addLabel: z.string().optional(),
 });
 
 export type SectionTypeTranslationDto = z.infer<typeof SectionTypeTranslationSchema>;
 
 /**
- * Translation schema for updates (all fields optional for partial updates)
+ * Translation schema for updates.
+ * title and label are required when a locale is provided;
+ * other fields are optional.
  */
 export const SectionTypeTranslationUpdateSchema = z.object({
-  title: z.string().min(1).optional(),
+  title: z.string().min(1),
   description: z.string().optional(),
-  label: z.string().min(1).optional(),
+  label: z.string().min(1),
   noDataLabel: z.string().min(1).optional(),
   placeholder: z.string().min(1).optional(),
   addLabel: z.string().min(1).optional(),
 });
 
 /**
- * Translations for all supported locales
+ * Translations for all supported locales.
+ * On create, every locale in SUPPORTED_LOCALES must be present.
  */
-export const SectionTypeTranslationsSchema = z.record(
-  z.string(), // locale key (en, pt-BR, es)
-  SectionTypeTranslationSchema,
-);
+export const SectionTypeTranslationsSchema = z
+  .record(z.string(), SectionTypeTranslationSchema)
+  .refine((translations) => SUPPORTED_LOCALES.every((locale) => locale in translations), {
+    message: `Translations must include all supported locales: ${SUPPORTED_LOCALES.join(', ')}`,
+  });
 
 /**
  * Translations for updates (partial updates allowed)
@@ -106,67 +112,103 @@ export type SectionTypeTranslationsDto = z.infer<typeof SectionTypeTranslationsS
 /**
  * Create Section Type DTO
  */
-export const CreateSectionTypeSchema = z.object({
-  key: z
-    .string()
-    .min(3)
-    .max(50)
-    .regex(/^[a-z][a-z0-9_]*_v\d+$/, {
-      message: 'Key must be snake_case ending with version (e.g., my_section_v1)',
-    }),
-  slug: z
-    .string()
-    .min(2)
-    .max(50)
-    .regex(/^[a-z][a-z0-9-]*$/, {
-      message: 'Slug must be kebab-case (e.g., my-section)',
-    }),
-  title: z.string().min(1).max(100),
-  description: z.string().max(500).optional(),
-  semanticKind: z.string().min(1).max(50),
-  version: z.number().int().positive().default(1),
-  isRepeatable: z.boolean().default(true),
-  minItems: z.number().int().min(0).default(0),
-  maxItems: z.number().int().positive().optional(),
-  definition: z.record(z.unknown()),
-  uiSchema: z.record(z.unknown()).optional(),
-  renderHints: RenderHintsSchema.optional().default({}),
-  fieldStyles: FieldStylesSchema.optional().default({}),
-  iconType: z.enum(['emoji', 'lucide']).default('emoji'),
-  icon: z.string().min(1).max(50).default('📄'),
-  translations: SectionTypeTranslationsSchema.default({}),
-});
+export const CreateSectionTypeSchema = z
+  .object({
+    key: z
+      .string()
+      .min(3)
+      .max(50)
+      .regex(/^[a-z][a-z0-9_]*_v\d+$/, {
+        message: 'Key must be snake_case ending with version (e.g., my_section_v1)',
+      }),
+    slug: z
+      .string()
+      .min(2)
+      .max(50)
+      .regex(/^[a-z][a-z0-9-]*$/, {
+        message: 'Slug must be kebab-case (e.g., my-section)',
+      }),
+    title: z.string().min(1).max(100),
+    description: z.string().max(500).optional(),
+    semanticKind: z.string().min(1).max(50),
+    version: z.number().int().positive().default(1),
+    isRepeatable: z.boolean().default(true),
+    minItems: z.number().int().min(0).default(0),
+    maxItems: z.number().int().positive().optional(),
+    definition: z.record(z.unknown()),
+    uiSchema: z.record(z.unknown()).optional(),
+    renderHints: RenderHintsSchema.optional().default({}),
+    fieldStyles: FieldStylesSchema.optional().default({}),
+    iconType: z.enum(['emoji', 'lucide']).default('emoji'),
+    icon: z.string().min(1).max(50).default('📄'),
+    translations: SectionTypeTranslationsSchema,
+  })
+  .superRefine((data, ctx) => {
+    if (data.iconType === 'lucide' && !VALIDATION_PATTERNS.LUCIDE_ICON_NAME.test(data.icon)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['icon'],
+        message: 'Lucide icon must be kebab-case (e.g., "briefcase", "graduation-cap")',
+      });
+    }
+    if (data.iconType === 'emoji' && !VALIDATION_PATTERNS.EMOJI.test(data.icon)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['icon'],
+        message: 'Icon must be a valid emoji when iconType is "emoji"',
+      });
+    }
+  });
 
 export type CreateSectionTypeDto = z.infer<typeof CreateSectionTypeSchema>;
 
 /**
  * Update Section Type DTO (all fields optional except for system types)
  */
-export const UpdateSectionTypeSchema = z.object({
-  // These fields are only included to detect and reject attempts to modify them on system types
-  key: z.string().optional(),
-  semanticKind: z.string().optional(),
-  // Updatable fields
-  slug: z
-    .string()
-    .min(2)
-    .max(50)
-    .regex(/^[a-z][a-z0-9-]*$/)
-    .optional(),
-  title: z.string().min(1).max(100).optional(),
-  description: z.string().max(500).optional().nullable(),
-  isActive: z.boolean().optional(),
-  isRepeatable: z.boolean().optional(),
-  minItems: z.number().int().min(0).optional(),
-  maxItems: z.number().int().positive().optional().nullable(),
-  definition: z.record(z.unknown()).optional(),
-  uiSchema: z.record(z.unknown()).optional().nullable(),
-  renderHints: RenderHintsSchema.optional(),
-  fieldStyles: FieldStylesSchema.optional(),
-  iconType: z.enum(['emoji', 'lucide']).optional(),
-  icon: z.string().min(1).max(50).optional(),
-  translations: SectionTypeTranslationsUpdateSchema.optional(),
-});
+export const UpdateSectionTypeSchema = z
+  .object({
+    // These fields are only included to detect and reject attempts to modify them on system types
+    key: z.string().optional(),
+    semanticKind: z.string().optional(),
+    // Updatable fields
+    slug: z
+      .string()
+      .min(2)
+      .max(50)
+      .regex(/^[a-z][a-z0-9-]*$/)
+      .optional(),
+    title: z.string().min(1).max(100).optional(),
+    description: z.string().max(500).optional().nullable(),
+    isActive: z.boolean().optional(),
+    isRepeatable: z.boolean().optional(),
+    minItems: z.number().int().min(0).optional(),
+    maxItems: z.number().int().positive().optional().nullable(),
+    definition: z.record(z.unknown()).optional(),
+    uiSchema: z.record(z.unknown()).optional().nullable(),
+    renderHints: RenderHintsSchema.optional(),
+    fieldStyles: FieldStylesSchema.optional(),
+    iconType: z.enum(['emoji', 'lucide']).optional(),
+    icon: z.string().min(1).max(50).optional(),
+    translations: SectionTypeTranslationsUpdateSchema.optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.iconType && data.icon) {
+      if (data.iconType === 'lucide' && !VALIDATION_PATTERNS.LUCIDE_ICON_NAME.test(data.icon)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['icon'],
+          message: 'Lucide icon must be kebab-case (e.g., "briefcase", "graduation-cap")',
+        });
+      }
+      if (data.iconType === 'emoji' && !VALIDATION_PATTERNS.EMOJI.test(data.icon)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['icon'],
+          message: 'Icon must be a valid emoji when iconType is "emoji"',
+        });
+      }
+    }
+  });
 
 export type UpdateSectionTypeDto = z.infer<typeof UpdateSectionTypeSchema>;
 

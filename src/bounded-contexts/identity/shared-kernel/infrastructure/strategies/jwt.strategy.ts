@@ -4,6 +4,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import type { Request } from 'express';
 import { Strategy } from 'passport-jwt';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { AUTH_CONFIG } from '@/shared-kernel/constants/app.constants';
 
 export interface JwtPayload {
   sub: string;
@@ -22,19 +23,18 @@ export interface AuthenticatedUser {
   name: string | null;
   hasCompletedOnboarding: boolean;
   emailVerified: boolean;
+  roles: string[]; // For permission resolution
 }
 
 const USER_NOT_FOUND_MESSAGE = 'User not found';
-const SESSION_COOKIE_NAME = 'session';
 
 /**
  * Custom JWT extractor that checks both cookie and Authorization header
  * Priority: Cookie first (for browser requests), then Authorization header (for API clients)
  */
 function extractJwtFromCookieOrHeader(req: Request): string | null {
-  // 1. Try to extract from cookie first
-  if (req.cookies?.[SESSION_COOKIE_NAME]) {
-    return req.cookies[SESSION_COOKIE_NAME];
+  if (req.cookies?.[AUTH_CONFIG.SESSION_COOKIE_NAME]) {
+    return req.cookies[AUTH_CONFIG.SESSION_COOKIE_NAME];
   }
 
   // 2. Fall back to Authorization header
@@ -82,6 +82,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         name: true,
         hasCompletedOnboarding: true,
         emailVerified: true,
+        roles: true,
       },
     });
 
@@ -96,6 +97,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       name: user.name,
       hasCompletedOnboarding: user.hasCompletedOnboarding,
       emailVerified: !!user.emailVerified,
+      roles: user.roles,
     };
   }
 }

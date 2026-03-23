@@ -9,7 +9,7 @@ import { REFRESH_TOKEN_PORT } from '../../ports/inbound';
 import { RefreshTokenDto, RefreshTokenResponseDto } from './refresh-token.dto';
 
 @SdkExport({ tag: 'auth', description: 'User authentication - refresh token' })
-@ApiTags('Authentication')
+@ApiTags('auth')
 @Controller('auth')
 export class RefreshTokenController {
   constructor(

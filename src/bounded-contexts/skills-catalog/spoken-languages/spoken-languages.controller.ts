@@ -14,10 +14,10 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiProperty, ApiTags } from '@nestjs/swagger';
-import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
+import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import { type SpokenLanguage, SpokenLanguagesService } from './services/spoken-languages.service';
 
 class SpokenLanguagesListDataDto {
@@ -43,7 +43,7 @@ export class SpokenLanguagesController {
    * Get all spoken languages
    * Returns list of languages with translations in en, pt-BR, and es
    */
-  @Public()
+  @RequirePermission(Permission.SKILL_READ)
   @Get()
   @ApiOperation({ summary: 'Get all active spoken languages' })
   @ApiDataResponse(SpokenLanguagesListDataDto, {
@@ -62,7 +62,7 @@ export class SpokenLanguagesController {
   /**
    * Search spoken languages by name
    */
-  @Public()
+  @RequirePermission(Permission.SKILL_READ)
   @Get('search')
   @ApiOperation({ summary: 'Search spoken languages by name' })
   @ApiDataResponse(SpokenLanguagesListDataDto, {
@@ -95,7 +95,7 @@ export class SpokenLanguagesController {
   /**
    * Get a single language by code
    */
-  @Public()
+  @RequirePermission(Permission.SKILL_READ)
   @Get(':code')
   @ApiOperation({ summary: 'Get spoken language by code' })
   @ApiParam({ name: 'code', description: 'Language code', type: String })

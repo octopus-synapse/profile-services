@@ -6,7 +6,7 @@ FROM oven/bun:1.3.10-alpine AS deps
 WORKDIR /app
 
 # Layer 1: Copy ONLY package files (changes rarely)
-COPY package.json bun.lockb* ./
+COPY package.json bun.lock* ./
 COPY prisma ./prisma
 COPY prisma.config.ts ./
 
@@ -65,7 +65,7 @@ COPY --from=builder --chown=nestjs:nodejs /app/package.json ./package.json
 COPY --from=builder --chown=nestjs:nodejs /app/prisma ./prisma
 
 # Install Prisma CLI globally
-RUN bun install -g prisma@6.17.1
+RUN bun install -g prisma@7
 
 USER nestjs
 

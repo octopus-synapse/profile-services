@@ -4,17 +4,7 @@
  * Thin layer that delegates to DslRepository
  */
 
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Param,
-  Post,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Post, Query } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -24,12 +14,13 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
-import { JwtAuthGuard, Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
+import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure/decorators/public.decorator';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { DslAstResponseDto, ResumeAstDto } from '@/shared-kernel';
+import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import { DslService } from './dsl.service';
 
 /** DTO for DSL validation error */
@@ -109,7 +100,7 @@ export class DslController {
    * Render: Get compiled AST for a persisted resume
    */
   @Get('render/:resumeId')
-  @UseGuards(JwtAuthGuard)
+  @RequirePermission(Permission.RESUME_READ)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get compiled AST for a resume' })
   @ApiDataResponse(DslAstResponseDto, { description: 'AST for resume' })

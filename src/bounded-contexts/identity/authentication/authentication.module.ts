@@ -7,10 +7,10 @@ import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { NestEventBusAdapter } from '../shared-kernel/adapters';
 import { JwtStrategy } from '../shared-kernel/infrastructure/strategies';
 import type { EventBusPort } from '../shared-kernel/ports/event-bus.port';
+import type { Validate2faPort } from '../two-factor-auth/ports/inbound';
+import { VALIDATE_2FA_PORT } from '../two-factor-auth/ports/inbound';
 // Cross-BC: Two-Factor Auth
 import { TwoFactorAuthModule } from '../two-factor-auth/two-factor-auth.module';
-import { VALIDATE_2FA_PORT } from '../two-factor-auth/ports/inbound';
-import type { Validate2faPort } from '../two-factor-auth/ports/inbound';
 // Outbound Adapters (Infrastructure)
 import {
   BcryptPasswordHasher,

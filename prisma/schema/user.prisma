@@ -10,6 +10,11 @@ model User {
   isActive      Boolean   @default(true)
   lastLoginAt   DateTime?
 
+  // Simplified RBAC: roles stored as array
+  // Values: 'role_user', 'role_creator', 'role_approver', 'role_admin', etc.
+  // Permissions resolved at runtime via permission-resolver.ts
+  roles String[] @default(["role_user"])
+
   accounts Account[]
   sessions Session[]
 
@@ -71,7 +76,7 @@ model User {
   // Resume collaborations
   collaborations ResumeCollaborator[] @relation("UserCollaborations")
 
-  // Dynamic RBAC Authorization System
+  // Legacy RBAC (to be deprecated - use roles[] instead)
   userRoles       UserRoleAssignment[]
   userGroups      UserGroup[]
   userPermissions UserPermission[]

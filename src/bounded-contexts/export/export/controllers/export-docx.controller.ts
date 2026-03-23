@@ -10,16 +10,15 @@ import {
   Header,
   InternalServerErrorException,
   StreamableFile,
-  UseGuards,
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ApiBearerAuth, ApiOperation, ApiProduces, ApiTags } from '@nestjs/swagger';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiStreamResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import { ExportCompletedEvent, ExportFailedEvent, ExportRequestedEvent } from '../../domain/events';
 import { ResumeDOCXService } from '../services/resume-docx.service';
 
@@ -36,7 +35,7 @@ export class ExportDocxController {
     this.logger.setContext(ExportDocxController.name);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @RequirePermission(Permission.RESUME_EXPORT)
   @Get('resume/docx')
   @Header('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
   @Header('Content-Disposition', 'attachment; filename="resume.docx"')

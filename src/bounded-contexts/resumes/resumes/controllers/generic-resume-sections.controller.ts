@@ -1,22 +1,12 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Patch,
-  Post,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { ParseCuidPipe } from '@/bounded-contexts/platform/common/pipes/parse-cuid.pipe';
+import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import { parseLocale, resolveSectionTypeForLocale } from '@/shared-kernel/utils/locale-resolver';
 import {
   ResumeSectionDeleteDataDto,
@@ -34,11 +24,11 @@ interface SectionItemPayload {
 @ApiTags('resumes')
 @ApiBearerAuth('JWT-auth')
 @Controller('v1/resumes/:resumeId/sections')
-@UseGuards(JwtAuthGuard)
 export class GenericResumeSectionsController {
   constructor(private readonly sectionsService: GenericResumeSectionsService) {}
 
   @Get('types')
+  @RequirePermission(Permission.SECTION_TYPE_READ)
   @ApiOperation({ summary: 'List active dynamic section types with resolved translations' })
   @ApiParam({
     name: 'resumeId',
@@ -68,7 +58,7 @@ export class GenericResumeSectionsController {
     return {
       success: true,
       data: {
-        sectionTypes: sectionTypes as unknown as Record<string, unknown>[],
+        sectionTypes: sectionTypes as unknown as ResumeSectionTypesDataDto['sectionTypes'],
       },
     };
   }

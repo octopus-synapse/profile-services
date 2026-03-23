@@ -1,5 +1,8 @@
-export const getBaseTemplate = (content: string, title: string, frontendUrl = 'http://localhost:3000') => {
-
+export const getBaseTemplate = (
+  content: string,
+  title: string,
+  frontendUrl = 'http://localhost:3000',
+) => {
   return `
 <!DOCTYPE html>
 <html lang="pt-BR">

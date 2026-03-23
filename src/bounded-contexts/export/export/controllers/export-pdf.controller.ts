@@ -11,16 +11,15 @@ import {
   InternalServerErrorException,
   Query,
   StreamableFile,
-  UseGuards,
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ApiBearerAuth, ApiOperation, ApiProduces, ApiQuery, ApiTags } from '@nestjs/swagger';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiStreamResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import { ExportCompletedEvent, ExportFailedEvent, ExportRequestedEvent } from '../../domain/events';
 import { ResumePDFService } from '../services/resume-pdf.service';
 
@@ -37,7 +36,7 @@ export class ExportPdfController {
     this.logger.setContext(ExportPdfController.name);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @RequirePermission(Permission.RESUME_EXPORT)
   @Get('resume/pdf')
   @Header('Content-Type', 'application/pdf')
   @Header('Content-Disposition', 'attachment; filename="resume.pdf"')

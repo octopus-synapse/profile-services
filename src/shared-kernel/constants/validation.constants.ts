@@ -45,4 +45,6 @@ export const VALIDATION_PATTERNS = {
   USERNAME_END: /[a-z0-9]$/,
   NO_CONSECUTIVE_UNDERSCORES: /^(?!.*__)/,
   PASSWORD: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/,
+  LUCIDE_ICON_NAME: /^[a-z][a-z0-9]*(-[a-z0-9]+)*$/,
+  EMOJI: /^\p{Emoji_Presentation}(\u200d\p{Emoji_Presentation})*/u,
 } as const;

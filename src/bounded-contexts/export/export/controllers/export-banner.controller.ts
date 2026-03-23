@@ -10,13 +10,12 @@ import {
   InternalServerErrorException,
   Query,
   StreamableFile,
-  UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiProduces, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiStreamResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import { BannerCaptureService } from '../services/banner-capture.service';
 
 @SdkExport({ tag: 'export', description: 'Export API' })
@@ -31,7 +30,7 @@ export class ExportBannerController {
     this.logger.setContext(ExportBannerController.name);
   }
 
-  @UseGuards(JwtAuthGuard)
+  @RequirePermission(Permission.RESUME_EXPORT)
   @Get('banner')
   @Header('Content-Type', 'image/png')
   @Header('Content-Disposition', 'attachment; filename="linkedin-banner.png"')

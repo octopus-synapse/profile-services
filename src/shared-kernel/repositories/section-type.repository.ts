@@ -198,9 +198,7 @@ export class SectionTypeRepository implements OnModuleInit {
   private parseRecord(record: SectionTypeRecord): SectionTypeWithDefinition | null {
     const parsed = SectionDefinitionSchema.safeParse(record.definition);
     if (!parsed.success) {
-      this.logger.warn(
-        `Failed to parse definition for ${record.key}: ${parsed.error.message}`,
-      );
+      this.logger.warn(`Failed to parse definition for ${record.key}: ${parsed.error.message}`);
       return null;
     }
 

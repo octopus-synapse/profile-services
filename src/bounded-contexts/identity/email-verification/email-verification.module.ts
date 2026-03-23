@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 // Shared providers
+import { EmailModule } from '@/bounded-contexts/platform/common/email/email.module';
+import { EmailService } from '@/bounded-contexts/platform/common/email/email.service';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { NestEventBusAdapter } from '../shared-kernel/adapters';
 import type { EventBusPort } from '../shared-kernel/ports/event-bus.port';
@@ -29,7 +31,7 @@ const VERIFICATION_EMAIL_SENDER = Symbol('VerificationEmailSenderPort');
 const EVENT_BUS = Symbol('EventBusPort');
 
 @Module({
-  imports: [PrismaModule, ConfigModule],
+  imports: [PrismaModule, ConfigModule, EmailModule],
   controllers: [SendVerificationController, VerifyEmailController],
   providers: [
     // Outbound Adapters
@@ -45,14 +47,35 @@ const EVENT_BUS = Symbol('EventBusPort');
       provide: EVENT_BUS,
       useClass: NestEventBusAdapter,
     },
-    // TODO: Replace with actual email service
+    // Bridge: adapts EmailService to the EmailServicePort interface expected by adapters
     {
       provide: EMAIL_SERVICE,
-      useValue: {
-        sendEmail: async () => {
-          console.log('[Email Verification] Email sent (stub)');
+      useFactory: (emailService: EmailService) => ({
+        sendEmail: async (options: {
+          to: string;
+          subject: string;
+          template: string;
+          context: Record<string, unknown>;
+        }) => {
+          const ctx = options.context;
+          if (options.template === 'email-verification') {
+            const url = ctx.verificationUrl as string;
+            const token = url.includes('token=') ? url.split('token=')[1] : url;
+            await emailService.sendVerificationEmail(
+              options.to,
+              (ctx.userName as string) || 'User',
+              token,
+            );
+          } else {
+            await emailService.sendEmail({
+              to: options.to,
+              subject: options.subject,
+              html: `<p>${options.subject}</p>`,
+            });
+          }
         },
-      },
+      }),
+      inject: [EmailService],
     },
 
     // Use Cases (bound to inbound ports)

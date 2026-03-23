@@ -9,8 +9,8 @@
 import {
   CanActivate,
   ExecutionContext,
-  Injectable,
   ForbiddenException,
+  Injectable,
   Logger,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';

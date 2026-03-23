@@ -7,15 +7,15 @@
  * Martin Fowler: "Push beats polling for real-time data."
  */
 
-import { Controller, MessageEvent, Param, Sse, UseGuards } from '@nestjs/common';
+import { Controller, MessageEvent, Param, Sse } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import type { ActivityType } from '@prisma/client';
 import { filter, fromEvent, map, Observable } from 'rxjs';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 
 interface ActivityFeedEvent {
   id: string;
@@ -60,7 +60,7 @@ export class ActivityFeedSseController {
    * ```
    */
   @Sse('subscribe')
-  @UseGuards(JwtAuthGuard)
+  @RequirePermission(Permission.SOCIAL_USE)
   @ApiOperation({
     summary: 'Subscribe to activity feed stream',
     description: 'Streams real-time feed updates for the authenticated user.',
@@ -83,7 +83,7 @@ export class ActivityFeedSseController {
    * Allows filtering to specific activity types (e.g., only RESUME_CREATED).
    */
   @Sse('subscribe/:type')
-  @UseGuards(JwtAuthGuard)
+  @RequirePermission(Permission.SOCIAL_USE)
   @ApiOperation({
     summary: 'Subscribe to activity type stream',
     description: 'Streams real-time feed updates filtered by activity type.',

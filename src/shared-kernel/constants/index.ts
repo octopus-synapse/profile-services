@@ -3,6 +3,7 @@ export * from './business-limits.constants';
 export * from './error-codes.const';
 export * from './error-messages.const';
 export * from './language.constants';
+export * from './locale.constants';
 export * from './pagination.constants';
 export * from './skill.constants';
 export * from './success-messages.const';

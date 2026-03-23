@@ -1,21 +1,11 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Param,
-  Post,
-  UseGuards,
-} from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
+import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import {
   ShareCreateDataDto,
   ShareDeleteDataDto,
@@ -32,12 +22,13 @@ interface CreateShare {
 
 @SdkExport({ tag: 'resumes', description: 'Share Management API' })
 @ApiTags('shares')
+@ApiBearerAuth('JWT-auth')
 @Controller('v1/shares')
-@UseGuards(JwtAuthGuard)
 export class ShareManagementController {
   constructor(private readonly shareService: ResumeShareService) {}
 
   @Post()
+  @RequirePermission(Permission.RESUME_UPDATE)
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create share link for a resume' })
   @ApiDataResponse(ShareCreateDataDto, {
@@ -72,6 +63,7 @@ export class ShareManagementController {
   }
 
   @Get('resume/:resumeId')
+  @RequirePermission(Permission.RESUME_READ)
   @ApiOperation({ summary: 'List share links for a resume' })
   @ApiDataResponse(ShareListDataDto, { description: 'Resume shares returned' })
   async listResumeShares(
@@ -98,6 +90,7 @@ export class ShareManagementController {
   }
 
   @Delete(':shareId')
+  @RequirePermission(Permission.RESUME_UPDATE)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete a share link' })
   @ApiDataResponse(ShareDeleteDataDto, {

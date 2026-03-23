@@ -7,11 +7,19 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBody, ApiConsumes, ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
+  ApiOperation,
+  ApiProperty,
+  ApiTags,
+} from '@nestjs/swagger';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import type { ValidateCV } from '@/shared-kernel';
+import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import { ValidateCVRequestDto } from '@/shared-kernel/dtos/sdk-request.dto';
 import { ATSService } from './services/ats.service';
 
@@ -62,7 +70,9 @@ export class ATSValidationResponseDto {
 
 @SdkExport({ tag: 'ats-validation', description: 'Ats Validation API' })
 @ApiTags('ATS Validation')
+@ApiBearerAuth('JWT-auth')
 @Controller('v1/ats')
+@RequirePermission(Permission.RESUME_READ)
 export class ATSController {
   constructor(private readonly atsService: ATSService) {}
 

@@ -5,9 +5,9 @@
 
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiProperty, ApiTags } from '@nestjs/swagger';
-import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
+import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import { type ProgrammingLanguage, type TechArea, type TechNiche, type TechSkill } from '../dtos';
 import type { SkillType, TechAreaType } from '../interfaces';
 import { TechSkillsQueryService } from '../services/tech-skills-query.service';
@@ -56,7 +56,7 @@ export class TechSkillsQueryController {
 
   /** Get all tech areas */
   @Get('areas')
-  @Public()
+  @RequirePermission(Permission.SKILL_READ)
   @ApiOperation({ summary: 'Get all tech areas' })
   @ApiDataResponse(TechAreasListDataDto, { description: 'Tech areas returned' })
   async getAreas(): Promise<DataResponse<TechAreasListDataDto>> {
@@ -66,7 +66,7 @@ export class TechSkillsQueryController {
 
   /** Get all tech niches */
   @Get('niches')
-  @Public()
+  @RequirePermission(Permission.SKILL_READ)
   @ApiOperation({ summary: 'Get all tech niches' })
   @ApiDataResponse(TechNichesListDataDto, {
     description: 'Tech niches returned',
@@ -78,7 +78,7 @@ export class TechSkillsQueryController {
 
   /** Get niches by area type */
   @Get('areas/:areaType/niches')
-  @Public()
+  @RequirePermission(Permission.SKILL_READ)
   @ApiOperation({ summary: 'Get niches by tech area type' })
   @ApiParam({ name: 'areaType', description: 'Tech area type', type: String })
   @ApiDataResponse(TechNichesListDataDto, {
@@ -93,7 +93,7 @@ export class TechSkillsQueryController {
 
   /** Get all programming languages */
   @Get('languages')
-  @Public()
+  @RequirePermission(Permission.SKILL_READ)
   @ApiOperation({ summary: 'Get all programming languages' })
   @ApiDataResponse(TechLanguagesListDataDto, {
     description: 'Programming languages returned',
@@ -105,7 +105,7 @@ export class TechSkillsQueryController {
 
   /** Search programming languages */
   @Get('languages/search')
-  @Public()
+  @RequirePermission(Permission.SKILL_READ)
   @ApiOperation({ summary: 'Search programming languages' })
   @ApiDataResponse(TechLanguagesListDataDto, {
     description: 'Programming language search results returned',
@@ -123,7 +123,7 @@ export class TechSkillsQueryController {
 
   /** Get all skills */
   @Get('skills')
-  @Public()
+  @RequirePermission(Permission.SKILL_READ)
   @ApiOperation({ summary: 'Get all tech skills' })
   @ApiDataResponse(TechSkillsListDataDto, {
     description: 'Tech skills returned',
@@ -135,7 +135,7 @@ export class TechSkillsQueryController {
 
   /** Search skills */
   @Get('skills/search')
-  @Public()
+  @RequirePermission(Permission.SKILL_READ)
   @ApiOperation({ summary: 'Search tech skills' })
   @ApiDataResponse(TechSkillsListDataDto, {
     description: 'Tech skill search results returned',
@@ -150,7 +150,7 @@ export class TechSkillsQueryController {
 
   /** Get skills by niche */
   @Get('niches/:nicheSlug/skills')
-  @Public()
+  @RequirePermission(Permission.SKILL_READ)
   @ApiOperation({ summary: 'Get skills by niche' })
   @ApiParam({ name: 'nicheSlug', description: 'Niche slug', type: String })
   @ApiDataResponse(TechSkillsListDataDto, {
@@ -165,7 +165,7 @@ export class TechSkillsQueryController {
 
   /** Get skills by type */
   @Get('skills/type/:type')
-  @Public()
+  @RequirePermission(Permission.SKILL_READ)
   @ApiOperation({ summary: 'Get skills by type' })
   @ApiParam({ name: 'type', description: 'Skill type', type: String })
   @ApiDataResponse(TechSkillsListDataDto, {
@@ -181,7 +181,7 @@ export class TechSkillsQueryController {
 
   /** Combined search (languages + skills) */
   @Get('search')
-  @Public()
+  @RequirePermission(Permission.SKILL_READ)
   @ApiOperation({ summary: 'Search languages and skills' })
   @ApiDataResponse(TechSearchResultsDataDto, {
     description: 'Combined search results returned',

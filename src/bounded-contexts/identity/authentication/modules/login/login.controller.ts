@@ -29,7 +29,7 @@ function createCookieWriter(res: Response): CookieWriter {
 }
 
 @SdkExport({ tag: 'auth', description: 'User authentication - login' })
-@ApiTags('Authentication')
+@ApiTags('auth')
 @Controller('auth')
 export class LoginController {
   constructor(

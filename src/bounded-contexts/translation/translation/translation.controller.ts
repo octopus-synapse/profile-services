@@ -3,13 +3,14 @@
  * REST API endpoints for translation services
  */
 
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
+import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure/decorators/public.decorator';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import type { TranslateBatch, TranslateText } from '@/shared-kernel';
+import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import { TranslateSimpleRequestDto } from '@/shared-kernel/dtos/sdk-request.dto';
 import { HealthCheckResponseDto } from '@/shared-kernel/dtos/sdk-response.dto';
 import { TranslationService } from './translation.service';
@@ -54,6 +55,7 @@ export class BatchTranslationResultDto {
 export class TranslationController {
   constructor(private readonly translationService: TranslationService) {}
 
+  @Public()
   @Get('health')
   @ApiOperation({ summary: 'Check translation service health' })
   @ApiDataResponse(HealthCheckResponseDto, {
@@ -71,7 +73,7 @@ export class TranslationController {
   }
 
   @Post('text')
-  @UseGuards(JwtAuthGuard)
+  @RequirePermission(Permission.RESUME_READ)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Translate a single text' })
   @ApiDataResponse(TranslationResultDto, {
@@ -88,7 +90,7 @@ export class TranslationController {
   }
 
   @Post('batch')
-  @UseGuards(JwtAuthGuard)
+  @RequirePermission(Permission.RESUME_READ)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Translate multiple texts in batch' })
   @ApiDataResponse(BatchTranslationResultDto, {
@@ -107,7 +109,7 @@ export class TranslationController {
   }
 
   @Post('pt-to-en')
-  @UseGuards(JwtAuthGuard)
+  @RequirePermission(Permission.RESUME_READ)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Translate Portuguese to English' })
   @ApiBody({ type: TranslateSimpleRequestDto })
@@ -123,7 +125,7 @@ export class TranslationController {
   }
 
   @Post('en-to-pt')
-  @UseGuards(JwtAuthGuard)
+  @RequirePermission(Permission.RESUME_READ)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Translate English to Portuguese' })
   @ApiBody({ type: TranslateSimpleRequestDto })

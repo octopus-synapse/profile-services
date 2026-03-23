@@ -7,18 +7,23 @@ import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logg
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ERROR_MESSAGES } from '@/shared-kernel';
 import { OnboardingService } from './onboarding.service';
+import { OnboardingCompletionService } from './services/onboarding-completion.service';
+import { OnboardingNavigationService } from './services/onboarding-navigation.service';
 import { OnboardingProgressService } from './services/onboarding-progress.service';
 import { ResumeOnboardingService } from './services/resume-onboarding.service';
 import { ResumeSectionOnboardingService } from './services/resume-section-onboarding.service';
+import { SectionTypeDefinitionQuery } from './services/section-type-definition.query';
 
 describe('OnboardingService', () => {
   let service: OnboardingService;
-  let logger: AppLoggerService;
 
   const mockPrismaService = {
     user: {
       findUnique: mock(),
       update: mock(),
+    },
+    sectionType: {
+      findMany: mock(),
     },
     onboardingProgress: {
       deleteMany: mock(),
@@ -47,12 +52,17 @@ describe('OnboardingService', () => {
     markCompleted: mock(),
     deleteProgress: mock(),
     deleteProgressWithTx: mock(),
+    saveProgress: mock(),
+    getProgress: mock(),
   };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         OnboardingService,
+        OnboardingCompletionService,
+        OnboardingNavigationService,
+        SectionTypeDefinitionQuery,
         {
           provide: PrismaService,
           useValue: mockPrismaService,
@@ -86,7 +96,6 @@ describe('OnboardingService', () => {
     }).compile();
 
     service = module.get<OnboardingService>(OnboardingService);
-    logger = module.get<AppLoggerService>(AppLoggerService);
   });
 
   afterEach(() => {});
@@ -220,12 +229,16 @@ describe('OnboardingService', () => {
           website: onboardingData.professionalProfile.website,
         },
       });
-      expect(logger.log).toHaveBeenCalledWith('Onboarding process started', 'OnboardingService', {
-        userId,
-      });
-      expect(logger.log).toHaveBeenCalledWith(
+      expect(mockLoggerService.log).toHaveBeenCalledWith(
+        'Onboarding process started',
+        'OnboardingCompletionService',
+        {
+          userId,
+        },
+      );
+      expect(mockLoggerService.log).toHaveBeenCalledWith(
         'Onboarding completed successfully',
-        'OnboardingService',
+        'OnboardingCompletionService',
         { userId, resumeId: mockResume.id },
       );
     });
@@ -259,7 +272,7 @@ describe('OnboardingService', () => {
       );
 
       expect(mockResumeOnboardingService.upsertResume.mock.calls.length).toBe(0);
-      expect(logger.warn).toHaveBeenCalled();
+      expect(mockLoggerService.warn).toHaveBeenCalled();
     });
 
     it('should throw error if data validation fails', async () => {

@@ -27,6 +27,10 @@ export const CACHE_CONFIG = {
   TTL_LONG: 3600,
 } as const;
 
+export const AUTH_CONFIG = {
+  SESSION_COOKIE_NAME: 'session',
+} as const;
+
 export const API_LIMITS = {
   MAX_REPOS_TO_PROCESS: 20,
   MAX_CONTRIBUTIONS_TO_SHOW: 10,

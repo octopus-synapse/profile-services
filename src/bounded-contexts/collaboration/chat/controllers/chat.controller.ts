@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, Req } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -8,7 +8,6 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import type { AuthenticatedRequest } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
@@ -26,6 +25,7 @@ import {
   SendMessageToConversationRequestDto,
   SendMessageToConversationSchema,
 } from '@/shared-kernel';
+import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import { ChatService } from '../services/chat.service';
 
 // Wrapper DTOs for responses
@@ -73,7 +73,7 @@ export class ConversationNullableDataDto {
 @SdkExport({ tag: 'chat', description: 'Chat API' })
 @ApiTags('Chat')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@RequirePermission(Permission.CHAT_USE)
 @Controller('chat')
 export class ChatController {
   constructor(private readonly chatService: ChatService) {}

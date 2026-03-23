@@ -1,8 +1,1 @@
-import { Injectable } from '@nestjs/common';
-
-@Injectable()
-export class SkillManagementRepository {
-  listSkills(): string[] {
-    return [];
-  }
-}
+export { SkillManagementRepository } from './skill-management.repository';

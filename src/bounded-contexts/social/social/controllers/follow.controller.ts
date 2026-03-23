@@ -12,23 +12,13 @@
  * - GET    /v1/users/:userId/social-stats - Get social stats
  */
 
-import {
-  Controller,
-  Delete,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Param,
-  Post,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Query } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiProperty, ApiTags } from '@nestjs/swagger';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
+import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import {
   FollowingListDataDto,
   FollowListDataDto,
@@ -69,7 +59,7 @@ export class FollowController {
    * Follow a user.
    */
   @Post(':userId/follow')
-  @UseGuards(JwtAuthGuard)
+  @RequirePermission(Permission.SOCIAL_USE)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Follow a user' })
   @ApiParam({ name: 'userId', type: 'string' })
@@ -104,7 +94,7 @@ export class FollowController {
    * Unfollow a user.
    */
   @Delete(':userId/follow')
-  @UseGuards(JwtAuthGuard)
+  @RequirePermission(Permission.SOCIAL_USE)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Unfollow a user' })
   @ApiParam({ name: 'userId', type: 'string' })
@@ -184,7 +174,7 @@ export class FollowController {
    * Check if current user is following target user.
    */
   @Get(':userId/is-following')
-  @UseGuards(JwtAuthGuard)
+  @RequirePermission(Permission.SOCIAL_USE)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Check following relationship' })
   @ApiParam({ name: 'userId', type: 'string' })

@@ -116,7 +116,11 @@ describe('AdminSectionTypesService', () => {
       definition: { fields: [] },
       iconType: 'emoji' as const,
       icon: '✨',
-      translations: {},
+      translations: {
+        en: { title: 'New Section', label: 'new' },
+        'pt-BR': { title: 'Nova Seção', label: 'nova' },
+        es: { title: 'Nueva Sección', label: 'nueva' },
+      },
       renderHints: {},
       fieldStyles: {},
     };
