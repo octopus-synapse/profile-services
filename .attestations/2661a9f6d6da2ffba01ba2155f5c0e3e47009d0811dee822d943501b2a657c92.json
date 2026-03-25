@@ -1,0 +1,23 @@
+{
+  "algorithm": "ed25519",
+  "keyId": "witness-key-20260325-c4f278de",
+  "payload": {
+    "version": 1,
+    "issuer": "profile-services-witness",
+    "runId": "267795a9-83b6-4844-831d-0cb86457bf80",
+    "sourceTreeHash": "2661a9f6d6da2ffba01ba2155f5c0e3e47009d0811dee822d943501b2a657c92",
+    "snapshotSha256": "2a85bed6d01d1477b0c6ef2556dfe882cbe744d24f6c7d48ca84a9438638f437",
+    "swaggerHash": "f99cb5ac683f6b405b94b55cdc0329cbf27d52ded7621cf03c3c0fffcbf629bb",
+    "checks": {
+      "swagger": true,
+      "typecheck": true,
+      "lint": true,
+      "unit_tests": true,
+      "arch_tests": true,
+      "contract_tests": true
+    },
+    "issuedAt": "2026-03-25T18:08:26.403Z"
+  },
+  "payloadJson": "{\"version\":1,\"issuer\":\"profile-services-witness\",\"runId\":\"267795a9-83b6-4844-831d-0cb86457bf80\",\"sourceTreeHash\":\"2661a9f6d6da2ffba01ba2155f5c0e3e47009d0811dee822d943501b2a657c92\",\"snapshotSha256\":\"2a85bed6d01d1477b0c6ef2556dfe882cbe744d24f6c7d48ca84a9438638f437\",\"swaggerHash\":\"f99cb5ac683f6b405b94b55cdc0329cbf27d52ded7621cf03c3c0fffcbf629bb\",\"checks\":{\"swagger\":true,\"typecheck\":true,\"lint\":true,\"unit_tests\":true,\"arch_tests\":true,\"contract_tests\":true},\"issuedAt\":\"2026-03-25T18:08:26.403Z\"}",
+  "signature": "1BLt7dSQnf2KhZ8V4JK0zLx1xege1Cbi2QLWE+mDIAwq8ImFvkqp9NBkiHJgJoY8eTtlOncu1hMA7yWKToOhDg=="
+}

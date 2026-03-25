@@ -51,6 +51,7 @@
     "openapi:generate": "bun run src/scripts/generate-openapi.ts",
     "swagger:generate": "bun run scripts/generate-swagger-from-decorators.ts",
     "swagger:test": "bun test ./test/contracts/swagger-generation.contract.ts",
+    "attestation:witness:worker": "bun run src/bounded-contexts/integration/attestation-witness/worker.ts",
     "prepare": "husky"
   },
   "dependencies": {

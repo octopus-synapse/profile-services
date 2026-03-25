@@ -1,82 +1,76 @@
 #!/bin/bash
-# =============================================================================
-# Pre-Commit Attestation Generator (Content-Addressed)
-# =============================================================================
-#
-# Generates a cryptographic attestation proving pre-commit checks ran.
-# Uses content-addressed storage: .attestations/<tree_hash>.json
-#
-# Benefits:
-#   - No merge conflicts: each tree has its own attestation file
-#   - Immutable: attestation represents one specific code snapshot
-#   - O(1) verification in CI
-#
-# Usage: ./scripts/generate-pre-commit-attestation.sh [check_results...]
-# Example: ./scripts/generate-pre-commit-attestation.sh typecheck:pass lint:pass
-#
-# =============================================================================
 
-set -e
+set -euo pipefail
 
 ATTESTATION_DIR=".attestations"
+WITNESS_URL="${ATTESTATION_WITNESS_URL:-http://localhost:3001/api/v1/attestation-witness/internal}"
+INTERNAL_TOKEN="${INTERNAL_API_TOKEN:-}"
+POLL_INTERVAL_SECONDS="${ATTESTATION_WITNESS_POLL_INTERVAL_SECONDS:-2}"
+POLL_TIMEOUT_SECONDS="${ATTESTATION_WITNESS_POLL_TIMEOUT_SECONDS:-300}"
 
-# Ensure attestation directory exists
-mkdir -p "$ATTESTATION_DIR"
-
-# Calculate tree hash (represents staged files EXCLUDING attestation directory)
-# This is the content address - unique per code snapshot
-TREE_HASH=$(git ls-files -s | grep -v "^.*$ATTESTATION_DIR" | sha256sum | cut -d' ' -f1)
-
-# Attestation file is named by its tree hash
-ATTESTATION_FILE="$ATTESTATION_DIR/$TREE_HASH.json"
-
-# Clean up ALL previous attestation files (keep only current)
-# This prevents accumulation and ensures only one attestation exists
-find "$ATTESTATION_DIR" -name "*.json" -type f -delete 2>/dev/null || true
-
-# Calculate swagger hash specifically (critical for API contracts)
-SWAGGER_HASH=""
-if [ -f "swagger.json" ]; then
-    SWAGGER_HASH=$(sha256sum swagger.json | cut -d' ' -f1)
+if [ -z "$INTERNAL_TOKEN" ]; then
+    echo "❌ INTERNAL_API_TOKEN is required to request a witness attestation"
+    exit 1
 fi
 
-# Get tool versions (deterministic metadata)
-BUN_VERSION=$(bun --version 2>/dev/null || echo "unknown")
-NODE_VERSION=$(node --version 2>/dev/null || echo "unknown")
+mkdir -p "$ATTESTATION_DIR"
+find "$ATTESTATION_DIR" -name "*.json" -type f -delete 2>/dev/null || true
 
-# Parse check results from arguments
-# Format: check_name:status (e.g., typecheck:pass, lint:pass)
-declare -A CHECKS
-for arg in "$@"; do
-    CHECK_NAME=$(echo "$arg" | cut -d: -f1)
-    CHECK_STATUS=$(echo "$arg" | cut -d: -f2)
-    if [ "$CHECK_STATUS" = "pass" ]; then
-        CHECKS[$CHECK_NAME]="true"
-    else
-        CHECKS[$CHECK_NAME]="false"
-    fi
+SOURCE_TREE_HASH=$(git ls-files -s | grep -v "^.*$ATTESTATION_DIR" | sha256sum | cut -d' ' -f1)
+GIT_TREE_OBJECT_ID=$(git write-tree)
+ATTESTATION_FILE="$ATTESTATION_DIR/$SOURCE_TREE_HASH.json"
+SNAPSHOT_FILE=$(mktemp "${TMPDIR:-/tmp}/witness-snapshot.XXXXXX.tar.gz")
+
+cleanup() {
+    rm -f "$SNAPSHOT_FILE"
+}
+
+trap cleanup EXIT
+
+git archive --format=tar "$GIT_TREE_OBJECT_ID" | gzip > "$SNAPSHOT_FILE"
+
+CREATE_RESPONSE=$(curl --silent --show-error --fail \
+    -X POST "$WITNESS_URL/runs" \
+    -H "x-internal-token: $INTERNAL_TOKEN" \
+    -F "sourceTreeHash=$SOURCE_TREE_HASH" \
+    -F "gitTreeObjectId=$GIT_TREE_OBJECT_ID" \
+    -F "snapshot=@$SNAPSHOT_FILE;type=application/gzip")
+
+RUN_ID=$(echo "$CREATE_RESPONSE" | jq -r '.data.runId')
+
+if [ -z "$RUN_ID" ] || [ "$RUN_ID" = "null" ]; then
+    echo "❌ Witness service did not return a runId"
+    exit 1
+fi
+
+echo "   Witness run: $RUN_ID"
+
+elapsed=0
+while [ "$elapsed" -lt "$POLL_TIMEOUT_SECONDS" ]; do
+    STATUS_RESPONSE=$(curl --silent --show-error --fail \
+        -H "x-internal-token: $INTERNAL_TOKEN" \
+        "$WITNESS_URL/runs/$RUN_ID")
+    RUN_STATUS=$(echo "$STATUS_RESPONSE" | jq -r '.data.status')
+
+    case "$RUN_STATUS" in
+        SUCCEEDED)
+            curl --silent --show-error --fail \
+                -H "x-internal-token: $INTERNAL_TOKEN" \
+                "$WITNESS_URL/attestations/$SOURCE_TREE_HASH" |
+                jq '.data' > "$ATTESTATION_FILE"
+            echo "✅ Witness attestation stored at $ATTESTATION_FILE"
+            exit 0
+            ;;
+        FAILED)
+            ERROR_MESSAGE=$(echo "$STATUS_RESPONSE" | jq -r '.data.errorMessage // "Witness execution failed"')
+            echo "❌ $ERROR_MESSAGE"
+            exit 1
+            ;;
+    esac
+
+    sleep "$POLL_INTERVAL_SECONDS"
+    elapsed=$((elapsed + POLL_INTERVAL_SECONDS))
 done
 
-# Build checks JSON
-CHECKS_JSON=$(jq -n \
-    --argjson swagger "${CHECKS[swagger]:-false}" \
-    --argjson typecheck "${CHECKS[typecheck]:-false}" \
-    --argjson lint "${CHECKS[lint]:-false}" \
-    --argjson unit_tests "${CHECKS[unit_tests]:-false}" \
-    --argjson arch_tests "${CHECKS[arch_tests]:-false}" \
-    --argjson contract_tests "${CHECKS[contract_tests]:-false}" \
-    '{swagger: $swagger, typecheck: $typecheck, lint: $lint, unit_tests: $unit_tests, arch_tests: $arch_tests, contract_tests: $contract_tests}')
-
-# Generate attestation (deterministic - no timestamp for reproducibility)
-# The tree_hash in the filename IS the integrity guarantee
-jq -n \
-    --arg tree_hash "$TREE_HASH" \
-    --arg swagger_hash "$SWAGGER_HASH" \
-    --argjson checks "$CHECKS_JSON" \
-    --arg bun "$BUN_VERSION" \
-    --arg node "$NODE_VERSION" \
-    '{tree_hash: $tree_hash, swagger_hash: $swagger_hash, checks: $checks, tool_versions: {bun: $bun, node: $node}}' > "$ATTESTATION_FILE"
-
-echo "✅ Attestation generated: $ATTESTATION_FILE"
-echo "   Tree hash: ${TREE_HASH:0:16}..."
-echo "   Swagger hash: ${SWAGGER_HASH:0:16}..."
+echo "❌ Witness attestation timed out after ${POLL_TIMEOUT_SECONDS}s"
+exit 1

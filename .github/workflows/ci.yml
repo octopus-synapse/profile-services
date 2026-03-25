@@ -1,23 +1,3 @@
-# =============================================================================
-# CI - Pipeline Orquestrador
-# =============================================================================
-#
-# Coordena todos os checks de PR com dependências explícitas.
-# Cada etapa é um reusable workflow separado para legibilidade.
-#
-# Arquitetura:
-#   should-skip ──► detect-changes ──► verify-attestation
-#                         │
-#                         ├──► build (Docker)
-#                         │         │
-#                         │    ┌────┴────┐
-#                         │    ▼         ▼
-#                         ├──► integration  e2e
-#                         │
-#                         └──► unit-tests
-#
-# =============================================================================
-
 name: CI
 
 on:
@@ -37,7 +17,6 @@ concurrency:
 permissions:
     contents: read
     pull-requests: write
-    packages: write
 
 jobs:
     # ═══════════════════════════════════════════════════════════════════════════
@@ -92,6 +71,8 @@ jobs:
         needs: [should-skip]
         if: needs.should-skip.outputs.should_skip != 'true'
         runs-on: ubuntu-latest
+        env:
+            ATTESTATION_WITNESS_PUBLIC_KEY: ${{ secrets.ATTESTATION_WITNESS_PUBLIC_KEY }}
         steps:
             - uses: actions/checkout@v4
               with:
@@ -102,7 +83,7 @@ jobs:
                   ./scripts/verify-pre-commit-attestation.sh
 
     # ═══════════════════════════════════════════════════════════════════════════
-    # Build: Docker Image
+    # Build: Docker smoke test (sem push — validação do Dockerfile apenas)
     # ═══════════════════════════════════════════════════════════════════════════
     build:
         name: Build
@@ -126,12 +107,11 @@ jobs:
     # ═══════════════════════════════════════════════════════════════════════════
     integration:
         name: Integration
-        needs: [should-skip, detect-changes, build, verify-attestation]
+        needs: [should-skip, detect-changes, verify-attestation]
         if: |
-            always() &&
             needs.should-skip.outputs.should_skip != 'true' &&
-            (needs.detect-changes.outputs.src == 'true' || needs.detect-changes.outputs.prisma == 'true') &&
-            (needs.build.result == 'success' || needs.build.result == 'skipped')
+            needs.verify-attestation.result == 'success' &&
+            (needs.detect-changes.outputs.src == 'true' || needs.detect-changes.outputs.prisma == 'true')
         uses: ./.github/workflows/ci.integration.yml
         secrets: inherit
 
@@ -140,12 +120,11 @@ jobs:
     # ═══════════════════════════════════════════════════════════════════════════
     e2e:
         name: E2E
-        needs: [should-skip, detect-changes, build, verify-attestation]
+        needs: [should-skip, detect-changes, verify-attestation]
         if: |
-            always() &&
             needs.should-skip.outputs.should_skip != 'true' &&
-            (needs.detect-changes.outputs.src == 'true' || needs.detect-changes.outputs.prisma == 'true') &&
-            (needs.build.result == 'success' || needs.build.result == 'skipped')
+            needs.verify-attestation.result == 'success' &&
+            (needs.detect-changes.outputs.src == 'true' || needs.detect-changes.outputs.prisma == 'true')
         uses: ./.github/workflows/ci.e2e.yml
         secrets: inherit
 
@@ -159,6 +138,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Check Results
+              id: check
               run: |
                   echo "## 📊 CI Summary" >> $GITHUB_STEP_SUMMARY
                   echo "" >> $GITHUB_STEP_SUMMARY
@@ -175,11 +155,13 @@ jobs:
                      [[ "${{ needs.e2e.result }}" == "failure" ]]; then
                     echo "" >> $GITHUB_STEP_SUMMARY
                     echo "❌ **CI failed**" >> $GITHUB_STEP_SUMMARY
+                    echo "outcome=failure" >> $GITHUB_OUTPUT
                     exit 1
                   fi
 
                   echo "" >> $GITHUB_STEP_SUMMARY
                   echo "✅ **CI passed**" >> $GITHUB_STEP_SUMMARY
+                  echo "outcome=success" >> $GITHUB_OUTPUT
 
             - name: Comment on PR (Failure)
               if: failure() && github.event_name == 'pull_request'
@@ -193,9 +175,11 @@ jobs:
                         e2e: '${{ needs.e2e.result }}'
                       };
 
+                      const statusIcon = (s) => s === 'success' ? '✅' : s === 'skipped' ? '⏭️' : '❌';
+
                       const failures = Object.entries(results)
                         .filter(([_, status]) => status === 'failure')
-                        .map(([name, _]) => `- ❌ ${name}`)
+                        .map(([name]) => `- ❌ \`${name}\``)
                         .join('\n');
 
                       const body = [
@@ -205,6 +189,39 @@ jobs:
                         failures,
                         '',
                         '> Check the workflow run for details.'
+                      ].join('\n');
+
+                      github.rest.issues.createComment({
+                        issue_number: context.issue.number,
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        body
+                      });
+
+            - name: Comment on PR (Success)
+              if: success() && github.event_name == 'pull_request'
+              uses: actions/github-script@v7
+              with:
+                  script: |
+                      const results = {
+                        attestation: '${{ needs.verify-attestation.result }}',
+                        build: '${{ needs.build.result }}',
+                        integration: '${{ needs.integration.result }}',
+                        e2e: '${{ needs.e2e.result }}'
+                      };
+
+                      const statusIcon = (s) => s === 'success' ? '✅' : s === 'skipped' ? '⏭️' : '➖';
+
+                      const rows = Object.entries(results)
+                        .map(([name, status]) => `| \`${name}\` | ${statusIcon(status)} ${status} |`)
+                        .join('\n');
+
+                      const body = [
+                        '## ✅ CI Passed',
+                        '',
+                        '| Check | Status |',
+                        '|-------|--------|',
+                        rows,
                       ].join('\n');
 
                       github.rest.issues.createComment({

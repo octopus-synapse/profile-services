@@ -1,0 +1,19 @@
+model AttestationWitnessRun {
+  id               String                   @id @default(cuid())
+  status           AttestationWitnessStatus @default(PENDING)
+  sourceTreeHash   String                   @unique
+  gitTreeObjectId  String?
+  snapshotPath     String
+  snapshotSha256   String
+  attestationPath  String?
+  swaggerHash      String?
+  checkResults     Json?
+  errorMessage     String?                  @db.Text
+  createdAt        DateTime                 @default(now())
+  startedAt        DateTime?
+  completedAt      DateTime?
+  updatedAt        DateTime                 @updatedAt
+
+  @@index([status, createdAt])
+  @@index([completedAt])
+}

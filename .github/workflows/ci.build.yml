@@ -1,12 +1,3 @@
-# =============================================================================
-# Reusable: Docker Build
-# =============================================================================
-#
-# Constrói e publica imagem Docker no GitHub Container Registry.
-# Chamado pelo orquestrador (ci.yml).
-#
-# =============================================================================
-
 name: _build
 
 on:
@@ -61,12 +52,11 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          push: true
+          push: false
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          target: builder
 
       - name: Summary
         run: |

@@ -1,7 +1,3 @@
-# MEC Data Synchronization
-# Downloads CSV from MEC website using Puppeteer and syncs to database
-# Runs every 6 months (January 1st and July 1st at 03:00 UTC)
-
 name: MEC Data Sync
 
 on:

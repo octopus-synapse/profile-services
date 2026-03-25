@@ -45,7 +45,7 @@ export class SectionTypeDefinitionQuery {
     locale: string,
   ): SectionTypeData {
     const translations = type.translations as Record<string, TranslationData> | null;
-    const localeData = translations?.[locale] ?? translations?.['en'] ?? {};
+    const localeData = translations?.[locale] ?? translations?.en ?? {};
 
     return {
       key: type.key,

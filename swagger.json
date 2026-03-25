@@ -6229,6 +6229,170 @@
         ]
       }
     },
+    "/api/v1/attestation-witness/internal/runs": {
+      "post": {
+        "operationId": "attestationWitnessInternal_createRun",
+        "parameters": [
+          {
+            "name": "x-internal-token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAttestationWitnessRunRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Witness run accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponse"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AttestationWitnessRunDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "Create or reuse a witness attestation run",
+        "tags": [
+          "attestation-witness-internal"
+        ]
+      }
+    },
+    "/api/v1/attestation-witness/internal/runs/{runId}": {
+      "get": {
+        "operationId": "attestationWitnessInternal_getRunStatus",
+        "parameters": [
+          {
+            "name": "runId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-internal-token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Witness run status returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponse"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AttestationWitnessStatusDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get witness run status",
+        "tags": [
+          "attestation-witness-internal"
+        ]
+      }
+    },
+    "/api/v1/attestation-witness/internal/attestations/{sourceTreeHash}": {
+      "get": {
+        "operationId": "attestationWitnessInternal_getAttestation",
+        "parameters": [
+          {
+            "name": "sourceTreeHash",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "x-internal-token",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Signed attestation returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponse"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AttestationWitnessEnvelopeDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get the signed attestation for a completed run",
+        "tags": [
+          "attestation-witness-internal"
+        ]
+      }
+    },
     "/api/v1/integrations/github/summary/{username}": {
       "get": {
         "operationId": "github_getGitHubSummary",
@@ -15166,6 +15330,123 @@
             "default": false
           }
         }
+      },
+      "AttestationWitnessRunDataDto": {
+        "type": "object",
+        "properties": {
+          "runId": {
+            "type": "string",
+            "example": "cm8o4i1xr0000vfa8i4t8v0nf"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "RUNNING",
+              "SUCCEEDED",
+              "FAILED"
+            ]
+          },
+          "sourceTreeHash": {
+            "type": "string",
+            "example": "31f12d52114008af8b8cbad4e6c49b6cfe8f1283d4f7adab8ad4cd4769b8ef7d"
+          }
+        },
+        "required": [
+          "runId",
+          "status",
+          "sourceTreeHash"
+        ]
+      },
+      "CreateAttestationWitnessRunRequestDto": {
+        "type": "object",
+        "properties": {
+          "sourceTreeHash": {
+            "type": "string",
+            "description": "SHA-256 digest of the staged tracked files excluding .attestations/",
+            "example": "31f12d52114008af8b8cbad4e6c49b6cfe8f1283d4f7adab8ad4cd4769b8ef7d"
+          },
+          "gitTreeObjectId": {
+            "type": "string",
+            "description": "Git tree object ID produced by git write-tree for the uploaded snapshot",
+            "example": "8f3d7f35d6ab4ed918f91d36f6c7bf9b142f4e6d"
+          },
+          "snapshot": {
+            "type": "string",
+            "description": "Compressed tar archive for the staged snapshot",
+            "format": "binary"
+          }
+        },
+        "required": [
+          "sourceTreeHash",
+          "snapshot"
+        ]
+      },
+      "AttestationWitnessStatusDataDto": {
+        "type": "object",
+        "properties": {
+          "runId": {
+            "type": "string",
+            "example": "cm8o4i1xr0000vfa8i4t8v0nf"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "RUNNING",
+              "SUCCEEDED",
+              "FAILED"
+            ]
+          },
+          "sourceTreeHash": {
+            "type": "string",
+            "example": "31f12d52114008af8b8cbad4e6c49b6cfe8f1283d4f7adab8ad4cd4769b8ef7d"
+          },
+          "attestationReady": {
+            "type": "boolean",
+            "example": true
+          },
+          "errorMessage": {
+            "type": "string",
+            "example": "bun test ./test/contracts failed"
+          }
+        },
+        "required": [
+          "runId",
+          "status",
+          "sourceTreeHash",
+          "attestationReady"
+        ]
+      },
+      "AttestationWitnessEnvelopeDto": {
+        "type": "object",
+        "properties": {
+          "algorithm": {
+            "type": "string",
+            "example": "ed25519"
+          },
+          "keyId": {
+            "type": "string",
+            "example": "witness-key-2026-03-25"
+          },
+          "payload": {
+            "type": "object"
+          },
+          "payloadJson": {
+            "type": "string"
+          },
+          "signature": {
+            "type": "string",
+            "example": "aW52YWxpZC1iYXNlNjQtc2lnbmF0dXJl"
+          }
+        },
+        "required": [
+          "algorithm",
+          "keyId",
+          "payload",
+          "payloadJson",
+          "signature"
+        ]
       },
       "GitHubSummaryDto": {
         "type": "object",

@@ -53,6 +53,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 
     // Delete in reverse order of dependencies to avoid FK constraint errors
     const modelNames = [
+      'attestationWitnessRun',
       'message',
       'conversation',
       'blockedUser',

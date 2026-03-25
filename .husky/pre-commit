@@ -10,14 +10,14 @@
 #   - Architecture tests enforce boundaries
 #   - Contract tests ensure API stability
 #
-# What runs here (fast, no external dependencies):
+# What runs here:
 #   1. Swagger generation (decorators → openapi spec)
 #   2. Type checking (TypeScript)
-#   3. Linting (Biome)
+#   3. Linting (Biome, read-only)
 #   4. Unit tests (mocked, in-memory)
 #   5. Architecture tests (import boundaries)
 #   6. Contract tests (API contracts)
-#   7. Generate attestation (proves checks ran - for CI verification)
+#   7. Request witness attestation (remote re-execution + server signature)
 #
 # What runs in CI/CD (requires infrastructure):
 #   - Integration tests → .github/workflows/integration.yml
@@ -34,15 +34,13 @@ set -e
 echo "🚀 Pre-commit checks (fast feedback loop)..."
 echo ""
 
-# Track check results for attestation
-CHECK_RESULTS=""
-
 # -----------------------------------------------------------------------------
 # 0. Generate Swagger from @SdkExport decorators (MUST be first)
 # -----------------------------------------------------------------------------
 echo "  📄 Generating swagger.json..."
 if bun run scripts/generate-swagger-from-decorators.ts; then
-    CHECK_RESULTS="$CHECK_RESULTS swagger:pass"
+    bunx biome format --write src/graphql/schema.graphql
+    git add swagger.json swagger-generation-report.json src/graphql/schema.graphql
 else
     echo "❌ Swagger generation failed"
     exit 1
@@ -53,7 +51,7 @@ fi
 # -----------------------------------------------------------------------------
 echo "  🔍 Type checking..."
 if bun run typecheck; then
-    CHECK_RESULTS="$CHECK_RESULTS typecheck:pass"
+    :
 else
     echo "❌ Type check failed"
     exit 1
@@ -62,9 +60,9 @@ fi
 # -----------------------------------------------------------------------------
 # 2. Lint & Format - Consistent code style
 # -----------------------------------------------------------------------------
-echo "  🧹 Lint & auto-fix (biome)..."
-if bun run lint; then
-    CHECK_RESULTS="$CHECK_RESULTS lint:pass"
+echo "  🧹 Linting (biome, read-only)..."
+if bun run lint:fast; then
+    :
 else
     echo "❌ Lint failed"
     exit 1
@@ -75,7 +73,7 @@ fi
 # -----------------------------------------------------------------------------
 echo "  🧪 Running unit tests..."
 if bun test src/; then
-    CHECK_RESULTS="$CHECK_RESULTS unit_tests:pass"
+    :
 else
     echo "❌ Unit tests failed"
     exit 1
@@ -86,7 +84,7 @@ fi
 # -----------------------------------------------------------------------------
 echo "  🏛️  Running architecture tests..."
 if bun test ./test/architecture; then
-    CHECK_RESULTS="$CHECK_RESULTS arch_tests:pass"
+    :
 else
     echo "❌ Architecture tests failed"
     exit 1
@@ -97,24 +95,24 @@ fi
 # -----------------------------------------------------------------------------
 echo "  📝 Running contract tests..."
 if bun test ./test/contracts; then
-    CHECK_RESULTS="$CHECK_RESULTS contract_tests:pass"
+    :
 else
     echo "❌ Contract tests failed"
     exit 1
 fi
 
 # -----------------------------------------------------------------------------
-# 6. Generate Attestation - Cryptographic proof that checks passed
+# 6. Request witness attestation - independent re-execution + server signature
 # -----------------------------------------------------------------------------
-echo "  🔐 Generating attestation..."
-./scripts/generate-pre-commit-attestation.sh $CHECK_RESULTS
+echo "  🔐 Requesting witness attestation..."
+./scripts/generate-pre-commit-attestation.sh
 
 # -----------------------------------------------------------------------------
 # 7. Stage all modified files (MUST be last - after all modifications are done)
 # -----------------------------------------------------------------------------
 echo "  📦 Staging generated files..."
-git add swagger.json swagger-generation-report.json .attestations/
+git add .attestations/
 
 echo ""
 echo "✅ Pre-commit passed! (Integration & E2E tests run in CI/CD)"
-echo "   Attestation generated for CI verification."
+echo "   Server-signed witness attestation generated for CI verification."
