@@ -1,5 +1,6 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
+import { normalizeSectionTypeKey } from '@/shared-kernel/utils/section-type-key.util';
 
 interface ReplaceSectionItemsInput {
   resumeId: string;
@@ -13,14 +14,15 @@ export class ResumeSectionOnboardingService {
     tx: Prisma.TransactionClient,
     input: ReplaceSectionItemsInput,
   ): Promise<void> {
+    const sectionTypeKey = normalizeSectionTypeKey(input.sectionTypeKey);
     const sectionType = await tx.sectionType.findUnique({
-      where: { key: input.sectionTypeKey },
+      where: { key: sectionTypeKey },
       select: { id: true },
     });
 
     if (!sectionType) {
       throw new InternalServerErrorException(
-        `Missing section type seed for key: ${input.sectionTypeKey}`,
+        `Missing section type seed for key: ${sectionTypeKey}`,
       );
     }
 

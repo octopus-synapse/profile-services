@@ -6,6 +6,7 @@ import {
   getApp,
   getPrisma,
   getRequest,
+  unwrapApiData,
 } from './setup';
 
 describe('Resume Versions Integration', () => {
@@ -58,9 +59,12 @@ describe('Resume Versions Integration', () => {
       const response = await getRequest().get(`/api/v1/versions/${resumeId}`).set(authHeader());
 
       expect(response.status).toBe(200);
-      expect(response.body.length).toBeGreaterThanOrEqual(1);
-      expect(response.body[0].versionNumber).toBe(1);
-      expect(response.body[0].label).toBe('Initial version');
+      const versions = unwrapApiData<Array<{ versionNumber: number; label: string }>>(
+        response.body,
+      );
+      expect(versions.length).toBeGreaterThanOrEqual(1);
+      expect(versions[0]?.versionNumber).toBe(1);
+      expect(versions[0]?.label).toBe('Initial version');
     });
 
     it('should create new version on resume update', async () => {
@@ -89,9 +93,10 @@ describe('Resume Versions Integration', () => {
       const response = await getRequest().get(`/api/v1/versions/${resumeId}`).set(authHeader());
 
       expect(response.status).toBe(200);
-      expect(response.body.length).toBe(2);
-      expect(response.body[0].versionNumber).toBe(2);
-      expect(response.body[1].versionNumber).toBe(1);
+      const versions = unwrapApiData<Array<{ versionNumber: number }>>(response.body);
+      expect(versions.length).toBe(2);
+      expect(versions[0]?.versionNumber).toBe(2);
+      expect(versions[1]?.versionNumber).toBe(1);
     });
 
     it('should get specific version details', async () => {
@@ -108,7 +113,7 @@ describe('Resume Versions Integration', () => {
         .set(authHeader());
 
       expect(response.status).toBe(200);
-      expect(response.body).toMatchObject({
+      expect(unwrapApiData(response.body)).toMatchObject({
         id: versions[0].id,
         versionNumber: 2,
       });

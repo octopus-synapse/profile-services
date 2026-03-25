@@ -4,6 +4,7 @@
  * Creates and configures NestJS application for E2E testing
  */
 
+import { setDefaultTimeout } from 'bun:test';
 import type { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import cookieParser from 'cookie-parser';
@@ -34,12 +35,28 @@ class MockEmailSenderService {
   }
 }
 
+setDefaultTimeout(15000);
+
+let appInstance: INestApplication | null = null;
+let authHelperInstance: AuthHelper | null = null;
+let cleanupHelperInstance: CleanupHelper | null = null;
+let prismaInstance: PrismaService | null = null;
+
 export async function createE2ETestApp(): Promise<{
   app: INestApplication;
   authHelper: AuthHelper;
   cleanupHelper: CleanupHelper;
   prisma: PrismaService;
 }> {
+  if (appInstance && authHelperInstance && cleanupHelperInstance && prismaInstance) {
+    return {
+      app: appInstance,
+      authHelper: authHelperInstance,
+      cleanupHelper: cleanupHelperInstance,
+      prisma: prismaInstance,
+    };
+  }
+
   const moduleFixture: TestingModule = await Test.createTestingModule({
     imports: [AppModule],
   })
@@ -63,6 +80,12 @@ export async function createE2ETestApp(): Promise<{
   const prisma = app.get(PrismaService);
   const authHelper = new AuthHelper(app, prisma);
   const cleanupHelper = new CleanupHelper(prisma);
+
+  app.close = async () => undefined;
+  appInstance = app;
+  prismaInstance = prisma;
+  authHelperInstance = authHelper;
+  cleanupHelperInstance = cleanupHelper;
 
   return { app, authHelper, cleanupHelper, prisma };
 }

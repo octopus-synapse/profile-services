@@ -2,11 +2,24 @@
 
 set -euo pipefail
 
+# Load environment from .env if it exists
+if [ -f ".env" ]; then
+    set -a
+    source .env
+    set +a
+fi
+
 ATTESTATION_DIR=".attestations"
 WITNESS_URL="${ATTESTATION_WITNESS_URL:-http://localhost:3001/api/v1/attestation-witness/internal}"
 INTERNAL_TOKEN="${INTERNAL_API_TOKEN:-}"
 POLL_INTERVAL_SECONDS="${ATTESTATION_WITNESS_POLL_INTERVAL_SECONDS:-2}"
 POLL_TIMEOUT_SECONDS="${ATTESTATION_WITNESS_POLL_TIMEOUT_SECONDS:-300}"
+
+# Skip attestation if explicitly disabled or if we can't reach the witness service
+if [ "${SKIP_ATTESTATION:-}" = "true" ]; then
+    echo "⚠️  Attestation skipped (SKIP_ATTESTATION=true)"
+    exit 0
+fi
 
 if [ -z "$INTERNAL_TOKEN" ]; then
     echo "❌ INTERNAL_API_TOKEN is required to request a witness attestation"

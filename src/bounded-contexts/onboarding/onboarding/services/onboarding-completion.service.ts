@@ -160,18 +160,29 @@ export class OnboardingCompletionService {
   }
 
   private isUsernameConflict(error: unknown): boolean {
-    return (
-      error !== null &&
-      typeof error === 'object' &&
-      'code' in error &&
-      error.code === 'P2002' &&
-      'meta' in error &&
-      error.meta !== null &&
-      typeof error.meta === 'object' &&
-      'target' in error.meta &&
-      Array.isArray(error.meta.target) &&
-      error.meta.target.includes('username')
-    );
+    if (
+      error === null ||
+      typeof error !== 'object' ||
+      !('code' in error) ||
+      error.code !== 'P2002'
+    ) {
+      return false;
+    }
+
+    if (!('meta' in error) || error.meta === null || typeof error.meta !== 'object') {
+      return false;
+    }
+
+    const target = 'target' in error.meta ? error.meta.target : undefined;
+    if (Array.isArray(target)) {
+      return target.some((field) => field === 'username');
+    }
+
+    if (typeof target === 'string' && target.includes('username')) {
+      return true;
+    }
+
+    return error instanceof Error && error.message.includes('Unique constraint failed');
   }
 
   private buildOnboardingDataFromProgress(progress: OnboardingProgressData) {

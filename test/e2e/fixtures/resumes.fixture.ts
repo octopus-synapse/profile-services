@@ -166,7 +166,7 @@ export function createSectionItemContent(sectionTypeKey: string) {
   const contentMap: Record<string, Record<string, unknown>> = {
     work_experience_v1: {
       company: 'Tech Corp',
-      position: 'Senior Engineer',
+      role: 'Senior Engineer',
       startDate: '2020-01',
       endDate: '2023-12',
       description: 'Led development of microservices architecture',

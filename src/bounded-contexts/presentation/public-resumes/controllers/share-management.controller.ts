@@ -20,12 +20,44 @@ interface CreateShare {
   expiresAt?: string;
 }
 
+type SharePayload = {
+  id: string;
+  slug: string;
+  resumeId: string;
+  isActive: boolean;
+  hasPassword: boolean;
+  expiresAt: Date | null;
+  createdAt: Date;
+  publicUrl: string;
+};
+
 @SdkExport({ tag: 'resumes', description: 'Share Management API' })
 @ApiTags('shares')
 @ApiBearerAuth('JWT-auth')
 @Controller('v1/shares')
 export class ShareManagementController {
   constructor(private readonly shareService: ResumeShareService) {}
+
+  private toSharePayload(share: {
+    id: string;
+    slug: string;
+    resumeId: string;
+    isActive: boolean;
+    password: string | null;
+    expiresAt: Date | null;
+    createdAt: Date;
+  }): SharePayload {
+    return {
+      id: share.id,
+      slug: share.slug,
+      resumeId: share.resumeId,
+      isActive: share.isActive,
+      hasPassword: !!share.password,
+      expiresAt: share.expiresAt,
+      createdAt: share.createdAt,
+      publicUrl: `/api/v1/public/resumes/${share.slug}`,
+    };
+  }
 
   @Post()
   @RequirePermission(Permission.RESUME_UPDATE)
@@ -39,27 +71,17 @@ export class ShareManagementController {
     @CurrentUser() user: UserPayload,
     @Body() dto: CreateShare,
   ): Promise<DataResponse<ShareCreateDataDto>> {
-    // Verify user owns the resume
     const share = await this.shareService.createShare(user.userId, {
       ...dto,
       expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : undefined,
     });
+    const sharePayload = this.toSharePayload(share);
 
     return {
       success: true,
-      data: {
-        share: {
-          id: share.id,
-          slug: share.slug,
-          resumeId: share.resumeId,
-          isActive: share.isActive,
-          hasPassword: !!share.password,
-          expiresAt: share.expiresAt,
-          createdAt: share.createdAt,
-          publicUrl: `/api/v1/public/resumes/${share.slug}`,
-        },
-      },
-    };
+      data: { share: sharePayload },
+      ...sharePayload,
+    } as DataResponse<ShareCreateDataDto> & SharePayload;
   }
 
   @Get('resume/:resumeId')
@@ -71,22 +93,13 @@ export class ShareManagementController {
     @CurrentUser() user: UserPayload,
   ): Promise<DataResponse<ShareListDataDto>> {
     const shares = await this.shareService.listUserShares(user.userId, resumeId);
+    const sharePayloads = shares.map((share) => this.toSharePayload(share));
 
     return {
       success: true,
-      data: {
-        shares: shares.map((share) => ({
-          id: share.id,
-          slug: share.slug,
-          resumeId: share.resumeId,
-          isActive: share.isActive,
-          hasPassword: !!share.password,
-          expiresAt: share.expiresAt,
-          createdAt: share.createdAt,
-          publicUrl: `/api/v1/public/resumes/${share.slug}`,
-        })),
-      },
-    };
+      data: { shares: sharePayloads },
+      shares: sharePayloads,
+    } as DataResponse<ShareListDataDto> & { shares: SharePayload[] };
   }
 
   @Delete(':shareId')

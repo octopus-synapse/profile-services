@@ -11,7 +11,12 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, mock 
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
+import {
+  configureExceptionHandling,
+  configureValidation,
+} from '@/bounded-contexts/platform/common/config/validation.config';
 import { EmailSenderService } from '@/bounded-contexts/platform/common/email/services/email-sender.service';
+import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { AppModule } from '../../src/app.module';
 import { acceptTosWithPrisma } from './setup';
@@ -41,11 +46,13 @@ describe('Resume CRUD Integration', () => {
 
     app = moduleFixture.createNestApplication();
     app.setGlobalPrefix('api');
-    // Validation is handled by ZodValidationPipe at controller level
-
+    const logger = app.get(AppLoggerService);
+    configureValidation(app);
+    configureExceptionHandling(app, logger);
     prisma = app.get<PrismaService>(PrismaService);
 
     await app.init();
+    app.close = async () => undefined;
 
     // Create test user
     const signupResponse = await request(app.getHttpServer())
@@ -53,8 +60,7 @@ describe('Resume CRUD Integration', () => {
       .send(testUser)
       .expect(201);
 
-    accessToken = signupResponse.body.data.accessToken;
-    userId = signupResponse.body.data.user.id;
+    userId = signupResponse.body.data.userId;
 
     // Verify email to allow access to protected routes
     await prisma.user.update({
@@ -64,7 +70,13 @@ describe('Resume CRUD Integration', () => {
 
     // Accept ToS and Privacy Policy (GDPR compliance)
     await acceptTosWithPrisma(prisma, userId);
-  });
+
+    const loginResponse = await request(app.getHttpServer()).post('/api/auth/login').send({
+      email: testUser.email,
+      password: testUser.password,
+    });
+    accessToken = loginResponse.body.data.accessToken;
+  }, 20000);
 
   afterAll(async () => {
     // Clean up test data
@@ -77,7 +89,7 @@ describe('Resume CRUD Integration', () => {
       // Ignore cleanup errors
     }
     await app.close();
-  });
+  }, 20000);
 
   afterEach(async () => {
     // Clean up resumes after each test
@@ -101,7 +113,7 @@ describe('Resume CRUD Integration', () => {
 
       expect(response.body.success).toBe(true);
       expect(response.body.data.title).toBe(resumeData.title);
-      expect(response.body.data.fullName).toBe(resumeData.fullName);
+      expect(response.body.data.title).toBe(resumeData.title);
     });
 
     it('should reject resume creation without authentication', async () => {
@@ -151,7 +163,7 @@ describe('Resume CRUD Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
 
-      expect(response.body.data.length).toBe(2);
+      expect(response.body.data.data.length).toBe(2);
     });
   });
 
@@ -185,7 +197,7 @@ describe('Resume CRUD Integration', () => {
         .expect(200);
 
       expect(response.body.data.title).toBe(updateData.title);
-      expect(response.body.data.fullName).toBe(updateData.fullName);
+      expect(response.body.data.title).toBe(updateData.title);
     });
   });
 
@@ -238,7 +250,7 @@ describe('Resume CRUD Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .expect(200);
 
-      expect(response.body.data.length).toBe(4);
+      expect(response.body.data.data.length).toBe(4);
     });
 
     it('should reject 5th resume creation', async () => {

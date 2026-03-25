@@ -14,6 +14,7 @@
 
 import { z } from 'zod';
 import { EmailSchema } from '../schemas/primitives';
+import { normalizeSectionTypeKey } from '../utils/section-type-key.util';
 import { ProfessionalProfileSchema } from './professional-profile.schema';
 import { UsernameSchema } from './username.schema';
 
@@ -85,11 +86,16 @@ export type OnboardingSectionItem = z.infer<typeof OnboardingSectionItemSchema>;
  * Each section references a SectionType by key.
  * Field-level validation happens server-side using SectionDefinitionZodFactory.
  */
-export const OnboardingSectionSchema = z.object({
-  sectionTypeKey: z.string().min(1, 'Section type key is required'),
-  items: z.array(OnboardingSectionItemSchema).default([]),
-  noData: z.boolean().default(false),
-});
+export const OnboardingSectionSchema = z
+  .object({
+    sectionTypeKey: z.string().min(1, 'Section type key is required'),
+    items: z.array(OnboardingSectionItemSchema).default([]),
+    noData: z.boolean().default(false),
+  })
+  .transform((section) => ({
+    ...section,
+    sectionTypeKey: normalizeSectionTypeKey(section.sectionTypeKey),
+  }));
 
 export type OnboardingSection = z.infer<typeof OnboardingSectionSchema>;
 

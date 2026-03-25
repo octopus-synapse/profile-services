@@ -145,7 +145,7 @@ describe('Edge Cases Integration', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.data).toEqual([]);
+      expect(response.body.data.data).toEqual([]);
     });
 
     it('should reject negative page numbers', async () => {

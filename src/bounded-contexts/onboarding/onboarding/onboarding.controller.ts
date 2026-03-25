@@ -139,6 +139,14 @@ class CompleteOnboardingResponseDto {
   resumeId!: string;
 }
 
+class OnboardingStatusResponseDto {
+  @ApiProperty({ example: false })
+  hasCompletedOnboarding!: boolean;
+
+  @ApiPropertyOptional({ example: '2026-03-25T18:00:00.000Z' })
+  onboardingCompletedAt?: Date | null;
+}
+
 class SaveProgressResponseDto {
   @ApiProperty({ example: 'professional-profile' })
   currentStep!: string;
@@ -340,7 +348,11 @@ export class OnboardingController {
     @CurrentUser() user: UserPayload,
   ): Promise<DataResponse<CompleteOnboardingResponseDto>> {
     const result = await this.onboardingService.completeFromProgress(user.userId);
-    return { success: true, data: result as CompleteOnboardingResponseDto };
+    return {
+      success: true,
+      data: result as CompleteOnboardingResponseDto,
+      resumeId: result.resumeId,
+    } as DataResponse<CompleteOnboardingResponseDto> & { resumeId: string };
   }
 
   // ==========================================================================
@@ -358,6 +370,22 @@ export class OnboardingController {
       this.onboardingService.getSectionTypeDefinitions(),
     ]);
     return { success: true, data: this.buildSession(data, sectionTypes) };
+  }
+
+  @Get('status')
+  @ApiOperation({ summary: '[Legacy] Get onboarding completion status' })
+  @ApiDataResponse(OnboardingStatusResponseDto, {
+    description: 'Onboarding completion status',
+  })
+  async getStatus(
+    @CurrentUser() user: UserPayload,
+  ): Promise<DataResponse<OnboardingStatusResponseDto>> {
+    const status = await this.onboardingService.getOnboardingStatus(user.userId);
+    return {
+      success: true,
+      data: status,
+      ...status,
+    } as DataResponse<OnboardingStatusResponseDto> & OnboardingStatusResponseDto;
   }
 
   @Put('progress')
@@ -387,7 +415,11 @@ export class OnboardingController {
     @Body(createZodPipe(OnboardingDataSchema)) data: OnboardingData,
   ): Promise<DataResponse<CompleteOnboardingResponseDto>> {
     const result = await this.onboardingService.completeOnboarding(user.userId, data);
-    return { success: true, data: result as CompleteOnboardingResponseDto };
+    return {
+      success: true,
+      data: result as CompleteOnboardingResponseDto,
+      resumeId: result.resumeId,
+    } as DataResponse<CompleteOnboardingResponseDto> & { resumeId: string };
   }
 
   // ============================================================================

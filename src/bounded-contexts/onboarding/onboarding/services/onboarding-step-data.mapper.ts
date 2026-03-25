@@ -10,6 +10,15 @@ import type { OnboardingProgressData } from './onboarding-progress/ports/onboard
  * Pure data transformation — no side effects, no I/O.
  */
 export class OnboardingStepDataMapper {
+  private readonly personalInfoKeys = ['fullName', 'email', 'phone', 'location'] as const;
+  private readonly professionalProfileKeys = ['jobTitle', 'summary'] as const;
+  private readonly templateSelectionKeys = [
+    'templateId',
+    'colorScheme',
+    'template',
+    'palette',
+  ] as const;
+
   mergeStepData(
     update: Record<string, unknown>,
     currentStep: string,
@@ -46,10 +55,13 @@ export class OnboardingStepDataMapper {
     stepData: Record<string, unknown>,
   ): void {
     const extractors: Record<string, () => unknown> = {
-      'personal-info': () => this.extractObject(stepData, 'personalInfo'),
+      'personal-info': () =>
+        this.extractObjectOrRoot(stepData, 'personalInfo', this.personalInfoKeys),
       username: () => this.extractString(stepData, 'username'),
-      'professional-profile': () => this.extractObject(stepData, 'professionalProfile'),
-      template: () => this.extractObject(stepData, 'templateSelection'),
+      'professional-profile': () =>
+        this.extractObjectOrRoot(stepData, 'professionalProfile', this.professionalProfileKeys),
+      template: () =>
+        this.extractObjectOrRoot(stepData, 'templateSelection', this.templateSelectionKeys),
     };
 
     const extractor = extractors[currentStep];
@@ -77,6 +89,22 @@ export class OnboardingStepDataMapper {
       return value as Record<string, unknown>;
     }
     return undefined;
+  }
+
+  private extractObjectOrRoot(
+    data: Record<string, unknown>,
+    key: string,
+    rootKeys: readonly string[],
+  ): Record<string, unknown> | undefined {
+    return this.extractObject(data, key) ?? this.pickDefinedProperties(data, rootKeys);
+  }
+
+  private pickDefinedProperties(
+    data: Record<string, unknown>,
+    keys: readonly string[],
+  ): Record<string, unknown> | undefined {
+    const entries = keys.flatMap((key) => (data[key] === undefined ? [] : [[key, data[key]]]));
+    return entries.length > 0 ? Object.fromEntries(entries) : undefined;
   }
 
   private extractString(data: Record<string, unknown>, key: string): string | undefined {
