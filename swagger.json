@@ -4264,7 +4264,7 @@
         },
         "summary": "Refresh access token",
         "tags": [
-          "auth"
+          "Authentication"
         ]
       }
     },
@@ -13709,6 +13709,16 @@
               "APPROVER"
             ]
           },
+          "roles": {
+            "description": "User roles for RBAC",
+            "example": [
+              "role_user"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
           "isAdmin": {
             "type": "boolean",
             "description": "Whether user is admin (calculated from role)",
@@ -13738,6 +13748,7 @@
           "hasCompletedOnboarding",
           "emailVerified",
           "role",
+          "roles",
           "isAdmin",
           "isApprover",
           "needsOnboarding",

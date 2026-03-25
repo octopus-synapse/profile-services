@@ -325,9 +325,11 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ needs.finalize-release.outputs.tag }}
         run: |
-          CURRENT_NOTES=$(gh release view "$TAG" --json body -q '.body')
-          
-          DOCKER_INFO="
+          CURRENT_NOTES="$(gh release view "$TAG" --json body -q '.body')"
+
+          {
+            printf '%s\n' "$CURRENT_NOTES"
+            cat <<EOF
 
 ---
 
@@ -336,6 +338,8 @@ jobs:
 \`\`\`bash
 docker pull ghcr.io/${{ github.repository }}:${TAG}
 docker pull ghcr.io/${{ github.repository }}:latest
-\`\`\`"
-          
-          gh release edit "$TAG" --notes "${CURRENT_NOTES}${DOCKER_INFO}"
+\`\`\`
+EOF
+          } > /tmp/release-notes.md
+
+          gh release edit "$TAG" --notes-file /tmp/release-notes.md

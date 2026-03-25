@@ -74,6 +74,7 @@ export class ValidateSessionUseCase implements ValidateSessionPort {
 
     // 5. Return validated session data with calculated fields
     const role = userData.role ?? 'USER';
+    const roles = userData.roles ?? ['role_user'];
     const sessionUserData: SessionUserData = {
       id: userData.id,
       email: userData.email,
@@ -82,6 +83,7 @@ export class ValidateSessionUseCase implements ValidateSessionPort {
       hasCompletedOnboarding: userData.hasCompletedOnboarding,
       emailVerified: userData.emailVerified,
       role,
+      roles,
       // Calculated fields - frontend should NOT calculate these
       isAdmin: role === 'ADMIN',
       isApprover: role === 'APPROVER',

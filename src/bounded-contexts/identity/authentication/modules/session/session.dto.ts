@@ -52,6 +52,13 @@ export class SessionUserResponseDto {
   })
   role!: string;
 
+  @ApiProperty({
+    description: 'User roles for RBAC',
+    example: ['role_user'],
+    type: [String],
+  })
+  roles!: string[];
+
   // ============================================================================
   // Calculated fields - frontend should NOT calculate these
   // ============================================================================

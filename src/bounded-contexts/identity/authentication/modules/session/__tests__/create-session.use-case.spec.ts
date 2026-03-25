@@ -41,6 +41,7 @@ describe('CreateSessionUseCase', () => {
     hasCompletedOnboarding: true,
     emailVerified: true,
     role: 'USER',
+    roles: ['role_user'],
     isAdmin: false,
     isApprover: false,
     needsOnboarding: false,

@@ -23,6 +23,7 @@ export interface SessionAuthUser {
   hasCompletedOnboarding: boolean;
   emailVerified: boolean;
   role: string;
+  roles: string[];
 }
 
 export interface RefreshTokenData {

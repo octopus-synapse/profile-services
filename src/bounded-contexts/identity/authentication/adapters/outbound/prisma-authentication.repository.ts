@@ -67,12 +67,16 @@ export class PrismaAuthenticationRepository implements AuthenticationRepositoryP
         username: true,
         hasCompletedOnboarding: true,
         emailVerified: true,
+        roles: true,
       },
     });
 
     if (!user) {
       return null;
     }
+
+    const roles = user.roles ?? ['role_user'];
+    const isAdmin = roles.includes('role_admin');
 
     return {
       id: user.id,
@@ -81,7 +85,8 @@ export class PrismaAuthenticationRepository implements AuthenticationRepositoryP
       username: user.username,
       hasCompletedOnboarding: user.hasCompletedOnboarding ?? false,
       emailVerified: !!user.emailVerified,
-      role: 'USER', // TODO: Add role field to User model when RBAC is implemented
+      role: isAdmin ? 'ADMIN' : 'USER',
+      roles,
     };
   }
 

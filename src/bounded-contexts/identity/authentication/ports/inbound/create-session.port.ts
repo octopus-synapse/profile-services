@@ -19,6 +19,7 @@ export interface SessionUserData {
   hasCompletedOnboarding: boolean;
   emailVerified: boolean;
   role: string;
+  roles: string[];
   // Calculated fields - frontend should NOT calculate these
   isAdmin: boolean;
   isApprover: boolean;
