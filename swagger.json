@@ -4264,7 +4264,7 @@
         },
         "summary": "Refresh access token",
         "tags": [
-          "auth"
+          "Authentication"
         ]
       }
     },
