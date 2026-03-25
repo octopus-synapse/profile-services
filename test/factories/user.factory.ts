@@ -31,6 +31,7 @@ export interface CreateMockUserOptions {
   onboardingCompletedAt?: Date | null;
   isActive?: boolean;
   lastLoginAt?: Date | null;
+  roles?: string[];
 }
 
 const defaultUser: User = {
@@ -57,6 +58,7 @@ const defaultUser: User = {
   onboardingCompletedAt: null,
   isActive: true,
   lastLoginAt: null,
+  roles: ['role_user'],
 };
 
 export function createMockUser(options: CreateMockUserOptions = {}): User {
@@ -70,13 +72,24 @@ export function createMockUser(options: CreateMockUserOptions = {}): User {
 
 /**
  * Creates a mock user that would have admin permissions.
- * Note: The actual admin permissions come from UserRoleAssignment,
- * not from a 'role' field on the User model.
+ * Uses the simplified RBAC system with roles array.
  */
 export function createMockAdmin(options: CreateMockUserOptions = {}): User {
   return createMockUser({
     ...options,
     id: options.id ?? 'admin-user-123',
+    roles: options.roles ?? ['role_user', 'role_admin'],
+  });
+}
+
+/**
+ * Creates a mock user with super admin access.
+ */
+export function createMockSuperAdmin(options: CreateMockUserOptions = {}): User {
+  return createMockUser({
+    ...options,
+    id: options.id ?? 'super-admin-123',
+    roles: options.roles ?? ['role_user', 'role_super_admin'],
   });
 }
 

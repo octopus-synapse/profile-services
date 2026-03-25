@@ -5,6 +5,7 @@
 
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure/decorators/public.decorator';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
@@ -23,6 +24,7 @@ export class PublicThemeController {
   constructor(private queryService: ThemeQueryService) {}
 
   @Get()
+  @Public()
   @ApiOperation({ summary: 'List published themes' })
   @ApiDataResponse(ThemePaginatedListDataDto, {
     description: 'Published themes returned',
@@ -42,6 +44,7 @@ export class PublicThemeController {
   }
 
   @Get('popular')
+  @Public()
   @ApiOperation({ summary: 'Get popular themes' })
   @ApiDataResponse(ThemeListDataDto, { description: 'Popular themes returned' })
   async findPopularThemes(@Query('limit') limit?: number): Promise<DataResponse<ThemeListDataDto>> {
@@ -56,6 +59,7 @@ export class PublicThemeController {
   }
 
   @Get('system')
+  @Public()
   @ApiOperation({ summary: 'Get system themes' })
   @ApiDataResponse(ThemeListDataDto, { description: 'System themes returned' })
   async findAllSystemThemes(): Promise<DataResponse<ThemeListDataDto>> {
@@ -70,6 +74,7 @@ export class PublicThemeController {
   }
 
   @Get(':id')
+  @Public()
   @ApiOperation({ summary: 'Get theme by ID' })
   @ApiDataResponse(ThemeNullableEntityDataDto, {
     description: 'Theme returned by id',

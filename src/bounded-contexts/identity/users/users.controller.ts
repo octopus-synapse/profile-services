@@ -8,7 +8,6 @@ import {
   Patch,
   Post,
   Query,
-  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -20,7 +19,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
-import { JwtAuthGuard, Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
+import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
@@ -32,6 +31,7 @@ import type {
   UpdateUsername,
   ValidateUsernameRequest,
 } from '@/shared-kernel';
+import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import {
   PublicProfileResponseDto,
   UserFullPreferencesResponseDto,
@@ -84,7 +84,7 @@ export class UsersController {
     };
   }
 
-  @UseGuards(JwtAuthGuard)
+  @RequirePermission(Permission.USER_PROFILE_READ)
   @Get('profile')
   @ApiOperation({ summary: 'Get authenticated user profile' })
   @ApiDataResponse(UserProfileResponseDto, {
@@ -97,7 +97,7 @@ export class UsersController {
     return { success: true, data: this.toUserProfileResponseDto(result) };
   }
 
-  @UseGuards(JwtAuthGuard)
+  @RequirePermission(Permission.USER_PROFILE_UPDATE)
   @Patch('profile')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update authenticated user profile' })
@@ -112,7 +112,7 @@ export class UsersController {
     return { success: true, data: this.toUserProfileResponseDto(result) };
   }
 
-  @UseGuards(JwtAuthGuard)
+  @RequirePermission(Permission.USER_PROFILE_READ)
   @Get('preferences')
   @ApiOperation({ summary: 'Get user preferences' })
   @ApiDataResponse(UserPreferencesResponseDto, {
@@ -128,7 +128,7 @@ export class UsersController {
     };
   }
 
-  @UseGuards(JwtAuthGuard)
+  @RequirePermission(Permission.USER_PROFILE_UPDATE)
   @Patch('preferences')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update user preferences' })
@@ -147,7 +147,7 @@ export class UsersController {
     };
   }
 
-  @UseGuards(JwtAuthGuard)
+  @RequirePermission(Permission.USER_PROFILE_READ)
   @Get('preferences/full')
   @ApiOperation({ summary: 'Get full user preferences' })
   @ApiDataResponse(UserFullPreferencesResponseDto, {
@@ -163,7 +163,7 @@ export class UsersController {
     };
   }
 
-  @UseGuards(JwtAuthGuard)
+  @RequirePermission(Permission.USER_PROFILE_UPDATE)
   @Patch('preferences/full')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update full user preferences' })
@@ -184,7 +184,7 @@ export class UsersController {
     };
   }
 
-  @UseGuards(JwtAuthGuard)
+  @RequirePermission(Permission.USER_PROFILE_UPDATE)
   @Patch('username')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update username' })
@@ -206,7 +206,7 @@ export class UsersController {
     };
   }
 
-  @UseGuards(JwtAuthGuard)
+  @RequirePermission(Permission.USER_PROFILE_READ)
   @Get('username/check')
   @ApiOperation({ summary: 'Check username availability' })
   @ApiQuery({

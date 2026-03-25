@@ -11,6 +11,7 @@ export {
   type LoginCommand,
   type LoginPort,
   type LoginResult,
+  type LoginVerify2faCommand,
 } from './login.port';
 
 export {

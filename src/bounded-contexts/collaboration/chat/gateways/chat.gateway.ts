@@ -15,15 +15,7 @@ import { ConversationRepository } from '../repositories/conversation.repository'
 import { MessageRepository } from '../repositories/message.repository';
 import { BlockService } from '../services/block.service';
 import { ChatService } from '../services/chat.service';
-
-interface JwtPayload {
-  sub: string;
-  email: string;
-  iat?: number;
-  exp?: number;
-}
-
-type AuthenticatedSocket = Socket & { userId: string };
+import { type AuthenticatedSocket, WsAuthGuard } from './ws-auth.guard';
 
 @WebSocketGateway({
   namespace: '/chat',
@@ -37,6 +29,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   server: Server;
 
   private readonly logger = new Logger(ChatGateway.name);
+  private readonly authGuard: WsAuthGuard;
 
   // Map userId -> Set of socket IDs
   private userSockets = new Map<string, Set<string>>();
@@ -47,54 +40,44 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly blockService: BlockService,
     private readonly conversationRepo: ConversationRepository,
     private readonly messageRepo: MessageRepository,
-  ) {}
+  ) {
+    this.authGuard = new WsAuthGuard(jwtService);
+  }
 
   /**
    * Handle new WebSocket connection.
-   * Authenticates user via JWT token.
+   * Authenticates user via WsAuthGuard (cookie-first, JWT fallback).
    */
   async handleConnection(client: Socket) {
-    try {
-      const token = this.extractToken(client);
-      if (!token) {
-        this.logger.warn(`Connection rejected: No token provided`);
-        client.disconnect();
-        return;
-      }
-
-      const payload = await this.jwtService.verifyAsync<JwtPayload>(token);
-      const userId = payload.sub;
-
-      // Store user info on socket
-      const authenticatedSocket = client as AuthenticatedSocket;
-      authenticatedSocket.userId = userId;
-
-      // Track socket
-      if (!this.userSockets.has(userId)) {
-        this.userSockets.set(userId, new Set());
-      }
-      const userSocketSet = this.userSockets.get(userId);
-      if (userSocketSet) {
-        userSocketSet.add(client.id);
-      }
-
-      // Join user's personal room
-      await client.join(`user:${userId}`);
-
-      // Join rooms for all conversations
-      const { conversations } = await this.conversationRepo.findByUserId(userId, { limit: 100 });
-      for (const conv of conversations) {
-        await client.join(`conversation:${conv.id}`);
-      }
-
-      // Notify others that user is online
-      void this.broadcastUserStatus(userId, true);
-
-      this.logger.log(`User ${userId} connected (socket: ${client.id})`);
-    } catch (_error) {
-      this.logger.warn(`Connection rejected: Invalid token`);
+    const userId = await this.authGuard.authenticate(client);
+    if (!userId) {
       client.disconnect();
+      return;
     }
+
+    // Store user info on socket
+    const authenticatedSocket = client as AuthenticatedSocket;
+    authenticatedSocket.userId = userId;
+
+    // Track socket
+    if (!this.userSockets.has(userId)) {
+      this.userSockets.set(userId, new Set());
+    }
+    this.userSockets.get(userId)?.add(client.id);
+
+    // Join user's personal room
+    await client.join(`user:${userId}`);
+
+    // Join rooms for all conversations
+    const { conversations } = await this.conversationRepo.findByUserId(userId, { limit: 100 });
+    for (const conv of conversations) {
+      await client.join(`conversation:${conv.id}`);
+    }
+
+    // Notify others that user is online
+    void this.broadcastUserStatus(userId, true);
+
+    this.logger.log(`User ${userId} connected (socket: ${client.id})`);
   }
 
   /**
@@ -282,24 +265,5 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
    */
   notifyUser(userId: string, event: string, data: unknown) {
     this.server.to(`user:${userId}`).emit(event, data);
-  }
-
-  /**
-   * Extract JWT token from socket handshake.
-   */
-  private extractToken(client: Socket): string | null {
-    const authHeader = client.handshake.headers.authorization;
-    if (authHeader?.startsWith('Bearer ')) {
-      return authHeader.slice(7);
-    }
-
-    const auth = client.handshake.auth as Record<string, unknown> | undefined;
-    const token = auth?.token;
-    if (typeof token === 'string') return token;
-
-    const queryToken = client.handshake.query.token;
-    if (typeof queryToken === 'string') return queryToken;
-
-    return null;
   }
 }

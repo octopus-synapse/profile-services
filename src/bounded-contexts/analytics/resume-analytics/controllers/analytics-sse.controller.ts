@@ -7,14 +7,14 @@
  * Kent Beck: "Make the change easy, then make the easy change."
  */
 
-import { Controller, MessageEvent, Param, Sse, UseGuards } from '@nestjs/common';
+import { Controller, MessageEvent, Param, Sse } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { fromEvent, map, merge, Observable } from 'rxjs';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 
 interface AnalyticsUpdateEvent {
   type: 'view' | 'ats_score';
@@ -57,7 +57,7 @@ export class AnalyticsSseController {
    * ```
    */
   @Sse(':resumeId/live')
-  @UseGuards(JwtAuthGuard)
+  @RequirePermission(Permission.ANALYTICS_READ_OWN)
   @ApiOperation({
     summary: 'Subscribe to live analytics stream',
     description: 'Streams view and ATS score updates for a resume in real time.',
@@ -92,7 +92,7 @@ export class AnalyticsSseController {
    * Subscribe to view count updates only.
    */
   @Sse(':resumeId/views')
-  @UseGuards(JwtAuthGuard)
+  @RequirePermission(Permission.ANALYTICS_READ_OWN)
   @ApiOperation({
     summary: 'Subscribe to live views stream',
     description: 'Streams only view-count updates for a resume.',
@@ -115,7 +115,7 @@ export class AnalyticsSseController {
    * Subscribe to ATS score updates only.
    */
   @Sse(':resumeId/ats-score')
-  @UseGuards(JwtAuthGuard)
+  @RequirePermission(Permission.ANALYTICS_READ_OWN)
   @ApiOperation({
     summary: 'Subscribe to live ATS stream',
     description: 'Streams only ATS-score updates for a resume.',

@@ -5,11 +5,11 @@
 
 import { Controller, Get, Param } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiProperty, ApiTags } from '@nestjs/swagger';
-import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { TechNicheDto, TechSkillDto } from '@/shared-kernel';
+import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import type { TechNiche, TechSkill } from '../dtos';
 import { TechNicheQueryService } from '../services/niche-query.service';
 import { TechSkillsQueryService } from '../services/tech-skills-query.service';
@@ -39,7 +39,7 @@ export class TechNicheController {
 
   /** Get all tech niches */
   @Get()
-  @Public()
+  @RequirePermission(Permission.SKILL_READ)
   @ApiOperation({ summary: 'Get all tech niches' })
   @ApiDataResponse(TechNicheListDataDto, { description: 'List of tech niches' })
   async getNiches(): Promise<DataResponse<TechNicheListDataDto>> {
@@ -49,7 +49,7 @@ export class TechNicheController {
 
   /** Get skills by niche */
   @Get(':nicheSlug/skills')
-  @Public()
+  @RequirePermission(Permission.SKILL_READ)
   @ApiOperation({ summary: 'Get skills by niche slug' })
   @ApiParam({ name: 'nicheSlug', description: 'Niche slug', type: String })
   @ApiDataResponse(TechSkillListDataDto, {

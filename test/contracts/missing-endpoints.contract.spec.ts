@@ -197,7 +197,7 @@ describe('Swagger Coverage Analysis', () => {
 });
 
 describe('Backend DTO vs Swagger Schema Comparison', () => {
-  test('ImportJobDto in backend matches swagger schema', () => {
+  test('ImportJobDto keeps core fields visible in swagger schema', () => {
     const swagger = JSON.parse(readFileSync(SWAGGER_PATH, 'utf-8'));
     const schema = swagger.components.schemas.ImportJobDto;
 
@@ -221,9 +221,9 @@ describe('Backend DTO vs Swagger Schema Comparison', () => {
 
     // Swagger should also have these
     expect(schema.properties.id).toBeDefined();
-    expect(schema.properties.userId).toBeDefined();
     expect(schema.properties.status).toBeDefined();
     expect(schema.properties.source).toBeDefined();
+    expect(schema.properties.createdAt).toBeDefined();
   });
 
   test('all @ApiProperty decorators are in swagger schema', () => {

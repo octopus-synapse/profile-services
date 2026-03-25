@@ -1,6 +1,6 @@
 import { getBaseTemplate } from './base.template';
 
-export const getPasswordChangedTemplate = (name: string): string => {
+export const getPasswordChangedTemplate = (name: string, frontendUrl: string): string => {
   const content = `
     <h2 style="color: #1f2937; font-size: 24px; margin-bottom: 16px;">
       Senha alterada com sucesso ✅
@@ -21,11 +21,11 @@ export const getPasswordChangedTemplate = (name: string): string => {
       </p>
     </div>
     <div style="text-align: center; margin-top: 32px;">
-      <a href="${process.env.FRONTEND_URL ?? 'http://localhost:3000'}/login" class="btn">
+      <a href="${frontendUrl}/login" class="btn">
         Fazer login
       </a>
     </div>
   `;
 
-  return getBaseTemplate(content, 'Senha alterada - ProFile');
+  return getBaseTemplate(content, 'Senha alterada - ProFile', frontendUrl);
 };

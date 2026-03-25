@@ -15,7 +15,15 @@ import {
   Put,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiProperty,
+  ApiPropertyOptional,
+  ApiTags,
+  PartialType,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import {
   ApiDataResponse,
@@ -32,6 +40,50 @@ import {
   ThemeResolvedConfigDataDto,
 } from '../dto/controller-response.dto';
 import { ThemeApplicationService, ThemeCrudService, ThemeQueryService } from '../services';
+
+class CreateThemeRequestDto {
+  @ApiProperty({ minLength: 3, maxLength: 50 })
+  name!: string;
+
+  @ApiPropertyOptional({ maxLength: 500 })
+  description?: string;
+
+  @ApiProperty()
+  category!: string;
+
+  @ApiPropertyOptional({ type: 'array', items: { type: 'string' } })
+  tags?: string[];
+
+  @ApiProperty({ type: 'object', additionalProperties: true })
+  styleConfig!: Record<string, unknown>;
+
+  @ApiPropertyOptional()
+  parentThemeId?: string;
+}
+
+class UpdateThemeRequestDto extends PartialType(CreateThemeRequestDto) {}
+
+class ForkThemeRequestDto {
+  @ApiProperty()
+  themeId!: string;
+
+  @ApiProperty({ minLength: 3, maxLength: 50 })
+  name!: string;
+
+  @ApiPropertyOptional({ maxLength: 500 })
+  description?: string;
+}
+
+class ApplyThemeToResumeRequestDto {
+  @ApiProperty()
+  resumeId!: string;
+
+  @ApiProperty()
+  themeId!: string;
+
+  @ApiPropertyOptional({ type: 'object', additionalProperties: true })
+  customizations?: Record<string, unknown>;
+}
 
 @SdkExport({ tag: 'themes', description: 'Themes API' })
 @ApiTags('themes')
@@ -57,6 +109,7 @@ export class UserThemeController {
 
   @Post()
   @ApiOperation({ summary: 'Create theme' })
+  @ApiBody({ type: CreateThemeRequestDto })
   @ApiDataResponse(ThemeEntityDataDto, {
     description: 'Theme created successfully',
     status: HttpStatus.CREATED,
@@ -71,6 +124,7 @@ export class UserThemeController {
 
   @Put(':id')
   @ApiOperation({ summary: 'Update theme' })
+  @ApiBody({ type: UpdateThemeRequestDto })
   @ApiDataResponse(ThemeEntityDataDto, {
     description: 'Theme updated successfully',
   })
@@ -99,6 +153,7 @@ export class UserThemeController {
 
   @Post('fork')
   @ApiOperation({ summary: 'Fork a theme' })
+  @ApiBody({ type: ForkThemeRequestDto })
   @ApiDataResponse(ThemeEntityDataDto, {
     description: 'Theme forked successfully',
   })
@@ -112,6 +167,7 @@ export class UserThemeController {
 
   @Post('apply')
   @ApiOperation({ summary: 'Apply theme to resume' })
+  @ApiBody({ type: ApplyThemeToResumeRequestDto })
   @ApiDataResponse(ThemeApplyDataDto, {
     description: 'Theme applied to resume',
   })

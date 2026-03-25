@@ -81,7 +81,7 @@ describe('SkillManagementController', () => {
   it('updateSkill delegates to service and wraps the response', async () => {
     const input = { name: 'TypeScript Updated' };
 
-    const result = await controller.updateSkill('skill-123', input);
+    const result = await controller.updateSkill('resume-123', 'skill-123', input);
 
     expect(mockService.updateSkill).toHaveBeenCalledWith('skill-123', input);
     expect(result.success).toBe(true);
@@ -89,7 +89,7 @@ describe('SkillManagementController', () => {
   });
 
   it('deleteSkill delegates to service and returns deleted flag', async () => {
-    const result = await controller.deleteSkill('skill-123');
+    const result = await controller.deleteSkill('resume-123', 'skill-123');
 
     expect(mockService.deleteSkill).toHaveBeenCalledWith('skill-123');
     expect(result).toEqual({

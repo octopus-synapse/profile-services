@@ -8,7 +8,6 @@ import {
   Param,
   Post,
   Req,
-  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -19,7 +18,6 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import type { AuthenticatedRequest } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import {
   ApiDataResponse,
   ApiEmptyDataResponse,
@@ -28,6 +26,7 @@ import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-exp
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { createZodPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
 import { type BlockedUserResponse, BlockUserRequestDto, BlockUserSchema } from '@/shared-kernel';
+import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import { BlockService } from '../services/block.service';
 
 // Wrapper DTOs for responses
@@ -49,7 +48,7 @@ export class IsBlockedDataDto {
 @SdkExport({ tag: 'chat---block-users', description: 'Chat Block Users API' })
 @ApiTags('Chat - Block Users')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+@RequirePermission(Permission.CHAT_USE)
 @Controller('chat/blocked')
 export class BlockController {
   constructor(private readonly blockService: BlockService) {}

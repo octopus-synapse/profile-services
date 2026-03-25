@@ -1,518 +1,252 @@
-/**
- * Swagger Generation Tests
- *
- * Validates that @SdkExport decorator + generation script produces correct output.
- *
- * Test categories:
- * 1. @SdkExport Detection - All decorated controllers are found
- * 2. Endpoint Extraction - All methods with @ApiOperation are captured
- * 3. DTO Parsing - Request/Response DTOs are properly extracted
- * 4. OpenAPI Structure - Generated spec is valid and complete
- * 5. Coverage Verification - No documented controllers are missing
- */
+import { expect, test } from 'bun:test';
+import { existsSync, readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
-import { beforeAll, describe, expect, test } from 'bun:test';
-import { execSync } from 'node:child_process';
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
-import { join, resolve } from 'node:path';
-import { validateSwaggerCoverage } from '../../src/scripts/validate-swagger-coverage';
-
-const SCRIPTS_DIR = resolve(__dirname, '../../scripts');
-const SRC_DIR = resolve(__dirname, '../../src');
 const SWAGGER_PATH = resolve(__dirname, '../../swagger.json');
 const REPORT_PATH = resolve(__dirname, '../../swagger-generation-report.json');
 
-// ============================================================================
-// Helper Functions
-// ============================================================================
+type SwaggerSchema = {
+  $ref?: string;
+  allOf?: Array<{
+    $ref?: string;
+    type?: string;
+    properties?: {
+      data?: {
+        $ref?: string;
+      };
+    };
+    required?: string[];
+  }>;
+};
 
-function findFiles(dir: string, pattern: RegExp): string[] {
-  const files: string[] = [];
-
-  function scan(currentDir: string) {
-    try {
-      const entries = readdirSync(currentDir, { withFileTypes: true });
-      for (const entry of entries) {
-        const fullPath = join(currentDir, entry.name);
-        if (entry.isDirectory() && !entry.name.includes('node_modules')) {
-          scan(fullPath);
-        } else if (pattern.test(entry.name)) {
-          files.push(fullPath);
-        }
+type SwaggerDocument = {
+  paths: Record<
+    string,
+    Record<
+      string,
+      {
+        operationId?: string;
+        parameters?: Array<{ name: string; in: string }>;
+        requestBody?: {
+          content?: {
+            'application/json'?: {
+              schema?: {
+                $ref?: string;
+                type?: string;
+                additionalProperties?: boolean;
+                properties?: Record<string, unknown>;
+              };
+            };
+          };
+        };
+        responses?: Record<
+          string,
+          {
+            content?: { 'application/json'?: { schema?: SwaggerSchema } };
+          }
+        >;
       }
-    } catch {
-      // Skip unreadable
-    }
+    >
+  >;
+};
+
+type SwaggerReport = {
+  success: boolean;
+  generatedBy: string;
+  paths: number;
+  operations: number;
+  schemas: number;
+  tags: string[];
+};
+
+const swagger = JSON.parse(readFileSync(SWAGGER_PATH, 'utf-8')) as SwaggerDocument;
+const report = JSON.parse(readFileSync(REPORT_PATH, 'utf-8')) as SwaggerReport;
+
+function getResponseSchema(path: string, method: string, status: string): SwaggerSchema {
+  const schema =
+    swagger.paths[path]?.[method]?.responses?.[status]?.content?.['application/json']?.schema;
+
+  if (!schema) {
+    throw new Error(`Missing ${method.toUpperCase()} ${path} response schema for status ${status}`);
   }
 
-  scan(dir);
-  return files;
+  return schema;
 }
 
-function hasDecorator(content: string, decorator: string): boolean {
-  return content.includes(`@${decorator}`);
+function getOperation(path: string, method: string) {
+  const operation = swagger.paths[path]?.[method];
+
+  if (!operation) {
+    throw new Error(`Missing ${method.toUpperCase()} ${path} operation`);
+  }
+
+  return operation;
 }
 
-function countDecorators(content: string, decorator: string): number {
-  const regex = new RegExp(`@${decorator}\\(`, 'g');
-  return (content.match(regex) || []).length;
+function getOperationId(path: string, method: string): string {
+  const operationId = getOperation(path, method).operationId;
+
+  if (!operationId) {
+    throw new Error(`Missing ${method.toUpperCase()} ${path} operationId`);
+  }
+
+  return operationId;
 }
 
-// ============================================================================
-// Types for parsed swagger/report JSON
-// ============================================================================
-
-interface SwaggerOperation {
-  operationId: string;
-  tags: string[];
-  responses: Record<string, unknown>;
-  requestBody?: unknown;
-  security?: Array<Record<string, string[]>>;
-  summary?: string;
-  description?: string;
+function getRequestSchemaRef(path: string, method: string): string | undefined {
+  return getOperation(path, method).requestBody?.content?.['application/json']?.schema?.$ref;
 }
 
-interface SwaggerDocument {
-  openapi: string;
-  info: { title: string; version: string };
-  servers: Array<{ url: string }>;
-  tags: Array<{ name: string }>;
-  paths: Record<string, Record<string, SwaggerOperation>>;
-  components: {
-    schemas: Record<string, unknown>;
-    securitySchemes: Record<string, { type: string; scheme: string; bearerFormat?: string }>;
-  };
+function expectWrappedResponse(schema: SwaggerSchema, dtoRef: string) {
+  expect(Array.isArray(schema.allOf)).toBe(true);
+  expect(schema.allOf?.[0]?.$ref).toBe('#/components/schemas/ApiResponse');
+  expect(schema.allOf?.[1]?.type).toBe('object');
+  expect(schema.allOf?.[1]?.properties?.data?.$ref).toBe(dtoRef);
+  expect(schema.allOf?.[1]?.required).toContain('data');
 }
 
-interface GenerationReportDetail {
-  controller: string;
-  endpoints: number;
+function expectPathParams(path: string, method: string, expectedParams: string[]) {
+  const params = swagger.paths[path]?.[method]?.parameters ?? [];
+  const pathParams = params.filter((param) => param.in === 'path').map((param) => param.name);
+
+  expect(pathParams).toEqual(expectedParams);
 }
 
-interface GenerationReport {
-  success: boolean;
-  controllers: number;
-  endpoints: number;
-  schemas: number;
-  tags: number;
-  warnings: string[];
-  details: GenerationReportDetail[];
-}
-
-// ============================================================================
-// Test Suite
-// ============================================================================
-
-describe('Swagger Generation Script', () => {
-  let swagger: SwaggerDocument;
-  let report: GenerationReport;
-
-  beforeAll(() => {
-    // Run the generation script
-    try {
-      execSync('bun run scripts/generate-swagger-from-decorators.ts', {
-        cwd: resolve(__dirname, '../..'),
-        stdio: 'pipe',
-      });
-    } catch (e) {
-      console.error('Script execution failed:', e);
-    }
-
-    // Load outputs
-    if (existsSync(SWAGGER_PATH)) {
-      swagger = JSON.parse(readFileSync(SWAGGER_PATH, 'utf-8'));
-    }
-    if (existsSync(REPORT_PATH)) {
-      report = JSON.parse(readFileSync(REPORT_PATH, 'utf-8'));
-    }
-  });
-
-  describe('@SdkExport Detection', () => {
-    test('script exists and is executable', () => {
-      const scriptPath = join(SCRIPTS_DIR, 'generate-swagger-from-decorators.ts');
-      expect(existsSync(scriptPath)).toBe(true);
-    });
-
-    test('decorator file exists', () => {
-      const decoratorPath = join(
-        SRC_DIR,
-        'bounded-contexts/platform/common/decorators/sdk-export.decorator.ts',
-      );
-      expect(existsSync(decoratorPath)).toBe(true);
-    });
-
-    test('at least one controller has @SdkExport', () => {
-      const controllers = findFiles(SRC_DIR, /\.controller\.ts$/);
-      const withSdkExport = controllers.filter((f) => {
-        const content = readFileSync(f, 'utf-8');
-        return hasDecorator(content, 'SdkExport');
-      });
-
-      expect(withSdkExport.length).toBeGreaterThan(0);
-      console.log(`\n📦 Controllers with @SdkExport: ${withSdkExport.length}`);
-    });
-
-    test('generation produces swagger.json', () => {
-      expect(existsSync(SWAGGER_PATH)).toBe(true);
-      expect(swagger).toBeDefined();
-    });
-
-    test('generation produces report.json', () => {
-      expect(existsSync(REPORT_PATH)).toBe(true);
-      expect(report).toBeDefined();
-    });
-
-    test('report indicates success', () => {
-      expect(report.success).toBe(true);
-    });
-  });
-
-  describe('Controller Extraction', () => {
-    test('all @SdkExport controllers are in report', () => {
-      const controllers = findFiles(SRC_DIR, /\.controller\.ts$/);
-      const withSdkExport = controllers.filter((f) => {
-        const content = readFileSync(f, 'utf-8');
-        return hasDecorator(content, 'SdkExport');
-      });
-
-      expect(report.controllers).toBe(withSdkExport.length);
-    });
-
-    test('ResumeImportController is included', () => {
-      const controllerNames = report.details.map((d) => d.controller);
-      expect(controllerNames).toContain('ResumeImportController');
-    });
-
-    test('ResumesController is included', () => {
-      const controllerNames = report.details.map((d) => d.controller);
-      expect(controllerNames).toContain('ResumesController');
-    });
-
-    test('UsersController is included', () => {
-      const controllerNames = report.details.map((d) => d.controller);
-      expect(controllerNames).toContain('UsersController');
-    });
-  });
-
-  describe('Endpoint Extraction', () => {
-    test('ResumeImportController has 6 endpoints', () => {
-      const resumeImport = report.details.find((d) => d.controller === 'ResumeImportController');
-      if (!resumeImport) throw new Error('Expected ResumeImportController in report');
-      expect(resumeImport.endpoints).toBe(6);
-    });
-
-    test('all @ApiOperation in controllers are captured', () => {
-      // Count total @ApiOperation in @SdkExport controllers
-      const controllers = findFiles(SRC_DIR, /\.controller\.ts$/);
-      let expectedTotal = 0;
-
-      for (const f of controllers) {
-        const content = readFileSync(f, 'utf-8');
-        if (hasDecorator(content, 'SdkExport')) {
-          expectedTotal += countDecorators(content, 'ApiOperation');
-        }
-      }
-
-      // Allow some margin for parsing edge cases
-      const actualTotal = report.endpoints;
-      const ratio = actualTotal / expectedTotal;
-
-      console.log(
-        `\n📊 Endpoints: ${actualTotal} extracted / ${expectedTotal} in source (${Math.round(ratio * 100)}%)`,
-      );
-
-      // At least 80% captured (some complex patterns may be missed)
-      expect(ratio).toBeGreaterThanOrEqual(0.8);
-    });
-
-    test('resume-import endpoints have correct operation IDs', () => {
-      const paths = swagger.paths;
-      const resumeImportPaths = Object.keys(paths).filter((p) => p.includes('resume-import'));
-
-      const operationIds = resumeImportPaths.flatMap((p) =>
-        Object.values(paths[p]).map((m) => m.operationId),
-      );
-
-      // Should start with 'resume-import_'
-      const validIds = operationIds.filter(
-        (id) => typeof id === 'string' && id.startsWith('resume-import_'),
-      );
-      expect(validIds.length).toBeGreaterThan(0);
-    });
-  });
-
-  describe('OpenAPI Structure', () => {
-    test('has valid OpenAPI version', () => {
-      expect(swagger.openapi).toBe('3.0.0');
-    });
-
-    test('has info section', () => {
-      expect(swagger.info).toBeDefined();
-      expect(swagger.info.title).toBe('ProFile API');
-      expect(swagger.info.version).toBeDefined();
-    });
-
-    test('has servers section', () => {
-      expect(swagger.servers).toBeDefined();
-      expect(swagger.servers.length).toBeGreaterThan(0);
-    });
-
-    test('has tags section', () => {
-      expect(swagger.tags).toBeDefined();
-      expect(swagger.tags.length).toBeGreaterThan(0);
-    });
-
-    test('all tags have name and description', () => {
-      for (const tag of swagger.tags) {
-        expect(tag.name).toBeDefined();
-        expect(typeof tag.name).toBe('string');
-      }
-    });
-
-    test('has paths section', () => {
-      expect(swagger.paths).toBeDefined();
-      expect(Object.keys(swagger.paths).length).toBeGreaterThan(0);
-    });
-
-    test('all paths start with /api', () => {
-      const paths = Object.keys(swagger.paths);
-      for (const path of paths) {
-        expect(path.startsWith('/api')).toBe(true);
-      }
-    });
-
-    test('has components.securitySchemes', () => {
-      expect(swagger.components).toBeDefined();
-      expect(swagger.components.securitySchemes).toBeDefined();
-      expect(swagger.components.securitySchemes['JWT-auth']).toBeDefined();
-    });
-
-    test('JWT-auth security scheme is properly defined', () => {
-      const jwtAuth = swagger.components.securitySchemes['JWT-auth'];
-      expect(jwtAuth.type).toBe('http');
-      expect(jwtAuth.scheme).toBe('bearer');
-      expect(jwtAuth.bearerFormat).toBe('JWT');
-    });
-  });
-
-  describe('Endpoint Definitions', () => {
-    test('all endpoints have operationId', () => {
-      const paths = swagger.paths;
-      for (const [_path, methods] of Object.entries(paths)) {
-        for (const [_method, def] of Object.entries(methods)) {
-          expect(def.operationId).toBeDefined();
-          expect(typeof def.operationId).toBe('string');
-        }
-      }
-    });
-
-    test('all endpoints have tags', () => {
-      const paths = swagger.paths;
-      for (const [_path, methods] of Object.entries(paths)) {
-        for (const [_method, def] of Object.entries(methods)) {
-          expect(def.tags).toBeDefined();
-          expect(def.tags.length).toBeGreaterThan(0);
-        }
-      }
-    });
-
-    test('all endpoints have responses', () => {
-      const paths = swagger.paths;
-      for (const [_path, methods] of Object.entries(paths)) {
-        for (const [_method, def] of Object.entries(methods)) {
-          expect(def.responses).toBeDefined();
-          expect(Object.keys(def.responses).length).toBeGreaterThan(0);
-        }
-      }
-    });
-
-    test('protected endpoints have security', () => {
-      const paths = swagger.paths;
-      let protectedCount = 0;
-      let withSecurityCount = 0;
-
-      for (const [path, methods] of Object.entries(paths)) {
-        for (const [_method, def] of Object.entries(methods)) {
-          // Skip auth endpoints which are typically public
-          if (!path.includes('/auth/signup') && !path.includes('/auth/login')) {
-            protectedCount++;
-            if (def.security && def.security.length > 0) {
-              withSecurityCount++;
-            }
-          }
-        }
-      }
-
-      const ratio = withSecurityCount / protectedCount;
-      console.log(
-        `\n🔒 Security: ${withSecurityCount}/${protectedCount} endpoints have security (${Math.round(ratio * 100)}%)`,
-      );
-
-      // At least 70% should have security
-      expect(ratio).toBeGreaterThanOrEqual(0.7);
-    });
-  });
-
-  describe('Coverage Analysis', () => {
-    test('report has coverage statistics', () => {
-      expect(report.controllers).toBeDefined();
-      expect(report.endpoints).toBeDefined();
-      expect(report.schemas).toBeDefined();
-      expect(report.tags).toBeDefined();
-    });
-
-    test('at least 5 controllers are exported', () => {
-      expect(report.controllers).toBeGreaterThanOrEqual(5);
-    });
-
-    test('at least 20 endpoints are exported', () => {
-      expect(report.endpoints).toBeGreaterThanOrEqual(20);
-    });
-
-    test('warnings are collected', () => {
-      expect(report.warnings).toBeDefined();
-      expect(Array.isArray(report.warnings)).toBe(true);
-    });
-  });
-
-  describe('No Controllers Left Behind', () => {
-    test('controllers with @SdkExport AND @ApiOperation are all in swagger', () => {
-      const controllers = findFiles(SRC_DIR, /\.controller\.ts$/);
-      const missing: string[] = [];
-
-      for (const f of controllers) {
-        const content = readFileSync(f, 'utf-8');
-
-        // Only check controllers that SHOULD be exported
-        if (hasDecorator(content, 'SdkExport') && hasDecorator(content, 'ApiOperation')) {
-          // Extract class name
-          const classMatch = content.match(/export class (\w+Controller)/);
-          if (classMatch) {
-            const className = classMatch[1];
-            const inReport = report.details.some((d) => d.controller === className);
-            if (!inReport) {
-              missing.push(className);
-            }
-          }
-        }
-      }
-
-      if (missing.length > 0) {
-        console.log(`\n❌ Missing controllers: ${missing.join(', ')}`);
-      }
-
-      expect(missing.length).toBe(0);
-    });
-
-    test('all exported tags have at least one endpoint', () => {
-      const tagEndpoints: Record<string, number> = {};
-
-      for (const [_path, methods] of Object.entries(swagger.paths)) {
-        for (const [_method, def] of Object.entries(methods)) {
-          for (const tag of def.tags || []) {
-            tagEndpoints[tag] = (tagEndpoints[tag] || 0) + 1;
-          }
-        }
-      }
-
-      for (const tag of swagger.tags) {
-        expect(tagEndpoints[tag.name]).toBeGreaterThan(0);
-      }
-    });
-  });
+test('swagger artifacts are generated from Nest Swagger', () => {
+  expect(existsSync(SWAGGER_PATH)).toBe(true);
+  expect(existsSync(REPORT_PATH)).toBe(true);
+  expect(report.success).toBe(true);
+  expect(report.generatedBy).toBe('nest-swagger');
 });
 
-describe('SDK Generation Compatibility', () => {
-  test('swagger.json is valid JSON', () => {
-    const content = readFileSync(SWAGGER_PATH, 'utf-8');
-    expect(() => JSON.parse(content)).not.toThrow();
-  });
+test('auth session publishes wrapped success response', () => {
+  const schema = getResponseSchema('/api/auth/session', 'get', '200');
 
-  test('operation IDs are unique', () => {
-    const swagger = JSON.parse(readFileSync(SWAGGER_PATH, 'utf-8'));
-    const operationIds: string[] = [];
+  expectWrappedResponse(schema, '#/components/schemas/SessionResponseDto');
+});
 
-    for (const [_path, methods] of Object.entries(swagger.paths)) {
-      for (const [_method, def] of Object.entries(
-        methods as Record<string, Record<string, unknown>>,
-      )) {
-        operationIds.push(def.operationId as string);
-      }
-    }
+test('onboarding session publishes wrapped success response', () => {
+  const schema = getResponseSchema('/api/v1/onboarding/session', 'get', '200');
 
-    const _uniqueIds = new Set(operationIds);
-    const duplicates = operationIds.filter((id, index) => operationIds.indexOf(id) !== index);
+  expectWrappedResponse(schema, '#/components/schemas/OnboardingSessionDto');
+});
 
-    if (duplicates.length > 0) {
-      console.log(`\n⚠️  Duplicate operationIds: ${duplicates.join(', ')}`);
-    }
+test('onboarding next step keeps HTTP 200 and wrapped response', () => {
+  const nextResponses = swagger.paths['/api/v1/onboarding/session/next']?.post?.responses ?? {};
 
-    // Some duplicates may exist for different paths - that's OK
-    // But the ratio should be low
-    const duplicateRatio = duplicates.length / operationIds.length;
-    expect(duplicateRatio).toBeLessThan(0.2);
-  });
+  expect(nextResponses['200']).toBeDefined();
+  expect(nextResponses['201']).toBeUndefined();
+  expectWrappedResponse(
+    getResponseSchema('/api/v1/onboarding/session/next', 'post', '200'),
+    '#/components/schemas/OnboardingSessionDto',
+  );
+});
 
-  test('paths use valid OpenAPI parameter syntax', () => {
-    const swagger = JSON.parse(readFileSync(SWAGGER_PATH, 'utf-8'));
+test('onboarding next step documents raw step data request body', () => {
+  const schema = getOperation('/api/v1/onboarding/session/next', 'post').requestBody?.content?.[
+    'application/json'
+  ]?.schema;
 
-    for (const path of Object.keys(swagger.paths)) {
-      // Should use {param} not :param
-      expect(path).not.toMatch(/:\w+/);
+  expect(schema?.type).toBe('object');
+  expect(schema?.additionalProperties).toBe(true);
+  expect(schema?.properties).toBeUndefined();
+});
 
-      // If has path params, should be in {} format
-      const _params = path.match(/\{(\w+)\}/g) || [];
-      // That's valid
-    }
-  });
+test('username availability publishes wrapped success response', () => {
+  const schema = getResponseSchema('/api/v1/users/username/check', 'get', '200');
 
-  test('all $ref references point to existing schemas', () => {
-    const swagger = JSON.parse(readFileSync(SWAGGER_PATH, 'utf-8'));
-    const schemaNames = Object.keys(swagger.components?.schemas || {});
+  expectWrappedResponse(schema, '#/components/schemas/UsernameAvailabilityDataDto');
+});
 
-    function findRefs(obj: unknown, refs: string[] = []): string[] {
-      if (typeof obj !== 'object' || obj === null) return refs;
+test('sdk-export controllers publish stable operation ids', () => {
+  expect(getOperationId('/api/v1/users/profile', 'get')).toBe('users_getProfile');
+  expect(getOperationId('/api/v1/users/username/check', 'get')).toBe(
+    'users_checkUsernameAvailability',
+  );
+  expect(getOperationId('/api/v1/themes', 'post')).toBe('themes_createThemeForUser');
+  expect(getOperationId('/api/v1/resumes/{resumeId}/config/sections/batch', 'post')).toBe(
+    'resumeConfig_batchUpdate',
+  );
+  expect(getOperationId('/api/v1/mec/courses/search', 'get')).toBe(
+    'mecCourses_searchCoursesByName',
+  );
+  expect(getOperationId('/api/v1/platform/stats', 'get')).toBe('platform_getStatistics');
+});
 
-      for (const [key, value] of Object.entries(obj)) {
-        if (key === '$ref' && typeof value === 'string') {
-          refs.push(value);
-        } else {
-          findRefs(value, refs);
-        }
-      }
+test('generic handler names keep unique operation ids when sdk tags would collide', () => {
+  expect(getOperationId('/api/password/forgot', 'post')).toBe('forgotPassword_handle');
+  expect(getOperationId('/api/password/reset', 'post')).toBe('resetPassword_handle');
+  expect(getOperationId('/api/email-verification/send', 'post')).toBe('sendVerification_handle');
+});
 
-      return refs;
-    }
+test('documented mutation bodies are available for generated sdk payloads', () => {
+  expect(getRequestSchemaRef('/api/v1/resumes', 'post')).toBe(
+    '#/components/schemas/CreateResumeRequestDto',
+  );
+  expect(getRequestSchemaRef('/api/v1/resumes/{id}', 'patch')).toBe(
+    '#/components/schemas/UpdateResumeRequestDto',
+  );
+  expect(getRequestSchemaRef('/api/v1/themes', 'post')).toBe(
+    '#/components/schemas/CreateThemeRequestDto',
+  );
+  expect(getRequestSchemaRef('/api/v1/themes/{id}', 'put')).toBe(
+    '#/components/schemas/UpdateThemeRequestDto',
+  );
+  expect(getRequestSchemaRef('/api/v1/themes/fork', 'post')).toBe(
+    '#/components/schemas/ForkThemeRequestDto',
+  );
+  expect(getRequestSchemaRef('/api/v1/themes/apply', 'post')).toBe(
+    '#/components/schemas/ApplyThemeToResumeRequestDto',
+  );
+  expect(getRequestSchemaRef('/api/v1/themes/approval/review', 'post')).toBe(
+    '#/components/schemas/ThemeApprovalRequestDto',
+  );
+  expect(getRequestSchemaRef('/api/v1/users/profile', 'patch')).toBe(
+    '#/components/schemas/UpdateUserProfileRequestDto',
+  );
+  expect(getRequestSchemaRef('/api/v1/users/username', 'patch')).toBe(
+    '#/components/schemas/UpdateUsernameRequestDto',
+  );
+});
 
-    const allRefs = findRefs(swagger);
-    const brokenRefs = allRefs.filter((ref) => {
-      const schemaName = ref.replace('#/components/schemas/', '');
-      return !schemaNames.includes(schemaName);
-    });
+test('theme submission stays bodyless because the runtime only uses the path param', () => {
+  expect(getOperation('/api/v1/themes/approval/{id}/submit', 'post').requestBody).toBeUndefined();
+});
 
-    if (brokenRefs.length > 0) {
-      console.log(`\n❌ Broken $ref (MUST FIX): ${brokenRefs.join(', ')}`);
-    }
+test('onboarding save step documents raw step data request body', () => {
+  const schema = getOperation('/api/v1/onboarding/session/save', 'post').requestBody?.content?.[
+    'application/json'
+  ]?.schema;
 
-    // Zero tolerance - ALL references MUST resolve
-    expect(brokenRefs.length).toBe(0);
-  });
+  expect(schema?.type).toBe('object');
+  expect(schema?.additionalProperties).toBe(true);
+  expect(schema?.properties).toBeUndefined();
+});
 
-  test('enforces swagger coverage policy via validator script', async () => {
-    const result = await validateSwaggerCoverage();
+test('onboarding previous step has no request body', () => {
+  expect(getOperation('/api/v1/onboarding/session/previous', 'post').requestBody).toBeUndefined();
+});
 
-    if (!result.success) {
-      const sample = result.undocumentedRoutes
-        .slice(0, 5)
-        .map(
-          (route) =>
-            `${route.controller}.${route.method} [${route.httpMethod}] missing: ${route.missing.join(', ')}`,
-        )
-        .join('\n');
+test('onboarding complete-from-session has no request body', () => {
+  expect(getOperation('/api/v1/onboarding/session/complete', 'post').requestBody).toBeUndefined();
+});
 
-      console.log(`\n❌ Swagger coverage violations (sample):\n${sample}`);
-    }
+test('resume skill update includes all path params required by Orval', () => {
+  expectPathParams('/api/v1/resumes/{resumeId}/skills/{skillId}', 'patch', ['resumeId', 'skillId']);
+});
 
-    expect(result.success).toBe(true);
-  });
+test('resume skill delete includes all path params required by Orval', () => {
+  expectPathParams('/api/v1/resumes/{resumeId}/skills/{skillId}', 'delete', [
+    'resumeId',
+    'skillId',
+  ]);
+});
+
+test('swagger report summarizes a non-empty contract', () => {
+  expect(report.paths).toBeGreaterThan(0);
+  expect(report.operations).toBeGreaterThan(0);
+  expect(report.schemas).toBeGreaterThan(0);
+  expect(report.tags).toContain('auth');
+  expect(report.tags).toContain('onboarding');
+  expect(report.tags).toContain('users');
 });

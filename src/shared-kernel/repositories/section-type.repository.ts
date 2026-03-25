@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { SectionDefinitionSchema } from '@/shared-kernel/dtos/semantic-sections.dto';
 import type {
@@ -20,6 +20,8 @@ import type {
  */
 @Injectable()
 export class SectionTypeRepository implements OnModuleInit {
+  private readonly logger = new Logger(SectionTypeRepository.name);
+
   // In-memory cache of active section types with parsed definitions
   private sectionTypesCache: Map<string, SectionTypeWithDefinition> = new Map();
 
@@ -196,10 +198,7 @@ export class SectionTypeRepository implements OnModuleInit {
   private parseRecord(record: SectionTypeRecord): SectionTypeWithDefinition | null {
     const parsed = SectionDefinitionSchema.safeParse(record.definition);
     if (!parsed.success) {
-      console.warn(
-        `[SectionTypeRepository] Failed to parse definition for ${record.key}:`,
-        parsed.error.message,
-      );
+      this.logger.warn(`Failed to parse definition for ${record.key}: ${parsed.error.message}`);
       return null;
     }
 

@@ -13,10 +13,9 @@
  * - Historical snapshots
  */
 
-import { Body, Controller, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, Req } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
@@ -37,6 +36,7 @@ import type {
   ViewStatsQuery,
   ViewStatsResponse,
 } from '@/shared-kernel';
+import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import { CreateSnapshotRequestDto } from '@/shared-kernel/dtos/sdk-request.dto';
 import { MessageResponseDto } from '@/shared-kernel/dtos/sdk-response.dto';
 import { ResumeAnalyticsFacade } from '../services/resume-analytics.facade';
@@ -84,7 +84,7 @@ export class ResumeAnalyticsController {
   }
 
   @Get(':resumeId/views')
-  @UseGuards(JwtAuthGuard)
+  @RequirePermission(Permission.ANALYTICS_READ_OWN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get view statistics' })
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
@@ -104,7 +104,7 @@ export class ResumeAnalyticsController {
   }
 
   @Get(':resumeId/ats-score')
-  @UseGuards(JwtAuthGuard)
+  @RequirePermission(Permission.ANALYTICS_READ_OWN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Calculate ATS compatibility score' })
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
@@ -119,7 +119,7 @@ export class ResumeAnalyticsController {
   }
 
   @Get(':resumeId/keywords')
-  @UseGuards(JwtAuthGuard)
+  @RequirePermission(Permission.ANALYTICS_READ_OWN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get keyword optimization suggestions' })
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
@@ -144,7 +144,7 @@ export class ResumeAnalyticsController {
   }
 
   @Post(':resumeId/match-job')
-  @UseGuards(JwtAuthGuard)
+  @RequirePermission(Permission.ANALYTICS_READ_OWN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Match resume against job description' })
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
@@ -164,7 +164,7 @@ export class ResumeAnalyticsController {
   }
 
   @Get(':resumeId/benchmark')
-  @UseGuards(JwtAuthGuard)
+  @RequirePermission(Permission.ANALYTICS_READ_OWN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get industry benchmark comparison' })
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
@@ -180,7 +180,7 @@ export class ResumeAnalyticsController {
   }
 
   @Get(':resumeId/dashboard')
-  @UseGuards(JwtAuthGuard)
+  @RequirePermission(Permission.ANALYTICS_READ_OWN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get complete analytics dashboard' })
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
@@ -195,7 +195,7 @@ export class ResumeAnalyticsController {
   }
 
   @Post(':resumeId/snapshot')
-  @UseGuards(JwtAuthGuard)
+  @RequirePermission(Permission.ANALYTICS_READ_OWN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Save analytics snapshot for tracking progress' })
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
@@ -211,7 +211,7 @@ export class ResumeAnalyticsController {
   }
 
   @Get(':resumeId/history')
-  @UseGuards(JwtAuthGuard)
+  @RequirePermission(Permission.ANALYTICS_READ_OWN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get analytics history' })
   @ApiDataResponse(Object, { description: 'History retrieved' })
@@ -227,7 +227,7 @@ export class ResumeAnalyticsController {
   }
 
   @Get(':resumeId/progression')
-  @UseGuards(JwtAuthGuard)
+  @RequirePermission(Permission.ANALYTICS_READ_OWN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get score progression over time' })
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })

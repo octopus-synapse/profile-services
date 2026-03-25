@@ -14,7 +14,8 @@
 
 // AST schemas (Resume AST)
 export * from './ast';
-
+// Authorization (simplified RBAC)
+export * from './authorization';
 // Constants (no conflicts)
 export * from './constants';
 // DSL schemas (Resume DSL)

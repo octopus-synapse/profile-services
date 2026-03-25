@@ -6,7 +6,6 @@ import {
   Param,
   Post,
   UploadedFile,
-  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -20,12 +19,12 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { DeleteResponseDto } from '@/shared-kernel';
+import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import {
   UploadCompanyLogoRequestDto,
   UploadProfileImageRequestDto,
@@ -47,7 +46,7 @@ export class UploadResponseDto {
 @ApiTags('upload')
 @ApiBearerAuth('JWT-auth')
 @Controller('v1/upload')
-@UseGuards(JwtAuthGuard)
+@RequirePermission(Permission.RESUME_UPDATE)
 export class UploadController {
   constructor(private readonly uploadService: UploadService) {}
 

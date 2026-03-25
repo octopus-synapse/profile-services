@@ -17,11 +17,9 @@ import {
   HttpStatus,
   Param,
   Post,
-  UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import {
   ApiDataResponse,
   ApiEmptyDataResponse,
@@ -30,6 +28,7 @@ import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/curre
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { ImportJobDto } from '@/shared-kernel';
+import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import { RetryImportRequestDto } from '@/shared-kernel/dtos/sdk-request.dto';
 import { ImportJsonDto, ImportResultDto, ParsedResumeDataDto } from './dto/import.dto';
 import { toImportJobDto, toImportResultDto, toParsedResumeDataDto } from './mappers/import.mapper';
@@ -42,7 +41,7 @@ import type { JsonResumeSchema } from './resume-import.types';
 })
 @ApiTags('Resume Import')
 @ApiBearerAuth('JWT-auth')
-@UseGuards(JwtAuthGuard)
+@RequirePermission(Permission.RESUME_IMPORT)
 @Controller('resume-import')
 export class ResumeImportController {
   constructor(private readonly importService: ResumeImportService) {}

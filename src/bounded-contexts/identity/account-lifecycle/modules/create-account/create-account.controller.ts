@@ -9,7 +9,7 @@ import { CREATE_ACCOUNT_PORT } from '../../ports/inbound';
 import { CreateAccountDto, CreateAccountResponseDto } from './create-account.dto';
 
 @SdkExport({ tag: 'accounts', description: 'Account creation - signup' })
-@ApiTags('Account Lifecycle')
+@ApiTags('accounts')
 @Controller('accounts')
 export class CreateAccountController {
   constructor(

@@ -68,6 +68,7 @@ export class SkillManagementController {
   @ApiOperation({ summary: 'Update a resume skill' })
   @ApiDataResponse(SkillDataDto, { description: 'Skill updated' })
   async updateSkill(
+    @Param('resumeId') _resumeId: string,
     @Param('skillId') skillId: string,
     @Body() input: UpdateSkillData,
   ): Promise<DataResponse<SkillDataDto>> {
@@ -80,7 +81,10 @@ export class SkillManagementController {
   @RequirePermission('resume', 'update')
   @ApiOperation({ summary: 'Delete a resume skill' })
   @ApiDataResponse(DeleteSkillDataDto, { description: 'Skill deleted' })
-  async deleteSkill(@Param('skillId') skillId: string): Promise<DataResponse<DeleteSkillDataDto>> {
+  async deleteSkill(
+    @Param('resumeId') _resumeId: string,
+    @Param('skillId') skillId: string,
+  ): Promise<DataResponse<DeleteSkillDataDto>> {
     await this.skillManagementService.deleteSkill(skillId);
 
     return { success: true, data: { result: { deleted: true } } };

@@ -18,17 +18,7 @@
  *   POST /                   → Complete with explicit payload
  */
 
-import {
-  Body,
-  Controller,
-  Get,
-  HttpCode,
-  HttpStatus,
-  Post,
-  Put,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Put, Query } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -39,7 +29,6 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
@@ -158,17 +147,15 @@ class SaveProgressResponseDto {
   completedSteps!: string[];
 }
 
+const ONBOARDING_STEP_DATA_REQUEST_SCHEMA = {
+  type: 'object',
+  additionalProperties: true,
+  description: 'Data to save for the current step',
+} as const;
+
 // ============================================================================
 // Command Request DTOs
 // ============================================================================
-
-class NextStepRequestDto {
-  @ApiPropertyOptional({
-    type: Object,
-    description: 'Data to save for the current step',
-  })
-  stepData?: Record<string, unknown>;
-}
 
 class GotoStepRequestDto {
   @ApiProperty({
@@ -176,14 +163,6 @@ class GotoStepRequestDto {
     description: 'Step ID to navigate to',
   })
   stepId!: string;
-}
-
-class SaveStepDataRequestDto {
-  @ApiProperty({
-    type: Object,
-    description: 'Data to save for the current step',
-  })
-  stepData!: Record<string, unknown>;
 }
 
 // Legacy request DTOs (backward compat)
@@ -230,7 +209,6 @@ class SaveProgressRequestDto {
 @ApiTags('onboarding')
 @ApiBearerAuth('JWT-auth')
 @Controller('v1/onboarding')
-@UseGuards(JwtAuthGuard)
 export class OnboardingController {
   constructor(private readonly onboardingService: OnboardingService) {}
 
@@ -271,7 +249,7 @@ export class OnboardingController {
     required: false,
     description: 'Locale for translations (en, pt-BR, es). Defaults to en.',
   })
-  @ApiBody({ type: NextStepRequestDto })
+  @ApiBody({ schema: ONBOARDING_STEP_DATA_REQUEST_SCHEMA })
   @ApiDataResponse(OnboardingSessionDto, { description: 'Updated session' })
   async nextStep(
     @CurrentUser() user: UserPayload,
@@ -295,7 +273,6 @@ export class OnboardingController {
     required: false,
     description: 'Locale for translations (en, pt-BR, es). Defaults to en.',
   })
-  @ApiBody({ required: false, description: 'No body required - uses authenticated user' })
   @ApiDataResponse(OnboardingSessionDto, { description: 'Updated session' })
   async previousStep(
     @CurrentUser() user: UserPayload,
@@ -336,7 +313,7 @@ export class OnboardingController {
     required: false,
     description: 'Locale for translations (en, pt-BR, es). Defaults to en.',
   })
-  @ApiBody({ type: SaveStepDataRequestDto })
+  @ApiBody({ schema: ONBOARDING_STEP_DATA_REQUEST_SCHEMA })
   @ApiDataResponse(OnboardingSessionDto, { description: 'Updated session' })
   async saveStepData(
     @CurrentUser() user: UserPayload,
@@ -356,7 +333,6 @@ export class OnboardingController {
   @ApiOperation({
     summary: 'Complete onboarding — backend builds payload from saved progress',
   })
-  @ApiBody({ required: false, description: 'No body required - uses saved session progress' })
   @ApiDataResponse(CompleteOnboardingResponseDto, {
     description: 'Onboarding completed, resume created',
   })

@@ -32,6 +32,7 @@ import {
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
+import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import type { CollaboratorWithUser } from './collaboration.service';
 import { InviteCollaboratorDto, UpdateRoleDto } from './dto/collaboration.dto';
 import { COLLABORATION_SERVICE_PORT, type CollaborationServicePort } from './ports';
@@ -58,6 +59,7 @@ export class SharedResumesListDataDto {
 
 @SdkExport({ tag: 'collaboration', description: 'Collaboration API' })
 @ApiTags('Collaboration')
+@RequirePermission(Permission.COLLABORATION_USE)
 @Controller('resumes')
 export class CollaborationController {
   constructor(

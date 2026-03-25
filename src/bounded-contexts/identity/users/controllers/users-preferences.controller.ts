@@ -3,16 +3,16 @@
  * Handles user preferences operations
  */
 
-import { Body, Controller, Get, HttpCode, HttpStatus, Patch, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Patch } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { UsersService } from '@/bounded-contexts/identity/users/users.service';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import type { UpdateFullPreferences, UpdatePreferences } from '@/shared-kernel';
+import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import {
   UserFullPreferencesDataDto,
   UserOperationMessageDataDto,
@@ -26,7 +26,7 @@ import {
 export class UsersPreferencesController {
   constructor(private readonly usersService: UsersService) {}
 
-  @UseGuards(JwtAuthGuard)
+  @RequirePermission(Permission.USER_PROFILE_READ)
   @Get('preferences')
   @ApiOperation({ summary: 'Get user preferences (basic)' })
   @ApiDataResponse(UserPreferencesDataDto, {
@@ -39,7 +39,7 @@ export class UsersPreferencesController {
     return { success: true, data: { preferences } };
   }
 
-  @UseGuards(JwtAuthGuard)
+  @RequirePermission(Permission.USER_PROFILE_UPDATE)
   @Patch('preferences')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update user preferences (basic)' })
@@ -60,7 +60,7 @@ export class UsersPreferencesController {
     };
   }
 
-  @UseGuards(JwtAuthGuard)
+  @RequirePermission(Permission.USER_PROFILE_READ)
   @Get('preferences/full')
   @ApiOperation({ summary: 'Get all user preferences' })
   @ApiDataResponse(UserFullPreferencesDataDto, {
@@ -73,7 +73,7 @@ export class UsersPreferencesController {
     return { success: true, data: { preferences } };
   }
 
-  @UseGuards(JwtAuthGuard)
+  @RequirePermission(Permission.USER_PROFILE_UPDATE)
   @Patch('preferences/full')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update all user preferences' })

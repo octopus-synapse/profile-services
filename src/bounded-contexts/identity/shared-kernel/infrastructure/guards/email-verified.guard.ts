@@ -1,4 +1,5 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { ALLOW_UNVERIFIED_EMAIL_KEY } from '../decorators/allow-unverified-email.decorator';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
@@ -20,7 +21,15 @@ const EMAIL_NOT_VERIFIED_MESSAGE = 'Email address must be verified to access thi
  */
 @Injectable()
 export class EmailVerifiedGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+  private readonly skipEmailVerification: boolean;
+
+  constructor(
+    private reflector: Reflector,
+    private configService: ConfigService,
+  ) {
+    this.skipEmailVerification =
+      this.configService.get<string>('SKIP_EMAIL_VERIFICATION') === 'true';
+  }
 
   canActivate(context: ExecutionContext): boolean {
     // Check if route is marked as public (no auth required)
@@ -53,7 +62,7 @@ export class EmailVerifiedGuard implements CanActivate {
     }
 
     // Skip email verification in E2E test environment (user must still be authenticated)
-    if (process.env.SKIP_EMAIL_VERIFICATION === 'true') {
+    if (this.skipEmailVerification) {
       return true;
     }
 

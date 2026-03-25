@@ -132,6 +132,10 @@ export interface ResolvedSectionType {
   // Field definitions
   definition: unknown;
   uiSchema: unknown;
+
+  // Style DSL
+  renderHints: unknown;
+  fieldStyles: unknown;
 }
 
 /**
@@ -155,6 +159,8 @@ export function resolveSectionTypeForLocale(
     maxItems: number | null;
     definition: unknown;
     uiSchema: unknown;
+    renderHints: unknown;
+    fieldStyles: unknown;
     translations: unknown;
   },
   locale: SupportedLocale,
@@ -187,6 +193,8 @@ export function resolveSectionTypeForLocale(
     maxItems: sectionType.maxItems,
     definition: resolveDefinitionFieldsForLocale(sectionType.definition, locale),
     uiSchema: sectionType.uiSchema,
+    renderHints: sectionType.renderHints,
+    fieldStyles: sectionType.fieldStyles,
   };
 }
 

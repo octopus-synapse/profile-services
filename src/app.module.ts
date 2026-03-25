@@ -18,6 +18,7 @@ import { ExportModule } from '@/bounded-contexts/export/export/export.module';
 // Identity Context
 import { IdentityModule } from '@/bounded-contexts/identity';
 import { AuthorizationModule } from '@/bounded-contexts/identity/authorization/authorization.module';
+import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure/guards/jwt-auth.guard';
 import { UsersModule } from '@/bounded-contexts/identity/users/users.module';
 // Import Context
 import { ResumeImportModule } from '@/bounded-contexts/import/resume-import/resume-import.module';
@@ -47,6 +48,7 @@ import { ResumesModule } from '@/bounded-contexts/resumes/resumes/resumes.module
 // Admin Modules
 import { AdminSectionTypesModule } from '@/bounded-contexts/resumes/section-types';
 // Skills Catalog Context
+import { SkillsModule } from '@/bounded-contexts/skills-catalog/skills/skills.module';
 import { SpokenLanguagesModule } from '@/bounded-contexts/skills-catalog/spoken-languages/spoken-languages.module';
 import { TechSkillsModule } from '@/bounded-contexts/skills-catalog/tech-skills/tech-skills.module';
 // Social Context (Activity Feed)
@@ -99,6 +101,7 @@ import { AppService } from './app.service';
     ThemesModule,
     MecSyncModule,
     TechSkillsModule,
+    SkillsModule,
     SpokenLanguagesModule,
     TranslationModule,
     ATSModule,
@@ -117,9 +120,14 @@ import { AppService } from './app.service';
   controllers: [AppController],
   providers: [
     AppService,
+    // Global Guards (order matters: Throttler → JWT Auth)
     {
       provide: APP_GUARD,
       useClass: CustomThrottlerGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
     },
   ],
 })

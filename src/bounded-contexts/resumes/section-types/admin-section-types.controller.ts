@@ -9,7 +9,6 @@ import {
   Patch,
   Post,
   Query,
-  UseGuards,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
@@ -20,9 +19,8 @@ import {
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
-import { PermissionGuard, RequirePermission } from '@/bounded-contexts/identity/authorization';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ZodValidationPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
+import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import { AdminSectionTypesService } from './admin-section-types.service';
 import {
   type CreateSectionTypeDto,
@@ -36,8 +34,7 @@ import {
 @ApiTags('Admin - Section Types')
 @ApiExcludeController()
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, PermissionGuard)
-@RequirePermission('section_types', 'manage')
+@RequirePermission(Permission.SECTION_TYPE_MANAGE)
 @Controller('v1/admin/section-types')
 export class AdminSectionTypesController {
   constructor(private readonly service: AdminSectionTypesService) {}

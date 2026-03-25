@@ -8,7 +8,14 @@
  */
 
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiProperty,
+  ApiPropertyOptional,
+  ApiTags,
+} from '@nestjs/swagger';
 import { PermissionGuard, RequirePermission } from '@/bounded-contexts/identity/authorization';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
@@ -16,9 +23,22 @@ import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/curre
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import type { ThemeApproval } from '@/shared-kernel';
-import { SubmitThemeRequestDto } from '@/shared-kernel/dtos/sdk-request.dto';
 import { ThemeEntityDataDto, ThemeListDataDto } from '../dto/controller-response.dto';
 import { ThemeApprovalService, ThemeCrudService } from '../services';
+
+class ThemeApprovalRequestDto {
+  @ApiProperty()
+  themeId!: string;
+
+  @ApiProperty()
+  approved!: boolean;
+
+  @ApiPropertyOptional({ maxLength: 1000 })
+  feedback?: string;
+
+  @ApiPropertyOptional({ maxLength: 500 })
+  rejectionReason?: string;
+}
 
 @SdkExport({ tag: 'themes', description: 'Themes API' })
 @ApiTags('themes')
@@ -51,6 +71,7 @@ export class ThemeApprovalController {
   @Post('review')
   @RequirePermission('theme', 'approve')
   @ApiOperation({ summary: 'Review and approve/reject a theme' })
+  @ApiBody({ type: ThemeApprovalRequestDto })
   @ApiDataResponse(ThemeEntityDataDto, { description: 'Theme review applied' })
   async review(
     @CurrentUser('userId') userId: string,
@@ -69,7 +90,6 @@ export class ThemeApprovalController {
   @Post(':id/submit')
   @RequirePermission('theme', 'update')
   @ApiOperation({ summary: 'Submit a theme for approval' })
-  @ApiBody({ type: SubmitThemeRequestDto })
   @ApiDataResponse(ThemeEntityDataDto, {
     description: 'Theme submitted for approval',
   })

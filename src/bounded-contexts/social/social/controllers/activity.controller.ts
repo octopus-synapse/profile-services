@@ -9,14 +9,14 @@
  * - GET /v1/users/:userId/activities/by-type/:type - Filter activities by type
  */
 
-import { Controller, Get, HttpCode, HttpStatus, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, HttpCode, HttpStatus, Param, Query } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import type { ActivityType } from '@prisma/client';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
+import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import { ActivityFeedDataDto, ActivityListDataDto } from '../dto/controller-response.dto';
 import { ActivityService } from '../services/activity.service';
 
@@ -32,7 +32,7 @@ export class ActivityController {
    * Shows activities from users they follow.
    */
   @Get(':userId/feed')
-  @UseGuards(JwtAuthGuard)
+  @RequirePermission(Permission.SOCIAL_USE)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get authenticated user activity feed' })
   @ApiParam({ name: 'userId', type: 'string' })

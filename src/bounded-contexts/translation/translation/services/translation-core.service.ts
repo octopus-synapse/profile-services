@@ -19,10 +19,8 @@ export class TranslationCoreService implements OnModuleInit {
     private readonly configService: ConfigService,
     private readonly httpService: HttpService,
   ) {
-    this.libreTranslateUrl = this.configService.get<string>(
-      'LIBRETRANSLATE_URL',
-      'http://localhost:5000',
-    );
+    const url = this.configService.get<string>('LIBRETRANSLATE_URL');
+    this.libreTranslateUrl = url ?? 'http://libretranslate:5000';
   }
 
   async onModuleInit() {

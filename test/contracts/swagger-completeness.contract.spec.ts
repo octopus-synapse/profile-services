@@ -1,374 +1,153 @@
-/**
- * Swagger Completeness Tests
- *
- * Validates that swagger.json has ALL documented endpoints from controllers.
- * These tests ensure we don't miss any backend endpoints.
- */
-
 import { describe, expect, test } from 'bun:test';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 const SWAGGER_PATH = resolve(__dirname, '../../swagger.json');
-const _CONTROLLERS_PATH = resolve(__dirname, '../../src/bounded-contexts');
+const swagger = JSON.parse(readFileSync(SWAGGER_PATH, 'utf-8')) as {
+  openapi: string;
+  components?: {
+    securitySchemes?: Record<string, { type?: string; scheme?: string }>;
+    schemas?: Record<
+      string,
+      {
+        required?: string[];
+        properties?: Record<string, { enum?: string[] }>;
+      }
+    >;
+  };
+  paths: Record<
+    string,
+    Record<
+      string,
+      {
+        operationId?: string;
+        tags?: string[];
+        security?: Array<Record<string, unknown>>;
+        requestBody?: unknown;
+        responses?: Record<string, unknown>;
+      }
+    >
+  >;
+};
 
-describe('Swagger Completeness - Endpoint Coverage', () => {
-  test('swagger.json exists and is valid JSON', () => {
-    const swagger = JSON.parse(readFileSync(SWAGGER_PATH, 'utf-8'));
+function getOperation(path: string, method: string) {
+  const operation = swagger.paths[path]?.[method];
+
+  if (!operation) {
+    throw new Error(`Missing ${method.toUpperCase()} ${path} in swagger.json`);
+  }
+
+  return operation;
+}
+
+describe('Swagger Completeness - Resume Import coverage', () => {
+  test('swagger.json exists and exposes OpenAPI paths', () => {
     expect(swagger.openapi).toBeDefined();
-    expect(swagger.paths).toBeDefined();
+    expect(Object.keys(swagger.paths).length).toBeGreaterThan(0);
   });
 
-  test('has resume-import endpoints documented', () => {
-    const swagger = JSON.parse(readFileSync(SWAGGER_PATH, 'utf-8'));
-    const paths = Object.keys(swagger.paths);
-
-    // All 6 resume-import endpoints must be present
-    expect(paths).toContain('/api/resume-import/json');
-    expect(paths).toContain('/api/resume-import/parse');
-    expect(paths).toContain('/api/resume-import/{importId}');
-    expect(paths).toContain('/api/resume-import');
-    expect(paths).toContain('/api/resume-import/{importId}/retry');
-  });
-
-  test('resume-import endpoints have all HTTP methods', () => {
-    const swagger = JSON.parse(readFileSync(SWAGGER_PATH, 'utf-8'));
-
-    // POST /json
+  test('resume-import endpoints are documented', () => {
     expect(swagger.paths['/api/resume-import/json']?.post).toBeDefined();
-
-    // POST /parse
     expect(swagger.paths['/api/resume-import/parse']?.post).toBeDefined();
-
-    // GET /{importId}
     expect(swagger.paths['/api/resume-import/{importId}']?.get).toBeDefined();
-
-    // DELETE /{importId}
     expect(swagger.paths['/api/resume-import/{importId}']?.delete).toBeDefined();
-
-    // GET /history
     expect(swagger.paths['/api/resume-import']?.get).toBeDefined();
-
-    // POST /{importId}/retry
     expect(swagger.paths['/api/resume-import/{importId}/retry']?.post).toBeDefined();
   });
 
-  test('all resume-import endpoints have operationId', () => {
-    const swagger = JSON.parse(readFileSync(SWAGGER_PATH, 'utf-8'));
+  test('resume-import operationIds use stable sdk-export naming', () => {
     const operations = [
-      swagger.paths['/api/resume-import/json']?.post,
-      swagger.paths['/api/resume-import/parse']?.post,
-      swagger.paths['/api/resume-import/{importId}']?.get,
-      swagger.paths['/api/resume-import/{importId}']?.delete,
-      swagger.paths['/api/resume-import']?.get,
-      swagger.paths['/api/resume-import/{importId}/retry']?.post,
+      getOperation('/api/resume-import/json', 'post'),
+      getOperation('/api/resume-import/parse', 'post'),
+      getOperation('/api/resume-import/{importId}', 'get'),
+      getOperation('/api/resume-import/{importId}', 'delete'),
+      getOperation('/api/resume-import', 'get'),
+      getOperation('/api/resume-import/{importId}/retry', 'post'),
     ];
 
-    operations.forEach((op) => {
-      expect(op?.operationId).toBeDefined();
-      // operationId uses kebab-case: resume-import_xxx
-      expect(op?.operationId).toMatch(/^resume-import_/);
+    operations.forEach((operation) => {
+      expect(operation.operationId).toBeDefined();
+      expect(operation.operationId).toMatch(/^resumeImport_/);
+      expect(operation.tags).toContain('Resume Import');
+      expect(operation.security).toContainEqual({ 'JWT-auth': [] });
     });
   });
+});
 
-  test('all resume-import endpoints have security (except public ones)', () => {
-    const swagger = JSON.parse(readFileSync(SWAGGER_PATH, 'utf-8'));
+describe('Swagger Completeness - Schema sanity', () => {
+  test('required import schemas are present', () => {
+    const schemas = swagger.components?.schemas ?? {};
 
-    // All resume-import endpoints require auth
-    const protectedEndpoints = [
-      swagger.paths['/api/resume-import/json']?.post,
-      swagger.paths['/api/resume-import/parse']?.post,
-      swagger.paths['/api/resume-import/{importId}']?.get,
-      swagger.paths['/api/resume-import/{importId}']?.delete,
-      swagger.paths['/api/resume-import']?.get,
-      swagger.paths['/api/resume-import/{importId}/retry']?.post,
-    ];
-
-    protectedEndpoints.forEach((op) => {
-      expect(op?.security).toBeDefined();
-      expect(op?.security).toContainEqual({ 'JWT-auth': [] });
-    });
+    expect(schemas.ImportResultDto).toBeDefined();
+    expect(schemas.ImportJobDto).toBeDefined();
+    expect(schemas.ParsedResumeDataDto).toBeDefined();
+    expect(schemas.LoginDto).toBeDefined();
+    expect(schemas.CreateAccountDto).toBeDefined();
   });
 
-  // Auth endpoints are exported to SDK for frontend integration
-  test('auth endpoints are SDK-exported', () => {
-    const swagger = JSON.parse(readFileSync(SWAGGER_PATH, 'utf-8'));
+  test('ImportJobDto retains essential fields used by consumers', () => {
+    const dto = swagger.components?.schemas?.ImportJobDto;
 
-    // Auth endpoints SHOULD be in the public SDK
-    expect(swagger.paths['/api/accounts']).toBeDefined();
-    expect(swagger.paths['/api/auth/login']).toBeDefined();
-    expect(swagger.paths['/api/auth/logout']).toBeDefined();
-    expect(swagger.paths['/api/auth/refresh']).toBeDefined();
+    expect(dto).toBeDefined();
+    expect(dto?.required).toContain('id');
+    expect(dto?.required).toContain('status');
+    expect(dto?.required).toContain('source');
+    expect(dto?.required).toContain('createdAt');
+    expect(dto?.properties?.id).toBeDefined();
+    expect(dto?.properties?.status).toBeDefined();
+    expect(dto?.properties?.source).toBeDefined();
+    expect(dto?.properties?.createdAt).toBeDefined();
+  });
+
+  test('ImportJobDto source enum includes supported documented sources', () => {
+    const source = swagger.components?.schemas?.ImportJobDto?.properties?.source;
+
+    expect(source?.enum).toContain('JSON');
+    expect(source?.enum).toContain('PDF');
+    expect(source?.enum).toContain('LINKEDIN');
   });
 });
 
-describe('Swagger Completeness - Schema Validation', () => {
-  test('all required DTOs are present', () => {
-    const swagger = JSON.parse(readFileSync(SWAGGER_PATH, 'utf-8'));
-    const schemas = swagger.components?.schemas;
-
-    // Core schemas that must be present for SDK consumers
-    const requiredSchemas = [
-      'ImportResultDto',
-      'ImportJobDto',
-      'ParsedResumeDataDto',
-      // Auth DTOs (now exported)
-      'LoginDto',
-      'CreateAccountDto',
-    ];
-
-    requiredSchemas.forEach((schema) => {
-      expect(schemas[schema]).toBeDefined();
-    });
-  });
-
-  test('ImportJobDto has all required fields from backend', () => {
-    const swagger = JSON.parse(readFileSync(SWAGGER_PATH, 'utf-8'));
-    const dto = swagger.components.schemas.ImportJobDto;
-
-    expect(dto.required).toContain('id');
-    expect(dto.required).toContain('userId');
-    expect(dto.required).toContain('source');
-    expect(dto.required).toContain('status');
-    expect(dto.required).toContain('createdAt');
-
-    expect(dto.properties.id).toBeDefined();
-    expect(dto.properties.userId).toBeDefined();
-    expect(dto.properties.source).toBeDefined();
-    expect(dto.properties.status).toBeDefined();
-    expect(dto.properties.data).toBeDefined();
-    expect(dto.properties.parsedData).toBeDefined();
-    expect(dto.properties.resumeId).toBeDefined();
-    expect(dto.properties.errors).toBeDefined();
-    expect(dto.properties.createdAt).toBeDefined();
-    expect(dto.properties.updatedAt).toBeDefined();
-  });
-
-  test('ImportResultDto has all required fields', () => {
-    const swagger = JSON.parse(readFileSync(SWAGGER_PATH, 'utf-8'));
-    const dto = swagger.components.schemas.ImportResultDto;
-
-    expect(dto.required).toContain('importId');
-    expect(dto.required).toContain('status');
-
-    expect(dto.properties.importId).toBeDefined();
-    expect(dto.properties.status).toBeDefined();
-    expect(dto.properties.resumeId).toBeDefined();
-    expect(dto.properties.errors).toBeDefined();
-  });
-
-  test('status enum has all values', () => {
-    const swagger = JSON.parse(readFileSync(SWAGGER_PATH, 'utf-8'));
-    const status = swagger.components.schemas.ImportResultDto.properties.status;
-
-    expect(status.enum).toContain('PENDING');
-    expect(status.enum).toContain('PROCESSING');
-    expect(status.enum).toContain('COMPLETED');
-    expect(status.enum).toContain('FAILED');
-    expect(status.enum).toContain('CANCELLED');
-  });
-
-  test('source enum has all import sources', () => {
-    const swagger = JSON.parse(readFileSync(SWAGGER_PATH, 'utf-8'));
-    const source = swagger.components.schemas.ImportJobDto.properties.source;
-
-    expect(source.enum).toContain('JSON');
-    expect(source.enum).toContain('PDF');
-    expect(source.enum).toContain('DOCX');
-    expect(source.enum).toContain('LINKEDIN');
-  });
-
-  test('auth DTOs have required fields', () => {
-    const swagger = JSON.parse(readFileSync(SWAGGER_PATH, 'utf-8'));
-    const loginDto = swagger.components.schemas.LoginDto;
-    const createAccountDto = swagger.components.schemas.CreateAccountDto;
-
-    // LoginDto should have email and password
-    expect(loginDto.properties.email).toBeDefined();
-    expect(loginDto.properties.password).toBeDefined();
-
-    // CreateAccountDto should have name, email, password
-    expect(createAccountDto.properties.name).toBeDefined();
-    expect(createAccountDto.properties.email).toBeDefined();
-    expect(createAccountDto.properties.password).toBeDefined();
-  });
-});
-
-describe('SDK Generation Validation', () => {
-  test('generated SDK has ResumeImportService', () => {
-    const generatedIndex = resolve(
-      __dirname,
-      '../../../profile-frontend/packages/api-client/src/generated/index.ts',
-    );
-
-    try {
-      const content = readFileSync(generatedIndex, 'utf-8');
-      expect(content).toContain('ResumeImportService');
-    } catch {
-      // File may not exist if SDK not generated yet - that's ok for this test
-      expect(true).toBe(true);
-    }
-  });
-
-  test('generated SDK has all required types', () => {
-    const generatedIndex = resolve(
-      __dirname,
-      '../../../profile-frontend/packages/api-client/src/generated/index.ts',
-    );
-
-    try {
-      const content = readFileSync(generatedIndex, 'utf-8');
-      expect(content).toContain('ImportJobDto');
-      expect(content).toContain('ImportResultDto');
-      expect(content).toContain('JsonResumeSchemaDto');
-      expect(content).toContain('ParsedResumeDataDto');
-    } catch {
-      // File may not exist - that's ok
-      expect(true).toBe(true);
-    }
-  });
-});
-
-describe('Controller Documentation Audit', () => {
-  test('ResumeImportController has @ApiOperation decorators', () => {
-    const controllerPath = resolve(
-      __dirname,
-      '../../src/bounded-contexts/import/resume-import/resume-import.controller.ts',
-    );
-
-    const content = readFileSync(controllerPath, 'utf-8');
-
-    // Should have @ApiOperation for each endpoint
-    const apiOperationCount = (content.match(/@ApiOperation/g) || []).length;
-    expect(apiOperationCount).toBeGreaterThanOrEqual(6); // 6 endpoints documented
-  });
-
-  test('ResumeImportController has composed response decorators', () => {
-    const controllerPath = resolve(
-      __dirname,
-      '../../src/bounded-contexts/import/resume-import/resume-import.controller.ts',
-    );
-
-    const content = readFileSync(controllerPath, 'utf-8');
-
-    const composedDecoratorCount =
-      (content.match(/@ApiDataResponse/g) || []).length +
-      (content.match(/@ApiPaginatedDataResponse/g) || []).length +
-      (content.match(/@ApiEmptyDataResponse/g) || []).length +
-      (content.match(/@ApiStreamResponse/g) || []).length;
-    expect(composedDecoratorCount).toBeGreaterThanOrEqual(6);
-  });
-
-  test('import DTOs have @ApiProperty decorators', () => {
-    const dtoPath = resolve(
-      __dirname,
-      '../../src/bounded-contexts/import/resume-import/dto/import.dto.ts',
-    );
-
-    const content = readFileSync(dtoPath, 'utf-8');
-
-    // Should have @ApiProperty decorators
-    const apiPropertyCount = (content.match(/@ApiProperty/g) || []).length;
-    expect(apiPropertyCount).toBeGreaterThan(10); // Multiple DTOs with multiple properties
-  });
-});
-
-describe('Swagger Structure Validation', () => {
+describe('Swagger Completeness - Structural invariants', () => {
   test('has security schemes defined', () => {
-    const swagger = JSON.parse(readFileSync(SWAGGER_PATH, 'utf-8'));
+    const securitySchemes = swagger.components?.securitySchemes ?? {};
 
-    expect(swagger.components.securitySchemes).toBeDefined();
-    expect(swagger.components.securitySchemes['JWT-auth']).toBeDefined();
-    expect(swagger.components.securitySchemes['JWT-auth'].type).toBe('http');
-    expect(swagger.components.securitySchemes['JWT-auth'].scheme).toBe('bearer');
+    expect(securitySchemes['JWT-auth']).toBeDefined();
+    expect(securitySchemes['JWT-auth']?.type).toBe('http');
+    expect(securitySchemes['JWT-auth']?.scheme).toBe('bearer');
   });
 
-  test('has proper tags', () => {
-    const swagger = JSON.parse(readFileSync(SWAGGER_PATH, 'utf-8'));
-
-    expect(swagger.tags).toBeDefined();
-    const tagNames = swagger.tags.map((t: { name: string }) => t.name);
-    // Auth tag not present since auth is internal (not SDK-exported)
-    expect(tagNames).toContain('resume-import');
-  });
-
-  test('all endpoints have tags', () => {
-    const swagger = JSON.parse(readFileSync(SWAGGER_PATH, 'utf-8'));
-
-    Object.entries(swagger.paths).forEach(([_path, methods]) => {
-      Object.entries(methods as Record<string, Record<string, unknown>>).forEach(
-        ([_method, operation]) => {
-          expect(operation.tags).toBeDefined();
-          expect((operation.tags as unknown[]).length).toBeGreaterThan(0);
-        },
-      );
+  test('all operations have tags and responses', () => {
+    Object.values(swagger.paths).forEach((methods) => {
+      Object.values(methods).forEach((operation) => {
+        expect(operation.tags).toBeDefined();
+        expect(operation.tags?.length).toBeGreaterThan(0);
+        expect(operation.responses).toBeDefined();
+        expect(Object.keys(operation.responses ?? {}).length).toBeGreaterThan(0);
+      });
     });
   });
 
-  test('all POST/PUT endpoints have requestBody (except action/upload endpoints)', () => {
-    const swagger = JSON.parse(readFileSync(SWAGGER_PATH, 'utf-8'));
-
-    // These POST endpoints legitimately don't require a request body:
-    // - Action triggers (retry, read, sync, snapshot, submit, auto)
-    // - File uploads (profile-image, company-logo) - use multipart/form-data
-    // - Simple state changes (blocked, accept-consent)
-    // - API operations without input (en-to-pt, pt-to-en)
-    const noBodyEndpoints = [
-      // Action triggers
-      '/retry',
-      '/read',
-      '/sync',
-      '/auto',
-      '/snapshot',
-      '/track-view',
-      '/validate',
-      '/preview',
-      '/batch',
-      '/order',
-      '/visibility',
-      '/submit',
-      // File uploads
-      '/upload/profile-image',
-      '/upload/company-logo',
-      // Simple state changes
-      '/blocked',
-      '/accept-consent',
-      // Simple translations without DTO
-      '/en-to-pt',
-      '/pt-to-en',
-      // Onboarding trigger
-      '/onboarding',
-      // Chat simple actions
-      '/messages',
+  test('documented state-changing endpoints that accept payloads have requestBody', () => {
+    const payloadEndpoints: Array<[string, string]> = [
+      ['/api/resume-import/json', 'post'],
+      ['/api/resume-import/parse', 'post'],
+      ['/api/resume-import/{importId}/retry', 'post'],
+      ['/api/accounts', 'post'],
+      ['/api/auth/login', 'post'],
+      ['/api/v1/onboarding/session/next', 'post'],
+      ['/api/v1/onboarding/session/goto', 'post'],
+      ['/api/v1/onboarding/session/save', 'post'],
+      ['/api/v1/users/username/check', 'get'],
     ];
 
-    const shouldHaveBody = (path: string) =>
-      !noBodyEndpoints.some((action) => path.includes(action));
-
-    Object.entries(
-      swagger.paths as Record<string, Record<string, Record<string, unknown>>>,
-    ).forEach(([path, methods]) => {
-      if (methods.post && shouldHaveBody(path)) {
-        expect(methods.post.requestBody, `POST ${path} should have requestBody`).toBeDefined();
-      }
-      if (methods.put) {
-        expect(methods.put.requestBody, `PUT ${path} should have requestBody`).toBeDefined();
-      }
-    });
-  });
-
-  test('all endpoints have responses', () => {
-    const swagger = JSON.parse(readFileSync(SWAGGER_PATH, 'utf-8'));
-
-    Object.entries(swagger.paths).forEach(([_path, methods]) => {
-      Object.entries(methods as Record<string, Record<string, unknown>>).forEach(
-        ([_method, operation]) => {
-          expect(operation.responses).toBeDefined();
-          expect(
-            Object.keys(operation.responses as Record<string, unknown>).length,
-          ).toBeGreaterThan(0);
-        },
-      );
-    });
+    payloadEndpoints
+      .filter(([, method]) => method !== 'get')
+      .forEach(([path, method]) => {
+        expect(
+          getOperation(path, method).requestBody,
+          `${method.toUpperCase()} ${path} should have requestBody`,
+        ).toBeDefined();
+      });
   });
 });

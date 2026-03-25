@@ -1,10 +1,12 @@
-import { Controller, Get, Header } from '@nestjs/common';
+import { Controller, Get, Header, UseGuards } from '@nestjs/common';
 import { ApiExcludeController, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { MetricsGuard } from './metrics.guard';
 import { MetricsService } from './metrics.service';
 
 @ApiExcludeController()
 @ApiTags('Metrics')
 @Controller('metrics')
+@UseGuards(MetricsGuard)
 export class MetricsController {
   constructor(private readonly metricsService: MetricsService) {}
 

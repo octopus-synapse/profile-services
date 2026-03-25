@@ -1,9 +1,9 @@
-import { Controller, Get, Param, Query, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Query, Req } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
-import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
+import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import {
   ShareAnalyticsEventsDataDto,
   ShareAnalyticsSummaryDataDto,
@@ -16,12 +16,12 @@ export interface RequestWithUser extends Request {
 
 @ApiTags('share-analytics')
 @Controller('v1')
-@UseGuards(JwtAuthGuard)
 export class ShareAnalyticsController {
   constructor(private readonly analyticsService: ShareAnalyticsService) {}
 
   // Original nested endpoint
   @Get('resumes/:resumeId/shares/:shareId/analytics')
+  @RequirePermission(Permission.ANALYTICS_READ_OWN)
   @ApiOperation({ summary: 'Get analytics for a shared resume (nested route)' })
   @ApiDataResponse(ShareAnalyticsSummaryDataDto, {
     description: 'Share analytics returned',
@@ -43,6 +43,7 @@ export class ShareAnalyticsController {
 
   // Flat endpoints for easier testing
   @Get('analytics/:shareId')
+  @RequirePermission(Permission.ANALYTICS_READ_OWN)
   @ApiOperation({ summary: 'Get analytics for a share id' })
   @ApiDataResponse(ShareAnalyticsSummaryDataDto, {
     description: 'Share analytics returned',
@@ -62,6 +63,7 @@ export class ShareAnalyticsController {
   }
 
   @Get('analytics/:shareId/events')
+  @RequirePermission(Permission.ANALYTICS_READ_OWN)
   @ApiOperation({ summary: 'Get analytics events for a share id' })
   @ApiDataResponse(ShareAnalyticsEventsDataDto, {
     description: 'Share analytics events returned',
