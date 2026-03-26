@@ -30,7 +30,11 @@ log_warn() { echo -e "${YELLOW}[attestation]${NC} $1"; }
 log_error() { echo -e "${RED}[attestation]${NC} $1"; }
 
 generate_attestation() {
-    # Calculate tree hash of ALL staged changes
+    # Remove existing .attestation from index (if present from previous commit)
+    # This ensures the tree hash doesn't include the old attestation
+    git rm --cached "$ATTESTATION_FILE" 2>/dev/null || true
+
+    # Calculate tree hash of ALL staged changes (excluding .attestation)
     # This is the same hash git uses internally - cannot be faked
     local tree_hash
     tree_hash=$(git write-tree)
