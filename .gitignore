@@ -126,3 +126,4 @@ prisma/*.db-journal
 .vercel
 .turbo
 data/mec-courses.csv
+generated/

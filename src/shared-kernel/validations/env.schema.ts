@@ -50,12 +50,6 @@ const EnvironmentSchema = z.object({
 
   // Internal integrations
   INTERNAL_API_TOKEN: z.string().min(1).optional(),
-
-  // Attestation witness
-  ATTESTATION_WITNESS_STORAGE_PATH: z.string().min(1).optional(),
-  ATTESTATION_WITNESS_SIGNING_PRIVATE_KEY: z.string().min(1).optional(),
-  ATTESTATION_WITNESS_KEY_ID: z.string().min(1).optional(),
-  ATTESTATION_WITNESS_CHECK_SCRIPT: z.string().min(1).optional(),
 });
 
 export type EnvironmentVariables = z.infer<typeof EnvironmentSchema>;

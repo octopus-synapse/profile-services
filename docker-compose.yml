@@ -69,7 +69,6 @@ services:
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
       MINIO_BUCKET: ${MINIO_BUCKET}
       INTERNAL_API_TOKEN: ${INTERNAL_API_TOKEN}
-      ATTESTATION_WITNESS_STORAGE_PATH: ${ATTESTATION_WITNESS_STORAGE_PATH:-/app/attestation-witness}
     ports:
       - "${BACKEND_PORT:-3001}:${BACKEND_PORT:-3001}"
     depends_on:
@@ -81,7 +80,6 @@ services:
       - profile-network
     volumes:
       - backend_logs:/app/logs
-      - attestation_witness_data:/app/attestation-witness
     healthcheck:
       test:
         [
@@ -94,33 +92,6 @@ services:
       timeout: 3s
       retries: 3
       start_period: 40s
-
-  attestation-witness-worker:
-    build:
-      context: .
-      dockerfile: Dockerfile.witness
-    container_name: profile-attestation-witness-worker
-    restart: unless-stopped
-    environment:
-      NODE_ENV: ${NODE_ENV:-production}
-      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-profile}?schema=public
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-redis}
-      LOG_LEVEL: ${LOG_LEVEL:-info}
-      ATTESTATION_WITNESS_STORAGE_PATH: ${ATTESTATION_WITNESS_STORAGE_PATH:-/app/attestation-witness}
-      ATTESTATION_WITNESS_SIGNING_PRIVATE_KEY: ${ATTESTATION_WITNESS_SIGNING_PRIVATE_KEY}
-      ATTESTATION_WITNESS_KEY_ID: ${ATTESTATION_WITNESS_KEY_ID}
-      ATTESTATION_WITNESS_CHECK_SCRIPT: ${ATTESTATION_WITNESS_CHECK_SCRIPT:-/app/scripts/run-attestation-witness-checks.sh}
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    networks:
-      - profile-network
-    volumes:
-      - attestation_witness_data:/app/attestation-witness
 
 # ==================================
 # Networks
@@ -140,5 +111,3 @@ volumes:
     name: profile-redis-data
   backend_logs:
     name: profile-backend-logs
-  attestation_witness_data:
-    name: profile-attestation-witness-data

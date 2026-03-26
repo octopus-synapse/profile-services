@@ -22,7 +22,6 @@ import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastr
 import { UsersModule } from '@/bounded-contexts/identity/users/users.module';
 // Import Context
 import { ResumeImportModule } from '@/bounded-contexts/import/resume-import/resume-import.module';
-import { AttestationWitnessModule } from '@/bounded-contexts/integration/attestation-witness/attestation-witness.module';
 import { GitHubModule } from '@/bounded-contexts/integration/integrations/github/github.module';
 import { MecSyncModule } from '@/bounded-contexts/integration/mec-sync/mec-sync.module';
 // Integration Context
@@ -98,7 +97,6 @@ import { AppService } from './app.service';
     ExportModule,
     ResumeImportModule,
     UploadModule,
-    AttestationWitnessModule,
     GitHubModule,
     ThemesModule,
     MecSyncModule,

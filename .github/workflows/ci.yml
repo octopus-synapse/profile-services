@@ -71,16 +71,14 @@ jobs:
         needs: [should-skip]
         if: needs.should-skip.outputs.should_skip != 'true'
         runs-on: ubuntu-latest
-        env:
-            ATTESTATION_WITNESS_PUBLIC_KEY: ${{ secrets.ATTESTATION_WITNESS_PUBLIC_KEY }}
         steps:
             - uses: actions/checkout@v4
               with:
                   ref: ${{ github.event.pull_request.head.sha }}
             - name: Verify Attestation
               run: |
-                  chmod +x ./scripts/verify-pre-commit-attestation.sh
-                  ./scripts/verify-pre-commit-attestation.sh
+                  chmod +x ./scripts/attestation.sh
+                  ./scripts/attestation.sh verify
 
     # ═══════════════════════════════════════════════════════════════════════════
     # Build: Docker smoke test (sem push — validação do Dockerfile apenas)
