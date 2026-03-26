@@ -71,12 +71,14 @@ verify_attestation() {
         exit 1
     fi
 
-    # Calculate current tree hash (excluding .attestation itself)
-    # We need to compare against the tree that was attested
-    git rm --cached "$ATTESTATION_FILE" 2>/dev/null || true
+    # Calculate tree hash of current commit EXCLUDING .attestation
+    # We use git plumbing to reconstruct the tree without the attestation file
+    # This works reliably in CI because it operates on git objects, not the index
+    local commit_tree
+    commit_tree=$(git rev-parse HEAD^{tree})
+
     local current_hash
-    current_hash=$(git write-tree)
-    git add "$ATTESTATION_FILE" 2>/dev/null || true
+    current_hash=$(git ls-tree "$commit_tree" | grep -vE '\.attestation$' | git mktree)
 
     log_info "Attested hash: $attested_hash"
     log_info "Current hash:  $current_hash"
