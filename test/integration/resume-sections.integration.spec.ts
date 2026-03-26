@@ -7,13 +7,8 @@ import {
   getApp,
   getPrisma,
   getRequest,
+  unwrapApiData,
 } from './setup';
-
-type ApiResponse<T> = { data?: T } & T;
-
-function unwrapData<T>(body: ApiResponse<T>): T {
-  return (body.data ?? body) as T;
-}
 
 describe('Resume Sections Integration', () => {
   let accessToken: string;
@@ -34,7 +29,7 @@ describe('Resume Sections Integration', () => {
       .send({ title: 'Resume Sections Integration Test' });
 
     expect(createResume.status).toBe(201);
-    resumeId = unwrapData<{ id: string }>(createResume.body).id;
+    resumeId = unwrapApiData<{ id: string }>(createResume.body).id;
 
     const prisma = getPrisma();
     sectionTypeKey = `custom_resume_sections_${randomUUID().slice(0, 8)}_v1`;
@@ -67,6 +62,10 @@ describe('Resume Sections Integration', () => {
     const prisma = getPrisma();
 
     if (sectionTypeId) {
+      await prisma.sectionItem.deleteMany({
+        where: { resumeSection: { sectionTypeId } },
+      });
+      await prisma.resumeSection.deleteMany({ where: { sectionTypeId } });
       await prisma.sectionType.deleteMany({ where: { id: sectionTypeId } });
     }
 
@@ -79,7 +78,7 @@ describe('Resume Sections Integration', () => {
       .set(authHeader(accessToken));
 
     expect(res.status).toBe(200);
-    const list = unwrapData<Array<{ key: string }>>(res.body);
+    const list = unwrapApiData<Array<{ key: string }>>(res.body);
     expect(Array.isArray(list)).toBe(true);
     expect(list.some((item) => item.key === sectionTypeKey)).toBe(true);
   });
@@ -92,7 +91,7 @@ describe('Resume Sections Integration', () => {
 
     expect([200, 201].includes(createRes.status)).toBe(true);
 
-    const created = unwrapData<{ id: string }>(createRes.body);
+    const created = unwrapApiData<{ id: string }>(createRes.body);
     itemId = created.id;
     expect(itemId).toBeDefined();
 
@@ -102,7 +101,7 @@ describe('Resume Sections Integration', () => {
 
     expect(listRes.status).toBe(200);
 
-    const sections = unwrapData<
+    const sections = unwrapApiData<
       Array<{ sectionType: { key: string }; items: Array<{ id: string; content: unknown }> }>
     >(listRes.body);
 
@@ -119,7 +118,7 @@ describe('Resume Sections Integration', () => {
 
     expect(updateRes.status).toBe(200);
 
-    const updated = unwrapData<{ content?: { headline?: string } }>(updateRes.body);
+    const updated = unwrapApiData<{ content?: { headline?: string } }>(updateRes.body);
     expect(updated.content?.headline).toBe('Updated headline for dynamic section');
 
     const deleteRes = await getRequest()
@@ -128,7 +127,7 @@ describe('Resume Sections Integration', () => {
 
     expect(deleteRes.status).toBe(200);
 
-    const deleted = unwrapData<{ success?: boolean }>(deleteRes.body);
+    const deleted = unwrapApiData<{ success?: boolean }>(deleteRes.body);
     expect(deleted.success ?? true).toBe(true);
   });
 

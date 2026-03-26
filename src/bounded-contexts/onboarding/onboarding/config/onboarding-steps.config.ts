@@ -113,6 +113,11 @@ function mapDefinitionToFields(definition: SectionDefinition): StepFieldDto[] {
   return definition.fields
     .filter((f) => f.key && f.type !== 'array' && f.type !== 'object')
     .map((f) => {
+      const fieldKey = f.key;
+      if (!fieldKey) {
+        throw new Error('Section definition field key is required');
+      }
+
       const meta = (f.meta ?? {}) as Record<string, unknown>;
       let uiType: string;
       if (f.type === 'enum') uiType = 'select';
@@ -124,9 +129,9 @@ function mapDefinitionToFields(definition: SectionDefinition): StepFieldDto[] {
           typeof meta.widget === 'string' && meta.widget === 'textarea' ? 'textarea' : 'text';
 
       return {
-        key: f.key!,
+        key: fieldKey,
         type: uiType,
-        label: typeof meta.label === 'string' ? meta.label : f.key!,
+        label: typeof meta.label === 'string' ? meta.label : fieldKey,
         required: f.required ?? false,
         options: f.enum,
         widget: typeof meta.widget === 'string' ? meta.widget : undefined,

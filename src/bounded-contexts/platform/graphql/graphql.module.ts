@@ -32,8 +32,8 @@ import { ResumeResolver } from './resolvers/resume.resolver';
         const isProduction = configService.get('NODE_ENV') === 'production';
 
         return {
-          // Code-First approach
-          autoSchemaFile: join(process.cwd(), 'src/graphql/schema.graphql'),
+          // Code-First approach - generate outside src/ to avoid watch loop
+          autoSchemaFile: join(process.cwd(), 'generated/schema.graphql'),
           sortSchema: true,
 
           // GraphQL Playground configuration (Issue #78)

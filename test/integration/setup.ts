@@ -6,12 +6,14 @@
  *
  */
 
+import { setDefaultTimeout } from 'bun:test';
 import { randomUUID } from 'node:crypto';
 import { join } from 'node:path';
 import { config } from 'dotenv';
 
 // Load test environment BEFORE importing AppModule
 config({ path: join(__dirname, '..', '..', '.env.test'), override: false });
+setDefaultTimeout(15000);
 
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
@@ -176,6 +178,23 @@ export function authHeader(token?: string): { Authorization: string } {
     throw new Error('No access token available. Login first.');
   }
   return { Authorization: `Bearer ${actualToken}` };
+}
+
+export function unwrapApiData<T>(body: unknown): T {
+  const envelope =
+    body && typeof body === 'object' && 'data' in body ? (body as { data?: unknown }).data : body;
+
+  if (
+    envelope &&
+    typeof envelope === 'object' &&
+    !Array.isArray(envelope) &&
+    Object.keys(envelope).length === 1
+  ) {
+    const [onlyKey] = Object.keys(envelope);
+    return (envelope as Record<string, unknown>)[onlyKey] as T;
+  }
+
+  return envelope as T;
 }
 
 /**

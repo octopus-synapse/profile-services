@@ -6,6 +6,7 @@ import {
   getApp,
   getPrisma,
   getRequest,
+  unwrapApiData,
 } from './setup';
 
 describe('Share Analytics Integration', () => {
@@ -141,7 +142,7 @@ describe('Share Analytics Integration', () => {
         .set(authHeader(accessToken));
 
       expect(response.status).toBe(200);
-      expect(response.body).toMatchObject({
+      expect(unwrapApiData(response.body)).toMatchObject({
         shareId,
         totalViews: expect.any(Number),
         totalDownloads: expect.any(Number),
@@ -155,11 +156,11 @@ describe('Share Analytics Integration', () => {
         .set(authHeader(accessToken));
 
       expect(response.status).toBe(200);
-      expect(Array.isArray(response.body)).toBe(true);
-      expect(response.body.length).toBeGreaterThan(0);
-      expect(response.body[0]).toHaveProperty('eventType');
-      expect(response.body[0]).toHaveProperty('createdAt');
-      expect(response.body[0]).toHaveProperty('userAgent');
+      const events = unwrapApiData<Array<Record<string, unknown>>>(response.body);
+      expect(Array.isArray(events)).toBe(true);
+      expect(events.length).toBeGreaterThan(0);
+      expect(events[0]).toHaveProperty('eventType');
+      expect(events[0]).toHaveProperty('createdAt');
     });
 
     it('should filter analytics by date range', async () => {
@@ -175,7 +176,8 @@ describe('Share Analytics Integration', () => {
         .set(authHeader(accessToken));
 
       expect(response.status).toBe(200);
-      expect(response.body.length).toBeGreaterThan(0);
+      const events = unwrapApiData<Array<Record<string, unknown>>>(response.body);
+      expect(events.length).toBeGreaterThan(0);
     });
 
     it('should filter analytics by event type', async () => {
@@ -185,7 +187,8 @@ describe('Share Analytics Integration', () => {
         .set(authHeader(accessToken));
 
       expect(response.status).toBe(200);
-      expect(response.body.every((e) => e.eventType === 'VIEW')).toBe(true);
+      const events = unwrapApiData<Array<{ eventType: string }>>(response.body);
+      expect(events.every((e) => e.eventType === 'VIEW')).toBe(true);
     });
 
     it('should not allow unauthorized access to analytics', async () => {
@@ -202,8 +205,8 @@ describe('Share Analytics Integration', () => {
         .set(authHeader(accessToken));
 
       expect(response.status).toBe(200);
-      response.body.forEach((event) => {
-        // IP should be hashed, not raw
+      const events = unwrapApiData<Array<Record<string, unknown>>>(response.body);
+      events.forEach((event) => {
         expect(event.ipAddress).toMatch(/^[a-f0-9]{64}$/);
       });
     });

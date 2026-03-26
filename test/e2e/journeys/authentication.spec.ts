@@ -100,8 +100,7 @@ describe('E2E Journey 2: Authentication', () => {
         password: testUser.password,
       });
 
-      // API returns 401 for all invalid login attempts (including malformed emails)
-      expect(response.status).toBe(401);
+      expect(response.status).toBe(400);
     });
   });
 

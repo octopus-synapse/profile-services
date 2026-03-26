@@ -39,7 +39,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           echo "🔍 Looking for merged PR for commit: ${{ github.sha }}"
-          
+
           PR_DATA=$(gh api graphql -f query='
             query($sha: String!, $owner: String!, $repo: String!) {
               repository(owner: $owner, name: $repo) {
@@ -62,11 +62,11 @@ jobs:
               }
             }
           ' -f sha="${{ github.sha }}" -f owner="${{ github.repository_owner }}" -f repo="${{ github.event.repository.name }}" 2>/dev/null || echo "{}")
-          
+
           PR_NUMBER=$(echo "$PR_DATA" | jq -r '.data.repository.commit.associatedPullRequests.nodes[0].number // empty')
           PR_MERGED=$(echo "$PR_DATA" | jq -r '.data.repository.commit.associatedPullRequests.nodes[0].merged // false')
           HAS_STABLE=$(echo "$PR_DATA" | jq -r '.data.repository.commit.associatedPullRequests.nodes[0].labels.nodes[].name | select(. == "stable")' | head -1)
-          
+
           if [ -n "$PR_NUMBER" ] && [ "$PR_MERGED" == "true" ]; then
             echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
             echo "📋 Found merged PR #$PR_NUMBER"
@@ -88,9 +88,9 @@ jobs:
         run: |
           CURRENT=$(jq -r '.version' package.json)
           echo "📌 Current version: $CURRENT"
-          
+
           IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT"
-          
+
           if [ "${{ steps.pr-info.outputs.is_stable }}" == "true" ]; then
             NEXT="${MAJOR}.$((MINOR + 1)).0"
             echo "🚀 Next stable version: $NEXT"
@@ -98,7 +98,7 @@ jobs:
             NEXT="${MAJOR}.${MINOR}.$((PATCH + 1))"
             echo "📦 Next patch version: $NEXT"
           fi
-          
+
           echo "next=$NEXT" >> $GITHUB_OUTPUT
           echo "current=$CURRENT" >> $GITHUB_OUTPUT
 
@@ -110,21 +110,21 @@ jobs:
           # Delete existing release branch if it exists
           git push origin --delete "$RELEASE_BRANCH" 2>/dev/null || true
           git branch -D "$RELEASE_BRANCH" 2>/dev/null || true
-          
+
           # Create fresh release branch from main
           git checkout -b "$RELEASE_BRANCH"
-          
+
           # Update version in package.json
           jq ".version = \"$NEXT_VERSION\"" package.json > package.json.tmp && mv package.json.tmp package.json
-          
+
           # Update manifest
           echo "{
             \".\": \"$NEXT_VERSION\"
           }" > .release-please-manifest.json
-          
+
           # Generate changelog entry
           PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-          
+
           if [ -n "$PREV_TAG" ]; then
             COMMITS=$(git log --pretty=format:"- %s (%h)" "${PREV_TAG}..HEAD" 2>/dev/null | head -50 || echo "")
             COMPARE="https://github.com/${{ github.repository }}/compare/${PREV_TAG}...v${NEXT_VERSION}"
@@ -132,31 +132,31 @@ jobs:
             COMMITS="- Initial release"
             COMPARE="https://github.com/${{ github.repository }}/commits/v${NEXT_VERSION}"
           fi
-          
+
           # Create changelog content for PR body
           cat > /tmp/pr-body.md << EOF
           ## Release v${NEXT_VERSION}
-          
+
           ### Changes
-          
+
           ${COMMITS}
-          
+
           ---
-          
+
           **Full Changelog**: ${COMPARE}
-          
+
           ---
-          
+
           > ⚠️ **Merging this PR will create release v${NEXT_VERSION}**
           EOF
-          
+
           # Commit changes
           git add package.json .release-please-manifest.json
           git commit -m "chore(release): v${NEXT_VERSION}"
-          
+
           # Push release branch
           git push origin "$RELEASE_BRANCH" --force
-          
+
           echo "✅ Release branch created/updated"
 
       - name: Create or update release PR
@@ -166,10 +166,10 @@ jobs:
           NEXT_VERSION: ${{ steps.calc-version.outputs.next }}
         run: |
           PR_BODY=$(cat /tmp/pr-body.md)
-          
+
           # Check if PR already exists
           EXISTING_PR=$(gh pr list --head "$RELEASE_BRANCH" --base main --json number --jq '.[0].number' 2>/dev/null || echo "")
-          
+
           if [ -n "$EXISTING_PR" ]; then
             echo "📝 Updating existing PR #$EXISTING_PR"
             gh pr edit "$EXISTING_PR" \
@@ -215,12 +215,12 @@ jobs:
         run: |
           COMMIT_MSG="${{ github.event.head_commit.message }}"
           VERSION=$(echo "$COMMIT_MSG" | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+' | head -1)
-          
+
           if [ -z "$VERSION" ]; then
             # Fallback: read from package.json
             VERSION="v$(jq -r '.version' package.json)"
           fi
-          
+
           echo "version=${VERSION#v}" >> $GITHUB_OUTPUT
           echo "tag=$VERSION" >> $GITHUB_OUTPUT
           echo "📦 Releasing: $VERSION"
@@ -247,7 +247,7 @@ jobs:
           TAG: ${{ steps.extract-version.outputs.tag }}
         run: |
           PREV_TAG=$(git describe --tags --abbrev=0 "$TAG^" 2>/dev/null || echo "")
-          
+
           if [ -n "$PREV_TAG" ]; then
             COMPARE_URL="https://github.com/${{ github.repository }}/compare/${PREV_TAG}...${TAG}"
             COMMITS=$(git log --pretty=format:"- %s (%h)" "${PREV_TAG}..${TAG}^" 2>/dev/null | head -50 || echo "")
@@ -255,12 +255,12 @@ jobs:
             COMPARE_URL="https://github.com/${{ github.repository }}/commits/${TAG}"
             COMMITS="- Initial release"
           fi
-          
+
           cat > /tmp/changelog.md << EOF
           ## What's Changed
-          
+
           ${COMMITS}
-          
+
           **Full Changelog**: ${COMPARE_URL}
           EOF
 
@@ -272,12 +272,12 @@ jobs:
           TAG: ${{ steps.extract-version.outputs.tag }}
         run: |
           CHANGELOG=$(cat /tmp/changelog.md)
-          
+
           gh release create "$TAG" \
             --title "Release $TAG" \
             --notes "$CHANGELOG" \
             --target main
-          
+
           echo "released=true" >> $GITHUB_OUTPUT
           echo "✅ Created GitHub Release $TAG"
 

@@ -5,10 +5,17 @@ import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
+import { createZodPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
 import type { CreateSessionPort, LoginPort } from '../../ports/inbound';
 import { CREATE_SESSION_PORT, LOGIN_PORT } from '../../ports/inbound';
 import type { CookieWriter, SessionCookieOptions } from '../../ports/outbound/session-storage.port';
-import { LoginDto, LoginResponseDto, LoginVerify2faDto } from './login.dto';
+import {
+  LoginDto,
+  LoginResponseDto,
+  LoginSchema,
+  LoginVerify2faDto,
+  LoginVerify2faSchema,
+} from './login.dto';
 
 /**
  * Creates a CookieWriter adapter from Express Response
@@ -55,7 +62,7 @@ export class LoginController {
     description: 'Invalid credentials',
   })
   async login(
-    @Body() dto: LoginDto,
+    @Body(createZodPipe(LoginSchema)) dto: LoginDto,
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ): Promise<DataResponse<LoginResponseDto>> {
@@ -112,7 +119,7 @@ export class LoginController {
     description: 'Invalid 2FA code',
   })
   async verifyLogin2fa(
-    @Body() dto: LoginVerify2faDto,
+    @Body(createZodPipe(LoginVerify2faSchema)) dto: LoginVerify2faDto,
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ): Promise<DataResponse<LoginResponseDto>> {

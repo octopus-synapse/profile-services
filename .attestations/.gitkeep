@@ -1,3 +1,0 @@
-# Content-addressed attestation files
-# Each file is named by the tree_hash it attests
-# Only one file exists at a time (cleaned on each pre-commit)

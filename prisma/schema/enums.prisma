@@ -105,3 +105,10 @@ enum ActivityType {
   PROFILE_UPDATED
   FOLLOWED_USER
 }
+
+enum AttestationWitnessStatus {
+  PENDING
+  RUNNING
+  SUCCEEDED
+  FAILED
+}

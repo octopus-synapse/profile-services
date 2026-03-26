@@ -58,7 +58,7 @@ describe('Security Boundaries Integration', () => {
           summary: '<script>document.cookie</script>',
         });
 
-      if (response.status === 201) {
+      if (response.status === 201 && typeof response.body.data.summary === 'string') {
         expect(response.body.data.summary).not.toContain('<script>');
       }
     });

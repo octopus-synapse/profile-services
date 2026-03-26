@@ -47,6 +47,9 @@ const EnvironmentSchema = z.object({
 
   // Logging
   LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
+
+  // Internal integrations
+  INTERNAL_API_TOKEN: z.string().min(1).optional(),
 });
 
 export type EnvironmentVariables = z.infer<typeof EnvironmentSchema>;

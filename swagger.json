@@ -5548,6 +5548,48 @@
         ]
       }
     },
+    "/api/v1/onboarding/status": {
+      "get": {
+        "operationId": "onboarding_getStatus",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Onboarding completion status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponse"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/OnboardingStatusResponseDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "[Legacy] Get onboarding completion status",
+        "tags": [
+          "onboarding"
+        ]
+      }
+    },
     "/api/v1/onboarding": {
       "post": {
         "operationId": "onboarding_completeOnboarding",
@@ -14322,6 +14364,23 @@
         },
         "required": [
           "resumeId"
+        ]
+      },
+      "OnboardingStatusResponseDto": {
+        "type": "object",
+        "properties": {
+          "hasCompletedOnboarding": {
+            "type": "boolean",
+            "example": false
+          },
+          "onboardingCompletedAt": {
+            "format": "date-time",
+            "type": "string",
+            "example": "2026-03-25T18:00:00.000Z"
+          }
+        },
+        "required": [
+          "hasCompletedOnboarding"
         ]
       },
       "SaveProgressResponseDto": {

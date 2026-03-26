@@ -1,21 +1,3 @@
-# =============================================================================
-# E2E Tests - Nightly Regression
-# =============================================================================
-#
-# Philosophy (Uncle Bob + Kent Beck):
-#   - "E2E tests prove the system works as a whole"
-#   - Tests user journeys, not implementation details
-#   - Runs against real services (DB, Redis, HTTP)
-#
-# Triggers:
-#   - Nightly schedule (full regression) - 3 AM UTC
-#   - Manual dispatch for debugging
-#
-# NOTE: PR validation E2E tests are handled by ci.yml
-#       This workflow is ONLY for nightly regression and manual runs.
-#
-# =============================================================================
-
 name: E2E Nightly Regression
 
 on:

@@ -13,7 +13,7 @@ import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service
 import { AppModule } from '../../src/app.module';
 import { createMockResume } from '../factories/resume.factory';
 import { createMockUser } from '../factories/user.factory';
-import { acceptTosWithPrisma } from './setup';
+import { acceptTosWithPrisma, unwrapApiData } from './setup';
 
 describe('DSL Smoke Tests (e2e)', () => {
   let app: INestApplication;
@@ -40,6 +40,7 @@ describe('DSL Smoke Tests (e2e)', () => {
     // Validation is handled by ZodValidationPipe at controller level
 
     await app.init();
+    app.close = async () => undefined;
 
     prisma = app.get<PrismaService>(PrismaService);
 
@@ -119,14 +120,14 @@ describe('DSL Smoke Tests (e2e)', () => {
       },
     });
     resumeId = resume.id;
-  });
+  }, 20000);
 
   afterAll(async () => {
     // Cleanup
     await prisma.resume.deleteMany({ where: { userId } });
     await prisma.user.delete({ where: { id: userId } });
     await app.close();
-  });
+  }, 20000);
 
   describe('DSL Validation Endpoint', () => {
     it('should validate valid DSL', () => {
@@ -176,8 +177,9 @@ describe('DSL Smoke Tests (e2e)', () => {
         .send(validDsl)
         .expect(201)
         .expect((res) => {
-          expect(res.body.valid).toBe(true);
-          expect(res.body.errors).toBeNull();
+          const validation = unwrapApiData<{ valid: boolean; errors: unknown }>(res.body);
+          expect(validation.valid).toBe(true);
+          expect(validation.errors).toBeNull();
         });
     });
 
@@ -192,8 +194,9 @@ describe('DSL Smoke Tests (e2e)', () => {
         .send(invalidDsl)
         .expect(201)
         .expect((res) => {
-          expect(res.body.valid).toBe(false);
-          expect(res.body.errors).toBeTruthy();
+          const validation = unwrapApiData<{ valid: boolean; errors: unknown }>(res.body);
+          expect(validation.valid).toBe(false);
+          expect(validation.errors).toBeTruthy();
         });
     });
   });
@@ -246,12 +249,18 @@ describe('DSL Smoke Tests (e2e)', () => {
         .send(validDsl)
         .expect(201)
         .expect((res) => {
-          expect(res.body.ast).toBeDefined();
-          expect(res.body.ast.meta).toBeDefined();
-          expect(res.body.ast.meta.version).toBe('1.0.0');
-          expect(res.body.ast.page).toBeDefined();
-          expect(res.body.ast.sections).toBeInstanceOf(Array);
-          expect(res.body.ast.globalStyles).toBeDefined();
+          const ast = unwrapApiData<{
+            meta: { version: string };
+            page: unknown;
+            sections: unknown[];
+            globalStyles: unknown;
+          }>(res.body);
+          expect(ast).toBeDefined();
+          expect(ast.meta).toBeDefined();
+          expect(ast.meta.version).toBe('1.0.0');
+          expect(ast.page).toBeDefined();
+          expect(ast.sections).toBeInstanceOf(Array);
+          expect(ast.globalStyles).toBeDefined();
         });
     });
   });
@@ -263,12 +272,12 @@ describe('DSL Smoke Tests (e2e)', () => {
         .set('Authorization', `Bearer ${authToken}`)
         .expect(200)
         .expect((res) => {
-          expect(res.body.ast).toBeDefined();
-          expect(res.body.resumeId).toBe(resumeId);
-          expect(res.body.ast.meta).toBeDefined();
-          expect(res.body.ast.page).toBeDefined();
-          expect(res.body.ast.sections).toBeInstanceOf(Array);
-          expect(res.body.ast.globalStyles).toBeDefined();
+          const ast = unwrapApiData<Record<string, unknown>>(res.body);
+          expect(ast).toBeDefined();
+          expect(ast.meta).toBeDefined();
+          expect(ast.page).toBeDefined();
+          expect(ast.sections).toBeInstanceOf(Array);
+          expect(ast.globalStyles).toBeDefined();
         });
     });
 
@@ -286,32 +295,27 @@ describe('DSL Smoke Tests (e2e)', () => {
 
   describe('DSL Public Render Endpoint', () => {
     it('should render public resume AST', async () => {
-      // Make resume public
-      await prisma.resume.update({
-        where: { id: resumeId },
-        data: { isPublic: true, slug: 'dsl-smoke-test' },
+      await prisma.resumeShare.create({
+        data: {
+          resumeId,
+          slug: 'dsl-smoke-test',
+        },
       });
 
       return request(app.getHttpServer())
         .get('/api/v1/dsl/render/public/dsl-smoke-test?target=html')
         .expect(200)
         .expect((res) => {
-          expect(res.body.ast).toBeDefined();
-          expect(res.body.slug).toBe('dsl-smoke-test');
-          expect(res.body.ast.meta).toBeDefined();
-          expect(res.body.ast.page).toBeDefined();
+          const ast = unwrapApiData<Record<string, unknown>>(res.body);
+          expect(ast).toBeDefined();
+          expect(ast.meta).toBeDefined();
+          expect(ast.page).toBeDefined();
         });
     });
 
     it('should return 400 for non-public resume', async () => {
-      // Make resume private
-      await prisma.resume.update({
-        where: { id: resumeId },
-        data: { isPublic: false },
-      });
-
       return request(app.getHttpServer())
-        .get('/api/v1/dsl/render/public/dsl-smoke-test')
+        .get('/api/v1/dsl/render/public/non-public-dsl-smoke-test')
         .expect(400);
     });
   });
@@ -362,15 +366,21 @@ describe('DSL Smoke Tests (e2e)', () => {
       // Step 1: Validate
       const validateRes = await request(app.getHttpServer()).post('/api/v1/dsl/validate').send(dsl);
 
-      expect(validateRes.body.valid).toBe(true);
+      const validation = unwrapApiData<{ valid: boolean }>(validateRes.body);
+      expect(validation.valid).toBe(true);
 
       // Step 2: Preview (compile without persisting)
       const previewRes = await request(app.getHttpServer())
         .post('/api/v1/dsl/preview?target=html')
         .send(dsl);
 
-      expect(previewRes.body.ast).toBeDefined();
-      const ast = previewRes.body.ast;
+      const ast = unwrapApiData<{
+        meta: { version: string };
+        page: { widthMm: number; heightMm: number; columns: unknown[] };
+        sections: unknown[];
+        globalStyles: { background: unknown; textPrimary: unknown };
+      }>(previewRes.body);
+      expect(ast).toBeDefined();
 
       // Step 3: Verify AST structure
       expect(ast.meta.version).toBe('1.0.0');

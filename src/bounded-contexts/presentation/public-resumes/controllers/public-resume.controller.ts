@@ -85,16 +85,22 @@ export class PublicResumeController {
     });
 
     const resume = await this.shareService.getResumeWithCache(share.resumeId);
+    const shareInfo = {
+      slug: share.slug,
+      expiresAt: share.expiresAt,
+    };
 
     return {
       success: true,
       data: {
         resume,
-        share: {
-          slug: share.slug,
-          expiresAt: share.expiresAt,
-        },
+        share: shareInfo,
       },
+      resume,
+      share: shareInfo,
+    } as DataResponse<PublicResumeDataDto> & {
+      resume: unknown;
+      share: { slug: string; expiresAt: Date | null };
     };
   }
 
@@ -152,16 +158,22 @@ export class PublicResumeController {
     });
 
     const resume = await this.shareService.getResumeWithCache(share.resumeId);
+    const shareInfo = {
+      slug: share.slug,
+      expiresAt: share.expiresAt,
+    };
 
     return {
       success: true,
       data: {
         resume,
-        share: {
-          slug: share.slug,
-          expiresAt: share.expiresAt,
-        },
+        share: shareInfo,
       },
+      resume,
+      share: shareInfo,
+    } as DataResponse<PublicResumeDataDto> & {
+      resume: unknown;
+      share: { slug: string; expiresAt: Date | null };
     };
   }
 }

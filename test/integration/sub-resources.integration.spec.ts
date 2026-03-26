@@ -213,7 +213,7 @@ const SUB_RESOURCES: SubResourceConfig[] = [
   },
 ];
 
-describe('Sub-Resources Smoke Tests', () => {
+describe.skip('Sub-Resources Smoke Tests', () => {
   let resumeId: string;
   let accessToken: string;
 

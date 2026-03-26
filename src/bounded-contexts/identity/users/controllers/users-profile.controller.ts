@@ -78,6 +78,15 @@ class UpdateUsernameRequestDto {
 export class UsersProfileController {
   constructor(private readonly usersService: UsersService) {}
 
+  private buildProfileData(
+    profile: Record<string, unknown>,
+  ): UserProfileDataDto & Record<string, unknown> {
+    return {
+      ...profile,
+      profile,
+    };
+  }
+
   @Public()
   @Get(':username/profile')
   @ApiOperation({ summary: "Get a user's public profile by username" })
@@ -105,7 +114,7 @@ export class UsersProfileController {
   })
   async getProfile(@CurrentUser() user: UserPayload): Promise<DataResponse<UserProfileDataDto>> {
     const profile = await this.usersService.getProfile(user.userId);
-    return { success: true, data: { profile } };
+    return { success: true, data: this.buildProfileData(profile) };
   }
 
   @RequirePermission(Permission.USER_PROFILE_UPDATE)
@@ -124,9 +133,7 @@ export class UsersProfileController {
 
     return {
       success: true,
-      data: {
-        profile: result,
-      },
+      data: this.buildProfileData(result),
     };
   }
 

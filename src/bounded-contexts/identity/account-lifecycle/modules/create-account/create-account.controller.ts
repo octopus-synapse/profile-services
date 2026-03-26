@@ -4,9 +4,14 @@ import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
+import { ZodValidationPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
 import type { CreateAccountPort } from '../../ports/inbound';
 import { CREATE_ACCOUNT_PORT } from '../../ports/inbound';
-import { CreateAccountDto, CreateAccountResponseDto } from './create-account.dto';
+import {
+  CreateAccountDto,
+  CreateAccountResponseDto,
+  CreateAccountSchema,
+} from './create-account.dto';
 
 @SdkExport({ tag: 'accounts', description: 'Account creation - signup' })
 @ApiTags('accounts')
@@ -35,7 +40,9 @@ export class CreateAccountController {
   @ApiBadRequestResponse({
     description: 'Invalid input or weak password',
   })
-  async signup(@Body() dto: CreateAccountDto): Promise<DataResponse<CreateAccountResponseDto>> {
+  async signup(
+    @Body(new ZodValidationPipe(CreateAccountSchema)) dto: CreateAccountDto,
+  ): Promise<DataResponse<CreateAccountResponseDto>> {
     const result = await this.createAccountService.execute({
       name: dto.name,
       email: dto.email,

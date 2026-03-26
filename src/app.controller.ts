@@ -56,13 +56,15 @@ export class AppController {
   @ApiOperation({ summary: 'Basic application health endpoint' })
   @ApiDataResponse(HealthDataDto, { description: 'Basic health status' })
   getHealth(): DataResponse<HealthDataDto> {
+    const health = {
+      status: 'ok',
+      timestamp: new Date().toISOString(),
+    };
     return {
       success: true,
-      data: {
-        status: 'ok',
-        timestamp: new Date().toISOString(),
-      },
-    };
+      data: health,
+      ...health,
+    } as DataResponse<HealthDataDto> & HealthDataDto;
   }
 
   @Public()

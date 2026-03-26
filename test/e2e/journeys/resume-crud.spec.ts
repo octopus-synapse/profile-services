@@ -219,18 +219,10 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
       expect(response.body.data.sectionTypes).toBeDefined();
       expect(Array.isArray(response.body.data.sectionTypes)).toBe(true);
 
-      const supportedKeys = [
-        'work_experience_v1',
-        'education_v1',
-        'skill_v1',
-        'project_v1',
-        'certification_v1',
-        'language_v1',
-      ];
-
       const workExpType =
-        response.body.data.sectionTypes.find((t: { key: string }) =>
-          supportedKeys.includes(t.key),
+        response.body.data.sectionTypes.find(
+          (t: { key?: string; semanticKind?: string }) =>
+            t.key === 'work_experience_v1' || t.semanticKind === 'WORK_EXPERIENCE',
         ) ??
         response.body.data.sectionTypes.find(
           (t: { key?: string; semanticKind?: string }) =>
@@ -296,7 +288,7 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
         .send({
           content: {
             company: 'Updated Tech Corp',
-            position: 'Lead Engineer',
+            role: 'Lead Engineer',
             startDate: '2020-01',
             endDate: '2024-01',
             description: 'Updated role description',
@@ -306,7 +298,7 @@ describe('E2E Journey 3: Resume CRUD Operations', () => {
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
       expect(response.body.data.item.content.company).toBe('Updated Tech Corp');
-      expect(response.body.data.item.content.position).toBe('Lead Engineer');
+      expect(response.body.data.item.content.role).toBe('Lead Engineer');
     });
 
     if (!sectionItemId) {

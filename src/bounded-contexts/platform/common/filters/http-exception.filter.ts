@@ -55,6 +55,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
       return response.status(status).json({
         success: false,
+        statusCode: status,
+        message: 'Validation failed',
         error: {
           code: ERROR_CODES.VALIDATION_ERROR,
           message: 'Validation failed',
@@ -79,6 +81,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
     status: number,
   ): {
     success: false;
+    statusCode: number;
+    message: string;
     error: { code: string; message: string; details?: Record<string, unknown> };
   } {
     // Default values
@@ -106,6 +110,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
           const errorObj = payload.error as Record<string, unknown>;
           return {
             success: false,
+            statusCode: status,
+            message: typeof errorObj.message === 'string' ? errorObj.message : message,
             error: {
               code: typeof errorObj.code === 'string' ? errorObj.code : code,
               message: typeof errorObj.message === 'string' ? errorObj.message : message,
@@ -154,6 +160,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     return {
       success: false,
+      statusCode: status,
+      message,
       error: {
         code,
         message,
@@ -232,6 +240,24 @@ export class AllExceptionsFilter implements ExceptionFilter {
   private getStatusCode(exception: unknown): number {
     if (exception instanceof HttpException) {
       return exception.getStatus();
+    }
+
+    if (
+      exception &&
+      typeof exception === 'object' &&
+      'status' in exception &&
+      typeof (exception as { status: unknown }).status === 'number'
+    ) {
+      return (exception as { status: number }).status;
+    }
+
+    if (
+      exception &&
+      typeof exception === 'object' &&
+      'statusCode' in exception &&
+      typeof (exception as { statusCode: unknown }).statusCode === 'number'
+    ) {
+      return (exception as { statusCode: number }).statusCode;
     }
 
     // Check for domain exceptions with statusHint

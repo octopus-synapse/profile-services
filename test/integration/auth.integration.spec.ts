@@ -218,9 +218,9 @@ describe('Auth Smoke Tests', () => {
       const res = await getRequest().get('/api/health/db');
 
       expect(res.status).toBe(200);
-      expect(res.body).toHaveProperty('status');
-      expect(res.body.status).toBe('ok');
-      expect(res.body.info).toHaveProperty('database');
+      expect(res.body.success).toBe(true);
+      expect(res.body.data).toHaveProperty('status');
+      expect(res.body.data.status).toBe('ok');
     });
   });
 });

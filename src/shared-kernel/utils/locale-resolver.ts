@@ -86,8 +86,8 @@ export function resolveTranslation(
   }
 
   // Fallback to English
-  if (translations['en']) {
-    return translations['en'];
+  if (translations.en) {
+    return translations.en;
   }
 
   // Fallback to first available
@@ -244,8 +244,8 @@ function resolveFieldTranslation(
   }
 
   // Fallback to English
-  if (translations['en']) {
-    return translations['en'];
+  if (translations.en) {
+    return translations.en;
   }
 
   // Fallback to first available

@@ -19,7 +19,7 @@ jobs:
       service-name: "profile-backend"
       deploy-path: "/opt/profile-services"
       has-database: true
-      required-env-vars: "DATABASE_URL,JWT_SECRET,SENDGRID_API_KEY,REDIS_HOST,MINIO_ENDPOINT"
+      required-env-vars: "DATABASE_URL,JWT_SECRET,SENDGRID_API_KEY,REDIS_HOST,MINIO_ENDPOINT,INTERNAL_API_TOKEN,ATTESTATION_WITNESS_SIGNING_PRIVATE_KEY"
     secrets:
       NODE_AUTH_TOKEN: ${{ secrets.GH_PAT }}
       SERVICE_PORT: ${{ secrets.BACKEND_PORT }}
@@ -44,3 +44,4 @@ jobs:
         MINIO_ACCESS_KEY=${{ secrets.MINIO_ACCESS_KEY }}
         MINIO_SECRET_KEY=${{ secrets.MINIO_SECRET_KEY }}
         MINIO_BUCKET=${{ secrets.MINIO_BUCKET }}
+        INTERNAL_API_TOKEN=${{ secrets.INTERNAL_API_TOKEN }}

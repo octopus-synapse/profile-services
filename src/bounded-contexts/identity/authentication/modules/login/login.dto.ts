@@ -2,13 +2,13 @@ import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
 // Request Schema
-const LoginSchema = z.object({
+export const LoginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
 });
 
 // Request Schema for 2FA login verification
-const LoginVerify2faSchema = z.object({
+export const LoginVerify2faSchema = z.object({
   userId: z.string().min(1),
   code: z.string().min(6),
 });
