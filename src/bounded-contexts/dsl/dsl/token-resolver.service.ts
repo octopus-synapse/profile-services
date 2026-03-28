@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { DesignTokens } from '@/shared-kernel';
+import type { DesignTokens } from '@/bounded-contexts/dsl/domain/schemas/dsl/tokens.schema';
 import {
   BORDER_RADII,
   DENSITY_FACTORS,

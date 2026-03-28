@@ -20,14 +20,12 @@ import type { Request } from 'express';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
-import { createZodPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
-import { type AcceptConsent, AcceptConsentResponseDto, AcceptConsentSchema } from '@/shared-kernel';
-import { AcceptConsentRequestDto } from '@/shared-kernel/dtos/sdk-request.dto';
 import {
   AllowUnverifiedEmail,
   JwtAuthGuard,
   SkipTosCheck,
 } from '../../../shared-kernel/infrastructure';
+import { AcceptConsentRequestDto, AcceptConsentResponseDto } from './accept-consent.dto';
 import { AcceptConsentUseCase } from './accept-consent.use-case';
 
 interface RequestWithUser extends Request {
@@ -64,7 +62,7 @@ export class AcceptConsentController {
   })
   async acceptConsent(
     @Req() req: RequestWithUser,
-    @Body(createZodPipe(AcceptConsentSchema)) dto: AcceptConsent,
+    @Body() dto: AcceptConsentRequestDto,
   ): Promise<DataResponse<AcceptConsentResponseDto>> {
     const userId = req.user.userId;
     const ipAddress = dto.ipAddress ?? req.ip ?? '';

@@ -1,83 +1,163 @@
-import { ApiProperty } from '@nestjs/swagger';
+/**
+ * User Management Response DTOs
+ *
+ * Uses createZodDto for unified TS types + validation + Swagger docs.
+ */
 
-export class PaginationMetaDto {
-  @ApiProperty({ example: 1 })
-  page!: number;
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
 
-  @ApiProperty({ example: 20 })
-  limit!: number;
+// ============================================================================
+// Pagination
+// ============================================================================
 
-  @ApiProperty({ example: 100 })
-  total!: number;
+const PaginationMetaSchema = z.object({
+  page: z.number().int(),
+  limit: z.number().int(),
+  total: z.number().int(),
+  totalPages: z.number().int(),
+});
 
-  @ApiProperty({ example: 5 })
-  totalPages!: number;
-}
+// ============================================================================
+// User List
+// ============================================================================
 
-export class UserManagementListDataDto {
-  @ApiProperty({
-    type: 'array',
-    items: { type: 'object', additionalProperties: true },
-  })
-  users!: Array<Record<string, unknown>>;
+const UserListItemSchema = z.object({
+  id: z.string(),
+  email: z.string().nullable(),
+  name: z.string().nullable(),
+  username: z.string().nullable(),
+  hasCompletedOnboarding: z.boolean(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+  image: z.string().nullable(),
+  emailVerified: z.string().datetime().nullable(),
+  resumeCount: z.number().int(),
+  role: z.enum(['USER', 'ADMIN']),
+  lastLoginAt: z.string().datetime().nullable(),
+});
 
-  @ApiProperty({ type: PaginationMetaDto })
-  pagination!: PaginationMetaDto;
-}
+const UserManagementListDataSchema = z.object({
+  users: z.array(UserListItemSchema),
+  pagination: PaginationMetaSchema,
+});
 
-export class UserDetailsDataDto {
-  @ApiProperty({ type: 'object', additionalProperties: true })
-  user!: Record<string, unknown>;
-}
+// ============================================================================
+// User Details
+// ============================================================================
 
-export class UserMutationDataDto {
-  @ApiProperty({ type: 'object', additionalProperties: true })
-  user!: Record<string, unknown>;
+const UserResumeItemSchema = z.object({
+  id: z.string(),
+  title: z.string().nullable(),
+  template: z.string().nullable(),
+  isPublic: z.boolean(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+});
 
-  @ApiProperty({ example: 'User created successfully' })
-  message!: string;
-}
+const UserCountsSchema = z.object({
+  accounts: z.number().int(),
+  sessions: z.number().int(),
+  resumes: z.number().int(),
+});
 
-export class UserOperationMessageDataDto {
-  @ApiProperty({ example: 'Operation completed successfully' })
-  message!: string;
-}
+const UserDetailsSchema = z.object({
+  id: z.string(),
+  email: z.string().nullable(),
+  name: z.string().nullable(),
+  username: z.string().nullable(),
+  hasCompletedOnboarding: z.boolean(),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+  image: z.string().nullable(),
+  emailVerified: z.string().datetime().nullable(),
+  resumes: z.array(UserResumeItemSchema),
+  preferences: z.unknown().nullable(),
+  counts: UserCountsSchema,
+});
 
-export class PublicProfileDataDto {
-  @ApiProperty({ type: 'object', additionalProperties: true })
-  user!: Record<string, unknown>;
+const UserDetailsDataSchema = z.object({
+  user: UserDetailsSchema,
+});
 
-  @ApiProperty({ type: 'object', nullable: true, additionalProperties: true })
-  resume!: Record<string, unknown> | null;
-}
+// ============================================================================
+// User Mutations
+// ============================================================================
 
-export class UserProfileDataDto {
-  @ApiProperty({ type: 'object', additionalProperties: true })
-  profile!: Record<string, unknown>;
-}
+const CreatedUserSchema = z.object({
+  id: z.string(),
+  email: z.string().nullable(),
+  name: z.string().nullable(),
+  createdAt: z.string().datetime(),
+});
 
-export class UsernameUpdateDataDto {
-  @ApiProperty({ example: 'new_username', nullable: true })
-  username!: string | null;
+const UpdatedUserSchema = z.object({
+  id: z.string(),
+  email: z.string().nullable(),
+  name: z.string().nullable(),
+  username: z.string().nullable(),
+  hasCompletedOnboarding: z.boolean(),
+  updatedAt: z.string().datetime(),
+});
 
-  @ApiProperty({ example: 'Username updated successfully' })
-  message!: string;
-}
+const UserMutationDataSchema = z.object({
+  user: z.union([CreatedUserSchema, UpdatedUserSchema]),
+  message: z.string(),
+});
 
-export class UsernameAvailabilityDataDto {
-  @ApiProperty({ example: 'john_doe' })
-  username!: string;
+const UserOperationMessageDataSchema = z.object({
+  message: z.string(),
+});
 
-  @ApiProperty({ example: true })
-  available!: boolean;
-}
+// ============================================================================
+// Profile & Preferences
+// ============================================================================
 
-export class UserPreferencesDataDto {
-  @ApiProperty({ type: 'object', additionalProperties: true })
-  preferences!: Record<string, unknown>;
-}
+const PublicProfileDataSchema = z.object({
+  user: z.record(z.unknown()),
+  resume: z.record(z.unknown()).nullable(),
+});
 
-export class UserFullPreferencesDataDto {
-  @ApiProperty({ type: 'object', additionalProperties: true })
-  preferences!: Record<string, unknown>;
-}
+const UserProfileDataSchema = z.object({
+  profile: z.record(z.unknown()),
+});
+
+const UsernameUpdateDataSchema = z.object({
+  username: z.string().nullable(),
+  message: z.string(),
+});
+
+const UsernameAvailabilityDataSchema = z.object({
+  username: z.string(),
+  available: z.boolean(),
+});
+
+const UserPreferencesDataSchema = z.object({
+  preferences: z.record(z.unknown()),
+});
+
+const UserFullPreferencesDataSchema = z.object({
+  preferences: z.record(z.unknown()),
+});
+
+// ============================================================================
+// DTOs
+// ============================================================================
+
+export class PaginationMetaDto extends createZodDto(PaginationMetaSchema) {}
+export class UserListItemDto extends createZodDto(UserListItemSchema) {}
+export class UserManagementListDataDto extends createZodDto(UserManagementListDataSchema) {}
+export class UserResumeItemDto extends createZodDto(UserResumeItemSchema) {}
+export class UserCountsDto extends createZodDto(UserCountsSchema) {}
+export class UserDetailsDto extends createZodDto(UserDetailsSchema) {}
+export class UserDetailsDataDto extends createZodDto(UserDetailsDataSchema) {}
+export class CreatedUserDto extends createZodDto(CreatedUserSchema) {}
+export class UpdatedUserDto extends createZodDto(UpdatedUserSchema) {}
+export class UserMutationDataDto extends createZodDto(UserMutationDataSchema) {}
+export class UserOperationMessageDataDto extends createZodDto(UserOperationMessageDataSchema) {}
+export class PublicProfileDataDto extends createZodDto(PublicProfileDataSchema) {}
+export class UserProfileDataDto extends createZodDto(UserProfileDataSchema) {}
+export class UsernameUpdateDataDto extends createZodDto(UsernameUpdateDataSchema) {}
+export class UsernameAvailabilityDataDto extends createZodDto(UsernameAvailabilityDataSchema) {}
+export class UserPreferencesDataDto extends createZodDto(UserPreferencesDataSchema) {}
+export class UserFullPreferencesDataDto extends createZodDto(UserFullPreferencesDataSchema) {}

@@ -99,7 +99,7 @@ function getRequestSchemaRef(path: string, method: string): string | undefined {
 
 function expectWrappedResponse(schema: SwaggerSchema, dtoRef: string) {
   expect(Array.isArray(schema.allOf)).toBe(true);
-  expect(schema.allOf?.[0]?.$ref).toBe('#/components/schemas/ApiResponse');
+  expect(schema.allOf?.[0]?.$ref).toBe('#/components/schemas/ApiResponseDto');
   expect(schema.allOf?.[1]?.type).toBe('object');
   expect(schema.allOf?.[1]?.properties?.data?.$ref).toBe(dtoRef);
   expect(schema.allOf?.[1]?.required).toContain('data');

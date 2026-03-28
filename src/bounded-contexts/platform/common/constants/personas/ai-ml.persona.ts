@@ -1,8 +1,8 @@
+import { TechPersonaEnum } from '@/bounded-contexts/platform/domain/enums';
 import { PersonaConfig } from './persona-config.interface';
-import { TechPersona } from './tech-persona.enum';
 
 export const AI_ML_PERSONA: PersonaConfig = {
-  id: TechPersona.AI_ML,
+  id: TechPersonaEnum.AI_ML,
   name: 'AI/ML Engineer',
   description: 'Artificial Intelligence, Deep Learning, NLP',
   icon: '🤖',

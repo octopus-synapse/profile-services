@@ -2,17 +2,16 @@
  * Resume Import DTOs
  *
  * Data Transfer Objects for resume import API.
- * Swagger decorators document contracts, Zod ensures correctness.
- *
- * Kent Beck: "Make the interface obvious"
+ * Using createZodDto for unified validation + Swagger generation.
  */
 
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 
-// Local type definitions to avoid Prisma coupling in DTOs
-// Must stay in sync with prisma/schema/resume-import.prisma
+// ============================================================================
+// Type Definitions
+// ============================================================================
+
 export type ImportSource = 'LINKEDIN' | 'PDF' | 'DOCX' | 'JSON' | 'GITHUB';
 export type ImportStatus =
   | 'PENDING'
@@ -25,7 +24,7 @@ export type ImportStatus =
   | 'PARTIAL';
 
 // ============================================================================
-// JSON Resume Zod Schemas (jsonresume.org standard)
+// JSON Resume Schemas (jsonresume.org standard)
 // ============================================================================
 
 const JsonResumeBasicsLocationSchema = z.object({
@@ -95,7 +94,7 @@ const JsonResumeProjectSchema = z.object({
   keywords: z.array(z.string()).optional(),
 });
 
-const JsonResumeSchemaZod = z.object({
+const JsonResumeSchema = z.object({
   basics: JsonResumeBasicsSchema,
   work: z.array(JsonResumeWorkSchema).optional(),
   education: z.array(JsonResumeEducationSchema).optional(),
@@ -106,291 +105,87 @@ const JsonResumeSchemaZod = z.object({
 });
 
 // ============================================================================
-// JSON Resume DTOs (TypeScript classes for Swagger)
+// Request Schemas
 // ============================================================================
 
-class JsonResumeBasicsLocationDto {
-  @ApiPropertyOptional({ example: 'San Francisco' })
-  city?: string;
-
-  @ApiPropertyOptional({ example: 'US' })
-  countryCode?: string;
-
-  @ApiPropertyOptional({ example: 'California' })
-  region?: string;
-}
-
-class JsonResumeProfileDto {
-  @ApiPropertyOptional({ example: 'GitHub' })
-  network?: string;
-
-  @ApiPropertyOptional({ example: 'https://github.com/johndoe' })
-  url?: string;
-
-  @ApiPropertyOptional({ example: 'johndoe' })
-  username?: string;
-}
-
-class JsonResumeBasicsDto {
-  @ApiProperty({ example: 'John Doe' })
-  name!: string;
-
-  @ApiPropertyOptional({ example: 'Software Engineer' })
-  label?: string;
-
-  @ApiPropertyOptional({ example: 'john@example.com' })
-  email?: string;
-
-  @ApiPropertyOptional({ example: '+1-555-123-4567' })
-  phone?: string;
-
-  @ApiPropertyOptional({ example: 'https://johndoe.com' })
-  url?: string;
-
-  @ApiPropertyOptional({ example: 'Experienced full-stack developer' })
-  summary?: string;
-
-  @ApiPropertyOptional({ type: JsonResumeBasicsLocationDto })
-  location?: JsonResumeBasicsLocationDto;
-
-  @ApiPropertyOptional({ type: [JsonResumeProfileDto] })
-  profiles?: JsonResumeProfileDto[];
-}
-
-class JsonResumeWorkDto {
-  @ApiPropertyOptional({ example: 'ACME Corp' })
-  name?: string;
-
-  @ApiPropertyOptional({ example: 'Senior Developer' })
-  position?: string;
-
-  @ApiPropertyOptional({ example: 'https://acme.com' })
-  url?: string;
-
-  @ApiPropertyOptional({ example: '2020-01-15' })
-  startDate?: string;
-
-  @ApiPropertyOptional({ example: '2023-05-30' })
-  endDate?: string;
-
-  @ApiPropertyOptional({ example: 'Led development team' })
-  summary?: string;
-
-  @ApiPropertyOptional({
-    example: ['Migrated to microservices', 'Reduced latency by 40%'],
-  })
-  highlights?: string[];
-}
-
-class JsonResumeEducationDto {
-  @ApiPropertyOptional({ example: 'Stanford University' })
-  institution?: string;
-
-  @ApiPropertyOptional({ example: 'Computer Science' })
-  area?: string;
-
-  @ApiPropertyOptional({ example: 'Bachelor' })
-  studyType?: string;
-
-  @ApiPropertyOptional({ example: '2015-09-01' })
-  startDate?: string;
-
-  @ApiPropertyOptional({ example: '2019-06-15' })
-  endDate?: string;
-
-  @ApiPropertyOptional({ example: '3.8' })
-  score?: string;
-}
-
-class JsonResumeSkillDto {
-  @ApiPropertyOptional({ example: 'TypeScript' })
-  name?: string;
-
-  @ApiPropertyOptional({ example: 'Advanced' })
-  level?: string;
-
-  @ApiPropertyOptional({ example: ['Node.js', 'React', 'NestJS'] })
-  keywords?: string[];
-}
-
-class JsonResumeLanguageDto {
-  @ApiPropertyOptional({ example: 'English' })
-  language?: string;
-
-  @ApiPropertyOptional({ example: 'Native' })
-  fluency?: string;
-}
-
-class JsonResumeCertificateDto {
-  @ApiPropertyOptional({ example: 'AWS Solutions Architect' })
-  name?: string;
-
-  @ApiPropertyOptional({ example: '2023-03-15' })
-  date?: string;
-
-  @ApiPropertyOptional({ example: 'Amazon Web Services' })
-  issuer?: string;
-
-  @ApiPropertyOptional({ example: 'https://aws.amazon.com/certification/' })
-  url?: string;
-}
-
-class JsonResumeProjectDto {
-  @ApiPropertyOptional({ example: 'E-commerce Platform' })
-  name?: string;
-
-  @ApiPropertyOptional({ example: 'Built scalable online store' })
-  description?: string;
-
-  @ApiPropertyOptional({ example: 'https://github.com/johndoe/ecommerce' })
-  url?: string;
-
-  @ApiPropertyOptional({ example: ['TypeScript', 'React', 'PostgreSQL'] })
-  keywords?: string[];
-}
-
-export class JsonResumeSchemaDto {
-  @ApiProperty({ type: JsonResumeBasicsDto })
-  basics!: JsonResumeBasicsDto;
-
-  @ApiPropertyOptional({ type: [JsonResumeWorkDto] })
-  work?: JsonResumeWorkDto[];
-
-  @ApiPropertyOptional({ type: [JsonResumeEducationDto] })
-  education?: JsonResumeEducationDto[];
-
-  @ApiPropertyOptional({ type: [JsonResumeSkillDto] })
-  skills?: JsonResumeSkillDto[];
-
-  @ApiPropertyOptional({ type: [JsonResumeLanguageDto] })
-  languages?: JsonResumeLanguageDto[];
-
-  @ApiPropertyOptional({ type: [JsonResumeCertificateDto] })
-  certificates?: JsonResumeCertificateDto[];
-
-  @ApiPropertyOptional({ type: [JsonResumeProjectDto] })
-  projects?: JsonResumeProjectDto[];
-}
-
-// ============================================================================
-// Request DTOs with Zod validation
-// ============================================================================
-
-const ImportJsonSchema = z.object({
-  data: JsonResumeSchemaZod,
+const ImportJsonRequestSchema = z.object({
+  data: JsonResumeSchema,
 });
 
-export class ImportJsonDto extends createZodDto(ImportJsonSchema) {
-  @ApiProperty({
-    description: 'JSON Resume format data (jsonresume.org)',
-    type: JsonResumeSchemaDto,
-  })
-  data!: JsonResumeSchemaDto;
-}
+const RetryImportRequestSchema = z.object({
+  force: z.boolean().default(false).optional(),
+});
 
 // ============================================================================
-// Response DTOs (no validation needed, output only)
+// Response Schemas
 // ============================================================================
 
-export class ImportResultDto {
-  @ApiProperty({ example: 'uuid-v4-string' })
-  importId!: string;
+const ImportStatusEnumSchema = z.enum([
+  'PENDING',
+  'PROCESSING',
+  'MAPPING',
+  'VALIDATING',
+  'IMPORTING',
+  'COMPLETED',
+  'FAILED',
+  'PARTIAL',
+]);
 
-  @ApiProperty({
-    enum: ['PENDING', 'PROCESSING', 'COMPLETED', 'FAILED', 'CANCELLED'],
-  })
-  status!: ImportStatus;
+const ImportSourceEnumSchema = z.enum(['LINKEDIN', 'PDF', 'DOCX', 'JSON', 'GITHUB']);
 
-  @ApiPropertyOptional({ example: 'resume-uuid' })
-  resumeId?: string;
+const ImportResultSchema = z.object({
+  importId: z.string(),
+  status: ImportStatusEnumSchema,
+  resumeId: z.string().optional(),
+  errors: z.array(z.string()).optional(),
+});
 
-  @ApiPropertyOptional({ example: ['Error message if failed'] })
-  errors?: string[];
-}
+const ParsedPersonalInfoSchema = z.object({
+  name: z.string().optional(),
+  email: z.string().optional(),
+  phone: z.string().optional(),
+  location: z.string().optional(),
+  website: z.string().optional(),
+  linkedin: z.string().optional(),
+  github: z.string().optional(),
+});
 
-class ParsedPersonalInfoDto {
-  @ApiPropertyOptional({ example: 'John Doe' })
-  name?: string;
+const ParsedSectionSchema = z.object({
+  sectionTypeKey: z.string(),
+  items: z.array(z.record(z.unknown())),
+});
 
-  @ApiPropertyOptional({ example: 'john@example.com' })
-  email?: string;
+const ParsedResumeDataSchema = z.object({
+  personalInfo: ParsedPersonalInfoSchema,
+  summary: z.string().optional(),
+  sections: z.array(ParsedSectionSchema),
+});
 
-  @ApiPropertyOptional({ example: '+1-555-123-4567' })
-  phone?: string;
+const ImportJobSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  source: ImportSourceEnumSchema,
+  status: ImportStatusEnumSchema,
+  data: z.record(z.string(), z.unknown()).optional(),
+  parsedData: ParsedResumeDataSchema.optional(),
+  resumeId: z.string().optional(),
+  errors: z.array(z.string()).optional(),
+  createdAt: z.string(),
+  updatedAt: z.string().optional(),
+});
 
-  @ApiPropertyOptional({ example: 'San Francisco, CA' })
-  location?: string;
+// ============================================================================
+// Request DTOs
+// ============================================================================
 
-  @ApiPropertyOptional({ example: 'https://johndoe.com' })
-  website?: string;
+export class ImportJsonDto extends createZodDto(ImportJsonRequestSchema) {}
+export class RetryImportRequestDto extends createZodDto(RetryImportRequestSchema) {}
 
-  @ApiPropertyOptional({ example: 'https://linkedin.com/in/johndoe' })
-  linkedin?: string;
+// ============================================================================
+// Response DTOs
+// ============================================================================
 
-  @ApiPropertyOptional({ example: 'https://github.com/johndoe' })
-  github?: string;
-}
-
-class ParsedSectionDto {
-  @ApiProperty({
-    example: 'work_experience_v1',
-    description: 'Section type key',
-  })
-  sectionTypeKey!: string;
-
-  @ApiProperty({
-    example: [{ company: 'ACME Corp', position: 'Senior Developer' }],
-    description: 'Section items as generic content objects',
-  })
-  items!: Array<Record<string, unknown>>;
-}
-
-export class ParsedResumeDataDto {
-  @ApiProperty({ type: ParsedPersonalInfoDto })
-  personalInfo!: ParsedPersonalInfoDto;
-
-  @ApiPropertyOptional({ example: 'Experienced full-stack developer' })
-  summary?: string;
-
-  @ApiProperty({
-    type: [ParsedSectionDto],
-    description: 'Generic sections with items',
-  })
-  sections!: ParsedSectionDto[];
-}
-
-export class ImportJobDto {
-  @ApiProperty({ example: 'uuid-v4-string' })
-  id!: string;
-
-  @ApiProperty({ example: 'user-uuid' })
-  userId!: string;
-
-  @ApiProperty({ enum: ['JSON', 'PDF', 'DOCX', 'LINKEDIN'] })
-  source!: ImportSource;
-
-  @ApiProperty({
-    enum: ['PENDING', 'PROCESSING', 'COMPLETED', 'FAILED', 'CANCELLED'],
-  })
-  status!: ImportStatus;
-
-  @ApiPropertyOptional({
-    description: 'Raw import data (format depends on source)',
-  })
-  data?: unknown;
-
-  @ApiPropertyOptional({ type: ParsedResumeDataDto })
-  parsedData?: ParsedResumeDataDto;
-
-  @ApiPropertyOptional({ example: 'resume-uuid' })
-  resumeId?: string;
-
-  @ApiPropertyOptional({ example: ['Error message if failed'] })
-  errors?: string[];
-
-  @ApiProperty({ example: '2024-01-15T10:30:00Z' })
-  createdAt!: string;
-
-  @ApiProperty({ example: '2024-01-15T10:30:15Z' })
-  updatedAt?: string;
-}
+export class JsonResumeSchemaDto extends createZodDto(JsonResumeSchema) {}
+export class ImportResultDto extends createZodDto(ImportResultSchema) {}
+export class ParsedResumeDataDto extends createZodDto(ParsedResumeDataSchema) {}
+export class ImportJobDto extends createZodDto(ImportJobSchema) {}

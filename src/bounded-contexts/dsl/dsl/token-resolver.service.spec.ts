@@ -8,7 +8,7 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import type { DesignTokens } from '@/shared-kernel';
+import type { DesignTokens } from '@/bounded-contexts/dsl/domain/schemas/dsl/tokens.schema';
 import { TokenResolverService } from './token-resolver.service';
 
 // ============================================================================

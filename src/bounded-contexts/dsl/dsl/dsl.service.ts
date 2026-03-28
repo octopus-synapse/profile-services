@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { ResumeAst } from '@/shared-kernel';
+import type { ResumeAst } from '@/bounded-contexts/dsl/domain/schemas/ast/resume-ast.schema';
 import { DslRepository } from './dsl.repository';
 
 type RenderTarget = 'html' | 'pdf';

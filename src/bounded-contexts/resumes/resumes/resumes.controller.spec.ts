@@ -219,7 +219,8 @@ describe('ResumesController', () => {
 
       expect(result).toHaveProperty('success', true);
       expect(result).toHaveProperty('data');
-      expect(result.data).toHaveProperty('success', true);
+      expect(result.data).toHaveProperty('deleted', true);
+      expect(result.data).toHaveProperty('id', 'resume-456');
       expect(service.getLastCall('deleteResumeForUser')?.args).toEqual([
         'resume-456',
         mockUser.userId,

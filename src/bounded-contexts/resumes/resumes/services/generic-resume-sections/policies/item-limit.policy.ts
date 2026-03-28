@@ -1,5 +1,5 @@
 import { BadRequestException } from '@nestjs/common';
-import { SectionDefinitionSchema } from '@/shared-kernel/dtos/semantic-sections.dto';
+import { SectionDefinitionSchema } from '@/shared-kernel/schemas/sections';
 import { GenericResumeSectionsRepositoryPort } from '../ports/generic-resume-sections-repository.port';
 
 export class ItemLimitPolicy {

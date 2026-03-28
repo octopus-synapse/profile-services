@@ -4,7 +4,7 @@
  * Pure test implementation following clean architecture.
  */
 
-import type { CollaboratorRole } from '@/shared-kernel';
+import type { CollaboratorRole } from '@/bounded-contexts/collaboration/domain/enums';
 import type {
   CollaboratorWithUser,
   InviteCollaboratorParams,

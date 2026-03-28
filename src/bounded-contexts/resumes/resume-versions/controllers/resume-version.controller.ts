@@ -37,7 +37,7 @@ export class ResumeVersionController {
     return {
       success: true,
       data: {
-        versions,
+        versions: versions.map((v) => ({ ...v, createdAt: v.createdAt.toISOString() })),
       },
     };
   }
@@ -60,7 +60,7 @@ export class ResumeVersionController {
       success: true,
       data: {
         success: true,
-        restoredFrom: restored.restoredFrom,
+        restoredFrom: restored.restoredFrom.toISOString(),
       },
     };
   }
@@ -81,7 +81,7 @@ export class ResumeVersionController {
     return {
       success: true,
       data: {
-        versions,
+        versions: versions.map((v) => ({ ...v, createdAt: v.createdAt.toISOString() })),
       },
     };
   }
@@ -108,7 +108,7 @@ export class ResumeVersionController {
     return {
       success: true,
       data: {
-        version,
+        version: { ...version, createdAt: version.createdAt.toISOString() },
       },
     };
   }
@@ -131,7 +131,7 @@ export class ResumeVersionController {
       success: true,
       data: {
         success: true,
-        restoredFrom: restored.restoredFrom,
+        restoredFrom: restored.restoredFrom.toISOString(),
       },
     };
   }

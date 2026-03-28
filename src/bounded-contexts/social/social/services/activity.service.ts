@@ -13,7 +13,7 @@ import { ActivityType } from '@prisma/client';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { EventPublisher } from '@/shared-kernel';
-import { ActivityCreatedEvent, ActivityType as DomainActivityType } from '../../domain/events';
+import { ActivityCreatedEvent, SocialActivityType } from '../../domain/events';
 import { FollowService, PaginatedResult, PaginationParams } from './follow.service';
 
 // --- Types ---
@@ -105,8 +105,8 @@ export class ActivityService {
     return activity as ActivityWithUser;
   }
 
-  private mapActivityType(prismaType: ActivityType): DomainActivityType {
-    const mapping: Record<ActivityType, DomainActivityType> = {
+  private mapActivityType(prismaType: ActivityType): SocialActivityType {
+    const mapping: Record<ActivityType, SocialActivityType> = {
       RESUME_CREATED: 'resume_created',
       RESUME_UPDATED: 'resume_created',
       RESUME_SHARED: 'resume_published',

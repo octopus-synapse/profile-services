@@ -4,22 +4,16 @@
  */
 
 import { Controller, Get, Param, Query } from '@nestjs/common';
-import { ApiOperation, ApiParam, ApiProperty, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
-import { TechSkillDto } from '@/shared-kernel';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
-import type { TechSkill } from '../dtos';
+import { TechSkillListDataDto } from '../dto/controller-response.dto';
 import type { SkillType } from '../interfaces';
 import { SkillQueryService } from '../services/skill-query.service';
 import { SkillSearchService } from '../services/skill-search.service';
 import { TechSkillsQueryService } from '../services/tech-skills-query.service';
-
-class TechSkillListDataDto {
-  @ApiProperty({ type: [TechSkillDto] })
-  skills!: TechSkill[];
-}
 
 @SdkExport({
   tag: 'tech-skills',

@@ -4,7 +4,7 @@
  */
 
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
-import type { ResumeDsl } from '@/shared-kernel';
+import type { ResumeDsl } from '@/bounded-contexts/dsl/domain/schemas/dsl';
 import type { DslMigrator } from './base.migrator';
 
 @Injectable()

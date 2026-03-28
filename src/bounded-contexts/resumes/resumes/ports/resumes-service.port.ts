@@ -38,9 +38,16 @@ export type ResumeResult = {
   slug?: string | null;
   createdAt: Date;
   updatedAt: Date;
+  activeThemeId?: string | null;
+  activeTheme?: {
+    id: string;
+    name: string;
+    description?: string | null;
+  } | null;
   resumeSections?: Array<{
     id: string;
     order: number;
+    visible?: boolean;
     sectionType: {
       id: string;
       key: string;

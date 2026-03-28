@@ -6,7 +6,7 @@
  */
 
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { type ResumeDsl, ResumeDslSchema } from '@/shared-kernel';
+import { type ResumeDsl, ResumeDslSchema } from '@/bounded-contexts/dsl/domain/schemas/dsl';
 
 export interface ValidationResult {
   valid: boolean;

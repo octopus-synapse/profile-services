@@ -7,7 +7,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { UsersRepository } from '@/bounded-contexts/identity/users/users.repository';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.repository';
-import type { UpdateUser as UpdateProfile } from '@/shared-kernel';
+import type { UpdateUser } from '@/shared-kernel';
 import { ERROR_MESSAGES } from '@/shared-kernel';
 
 @Injectable()
@@ -53,7 +53,7 @@ export class UserProfileService {
     return profile;
   }
 
-  async updateProfile(userId: string, profileUpdateData: UpdateProfile) {
+  async updateProfile(userId: string, profileUpdateData: UpdateUser) {
     const existingUser = await this.usersRepository.findUserById(userId);
     if (!existingUser) {
       throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);

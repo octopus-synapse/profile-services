@@ -17,3 +17,4 @@ export type {
   TokenPair,
   TokenPayload,
 } from './token-generator.port';
+export { TOKEN_GENERATOR_PORT } from './token-generator.port';

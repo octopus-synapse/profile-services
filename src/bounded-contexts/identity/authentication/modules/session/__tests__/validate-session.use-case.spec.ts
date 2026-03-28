@@ -46,7 +46,6 @@ describe('ValidateSessionUseCase', () => {
     role: 'USER',
     roles: ['role_user'],
     isAdmin: false,
-    isApprover: false,
     needsOnboarding: false,
     needsEmailVerification: false,
   };
@@ -61,6 +60,8 @@ describe('ValidateSessionUseCase', () => {
       deleteRefreshToken: mock(() => Promise.resolve()),
       deleteAllUserRefreshTokens: mock(() => Promise.resolve()),
       updateLastLogin: mock(() => Promise.resolve()),
+      invalidateSessionCache: mock(() => Promise.resolve()),
+      invalidateEmailCache: mock(() => Promise.resolve()),
     };
 
     mockTokenGenerator = {

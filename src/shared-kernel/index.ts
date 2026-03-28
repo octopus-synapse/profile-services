@@ -1,211 +1,50 @@
 /**
  * Shared Kernel
  *
- * Central exports for all shared code.
+ * Central exports for cross-cutting concerns shared across all bounded contexts.
  *
- * NOTE: To avoid duplicate export conflicts, import from specific modules:
- * - '@/shared-kernel/constants' - App config, error messages
- * - '@/shared-kernel/enums' - Domain enums
- * - '@/shared-kernel/schemas' - Zod validation schemas
- * - '@/shared-kernel/dtos' - Data transfer objects
- * - '@/shared-kernel/types' - TypeScript types
- * - '@/shared-kernel/validations' - Validation utilities
+ * This module exports ONLY truly shared infrastructure:
+ * - Authorization (guards, decorators, permissions)
+ * - Event Bus (domain events)
+ * - Exceptions (base exceptions)
+ * - Validation (generic utilities)
+ * - Constants (pagination, errors, locale)
+ * - Enums (used by 3+ contexts)
+ * - Schemas (primitives, auth, common, sections)
+ *
+ * Context-specific code lives in bounded contexts, not here.
  */
 
-// AST schemas (Resume AST)
-export * from './ast';
-// Authorization (simplified RBAC)
+// ============================================================================
+// Authorization (Guards, Decorators, Permissions)
+// ============================================================================
 export * from './authorization';
-// Constants (no conflicts)
+// ============================================================================
+// Constants (Cross-Cutting Only)
+// ============================================================================
 export * from './constants';
-// DSL schemas (Resume DSL)
-export * from './dsl';
-// DTOs - Selective exports to avoid conflicts with schemas/enums
-// These are DTOs that are ONLY defined in dtos/ and don't conflict
-export {
-  type ActivityType,
-  ActivityTypeSchema,
-  type AdminCreateUser,
-  // Admin
-  AdminCreateUserSchema,
-  type AdminResetPassword,
-  AdminResetPasswordSchema,
-  type AdminStats,
-  AdminStatsSchema,
-  type AdminUpdateRoleRequest,
-  AdminUpdateRoleRequestSchema,
-  type AdminUpdateUser,
-  AdminUpdateUserSchema,
-  type AdminUserListItem,
-  AdminUserListItemSchema,
-  type AdminUserQuery,
-  AdminUserQuerySchema,
-  type ApplyThemeToResume,
-  ApplyThemeToResumeSchema,
-  type ATSScoreResponse,
-  ATSScoreResponseSchema,
-  type BenchmarkOptions,
-  BenchmarkOptionsSchema,
-  type BenchmarkResponse,
-  BenchmarkResponseSchema,
-  type BlockedUserResponse,
-  type BlockUser,
-  // Chat - Block
-  BlockUserSchema,
-  ChangeEmailDto,
-  ChangePasswordDto,
-  // Chat - Responses
-  type ConversationResponse,
-  type Course,
-  type CourseBasic,
-  CourseBasicSchema,
-  CourseSchema,
-  type CreateTheme,
-  // Theme
-  CreateThemeSchema,
-  type DashboardResponse,
-  DashboardResponseSchema,
-  type DateString,
-  DateStringSchema,
-  ForgotPasswordDto,
-  type ForkTheme,
-  ForkThemeSchema,
-  type GetConversationsQuery,
-  GetConversationsQuerySchema,
-  type GetMessagesQuery,
-  GetMessagesQuerySchema,
-  type HealthStatus,
-  HealthStatusSchema,
-  type HistoryQuery,
-  HistoryQuerySchema,
-  type IdParam,
-  IdParamSchema,
-  type Institution,
-  // MEC
-  InstitutionSchema,
-  type InstitutionWithCourses,
-  InstitutionWithCoursesSchema,
-  type JobMatch,
-  type JobMatchResponse,
-  JobMatchResponseSchema,
-  JobMatchSchema,
-  type KeywordOptions,
-  KeywordOptionsSchema,
-  type KeywordSuggestionsResponse,
-  KeywordSuggestionsResponseSchema,
-  LoginCredentialsDto,
-  type MecStats,
-  MecStatsSchema,
-  type MessageResponse,
-  type OnboardingProgress,
-  OnboardingProgressSchema,
-  type OnboardingResult,
-  OnboardingResultSchema,
-  type OnboardingStatus,
-  OnboardingStatusSchema,
-  type OnboardingStep,
-  // Onboarding
-  OnboardingStepSchema,
-  type PaginatedConversationsResponse,
-  type PaginatedMessagesResponse,
-  type PaginatedUsers,
-  PaginatedUsersSchema,
-  type PaginationQuery,
-  // Common
-  PaginationQuerySchema,
-  type QueryThemes,
-  QueryThemesSchema,
-  type RecentActivity,
-  RecentActivitySchema,
-  RefreshTokenDto,
-  RegisterCredentialsDto,
-  type ReorderItems,
-  ReorderItemsSchema,
-  ResetPasswordDto,
-  type ScoreProgressionResponse,
-  ScoreProgressionResponseSchema,
-  type SearchQuery,
-  SearchQuerySchema,
-  type SendMessage,
-  // Chat
-  SendMessageSchema,
-  type SendMessageToConversation,
-  SendMessageToConversationSchema,
-  type SnapshotResponse,
-  SnapshotResponseSchema,
-  type SystemHealth,
-  SystemHealthSchema,
-  type ThemeApplication,
-  ThemeApplicationSchema,
-  type ThemeApproval,
-  ThemeApprovalSchema,
-  type TrackView,
-  // Analytics
-  TrackViewSchema,
-  type TranslateBatch,
-  TranslateBatchSchema,
-  type TranslateText,
-  // Translation
-  TranslateTextSchema,
-  type UpdateFullPreferences,
-  UpdateFullPreferencesSchema,
-  type UpdatePreferences,
-  UpdatePreferencesSchema,
-  type UpdateProfile,
-  // User Profile
-  UpdateProfileSchema,
-  type UpdateTheme,
-  UpdateThemeSchema,
-  type UpdateUser,
-  type UpdateUsername,
-  UpdateUsernameSchema,
-  // User
-  UpdateUserSchema,
-  type UsernameValidationError,
-  UsernameValidationErrorSchema,
-  type ValidateCV,
-  // ATS
-  ValidateCVSchema,
-  type ValidateUsernameRequest,
-  // Username Validation
-  ValidateUsernameRequestSchema,
-  type ValidateUsernameResponse,
-  ValidateUsernameResponseSchema,
-  type ValidationIssue,
-  ValidationIssueSchema,
-  type ValidationResponse,
-  ValidationResponseSchema,
-  type ViewStatsQuery,
-  ViewStatsQuerySchema,
-  type ViewStatsResponse,
-  ViewStatsResponseSchema,
-  // Chat - WebSocket
-  type WsTypingEvent,
-} from './dtos';
-// Resume AST DTOs (for SDK generation)
-export * from './dtos/resume-ast.dto';
-// SDK Request DTOs (for @ApiBody decorators)
-export * from './dtos/sdk-request.dto';
-// SDK Response DTOs (for @ApiResponse decorators)
-export * from './dtos/sdk-response.dto';
-// Semantic section contracts
-export * from './dtos/semantic-sections.dto';
-// Enums (canonical source)
+// ============================================================================
+// Enums (Used by 3+ Contexts)
+// ============================================================================
 export * from './enums';
-// Event Bus
+// ============================================================================
+// Event Bus (Domain Events)
+// ============================================================================
 export {
   DomainEvent,
   EventBusModule,
   EventPublisher,
   type EventPublisherPort,
 } from './event-bus';
-// Domain Exceptions (framework-independent)
+// ============================================================================
+// Exceptions (Base Exceptions)
+// ============================================================================
 export * from './exceptions';
-// Schemas (canonical source)
+// ============================================================================
+// Schemas (Shared Validation Contracts)
+// ============================================================================
 export * from './schemas';
-// Types (API types, etc.)
-export * from './types';
-// Validation utilities
+// ============================================================================
+// Validation (Generic Utilities)
+// ============================================================================
 export * from './validation';
-// Validations (domain validation schemas)
-export * from './validations';

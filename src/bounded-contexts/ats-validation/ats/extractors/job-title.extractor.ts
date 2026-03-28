@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import type { SemanticFieldValue } from '@/shared-kernel/dtos/semantic-sections.dto';
+import type { SemanticFieldValue } from '@/shared-kernel/schemas/sections';
 
 @Injectable()
 export class JobTitleExtractor {

@@ -15,7 +15,6 @@ import {
   ApiConsumes,
   ApiOperation,
   ApiParam,
-  ApiProperty,
   ApiTags,
 } from '@nestjs/swagger';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
@@ -23,24 +22,14 @@ import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/a
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
-import { DeleteResponseDto } from '@/shared-kernel';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import {
+  DeleteResponseDto,
   UploadCompanyLogoRequestDto,
   UploadProfileImageRequestDto,
-} from '@/shared-kernel/dtos/sdk-request.dto';
+  UploadResponseDto,
+} from './dto/upload.dto';
 import { UploadService } from './upload.service';
-
-/** DTO for upload response */
-export class UploadResponseDto {
-  @ApiProperty({
-    example: 'http://minio.example.com:9000/profile-uploads/profiles/userId/uuid.jpg',
-  })
-  url!: string;
-
-  @ApiProperty({ example: 'profiles/userId/uuid.jpg' })
-  key!: string;
-}
 
 @SdkExport({ tag: 'upload', description: 'Upload API' })
 @ApiTags('upload')
@@ -109,8 +98,7 @@ export class UploadController {
     return {
       success: true,
       data: {
-        success: result,
-        message: result ? 'File deleted successfully' : 'Failed to delete file',
+        deleted: result,
       },
     };
   }

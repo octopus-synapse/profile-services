@@ -74,4 +74,14 @@ export interface AuthenticationRepositoryPort {
    * Updates the last login timestamp
    */
   updateLastLogin(userId: string): Promise<void>;
+
+  /**
+   * Invalidate session cache when user profile changes
+   */
+  invalidateSessionCache(userId: string): Promise<void>;
+
+  /**
+   * Invalidate email cache when email changes
+   */
+  invalidateEmailCache(email: string): Promise<void>;
 }

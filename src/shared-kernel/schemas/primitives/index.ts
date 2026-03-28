@@ -5,7 +5,7 @@
  * These are the building blocks for domain schemas.
  */
 
-export * from '../../validations/username.schema';
+export * from '@/bounded-contexts/identity/users/domain/schemas/username.schema';
 export * from './email.schema';
 export * from './password.schema';
 export * from './professional-profile.schema';

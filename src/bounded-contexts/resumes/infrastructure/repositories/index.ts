@@ -12,3 +12,4 @@ export {
 export { getMaxOrder, reorderEntities } from './order-operations';
 export { findAllWithPagination } from './pagination-query';
 export type { PrismaDelegate } from './prisma-delegate.type';
+export { SectionTypeRepository } from './section-type.repository';

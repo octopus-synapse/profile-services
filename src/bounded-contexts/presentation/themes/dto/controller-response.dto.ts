@@ -1,59 +1,59 @@
-import { ApiProperty } from '@nestjs/swagger';
+/**
+ * Theme Response DTOs
+ */
 
-export class ThemeListDataDto {
-  @ApiProperty({
-    type: 'array',
-    items: { type: 'object', additionalProperties: true },
-  })
-  themes!: Array<Record<string, unknown>>;
-}
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
 
-export class ThemeEntityDataDto {
-  @ApiProperty({ type: 'object', additionalProperties: true })
-  theme!: Record<string, unknown>;
-}
+// ============================================================================
+// Schemas
+// ============================================================================
 
-export class ThemeNullableEntityDataDto {
-  @ApiProperty({ type: 'object', nullable: true, additionalProperties: true })
-  theme!: Record<string, unknown> | null;
-}
+const ThemeListDataSchema = z.object({
+  themes: z.array(z.record(z.unknown())),
+});
 
-export class ThemePaginationDataDto {
-  @ApiProperty({ example: 100 })
-  total!: number;
+const ThemeEntityDataSchema = z.object({
+  theme: z.record(z.unknown()),
+});
 
-  @ApiProperty({ example: 1 })
-  page!: number;
+const ThemeNullableEntityDataSchema = z.object({
+  theme: z.record(z.unknown()).nullable(),
+});
 
-  @ApiProperty({ example: 20 })
-  limit!: number;
+const ThemePaginationDataSchema = z.object({
+  total: z.number().int(),
+  page: z.number().int(),
+  limit: z.number().int(),
+  totalPages: z.number().int(),
+});
 
-  @ApiProperty({ example: 5 })
-  totalPages!: number;
-}
+const ThemePaginatedListDataSchema = z.object({
+  themes: z.array(z.record(z.unknown())),
+  pagination: ThemePaginationDataSchema,
+});
 
-export class ThemePaginatedListDataDto {
-  @ApiProperty({
-    type: 'array',
-    items: { type: 'object', additionalProperties: true },
-  })
-  themes!: Array<Record<string, unknown>>;
+const ThemeApplyDataSchema = z.object({
+  success: z.boolean(),
+});
 
-  @ApiProperty({ type: ThemePaginationDataDto })
-  pagination!: ThemePaginationDataDto;
-}
+const ThemeResolvedConfigDataSchema = z.object({
+  config: z.record(z.unknown()).nullable(),
+});
 
-export class ThemeApplyDataDto {
-  @ApiProperty({ example: true })
-  success!: boolean;
-}
+const ResumeConfigOperationDataSchema = z.object({
+  success: z.boolean(),
+});
 
-export class ThemeResolvedConfigDataDto {
-  @ApiProperty({ type: 'object', nullable: true, additionalProperties: true })
-  config!: Record<string, unknown> | null;
-}
+// ============================================================================
+// DTOs
+// ============================================================================
 
-export class ResumeConfigOperationDataDto {
-  @ApiProperty({ example: true })
-  success!: boolean;
-}
+export class ThemeListDataDto extends createZodDto(ThemeListDataSchema) {}
+export class ThemeEntityDataDto extends createZodDto(ThemeEntityDataSchema) {}
+export class ThemeNullableEntityDataDto extends createZodDto(ThemeNullableEntityDataSchema) {}
+export class ThemePaginationDataDto extends createZodDto(ThemePaginationDataSchema) {}
+export class ThemePaginatedListDataDto extends createZodDto(ThemePaginatedListDataSchema) {}
+export class ThemeApplyDataDto extends createZodDto(ThemeApplyDataSchema) {}
+export class ThemeResolvedConfigDataDto extends createZodDto(ThemeResolvedConfigDataSchema) {}
+export class ResumeConfigOperationDataDto extends createZodDto(ResumeConfigOperationDataSchema) {}

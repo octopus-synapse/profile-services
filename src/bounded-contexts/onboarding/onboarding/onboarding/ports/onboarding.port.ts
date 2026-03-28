@@ -4,7 +4,7 @@
  * Defines domain types and repository abstraction for onboarding operations.
  */
 
-import type { OnboardingData } from '@/shared-kernel/validations/onboarding-data.schema';
+import type { OnboardingData } from '@/bounded-contexts/onboarding/onboarding/domain/schemas/onboarding-data.schema';
 
 // Generic transaction client type (implementation provided by repository)
 export type TransactionClient = unknown;

@@ -1,34 +1,16 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { PermissionGuard, RequirePermission } from '@/bounded-contexts/identity/authorization';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
+import { DeleteSkillDataDto, SkillDataDto, SkillsDataDto } from '../dto/controller-response.dto';
 import type {
   CreateSkillData,
-  Skill,
   UpdateSkillData,
 } from '../services/skill-management/ports/skill-management.port';
 import { SkillManagementService } from '../services/skill-management.service';
-
-class SkillDataDto {
-  @ApiProperty({ type: 'object', additionalProperties: true })
-  skill!: Skill;
-}
-
-class SkillsDataDto {
-  @ApiProperty({
-    type: 'array',
-    items: { type: 'object', additionalProperties: true },
-  })
-  skills!: Skill[];
-}
-
-class DeleteSkillDataDto {
-  @ApiProperty({ type: 'object', additionalProperties: true })
-  result!: { deleted: boolean };
-}
 
 @SdkExport({ tag: 'resume-skills', description: 'Resume skill management' })
 @ApiTags('Resume Skills')

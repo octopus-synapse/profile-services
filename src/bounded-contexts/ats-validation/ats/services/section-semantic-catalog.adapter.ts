@@ -6,12 +6,12 @@ import type {
   SectionKind,
   SemanticFieldValue,
   SemanticRole,
-} from '@/shared-kernel/dtos/semantic-sections.dto';
+} from '@/shared-kernel/schemas/sections';
 import {
   AtsConfigSchema,
   SectionDefinitionSchema,
   SectionKindSchema,
-} from '@/shared-kernel/dtos/semantic-sections.dto';
+} from '@/shared-kernel/schemas/sections';
 import type {
   SectionSemanticCatalogPort,
   SectionTypeAtsEntry,

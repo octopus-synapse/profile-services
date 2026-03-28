@@ -1,14 +1,25 @@
-import { ApiProperty } from '@nestjs/swagger';
+/**
+ * Share Analytics Response DTOs
+ */
 
-export class ShareAnalyticsSummaryDataDto {
-  @ApiProperty({ type: 'object', additionalProperties: true })
-  analytics!: Record<string, unknown>;
-}
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
 
-export class ShareAnalyticsEventsDataDto {
-  @ApiProperty({
-    type: 'array',
-    items: { type: 'object', additionalProperties: true },
-  })
-  events!: Array<Record<string, unknown>>;
-}
+// ============================================================================
+// Schemas
+// ============================================================================
+
+const ShareAnalyticsSummaryDataSchema = z.object({
+  analytics: z.record(z.unknown()),
+});
+
+const ShareAnalyticsEventsDataSchema = z.object({
+  events: z.array(z.record(z.unknown())),
+});
+
+// ============================================================================
+// DTOs
+// ============================================================================
+
+export class ShareAnalyticsSummaryDataDto extends createZodDto(ShareAnalyticsSummaryDataSchema) {}
+export class ShareAnalyticsEventsDataDto extends createZodDto(ShareAnalyticsEventsDataSchema) {}

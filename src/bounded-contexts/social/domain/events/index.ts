@@ -1,7 +1,7 @@
 export {
   ActivityCreatedEvent,
   type ActivityCreatedPayload,
-  type ActivityType,
+  type SocialActivityType,
 } from './activity-created.event';
 export {
   UserFollowedEvent,

@@ -5,7 +5,7 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
 import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import type { ResumeDsl } from '@/shared-kernel';
+import type { ResumeDsl } from '@/bounded-contexts/dsl/domain/schemas/dsl';
 import type { DslMigrator } from './base.migrator';
 import { DslMigrationService } from './dsl-migration.service';
 

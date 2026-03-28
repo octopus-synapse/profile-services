@@ -5,16 +5,30 @@ import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastr
 import { UserManagementService } from '../services/user-management.service';
 import { UserManagementController } from './user-management.controller';
 
+const mockDate = new Date();
+
 const createMockService = () => ({
   listUsers: mock(() =>
     Promise.resolve({
-      users: [{ id: 'user-1' }],
+      users: [{ id: 'user-1', createdAt: mockDate, updatedAt: mockDate }],
       pagination: { page: 1, limit: 20, total: 1, totalPages: 1 },
     }),
   ),
-  getUserDetails: mock(() => Promise.resolve({ id: 'user-1', email: 'user@example.com' })),
-  createUser: mock(() => Promise.resolve({ id: 'user-1', email: 'new@example.com' })),
-  updateUser: mock(() => Promise.resolve({ id: 'user-1', name: 'Updated User' })),
+  getUserDetails: mock(() =>
+    Promise.resolve({
+      id: 'user-1',
+      email: 'user@example.com',
+      createdAt: mockDate,
+      updatedAt: mockDate,
+      resumes: [],
+    }),
+  ),
+  createUser: mock(() =>
+    Promise.resolve({ id: 'user-1', email: 'new@example.com', createdAt: mockDate }),
+  ),
+  updateUser: mock(() =>
+    Promise.resolve({ id: 'user-1', name: 'Updated User', updatedAt: mockDate }),
+  ),
   deleteUser: mock(() => Promise.resolve(undefined)),
   resetPassword: mock(() => Promise.resolve(undefined)),
 });

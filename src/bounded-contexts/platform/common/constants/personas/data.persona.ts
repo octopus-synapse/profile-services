@@ -1,8 +1,8 @@
+import { TechPersonaEnum } from '@/bounded-contexts/platform/domain/enums';
 import { PersonaConfig } from './persona-config.interface';
-import { TechPersona } from './tech-persona.enum';
 
 export const DATA_PERSONA: PersonaConfig = {
-  id: TechPersona.DATA,
+  id: TechPersonaEnum.DATA,
   name: 'Data Scientist',
   description: 'Data Analysis, Machine Learning, Big Data',
   icon: '📊',

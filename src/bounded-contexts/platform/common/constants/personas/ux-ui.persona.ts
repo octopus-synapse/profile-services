@@ -1,8 +1,8 @@
+import { TechPersonaEnum } from '@/bounded-contexts/platform/domain/enums';
 import { PersonaConfig } from './persona-config.interface';
-import { TechPersona } from './tech-persona.enum';
 
 export const UX_UI_PERSONA: PersonaConfig = {
-  id: TechPersona.UX_UI,
+  id: TechPersonaEnum.UX_UI,
   name: 'UX/UI Designer',
   description: 'User Experience, Interface Design, Prototyping',
   icon: '🎨',

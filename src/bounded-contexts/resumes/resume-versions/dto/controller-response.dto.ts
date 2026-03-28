@@ -1,33 +1,39 @@
-import { ApiProperty } from '@nestjs/swagger';
+/**
+ * Resume Versions Response DTOs
+ */
 
-export class ResumeVersionItemDto {
-  @ApiProperty({ example: 'version-1' })
-  id!: string;
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
 
-  @ApiProperty({ example: 3 })
-  versionNumber!: number;
+// ============================================================================
+// Schemas
+// ============================================================================
 
-  @ApiProperty({ nullable: true, example: 'Before major edits' })
-  label!: string | null;
+const ResumeVersionItemSchema = z.object({
+  id: z.string(),
+  versionNumber: z.number().int(),
+  label: z.string().nullable(),
+  createdAt: z.string().datetime(),
+});
 
-  @ApiProperty({ type: String, format: 'date-time' })
-  createdAt!: Date;
-}
+const ResumeVersionListDataSchema = z.object({
+  versions: z.array(ResumeVersionItemSchema),
+});
 
-export class ResumeVersionListDataDto {
-  @ApiProperty({ type: [ResumeVersionItemDto] })
-  versions!: ResumeVersionItemDto[];
-}
+const ResumeVersionDataSchema = z.object({
+  version: ResumeVersionItemSchema,
+});
 
-export class ResumeVersionDataDto {
-  @ApiProperty({ type: ResumeVersionItemDto })
-  version!: ResumeVersionItemDto;
-}
+const ResumeVersionRestoreDataSchema = z.object({
+  success: z.boolean(),
+  restoredFrom: z.string().datetime(),
+});
 
-export class ResumeVersionRestoreDataDto {
-  @ApiProperty({ example: true })
-  success!: boolean;
+// ============================================================================
+// DTOs
+// ============================================================================
 
-  @ApiProperty({ type: String, format: 'date-time' })
-  restoredFrom!: Date;
-}
+export class ResumeVersionItemDto extends createZodDto(ResumeVersionItemSchema) {}
+export class ResumeVersionListDataDto extends createZodDto(ResumeVersionListDataSchema) {}
+export class ResumeVersionDataDto extends createZodDto(ResumeVersionDataSchema) {}
+export class ResumeVersionRestoreDataDto extends createZodDto(ResumeVersionRestoreDataSchema) {}

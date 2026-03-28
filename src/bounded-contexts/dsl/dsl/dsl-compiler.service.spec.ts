@@ -10,8 +10,8 @@
 
 import { beforeEach, describe, expect, it } from 'bun:test';
 import { BadRequestException } from '@nestjs/common';
-import type { ResumeDsl } from '@/shared-kernel';
-import type { GenericResume } from '@/shared-kernel/types/generic-section.types';
+import type { ResumeDsl } from '@/bounded-contexts/dsl/domain/schemas/dsl';
+import type { GenericResume } from '@/shared-kernel/schemas/sections';
 import { DslCompilerService } from './dsl-compiler.service';
 import { DslValidatorService } from './dsl-validator.service';
 import { DslMigrationService } from './migrators';

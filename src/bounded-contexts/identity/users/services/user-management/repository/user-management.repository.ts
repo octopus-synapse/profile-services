@@ -20,6 +20,8 @@ const USER_LIST_SELECT = {
   updatedAt: true,
   image: true,
   emailVerified: true,
+  role: true,
+  lastLoginAt: true,
   _count: {
     select: {
       resumes: true,
@@ -63,6 +65,8 @@ export class UserManagementRepository extends UserManagementRepositoryPort {
       image: user.image,
       emailVerified: user.emailVerified,
       resumeCount: user._count.resumes,
+      role: user.role,
+      lastLoginAt: user.lastLoginAt,
     }));
 
     return { users, total };

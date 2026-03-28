@@ -27,13 +27,23 @@ import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastr
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
-import type { AdminCreateUser, AdminResetPassword, AdminUpdateUser } from '@/shared-kernel';
+import {
+  AdminCreateUserDto,
+  AdminResetPasswordDto,
+  AdminUpdateUserDto,
+} from '../dto/controller-request.dto';
 import {
   UserDetailsDataDto,
   UserManagementListDataDto,
   UserMutationDataDto,
   UserOperationMessageDataDto,
 } from '../dto/controller-response.dto';
+import type {
+  CreatedUser,
+  UpdatedUser,
+  UserDetails,
+  UserListItem,
+} from '../services/user-management/ports/user-management.port';
 import { UserManagementService } from '../services/user-management.service';
 
 @SdkExport({ tag: 'users', description: 'Users API' })
@@ -44,6 +54,56 @@ import { UserManagementService } from '../services/user-management.service';
 export class UserManagementController {
   constructor(private readonly userManagement: UserManagementService) {}
 
+  /**
+   * Map UserListItem with Date fields to API response format (ISO strings)
+   */
+  private mapUserListItem(user: UserListItem) {
+    return {
+      ...user,
+      createdAt: user.createdAt.toISOString(),
+      updatedAt: user.updatedAt.toISOString(),
+      emailVerified: user.emailVerified?.toISOString() ?? null,
+      lastLoginAt: user.lastLoginAt?.toISOString() ?? null,
+    };
+  }
+
+  /**
+   * Map UserDetails with Date fields to API response format (ISO strings)
+   */
+  private mapUserDetails(user: UserDetails) {
+    return {
+      ...user,
+      createdAt: user.createdAt.toISOString(),
+      updatedAt: user.updatedAt.toISOString(),
+      emailVerified: user.emailVerified?.toISOString() ?? null,
+      resumes: user.resumes.map((resume) => ({
+        ...resume,
+        createdAt: resume.createdAt.toISOString(),
+        updatedAt: resume.updatedAt.toISOString(),
+      })),
+    };
+  }
+
+  /**
+   * Map CreatedUser with Date fields to API response format (ISO strings)
+   */
+  private mapCreatedUser(user: CreatedUser) {
+    return {
+      ...user,
+      createdAt: user.createdAt.toISOString(),
+    };
+  }
+
+  /**
+   * Map UpdatedUser with Date fields to API response format (ISO strings)
+   */
+  private mapUpdatedUser(user: UpdatedUser) {
+    return {
+      ...user,
+      updatedAt: user.updatedAt.toISOString(),
+    };
+  }
+
   @Get()
   @RequirePermission('user', 'read')
   @ApiOperation({ summary: 'List all users with pagination' })
@@ -53,22 +113,25 @@ export class UserManagementController {
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiQuery({ name: 'search', required: false, type: String })
+  @ApiQuery({ name: 'roleName', required: false, type: String })
   async listUsers(
     @Query('page') page?: number,
     @Query('limit') limit?: number,
     @Query('search') search?: string,
+    @Query('roleName') roleName?: string,
   ): Promise<DataResponse<UserManagementListDataDto>> {
-    const users = await this.userManagement.listUsers({
+    const result = await this.userManagement.listUsers({
       page: page ? Number(page) : 1,
       limit: limit ? Number(limit) : 20,
       search,
+      roleName,
     });
 
     return {
       success: true,
       data: {
-        users: users.users,
-        pagination: users.pagination,
+        users: result.users.map((user) => this.mapUserListItem(user)),
+        pagination: result.pagination,
       },
     };
   }
@@ -81,7 +144,7 @@ export class UserManagementController {
   })
   async getUserDetails(@Param('id') userId: string): Promise<DataResponse<UserDetailsDataDto>> {
     const user = await this.userManagement.getUserDetails(userId);
-    return { success: true, data: { user } };
+    return { success: true, data: { user: this.mapUserDetails(user) } };
   }
 
   @Post()
@@ -92,12 +155,12 @@ export class UserManagementController {
     description: 'User created successfully',
     status: HttpStatus.CREATED,
   })
-  async createUser(@Body() data: AdminCreateUser): Promise<DataResponse<UserMutationDataDto>> {
+  async createUser(@Body() data: AdminCreateUserDto): Promise<DataResponse<UserMutationDataDto>> {
     const result = await this.userManagement.createUser(data);
     return {
       success: true,
       data: {
-        user: result,
+        user: this.mapCreatedUser(result),
         message: 'User created successfully',
       },
     };
@@ -111,13 +174,13 @@ export class UserManagementController {
   })
   async updateUser(
     @Param('id') userId: string,
-    @Body() data: AdminUpdateUser,
+    @Body() data: AdminUpdateUserDto,
   ): Promise<DataResponse<UserMutationDataDto>> {
     const result = await this.userManagement.updateUser(userId, data);
     return {
       success: true,
       data: {
-        user: result,
+        user: this.mapUpdatedUser(result),
         message: 'User updated successfully',
       },
     };
@@ -148,7 +211,7 @@ export class UserManagementController {
   })
   async resetPassword(
     @Param('id') userId: string,
-    @Body() data: AdminResetPassword,
+    @Body() data: AdminResetPasswordDto,
   ): Promise<DataResponse<UserOperationMessageDataDto>> {
     await this.userManagement.resetPassword(userId, data);
     return { success: true, data: { message: 'Password reset successfully' } };

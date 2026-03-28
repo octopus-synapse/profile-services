@@ -1,42 +1,42 @@
-import { ApiProperty } from '@nestjs/swagger';
+/**
+ * Share Management Response DTOs
+ */
 
-export class ShareLinkDataDto {
-  @ApiProperty({ example: 'share-1' })
-  id!: string;
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
 
-  @ApiProperty({ example: 'my-resume' })
-  slug!: string;
+// ============================================================================
+// Schemas
+// ============================================================================
 
-  @ApiProperty({ example: 'resume-1' })
-  resumeId!: string;
+const ShareLinkDataSchema = z.object({
+  id: z.string(),
+  slug: z.string(),
+  resumeId: z.string(),
+  isActive: z.boolean(),
+  hasPassword: z.boolean(),
+  expiresAt: z.string().datetime().nullable(),
+  createdAt: z.string().datetime(),
+  publicUrl: z.string(),
+});
 
-  @ApiProperty({ example: true })
-  isActive!: boolean;
+const ShareCreateDataSchema = z.object({
+  share: ShareLinkDataSchema,
+});
 
-  @ApiProperty({ example: false })
-  hasPassword!: boolean;
+const ShareListDataSchema = z.object({
+  shares: z.array(ShareLinkDataSchema),
+});
 
-  @ApiProperty({ nullable: true, type: String, format: 'date-time' })
-  expiresAt!: Date | null;
+const ShareDeleteDataSchema = z.object({
+  deleted: z.boolean(),
+});
 
-  @ApiProperty({ type: String, format: 'date-time' })
-  createdAt!: Date;
+// ============================================================================
+// DTOs
+// ============================================================================
 
-  @ApiProperty({ example: '/api/v1/public/resumes/my-resume' })
-  publicUrl!: string;
-}
-
-export class ShareCreateDataDto {
-  @ApiProperty({ type: ShareLinkDataDto })
-  share!: ShareLinkDataDto;
-}
-
-export class ShareListDataDto {
-  @ApiProperty({ type: [ShareLinkDataDto] })
-  shares!: ShareLinkDataDto[];
-}
-
-export class ShareDeleteDataDto {
-  @ApiProperty({ example: true })
-  deleted!: boolean;
-}
+export class ShareLinkDataDto extends createZodDto(ShareLinkDataSchema) {}
+export class ShareCreateDataDto extends createZodDto(ShareCreateDataSchema) {}
+export class ShareListDataDto extends createZodDto(ShareListDataSchema) {}
+export class ShareDeleteDataDto extends createZodDto(ShareDeleteDataSchema) {}

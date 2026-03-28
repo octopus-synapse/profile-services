@@ -4,61 +4,26 @@
  * Data Transfer Objects for collaboration API.
  */
 
-import { ApiProperty } from '@nestjs/swagger';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
-import type { CollaboratorRole } from '@/shared-kernel';
+import { CollaboratorRoleSchema } from '@/bounded-contexts/collaboration/domain/enums';
 
-/**
- * Valid collaborator roles for API
- */
-const VALID_ROLES = ['VIEWER', 'EDITOR', 'ADMIN'] as const;
+// ============================================================================
+// Schemas
+// ============================================================================
 
-/**
- * Zod schema for inviting collaborator
- */
 const InviteCollaboratorSchema = z.object({
   userId: z.string().min(1, 'User ID is required'),
-  role: z.enum(VALID_ROLES, {
-    errorMap: () => ({ message: 'Role must be VIEWER, EDITOR, or ADMIN' }),
-  }),
+  role: CollaboratorRoleSchema,
 });
 
-/**
- * Zod schema for updating collaborator role
- */
 const UpdateRoleSchema = z.object({
-  role: z.enum(VALID_ROLES, {
-    errorMap: () => ({ message: 'Role must be VIEWER, EDITOR, or ADMIN' }),
-  }),
+  role: CollaboratorRoleSchema,
 });
 
-/**
- * Invite collaborator request DTO
- */
-export class InviteCollaboratorDto extends createZodDto(InviteCollaboratorSchema) {
-  @ApiProperty({
-    description: 'User ID to invite as collaborator',
-    example: 'user-uuid-v4',
-  })
-  userId!: string;
+// ============================================================================
+// DTOs
+// ============================================================================
 
-  @ApiProperty({
-    description: 'Role to assign to the collaborator',
-    enum: VALID_ROLES,
-    example: 'EDITOR',
-  })
-  role!: CollaboratorRole;
-}
-
-/**
- * Update collaborator role DTO
- */
-export class UpdateRoleDto extends createZodDto(UpdateRoleSchema) {
-  @ApiProperty({
-    description: 'New role for the collaborator',
-    enum: VALID_ROLES,
-    example: 'VIEWER',
-  })
-  role!: CollaboratorRole;
-}
+export class InviteCollaboratorDto extends createZodDto(InviteCollaboratorSchema) {}
+export class UpdateRoleDto extends createZodDto(UpdateRoleSchema) {}

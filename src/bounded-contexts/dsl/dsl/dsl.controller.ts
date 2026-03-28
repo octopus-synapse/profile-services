@@ -19,8 +19,8 @@ import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/a
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
-import { DslAstResponseDto, ResumeAstDto } from '@/shared-kernel';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
+import { DslAstResponseDto, ResumeAstDto } from '@/shared-kernel/schemas/resume-ast';
 import { DslService } from './dsl.service';
 
 /** DTO for DSL validation error */

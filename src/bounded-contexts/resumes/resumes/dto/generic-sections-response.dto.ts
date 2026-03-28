@@ -1,53 +1,61 @@
-import { ApiProperty } from '@nestjs/swagger';
-
 /**
- * Resolved section type — translations already applied for the requested locale.
- * Swagger uses this for documentation; runtime data is built by the locale resolver.
+ * Generic Sections Response DTOs
  */
-export class ResolvedSectionTypeDto {
-  @ApiProperty({}) id!: string;
-  @ApiProperty({}) key!: string;
-  @ApiProperty({}) slug!: string;
-  @ApiProperty({}) semanticKind!: string;
-  @ApiProperty({}) version!: number;
-  @ApiProperty({}) title!: string;
-  @ApiProperty({}) description!: string;
-  @ApiProperty({}) label!: string;
-  @ApiProperty({}) noDataLabel!: string;
-  @ApiProperty({}) placeholder!: string;
-  @ApiProperty({}) addLabel!: string;
-  @ApiProperty({}) iconType!: string;
-  @ApiProperty({}) icon!: string;
-  @ApiProperty({}) isActive!: boolean;
-  @ApiProperty({}) isSystem!: boolean;
-  @ApiProperty({}) isRepeatable!: boolean;
-  @ApiProperty({ nullable: true }) minItems!: number | null;
-  @ApiProperty({ nullable: true }) maxItems!: number | null;
-  @ApiProperty({}) definition!: object;
-  @ApiProperty({ nullable: true }) uiSchema!: object | null;
-  @ApiProperty({}) renderHints!: object;
-  @ApiProperty({}) fieldStyles!: object;
-}
 
-export class ResumeSectionTypesDataDto {
-  @ApiProperty({ type: [ResolvedSectionTypeDto] })
-  sectionTypes!: ResolvedSectionTypeDto[];
-}
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
 
-export class ResumeSectionsDataDto {
-  @ApiProperty({
-    type: 'array',
-    items: { type: 'object', additionalProperties: true },
-  })
-  sections!: Array<Record<string, unknown>>;
-}
+// ============================================================================
+// Schemas
+// ============================================================================
 
-export class ResumeSectionItemDataDto {
-  @ApiProperty({ type: 'object', additionalProperties: true })
-  item!: Record<string, unknown>;
-}
+const ResolvedSectionTypeSchema = z.object({
+  id: z.string(),
+  key: z.string(),
+  slug: z.string(),
+  semanticKind: z.string(),
+  version: z.number().int(),
+  title: z.string(),
+  description: z.string(),
+  label: z.string(),
+  noDataLabel: z.string(),
+  placeholder: z.string(),
+  addLabel: z.string(),
+  iconType: z.string(),
+  icon: z.string(),
+  isActive: z.boolean(),
+  isSystem: z.boolean(),
+  isRepeatable: z.boolean(),
+  minItems: z.number().int().nullable(),
+  maxItems: z.number().int().nullable(),
+  definition: z.record(z.unknown()),
+  uiSchema: z.record(z.unknown()).nullable(),
+  renderHints: z.record(z.unknown()),
+  fieldStyles: z.record(z.unknown()),
+});
 
-export class ResumeSectionDeleteDataDto {
-  @ApiProperty({ example: true })
-  deleted!: boolean;
-}
+const ResumeSectionTypesDataSchema = z.object({
+  sectionTypes: z.array(ResolvedSectionTypeSchema),
+});
+
+const ResumeSectionsDataSchema = z.object({
+  sections: z.array(z.record(z.unknown())),
+});
+
+const ResumeSectionItemDataSchema = z.object({
+  item: z.record(z.unknown()),
+});
+
+const ResumeSectionDeleteDataSchema = z.object({
+  deleted: z.boolean(),
+});
+
+// ============================================================================
+// DTOs
+// ============================================================================
+
+export class ResolvedSectionTypeDto extends createZodDto(ResolvedSectionTypeSchema) {}
+export class ResumeSectionTypesDataDto extends createZodDto(ResumeSectionTypesDataSchema) {}
+export class ResumeSectionsDataDto extends createZodDto(ResumeSectionsDataSchema) {}
+export class ResumeSectionItemDataDto extends createZodDto(ResumeSectionItemDataSchema) {}
+export class ResumeSectionDeleteDataDto extends createZodDto(ResumeSectionDeleteDataSchema) {}

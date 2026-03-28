@@ -10,15 +10,12 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import {
-  ApiBearerAuth,
-  ApiExcludeController,
-  ApiOperation,
-  ApiParam,
-  ApiQuery,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+  ApiDataResponse,
+  ApiEmptyDataResponse,
+} from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { ZodValidationPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import { AdminSectionTypesService } from './admin-section-types.service';
@@ -27,12 +24,19 @@ import {
   CreateSectionTypeSchema,
   type ListSectionTypesQueryDto,
   ListSectionTypesQuerySchema,
+  SectionTypeDataDto,
+  SectionTypeListDataDto,
+  SemanticKindsDataDto,
   type UpdateSectionTypeDto,
   UpdateSectionTypeSchema,
 } from './dto';
 
+@SdkExport({
+  tag: 'admin-section-types',
+  description: 'Admin Section Types Management API',
+  requiresAuth: true,
+})
 @ApiTags('Admin - Section Types')
-@ApiExcludeController()
 @ApiBearerAuth()
 @RequirePermission(Permission.SECTION_TYPE_MANAGE)
 @Controller('v1/admin/section-types')
@@ -46,7 +50,7 @@ export class AdminSectionTypesController {
   @ApiQuery({ name: 'search', required: false, type: String })
   @ApiQuery({ name: 'isActive', required: false, type: Boolean })
   @ApiQuery({ name: 'semanticKind', required: false, type: String })
-  @ApiResponse({ status: 200, description: 'List of section types' })
+  @ApiDataResponse(SectionTypeListDataDto, { description: 'List of section types' })
   async findAll(
     @Query(new ZodValidationPipe(ListSectionTypesQuerySchema))
     query: ListSectionTypesQueryDto,
@@ -57,7 +61,7 @@ export class AdminSectionTypesController {
 
   @Get('semantic-kinds')
   @ApiOperation({ summary: 'Get all unique semantic kinds' })
-  @ApiResponse({ status: 200, description: 'List of semantic kinds' })
+  @ApiDataResponse(SemanticKindsDataDto, { description: 'List of semantic kinds' })
   async getSemanticKinds() {
     const result = await this.service.getSemanticKinds();
     return { success: true, data: result };
@@ -66,8 +70,7 @@ export class AdminSectionTypesController {
   @Get(':key')
   @ApiOperation({ summary: 'Get a section type by key' })
   @ApiParam({ name: 'key', description: 'Section type key (e.g., work_experience_v1)' })
-  @ApiResponse({ status: 200, description: 'Section type details' })
-  @ApiResponse({ status: 404, description: 'Section type not found' })
+  @ApiDataResponse(SectionTypeDataDto, { description: 'Section type details' })
   async findOne(@Param('key') key: string) {
     const result = await this.service.findOne(key);
     return { success: true, data: result };
@@ -75,9 +78,7 @@ export class AdminSectionTypesController {
 
   @Post()
   @ApiOperation({ summary: 'Create a new section type' })
-  @ApiResponse({ status: 201, description: 'Section type created' })
-  @ApiResponse({ status: 400, description: 'Validation error' })
-  @ApiResponse({ status: 409, description: 'Section type already exists' })
+  @ApiDataResponse(SectionTypeDataDto, { description: 'Section type created', status: 201 })
   async create(
     @Body(new ZodValidationPipe(CreateSectionTypeSchema))
     dto: CreateSectionTypeDto,
@@ -89,9 +90,7 @@ export class AdminSectionTypesController {
   @Patch(':key')
   @ApiOperation({ summary: 'Update a section type' })
   @ApiParam({ name: 'key', description: 'Section type key' })
-  @ApiResponse({ status: 200, description: 'Section type updated' })
-  @ApiResponse({ status: 400, description: 'Validation error or restricted update' })
-  @ApiResponse({ status: 404, description: 'Section type not found' })
+  @ApiDataResponse(SectionTypeDataDto, { description: 'Section type updated' })
   async update(
     @Param('key') key: string,
     @Body(new ZodValidationPipe(UpdateSectionTypeSchema))
@@ -105,9 +104,7 @@ export class AdminSectionTypesController {
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a section type' })
   @ApiParam({ name: 'key', description: 'Section type key' })
-  @ApiResponse({ status: 204, description: 'Section type deleted' })
-  @ApiResponse({ status: 400, description: 'Cannot delete system or in-use section type' })
-  @ApiResponse({ status: 404, description: 'Section type not found' })
+  @ApiEmptyDataResponse({ description: 'Section type deleted', status: 204 })
   async remove(@Param('key') key: string) {
     await this.service.remove(key);
     // 204 No Content - no body

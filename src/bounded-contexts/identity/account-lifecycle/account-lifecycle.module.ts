@@ -3,6 +3,9 @@ import { ConfigModule } from '@nestjs/config';
 import { AuditLogModule } from '@/bounded-contexts/platform/common/audit/audit-log.module';
 // Shared providers
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
+import { AuthenticationModule } from '../authentication/authentication.module';
+import type { TokenGeneratorPort } from '../authentication/ports/outbound/token-generator.port';
+import { TOKEN_GENERATOR_PORT } from '../authentication/ports/outbound/token-generator.port';
 import { NestEventBusAdapter } from '../shared-kernel/adapters';
 import type { EventBusPort } from '../shared-kernel/ports/event-bus.port';
 // Outbound Adapters (Infrastructure)
@@ -50,7 +53,7 @@ const PASSWORD_HASHER = Symbol('PasswordHasherPort');
 const EVENT_BUS = Symbol('EventBusPort');
 
 @Module({
-  imports: [PrismaModule, AuditLogModule, ConfigModule],
+  imports: [PrismaModule, AuditLogModule, ConfigModule, AuthenticationModule],
   controllers: [
     CreateAccountController,
     DeactivateAccountController,
@@ -98,10 +101,11 @@ const EVENT_BUS = Symbol('EventBusPort');
         repository: AccountLifecycleRepositoryPort,
         passwordHasher: PasswordHasherPort,
         eventBus: EventBusPort,
+        tokenGenerator: TokenGeneratorPort,
       ) => {
-        return new CreateAccountUseCase(repository, passwordHasher, eventBus);
+        return new CreateAccountUseCase(repository, passwordHasher, eventBus, tokenGenerator);
       },
-      inject: [ACCOUNT_REPOSITORY, PASSWORD_HASHER, EVENT_BUS],
+      inject: [ACCOUNT_REPOSITORY, PASSWORD_HASHER, EVENT_BUS, TOKEN_GENERATOR_PORT],
     },
     {
       provide: DEACTIVATE_ACCOUNT_PORT,

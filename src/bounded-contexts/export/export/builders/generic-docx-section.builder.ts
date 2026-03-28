@@ -9,7 +9,7 @@
 
 import { Injectable } from '@nestjs/common';
 import { Paragraph, TextRun } from 'docx';
-import type { DocxExportConfig } from '@/shared-kernel/dtos/semantic-sections.dto';
+import type { DocxExportConfig } from '@/shared-kernel/schemas/sections';
 
 /**
  * Generic section item content - JSON object with any fields

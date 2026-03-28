@@ -5,9 +5,9 @@
 
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { Course } from '@/shared-kernel';
 import { BATCH_SIZE } from '../constants';
 import { NormalizedCourse } from '../interfaces/mec-data.interface';
+import type { Course } from '../schemas/mec.schema';
 
 @Injectable()
 export class CourseRepository {

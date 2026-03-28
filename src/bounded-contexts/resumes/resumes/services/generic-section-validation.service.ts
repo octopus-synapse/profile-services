@@ -1,11 +1,11 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { SectionTypeRepository } from '@/shared-kernel/repositories/section-type.repository';
+import { SectionTypeRepository } from '@/bounded-contexts/resumes/infrastructure/repositories';
 import type {
   FieldValidationError,
   SectionItemValidationResult,
   SectionTypeWithDefinition,
   SectionValidationResult,
-} from '@/shared-kernel/types/generic-section.types';
+} from '@/shared-kernel/schemas/sections';
 import { SectionDefinitionZodFactory } from './section-definition-zod.factory';
 
 /**

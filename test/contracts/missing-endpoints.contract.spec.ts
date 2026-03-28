@@ -226,21 +226,24 @@ describe('Backend DTO vs Swagger Schema Comparison', () => {
     expect(schema.properties.createdAt).toBeDefined();
   });
 
-  test('all @ApiProperty decorators are in swagger schema', () => {
+  test('Zod schemas are converted to swagger schema', () => {
     const dtoPath = resolve(
       __dirname,
       '../../src/bounded-contexts/import/resume-import/dto/import.dto.ts',
     );
     const dtoContent = readFileSync(dtoPath, 'utf-8');
 
-    // Extract property names that have @ApiProperty
-    const apiPropertyMatches = dtoContent.matchAll(/@ApiProperty.*?\n\s+(\w+):/g);
-    const propertiesWithDecorator = Array.from(apiPropertyMatches).map((m) => m[1]);
+    // Check that createZodDto is used (nestjs-zod pattern)
+    expect(dtoContent).toContain('createZodDto');
 
-    console.log(
-      `\n🔧 Properties with @ApiProperty in backend: ${propertiesWithDecorator.join(', ')}`,
-    );
+    // Check that DTO classes exist
+    expect(dtoContent).toMatch(/class\s+\w+Dto\s+extends\s+createZodDto/);
 
-    expect(propertiesWithDecorator.length).toBeGreaterThan(0);
+    // Verify swagger schema has the expected properties from Zod
+    const swagger = JSON.parse(readFileSync(SWAGGER_PATH, 'utf-8'));
+    const schema = swagger.components?.schemas?.ImportJobDto;
+    expect(schema).toBeDefined();
+    expect(schema?.properties?.id).toBeDefined();
+    expect(schema?.properties?.status).toBeDefined();
   });
 });

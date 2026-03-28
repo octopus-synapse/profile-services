@@ -9,44 +9,20 @@
  */
 
 import { Controller, Get } from '@nestjs/common';
-import { ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
+import {
+  ExportFormatResponseDto,
+  ExportFormatsDataDto,
+  SectionTypeResponseDto,
+  SectionTypesDataDto,
+  UserRoleResponseDto,
+  UserRolesDataDto,
+} from '@/bounded-contexts/platform/common/dto/enums.dto';
 import { SectionTypesService } from '@/bounded-contexts/platform/common/services/section-types.service';
-import { ExportFormatResponseDto, UserRoleResponseDto } from '@/shared-kernel/dtos/enums.dto';
-
-/** Dynamic section type response */
-export class SectionTypeResponseDto {
-  @ApiProperty({
-    example: 'work_experience_v1',
-    description: 'Section type key',
-  })
-  key!: string;
-
-  @ApiProperty({ example: 'EDUCATION', description: 'Semantic kind' })
-  semanticKind!: string;
-
-  @ApiProperty({ example: 'Work Experience', description: 'Display title' })
-  title!: string;
-}
-
-// Wrapper DTOs for array responses
-export class ExportFormatsDataDto {
-  @ApiProperty({ type: [ExportFormatResponseDto] })
-  formats!: ExportFormatResponseDto[];
-}
-
-export class UserRolesDataDto {
-  @ApiProperty({ type: [UserRoleResponseDto] })
-  roles!: UserRoleResponseDto[];
-}
-
-export class SectionTypesDataDto {
-  @ApiProperty({ type: [SectionTypeResponseDto] })
-  types!: SectionTypeResponseDto[];
-}
 
 @SdkExport({ tag: 'enums', description: 'Domain Enums API' })
 @ApiTags('enums')
@@ -83,11 +59,7 @@ export class EnumsController {
   })
   @ApiDataResponse(UserRolesDataDto, { description: 'List of user roles' })
   getUserRoles(): DataResponse<UserRolesDataDto> {
-    const roles: UserRoleResponseDto[] = [
-      { role: 'USER' },
-      { role: 'ADMIN' },
-      { role: 'APPROVER' },
-    ];
+    const roles: UserRoleResponseDto[] = [{ role: 'USER' }, { role: 'ADMIN' }];
     return {
       success: true,
       data: { roles },

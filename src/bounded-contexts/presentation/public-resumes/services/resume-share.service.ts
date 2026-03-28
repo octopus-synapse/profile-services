@@ -10,7 +10,7 @@ import { nanoid } from 'nanoid';
 import { CacheCoreService } from '@/bounded-contexts/platform/common/cache/services/cache-core.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { EventPublisher } from '@/shared-kernel';
-import { toGenericSections } from '@/shared-kernel/types/section-projection.adapter';
+import { toGenericSections } from '@/shared-kernel/schemas/sections';
 import { ResumePublishedEvent } from '../../domain/events';
 
 interface CreateShare {

@@ -9,7 +9,7 @@ import type { SkillType } from '../interfaces';
 
 type SkillCategory = { type: SkillType; niche: string | null };
 
-export const SKILL_CATEGORIES: Record<string, SkillCategory> = {
+export const FRAMEWORK_SKILL_CATEGORIES: Record<string, SkillCategory> = {
   // Frameworks - Frontend
   react: { type: 'FRAMEWORK', niche: 'frontend' },
   reactjs: { type: 'FRAMEWORK', niche: 'frontend' },

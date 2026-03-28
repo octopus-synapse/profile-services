@@ -1,4 +1,5 @@
-import type { ResumeAst, ResumeDsl } from '@/shared-kernel';
+import type { ResumeAst } from '@/bounded-contexts/dsl/domain/schemas/ast/resume-ast.schema';
+import type { ResumeDsl } from '@/bounded-contexts/dsl/domain/schemas/dsl';
 import type { ResolvedTokens } from '../../dsl/token-resolver.service';
 
 const PAPER_SIZES = {

@@ -1,4 +1,4 @@
-import type { SectionKind, SemanticFieldValue } from '@/shared-kernel/dtos/semantic-sections.dto';
+import type { SectionKind, SemanticFieldValue } from '@/shared-kernel/schemas/sections';
 
 export const SECTION_SEMANTIC_CATALOG = Symbol('SECTION_SEMANTIC_CATALOG');
 

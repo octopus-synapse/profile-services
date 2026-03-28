@@ -1,13 +1,11 @@
 import { beforeAll, describe, expect, it } from 'bun:test';
 import { AppController } from './app.controller';
-import { AppService } from './app.service';
 
 describe('AppController', () => {
   let appController: AppController;
 
   beforeAll(() => {
-    const appService = new AppService();
-    appController = new AppController(appService);
+    appController = new AppController();
   });
 
   describe('root', () => {

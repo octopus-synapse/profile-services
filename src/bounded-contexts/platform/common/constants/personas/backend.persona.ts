@@ -1,8 +1,8 @@
+import { TechPersonaEnum } from '@/bounded-contexts/platform/domain/enums';
 import { PersonaConfig } from './persona-config.interface';
-import { TechPersona } from './tech-persona.enum';
 
 export const BACKEND_PERSONA: PersonaConfig = {
-  id: TechPersona.BACKEND,
+  id: TechPersonaEnum.BACKEND,
   name: 'Backend Developer',
   description: 'APIs, Databases, Microservices, Architecture',
   icon: '⚡',

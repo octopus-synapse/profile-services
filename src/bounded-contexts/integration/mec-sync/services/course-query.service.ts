@@ -6,9 +6,10 @@
 import * as crypto from 'node:crypto';
 import { Injectable } from '@nestjs/common';
 import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
-import { API_LIMITS, APP_CONFIG, Course } from '@/shared-kernel';
+import { API_LIMITS, APP_CONFIG } from '@/shared-kernel';
 import { MEC_CACHE_KEYS, MEC_CACHE_TTL } from '../interfaces/mec-data.interface';
 import { CourseRepository } from '../repositories';
+import type { Course } from '../schemas/mec.schema';
 
 @Injectable()
 export class CourseQueryService {

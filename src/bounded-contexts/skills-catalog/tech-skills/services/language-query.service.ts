@@ -8,7 +8,7 @@ import { Injectable } from '@nestjs/common';
 import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { API_LIMITS } from '@/shared-kernel';
-import type { ProgrammingLanguage } from '../dtos';
+import type { ProgrammingLanguage } from '../dto';
 import { TECH_SKILLS_CACHE_KEYS, TECH_SKILLS_CACHE_TTL } from '../interfaces';
 
 @Injectable()

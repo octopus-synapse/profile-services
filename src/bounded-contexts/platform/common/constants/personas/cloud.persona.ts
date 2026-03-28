@@ -1,8 +1,8 @@
+import { TechPersonaEnum } from '@/bounded-contexts/platform/domain/enums';
 import { PersonaConfig } from './persona-config.interface';
-import { TechPersona } from './tech-persona.enum';
 
 export const CLOUD_PERSONA: PersonaConfig = {
-  id: TechPersona.CLOUD,
+  id: TechPersonaEnum.CLOUD,
   name: 'Cloud Architect',
   description: 'AWS, Azure, GCP, Cloud Native',
   icon: '☁️',

@@ -4,8 +4,8 @@
  * In-memory implementations for testing DSL functionality.
  */
 
-import type { ResumeAst } from '@/shared-kernel/ast/resume-ast.schema';
-import type { GenericResume } from '@/shared-kernel/types';
+import type { ResumeAst } from '@/bounded-contexts/dsl/domain/schemas/ast/resume-ast.schema';
+import type { GenericResume } from '@/shared-kernel/schemas/sections';
 
 /**
  * Mock AST result

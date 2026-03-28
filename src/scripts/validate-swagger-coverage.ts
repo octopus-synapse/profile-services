@@ -91,9 +91,17 @@ async function validateController(filePath: string): Promise<RouteValidation[]> 
 
   const controllerName = extractControllerName(filePath);
 
-  // Check if controller is excluded from Swagger documentation
+  // @ApiExcludeController() is FORBIDDEN - all endpoints must be exposed
   if (content.includes('@ApiExcludeController()')) {
-    return violations; // Skip validation for excluded controllers
+    violations.push({
+      controller: controllerName,
+      file: path.relative(process.cwd(), filePath),
+      method: '*',
+      httpMethod: '*',
+      line: lines.findIndex((l) => l.includes('@ApiExcludeController()')) + 1,
+      missing: ['@ApiExcludeController() is FORBIDDEN - remove it and add @SdkExport'],
+    });
+    return violations;
   }
 
   for (let i = 0; i < lines.length; i++) {

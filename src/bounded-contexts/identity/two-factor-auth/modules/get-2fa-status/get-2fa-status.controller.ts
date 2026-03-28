@@ -1,12 +1,8 @@
 import { Controller, Get, Inject, Req } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiExcludeController,
-  ApiOkResponse,
-  ApiOperation,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
+import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import {
   TWO_FACTOR_REPOSITORY_PORT,
   type TwoFactorRepositoryPort,
@@ -18,8 +14,12 @@ interface AuthenticatedRequest extends Request {
   user: { id: string };
 }
 
+@SdkExport({
+  tag: 'two-factor-auth',
+  description: 'Two-Factor Authentication API',
+  requiresAuth: true,
+})
 @ApiTags('Two-Factor Auth')
-@ApiExcludeController()
 @ApiBearerAuth()
 @Controller('auth/2fa')
 export class Get2faStatusController {
@@ -37,11 +37,12 @@ export class Get2faStatusController {
     summary: 'Get 2FA status',
     description: 'Returns 2FA status including enabled state and backup codes remaining.',
   })
-  @ApiOkResponse({
-    description: '2FA status',
-    type: Get2faStatusResponseDto,
-  })
+  @ApiDataResponse(Get2faStatusResponseDto, { description: '2FA status' })
   async getStatus(@Req() req: AuthenticatedRequest): Promise<Get2faStatusResponseDto> {
-    return this.useCase.execute(req.user.id);
+    const result = await this.useCase.execute(req.user.id);
+    return {
+      ...result,
+      lastUsedAt: result.lastUsedAt?.toISOString() ?? null,
+    };
   }
 }

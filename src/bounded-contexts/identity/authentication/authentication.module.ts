@@ -45,11 +45,11 @@ import type { AuthenticationRepositoryPort } from './ports/outbound/authenticati
 import type { PasswordHasherPort } from './ports/outbound/password-hasher.port';
 import type { SessionStoragePort } from './ports/outbound/session-storage.port';
 import type { TokenGeneratorPort } from './ports/outbound/token-generator.port';
+import { TOKEN_GENERATOR_PORT } from './ports/outbound/token-generator.port';
 
 // Port symbols for outbound adapters
 const AUTH_REPOSITORY = Symbol('AuthenticationRepositoryPort');
 const PASSWORD_HASHER = Symbol('PasswordHasherPort');
-const TOKEN_GENERATOR = Symbol('TokenGeneratorPort');
 const SESSION_STORAGE = Symbol('SessionStoragePort');
 const EVENT_BUS = Symbol('EventBusPort');
 
@@ -85,7 +85,7 @@ const EVENT_BUS = Symbol('EventBusPort');
       useClass: BcryptPasswordHasher,
     },
     {
-      provide: TOKEN_GENERATOR,
+      provide: TOKEN_GENERATOR_PORT,
       useClass: JwtTokenGenerator,
     },
     {
@@ -109,7 +109,13 @@ const EVENT_BUS = Symbol('EventBusPort');
       ) => {
         return new LoginUseCase(repository, passwordHasher, tokenGenerator, eventBus, validate2fa);
       },
-      inject: [AUTH_REPOSITORY, PASSWORD_HASHER, TOKEN_GENERATOR, EVENT_BUS, VALIDATE_2FA_PORT],
+      inject: [
+        AUTH_REPOSITORY,
+        PASSWORD_HASHER,
+        TOKEN_GENERATOR_PORT,
+        EVENT_BUS,
+        VALIDATE_2FA_PORT,
+      ],
     },
     {
       provide: LOGOUT_PORT,
@@ -127,7 +133,7 @@ const EVENT_BUS = Symbol('EventBusPort');
       ) => {
         return new RefreshTokenUseCase(repository, tokenGenerator, eventBus);
       },
-      inject: [AUTH_REPOSITORY, TOKEN_GENERATOR, EVENT_BUS],
+      inject: [AUTH_REPOSITORY, TOKEN_GENERATOR_PORT, EVENT_BUS],
     },
 
     // Session Use Cases
@@ -148,7 +154,7 @@ const EVENT_BUS = Symbol('EventBusPort');
           configService,
         );
       },
-      inject: [AUTH_REPOSITORY, TOKEN_GENERATOR, SESSION_STORAGE, EVENT_BUS, ConfigService],
+      inject: [AUTH_REPOSITORY, TOKEN_GENERATOR_PORT, SESSION_STORAGE, EVENT_BUS, ConfigService],
     },
     {
       provide: VALIDATE_SESSION_PORT,
@@ -159,7 +165,7 @@ const EVENT_BUS = Symbol('EventBusPort');
       ) => {
         return new ValidateSessionUseCase(repository, tokenGenerator, sessionStorage);
       },
-      inject: [AUTH_REPOSITORY, TOKEN_GENERATOR, SESSION_STORAGE],
+      inject: [AUTH_REPOSITORY, TOKEN_GENERATOR_PORT, SESSION_STORAGE],
     },
     {
       provide: TERMINATE_SESSION_PORT,
@@ -170,7 +176,7 @@ const EVENT_BUS = Symbol('EventBusPort');
       ) => {
         return new TerminateSessionUseCase(tokenGenerator, sessionStorage, eventBus);
       },
-      inject: [TOKEN_GENERATOR, SESSION_STORAGE, EVENT_BUS],
+      inject: [TOKEN_GENERATOR_PORT, SESSION_STORAGE, EVENT_BUS],
     },
   ],
   exports: [
@@ -180,7 +186,7 @@ const EVENT_BUS = Symbol('EventBusPort');
     CREATE_SESSION_PORT,
     VALIDATE_SESSION_PORT,
     TERMINATE_SESSION_PORT,
-    TOKEN_GENERATOR,
+    TOKEN_GENERATOR_PORT,
     PassportModule,
     JwtStrategy,
   ],

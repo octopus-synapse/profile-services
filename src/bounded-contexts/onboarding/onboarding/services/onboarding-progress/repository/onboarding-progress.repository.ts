@@ -125,9 +125,19 @@ export class OnboardingProgressRepository extends OnboardingProgressRepositoryPo
   }
 
   async findUserByUsername(username: string): Promise<{ id: string } | null> {
-    return this.prisma.user.findUnique({
-      where: { username },
-      select: { id: true },
-    });
+    // Check both committed users AND users claiming username during onboarding
+    const [existingUser, claimingProgress] = await Promise.all([
+      this.prisma.user.findUnique({
+        where: { username },
+        select: { id: true },
+      }),
+      this.prisma.onboardingProgress.findFirst({
+        where: { username: { equals: username, mode: 'insensitive' } },
+        select: { userId: true },
+      }),
+    ]);
+
+    // Return existing user if found, or the user claiming username during onboarding
+    return existingUser ?? (claimingProgress ? { id: claimingProgress.userId } : null);
   }
 }

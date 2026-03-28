@@ -1,6 +1,5 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
-import type { ValidateCV, ValidationIssue, ValidationResponse } from '@/shared-kernel';
 import type {
   ValidationIssue as InternalValidationIssue,
   SectionSemanticCatalogPort,
@@ -17,6 +16,7 @@ import {
   MandatorySemanticPolicy,
   SectionOrderSemanticPolicy,
 } from '../policies';
+import type { ValidateCV, ValidationIssue, ValidationResponse } from '../schemas/ats.schema';
 import { SemanticScoringService } from '../scoring';
 import { FileIntegrityValidator } from '../validators/file-integrity.validator';
 import { FormatValidator } from '../validators/format.validator';

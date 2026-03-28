@@ -6,7 +6,7 @@
 import { Injectable } from '@nestjs/common';
 import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { TechSkill } from '../dtos';
+import type { TechSkill } from '../dto';
 import { type SkillType, TECH_SKILLS_CACHE_KEYS, TECH_SKILLS_CACHE_TTL } from '../interfaces';
 import { mapSkillsTo } from '../utils';
 

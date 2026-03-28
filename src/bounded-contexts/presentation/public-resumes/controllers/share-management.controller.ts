@@ -26,8 +26,8 @@ type SharePayload = {
   resumeId: string;
   isActive: boolean;
   hasPassword: boolean;
-  expiresAt: Date | null;
-  createdAt: Date;
+  expiresAt: string | null;
+  createdAt: string;
   publicUrl: string;
 };
 
@@ -53,8 +53,8 @@ export class ShareManagementController {
       resumeId: share.resumeId,
       isActive: share.isActive,
       hasPassword: !!share.password,
-      expiresAt: share.expiresAt,
-      createdAt: share.createdAt,
+      expiresAt: share.expiresAt?.toISOString() ?? null,
+      createdAt: share.createdAt.toISOString(),
       publicUrl: `/api/v1/public/resumes/${share.slug}`,
     };
   }

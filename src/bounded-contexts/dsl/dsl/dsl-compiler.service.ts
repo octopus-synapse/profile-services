@@ -12,9 +12,10 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import type { ResumeAst, ResumeDsl } from '@/shared-kernel';
-import type { SectionDataV2 } from '@/shared-kernel/ast/generic-section-data.schema';
-import type { GenericResume, GenericResumeSection } from '@/shared-kernel/types';
+import type { SectionDataV2 } from '@/bounded-contexts/dsl/domain/schemas/ast/generic-section-data.schema';
+import type { ResumeAst } from '@/bounded-contexts/dsl/domain/schemas/ast/resume-ast.schema';
+import type { ResumeDsl } from '@/bounded-contexts/dsl/domain/schemas/dsl';
+import type { GenericResume, GenericResumeSection } from '@/shared-kernel/schemas/sections';
 import {
   buildPageLayout,
   buildSectionStyles,

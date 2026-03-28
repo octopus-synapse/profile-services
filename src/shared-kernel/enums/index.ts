@@ -1,18 +1,12 @@
 /**
- * Domain Enums
+ * Domain Enums - Shared Kernel
  *
- * Pure domain enums - independent of infrastructure.
- * These define the business vocabulary of the system.
+ * Cross-cutting enums used by 3+ bounded contexts.
+ * Single-context enums should live in their respective bounded-context/domain/enums/.
  */
 
-// Collaborator Role
-export {
-  type CollaboratorRole,
-  CollaboratorRoleSchema,
-  canRoleEdit,
-  canRoleManage,
-} from './collaborator-role.enum';
 // Platform Enums (Theme Mode, Palette, Language, etc.)
+// Used by: identity, platform, export
 export {
   type DateFormat,
   type DateFormatPattern,
@@ -64,7 +58,9 @@ export {
   uiLanguageFromKebab,
   uiLanguageToKebab,
 } from './platform.enum';
+
 // Resume Template
+// Used by: onboarding, resumes, platform
 export {
   type ResumeTemplate,
   type ResumeTemplateKebab,
@@ -73,42 +69,3 @@ export {
   resumeTemplateFromKebab,
   resumeTemplateToKebab,
 } from './resume-template.enum';
-// Skill Level
-export {
-  type SkillLevel,
-  SkillLevelSchema,
-  SkillLevelToNumeric,
-} from './skill-level.enum';
-// Skill Type
-export {
-  type SkillType,
-  type SkillTypeKebab,
-  SkillTypeKebabSchema,
-  SkillTypeSchema,
-  skillTypeFromKebab,
-  skillTypeToKebab,
-} from './skill-type.enum';
-// Tech Area
-export {
-  type TechAreaType,
-  type TechAreaTypeKebab,
-  TechAreaTypeKebabSchema,
-  TechAreaTypeSchema,
-  techAreaTypeFromKebab,
-  techAreaTypeToKebab,
-} from './tech-area.enum';
-// Tech Persona
-export {
-  type TechPersona,
-  TechPersonaEnum,
-  TechPersonaSchema,
-} from './tech-persona.enum';
-// Theme
-export {
-  type ThemeCategory,
-  ThemeCategorySchema,
-  type ThemeStatus,
-  ThemeStatusSchema,
-} from './theme.enum';
-// User Role
-export { type UserRole, UserRoleSchema } from './user-role.enum';

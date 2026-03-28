@@ -1,22 +1,14 @@
-import { ApiProperty } from '@nestjs/swagger';
+/**
+ * Get 2FA Status DTOs
+ */
 
-export class Get2faStatusResponseDto {
-  @ApiProperty({
-    description: 'Whether 2FA is enabled',
-    example: true,
-  })
-  enabled!: boolean;
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
 
-  @ApiProperty({
-    description: 'Last time 2FA was used',
-    example: '2024-01-01T00:00:00.000Z',
-    nullable: true,
-  })
-  lastUsedAt!: Date | null;
+const Get2faStatusResponseSchema = z.object({
+  enabled: z.boolean(),
+  lastUsedAt: z.string().datetime().nullable(),
+  backupCodesRemaining: z.number().int(),
+});
 
-  @ApiProperty({
-    description: 'Number of unused backup codes remaining',
-    example: 8,
-  })
-  backupCodesRemaining!: number;
-}
+export class Get2faStatusResponseDto extends createZodDto(Get2faStatusResponseSchema) {}

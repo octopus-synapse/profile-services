@@ -6,6 +6,7 @@ import { BlockedUserRepository } from '../repositories/blocked-user.repository';
 import { ConversationRepository } from '../repositories/conversation.repository';
 import { MessageRepository } from '../repositories/message.repository';
 import { ChatService } from './chat.service';
+import { ChatCacheService } from './chat-cache.service';
 
 // Helper to type mocked repository methods
 type Mocked<T> = {
@@ -85,6 +86,16 @@ describe('ChatService', () => {
       publishAsync: mock(() => Promise.resolve()),
     };
 
+    const mockChatCacheService = {
+      getUnreadCount: mock((userId: string, computeFn: () => Promise<unknown>) => computeFn()),
+      invalidateUnread: mock(() => Promise.resolve()),
+      getConversations: mock((userId: string, computeFn: () => Promise<unknown>) => computeFn()),
+      invalidateConversations: mock(() => Promise.resolve()),
+      setOnlineStatus: mock(() => Promise.resolve()),
+      getOnlineStatus: mock(() => Promise.resolve(null)),
+      invalidateAllForUser: mock(() => Promise.resolve()),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ChatService,
@@ -92,6 +103,7 @@ describe('ChatService', () => {
         { provide: MessageRepository, useValue: mockMessageRepo },
         { provide: BlockedUserRepository, useValue: mockBlockedUserRepo },
         { provide: EventPublisher, useValue: mockEventPublisher },
+        { provide: ChatCacheService, useValue: mockChatCacheService },
       ],
     }).compile();
 

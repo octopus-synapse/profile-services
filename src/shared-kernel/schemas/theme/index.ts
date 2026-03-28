@@ -1,9 +1,2 @@
-/**
- * Theme Schemas Index
- *
- * Central export point for all theme-related schemas.
- *
- * @principle Single Source of Truth
- */
-
-export * from './theme.schema';
+export * from './theme.types';
+export * from './theme-crud.schema';

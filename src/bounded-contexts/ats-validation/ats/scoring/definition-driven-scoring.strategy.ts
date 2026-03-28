@@ -11,7 +11,7 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import type { SemanticSectionItem } from '@/shared-kernel/dtos/semantic-sections.dto';
+import type { SemanticSectionItem } from '@/shared-kernel/schemas/sections';
 import type { SectionTypeAtsEntry } from '../interfaces';
 
 export interface DefinitionScoringInput {

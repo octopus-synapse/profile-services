@@ -1,26 +1,49 @@
-import { ApiProperty } from '@nestjs/swagger';
+/**
+ * Social Controller Response DTOs
+ */
 
-export class ActivityFeedDataDto {
-  @ApiProperty({ type: 'object', additionalProperties: true })
-  feed!: object;
-}
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
 
-export class ActivityListDataDto {
-  @ApiProperty({ type: 'object', additionalProperties: true })
-  activities!: object;
-}
+// ============================================================================
+// Schemas - Using any for flexible service layer response types
+// These are response DTOs that don't need runtime validation
+// ============================================================================
 
-export class FollowListDataDto {
-  @ApiProperty({ type: 'object', additionalProperties: true })
-  followers!: object;
-}
+const PaginatedResultSchema = z.object({
+  data: z.array(z.any()),
+  total: z.number().int(),
+  page: z.number().int(),
+  limit: z.number().int(),
+  totalPages: z.number().int(),
+});
 
-export class FollowingListDataDto {
-  @ApiProperty({ type: 'object', additionalProperties: true })
-  following!: object;
-}
+const ActivityFeedDataSchema = z.object({
+  feed: PaginatedResultSchema,
+});
 
-export class UnfollowDataDto {
-  @ApiProperty({ example: true })
-  unfollowed!: boolean;
-}
+const ActivityListDataSchema = z.object({
+  activities: PaginatedResultSchema,
+});
+
+const FollowListDataSchema = z.object({
+  followers: PaginatedResultSchema,
+});
+
+const FollowingListDataSchema = z.object({
+  following: PaginatedResultSchema,
+});
+
+const UnfollowDataSchema = z.object({
+  unfollowed: z.boolean(),
+});
+
+// ============================================================================
+// DTOs
+// ============================================================================
+
+export class ActivityFeedDataDto extends createZodDto(ActivityFeedDataSchema) {}
+export class ActivityListDataDto extends createZodDto(ActivityListDataSchema) {}
+export class FollowListDataDto extends createZodDto(FollowListDataSchema) {}
+export class FollowingListDataDto extends createZodDto(FollowingListDataSchema) {}
+export class UnfollowDataDto extends createZodDto(UnfollowDataSchema) {}

@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { OnboardingProgress } from '@/shared-kernel';
 import { ERROR_MESSAGES } from '@/shared-kernel';
 import type { SectionTypeData } from './config/onboarding-steps.config';
+import type { OnboardingProgress } from './schemas/onboarding-progress.schema';
 import { OnboardingCompletionService } from './services/onboarding-completion.service';
 import { OnboardingNavigationService } from './services/onboarding-navigation.service';
 import type { OnboardingProgressData } from './services/onboarding-progress/ports/onboarding-progress.port';

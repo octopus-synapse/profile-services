@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { SectionTypeRepository } from '@/shared-kernel/repositories/section-type.repository';
+import { SectionTypeRepository } from '@/bounded-contexts/resumes/infrastructure/repositories';
 
 @Injectable()
 export class SectionTypesService {

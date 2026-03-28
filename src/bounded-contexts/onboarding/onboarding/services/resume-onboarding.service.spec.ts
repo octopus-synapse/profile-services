@@ -30,7 +30,16 @@ interface ResumeRecord {
   github?: string;
   website?: string;
   template?: string;
+  activeThemeId?: string;
   [key: string]: unknown;
+}
+
+interface ThemeRecord {
+  id: string;
+  name: string;
+  isSystemTheme: boolean;
+  status: string;
+  styleConfig: Record<string, unknown>;
 }
 
 interface UserRecord {
@@ -41,14 +50,28 @@ interface UserRecord {
 function createFakePrismaStore() {
   const resumeStore = new Map<string, ResumeRecord>();
   const userStore = new Map<string, UserRecord>();
+  const themeStore = new Map<string, ThemeRecord>();
   let idCounter = 1;
+
+  // Seed default Modern theme
+  const modernTheme: ThemeRecord = {
+    id: 'theme-modern-default',
+    name: 'Modern',
+    isSystemTheme: true,
+    status: 'PUBLISHED',
+    styleConfig: { version: '1.0.0', layout: { type: 'two-column' } },
+  };
+  themeStore.set(modernTheme.id, modernTheme);
 
   return {
     resumeStore,
     userStore,
+    themeStore,
     reset() {
       resumeStore.clear();
       userStore.clear();
+      themeStore.clear();
+      themeStore.set(modernTheme.id, modernTheme);
       idCounter = 1;
     },
     prisma: {
@@ -76,6 +99,13 @@ function createFakePrismaStore() {
           resumeStore.set(newResume.id, newResume);
           return newResume;
         },
+        update: async ({ where, data }: { where: { id: string }; data: Partial<ResumeRecord> }) => {
+          const existing = resumeStore.get(where.id);
+          if (!existing) throw new Error('Resume not found');
+          const updated = { ...existing, ...data };
+          resumeStore.set(where.id, updated);
+          return updated;
+        },
       },
       user: {
         update: async ({
@@ -89,6 +119,27 @@ function createFakePrismaStore() {
           const updated = { ...user, ...data };
           userStore.set(where.id, updated);
           return updated;
+        },
+      },
+      resumeTheme: {
+        findFirst: async ({
+          where,
+        }: {
+          where: {
+            isSystemTheme?: boolean;
+            status?: string;
+            name?: { equals: string; mode: string };
+          };
+        }) => {
+          const themes = Array.from(themeStore.values());
+          return (
+            themes.find(
+              (t) =>
+                (!where.isSystemTheme || t.isSystemTheme === where.isSystemTheme) &&
+                (!where.status || t.status === where.status) &&
+                (!where.name || t.name.toLowerCase() === where.name.equals.toLowerCase()),
+            ) ?? null
+          );
         },
       },
     } as unknown as PrismaService,
@@ -220,6 +271,53 @@ describe('ResumeOnboardingService', () => {
       const result = await service.upsertResume('user-1', data);
 
       expect(result.template).toBe('MODERN');
+    });
+  });
+
+  /**
+   * TDD Red Phase: Default Theme Application
+   *
+   * During onboarding, the system should automatically apply the default
+   * "Modern" system theme so that the resume can be rendered immediately.
+   */
+  describe('default theme application', () => {
+    it('should apply default Modern theme when creating new resume', async () => {
+      const data = createValidOnboardingData();
+
+      const result = await service.upsertResume('user-1', data);
+
+      expect(result.activeThemeId).toBe('theme-modern-default');
+    });
+
+    it('should set activeThemeId to the Modern system theme', async () => {
+      const data = createValidOnboardingData();
+
+      await service.upsertResume('user-1', data);
+
+      const savedResume = store.resumeStore.get('resume-1');
+      expect(savedResume?.activeThemeId).toBe('theme-modern-default');
+    });
+
+    it('should not change activeThemeId when updating existing resume', async () => {
+      // Create first resume with default theme
+      const data = createValidOnboardingData();
+      const firstResume = await service.upsertResume('user-1', data);
+
+      // Manually change theme (simulating user changed it)
+      store.resumeStore.set(firstResume.id, {
+        ...store.resumeStore.get(firstResume.id)!,
+        activeThemeId: 'theme-custom',
+      });
+
+      // Update resume via onboarding
+      const updatedData = createValidOnboardingData({
+        personalInfo: { ...data.personalInfo, fullName: 'Updated Name' },
+      });
+      await service.upsertResume('user-1', updatedData);
+
+      // Theme should remain unchanged
+      const savedResume = store.resumeStore.get(firstResume.id);
+      expect(savedResume?.activeThemeId).toBe('theme-custom');
     });
   });
 });

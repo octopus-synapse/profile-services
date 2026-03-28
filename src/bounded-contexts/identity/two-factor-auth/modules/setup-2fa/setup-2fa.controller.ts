@@ -1,12 +1,8 @@
 import { Controller, HttpCode, HttpStatus, Inject, Post, Req } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiExcludeController,
-  ApiOkResponse,
-  ApiOperation,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
+import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import {
   QR_CODE_SERVICE_PORT,
   type QrCodeServicePort,
@@ -23,8 +19,12 @@ interface AuthenticatedRequest extends Request {
   user: { id: string };
 }
 
+@SdkExport({
+  tag: 'two-factor-auth',
+  description: 'Two-Factor Authentication API',
+  requiresAuth: true,
+})
 @ApiTags('Two-Factor Auth')
-@ApiExcludeController()
 @ApiBearerAuth()
 @Controller('auth/2fa')
 export class Setup2faController {
@@ -47,10 +47,7 @@ export class Setup2faController {
     summary: 'Setup 2FA',
     description: 'Generates TOTP secret and QR code. 2FA is not enabled until verified.',
   })
-  @ApiOkResponse({
-    description: '2FA setup data',
-    type: Setup2faResponseDto,
-  })
+  @ApiDataResponse(Setup2faResponseDto, { description: '2FA setup data' })
   async setup(@Req() req: AuthenticatedRequest): Promise<Setup2faResponseDto> {
     return this.useCase.execute(req.user.id);
   }

@@ -19,6 +19,8 @@ export type UserListItem = {
   image: string | null;
   emailVerified: Date | null;
   resumeCount: number;
+  role: 'USER' | 'ADMIN';
+  lastLoginAt: Date | null;
 };
 
 export type UserDetails = {

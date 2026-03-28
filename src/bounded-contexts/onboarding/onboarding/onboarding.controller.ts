@@ -19,195 +19,47 @@
  */
 
 import { Body, Controller, Get, HttpCode, HttpStatus, Post, Put, Query } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiBody,
-  ApiOperation,
-  ApiProperty,
-  ApiPropertyOptional,
-  ApiQuery,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { createZodPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
-import {
-  type OnboardingData,
-  OnboardingDataSchema,
-  OnboardingProgressSchema,
-} from '@/shared-kernel';
-import {
-  CompleteOnboardingRequestDto,
-  OnboardingPersonalInfoDto,
-  OnboardingProfessionalProfileDto,
-  OnboardingTemplateSelectionDto,
-} from '@/shared-kernel/dtos/sdk-request.dto';
 import { parseLocale } from '@/shared-kernel/utils/locale-resolver';
 import {
   buildOnboardingSteps,
   calculateProgress,
   getStepIndex,
   type SectionTypeData,
-  StepMetaDto,
 } from './config/onboarding-steps.config';
 import { canProceedFromStep } from './config/onboarding-validation';
+import { type OnboardingData, OnboardingDataSchema } from './domain/schemas/onboarding-data.schema';
+import {
+  CompleteOnboardingRequestDto,
+  CompleteOnboardingResponseDto,
+  GotoStepRequestDto,
+  OnboardingSessionDto,
+  OnboardingStatusResponseDto,
+  PersonalInfoDto,
+  ProfessionalProfileDto,
+  SaveProgressRequestDto,
+  SaveProgressResponseDto,
+  SectionItemDto,
+  TemplateSelectionDto,
+} from './dto/onboarding.dto';
 import { OnboardingService } from './onboarding.service';
+import { OnboardingProgressSchema } from './schemas/onboarding-progress.schema';
 import type { OnboardingProgressData } from './services/onboarding-progress/ports/onboarding-progress.port';
 
-// ============================================================================
-// Response DTOs
-// ============================================================================
-
-class SectionItemDto {
-  @ApiPropertyOptional({ example: 'item-123' })
-  id?: string;
-
-  @ApiPropertyOptional({ type: Object })
-  content?: Record<string, unknown>;
-}
-
-class SectionProgressDto {
-  @ApiProperty({ example: 'work_experience_v1' })
-  sectionTypeKey!: string;
-
-  @ApiPropertyOptional({ type: [SectionItemDto] })
-  items?: SectionItemDto[];
-
-  @ApiPropertyOptional({ example: false })
-  noData?: boolean;
-}
-
-/** Session response — everything the frontend needs to render */
-export class OnboardingSessionDto {
-  // Navigation (computed server-side)
-  @ApiProperty({ example: 'personal-info' })
-  currentStep!: string;
-
-  @ApiProperty({ example: ['welcome'] })
-  completedSteps!: string[];
-
-  @ApiProperty({ example: 25, description: 'Progress percentage 0-100' })
-  progress!: number;
-
-  @ApiProperty({ example: true, description: 'Can proceed to next step' })
-  canProceed!: boolean;
-
-  @ApiPropertyOptional({
-    example: 'username',
-    description: 'Next step ID or null',
-  })
-  nextStep?: string | null;
-
-  @ApiPropertyOptional({
-    example: 'welcome',
-    description: 'Previous step ID or null',
-  })
-  previousStep?: string | null;
-
-  // Step metadata with field definitions (server-driven rendering)
-  @ApiProperty({
-    type: [StepMetaDto],
-    description: 'All onboarding steps with field defs',
-  })
-  steps!: StepMetaDto[];
-
-  // Data (typed objects)
-  @ApiPropertyOptional({ example: 'johndoe' })
-  username?: string;
-
-  @ApiPropertyOptional({ type: OnboardingPersonalInfoDto })
-  personalInfo?: OnboardingPersonalInfoDto;
-
-  @ApiPropertyOptional({ type: OnboardingProfessionalProfileDto })
-  professionalProfile?: OnboardingProfessionalProfileDto;
-
-  @ApiPropertyOptional({ type: [SectionProgressDto] })
-  sections?: SectionProgressDto[];
-
-  @ApiPropertyOptional({ type: OnboardingTemplateSelectionDto })
-  templateSelection?: OnboardingTemplateSelectionDto;
-}
-
-// Keep backward compat alias
+// Backward compat alias
 export { OnboardingSessionDto as OnboardingProgressDto };
-
-class CompleteOnboardingResponseDto {
-  @ApiProperty({ example: 'cuid123' })
-  resumeId!: string;
-}
-
-class OnboardingStatusResponseDto {
-  @ApiProperty({ example: false })
-  hasCompletedOnboarding!: boolean;
-
-  @ApiPropertyOptional({ example: '2026-03-25T18:00:00.000Z' })
-  onboardingCompletedAt?: Date | null;
-}
-
-class SaveProgressResponseDto {
-  @ApiProperty({ example: 'professional-profile' })
-  currentStep!: string;
-
-  @ApiProperty({ example: ['welcome', 'personal-info'] })
-  completedSteps!: string[];
-}
 
 const ONBOARDING_STEP_DATA_REQUEST_SCHEMA = {
   type: 'object',
   additionalProperties: true,
   description: 'Data to save for the current step',
 } as const;
-
-// ============================================================================
-// Command Request DTOs
-// ============================================================================
-
-class GotoStepRequestDto {
-  @ApiProperty({
-    example: 'personal-info',
-    description: 'Step ID to navigate to',
-  })
-  stepId!: string;
-}
-
-// Legacy request DTOs (backward compat)
-
-class SectionProgressInputDto {
-  @ApiProperty({ example: 'work_experience_v1' })
-  sectionTypeKey!: string;
-
-  @ApiPropertyOptional({ type: [SectionItemDto] })
-  items?: SectionItemDto[];
-
-  @ApiPropertyOptional({ example: false })
-  noData?: boolean;
-}
-
-class SaveProgressRequestDto {
-  @ApiProperty({ example: 'professional-profile' })
-  currentStep!: string;
-
-  @ApiProperty({ example: ['welcome', 'personal-info'] })
-  completedSteps!: string[];
-
-  @ApiPropertyOptional({ example: 'johndoe' })
-  username?: string;
-
-  @ApiPropertyOptional({ type: OnboardingPersonalInfoDto })
-  personalInfo?: OnboardingPersonalInfoDto;
-
-  @ApiPropertyOptional({ type: OnboardingProfessionalProfileDto })
-  professionalProfile?: OnboardingProfessionalProfileDto;
-
-  @ApiPropertyOptional({ type: [SectionProgressInputDto] })
-  sections?: SectionProgressInputDto[];
-
-  @ApiPropertyOptional({ type: OnboardingTemplateSelectionDto })
-  templateSelection?: OnboardingTemplateSelectionDto;
-}
 
 // ============================================================================
 // Controller
@@ -480,7 +332,7 @@ export class OnboardingController {
     return {};
   }
 
-  private toPersonalInfo(value: unknown): OnboardingPersonalInfoDto | undefined {
+  private toPersonalInfo(value: unknown): PersonalInfoDto | undefined {
     if (!value || typeof value !== 'object') return undefined;
     const obj = value as Record<string, unknown>;
     if (typeof obj.fullName !== 'string' || typeof obj.email !== 'string') return undefined;
@@ -492,7 +344,7 @@ export class OnboardingController {
     };
   }
 
-  private toProfessionalProfile(value: unknown): OnboardingProfessionalProfileDto | undefined {
+  private toProfessionalProfile(value: unknown): ProfessionalProfileDto | undefined {
     if (!value || typeof value !== 'object') return undefined;
     const obj = value as Record<string, unknown>;
     return {
@@ -504,7 +356,7 @@ export class OnboardingController {
     };
   }
 
-  private toTemplateSelection(value: unknown): OnboardingTemplateSelectionDto | undefined {
+  private toTemplateSelection(value: unknown): TemplateSelectionDto | undefined {
     if (!value || typeof value !== 'object') return undefined;
     const obj = value as Record<string, unknown>;
     return {

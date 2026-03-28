@@ -1,8 +1,8 @@
+import { TechPersonaEnum } from '@/bounded-contexts/platform/domain/enums';
 import { PersonaConfig } from './persona-config.interface';
-import { TechPersona } from './tech-persona.enum';
 
 export const SECURITY_PERSONA: PersonaConfig = {
-  id: TechPersona.SECURITY,
+  id: TechPersonaEnum.SECURITY,
   name: 'Security Specialist',
   description: 'Cybersecurity, Pentesting, Ethical Hacking',
   icon: '🛡️',

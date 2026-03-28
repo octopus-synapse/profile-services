@@ -4,8 +4,8 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { MecStats } from '@/shared-kernel';
 import { CourseRepository, InstitutionRepository } from '../repositories';
+import type { MecStats } from '../schemas/mec.schema';
 
 @Injectable()
 export class MecStatsService {

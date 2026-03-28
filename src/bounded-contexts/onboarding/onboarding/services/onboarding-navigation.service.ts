@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { buildOnboardingSteps, getStepIndex } from '../config/onboarding-steps.config';
+import { canProceedFromStep } from '../config/onboarding-validation';
 import type { OnboardingProgressData } from './onboarding-progress/ports/onboarding-progress.port';
 import { OnboardingProgressService } from './onboarding-progress.service';
 import { OnboardingStepDataMapper } from './onboarding-step-data.mapper';
@@ -29,7 +30,30 @@ export class OnboardingNavigationService {
       throw new BadRequestException('Already at the last step');
     }
 
+    // Merge step data into progress for validation
     const update = this.buildNextStepUpdate(progress, nextStep.id, stepData);
+
+    // Validate before advancing - check if current step requirements are met
+    // Use merged data (update values take precedence over existing progress)
+    if (
+      !canProceedFromStep(progress.currentStep, {
+        username: (update.username ?? progress.username) as string | undefined,
+        personalInfo: (update.personalInfo ?? progress.personalInfo) as
+          | { fullName?: string; email?: string }
+          | undefined,
+        professionalProfile: (update.professionalProfile ?? progress.professionalProfile) as
+          | { jobTitle?: string }
+          | undefined,
+        templateSelection: (update.templateSelection ?? progress.templateSelection) as
+          | { colorScheme?: string }
+          | undefined,
+      })
+    ) {
+      throw new BadRequestException(
+        `Cannot proceed from ${progress.currentStep}: required fields missing`,
+      );
+    }
+
     await this.progressService.saveProgress(userId, update as never);
     return this.progressService.getProgress(userId);
   }

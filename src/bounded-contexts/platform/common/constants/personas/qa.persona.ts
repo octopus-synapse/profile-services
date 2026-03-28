@@ -1,8 +1,8 @@
+import { TechPersonaEnum } from '@/bounded-contexts/platform/domain/enums';
 import { PersonaConfig } from './persona-config.interface';
-import { TechPersona } from './tech-persona.enum';
 
 export const QA_PERSONA: PersonaConfig = {
-  id: TechPersona.QA,
+  id: TechPersonaEnum.QA,
   name: 'QA Engineer',
   description: 'Test Automation, Quality Assurance, Testing',
   icon: '🧪',

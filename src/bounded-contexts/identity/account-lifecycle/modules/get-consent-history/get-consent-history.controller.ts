@@ -7,12 +7,12 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
-import { ConsentHistoryResponseDto } from '@/shared-kernel';
 import {
   AllowUnverifiedEmail,
   JwtAuthGuard,
   SkipTosCheck,
 } from '../../../shared-kernel/infrastructure';
+import { ConsentHistoryResponseDto } from './get-consent-history.dto';
 import { GetConsentHistoryUseCase } from './get-consent-history.use-case';
 
 interface RequestWithUser extends Request {

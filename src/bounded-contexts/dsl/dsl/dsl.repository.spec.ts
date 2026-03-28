@@ -306,4 +306,75 @@ describe('DslRepository', () => {
       expect(tokens.colors.accent).toBe('#ff0000');
     });
   });
+
+  /**
+   * TDD Red Phase: No Theme Scenarios
+   *
+   * These tests verify that the repository throws a clear, descriptive error
+   * when attempting to render a resume that has no active theme set.
+   * This is a common scenario after onboarding when no theme is applied yet.
+   */
+  describe('render - no theme scenarios', () => {
+    it('should throw descriptive error when resume has no activeTheme', async () => {
+      const resumeWithoutTheme = {
+        ...createMockResume({
+          id: 'resume-no-theme',
+          userId: 'user-123',
+        }),
+        activeTheme: null,
+        customTheme: null,
+      };
+
+      prisma.seedResume(resumeWithoutTheme as unknown as ResumeLike);
+
+      await expect(repository.render('resume-no-theme', 'user-123')).rejects.toThrow(/theme/i);
+    });
+
+    it('should throw when activeTheme has null styleConfig', async () => {
+      const resumeWithNullConfig = {
+        ...createMockResume({
+          id: 'resume-null-config',
+          userId: 'user-123',
+        }),
+        activeTheme: { styleConfig: null },
+        customTheme: null,
+      };
+
+      prisma.seedResume(resumeWithNullConfig as unknown as ResumeLike);
+
+      await expect(repository.render('resume-null-config', 'user-123')).rejects.toThrow(/theme/i);
+    });
+
+    it('should throw when activeTheme has empty styleConfig object', async () => {
+      const resumeWithEmptyConfig = {
+        ...createMockResume({
+          id: 'resume-empty-config',
+          userId: 'user-123',
+        }),
+        activeTheme: { styleConfig: {} },
+        customTheme: null,
+      };
+
+      prisma.seedResume(resumeWithEmptyConfig as unknown as ResumeLike);
+
+      await expect(repository.render('resume-empty-config', 'user-123')).rejects.toThrow(/theme/i);
+    });
+
+    it('should include actionable message in the error', async () => {
+      const resumeWithoutTheme = {
+        ...createMockResume({
+          id: 'resume-actionable',
+          userId: 'user-123',
+        }),
+        activeTheme: null,
+        customTheme: null,
+      };
+
+      prisma.seedResume(resumeWithoutTheme as unknown as ResumeLike);
+
+      await expect(repository.render('resume-actionable', 'user-123')).rejects.toThrow(
+        /apply.*theme|select.*theme/i,
+      );
+    });
+  });
 });
