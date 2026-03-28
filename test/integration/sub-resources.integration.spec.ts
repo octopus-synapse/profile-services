@@ -33,7 +33,9 @@ const SECTION_TYPES: SectionConfig[] = [
       description: 'Test experience description',
     },
     updatePayload: {
+      company: 'Test Company',
       role: 'Senior Software Engineer',
+      startDate: '2020-01-01',
     },
   },
   {
@@ -48,6 +50,7 @@ const SECTION_TYPES: SectionConfig[] = [
       endDate: '2020-01-01',
     },
     updatePayload: {
+      institution: 'Test University',
       degree: 'Master',
     },
   },
@@ -60,6 +63,7 @@ const SECTION_TYPES: SectionConfig[] = [
       category: 'Programming Languages',
     },
     updatePayload: {
+      name: 'TypeScript',
       category: 'Backend',
     },
   },
@@ -87,6 +91,8 @@ const SECTION_TYPES: SectionConfig[] = [
     },
     updatePayload: {
       name: 'AWS Certified Solutions Architect',
+      issuer: 'Amazon',
+      issueDate: '2023-01-01',
     },
   },
   {
@@ -100,6 +106,8 @@ const SECTION_TYPES: SectionConfig[] = [
     },
     updatePayload: {
       title: 'Outstanding Developer Award',
+      issuer: 'Tech Company',
+      date: '2023-06-01',
     },
   },
   {
@@ -113,6 +121,8 @@ const SECTION_TYPES: SectionConfig[] = [
     },
     updatePayload: {
       title: 'Updated Test Publication',
+      publisher: 'Tech Journal',
+      date: '2023-01-01',
     },
   },
   {
@@ -126,6 +136,8 @@ const SECTION_TYPES: SectionConfig[] = [
     },
     updatePayload: {
       title: 'Updated Conference Talk',
+      event: 'Tech Conference 2023',
+      date: '2023-06-15',
     },
   },
   {
@@ -139,6 +151,8 @@ const SECTION_TYPES: SectionConfig[] = [
       projectName: 'Test Project',
     },
     updatePayload: {
+      name: 'Test Hackathon',
+      date: '2023-03-01',
       projectName: 'Updated Test Project',
     },
   },
@@ -151,6 +165,7 @@ const SECTION_TYPES: SectionConfig[] = [
       level: 'NATIVE',
     },
     updatePayload: {
+      name: 'English',
       level: 'FLUENT',
     },
   },
@@ -163,6 +178,7 @@ const SECTION_TYPES: SectionConfig[] = [
       keywords: ['software', 'community'],
     },
     updatePayload: {
+      name: 'Open Source',
       keywords: ['software', 'community', 'collaboration'],
     },
   },
@@ -177,6 +193,7 @@ const SECTION_TYPES: SectionConfig[] = [
       text: 'Great developer!',
     },
     updatePayload: {
+      name: 'John Doe',
       text: 'Outstanding developer and team player!',
     },
   },
@@ -205,6 +222,8 @@ const SECTION_TYPES: SectionConfig[] = [
       reward: '1000',
     },
     updatePayload: {
+      platform: 'HackerOne',
+      date: '2023-01-01',
       reward: '2000',
     },
   },
@@ -219,6 +238,7 @@ const SECTION_TYPES: SectionConfig[] = [
       url: 'https://github.com/test/project',
     },
     updatePayload: {
+      projectName: 'Test OSS Project',
       role: 'Creator',
     },
   },
@@ -313,16 +333,16 @@ describe('Generic Sections Smoke Tests', () => {
       expect(res.body).toHaveProperty('data');
       expect(res.body.data).toHaveProperty('sections');
 
-      // Find the section for this type
+      // Find the section for this type (structure is sectionType.key)
       const section = res.body.data.sections.find(
-        (s: { sectionTypeKey: string }) => s.sectionTypeKey === sectionTypeKey,
+        (s: { sectionType: { key: string } }) => s.sectionType?.key === sectionTypeKey,
       );
 
       // Log for debugging if section not found
       if (!section) {
         console.error(
           `Section ${sectionTypeKey} not found. Available sections:`,
-          res.body.data.sections.map((s: { sectionTypeKey: string }) => s.sectionTypeKey),
+          res.body.data.sections.map((s: { sectionType: { key: string } }) => s.sectionType?.key),
         );
       }
 
