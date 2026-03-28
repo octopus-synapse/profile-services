@@ -123,7 +123,8 @@ describe('DSL Smoke Tests (e2e)', () => {
   }, 20000);
 
   afterAll(async () => {
-    // Cleanup
+    // Cleanup in correct order (foreign key dependencies)
+    await prisma.resumeShare.deleteMany({ where: { resumeId } });
     await prisma.resume.deleteMany({ where: { userId } });
     await prisma.user.delete({ where: { id: userId } });
     await app.close();
@@ -295,8 +296,11 @@ describe('DSL Smoke Tests (e2e)', () => {
 
   describe('DSL Public Render Endpoint', () => {
     it('should render public resume AST', async () => {
-      await prisma.resumeShare.create({
-        data: {
+      // Use upsert to handle case where share already exists from previous run
+      await prisma.resumeShare.upsert({
+        where: { slug: 'dsl-smoke-test' },
+        update: { resumeId },
+        create: {
           resumeId,
           slug: 'dsl-smoke-test',
         },
