@@ -20,7 +20,7 @@ import {
   unwrapApiData,
 } from './setup';
 
-describe.skip('Generic Resume Sections Extended Integration', () => {
+describe('Generic Resume Sections Extended Integration', () => {
   let userAToken: string;
   let userAResumeId: string;
 

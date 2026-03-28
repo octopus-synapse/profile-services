@@ -11,6 +11,8 @@ import {
 /**
  * Generic Section configuration for parametrized tests
  * Uses the new generic sections API pattern: /sections/:sectionTypeKey/items
+ *
+ * IMPORTANT: Payloads must match the field definitions in section-type.seed.ts
  */
 interface SectionConfig {
   name: string;
@@ -23,20 +25,21 @@ const SECTION_TYPES: SectionConfig[] = [
   {
     name: 'work experience',
     sectionTypeKey: 'work_experience_v1',
+    // Required: company, role, startDate
     createPayload: {
       company: 'Test Company',
-      position: 'Software Engineer',
+      role: 'Software Engineer',
       startDate: '2020-01-01',
-      current: true,
       description: 'Test experience description',
     },
     updatePayload: {
-      position: 'Senior Software Engineer',
+      role: 'Senior Software Engineer',
     },
   },
   {
     name: 'education',
     sectionTypeKey: 'education_v1',
+    // Required: institution, degree
     createPayload: {
       institution: 'Test University',
       degree: 'Bachelor',
@@ -51,18 +54,19 @@ const SECTION_TYPES: SectionConfig[] = [
   {
     name: 'skills',
     sectionTypeKey: 'skill_set_v1',
+    // Required: name
     createPayload: {
       name: 'TypeScript',
-      level: 4,
       category: 'Programming Languages',
     },
     updatePayload: {
-      level: 5,
+      category: 'Backend',
     },
   },
   {
     name: 'projects',
     sectionTypeKey: 'project_v1',
+    // Required: name
     createPayload: {
       name: 'Test Project',
       description: 'A test project',
@@ -75,6 +79,7 @@ const SECTION_TYPES: SectionConfig[] = [
   {
     name: 'certifications',
     sectionTypeKey: 'certification_v1',
+    // Required: name, issuer, issueDate
     createPayload: {
       name: 'AWS Certified',
       issuer: 'Amazon',
@@ -87,6 +92,7 @@ const SECTION_TYPES: SectionConfig[] = [
   {
     name: 'awards',
     sectionTypeKey: 'award_v1',
+    // Required: title, issuer, date
     createPayload: {
       title: 'Best Developer Award',
       issuer: 'Tech Company',
@@ -99,11 +105,11 @@ const SECTION_TYPES: SectionConfig[] = [
   {
     name: 'publications',
     sectionTypeKey: 'publication_v1',
+    // Required: title, publisher, date
     createPayload: {
       title: 'Test Publication',
       publisher: 'Tech Journal',
-      publicationType: 'Article',
-      publishedAt: '2023-01-01',
+      date: '2023-01-01',
     },
     updatePayload: {
       title: 'Updated Test Publication',
@@ -112,10 +118,10 @@ const SECTION_TYPES: SectionConfig[] = [
   {
     name: 'talks',
     sectionTypeKey: 'talk_v1',
+    // Required: title, event, date
     createPayload: {
       title: 'Test Conference Talk',
       event: 'Tech Conference 2023',
-      eventType: 'conference',
       date: '2023-06-15',
     },
     updatePayload: {
@@ -125,11 +131,12 @@ const SECTION_TYPES: SectionConfig[] = [
   {
     name: 'hackathons',
     sectionTypeKey: 'hackathon_v1',
+    // Required: name, date
     createPayload: {
       name: 'Test Hackathon',
+      date: '2023-03-01',
       organizer: 'Tech Corp',
       projectName: 'Test Project',
-      date: '2023-03-01',
     },
     updatePayload: {
       projectName: 'Updated Test Project',
@@ -138,46 +145,49 @@ const SECTION_TYPES: SectionConfig[] = [
   {
     name: 'languages',
     sectionTypeKey: 'language_v1',
+    // Required: name, level (enum: BASIC, INTERMEDIATE, FLUENT, NATIVE)
     createPayload: {
       name: 'English',
-      level: 'Native',
+      level: 'NATIVE',
     },
     updatePayload: {
-      level: 'Fluent',
+      level: 'FLUENT',
     },
   },
   {
     name: 'interests',
     sectionTypeKey: 'interest_v1',
+    // Required: name
     createPayload: {
       name: 'Open Source',
-      description: 'Contributing to open source projects',
+      keywords: ['software', 'community'],
     },
     updatePayload: {
-      description: 'Active open source contributor',
+      keywords: ['software', 'community', 'collaboration'],
     },
   },
   {
     name: 'recommendations',
     sectionTypeKey: 'recommendation_v1',
+    // Required: name
     createPayload: {
-      author: 'John Doe',
-      position: 'CTO',
+      name: 'John Doe',
+      role: 'CTO',
       company: 'Tech Corp',
-      content: 'Great developer!',
+      text: 'Great developer!',
     },
     updatePayload: {
-      content: 'Outstanding developer and team player!',
+      text: 'Outstanding developer and team player!',
     },
   },
   {
     name: 'achievements',
     sectionTypeKey: 'achievement_v1',
+    // Required: title
     createPayload: {
-      type: 'custom',
       title: 'Test Achievement',
       description: 'Achieved something great',
-      achievedAt: '2023-01-01',
+      date: '2023-01-01',
     },
     updatePayload: {
       title: 'Outstanding Achievement',
@@ -186,30 +196,30 @@ const SECTION_TYPES: SectionConfig[] = [
   {
     name: 'bug bounties',
     sectionTypeKey: 'bug_bounty_v1',
+    // Required: platform, date
     createPayload: {
       platform: 'HackerOne',
-      company: 'Tech Corp',
+      date: '2023-01-01',
       severity: 'High',
-      vulnerabilityType: 'SQL Injection',
-      reward: 1000,
-      reportedAt: '2023-01-01',
+      description: 'SQL Injection vulnerability',
+      reward: '1000',
     },
     updatePayload: {
-      reward: 2000,
+      reward: '2000',
     },
   },
   {
     name: 'open source',
     sectionTypeKey: 'open_source_v1',
+    // Required: projectName, role (enum: Maintainer, Contributor, Creator)
     createPayload: {
       projectName: 'Test OSS Project',
-      projectUrl: 'https://github.com/test/project',
       role: 'Maintainer',
       description: 'Open source contribution',
-      startDate: '2023-01-01',
+      url: 'https://github.com/test/project',
     },
     updatePayload: {
-      role: 'Core Maintainer',
+      role: 'Creator',
     },
   },
 ];
@@ -280,6 +290,11 @@ describe('Generic Sections Smoke Tests', () => {
         .set(authHeader(accessToken))
         .send({ content: createPayload });
 
+      // Log response for debugging if it fails
+      if (![200, 201].includes(res.status)) {
+        console.error(`CREATE ${name} failed:`, res.status, JSON.stringify(res.body, null, 2));
+      }
+
       // Accept both 200 and 201 as success
       expect([200, 201].includes(res.status)).toBe(true);
       expect(res.body).toHaveProperty('data');
@@ -302,6 +317,15 @@ describe('Generic Sections Smoke Tests', () => {
       const section = res.body.data.sections.find(
         (s: { sectionTypeKey: string }) => s.sectionTypeKey === sectionTypeKey,
       );
+
+      // Log for debugging if section not found
+      if (!section) {
+        console.error(
+          `Section ${sectionTypeKey} not found. Available sections:`,
+          res.body.data.sections.map((s: { sectionTypeKey: string }) => s.sectionTypeKey),
+        );
+      }
+
       expect(section).toBeDefined();
       expect(section.items.length).toBeGreaterThan(0);
     });
@@ -316,6 +340,11 @@ describe('Generic Sections Smoke Tests', () => {
         .patch(`/api/v1/resumes/${resumeId}/sections/${sectionTypeKey}/items/${itemId}`)
         .set(authHeader(accessToken))
         .send({ content: updatePayload });
+
+      // Log response for debugging if it fails
+      if (res.status !== 200) {
+        console.error(`UPDATE ${name} failed:`, res.status, JSON.stringify(res.body, null, 2));
+      }
 
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('data');

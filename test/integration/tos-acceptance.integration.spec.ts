@@ -16,7 +16,7 @@ import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logg
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { AppModule } from '../../src/app.module';
 
-describe.skip('ToS Acceptance Flow Integration', () => {
+describe('ToS Acceptance Flow Integration', () => {
   let app: INestApplication;
   let prisma: PrismaService;
 

@@ -21,7 +21,7 @@ import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service
 import { AppModule } from '../../src/app.module';
 import { acceptTosWithPrisma } from './setup';
 
-describe.skip('Onboarding Flow Integration', () => {
+describe('Onboarding Flow Integration', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let accessToken: string;
