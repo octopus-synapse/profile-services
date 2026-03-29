@@ -26,6 +26,7 @@ describe('DSL Smoke Tests (e2e)', () => {
   let authToken: string;
   let userId: string;
   let resumeId: string;
+  let themeId: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -117,6 +118,16 @@ describe('DSL Smoke Tests (e2e)', () => {
       sections: [],
     };
 
+    // Create a theme with the valid DSL as styleConfig
+    const theme = await prisma.resumeTheme.create({
+      data: {
+        name: 'Test Theme',
+        authorId: userId,
+        styleConfig: validDsl as Prisma.InputJsonValue,
+      },
+    });
+    themeId = theme.id;
+
     const resumeData = createMockResume({ userId });
     const resume = await prisma.resume.create({
       data: {
@@ -124,6 +135,7 @@ describe('DSL Smoke Tests (e2e)', () => {
         contentPtBr: resumeData.contentPtBr as Prisma.InputJsonValue,
         contentEn: resumeData.contentEn as Prisma.InputJsonValue,
         customTheme: validDsl as Prisma.InputJsonValue,
+        activeThemeId: themeId,
       },
     });
     resumeId = resume.id;
@@ -133,6 +145,7 @@ describe('DSL Smoke Tests (e2e)', () => {
     // Cleanup in correct order (foreign key dependencies)
     await prisma.resumeShare.deleteMany({ where: { resumeId } });
     await prisma.resume.deleteMany({ where: { userId } });
+    await prisma.resumeTheme.deleteMany({ where: { id: themeId } });
     await prisma.user.delete({ where: { id: userId } });
     await app.close();
   }, 20000);
@@ -302,26 +315,33 @@ describe('DSL Smoke Tests (e2e)', () => {
   });
 
   describe('DSL Public Render Endpoint', () => {
+    let testSlug: string;
+
     it('should render public resume AST', async () => {
-      // Use upsert to handle case where share already exists from previous run
-      await prisma.resumeShare.upsert({
-        where: { slug: 'dsl-smoke-test' },
-        update: { resumeId },
-        create: {
+      // Use unique slug per test run to avoid conflicts
+      testSlug = `dsl-smoke-test-${Date.now()}`;
+
+      await prisma.resumeShare.create({
+        data: {
           resumeId,
-          slug: 'dsl-smoke-test',
+          slug: testSlug,
         },
       });
 
-      return request(app.getHttpServer())
-        .get('/api/v1/dsl/render/public/dsl-smoke-test?target=html')
-        .expect(200)
-        .expect((res) => {
-          const ast = unwrapApiData<Record<string, unknown>>(res.body);
-          expect(ast).toBeDefined();
-          expect(ast.meta).toBeDefined();
-          expect(ast.page).toBeDefined();
-        });
+      const response = await request(app.getHttpServer()).get(
+        `/api/v1/dsl/render/public/${testSlug}?target=html`,
+      );
+
+      // Log for debugging if not 200
+      if (response.status !== 200) {
+        console.log('Public render response:', JSON.stringify(response.body, null, 2));
+      }
+
+      expect(response.status).toBe(200);
+      const ast = unwrapApiData<Record<string, unknown>>(response.body);
+      expect(ast).toBeDefined();
+      expect(ast.meta).toBeDefined();
+      expect(ast.page).toBeDefined();
     });
 
     it('should return 400 for non-public resume', async () => {
