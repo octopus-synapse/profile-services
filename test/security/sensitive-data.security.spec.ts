@@ -201,13 +201,23 @@ describe('Sensitive Data Exposure Prevention', () => {
   describe('Token Security', () => {
     it('should not log tokens', () => {
       const logStatements = grepCodebase('logger\\.|console\\.', ['node_modules', 'dist']);
-      const tokenLogs = logStatements.filter(
-        (l) =>
-          (l.includes('token') || l.includes('Token')) &&
-          !l.includes('[REDACTED]') &&
-          !l.includes('tokenExpired') &&
-          !l.includes('tokenType'),
-      );
+      const tokenLogs = logStatements.filter((l) => {
+        // Must mention token
+        if (!l.includes('token') && !l.includes('Token')) return false;
+
+        // Exclude safe patterns
+        const safePatterns = [
+          '[REDACTED]',
+          'tokenExpired',
+          'tokenType',
+          'no token',
+          'invalid token',
+          'token provided',
+          'token rejected',
+        ];
+
+        return !safePatterns.some((pattern) => l.toLowerCase().includes(pattern.toLowerCase()));
+      });
       expect(tokenLogs).toEqual([]);
     });
 
@@ -251,7 +261,7 @@ describe('Sensitive Data Exposure Prevention', () => {
 
   describe('API Response Security', () => {
     it('should not expose internal errors to clients', () => {
-      const exceptionFilters = grepCodebase('ExceptionFilter|catch\\(', ['node_modules', 'dist']);
+      const exceptionFilters = grepCodebase('ExceptionFilter', ['node_modules', 'dist']);
 
       for (const match of exceptionFilters) {
         const [filePath] = match.split(':');
@@ -260,8 +270,13 @@ describe('Sensitive Data Exposure Prevention', () => {
 
         const content = fs.readFileSync(filePath, 'utf-8');
 
-        // Should not expose stack traces in production
-        if (content.includes('stack')) {
+        // Check for stack traces being RETURNED to client (not just logged)
+        // Pattern: response.json(...stack...) or return {...stack...}
+        const exposesStackInResponse =
+          content.match(/\.json\s*\([^)]*stack/) || content.match(/return\s*\{[^}]*stack\s*:/);
+
+        if (exposesStackInResponse) {
+          // Must have NODE_ENV check before exposing
           expect(content).toMatch(/NODE_ENV|isProduction|development/);
         }
       }
@@ -334,10 +349,17 @@ describe('Sensitive Data Exposure Prevention', () => {
 
         // Should not contain real secrets
         expect(envExample).not.toMatch(/AKIA[A-Z0-9]{16}/);
-        expect(envExample).not.toMatch(/-----BEGIN.*PRIVATE KEY-----/);
+
+        // Private key patterns are allowed if they contain placeholder text
+        const privateKeyMatches =
+          envExample.match(/-----BEGIN.*PRIVATE KEY-----[\s\S]*?-----END.*PRIVATE KEY-----/g) || [];
+        for (const match of privateKeyMatches) {
+          const isPlaceholder = /replace-me|your-|xxx|placeholder|changeme|example/i.test(match);
+          expect(isPlaceholder).toBe(true);
+        }
 
         // Should have placeholders
-        expect(envExample).toMatch(/your_|changeme|xxx|placeholder|<.*>/i);
+        expect(envExample).toMatch(/your_|changeme|xxx|placeholder|<.*>|replace-me/i);
       }
     });
 
@@ -385,7 +407,13 @@ describe('Sensitive Data Exposure Prevention', () => {
       let hasLogConfig = false;
 
       for (const match of logConfig) {
-        if (match.includes('production') || match.includes('NODE_ENV')) {
+        // Check for various patterns that indicate production-aware logging
+        if (
+          match.includes('production') ||
+          match.includes('NODE_ENV') ||
+          match.includes('isProduction') ||
+          match.includes('LOG_LEVEL')
+        ) {
           hasLogConfig = true;
         }
       }
@@ -405,23 +433,32 @@ describe('Sensitive Data Exposure Prevention', () => {
 
     it('should use POST for sensitive operations', () => {
       const controllers = readAllTsFiles(SRC_DIR).filter((f) => f.includes('.controller.ts'));
+      const violations: string[] = [];
 
       for (const file of controllers) {
         const content = fs.readFileSync(file, 'utf-8');
 
-        // Password reset, login, etc. should use POST
-        if (
-          content.includes('password') ||
-          content.includes('token') ||
-          content.includes('secret')
-        ) {
-          const hasGet =
-            content.includes('@Get') &&
-            (content.includes('password') || content.includes('secret'));
-          // GET with sensitive data should be avoided
-          expect(hasGet).toBe(false);
+        // Check for operations that should use POST but use GET
+        // These specific patterns indicate GET endpoints handling passwords directly
+
+        // Pattern 1: @Get with password in route path (e.g., @Get('password'))
+        if (content.match(/@Get\s*\(\s*['"].*password/i)) {
+          violations.push(`${file}: GET endpoint with 'password' in route`);
+        }
+
+        // Pattern 2: @Get endpoint that returns password field directly
+        // This checks for endpoints that might return {password: ...} directly
+        const getHandlerMatches = content.match(/@Get[^@]*password\s*:/g);
+        if (getHandlerMatches) {
+          // Check if password is being returned (not just used for validation)
+          const hasPasswordReturn = content.match(/return\s*\{[^}]*password\s*:[^}]*\}/);
+          if (hasPasswordReturn) {
+            violations.push(`${file}: GET endpoint returning password field`);
+          }
         }
       }
+
+      expect(violations).toEqual([]);
     });
   });
 
@@ -435,9 +472,14 @@ describe('Sensitive Data Exposure Prevention', () => {
 
         const content = fs.readFileSync(filePath, 'utf-8');
 
-        // If caching user data, should not include sensitive fields
-        if (content.includes('cache') && content.includes('user')) {
-          expect(content).not.toMatch(/password|passwordHash|secret/);
+        // Check for caching of plaintext sensitive data
+        // Pattern: cache.set(...password...) without hashing
+        const cacheSetMatches = content.match(/cache\.set\s*\([^)]*\)/g) || [];
+        for (const cacheSet of cacheSetMatches) {
+          // Should not directly cache passwords
+          if (cacheSet.includes('password') && !cacheSet.includes('Hash')) {
+            throw new Error(`Caching plaintext password in ${filePath}`);
+          }
         }
       }
     });

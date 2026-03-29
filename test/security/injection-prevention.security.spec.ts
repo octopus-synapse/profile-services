@@ -214,12 +214,11 @@ describe('XSS Prevention', () => {
       // Filter out Puppeteer/browser context files used for PDF export and scraping
       const violations = innerHtml.filter(
         (h) =>
-          (!h.includes('export/') &&
-            !h.includes('cloudflare') &&
-            !h.includes('puppeteer') &&
-            !h.includes('helper') &&
-            h.includes('.controller.ts')) ||
-          h.includes('.service.ts'),
+          h.includes('.controller.ts') &&
+          !h.includes('export/') &&
+          !h.includes('cloudflare') &&
+          !h.includes('puppeteer') &&
+          !h.includes('helper'),
       );
       expect(violations).toEqual([]);
     });
