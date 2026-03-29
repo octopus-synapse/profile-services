@@ -32,6 +32,7 @@
     "db:setup:test": "bunx prisma generate --config ./prisma.config.ts && bunx prisma db push --config ./prisma.config.ts --force-reset --accept-data-loss && bun run prisma/seed.ts",
     "test:arch": "bun test ./test/architecture",
     "test:contracts": "bun test ./test/contracts",
+    "test:security": "bun test ./test/security",
     "test:critical": "bun test --test-name-pattern critical",
     "test:fast": "bun test --bail",
     "test:changed": "bun test",
