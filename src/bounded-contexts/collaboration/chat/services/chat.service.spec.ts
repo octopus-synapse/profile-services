@@ -87,9 +87,9 @@ describe('ChatService', () => {
     };
 
     const mockChatCacheService = {
-      getUnreadCount: mock((userId: string, computeFn: () => Promise<unknown>) => computeFn()),
+      getUnreadCount: mock((_userId: string, computeFn: () => Promise<unknown>) => computeFn()),
       invalidateUnread: mock(() => Promise.resolve()),
-      getConversations: mock((userId: string, computeFn: () => Promise<unknown>) => computeFn()),
+      getConversations: mock((_userId: string, computeFn: () => Promise<unknown>) => computeFn()),
       invalidateConversations: mock(() => Promise.resolve()),
       setOnlineStatus: mock(() => Promise.resolve()),
       getOnlineStatus: mock(() => Promise.resolve(null)),
