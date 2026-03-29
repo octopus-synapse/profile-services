@@ -1,17 +1,27 @@
-import { ApiProperty } from '@nestjs/swagger';
+/**
+ * Public Resume Response DTOs
+ */
 
-export class PublicShareInfoDto {
-  @ApiProperty({ example: 'my-resume-share' })
-  slug!: string;
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
 
-  @ApiProperty({ nullable: true, type: String, example: '2026-12-31T23:59:59.000Z' })
-  expiresAt!: Date | null;
-}
+// ============================================================================
+// Schemas
+// ============================================================================
 
-export class PublicResumeDataDto {
-  @ApiProperty({ type: 'object', nullable: true, additionalProperties: true })
-  resume!: object | null;
+const PublicShareInfoSchema = z.object({
+  slug: z.string(),
+  expiresAt: z.string().datetime().nullable(),
+});
 
-  @ApiProperty({ type: PublicShareInfoDto })
-  share!: PublicShareInfoDto;
-}
+const PublicResumeDataSchema = z.object({
+  resume: z.record(z.unknown()).nullable(),
+  share: PublicShareInfoSchema,
+});
+
+// ============================================================================
+// DTOs
+// ============================================================================
+
+export class PublicShareInfoDto extends createZodDto(PublicShareInfoSchema) {}
+export class PublicResumeDataDto extends createZodDto(PublicResumeDataSchema) {}

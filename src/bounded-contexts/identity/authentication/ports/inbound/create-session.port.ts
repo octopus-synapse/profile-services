@@ -18,11 +18,10 @@ export interface SessionUserData {
   username: string | null;
   hasCompletedOnboarding: boolean;
   emailVerified: boolean;
-  role: string;
+  role: 'USER' | 'ADMIN';
   roles: string[];
   // Calculated fields - frontend should NOT calculate these
   isAdmin: boolean;
-  isApprover: boolean;
   needsOnboarding: boolean;
   needsEmailVerification: boolean;
 }

@@ -1,77 +1,82 @@
-import { ApiProperty } from '@nestjs/swagger';
+/**
+ * Export Data DTOs
+ *
+ * GDPR data export response structure.
+ */
 
-class UserDataDto {
-  @ApiProperty() id!: string;
-  @ApiProperty({ nullable: true }) email!: string | null;
-  @ApiProperty({ nullable: true }) name!: string | null;
-  @ApiProperty({ nullable: true }) username!: string | null;
-  @ApiProperty() hasCompletedOnboarding!: boolean;
-  @ApiProperty() createdAt!: string;
-  @ApiProperty() updatedAt!: string;
-}
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
 
-class ConsentDto {
-  @ApiProperty() documentType!: string;
-  @ApiProperty() version!: string;
-  @ApiProperty() acceptedAt!: string;
-  @ApiProperty({ nullable: true }) ipAddress!: string | null;
-  @ApiProperty({ nullable: true }) userAgent!: string | null;
-}
+// ============================================================================
+// Nested Schemas
+// ============================================================================
 
-class ResumeItemDto {
-  @ApiProperty() id!: string;
-  @ApiProperty() order!: number;
-  @ApiProperty() content!: unknown;
-  @ApiProperty() createdAt!: string;
-  @ApiProperty() updatedAt!: string;
-}
+const UserDataSchema = z.object({
+  id: z.string(),
+  email: z.string().nullable(),
+  name: z.string().nullable(),
+  username: z.string().nullable(),
+  hasCompletedOnboarding: z.boolean(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
 
-class ResumeSectionDto {
-  @ApiProperty() sectionTypeKey!: string;
-  @ApiProperty() semanticKind!: string;
-  @ApiProperty({ type: [ResumeItemDto] }) items!: ResumeItemDto[];
-}
+const ConsentSchema = z.object({
+  documentType: z.string(),
+  version: z.string(),
+  acceptedAt: z.string(),
+  ipAddress: z.string().nullable(),
+  userAgent: z.string().nullable(),
+});
 
-class ResumeDto {
-  @ApiProperty() id!: string;
-  @ApiProperty({ nullable: true }) title!: string | null;
-  @ApiProperty({ nullable: true }) slug!: string | null;
-  @ApiProperty() isPublic!: boolean;
-  @ApiProperty() createdAt!: string;
-  @ApiProperty() updatedAt!: string;
-  @ApiProperty() personalInfo!: unknown;
-  @ApiProperty({ type: [ResumeSectionDto] }) sections!: ResumeSectionDto[];
-}
+const ResumeItemSchema = z.object({
+  id: z.string(),
+  order: z.number(),
+  content: z.unknown(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
 
-class AuditLogDto {
-  @ApiProperty() action!: string;
-  @ApiProperty() entityType!: string;
-  @ApiProperty() entityId!: string;
-  @ApiProperty() createdAt!: string;
-  @ApiProperty({ nullable: true }) ipAddress!: string | null;
-}
+const ResumeSectionSchema = z.object({
+  sectionTypeKey: z.string(),
+  semanticKind: z.string(),
+  items: z.array(ResumeItemSchema),
+});
 
-export class ExportDataResponseDto {
-  @ApiProperty({
-    description: 'Timestamp when the export was generated',
-    example: '2024-01-01T00:00:00.000Z',
-  })
-  exportedAt!: string;
+const ResumeSchema = z.object({
+  id: z.string(),
+  title: z.string().nullable(),
+  slug: z.string().nullable(),
+  isPublic: z.boolean(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  personalInfo: z.unknown(),
+  sections: z.array(ResumeSectionSchema),
+});
 
-  @ApiProperty({
-    description: 'Data retention policy explanation',
-  })
-  dataRetentionPolicy!: string;
+const AuditLogSchema = z.object({
+  action: z.string(),
+  entityType: z.string(),
+  entityId: z.string(),
+  createdAt: z.string(),
+  ipAddress: z.string().nullable(),
+});
 
-  @ApiProperty({ type: UserDataDto })
-  user!: UserDataDto;
+// ============================================================================
+// Main Schema
+// ============================================================================
 
-  @ApiProperty({ type: [ConsentDto] })
-  consents!: ConsentDto[];
+const ExportDataResponseSchema = z.object({
+  exportedAt: z.string(),
+  dataRetentionPolicy: z.string(),
+  user: UserDataSchema,
+  consents: z.array(ConsentSchema),
+  resumes: z.array(ResumeSchema),
+  auditLogs: z.array(AuditLogSchema),
+});
 
-  @ApiProperty({ type: [ResumeDto] })
-  resumes!: ResumeDto[];
+// ============================================================================
+// DTOs
+// ============================================================================
 
-  @ApiProperty({ type: [AuditLogDto] })
-  auditLogs!: AuditLogDto[];
-}
+export class ExportDataResponseDto extends createZodDto(ExportDataResponseSchema) {}

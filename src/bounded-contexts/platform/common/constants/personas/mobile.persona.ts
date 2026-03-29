@@ -1,8 +1,8 @@
+import { TechPersonaEnum } from '@/bounded-contexts/platform/domain/enums';
 import { PersonaConfig } from './persona-config.interface';
-import { TechPersona } from './tech-persona.enum';
 
 export const MOBILE_PERSONA: PersonaConfig = {
-  id: TechPersona.MOBILE,
+  id: TechPersonaEnum.MOBILE,
   name: 'Mobile Developer',
   description: 'iOS, Android, React Native, Flutter',
   icon: '📱',

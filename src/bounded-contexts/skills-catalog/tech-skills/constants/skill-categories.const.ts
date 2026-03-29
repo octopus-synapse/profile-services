@@ -6,7 +6,7 @@
 
 import type { SkillType } from '../interfaces';
 import { DATA_AI_CATEGORIES, TESTING_CATEGORIES } from './skill-categories-data.const';
-import { SKILL_CATEGORIES as FRAMEWORK_CATEGORIES } from './skill-categories-frameworks.const';
+import { FRAMEWORK_SKILL_CATEGORIES } from './skill-categories-frameworks.const';
 import { DATABASE_CATEGORIES, DEVOPS_CATEGORIES } from './skill-categories-infra.const';
 import {
   BLOCKCHAIN_CATEGORIES,
@@ -26,7 +26,7 @@ type SkillCategory = { type: SkillType; niche: string | null };
  * All skill categories combined
  */
 export const SKILL_CATEGORIES: Record<string, SkillCategory> = {
-  ...FRAMEWORK_CATEGORIES,
+  ...FRAMEWORK_SKILL_CATEGORIES,
   ...DATABASE_CATEGORIES,
   ...DEVOPS_CATEGORIES,
   ...DATA_AI_CATEGORIES,
@@ -42,7 +42,7 @@ export const SKILL_CATEGORIES: Record<string, SkillCategory> = {
 
 // Re-export individual category groups
 export {
-  FRAMEWORK_CATEGORIES,
+  FRAMEWORK_SKILL_CATEGORIES,
   DATABASE_CATEGORIES,
   DEVOPS_CATEGORIES,
   DATA_AI_CATEGORIES,

@@ -27,6 +27,8 @@ interface StoredUser {
   image: string | null;
   emailVerified: Date | null;
   passwordHash: string | null;
+  role: 'USER' | 'ADMIN';
+  lastLoginAt: Date | null;
   resumes: {
     id: string;
     title: string | null;
@@ -64,6 +66,8 @@ export class InMemoryUserManagementRepository extends UserManagementRepositoryPo
       image: user.image ?? null,
       emailVerified: user.emailVerified ?? null,
       passwordHash: user.passwordHash ?? null,
+      role: user.role ?? 'USER',
+      lastLoginAt: user.lastLoginAt ?? null,
       resumes: user.resumes ?? [],
       preferences: user.preferences ?? null,
       counts: user.counts ?? { accounts: 0, sessions: 0, resumes: 0 },
@@ -126,6 +130,8 @@ export class InMemoryUserManagementRepository extends UserManagementRepositoryPo
       image: u.image,
       emailVerified: u.emailVerified,
       resumeCount: u.counts.resumes,
+      role: u.role,
+      lastLoginAt: u.lastLoginAt,
     }));
 
     return { users, total };
@@ -174,6 +180,8 @@ export class InMemoryUserManagementRepository extends UserManagementRepositoryPo
       image: null,
       emailVerified: null,
       passwordHash: data.hashedPassword,
+      role: 'USER',
+      lastLoginAt: null,
       resumes: [],
       preferences: null,
       counts: { accounts: 0, sessions: 0, resumes: 0 },

@@ -46,6 +46,7 @@ export class EntityNotFoundException extends DomainException {
  */
 export class ConflictException extends DomainException {
   readonly code = 'CONFLICT';
+  readonly statusHint = 409;
 
   constructor(message: string) {
     super(message);

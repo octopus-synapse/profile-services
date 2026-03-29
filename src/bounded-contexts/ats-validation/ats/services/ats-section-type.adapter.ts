@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { SectionTypeRepository } from '@/shared-kernel/repositories/section-type.repository';
-import type { SectionTypeWithDefinition } from '@/shared-kernel/types/generic-section.types';
+import { SectionTypeRepository } from '@/bounded-contexts/resumes/infrastructure/repositories';
+import type { SectionTypeWithDefinition } from '@/shared-kernel/schemas/sections';
 
 /**
  * Section Detection Pattern - extracted from SectionType definitions

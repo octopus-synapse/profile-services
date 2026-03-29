@@ -25,8 +25,12 @@ import {
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { createZodPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
-import { type BlockedUserResponse, BlockUserRequestDto, BlockUserSchema } from '@/shared-kernel';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
+import {
+  type BlockedUserResponse,
+  BlockUserRequestDto,
+  BlockUserSchema,
+} from '../schemas/chat.schema';
 import { BlockService } from '../services/block.service';
 
 // Wrapper DTOs for responses

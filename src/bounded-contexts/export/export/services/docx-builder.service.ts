@@ -10,9 +10,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Document, Packer } from 'docx';
 import { UsersRepository } from '@/bounded-contexts/identity/users/users.repository';
+import { SectionTypeRepository } from '@/bounded-contexts/resumes/infrastructure/repositories';
 import { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.repository';
 import { ERROR_MESSAGES } from '@/shared-kernel';
-import { SectionTypeRepository } from '@/shared-kernel/repositories/section-type.repository';
 import { DocxUserData } from './docx.types';
 import { DocxSectionsService, GenericResumeSectionData } from './docx-sections.service';
 import { DocxStylesService } from './docx-styles.service';

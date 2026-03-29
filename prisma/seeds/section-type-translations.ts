@@ -481,24 +481,25 @@ export const sectionTypeTranslations: Record<string, SectionTypeTranslations> = 
 
 /**
  * Icon mapping for section types
- * Supports both emoji and Lucide icon names
+ * Uses Lucide icon names (kebab-case format)
+ * @see https://lucide.dev/icons
  */
 export const sectionTypeIcons: Record<string, { iconType: 'emoji' | 'lucide'; icon: string }> = {
-  work_experience_v1: { iconType: 'emoji', icon: '💼' },
-  education_v1: { iconType: 'emoji', icon: '🎓' },
-  skill_set_v1: { iconType: 'emoji', icon: '⚡' },
-  language_v1: { iconType: 'emoji', icon: '🌍' },
-  certification_v1: { iconType: 'emoji', icon: '📜' },
-  project_v1: { iconType: 'emoji', icon: '🚀' },
-  publication_v1: { iconType: 'emoji', icon: '📚' },
-  award_v1: { iconType: 'emoji', icon: '🏆' },
-  volunteer_v1: { iconType: 'emoji', icon: '🤝' },
-  open_source_v1: { iconType: 'emoji', icon: '💻' },
-  bug_bounty_v1: { iconType: 'emoji', icon: '🐛' },
-  hackathon_v1: { iconType: 'emoji', icon: '🏅' },
-  talk_v1: { iconType: 'emoji', icon: '🎤' },
-  achievement_v1: { iconType: 'emoji', icon: '⭐' },
-  summary_v1: { iconType: 'emoji', icon: '📝' },
-  interest_v1: { iconType: 'emoji', icon: '💡' },
-  recommendation_v1: { iconType: 'emoji', icon: '👥' },
+  work_experience_v1: { iconType: 'lucide', icon: 'briefcase' },
+  education_v1: { iconType: 'lucide', icon: 'graduation-cap' },
+  skill_set_v1: { iconType: 'lucide', icon: 'zap' },
+  language_v1: { iconType: 'lucide', icon: 'globe' },
+  certification_v1: { iconType: 'lucide', icon: 'badge-check' },
+  project_v1: { iconType: 'lucide', icon: 'rocket' },
+  publication_v1: { iconType: 'lucide', icon: 'book-open' },
+  award_v1: { iconType: 'lucide', icon: 'trophy' },
+  volunteer_v1: { iconType: 'lucide', icon: 'heart-handshake' },
+  open_source_v1: { iconType: 'lucide', icon: 'git-branch' },
+  bug_bounty_v1: { iconType: 'lucide', icon: 'bug' },
+  hackathon_v1: { iconType: 'lucide', icon: 'medal' },
+  talk_v1: { iconType: 'lucide', icon: 'mic' },
+  achievement_v1: { iconType: 'lucide', icon: 'star' },
+  summary_v1: { iconType: 'lucide', icon: 'file-text' },
+  interest_v1: { iconType: 'lucide', icon: 'lightbulb' },
+  recommendation_v1: { iconType: 'lucide', icon: 'users' },
 };

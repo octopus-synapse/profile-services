@@ -1,7 +1,9 @@
 import { applyDecorators, HttpStatus } from '@nestjs/common';
 import { ApiExtraModels, ApiProperty, ApiResponse, getSchemaPath } from '@nestjs/swagger';
-import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
-import * as CommonResponse from '@/bounded-contexts/platform/common/dto/api-response.dto';
+import {
+  ApiResponseDto,
+  type DataResponse,
+} from '@/bounded-contexts/platform/common/dto/api-response.dto';
 
 export interface ApiDataResponseOptions {
   description?: string;
@@ -48,13 +50,13 @@ export const ApiDataResponse = (
   const status = options?.status ?? HttpStatus.OK;
 
   return applyDecorators(
-    ApiExtraModels(CommonResponse.ApiResponse, model),
+    ApiExtraModels(ApiResponseDto, model),
     ApiResponse({
       status,
       description: options?.description,
       schema: {
         allOf: [
-          { $ref: getSchemaPath(CommonResponse.ApiResponse) },
+          { $ref: getSchemaPath(ApiResponseDto) },
           {
             type: 'object',
             properties: {
@@ -75,13 +77,13 @@ export const ApiPaginatedDataResponse = (
   const status = options?.status ?? HttpStatus.OK;
 
   return applyDecorators(
-    ApiExtraModels(CommonResponse.ApiResponse, PaginatedMetaDto, model),
+    ApiExtraModels(ApiResponseDto, PaginatedMetaDto, model),
     ApiResponse({
       status,
       description: options?.description,
       schema: {
         allOf: [
-          { $ref: getSchemaPath(CommonResponse.ApiResponse) },
+          { $ref: getSchemaPath(ApiResponseDto) },
           {
             type: 'object',
             properties: {
@@ -113,13 +115,13 @@ export const ApiEmptyDataResponse = (options?: ApiDataResponseOptions): MethodDe
   }
 
   return applyDecorators(
-    ApiExtraModels(CommonResponse.ApiResponse),
+    ApiExtraModels(ApiResponseDto),
     ApiResponse({
       status,
       description: options?.description,
       schema: {
         allOf: [
-          { $ref: getSchemaPath(CommonResponse.ApiResponse) },
+          { $ref: getSchemaPath(ApiResponseDto) },
           {
             type: 'object',
             properties: {
@@ -142,7 +144,8 @@ export interface ApiStreamResponseOptions {
     | 'application/pdf'
     | 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
     | 'image/png'
-    | 'application/octet-stream';
+    | 'application/octet-stream'
+    | 'text/plain';
   filename?: string;
 }
 

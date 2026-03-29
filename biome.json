@@ -106,6 +106,16 @@
           }
         }
       }
+    },
+    {
+      "includes": ["src/bounded-contexts/dsl/**/*.spec.ts"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noTemplateCurlyInString": "off"
+          }
+        }
+      }
     }
   ],
   "assist": { "actions": { "source": { "organizeImports": "on" } } }

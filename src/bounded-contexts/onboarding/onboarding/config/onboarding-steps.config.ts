@@ -6,7 +6,7 @@
  */
 
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import type { SectionDefinition } from '@/shared-kernel/dtos/semantic-sections.dto';
+import type { SectionDefinition } from '@/shared-kernel/schemas/sections';
 
 /** Step identifier types */
 export type StaticStep =

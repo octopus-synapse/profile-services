@@ -82,6 +82,35 @@ async function main() {
 
   // Seed analytics projections from existing resumes
   await seedAnalyticsProjections(prisma);
+
+  // Seed E2E test user for performance testing
+  const e2eTestEmail = 'e2e-test@profile.local';
+  const existingE2eUser = await prisma.user.findFirst({
+    where: { email: e2eTestEmail },
+  });
+
+  if (!existingE2eUser) {
+    const e2ePassword = 'E2E_Test_Password_123!';
+    const hashedE2ePassword = await bcrypt.hash(e2ePassword, 10);
+
+    await prisma.user.create({
+      data: {
+        email: e2eTestEmail,
+        passwordHash: hashedE2ePassword,
+        name: 'E2E Test User',
+        username: 'e2e-test-user',
+        emailVerified: new Date(),
+        isActive: true,
+        hasCompletedOnboarding: true,
+      },
+    });
+
+    console.log('✅ E2E test user created successfully!');
+    console.log(`📧 E2E Email: ${e2eTestEmail}`);
+    console.log(`🔑 E2E Password: ${e2ePassword}`);
+  } else {
+    console.log('✅ E2E test user already exists');
+  }
 }
 
 main()

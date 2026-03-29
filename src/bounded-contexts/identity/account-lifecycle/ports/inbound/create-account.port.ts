@@ -13,11 +13,15 @@ export interface CreateAccountCommand {
 export interface CreateAccountResult {
   userId: string;
   email: string;
+  // Auth tokens for auto-login after signup (eliminates extra login request)
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
 }
 
 export interface CreateAccountPort {
   /**
-   * Creates a new user account.
+   * Creates a new user account and generates auth tokens for auto-login.
    * @throws AccountAlreadyExistsException if email is already registered
    * @throws WeakPasswordException if password doesn't meet requirements
    */

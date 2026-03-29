@@ -10,8 +10,8 @@
 
 import { Injectable } from '@nestjs/common';
 import { ISectionOptions, Paragraph, SectionType } from 'docx';
-import type { DocxExportConfig } from '@/shared-kernel/dtos/semantic-sections.dto';
-import { SectionTypeRepository } from '@/shared-kernel/repositories/section-type.repository';
+import { SectionTypeRepository } from '@/bounded-contexts/resumes/infrastructure/repositories';
+import type { DocxExportConfig } from '@/shared-kernel/schemas/sections';
 import { DocxHeaderBuilder } from '../builders';
 import {
   GenericDocxSectionBuilder,

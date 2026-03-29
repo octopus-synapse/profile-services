@@ -1,4 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
+import type { TokenGeneratorPort } from '@/bounded-contexts/identity/authentication/ports/outbound/token-generator.port';
+import { TOKEN_GENERATOR_PORT } from '@/bounded-contexts/identity/authentication/ports/outbound/token-generator.port';
 import { Password } from '../../../password-management/domain/value-objects';
 import type { EventBusPort } from '../../../shared-kernel/ports';
 import { AccountCreatedEvent } from '../../domain/events';
@@ -23,6 +25,8 @@ export class CreateAccountUseCase implements CreateAccountPort {
     private readonly passwordHasher: PasswordHasherPort,
     @Inject(EVENT_BUS)
     private readonly eventBus: EventBusPort,
+    @Inject(TOKEN_GENERATOR_PORT)
+    private readonly tokenGenerator: TokenGeneratorPort,
   ) {}
 
   async execute(command: CreateAccountCommand): Promise<CreateAccountResult> {
@@ -47,6 +51,12 @@ export class CreateAccountUseCase implements CreateAccountPort {
       passwordHash,
     });
 
+    // Generate auth tokens for auto-login (eliminates extra login request)
+    const tokens = await this.tokenGenerator.generateTokenPair({
+      userId: account.id,
+      email: account.email,
+    });
+
     // Publish domain event
     const event = new AccountCreatedEvent(account.id, account.email);
     this.eventBus.publish(event);
@@ -54,6 +64,9 @@ export class CreateAccountUseCase implements CreateAccountPort {
     return {
       userId: account.id,
       email: account.email,
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+      expiresIn: tokens.expiresIn,
     };
   }
 }

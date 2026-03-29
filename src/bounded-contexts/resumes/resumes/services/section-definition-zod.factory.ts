@@ -4,7 +4,7 @@ import {
   type SectionDefinition,
   SectionDefinitionSchema,
   type SectionFieldDefinition,
-} from '@/shared-kernel/dtos/semantic-sections.dto';
+} from '@/shared-kernel/schemas/sections';
 
 /**
  * Factory that dynamically builds Zod validation schemas from SectionType definitions.

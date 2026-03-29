@@ -5,6 +5,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
+import { EventPublisher } from '@/shared-kernel';
+import { MessageSentEvent } from '../../domain/events';
+import { BlockedUserRepository } from '../repositories/blocked-user.repository';
+import { ConversationRepository } from '../repositories/conversation.repository';
+import { MessageRepository } from '../repositories/message.repository';
 import type {
   ConversationResponse,
   GetConversationsQuery,
@@ -13,12 +18,8 @@ import type {
   PaginatedConversationsResponse,
   PaginatedMessagesResponse,
   SendMessage,
-} from '@/shared-kernel';
-import { EventPublisher } from '@/shared-kernel';
-import { MessageSentEvent } from '../../domain/events';
-import { BlockedUserRepository } from '../repositories/blocked-user.repository';
-import { ConversationRepository } from '../repositories/conversation.repository';
-import { MessageRepository } from '../repositories/message.repository';
+} from '../schemas/chat.schema';
+import { ChatCacheService } from './chat-cache.service';
 
 type MessageWithSender = Prisma.MessageGetPayload<{
   include: {
@@ -44,6 +45,7 @@ export class ChatService {
     private readonly messageRepo: MessageRepository,
     private readonly blockedUserRepo: BlockedUserRepository,
     private readonly eventPublisher: EventPublisher,
+    private readonly chatCache: ChatCacheService,
   ) {}
 
   /**
@@ -85,6 +87,13 @@ export class ChatService {
       senderId,
       timestamp: message.createdAt,
     });
+
+    // Invalidate cache for both participants
+    await Promise.all([
+      this.chatCache.invalidateUnread(dto.recipientId),
+      this.chatCache.invalidateConversations(senderId),
+      this.chatCache.invalidateConversations(dto.recipientId),
+    ]);
 
     return this.mapMessageToResponse(message);
   }
@@ -130,6 +139,13 @@ export class ChatService {
       senderId,
       timestamp: message.createdAt,
     });
+
+    // Invalidate cache for both participants
+    await Promise.all([
+      this.chatCache.invalidateUnread(otherParticipant.id),
+      this.chatCache.invalidateConversations(senderId),
+      this.chatCache.invalidateConversations(otherParticipant.id),
+    ]);
 
     return this.mapMessageToResponse(message);
   }
@@ -213,14 +229,17 @@ export class ChatService {
 
     const result = await this.messageRepo.markConversationAsRead(conversationId, userId);
 
+    // Invalidate unread cache since count changed
+    await this.chatCache.invalidateUnread(userId);
+
     return { count: result.count };
   }
 
   /**
-   * Get unread message count for a user.
+   * Get unread message count for a user (cached).
    */
   async getUnreadCount(userId: string) {
-    return this.messageRepo.getUnreadCount(userId);
+    return this.chatCache.getUnreadCount(userId, () => this.messageRepo.getUnreadCount(userId));
   }
 
   /**

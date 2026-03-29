@@ -1,12 +1,8 @@
 import { Controller, HttpCode, HttpStatus, Inject, Post, Req } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiExcludeController,
-  ApiOkResponse,
-  ApiOperation,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
+import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { HASH_SERVICE_PORT, type HashServicePort } from '../../ports/outbound/hash-service.port';
 import {
   TWO_FACTOR_REPOSITORY_PORT,
@@ -19,8 +15,12 @@ interface AuthenticatedRequest extends Request {
   user: { id: string };
 }
 
+@SdkExport({
+  tag: 'two-factor-auth',
+  description: 'Two-Factor Authentication API',
+  requiresAuth: true,
+})
 @ApiTags('Two-Factor Auth')
-@ApiExcludeController()
 @ApiBearerAuth()
 @Controller('auth/2fa')
 export class RegenerateBackupCodesController {
@@ -41,10 +41,7 @@ export class RegenerateBackupCodesController {
     summary: 'Regenerate backup codes',
     description: 'Generates new backup codes, replacing existing ones. Shown only once.',
   })
-  @ApiOkResponse({
-    description: 'New backup codes',
-    type: RegenerateBackupCodesResponseDto,
-  })
+  @ApiDataResponse(RegenerateBackupCodesResponseDto, { description: 'New backup codes' })
   async regenerate(@Req() req: AuthenticatedRequest): Promise<RegenerateBackupCodesResponseDto> {
     return this.useCase.execute(req.user.id);
   }

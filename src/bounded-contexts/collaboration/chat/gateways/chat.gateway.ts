@@ -10,11 +10,12 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import type { SendMessageToConversation, WsTypingEvent } from '@/shared-kernel';
 import { ConversationRepository } from '../repositories/conversation.repository';
 import { MessageRepository } from '../repositories/message.repository';
+import type { SendMessageToConversation, WsTypingEvent } from '../schemas/chat.schema';
 import { BlockService } from '../services/block.service';
 import { ChatService } from '../services/chat.service';
+import { ChatCacheService } from '../services/chat-cache.service';
 import { type AuthenticatedSocket, WsAuthGuard } from './ws-auth.guard';
 
 @WebSocketGateway({
@@ -40,6 +41,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly blockService: BlockService,
     private readonly conversationRepo: ConversationRepository,
     private readonly messageRepo: MessageRepository,
+    private readonly chatCache: ChatCacheService,
   ) {
     this.authGuard = new WsAuthGuard(jwtService);
   }
@@ -74,7 +76,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       await client.join(`conversation:${conv.id}`);
     }
 
-    // Notify others that user is online
+    // Cache and notify others that user is online
+    await this.chatCache.setOnlineStatus(userId, true);
     void this.broadcastUserStatus(userId, true);
 
     this.logger.log(`User ${userId} connected (socket: ${client.id})`);
@@ -93,7 +96,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       sockets.delete(client.id);
       if (sockets.size === 0) {
         this.userSockets.delete(userId);
-        // User has no more connections - notify others
+        // User has no more connections - cache offline and notify others
+        void this.chatCache.setOnlineStatus(userId, false);
         void this.broadcastUserStatus(userId, false);
       }
     }
@@ -253,11 +257,24 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   /**
-   * Check if a user is currently online.
+   * Check if a user is currently online (local sockets).
    */
   isUserOnline(userId: string): boolean {
     const userSocketSet = this.userSockets.get(userId);
     return userSocketSet ? userSocketSet.size > 0 : false;
+  }
+
+  /**
+   * Check if a user is online (checks cache for multi-instance support).
+   */
+  async isUserOnlineCached(userId: string): Promise<boolean> {
+    // First check local sockets
+    if (this.isUserOnline(userId)) {
+      return true;
+    }
+    // Fallback to cache (for other instances)
+    const status = await this.chatCache.getOnlineStatus(userId);
+    return status?.isOnline ?? false;
   }
 
   /**

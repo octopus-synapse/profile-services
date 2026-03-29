@@ -5,9 +5,9 @@
 
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { Institution } from '@/shared-kernel';
 import { BATCH_SIZE } from '../constants';
 import { NormalizedInstitution } from '../interfaces/mec-data.interface';
+import type { Institution } from '../schemas/mec.schema';
 
 const INSTITUTION_SELECT = {
   id: true,

@@ -5,17 +5,14 @@
  * Single source of truth - frontend just renders based on canProceed.
  */
 
-import type {
-  OnboardingPersonalInfoDto,
-  OnboardingProfessionalProfileDto,
-  OnboardingTemplateSelectionDto,
-} from '@/shared-kernel/dtos/sdk-request.dto';
-
+/**
+ * Validation data interface - uses partial types to allow progressive data building
+ */
 export interface OnboardingDataForValidation {
   username?: string | null;
-  personalInfo?: OnboardingPersonalInfoDto;
-  professionalProfile?: OnboardingProfessionalProfileDto;
-  templateSelection?: OnboardingTemplateSelectionDto;
+  personalInfo?: { fullName?: string; email?: string };
+  professionalProfile?: { jobTitle?: string };
+  templateSelection?: { colorScheme?: string };
 }
 
 /**
@@ -36,7 +33,7 @@ export function canProceedFromStep(
       return Boolean(data.username && data.username.length >= 3 && data.username.length <= 30);
 
     case 'professional-profile':
-      return Boolean(data.professionalProfile?.jobTitle);
+      return Boolean(data.professionalProfile?.jobTitle?.trim());
 
     case 'template':
       return Boolean(data.templateSelection?.colorScheme);
@@ -93,7 +90,7 @@ export function canCompleteOnboarding(
     }
   }
 
-  if (!data.professionalProfile?.jobTitle) {
+  if (!data.professionalProfile?.jobTitle?.trim()) {
     if (!missingSteps.includes('professional-profile')) {
       missingSteps.push('professional-profile');
     }

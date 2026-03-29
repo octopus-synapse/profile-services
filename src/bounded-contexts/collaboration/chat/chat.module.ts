@@ -10,7 +10,7 @@ import { ChatGateway } from './gateways';
 // Repositories
 import { BlockedUserRepository, ConversationRepository, MessageRepository } from './repositories';
 // Services
-import { BlockService, ChatService } from './services';
+import { BlockService, ChatCacheService, ChatService } from './services';
 
 @Module({
   imports: [
@@ -25,6 +25,7 @@ import { BlockService, ChatService } from './services';
   controllers: [ChatController, BlockController],
   providers: [
     // Services
+    ChatCacheService,
     ChatService,
     BlockService,
 

@@ -28,7 +28,8 @@ export {
   suggestPersona,
   // Aggregated record
   TECH_PERSONAS,
+  type TechPersona,
   // Enum
-  TechPersona,
+  TechPersonaEnum,
   UX_UI_PERSONA,
 } from './personas';

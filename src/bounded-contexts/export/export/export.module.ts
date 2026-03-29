@@ -2,8 +2,8 @@ import { Module } from '@nestjs/common';
 import { UsersModule } from '@/bounded-contexts/identity/users/users.module';
 import { LoggerModule } from '@/bounded-contexts/platform/common/logger/logger.module';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
+import { SectionTypeRepository } from '@/bounded-contexts/resumes/infrastructure/repositories';
 import { ResumesModule } from '@/bounded-contexts/resumes/resumes/resumes.module';
-import { SectionTypeRepository } from '@/shared-kernel/repositories/section-type.repository';
 import { GenericDocxSectionBuilder } from './builders/generic-docx-section.builder';
 import {
   ExportBannerController,

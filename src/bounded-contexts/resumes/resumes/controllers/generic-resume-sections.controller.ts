@@ -1,5 +1,13 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiParam,
+  ApiProperty,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
@@ -16,8 +24,18 @@ import {
 } from '../dto/generic-sections-response.dto';
 import { GenericResumeSectionsService } from '../services/generic-resume-sections.service';
 
-interface SectionItemPayload {
-  content: Record<string, string | number | boolean | null>;
+/**
+ * DTO for creating/updating section items.
+ * This is a proper class (not interface) so Swagger can generate the OpenAPI schema.
+ */
+class SectionItemPayloadDto {
+  @ApiProperty({
+    description: 'Content fields for the section item',
+    type: 'object',
+    additionalProperties: true,
+    example: { title: 'My Achievement', date: '2024-01-15', description: 'Description text' },
+  })
+  content!: Record<string, unknown>;
 }
 
 @SdkExport({ tag: 'resumes', description: 'Generic Resume Sections API' })
@@ -90,6 +108,7 @@ export class GenericResumeSectionsController {
     name: 'sectionTypeKey',
     description: 'Section type key',
   })
+  @ApiBody({ type: SectionItemPayloadDto })
   @ApiDataResponse(ResumeSectionItemDataDto, {
     status: 201,
     description: 'Section item created',
@@ -98,7 +117,7 @@ export class GenericResumeSectionsController {
     @Param('resumeId', ParseCuidPipe) resumeId: string,
     @Param('sectionTypeKey') sectionTypeKey: string,
     @CurrentUser() user: UserPayload,
-    @Body() body: SectionItemPayload,
+    @Body() body: SectionItemPayloadDto,
   ): Promise<DataResponse<ResumeSectionItemDataDto>> {
     const item = await this.sectionsService.createItem(
       resumeId,
@@ -120,6 +139,7 @@ export class GenericResumeSectionsController {
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
   @ApiParam({ name: 'sectionTypeKey', description: 'Section type key' })
   @ApiParam({ name: 'itemId', description: 'Section item ID' })
+  @ApiBody({ type: SectionItemPayloadDto })
   @ApiDataResponse(ResumeSectionItemDataDto, {
     description: 'Section item updated',
   })
@@ -128,7 +148,7 @@ export class GenericResumeSectionsController {
     @Param('sectionTypeKey') sectionTypeKey: string,
     @Param('itemId', ParseCuidPipe) itemId: string,
     @CurrentUser() user: UserPayload,
-    @Body() body: SectionItemPayload,
+    @Body() body: SectionItemPayloadDto,
   ): Promise<DataResponse<ResumeSectionItemDataDto>> {
     const item = await this.sectionsService.updateItem(
       resumeId,

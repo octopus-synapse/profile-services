@@ -11,7 +11,13 @@ import type { OnboardingProgressData } from './onboarding-progress/ports/onboard
  */
 export class OnboardingStepDataMapper {
   private readonly personalInfoKeys = ['fullName', 'email', 'phone', 'location'] as const;
-  private readonly professionalProfileKeys = ['jobTitle', 'summary'] as const;
+  private readonly professionalProfileKeys = [
+    'jobTitle',
+    'summary',
+    'linkedin',
+    'github',
+    'website',
+  ] as const;
   private readonly templateSelectionKeys = [
     'templateId',
     'colorScheme',

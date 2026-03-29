@@ -5,9 +5,10 @@
 
 import { Injectable } from '@nestjs/common';
 import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
-import { APP_CONFIG, CourseBasic, Institution, InstitutionWithCourses } from '@/shared-kernel';
+import { APP_CONFIG } from '@/shared-kernel';
 import { MEC_CACHE_KEYS, MEC_CACHE_TTL } from '../interfaces/mec-data.interface';
 import { InstitutionRepository } from '../repositories';
+import type { CourseBasic, Institution, InstitutionWithCourses } from '../schemas/mec.schema';
 
 @Injectable()
 export class InstitutionQueryService {

@@ -3,7 +3,7 @@
  *
  */
 
-import { type EnvironmentVariables, validateEnv } from '@/shared-kernel';
+import { type EnvironmentVariables, validateEnv } from './schemas/env.schema';
 
 export function validate(config: Record<string, unknown>): EnvironmentVariables {
   return validateEnv(config);

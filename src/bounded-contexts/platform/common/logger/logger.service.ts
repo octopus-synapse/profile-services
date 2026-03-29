@@ -1,8 +1,8 @@
-import { Injectable, LoggerService as NestLoggerService } from '@nestjs/common';
+import { Injectable, LoggerService } from '@nestjs/common';
 import * as winston from 'winston';
 
 @Injectable()
-export class AppLoggerService implements NestLoggerService {
+export class AppLoggerService implements LoggerService {
   private logger: winston.Logger;
   private context?: string;
 

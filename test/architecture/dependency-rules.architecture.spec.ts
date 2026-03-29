@@ -216,6 +216,7 @@ describe('Architecture', () => {
   describe('Code Organization', () => {
     it('should have DTOs separate from entities', () => {
       // Ensure DTOs don't extend Prisma entities directly
+      // Note: importing types/enums from @prisma/client is allowed
       const dtoFiles = getAllTypeScriptFiles('src/', ['dto']);
 
       const violations: string[] = [];
@@ -223,8 +224,33 @@ describe('Architecture', () => {
       dtoFiles.forEach((file) => {
         const content = fs.readFileSync(file, 'utf-8');
 
-        if (content.includes('extends') && content.includes('@prisma/client')) {
-          violations.push(`${file} - DTO extends Prisma entity (coupling)`);
+        // Check for class extending Prisma entity (e.g., `extends User`, `extends Resume`)
+        // But allow `extends createZodDto(...)` which is valid
+        const extendsMatch = content.match(/class\s+\w+\s+extends\s+(\w+)/g);
+        if (extendsMatch) {
+          for (const match of extendsMatch) {
+            // Extract the parent class name
+            const parentClass = match.match(/extends\s+(\w+)/)?.[1];
+            // Skip valid patterns (createZodDto, PickType, OmitType, etc.)
+            const validParents = [
+              'createZodDto',
+              'PickType',
+              'OmitType',
+              'PartialType',
+              'IntersectionType',
+            ];
+            if (parentClass && !validParents.includes(parentClass)) {
+              // Check if this parent is imported from @prisma/client
+              const importMatch = content.match(
+                new RegExp(
+                  `import\\s*{[^}]*${parentClass}[^}]*}\\s*from\\s*['"]@prisma/client['"]`,
+                ),
+              );
+              if (importMatch) {
+                violations.push(`${file} - DTO extends Prisma entity (coupling)`);
+              }
+            }
+          }
         }
       });
 

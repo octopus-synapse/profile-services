@@ -1,4 +1,4 @@
-import type { SectionDataV2 } from '@/shared-kernel/ast/generic-section-data.schema';
+import type { SectionDataV2 } from '@/bounded-contexts/dsl/domain/schemas/ast/generic-section-data.schema';
 
 /**
  * Returns empty placeholder data for a section.

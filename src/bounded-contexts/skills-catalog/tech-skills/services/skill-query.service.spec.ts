@@ -5,7 +5,7 @@
  */
 
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import type { TechSkill } from '../dtos';
+import type { TechSkill } from '../dto';
 import type { SkillType } from '../interfaces';
 import { SkillQueryService } from './skill-query.service';
 

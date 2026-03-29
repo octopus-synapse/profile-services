@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, Optional } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { SectionTypeRepository } from '@/shared-kernel/repositories/section-type.repository';
+import { SectionTypeRepository } from '@/bounded-contexts/resumes/infrastructure/repositories';
 
 export interface LatexExportOptions {
   template?: 'simple' | 'moderncv';

@@ -1,7 +1,12 @@
 import { BadRequestException, Inject, Injectable, Logger } from '@nestjs/common';
+import type { ResumeAst } from '@/bounded-contexts/dsl/domain/schemas/ast/resume-ast.schema';
+import type { ResumeDsl } from '@/bounded-contexts/dsl/domain/schemas/dsl';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { ResumeAst, ResumeDsl } from '@/shared-kernel';
-import type { GenericResume, GenericResumeSection, SemanticKind } from '@/shared-kernel/types';
+import type {
+  GenericResume,
+  GenericResumeSection,
+  SemanticKind,
+} from '@/shared-kernel/schemas/sections';
 import { mergeDsl } from '../domain/value-objects/merge-dsl';
 import { RESUME_RELATIONS_INCLUDE } from '../infrastructure/resume-query';
 import { DslCompilerService } from './dsl-compiler.service';
@@ -218,9 +223,16 @@ export class DslRepository {
   }
 
   private buildMergedDsl(resume: GenericResume): Record<string, unknown> {
-    const baseDsl = (resume.activeTheme?.styleConfig ?? {}) as Record<string, unknown>;
+    const baseDsl = resume.activeTheme?.styleConfig;
+
+    if (!baseDsl || Object.keys(baseDsl as object).length === 0) {
+      throw new BadRequestException(
+        'Resume has no active theme. Please apply a theme before rendering.',
+      );
+    }
+
     const customDsl = (resume.customTheme ?? {}) as Record<string, unknown>;
-    return mergeDsl(baseDsl, customDsl);
+    return mergeDsl(baseDsl as Record<string, unknown>, customDsl);
   }
 
   private compileWithResumeData(

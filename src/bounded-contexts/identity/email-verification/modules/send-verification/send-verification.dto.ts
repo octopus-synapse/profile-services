@@ -1,9 +1,14 @@
-import { ApiProperty } from '@nestjs/swagger';
+/**
+ * Send Verification Email DTOs
+ */
 
-export class SendVerificationEmailResponseDto {
-  @ApiProperty({
-    description: 'Confirmation message',
-    example: 'Verification email has been sent.',
-  })
-  message: string;
-}
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
+
+const SendVerificationEmailResponseSchema = z.object({
+  message: z.string(),
+});
+
+export class SendVerificationEmailResponseDto extends createZodDto(
+  SendVerificationEmailResponseSchema,
+) {}

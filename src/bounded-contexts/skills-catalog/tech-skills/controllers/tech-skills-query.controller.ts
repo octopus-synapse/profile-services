@@ -4,50 +4,19 @@
  */
 
 import { Controller, Get, Param, Query } from '@nestjs/common';
-import { ApiOperation, ApiParam, ApiProperty, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
-import { type ProgrammingLanguage, type TechArea, type TechNiche, type TechSkill } from '../dtos';
+import {
+  ProgrammingLanguageListDataDto,
+  TechAreaListDataDto,
+  TechNicheListDataDto,
+  TechSearchResultsDataDto,
+  TechSkillListDataDto,
+} from '../dto/controller-response.dto';
 import type { SkillType, TechAreaType } from '../interfaces';
 import { TechSkillsQueryService } from '../services/tech-skills-query.service';
-
-class TechAreasListDataDto {
-  @ApiProperty({
-    type: 'array',
-    items: { type: 'object', additionalProperties: true },
-  })
-  areas!: TechArea[];
-}
-
-class TechNichesListDataDto {
-  @ApiProperty({
-    type: 'array',
-    items: { type: 'object', additionalProperties: true },
-  })
-  niches!: TechNiche[];
-}
-
-class TechLanguagesListDataDto {
-  @ApiProperty({
-    type: 'array',
-    items: { type: 'object', additionalProperties: true },
-  })
-  languages!: ProgrammingLanguage[];
-}
-
-class TechSkillsListDataDto {
-  @ApiProperty({
-    type: 'array',
-    items: { type: 'object', additionalProperties: true },
-  })
-  skills!: TechSkill[];
-}
-
-class TechSearchResultsDataDto {
-  @ApiProperty({ type: 'object', additionalProperties: true })
-  results!: { languages: ProgrammingLanguage[]; skills: TechSkill[] };
-}
 
 @ApiTags('tech-skills-query')
 @Controller('v1/tech-skills')
@@ -58,8 +27,8 @@ export class TechSkillsQueryController {
   @Get('areas')
   @RequirePermission(Permission.SKILL_READ)
   @ApiOperation({ summary: 'Get all tech areas' })
-  @ApiDataResponse(TechAreasListDataDto, { description: 'Tech areas returned' })
-  async getAreas(): Promise<DataResponse<TechAreasListDataDto>> {
+  @ApiDataResponse(TechAreaListDataDto, { description: 'Tech areas returned' })
+  async getAreas(): Promise<DataResponse<TechAreaListDataDto>> {
     const areas = await this.queryService.getAllAreas();
     return { success: true, data: { areas } };
   }
@@ -68,10 +37,10 @@ export class TechSkillsQueryController {
   @Get('niches')
   @RequirePermission(Permission.SKILL_READ)
   @ApiOperation({ summary: 'Get all tech niches' })
-  @ApiDataResponse(TechNichesListDataDto, {
+  @ApiDataResponse(TechNicheListDataDto, {
     description: 'Tech niches returned',
   })
-  async getNiches(): Promise<DataResponse<TechNichesListDataDto>> {
+  async getNiches(): Promise<DataResponse<TechNicheListDataDto>> {
     const niches = await this.queryService.getAllNiches();
     return { success: true, data: { niches } };
   }
@@ -81,12 +50,12 @@ export class TechSkillsQueryController {
   @RequirePermission(Permission.SKILL_READ)
   @ApiOperation({ summary: 'Get niches by tech area type' })
   @ApiParam({ name: 'areaType', description: 'Tech area type', type: String })
-  @ApiDataResponse(TechNichesListDataDto, {
+  @ApiDataResponse(TechNicheListDataDto, {
     description: 'Niches by area returned',
   })
   async getNichesByArea(
     @Param('areaType') areaType: TechAreaType,
-  ): Promise<DataResponse<TechNichesListDataDto>> {
+  ): Promise<DataResponse<TechNicheListDataDto>> {
     const niches = await this.queryService.getNichesByArea(areaType);
     return { success: true, data: { niches } };
   }
@@ -95,10 +64,10 @@ export class TechSkillsQueryController {
   @Get('languages')
   @RequirePermission(Permission.SKILL_READ)
   @ApiOperation({ summary: 'Get all programming languages' })
-  @ApiDataResponse(TechLanguagesListDataDto, {
+  @ApiDataResponse(ProgrammingLanguageListDataDto, {
     description: 'Programming languages returned',
   })
-  async getLanguages(): Promise<DataResponse<TechLanguagesListDataDto>> {
+  async getLanguages(): Promise<DataResponse<ProgrammingLanguageListDataDto>> {
     const languages = await this.queryService.getAllLanguages();
     return { success: true, data: { languages } };
   }
@@ -107,13 +76,13 @@ export class TechSkillsQueryController {
   @Get('languages/search')
   @RequirePermission(Permission.SKILL_READ)
   @ApiOperation({ summary: 'Search programming languages' })
-  @ApiDataResponse(TechLanguagesListDataDto, {
+  @ApiDataResponse(ProgrammingLanguageListDataDto, {
     description: 'Programming language search results returned',
   })
   async searchLanguages(
     @Query('q') query: string,
     @Query('limit') limit?: string,
-  ): Promise<DataResponse<TechLanguagesListDataDto>> {
+  ): Promise<DataResponse<ProgrammingLanguageListDataDto>> {
     const languages = await this.queryService.searchLanguages(
       query,
       limit ? parseInt(limit, 10) : 20,
@@ -125,10 +94,10 @@ export class TechSkillsQueryController {
   @Get('skills')
   @RequirePermission(Permission.SKILL_READ)
   @ApiOperation({ summary: 'Get all tech skills' })
-  @ApiDataResponse(TechSkillsListDataDto, {
+  @ApiDataResponse(TechSkillListDataDto, {
     description: 'Tech skills returned',
   })
-  async getSkills(): Promise<DataResponse<TechSkillsListDataDto>> {
+  async getSkills(): Promise<DataResponse<TechSkillListDataDto>> {
     const skills = await this.queryService.getAllSkills();
     return { success: true, data: { skills } };
   }
@@ -137,13 +106,13 @@ export class TechSkillsQueryController {
   @Get('skills/search')
   @RequirePermission(Permission.SKILL_READ)
   @ApiOperation({ summary: 'Search tech skills' })
-  @ApiDataResponse(TechSkillsListDataDto, {
+  @ApiDataResponse(TechSkillListDataDto, {
     description: 'Tech skill search results returned',
   })
   async searchSkills(
     @Query('q') query: string,
     @Query('limit') limit?: string,
-  ): Promise<DataResponse<TechSkillsListDataDto>> {
+  ): Promise<DataResponse<TechSkillListDataDto>> {
     const skills = await this.queryService.searchSkills(query, limit ? parseInt(limit, 10) : 20);
     return { success: true, data: { skills } };
   }
@@ -153,12 +122,12 @@ export class TechSkillsQueryController {
   @RequirePermission(Permission.SKILL_READ)
   @ApiOperation({ summary: 'Get skills by niche' })
   @ApiParam({ name: 'nicheSlug', description: 'Niche slug', type: String })
-  @ApiDataResponse(TechSkillsListDataDto, {
+  @ApiDataResponse(TechSkillListDataDto, {
     description: 'Skills by niche returned',
   })
   async getSkillsByNiche(
     @Param('nicheSlug') nicheSlug: string,
-  ): Promise<DataResponse<TechSkillsListDataDto>> {
+  ): Promise<DataResponse<TechSkillListDataDto>> {
     const skills = await this.queryService.getSkillsByNiche(nicheSlug);
     return { success: true, data: { skills } };
   }
@@ -168,13 +137,13 @@ export class TechSkillsQueryController {
   @RequirePermission(Permission.SKILL_READ)
   @ApiOperation({ summary: 'Get skills by type' })
   @ApiParam({ name: 'type', description: 'Skill type', type: String })
-  @ApiDataResponse(TechSkillsListDataDto, {
+  @ApiDataResponse(TechSkillListDataDto, {
     description: 'Skills by type returned',
   })
   async getSkillsByType(
     @Param('type') type: SkillType,
     @Query('limit') limit?: string,
-  ): Promise<DataResponse<TechSkillsListDataDto>> {
+  ): Promise<DataResponse<TechSkillListDataDto>> {
     const skills = await this.queryService.getSkillsByType(type, limit ? parseInt(limit, 10) : 50);
     return { success: true, data: { skills } };
   }

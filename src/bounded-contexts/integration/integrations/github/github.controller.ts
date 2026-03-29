@@ -14,7 +14,6 @@ import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/a
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
-import { AutoSyncGitHubRequestDto, MecSyncStatusResponseDto } from '@/shared-kernel';
 import { GitHubService } from './github.service';
 import type { GitHubSyncResult } from './services/github-sync.service';
 
@@ -52,6 +51,24 @@ export class GitHubSyncResponseDto {
 
   @ApiPropertyOptional({ example: 'GitHub data synced successfully' })
   message?: string;
+}
+
+/** DTO for auto sync request (body is optional, resumeId comes from path) */
+export class AutoSyncGitHubRequestDto {}
+
+/** DTO for sync status response */
+export class GitHubSyncStatusResponseDto {
+  @ApiProperty({ example: 'COMPLETED', enum: ['IDLE', 'RUNNING', 'COMPLETED', 'FAILED'] })
+  status!: string;
+
+  @ApiProperty({ example: 100 })
+  progress!: number;
+
+  @ApiPropertyOptional({ example: '2024-01-01T00:00:00Z' })
+  startedAt?: string;
+
+  @ApiPropertyOptional({ example: 'Syncing repositories' })
+  currentTask?: string;
 }
 
 @SdkExport({ tag: 'github', description: 'Github API' })
@@ -133,11 +150,11 @@ export class GitHubController {
   @ApiBearerAuth('JWT-auth')
   @ApiOperation({ summary: 'Get GitHub sync status for a resume' })
   @ApiParam({ name: 'resumeId', description: 'Resume ID to check' })
-  @ApiDataResponse(MecSyncStatusResponseDto, { description: 'Sync status' })
+  @ApiDataResponse(GitHubSyncStatusResponseDto, { description: 'Sync status' })
   async getSyncStatus(
     @CurrentUser() user: UserPayload,
     @Param('resumeId') resumeId: string,
-  ): Promise<DataResponse<MecSyncStatusResponseDto>> {
+  ): Promise<DataResponse<GitHubSyncStatusResponseDto>> {
     const result = await this.githubService.getSyncStatus(user.userId, resumeId);
     return {
       success: true,

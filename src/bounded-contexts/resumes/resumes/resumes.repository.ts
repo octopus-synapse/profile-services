@@ -18,6 +18,13 @@ export class ResumesRepository extends ResumesRepositoryPort {
         },
       },
     },
+    activeTheme: {
+      select: {
+        id: true,
+        name: true,
+        description: true,
+      },
+    },
   };
 
   constructor(private readonly prisma: PrismaService) {

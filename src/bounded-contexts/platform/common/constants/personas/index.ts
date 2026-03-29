@@ -5,6 +5,12 @@
  * and re-exports types and helpers for clean imports.
  */
 
+// Types and Enum
+export {
+  type TechPersona,
+  TechPersonaEnum,
+  TechPersonaSchema,
+} from '@/bounded-contexts/platform/domain/enums';
 export { AI_ML_PERSONA } from './ai-ml.persona';
 export { BACKEND_PERSONA } from './backend.persona';
 export { CLOUD_PERSONA } from './cloud.persona';
@@ -27,6 +33,4 @@ export { TECH_PERSONAS } from './persona.registry';
 export type { PersonaConfig } from './persona-config.interface';
 export { QA_PERSONA } from './qa.persona';
 export { SECURITY_PERSONA } from './security.persona';
-// Types and Enum
-export { TechPersona } from './tech-persona.enum';
 export { UX_UI_PERSONA } from './ux-ui.persona';

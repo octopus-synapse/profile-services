@@ -97,6 +97,8 @@ services:
         echo 'Running migrations...' &&
         bunx prisma generate &&
         bunx prisma db push --force-reset --accept-data-loss &&
+        echo 'Running seeds...' &&
+        bun run prisma/seed.ts &&
         echo 'Starting server...' &&
         bun run dist/src/main.js
       "

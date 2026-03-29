@@ -1,8 +1,8 @@
+import { TechPersonaEnum } from '@/bounded-contexts/platform/domain/enums';
 import { PersonaConfig } from './persona-config.interface';
-import { TechPersona } from './tech-persona.enum';
 
 export const DEVOPS_PERSONA: PersonaConfig = {
-  id: TechPersona.DEVOPS,
+  id: TechPersonaEnum.DEVOPS,
   name: 'DevOps Engineer',
   description: 'Infrastructure, Automation, CI/CD',
   icon: '⚙️',

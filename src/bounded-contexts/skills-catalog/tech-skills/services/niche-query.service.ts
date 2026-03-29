@@ -6,7 +6,7 @@
 import { Injectable } from '@nestjs/common';
 import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { TechNiche } from '../dtos';
+import type { TechNiche } from '../dto';
 import { TECH_SKILLS_CACHE_KEYS, TECH_SKILLS_CACHE_TTL, type TechAreaType } from '../interfaces';
 
 @Injectable()

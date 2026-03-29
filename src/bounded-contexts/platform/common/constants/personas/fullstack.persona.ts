@@ -1,8 +1,8 @@
+import { TechPersonaEnum } from '@/bounded-contexts/platform/domain/enums';
 import { PersonaConfig } from './persona-config.interface';
-import { TechPersona } from './tech-persona.enum';
 
 export const FULLSTACK_PERSONA: PersonaConfig = {
-  id: TechPersona.FULLSTACK,
+  id: TechPersonaEnum.FULLSTACK,
   name: 'Full Stack Developer',
   description: 'Frontend, Backend, Databases, APIs',
   icon: '💻',

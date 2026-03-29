@@ -1,20 +1,7 @@
-// Re-export contract types with `export type` for isolatedModules
-export type {
-  ATSScoreResponse,
-  BenchmarkOptions,
-  BenchmarkResponse,
-  DashboardResponse,
-  HistoryQuery,
-  JobMatch,
-  JobMatchResponse,
-  KeywordOptions,
-  KeywordSuggestionsResponse,
-  ScoreProgressionResponse,
-  SnapshotResponse,
-  ViewStatsQuery,
-  ViewStatsResponse,
-} from '@/shared-kernel';
+// Export DTOs from local bounded-context
+
 export * from './controllers';
+export * from './dto/analytics.dto';
 export type {
   AnalyticsDashboard,
   AnalyticsSnapshot,

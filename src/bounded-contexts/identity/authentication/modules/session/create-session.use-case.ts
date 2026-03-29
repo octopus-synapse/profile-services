@@ -70,7 +70,7 @@ export class CreateSessionUseCase implements CreateSessionPort {
     this.eventBus.publish(new SessionCreatedEvent(session.id, userId, ipAddress, userAgent));
 
     // 6. Return user data with calculated fields
-    const role = userData.role ?? 'USER';
+    const role = (userData.role ?? 'USER') as 'USER' | 'ADMIN';
     const roles = userData.roles ?? ['role_user'];
     const sessionUserData: SessionUserData = {
       id: userData.id,
@@ -83,7 +83,6 @@ export class CreateSessionUseCase implements CreateSessionPort {
       roles,
       // Calculated fields - frontend should NOT calculate these
       isAdmin: role === 'ADMIN',
-      isApprover: role === 'APPROVER',
       needsOnboarding: !userData.hasCompletedOnboarding,
       needsEmailVerification: !userData.emailVerified,
     };

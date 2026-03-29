@@ -1,19 +1,30 @@
-import { ApiProperty } from '@nestjs/swagger';
+/**
+ * Resume Management Response DTOs
+ */
 
-export class ResumeListDataDto {
-  @ApiProperty({
-    type: 'array',
-    items: { type: 'object', additionalProperties: true },
-  })
-  resumes!: Array<Record<string, unknown>>;
-}
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
 
-export class ResumeDetailsDataDto {
-  @ApiProperty({ type: 'object', additionalProperties: true })
-  resume!: Record<string, unknown>;
-}
+// ============================================================================
+// Schemas
+// ============================================================================
 
-export class ResumeOperationMessageDataDto {
-  @ApiProperty({ example: 'Resume deleted successfully' })
-  message!: string;
-}
+const ResumeListDataSchema = z.object({
+  resumes: z.array(z.record(z.unknown())),
+});
+
+const ResumeDetailsDataSchema = z.object({
+  resume: z.record(z.unknown()),
+});
+
+const ResumeOperationMessageDataSchema = z.object({
+  message: z.string(),
+});
+
+// ============================================================================
+// DTOs
+// ============================================================================
+
+export class ResumeListDataDto extends createZodDto(ResumeListDataSchema) {}
+export class ResumeDetailsDataDto extends createZodDto(ResumeDetailsDataSchema) {}
+export class ResumeOperationMessageDataDto extends createZodDto(ResumeOperationMessageDataSchema) {}

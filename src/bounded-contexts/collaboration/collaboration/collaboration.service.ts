@@ -15,9 +15,10 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import type { CollaboratorRole } from '@/bounded-contexts/collaboration/domain/enums';
+import { canRoleEdit } from '@/bounded-contexts/collaboration/domain/enums';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { CollaboratorRole } from '@/shared-kernel';
-import { canRoleEdit, EventPublisher } from '@/shared-kernel';
+import { EventPublisher } from '@/shared-kernel';
 import { CollaborationStartedEvent } from '../domain/events';
 
 /**

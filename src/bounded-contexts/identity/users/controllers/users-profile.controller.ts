@@ -19,7 +19,7 @@ import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/a
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
-import type { UpdateUser as UpdateProfile, UpdateUsername } from '@/shared-kernel';
+import type { UpdateUser, UpdateUsername } from '@/shared-kernel';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import {
   PublicProfileDataDto,
@@ -127,9 +127,9 @@ export class UsersProfileController {
   })
   async updateProfile(
     @CurrentUser() user: UserPayload,
-    @Body() updateProfile: UpdateProfile,
+    @Body() updateUserData: UpdateUser,
   ): Promise<DataResponse<UserProfileDataDto>> {
-    const result = await this.usersService.updateProfile(user.userId, updateProfile);
+    const result = await this.usersService.updateProfile(user.userId, updateUserData);
 
     return {
       success: true,

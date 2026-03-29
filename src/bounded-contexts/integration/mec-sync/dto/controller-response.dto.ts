@@ -1,85 +1,85 @@
-import { ApiProperty } from '@nestjs/swagger';
-import type { Course, Institution, InstitutionWithCourses, MecStats } from '@/shared-kernel';
-import type { SyncMetadata } from '../interfaces/mec-data.interface';
+/**
+ * MEC Sync Controller Response DTOs
+ */
 
-export class MecCourseListDataDto {
-  @ApiProperty({
-    type: 'array',
-    items: { type: 'object', additionalProperties: true },
-  })
-  courses!: Course[];
-}
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
+import {
+  CourseSchema,
+  InstitutionSchema,
+  InstitutionWithCoursesSchema,
+  MecStatsSchema,
+  SyncMetadataSchema,
+} from '../schemas/mec.schema';
 
-export class MecCourseDataDto {
-  @ApiProperty({ type: 'object', nullable: true, additionalProperties: true })
-  course!: Course | null;
-}
+// ============================================================================
+// Schemas
+// ============================================================================
 
-export class MecInstitutionListDataDto {
-  @ApiProperty({
-    type: 'array',
-    items: { type: 'object', additionalProperties: true },
-  })
-  institutions!: Institution[];
-}
+const MecCourseListDataSchema = z.object({
+  courses: z.array(CourseSchema),
+});
 
-export class MecInstitutionDataDto {
-  @ApiProperty({ type: 'object', nullable: true, additionalProperties: true })
-  institution!: InstitutionWithCourses | null;
-}
+const MecCourseDataSchema = z.object({
+  course: CourseSchema.nullable(),
+});
 
-export class MecInstitutionCoursesDataDto {
-  @ApiProperty({
-    type: 'array',
-    items: { type: 'object', additionalProperties: true },
-  })
-  courses!: Course[];
-}
+const MecInstitutionListDataSchema = z.object({
+  institutions: z.array(InstitutionSchema),
+});
 
-export class MecStateCodesDataDto {
-  @ApiProperty({ type: 'array', items: { type: 'string' } })
-  states!: string[];
-}
+const MecInstitutionDataSchema = z.object({
+  institution: InstitutionWithCoursesSchema.nullable(),
+});
 
-export class MecKnowledgeAreasDataDto {
-  @ApiProperty({ type: 'array', items: { type: 'string' } })
-  areas!: string[];
-}
+const MecInstitutionCoursesDataSchema = z.object({
+  courses: z.array(CourseSchema),
+});
 
-export class MecStatisticsDataDto {
-  @ApiProperty({ type: 'object', additionalProperties: true })
-  stats!: MecStats;
-}
+const MecStateCodesDataSchema = z.object({
+  states: z.array(z.string()),
+});
 
-export class MecSyncExecutionDataDto {
-  @ApiProperty({ example: 100 })
-  institutionsInserted!: number;
+const MecKnowledgeAreasDataSchema = z.object({
+  areas: z.array(z.string()),
+});
 
-  @ApiProperty({ example: 300 })
-  coursesInserted!: number;
+const MecStatisticsDataSchema = z.object({
+  stats: MecStatsSchema,
+});
 
-  @ApiProperty({ example: 400 })
-  totalRowsProcessed!: number;
+const MecSyncExecutionDataSchema = z.object({
+  institutionsInserted: z.number().int(),
+  coursesInserted: z.number().int(),
+  totalRowsProcessed: z.number().int(),
+  errorsCount: z.number().int(),
+});
 
-  @ApiProperty({ example: 0 })
-  errorsCount!: number;
-}
+// Flexible schema to accept Prisma MecSyncLog model
+const MecSyncLogFlexibleSchema = z.object({}).passthrough();
 
-export class MecSyncStatusDataDto {
-  @ApiProperty({ example: false })
-  isRunning!: boolean;
+const MecSyncStatusDataSchema = z.object({
+  isRunning: z.boolean(),
+  metadata: SyncMetadataSchema.nullable(),
+  lastSync: MecSyncLogFlexibleSchema.nullable(),
+});
 
-  @ApiProperty({ type: 'object', nullable: true, additionalProperties: true })
-  metadata!: SyncMetadata | null;
+const MecSyncHistoryDataSchema = z.object({
+  history: z.array(MecSyncLogFlexibleSchema),
+});
 
-  @ApiProperty({ type: 'object', nullable: true, additionalProperties: true })
-  lastSync!: Record<string, unknown> | null;
-}
+// ============================================================================
+// DTOs
+// ============================================================================
 
-export class MecSyncHistoryDataDto {
-  @ApiProperty({
-    type: 'array',
-    items: { type: 'object', additionalProperties: true },
-  })
-  history!: Array<Record<string, unknown>>;
-}
+export class MecCourseListDataDto extends createZodDto(MecCourseListDataSchema) {}
+export class MecCourseDataDto extends createZodDto(MecCourseDataSchema) {}
+export class MecInstitutionListDataDto extends createZodDto(MecInstitutionListDataSchema) {}
+export class MecInstitutionDataDto extends createZodDto(MecInstitutionDataSchema) {}
+export class MecInstitutionCoursesDataDto extends createZodDto(MecInstitutionCoursesDataSchema) {}
+export class MecStateCodesDataDto extends createZodDto(MecStateCodesDataSchema) {}
+export class MecKnowledgeAreasDataDto extends createZodDto(MecKnowledgeAreasDataSchema) {}
+export class MecStatisticsDataDto extends createZodDto(MecStatisticsDataSchema) {}
+export class MecSyncExecutionDataDto extends createZodDto(MecSyncExecutionDataSchema) {}
+export class MecSyncStatusDataDto extends createZodDto(MecSyncStatusDataSchema) {}
+export class MecSyncHistoryDataDto extends createZodDto(MecSyncHistoryDataSchema) {}

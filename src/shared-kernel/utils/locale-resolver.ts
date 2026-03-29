@@ -285,6 +285,9 @@ function resolveFieldMeta(
 /**
  * Recursively resolve field definitions for locale
  * Handles nested fields and array items
+ *
+ * IMPORTANT: Flattens meta.label/placeholder/helpText to field root level
+ * for frontend compatibility (frontend expects field.label, not field.meta.label)
  */
 function resolveFieldsForLocale(
   fields: FieldDefinition[] | undefined,
@@ -292,22 +295,58 @@ function resolveFieldsForLocale(
 ): FieldDefinition[] | undefined {
   if (!fields || !Array.isArray(fields)) return fields;
 
-  return fields.map((field) => ({
-    ...field,
-    meta: resolveFieldMeta(field.meta, locale),
-    // Recursively resolve nested fields
-    fields: field.fields ? resolveFieldsForLocale(field.fields, locale) : undefined,
-    // Recursively resolve array items
-    items: field.items
-      ? {
-          ...field.items,
-          meta: resolveFieldMeta(field.items.meta, locale),
-          fields: field.items.fields
-            ? resolveFieldsForLocale(field.items.fields, locale)
-            : undefined,
-        }
-      : undefined,
-  }));
+  return fields.map((field) => {
+    const resolvedMeta = resolveFieldMeta(field.meta, locale);
+    const { label, placeholder, helpText, ...restMeta } = resolvedMeta as {
+      label?: string;
+      placeholder?: string;
+      helpText?: string;
+      [key: string]: unknown;
+    };
+
+    return {
+      ...field,
+      // Flatten label/placeholder/helpText to field root level for frontend
+      label: label || field.key || '',
+      placeholder: placeholder || '',
+      helpText: helpText || '',
+      // Keep remaining meta properties
+      meta: Object.keys(restMeta).length > 0 ? restMeta : undefined,
+      // Recursively resolve nested fields
+      fields: field.fields ? resolveFieldsForLocale(field.fields, locale) : undefined,
+      // Recursively resolve array items
+      items: field.items
+        ? {
+            ...field.items,
+            ...(() => {
+              // biome-ignore lint/style/noNonNullAssertion: items is verified to exist by parent ternary
+              const itemMeta = resolveFieldMeta(field.items!.meta, locale);
+              const {
+                label: itemLabel,
+                placeholder: itemPlaceholder,
+                helpText: itemHelpText,
+                ...itemRestMeta
+              } = itemMeta as {
+                label?: string;
+                placeholder?: string;
+                helpText?: string;
+                [key: string]: unknown;
+              };
+              return {
+                // biome-ignore lint/style/noNonNullAssertion: items is verified to exist by parent ternary
+                label: itemLabel || field.items!.key || '',
+                placeholder: itemPlaceholder || '',
+                helpText: itemHelpText || '',
+                meta: Object.keys(itemRestMeta).length > 0 ? itemRestMeta : undefined,
+              };
+            })(),
+            fields: field.items.fields
+              ? resolveFieldsForLocale(field.items.fields, locale)
+              : undefined,
+          }
+        : undefined,
+    };
+  });
 }
 
 /**

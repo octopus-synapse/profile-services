@@ -20,35 +20,26 @@ import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/a
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { type DataResponse } from '@/bounded-contexts/platform/common/dto';
-import type {
-  ATSScoreResponse,
-  BenchmarkOptions,
-  BenchmarkResponse,
-  DashboardResponse,
-  HistoryQuery,
-  JobMatch,
-  JobMatchResponse,
-  KeywordOptions,
-  KeywordSuggestionsResponse,
-  ScoreProgressionResponse,
-  SnapshotResponse,
-  TrackView,
-  ViewStatsQuery,
-  ViewStatsResponse,
-} from '@/shared-kernel';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
-import { CreateSnapshotRequestDto } from '@/shared-kernel/dtos/sdk-request.dto';
-import { MessageResponseDto } from '@/shared-kernel/dtos/sdk-response.dto';
+import {
+  ATSScoreResponseDto,
+  BenchmarkOptionsDto,
+  BenchmarkResponseDto,
+  CreateSnapshotRequestDto,
+  DashboardResponseDto,
+  HistoryQueryDto,
+  JobMatchRequestDto,
+  JobMatchResponseDto,
+  KeywordOptionsDto,
+  KeywordSuggestionsResponseDto,
+  MessageResponseDto,
+  ScoreProgressionResponseDto,
+  SnapshotResponseDto,
+  TrackViewRequestDto,
+  ViewStatsQueryDto,
+  ViewStatsResponseDto,
+} from '../dto/analytics.dto';
 import { ResumeAnalyticsFacade } from '../services/resume-analytics.facade';
-
-type ATSScoreResponseDto = ATSScoreResponse;
-type BenchmarkResponseDto = BenchmarkResponse;
-type DashboardResponseDto = DashboardResponse;
-type JobMatchResponseDto = JobMatchResponse;
-type KeywordSuggestionsResponseDto = KeywordSuggestionsResponse;
-type ScoreProgressionResponseDto = ScoreProgressionResponse;
-type SnapshotResponseDto = SnapshotResponse;
-type ViewStatsResponseDto = ViewStatsResponse;
 
 interface AuthUser {
   id: string;
@@ -70,7 +61,7 @@ export class ResumeAnalyticsController {
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
   async trackView(
     @Param('resumeId') resumeId: string,
-    @Body() _dto: TrackView,
+    @Body() _dto: TrackViewRequestDto,
     @Req() req: Request,
   ): Promise<DataResponse<MessageResponseDto>> {
     await this.analyticsService.trackView({
@@ -91,7 +82,7 @@ export class ResumeAnalyticsController {
   @ApiDataResponse(Object, { description: 'View statistics retrieved' })
   async getViewStats(
     @Param('resumeId') resumeId: string,
-    @Query() query: ViewStatsQuery,
+    @Query() query: ViewStatsQueryDto,
     @CurrentUser() user: AuthUser,
   ): Promise<DataResponse<ViewStatsResponseDto>> {
     const stats = await this.analyticsService.getViewStats(resumeId, user.id, {
@@ -128,7 +119,7 @@ export class ResumeAnalyticsController {
   })
   async getKeywordSuggestions(
     @Param('resumeId') resumeId: string,
-    @Query() options: KeywordOptions,
+    @Query() options: KeywordOptionsDto,
     @CurrentUser() user: AuthUser,
   ): Promise<DataResponse<KeywordSuggestionsResponseDto>> {
     const suggestions = await this.analyticsService.getKeywordSuggestions(
@@ -151,7 +142,7 @@ export class ResumeAnalyticsController {
   @ApiDataResponse(Object, { description: 'Job match calculated' })
   async matchJob(
     @Param('resumeId') resumeId: string,
-    @Body() dto: JobMatch,
+    @Body() dto: JobMatchRequestDto,
     @CurrentUser() user: AuthUser,
   ): Promise<DataResponse<JobMatchResponseDto>> {
     const match = await this.analyticsService.matchJobDescription(
@@ -171,7 +162,7 @@ export class ResumeAnalyticsController {
   @ApiDataResponse(Object, { description: 'Benchmark data retrieved' })
   async getBenchmark(
     @Param('resumeId') resumeId: string,
-    @Query() options: BenchmarkOptions,
+    @Query() options: BenchmarkOptionsDto,
     @CurrentUser() user: AuthUser,
   ): Promise<DataResponse<BenchmarkResponseDto>> {
     const benchmark = await this.analyticsService.getIndustryBenchmark(resumeId, user.id, options);
@@ -218,7 +209,7 @@ export class ResumeAnalyticsController {
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
   async getHistory(
     @Param('resumeId') resumeId: string,
-    @Query() query: HistoryQuery,
+    @Query() query: HistoryQueryDto,
     @CurrentUser() user: AuthUser,
   ): Promise<DataResponse<SnapshotResponseDto[]>> {
     const history = await this.analyticsService.getHistory(resumeId, user.id, query);

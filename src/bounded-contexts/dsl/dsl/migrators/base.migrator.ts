@@ -3,7 +3,7 @@
  * Defines contract for DSL version migrations
  */
 
-import type { ResumeDsl } from '@/shared-kernel';
+import type { ResumeDsl } from '@/bounded-contexts/dsl/domain/schemas/dsl';
 
 export interface DslMigrator {
   /**

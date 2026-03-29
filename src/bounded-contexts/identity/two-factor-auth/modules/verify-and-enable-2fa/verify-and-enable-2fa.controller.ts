@@ -1,12 +1,8 @@
 import { Body, Controller, HttpCode, HttpStatus, Inject, Post, Req } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiExcludeController,
-  ApiOkResponse,
-  ApiOperation,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
+import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { HASH_SERVICE_PORT, type HashServicePort } from '../../ports/outbound/hash-service.port';
 import { TOTP_SERVICE_PORT, type TotpServicePort } from '../../ports/outbound/totp-service.port';
 import {
@@ -23,8 +19,12 @@ interface AuthenticatedRequest extends Request {
   user: { id: string };
 }
 
+@SdkExport({
+  tag: 'two-factor-auth',
+  description: 'Two-Factor Authentication API',
+  requiresAuth: true,
+})
 @ApiTags('Two-Factor Auth')
-@ApiExcludeController()
 @ApiBearerAuth()
 @Controller('auth/2fa')
 export class VerifyAndEnable2faController {
@@ -47,10 +47,7 @@ export class VerifyAndEnable2faController {
     summary: 'Verify token and enable 2FA',
     description: 'Verifies TOTP token and enables 2FA. Returns backup codes (shown only once).',
   })
-  @ApiOkResponse({
-    description: '2FA enabled with backup codes',
-    type: VerifyAndEnable2faResponseDto,
-  })
+  @ApiDataResponse(VerifyAndEnable2faResponseDto, { description: '2FA enabled with backup codes' })
   async verify(
     @Req() req: AuthenticatedRequest,
     @Body() dto: VerifyAndEnable2faRequestDto,

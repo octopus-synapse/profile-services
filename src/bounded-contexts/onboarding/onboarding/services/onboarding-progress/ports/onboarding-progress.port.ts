@@ -7,7 +7,7 @@
  * Progress is represented through a sections array keyed by SectionType.
  */
 
-import type { OnboardingProgress as OnboardingProgressInput } from '@/shared-kernel';
+import type { OnboardingProgress } from '../../../schemas/onboarding-progress.schema';
 
 // Generic transaction client type (implementation provided by repository)
 export type TransactionClient = unknown;
@@ -79,7 +79,7 @@ export const ONBOARDING_PROGRESS_USE_CASES = Symbol('ONBOARDING_PROGRESS_USE_CAS
 
 export interface OnboardingProgressUseCases {
   saveProgressUseCase: {
-    execute: (userId: string, data: OnboardingProgressInput) => Promise<SaveProgressResult>;
+    execute: (userId: string, data: OnboardingProgress) => Promise<SaveProgressResult>;
   };
   getProgressUseCase: {
     execute: (userId: string) => Promise<OnboardingProgressData>;

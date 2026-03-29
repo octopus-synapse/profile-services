@@ -44,3 +44,5 @@ export interface TokenGeneratorPort {
    */
   generateRefreshToken(): string;
 }
+
+export const TOKEN_GENERATOR_PORT = Symbol('TokenGeneratorPort');

@@ -5,7 +5,7 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { type ProgrammingLanguage, type TechArea, type TechNiche, type TechSkill } from '../dtos';
+import { type ProgrammingLanguage, type TechArea, type TechNiche, type TechSkill } from '../dto';
 import type { SkillType, TechAreaType } from '../interfaces';
 import { TechAreaQueryService } from './area-query.service';
 import { LanguageQueryService } from './language-query.service';
@@ -19,7 +19,7 @@ export type {
   TechArea,
   TechNiche,
   TechSkill,
-} from '../dtos';
+} from '../dto';
 
 @Injectable()
 export class TechSkillsQueryService {

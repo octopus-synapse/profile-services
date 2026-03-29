@@ -1,5 +1,5 @@
 import { DomainEvent } from '@/shared-kernel';
-import type { SectionKind } from '@/shared-kernel/dtos/semantic-sections.dto';
+import type { SectionKind } from '@/shared-kernel/schemas/sections';
 
 export interface SectionUpdatedPayload {
   readonly userId: string;

@@ -4,26 +4,15 @@
  */
 
 import { Controller, Get, Param } from '@nestjs/common';
-import { ApiOperation, ApiParam, ApiProperty, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
-import { TechAreaDto, TechNicheDto } from '@/shared-kernel';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
-import type { TechArea, TechNiche } from '../dtos';
+import { TechAreaListDataDto, TechNicheListDataDto } from '../dto/controller-response.dto';
 import type { TechAreaType } from '../interfaces';
 import { TechAreaQueryService } from '../services/area-query.service';
 import { TechSkillsQueryService } from '../services/tech-skills-query.service';
-
-class TechAreaListDataDto {
-  @ApiProperty({ type: [TechAreaDto] })
-  areas!: TechArea[];
-}
-
-class TechNicheListDataDto {
-  @ApiProperty({ type: [TechNicheDto] })
-  niches!: TechNiche[];
-}
 
 @SdkExport({
   tag: 'tech-areas',

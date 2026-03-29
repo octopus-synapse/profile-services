@@ -12,16 +12,7 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiBody,
-  ApiOperation,
-  ApiParam,
-  ApiProperty,
-  ApiPropertyOptional,
-  ApiTags,
-  PartialType,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
@@ -32,69 +23,20 @@ import { ParseJsonBodyPipe } from '@/bounded-contexts/platform/common/pipes/pars
 import type { CreateResume, UpdateResume } from '@/shared-kernel';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import {
+  CreateResumeRequestDto,
   DeleteResponseDto,
+  PaginatedResumesDataDto,
   ResumeFullResponseDto,
   ResumeListItemDto,
   ResumeResponseDto,
   ResumeSlotsResponseDto,
-} from '@/shared-kernel/dtos/sdk-response.dto';
+  UpdateResumeRequestDto,
+} from './dto/resumes.dto';
 import {
   type ResumeResult,
   ResumesServicePort,
   type UserResumesPaginatedResult,
 } from './ports/resumes-service.port';
-
-// DTO for paginated resumes response data
-class PaginatedResumesDataDto {
-  data!: ResumeListItemDto[];
-  meta!: { total: number; page: number; limit: number; totalPages: number };
-}
-
-class CreateResumeRequestDto {
-  @ApiProperty({ minLength: 1, maxLength: 100 })
-  title!: string;
-
-  @ApiPropertyOptional({ maxLength: 2000 })
-  summary?: string;
-
-  @ApiPropertyOptional()
-  template?: string;
-
-  @ApiPropertyOptional()
-  isPublic?: boolean;
-
-  @ApiPropertyOptional({ maxLength: 100 })
-  fullName?: string;
-
-  @ApiPropertyOptional({ maxLength: 100 })
-  jobTitle?: string;
-
-  @ApiPropertyOptional({ maxLength: 20 })
-  phone?: string;
-
-  @ApiPropertyOptional({ format: 'email' })
-  emailContact?: string;
-
-  @ApiPropertyOptional({ maxLength: 100 })
-  location?: string;
-
-  @ApiPropertyOptional({ format: 'uri' })
-  linkedin?: string;
-
-  @ApiPropertyOptional({ format: 'uri' })
-  github?: string;
-
-  @ApiPropertyOptional({ format: 'uri' })
-  website?: string;
-
-  @ApiPropertyOptional({
-    type: 'array',
-    items: { type: 'object', additionalProperties: true },
-  })
-  sections?: Array<Record<string, unknown>>;
-}
-
-class UpdateResumeRequestDto extends PartialType(CreateResumeRequestDto) {}
 
 @SdkExport({ tag: 'resumes', description: 'Resume CRUD operations' })
 @ApiTags('resumes')
@@ -226,7 +168,7 @@ export class ResumesController {
     @CurrentUser() user: UserPayload,
   ): Promise<DataResponse<DeleteResponseDto>> {
     await this.resumesService.deleteResumeForUser(id, user.userId);
-    return { success: true, data: { success: true } };
+    return { success: true, data: { deleted: true, id } };
   }
 
   private isPaginatedResult(
@@ -255,9 +197,18 @@ export class ResumesController {
   private toResumeFullResponseDto(resume: ResumeResult): ResumeFullResponseDto {
     return {
       ...this.toResumeResponseDto(resume),
+      activeThemeId: resume.activeThemeId ?? undefined,
+      activeTheme: resume.activeTheme
+        ? {
+            id: resume.activeTheme.id,
+            name: resume.activeTheme.name,
+            description: resume.activeTheme.description ?? undefined,
+          }
+        : undefined,
       resumeSections: (resume.resumeSections ?? []).map((section) => ({
         id: section.id,
         order: section.order,
+        visible: section.visible ?? true,
         sectionType: {
           id: section.sectionType.id,
           key: section.sectionType.key,

@@ -9,7 +9,10 @@
  */
 
 import { z } from 'zod';
-import { ThemeCategorySchema, ThemeStatusSchema } from '../../enums';
+import {
+  ThemeCategorySchema,
+  ThemeStatusSchema,
+} from '@/bounded-contexts/presentation/domain/enums';
 
 /**
  * Theme Author Schema (embedded in theme responses)

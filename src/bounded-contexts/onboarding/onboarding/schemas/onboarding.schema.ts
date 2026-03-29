@@ -5,7 +5,10 @@
  * Imports complete onboarding payload schema from contracts.
  */
 
-import { type OnboardingData, OnboardingDataSchema } from '@/shared-kernel';
+import {
+  type OnboardingData,
+  OnboardingDataSchema,
+} from '../domain/schemas/onboarding-data.schema';
 
 // Re-export from contracts as single source of truth
 // Type annotation prevents TypeScript from inferring Zod types

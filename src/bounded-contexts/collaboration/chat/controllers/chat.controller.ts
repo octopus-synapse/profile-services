@@ -1,74 +1,26 @@
 import { Body, Controller, Get, Param, Post, Query, Req } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiBody,
-  ApiOperation,
-  ApiParam,
-  ApiProperty,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import type { AuthenticatedRequest } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
-import { createZodPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
-import {
-  type ConversationResponse,
-  GetConversationsQuerySchema,
-  GetMessagesQuerySchema,
-  MarkConversationAsReadRequestDto,
-  type MessageResponse,
-  type PaginatedConversationsResponse,
-  type PaginatedMessagesResponse,
-  SendMessageRequestDto,
-  SendMessageSchema,
-  SendMessageToConversationRequestDto,
-  SendMessageToConversationSchema,
-} from '@/shared-kernel';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
+import {
+  GetConversationsQueryDto,
+  GetMessagesQueryDto,
+  SendMessageDto,
+  SendMessageToConversationDto,
+} from '../dto/chat-request.dto';
+import {
+  ChatMessageDataDto,
+  ConversationDataDto,
+  ConversationNullableDataDto,
+  ConversationsListDataDto,
+  MarkAsReadDataDto,
+  MessagesListDataDto,
+  UnreadCountDataDto,
+} from '../dto/chat-response.dto';
 import { ChatService } from '../services/chat.service';
-
-// Wrapper DTOs for responses
-export class ChatMessageDataDto {
-  @ApiProperty({ type: 'object', additionalProperties: true })
-  message!: MessageResponse;
-}
-
-export class ConversationsListDataDto {
-  @ApiProperty({ type: 'object', additionalProperties: true })
-  conversations!: PaginatedConversationsResponse;
-}
-
-export class ConversationDataDto {
-  @ApiProperty({ type: 'object', additionalProperties: true })
-  conversation!: ConversationResponse;
-}
-
-export class MessagesListDataDto {
-  @ApiProperty({ type: 'object', additionalProperties: true })
-  messages!: PaginatedMessagesResponse;
-}
-
-export class MarkAsReadDataDto {
-  @ApiProperty({ description: 'Number of messages marked as read' })
-  count!: number;
-}
-
-export class UnreadCountDataDto {
-  @ApiProperty({ description: 'Total unread messages' })
-  totalUnread!: number;
-
-  @ApiProperty({ description: 'Unread count by conversation ID' })
-  byConversation!: Record<string, number>;
-}
-
-export class ConversationNullableDataDto {
-  @ApiProperty({ type: String, nullable: true })
-  conversationId!: string | null;
-
-  @ApiProperty({ nullable: true, description: 'Conversation details' })
-  conversation?: ConversationResponse | null;
-}
 
 @SdkExport({ tag: 'chat', description: 'Chat API' })
 @ApiTags('Chat')
@@ -80,15 +32,13 @@ export class ChatController {
 
   @Post('messages')
   @ApiOperation({ summary: 'Send a message to a user' })
-  @ApiBody({ type: SendMessageRequestDto })
   @ApiDataResponse(ChatMessageDataDto, {
     status: 201,
     description: 'Message sent',
   })
   async sendMessage(
     @Req() req: AuthenticatedRequest,
-    @Body(createZodPipe(SendMessageSchema))
-    dto: ReturnType<typeof SendMessageSchema.parse>,
+    @Body() dto: SendMessageDto,
   ): Promise<DataResponse<ChatMessageDataDto>> {
     const message = await this.chatService.sendMessage(req.user.userId, dto);
     return { success: true, data: { message } };
@@ -97,7 +47,6 @@ export class ChatController {
   @Post('conversations/:conversationId/messages')
   @ApiOperation({ summary: 'Send a message to an existing conversation' })
   @ApiParam({ name: 'conversationId', type: 'string' })
-  @ApiBody({ type: SendMessageToConversationRequestDto })
   @ApiDataResponse(ChatMessageDataDto, {
     status: 201,
     description: 'Message sent',
@@ -105,8 +54,7 @@ export class ChatController {
   async sendMessageToConversation(
     @Req() req: AuthenticatedRequest,
     @Param('conversationId') conversationId: string,
-    @Body(createZodPipe(SendMessageToConversationSchema.pick({ content: true })))
-    dto: { content: string },
+    @Body() dto: SendMessageToConversationDto,
   ): Promise<DataResponse<ChatMessageDataDto>> {
     const message = await this.chatService.sendMessageToConversation(
       req.user.userId,
@@ -123,8 +71,7 @@ export class ChatController {
   })
   async getConversations(
     @Req() req: AuthenticatedRequest,
-    @Query(createZodPipe(GetConversationsQuerySchema))
-    query: ReturnType<typeof GetConversationsQuerySchema.parse>,
+    @Query() query: GetConversationsQueryDto,
   ): Promise<DataResponse<ConversationsListDataDto>> {
     const conversations = await this.chatService.getConversations(req.user.userId, query);
     return { success: true, data: { conversations } };
@@ -149,21 +96,19 @@ export class ChatController {
   async getMessages(
     @Req() req: AuthenticatedRequest,
     @Param('conversationId') conversationId: string,
-    @Query() query: { cursor?: string; limit?: string },
+    @Query() query: GetMessagesQueryDto,
   ): Promise<DataResponse<MessagesListDataDto>> {
-    const parsedQuery = GetMessagesQuerySchema.parse({
+    const messages = await this.chatService.getMessages(req.user.userId, {
       conversationId,
       cursor: query.cursor,
-      limit: query.limit ? parseInt(query.limit, 10) : 50,
+      limit: query.limit ?? 50,
     });
-    const messages = await this.chatService.getMessages(req.user.userId, parsedQuery);
     return { success: true, data: { messages } };
   }
 
   @Post('conversations/:conversationId/read')
   @ApiOperation({ summary: 'Mark all messages in a conversation as read' })
   @ApiParam({ name: 'conversationId', type: 'string' })
-  @ApiBody({ type: MarkConversationAsReadRequestDto })
   @ApiDataResponse(MarkAsReadDataDto, {
     status: 201,
     description: 'Messages marked as read',

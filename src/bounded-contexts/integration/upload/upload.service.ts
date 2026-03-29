@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { v4 as uuidv4 } from 'uuid';
+import { v4 } from 'uuid';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { S3UploadService } from '@/bounded-contexts/platform/common/services/s3-upload.service';
 import { ERROR_MESSAGES, FILE_UPLOAD_CONFIG } from '@/shared-kernel';
@@ -25,7 +25,7 @@ export class UploadService {
     this.validateFile(file);
 
     const extension = this.getFileExtension(file.originalname);
-    const key = `profiles/${userId}/${uuidv4()}.${extension}`;
+    const key = `profiles/${userId}/${v4()}.${extension}`;
 
     const result = await this.s3Service.uploadFile(file.buffer, key, file.mimetype);
 
@@ -46,7 +46,7 @@ export class UploadService {
     this.validateFile(file);
 
     const extension = this.getFileExtension(file.originalname);
-    const key = `logos/${userId}/${resumeId}/${uuidv4()}.${extension}`;
+    const key = `logos/${userId}/${resumeId}/${v4()}.${extension}`;
 
     const result = await this.s3Service.uploadFile(file.buffer, key, file.mimetype);
 

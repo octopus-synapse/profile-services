@@ -1,6 +1,6 @@
+import { type TechPersona, TechPersonaEnum } from '@/bounded-contexts/platform/domain/enums';
 import { TECH_PERSONAS } from './persona.registry';
 import { PersonaConfig } from './persona-config.interface';
-import { TechPersona } from './tech-persona.enum';
 
 /**
  * Get configuration for a specific persona
@@ -30,19 +30,19 @@ export function suggestPersona(jobTitle: string, skills: string[]): TechPersona 
     }
   }
 
-  return TechPersona.FULLSTACK;
+  return TechPersonaEnum.FULLSTACK;
 }
 
 /**
  * Get all available persona IDs
  */
 export function getAllPersonaIds(): TechPersona[] {
-  return Object.values(TechPersona);
+  return Object.values(TechPersonaEnum);
 }
 
 /**
  * Check if a string is a valid persona ID
  */
 export function isValidPersona(value: string): value is TechPersona {
-  return Object.values(TechPersona).includes(value as TechPersona);
+  return (Object.values(TechPersonaEnum) as string[]).includes(value);
 }

@@ -7,7 +7,7 @@
 
 import { Inject, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import type { OnboardingProgress } from '@/shared-kernel';
+import type { OnboardingProgress } from '../schemas/onboarding-progress.schema';
 import {
   ONBOARDING_PROGRESS_USE_CASES,
   type OnboardingProgressData,

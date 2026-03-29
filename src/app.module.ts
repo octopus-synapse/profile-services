@@ -59,7 +59,6 @@ import { RATE_LIMIT_CONFIG } from '@/shared-kernel';
 // Shared Kernel
 import { EventBusModule } from '@/shared-kernel/event-bus/event-bus.module';
 import { AppController } from './app.controller';
-import { AppService } from './app.service';
 
 @Module({
   imports: [
@@ -119,7 +118,6 @@ import { AppService } from './app.service';
   ],
   controllers: [AppController],
   providers: [
-    AppService,
     // Global Guards (order matters: Throttler → JWT Auth)
     {
       provide: APP_GUARD,

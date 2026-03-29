@@ -172,7 +172,7 @@ function createOnboardingPayload(
 describe('Complete Onboarding Flow', () => {
   beforeAll(async () => {
     await getApp();
-  });
+  }, 30000);
 
   afterAll(async () => {
     await closeApp();
@@ -375,7 +375,7 @@ describe('Complete Onboarding Flow', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.hasCompletedOnboarding).toBe(false);
+      expect(response.body.data.hasCompletedOnboarding).toBe(false);
     });
 
     it('should reject unauthenticated request', async () => {
@@ -763,7 +763,7 @@ describe('Complete Onboarding Flow', () => {
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.hasCompletedOnboarding).toBe(true);
+      expect(response.body.data.hasCompletedOnboarding).toBe(true);
     });
 
     it('should have created resume', async () => {

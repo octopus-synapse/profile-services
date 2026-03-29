@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type {
   AuthenticationRepositoryPort,
@@ -7,31 +8,46 @@ import type {
   SessionAuthUser,
 } from '../../ports/outbound';
 
+// Cache TTLs in seconds
+const SESSION_CACHE_TTL = 600; // 10 minutes
+const USER_EMAIL_CACHE_TTL = 300; // 5 minutes
+
 @Injectable()
 export class PrismaAuthenticationRepository implements AuthenticationRepositoryPort {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly cacheService: CacheService,
+  ) {}
 
   async findUserByEmail(email: string): Promise<AuthUser | null> {
-    const user = await this.prisma.user.findUnique({
-      where: { email },
-      select: {
-        id: true,
-        email: true,
-        passwordHash: true,
-        isActive: true,
+    const cacheKey = `auth:user:email:${email.toLowerCase()}`;
+
+    return this.cacheService.getOrSet(
+      cacheKey,
+      async () => {
+        const user = await this.prisma.user.findUnique({
+          where: { email },
+          select: {
+            id: true,
+            email: true,
+            passwordHash: true,
+            isActive: true,
+          },
+        });
+
+        if (!user) {
+          return null;
+        }
+
+        return {
+          id: user.id,
+          email: user.email ?? '',
+          passwordHash: user.passwordHash,
+          isActive: user.isActive ?? true,
+        };
       },
-    });
-
-    if (!user) {
-      return null;
-    }
-
-    return {
-      id: user.id,
-      email: user.email ?? '',
-      passwordHash: user.passwordHash,
-      isActive: user.isActive ?? true,
-    };
+      USER_EMAIL_CACHE_TTL,
+    );
   }
 
   async findUserById(userId: string): Promise<AuthUser | null> {
@@ -58,36 +74,58 @@ export class PrismaAuthenticationRepository implements AuthenticationRepositoryP
   }
 
   async findSessionUser(userId: string): Promise<SessionAuthUser | null> {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        username: true,
-        hasCompletedOnboarding: true,
-        emailVerified: true,
-        roles: true,
+    const cacheKey = `auth:session:user:${userId}`;
+
+    return this.cacheService.getOrSet(
+      cacheKey,
+      async () => {
+        const user = await this.prisma.user.findUnique({
+          where: { id: userId },
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            username: true,
+            hasCompletedOnboarding: true,
+            emailVerified: true,
+            roles: true,
+          },
+        });
+
+        if (!user) {
+          return null;
+        }
+
+        const roles = user.roles ?? ['role_user'];
+        const isAdmin = roles.includes('role_admin');
+
+        return {
+          id: user.id,
+          email: user.email ?? '',
+          name: user.name,
+          username: user.username,
+          hasCompletedOnboarding: user.hasCompletedOnboarding ?? false,
+          emailVerified: !!user.emailVerified,
+          role: isAdmin ? 'ADMIN' : 'USER',
+          roles,
+        };
       },
-    });
+      SESSION_CACHE_TTL,
+    );
+  }
 
-    if (!user) {
-      return null;
-    }
+  /**
+   * Invalidate session cache when user profile changes
+   */
+  async invalidateSessionCache(userId: string): Promise<void> {
+    await this.cacheService.delete(`auth:session:user:${userId}`);
+  }
 
-    const roles = user.roles ?? ['role_user'];
-    const isAdmin = roles.includes('role_admin');
-
-    return {
-      id: user.id,
-      email: user.email ?? '',
-      name: user.name,
-      username: user.username,
-      hasCompletedOnboarding: user.hasCompletedOnboarding ?? false,
-      emailVerified: !!user.emailVerified,
-      role: isAdmin ? 'ADMIN' : 'USER',
-      roles,
-    };
+  /**
+   * Invalidate email cache when email changes
+   */
+  async invalidateEmailCache(email: string): Promise<void> {
+    await this.cacheService.delete(`auth:user:email:${email.toLowerCase()}`);
   }
 
   async createRefreshToken(userId: string, token: string, expiresAt: Date): Promise<void> {

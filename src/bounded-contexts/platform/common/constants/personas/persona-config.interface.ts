@@ -1,4 +1,4 @@
-import { TechPersona } from './tech-persona.enum';
+import { TechPersona } from '@/bounded-contexts/platform/domain/enums';
 
 /**
  * Persona Configuration Interface

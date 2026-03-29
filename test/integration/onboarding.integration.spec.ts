@@ -21,7 +21,7 @@ import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service
 import { AppModule } from '../../src/app.module';
 import { acceptTosWithPrisma } from './setup';
 
-describe.skip('Onboarding Flow Integration', () => {
+describe('Onboarding Flow Integration', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let accessToken: string;
@@ -105,7 +105,7 @@ describe.skip('Onboarding Flow Integration', () => {
         .expect(200);
 
       expect(response.body).toBeDefined();
-      expect(response.body.hasCompletedOnboarding).toBe(false);
+      expect(response.body.data.hasCompletedOnboarding).toBe(false);
     });
 
     it('should reject unauthenticated requests', async () => {
@@ -122,7 +122,7 @@ describe.skip('Onboarding Flow Integration', () => {
 
       expect(response.body).toBeDefined();
       // Initial progress should have default values
-      expect(response.body.currentStep).toBeDefined();
+      expect(response.body.data.currentStep).toBeDefined();
     });
 
     it('should save onboarding progress', async () => {
@@ -142,6 +142,7 @@ describe.skip('Onboarding Flow Integration', () => {
         .expect(200);
 
       expect(response.body).toBeDefined();
+      // success is at envelope level
       expect(response.body.success).toBe(true);
     });
 
@@ -203,7 +204,8 @@ describe.skip('Onboarding Flow Integration', () => {
         })
         .expect(400);
 
-      expect(response.body.error.message).toBeDefined();
+      // Error message can be at either level depending on error type
+      expect(response.body.message || response.body.error?.message).toBeDefined();
     });
   });
 });

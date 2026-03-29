@@ -1,112 +1,60 @@
 /**
- * User Response DTOs with Swagger decorators
+ * Username Response DTOs
  *
- * These DTOs ensure proper OpenAPI/Swagger documentation generation.
+ * DTOs for username validation and update operations.
  */
 
-import { ApiProperty } from '@nestjs/swagger';
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
 
-/**
- * Username validation error codes
- */
-export enum UsernameValidationErrorCode {
-  TOO_SHORT = 'TOO_SHORT',
-  TOO_LONG = 'TOO_LONG',
-  INVALID_FORMAT = 'INVALID_FORMAT',
-  INVALID_START = 'INVALID_START',
-  INVALID_END = 'INVALID_END',
-  CONSECUTIVE_UNDERSCORES = 'CONSECUTIVE_UNDERSCORES',
-  RESERVED = 'RESERVED',
-  UPPERCASE = 'UPPERCASE',
-  ALREADY_TAKEN = 'ALREADY_TAKEN',
-}
+// ============================================================================
+// Schemas
+// ============================================================================
 
-/**
- * Username validation error DTO
- */
-export class UsernameValidationErrorDto {
-  @ApiProperty({
-    enum: UsernameValidationErrorCode,
-    description: 'Error code identifying the validation failure',
-    example: UsernameValidationErrorCode.TOO_SHORT,
-  })
-  code!: `${UsernameValidationErrorCode}`;
+const UsernameValidationErrorCodeSchema = z.enum([
+  'TOO_SHORT',
+  'TOO_LONG',
+  'INVALID_FORMAT',
+  'INVALID_START',
+  'INVALID_END',
+  'CONSECUTIVE_UNDERSCORES',
+  'RESERVED',
+  'UPPERCASE',
+  'ALREADY_TAKEN',
+]);
 
-  @ApiProperty({
-    description: 'Human-readable error message',
-    example: 'Username must be at least 3 characters',
-  })
-  message: string;
-}
+const UsernameValidationErrorSchema = z.object({
+  code: UsernameValidationErrorCodeSchema,
+  message: z.string(),
+});
 
-/**
- * Validate username response DTO
- */
-export class ValidateUsernameResponseDto {
-  @ApiProperty({
-    description: 'The username that was validated',
-    example: 'john_doe',
-  })
-  username: string;
+const ValidateUsernameResponseSchema = z.object({
+  username: z.string(),
+  valid: z.boolean(),
+  available: z.boolean().optional(),
+  errors: z.array(UsernameValidationErrorSchema),
+});
 
-  @ApiProperty({
-    description: 'Whether the username passes all format validations',
-    example: true,
-  })
-  valid: boolean;
+const CheckUsernameResponseSchema = z.object({
+  available: z.boolean(),
+  message: z.string().optional(),
+});
 
-  @ApiProperty({
-    description: 'Whether the username is available (not taken by another user)',
-    example: true,
-    required: false,
-  })
-  available?: boolean;
+const UpdateUsernameResponseSchema = z.object({
+  success: z.boolean(),
+  message: z.string(),
+  username: z.string(),
+});
 
-  @ApiProperty({
-    type: [UsernameValidationErrorDto],
-    description: 'List of validation errors (empty if valid)',
-    example: [],
-  })
-  errors: UsernameValidationErrorDto[];
-}
+// ============================================================================
+// DTOs
+// ============================================================================
 
-/**
- * Check username availability response DTO
- */
-export class CheckUsernameResponseDto {
-  @ApiProperty({
-    description: 'Whether the username is available',
-    example: true,
-  })
-  available: boolean;
+export class UsernameValidationErrorDto extends createZodDto(UsernameValidationErrorSchema) {}
+export class ValidateUsernameResponseDto extends createZodDto(ValidateUsernameResponseSchema) {}
+export class CheckUsernameResponseDto extends createZodDto(CheckUsernameResponseSchema) {}
+export class UpdateUsernameResponseDto extends createZodDto(UpdateUsernameResponseSchema) {}
 
-  @ApiProperty({
-    description: 'Optional message about username availability',
-    example: 'Username is available',
-    required: false,
-  })
-  message?: string;
-}
-
-/**
- * Update username response DTO
- */
-export class UpdateUsernameResponseDto {
-  @ApiProperty({
-    description: 'Whether the update was successful',
-    example: true,
-  })
-  success: boolean;
-
-  @ApiProperty({
-    description: 'Status message',
-    example: 'Username updated successfully',
-  })
-  message: string;
-
-  @ApiProperty({
-    description: 'The updated username',
-    example: 'john_doe',
-  })
-  username: string;
-}
+// Re-export enum for backwards compatibility
+export const UsernameValidationErrorCode = UsernameValidationErrorCodeSchema.enum;
+export type UsernameValidationErrorCode = z.infer<typeof UsernameValidationErrorCodeSchema>;

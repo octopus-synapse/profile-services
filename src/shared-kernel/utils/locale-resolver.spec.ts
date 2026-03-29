@@ -94,23 +94,38 @@ describe('locale-resolver', () => {
 
     test('resolves field labels for pt-BR', () => {
       const resolved = resolveDefinitionFieldsForLocale(definition, 'pt-BR') as typeof definition;
-      expect(resolved.fields[0].meta.label).toBe('Empresa');
-      expect(resolved.fields[0].meta.placeholder).toBe('ex: Google');
-      expect(resolved.fields[1].meta.label).toBe('Cargo');
+      // Label/placeholder are flattened to field root level for frontend compatibility
+      const field0 = resolved.fields[0] as (typeof resolved.fields)[0] & {
+        label?: string;
+        placeholder?: string;
+      };
+      const field1 = resolved.fields[1] as (typeof resolved.fields)[1] & { label?: string };
+      expect(field0.label).toBe('Empresa');
+      expect(field0.placeholder).toBe('ex: Google');
+      expect(field1.label).toBe('Cargo');
     });
 
     test('resolves field labels for es', () => {
       const resolved = resolveDefinitionFieldsForLocale(definition, 'es') as typeof definition;
-      expect(resolved.fields[0].meta.label).toBe('Empresa');
-      expect(resolved.fields[0].meta.placeholder).toBe('ej: Google');
+      // Label/placeholder are flattened to field root level for frontend compatibility
+      const field0 = resolved.fields[0] as (typeof resolved.fields)[0] & {
+        label?: string;
+        placeholder?: string;
+      };
+      const field1 = resolved.fields[1] as (typeof resolved.fields)[1] & { label?: string };
+      expect(field0.label).toBe('Empresa');
+      expect(field0.placeholder).toBe('ej: Google');
       // Falls back to en for role since no es translation
-      expect(resolved.fields[1].meta.label).toBe('Role');
+      expect(field1.label).toBe('Role');
     });
 
     test('resolves field labels for en', () => {
       const resolved = resolveDefinitionFieldsForLocale(definition, 'en') as typeof definition;
-      expect(resolved.fields[0].meta.label).toBe('Company');
-      expect(resolved.fields[1].meta.label).toBe('Role');
+      // Label/placeholder are flattened to field root level for frontend compatibility
+      const field0 = resolved.fields[0] as (typeof resolved.fields)[0] & { label?: string };
+      const field1 = resolved.fields[1] as (typeof resolved.fields)[1] & { label?: string };
+      expect(field0.label).toBe('Company');
+      expect(field1.label).toBe('Role');
     });
 
     test('preserves other meta properties', () => {

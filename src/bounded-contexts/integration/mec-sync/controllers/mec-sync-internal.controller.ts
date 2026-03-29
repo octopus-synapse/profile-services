@@ -10,7 +10,7 @@ import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/a
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { APP_CONFIG } from '@/shared-kernel';
-import { TriggerMecSyncRequestDto } from '@/shared-kernel/dtos/sdk-request.dto';
+import { TriggerMecSyncRequestDto } from '../dto/controller-request.dto';
 import {
   MecSyncExecutionDataDto,
   MecSyncHistoryDataDto,

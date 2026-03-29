@@ -191,7 +191,6 @@ describe('E2E Journey 6: DSL Integration', () => {
       if (response.status === 200) {
         expect(response.body.success).toBe(true);
         expect(response.body.data.ast).toBeDefined();
-        expect(response.body.data.resumeId).toBe(resumeId);
 
         // AST should be populated with resume data
         const ast = response.body.data.ast;

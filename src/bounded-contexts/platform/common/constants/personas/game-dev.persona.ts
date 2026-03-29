@@ -1,8 +1,8 @@
+import { TechPersonaEnum } from '@/bounded-contexts/platform/domain/enums';
 import { PersonaConfig } from './persona-config.interface';
-import { TechPersona } from './tech-persona.enum';
 
 export const GAME_DEV_PERSONA: PersonaConfig = {
-  id: TechPersona.GAME_DEV,
+  id: TechPersonaEnum.GAME_DEV,
   name: 'Game Developer',
   description: 'Unity, Unreal, Game Design, Graphics',
   icon: '🎮',

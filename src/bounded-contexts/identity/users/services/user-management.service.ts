@@ -9,7 +9,11 @@
 
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { AuthorizationServicePort } from '@/bounded-contexts/identity/authorization';
-import type { AdminCreateUser, AdminResetPassword, AdminUpdateUser } from '@/shared-kernel';
+import type {
+  AdminCreateUserDto,
+  AdminResetPasswordDto,
+  AdminUpdateUserDto,
+} from '../dto/controller-request.dto';
 import {
   type CreatedUser,
   type UpdatedUser,
@@ -48,7 +52,7 @@ export class UserManagementService {
    * Create a new user (elevated permission)
    * @returns CreatedUser (domain data, not envelope)
    */
-  async createUser(data: AdminCreateUser): Promise<CreatedUser> {
+  async createUser(data: AdminCreateUserDto): Promise<CreatedUser> {
     return this.useCases.createUserUseCase.execute({
       email: data.email,
       password: data.password,
@@ -60,7 +64,7 @@ export class UserManagementService {
    * Update a user (elevated permission)
    * @returns UpdatedUser (domain data, not envelope)
    */
-  async updateUser(userId: string, data: AdminUpdateUser): Promise<UpdatedUser> {
+  async updateUser(userId: string, data: AdminUpdateUserDto): Promise<UpdatedUser> {
     return this.useCases.updateUserUseCase.execute(userId, data);
   }
 
@@ -79,7 +83,7 @@ export class UserManagementService {
    * Reset user password (elevated permission)
    * @returns void (not envelope)
    */
-  async resetPassword(userId: string, data: AdminResetPassword): Promise<void> {
+  async resetPassword(userId: string, data: AdminResetPasswordDto): Promise<void> {
     return this.useCases.resetPasswordUseCase.execute(userId, data.newPassword);
   }
 

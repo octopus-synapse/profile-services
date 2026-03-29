@@ -15,12 +15,18 @@ import type { ParsedResumeData } from '../resume-import.types';
  * Convert Prisma ResumeImport to ImportJobDto
  */
 export function toImportJobDto(entity: ResumeImport): ImportJobDto {
+  // rawData is Prisma Json type - convert to Record<string, unknown> if it's an object
+  const data =
+    entity.rawData && typeof entity.rawData === 'object' && !Array.isArray(entity.rawData)
+      ? (entity.rawData as Record<string, unknown>)
+      : undefined;
+
   return {
     id: entity.id,
     userId: entity.userId,
     source: entity.source,
     status: entity.status,
-    data: entity.rawData ?? undefined,
+    data,
     parsedData: toParsedResumeData(entity.mappedData),
     resumeId: entity.resumeId ?? undefined,
     errors: Array.isArray(entity.errors) ? (entity.errors as string[]) : [],

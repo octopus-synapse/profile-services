@@ -5,13 +5,12 @@ import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
-import { AppService } from './app.service';
 import {
   HealthDataDto,
   HelloDataDto,
   OpenApiSpecDataDto,
   VersionDataDto,
-} from './dto/app-response.dto';
+} from './app-response.dto';
 
 interface PackageJson {
   version: string;
@@ -38,8 +37,6 @@ interface DeploymentManifest {
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
-
   @Public()
   @Get()
   @ApiOperation({ summary: 'Default application hello endpoint' })
@@ -47,7 +44,7 @@ export class AppController {
   getHello(): DataResponse<HelloDataDto> {
     return {
       success: true,
-      data: { message: this.appService.getHello() },
+      data: { message: 'Hello from Profile Services!' },
     };
   }
 

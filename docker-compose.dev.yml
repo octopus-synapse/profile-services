@@ -57,7 +57,7 @@ services:
       target: deps
     container_name: profile-backend-dev
     restart: unless-stopped
-    command: sh -c "bunx prisma generate && bunx prisma migrate deploy && bun run start:dev"
+    command: sh -c "bunx prisma generate && bunx prisma migrate deploy && bun run prisma/seed.ts && bun run start:dev"
     environment:
       NODE_ENV: ${NODE_ENV:-development} # Allow override for E2E testing
       PORT: ${BACKEND_PORT:-3001}

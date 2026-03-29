@@ -9,15 +9,7 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import {
-  ApiBearerAuth,
-  ApiBody,
-  ApiOperation,
-  ApiParam,
-  ApiProperty,
-  ApiQuery,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
@@ -32,33 +24,16 @@ import type {
   ValidateUsernameRequest,
 } from '@/shared-kernel';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
+import { ValidateUsernameResponseDto } from './dto/username-response.dto';
 import {
   PublicProfileResponseDto,
+  UpdateUsernameResponseDto,
   UserFullPreferencesResponseDto,
+  UsernameAvailabilityResponseDto,
   UserPreferencesResponseDto,
   UserProfileResponseDto,
-} from '@/shared-kernel/dtos/sdk-response.dto';
-import { ValidateUsernameResponseDto } from './dto/username-response.dto';
+} from './dto/users.dto';
 import { UsersService } from './users.service';
-
-class UpdateUsernameResponseDto {
-  @ApiProperty({ example: true })
-  success!: boolean;
-
-  @ApiProperty({ example: 'Username updated successfully' })
-  message!: string;
-
-  @ApiProperty({ example: 'new_username' })
-  username!: string;
-}
-
-class UsernameAvailabilityResponseDto {
-  @ApiProperty({ example: 'john_doe' })
-  username!: string;
-
-  @ApiProperty({ example: true })
-  available!: boolean;
-}
 
 @SdkExport({ tag: 'users', description: 'User profile and preferences' })
 @ApiTags('users')

@@ -1,8 +1,8 @@
+import { TechPersonaEnum } from '@/bounded-contexts/platform/domain/enums';
 import { PersonaConfig } from './persona-config.interface';
-import { TechPersona } from './tech-persona.enum';
 
 export const FRONTEND_PERSONA: PersonaConfig = {
-  id: TechPersona.FRONTEND,
+  id: TechPersonaEnum.FRONTEND,
   name: 'Frontend Developer',
   description: 'React, Vue, Angular, Web Performance',
   icon: '🌐',

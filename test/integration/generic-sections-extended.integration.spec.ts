@@ -17,10 +17,11 @@ import {
   getApp,
   getPrisma,
   getRequest,
+  refreshSectionTypeCache,
   unwrapApiData,
 } from './setup';
 
-describe.skip('Generic Resume Sections Extended Integration', () => {
+describe('Generic Resume Sections Extended Integration', () => {
   let userAToken: string;
   let userAResumeId: string;
 
@@ -78,7 +79,7 @@ describe.skip('Generic Resume Sections Extended Integration', () => {
         isSystem: false,
         isRepeatable: true,
         minItems: 0,
-        maxItems: 5,
+        maxItems: 100,
         definition: {
           schemaVersion: 1,
           kind: 'CUSTOM',
@@ -115,6 +116,9 @@ describe.skip('Generic Resume Sections Extended Integration', () => {
       },
     });
     nonRepeatableSectionTypeId = nonRepeatableSectionType.id;
+
+    // Refresh cache so API knows about new section types
+    await refreshSectionTypeCache();
   });
 
   afterAll(async () => {
@@ -146,10 +150,9 @@ describe.skip('Generic Resume Sections Extended Integration', () => {
         .set(authHeader(userAToken));
 
       expect(res.status).toBe(200);
-      const body = unwrapApiData<{
-        sectionTypes: Array<{ key: string; isActive: boolean }>;
-      }>(res.body);
-      const types = body.sectionTypes;
+      expect(res.body).toHaveProperty('data');
+      expect(res.body.data).toHaveProperty('sectionTypes');
+      const types = res.body.data.sectionTypes as Array<{ key: string; isActive: boolean }>;
 
       const customType = types.find((t) => t.key === sectionTypeKey);
       expect(customType).toBeDefined();
@@ -162,13 +165,11 @@ describe.skip('Generic Resume Sections Extended Integration', () => {
         .set(authHeader(userAToken));
 
       expect(res.status).toBe(200);
-      const body = unwrapApiData<{
-        sectionTypes: Array<{
-          key: string;
-          definition?: { schemaVersion?: number; fields?: Array<unknown> };
-        }>;
-      }>(res.body);
-      const types = body.sectionTypes;
+      expect(res.body).toHaveProperty('data');
+      const types = res.body.data.sectionTypes as Array<{
+        key: string;
+        definition?: { schemaVersion?: number; fields?: Array<unknown> };
+      }>;
 
       const customType = types.find((t) => t.key === sectionTypeKey);
       if (customType?.definition) {
@@ -185,13 +186,16 @@ describe.skip('Generic Resume Sections Extended Integration', () => {
         data: { isActive: false },
       });
 
+      // Refresh cache after update
+      await refreshSectionTypeCache();
+
       const res = await getRequest()
         .get(`/api/v1/resumes/${userAResumeId}/sections/types`)
         .set(authHeader(userAToken));
 
       expect(res.status).toBe(200);
-      const body = unwrapApiData<{ sectionTypes: Array<{ key: string }> }>(res.body);
-      const types = body.sectionTypes;
+      expect(res.body).toHaveProperty('data');
+      const types = res.body.data.sectionTypes as Array<{ key: string }>;
 
       const inactiveType = types.find((t) => t.key === sectionTypeKey);
       expect(inactiveType).toBeUndefined();
@@ -201,6 +205,9 @@ describe.skip('Generic Resume Sections Extended Integration', () => {
         where: { id: sectionTypeId },
         data: { isActive: true },
       });
+
+      // Refresh cache after reactivation
+      await refreshSectionTypeCache();
     });
   });
 
@@ -564,14 +571,13 @@ describe.skip('Generic Resume Sections Extended Integration', () => {
         .set(authHeader(userAToken));
 
       expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty('data');
+      expect(res.body.data).toHaveProperty('sections');
 
-      const body = unwrapApiData<{
-        sections: Array<{
-          sectionType: { key: string };
-          items: Array<unknown>;
-        }>;
-      }>(res.body);
-      const sections = body.sections;
+      const sections = res.body.data.sections as Array<{
+        sectionType: { key: string };
+        items: Array<unknown>;
+      }>;
 
       expect(Array.isArray(sections)).toBe(true);
 
@@ -588,13 +594,11 @@ describe.skip('Generic Resume Sections Extended Integration', () => {
         .get(`/api/v1/resumes/${userAResumeId}/sections`)
         .set(authHeader(userAToken));
 
-      const body = unwrapApiData<{
-        sections: Array<{
-          sectionType: { key: string };
-          items: Array<{ content: { title: string } }>;
-        }>;
-      }>(res.body);
-      const sections = body.sections;
+      expect(res.body).toHaveProperty('data');
+      const sections = res.body.data.sections as Array<{
+        sectionType: { key: string };
+        items: Array<{ content: { title: string } }>;
+      }>;
 
       const customSection = sections.find((s) => s.sectionType.key === sectionTypeKey);
       expect(customSection).toBeDefined();
@@ -612,7 +616,9 @@ describe.skip('Generic Resume Sections Extended Integration', () => {
         .send({ content: { bio: 'First and only bio entry' } });
 
       expect([200, 201]).toContain(res.status);
-      singletonItemId = unwrapApiData<{ item: { id: string } }>(res.body).item.id;
+      expect(res.body).toHaveProperty('data');
+      expect(res.body.data).toHaveProperty('item');
+      singletonItemId = res.body.data.item.id;
     });
 
     it('should update singleton item', async () => {

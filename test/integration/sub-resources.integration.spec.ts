@@ -9,33 +9,39 @@ import {
 } from './setup';
 
 /**
- * Sub-resource configuration for parametrized tests
+ * Generic Section configuration for parametrized tests
+ * Uses the new generic sections API pattern: /sections/:sectionTypeKey/items
+ *
+ * IMPORTANT: Payloads must match the field definitions in section-type.seed.ts
  */
-interface SubResourceConfig {
+interface SectionConfig {
   name: string;
-  endpoint: string;
+  sectionTypeKey: string;
   createPayload: Record<string, unknown>;
   updatePayload: Record<string, unknown>;
 }
 
-const SUB_RESOURCES: SubResourceConfig[] = [
+const SECTION_TYPES: SectionConfig[] = [
   {
-    name: 'experiences',
-    endpoint: 'experiences',
+    name: 'work experience',
+    sectionTypeKey: 'work_experience_v1',
+    // Required: company, role, startDate
     createPayload: {
       company: 'Test Company',
-      position: 'Software Engineer',
+      role: 'Software Engineer',
       startDate: '2020-01-01',
-      current: true,
       description: 'Test experience description',
     },
     updatePayload: {
-      position: 'Senior Software Engineer',
+      company: 'Test Company',
+      role: 'Senior Software Engineer',
+      startDate: '2020-01-01',
     },
   },
   {
     name: 'education',
-    endpoint: 'education',
+    sectionTypeKey: 'education_v1',
+    // Required: institution, degree
     createPayload: {
       institution: 'Test University',
       degree: 'Bachelor',
@@ -44,24 +50,27 @@ const SUB_RESOURCES: SubResourceConfig[] = [
       endDate: '2020-01-01',
     },
     updatePayload: {
+      institution: 'Test University',
       degree: 'Master',
     },
   },
   {
     name: 'skills',
-    endpoint: 'skills',
+    sectionTypeKey: 'skill_set_v1',
+    // Required: name
     createPayload: {
       name: 'TypeScript',
-      level: 4,
       category: 'Programming Languages',
     },
     updatePayload: {
-      level: 5,
+      name: 'TypeScript',
+      category: 'Backend',
     },
   },
   {
     name: 'projects',
-    endpoint: 'projects',
+    sectionTypeKey: 'project_v1',
+    // Required: name
     createPayload: {
       name: 'Test Project',
       description: 'A test project',
@@ -73,7 +82,8 @@ const SUB_RESOURCES: SubResourceConfig[] = [
   },
   {
     name: 'certifications',
-    endpoint: 'certifications',
+    sectionTypeKey: 'certification_v1',
+    // Required: name, issuer, issueDate
     createPayload: {
       name: 'AWS Certified',
       issuer: 'Amazon',
@@ -81,11 +91,14 @@ const SUB_RESOURCES: SubResourceConfig[] = [
     },
     updatePayload: {
       name: 'AWS Certified Solutions Architect',
+      issuer: 'Amazon',
+      issueDate: '2023-01-01',
     },
   },
   {
     name: 'awards',
-    endpoint: 'awards',
+    sectionTypeKey: 'award_v1',
+    // Required: title, issuer, date
     createPayload: {
       title: 'Best Developer Award',
       issuer: 'Tech Company',
@@ -93,127 +106,145 @@ const SUB_RESOURCES: SubResourceConfig[] = [
     },
     updatePayload: {
       title: 'Outstanding Developer Award',
+      issuer: 'Tech Company',
+      date: '2023-06-01',
     },
   },
   {
     name: 'publications',
-    endpoint: 'publications',
+    sectionTypeKey: 'publication_v1',
+    // Required: title, publisher, date
     createPayload: {
       title: 'Test Publication',
       publisher: 'Tech Journal',
-      publicationType: 'Article',
-      publishedAt: '2023-01-01',
+      date: '2023-01-01',
     },
     updatePayload: {
       title: 'Updated Test Publication',
+      publisher: 'Tech Journal',
+      date: '2023-01-01',
     },
   },
   {
     name: 'talks',
-    endpoint: 'talks',
+    sectionTypeKey: 'talk_v1',
+    // Required: title, event, date
     createPayload: {
       title: 'Test Conference Talk',
       event: 'Tech Conference 2023',
-      eventType: 'conference',
       date: '2023-06-15',
     },
     updatePayload: {
       title: 'Updated Conference Talk',
+      event: 'Tech Conference 2023',
+      date: '2023-06-15',
     },
   },
   {
     name: 'hackathons',
-    endpoint: 'hackathons',
+    sectionTypeKey: 'hackathon_v1',
+    // Required: name, date
     createPayload: {
       name: 'Test Hackathon',
+      date: '2023-03-01',
       organizer: 'Tech Corp',
       projectName: 'Test Project',
-      date: '2023-03-01',
     },
     updatePayload: {
+      name: 'Test Hackathon',
+      date: '2023-03-01',
       projectName: 'Updated Test Project',
     },
   },
   {
     name: 'languages',
-    endpoint: 'languages',
+    sectionTypeKey: 'language_v1',
+    // Required: name, level (enum: BASIC, INTERMEDIATE, FLUENT, NATIVE)
     createPayload: {
       name: 'English',
-      level: 'Native',
+      level: 'NATIVE',
     },
     updatePayload: {
-      level: 'Fluent',
+      name: 'English',
+      level: 'FLUENT',
     },
   },
   {
     name: 'interests',
-    endpoint: 'interests',
+    sectionTypeKey: 'interest_v1',
+    // Required: name
     createPayload: {
       name: 'Open Source',
-      description: 'Contributing to open source projects',
+      keywords: ['software', 'community'],
     },
     updatePayload: {
-      description: 'Active open source contributor',
+      name: 'Open Source',
+      keywords: ['software', 'community', 'collaboration'],
     },
   },
   {
     name: 'recommendations',
-    endpoint: 'recommendations',
+    sectionTypeKey: 'recommendation_v1',
+    // Required: name
     createPayload: {
-      author: 'John Doe',
-      position: 'CTO',
+      name: 'John Doe',
+      role: 'CTO',
       company: 'Tech Corp',
-      content: 'Great developer!',
+      text: 'Great developer!',
     },
     updatePayload: {
-      content: 'Outstanding developer and team player!',
+      name: 'John Doe',
+      text: 'Outstanding developer and team player!',
     },
   },
   {
     name: 'achievements',
-    endpoint: 'achievements',
+    sectionTypeKey: 'achievement_v1',
+    // Required: title
     createPayload: {
-      type: 'custom',
       title: 'Test Achievement',
       description: 'Achieved something great',
-      achievedAt: '2023-01-01',
+      date: '2023-01-01',
     },
     updatePayload: {
       title: 'Outstanding Achievement',
     },
   },
   {
-    name: 'bug-bounties',
-    endpoint: 'bug-bounties',
+    name: 'bug bounties',
+    sectionTypeKey: 'bug_bounty_v1',
+    // Required: platform, date
     createPayload: {
       platform: 'HackerOne',
-      company: 'Tech Corp',
+      date: '2023-01-01',
       severity: 'High',
-      vulnerabilityType: 'SQL Injection',
-      reward: 1000,
-      reportedAt: '2023-01-01',
+      description: 'SQL Injection vulnerability',
+      reward: '1000',
     },
     updatePayload: {
-      reward: 2000,
+      platform: 'HackerOne',
+      date: '2023-01-01',
+      reward: '2000',
     },
   },
   {
-    name: 'open-source',
-    endpoint: 'open-sources',
+    name: 'open source',
+    sectionTypeKey: 'open_source_v1',
+    // Required: projectName, role (enum: Maintainer, Contributor, Creator)
     createPayload: {
       projectName: 'Test OSS Project',
-      projectUrl: 'https://github.com/test/project',
       role: 'Maintainer',
       description: 'Open source contribution',
-      startDate: '2023-01-01',
+      url: 'https://github.com/test/project',
     },
     updatePayload: {
-      role: 'Core Maintainer',
+      projectName: 'Test OSS Project',
+      role: 'Creator',
     },
   },
 ];
 
-describe.skip('Sub-Resources Smoke Tests', () => {
+describe('Generic Sections Smoke Tests', () => {
   let resumeId: string;
   let accessToken: string;
 
@@ -223,9 +254,9 @@ describe.skip('Sub-Resources Smoke Tests', () => {
     const login = await createTestUserAndLogin();
     accessToken = login.accessToken;
 
-    // Create a resume for testing sub-resources
+    // Create a resume for testing sections
     const res = await getRequest().post('/api/v1/resumes').set(authHeader(accessToken)).send({
-      title: 'Sub-Resources Test Resume',
+      title: 'Generic Sections Test Resume',
     });
 
     if (res.status !== 201) {
@@ -240,93 +271,133 @@ describe.skip('Sub-Resources Smoke Tests', () => {
     await closeApp();
   });
 
-  describe.each(SUB_RESOURCES)('$name CRUD operations', ({
+  describe('Section Types', () => {
+    it('GET /api/v1/resumes/:id/sections/types - should list section types', async () => {
+      const res = await getRequest()
+        .get(`/api/v1/resumes/${resumeId}/sections/types`)
+        .set(authHeader(accessToken));
+
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty('data');
+      expect(res.body.data).toHaveProperty('sectionTypes');
+      expect(Array.isArray(res.body.data.sectionTypes)).toBe(true);
+      expect(res.body.data.sectionTypes.length).toBeGreaterThan(0);
+    });
+
+    it('GET /api/v1/resumes/:id/sections - should list resume sections', async () => {
+      const res = await getRequest()
+        .get(`/api/v1/resumes/${resumeId}/sections`)
+        .set(authHeader(accessToken));
+
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty('data');
+      expect(res.body.data).toHaveProperty('sections');
+      expect(Array.isArray(res.body.data.sections)).toBe(true);
+    });
+  });
+
+  describe.each(SECTION_TYPES)('$name CRUD operations', ({
     name,
-    endpoint,
+    sectionTypeKey,
     createPayload,
     updatePayload,
   }) => {
     let itemId: string;
 
-    it(`POST /api/resumes/:id/${endpoint} - should create ${name}`, async () => {
+    it(`POST /sections/${sectionTypeKey}/items - should create ${name}`, async () => {
       const res = await getRequest()
-        .post(`/api/v1/resumes/${resumeId}/${endpoint}`)
+        .post(`/api/v1/resumes/${resumeId}/sections/${sectionTypeKey}/items`)
         .set(authHeader(accessToken))
-        .send(createPayload);
+        .send({ content: createPayload });
+
+      // Log response for debugging if it fails
+      if (![200, 201].includes(res.status)) {
+        console.error(`CREATE ${name} failed:`, res.status, JSON.stringify(res.body, null, 2));
+      }
 
       // Accept both 200 and 201 as success
       expect([200, 201].includes(res.status)).toBe(true);
       expect(res.body).toHaveProperty('data');
-      expect(res.body.data).toHaveProperty('id');
+      expect(res.body.data).toHaveProperty('item');
+      expect(res.body.data.item).toHaveProperty('id');
 
-      itemId = res.body.data.id;
+      itemId = res.body.data.item.id;
     });
 
-    it(`GET /api/resumes/:id/${endpoint} - should list ${name}`, async () => {
+    it(`GET /sections - should include ${name} in list`, async () => {
       const res = await getRequest()
-        .get(`/api/v1/resumes/${resumeId}/${endpoint}`)
+        .get(`/api/v1/resumes/${resumeId}/sections`)
         .set(authHeader(accessToken));
 
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('data');
-      expect(Array.isArray(res.body.data)).toBe(true);
-    });
+      expect(res.body.data).toHaveProperty('sections');
 
-    it(`GET /api/resumes/:id/${endpoint}/:itemId - should get single ${name}`, async () => {
-      if (!itemId) {
-        console.warn(`Skipping single ${name} test - no item created`);
-        return;
+      // Find the section for this type (structure is sectionType.key)
+      const section = res.body.data.sections.find(
+        (s: { sectionType: { key: string } }) => s.sectionType?.key === sectionTypeKey,
+      );
+
+      // Log for debugging if section not found
+      if (!section) {
+        console.error(
+          `Section ${sectionTypeKey} not found. Available sections:`,
+          res.body.data.sections.map((s: { sectionType: { key: string } }) => s.sectionType?.key),
+        );
       }
 
-      const res = await getRequest()
-        .get(`/api/v1/resumes/${resumeId}/${endpoint}/${itemId}`)
-        .set(authHeader(accessToken));
-
-      expect(res.status).toBe(200);
-      expect(res.body).toHaveProperty('data');
-      expect(res.body.data.id).toBe(itemId);
+      expect(section).toBeDefined();
+      expect(section.items.length).toBeGreaterThan(0);
     });
 
-    it(`PATCH /api/resumes/:id/${endpoint}/:itemId - should update ${name}`, async () => {
+    it(`PATCH /sections/${sectionTypeKey}/items/:itemId - should update ${name}`, async () => {
       if (!itemId) {
         console.warn(`Skipping update ${name} test - no item created`);
         return;
       }
 
       const res = await getRequest()
-        .patch(`/api/v1/resumes/${resumeId}/${endpoint}/${itemId}`)
+        .patch(`/api/v1/resumes/${resumeId}/sections/${sectionTypeKey}/items/${itemId}`)
         .set(authHeader(accessToken))
-        .send(updatePayload);
+        .send({ content: updatePayload });
+
+      // Log response for debugging if it fails
+      if (res.status !== 200) {
+        console.error(`UPDATE ${name} failed:`, res.status, JSON.stringify(res.body, null, 2));
+      }
 
       expect(res.status).toBe(200);
       expect(res.body).toHaveProperty('data');
+      expect(res.body.data).toHaveProperty('item');
     });
 
-    it(`DELETE /api/resumes/:id/${endpoint}/:itemId - should delete ${name}`, async () => {
+    it(`DELETE /sections/${sectionTypeKey}/items/:itemId - should delete ${name}`, async () => {
       if (!itemId) {
         console.warn(`Skipping delete ${name} test - no item created`);
         return;
       }
 
       const res = await getRequest()
-        .delete(`/api/v1/resumes/${resumeId}/${endpoint}/${itemId}`)
+        .delete(`/api/v1/resumes/${resumeId}/sections/${sectionTypeKey}/items/${itemId}`)
         .set(authHeader(accessToken));
 
       expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty('data');
+      expect(res.body.data).toHaveProperty('deleted', true);
     });
   });
 
   describe('Authorization checks', () => {
-    it('should reject sub-resource access without auth', async () => {
-      const res = await getRequest().get(`/api/v1/resumes/${resumeId}/experiences`);
+    it('should reject section access without auth', async () => {
+      const res = await getRequest().get(`/api/v1/resumes/${resumeId}/sections`);
 
       expect(res.status).toBe(401);
     });
 
-    it('should reject sub-resource access for other user resume', async () => {
+    it('should reject section access for other user resume', async () => {
       const fakeResumeId = '00000000-0000-0000-0000-000000000000';
       const res = await getRequest()
-        .get(`/api/v1/resumes/${fakeResumeId}/experiences`)
+        .get(`/api/v1/resumes/${fakeResumeId}/sections`)
         .set(authHeader(accessToken));
 
       // Could be 400 (validation), 403 (forbidden) or 404 (not found)

@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import type { BlockedUserResponse, BlockUser } from '@/shared-kernel';
 import { BlockedUserRepository } from '../repositories/blocked-user.repository';
+import type { BlockedUserResponse, BlockUser } from '../schemas/chat.schema';
 
 @Injectable()
 export class BlockService {

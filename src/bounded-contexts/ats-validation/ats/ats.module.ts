@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
-import { SectionTypeRepository } from '@/shared-kernel/repositories/section-type.repository';
+import { SectionTypeRepository } from '@/bounded-contexts/resumes/infrastructure/repositories';
 import { ATSController } from './ats.controller';
 import { DateRangeExtractor, JobTitleExtractor, OrganizationExtractor } from './extractors';
 import { SECTION_SEMANTIC_CATALOG } from './interfaces';

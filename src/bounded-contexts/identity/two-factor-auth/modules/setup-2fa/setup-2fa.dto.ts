@@ -1,21 +1,14 @@
-import { ApiProperty } from '@nestjs/swagger';
+/**
+ * Setup 2FA DTOs
+ */
 
-export class Setup2faResponseDto {
-  @ApiProperty({
-    description: 'Base32 encoded TOTP secret',
-    example: 'JBSWY3DPEHPK3PXP',
-  })
-  secret!: string;
+import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
 
-  @ApiProperty({
-    description: 'QR code as data URL for authenticator apps',
-    example: 'data:image/png;base64,...',
-  })
-  qrCode!: string;
+const Setup2faResponseSchema = z.object({
+  secret: z.string(),
+  qrCode: z.string(),
+  manualEntryKey: z.string(),
+});
 
-  @ApiProperty({
-    description: 'Manual entry key for authenticator apps',
-    example: 'JBSWY3DPEHPK3PXP',
-  })
-  manualEntryKey!: string;
-}
+export class Setup2faResponseDto extends createZodDto(Setup2faResponseSchema) {}

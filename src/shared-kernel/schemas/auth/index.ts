@@ -6,6 +6,7 @@
  */
 
 export * from './account-management.schema';
+export * from './auth.types';
 export * from './email-verification.schema';
 export * from './login.schema';
 export * from './password-reset.schema';

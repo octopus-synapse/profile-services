@@ -13,25 +13,13 @@ import {
   Param,
   Query,
 } from '@nestjs/common';
-import { ApiOperation, ApiParam, ApiProperty, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
-import { type SpokenLanguage, SpokenLanguagesService } from './services/spoken-languages.service';
-
-class SpokenLanguagesListDataDto {
-  @ApiProperty({
-    type: 'array',
-    items: { type: 'object', additionalProperties: true },
-  })
-  languages!: SpokenLanguage[];
-}
-
-class SpokenLanguageDataDto {
-  @ApiProperty({ type: 'object', additionalProperties: true })
-  language!: SpokenLanguage;
-}
+import { SpokenLanguageDataDto, SpokenLanguagesListDataDto } from './dto/controller-response.dto';
+import { SpokenLanguagesService } from './services/spoken-languages.service';
 
 @SdkExport({ tag: 'skills', description: 'Spoken Languages API' })
 @ApiTags('spoken-languages')

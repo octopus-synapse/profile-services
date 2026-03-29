@@ -1,5 +1,5 @@
-import type { OnboardingProgress } from '@/shared-kernel';
 import { ConflictException, ERROR_MESSAGES, ValidationException } from '@/shared-kernel';
+import type { OnboardingProgress } from '../../../schemas/onboarding-progress.schema';
 import type {
   OnboardingProgressRepositoryPort,
   SaveProgressResult,
