@@ -17,6 +17,7 @@ import {
   getApp,
   getPrisma,
   getRequest,
+  refreshSectionTypeCache,
   unwrapApiData,
 } from './setup';
 
@@ -115,6 +116,9 @@ describe('Generic Resume Sections Extended Integration', () => {
       },
     });
     nonRepeatableSectionTypeId = nonRepeatableSectionType.id;
+
+    // Refresh cache so API knows about new section types
+    await refreshSectionTypeCache();
   });
 
   afterAll(async () => {
@@ -185,6 +189,9 @@ describe('Generic Resume Sections Extended Integration', () => {
         data: { isActive: false },
       });
 
+      // Refresh cache after update
+      await refreshSectionTypeCache();
+
       const res = await getRequest()
         .get(`/api/v1/resumes/${userAResumeId}/sections/types`)
         .set(authHeader(userAToken));
@@ -201,6 +208,9 @@ describe('Generic Resume Sections Extended Integration', () => {
         where: { id: sectionTypeId },
         data: { isActive: true },
       });
+
+      // Refresh cache after reactivation
+      await refreshSectionTypeCache();
     });
   });
 

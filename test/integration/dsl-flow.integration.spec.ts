@@ -8,7 +8,12 @@ import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { Prisma } from '@prisma/client';
 import request from 'supertest';
+import {
+  configureExceptionHandling,
+  configureValidation,
+} from '@/bounded-contexts/platform/common/config/validation.config';
 import { EmailSenderService } from '@/bounded-contexts/platform/common/email/services/email-sender.service';
+import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { AppModule } from '../../src/app.module';
 import { createMockResume } from '../factories/resume.factory';
@@ -34,10 +39,12 @@ describe('DSL Smoke Tests (e2e)', () => {
       .compile();
 
     app = moduleFixture.createNestApplication();
+    app.setGlobalPrefix('api');
 
     // Apply same configuration as setup.ts
-    app.setGlobalPrefix('api');
-    // Validation is handled by ZodValidationPipe at controller level
+    const logger = app.get(AppLoggerService);
+    configureValidation(app);
+    configureExceptionHandling(app, logger);
 
     await app.init();
     app.close = async () => undefined;

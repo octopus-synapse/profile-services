@@ -7,10 +7,14 @@
  */
 
 import { afterAll, afterEach, beforeAll, describe, expect, it, mock } from 'bun:test';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConsentDocumentType } from '@prisma/client';
 import request from 'supertest';
+import {
+  configureExceptionHandling,
+  configureValidation,
+} from '@/bounded-contexts/platform/common/config/validation.config';
 import { EmailSenderService } from '@/bounded-contexts/platform/common/email/services/email-sender.service';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
@@ -79,8 +83,10 @@ describe('ToS Acceptance Flow Integration', () => {
 
     app = moduleFixture.createNestApplication();
     app.setGlobalPrefix('api');
-    app.useGlobalPipes(new ValidationPipe({ transform: true }));
-    app.useLogger(app.get(AppLoggerService));
+
+    const logger = app.get(AppLoggerService);
+    configureValidation(app);
+    configureExceptionHandling(app, logger);
 
     prisma = app.get<PrismaService>(PrismaService);
 

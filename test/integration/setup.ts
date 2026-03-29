@@ -24,6 +24,7 @@ import {
 } from '@/bounded-contexts/platform/common/config/validation.config';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { SectionTypeRepository } from '@/bounded-contexts/resumes/infrastructure/repositories/section-type.repository';
 import { AppModule } from '../../src/app.module';
 
 // --- Test Constants ---
@@ -287,6 +288,18 @@ export function getPrisma(): PrismaService {
     throw new Error('App not initialized. Call getApp() first.');
   }
   return appInstance.get<PrismaService>(PrismaService);
+}
+
+/**
+ * Refreshes the SectionTypeRepository cache.
+ * Call this after creating/updating section types via Prisma in tests.
+ */
+export async function refreshSectionTypeCache(): Promise<void> {
+  if (!appInstance) {
+    throw new Error('App not initialized. Call getApp() first.');
+  }
+  const sectionTypeRepo = appInstance.get<SectionTypeRepository>(SectionTypeRepository);
+  await sectionTypeRepo.refresh();
 }
 
 /**
