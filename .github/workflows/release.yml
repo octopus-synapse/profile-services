@@ -3,7 +3,19 @@ name: Release
 on:
   push:
     branches:
+      - homolog
       - main
+  workflow_dispatch:
+    inputs:
+      force_release_type:
+        description: 'Force release type (leave empty to auto-detect)'
+        required: false
+        type: choice
+        options:
+          - ''
+          - patch
+          - minor
+          - major
 
 permissions:
   contents: write
@@ -11,17 +23,17 @@ permissions:
   packages: write
 
 env:
-  RELEASE_BRANCH: release/next
+  RELEASE_BRANCH: homolog
 
 jobs:
-  # Job 1: Create or update release PR when code is pushed to main
+  # Job 1: Create Release PR when a labeled PR is merged to homolog
   create-release-pr:
     runs-on: ubuntu-latest
-    # Skip if this is a release commit (the merge of the release PR)
-    if: "!startsWith(github.event.head_commit.message, 'chore(release):')"
+    if: github.ref == 'refs/heads/homolog'
     outputs:
-      pr_number: ${{ steps.create-pr.outputs.pr_number }}
+      release_type: ${{ steps.check-label.outputs.release_type }}
       next_version: ${{ steps.calc-version.outputs.next }}
+      pr_number: ${{ steps.create-pr.outputs.pr_number }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -33,88 +45,455 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Check for stable label on merged PR
-        id: pr-info
+      - name: Check for release label on merged PR
+        id: check-label
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           echo "🔍 Looking for merged PR for commit: ${{ github.sha }}"
 
-          PR_DATA=$(gh api graphql -f query='
-            query($sha: String!, $owner: String!, $repo: String!) {
-              repository(owner: $owner, name: $repo) {
-                commit: object(expression: $sha) {
-                  ... on Commit {
-                    associatedPullRequests(first: 1) {
-                      nodes {
-                        number
-                        title
-                        labels(first: 10) {
-                          nodes {
-                            name
+          # Check for manual workflow dispatch with forced release type
+          FORCED_TYPE="${{ github.event.inputs.force_release_type }}"
+          if [ -n "$FORCED_TYPE" ]; then
+            echo "🔧 Manual dispatch with forced release type: $FORCED_TYPE"
+            echo "release_type=$FORCED_TYPE" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Wait for GitHub to index the PR association (timing issue)
+          echo "⏳ Waiting 10 seconds for GitHub to index PR association..."
+          sleep 10
+
+          # Try to find the PR using multiple methods
+          PR_NUMBER=""
+          LABELS=""
+
+          # Method 1: GraphQL API (associatedPullRequests)
+          echo "📡 Method 1: Querying GraphQL API..."
+          for attempt in 1 2 3; do
+            echo "   Attempt $attempt/3..."
+
+            PR_DATA=$(gh api graphql -f query='
+              query($sha: String!, $owner: String!, $repo: String!) {
+                repository(owner: $owner, name: $repo) {
+                  commit: object(expression: $sha) {
+                    ... on Commit {
+                      associatedPullRequests(first: 1) {
+                        nodes {
+                          number
+                          title
+                          labels(first: 10) {
+                            nodes {
+                              name
+                            }
                           }
+                          merged
                         }
-                        merged
                       }
                     }
                   }
                 }
               }
-            }
-          ' -f sha="${{ github.sha }}" -f owner="${{ github.repository_owner }}" -f repo="${{ github.event.repository.name }}" 2>/dev/null || echo "{}")
+            ' -f sha="${{ github.sha }}" -f owner="${{ github.repository_owner }}" -f repo="${{ github.event.repository.name }}" 2>&1 || echo "{}")
 
-          PR_NUMBER=$(echo "$PR_DATA" | jq -r '.data.repository.commit.associatedPullRequests.nodes[0].number // empty')
-          PR_MERGED=$(echo "$PR_DATA" | jq -r '.data.repository.commit.associatedPullRequests.nodes[0].merged // false')
-          HAS_STABLE=$(echo "$PR_DATA" | jq -r '.data.repository.commit.associatedPullRequests.nodes[0].labels.nodes[].name | select(. == "stable")' | head -1)
+            PR_NUMBER=$(echo "$PR_DATA" | jq -r '.data.repository.commit.associatedPullRequests.nodes[0].number // empty' 2>/dev/null || echo "")
 
-          if [ -n "$PR_NUMBER" ] && [ "$PR_MERGED" == "true" ]; then
+            if [ -n "$PR_NUMBER" ]; then
+              echo "   ✅ Found PR #$PR_NUMBER via GraphQL"
+              LABELS=$(echo "$PR_DATA" | jq -r '
+                .data.repository.commit.associatedPullRequests.nodes[0].labels.nodes // [] |
+                map(.name) | join(",")
+              ' 2>/dev/null || echo "")
+              break
+            fi
+
+            echo "   ⏳ PR not found yet, waiting 5 seconds..."
+            sleep 5
+          done
+
+          # Method 2: Search for recently merged PRs to homolog
+          if [ -z "$PR_NUMBER" ]; then
+            echo "📡 Method 2: Searching recently merged PRs..."
+
+            # Get commit message to extract PR number from squash merge
+            COMMIT_MSG=$(git log -1 --format=%s HEAD 2>/dev/null || echo "")
+            echo "   Commit message: $COMMIT_MSG"
+
+            # Extract PR number from commit message (e.g., "... (#178)")
+            PR_FROM_MSG=$(echo "$COMMIT_MSG" | grep -oE '#[0-9]+' | tail -1 | tr -d '#' || true)
+
+            if [ -n "$PR_FROM_MSG" ]; then
+              echo "   Found PR #$PR_FROM_MSG from commit message"
+
+              # Get PR details
+              PR_DETAILS=$(gh pr view "$PR_FROM_MSG" --json number,labels,merged,baseRefName 2>/dev/null || echo "{}")
+              PR_BASE=$(echo "$PR_DETAILS" | jq -r '.baseRefName // empty' 2>/dev/null || echo "")
+              PR_MERGED=$(echo "$PR_DETAILS" | jq -r '.merged // false' 2>/dev/null || echo "false")
+
+              if [ "$PR_BASE" == "homolog" ] && [ "$PR_MERGED" == "true" ]; then
+                PR_NUMBER="$PR_FROM_MSG"
+                LABELS=$(echo "$PR_DETAILS" | jq -r '.labels // [] | map(.name) | join(",")' 2>/dev/null || echo "")
+                echo "   ✅ Confirmed PR #$PR_NUMBER was merged to homolog"
+              fi
+            fi
+          fi
+
+          echo ""
+          echo "📋 PR Number: $PR_NUMBER"
+          echo "🏷️ Labels: $LABELS"
+
+          # Check for release labels
+          HAS_MAJOR=$(echo "$LABELS" | grep -o "major" | head -1 || true)
+          HAS_MINOR=$(echo "$LABELS" | grep -o "minor" | head -1 || true)
+          HAS_PATCH=$(echo "$LABELS" | grep -o "patch" | head -1 || true)
+
+          if [ -n "$PR_NUMBER" ]; then
             echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
-            echo "📋 Found merged PR #$PR_NUMBER"
-            
-            if [ -n "$HAS_STABLE" ]; then
-              echo "is_stable=true" >> $GITHUB_OUTPUT
-              echo "🏷️ PR has 'stable' label - will bump MINOR version"
+            echo "✅ Found merged PR #$PR_NUMBER"
+
+            if [ -n "$HAS_MAJOR" ]; then
+              echo "release_type=major" >> $GITHUB_OUTPUT
+              echo "🚀 PR has 'major' label - will create MAJOR release"
+            elif [ -n "$HAS_MINOR" ]; then
+              echo "release_type=minor" >> $GITHUB_OUTPUT
+              echo "📦 PR has 'minor' label - will create MINOR release"
+            elif [ -n "$HAS_PATCH" ]; then
+              echo "release_type=patch" >> $GITHUB_OUTPUT
+              echo "🔧 PR has 'patch' label - will create PATCH release"
             else
-              echo "is_stable=false" >> $GITHUB_OUTPUT
-              echo "📦 No 'stable' label - will bump PATCH version"
+              echo "release_type=" >> $GITHUB_OUTPUT
+              echo "ℹ️ No release label found - skipping release"
             fi
           else
-            echo "is_stable=false" >> $GITHUB_OUTPUT
-            echo "⚠️ No merged PR found (direct push) - will bump PATCH version"
+            echo "release_type=" >> $GITHUB_OUTPUT
+            echo "⚠️ No merged PR found (PR_NUMBER='$PR_NUMBER', PR_MERGED='$PR_MERGED')"
           fi
 
       - name: Calculate next version
         id: calc-version
+        if: steps.check-label.outputs.release_type != ''
         run: |
-          CURRENT=$(jq -r '.version' package.json)
-          echo "📌 Current version: $CURRENT"
+          # Get current version from package.json on main branch
+          git fetch origin main
+          CURRENT=$(git show origin/main:package.json | jq -r '.version')
+          echo "📌 Current version (from main): $CURRENT"
 
           IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT"
+          RELEASE_TYPE="${{ steps.check-label.outputs.release_type }}"
 
-          if [ "${{ steps.pr-info.outputs.is_stable }}" == "true" ]; then
-            NEXT="${MAJOR}.$((MINOR + 1)).0"
-            echo "🚀 Next stable version: $NEXT"
-          else
-            NEXT="${MAJOR}.${MINOR}.$((PATCH + 1))"
-            echo "📦 Next patch version: $NEXT"
-          fi
+          case "$RELEASE_TYPE" in
+            major)
+              NEXT="$((MAJOR + 1)).0.0"
+              echo "🚀 Next major version: $NEXT"
+              ;;
+            minor)
+              NEXT="${MAJOR}.$((MINOR + 1)).0"
+              echo "📦 Next minor version: $NEXT"
+              ;;
+            patch)
+              NEXT="${MAJOR}.${MINOR}.$((PATCH + 1))"
+              echo "🔧 Next patch version: $NEXT"
+              ;;
+          esac
 
           echo "next=$NEXT" >> $GITHUB_OUTPUT
           echo "current=$CURRENT" >> $GITHUB_OUTPUT
+          echo "release_type=$RELEASE_TYPE" >> $GITHUB_OUTPUT
 
-      - name: Create or update release branch
-        id: release-branch
+      - name: Generate changelog
+        id: changelog
+        if: steps.check-label.outputs.release_type != ''
         env:
+          GH_TOKEN: ${{ github.token }}
+          NEXT_VERSION: ${{ steps.calc-version.outputs.next }}
+          RELEASE_TYPE: ${{ steps.check-label.outputs.release_type }}
+        run: |
+          # Helper function to get tag date in ISO 8601 UTC format
+          # Works for both annotated and lightweight tags
+          get_tag_date() {
+            local tag="$1"
+            # Try tagger date first (annotated tag)
+            local tagger_date=$(git for-each-ref --format='%(taggerdate:iso8601-strict)' "refs/tags/$tag" 2>/dev/null)
+            if [ -n "$tagger_date" ]; then
+              echo "$tagger_date"
+            else
+              # Fallback to commit date in UTC
+              TZ=UTC git log -1 --format='%aI' "$tag" 2>/dev/null || echo "2000-01-01T00:00:00Z"
+            fi
+          }
+
+          # Get all tags sorted by version
+          git fetch --tags
+
+          # Find the base tag for changelog generation
+          case "$RELEASE_TYPE" in
+            patch)
+              # For patch: get PRs since last tag
+              BASE_TAG=$(git tag -l 'v*' --sort=-v:refname | head -1)
+              ;;
+            minor)
+              # For minor: get PRs since last minor (v*.*.0 where patch=0)
+              BASE_TAG=$(git tag -l 'v*' --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.0$' | head -1)
+              ;;
+            major)
+              # For major: get PRs since last major (v*.0.0)
+              BASE_TAG=$(git tag -l 'v*' --sort=-v:refname | grep -E '^v[0-9]+\.0\.0$' | head -1)
+              ;;
+          esac
+
+          echo "📊 Base tag for changelog: ${BASE_TAG:-'(none - initial release)'}"
+
+          # Get the tag creation date in ISO 8601 UTC format (matches GitHub's mergedAt format)
+          if [ -n "$BASE_TAG" ]; then
+            BASE_DATE=$(get_tag_date "$BASE_TAG")
+          else
+            BASE_DATE="2000-01-01T00:00:00Z"
+          fi
+
+          echo "📅 Getting PRs merged after: $BASE_DATE"
+
+          # Fetch PRs merged to both main (historical) and homolog (new flow)
+          # This ensures we capture all PRs regardless of when the homolog branch was introduced
+          PRS_MAIN=$(gh pr list \
+            --base main \
+            --state merged \
+            --json number,title,mergedAt,labels \
+            --limit 500 2>/dev/null || echo "[]")
+
+          PRS_HOMOLOG=$(gh pr list \
+            --base homolog \
+            --state merged \
+            --json number,title,mergedAt,labels \
+            --limit 500 2>/dev/null || echo "[]")
+
+          # Merge and deduplicate PRs, sort by mergedAt
+          PRS_JSON=$(echo "$PRS_MAIN $PRS_HOMOLOG" | jq -s '
+            add |
+            unique_by(.number) |
+            sort_by(.mergedAt)
+          ')
+
+          # Generate changelog based on release type
+          cat > /tmp/changelog.md << EOF
+          ## Release v${NEXT_VERSION}
+
+          EOF
+
+          if [ "$RELEASE_TYPE" == "patch" ]; then
+            # Simple list for patch
+            echo "### Changes" >> /tmp/changelog.md
+            echo "" >> /tmp/changelog.md
+
+            echo "$PRS_JSON" | jq -r --arg base_date "$BASE_DATE" '
+              .[] | select(.mergedAt > $base_date) |
+              "- \(.title) #\(.number)"
+            ' >> /tmp/changelog.md
+
+          elif [ "$RELEASE_TYPE" == "minor" ]; then
+            # Group by patch releases for minor
+            echo "### Changes since last minor release" >> /tmp/changelog.md
+            echo "" >> /tmp/changelog.md
+
+            # Get all patch tags since last minor (excluding minor tags themselves)
+            if [ -n "$BASE_TAG" ]; then
+              # Get tags after base, excluding .0 releases (minors)
+              PATCH_TAGS=$(git tag -l 'v*' --sort=v:refname | awk -v base="$BASE_TAG" 'found {print} $0==base {found=1}' | grep -v '\.0$' || true)
+            else
+              # No previous minor - get all v0.0.x patches
+              PATCH_TAGS=$(git tag -l 'v0.0.*' --sort=v:refname || true)
+            fi
+
+            PREV_DATE="$BASE_DATE"
+
+            for TAG in $PATCH_TAGS; do
+              TAG_DATE=$(get_tag_date "$TAG")
+
+              # Get PRs between prev_date and tag_date
+              SECTION_PRS=$(echo "$PRS_JSON" | jq -r --arg prev "$PREV_DATE" --arg curr "$TAG_DATE" '
+                [.[] | select(.mergedAt > $prev and .mergedAt <= $curr)]
+              ')
+
+              PR_COUNT=$(echo "$SECTION_PRS" | jq 'length')
+
+              if [ "$PR_COUNT" -gt 0 ]; then
+                echo "#### $TAG" >> /tmp/changelog.md
+                echo "$SECTION_PRS" | jq -r '.[] | "- \(.title) #\(.number)"' >> /tmp/changelog.md
+                echo "" >> /tmp/changelog.md
+              fi
+
+              PREV_DATE="$TAG_DATE"
+            done
+
+            # PRs after last tag (current release)
+            CURRENT_PRS=$(echo "$PRS_JSON" | jq -r --arg prev "$PREV_DATE" '
+              [.[] | select(.mergedAt > $prev)]
+            ')
+
+            PR_COUNT=$(echo "$CURRENT_PRS" | jq 'length')
+            if [ "$PR_COUNT" -gt 0 ]; then
+              echo "#### v${NEXT_VERSION}" >> /tmp/changelog.md
+              echo "$CURRENT_PRS" | jq -r '.[] | "- \(.title) #\(.number)"' >> /tmp/changelog.md
+              echo "" >> /tmp/changelog.md
+            fi
+
+          elif [ "$RELEASE_TYPE" == "major" ]; then
+            # Group by minor, then patch for major
+            echo "### Changes since last major release" >> /tmp/changelog.md
+            echo "" >> /tmp/changelog.md
+
+            # Get all tags sorted by version
+            ALL_TAGS=$(git tag -l 'v*' --sort=v:refname)
+
+            # Get all minor tags (v*.*.0) since last major
+            if [ -n "$BASE_TAG" ]; then
+              MINOR_TAGS=$(echo "$ALL_TAGS" | grep -E '^v[0-9]+\.[0-9]+\.0$' | awk -v base="$BASE_TAG" 'found {print} $0==base {found=1}')
+            else
+              MINOR_TAGS=$(echo "$ALL_TAGS" | grep -E '^v[0-9]+\.[0-9]+\.0$')
+            fi
+
+            # Track the date cursor
+            PREV_DATE="$BASE_DATE"
+
+            # Get initial patches (v0.0.x) that came before first minor
+            FIRST_MINOR=$(echo "$MINOR_TAGS" | head -1)
+            if [ -n "$FIRST_MINOR" ]; then
+              FIRST_MINOR_DATE=$(get_tag_date "$FIRST_MINOR")
+
+              # Get v0.0.x patches (initial development)
+              INITIAL_PATCHES=$(echo "$ALL_TAGS" | grep -E '^v0\.0\.[0-9]+$' || true)
+
+              if [ -n "$INITIAL_PATCHES" ]; then
+                # Group initial patches under the first minor
+                echo "### $FIRST_MINOR" >> /tmp/changelog.md
+                echo "" >> /tmp/changelog.md
+
+                for PATCH_TAG in $INITIAL_PATCHES; do
+                  PATCH_DATE=$(get_tag_date "$PATCH_TAG")
+
+                  SECTION_PRS=$(echo "$PRS_JSON" | jq -r --arg prev "$PREV_DATE" --arg curr "$PATCH_DATE" '
+                    [.[] | select(.mergedAt > $prev and .mergedAt <= $curr)]
+                  ')
+
+                  PR_COUNT=$(echo "$SECTION_PRS" | jq 'length')
+
+                  if [ "$PR_COUNT" -gt 0 ]; then
+                    echo "#### $PATCH_TAG" >> /tmp/changelog.md
+                    echo "$SECTION_PRS" | jq -r '.[] | "- \(.title) #\(.number)"' >> /tmp/changelog.md
+                    echo "" >> /tmp/changelog.md
+                  fi
+
+                  PREV_DATE="$PATCH_DATE"
+                done
+
+                # PRs merged directly for the first minor (after last v0.0.x patch)
+                MINOR_DIRECT_PRS=$(echo "$PRS_JSON" | jq -r --arg prev "$PREV_DATE" --arg curr "$FIRST_MINOR_DATE" '
+                  [.[] | select(.mergedAt > $prev and .mergedAt <= $curr)]
+                ')
+
+                PR_COUNT=$(echo "$MINOR_DIRECT_PRS" | jq 'length')
+                if [ "$PR_COUNT" -gt 0 ]; then
+                  echo "#### Direct commits" >> /tmp/changelog.md
+                  echo "$MINOR_DIRECT_PRS" | jq -r '.[] | "- \(.title) #\(.number)"' >> /tmp/changelog.md
+                  echo "" >> /tmp/changelog.md
+                fi
+
+                PREV_DATE="$FIRST_MINOR_DATE"
+
+                # Skip first minor since we already processed it
+                MINOR_TAGS=$(echo "$MINOR_TAGS" | tail -n +2)
+              fi
+            fi
+
+            # Process remaining minor releases
+            for MINOR_TAG in $MINOR_TAGS; do
+              MINOR_DATE=$(get_tag_date "$MINOR_TAG")
+              MINOR_VERSION=$(echo "$MINOR_TAG" | sed 's/^v//')
+              MINOR_PREFIX=$(echo "$MINOR_VERSION" | cut -d. -f1-2)
+
+              echo "### $MINOR_TAG" >> /tmp/changelog.md
+              echo "" >> /tmp/changelog.md
+
+              # Get patch tags for this minor line (excluding the .0 release itself)
+              PREV_MINOR_NUM=$(echo "$MINOR_VERSION" | cut -d. -f2)
+              PREV_MINOR_NUM=$((PREV_MINOR_NUM - 1))
+              MAJOR_NUM=$(echo "$MINOR_VERSION" | cut -d. -f1)
+
+              # Get patches from previous minor line (e.g., v0.1.x for v0.2.0)
+              if [ "$PREV_MINOR_NUM" -ge 0 ]; then
+                PATCH_TAGS=$(git tag -l "v${MAJOR_NUM}.${PREV_MINOR_NUM}.*" --sort=v:refname | grep -v "\.0$" || true)
+              else
+                PATCH_TAGS=""
+              fi
+
+              for PATCH_TAG in $PATCH_TAGS; do
+                PATCH_DATE=$(get_tag_date "$PATCH_TAG")
+
+                SECTION_PRS=$(echo "$PRS_JSON" | jq -r --arg prev "$PREV_DATE" --arg curr "$PATCH_DATE" '
+                  [.[] | select(.mergedAt > $prev and .mergedAt <= $curr)]
+                ')
+
+                PR_COUNT=$(echo "$SECTION_PRS" | jq 'length')
+
+                if [ "$PR_COUNT" -gt 0 ]; then
+                  echo "#### $PATCH_TAG" >> /tmp/changelog.md
+                  echo "$SECTION_PRS" | jq -r '.[] | "- \(.title) #\(.number)"' >> /tmp/changelog.md
+                  echo "" >> /tmp/changelog.md
+                fi
+
+                PREV_DATE="$PATCH_DATE"
+              done
+
+              # PRs merged directly for this minor
+              MINOR_DIRECT_PRS=$(echo "$PRS_JSON" | jq -r --arg prev "$PREV_DATE" --arg curr "$MINOR_DATE" '
+                [.[] | select(.mergedAt > $prev and .mergedAt <= $curr)]
+              ')
+
+              PR_COUNT=$(echo "$MINOR_DIRECT_PRS" | jq 'length')
+              if [ "$PR_COUNT" -gt 0 ]; then
+                echo "#### Direct commits" >> /tmp/changelog.md
+                echo "$MINOR_DIRECT_PRS" | jq -r '.[] | "- \(.title) #\(.number)"' >> /tmp/changelog.md
+                echo "" >> /tmp/changelog.md
+              fi
+
+              PREV_DATE="$MINOR_DATE"
+            done
+
+            # Current release PRs (after all previous releases)
+            CURRENT_PRS=$(echo "$PRS_JSON" | jq -r --arg prev "$PREV_DATE" '
+              [.[] | select(.mergedAt > $prev)]
+            ')
+
+            PR_COUNT=$(echo "$CURRENT_PRS" | jq 'length')
+            if [ "$PR_COUNT" -gt 0 ]; then
+              echo "### v${NEXT_VERSION}" >> /tmp/changelog.md
+              echo "$CURRENT_PRS" | jq -r '.[] | "- \(.title) #\(.number)"' >> /tmp/changelog.md
+              echo "" >> /tmp/changelog.md
+            fi
+          fi
+
+          # Add footer
+          cat >> /tmp/changelog.md << EOF
+
+          ---
+
+          **Full Changelog**: https://github.com/${{ github.repository }}/compare/${BASE_TAG:-v0.0.0}...v${NEXT_VERSION}
+
+          ---
+
+          > ⚠️ **Merging this PR will create release v${NEXT_VERSION}**
+          EOF
+
+          echo "✅ Changelog generated"
+          cat /tmp/changelog.md
+
+      - name: Create Release PR
+        id: create-pr
+        if: steps.check-label.outputs.release_type != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
           NEXT_VERSION: ${{ steps.calc-version.outputs.next }}
         run: |
-          # Delete existing release branch if it exists
-          git push origin --delete "$RELEASE_BRANCH" 2>/dev/null || true
-          git branch -D "$RELEASE_BRANCH" 2>/dev/null || true
-
-          # Create fresh release branch from main
-          git checkout -b "$RELEASE_BRANCH"
-
-          # Update version in package.json
+          # Update version in package.json on homolog
           jq ".version = \"$NEXT_VERSION\"" package.json > package.json.tmp && mv package.json.tmp package.json
 
           # Update manifest
@@ -122,79 +501,40 @@ jobs:
             \".\": \"$NEXT_VERSION\"
           }" > .release-please-manifest.json
 
-          # Generate changelog entry
-          PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-
-          if [ -n "$PREV_TAG" ]; then
-            COMMITS=$(git log --pretty=format:"- %s (%h)" "${PREV_TAG}..HEAD" 2>/dev/null | head -50 || echo "")
-            COMPARE="https://github.com/${{ github.repository }}/compare/${PREV_TAG}...v${NEXT_VERSION}"
-          else
-            COMMITS="- Initial release"
-            COMPARE="https://github.com/${{ github.repository }}/commits/v${NEXT_VERSION}"
-          fi
-
-          # Create changelog content for PR body
-          cat > /tmp/pr-body.md << EOF
-          ## Release v${NEXT_VERSION}
-
-          ### Changes
-
-          ${COMMITS}
-
-          ---
-
-          **Full Changelog**: ${COMPARE}
-
-          ---
-
-          > ⚠️ **Merging this PR will create release v${NEXT_VERSION}**
-          EOF
-
-          # Commit changes
+          # Commit version bump
           git add package.json .release-please-manifest.json
-          git commit -m "chore(release): v${NEXT_VERSION}"
+          git commit -m "chore(release): bump version to v${NEXT_VERSION}" || echo "No changes to commit"
+          git push origin homolog
 
-          # Push release branch
-          git push origin "$RELEASE_BRANCH" --force
+          PR_BODY=$(cat /tmp/changelog.md)
 
-          echo "✅ Release branch created/updated"
-
-      - name: Create or update release PR
-        id: create-pr
-        env:
-          GH_TOKEN: ${{ github.token }}
-          NEXT_VERSION: ${{ steps.calc-version.outputs.next }}
-        run: |
-          PR_BODY=$(cat /tmp/pr-body.md)
-
-          # Check if PR already exists
-          EXISTING_PR=$(gh pr list --head "$RELEASE_BRANCH" --base main --json number --jq '.[0].number' 2>/dev/null || echo "")
+          # Check if release PR already exists
+          EXISTING_PR=$(gh pr list --head homolog --base main --json number --jq '.[0].number' 2>/dev/null || echo "")
 
           if [ -n "$EXISTING_PR" ]; then
-            echo "📝 Updating existing PR #$EXISTING_PR"
+            echo "📝 Updating existing Release PR #$EXISTING_PR"
             gh pr edit "$EXISTING_PR" \
               --title "chore(release): v${NEXT_VERSION}" \
               --body "$PR_BODY"
             echo "pr_number=$EXISTING_PR" >> $GITHUB_OUTPUT
           else
-            echo "📝 Creating new release PR"
+            echo "📝 Creating new Release PR"
             PR_URL=$(gh pr create \
-              --head "$RELEASE_BRANCH" \
+              --head homolog \
               --base main \
               --title "chore(release): v${NEXT_VERSION}" \
               --body "$PR_BODY" \
               --label "autorelease: pending")
-            
+
             PR_NUM=$(echo "$PR_URL" | grep -oE '[0-9]+$')
             echo "pr_number=$PR_NUM" >> $GITHUB_OUTPUT
-            echo "✅ Created PR #$PR_NUM"
+            echo "✅ Created Release PR #$PR_NUM"
           fi
 
-  # Job 2: Finalize release when the release PR is merged
+  # Job 2: Finalize release when the release PR is merged to main
   finalize-release:
     runs-on: ubuntu-latest
-    # Only run when a release commit is pushed (release PR was merged)
-    if: startsWith(github.event.head_commit.message, 'chore(release):')
+    if: github.ref == 'refs/heads/main' && startsWith(github.event.head_commit.message, 'chore(release):')
     outputs:
       released: ${{ steps.create-release.outputs.released }}
       version: ${{ steps.extract-version.outputs.version }}
@@ -217,20 +557,31 @@ jobs:
           VERSION=$(echo "$COMMIT_MSG" | grep -oE 'v[0-9]+\.[0-9]+\.[0-9]+' | head -1)
 
           if [ -z "$VERSION" ]; then
-            # Fallback: read from package.json
             VERSION="v$(jq -r '.version' package.json)"
+          fi
+
+          # Determine release type from version
+          PATCH=$(echo "${VERSION#v}" | cut -d. -f3)
+          MINOR=$(echo "${VERSION#v}" | cut -d. -f2)
+
+          if [ "$MINOR" == "0" ] && [ "$PATCH" == "0" ]; then
+            RELEASE_TYPE="major"
+          elif [ "$PATCH" == "0" ]; then
+            RELEASE_TYPE="minor"
+          else
+            RELEASE_TYPE="patch"
           fi
 
           echo "version=${VERSION#v}" >> $GITHUB_OUTPUT
           echo "tag=$VERSION" >> $GITHUB_OUTPUT
-          echo "📦 Releasing: $VERSION"
+          echo "release_type=$RELEASE_TYPE" >> $GITHUB_OUTPUT
+          echo "📦 Releasing: $VERSION ($RELEASE_TYPE)"
 
       - name: Create and push tag
         id: create-tag
         env:
           TAG: ${{ steps.extract-version.outputs.tag }}
         run: |
-          # Check if tag already exists
           if git rev-parse "$TAG" >/dev/null 2>&1; then
             echo "⚠️ Tag $TAG already exists, skipping"
             echo "tag_exists=true" >> $GITHUB_OUTPUT
@@ -241,28 +592,35 @@ jobs:
             echo "tag_exists=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Generate changelog
-        id: changelog
+      - name: Get release notes from PR
+        id: get-notes
         env:
-          TAG: ${{ steps.extract-version.outputs.tag }}
+          GH_TOKEN: ${{ github.token }}
         run: |
-          PREV_TAG=$(git describe --tags --abbrev=0 "$TAG^" 2>/dev/null || echo "")
+          # Get the PR that was just merged
+          PR_DATA=$(gh api graphql -f query='
+            query($sha: String!, $owner: String!, $repo: String!) {
+              repository(owner: $owner, name: $repo) {
+                commit: object(expression: $sha) {
+                  ... on Commit {
+                    associatedPullRequests(first: 1) {
+                      nodes {
+                        number
+                        body
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ' -f sha="${{ github.sha }}" -f owner="${{ github.repository_owner }}" -f repo="${{ github.event.repository.name }}" 2>/dev/null || echo "{}")
 
-          if [ -n "$PREV_TAG" ]; then
-            COMPARE_URL="https://github.com/${{ github.repository }}/compare/${PREV_TAG}...${TAG}"
-            COMMITS=$(git log --pretty=format:"- %s (%h)" "${PREV_TAG}..${TAG}^" 2>/dev/null | head -50 || echo "")
-          else
-            COMPARE_URL="https://github.com/${{ github.repository }}/commits/${TAG}"
-            COMMITS="- Initial release"
-          fi
+          PR_BODY=$(echo "$PR_DATA" | jq -r '.data.repository.commit.associatedPullRequests.nodes[0].body // ""')
 
-          cat > /tmp/changelog.md << EOF
-          ## What's Changed
+          # Remove the warning footer from PR body for release notes
+          echo "$PR_BODY" | sed '/^> ⚠️/d' | sed '/^---$/,/^---$/d' > /tmp/release-notes.md
 
-          ${COMMITS}
-
-          **Full Changelog**: ${COMPARE_URL}
-          EOF
+          echo "✅ Extracted release notes from PR"
 
       - name: Create GitHub Release
         id: create-release
@@ -270,22 +628,25 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.extract-version.outputs.tag }}
+          RELEASE_TYPE: ${{ steps.extract-version.outputs.release_type }}
         run: |
-          CHANGELOG=$(cat /tmp/changelog.md)
+          RELEASE_NOTES=$(cat /tmp/release-notes.md)
+
+          # Determine if it's a prerelease (patch) or stable (minor/major)
+          if [ "$RELEASE_TYPE" == "patch" ]; then
+            PRERELEASE_FLAG=""
+          else
+            PRERELEASE_FLAG=""
+          fi
 
           gh release create "$TAG" \
             --title "Release $TAG" \
-            --notes "$CHANGELOG" \
-            --target main
+            --notes "$RELEASE_NOTES" \
+            --target main \
+            $PRERELEASE_FLAG
 
           echo "released=true" >> $GITHUB_OUTPUT
           echo "✅ Created GitHub Release $TAG"
-
-      - name: Clean up release branch
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          git push origin --delete "$RELEASE_BRANCH" 2>/dev/null || echo "Release branch already deleted"
 
   # Job 3: Build and push Docker image after release
   build-and-push:
