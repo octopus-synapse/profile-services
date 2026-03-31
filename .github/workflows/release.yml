@@ -60,54 +60,86 @@ jobs:
             exit 0
           fi
 
-          # Query GitHub GraphQL API for PR information
-          PR_DATA=$(gh api graphql -f query='
-            query($sha: String!, $owner: String!, $repo: String!) {
-              repository(owner: $owner, name: $repo) {
-                commit: object(expression: $sha) {
-                  ... on Commit {
-                    associatedPullRequests(first: 1) {
-                      nodes {
-                        number
-                        title
-                        labels(first: 10) {
-                          nodes {
-                            name
+          # Wait for GitHub to index the PR association (timing issue)
+          echo "⏳ Waiting 10 seconds for GitHub to index PR association..."
+          sleep 10
+
+          # Try to find the PR using multiple methods
+          PR_NUMBER=""
+          LABELS=""
+
+          # Method 1: GraphQL API (associatedPullRequests)
+          echo "📡 Method 1: Querying GraphQL API..."
+          for attempt in 1 2 3; do
+            echo "   Attempt $attempt/3..."
+
+            PR_DATA=$(gh api graphql -f query='
+              query($sha: String!, $owner: String!, $repo: String!) {
+                repository(owner: $owner, name: $repo) {
+                  commit: object(expression: $sha) {
+                    ... on Commit {
+                      associatedPullRequests(first: 1) {
+                        nodes {
+                          number
+                          title
+                          labels(first: 10) {
+                            nodes {
+                              name
+                            }
                           }
+                          merged
                         }
-                        merged
                       }
                     }
                   }
                 }
               }
-            }
-          ' -f sha="${{ github.sha }}" -f owner="${{ github.repository_owner }}" -f repo="${{ github.event.repository.name }}" 2>&1)
+            ' -f sha="${{ github.sha }}" -f owner="${{ github.repository_owner }}" -f repo="${{ github.event.repository.name }}" 2>&1 || echo "{}")
 
-          # Check if API call succeeded
-          if [ $? -ne 0 ]; then
-            echo "❌ GraphQL API call failed:"
-            echo "$PR_DATA"
-            echo "release_type=" >> $GITHUB_OUTPUT
-            exit 0
+            PR_NUMBER=$(echo "$PR_DATA" | jq -r '.data.repository.commit.associatedPullRequests.nodes[0].number // empty' 2>/dev/null || echo "")
+
+            if [ -n "$PR_NUMBER" ]; then
+              echo "   ✅ Found PR #$PR_NUMBER via GraphQL"
+              LABELS=$(echo "$PR_DATA" | jq -r '
+                .data.repository.commit.associatedPullRequests.nodes[0].labels.nodes // [] |
+                map(.name) | join(",")
+              ' 2>/dev/null || echo "")
+              break
+            fi
+
+            echo "   ⏳ PR not found yet, waiting 5 seconds..."
+            sleep 5
+          done
+
+          # Method 2: Search for recently merged PRs to homolog
+          if [ -z "$PR_NUMBER" ]; then
+            echo "📡 Method 2: Searching recently merged PRs..."
+
+            # Get commit message to extract PR number from squash merge
+            COMMIT_MSG=$(git log -1 --format=%s HEAD 2>/dev/null || echo "")
+            echo "   Commit message: $COMMIT_MSG"
+
+            # Extract PR number from commit message (e.g., "... (#178)")
+            PR_FROM_MSG=$(echo "$COMMIT_MSG" | grep -oE '#[0-9]+' | tail -1 | tr -d '#' || true)
+
+            if [ -n "$PR_FROM_MSG" ]; then
+              echo "   Found PR #$PR_FROM_MSG from commit message"
+
+              # Get PR details
+              PR_DETAILS=$(gh pr view "$PR_FROM_MSG" --json number,labels,merged,baseRefName 2>/dev/null || echo "{}")
+              PR_BASE=$(echo "$PR_DETAILS" | jq -r '.baseRefName // empty' 2>/dev/null || echo "")
+              PR_MERGED=$(echo "$PR_DETAILS" | jq -r '.merged // false' 2>/dev/null || echo "false")
+
+              if [ "$PR_BASE" == "homolog" ] && [ "$PR_MERGED" == "true" ]; then
+                PR_NUMBER="$PR_FROM_MSG"
+                LABELS=$(echo "$PR_DETAILS" | jq -r '.labels // [] | map(.name) | join(",")' 2>/dev/null || echo "")
+                echo "   ✅ Confirmed PR #$PR_NUMBER was merged to homolog"
+              fi
+            fi
           fi
 
-          # Debug: print the response
-          echo "📦 GraphQL Response:"
-          echo "$PR_DATA" | jq '.' 2>/dev/null || echo "$PR_DATA"
-
-          # Extract PR info with null-safe jq
-          PR_NUMBER=$(echo "$PR_DATA" | jq -r '.data.repository.commit.associatedPullRequests.nodes[0].number // empty' 2>/dev/null || echo "")
-          PR_MERGED=$(echo "$PR_DATA" | jq -r '.data.repository.commit.associatedPullRequests.nodes[0].merged // false' 2>/dev/null || echo "false")
-
-          # Extract labels safely (handle null/empty arrays)
-          LABELS=$(echo "$PR_DATA" | jq -r '
-            .data.repository.commit.associatedPullRequests.nodes[0].labels.nodes // [] |
-            map(.name) | join(",")
-          ' 2>/dev/null || echo "")
-
+          echo ""
           echo "📋 PR Number: $PR_NUMBER"
-          echo "📋 PR Merged: $PR_MERGED"
           echo "🏷️ Labels: $LABELS"
 
           # Check for release labels
@@ -115,7 +147,7 @@ jobs:
           HAS_MINOR=$(echo "$LABELS" | grep -o "minor" | head -1 || true)
           HAS_PATCH=$(echo "$LABELS" | grep -o "patch" | head -1 || true)
 
-          if [ -n "$PR_NUMBER" ] && [ "$PR_MERGED" == "true" ]; then
+          if [ -n "$PR_NUMBER" ]; then
             echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
             echo "✅ Found merged PR #$PR_NUMBER"
 
