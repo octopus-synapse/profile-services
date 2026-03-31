@@ -208,6 +208,20 @@ jobs:
           NEXT_VERSION: ${{ steps.calc-version.outputs.next }}
           RELEASE_TYPE: ${{ steps.check-label.outputs.release_type }}
         run: |
+          # Helper function to get tag date in ISO 8601 UTC format
+          # Works for both annotated and lightweight tags
+          get_tag_date() {
+            local tag="$1"
+            # Try tagger date first (annotated tag)
+            local tagger_date=$(git for-each-ref --format='%(taggerdate:iso8601-strict)' "refs/tags/$tag" 2>/dev/null)
+            if [ -n "$tagger_date" ]; then
+              echo "$tagger_date"
+            else
+              # Fallback to commit date in UTC
+              TZ=UTC git log -1 --format='%aI' "$tag" 2>/dev/null || echo "2000-01-01T00:00:00Z"
+            fi
+          }
+
           # Get all tags sorted by version
           git fetch --tags
 
@@ -229,11 +243,11 @@ jobs:
 
           echo "📊 Base tag for changelog: ${BASE_TAG:-'(none - initial release)'}"
 
-          # Get all merged PRs to homolog since base tag
+          # Get the tag creation date in ISO 8601 UTC format (matches GitHub's mergedAt format)
           if [ -n "$BASE_TAG" ]; then
-            BASE_DATE=$(git log -1 --format=%cI "$BASE_TAG" 2>/dev/null || echo "2000-01-01")
+            BASE_DATE=$(get_tag_date "$BASE_TAG")
           else
-            BASE_DATE="2000-01-01"
+            BASE_DATE="2000-01-01T00:00:00Z"
           fi
 
           echo "📅 Getting PRs merged after: $BASE_DATE"
@@ -292,7 +306,7 @@ jobs:
             PREV_DATE="$BASE_DATE"
 
             for TAG in $PATCH_TAGS; do
-              TAG_DATE=$(git log -1 --format=%cI "$TAG" 2>/dev/null)
+              TAG_DATE=$(get_tag_date "$TAG")
 
               # Get PRs between prev_date and tag_date
               SECTION_PRS=$(echo "$PRS_JSON" | jq -r --arg prev "$PREV_DATE" --arg curr "$TAG_DATE" '
@@ -343,7 +357,7 @@ jobs:
             # Get initial patches (v0.0.x) that came before first minor
             FIRST_MINOR=$(echo "$MINOR_TAGS" | head -1)
             if [ -n "$FIRST_MINOR" ]; then
-              FIRST_MINOR_DATE=$(git log -1 --format=%cI "$FIRST_MINOR" 2>/dev/null)
+              FIRST_MINOR_DATE=$(get_tag_date "$FIRST_MINOR")
 
               # Get v0.0.x patches (initial development)
               INITIAL_PATCHES=$(echo "$ALL_TAGS" | grep -E '^v0\.0\.[0-9]+$' || true)
@@ -354,7 +368,7 @@ jobs:
                 echo "" >> /tmp/changelog.md
 
                 for PATCH_TAG in $INITIAL_PATCHES; do
-                  PATCH_DATE=$(git log -1 --format=%cI "$PATCH_TAG" 2>/dev/null)
+                  PATCH_DATE=$(get_tag_date "$PATCH_TAG")
 
                   SECTION_PRS=$(echo "$PRS_JSON" | jq -r --arg prev "$PREV_DATE" --arg curr "$PATCH_DATE" '
                     [.[] | select(.mergedAt > $prev and .mergedAt <= $curr)]
@@ -392,7 +406,7 @@ jobs:
 
             # Process remaining minor releases
             for MINOR_TAG in $MINOR_TAGS; do
-              MINOR_DATE=$(git log -1 --format=%cI "$MINOR_TAG" 2>/dev/null)
+              MINOR_DATE=$(get_tag_date "$MINOR_TAG")
               MINOR_VERSION=$(echo "$MINOR_TAG" | sed 's/^v//')
               MINOR_PREFIX=$(echo "$MINOR_VERSION" | cut -d. -f1-2)
 
@@ -412,7 +426,7 @@ jobs:
               fi
 
               for PATCH_TAG in $PATCH_TAGS; do
-                PATCH_DATE=$(git log -1 --format=%cI "$PATCH_TAG" 2>/dev/null)
+                PATCH_DATE=$(get_tag_date "$PATCH_TAG")
 
                 SECTION_PRS=$(echo "$PRS_JSON" | jq -r --arg prev "$PREV_DATE" --arg curr "$PATCH_DATE" '
                   [.[] | select(.mergedAt > $prev and .mergedAt <= $curr)]
