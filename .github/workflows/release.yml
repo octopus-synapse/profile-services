@@ -5,6 +5,17 @@ on:
     branches:
       - homolog
       - main
+  workflow_dispatch:
+    inputs:
+      force_release_type:
+        description: 'Force release type (leave empty to auto-detect)'
+        required: false
+        type: choice
+        options:
+          - ''
+          - patch
+          - minor
+          - major
 
 permissions:
   contents: write
@@ -41,6 +52,15 @@ jobs:
         run: |
           echo "🔍 Looking for merged PR for commit: ${{ github.sha }}"
 
+          # Check for manual workflow dispatch with forced release type
+          FORCED_TYPE="${{ github.event.inputs.force_release_type }}"
+          if [ -n "$FORCED_TYPE" ]; then
+            echo "🔧 Manual dispatch with forced release type: $FORCED_TYPE"
+            echo "release_type=$FORCED_TYPE" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Query GitHub GraphQL API for PR information
           PR_DATA=$(gh api graphql -f query='
             query($sha: String!, $owner: String!, $repo: String!) {
               repository(owner: $owner, name: $repo) {
@@ -62,19 +82,42 @@ jobs:
                 }
               }
             }
-          ' -f sha="${{ github.sha }}" -f owner="${{ github.repository_owner }}" -f repo="${{ github.event.repository.name }}" 2>/dev/null || echo "{}")
+          ' -f sha="${{ github.sha }}" -f owner="${{ github.repository_owner }}" -f repo="${{ github.event.repository.name }}" 2>&1)
 
-          PR_NUMBER=$(echo "$PR_DATA" | jq -r '.data.repository.commit.associatedPullRequests.nodes[0].number // empty')
-          PR_MERGED=$(echo "$PR_DATA" | jq -r '.data.repository.commit.associatedPullRequests.nodes[0].merged // false')
+          # Check if API call succeeded
+          if [ $? -ne 0 ]; then
+            echo "❌ GraphQL API call failed:"
+            echo "$PR_DATA"
+            echo "release_type=" >> $GITHUB_OUTPUT
+            exit 0
+          fi
 
-          # Check for release labels (priority: major > minor > patch)
-          HAS_MAJOR=$(echo "$PR_DATA" | jq -r '.data.repository.commit.associatedPullRequests.nodes[0].labels.nodes[].name | select(. == "major")' | head -1)
-          HAS_MINOR=$(echo "$PR_DATA" | jq -r '.data.repository.commit.associatedPullRequests.nodes[0].labels.nodes[].name | select(. == "minor")' | head -1)
-          HAS_PATCH=$(echo "$PR_DATA" | jq -r '.data.repository.commit.associatedPullRequests.nodes[0].labels.nodes[].name | select(. == "patch")' | head -1)
+          # Debug: print the response
+          echo "📦 GraphQL Response:"
+          echo "$PR_DATA" | jq '.' 2>/dev/null || echo "$PR_DATA"
+
+          # Extract PR info with null-safe jq
+          PR_NUMBER=$(echo "$PR_DATA" | jq -r '.data.repository.commit.associatedPullRequests.nodes[0].number // empty' 2>/dev/null || echo "")
+          PR_MERGED=$(echo "$PR_DATA" | jq -r '.data.repository.commit.associatedPullRequests.nodes[0].merged // false' 2>/dev/null || echo "false")
+
+          # Extract labels safely (handle null/empty arrays)
+          LABELS=$(echo "$PR_DATA" | jq -r '
+            .data.repository.commit.associatedPullRequests.nodes[0].labels.nodes // [] |
+            map(.name) | join(",")
+          ' 2>/dev/null || echo "")
+
+          echo "📋 PR Number: $PR_NUMBER"
+          echo "📋 PR Merged: $PR_MERGED"
+          echo "🏷️ Labels: $LABELS"
+
+          # Check for release labels
+          HAS_MAJOR=$(echo "$LABELS" | grep -o "major" | head -1 || true)
+          HAS_MINOR=$(echo "$LABELS" | grep -o "minor" | head -1 || true)
+          HAS_PATCH=$(echo "$LABELS" | grep -o "patch" | head -1 || true)
 
           if [ -n "$PR_NUMBER" ] && [ "$PR_MERGED" == "true" ]; then
             echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
-            echo "📋 Found merged PR #$PR_NUMBER"
+            echo "✅ Found merged PR #$PR_NUMBER"
 
             if [ -n "$HAS_MAJOR" ]; then
               echo "release_type=major" >> $GITHUB_OUTPUT
@@ -91,7 +134,7 @@ jobs:
             fi
           else
             echo "release_type=" >> $GITHUB_OUTPUT
-            echo "⚠️ No merged PR found"
+            echo "⚠️ No merged PR found (PR_NUMBER='$PR_NUMBER', PR_MERGED='$PR_MERGED')"
           fi
 
       - name: Calculate next version
