@@ -8,8 +8,8 @@ import { execSync } from 'node:child_process';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
-export const SRC_DIR = path.resolve(__dirname, '../../src');
-export const ROOT_DIR = path.resolve(__dirname, '../..');
+export const SRC_DIR = path.resolve(__dirname, '../../../src');
+export const ROOT_DIR = path.resolve(__dirname, '../../..');
 
 /**
  * Search codebase using grep with proper escaping.
