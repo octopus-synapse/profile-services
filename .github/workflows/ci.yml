@@ -68,8 +68,8 @@ jobs:
   # ═══════════════════════════════════════════════════════════════════════════
   verify-attestation:
     name: Verify Pre-Commit
-    needs: [should-skip]
-    if: needs.should-skip.outputs.should_skip != 'true'
+    needs: [should-skip, init-comment]
+    if: always() && needs.should-skip.outputs.should_skip != 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
