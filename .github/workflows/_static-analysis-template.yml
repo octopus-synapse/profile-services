@@ -56,9 +56,5 @@ jobs:
                   FAIL="${{ steps.tests.outputs.fail || '0' }}"
                   FILES="${{ steps.tests.outputs.files || '?' }}"
 
-                  if [[ "$STATUS" == "success" ]]; then
-                      DESC="${PASS} tests, ${FILES} files"
-                  else
-                      DESC="${PASS} ✓ ${FAIL} ✗"
-                  fi
+                  DESC="${PASS} ✓ ${FAIL} ✗"
                   ./scripts/ci-comment.sh update "${{ inputs.test-name }}" "$STATUS" "$DESC" "${DURATION}"
