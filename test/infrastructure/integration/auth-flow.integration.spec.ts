@@ -11,6 +11,7 @@ import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
 import { AppModule } from '@/app.module';
+import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import {
   configureExceptionHandling,
   configureValidation,
@@ -23,6 +24,7 @@ import { acceptTosWithPrisma } from './setup';
 describe('Auth Flow Integration', () => {
   let app: INestApplication;
   let prisma: PrismaService;
+  let cacheService: CacheService;
   let accessToken: string;
   let refreshToken: string;
 
@@ -79,6 +81,7 @@ describe('Auth Flow Integration', () => {
     configureValidation(app);
     configureExceptionHandling(app, logger);
     prisma = app.get<PrismaService>(PrismaService);
+    cacheService = app.get<CacheService>(CacheService);
 
     await app.init();
   }, 30000);
@@ -87,8 +90,27 @@ describe('Auth Flow Integration', () => {
     await app.close();
   });
 
+  beforeEach(async () => {
+    // Clear any stale cache from previous runs
+    await cacheService.delete('auth:user:email:integration-test-signup@example.com');
+    await cacheService.delete('auth:user:email:duplicate-test@example.com');
+  });
+
   afterEach(async () => {
     // Clean up test data
+    const users = await prisma.user.findMany({
+      where: { email: { contains: 'integration-test' } },
+      select: { id: true, email: true },
+    });
+
+    // Clear cache for test users before deleting
+    for (const user of users) {
+      if (user.email) {
+        await cacheService.delete(`auth:user:email:${user.email.toLowerCase()}`);
+        await cacheService.delete(`auth:session:user:${user.id}`);
+      }
+    }
+
     await prisma.user.deleteMany({
       where: { email: { contains: 'integration-test' } },
     });

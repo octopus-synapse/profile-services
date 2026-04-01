@@ -13,6 +13,7 @@ import type { TwoFactorRepositoryPort } from '../../../domain/ports/two-factor.r
 const BACKUP_CODE_COUNT = 10;
 
 export interface VerifyAndEnable2faResult {
+  enabled: boolean;
   backupCodes: string[];
 }
 
@@ -42,7 +43,7 @@ export class VerifyAndEnable2faUseCase {
     // Generate backup codes
     const backupCodes = await this.generateBackupCodes(userId);
 
-    return { backupCodes };
+    return { enabled: true, backupCodes };
   }
 
   private async generateBackupCodes(userId: string): Promise<string[]> {

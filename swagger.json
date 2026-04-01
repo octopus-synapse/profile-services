@@ -14743,6 +14743,9 @@
       "VerifyAndEnable2faResponseDto": {
         "type": "object",
         "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
           "backupCodes": {
             "type": "array",
             "items": {
@@ -14751,18 +14754,19 @@
           }
         },
         "required": [
+          "enabled",
           "backupCodes"
         ]
       },
       "VerifyAndEnable2faRequestDto": {
         "type": "object",
         "properties": {
-          "token": {
+          "code": {
             "type": "string"
           }
         },
         "required": [
-          "token"
+          "code"
         ]
       },
       "Get2faStatusResponseDto": {

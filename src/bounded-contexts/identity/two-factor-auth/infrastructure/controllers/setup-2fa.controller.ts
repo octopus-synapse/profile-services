@@ -3,6 +3,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { Setup2faResponseDto } from '../../application/use-cases/setup-2fa/setup-2fa.dto';
 import { Setup2faUseCase } from '../../application/use-cases/setup-2fa/setup-2fa.use-case';
 import {
@@ -48,7 +49,8 @@ export class Setup2faController {
     description: 'Generates TOTP secret and QR code. 2FA is not enabled until verified.',
   })
   @ApiDataResponse(Setup2faResponseDto, { description: '2FA setup data' })
-  async setup(@Req() req: AuthenticatedRequest): Promise<Setup2faResponseDto> {
-    return this.useCase.execute(req.user.id);
+  async setup(@Req() req: AuthenticatedRequest): Promise<DataResponse<Setup2faResponseDto>> {
+    const result = await this.useCase.execute(req.user.id);
+    return { success: true, data: result };
   }
 }

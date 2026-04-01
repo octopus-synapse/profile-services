@@ -3,6 +3,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import {
   VerifyAndEnable2faRequestDto,
   VerifyAndEnable2faResponseDto,
@@ -51,7 +52,8 @@ export class VerifyAndEnable2faController {
   async verify(
     @Req() req: AuthenticatedRequest,
     @Body() dto: VerifyAndEnable2faRequestDto,
-  ): Promise<VerifyAndEnable2faResponseDto> {
-    return this.useCase.execute(req.user.id, dto.token);
+  ): Promise<DataResponse<VerifyAndEnable2faResponseDto>> {
+    const result = await this.useCase.execute(req.user.id, dto.code);
+    return { success: true, data: result };
   }
 }

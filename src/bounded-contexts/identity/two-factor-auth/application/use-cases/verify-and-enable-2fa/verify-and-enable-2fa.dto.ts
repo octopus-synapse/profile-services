@@ -3,11 +3,12 @@ import { z } from 'zod';
 
 // Request Schema
 const VerifyAndEnable2faRequestSchema = z.object({
-  token: z.string().length(6),
+  code: z.string().length(6),
 });
 
 // Response Schema
 const VerifyAndEnable2faResponseSchema = z.object({
+  enabled: z.boolean(),
   backupCodes: z.array(z.string()),
 });
 

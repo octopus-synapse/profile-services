@@ -3,6 +3,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { Get2faStatusResponseDto } from '../../application/use-cases/get-2fa-status/get-2fa-status.dto';
 import { Get2faStatusUseCase } from '../../application/use-cases/get-2fa-status/get-2fa-status.use-case';
 import {
@@ -38,11 +39,16 @@ export class Get2faStatusController {
     description: 'Returns 2FA status including enabled state and backup codes remaining.',
   })
   @ApiDataResponse(Get2faStatusResponseDto, { description: '2FA status' })
-  async getStatus(@Req() req: AuthenticatedRequest): Promise<Get2faStatusResponseDto> {
+  async getStatus(
+    @Req() req: AuthenticatedRequest,
+  ): Promise<DataResponse<Get2faStatusResponseDto>> {
     const result = await this.useCase.execute(req.user.id);
     return {
-      ...result,
-      lastUsedAt: result.lastUsedAt?.toISOString() ?? null,
+      success: true,
+      data: {
+        ...result,
+        lastUsedAt: result.lastUsedAt?.toISOString() ?? null,
+      },
     };
   }
 }

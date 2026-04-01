@@ -3,6 +3,7 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { RegenerateBackupCodesResponseDto } from '../../application/use-cases/regenerate-backup-codes/regenerate-backup-codes.dto';
 import { RegenerateBackupCodesUseCase } from '../../application/use-cases/regenerate-backup-codes/regenerate-backup-codes.use-case';
 import { HASH_SERVICE_PORT, type HashServicePort } from '../../domain/ports/hash-service.port';
@@ -42,7 +43,10 @@ export class RegenerateBackupCodesController {
     description: 'Generates new backup codes, replacing existing ones. Shown only once.',
   })
   @ApiDataResponse(RegenerateBackupCodesResponseDto, { description: 'New backup codes' })
-  async regenerate(@Req() req: AuthenticatedRequest): Promise<RegenerateBackupCodesResponseDto> {
-    return this.useCase.execute(req.user.id);
+  async regenerate(
+    @Req() req: AuthenticatedRequest,
+  ): Promise<DataResponse<RegenerateBackupCodesResponseDto>> {
+    const result = await this.useCase.execute(req.user.id);
+    return { success: true, data: result };
   }
 }
