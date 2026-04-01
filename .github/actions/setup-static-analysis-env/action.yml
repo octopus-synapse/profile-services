@@ -18,6 +18,15 @@ outputs:
   duration:
     description: 'Test duration'
     value: ${{ steps.test.outputs.duration }}
+  pass:
+    description: 'Number of tests passed'
+    value: ${{ steps.test.outputs.pass }}
+  fail:
+    description: 'Number of tests failed'
+    value: ${{ steps.test.outputs.fail }}
+  files:
+    description: 'Number of test files'
+    value: ${{ steps.test.outputs.files }}
 runs:
   using: 'composite'
   steps:
@@ -47,16 +56,30 @@ runs:
         START=$(date +%s)
         echo "## 🧪 ${{ inputs.test-name }} Tests" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        if ${{ inputs.test-command }} 2>&1 | tee test-output.txt; then
-          DURATION=$(($(date +%s) - START))
-          echo "✅ All ${{ inputs.test-name }} tests passed" >> $GITHUB_STEP_SUMMARY
+
+        set +e
+        OUTPUT=$(${{ inputs.test-command }} 2>&1 | tee test-output.txt)
+        EXIT_CODE=$?
+        set -e
+
+        DURATION=$(($(date +%s) - START))
+        echo "duration=${DURATION}s" >> $GITHUB_OUTPUT
+
+        # Parse bun test output: " 1121 pass", " 0 fail", "across 42 files"
+        PASS=$(echo "$OUTPUT" | grep -oE ' [0-9]+ pass' | grep -oE '[0-9]+' || echo "0")
+        FAIL=$(echo "$OUTPUT" | grep -oE ' [0-9]+ fail' | grep -oE '[0-9]+' || echo "0")
+        FILES=$(echo "$OUTPUT" | grep -oE 'across [0-9]+ files' | grep -oE '[0-9]+' || echo "?")
+
+        echo "pass=${PASS:-0}" >> $GITHUB_OUTPUT
+        echo "fail=${FAIL:-0}" >> $GITHUB_OUTPUT
+        echo "files=${FILES:-?}" >> $GITHUB_OUTPUT
+
+        if [[ $EXIT_CODE -eq 0 ]]; then
+          echo "✅ ${PASS} tests passed across ${FILES} files" >> $GITHUB_STEP_SUMMARY
           echo "status=success" >> $GITHUB_OUTPUT
-          echo "duration=${DURATION}s" >> $GITHUB_OUTPUT
         else
-          DURATION=$(($(date +%s) - START))
-          echo "❌ ${{ inputs.test-name }} tests failed" >> $GITHUB_STEP_SUMMARY
+          echo "❌ ${PASS} passed, ${FAIL} failed across ${FILES} files" >> $GITHUB_STEP_SUMMARY
           echo "status=failure" >> $GITHUB_OUTPUT
-          echo "duration=${DURATION}s" >> $GITHUB_OUTPUT
           exit 1
         fi
       shell: bash

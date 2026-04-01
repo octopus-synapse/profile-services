@@ -85,9 +85,13 @@ jobs:
                   chmod +x scripts/ci-comment.sh
                   STATUS="${{ steps.tests.outputs.status || job.status }}"
                   DURATION="${{ steps.tests.outputs.duration || '—' }}"
+                  PASS="${{ steps.tests.outputs.pass || '0' }}"
+                  FAIL="${{ steps.tests.outputs.fail || '0' }}"
+                  FILES="${{ steps.tests.outputs.files || '?' }}"
+
                   if [[ "$STATUS" == "success" ]]; then
-                      DESC="All tests passed"
+                      DESC="${PASS} tests, ${FILES} files"
                   else
-                      DESC="Tests failed"
+                      DESC="${PASS} ✓ ${FAIL} ✗"
                   fi
                   ./scripts/ci-comment.sh update "${{ inputs.test-name }}" "$STATUS" "$DESC" "${DURATION}"
