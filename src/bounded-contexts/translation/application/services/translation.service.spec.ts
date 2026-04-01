@@ -12,9 +12,9 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ResumeTranslationService } from './resume-translation.service';
+import { TranslationService } from './translation.service';
 import { TranslationBatchService } from './translation-batch.service';
 import { TranslationCoreService } from './translation-core.service';
-import { TranslationService } from './translation.service';
 
 describe('TranslationService (Facade)', () => {
   let service: TranslationService;

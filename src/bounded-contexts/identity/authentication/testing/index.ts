@@ -81,15 +81,15 @@ export class InMemoryAuthenticationRepository implements AuthenticationRepositor
     }
   }
 
-  async updateLastLogin(userId: string): Promise<void> {
+  async updateLastLogin(_userId: string): Promise<void> {
     // In memory - no-op for testing
   }
 
-  async invalidateSessionCache(userId: string): Promise<void> {
+  async invalidateSessionCache(_userId: string): Promise<void> {
     // In memory - no-op for testing
   }
 
-  async invalidateEmailCache(email: string): Promise<void> {
+  async invalidateEmailCache(_email: string): Promise<void> {
     // In memory - no-op for testing
   }
 
