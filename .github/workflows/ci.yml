@@ -76,22 +76,66 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
       - name: Verify Attestation
+        id: verify
         run: |
+          START=$(date +%s)
           chmod +x ./scripts/attestation.sh
           ./scripts/attestation.sh verify
+          echo "duration=$(($(date +%s) - START))s" >> $GITHUB_OUTPUT
+
+      - name: Update PR comment
+        if: always() && github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          chmod +x scripts/ci-comment.sh
+          STATUS="${{ steps.verify.outcome }}"
+          DURATION="${{ steps.verify.outputs.duration }}"
+          if [[ "$STATUS" == "success" ]]; then
+            DESC="Verified"
+          else
+            DESC="Pre-commit checks missing"
+          fi
+          ./scripts/ci-comment.sh update "Attestation" "$STATUS" "$DESC" "${DURATION:-—}"
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Init: Create PR comment with all checks pending
+  # ═══════════════════════════════════════════════════════════════════════════
+  init-comment:
+    name: Init Comment
+    needs: [should-skip, detect-changes]
+    if: |
+      needs.should-skip.outputs.should_skip != 'true' &&
+      github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create CI status comment
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          COMMIT_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          chmod +x scripts/ci-comment.sh
+          ./scripts/ci-comment.sh init
 
   # ═══════════════════════════════════════════════════════════════════════════
   # Build: Docker smoke test (sem push — validação do Dockerfile apenas)
   # ═══════════════════════════════════════════════════════════════════════════
   build:
     name: Build
-    needs: [should-skip, detect-changes]
+    needs: [should-skip, detect-changes, init-comment]
     if: |
+      always() &&
       needs.should-skip.outputs.should_skip != 'true' &&
       (needs.detect-changes.outputs.src == 'true' || needs.detect-changes.outputs.prisma == 'true')
     uses: ./.github/workflows/ci.build.yml
     with:
       image_tag: pr-${{ github.event.pull_request.number || github.run_number }}-${{ github.sha }}
+      pr-number: ${{ github.event.pull_request.number }}
     secrets: inherit
 
   # ═══════════════════════════════════════════════════════════════════════════
@@ -105,12 +149,15 @@ jobs:
   # ═══════════════════════════════════════════════════════════════════════════
   integration:
     name: Integration
-    needs: [should-skip, detect-changes, verify-attestation]
+    needs: [should-skip, detect-changes, verify-attestation, init-comment]
     if: |
+      always() &&
       needs.should-skip.outputs.should_skip != 'true' &&
       needs.verify-attestation.result == 'success' &&
       (needs.detect-changes.outputs.src == 'true' || needs.detect-changes.outputs.prisma == 'true')
     uses: ./.github/workflows/ci.infrastructure.integration.yml
+    with:
+      pr-number: ${{ github.event.pull_request.number }}
     secrets: inherit
 
   # ═══════════════════════════════════════════════════════════════════════════
@@ -118,12 +165,15 @@ jobs:
   # ═══════════════════════════════════════════════════════════════════════════
   e2e:
     name: E2E
-    needs: [should-skip, detect-changes, verify-attestation]
+    needs: [should-skip, detect-changes, verify-attestation, init-comment]
     if: |
+      always() &&
       needs.should-skip.outputs.should_skip != 'true' &&
       needs.verify-attestation.result == 'success' &&
       (needs.detect-changes.outputs.src == 'true' || needs.detect-changes.outputs.prisma == 'true')
     uses: ./.github/workflows/ci.infrastructure.e2e.yml
+    with:
+      pr-number: ${{ github.event.pull_request.number }}
     secrets: inherit
 
   # ═══════════════════════════════════════════════════════════════════════════
@@ -131,12 +181,15 @@ jobs:
   # ═══════════════════════════════════════════════════════════════════════════
   security:
     name: Security
-    needs: [should-skip, detect-changes, verify-attestation]
+    needs: [should-skip, detect-changes, verify-attestation, init-comment]
     if: |
+      always() &&
       needs.should-skip.outputs.should_skip != 'true' &&
       needs.verify-attestation.result == 'success' &&
       (needs.detect-changes.outputs.src == 'true' || needs.detect-changes.outputs.tests == 'true')
     uses: ./.github/workflows/ci.static-analysis.security.yml
+    with:
+      pr-number: ${{ github.event.pull_request.number }}
     secrets: inherit
 
   # ═══════════════════════════════════════════════════════════════════════════
@@ -148,6 +201,8 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+
       - name: Check Results
         id: check
         run: |
@@ -164,81 +219,27 @@ jobs:
           if [[ "${{ needs.verify-attestation.result }}" == "failure" ]] || \
              [[ "${{ needs.build.result }}" == "failure" ]] || \
              [[ "${{ needs.integration.result }}" == "failure" ]] || \
-             [[ "${{ needs.e2e.result }}" == "failure" ]]; then
+             [[ "${{ needs.e2e.result }}" == "failure" ]] || \
+             [[ "${{ needs.security.result }}" == "failure" ]]; then
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "❌ **CI failed**" >> $GITHUB_STEP_SUMMARY
-            echo "outcome=failure" >> $GITHUB_OUTPUT
-            exit 1
+            echo "success=false" >> $GITHUB_OUTPUT
+          else
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "✅ **CI passed**" >> $GITHUB_STEP_SUMMARY
+            echo "success=true" >> $GITHUB_OUTPUT
           fi
 
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "✅ **CI passed**" >> $GITHUB_STEP_SUMMARY
-          echo "outcome=success" >> $GITHUB_OUTPUT
+      - name: Finalize PR comment
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          chmod +x scripts/ci-comment.sh
+          ./scripts/ci-comment.sh finalize "${{ steps.check.outputs.success }}"
 
-      - name: Comment on PR (Failure)
-        if: failure() && github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const results = {
-              attestation: '${{ needs.verify-attestation.result }}',
-              build: '${{ needs.build.result }}',
-              integration: '${{ needs.integration.result }}',
-              e2e: '${{ needs.e2e.result }}'
-            };
-
-            const statusIcon = (s) => s === 'success' ? '✅' : s === 'skipped' ? '⏭️' : '❌';
-
-            const failures = Object.entries(results)
-              .filter(([_, status]) => status === 'failure')
-              .map(([name]) => `- ❌ \`${name}\``)
-              .join('\n');
-
-            const body = [
-              '## ❌ CI Failed',
-              '',
-              'The following checks failed:',
-              failures,
-              '',
-              '> Check the workflow run for details.'
-            ].join('\n');
-
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body
-            });
-
-      - name: Comment on PR (Success)
-        if: success() && github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const results = {
-              attestation: '${{ needs.verify-attestation.result }}',
-              build: '${{ needs.build.result }}',
-              integration: '${{ needs.integration.result }}',
-              e2e: '${{ needs.e2e.result }}'
-            };
-
-            const statusIcon = (s) => s === 'success' ? '✅' : s === 'skipped' ? '⏭️' : '➖';
-
-            const rows = Object.entries(results)
-              .map(([name, status]) => `| \`${name}\` | ${statusIcon(status)} ${status} |`)
-              .join('\n');
-
-            const body = [
-              '## ✅ CI Passed',
-              '',
-              '| Check | Status |',
-              '|-------|--------|',
-              rows,
-            ].join('\n');
-
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body
-            });
+      - name: Fail if checks failed
+        if: steps.check.outputs.success != 'true'
+        run: exit 1

@@ -7,6 +7,11 @@ on:
         description: "Tag da imagem Docker"
         required: true
         type: string
+      pr-number:
+        description: "PR number for comment updates"
+        required: false
+        type: string
+        default: ""
     outputs:
       image:
         description: "Full image reference"
@@ -63,3 +68,19 @@ jobs:
           echo "## 🐳 Docker Image" >> $GITHUB_STEP_SUMMARY
           echo "**Image:** \`${{ steps.meta.outputs.tags }}\`" >> $GITHUB_STEP_SUMMARY
           echo "**Digest:** \`${{ steps.build.outputs.digest }}\`" >> $GITHUB_STEP_SUMMARY
+
+      - name: Update PR comment
+        if: always() && inputs.pr-number != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ inputs.pr-number }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          chmod +x scripts/ci-comment.sh
+          STATUS="${{ job.status }}"
+          if [[ "$STATUS" == "success" ]]; then
+            DESC="Docker image built"
+          else
+            DESC="Build failed"
+          fi
+          ./scripts/ci-comment.sh update "Build" "$STATUS" "$DESC" "—"

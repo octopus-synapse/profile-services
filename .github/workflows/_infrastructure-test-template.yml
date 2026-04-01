@@ -21,6 +21,11 @@ on:
                 required: false
                 type: number
                 default: 15
+            pr-number:
+                description: "PR number for comment updates"
+                required: false
+                type: string
+                default: ""
 
 env:
     DATABASE_URL: postgresql://postgres:postgres@localhost:5433/${{ inputs.db-name }}
@@ -61,8 +66,28 @@ jobs:
 
         steps:
             - uses: actions/checkout@v4
-            - uses: ./.github/actions/setup-infrastructure-test-env
+
+            - name: Run tests
+              id: tests
+              uses: ./.github/actions/setup-infrastructure-test-env
               with:
                   test-command: ${{ inputs.test-command }}
                   test-name: ${{ inputs.test-name }}
                   artifact-name: ${{ inputs.test-name }}-results
+
+            - name: Update PR comment
+              if: always() && inputs.pr-number != ''
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  PR_NUMBER: ${{ inputs.pr-number }}
+                  GITHUB_REPOSITORY: ${{ github.repository }}
+              run: |
+                  chmod +x scripts/ci-comment.sh
+                  STATUS="${{ steps.tests.outputs.status || job.status }}"
+                  DURATION="${{ steps.tests.outputs.duration || '—' }}"
+                  if [[ "$STATUS" == "success" ]]; then
+                      DESC="All tests passed"
+                  else
+                      DESC="Tests failed"
+                  fi
+                  ./scripts/ci-comment.sh update "${{ inputs.test-name }}" "$STATUS" "$DESC" "${DURATION}"

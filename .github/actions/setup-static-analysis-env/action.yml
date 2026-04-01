@@ -15,6 +15,9 @@ outputs:
   status:
     description: 'Test status (success/failure)'
     value: ${{ steps.test.outputs.status }}
+  duration:
+    description: 'Test duration'
+    value: ${{ steps.test.outputs.duration }}
 runs:
   using: 'composite'
   steps:
@@ -41,14 +44,19 @@ runs:
     - name: Run Tests
       id: test
       run: |
+        START=$(date +%s)
         echo "## 🧪 ${{ inputs.test-name }} Tests" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         if ${{ inputs.test-command }} 2>&1 | tee test-output.txt; then
+          DURATION=$(($(date +%s) - START))
           echo "✅ All ${{ inputs.test-name }} tests passed" >> $GITHUB_STEP_SUMMARY
           echo "status=success" >> $GITHUB_OUTPUT
+          echo "duration=${DURATION}s" >> $GITHUB_OUTPUT
         else
+          DURATION=$(($(date +%s) - START))
           echo "❌ ${{ inputs.test-name }} tests failed" >> $GITHUB_STEP_SUMMARY
           echo "status=failure" >> $GITHUB_OUTPUT
+          echo "duration=${DURATION}s" >> $GITHUB_OUTPUT
           exit 1
         fi
       shell: bash
