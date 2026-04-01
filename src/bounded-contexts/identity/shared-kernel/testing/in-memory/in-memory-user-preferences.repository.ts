@@ -5,14 +5,13 @@
  * Provides helper methods for test setup and assertions.
  */
 
+import { UserPreferencesRepositoryPort } from '../../../users/application/ports/user-preferences.port';
 import type {
   FullUserPreferences,
   UpdateFullPreferencesData,
   UpdatePreferencesData,
   UserPreferences,
 } from '../../../users/domain/types';
-
-import { UserPreferencesRepositoryPort } from '../../../users/services/user-preferences/ports/user-preferences.port';
 
 export class InMemoryUserPreferencesRepository extends UserPreferencesRepositoryPort {
   private users = new Set<string>();

@@ -21,14 +21,14 @@ import type {
 
 // Re-export Zod-inferred types for convenience
 export type {
-  SectionDefinition,
-  SectionFieldDefinition,
   AtsConfig,
-  ExportConfig,
   AtsSectionDetection,
   DocxExportConfig,
-  SemanticRole,
+  ExportConfig,
+  SectionDefinition,
+  SectionFieldDefinition,
   SectionKind,
+  SemanticRole,
 };
 
 /**

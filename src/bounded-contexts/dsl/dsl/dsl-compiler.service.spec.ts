@@ -18,7 +18,7 @@ import { DslMigrationService } from './migrators';
 import { TokenResolverService } from './token-resolver.service';
 
 function extractSectionItems(section: { data: unknown } | undefined): unknown[] {
-  if (!section || !section.data || typeof section.data !== 'object') return [];
+  if (!section?.data || typeof section.data !== 'object') return [];
   const items = (section.data as { items?: unknown }).items;
   return Array.isArray(items) ? items : [];
 }

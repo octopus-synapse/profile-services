@@ -4,7 +4,7 @@
  * Test double for password reset token operations.
  */
 
-import type { PasswordResetTokenPort } from '../../../password-management/ports/outbound/token-service.port';
+import type { PasswordResetTokenPort } from '../../../password-management/domain/ports';
 
 export class StubTokenService implements PasswordResetTokenPort {
   private tokens: Map<string, { userId: string; createdAt: Date }> = new Map();

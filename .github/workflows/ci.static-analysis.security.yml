@@ -1,0 +1,12 @@
+name: _static-analysis-security
+
+on:
+  workflow_call:
+
+jobs:
+  test:
+    uses: ./.github/workflows/_static-analysis-template.yml
+    with:
+      test-command: "bun test --config=bunfig.security.toml"
+      test-name: "Security"
+      timeout: 10

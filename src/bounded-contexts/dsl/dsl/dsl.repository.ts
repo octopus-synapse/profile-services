@@ -7,6 +7,12 @@ import type {
   GenericResumeSection,
   SemanticKind,
 } from '@/shared-kernel/schemas/sections';
+import {
+  DEFAULT_LOCALE,
+  resolveTranslation,
+  type SupportedLocale,
+  type TranslationsJson,
+} from '@/shared-kernel/utils/locale-resolver';
 import { mergeDsl } from '../domain/value-objects/merge-dsl';
 import { RESUME_RELATIONS_INCLUDE } from '../infrastructure/resume-query';
 import { DslCompilerService } from './dsl-compiler.service';
@@ -41,6 +47,7 @@ type PrismaResumeData = {
       key: string;
       title: string;
       semanticKind: string;
+      translations: unknown;
     };
     items: Array<{
       id: string;
@@ -51,6 +58,12 @@ type PrismaResumeData = {
       updatedAt: Date;
     }>;
   }>;
+};
+
+type SectionTypeData = {
+  key: string;
+  title: string;
+  translations: unknown;
 };
 
 type DslPrismaPort = {
@@ -73,6 +86,12 @@ type DslPrismaPort = {
       expiresAt: Date | null;
       resume: PrismaResumeData;
     } | null>;
+  };
+  sectionType: {
+    findMany: (args: {
+      where: { isActive: boolean };
+      select: { key: true; title: true; translations: true };
+    }) => Promise<SectionTypeData[]>;
   };
 };
 type DslCompilerPort = Pick<
@@ -114,29 +133,37 @@ export class DslRepository {
     resumeId: string,
     userId: string,
     target: RenderTarget = 'html',
+    locale: SupportedLocale = DEFAULT_LOCALE,
   ): Promise<{ ast: ResumeAst; resumeId: string }> {
-    this.logger.log(`Rendering resume ${resumeId} for user ${userId}`);
-    const resume = await this.fetchResumeWithData(resumeId, userId);
+    this.logger.log(`Rendering resume ${resumeId} for user ${userId} with locale ${locale}`);
+    const [resume, sectionTypeTitles] = await Promise.all([
+      this.fetchResumeWithData(resumeId, userId, locale),
+      this.fetchSectionTypeTitles(locale),
+    ]);
     const mergedDsl = this.buildMergedDsl(resume);
-    const ast = this.compileWithResumeData(mergedDsl, resume, target);
+    const ast = this.compileWithResumeData(mergedDsl, resume, target, sectionTypeTitles);
     return { ast, resumeId };
   }
 
   async renderPublic(
     slug: string,
     target: RenderTarget = 'html',
+    locale: SupportedLocale = DEFAULT_LOCALE,
   ): Promise<{ ast: ResumeAst; slug: string }> {
-    this.logger.log(`Rendering public resume: ${slug}`);
-    const share = await this.prisma.resumeShare.findUnique({
-      where: { slug },
-      include: {
-        resume: {
-          include: RESUME_RELATIONS_INCLUDE,
+    this.logger.log(`Rendering public resume: ${slug} with locale ${locale}`);
+    const [share, sectionTypeTitles] = await Promise.all([
+      this.prisma.resumeShare.findUnique({
+        where: { slug },
+        include: {
+          resume: {
+            include: RESUME_RELATIONS_INCLUDE,
+          },
         },
-      },
-    });
+      }),
+      this.fetchSectionTypeTitles(locale),
+    ]);
 
-    if (!share || !share.isActive) {
+    if (!share?.isActive) {
       throw new BadRequestException('Resume not found or not public');
     }
 
@@ -144,13 +171,17 @@ export class DslRepository {
       throw new BadRequestException('Resume not found or not public');
     }
 
-    const normalizedResume = this.normalizeToGenericResume(share.resume);
+    const normalizedResume = this.normalizeToGenericResume(share.resume, locale);
     const mergedDsl = this.buildMergedDsl(normalizedResume);
-    const ast = this.compileWithResumeData(mergedDsl, normalizedResume, target);
+    const ast = this.compileWithResumeData(mergedDsl, normalizedResume, target, sectionTypeTitles);
     return { ast, slug };
   }
 
-  private async fetchResumeWithData(resumeId: string, userId: string): Promise<GenericResume> {
+  private async fetchResumeWithData(
+    resumeId: string,
+    userId: string,
+    locale: SupportedLocale,
+  ): Promise<GenericResume> {
     const resume = await this.prisma.resume.findFirst({
       where: { id: resumeId, userId },
       include: RESUME_RELATIONS_INCLUDE,
@@ -160,39 +191,49 @@ export class DslRepository {
       throw new BadRequestException('Resume not found');
     }
 
-    return this.normalizeToGenericResume(resume);
+    return this.normalizeToGenericResume(resume, locale);
   }
 
   /**
    * Normalizes Prisma resume to GenericResume format.
    * This is the single canonical transformation point.
    */
-  private normalizeToGenericResume(resume: PrismaResumeData): GenericResume {
+  private normalizeToGenericResume(
+    resume: PrismaResumeData,
+    locale: SupportedLocale,
+  ): GenericResume {
     const sections: GenericResumeSection[] = (resume.resumeSections ?? [])
       .filter((section) => section.isVisible)
       .sort((a, b) => a.order - b.order)
-      .map((section) => ({
-        id: section.id,
-        resumeId: resume.id,
-        sectionTypeId: section.sectionTypeId,
-        sectionTypeKey: section.sectionType.key,
-        semanticKind: section.sectionType.semanticKind as SemanticKind,
-        title: section.sectionType.title,
-        titleOverride: section.titleOverride,
-        isVisible: section.isVisible,
-        order: section.order,
-        items: section.items
-          .filter((item) => item.isVisible)
-          .sort((a, b) => a.order - b.order)
-          .map((item) => ({
-            id: item.id,
-            order: item.order,
-            isVisible: item.isVisible,
-            content: this.asRecord(item.content),
-            createdAt: item.createdAt,
-            updatedAt: item.updatedAt,
-          })),
-      }));
+      .map((section) => {
+        // Resolve translated title from sectionType.translations
+        const translations = section.sectionType.translations as TranslationsJson | null;
+        const resolved = resolveTranslation(translations, locale);
+        const resolvedTitle = resolved.title || section.sectionType.title;
+
+        return {
+          id: section.id,
+          resumeId: resume.id,
+          sectionTypeId: section.sectionTypeId,
+          sectionTypeKey: section.sectionType.key,
+          semanticKind: section.sectionType.semanticKind as SemanticKind,
+          title: resolvedTitle,
+          titleOverride: section.titleOverride,
+          isVisible: section.isVisible,
+          order: section.order,
+          items: section.items
+            .filter((item) => item.isVisible)
+            .sort((a, b) => a.order - b.order)
+            .map((item) => ({
+              id: item.id,
+              order: item.order,
+              isVisible: item.isVisible,
+              content: this.asRecord(item.content),
+              createdAt: item.createdAt,
+              updatedAt: item.updatedAt,
+            })),
+        };
+      });
 
     return {
       id: resume.id,
@@ -239,10 +280,30 @@ export class DslRepository {
     mergedDsl: Record<string, unknown>,
     resumeData: GenericResume,
     target: RenderTarget,
+    sectionTypeTitles?: Map<string, string>,
   ): ResumeAst {
     const validatedDsl = this.validator.validateOrThrow(mergedDsl as ResumeDsl);
     return target === 'html'
-      ? this.compiler.compileForHtml(validatedDsl, resumeData)
-      : this.compiler.compileForPdf(validatedDsl, resumeData);
+      ? this.compiler.compileForHtml(validatedDsl, resumeData, sectionTypeTitles)
+      : this.compiler.compileForPdf(validatedDsl, resumeData, sectionTypeTitles);
+  }
+
+  /**
+   * Fetches all active section types and resolves their titles for the given locale.
+   * Returns a Map of sectionTypeKey → translatedTitle.
+   */
+  private async fetchSectionTypeTitles(locale: SupportedLocale): Promise<Map<string, string>> {
+    const sectionTypes = await this.prisma.sectionType.findMany({
+      where: { isActive: true },
+      select: { key: true, title: true, translations: true },
+    });
+
+    const map = new Map<string, string>();
+    for (const st of sectionTypes) {
+      const translations = st.translations as TranslationsJson | null;
+      const resolved = resolveTranslation(translations, locale);
+      map.set(st.key, resolved.title || st.title);
+    }
+    return map;
   }
 }

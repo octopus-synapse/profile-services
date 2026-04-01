@@ -45,20 +45,33 @@ export class DslCompilerService {
     private migrationService: DslMigrationService,
   ) {}
 
-  compileForHtml(dsl: ResumeDsl, resumeData?: GenericResume): ResumeAst {
-    return this.compile(dsl, 'html', resumeData);
+  compileForHtml(
+    dsl: ResumeDsl,
+    resumeData?: GenericResume,
+    sectionTypeTitles?: Map<string, string>,
+  ): ResumeAst {
+    return this.compile(dsl, 'html', resumeData, sectionTypeTitles);
   }
 
-  compileForPdf(dsl: ResumeDsl, resumeData?: GenericResume): ResumeAst {
-    return this.compile(dsl, 'pdf', resumeData);
+  compileForPdf(
+    dsl: ResumeDsl,
+    resumeData?: GenericResume,
+    sectionTypeTitles?: Map<string, string>,
+  ): ResumeAst {
+    return this.compile(dsl, 'pdf', resumeData, sectionTypeTitles);
   }
 
-  compile(dsl: ResumeDsl, _target: 'html' | 'pdf' = 'html', resumeData?: GenericResume): ResumeAst {
+  compile(
+    dsl: ResumeDsl,
+    _target: 'html' | 'pdf' = 'html',
+    resumeData?: GenericResume,
+    sectionTypeTitles?: Map<string, string>,
+  ): ResumeAst {
     const migratedDsl = this.migrateDsl(dsl);
     const validatedDsl = this.validator.validateOrThrow(migratedDsl);
     const tokens = this.tokenResolver.resolve(validatedDsl.tokens);
     const pageLayout = buildPageLayout(validatedDsl, tokens);
-    const sections = this.placeSections(validatedDsl, tokens, resumeData);
+    const sections = this.placeSections(validatedDsl, tokens, resumeData, sectionTypeTitles);
 
     return {
       meta: {
@@ -90,6 +103,7 @@ export class DslCompilerService {
     dsl: ResumeDsl,
     tokens: ResolvedTokens,
     resumeData?: GenericResume,
+    sectionTypeTitles?: Map<string, string>,
   ): ResumeAst['sections'] {
     return dsl.sections
       .filter((s) => s.visible)
@@ -97,8 +111,8 @@ export class DslCompilerService {
       .map((section) => {
         const overrides = (dsl.itemOverrides?.[section.id] ?? []) as ItemOverride[];
         const data = resumeData
-          ? this.compileSectionData(section.id, resumeData, overrides)
-          : getPlaceholderData(section.id);
+          ? this.compileSectionData(section.id, resumeData, overrides, sectionTypeTitles)
+          : getPlaceholderData(section.id, sectionTypeTitles);
 
         return {
           sectionId: section.id,
@@ -122,6 +136,7 @@ export class DslCompilerService {
     sectionId: string,
     resume: GenericResume,
     overrides: ItemOverride[],
+    sectionTypeTitles?: Map<string, string>,
   ): SectionDataV2 {
     // Find matching section in resume data
     const section = this.findSectionForDslId(sectionId, resume.sections);
@@ -129,14 +144,16 @@ export class DslCompilerService {
     if (!section) {
       // Special case: summary/objective come from resume root
       if (sectionId === 'summary' || sectionId === 'objective') {
+        const translatedTitle =
+          sectionTypeTitles?.get(`${sectionId}_v1`) ?? sectionTypeTitles?.get(sectionId);
         return {
           semanticKind: sectionId.toUpperCase(),
           sectionTypeKey: sectionId,
-          title: sectionId.charAt(0).toUpperCase() + sectionId.slice(1),
+          title: translatedTitle ?? sectionId.charAt(0).toUpperCase() + sectionId.slice(1),
           content: resume.summary ?? '',
         };
       }
-      return getPlaceholderData(sectionId);
+      return getPlaceholderData(sectionId, sectionTypeTitles);
     }
 
     // Generic compilation - filter visible items

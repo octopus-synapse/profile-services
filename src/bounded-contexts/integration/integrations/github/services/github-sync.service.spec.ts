@@ -12,7 +12,7 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { createMockResume } from '@test/factories/resume.factory';
+import { createMockResume } from '@test/shared/factories/resume.factory';
 import { GitHubAchievementService } from './github-achievement.service';
 import { GitHubApiService } from './github-api.service';
 import { GitHubContributionService } from './github-contribution.service';

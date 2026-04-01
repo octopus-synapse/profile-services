@@ -43,9 +43,14 @@ describe('ThemeCrudService', () => {
       create: mock(async (args: { data: Omit<ThemeRecord, 'id' | 'createdAt' | 'updatedAt'> }) => {
         return themeRepo.create(args.data);
       }),
-      update: mock(async (args: { where: { id: string }; data: Partial<ThemeRecord> }) => {
-        return themeRepo.update(args.where, args.data);
-      }),
+      update: mock(
+        async (args: {
+          where: { id: string };
+          data: Partial<ThemeRecord> & { rejectionCount?: { increment: number } | number };
+        }) => {
+          return themeRepo.update(args.where, args.data);
+        },
+      ),
       findUnique: mock(async (args: { where: { id: string } }) => {
         return themeRepo.findUnique(args.where);
       }),

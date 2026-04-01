@@ -26,10 +26,8 @@ export function shouldIncludeStackOverflowTag(tagName: string): boolean {
  * Check if a tag is a programming language
  * Re-exported for convenience
  */
-export { isProgrammingLanguage };
-
 /**
  * Check if a tag should be skipped
  * Re-exported for convenience
  */
-export { shouldSkipTag };
+export { isProgrammingLanguage, shouldSkipTag };

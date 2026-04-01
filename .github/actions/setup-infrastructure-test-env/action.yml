@@ -1,0 +1,68 @@
+name: 'Setup Infrastructure Test Environment'
+description: 'Setup and run tests that require DB/Redis'
+inputs:
+  test-command:
+    description: 'Command to run tests'
+    required: true
+  test-name:
+    description: 'Test name for summary'
+    required: true
+  artifact-name:
+    description: 'Artifact name for results'
+    required: false
+    default: 'test-results'
+outputs:
+  status:
+    description: 'Test status (success/failure)'
+    value: ${{ steps.test.outputs.status }}
+runs:
+  using: 'composite'
+  steps:
+    - uses: oven-sh/setup-bun@v2
+      with:
+        bun-version: "1.3.11"
+
+    - name: Cache Dependencies
+      id: cache
+      uses: actions/cache@v4
+      with:
+        path: |
+          node_modules
+          ~/.bun/install/cache
+        key: deps-${{ runner.os }}-${{ hashFiles('bun.lockb') }}
+        restore-keys: |
+          deps-${{ runner.os }}-
+
+    - name: Install
+      if: steps.cache.outputs.cache-hit != 'true'
+      run: bun install --frozen-lockfile
+      shell: bash
+
+    - name: Setup DB
+      run: bun run db:setup:test
+      shell: bash
+
+    - name: Run Tests
+      id: test
+      run: |
+        echo "## 🧪 ${{ inputs.test-name }} Tests" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        if ${{ inputs.test-command }} 2>&1 | tee test-output.txt; then
+          echo "✅ All ${{ inputs.test-name }} tests passed" >> $GITHUB_STEP_SUMMARY
+          echo "status=success" >> $GITHUB_OUTPUT
+        else
+          echo "❌ ${{ inputs.test-name }} tests failed" >> $GITHUB_STEP_SUMMARY
+          echo "status=failure" >> $GITHUB_OUTPUT
+          exit 1
+        fi
+      shell: bash
+
+    - name: Upload Results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.artifact-name }}-${{ github.run_number }}
+        path: |
+          test-output.txt
+          test-results/
+        retention-days: 7

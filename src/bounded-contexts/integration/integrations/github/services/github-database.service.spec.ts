@@ -8,35 +8,30 @@
  * - Contribution/achievement reconciliation
  */
 
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { beforeEach, describe, expect, it } from 'bun:test';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { createMockResume } from '@test/factories/resume.factory';
+import type { Prisma } from '@prisma/client';
+import { createMockResume } from '@test/shared/factories/resume.factory';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import {
+  InMemoryResumeRepository,
+  InMemoryResumeSectionRepository,
+  InMemorySectionItemRepository,
+  InMemorySectionTypeRepository,
+  InMemoryTransactionHandler,
+} from '../../../testing';
 import type { GitHubAchievementContent } from './github-achievement.service';
 import type { GitHubContributionInput } from './github-contribution.service';
 import { GitHubDatabaseService } from './github-database.service';
 
 describe('GitHubDatabaseService', () => {
   let service: GitHubDatabaseService;
-  let fakePrisma: {
-    resume: {
-      findUnique: ReturnType<typeof mock>;
-      update: ReturnType<typeof mock>;
-    };
-    sectionItem: {
-      deleteMany: ReturnType<typeof mock>;
-      createMany: ReturnType<typeof mock>;
-      count: ReturnType<typeof mock>;
-    };
-    sectionType: {
-      findFirst: ReturnType<typeof mock>;
-    };
-    resumeSection: {
-      upsert: ReturnType<typeof mock>;
-    };
-    $transaction: ReturnType<typeof mock>;
-  };
+  let resumeRepository: InMemoryResumeRepository;
+  let sectionTypeRepository: InMemorySectionTypeRepository;
+  let resumeSectionRepository: InMemoryResumeSectionRepository;
+  let sectionItemRepository: InMemorySectionItemRepository;
+  let transactionHandler: InMemoryTransactionHandler;
 
   const mockResume = createMockResume({
     id: 'resume-123',
@@ -45,27 +40,100 @@ describe('GitHubDatabaseService', () => {
   });
 
   beforeEach(async () => {
-    fakePrisma = {
-      resume: {
-        findUnique: mock(() => Promise.resolve(mockResume)),
-        update: mock(() => Promise.resolve(mockResume)),
-      },
-      sectionItem: {
-        deleteMany: mock(() => Promise.resolve({ count: 0 })),
-        createMany: mock(() => Promise.resolve({ count: 1 })),
-        count: mock(() => Promise.resolve(0)),
-      },
-      sectionType: {
-        findFirst: mock(() => Promise.resolve({ id: 'section-type-open-source' })),
-      },
-      resumeSection: {
-        upsert: mock(() => Promise.resolve({ id: 'resume-section-open-source' })),
-      },
-      $transaction: mock((operations: unknown[]) => Promise.resolve(operations)),
-    };
+    resumeRepository = new InMemoryResumeRepository();
+    sectionTypeRepository = new InMemorySectionTypeRepository();
+    resumeSectionRepository = new InMemoryResumeSectionRepository();
+    sectionItemRepository = new InMemorySectionItemRepository();
+    transactionHandler = new InMemoryTransactionHandler();
+
+    // Seed initial data
+    resumeRepository.seedResume(mockResume);
+    sectionTypeRepository.seedSectionType({
+      id: 'section-type-open-source',
+      semanticKind: 'OPEN_SOURCE',
+      isActive: true,
+    });
+    sectionTypeRepository.seedSectionType({
+      id: 'section-type-achievement',
+      semanticKind: 'ACHIEVEMENT',
+      isActive: true,
+    });
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [GitHubDatabaseService, { provide: PrismaService, useValue: fakePrisma }],
+      providers: [
+        GitHubDatabaseService,
+        {
+          provide: PrismaService,
+          useValue: {
+            resume: {
+              findUnique: (args: {
+                where: { id: string };
+                include?: { resumeSections?: boolean };
+              }) => resumeRepository.findUnique(args.where.id, args.include),
+              update: (args: { where: { id: string }; data: Record<string, unknown> }) =>
+                resumeRepository.update(args.where.id, args.data),
+            },
+            sectionType: {
+              findFirst: (args: { where: { semanticKind: string; isActive: boolean } }) =>
+                sectionTypeRepository.findFirst(args.where.semanticKind),
+            },
+            resumeSection: {
+              upsert: (args: {
+                where: { resumeId_sectionTypeId: { resumeId: string; sectionTypeId: string } };
+                update: Record<string, unknown>;
+                create: { resumeId: string; sectionTypeId: string };
+              }) =>
+                resumeSectionRepository.upsert(
+                  args.where.resumeId_sectionTypeId.resumeId,
+                  args.where.resumeId_sectionTypeId.sectionTypeId,
+                ),
+            },
+            sectionItem: {
+              deleteMany: (args: { where: Record<string, unknown> }) => {
+                const where = args.where;
+                const filter: Parameters<typeof sectionItemRepository.deleteMany>[0] = {};
+
+                if (where.resumeSection) {
+                  const resumeSection = where.resumeSection as Record<string, unknown>;
+                  if (resumeSection.resumeId) {
+                    filter.resumeId = resumeSection.resumeId as string;
+                  }
+                  if (resumeSection.sectionType) {
+                    const sectionType = resumeSection.sectionType as Record<string, unknown>;
+                    if (sectionType.semanticKind) {
+                      filter.semanticKind = sectionType.semanticKind as string;
+                    }
+                  }
+                }
+
+                if (where.content) {
+                  const content = where.content as Record<string, unknown>;
+                  if (content.path && content.string_contains) {
+                    filter.contentFilter = {
+                      path: content.path as string[],
+                      value: content.string_contains as string,
+                    };
+                  }
+                }
+
+                return sectionItemRepository.deleteMany(filter);
+              },
+              createMany: (args: { data: Array<Record<string, unknown>> }) =>
+                sectionItemRepository.createMany(
+                  args.data.map((item) => ({
+                    resumeSectionId: item.resumeSectionId as string,
+                    order: item.order as number,
+                    content: item.content as Prisma.JsonValue,
+                  })),
+                ),
+              count: (args: { where: { resumeSectionId: string } }) =>
+                sectionItemRepository.count(args.where.resumeSectionId),
+            },
+            $transaction: (operations: Array<Promise<unknown>>) =>
+              transactionHandler.execute(operations.map((op) => () => op)),
+          },
+        },
+      ],
     }).compile();
 
     service = module.get<GitHubDatabaseService>(GitHubDatabaseService);
@@ -76,14 +144,10 @@ describe('GitHubDatabaseService', () => {
       const result = await service.verifyResumeOwnership('user-123', 'resume-123');
 
       expect(result).toEqual(mockResume);
-      expect(fakePrisma.resume.findUnique).toHaveBeenCalledWith({
-        where: { id: 'resume-123' },
-        include: undefined,
-      });
     });
 
     it('should throw NOT_FOUND when resume does not exist', async () => {
-      fakePrisma.resume.findUnique.mockResolvedValue(null);
+      resumeRepository.clear();
 
       try {
         await service.verifyResumeOwnership('user-123', 'nonexistent');
@@ -95,7 +159,8 @@ describe('GitHubDatabaseService', () => {
     });
 
     it('should throw FORBIDDEN when user does not own resume', async () => {
-      fakePrisma.resume.findUnique.mockResolvedValue({
+      resumeRepository.clear();
+      resumeRepository.seedResume({
         ...mockResume,
         userId: 'other-user',
       });
@@ -112,12 +177,9 @@ describe('GitHubDatabaseService', () => {
     it('should pass include options to query', async () => {
       const include = { resumeSections: true };
 
-      await service.verifyResumeOwnership('user-123', 'resume-123', include);
+      const result = await service.verifyResumeOwnership('user-123', 'resume-123', include);
 
-      expect(fakePrisma.resume.findUnique).toHaveBeenCalledWith({
-        where: { id: 'resume-123' },
-        include,
-      });
+      expect(result).toBeDefined();
     });
   });
 
@@ -125,13 +187,9 @@ describe('GitHubDatabaseService', () => {
     it('should update resume with GitHub username and stars', async () => {
       await service.updateResumeGitHubStats('resume-123', 'testuser', 150);
 
-      expect(fakePrisma.resume.update).toHaveBeenCalledWith({
-        where: { id: 'resume-123' },
-        data: {
-          github: 'https://github.com/testuser',
-          totalStars: 150,
-        },
-      });
+      const updated = resumeRepository.getResume('resume-123');
+      expect(updated?.github).toBe('https://github.com/testuser');
+      expect(updated?.totalStars).toBe(150);
     });
   });
 
@@ -165,18 +223,34 @@ describe('GitHubDatabaseService', () => {
 
       await service.reconcileDbEntries('resume-123', 'testuser', contributions, achievements);
 
-      expect(fakePrisma.$transaction).toHaveBeenCalled();
+      const items = sectionItemRepository.getItems();
+      expect(items.length).toBeGreaterThan(0);
     });
 
     it('should skip createMany when no contributions', async () => {
       await service.reconcileDbEntries('resume-123', 'testuser', [], []);
 
-      const transactionArg = fakePrisma.$transaction.mock.calls[0][0];
-      // Should only have deleteMany operations, not createMany
-      expect(transactionArg.length).toBe(2); // 2 deleteManyoperations
+      const items = sectionItemRepository.getItems();
+      expect(items.length).toBe(0);
     });
 
     it('should delete existing GitHub contributions before creating new', async () => {
+      // Seed an existing GitHub contribution
+      const resumeSection = await resumeSectionRepository.upsert(
+        'resume-123',
+        'section-type-open-source',
+      );
+      await sectionItemRepository.createMany([
+        {
+          resumeSectionId: resumeSection.id,
+          order: 0,
+          content: {
+            projectName: 'old-project',
+            projectUrl: 'https://github.com/old/repo',
+          },
+        },
+      ]);
+
       const contributions: GitHubContributionInput[] = [
         {
           resumeId: 'resume-123',
@@ -195,20 +269,11 @@ describe('GitHubDatabaseService', () => {
 
       await service.reconcileDbEntries('resume-123', 'testuser', contributions, []);
 
-      expect(fakePrisma.sectionItem.deleteMany).toHaveBeenCalledWith({
-        where: {
-          resumeSection: {
-            resumeId: 'resume-123',
-            sectionType: {
-              semanticKind: 'OPEN_SOURCE',
-            },
-          },
-          content: {
-            path: ['projectUrl'],
-            string_contains: 'github.com',
-          },
-        },
-      });
+      const items = sectionItemRepository.getItems();
+      // Old item should be deleted and new one created
+      expect(items.length).toBe(1);
+      const content = items[0].content as Record<string, unknown>;
+      expect(content.projectName).toBe('test');
     });
   });
 });

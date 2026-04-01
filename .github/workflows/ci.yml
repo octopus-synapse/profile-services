@@ -1,257 +1,244 @@
 name: CI
 
 on:
-    pull_request:
-        branches: [main, dev]
-        paths-ignore:
-            - "CHANGELOG.md"
-            - ".release-please-manifest.json"
-            - "*.md"
-            - "docs/**"
-    workflow_dispatch:
+  pull_request:
+    branches: [main, dev]
+    paths-ignore:
+      - "CHANGELOG.md"
+      - ".release-please-manifest.json"
+      - "*.md"
+      - "docs/**"
+  workflow_dispatch:
 
 concurrency:
-    group: ci-${{ github.event.pull_request.number || github.ref }}
-    cancel-in-progress: true
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 permissions:
-    contents: read
-    pull-requests: write
+  contents: read
+  pull-requests: write
 
 jobs:
-    # ═══════════════════════════════════════════════════════════════════════════
-    # Gate: Skip duplicates
-    # ═══════════════════════════════════════════════════════════════════════════
-    should-skip:
-        name: Should Skip
-        runs-on: ubuntu-latest
-        outputs:
-            should_skip: ${{ steps.skip.outputs.should_skip }}
-        steps:
-            - id: skip
-              uses: fkirc/skip-duplicate-actions@v5
-              with:
-                  concurrent_skipping: "same_content_newer"
-                  skip_after_successful_duplicate: "true"
-                  paths_ignore: '["CHANGELOG.md", ".release-please-manifest.json", "*.md", "docs/**"]'
-
-    # ═══════════════════════════════════════════════════════════════════════════
-    # Gate: Detect changes
-    # ═══════════════════════════════════════════════════════════════════════════
-    detect-changes:
-        name: Detect Changes
-        needs: [should-skip]
-        if: needs.should-skip.outputs.should_skip != 'true'
-        runs-on: ubuntu-latest
-        outputs:
-            src: ${{ steps.filter.outputs.src }}
-            tests: ${{ steps.filter.outputs.tests }}
-            prisma: ${{ steps.filter.outputs.prisma }}
-        steps:
-            - uses: actions/checkout@v4
-            - uses: dorny/paths-filter@v3
-              id: filter
-              with:
-                  filters: |
-                      src:
-                        - 'src/**'
-                        - 'package.json'
-                        - 'bun.lockb'
-                        - 'tsconfig*.json'
-                      tests:
-                        - 'test/**'
-                      prisma:
-                        - 'prisma/**'
-
-    # ═══════════════════════════════════════════════════════════════════════════
-    # Gate: Verify pre-commit attestation
-    # ═══════════════════════════════════════════════════════════════════════════
-    verify-attestation:
-        name: Verify Pre-Commit
-        needs: [should-skip]
-        if: needs.should-skip.outputs.should_skip != 'true'
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v4
-              with:
-                  ref: ${{ github.event.pull_request.head.sha }}
-            - name: Verify Attestation
-              run: |
-                  chmod +x ./scripts/attestation.sh
-                  ./scripts/attestation.sh verify
-
-    # ═══════════════════════════════════════════════════════════════════════════
-    # Build: Docker smoke test (sem push — validação do Dockerfile apenas)
-    # ═══════════════════════════════════════════════════════════════════════════
-    build:
-        name: Build
-        needs: [should-skip, detect-changes]
-        if: |
-            needs.should-skip.outputs.should_skip != 'true' &&
-            (needs.detect-changes.outputs.src == 'true' || needs.detect-changes.outputs.prisma == 'true')
-        uses: ./.github/workflows/ci.build.yml
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Gate: Skip duplicates
+  # ═══════════════════════════════════════════════════════════════════════════
+  should-skip:
+    name: Should Skip
+    runs-on: ubuntu-latest
+    outputs:
+      should_skip: ${{ steps.skip.outputs.should_skip }}
+    steps:
+      - id: skip
+        uses: fkirc/skip-duplicate-actions@v5
         with:
-            image_tag: pr-${{ github.event.pull_request.number || github.run_number }}-${{ github.sha }}
-        secrets: inherit
+          concurrent_skipping: "same_content_newer"
+          skip_after_successful_duplicate: "true"
+          paths_ignore: '["CHANGELOG.md", ".release-please-manifest.json", "*.md", "docs/**"]'
 
-    # ═══════════════════════════════════════════════════════════════════════════
-    # NOTE: Unit tests are NOT run in CI.
-    # They already run in pre-commit (verified by attestation).
-    # Running them again here would be pure duplication.
-    # ═══════════════════════════════════════════════════════════════════════════
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Gate: Detect changes
+  # ═══════════════════════════════════════════════════════════════════════════
+  detect-changes:
+    name: Detect Changes
+    needs: [should-skip]
+    if: needs.should-skip.outputs.should_skip != 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      src: ${{ steps.filter.outputs.src }}
+      tests: ${{ steps.filter.outputs.tests }}
+      prisma: ${{ steps.filter.outputs.prisma }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            src:
+              - 'src/**'
+              - 'package.json'
+              - 'bun.lockb'
+              - 'tsconfig*.json'
+            tests:
+              - 'test/**'
+            prisma:
+              - 'prisma/**'
 
-    # ═══════════════════════════════════════════════════════════════════════════
-    # Test: Integration
-    # ═══════════════════════════════════════════════════════════════════════════
-    integration:
-        name: Integration
-        needs: [should-skip, detect-changes, verify-attestation]
-        if: |
-            needs.should-skip.outputs.should_skip != 'true' &&
-            needs.verify-attestation.result == 'success' &&
-            (needs.detect-changes.outputs.src == 'true' || needs.detect-changes.outputs.prisma == 'true')
-        uses: ./.github/workflows/ci.integration.yml
-        secrets: inherit
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Gate: Verify pre-commit attestation
+  # ═══════════════════════════════════════════════════════════════════════════
+  verify-attestation:
+    name: Verify Pre-Commit
+    needs: [should-skip]
+    if: needs.should-skip.outputs.should_skip != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Verify Attestation
+        run: |
+          chmod +x ./scripts/attestation.sh
+          ./scripts/attestation.sh verify
 
-    # ═══════════════════════════════════════════════════════════════════════════
-    # Test: E2E
-    # ═══════════════════════════════════════════════════════════════════════════
-    e2e:
-        name: E2E
-        needs: [should-skip, detect-changes, verify-attestation]
-        if: |
-            needs.should-skip.outputs.should_skip != 'true' &&
-            needs.verify-attestation.result == 'success' &&
-            (needs.detect-changes.outputs.src == 'true' || needs.detect-changes.outputs.prisma == 'true')
-        uses: ./.github/workflows/ci.e2e.yml
-        secrets: inherit
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Build: Docker smoke test (sem push — validação do Dockerfile apenas)
+  # ═══════════════════════════════════════════════════════════════════════════
+  build:
+    name: Build
+    needs: [should-skip, detect-changes]
+    if: |
+      needs.should-skip.outputs.should_skip != 'true' &&
+      (needs.detect-changes.outputs.src == 'true' || needs.detect-changes.outputs.prisma == 'true')
+    uses: ./.github/workflows/ci.build.yml
+    with:
+      image_tag: pr-${{ github.event.pull_request.number || github.run_number }}-${{ github.sha }}
+    secrets: inherit
 
-    # ═══════════════════════════════════════════════════════════════════════════
-    # Test: Security (Static Analysis)
-    # Runs on all PRs - lightweight static analysis, no DB needed
-    # ═══════════════════════════════════════════════════════════════════════════
-    security:
-        name: Security
-        needs: [should-skip]
-        if: needs.should-skip.outputs.should_skip != 'true'
-        runs-on: ubuntu-latest
-        steps:
-            - uses: actions/checkout@v4
-            - uses: oven-sh/setup-bun@v2
-              with:
-                  bun-version: latest
-            - name: Install dependencies
-              run: bun install --frozen-lockfile
-            - name: Run Security Tests
-              run: bun run test:security
-              continue-on-error: true
-            - name: Security Test Summary
-              if: always()
-              run: |
-                  echo "## 🔒 Security Analysis" >> $GITHUB_STEP_SUMMARY
-                  echo "" >> $GITHUB_STEP_SUMMARY
-                  echo "Static security analysis completed. Check test output for details." >> $GITHUB_STEP_SUMMARY
+  # ═══════════════════════════════════════════════════════════════════════════
+  # NOTE: Unit tests are NOT run in CI.
+  # They already run in pre-commit (verified by attestation).
+  # Running them again here would be pure duplication.
+  # ═══════════════════════════════════════════════════════════════════════════
 
-    # ═══════════════════════════════════════════════════════════════════════════
-    # Summary
-    # ═══════════════════════════════════════════════════════════════════════════
-    status:
-        name: CI Status
-        needs: [verify-attestation, build, integration, e2e, security]
-        if: always()
-        runs-on: ubuntu-latest
-        steps:
-            - name: Check Results
-              id: check
-              run: |
-                  echo "## 📊 CI Summary" >> $GITHUB_STEP_SUMMARY
-                  echo "" >> $GITHUB_STEP_SUMMARY
-                  echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
-                  echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
-                  echo "| Attestation | ${{ needs.verify-attestation.result }} |" >> $GITHUB_STEP_SUMMARY
-                  echo "| Build | ${{ needs.build.result }} |" >> $GITHUB_STEP_SUMMARY
-                  echo "| Integration | ${{ needs.integration.result }} |" >> $GITHUB_STEP_SUMMARY
-                  echo "| E2E | ${{ needs.e2e.result }} |" >> $GITHUB_STEP_SUMMARY
-                  echo "| Security | ${{ needs.security.result }} |" >> $GITHUB_STEP_SUMMARY
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Test: Integration
+  # ═══════════════════════════════════════════════════════════════════════════
+  integration:
+    name: Integration
+    needs: [should-skip, detect-changes, verify-attestation]
+    if: |
+      needs.should-skip.outputs.should_skip != 'true' &&
+      needs.verify-attestation.result == 'success' &&
+      (needs.detect-changes.outputs.src == 'true' || needs.detect-changes.outputs.prisma == 'true')
+    uses: ./.github/workflows/ci.infrastructure.integration.yml
+    secrets: inherit
 
-                  if [[ "${{ needs.verify-attestation.result }}" == "failure" ]] || \
-                     [[ "${{ needs.build.result }}" == "failure" ]] || \
-                     [[ "${{ needs.integration.result }}" == "failure" ]] || \
-                     [[ "${{ needs.e2e.result }}" == "failure" ]]; then
-                    echo "" >> $GITHUB_STEP_SUMMARY
-                    echo "❌ **CI failed**" >> $GITHUB_STEP_SUMMARY
-                    echo "outcome=failure" >> $GITHUB_OUTPUT
-                    exit 1
-                  fi
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Test: E2E
+  # ═══════════════════════════════════════════════════════════════════════════
+  e2e:
+    name: E2E
+    needs: [should-skip, detect-changes, verify-attestation]
+    if: |
+      needs.should-skip.outputs.should_skip != 'true' &&
+      needs.verify-attestation.result == 'success' &&
+      (needs.detect-changes.outputs.src == 'true' || needs.detect-changes.outputs.prisma == 'true')
+    uses: ./.github/workflows/ci.infrastructure.e2e.yml
+    secrets: inherit
 
-                  echo "" >> $GITHUB_STEP_SUMMARY
-                  echo "✅ **CI passed**" >> $GITHUB_STEP_SUMMARY
-                  echo "outcome=success" >> $GITHUB_OUTPUT
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Test: Security
+  # ═══════════════════════════════════════════════════════════════════════════
+  security:
+    name: Security
+    needs: [should-skip, detect-changes, verify-attestation]
+    if: |
+      needs.should-skip.outputs.should_skip != 'true' &&
+      needs.verify-attestation.result == 'success' &&
+      (needs.detect-changes.outputs.src == 'true' || needs.detect-changes.outputs.tests == 'true')
+    uses: ./.github/workflows/ci.static-analysis.security.yml
+    secrets: inherit
 
-            - name: Comment on PR (Failure)
-              if: failure() && github.event_name == 'pull_request'
-              uses: actions/github-script@v7
-              with:
-                  script: |
-                      const results = {
-                        attestation: '${{ needs.verify-attestation.result }}',
-                        build: '${{ needs.build.result }}',
-                        integration: '${{ needs.integration.result }}',
-                        e2e: '${{ needs.e2e.result }}'
-                      };
+  # ═══════════════════════════════════════════════════════════════════════════
+  # Summary
+  # ═══════════════════════════════════════════════════════════════════════════
+  status:
+    name: CI Status
+    needs: [verify-attestation, build, integration, e2e, security]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Results
+        id: check
+        run: |
+          echo "## 📊 CI Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Attestation | ${{ needs.verify-attestation.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Build | ${{ needs.build.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Integration | ${{ needs.integration.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| E2E | ${{ needs.e2e.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Security | ${{ needs.security.result }} |" >> $GITHUB_STEP_SUMMARY
 
-                      const statusIcon = (s) => s === 'success' ? '✅' : s === 'skipped' ? '⏭️' : '❌';
+          if [[ "${{ needs.verify-attestation.result }}" == "failure" ]] || \
+             [[ "${{ needs.build.result }}" == "failure" ]] || \
+             [[ "${{ needs.integration.result }}" == "failure" ]] || \
+             [[ "${{ needs.e2e.result }}" == "failure" ]]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "❌ **CI failed**" >> $GITHUB_STEP_SUMMARY
+            echo "outcome=failure" >> $GITHUB_OUTPUT
+            exit 1
+          fi
 
-                      const failures = Object.entries(results)
-                        .filter(([_, status]) => status === 'failure')
-                        .map(([name]) => `- ❌ \`${name}\``)
-                        .join('\n');
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **CI passed**" >> $GITHUB_STEP_SUMMARY
+          echo "outcome=success" >> $GITHUB_OUTPUT
 
-                      const body = [
-                        '## ❌ CI Failed',
-                        '',
-                        'The following checks failed:',
-                        failures,
-                        '',
-                        '> Check the workflow run for details.'
-                      ].join('\n');
+      - name: Comment on PR (Failure)
+        if: failure() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const results = {
+              attestation: '${{ needs.verify-attestation.result }}',
+              build: '${{ needs.build.result }}',
+              integration: '${{ needs.integration.result }}',
+              e2e: '${{ needs.e2e.result }}'
+            };
 
-                      github.rest.issues.createComment({
-                        issue_number: context.issue.number,
-                        owner: context.repo.owner,
-                        repo: context.repo.repo,
-                        body
-                      });
+            const statusIcon = (s) => s === 'success' ? '✅' : s === 'skipped' ? '⏭️' : '❌';
 
-            - name: Comment on PR (Success)
-              if: success() && github.event_name == 'pull_request'
-              uses: actions/github-script@v7
-              with:
-                  script: |
-                      const results = {
-                        attestation: '${{ needs.verify-attestation.result }}',
-                        build: '${{ needs.build.result }}',
-                        integration: '${{ needs.integration.result }}',
-                        e2e: '${{ needs.e2e.result }}'
-                      };
+            const failures = Object.entries(results)
+              .filter(([_, status]) => status === 'failure')
+              .map(([name]) => `- ❌ \`${name}\``)
+              .join('\n');
 
-                      const statusIcon = (s) => s === 'success' ? '✅' : s === 'skipped' ? '⏭️' : '➖';
+            const body = [
+              '## ❌ CI Failed',
+              '',
+              'The following checks failed:',
+              failures,
+              '',
+              '> Check the workflow run for details.'
+            ].join('\n');
 
-                      const rows = Object.entries(results)
-                        .map(([name, status]) => `| \`${name}\` | ${statusIcon(status)} ${status} |`)
-                        .join('\n');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body
+            });
 
-                      const body = [
-                        '## ✅ CI Passed',
-                        '',
-                        '| Check | Status |',
-                        '|-------|--------|',
-                        rows,
-                      ].join('\n');
+      - name: Comment on PR (Success)
+        if: success() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const results = {
+              attestation: '${{ needs.verify-attestation.result }}',
+              build: '${{ needs.build.result }}',
+              integration: '${{ needs.integration.result }}',
+              e2e: '${{ needs.e2e.result }}'
+            };
 
-                      github.rest.issues.createComment({
-                        issue_number: context.issue.number,
-                        owner: context.repo.owner,
-                        repo: context.repo.repo,
-                        body
-                      });
+            const statusIcon = (s) => s === 'success' ? '✅' : s === 'skipped' ? '⏭️' : '➖';
+
+            const rows = Object.entries(results)
+              .map(([name, status]) => `| \`${name}\` | ${statusIcon(status)} ${status} |`)
+              .join('\n');
+
+            const body = [
+              '## ✅ CI Passed',
+              '',
+              '| Check | Status |',
+              '|-------|--------|',
+              rows,
+            ].join('\n');
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body
+            });

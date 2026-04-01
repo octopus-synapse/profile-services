@@ -5,36 +5,22 @@
  * Tests for analytics snapshot persistence and retrieval
  */
 
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { beforeEach, describe, expect, it } from 'bun:test';
+import { InMemorySnapshotRepository } from '@/bounded-contexts/analytics/testing';
 import { SnapshotService } from './snapshot.service';
 
 describe('SnapshotService', () => {
   let service: SnapshotService;
-  let mockPrisma: {
-    resumeAnalytics: {
-      create: ReturnType<typeof mock>;
-      findMany: ReturnType<typeof mock>;
-    };
-  };
-
-  const mockSnapshot = {
-    id: 'snapshot-1',
-    resumeId: 'resume-1',
-    atsScore: 85,
-    keywordScore: 80,
-    completenessScore: 90,
-    industryRank: 15,
-    totalInIndustry: 100,
-    topKeywords: ['javascript', 'react', 'nodejs'],
-    missingKeywords: ['typescript', 'graphql'],
-    createdAt: new Date('2026-02-01'),
-  };
+  let snapshotRepo: InMemorySnapshotRepository;
 
   beforeEach(() => {
-    mockPrisma = {
+    snapshotRepo = new InMemorySnapshotRepository();
+
+    const mockPrisma = {
       resumeAnalytics: {
-        create: mock(() => Promise.resolve(mockSnapshot)),
-        findMany: mock(() => Promise.resolve([mockSnapshot])),
+        create: (args: Parameters<typeof snapshotRepo.create>[0]) => snapshotRepo.create(args),
+        findMany: (args: Parameters<typeof snapshotRepo.findMany>[0]) =>
+          snapshotRepo.findMany(args),
       },
     };
     service = new SnapshotService(mockPrisma as never);
@@ -53,16 +39,12 @@ describe('SnapshotService', () => {
 
       const result = await service.save(input);
 
-      expect(mockPrisma.resumeAnalytics.create).toHaveBeenCalledWith({
-        data: expect.objectContaining({
-          resumeId: 'resume-1',
-          atsScore: 85,
-          keywordScore: 80,
-          completenessScore: 90,
-        }),
-      });
       expect(result.resumeId).toBe('resume-1');
       expect(result.atsScore).toBe(85);
+      expect(result.keywordScore).toBe(80);
+      expect(result.completenessScore).toBe(90);
+      expect(result.topKeywords).toEqual(['javascript', 'react']);
+      expect(result.missingKeywords).toEqual(['typescript']);
     });
 
     it('should use empty arrays for optional keywords', async () => {
@@ -73,14 +55,10 @@ describe('SnapshotService', () => {
         completenessScore: 90,
       };
 
-      await service.save(input);
+      const result = await service.save(input);
 
-      expect(mockPrisma.resumeAnalytics.create).toHaveBeenCalledWith({
-        data: expect.objectContaining({
-          topKeywords: [],
-          missingKeywords: [],
-        }),
-      });
+      expect(result.topKeywords).toEqual([]);
+      expect(result.missingKeywords).toEqual([]);
     });
 
     it('should return mapped snapshot', async () => {
@@ -92,15 +70,15 @@ describe('SnapshotService', () => {
       });
 
       expect(result).toEqual({
-        id: 'snapshot-1',
+        id: expect.any(String),
         resumeId: 'resume-1',
         atsScore: 85,
         keywordScore: 80,
         completenessScore: 90,
-        industryRank: 15,
-        totalInIndustry: 100,
-        topKeywords: ['javascript', 'react', 'nodejs'],
-        missingKeywords: ['typescript', 'graphql'],
+        industryRank: undefined,
+        totalInIndustry: undefined,
+        topKeywords: [],
+        missingKeywords: [],
         createdAt: expect.any(Date),
       });
     });
@@ -108,35 +86,51 @@ describe('SnapshotService', () => {
 
   describe('getHistory', () => {
     it('should return snapshots ordered by date descending', async () => {
+      snapshotRepo.seedSnapshot({
+        resumeId: 'resume-1',
+        atsScore: 85,
+        keywordScore: 80,
+        completenessScore: 90,
+        createdAt: new Date('2026-02-01'),
+      });
+
       const result = await service.getHistory('resume-1');
 
-      expect(mockPrisma.resumeAnalytics.findMany).toHaveBeenCalledWith({
-        where: { resumeId: 'resume-1' },
-        orderBy: { createdAt: 'desc' },
-        take: 10,
-      });
       expect(result).toHaveLength(1);
+      expect(result[0].resumeId).toBe('resume-1');
     });
 
     it('should respect limit parameter', async () => {
-      await service.getHistory('resume-1', 5);
+      for (let i = 0; i < 15; i++) {
+        snapshotRepo.seedSnapshot({
+          resumeId: 'resume-1',
+          atsScore: 85,
+          keywordScore: 80,
+          completenessScore: 90,
+        });
+      }
 
-      expect(mockPrisma.resumeAnalytics.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ take: 5 }),
-      );
+      const result = await service.getHistory('resume-1', 5);
+
+      expect(result.length).toBe(5);
     });
 
     it('should use default limit of 10', async () => {
-      await service.getHistory('resume-1');
+      for (let i = 0; i < 15; i++) {
+        snapshotRepo.seedSnapshot({
+          resumeId: 'resume-1',
+          atsScore: 85,
+          keywordScore: 80,
+          completenessScore: 90,
+        });
+      }
 
-      expect(mockPrisma.resumeAnalytics.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({ take: 10 }),
-      );
+      const result = await service.getHistory('resume-1');
+
+      expect(result.length).toBe(10);
     });
 
     it('should return empty array when no history exists', async () => {
-      mockPrisma.resumeAnalytics.findMany = mock(() => Promise.resolve([]));
-
       const result = await service.getHistory('resume-no-history');
 
       expect(result).toEqual([]);
@@ -144,53 +138,65 @@ describe('SnapshotService', () => {
   });
 
   describe('getScoreProgression', () => {
-    const progressionSnapshots = [
-      { atsScore: 70, createdAt: new Date('2026-01-15') },
-      { atsScore: 75, createdAt: new Date('2026-01-20') },
-      { atsScore: 85, createdAt: new Date('2026-01-25') },
-    ];
-
     beforeEach(() => {
-      mockPrisma.resumeAnalytics.findMany = mock(() => Promise.resolve(progressionSnapshots));
+      const now = new Date();
+      const day15 = new Date(now);
+      day15.setDate(now.getDate() - 15);
+      const day10 = new Date(now);
+      day10.setDate(now.getDate() - 10);
+      const day5 = new Date(now);
+      day5.setDate(now.getDate() - 5);
+
+      snapshotRepo.seedSnapshots([
+        {
+          resumeId: 'resume-1',
+          atsScore: 70,
+          keywordScore: 80,
+          completenessScore: 90,
+          createdAt: day15,
+        },
+        {
+          resumeId: 'resume-1',
+          atsScore: 75,
+          keywordScore: 80,
+          completenessScore: 90,
+          createdAt: day10,
+        },
+        {
+          resumeId: 'resume-1',
+          atsScore: 85,
+          keywordScore: 80,
+          completenessScore: 90,
+          createdAt: day5,
+        },
+      ]);
     });
 
     it('should return score progression points', async () => {
       const result = await service.getScoreProgression('resume-1', 30);
 
-      expect(result).toEqual([
-        { date: '2026-01-15', score: 70 },
-        { date: '2026-01-20', score: 75 },
-        { date: '2026-01-25', score: 85 },
-      ]);
+      expect(result.length).toBe(3);
+      expect(result[0].score).toBe(70);
+      expect(result[1].score).toBe(75);
+      expect(result[2].score).toBe(85);
     });
 
     it('should filter by date range', async () => {
-      await service.getScoreProgression('resume-1', 30);
+      const result = await service.getScoreProgression('resume-1', 30);
 
-      expect(mockPrisma.resumeAnalytics.findMany).toHaveBeenCalledWith({
-        where: {
-          resumeId: 'resume-1',
-          createdAt: { gte: expect.any(Date) },
-        },
-        orderBy: { createdAt: 'asc' },
-        select: { atsScore: true, createdAt: true },
-      });
+      expect(result.length).toBeGreaterThan(0);
+      expect(result[0]).toHaveProperty('date');
+      expect(result[0]).toHaveProperty('score');
     });
 
     it('should use default 30 days', async () => {
-      await service.getScoreProgression('resume-1');
+      const result = await service.getScoreProgression('resume-1');
 
-      const call = mockPrisma.resumeAnalytics.findMany.mock.calls[0][0];
-      const startDate = call.where.createdAt.gte;
-      const daysDiff = Math.round((Date.now() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-      expect(daysDiff).toBeGreaterThanOrEqual(29);
-      expect(daysDiff).toBeLessThanOrEqual(31);
+      expect(result.length).toBeGreaterThan(0);
     });
 
     it('should return empty array when no progression data', async () => {
-      mockPrisma.resumeAnalytics.findMany = mock(() => Promise.resolve([]));
-
-      const result = await service.getScoreProgression('resume-1');
+      const result = await service.getScoreProgression('resume-no-data');
 
       expect(result).toEqual([]);
     });

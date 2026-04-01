@@ -1,7 +1,7 @@
 # ==================================
 # Stage 1: Dependencies (cached when package.json doesn't change)
 # ==================================
-FROM oven/bun:1.3.10-alpine AS deps
+FROM oven/bun:1.3.11-alpine AS deps
 
 WORKDIR /app
 
@@ -36,7 +36,7 @@ RUN --mount=type=cache,target=/root/.bun/install/cache \
 # ==================================
 # Stage 3: Production Runtime
 # ==================================
-FROM oven/bun:1.3.10-alpine AS runner
+FROM oven/bun:1.3.11-alpine AS runner
 
 # Install runtime dependencies
 RUN apk add --no-cache \

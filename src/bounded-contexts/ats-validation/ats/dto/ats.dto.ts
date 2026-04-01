@@ -78,4 +78,4 @@ export class ATSValidationIssueDto extends createZodDto(ATSValidationIssueSchema
 export class ATSValidationResponseDto extends createZodDto(ATSValidationResponseSchema) {}
 
 // Export schemas for validation
-export { ValidateCVOptionsSchema, ValidationResponseSchema, ATSValidationResponseSchema };
+export { ATSValidationResponseSchema, ValidateCVOptionsSchema, ValidationResponseSchema };

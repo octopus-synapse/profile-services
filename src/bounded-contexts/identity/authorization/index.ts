@@ -4,6 +4,10 @@
  * Public API for the authorization system.
  */
 
+export { AuthorizationServicePort } from './application/ports/authorization-service.port';
+// Application Services & Ports
+export { AuthorizationService } from './application/services/authorization.service';
+export { AuthorizationManagementService } from './application/services/authorization-management.service';
 // Module
 export * from './authorization.module';
 export {
@@ -31,7 +35,6 @@ export {
   type RoleProps,
   type UpdateRoleInput,
 } from './domain/entities/role.entity';
-
 export {
   type PermissionSource,
   type ResolvedPermission,
@@ -54,11 +57,7 @@ export {
   RequireRoles,
 } from './infrastructure/guards/permission.guard';
 export { GroupRepository } from './infrastructure/repositories/group.repository';
-
 // Repositories (for admin use)
 export { PermissionRepository } from './infrastructure/repositories/permission.repository';
 export { RoleRepository } from './infrastructure/repositories/role.repository';
 export { UserAuthorizationRepository } from './infrastructure/repositories/user-authorization.repository';
-// Services
-export { AuthorizationService } from './services/authorization.service';
-export { AuthorizationServicePort } from './services/authorization-service.port';

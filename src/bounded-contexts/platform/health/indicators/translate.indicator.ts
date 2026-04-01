@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { HealthCheckError, HealthIndicator, HealthIndicatorResult } from '@nestjs/terminus';
-import { TranslationService } from '@/bounded-contexts/translation/translation/translation.service';
+import { TranslationService } from '@/bounded-contexts/translation';
 
 @Injectable()
 export class TranslateHealthIndicator extends HealthIndicator {

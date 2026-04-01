@@ -8,7 +8,7 @@ import type {
   BackupCodeRecord,
   TwoFactorRecord,
   TwoFactorRepositoryPort,
-} from '../../../two-factor-auth/ports/outbound/two-factor-repository.port';
+} from '../../../two-factor-auth/domain/ports/two-factor.repository.port';
 
 export class InMemoryTwoFactorRepository implements TwoFactorRepositoryPort {
   private records: Map<string, TwoFactorRecord> = new Map();

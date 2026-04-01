@@ -48,6 +48,13 @@ export class RateLimitGuard implements CanActivate {
     }
 
     const request = context.switchToHttp().getRequest<RequestWithUser>();
+
+    // E2E test bypass - check for special header in non-production environments
+    const isProduction = process.env.NODE_ENV === 'production';
+    const hasE2EBypass = request.headers['x-e2e-bypass-rate-limit'] === 'true';
+    if (!isProduction && hasE2EBypass) {
+      return true;
+    }
     const response = context.switchToHttp().getResponse<Response>();
 
     const options = this.reflector.get<RateLimitOptions | undefined>(

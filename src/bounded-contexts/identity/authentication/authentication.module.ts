@@ -7,32 +7,12 @@ import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { NestEventBusAdapter } from '../shared-kernel/adapters';
 import { JwtStrategy } from '../shared-kernel/infrastructure/strategies';
 import type { EventBusPort } from '../shared-kernel/ports/event-bus.port';
-import type { Validate2faPort } from '../two-factor-auth/ports/inbound';
-import { VALIDATE_2FA_PORT } from '../two-factor-auth/ports/inbound';
+import type { Validate2faInboundPort } from '../two-factor-auth/application/ports';
+import { VALIDATE_2FA_INBOUND_PORT } from '../two-factor-auth/application/ports';
 // Cross-BC: Two-Factor Auth
 import { TwoFactorAuthModule } from '../two-factor-auth/two-factor-auth.module';
-// Outbound Adapters (Infrastructure)
-import {
-  BcryptPasswordHasher,
-  CookieSessionStorage,
-  JwtTokenGenerator,
-  PrismaAuthenticationRepository,
-} from './adapters';
-// Controllers (Inbound Adapters)
-// Use Cases (Application Services)
-import {
-  CreateSessionUseCase,
-  LoginController,
-  LoginUseCase,
-  LogoutController,
-  LogoutUseCase,
-  RefreshTokenController,
-  RefreshTokenUseCase,
-  SessionController,
-  TerminateSessionUseCase,
-  ValidateSessionUseCase,
-} from './modules';
-// Ports (Symbols for DI)
+
+// Application Ports
 import {
   CREATE_SESSION_PORT,
   LOGIN_PORT,
@@ -40,12 +20,42 @@ import {
   REFRESH_TOKEN_PORT,
   TERMINATE_SESSION_PORT,
   VALIDATE_SESSION_PORT,
-} from './ports/inbound';
-import type { AuthenticationRepositoryPort } from './ports/outbound/authentication-repository.port';
-import type { PasswordHasherPort } from './ports/outbound/password-hasher.port';
-import type { SessionStoragePort } from './ports/outbound/session-storage.port';
-import type { TokenGeneratorPort } from './ports/outbound/token-generator.port';
-import { TOKEN_GENERATOR_PORT } from './ports/outbound/token-generator.port';
+} from './application/ports';
+
+// Application Use Cases
+import {
+  CreateSessionUseCase,
+  LoginUseCase,
+  LogoutUseCase,
+  RefreshTokenUseCase,
+  TerminateSessionUseCase,
+  ValidateSessionUseCase,
+} from './application/use-cases';
+
+// Domain Ports
+import type {
+  AuthenticationRepositoryPort,
+  PasswordHasherPort,
+  SessionStoragePort,
+  TokenGeneratorPort,
+} from './domain/ports';
+import { TOKEN_GENERATOR_PORT } from './domain/ports';
+
+// Infrastructure Adapters
+import {
+  BcryptPasswordHasher,
+  CookieSessionStorage,
+  JwtTokenGenerator,
+  PrismaAuthenticationRepository,
+} from './infrastructure/adapters';
+
+// Infrastructure Controllers
+import {
+  LoginController,
+  LogoutController,
+  RefreshTokenController,
+  SessionController,
+} from './infrastructure/controllers';
 
 // Port symbols for outbound adapters
 const AUTH_REPOSITORY = Symbol('AuthenticationRepositoryPort');
@@ -105,7 +115,7 @@ const EVENT_BUS = Symbol('EventBusPort');
         passwordHasher: PasswordHasherPort,
         tokenGenerator: TokenGeneratorPort,
         eventBus: EventBusPort,
-        validate2fa: Validate2faPort,
+        validate2fa: Validate2faInboundPort,
       ) => {
         return new LoginUseCase(repository, passwordHasher, tokenGenerator, eventBus, validate2fa);
       },
@@ -114,7 +124,7 @@ const EVENT_BUS = Symbol('EventBusPort');
         PASSWORD_HASHER,
         TOKEN_GENERATOR_PORT,
         EVENT_BUS,
-        VALIDATE_2FA_PORT,
+        VALIDATE_2FA_INBOUND_PORT,
       ],
     },
     {

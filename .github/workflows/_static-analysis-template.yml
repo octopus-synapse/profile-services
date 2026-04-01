@@ -1,0 +1,35 @@
+name: _static-analysis-template
+
+on:
+    workflow_call:
+        inputs:
+            test-command:
+                description: "Command to run tests"
+                required: true
+                type: string
+            test-name:
+                description: "Test name for summary"
+                required: true
+                type: string
+            timeout:
+                description: "Timeout in minutes"
+                required: false
+                type: number
+                default: 10
+
+env:
+    NODE_ENV: test
+
+jobs:
+    test:
+        name: ${{ inputs.test-name }} Tests
+        runs-on: ubuntu-latest
+        timeout-minutes: ${{ inputs.timeout }}
+
+        steps:
+            - uses: actions/checkout@v4
+            - uses: ./.github/actions/setup-static-analysis-env
+              with:
+                  test-command: ${{ inputs.test-command }}
+                  test-name: ${{ inputs.test-name }}
+                  artifact-name: ${{ inputs.test-name }}-results

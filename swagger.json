@@ -9968,6 +9968,20 @@
             }
           },
           {
+            "name": "locale",
+            "required": false,
+            "in": "query",
+            "description": "Locale for translated section titles",
+            "schema": {
+              "enum": [
+                "en",
+                "pt-BR",
+                "es"
+              ],
+              "type": "string"
+            }
+          },
+          {
             "name": "target",
             "required": false,
             "in": "query",
@@ -10036,6 +10050,20 @@
             "required": true,
             "in": "path",
             "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "locale",
+            "required": false,
+            "in": "query",
+            "description": "Locale for translated section titles",
+            "schema": {
+              "enum": [
+                "en",
+                "pt-BR",
+                "es"
+              ],
               "type": "string"
             }
           },

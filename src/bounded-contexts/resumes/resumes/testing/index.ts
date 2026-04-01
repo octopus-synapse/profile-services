@@ -11,6 +11,8 @@ import { ResumeVersionServicePort } from '../ports/resume-version-service.port';
 import { type ResumeEntity, ResumesRepositoryPort } from '../ports/resumes-repository.port';
 import { ResumesService } from '../resumes.service';
 
+export { createTestGenericResumeSectionsService } from './create-test-generic-sections-service';
+export { InMemoryGenericResumeSectionsRepository } from './in-memory-generic-resume-sections.repository';
 export type { ResumeEntity };
 
 // Type for seeding resumes - accepts broader input

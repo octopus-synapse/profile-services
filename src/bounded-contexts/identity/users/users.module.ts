@@ -6,31 +6,31 @@ import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ResumesModule } from '@/bounded-contexts/resumes/resumes/resumes.module';
 import {
-  UserManagementController,
-  UsersPreferencesController,
-  UsersProfileController,
-} from './controllers';
-import { UserMutationRepository, UserQueryRepository } from './repositories';
-import {
   UserManagementService,
   UsernameService,
   UserPreferencesService,
   UserProfileService,
-} from './services';
+  UsersService,
+} from './application/services';
 import {
   buildUserManagementUseCases,
   USER_MANAGEMENT_USE_CASES,
-} from './services/user-management/user-management.composition';
+} from './application/user-management.composition';
 import {
   buildUserPreferencesUseCases,
   USER_PREFERENCES_USE_CASES,
-} from './services/user-preferences/user-preferences.composition';
+} from './application/user-preferences.composition';
+import { buildUsernameUseCases, USERNAME_USE_CASES } from './application/username.composition';
 import {
-  buildUsernameUseCases,
-  USERNAME_USE_CASES,
-} from './services/username/username.composition';
-import { UsersRepository } from './users.repository';
-import { UsersService } from './users.service';
+  UserMutationRepository,
+  UserQueryRepository,
+  UsersRepository,
+} from './infrastructure/adapters/persistence';
+import {
+  UserManagementController,
+  UsersPreferencesController,
+  UsersProfileController,
+} from './infrastructure/controllers';
 
 @Module({
   imports: [PrismaModule, ResumesModule, LoggerModule, AuthorizationModule],

@@ -4,29 +4,24 @@
  * Tests for industry benchmark calculations and comparisons
  */
 
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { beforeEach, describe, expect, it } from 'bun:test';
+import {
+  defaultResumeAnalytics,
+  InMemoryBenchmarkRepository,
+} from '@/bounded-contexts/analytics/testing';
 import { BenchmarkService } from './benchmark.service';
 
 describe('BenchmarkService', () => {
   let service: BenchmarkService;
-  let mockPrisma: {
-    resumeAnalytics: {
-      findMany: ReturnType<typeof mock>;
-    };
-  };
+  let benchmarkRepo: InMemoryBenchmarkRepository;
 
   beforeEach(() => {
-    mockPrisma = {
+    benchmarkRepo = new InMemoryBenchmarkRepository();
+    benchmarkRepo.seedMultipleAnalytics(defaultResumeAnalytics);
+
+    const mockPrisma = {
       resumeAnalytics: {
-        findMany: mock(() =>
-          Promise.resolve([
-            { atsScore: 60 },
-            { atsScore: 70 },
-            { atsScore: 75 },
-            { atsScore: 80 },
-            { atsScore: 90 },
-          ]),
-        ),
+        findMany: (args?: { select?: Record<string, boolean> }) => benchmarkRepo.findMany(args),
       },
     };
     service = new BenchmarkService(mockPrisma as never);
@@ -70,7 +65,7 @@ describe('BenchmarkService', () => {
     });
 
     it('should handle empty dataset', async () => {
-      mockPrisma.resumeAnalytics.findMany = mock(() => Promise.resolve([]));
+      benchmarkRepo.clear();
 
       const result = await service.getIndustryBenchmark(75, {
         industry: 'software_engineering',

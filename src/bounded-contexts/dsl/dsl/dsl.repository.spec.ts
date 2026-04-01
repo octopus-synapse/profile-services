@@ -6,7 +6,8 @@
 
 import { beforeEach, describe, expect, it } from 'bun:test';
 import { BadRequestException } from '@nestjs/common';
-import { createMockResume } from '@test/factories/resume.factory';
+import { createMockResume } from '@test/shared/factories/resume.factory';
+import { resolveTranslation, type TranslationsJson } from '@/shared-kernel/utils/locale-resolver';
 import { DslRepository } from './dsl.repository';
 import { InMemoryDslCompiler, InMemoryDslValidator, mockAst } from './testing';
 
@@ -35,12 +36,19 @@ type ShareLike = {
   resume: ResumeLike;
 };
 
+type SectionTypeLike = {
+  key: string;
+  title: string;
+  translations: unknown;
+};
+
 /**
  * Simple in-memory Prisma service for testing
  */
 class InMemoryPrismaService {
   private resumes = new Map<string, ResumeLike>();
   private shares = new Map<string, ShareLike>();
+  private sectionTypes: SectionTypeLike[] = [];
 
   resume = {
     findFirst: async (args: { where: { id: string; userId: string } }) => {
@@ -58,6 +66,12 @@ class InMemoryPrismaService {
     },
   };
 
+  sectionType = {
+    findMany: async () => {
+      return this.sectionTypes;
+    },
+  };
+
   // Test helpers
   seedResume(resume: ResumeLike): void {
     this.resumes.set(resume.id, resume);
@@ -67,9 +81,14 @@ class InMemoryPrismaService {
     this.shares.set(share.slug, share);
   }
 
+  seedSectionTypes(types: SectionTypeLike[]): void {
+    this.sectionTypes = types;
+  }
+
   clear(): void {
     this.resumes.clear();
     this.shares.clear();
+    this.sectionTypes = [];
   }
 }
 
@@ -375,6 +394,141 @@ describe('DslRepository', () => {
       await expect(repository.render('resume-actionable', 'user-123')).rejects.toThrow(
         /apply.*theme|select.*theme/i,
       );
+    });
+  });
+
+  /**
+   * TDD: Section Title Translation Tests
+   *
+   * Tests that verify section titles are properly translated
+   * and never show raw database keys like "Summary_v1"
+   */
+  describe('resolveTranslation - section title translation', () => {
+    const mockTranslations: TranslationsJson = {
+      en: {
+        title: 'Professional Summary',
+        description: 'A brief summary of your professional background',
+        label: 'Summary',
+        noDataLabel: 'No summary yet',
+        placeholder: 'Write your summary...',
+        addLabel: 'Add Summary',
+      },
+      'pt-BR': {
+        title: 'Resumo Profissional',
+        description: 'Um breve resumo do seu histórico profissional',
+        label: 'Resumo',
+        noDataLabel: 'Sem resumo ainda',
+        placeholder: 'Escreva seu resumo...',
+        addLabel: 'Adicionar Resumo',
+      },
+      es: {
+        title: 'Resumen Profesional',
+        description: 'Un breve resumen de tu trayectoria profesional',
+        label: 'Resumen',
+        noDataLabel: 'Sin resumen aún',
+        placeholder: 'Escribe tu resumen...',
+        addLabel: 'Agregar Resumen',
+      },
+    };
+
+    it('should return pt-BR title when locale is pt-BR', () => {
+      const result = resolveTranslation(mockTranslations, 'pt-BR');
+      expect(result.title).toBe('Resumo Profissional');
+    });
+
+    it('should return en title when locale is en', () => {
+      const result = resolveTranslation(mockTranslations, 'en');
+      expect(result.title).toBe('Professional Summary');
+    });
+
+    it('should return es title when locale is es', () => {
+      const result = resolveTranslation(mockTranslations, 'es');
+      expect(result.title).toBe('Resumen Profesional');
+    });
+
+    it('should fallback to en when requested locale not found', () => {
+      const partialTranslations: TranslationsJson = {
+        en: mockTranslations.en,
+      };
+      const result = resolveTranslation(partialTranslations, 'pt-BR');
+      expect(result.title).toBe('Professional Summary');
+    });
+
+    it('should return empty title when translations is null', () => {
+      const result = resolveTranslation(null, 'pt-BR');
+      expect(result.title).toBe('');
+    });
+
+    it('should return empty title when translations is undefined', () => {
+      const result = resolveTranslation(undefined, 'pt-BR');
+      expect(result.title).toBe('');
+    });
+
+    it('should NEVER return raw key like Summary_v1', () => {
+      // This test ensures we never show raw database keys as titles
+      const result = resolveTranslation(mockTranslations, 'en');
+      expect(result.title).not.toContain('_v1');
+      expect(result.title).not.toContain('_v2');
+      expect(result.title).not.toBe('Summary_v1');
+      expect(result.title).not.toBe('summary_v1');
+    });
+  });
+
+  describe('section title resolution in normalize flow', () => {
+    it('should use translated title, not sectionType.key or raw title', () => {
+      const mockSection = {
+        sectionType: {
+          key: 'summary_v1',
+          title: 'Summary', // Fallback title
+          semanticKind: 'summary',
+          translations: {
+            en: {
+              title: 'Professional Summary',
+              description: '',
+              label: '',
+              noDataLabel: '',
+              placeholder: '',
+              addLabel: '',
+            },
+            'pt-BR': {
+              title: 'Resumo Profissional',
+              description: '',
+              label: '',
+              noDataLabel: '',
+              placeholder: '',
+              addLabel: '',
+            },
+          },
+        },
+      };
+
+      const translations = mockSection.sectionType.translations as TranslationsJson;
+      const resolved = resolveTranslation(translations, 'pt-BR');
+      const resolvedTitle = resolved.title || mockSection.sectionType.title;
+
+      // The title should be the translated version, NOT the key
+      expect(resolvedTitle).toBe('Resumo Profissional');
+      expect(resolvedTitle).not.toBe('summary_v1');
+      expect(resolvedTitle).not.toBe('Summary_v1');
+    });
+
+    it('should fallback to sectionType.title when translations missing', () => {
+      const mockSection = {
+        sectionType: {
+          key: 'summary_v1',
+          title: 'Summary',
+          semanticKind: 'summary',
+          translations: null,
+        },
+      };
+
+      const translations = mockSection.sectionType.translations as TranslationsJson | null;
+      const resolved = resolveTranslation(translations, 'pt-BR');
+      const resolvedTitle = resolved.title || mockSection.sectionType.title;
+
+      // Should fallback to 'Summary', NOT 'summary_v1'
+      expect(resolvedTitle).toBe('Summary');
+      expect(resolvedTitle).not.toBe('summary_v1');
     });
   });
 });

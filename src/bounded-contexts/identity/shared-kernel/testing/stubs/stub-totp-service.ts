@@ -7,7 +7,7 @@
 import type {
   TotpSecret,
   TotpServicePort,
-} from '../../../two-factor-auth/ports/outbound/totp-service.port';
+} from '../../../two-factor-auth/domain/ports/totp-service.port';
 
 export class StubTotpService implements TotpServicePort {
   private generatedSecret: TotpSecret = {

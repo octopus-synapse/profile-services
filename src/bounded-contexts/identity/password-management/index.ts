@@ -1,12 +1,20 @@
-// Domain
+/**
+ * Password Management Bounded Context
+ *
+ * Public exports for the password management module.
+ */
 
-// Adapters
-export * from './adapters';
+// Application Layer
+export * from './application/ports';
+export * from './application/use-cases';
+// Domain Layer
 export * from './domain';
 
-// Modules (Vertical Slices)
-export * from './modules';
-// NestJS Module
-export { PasswordManagementModule } from './password-management.module';
-// Ports
-export * from './ports';
+// Infrastructure Layer
+export * from './infrastructure';
+
+// Module
+export * from './password-management.module';
+
+// Testing (for use in tests)
+export * from './testing';

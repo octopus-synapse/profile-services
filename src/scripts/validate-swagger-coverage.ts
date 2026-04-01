@@ -352,5 +352,5 @@ if (process.argv[1]?.includes('validate-swagger-coverage')) {
   void main();
 }
 
-export { validateSwaggerCoverage };
 export type { ValidationResult };
+export { validateSwaggerCoverage };

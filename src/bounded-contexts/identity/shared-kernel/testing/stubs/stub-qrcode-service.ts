@@ -4,7 +4,7 @@
  * Test double for QR code generation.
  */
 
-import type { QrCodeServicePort } from '../../../two-factor-auth/ports/outbound/qrcode-service.port';
+import type { QrCodeServicePort } from '../../../two-factor-auth/domain/ports/qrcode-service.port';
 
 export class StubQrCodeService implements QrCodeServicePort {
   private dataUrl = 'data:image/png;base64,TESTQRCODE';

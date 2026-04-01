@@ -6,32 +6,39 @@
  */
 
 import { Module } from '@nestjs/common';
+import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
+// Application Ports
+import { VALIDATE_2FA_INBOUND_PORT } from './application/ports';
+// Application Use Cases
+import { Validate2faUseCase } from './application/use-cases/validate-2fa';
+// Domain Ports
+import {
+  HASH_SERVICE_PORT,
+  type HashServicePort,
+  QR_CODE_SERVICE_PORT,
+  TOTP_SERVICE_PORT,
+  type TotpServicePort,
+  TWO_FACTOR_REPOSITORY_PORT,
+  type TwoFactorRepositoryPort,
+} from './domain/ports';
 
-// Adapters
+// Infrastructure Adapters
 import {
   BcryptHashAdapter,
   QrCodeAdapter,
   SpeakeasyTotpAdapter,
   TwoFactorRepository,
-} from './adapters/outbound';
-// Controllers
-import { Disable2faController } from './modules/disable-2fa';
-import { Get2faStatusController } from './modules/get-2fa-status';
-import { RegenerateBackupCodesController } from './modules/regenerate-backup-codes';
-import { Setup2faController } from './modules/setup-2fa';
-// Use Cases
-import { Validate2faUseCase } from './modules/validate-2fa';
-import { VerifyAndEnable2faController } from './modules/verify-and-enable-2fa';
-// Ports
-import { VALIDATE_2FA_PORT } from './ports/inbound/validate-2fa.port';
-import type { HashServicePort } from './ports/outbound/hash-service.port';
-import { HASH_SERVICE_PORT } from './ports/outbound/hash-service.port';
-import { QR_CODE_SERVICE_PORT } from './ports/outbound/qrcode-service.port';
-import type { TotpServicePort } from './ports/outbound/totp-service.port';
-import { TOTP_SERVICE_PORT } from './ports/outbound/totp-service.port';
-import type { TwoFactorRepositoryPort } from './ports/outbound/two-factor-repository.port';
-import { TWO_FACTOR_REPOSITORY_PORT } from './ports/outbound/two-factor-repository.port';
+} from './infrastructure/adapters';
+
+// Infrastructure Controllers
+import {
+  Disable2faController,
+  Get2faStatusController,
+  RegenerateBackupCodesController,
+  Setup2faController,
+  VerifyAndEnable2faController,
+} from './infrastructure/controllers';
 
 const providers = [
   // Repository
@@ -54,13 +61,14 @@ const providers = [
   },
   // Inbound: Validate2FA (consumed by authentication BC)
   {
-    provide: VALIDATE_2FA_PORT,
+    provide: VALIDATE_2FA_INBOUND_PORT,
     useFactory: (
       repository: TwoFactorRepositoryPort,
       totpService: TotpServicePort,
       hashService: HashServicePort,
-    ) => new Validate2faUseCase(repository, totpService, hashService),
-    inject: [TWO_FACTOR_REPOSITORY_PORT, TOTP_SERVICE_PORT, HASH_SERVICE_PORT],
+      cacheService: CacheService,
+    ) => new Validate2faUseCase(repository, totpService, hashService, cacheService),
+    inject: [TWO_FACTOR_REPOSITORY_PORT, TOTP_SERVICE_PORT, HASH_SERVICE_PORT, CacheService],
   },
 ];
 
@@ -74,6 +82,11 @@ const providers = [
     RegenerateBackupCodesController,
   ],
   providers,
-  exports: [TWO_FACTOR_REPOSITORY_PORT, TOTP_SERVICE_PORT, HASH_SERVICE_PORT, VALIDATE_2FA_PORT],
+  exports: [
+    TWO_FACTOR_REPOSITORY_PORT,
+    TOTP_SERVICE_PORT,
+    HASH_SERVICE_PORT,
+    VALIDATE_2FA_INBOUND_PORT,
+  ],
 })
 export class TwoFactorAuthModule {}

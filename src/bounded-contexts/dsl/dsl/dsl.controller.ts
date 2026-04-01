@@ -21,6 +21,7 @@ import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-exp
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import { DslAstResponseDto, ResumeAstDto } from '@/shared-kernel/schemas/resume-ast';
+import { parseLocale, SUPPORTED_LOCALES } from '@/shared-kernel/utils/locale-resolver';
 import { DslService } from './dsl.service';
 
 /** DTO for DSL validation error */
@@ -105,12 +106,20 @@ export class DslController {
   @ApiOperation({ summary: 'Get compiled AST for a resume' })
   @ApiDataResponse(DslAstResponseDto, { description: 'AST for resume' })
   @ApiQuery({ name: 'target', enum: ['html', 'pdf'], required: false })
+  @ApiQuery({
+    name: 'locale',
+    enum: SUPPORTED_LOCALES,
+    required: false,
+    description: 'Locale for translated section titles',
+  })
   async render(
     @CurrentUser() user: UserPayload,
     @Param('resumeId') resumeId: string,
     @Query('target') target: RenderTarget = 'html',
+    @Query('locale') localeParam?: string,
   ): Promise<DataResponse<DslAstResponseDto>> {
-    const result = await this.dslService.render(resumeId, user.userId, target);
+    const locale = parseLocale(localeParam);
+    const result = await this.dslService.render(resumeId, user.userId, target, locale);
     return { success: true, data: { ast: result.ast } };
   }
 
@@ -122,11 +131,19 @@ export class DslController {
   @ApiOperation({ summary: 'Get compiled AST for a public resume' })
   @ApiDataResponse(DslAstResponseDto, { description: 'AST for public resume' })
   @ApiQuery({ name: 'target', enum: ['html', 'pdf'], required: false })
+  @ApiQuery({
+    name: 'locale',
+    enum: SUPPORTED_LOCALES,
+    required: false,
+    description: 'Locale for translated section titles',
+  })
   async renderPublic(
     @Param('slug') slug: string,
     @Query('target') target: RenderTarget = 'html',
+    @Query('locale') localeParam?: string,
   ): Promise<DataResponse<DslAstResponseDto>> {
-    const result = await this.dslService.renderPublic(slug, target);
+    const locale = parseLocale(localeParam);
+    const result = await this.dslService.renderPublic(slug, target, locale);
     return { success: true, data: { ast: result.ast } };
   }
 }

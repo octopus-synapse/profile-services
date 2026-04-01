@@ -128,7 +128,7 @@ describe('DslController', () => {
 
       expect(result.success).toBe(true);
       expect(result.data?.ast).toBeDefined();
-      expect(mockDslService.render).toHaveBeenCalledWith(mockResumeId, mockUserId, 'html');
+      expect(mockDslService.render).toHaveBeenCalledWith(mockResumeId, mockUserId, 'html', 'en');
     });
 
     it('should support PDF target for rendering', async () => {
@@ -138,7 +138,18 @@ describe('DslController', () => {
         'pdf',
       );
 
-      expect(mockDslService.render).toHaveBeenCalledWith(mockResumeId, mockUserId, 'pdf');
+      expect(mockDslService.render).toHaveBeenCalledWith(mockResumeId, mockUserId, 'pdf', 'en');
+    });
+
+    it('should pass locale parameter to service', async () => {
+      await controller.render(
+        { userId: mockUserId } as unknown as RenderRequest,
+        mockResumeId,
+        'html',
+        'pt-BR',
+      );
+
+      expect(mockDslService.render).toHaveBeenCalledWith(mockResumeId, mockUserId, 'html', 'pt-BR');
     });
   });
 
@@ -148,13 +159,19 @@ describe('DslController', () => {
 
       expect(result.success).toBe(true);
       expect(result.data?.ast).toBeDefined();
-      expect(mockDslService.renderPublic).toHaveBeenCalledWith(mockSlug, 'html');
+      expect(mockDslService.renderPublic).toHaveBeenCalledWith(mockSlug, 'html', 'en');
     });
 
     it('should support PDF target for public rendering', async () => {
       await controller.renderPublic(mockSlug, 'pdf');
 
-      expect(mockDslService.renderPublic).toHaveBeenCalledWith(mockSlug, 'pdf');
+      expect(mockDslService.renderPublic).toHaveBeenCalledWith(mockSlug, 'pdf', 'en');
+    });
+
+    it('should pass locale parameter to service', async () => {
+      await controller.renderPublic(mockSlug, 'html', 'pt-BR');
+
+      expect(mockDslService.renderPublic).toHaveBeenCalledWith(mockSlug, 'html', 'pt-BR');
     });
   });
 });

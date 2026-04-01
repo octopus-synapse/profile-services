@@ -4,123 +4,74 @@
  * Tests for tech skills query and caching
  */
 
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { beforeEach, describe, expect, it } from 'bun:test';
+import {
+  createTechSkill,
+  DEFAULT_TECH_SKILLS,
+  InMemoryCacheService,
+  InMemoryTechSkillRepository,
+} from '../../testing';
 import type { TechSkill } from '../dto';
-import type { SkillType } from '../interfaces';
+import { TECH_SKILLS_CACHE_KEYS } from '../interfaces';
 import { SkillQueryService } from './skill-query.service';
-
-/**
- * Creates a complete TechSkill object for testing
- */
-function createTechSkill(overrides: Partial<TechSkill> = {}): TechSkill {
-  return {
-    id: 'test-id',
-    slug: 'test-skill',
-    nameEn: 'Test Skill',
-    namePtBr: 'Skill de Teste',
-    type: 'FRAMEWORK' as SkillType,
-    icon: null,
-    color: null,
-    website: null,
-    aliases: [],
-    popularity: 50,
-    niche: { slug: 'frontend', nameEn: 'Frontend', namePtBr: 'Frontend' },
-    ...overrides,
-  };
-}
 
 describe('SkillQueryService', () => {
   let service: SkillQueryService;
-  let mockPrisma: {
-    techSkill: {
-      findMany: ReturnType<typeof mock>;
-    };
-  };
-  let mockCache: {
-    get: ReturnType<typeof mock>;
-    set: ReturnType<typeof mock>;
-  };
-
-  const mockDbSkills = [
-    {
-      id: '1',
-      slug: 'javascript',
-      nameEn: 'JavaScript',
-      namePtBr: 'JavaScript',
-      type: 'LANGUAGE' as SkillType,
-      icon: null,
-      color: null,
-      website: null,
-      aliases: [],
-      popularity: 100,
-      isActive: true,
-      niche: { slug: 'frontend', nameEn: 'Frontend', namePtBr: 'Frontend' },
-    },
-    {
-      id: '2',
-      slug: 'react',
-      nameEn: 'React',
-      namePtBr: 'React',
-      type: 'FRAMEWORK' as SkillType,
-      icon: null,
-      color: null,
-      website: null,
-      aliases: [],
-      popularity: 95,
-      isActive: true,
-      niche: { slug: 'frontend', nameEn: 'Frontend', namePtBr: 'Frontend' },
-    },
-  ];
+  let techSkillRepo: InMemoryTechSkillRepository;
+  let cacheService: InMemoryCacheService;
 
   beforeEach(() => {
-    mockPrisma = {
-      techSkill: {
-        findMany: mock(() => Promise.resolve(mockDbSkills)),
-      },
-    };
-    mockCache = {
-      get: mock(() => Promise.resolve(null)),
-      set: mock(() => Promise.resolve()),
-    };
-    service = new SkillQueryService(mockPrisma as never, mockCache as never);
+    techSkillRepo = new InMemoryTechSkillRepository();
+    techSkillRepo.seed(DEFAULT_TECH_SKILLS);
+
+    cacheService = new InMemoryCacheService();
+
+    service = new SkillQueryService(techSkillRepo as never, cacheService as never);
   });
 
   describe('getAllSkills', () => {
     it('should return all active skills', async () => {
       const result = await service.getAllSkills();
 
-      expect(result).toHaveLength(2);
-      expect(mockPrisma.techSkill.findMany).toHaveBeenCalled();
+      expect(result.length).toBeGreaterThan(0);
     });
 
     it('should return cached data if available', async () => {
       const cachedSkills: TechSkill[] = [
-        createTechSkill({ slug: 'cached', nameEn: 'Cached Skill' }),
+        createTechSkill({ slug: 'cached', nameEn: 'Cached Skill' }) as TechSkill,
       ];
-      mockCache.get = mock(() => Promise.resolve(cachedSkills));
+      await cacheService.set(TECH_SKILLS_CACHE_KEYS.SKILLS_LIST, cachedSkills);
 
       const result = await service.getAllSkills();
 
       expect(result).toEqual(cachedSkills);
-      expect(mockPrisma.techSkill.findMany).not.toHaveBeenCalled();
     });
 
     it('should cache results after fetching', async () => {
+      expect(cacheService.has(TECH_SKILLS_CACHE_KEYS.SKILLS_LIST)).toBe(false);
+
       await service.getAllSkills();
 
-      expect(mockCache.set).toHaveBeenCalled();
+      expect(cacheService.has(TECH_SKILLS_CACHE_KEYS.SKILLS_LIST)).toBe(true);
     });
 
     it('should order by popularity descending', async () => {
-      await service.getAllSkills();
+      const result = await service.getAllSkills();
 
-      expect(mockPrisma.techSkill.findMany).toHaveBeenCalled();
+      for (let i = 1; i < result.length; i++) {
+        expect(result[i - 1].popularity).toBeGreaterThanOrEqual(result[i].popularity);
+      }
     });
 
     it('should include niche information', async () => {
-      await service.getAllSkills();
+      const result = await service.getAllSkills();
 
-      expect(mockPrisma.techSkill.findMany).toHaveBeenCalled();
+      const firstSkill = result[0];
+      expect(firstSkill).toBeDefined();
+      expect(firstSkill.niche).toBeDefined();
+      if (firstSkill.niche) {
+        expect(firstSkill.niche.slug).toBeDefined();
+      }
     });
   });
 
@@ -128,51 +79,61 @@ describe('SkillQueryService', () => {
     it('should filter skills by niche slug', async () => {
       const result = await service.getSkillsByNiche('frontend');
 
-      expect(mockPrisma.techSkill.findMany).toHaveBeenCalled();
       expect(result).toBeDefined();
+      expect(result.length).toBeGreaterThan(0);
+      result.forEach((skill) => {
+        if (skill.niche) {
+          expect(skill.niche.slug).toBe('frontend');
+        }
+      });
     });
 
     it('should return cached niche skills if available', async () => {
-      const cachedSkills: TechSkill[] = [createTechSkill({ slug: 'vue', nameEn: 'Vue.js' })];
-      mockCache.get = mock(() => Promise.resolve(cachedSkills));
+      const cachedSkills: TechSkill[] = [
+        createTechSkill({ slug: 'vue', nameEn: 'Vue.js' }) as TechSkill,
+      ];
+      await cacheService.set(`${TECH_SKILLS_CACHE_KEYS.SKILLS_BY_NICHE}frontend`, cachedSkills);
 
       const result = await service.getSkillsByNiche('frontend');
 
       expect(result).toEqual(cachedSkills);
-      expect(mockPrisma.techSkill.findMany).not.toHaveBeenCalled();
     });
 
     it('should cache niche skills with unique key', async () => {
-      await service.getSkillsByNiche('backend');
+      await service.getSkillsByNiche('nodejs');
 
-      expect(mockCache.set).toHaveBeenCalled();
+      expect(cacheService.has(`${TECH_SKILLS_CACHE_KEYS.SKILLS_BY_NICHE}nodejs`)).toBe(true);
     });
   });
 
   describe('getSkillsByType', () => {
     it('should filter skills by type', async () => {
-      await service.getSkillsByType('FRAMEWORK');
+      const result = await service.getSkillsByType('FRAMEWORK');
 
-      expect(mockPrisma.techSkill.findMany).toHaveBeenCalled();
+      expect(result.length).toBeGreaterThan(0);
+      result.forEach((skill) => {
+        expect(skill.type).toBe('FRAMEWORK');
+      });
     });
 
     it('should respect limit parameter', async () => {
-      await service.getSkillsByType('FRAMEWORK', 10);
+      const result = await service.getSkillsByType('FRAMEWORK', 1);
 
-      expect(mockPrisma.techSkill.findMany).toHaveBeenCalled();
+      expect(result.length).toBeLessThanOrEqual(1);
     });
 
     it('should use default limit of 50', async () => {
-      await service.getSkillsByType('FRAMEWORK');
+      const result = await service.getSkillsByType('FRAMEWORK');
 
-      expect(mockPrisma.techSkill.findMany).toHaveBeenCalled();
+      expect(result.length).toBeLessThanOrEqual(50);
     });
 
     it('should not cache type queries', async () => {
+      const initialSize = cacheService.size();
+
       await service.getSkillsByType('FRAMEWORK');
 
-      // Type queries are not cached in the implementation
-      expect(mockCache.set).not.toHaveBeenCalled();
+      expect(cacheService.size()).toBe(initialSize);
     });
   });
 });

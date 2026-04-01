@@ -4,7 +4,7 @@
  * Test double for email operations with verification helpers.
  */
 
-import type { PasswordResetEmailPort } from '../../../password-management/ports/outbound/email-sender.port';
+import type { PasswordResetEmailPort } from '../../../password-management/domain/ports';
 
 export interface SentEmail {
   email: string;

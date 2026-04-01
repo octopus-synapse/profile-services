@@ -1,0 +1,13 @@
+name: _infrastructure-e2e
+
+on:
+  workflow_call:
+
+jobs:
+  test:
+    uses: ./.github/workflows/_infrastructure-test-template.yml
+    with:
+      test-command: "bun test --config=bunfig.e2e.toml"
+      test-name: "E2E"
+      db-name: "e2e_test_db"
+      timeout: 20

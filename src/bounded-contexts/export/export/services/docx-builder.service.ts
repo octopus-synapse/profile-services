@@ -9,7 +9,7 @@
 
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Document, Packer } from 'docx';
-import { UsersRepository } from '@/bounded-contexts/identity/users/users.repository';
+import { UsersRepository } from '@/bounded-contexts/identity/users';
 import { SectionTypeRepository } from '@/bounded-contexts/resumes/infrastructure/repositories';
 import { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.repository';
 import { ERROR_MESSAGES } from '@/shared-kernel';
