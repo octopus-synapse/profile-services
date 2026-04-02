@@ -73,11 +73,14 @@ runs:
         DURATION=$(($(date +%s) - START))
         echo "duration=${DURATION}s" >> $GITHUB_OUTPUT
 
-        # Parse bun test output: " 1121 pass", " 0 fail", " 3 skip", "across 42 files"
-        PASS=$(grep -oE ' [0-9]+ pass' test-output.txt | grep -oE '[0-9]+' | head -1 || echo "0")
-        FAIL=$(grep -oE ' [0-9]+ fail' test-output.txt | grep -oE '[0-9]+' | head -1 || echo "0")
-        SKIP=$(grep -oE ' [0-9]+ skip' test-output.txt | grep -oE '[0-9]+' | head -1 || echo "0")
-        FILES=$(grep -oE 'across [0-9]+ files' test-output.txt | grep -oE '[0-9]+' | head -1 || echo "?")
+        # Parse bun test output from LAST 20 lines (summary section only)
+        # This avoids matching test names like "should lock out after 5 failed attempts"
+        # Summary format: " 355 pass", " 0 fail", " 3 skip", "across 42 files"
+        SUMMARY=$(tail -20 test-output.txt)
+        PASS=$(echo "$SUMMARY" | grep -oE '^ [0-9]+ pass' | grep -oE '[0-9]+' | head -1 || echo "0")
+        FAIL=$(echo "$SUMMARY" | grep -oE '^ [0-9]+ fail' | grep -oE '[0-9]+' | head -1 || echo "0")
+        SKIP=$(echo "$SUMMARY" | grep -oE '^ [0-9]+ skip' | grep -oE '[0-9]+' | head -1 || echo "0")
+        FILES=$(echo "$SUMMARY" | grep -oE 'across [0-9]+ files' | grep -oE '[0-9]+' | head -1 || echo "?")
 
         # Ensure values are clean (no newlines, valid format)
         PASS="${PASS//[^0-9]/}"
