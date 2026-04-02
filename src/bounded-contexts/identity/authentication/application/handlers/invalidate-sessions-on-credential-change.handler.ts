@@ -1,8 +1,8 @@
 /**
- * Invalidate Sessions on Password Change Handler
+ * Invalidate Sessions on Credential Change Handler
  *
- * Listens for PasswordChangedEvent and invalidates all user sessions.
- * This ensures that compromised sessions are invalidated when password is reset.
+ * Listens for credential change events and invalidates all user sessions.
+ * This ensures that compromised sessions are invalidated when credentials are reset.
  */
 
 import { Inject, Injectable } from '@nestjs/common';
@@ -18,7 +18,7 @@ import { AUTHENTICATION_REPOSITORY_PORT } from '../../domain/ports';
 const TOKEN_INVALIDATION_TTL_SECONDS = 24 * 60 * 60;
 
 @Injectable()
-export class InvalidateSessionsOnPasswordChangeHandler {
+export class InvalidateSessionsOnCredentialChangeHandler {
   constructor(
     @Inject(AUTHENTICATION_REPOSITORY_PORT)
     private readonly authRepository: AuthenticationRepositoryPort,
@@ -31,8 +31,8 @@ export class InvalidateSessionsOnPasswordChangeHandler {
     const { userId, changedVia } = event;
 
     this.logger.log(
-      `Invalidating sessions for user ${userId} after password ${changedVia}`,
-      InvalidateSessionsOnPasswordChangeHandler.name,
+      `Invalidating sessions for user ${userId} after credential ${changedVia}`,
+      InvalidateSessionsOnCredentialChangeHandler.name,
     );
 
     try {
@@ -52,13 +52,13 @@ export class InvalidateSessionsOnPasswordChangeHandler {
 
       this.logger.log(
         `Successfully invalidated all sessions for user ${userId}`,
-        InvalidateSessionsOnPasswordChangeHandler.name,
+        InvalidateSessionsOnCredentialChangeHandler.name,
       );
     } catch (error) {
       this.logger.error(
         `Failed to invalidate sessions for user ${userId}`,
         error instanceof Error ? error.stack : String(error),
-        InvalidateSessionsOnPasswordChangeHandler.name,
+        InvalidateSessionsOnCredentialChangeHandler.name,
       );
     }
   }

@@ -13,7 +13,7 @@ import { VALIDATE_2FA_INBOUND_PORT } from '../two-factor-auth/application/ports'
 // Cross-BC: Two-Factor Auth
 import { TwoFactorAuthModule } from '../two-factor-auth/two-factor-auth.module';
 // Application Handlers
-import { InvalidateSessionsOnPasswordChangeHandler } from './application/handlers/invalidate-sessions-on-password-change.handler';
+import { InvalidateSessionsOnCredentialChangeHandler } from './application/handlers/invalidate-sessions-on-credential-change.handler';
 // Application Ports
 import {
   CREATE_SESSION_PORT,
@@ -197,7 +197,7 @@ const EVENT_BUS = Symbol('EventBusPort');
     },
 
     // Event Handlers
-    InvalidateSessionsOnPasswordChangeHandler,
+    InvalidateSessionsOnCredentialChangeHandler,
   ],
   exports: [
     LOGIN_PORT,
