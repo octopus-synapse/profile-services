@@ -9,7 +9,14 @@
  */
 
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
-import { closeApp, createTestUserAndLogin, getApp, getPrisma, getRequest } from './setup';
+import {
+  closeApp,
+  createTestUserAndLogin,
+  getApp,
+  getPrisma,
+  getRequest,
+  uniqueTestId,
+} from './setup';
 
 describe('Error Handling Integration', () => {
   let accessToken: string;
@@ -88,7 +95,7 @@ describe('Error Handling Integration', () => {
       const prisma = getPrisma();
       const otherUser = await prisma.user.create({
         data: {
-          email: `other-403-${Date.now()}@example.com`,
+          email: `other-403-${uniqueTestId()}@example.com`,
           passwordHash: 'hashed',
           name: 'Other User',
           emailVerified: new Date(),

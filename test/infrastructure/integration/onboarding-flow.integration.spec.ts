@@ -25,13 +25,15 @@ import {
   getApp,
   getPrisma,
   getRequest,
+  uniqueTestId,
+  uniqueTestUsername,
   unwrapApiData,
   verifyUserEmail,
 } from './setup';
 
 /** Generate unique email for each test to avoid conflicts */
 function uniqueEmail(prefix: string): string {
-  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@test.com`;
+  return `${prefix}-${uniqueTestId()}@test.com`;
 }
 
 interface TestAccount {
@@ -124,7 +126,7 @@ function createOnboardingPayload(
   } = {},
 ) {
   const {
-    username = `user${Date.now()}`,
+    username = uniqueTestUsername('user'),
     fullName = 'Test User',
     email = 'test@example.com',
     jobTitle = 'Software Developer',
@@ -179,7 +181,7 @@ describe('Complete Onboarding Flow', () => {
   });
 
   describe('Step 1: Account Creation (Signup)', () => {
-    const testEmail = `onboarding-flow-${Date.now()}@test.com`;
+    const testEmail = uniqueEmail('onboarding-flow');
     let userId: string;
 
     afterEach(async () => {
@@ -340,7 +342,7 @@ describe('Complete Onboarding Flow', () => {
       const response = await getRequest()
         .post('/api/v1/onboarding')
         .set('Authorization', `Bearer ${accessToken}`)
-        .send(createOnboardingPayload({ username: `tosuser${Date.now()}` }));
+        .send(createOnboardingPayload({ username: uniqueTestUsername('tosuser') }));
 
       expect([200, 201]).toContain(response.status);
     });
@@ -625,7 +627,7 @@ describe('Complete Onboarding Flow', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .send(
           createOnboardingPayload({
-            username: `fulluser${Date.now()}`,
+            username: uniqueTestUsername('fulluser'),
             fullName: 'Full Data User',
             email: 'full@test.com',
             jobTitle: 'Senior Software Engineer',
@@ -639,7 +641,7 @@ describe('Complete Onboarding Flow', () => {
     });
 
     it('should reject duplicate username', async () => {
-      const username = `uniqueuser${Date.now()}`;
+      const username = uniqueTestUsername('uniqueuser');
 
       // First completion
       const first = await getRequest()
@@ -730,7 +732,7 @@ describe('Complete Onboarding Flow', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .send(
           createOnboardingPayload({
-            username: `verifyuser${Date.now()}`,
+            username: uniqueTestUsername('verifyuser'),
             fullName: 'Verify User',
             email: 'verify@test.com',
             jobTitle: 'Tester',
@@ -846,7 +848,7 @@ describe('Complete Onboarding Flow', () => {
     });
 
     it('should prevent double onboarding completion', async () => {
-      const username = `double${Date.now()}`;
+      const username = uniqueTestUsername('double');
 
       // First completion
       const first = await getRequest()
@@ -860,7 +862,7 @@ describe('Complete Onboarding Flow', () => {
       const second = await getRequest()
         .post('/api/v1/onboarding')
         .set('Authorization', `Bearer ${accessToken}`)
-        .send(createOnboardingPayload({ username: `double2${Date.now()}` }));
+        .send(createOnboardingPayload({ username: uniqueTestUsername('double2') }));
 
       // Should fail - already completed onboarding
       expect([400, 409]).toContain(second.status);
@@ -882,7 +884,7 @@ describe('Complete Onboarding Flow', () => {
         .set('Authorization', `Bearer ${accessToken}`)
         .send(
           createOnboardingPayload({
-            username: `emoji${Date.now()}`,
+            username: uniqueTestUsername('emoji'),
             fullName: '👨‍💻 Emoji User',
             jobTitle: '🚀 Developer',
           }),

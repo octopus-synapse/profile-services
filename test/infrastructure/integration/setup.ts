@@ -34,6 +34,30 @@ function uniqueTestEmail(prefix: string): string {
   return `${prefix}-${randomUUID()}@example.com`;
 }
 
+/**
+ * Generates a unique username for tests using UUID.
+ * Avoids collisions when tests run in parallel.
+ */
+export function uniqueTestUsername(prefix = 'testuser'): string {
+  return `${prefix}-${randomUUID().slice(0, 8)}`;
+}
+
+/**
+ * Generates a unique slug for tests using UUID.
+ * Avoids collisions when tests run in parallel.
+ */
+export function uniqueTestSlug(prefix = 'test'): string {
+  return `${prefix}-${randomUUID().slice(0, 12)}`;
+}
+
+/**
+ * Generates a unique identifier for tests using UUID.
+ * General purpose - use when you need any unique string.
+ */
+export function uniqueTestId(): string {
+  return randomUUID().slice(0, 8);
+}
+
 export const TEST_USER = {
   email: uniqueTestEmail('integration-test'),
   password: 'SecurePass123!',

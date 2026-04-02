@@ -14,7 +14,14 @@
 
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import { randomUUID } from 'node:crypto';
-import { closeApp, createTestUserAndLogin, getApp, getPrisma, getRequest } from '../setup';
+import {
+  closeApp,
+  createTestUserAndLogin,
+  getApp,
+  getPrisma,
+  getRequest,
+  uniqueTestId,
+} from '../setup';
 
 describe('Password Reset Security - Bug Discovery Tests', () => {
   let testUserId: string;
@@ -23,7 +30,7 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
   beforeAll(async () => {
     await getApp();
     const auth = await createTestUserAndLogin({
-      email: `reset-test-${Date.now()}@example.com`,
+      email: `reset-test-${uniqueTestId()}@example.com`,
     });
     testUserId = auth.userId;
 
@@ -52,7 +59,7 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
      */
     it('should rate limit forgot-password requests - EXPECTED TO FAIL IF NO RATE LIMIT', async () => {
       const testUser = await createTestUserAndLogin({
-        email: `rate-limit-test-${Date.now()}@example.com`,
+        email: `rate-limit-test-${uniqueTestId()}@example.com`,
       });
 
       const prisma = getPrisma();
@@ -87,7 +94,7 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
      */
     it('should reject parallel token usage - EXPECTED TO FAIL IF RACE CONDITION EXISTS', async () => {
       const testUser = await createTestUserAndLogin({
-        email: `token-race-${Date.now()}@example.com`,
+        email: `token-race-${uniqueTestId()}@example.com`,
       });
 
       const prisma = getPrisma();
@@ -138,7 +145,7 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
      */
     it('should invalidate old token when new one is requested - EXPECTED TO FAIL IF TOKENS ACCUMULATE', async () => {
       const testUser = await createTestUserAndLogin({
-        email: `multi-token-${Date.now()}@example.com`,
+        email: `multi-token-${uniqueTestId()}@example.com`,
       });
 
       const prisma = getPrisma();
@@ -254,7 +261,7 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
      */
     it('should reject expired token with clear error message', async () => {
       const testUser = await createTestUserAndLogin({
-        email: `expired-token-${Date.now()}@example.com`,
+        email: `expired-token-${uniqueTestId()}@example.com`,
       });
 
       const prisma = getPrisma();
@@ -307,7 +314,7 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
         .post('/api/auth/forgot-password')
         .set('x-e2e-bypass-rate-limit', 'true')
         .send({
-          email: `nonexistent-user-${Date.now()}@example.com`,
+          email: `nonexistent-user-${uniqueTestId()}@example.com`,
         });
 
       console.log(
@@ -336,7 +343,7 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
      */
     it('should reject weak passwords during reset', async () => {
       const testUser = await createTestUserAndLogin({
-        email: `weak-pwd-${Date.now()}@example.com`,
+        email: `weak-pwd-${uniqueTestId()}@example.com`,
       });
 
       const prisma = getPrisma();
@@ -377,7 +384,7 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
 
         const pwd =
           typeof weakPwd === 'function'
-            ? weakPwd({ email: `weak-pwd-${Date.now()}@example.com` })
+            ? weakPwd({ email: `weak-pwd-${uniqueTestId()}@example.com` })
             : weakPwd;
 
         const response = await getRequest().post('/api/auth/reset-password').send({
@@ -413,7 +420,7 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
      */
     it('should invalidate all sessions after password reset - EXPECTED TO FAIL IF SESSIONS PERSIST', async () => {
       const testUser = await createTestUserAndLogin({
-        email: `session-invalidation-${Date.now()}@example.com`,
+        email: `session-invalidation-${uniqueTestId()}@example.com`,
       });
 
       const prisma = getPrisma();

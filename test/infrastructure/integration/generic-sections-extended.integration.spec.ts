@@ -18,6 +18,7 @@ import {
   getPrisma,
   getRequest,
   refreshSectionTypeCache,
+  uniqueTestId,
   unwrapApiData,
 } from './setup';
 
@@ -39,7 +40,7 @@ describe('Generic Resume Sections Extended Integration', () => {
 
     // Create User A
     const loginA = await createTestUserAndLogin({
-      email: `gen-sections-ext-a-${Date.now()}@example.com`,
+      email: `gen-sections-ext-a-${uniqueTestId()}@example.com`,
     });
     userAToken = loginA.accessToken;
 
@@ -53,7 +54,7 @@ describe('Generic Resume Sections Extended Integration', () => {
 
     // Create User B
     const loginB = await createTestUserAndLogin({
-      email: `gen-sections-ext-b-${Date.now()}@example.com`,
+      email: `gen-sections-ext-b-${uniqueTestId()}@example.com`,
     });
     userBToken = loginB.accessToken;
 

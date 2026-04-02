@@ -19,6 +19,7 @@ import {
   getApp,
   getPrisma,
   getRequest,
+  uniqueTestId,
 } from './setup';
 
 type ApiResponse<T> = { data?: T; success?: boolean } & T;
@@ -165,7 +166,7 @@ describe('Data Integrity Integration', () => {
 
   describe('BUG-015: Unique Constraint Violations', () => {
     it('should prevent duplicate email registration', async () => {
-      const duplicateEmail = `duplicate-${Date.now()}@example.com`;
+      const duplicateEmail = `duplicate-${uniqueTestId()}@example.com`;
 
       // First registration
       await getRequest().post('/api/accounts').send({

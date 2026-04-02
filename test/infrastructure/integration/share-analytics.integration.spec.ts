@@ -6,6 +6,7 @@ import {
   getApp,
   getPrisma,
   getRequest,
+  uniqueTestSlug,
   unwrapApiData,
 } from './setup';
 
@@ -35,7 +36,7 @@ describe('Share Analytics Integration', () => {
     const share = await prisma.resumeShare.create({
       data: {
         resumeId,
-        slug: `analytics-${Date.now()}`,
+        slug: uniqueTestSlug('analytics'),
       },
     });
     shareId = share.id;
@@ -216,7 +217,7 @@ describe('Share Analytics Integration', () => {
       const expiredShare = await prisma.resumeShare.create({
         data: {
           resumeId,
-          slug: `expired-analytics-${Date.now()}`,
+          slug: uniqueTestSlug('expired-analytics'),
           expiresAt: new Date(Date.now() - 1000),
         },
       });

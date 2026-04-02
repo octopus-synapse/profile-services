@@ -13,7 +13,14 @@
  */
 
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
-import { closeApp, createTestUserAndLogin, getApp, getPrisma, getRequest } from '../setup';
+import {
+  closeApp,
+  createTestUserAndLogin,
+  getApp,
+  getPrisma,
+  getRequest,
+  uniqueTestId,
+} from '../setup';
 
 describe('Export PDF Timeout & Security - Bug Discovery Tests', () => {
   let accessToken: string;
@@ -22,7 +29,7 @@ describe('Export PDF Timeout & Security - Bug Discovery Tests', () => {
   beforeAll(async () => {
     await getApp();
     const auth = await createTestUserAndLogin({
-      email: `export-test-${Date.now()}@example.com`,
+      email: `export-test-${uniqueTestId()}@example.com`,
     });
     accessToken = auth.accessToken;
     userId = auth.userId;
@@ -241,7 +248,7 @@ describe('Export PDF Timeout & Security - Bug Discovery Tests', () => {
     it('should not allow exporting other user resume - EXPECTED TO FAIL IF IDOR EXISTS', async () => {
       // Create another user
       const otherUser = await createTestUserAndLogin({
-        email: `other-user-${Date.now()}@example.com`,
+        email: `other-user-${uniqueTestId()}@example.com`,
       });
 
       // Try to export as original user but target other user's resume

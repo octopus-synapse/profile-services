@@ -7,6 +7,7 @@
  */
 
 import { afterAll, afterEach, beforeAll, describe, expect, it, mock } from 'bun:test';
+import { randomUUID } from 'node:crypto';
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConsentDocumentType } from '@prisma/client';
@@ -19,6 +20,10 @@ import {
 import { EmailSenderService } from '@/bounded-contexts/platform/common/email/services/email-sender.service';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+
+function uniqueTestId(): string {
+  return randomUUID().slice(0, 8);
+}
 
 describe('ToS Acceptance Flow Integration', () => {
   let app: INestApplication;
@@ -116,7 +121,7 @@ describe('ToS Acceptance Flow Integration', () => {
   describe('Full ToS Acceptance Lifecycle', () => {
     it('should accept ToS and Privacy Policy successfully', async () => {
       // Use unique email per test to avoid race conditions
-      const testEmail = `tos-lifecycle-${Date.now()}-${Math.random().toString(36).slice(2)}@example.com`;
+      const testEmail = `tos-lifecycle-${uniqueTestId()}@example.com`;
 
       // Create verified user
       const { accessToken } = await createVerifiedUser(
@@ -159,7 +164,7 @@ describe('ToS Acceptance Flow Integration', () => {
 
     it('should allow access to consent endpoints without prior ToS acceptance', async () => {
       // Create user without ToS acceptance (unique email)
-      const testEmail = `tos-consent-${Date.now()}-${Math.random().toString(36).slice(2)}@example.com`;
+      const testEmail = `tos-consent-${uniqueTestId()}@example.com`;
       const { accessToken } = await createVerifiedUser(
         testEmail,
         'SecurePass123!',
@@ -195,7 +200,7 @@ describe('ToS Acceptance Flow Integration', () => {
     });
 
     it('should record IP address and user agent in consent', async () => {
-      const testEmail = `tos-audit-${Date.now()}-${Math.random().toString(36).slice(2)}@example.com`;
+      const testEmail = `tos-audit-${uniqueTestId()}@example.com`;
       const { accessToken } = await createVerifiedUser(
         testEmail,
         'SecurePass123!',
@@ -218,7 +223,7 @@ describe('ToS Acceptance Flow Integration', () => {
 
   describe('Version Upgrade Scenarios', () => {
     it('should track consent history across version upgrades', async () => {
-      const testEmail = `tos-version-${Date.now()}-${Math.random().toString(36).slice(2)}@example.com`;
+      const testEmail = `tos-version-${uniqueTestId()}@example.com`;
 
       // User accepts ToS v1.0.0
       setTosVersion('1.0.0');
@@ -277,7 +282,7 @@ describe('ToS Acceptance Flow Integration', () => {
     });
 
     it('should maintain separate version tracking for ToS and Privacy Policy', async () => {
-      const testEmail = `tos-multi-doc-${Date.now()}-${Math.random().toString(36).slice(2)}@example.com`;
+      const testEmail = `tos-multi-doc-${uniqueTestId()}@example.com`;
       setTosVersion('1.0.0');
       process.env.PRIVACY_POLICY_VERSION = '1.5.0';
 
@@ -323,7 +328,7 @@ describe('ToS Acceptance Flow Integration', () => {
 
   describe('Consent History and Status', () => {
     it('should track complete consent history across multiple acceptances', async () => {
-      const testEmail = `tos-history-${Date.now()}-${Math.random().toString(36).slice(2)}@example.com`;
+      const testEmail = `tos-history-${uniqueTestId()}@example.com`;
       const { accessToken } = await createVerifiedUser(
         testEmail,
         'SecurePass123!',
@@ -385,7 +390,7 @@ describe('ToS Acceptance Flow Integration', () => {
     });
 
     it('should return accurate consent status for current versions', async () => {
-      const testEmail = `tos-status-${Date.now()}-${Math.random().toString(36).slice(2)}@example.com`;
+      const testEmail = `tos-status-${uniqueTestId()}@example.com`;
       setTosVersion('1.0.0');
       process.env.PRIVACY_POLICY_VERSION = '1.0.0';
 
@@ -438,7 +443,7 @@ describe('ToS Acceptance Flow Integration', () => {
 
   describe('Error Cases', () => {
     it('should reject invalid document type', async () => {
-      const testEmail = `tos-errors-${Date.now()}-${Math.random().toString(36).slice(2)}@example.com`;
+      const testEmail = `tos-errors-${uniqueTestId()}@example.com`;
       const { accessToken } = await createVerifiedUser(
         testEmail,
         'SecurePass123!',
@@ -467,7 +472,7 @@ describe('ToS Acceptance Flow Integration', () => {
     });
 
     it('should handle missing required fields gracefully', async () => {
-      const testEmail = `tos-validation-${Date.now()}-${Math.random().toString(36).slice(2)}@example.com`;
+      const testEmail = `tos-validation-${uniqueTestId()}@example.com`;
       const { accessToken } = await createVerifiedUser(
         testEmail,
         'SecurePass123!',

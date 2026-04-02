@@ -7,7 +7,14 @@
  */
 
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
-import { closeApp, createTestUserAndLogin, getApp, getPrisma, getRequest } from './setup';
+import {
+  closeApp,
+  createTestUserAndLogin,
+  getApp,
+  getPrisma,
+  getRequest,
+  uniqueTestSlug,
+} from './setup';
 
 describe('Cache Integration', () => {
   let accessToken: string;
@@ -59,7 +66,7 @@ describe('Cache Integration', () => {
 
       // Create a share (public resumes require a ResumeShare entry)
       const prisma = getPrisma();
-      slug = `cache-test-${Date.now()}`;
+      slug = uniqueTestSlug('cache-test');
       await prisma.resumeShare.create({
         data: {
           resumeId,

@@ -6,7 +6,14 @@
  */
 
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
-import { closeApp, createTestUserAndLogin, getApp, getPrisma, getRequest } from './setup';
+import {
+  closeApp,
+  createTestUserAndLogin,
+  getApp,
+  getPrisma,
+  getRequest,
+  uniqueTestId,
+} from './setup';
 
 describe('Security Boundaries Integration', () => {
   let accessToken: string;
@@ -96,7 +103,7 @@ describe('Security Boundaries Integration', () => {
       const prisma = getPrisma();
       const otherUser = await prisma.user.create({
         data: {
-          email: `other-user-${Date.now()}@example.com`,
+          email: `other-user-${uniqueTestId()}@example.com`,
           passwordHash: 'hashed',
           name: 'Other User',
           emailVerified: new Date(),

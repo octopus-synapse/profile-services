@@ -19,7 +19,7 @@ import {
 import { EmailSenderService } from '@/bounded-contexts/platform/common/email/services/email-sender.service';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { acceptTosWithPrisma } from './setup';
+import { acceptTosWithPrisma, uniqueTestId } from './setup';
 
 describe('Auth Flow Integration', () => {
   let app: INestApplication;
@@ -211,7 +211,7 @@ describe('Auth Flow Integration', () => {
     beforeEach(async () => {
       // Use unique email per test to avoid race conditions
       currentTestUser = {
-        email: `refresh-test-${Date.now()}-${Math.random().toString(36).slice(2)}@example.com`,
+        email: `refresh-test-${uniqueTestId()}@example.com`,
         password: 'SecurePass123!',
         name: 'Refresh Test User',
       };
@@ -260,7 +260,7 @@ describe('Auth Flow Integration', () => {
 
     beforeEach(async () => {
       // Generate unique email for each test
-      const testEmail = `verify-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.com`;
+      const testEmail = `verify-${uniqueTestId()}@example.com`;
       const _signupResponse = await request(app.getHttpServer())
         .post('/api/accounts')
         .send({
@@ -335,7 +335,7 @@ describe('Auth Flow Integration', () => {
     beforeEach(async () => {
       // Generate unique email for each test
       testUser = {
-        email: `account-test-${Date.now()}-${Math.random().toString(36).slice(2)}@test.com`,
+        email: `account-test-${uniqueTestId()}@test.com`,
         password: 'Account123!',
         name: 'Account Test User',
       };

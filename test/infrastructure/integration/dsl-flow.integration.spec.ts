@@ -18,7 +18,7 @@ import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logg
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { createMockResume } from '../../shared/factories/resume.factory';
 import { createMockUser } from '../../shared/factories/user.factory';
-import { acceptTosWithPrisma, unwrapApiData } from './setup';
+import { acceptTosWithPrisma, uniqueTestSlug, unwrapApiData } from './setup';
 
 describe('DSL Smoke Tests (e2e)', () => {
   let app: INestApplication;
@@ -319,7 +319,7 @@ describe('DSL Smoke Tests (e2e)', () => {
 
     it('should render public resume AST', async () => {
       // Use unique slug per test run to avoid conflicts
-      testSlug = `dsl-smoke-test-${Date.now()}`;
+      testSlug = uniqueTestSlug('dsl-smoke-test');
 
       await prisma.resumeShare.create({
         data: {

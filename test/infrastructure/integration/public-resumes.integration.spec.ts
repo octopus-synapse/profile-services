@@ -6,6 +6,7 @@ import {
   getApp,
   getPrisma,
   getRequest,
+  uniqueTestSlug,
 } from './setup';
 
 describe('Public Resumes Integration', () => {
@@ -109,7 +110,7 @@ describe('Public Resumes Integration', () => {
       const protectedShare = await prisma.resumeShare.create({
         data: {
           resumeId,
-          slug: `protected-${Date.now()}`,
+          slug: uniqueTestSlug('protected'),
           password: hashedPassword,
         },
       });
@@ -130,7 +131,7 @@ describe('Public Resumes Integration', () => {
       const expiredShare = await prisma.resumeShare.create({
         data: {
           resumeId,
-          slug: `expired-${Date.now()}`,
+          slug: uniqueTestSlug('expired'),
           expiresAt: new Date(Date.now() - 1000),
         },
       });
@@ -165,7 +166,7 @@ describe('Public Resumes Integration', () => {
       const share = await prisma.resumeShare.create({
         data: {
           resumeId,
-          slug: `cached-${Date.now()}`,
+          slug: uniqueTestSlug('cached'),
         },
       });
 

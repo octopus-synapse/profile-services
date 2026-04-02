@@ -1,8 +1,16 @@
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
-import { closeApp, getApp, getRequest, TEST_USER, testContext, verifyUserEmail } from './setup';
+import {
+  closeApp,
+  getApp,
+  getRequest,
+  TEST_USER,
+  testContext,
+  uniqueTestId,
+  verifyUserEmail,
+} from './setup';
 
 describe('Auth Smoke Tests', () => {
-  const uniqueEmail = `smoke-auth-${Date.now()}@test.com`;
+  const uniqueEmail = `smoke-auth-${uniqueTestId()}@test.com`;
   let accessToken: string;
   let refreshToken: string;
 
@@ -65,7 +73,7 @@ describe('Auth Smoke Tests', () => {
       const res = await getRequest()
         .post('/api/accounts')
         .send({
-          email: `weak-pass-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@test.com`,
+          email: `weak-pass-${uniqueTestId()}@test.com`,
           password: '123',
           name: TEST_USER.name,
         });
@@ -75,7 +83,7 @@ describe('Auth Smoke Tests', () => {
     });
 
     it('should create a new user', async () => {
-      const newEmail = `signup-test-${Date.now()}@test.com`;
+      const newEmail = `signup-test-${uniqueTestId()}@test.com`;
       const res = await getRequest().post('/api/accounts').send({
         email: newEmail,
         password: TEST_USER.password,

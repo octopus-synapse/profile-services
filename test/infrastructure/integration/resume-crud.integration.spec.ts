@@ -19,7 +19,7 @@ import {
 import { EmailSenderService } from '@/bounded-contexts/platform/common/email/services/email-sender.service';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { acceptTosWithPrisma } from './setup';
+import { acceptTosWithPrisma, uniqueTestId } from './setup';
 
 describe('Resume CRUD Integration', () => {
   let app: INestApplication;
@@ -28,7 +28,7 @@ describe('Resume CRUD Integration', () => {
   let userId: string;
 
   const testUser = {
-    email: `resume-test-${Date.now()}@example.com`,
+    email: `resume-test-${uniqueTestId()}@example.com`,
     password: 'SecurePass123!',
     name: 'Resume Test User',
   };

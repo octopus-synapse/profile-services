@@ -13,7 +13,15 @@
  */
 
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
-import { closeApp, createTestUserAndLogin, getApp, getPrisma, getRequest } from '../setup';
+import {
+  closeApp,
+  createTestUserAndLogin,
+  getApp,
+  getPrisma,
+  getRequest,
+  uniqueTestId,
+  uniqueTestSlug,
+} from '../setup';
 
 describe('Resume Delete Cascade & Cache - Bug Discovery Tests', () => {
   let accessToken: string;
@@ -22,7 +30,7 @@ describe('Resume Delete Cascade & Cache - Bug Discovery Tests', () => {
   beforeAll(async () => {
     await getApp();
     const auth = await createTestUserAndLogin({
-      email: `cascade-test-${Date.now()}@example.com`,
+      email: `cascade-test-${uniqueTestId()}@example.com`,
     });
     accessToken = auth.accessToken;
     userId = auth.userId;
@@ -60,7 +68,7 @@ describe('Resume Delete Cascade & Cache - Bug Discovery Tests', () => {
           data: {
             userId,
             title: 'Test Resume for Cascade',
-            slug: `cascade-test-${Date.now()}`,
+            slug: uniqueTestSlug('cascade-test'),
           },
         });
       }
@@ -136,7 +144,7 @@ describe('Resume Delete Cascade & Cache - Bug Discovery Tests', () => {
         data: {
           userId,
           title: 'Cache Test Resume',
-          slug: `cache-test-${Date.now()}`,
+          slug: uniqueTestSlug('cache-test'),
         },
       });
 
@@ -183,7 +191,7 @@ describe('Resume Delete Cascade & Cache - Bug Discovery Tests', () => {
         data: {
           userId,
           title: 'Race Condition Test',
-          slug: `race-test-${Date.now()}`,
+          slug: uniqueTestSlug('race-test'),
         },
       });
 
@@ -246,7 +254,7 @@ describe('Resume Delete Cascade & Cache - Bug Discovery Tests', () => {
 
       // Create another user with a resume
       const otherUser = await createTestUserAndLogin({
-        email: `other-user-cascade-${Date.now()}@example.com`,
+        email: `other-user-cascade-${uniqueTestId()}@example.com`,
       });
 
       // Create resume for other user
@@ -254,7 +262,7 @@ describe('Resume Delete Cascade & Cache - Bug Discovery Tests', () => {
         data: {
           userId: otherUser.userId,
           title: 'Other User Resume',
-          slug: `other-user-${Date.now()}`,
+          slug: uniqueTestSlug('other-user'),
         },
       });
 
@@ -300,7 +308,7 @@ describe('Resume Delete Cascade & Cache - Bug Discovery Tests', () => {
         data: {
           userId,
           title: 'Consistency Test',
-          slug: `consistency-test-${Date.now()}`,
+          slug: uniqueTestSlug('consistency-test'),
         },
       });
 
@@ -386,7 +394,7 @@ describe('Resume Delete Cascade & Cache - Bug Discovery Tests', () => {
         data: {
           userId,
           title: 'Hard Delete Test',
-          slug: `hard-delete-test-${Date.now()}`,
+          slug: uniqueTestSlug('hard-delete-test'),
         },
       });
 
@@ -427,7 +435,7 @@ describe('Resume Delete Cascade & Cache - Bug Discovery Tests', () => {
         data: {
           userId,
           title: 'No Auth Delete Test',
-          slug: `no-auth-test-${Date.now()}`,
+          slug: uniqueTestSlug('no-auth-test'),
         },
       });
 
@@ -458,7 +466,7 @@ describe('Resume Delete Cascade & Cache - Bug Discovery Tests', () => {
         data: {
           userId,
           title: 'Analytics Test',
-          slug: `analytics-test-${Date.now()}`,
+          slug: uniqueTestSlug('analytics-test'),
         },
       });
 

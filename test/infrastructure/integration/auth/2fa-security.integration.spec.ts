@@ -13,7 +13,14 @@
 
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import * as speakeasy from 'speakeasy';
-import { closeApp, createTestUserAndLogin, getApp, getPrisma, getRequest } from '../setup';
+import {
+  closeApp,
+  createTestUserAndLogin,
+  getApp,
+  getPrisma,
+  getRequest,
+  uniqueTestId,
+} from '../setup';
 
 describe('2FA Security - Bug Discovery Tests', () => {
   let accessToken: string;
@@ -77,7 +84,7 @@ describe('2FA Security - Bug Discovery Tests', () => {
     it('should REJECT same TOTP token used twice - EXPECTED TO FAIL IF BUG EXISTS', async () => {
       // Get fresh credentials for isolated test
       const testUser = await createTestUserAndLogin({
-        email: `2fa-reuse-test-${Date.now()}@example.com`,
+        email: `2fa-reuse-test-${uniqueTestId()}@example.com`,
       });
 
       // Setup 2FA
@@ -150,7 +157,7 @@ describe('2FA Security - Bug Discovery Tests', () => {
     it('should lock out after 5 failed 2FA attempts - EXPECTED TO FAIL IF NO RATE LIMIT', async () => {
       // Get fresh credentials
       const testUser = await createTestUserAndLogin({
-        email: `2fa-brute-${Date.now()}@example.com`,
+        email: `2fa-brute-${uniqueTestId()}@example.com`,
       });
 
       // Setup and enable 2FA
@@ -205,7 +212,7 @@ describe('2FA Security - Bug Discovery Tests', () => {
      */
     it('should reject already-used backup code', async () => {
       const testUser = await createTestUserAndLogin({
-        email: `2fa-backup-${Date.now()}@example.com`,
+        email: `2fa-backup-${uniqueTestId()}@example.com`,
       });
 
       // Setup and enable 2FA
@@ -282,7 +289,7 @@ describe('2FA Security - Bug Discovery Tests', () => {
      */
     it('should document the actual time window (informational)', async () => {
       const testUser = await createTestUserAndLogin({
-        email: `2fa-window-${Date.now()}@example.com`,
+        email: `2fa-window-${uniqueTestId()}@example.com`,
       });
 
       // Setup 2FA
@@ -340,11 +347,11 @@ describe('2FA Security - Bug Discovery Tests', () => {
     it('should reject 2FA verification with mismatched userId', async () => {
       // Create two users
       const victim = await createTestUserAndLogin({
-        email: `2fa-victim-${Date.now()}@example.com`,
+        email: `2fa-victim-${uniqueTestId()}@example.com`,
       });
 
       const attacker = await createTestUserAndLogin({
-        email: `2fa-attacker-${Date.now()}@example.com`,
+        email: `2fa-attacker-${uniqueTestId()}@example.com`,
       });
 
       // Setup 2FA for attacker only

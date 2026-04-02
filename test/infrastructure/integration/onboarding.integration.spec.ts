@@ -19,7 +19,7 @@ import {
 import { EmailSenderService } from '@/bounded-contexts/platform/common/email/services/email-sender.service';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { acceptTosWithPrisma } from './setup';
+import { acceptTosWithPrisma, uniqueTestId, uniqueTestUsername } from './setup';
 
 describe('Onboarding Flow Integration', () => {
   let app: INestApplication;
@@ -64,7 +64,7 @@ describe('Onboarding Flow Integration', () => {
       .post('/api/accounts')
       .send({
         ...testUser,
-        email: `onboarding-${Date.now()}@test.com`,
+        email: `onboarding-${uniqueTestId()}@test.com`,
       })
       .expect(201);
 
@@ -157,7 +157,7 @@ describe('Onboarding Flow Integration', () => {
   describe('Complete Onboarding', () => {
     it('should complete onboarding with valid data', async () => {
       const onboardingData = {
-        username: `testuser${Date.now()}`,
+        username: uniqueTestUsername('testuser'),
         personalInfo: {
           fullName: 'Complete User',
           email: 'complete@test.com',

@@ -9,7 +9,15 @@
 
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import type { Response } from 'supertest';
-import { closeApp, createTestUserAndLogin, getApp, getPrisma, getRequest } from './setup';
+import {
+  closeApp,
+  createTestUserAndLogin,
+  getApp,
+  getPrisma,
+  getRequest,
+  uniqueTestId,
+  uniqueTestUsername,
+} from './setup';
 
 describe('Business Rules Integration', () => {
   let accessToken: string;
@@ -62,7 +70,7 @@ describe('Business Rules Integration', () => {
   describe('BUG-020: Email Verification Enforcement', () => {
     it('should require email verification for protected actions', async () => {
       // Create new unverified user with unique email
-      const unverifiedEmail = `unverified-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@example.com`;
+      const unverifiedEmail = `unverified-${uniqueTestId()}@example.com`;
 
       const signupRes = await getRequest().post('/api/accounts').send({
         email: unverifiedEmail,
@@ -94,7 +102,7 @@ describe('Business Rules Integration', () => {
       const prisma = getPrisma();
 
       // Create user without ToS
-      const noTosEmail = `no-tos-${Date.now()}@example.com`;
+      const noTosEmail = `no-tos-${uniqueTestId()}@example.com`;
 
       const signupRes = await getRequest().post('/api/accounts').send({
         email: noTosEmail,
@@ -195,7 +203,7 @@ describe('Business Rules Integration', () => {
 
   describe('BUG-024: Username Uniqueness', () => {
     it('should enforce unique usernames', async () => {
-      const uniqueUsername = `user-${Date.now()}`;
+      const uniqueUsername = uniqueTestUsername('user');
       const prisma = getPrisma();
 
       // Set username for current user
@@ -207,7 +215,7 @@ describe('Business Rules Integration', () => {
       // Create another user and try same username
       const otherUser = await prisma.user.create({
         data: {
-          email: `other-${Date.now()}@example.com`,
+          email: `other-${uniqueTestId()}@example.com`,
           passwordHash: 'hashed',
           name: 'Other User',
           emailVerified: new Date(),
