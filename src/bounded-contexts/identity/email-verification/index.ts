@@ -1,11 +1,16 @@
-// Domain
+/**
+ * Email Verification Bounded Context
+ *
+ * Hexagonal Architecture structure.
+ */
 
-// Adapters
-export * from './adapters';
+// Application Layer
+export * from './application';
+// Domain Layer
 export * from './domain';
 // NestJS Module
 export { EmailVerificationModule } from './email-verification.module';
-// Modules (Vertical Slices)
-export * from './modules';
-// Ports
-export * from './ports';
+// Infrastructure Layer
+export * from './infrastructure';
+// Testing
+export * from './testing';

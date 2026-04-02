@@ -1,0 +1,20 @@
+name: _static-analysis-security
+
+on:
+  workflow_call:
+    inputs:
+      pr-number:
+        description: "PR number for comment updates"
+        required: false
+        type: string
+        default: ""
+
+jobs:
+  test:
+    uses: ./.github/workflows/_static-analysis-template.yml
+    with:
+      test-command: "bun test --config=bunfig.security.toml"
+      test-name: "Security"
+      timeout: 10
+      pr-number: ${{ inputs.pr-number }}
+    secrets: inherit

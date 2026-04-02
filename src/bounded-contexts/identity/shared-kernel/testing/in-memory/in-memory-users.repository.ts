@@ -7,7 +7,7 @@
 
 import type { User, UserPreferences } from '@prisma/client';
 import type { UpdateFullPreferences, UpdatePreferences, UpdateProfile } from '@/shared-kernel';
-import { UsersRepositoryPort } from '../../../users/ports/outbound/users-repository.port';
+import { UsersRepositoryPort } from '../../../users/domain/ports/users-repository.port';
 
 interface StoredUser extends User {
   preferences?: UserPreferences | null;

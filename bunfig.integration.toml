@@ -1,7 +1,7 @@
 [test]
 # Configuration for integration tests (DB + Redis required)
-root = "./test/integration"
-preload = ["./test/integration/setup-integration.ts"]
+root = "./test/infrastructure/integration"
+preload = ["./test/infrastructure/integration/setup.ts"]
 # Timeout for tests AND hooks (beforeEach/afterEach)
 timeout = 60000
 

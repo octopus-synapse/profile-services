@@ -4,8 +4,8 @@
  * Provides controllable authorization behavior for tests.
  */
 
+import { AuthorizationServicePort } from '../../../authorization/application/ports/authorization-service.port';
 import { UserAuthContext } from '../../../authorization/domain/entities/user-auth-context.entity';
-import { AuthorizationServicePort } from '../../../authorization/services/authorization-service.port';
 
 export class StubAuthorizationService extends AuthorizationServicePort {
   private privilegedUsers = new Map<string, Set<string>>();

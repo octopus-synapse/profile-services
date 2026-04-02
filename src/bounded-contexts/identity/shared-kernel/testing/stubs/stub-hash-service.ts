@@ -5,7 +5,7 @@
  * Implements predictable hashing for test verification.
  */
 
-import type { HashServicePort } from '../../../two-factor-auth/ports/outbound/hash-service.port';
+import type { HashServicePort } from '../../../two-factor-auth/domain/ports/hash-service.port';
 
 export class StubHashService implements HashServicePort {
   private hashPrefix = 'hashed_';

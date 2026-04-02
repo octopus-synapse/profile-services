@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { TerminusModule } from '@nestjs/terminus';
 import { UploadModule } from '@/bounded-contexts/integration/upload/upload.module';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
-import { TranslationModule } from '@/bounded-contexts/translation/translation/translation.module';
+import { TranslationModule } from '@/bounded-contexts/translation';
 import { HealthController } from './health.controller';
 import {
   DatabaseHealthIndicator,

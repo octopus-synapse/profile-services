@@ -5,6 +5,7 @@
  * Provides helper methods for test setup and assertions.
  */
 
+import { UserManagementRepositoryPort } from '../../../users/application/ports/user-management.port';
 import type {
   CreatedUser,
   UpdatedUser,
@@ -13,8 +14,6 @@ import type {
   UserListItem,
   UserListOptions,
 } from '../../../users/domain/types';
-
-import { UserManagementRepositoryPort } from '../../../users/services/user-management/ports/user-management.port';
 
 interface StoredUser {
   id: string;

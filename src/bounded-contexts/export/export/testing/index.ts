@@ -187,6 +187,56 @@ export class InMemoryResumeJson implements ResumeJsonPort {
 }
 
 /**
+ * In-Memory Resume Repository for Export Context
+ */
+interface ResumeWithSections {
+  id: string;
+  userId: string;
+  title: string | null;
+  jobTitle: string | null;
+  slug: string | null;
+  summary: string | null;
+  fullName: string | null;
+  emailContact: string | null;
+  phone: string | null;
+  isPublic: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  user: {
+    name: string | null;
+    email: string | null;
+    phone: string | null;
+  };
+  resumeSections: Array<{
+    sectionType: {
+      key: string;
+      semanticKind: string;
+      title: string;
+    };
+    items: Array<{
+      content: Record<string, unknown>;
+    }>;
+  }>;
+}
+
+export class InMemoryResumeRepository {
+  private resumes = new Map<string, ResumeWithSections>();
+
+  async findUnique(id: string): Promise<ResumeWithSections | null> {
+    return this.resumes.get(id) ?? null;
+  }
+
+  // Test helpers
+  seedResume(resume: ResumeWithSections): void {
+    this.resumes.set(resume.id, resume);
+  }
+
+  clear(): void {
+    this.resumes.clear();
+  }
+}
+
+/**
  * Null Logger for testing
  */
 export class NullLogger {

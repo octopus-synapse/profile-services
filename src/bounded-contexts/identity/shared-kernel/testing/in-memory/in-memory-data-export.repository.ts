@@ -10,7 +10,7 @@ import type {
   ExportedConsent,
   ExportedResume,
   ExportedUserData,
-} from '../../../account-lifecycle/ports/outbound/data-export-repository.port';
+} from '../../../account-lifecycle/domain/ports/data-export-repository.port';
 
 export class InMemoryDataExportRepository implements DataExportRepositoryPort {
   private users: Map<string, ExportedUserData> = new Map();

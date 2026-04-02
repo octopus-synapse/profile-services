@@ -1,14 +1,47 @@
+/**
+ * Account Lifecycle Module
+ *
+ * Bounded Context for account lifecycle management.
+ * Follows Hexagonal Architecture with ports and adapters.
+ */
+
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AuditLogModule } from '@/bounded-contexts/platform/common/audit/audit-log.module';
-// Shared providers
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { AuthenticationModule } from '../authentication/authentication.module';
-import type { TokenGeneratorPort } from '../authentication/ports/outbound/token-generator.port';
-import { TOKEN_GENERATOR_PORT } from '../authentication/ports/outbound/token-generator.port';
+import { TOKEN_GENERATOR_PORT, type TokenGeneratorPort } from '../authentication/domain/ports';
 import { NestEventBusAdapter } from '../shared-kernel/adapters';
 import type { EventBusPort } from '../shared-kernel/ports/event-bus.port';
-// Outbound Adapters (Infrastructure)
+// Application Ports
+import {
+  CREATE_ACCOUNT_PORT,
+  DEACTIVATE_ACCOUNT_PORT,
+  DELETE_ACCOUNT_PORT,
+} from './application/ports';
+// Application Use Cases
+import {
+  AcceptConsentUseCase,
+  CreateAccountUseCase,
+  DeactivateAccountUseCase,
+  DeleteAccountUseCase,
+  GetConsentHistoryUseCase,
+  GetConsentStatusUseCase,
+} from './application/use-cases';
+// Domain Ports
+import {
+  type AccountLifecycleRepositoryPort,
+  AUDIT_LOGGER_PORT,
+  type AuditLoggerPort,
+  CONSENT_REPOSITORY_PORT,
+  type ConsentRepositoryPort,
+  DATA_EXPORT_REPOSITORY_PORT,
+  type PasswordHasherPort,
+  VERSION_CONFIG_PORT,
+  type VersionConfigPort,
+} from './domain/ports';
+
+// Infrastructure Adapters
 import {
   AuditLoggerAdapter,
   BcryptPasswordHasher,
@@ -16,36 +49,21 @@ import {
   DataExportRepository,
   PrismaAccountLifecycleRepository,
   PrismaConsentRepository,
-} from './adapters';
-import type { ConsentRepositoryPort, VersionConfigPort } from './modules';
-// Controllers (Inbound Adapters)
-// Use Cases (Application Services)
+} from './infrastructure/adapters';
+
+// Infrastructure Controllers
 import {
   ACCEPT_CONSENT_USE_CASE,
   AcceptConsentController,
-  AcceptConsentUseCase,
-  CONSENT_REPOSITORY_PORT,
   CreateAccountController,
-  CreateAccountUseCase,
   DeactivateAccountController,
-  DeactivateAccountUseCase,
   DeleteAccountController,
-  DeleteAccountUseCase,
   ExportDataController,
   GET_CONSENT_HISTORY_USE_CASE,
   GET_CONSENT_STATUS_USE_CASE,
   GetConsentHistoryController,
-  GetConsentHistoryUseCase,
   GetConsentStatusController,
-  GetConsentStatusUseCase,
-  VERSION_CONFIG_PORT,
-} from './modules';
-// Ports (Symbols for DI)
-import { CREATE_ACCOUNT_PORT, DEACTIVATE_ACCOUNT_PORT, DELETE_ACCOUNT_PORT } from './ports/inbound';
-import { AUDIT_LOGGER_PORT, DATA_EXPORT_REPOSITORY_PORT } from './ports/outbound';
-import type { AccountLifecycleRepositoryPort } from './ports/outbound/account-lifecycle-repository.port';
-import type { AuditLoggerPort } from './ports/outbound/audit-logger.port';
-import type { PasswordHasherPort } from './ports/outbound/password-hasher.port';
+} from './infrastructure/controllers';
 
 // Port symbols for outbound adapters
 const ACCOUNT_REPOSITORY = Symbol('AccountLifecycleRepositoryPort');

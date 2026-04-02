@@ -6,7 +6,7 @@
  */
 
 import type { AuditAction } from '@prisma/client';
-import type { AuditLoggerPort } from '../../../account-lifecycle/ports/outbound/audit-logger.port';
+import type { AuditLoggerPort } from '../../../account-lifecycle/domain/ports/audit-logger.port';
 
 export interface AuditEntry {
   userId: string;

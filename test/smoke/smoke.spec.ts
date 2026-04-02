@@ -65,7 +65,7 @@ describe('Smoke Tests - Application Bootstrap', () => {
 
   describe('Core Services Imports', () => {
     it('should import UsersService', async () => {
-      const { UsersService } = await import('@/bounded-contexts/identity/users/users.service');
+      const { UsersService } = await import('@/bounded-contexts/identity/users');
       expect(UsersService).toBeDefined();
     });
 

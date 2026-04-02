@@ -7,6 +7,36 @@ import {
   Query,
   StreamableFile,
 } from '@nestjs/common';
+
+/**
+ * Sanitizes query parameters to prevent path traversal attacks.
+ * Only allows alphanumeric characters, hyphens, underscores, and spaces.
+ * Returns undefined if input contains dangerous characters.
+ */
+function sanitizeQueryParam(input: string | undefined): string | undefined {
+  if (!input) return undefined;
+
+  // Detect path traversal attempts
+  if (input.includes('..') || input.includes('/') || input.includes('\\')) {
+    return undefined;
+  }
+
+  // Detect shell injection attempts
+  if (/[;|`$(){}]/.test(input)) {
+    return undefined;
+  }
+
+  // Only allow safe characters: alphanumeric, hyphens, underscores, spaces
+  const sanitized = input.replace(/[^a-zA-Z0-9\-_ ]/g, '');
+
+  // If sanitization changed the input significantly, reject it
+  if (sanitized.length < input.length * 0.8) {
+    return undefined;
+  }
+
+  return sanitized || undefined;
+}
+
 import { ApiBearerAuth, ApiOperation, ApiProduces, ApiQuery, ApiTags } from '@nestjs/swagger';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiStreamResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
@@ -56,13 +86,18 @@ export class ExportController {
     @Query('palette') palette?: string,
     @Query('logo') logoUrl?: string,
   ): Promise<StreamableFile> {
+    // Sanitize query parameters to prevent path traversal and injection attacks
+    const safePalette = sanitizeQueryParam(palette);
+    // logoUrl is more permissive but still needs basic sanitization
+    const safeLogoUrl = logoUrl && !logoUrl.includes('..') ? logoUrl : undefined;
+
     try {
-      const buffer = await this.bannerCaptureService.capture(palette, logoUrl);
+      const buffer = await this.bannerCaptureService.capture(safePalette, safeLogoUrl);
       return new StreamableFile(buffer);
     } catch (error) {
       this.logger.errorWithMeta('Failed to generate banner', {
-        palette,
-        logoUrl,
+        palette: safePalette,
+        logoUrl: safeLogoUrl,
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
       });
@@ -103,6 +138,11 @@ export class ExportController {
   ): Promise<StreamableFile> {
     const exportId = randomUUID();
 
+    // Sanitize query parameters to prevent path traversal and injection attacks
+    const safePalette = sanitizeQueryParam(palette);
+    const safeLang = sanitizeQueryParam(lang);
+    const safeBannerColor = sanitizeQueryParam(bannerColor);
+
     this.eventPublisher.publish(
       new ExportRequestedEvent(exportId, {
         resumeId: 'user-default',
@@ -113,9 +153,9 @@ export class ExportController {
 
     try {
       const buffer = await this.resumePDFService.generate({
-        palette,
-        lang,
-        bannerColor,
+        palette: safePalette,
+        lang: safeLang,
+        bannerColor: safeBannerColor,
         userId: user.userId,
       });
 
@@ -139,9 +179,9 @@ export class ExportController {
 
       this.logger.errorWithMeta('Failed to generate PDF', {
         userId: user.userId,
-        palette,
-        lang,
-        bannerColor,
+        palette: safePalette,
+        lang: safeLang,
+        bannerColor: safeBannerColor,
         error: reason,
         stack: error instanceof Error ? error.stack : undefined,
       });

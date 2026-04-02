@@ -10,7 +10,7 @@
 
 import { beforeEach, describe, expect, it } from 'bun:test';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { OnboardingData } from '../schemas/onboarding.schema';
+import { createOnboardingData } from '../../testing';
 import { ResumeOnboardingService } from './resume-onboarding.service';
 
 // ============================================================================
@@ -146,33 +146,6 @@ function createFakePrismaStore() {
   };
 }
 
-// ============================================================================
-// Test Helper
-// ============================================================================
-
-const createValidOnboardingData = (overrides: Partial<OnboardingData> = {}): OnboardingData => ({
-  username: 'johndoe',
-  personalInfo: {
-    fullName: 'John Doe',
-    email: 'john@example.com',
-    phone: '+1234567890',
-    location: 'New York, USA',
-  },
-  professionalProfile: {
-    jobTitle: 'Software Engineer',
-    summary: 'Experienced developer',
-    linkedin: 'https://linkedin.com/in/johndoe',
-    github: 'https://github.com/johndoe',
-    website: 'https://johndoe.dev',
-  },
-  templateSelection: {
-    templateId: 'PROFESSIONAL',
-    colorScheme: 'ocean',
-  },
-  sections: [],
-  ...overrides,
-});
-
 describe('ResumeOnboardingService', () => {
   let service: ResumeOnboardingService;
   let store: ReturnType<typeof createFakePrismaStore>;
@@ -184,7 +157,7 @@ describe('ResumeOnboardingService', () => {
 
   describe('upsertResume', () => {
     it('should create new resume with all personal info fields', async () => {
-      const data = createValidOnboardingData();
+      const data = createOnboardingData();
 
       const result = await service.upsertResume('user-1', data);
 
@@ -202,7 +175,7 @@ describe('ResumeOnboardingService', () => {
     });
 
     it('should create resume with professional profile links', async () => {
-      const data = createValidOnboardingData();
+      const data = createOnboardingData();
 
       const result = await service.upsertResume('user-1', data);
 
@@ -214,7 +187,7 @@ describe('ResumeOnboardingService', () => {
     });
 
     it('should set primary resume when creating first resume for user', async () => {
-      const data = createValidOnboardingData();
+      const data = createOnboardingData();
 
       const result = await service.upsertResume('user-1', data);
 
@@ -224,11 +197,11 @@ describe('ResumeOnboardingService', () => {
 
     it('should not change primary resume when updating existing resume', async () => {
       // Create first resume
-      const data = createValidOnboardingData();
+      const data = createOnboardingData();
       const firstResume = await service.upsertResume('user-1', data);
 
       // Update existing resume
-      const updatedData = createValidOnboardingData({
+      const updatedData = createOnboardingData({
         personalInfo: {
           ...data.personalInfo,
           fullName: 'John Updated',
@@ -243,10 +216,10 @@ describe('ResumeOnboardingService', () => {
     });
 
     it('should update existing resume instead of creating new one', async () => {
-      const data = createValidOnboardingData();
+      const data = createOnboardingData();
       await service.upsertResume('user-1', data);
 
-      const updatedData = createValidOnboardingData({
+      const updatedData = createOnboardingData({
         personalInfo: {
           ...data.personalInfo,
           fullName: 'John Updated',
@@ -264,7 +237,7 @@ describe('ResumeOnboardingService', () => {
     });
 
     it('should handle different template selections', async () => {
-      const data = createValidOnboardingData({
+      const data = createOnboardingData({
         templateSelection: { template: 'MODERN', palette: 'DARK' },
       });
 
@@ -282,7 +255,7 @@ describe('ResumeOnboardingService', () => {
    */
   describe('default theme application', () => {
     it('should apply default Modern theme when creating new resume', async () => {
-      const data = createValidOnboardingData();
+      const data = createOnboardingData();
 
       const result = await service.upsertResume('user-1', data);
 
@@ -290,7 +263,7 @@ describe('ResumeOnboardingService', () => {
     });
 
     it('should set activeThemeId to the Modern system theme', async () => {
-      const data = createValidOnboardingData();
+      const data = createOnboardingData();
 
       await service.upsertResume('user-1', data);
 
@@ -300,17 +273,19 @@ describe('ResumeOnboardingService', () => {
 
     it('should not change activeThemeId when updating existing resume', async () => {
       // Create first resume with default theme
-      const data = createValidOnboardingData();
+      const data = createOnboardingData();
       const firstResume = await service.upsertResume('user-1', data);
 
       // Manually change theme (simulating user changed it)
+      const existingResume = store.resumeStore.get(firstResume.id);
+      if (!existingResume) throw new Error('Resume not found in store');
       store.resumeStore.set(firstResume.id, {
-        ...store.resumeStore.get(firstResume.id)!,
+        ...existingResume,
         activeThemeId: 'theme-custom',
       });
 
       // Update resume via onboarding
-      const updatedData = createValidOnboardingData({
+      const updatedData = createOnboardingData({
         personalInfo: { ...data.personalInfo, fullName: 'Updated Name' },
       });
       await service.upsertResume('user-1', updatedData);

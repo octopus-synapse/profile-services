@@ -1,18 +1,17 @@
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { beforeEach, describe, expect, it } from 'bun:test';
 import { Test, type TestingModule } from '@nestjs/testing';
-import { createMockResume } from '@test/factories/resume.factory';
+import { createMockResume } from '@test/shared/factories/resume.factory';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { InMemoryResumeRepository } from '../testing';
 import { ResumeLatexService } from './resume-latex.service';
 
 describe('ResumeLatexService', () => {
   let service: ResumeLatexService;
-  let mockPrismaService: {
-    resume: { findUnique: ReturnType<typeof mock> };
-  };
+  let repository: InMemoryResumeRepository;
 
   const mockResume = {
     ...createMockResume({
-      id: 'user-456',
+      id: 'resume-123',
       userId: 'user-456',
       title: 'My Resume',
       jobTitle: 'Software Engineer',
@@ -102,18 +101,19 @@ describe('ResumeLatexService', () => {
   };
 
   beforeEach(async () => {
-    mockPrismaService = {
-      resume: {
-        findUnique: mock(() => Promise.resolve(mockResume)),
-      },
-    };
+    repository = new InMemoryResumeRepository();
+    repository.seedResume(mockResume);
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ResumeLatexService,
         {
           provide: PrismaService,
-          useValue: mockPrismaService,
+          useValue: {
+            resume: {
+              findUnique: (args: { where: { id: string } }) => repository.findUnique(args.where.id),
+            },
+          },
         },
       ],
     }).compile();
@@ -173,7 +173,7 @@ describe('ResumeLatexService', () => {
     });
 
     it('should escape special LaTeX characters', async () => {
-      // Mock with special characters
+      // Seed with special characters
       const resumeWithSpecialChars = {
         ...mockResume,
         resumeSections: [
@@ -198,7 +198,8 @@ describe('ResumeLatexService', () => {
           },
         ],
       };
-      mockPrismaService.resume.findUnique = mock(() => Promise.resolve(resumeWithSpecialChars));
+      repository.clear();
+      repository.seedResume(resumeWithSpecialChars);
 
       const result = await service.exportAsLatex('resume-123');
 
@@ -209,7 +210,7 @@ describe('ResumeLatexService', () => {
     });
 
     it('should throw NotFoundException when resume not found', async () => {
-      mockPrismaService.resume.findUnique = mock(() => Promise.resolve(null));
+      repository.clear();
 
       await expect(service.exportAsLatex('unknown')).rejects.toThrow('Resume not found');
     });

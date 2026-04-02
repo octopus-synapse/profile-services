@@ -21,8 +21,26 @@ export class CacheService implements OnModuleDestroy {
     return this.coreService.get<T>(key);
   }
 
+  /**
+   * Get value from cache with security guarantees.
+   * Throws error if cache is unavailable or read fails.
+   * Use for security-critical operations like token invalidation checks.
+   */
+  async getSecure<T>(key: string): Promise<T | null> {
+    return this.coreService.getSecure<T>(key);
+  }
+
   async set(key: string, value: unknown, ttl?: number): Promise<void> {
     return this.coreService.set(key, value, ttl);
+  }
+
+  /**
+   * Set value in cache with security guarantees.
+   * Throws error if cache is unavailable or write fails.
+   * Use for security-critical operations like session invalidation.
+   */
+  async setSecure(key: string, value: unknown, ttl?: number): Promise<void> {
+    return this.coreService.setSecure(key, value, ttl);
   }
 
   async delete(key: string): Promise<void> {

@@ -3,14 +3,10 @@
 # Pre-Commit Hook - Fast Feedback Loop + Simple Attestation
 # =============================================================================
 #
-# What runs here:
-#   1. Swagger generation (decorators → openapi spec)
-#   2. Type checking (TypeScript)
-#   3. Linting (Biome)
-#   4. Unit tests (mocked, in-memory)
-#   5. Architecture tests (import boundaries)
-#   6. Contract tests (API contracts)
-#   7. Generate attestation (tree hash proof)
+# What runs here (in parallel where possible):
+#   0. Swagger generation (MUST be first - generates files)
+#   1-5. In parallel: TypeCheck, Lint, Unit Tests, Arch Tests, Contract Tests
+#   6. Generate attestation (tree hash proof)
 #
 # Security:
 #   The attestation includes the git tree hash of all staged files.
@@ -21,72 +17,109 @@
 
 set -e
 
+# Create temp dir for parallel output
+TMPDIR=$(mktemp -d)
+trap "rm -rf $TMPDIR" EXIT
+
 echo "Pre-commit checks..."
 echo ""
 
 # -----------------------------------------------------------------------------
 # 0. Generate Swagger from @SdkExport decorators (MUST be first)
 # -----------------------------------------------------------------------------
-echo "  Generating swagger.json..."
-if bun run scripts/generate-swagger-from-decorators.ts; then
+echo "  [0/6] Generating swagger.json..."
+if bun run scripts/generate-swagger-from-decorators.ts > "$TMPDIR/swagger.log" 2>&1; then
     bunx biome format --write src/graphql/schema.graphql 2>/dev/null || true
     git add swagger.json swagger-generation-report.json
     git add src/graphql/schema.graphql 2>/dev/null || true
     git add generated/schema.graphql 2>/dev/null || true
 else
-    echo "Swagger generation failed"
+    echo "  ❌ Swagger generation failed"
+    cat "$TMPDIR/swagger.log"
     exit 1
 fi
 
 # -----------------------------------------------------------------------------
-# 1. Type Check
+# 1-5. Run checks in PARALLEL
 # -----------------------------------------------------------------------------
-echo "  Type checking..."
-if ! bun run typecheck; then
-    echo "Type check failed"
-    exit 1
+echo "  [1-5] Running checks in parallel..."
+
+# TypeCheck
+(bun run typecheck > "$TMPDIR/typecheck.log" 2>&1 && echo "OK" > "$TMPDIR/typecheck.status" || echo "FAIL" > "$TMPDIR/typecheck.status") &
+PID_TC=$!
+
+# Lint
+(bun run lint:fast > "$TMPDIR/lint.log" 2>&1 && echo "OK" > "$TMPDIR/lint.status" || echo "FAIL" > "$TMPDIR/lint.status") &
+PID_LINT=$!
+
+# Unit Tests
+(bun test src/ > "$TMPDIR/unit.log" 2>&1 && echo "OK" > "$TMPDIR/unit.status" || echo "FAIL" > "$TMPDIR/unit.status") &
+PID_UNIT=$!
+
+# Architecture Tests
+(bun test ./test/static-analysis/architecture > "$TMPDIR/arch.log" 2>&1 && echo "OK" > "$TMPDIR/arch.status" || echo "FAIL" > "$TMPDIR/arch.status") &
+PID_ARCH=$!
+
+# Contract Tests
+(bun test ./test/static-analysis/contracts > "$TMPDIR/contract.log" 2>&1 && echo "OK" > "$TMPDIR/contract.status" || echo "FAIL" > "$TMPDIR/contract.status") &
+PID_CONTRACT=$!
+
+# Wait for all processes
+wait $PID_TC $PID_LINT $PID_UNIT $PID_ARCH $PID_CONTRACT
+
+# Check results and report
+FAILED=0
+
+if [ "$(cat $TMPDIR/typecheck.status)" = "FAIL" ]; then
+    echo "  ❌ TypeCheck failed"
+    cat "$TMPDIR/typecheck.log"
+    FAILED=1
+else
+    echo "  ✓ TypeCheck"
 fi
 
-# -----------------------------------------------------------------------------
-# 2. Lint
-# -----------------------------------------------------------------------------
-echo "  Linting..."
-if ! bun run lint:fast; then
-    echo "Lint failed"
-    exit 1
+if [ "$(cat $TMPDIR/lint.status)" = "FAIL" ]; then
+    echo "  ❌ Lint failed"
+    cat "$TMPDIR/lint.log"
+    FAILED=1
+else
+    echo "  ✓ Lint"
 fi
 
-# -----------------------------------------------------------------------------
-# 3. Unit Tests
-# -----------------------------------------------------------------------------
-echo "  Running unit tests..."
-if ! bun test src/; then
-    echo "Unit tests failed"
-    exit 1
+if [ "$(cat $TMPDIR/unit.status)" = "FAIL" ]; then
+    echo "  ❌ Unit tests failed"
+    cat "$TMPDIR/unit.log"
+    FAILED=1
+else
+    echo "  ✓ Unit tests"
 fi
 
-# -----------------------------------------------------------------------------
-# 4. Architecture Tests
-# -----------------------------------------------------------------------------
-echo "  Running architecture tests..."
-if ! bun test ./test/architecture; then
-    echo "Architecture tests failed"
-    exit 1
+if [ "$(cat $TMPDIR/arch.status)" = "FAIL" ]; then
+    echo "  ❌ Architecture tests failed"
+    cat "$TMPDIR/arch.log"
+    FAILED=1
+else
+    echo "  ✓ Architecture tests"
 fi
 
-# -----------------------------------------------------------------------------
-# 5. Contract Tests
-# -----------------------------------------------------------------------------
-echo "  Running contract tests..."
-if ! bun test ./test/contracts; then
-    echo "Contract tests failed"
+if [ "$(cat $TMPDIR/contract.status)" = "FAIL" ]; then
+    echo "  ❌ Contract tests failed"
+    cat "$TMPDIR/contract.log"
+    FAILED=1
+else
+    echo "  ✓ Contract tests"
+fi
+
+if [ $FAILED -eq 1 ]; then
+    echo ""
+    echo "Pre-commit failed!"
     exit 1
 fi
 
 # -----------------------------------------------------------------------------
 # 6. Generate Attestation (tree hash proof)
 # -----------------------------------------------------------------------------
-echo "  Generating attestation..."
+echo "  [6/6] Generating attestation..."
 ATTESTATION_CHECKS="typecheck,lint,test,arch,contracts" ./scripts/attestation.sh generate
 
 echo ""

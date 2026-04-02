@@ -14,7 +14,8 @@ export class NestEventBusAdapter implements EventBusPort {
   constructor(private readonly eventEmitter: EventEmitter2) {}
 
   async publish(event: DomainEvent): Promise<void> {
-    this.eventEmitter.emit(event.eventType, event);
+    // Use emitAsync to wait for all handlers (including async ones) to complete
+    await this.eventEmitter.emitAsync(event.eventType, event);
   }
 
   async publishAll(events: DomainEvent[]): Promise<void> {

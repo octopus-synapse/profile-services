@@ -7,66 +7,49 @@
  * Kent Beck: "Tests describe behavior, not implementation"
  */
 
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { beforeEach, describe, expect, it } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
+import type { Prisma } from '@prisma/client';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { InMemoryResumeImportRepository, InMemoryResumeRepository, NullLogger } from '../testing';
 import { ResumeImportService } from './resume-import.service';
 import type { JsonResumeSchema } from './resume-import.types';
 
 describe('ResumeImportService', () => {
   let service: ResumeImportService;
-  let mockPrismaService: {
-    resumeImport: {
-      create: ReturnType<typeof mock>;
-      findUnique: ReturnType<typeof mock>;
-      findMany: ReturnType<typeof mock>;
-      update: ReturnType<typeof mock>;
-      delete: ReturnType<typeof mock>;
-    };
-    resume: {
-      create: ReturnType<typeof mock>;
-    };
-  };
+  let importRepository: InMemoryResumeImportRepository;
+  let resumeRepository: InMemoryResumeRepository;
+  let logger: NullLogger;
 
   beforeEach(async () => {
-    mockPrismaService = {
-      resumeImport: {
-        create: mock(() =>
-          Promise.resolve({
-            id: 'import-123',
-            userId: 'user-123',
-            source: 'JSON',
-            status: 'PENDING',
-            createdAt: new Date(),
-          }),
-        ),
-        findUnique: mock(() => Promise.resolve(null)),
-        findMany: mock(() => Promise.resolve([])),
-        update: mock(() => Promise.resolve({})),
-        delete: mock(() => Promise.resolve({})),
-      },
-      resume: {
-        create: mock(() =>
-          Promise.resolve({
-            id: 'resume-123',
-            userId: 'user-123',
-          }),
-        ),
-      },
-    };
-
-    const mockLogger = {
-      log: mock(),
-      warn: mock(),
-      error: mock(),
-    };
+    importRepository = new InMemoryResumeImportRepository();
+    resumeRepository = new InMemoryResumeRepository();
+    logger = new NullLogger();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ResumeImportService,
-        { provide: PrismaService, useValue: mockPrismaService },
-        { provide: AppLoggerService, useValue: mockLogger },
+        {
+          provide: PrismaService,
+          useValue: {
+            resumeImport: {
+              create: (args: { data: Parameters<typeof importRepository.create>[0] }) =>
+                importRepository.create(args.data),
+              findUnique: (args: { where: { id: string } }) =>
+                importRepository.findUnique(args.where.id),
+              findMany: (args: { where: { userId: string } }) => importRepository.findMany(args),
+              update: (args: { where: { id: string }; data: Record<string, unknown> }) =>
+                importRepository.update(args.where.id, args.data),
+              delete: (args: { where: { id: string } }) => importRepository.delete(args.where.id),
+            },
+            resume: {
+              create: (args: { data: Parameters<typeof resumeRepository.create>[0] }) =>
+                resumeRepository.create(args.data),
+            },
+          },
+        },
+        { provide: AppLoggerService, useValue: logger },
       ],
     }).compile();
 
@@ -89,17 +72,14 @@ describe('ResumeImportService', () => {
     it('should store raw data when provided', async () => {
       const rawData = { basics: { name: 'Test User' } };
 
-      await service.createImportJob({
+      const result = await service.createImportJob({
         userId: 'user-123',
         source: 'JSON',
         rawData,
       });
 
-      expect(mockPrismaService.resumeImport.create).toHaveBeenCalledWith({
-        data: expect.objectContaining({
-          rawData,
-        }),
-      });
+      const importJob = await importRepository.findUnique(result.id);
+      expect(importJob?.rawData).toEqual(rawData);
     });
   });
 
@@ -207,51 +187,47 @@ describe('ResumeImportService', () => {
         ],
       };
 
-      mockPrismaService.resumeImport.findUnique.mockResolvedValue({
-        id: 'import-123',
+      const importJob = await importRepository.create({
         userId: 'user-123',
-        source: 'JSON',
+        source: 'JSON' as const,
         status: 'PENDING',
-        rawData: jsonResume,
+        rawData: jsonResume as unknown as Prisma.InputJsonValue,
       });
 
-      const result = await service.processImport('import-123');
+      const result = await service.processImport(importJob.id);
 
       expect(result.status).toBe('COMPLETED');
       expect(result.resumeId).toBeDefined();
     });
 
     it('should update status during processing', async () => {
-      mockPrismaService.resumeImport.findUnique.mockResolvedValue({
-        id: 'import-123',
+      const importJob = await importRepository.create({
         userId: 'user-123',
-        source: 'JSON',
+        source: 'JSON' as const,
         status: 'PENDING',
-        rawData: { basics: { name: 'Test' } },
+        rawData: { basics: { name: 'Test' } } as Prisma.InputJsonValue,
       });
 
-      await service.processImport('import-123');
+      await service.processImport(importJob.id);
 
-      // Should have been updated multiple times (PROCESSING -> MAPPING -> etc)
-      expect(mockPrismaService.resumeImport.update).toHaveBeenCalled();
+      // Verify status was updated
+      const updated = await importRepository.findUnique(importJob.id);
+      expect(updated?.status).toBe('COMPLETED');
     });
 
     it('should handle import not found', async () => {
-      mockPrismaService.resumeImport.findUnique.mockResolvedValue(null);
-
       await expect(service.processImport('invalid-id')).rejects.toThrow('Import not found');
     });
 
     it('should mark as failed on error', async () => {
-      mockPrismaService.resumeImport.findUnique.mockResolvedValue({
-        id: 'import-123',
+      const importJob = await importRepository.create({
         userId: 'user-123',
-        source: 'JSON',
+        source: 'JSON' as const,
         status: 'PENDING',
-        rawData: null, // Invalid - no data
+        rawData: undefined, // Invalid - no data
       });
 
-      const result = await service.processImport('import-123');
+      const result = await service.processImport(importJob.id);
 
       expect(result.status).toBe('FAILED');
       expect(result.errors).toBeDefined();
@@ -260,13 +236,14 @@ describe('ResumeImportService', () => {
 
   describe('getImportStatus', () => {
     it('should return import status', async () => {
-      mockPrismaService.resumeImport.findUnique.mockResolvedValue({
-        id: 'import-123',
+      const importJob = await importRepository.create({
+        userId: 'user-123',
+        source: 'JSON',
         status: 'COMPLETED',
-        resumeId: 'resume-123',
       });
+      await importRepository.update(importJob.id, { resumeId: 'resume-123' });
 
-      const status = await service.getImportStatus('import-123');
+      const status = await service.getImportStatus(importJob.id);
 
       expect(status).toMatchObject({
         status: 'COMPLETED',
@@ -277,10 +254,16 @@ describe('ResumeImportService', () => {
 
   describe('getImportHistory', () => {
     it('should return import history for user', async () => {
-      mockPrismaService.resumeImport.findMany.mockResolvedValue([
-        { id: 'import-1', status: 'COMPLETED' },
-        { id: 'import-2', status: 'FAILED' },
-      ]);
+      await importRepository.create({
+        userId: 'user-123',
+        source: 'JSON',
+        status: 'COMPLETED',
+      });
+      await importRepository.create({
+        userId: 'user-123',
+        source: 'JSON',
+        status: 'FAILED',
+      });
 
       const history = await service.getImportHistory('user-123');
 
@@ -290,23 +273,26 @@ describe('ResumeImportService', () => {
 
   describe('cancelImport', () => {
     it('should cancel pending import', async () => {
-      mockPrismaService.resumeImport.findUnique.mockResolvedValue({
-        id: 'import-123',
+      const importJob = await importRepository.create({
+        userId: 'user-123',
+        source: 'JSON',
         status: 'PENDING',
       });
 
-      await service.cancelImport('import-123');
+      await service.cancelImport(importJob.id);
 
-      expect(mockPrismaService.resumeImport.delete).toHaveBeenCalled();
+      const deleted = await importRepository.findUnique(importJob.id);
+      expect(deleted).toBeNull();
     });
 
     it('should not cancel completed import', async () => {
-      mockPrismaService.resumeImport.findUnique.mockResolvedValue({
-        id: 'import-123',
+      const importJob = await importRepository.create({
+        userId: 'user-123',
+        source: 'JSON',
         status: 'COMPLETED',
       });
 
-      await expect(service.cancelImport('import-123')).rejects.toThrow(
+      await expect(service.cancelImport(importJob.id)).rejects.toThrow(
         'Cannot cancel completed import',
       );
     });
@@ -314,26 +300,26 @@ describe('ResumeImportService', () => {
 
   describe('retryImport', () => {
     it('should retry failed import', async () => {
-      mockPrismaService.resumeImport.findUnique.mockResolvedValue({
-        id: 'import-123',
+      const importJob = await importRepository.create({
         userId: 'user-123',
         source: 'JSON',
         status: 'FAILED',
         rawData: { basics: { name: 'Test' } },
       });
 
-      const result = await service.retryImport('import-123');
+      const result = await service.retryImport(importJob.id);
 
       expect(result.status).toBeDefined();
     });
 
     it('should not retry non-failed import', async () => {
-      mockPrismaService.resumeImport.findUnique.mockResolvedValue({
-        id: 'import-123',
+      const importJob = await importRepository.create({
+        userId: 'user-123',
+        source: 'JSON',
         status: 'COMPLETED',
       });
 
-      await expect(service.retryImport('import-123')).rejects.toThrow(
+      await expect(service.retryImport(importJob.id)).rejects.toThrow(
         'Can only retry failed imports',
       );
     });

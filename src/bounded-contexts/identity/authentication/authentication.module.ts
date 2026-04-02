@@ -3,36 +3,19 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 // Shared providers
+import { CacheModule } from '@/bounded-contexts/platform/common/cache/cache.module';
+import { RateLimitModule } from '@/bounded-contexts/platform/common/rate-limit/rate-limit.module';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { NestEventBusAdapter } from '../shared-kernel/adapters';
 import { JwtStrategy } from '../shared-kernel/infrastructure/strategies';
 import type { EventBusPort } from '../shared-kernel/ports/event-bus.port';
-import type { Validate2faPort } from '../two-factor-auth/ports/inbound';
-import { VALIDATE_2FA_PORT } from '../two-factor-auth/ports/inbound';
+import type { Validate2faInboundPort } from '../two-factor-auth/application/ports';
+import { VALIDATE_2FA_INBOUND_PORT } from '../two-factor-auth/application/ports';
 // Cross-BC: Two-Factor Auth
 import { TwoFactorAuthModule } from '../two-factor-auth/two-factor-auth.module';
-// Outbound Adapters (Infrastructure)
-import {
-  BcryptPasswordHasher,
-  CookieSessionStorage,
-  JwtTokenGenerator,
-  PrismaAuthenticationRepository,
-} from './adapters';
-// Controllers (Inbound Adapters)
-// Use Cases (Application Services)
-import {
-  CreateSessionUseCase,
-  LoginController,
-  LoginUseCase,
-  LogoutController,
-  LogoutUseCase,
-  RefreshTokenController,
-  RefreshTokenUseCase,
-  SessionController,
-  TerminateSessionUseCase,
-  ValidateSessionUseCase,
-} from './modules';
-// Ports (Symbols for DI)
+// Application Handlers
+import { InvalidateSessionsOnCredentialChangeHandler } from './application/handlers/invalidate-sessions-on-credential-change.handler';
+// Application Ports
 import {
   CREATE_SESSION_PORT,
   LOGIN_PORT,
@@ -40,15 +23,43 @@ import {
   REFRESH_TOKEN_PORT,
   TERMINATE_SESSION_PORT,
   VALIDATE_SESSION_PORT,
-} from './ports/inbound';
-import type { AuthenticationRepositoryPort } from './ports/outbound/authentication-repository.port';
-import type { PasswordHasherPort } from './ports/outbound/password-hasher.port';
-import type { SessionStoragePort } from './ports/outbound/session-storage.port';
-import type { TokenGeneratorPort } from './ports/outbound/token-generator.port';
-import { TOKEN_GENERATOR_PORT } from './ports/outbound/token-generator.port';
+} from './application/ports';
+// Application Use Cases
+import {
+  CreateSessionUseCase,
+  LoginUseCase,
+  LogoutUseCase,
+  RefreshTokenUseCase,
+  TerminateSessionUseCase,
+  ValidateSessionUseCase,
+} from './application/use-cases';
+
+// Domain Ports
+import type {
+  AuthenticationRepositoryPort,
+  PasswordHasherPort,
+  SessionStoragePort,
+  TokenGeneratorPort,
+} from './domain/ports';
+import { AUTHENTICATION_REPOSITORY_PORT, TOKEN_GENERATOR_PORT } from './domain/ports';
+
+// Infrastructure Adapters
+import {
+  BcryptPasswordHasher,
+  CookieSessionStorage,
+  JwtTokenGenerator,
+  PrismaAuthenticationRepository,
+} from './infrastructure/adapters';
+
+// Infrastructure Controllers
+import {
+  LoginController,
+  LogoutController,
+  RefreshTokenController,
+  SessionController,
+} from './infrastructure/controllers';
 
 // Port symbols for outbound adapters
-const AUTH_REPOSITORY = Symbol('AuthenticationRepositoryPort');
 const PASSWORD_HASHER = Symbol('PasswordHasherPort');
 const SESSION_STORAGE = Symbol('SessionStoragePort');
 const EVENT_BUS = Symbol('EventBusPort');
@@ -56,6 +67,8 @@ const EVENT_BUS = Symbol('EventBusPort');
 @Module({
   imports: [
     PrismaModule,
+    CacheModule,
+    RateLimitModule,
     ConfigModule,
     TwoFactorAuthModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),
@@ -77,7 +90,7 @@ const EVENT_BUS = Symbol('EventBusPort');
     JwtStrategy,
     // Outbound Adapters
     {
-      provide: AUTH_REPOSITORY,
+      provide: AUTHENTICATION_REPOSITORY_PORT,
       useClass: PrismaAuthenticationRepository,
     },
     {
@@ -105,16 +118,16 @@ const EVENT_BUS = Symbol('EventBusPort');
         passwordHasher: PasswordHasherPort,
         tokenGenerator: TokenGeneratorPort,
         eventBus: EventBusPort,
-        validate2fa: Validate2faPort,
+        validate2fa: Validate2faInboundPort,
       ) => {
         return new LoginUseCase(repository, passwordHasher, tokenGenerator, eventBus, validate2fa);
       },
       inject: [
-        AUTH_REPOSITORY,
+        AUTHENTICATION_REPOSITORY_PORT,
         PASSWORD_HASHER,
         TOKEN_GENERATOR_PORT,
         EVENT_BUS,
-        VALIDATE_2FA_PORT,
+        VALIDATE_2FA_INBOUND_PORT,
       ],
     },
     {
@@ -122,7 +135,7 @@ const EVENT_BUS = Symbol('EventBusPort');
       useFactory: (repository: AuthenticationRepositoryPort, eventBus: EventBusPort) => {
         return new LogoutUseCase(repository, eventBus);
       },
-      inject: [AUTH_REPOSITORY, EVENT_BUS],
+      inject: [AUTHENTICATION_REPOSITORY_PORT, EVENT_BUS],
     },
     {
       provide: REFRESH_TOKEN_PORT,
@@ -133,7 +146,7 @@ const EVENT_BUS = Symbol('EventBusPort');
       ) => {
         return new RefreshTokenUseCase(repository, tokenGenerator, eventBus);
       },
-      inject: [AUTH_REPOSITORY, TOKEN_GENERATOR_PORT, EVENT_BUS],
+      inject: [AUTHENTICATION_REPOSITORY_PORT, TOKEN_GENERATOR_PORT, EVENT_BUS],
     },
 
     // Session Use Cases
@@ -154,7 +167,13 @@ const EVENT_BUS = Symbol('EventBusPort');
           configService,
         );
       },
-      inject: [AUTH_REPOSITORY, TOKEN_GENERATOR_PORT, SESSION_STORAGE, EVENT_BUS, ConfigService],
+      inject: [
+        AUTHENTICATION_REPOSITORY_PORT,
+        TOKEN_GENERATOR_PORT,
+        SESSION_STORAGE,
+        EVENT_BUS,
+        ConfigService,
+      ],
     },
     {
       provide: VALIDATE_SESSION_PORT,
@@ -165,7 +184,7 @@ const EVENT_BUS = Symbol('EventBusPort');
       ) => {
         return new ValidateSessionUseCase(repository, tokenGenerator, sessionStorage);
       },
-      inject: [AUTH_REPOSITORY, TOKEN_GENERATOR_PORT, SESSION_STORAGE],
+      inject: [AUTHENTICATION_REPOSITORY_PORT, TOKEN_GENERATOR_PORT, SESSION_STORAGE],
     },
     {
       provide: TERMINATE_SESSION_PORT,
@@ -178,6 +197,9 @@ const EVENT_BUS = Symbol('EventBusPort');
       },
       inject: [TOKEN_GENERATOR_PORT, SESSION_STORAGE, EVENT_BUS],
     },
+
+    // Event Handlers
+    InvalidateSessionsOnCredentialChangeHandler,
   ],
   exports: [
     LOGIN_PORT,

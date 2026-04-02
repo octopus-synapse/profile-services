@@ -160,15 +160,14 @@ export class OnboardingStatusResponseDto extends createZodDto(OnboardingStatusRe
 export class SaveProgressResponseDto extends createZodDto(SaveProgressResponseSchema) {}
 
 // Backward compat alias
-export { OnboardingSessionDto as OnboardingProgressDto };
-
 // Export schemas for validation
 export {
+  CompleteOnboardingRequestSchema,
+  OnboardingSessionDto as OnboardingProgressDto,
+  OnboardingSessionSchema,
   PersonalInfoSchema,
   ProfessionalProfileSchema,
-  TemplateSelectionSchema,
-  SectionProgressSchema,
   SaveProgressRequestSchema,
-  CompleteOnboardingRequestSchema,
-  OnboardingSessionSchema,
+  SectionProgressSchema,
+  TemplateSelectionSchema,
 };

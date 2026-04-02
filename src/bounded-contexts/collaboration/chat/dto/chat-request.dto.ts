@@ -61,10 +61,10 @@ export class UnblockUserDto extends createZodDto(UnblockUserSchema) {}
 
 // Export schemas for custom validation needs
 export {
-  SendMessageSchema,
-  SendMessageToConversationSchema,
+  BlockUserSchema,
   GetConversationsQuerySchema,
   GetMessagesQuerySchema,
-  BlockUserSchema,
+  SendMessageSchema,
+  SendMessageToConversationSchema,
   UnblockUserSchema,
 };

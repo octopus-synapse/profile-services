@@ -1,7 +1,8 @@
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { beforeEach, describe, expect, it } from 'bun:test';
 import { Test, type TestingModule } from '@nestjs/testing';
-import { createMockResume } from '@test/factories/resume.factory';
+import { createMockResume } from '@test/shared/factories/resume.factory';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { InMemoryResumeRepository } from '../testing';
 import { ResumeJsonService } from './resume-json.service';
 
 type JsonResumeLike = {
@@ -42,13 +43,11 @@ function isProfileExportLike(value: unknown): value is ProfileExportLike {
 
 describe('ResumeJsonService', () => {
   let service: ResumeJsonService;
-  let mockPrismaService: {
-    resume: { findUnique: ReturnType<typeof mock> };
-  };
+  let repository: InMemoryResumeRepository;
 
   const mockResume = {
     ...createMockResume({
-      id: 'user-456',
+      id: 'resume-123',
       userId: 'user-456',
       title: 'My Resume',
       jobTitle: 'Software Engineer',
@@ -65,7 +64,7 @@ describe('ResumeJsonService', () => {
     },
     resumeSections: [
       {
-        sectionType: { semanticKind: 'WORK_EXPERIENCE' },
+        sectionType: { key: 'experience', semanticKind: 'WORK_EXPERIENCE', title: 'Experience' },
         items: [
           {
             content: {
@@ -81,7 +80,7 @@ describe('ResumeJsonService', () => {
         ],
       },
       {
-        sectionType: { semanticKind: 'EDUCATION' },
+        sectionType: { key: 'education', semanticKind: 'EDUCATION', title: 'Education' },
         items: [
           {
             content: {
@@ -95,21 +94,21 @@ describe('ResumeJsonService', () => {
         ],
       },
       {
-        sectionType: { semanticKind: 'SKILL_SET' },
+        sectionType: { key: 'skills', semanticKind: 'SKILL_SET', title: 'Skills' },
         items: [
           { content: { name: 'TypeScript', level: 4 } },
           { content: { name: 'Node.js', level: 3 } },
         ],
       },
       {
-        sectionType: { semanticKind: 'LANGUAGE' },
+        sectionType: { key: 'languages', semanticKind: 'LANGUAGE', title: 'Languages' },
         items: [
           { content: { name: 'English', level: 'FLUENT' } },
           { content: { name: 'Portuguese', level: 'NATIVE' } },
         ],
       },
       {
-        sectionType: { semanticKind: 'OPEN_SOURCE' },
+        sectionType: { key: 'opensource', semanticKind: 'OPEN_SOURCE', title: 'Open Source' },
         items: [
           {
             content: {
@@ -124,18 +123,19 @@ describe('ResumeJsonService', () => {
   };
 
   beforeEach(async () => {
-    mockPrismaService = {
-      resume: {
-        findUnique: mock(() => Promise.resolve(mockResume)),
-      },
-    };
+    repository = new InMemoryResumeRepository();
+    repository.seedResume(mockResume);
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ResumeJsonService,
         {
           provide: PrismaService,
-          useValue: mockPrismaService,
+          useValue: {
+            resume: {
+              findUnique: (args: { where: { id: string } }) => repository.findUnique(args.where.id),
+            },
+          },
         },
       ],
     }).compile();
@@ -205,7 +205,7 @@ describe('ResumeJsonService', () => {
     });
 
     it('should throw NotFoundException when resume not found', async () => {
-      mockPrismaService.resume.findUnique = mock(() => Promise.resolve(null));
+      repository.clear();
 
       await expect(service.exportAsJson('unknown')).rejects.toThrow('Resume not found');
     });

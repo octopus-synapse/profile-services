@@ -10,7 +10,7 @@
 
 import { beforeEach, describe, expect, it } from 'bun:test';
 import { NotFoundException, UnprocessableEntityException } from '@nestjs/common';
-import { createMockResume } from '@test/factories/resume.factory';
+import { createMockResume } from '@test/shared/factories/resume.factory';
 import { ResumesService } from './resumes.service';
 import {
   createTestResumesService,

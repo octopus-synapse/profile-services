@@ -1,6 +1,7 @@
 [test]
 # E2E Test configuration for Bun
-root = "./test/e2e/journeys"
+root = "./test/infrastructure/e2e/journeys"
+preload = ["./test/infrastructure/e2e/setup.ts"]
 
 # E2E tests require longer timeouts
 timeout = 60000

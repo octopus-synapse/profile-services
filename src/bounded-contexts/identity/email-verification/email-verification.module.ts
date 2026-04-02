@@ -6,24 +6,18 @@ import { EmailService } from '@/bounded-contexts/platform/common/email/email.ser
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { NestEventBusAdapter } from '../shared-kernel/adapters';
 import type { EventBusPort } from '../shared-kernel/ports/event-bus.port';
-// Outbound Adapters (Infrastructure)
+// Application Layer
+import { SEND_VERIFICATION_EMAIL_PORT, VERIFY_EMAIL_PORT } from './application/ports';
+import { SendVerificationEmailUseCase, VerifyEmailUseCase } from './application/use-cases';
+// Domain Layer
+import type { EmailVerificationRepositoryPort, VerificationEmailSenderPort } from './domain/ports';
+// Infrastructure Layer
 import {
   EMAIL_SERVICE,
   EmailVerificationSender,
   PrismaEmailVerificationRepository,
-} from './adapters';
-// Controllers (Inbound Adapters)
-// Use Cases (Application Services)
-import {
-  SendVerificationController,
-  SendVerificationEmailUseCase,
-  VerifyEmailController,
-  VerifyEmailUseCase,
-} from './modules';
-// Ports (Symbols for DI)
-import { SEND_VERIFICATION_EMAIL_PORT, VERIFY_EMAIL_PORT } from './ports/inbound';
-import type { EmailVerificationRepositoryPort } from './ports/outbound/email-verification-repository.port';
-import type { VerificationEmailSenderPort } from './ports/outbound/verification-email-sender.port';
+} from './infrastructure/adapters';
+import { SendVerificationController, VerifyEmailController } from './infrastructure/controllers';
 
 // Port symbols for outbound adapters
 const EMAIL_VERIFICATION_REPOSITORY = Symbol('EmailVerificationRepositoryPort');

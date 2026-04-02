@@ -33,6 +33,10 @@ import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 // Domain
 // (Domain services are created by application services, not injected)
 
+import { AuthorizationServicePort } from './application/ports/authorization-service.port';
+// Application
+import { AuthorizationService } from './application/services/authorization.service';
+import { AuthorizationManagementService } from './application/services/authorization-management.service';
 import { PermissionGuard } from './infrastructure/guards';
 // Infrastructure
 import {
@@ -41,11 +45,6 @@ import {
   RoleRepository,
   UserAuthorizationRepository,
 } from './infrastructure/repositories';
-
-// Application
-import { AuthorizationService } from './services/authorization.service';
-import { AuthorizationManagementService } from './services/authorization-management.service';
-import { AuthorizationServicePort } from './services/authorization-service.port';
 
 @Global()
 @Module({
