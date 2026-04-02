@@ -37,9 +37,10 @@ function uniqueTestEmail(prefix: string): string {
 /**
  * Generates a unique username for tests using UUID.
  * Avoids collisions when tests run in parallel.
+ * Uses underscore (not hyphen) as username only allows: alphanumeric + underscore
  */
 export function uniqueTestUsername(prefix = 'testuser'): string {
-  return `${prefix}-${randomUUID().slice(0, 8)}`;
+  return `${prefix}_${randomUUID().slice(0, 8).replace(/-/g, '')}`;
 }
 
 /**
