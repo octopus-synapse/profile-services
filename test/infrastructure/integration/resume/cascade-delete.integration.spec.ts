@@ -473,11 +473,11 @@ describe('Resume Delete Cascade & Cache - Bug Discovery Tests', () => {
       // Check for orphaned resume versions (if table exists)
       try {
         const orphanedVersions = await prisma.$queryRaw`
-          SELECT COUNT(*) as count FROM "ResumeVersion" WHERE "resumeId" = ${resume.id}
+          SELECT COUNT(*) as count FROM "resume_versions" WHERE "resumeId" = ${resume.id}
         `;
         console.log('Orphaned versions:', orphanedVersions);
       } catch {
-        console.log('ResumeVersion table not found or different schema');
+        console.log('resume_versions table not found or different schema');
       }
 
       console.log('NOTE: Verify all related tables cascade delete in Prisma schema');
