@@ -225,7 +225,8 @@ describe('Resume Delete Cascade & Cache - Bug Discovery Tests', () => {
      * Test error handling for invalid resume ID
      */
     it('should return 404 for non-existent resume', async () => {
-      const fakeResumeId = 'non-existent-resume-id-12345';
+      // Use a valid CUID format that doesn't exist in the database
+      const fakeResumeId = 'cmzzzzzzz0000zzzzzzzzzzzz';
 
       const response = await getRequest()
         .delete(`/api/v1/resumes/${fakeResumeId}`)
@@ -326,27 +327,29 @@ describe('Resume Delete Cascade & Cache - Bug Discovery Tests', () => {
      * Test that user:userId:resumes cache key is cleared
      */
     it('should invalidate user resume list cache', async () => {
-      const prisma = getPrisma();
+      // Create a resume through the API to ensure all required data is present
+      const createResponse = await getRequest()
+        .post('/api/v1/resumes')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ title: 'User Cache Test' });
 
-      // Create a resume
-      const resume = await prisma.resume.create({
-        data: {
-          userId,
-          title: 'User Cache Test',
-          slug: `user-cache-test-${Date.now()}`,
-        },
-      });
+      expect(createResponse.status).toBe(201);
+      const resumeId = createResponse.body.data?.id;
+      expect(resumeId).toBeDefined();
 
       // Fetch user's resumes to populate cache
       const listBefore = await getRequest()
         .get('/api/v1/resumes')
         .set('Authorization', `Bearer ${accessToken}`);
 
-      const countBefore = listBefore.body.data?.length || 0;
+      // Handle paginated response: data.data contains the array
+      const resumesBefore = listBefore.body.data?.data || listBefore.body.data || [];
+      const countBefore = resumesBefore.length;
+      expect(countBefore).toBeGreaterThan(0);
 
       // Delete the resume
       await getRequest()
-        .delete(`/api/v1/resumes/${resume.id}`)
+        .delete(`/api/v1/resumes/${resumeId}`)
         .set('Authorization', `Bearer ${accessToken}`);
 
       // Immediately fetch list again
@@ -354,7 +357,9 @@ describe('Resume Delete Cascade & Cache - Bug Discovery Tests', () => {
         .get('/api/v1/resumes')
         .set('Authorization', `Bearer ${accessToken}`);
 
-      const countAfter = listAfter.body.data?.length || 0;
+      // Handle paginated response
+      const resumesAfter = listAfter.body.data?.data || listAfter.body.data || [];
+      const countAfter = resumesAfter.length;
 
       console.log('Resumes before delete:', countBefore);
       console.log('Resumes after delete:', countAfter);
@@ -363,9 +368,7 @@ describe('Resume Delete Cascade & Cache - Bug Discovery Tests', () => {
       expect(countAfter).toBe(countBefore - 1);
 
       // Deleted resume should NOT appear in list
-      const deletedResumeInList = listAfter.body.data?.find(
-        (r: { id: string }) => r.id === resume.id,
-      );
+      const deletedResumeInList = resumesAfter.find((r: { id: string }) => r.id === resumeId);
       expect(deletedResumeInList).toBeUndefined();
     });
   });

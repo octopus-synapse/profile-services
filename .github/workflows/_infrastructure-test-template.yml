@@ -32,6 +32,8 @@ env:
     REDIS_HOST: localhost
     REDIS_PORT: 6380
     NODE_ENV: test
+    JWT_SECRET: test-secret-key-for-ci-tests-minimum-32-chars
+    RATE_LIMIT_ENABLED: true
 
 jobs:
     test:

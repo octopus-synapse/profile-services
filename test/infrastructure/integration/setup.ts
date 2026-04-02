@@ -12,7 +12,8 @@ import { join } from 'node:path';
 import { config } from 'dotenv';
 
 // Load test environment BEFORE importing AppModule
-config({ path: join(__dirname, '..', '..', '.env.test'), override: false });
+// __dirname is test/infrastructure/integration, so go up 3 levels to project root
+config({ path: join(__dirname, '..', '..', '..', '.env.test'), override: false });
 setDefaultTimeout(15000);
 
 import { INestApplication } from '@nestjs/common';

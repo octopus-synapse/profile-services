@@ -38,8 +38,8 @@ export class PrismaPasswordResetTokenService implements PasswordResetTokenPort {
     }
 
     if (new Date() > resetToken.expiresAt) {
-      // Delete expired token
-      await this.prisma.passwordResetToken.delete({
+      // Delete expired token (use deleteMany to avoid "not found" errors)
+      await this.prisma.passwordResetToken.deleteMany({
         where: { token },
       });
       throw new InvalidResetTokenException();
@@ -54,7 +54,7 @@ export class PrismaPasswordResetTokenService implements PasswordResetTokenPort {
    */
   async validateAndConsumeToken(token: string): Promise<string> {
     return this.prisma.$transaction(async (tx) => {
-      // Find and lock the token row
+      // Find the token first
       const resetToken = await tx.passwordResetToken.findUnique({
         where: { token },
       });
@@ -64,17 +64,23 @@ export class PrismaPasswordResetTokenService implements PasswordResetTokenPort {
       }
 
       if (new Date() > resetToken.expiresAt) {
-        // Delete expired token
-        await tx.passwordResetToken.delete({
+        // Delete expired token (use deleteMany to avoid "not found" errors)
+        await tx.passwordResetToken.deleteMany({
           where: { token },
         });
         throw new InvalidResetTokenException();
       }
 
-      // Immediately delete (consume) the token within the same transaction
-      await tx.passwordResetToken.delete({
+      // Atomically consume the token - use deleteMany and check count
+      // This prevents race conditions where another process already consumed it
+      const result = await tx.passwordResetToken.deleteMany({
         where: { token },
       });
+
+      // If count is 0, the token was already consumed by another request
+      if (result.count === 0) {
+        throw new InvalidResetTokenException();
+      }
 
       return resetToken.userId;
     });

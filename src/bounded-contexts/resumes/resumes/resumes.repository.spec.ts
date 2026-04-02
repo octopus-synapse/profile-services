@@ -9,7 +9,7 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { ForbiddenException } from '@nestjs/common';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { CreateResume, UpdateResume } from '@/shared-kernel';
@@ -66,6 +66,20 @@ class InMemoryResumesStore {
       return Promise.resolve(resume);
     }
     return Promise.resolve(null);
+  }
+
+  deleteMany({ where }: { where: { id: string; userId: string } }) {
+    const resume = this.resumes.get(where.id);
+    if (resume && resume.userId === where.userId) {
+      this.resumes.delete(where.id);
+      return Promise.resolve({ count: 1 });
+    }
+    return Promise.resolve({ count: 0 });
+  }
+
+  findUnique({ where }: { where: { id: string } }) {
+    const resume = this.resumes.get(where.id);
+    return Promise.resolve(resume ?? null);
   }
 
   seed(resume: { id: string; userId: string; title: string; updatedAt?: Date }): void {
@@ -251,10 +265,10 @@ describe('ResumesRepository', () => {
       expect(result).toBe(true);
     });
 
-    it('should throw ForbiddenException when resume does not exist', async () => {
+    it('should throw NotFoundException when resume does not exist', async () => {
       await expect(
         async () => await repository.deleteResumeForUser('non-existent', 'user-1'),
-      ).toThrow(ForbiddenException);
+      ).toThrow(NotFoundException);
     });
 
     it('should throw ForbiddenException when user does not own resume', async () => {

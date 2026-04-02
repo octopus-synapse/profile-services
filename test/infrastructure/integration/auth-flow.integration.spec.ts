@@ -310,7 +310,7 @@ describe('Auth Flow Integration', () => {
     it('should complete password reset flow', async () => {
       // Step 1: Request password reset
       await request(app.getHttpServer())
-        .post('/api/password/forgot')
+        .post('/api/auth/forgot-password')
         .send({ email: testUser.email })
         .expect(200);
 
@@ -320,7 +320,7 @@ describe('Auth Flow Integration', () => {
 
     it('should reject invalid password reset token', async () => {
       await request(app.getHttpServer())
-        .post('/api/password/reset')
+        .post('/api/auth/reset-password')
         .send({
           token: 'invalid-token-xyz',
           newPassword: 'NewPass123!',
