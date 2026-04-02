@@ -70,9 +70,15 @@ runs:
         echo "duration=${DURATION}s" >> $GITHUB_OUTPUT
 
         # Parse bun test output: " 1121 pass", " 0 fail", "across 42 files"
-        PASS=$(echo "$OUTPUT" | grep -oE ' [0-9]+ pass' | grep -oE '[0-9]+' || echo "0")
-        FAIL=$(echo "$OUTPUT" | grep -oE ' [0-9]+ fail' | grep -oE '[0-9]+' || echo "0")
-        FILES=$(echo "$OUTPUT" | grep -oE 'across [0-9]+ files' | grep -oE '[0-9]+' || echo "?")
+        # Use head -1 to ensure single value (grep -oE may return multiple lines)
+        PASS=$(echo "$OUTPUT" | grep -oE ' [0-9]+ pass' | grep -oE '[0-9]+' | head -1 || echo "0")
+        FAIL=$(echo "$OUTPUT" | grep -oE ' [0-9]+ fail' | grep -oE '[0-9]+' | head -1 || echo "0")
+        FILES=$(echo "$OUTPUT" | grep -oE 'across [0-9]+ files' | grep -oE '[0-9]+' | head -1 || echo "?")
+
+        # Ensure values are clean (no newlines, valid format)
+        PASS="${PASS//[^0-9]/}"
+        FAIL="${FAIL//[^0-9]/}"
+        FILES="${FILES//[^0-9?]/}"
 
         echo "pass=${PASS:-0}" >> $GITHUB_OUTPUT
         echo "fail=${FAIL:-0}" >> $GITHUB_OUTPUT
