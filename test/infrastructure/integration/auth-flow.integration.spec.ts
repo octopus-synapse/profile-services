@@ -375,12 +375,6 @@ describe('Auth Flow Integration', () => {
       // Password hash should be different after change (bcrypt hashes are always different due to salt)
     });
 
-    it.skip('should change user email', async () => {
-      // SKIPPED: No change-email endpoint exists in the API
-      // Email changes would need to be implemented via a separate flow
-      // with email verification for the new address
-    });
-
     it('should delete user account', async () => {
       await request(app.getHttpServer())
         .delete('/api/accounts')

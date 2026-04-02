@@ -4,10 +4,13 @@ import type { AuthenticatedRequest } from '@/bounded-contexts/identity/shared-ke
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
+import { ZodValidationPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import {
   GetConversationsQueryDto,
+  GetConversationsQuerySchema,
   GetMessagesQueryDto,
+  GetMessagesQuerySchema,
   SendMessageDto,
   SendMessageToConversationDto,
 } from '../dto/chat-request.dto';
@@ -71,7 +74,7 @@ export class ChatController {
   })
   async getConversations(
     @Req() req: AuthenticatedRequest,
-    @Query() query: GetConversationsQueryDto,
+    @Query(new ZodValidationPipe(GetConversationsQuerySchema)) query: GetConversationsQueryDto,
   ): Promise<DataResponse<ConversationsListDataDto>> {
     const conversations = await this.chatService.getConversations(req.user.userId, query);
     return { success: true, data: { conversations } };
@@ -96,7 +99,7 @@ export class ChatController {
   async getMessages(
     @Req() req: AuthenticatedRequest,
     @Param('conversationId') conversationId: string,
-    @Query() query: GetMessagesQueryDto,
+    @Query(new ZodValidationPipe(GetMessagesQuerySchema)) query: GetMessagesQueryDto,
   ): Promise<DataResponse<MessagesListDataDto>> {
     const messages = await this.chatService.getMessages(req.user.userId, {
       conversationId,

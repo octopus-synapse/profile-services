@@ -230,14 +230,15 @@ describe('2FA Security - Bug Discovery Tests', () => {
         .set('Authorization', `Bearer ${testUser.accessToken}`);
 
       const secret = setupRes.body.data.secret;
-      const backupCodes: string[] = setupRes.body.data.backupCodes || [];
 
-      // Enable 2FA
+      // Enable 2FA - backup codes are returned in the verify response
       const enableToken = speakeasy.totp({ secret, encoding: 'base32' });
-      await getRequest()
+      const verifyRes = await getRequest()
         .post('/api/auth/2fa/verify')
         .set('Authorization', `Bearer ${testUser.accessToken}`)
         .send({ code: enableToken });
+
+      const backupCodes: string[] = verifyRes.body.data?.backupCodes || [];
 
       if (backupCodes.length === 0) {
         console.log('No backup codes returned - skipping test');

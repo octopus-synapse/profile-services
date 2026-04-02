@@ -150,7 +150,7 @@ describe('E2E Journey: Chat', () => {
         (c: { id: string }) => c.id === conversationId,
       );
       expect(conv).toBeDefined();
-      expect(conv.lastMessageContent).toBe('Hello from User 1!');
+      expect(conv.lastMessage?.content).toBe('Hello from User 1!');
     });
 
     it('user2 should see the conversation', async () => {
@@ -301,7 +301,7 @@ describe('E2E Journey: Chat', () => {
         .post('/api/chat/blocked')
         .set('Authorization', `Bearer ${user1.token}`)
         .send({
-          blockedId: user2.userId,
+          userId: user2.userId,
         });
 
       expect(response.status).toBe(201);
@@ -401,9 +401,15 @@ describe('E2E Journey: Chat', () => {
     });
 
     it('should reject user without chat permission', async () => {
-      // Create user without granting chat permission
+      // Create user and explicitly remove their roles to test permission check
       const noPermUser = authHelper.createTestUser('chat-noperm');
       const resultNoPerm = await authHelper.registerAndLogin(noPermUser);
+
+      // Remove roles from user to simulate a user without chat permission
+      await prisma.user.update({
+        where: { id: resultNoPerm.userId },
+        data: { roles: [] },
+      });
 
       const response = await request(app.getHttpServer())
         .get('/api/chat/conversations')

@@ -97,13 +97,30 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     // Check if token was issued before a password change
     // Tokens issued AT or BEFORE the invalidation timestamp are considered invalid
     // (use <= to handle same-second edge case)
-    const tokenValidAfter = await this.cacheService.get<number>(
-      `${TOKEN_VALID_AFTER_KEY_PREFIX}${payload.sub}`,
-    );
+    //
+    // SECURITY POLICY:
+    // - If cache is disabled (no REDIS_HOST): fail-open (accept token) - no invalidation to check
+    // - If cache is enabled but fails: fail-closed (reject token) - security-critical
+    if (this.cacheService.isEnabled) {
+      try {
+        const tokenValidAfter = await this.cacheService.getSecure<number>(
+          `${TOKEN_VALID_AFTER_KEY_PREFIX}${payload.sub}`,
+        );
 
-    if (tokenValidAfter && payload.iat && payload.iat <= tokenValidAfter) {
-      throw new UnauthorizedException(TOKEN_INVALIDATED_MESSAGE);
+        if (tokenValidAfter && payload.iat && payload.iat <= tokenValidAfter) {
+          throw new UnauthorizedException(TOKEN_INVALIDATED_MESSAGE);
+        }
+      } catch (error) {
+        // If it's already an UnauthorizedException, rethrow it
+        if (error instanceof UnauthorizedException) {
+          throw error;
+        }
+        // For cache errors when cache IS configured, fail-closed for security
+        // This prevents invalidated tokens from being accepted if Redis is down
+        throw new UnauthorizedException('Unable to verify token validity - please try again');
+      }
     }
+    // If cache is disabled, skip invalidation check (fail-open for availability)
 
     return {
       id: user.id, // For PermissionGuard compatibility

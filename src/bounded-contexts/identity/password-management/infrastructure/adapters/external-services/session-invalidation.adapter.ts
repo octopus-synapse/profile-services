@@ -23,8 +23,10 @@ export class SessionInvalidationAdapter implements SessionInvalidationPort {
 
   async invalidateAllSessions(userId: string): Promise<void> {
     // Set token invalidation timestamp - any JWT issued before this time is invalid
+    // Uses setSecure() to fail-closed: if Redis write fails, the operation fails
+    // This prevents the security issue of old tokens remaining valid after password reset
     const now = Math.floor(Date.now() / 1000);
-    await this.cacheService.set(
+    await this.cacheService.setSecure(
       `${TOKEN_VALID_AFTER_KEY_PREFIX}${userId}`,
       now,
       TOKEN_INVALIDATION_TTL_SECONDS,
