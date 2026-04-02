@@ -149,11 +149,10 @@ describe('2FA Security - Bug Discovery Tests', () => {
     });
   });
 
-  describe.skip('BUG-2FA-002: Brute Force Vulnerability', () => {
+  describe('BUG-2FA-002: Brute Force Vulnerability', () => {
     /**
      * EXPECTED BEHAVIOR: After N failed attempts, should lock out
      * ACTUAL BUG: No rate limiting on 2FA validation
-     * SKIPPED: Pre-existing bug - no rate limiting on 2FA. Will be fixed in separate PR.
      */
     it('should lock out after 5 failed 2FA attempts - EXPECTED TO FAIL IF NO RATE LIMIT', async () => {
       // Get fresh credentials

@@ -85,11 +85,20 @@ jobs:
                   GITHUB_REPOSITORY: ${{ github.repository }}
               run: |
                   chmod +x scripts/ci-comment.sh
-                  STATUS="${{ steps.tests.outputs.status || job.status }}"
+                  STATUS="${{ steps.tests.outputs.status || 'failure' }}"
                   DURATION="${{ steps.tests.outputs.duration || '—' }}"
                   PASS="${{ steps.tests.outputs.pass || '0' }}"
                   FAIL="${{ steps.tests.outputs.fail || '0' }}"
-                  FILES="${{ steps.tests.outputs.files || '?' }}"
+                  SKIP="${{ steps.tests.outputs.skip || '0' }}"
 
-                  DESC="${PASS} ✓ ${FAIL} ✗"
+                  # Build description with proper formatting
+                  if [[ "$STATUS" == "success" ]]; then
+                    DESC="${PASS} ✓"
+                    [[ "$SKIP" != "0" ]] && DESC="${DESC}, ${SKIP} skipped"
+                  else
+                    DESC="**${FAIL} FAILED** (${PASS} passed"
+                    [[ "$SKIP" != "0" ]] && DESC="${DESC}, ${SKIP} skipped"
+                    DESC="${DESC})"
+                  fi
+
                   ./scripts/ci-comment.sh update "${{ inputs.test-name }}" "$STATUS" "$DESC" "${DURATION}"

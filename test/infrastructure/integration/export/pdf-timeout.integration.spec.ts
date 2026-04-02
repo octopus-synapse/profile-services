@@ -150,11 +150,10 @@ describe('Export PDF Timeout & Security - Bug Discovery Tests', () => {
     });
   });
 
-  describe.skip('BUG-EXPORT-004: Path Traversal via Parameters', () => {
+  describe('BUG-EXPORT-004: Path Traversal via Parameters', () => {
     /**
      * EXPECTED BEHAVIOR: Parameters should be sanitized
      * ACTUAL BUG: Path traversal in palette/lang could access files
-     * SKIPPED: Pre-existing bug - returns 500 instead of 400. Will be fixed in separate PR.
      */
     it('should sanitize palette parameter', async () => {
       const maliciousInputs = [

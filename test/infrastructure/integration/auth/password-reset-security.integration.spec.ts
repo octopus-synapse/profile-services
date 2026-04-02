@@ -413,11 +413,10 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
     });
   });
 
-  describe.skip('BUG-PWD-008: Session Invalidation After Password Reset', () => {
+  describe('BUG-PWD-008: Session Invalidation After Password Reset', () => {
     /**
      * EXPECTED BEHAVIOR: All active sessions should be invalidated after password reset
      * ACTUAL BUG: Old sessions remain valid
-     * SKIPPED: Pre-existing bug - sessions not invalidated. Will be fixed in separate PR.
      */
     it('should invalidate all sessions after password reset - EXPECTED TO FAIL IF SESSIONS PERSIST', async () => {
       const testUser = await createTestUserAndLogin({

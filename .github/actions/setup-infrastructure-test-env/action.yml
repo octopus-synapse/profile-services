@@ -24,6 +24,9 @@ outputs:
   fail:
     description: 'Number of tests failed'
     value: ${{ steps.test.outputs.fail }}
+  skip:
+    description: 'Number of tests skipped'
+    value: ${{ steps.test.outputs.skip }}
   files:
     description: 'Number of test files'
     value: ${{ steps.test.outputs.files }}
@@ -61,36 +64,49 @@ runs:
         echo "## 🧪 ${{ inputs.test-name }} Tests" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
 
+        # Run tests - capture output and CORRECT exit code
         set +e
-        OUTPUT=$(${{ inputs.test-command }} 2>&1 | tee test-output.txt)
-        EXIT_CODE=$?
+        ${{ inputs.test-command }} 2>&1 | tee test-output.txt
+        EXIT_CODE=${PIPESTATUS[0]}  # FIX: Get bun's exit code, not tee's
         set -e
 
         DURATION=$(($(date +%s) - START))
         echo "duration=${DURATION}s" >> $GITHUB_OUTPUT
 
-        # Parse bun test output: " 1121 pass", " 0 fail", "across 42 files"
-        # Use head -1 to ensure single value (grep -oE may return multiple lines)
-        PASS=$(echo "$OUTPUT" | grep -oE ' [0-9]+ pass' | grep -oE '[0-9]+' | head -1 || echo "0")
-        FAIL=$(echo "$OUTPUT" | grep -oE ' [0-9]+ fail' | grep -oE '[0-9]+' | head -1 || echo "0")
-        FILES=$(echo "$OUTPUT" | grep -oE 'across [0-9]+ files' | grep -oE '[0-9]+' | head -1 || echo "?")
+        # Parse bun test output: " 1121 pass", " 0 fail", " 3 skip", "across 42 files"
+        PASS=$(grep -oE ' [0-9]+ pass' test-output.txt | grep -oE '[0-9]+' | head -1 || echo "0")
+        FAIL=$(grep -oE ' [0-9]+ fail' test-output.txt | grep -oE '[0-9]+' | head -1 || echo "0")
+        SKIP=$(grep -oE ' [0-9]+ skip' test-output.txt | grep -oE '[0-9]+' | head -1 || echo "0")
+        FILES=$(grep -oE 'across [0-9]+ files' test-output.txt | grep -oE '[0-9]+' | head -1 || echo "?")
 
         # Ensure values are clean (no newlines, valid format)
         PASS="${PASS//[^0-9]/}"
         FAIL="${FAIL//[^0-9]/}"
+        SKIP="${SKIP//[^0-9]/}"
         FILES="${FILES//[^0-9?]/}"
 
         echo "pass=${PASS:-0}" >> $GITHUB_OUTPUT
         echo "fail=${FAIL:-0}" >> $GITHUB_OUTPUT
+        echo "skip=${SKIP:-0}" >> $GITHUB_OUTPUT
         echo "files=${FILES:-?}" >> $GITHUB_OUTPUT
 
-        if [[ $EXIT_CODE -eq 0 ]]; then
-          echo "✅ ${PASS} tests passed across ${FILES} files" >> $GITHUB_STEP_SUMMARY
-          echo "status=success" >> $GITHUB_OUTPUT
-        else
-          echo "❌ ${PASS} passed, ${FAIL} failed across ${FILES} files" >> $GITHUB_STEP_SUMMARY
+        # CRITICAL: Force failure if ANY tests failed OR exit code non-zero
+        if [[ "${FAIL:-0}" != "0" ]] || [[ $EXIT_CODE -ne 0 ]]; then
+          echo "❌ ${PASS:-0} passed, **${FAIL:-0} FAILED**, ${SKIP:-0} skipped" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Failed Tests:" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          grep -B2 -A10 "✗\|error:\|Expected\|Received" test-output.txt | head -100 >> $GITHUB_STEP_SUMMARY || echo "See test-output.txt artifact for details" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
           echo "status=failure" >> $GITHUB_OUTPUT
+          echo "::error::${FAIL:-0} tests failed. Build cannot proceed."
           exit 1
+        else
+          echo "✅ ${PASS:-0} tests passed across ${FILES:-?} files" >> $GITHUB_STEP_SUMMARY
+          if [[ "${SKIP:-0}" != "0" ]]; then
+            echo "⚠️ Warning: ${SKIP} tests were skipped" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "status=success" >> $GITHUB_OUTPUT
         fi
       shell: bash
 
