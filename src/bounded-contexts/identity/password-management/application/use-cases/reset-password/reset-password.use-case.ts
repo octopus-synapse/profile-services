@@ -5,11 +5,13 @@ import type {
   PasswordHasherPort,
   PasswordRepositoryPort,
   PasswordResetTokenPort,
+  SessionInvalidationPort,
 } from '../../../domain/ports';
 import {
   PASSWORD_HASHER_PORT,
   PASSWORD_REPOSITORY_PORT,
   PASSWORD_RESET_TOKEN_PORT,
+  SESSION_INVALIDATION_PORT,
 } from '../../../domain/ports';
 import { Password } from '../../../domain/value-objects';
 import type { ResetPasswordCommand, ResetPasswordPort, ResetPasswordResult } from '../../ports';
@@ -25,6 +27,8 @@ export class ResetPasswordUseCase implements ResetPasswordPort {
     private readonly tokenService: PasswordResetTokenPort,
     @Inject(PASSWORD_HASHER_PORT)
     private readonly passwordHasher: PasswordHasherPort,
+    @Inject(SESSION_INVALIDATION_PORT)
+    private readonly sessionInvalidation: SessionInvalidationPort,
     @Inject(EVENT_BUS)
     private readonly eventBus: EventBusPort,
   ) {}
@@ -45,9 +49,13 @@ export class ResetPasswordUseCase implements ResetPasswordPort {
     // Update password
     await this.passwordRepository.updatePassword(userId, hashedPassword);
 
-    // Publish domain event (await to ensure handlers complete before returning)
+    // SYNCHRONOUS session invalidation - must complete before returning
+    // This ensures old tokens are invalidated immediately (no race conditions)
+    await this.sessionInvalidation.invalidateAllSessions(userId);
+
+    // Publish domain event for audit/notifications (fire and forget)
     const event = new PasswordChangedEvent(userId, 'reset');
-    await this.eventBus.publish(event);
+    this.eventBus.publish(event);
 
     return { success: true };
   }

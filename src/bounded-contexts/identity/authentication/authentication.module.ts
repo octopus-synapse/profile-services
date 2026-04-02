@@ -4,6 +4,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 // Shared providers
 import { CacheModule } from '@/bounded-contexts/platform/common/cache/cache.module';
+import { RateLimitModule } from '@/bounded-contexts/platform/common/rate-limit/rate-limit.module';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { NestEventBusAdapter } from '../shared-kernel/adapters';
 import { JwtStrategy } from '../shared-kernel/infrastructure/strategies';
@@ -67,6 +68,7 @@ const EVENT_BUS = Symbol('EventBusPort');
   imports: [
     PrismaModule,
     CacheModule,
+    RateLimitModule,
     ConfigModule,
     TwoFactorAuthModule,
     PassportModule.register({ defaultStrategy: 'jwt' }),

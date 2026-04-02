@@ -20,6 +20,7 @@ import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import request, { Agent } from 'supertest';
 import { AppModule } from '@/app.module';
+import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import {
   configureExceptionHandling,
   configureValidation,
@@ -373,4 +374,64 @@ export async function acceptTosWithPrisma(prisma: PrismaService, userId: string)
       userAgent: 'Integration Test',
     },
   });
+}
+
+/**
+ * Gets the CacheService instance from the app.
+ */
+export function getCacheService(): CacheService {
+  if (!appInstance) {
+    throw new Error('App not initialized. Call getApp() first.');
+  }
+  return appInstance.get<CacheService>(CacheService);
+}
+
+/**
+ * Clears all Redis cache state for a specific user.
+ * Use this in afterEach/afterAll to ensure test isolation.
+ */
+export async function clearUserCacheState(userId: string): Promise<void> {
+  const cache = getCacheService();
+  if (!cache.isEnabled) return;
+
+  // Clear token invalidation timestamp
+  await cache.delete(`auth:token_valid_after:${userId}`);
+
+  // Clear rate limit state for this user (pattern: ratelimit:*)
+  await cache.deletePattern(`ratelimit:*:${userId}:*`);
+  await cache.deletePattern(`ratelimit:*:${userId}`);
+}
+
+/**
+ * Clears all rate limit state from Redis.
+ * Use this before rate limiting tests to ensure clean state.
+ */
+export async function clearRateLimitState(): Promise<void> {
+  const cache = getCacheService();
+  if (!cache.isEnabled) return;
+
+  // Key pattern is "ratelimit:" without underscore
+  await cache.deletePattern('ratelimit:*');
+}
+
+/**
+ * Clears all auth-related cache state from Redis.
+ * Use this before auth tests to ensure clean state.
+ */
+export async function clearAuthCacheState(): Promise<void> {
+  const cache = getCacheService();
+  if (!cache.isEnabled) return;
+
+  await cache.deletePattern('auth:*');
+}
+
+/**
+ * Flushes all Redis cache.
+ * Use with caution - only at the start of test suites.
+ */
+export async function flushCache(): Promise<void> {
+  const cache = getCacheService();
+  if (!cache.isEnabled) return;
+
+  await cache.flush();
 }

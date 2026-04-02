@@ -14,6 +14,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import * as speakeasy from 'speakeasy';
 import {
+  clearRateLimitState,
   closeApp,
   createTestUserAndLogin,
   getApp,
@@ -154,55 +155,63 @@ describe('2FA Security - Bug Discovery Tests', () => {
      * EXPECTED BEHAVIOR: After N failed attempts, should lock out
      * ACTUAL BUG: No rate limiting on 2FA validation
      */
-    it('should lock out after 5 failed 2FA attempts - EXPECTED TO FAIL IF NO RATE LIMIT', async () => {
-      // Get fresh credentials
-      const testUser = await createTestUserAndLogin({
-        email: `2fa-brute-${uniqueTestId()}@example.com`,
-      });
+    it(
+      'should lock out after 5 failed 2FA attempts - EXPECTED TO FAIL IF NO RATE LIMIT',
+      async () => {
+        // Clear rate limit state from previous tests to ensure clean state
+        await clearRateLimitState();
 
-      // Setup and enable 2FA
-      const setupRes = await getRequest()
-        .post('/api/auth/2fa/setup')
-        .set('Authorization', `Bearer ${testUser.accessToken}`);
-
-      const secret = setupRes.body.data.secret;
-      const enableToken = speakeasy.totp({ secret, encoding: 'base32' });
-
-      await getRequest()
-        .post('/api/auth/2fa/verify')
-        .set('Authorization', `Bearer ${testUser.accessToken}`)
-        .send({ code: enableToken });
-
-      // Login to trigger 2FA
-      const prisma = getPrisma();
-      const user = await prisma.user.findUnique({ where: { id: testUser.userId } });
-
-      await getRequest().post('/api/auth/login').send({
-        email: user?.email,
-        password: 'SecurePass123!',
-      });
-
-      // Try 10 wrong codes
-      const results: number[] = [];
-      for (let i = 0; i < 10; i++) {
-        const response = await getRequest().post('/api/auth/login/verify-2fa').send({
-          userId: testUser.userId,
-          code: '000000', // Wrong code
+        // Get fresh credentials
+        const testUser = await createTestUserAndLogin({
+          email: `2fa-brute-${uniqueTestId()}@example.com`,
         });
-        results.push(response.status);
-      }
 
-      // If ALL requests return 401 (not 429 Too Many Requests), no rate limiting!
-      const hasRateLimit = results.some((status) => status === 429);
+        // Setup and enable 2FA
+        const setupRes = await getRequest()
+          .post('/api/auth/2fa/setup')
+          .set('Authorization', `Bearer ${testUser.accessToken}`);
 
-      // This assertion should FAIL if there's no rate limiting
-      expect(hasRateLimit).toBe(true);
+        const secret = setupRes.body.data.secret;
+        const enableToken = speakeasy.totp({ secret, encoding: 'base32' });
 
-      // Cleanup
-      await prisma.twoFactorAuth.deleteMany({ where: { userId: testUser.userId } });
-      await prisma.twoFactorBackupCode.deleteMany({ where: { userId: testUser.userId } });
-      await prisma.user.deleteMany({ where: { id: testUser.userId } });
-    });
+        await getRequest()
+          .post('/api/auth/2fa/verify')
+          .set('Authorization', `Bearer ${testUser.accessToken}`)
+          .send({ code: enableToken });
+
+        // Login to trigger 2FA
+        const prisma = getPrisma();
+        const user = await prisma.user.findUnique({ where: { id: testUser.userId } });
+
+        await getRequest().post('/api/auth/login').send({
+          email: user?.email,
+          password: 'SecurePass123!',
+        });
+
+        // Try 10 wrong codes
+        const results: number[] = [];
+        for (let i = 0; i < 10; i++) {
+          const response = await getRequest().post('/api/auth/login/verify-2fa').send({
+            userId: testUser.userId,
+            code: '000000', // Wrong code
+          });
+          results.push(response.status);
+        }
+
+        // If ALL requests return 401 (not 429 Too Many Requests), no rate limiting!
+        const hasRateLimit = results.some((status) => status === 429);
+
+        // This assertion should FAIL if there's no rate limiting
+        expect(hasRateLimit).toBe(true);
+
+        // Cleanup - database and rate limits
+        await clearRateLimitState();
+        await prisma.twoFactorAuth.deleteMany({ where: { userId: testUser.userId } });
+        await prisma.twoFactorBackupCode.deleteMany({ where: { userId: testUser.userId } });
+        await prisma.user.deleteMany({ where: { id: testUser.userId } });
+      },
+      { timeout: 15000 },
+    ); // 15 second timeout for this rate-limited test
   });
 
   describe('BUG-2FA-003: Backup Code Reuse', () => {

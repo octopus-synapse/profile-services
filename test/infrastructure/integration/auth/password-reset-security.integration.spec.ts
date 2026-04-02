@@ -15,9 +15,11 @@
 import { afterAll, beforeAll, describe, expect, it } from 'bun:test';
 import { randomUUID } from 'node:crypto';
 import {
+  clearUserCacheState,
   closeApp,
   createTestUserAndLogin,
   getApp,
+  getCacheService,
   getPrisma,
   getRequest,
   uniqueTestId,
@@ -416,19 +418,25 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
   describe('BUG-PWD-008: Session Invalidation After Password Reset', () => {
     /**
      * EXPECTED BEHAVIOR: All active sessions should be invalidated after password reset
-     * ACTUAL BUG: Old sessions remain valid
+     *
+     * Session invalidation is now SYNCHRONOUS within the use case.
+     * No timing dependencies - when API returns, sessions are already invalidated.
      */
     it('should invalidate all sessions after password reset - EXPECTED TO FAIL IF SESSIONS PERSIST', async () => {
+      const prisma = getPrisma();
+      const cache = getCacheService();
+
+      // Create fresh test user
       const testUser = await createTestUserAndLogin({
         email: `session-invalidation-${uniqueTestId()}@example.com`,
       });
 
-      const prisma = getPrisma();
+      // Clear any stale cache state for this user BEFORE test
+      await clearUserCacheState(testUser.userId);
 
-      // Get the current access token (from login)
       const oldAccessToken = testUser.accessToken;
 
-      // Verify old token works
+      // Verify old token works BEFORE reset
       const beforeReset = await getRequest()
         .get('/api/v1/resumes')
         .set('Authorization', `Bearer ${oldAccessToken}`);
@@ -445,6 +453,7 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
         },
       });
 
+      // Reset password - session invalidation is SYNCHRONOUS (no delay needed)
       const resetResponse = await getRequest().post('/api/auth/reset-password').send({
         token,
         newPassword: 'CompletelyNewPassword123!',
@@ -452,21 +461,22 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
 
       expect(resetResponse.status).toBe(200);
 
-      // Delay to ensure event handlers complete and Redis operations finish
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      // Verify Redis key was set
+      const tokenValidAfterKey = `auth:token_valid_after:${testUser.userId}`;
+      const tokenValidAfter = await cache.get<number>(tokenValidAfterKey);
+      expect(tokenValidAfter).toBeDefined();
+      expect(typeof tokenValidAfter).toBe('number');
 
-      // Try to use OLD access token - should be invalidated!
+      // Try to use OLD access token - should be IMMEDIATELY invalid
       const afterReset = await getRequest()
         .get('/api/v1/resumes')
         .set('Authorization', `Bearer ${oldAccessToken}`);
 
-      console.log('Old token status after password reset:', afterReset.status);
-
       // If old token still works (200), sessions aren't being invalidated!
-      // This is a security issue - stolen token remains valid
       expect(afterReset.status).toBe(401);
 
       // Cleanup
+      await clearUserCacheState(testUser.userId);
       await prisma.passwordResetToken.deleteMany({ where: { userId: testUser.userId } });
       await prisma.resume.deleteMany({ where: { userId: testUser.userId } });
       await prisma.user.deleteMany({ where: { id: testUser.userId } });

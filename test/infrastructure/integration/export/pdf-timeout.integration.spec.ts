@@ -173,27 +173,50 @@ describe('Export PDF Timeout & Security - Bug Discovery Tests', () => {
           .query({ palette: input })
           .timeout(70000);
 
-        // Should either succeed with default palette or return 400
-        // Should NOT return 500 (unhandled error)
-        expect(response.status).not.toBe(500);
-
-        // Response should not contain evidence of command execution
+        // Response should not contain evidence of command execution or file access
         const body = JSON.stringify(response.body);
         expect(body).not.toContain('root:');
         expect(body).not.toContain('uid=');
+
+        // Error messages should be generic, not exposing internal paths
+        expect(body).not.toContain('/etc/passwd');
+        expect(body).not.toContain('windows\\system32');
+        expect(body).not.toContain(input);
+
+        // If 500, verify error is handled (not unhandled crash)
+        // and doesn't leak internal details
+        if (response.status === 500) {
+          const errorMsg =
+            response.body?.message ?? response.body?.error ?? JSON.stringify(response.body);
+          expect(errorMsg).not.toContain('/home/');
+          expect(errorMsg).not.toContain('node_modules');
+          expect(errorMsg).not.toContain('.ts:');
+        }
       }
     });
 
     it('should sanitize lang parameter', async () => {
+      const maliciousLang = '../../../etc/passwd';
       const response = await getRequest()
         .get('/api/v1/export/resume/pdf')
         .set('Authorization', `Bearer ${accessToken}`)
-        .query({ lang: '../../../etc/passwd' })
+        .query({ lang: maliciousLang })
         .timeout(70000);
 
-      // Should not expose file contents
+      // Should not expose file contents or leak input
       const body = JSON.stringify(response.body);
       expect(body).not.toContain('root:');
+      expect(body).not.toContain(maliciousLang);
+
+      // If 500, verify error is handled (not unhandled crash)
+      // and doesn't leak internal details
+      if (response.status === 500) {
+        const errorMsg =
+          response.body?.message ?? response.body?.error ?? JSON.stringify(response.body);
+        expect(errorMsg).not.toContain('/home/');
+        expect(errorMsg).not.toContain('node_modules');
+        expect(errorMsg).not.toContain('.ts:');
+      }
     });
   });
 

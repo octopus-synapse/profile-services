@@ -7,6 +7,7 @@
 
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { CacheModule } from '@/bounded-contexts/platform/common/cache/cache.module';
 import { EmailModule } from '@/bounded-contexts/platform/common/email/email.module';
 import { EmailService } from '@/bounded-contexts/platform/common/email/email.service';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
@@ -34,6 +35,8 @@ import {
   type PasswordRepositoryPort,
   type PasswordResetEmailPort,
   type PasswordResetTokenPort,
+  SESSION_INVALIDATION_PORT,
+  type SessionInvalidationPort,
 } from './domain/ports';
 
 // Infrastructure Adapters
@@ -43,6 +46,7 @@ import {
   EmailPasswordResetSender,
   PrismaPasswordRepository,
   PrismaPasswordResetTokenService,
+  SessionInvalidationAdapter,
 } from './infrastructure/adapters';
 
 // Infrastructure Controllers
@@ -75,6 +79,10 @@ const providers = [
   {
     provide: EVENT_BUS,
     useClass: NestEventBusAdapter,
+  },
+  {
+    provide: SESSION_INVALIDATION_PORT,
+    useClass: SessionInvalidationAdapter,
   },
   // Bridge: adapts EmailService to the EmailServicePort interface expected by adapters
   {
@@ -131,27 +139,46 @@ const providers = [
       passwordRepository: PasswordRepositoryPort,
       tokenService: PasswordResetTokenPort,
       passwordHasher: PasswordHasherPort,
+      sessionInvalidation: SessionInvalidationPort,
       eventBus: EventBusPort,
     ) => {
-      return new ResetPasswordUseCase(passwordRepository, tokenService, passwordHasher, eventBus);
+      return new ResetPasswordUseCase(
+        passwordRepository,
+        tokenService,
+        passwordHasher,
+        sessionInvalidation,
+        eventBus,
+      );
     },
-    inject: [PASSWORD_REPOSITORY_PORT, PASSWORD_RESET_TOKEN_PORT, PASSWORD_HASHER_PORT, EVENT_BUS],
+    inject: [
+      PASSWORD_REPOSITORY_PORT,
+      PASSWORD_RESET_TOKEN_PORT,
+      PASSWORD_HASHER_PORT,
+      SESSION_INVALIDATION_PORT,
+      EVENT_BUS,
+    ],
   },
   {
     provide: CHANGE_PASSWORD_PORT,
     useFactory: (
       passwordRepository: PasswordRepositoryPort,
       passwordHasher: PasswordHasherPort,
+      sessionInvalidation: SessionInvalidationPort,
       eventBus: EventBusPort,
     ) => {
-      return new ChangePasswordUseCase(passwordRepository, passwordHasher, eventBus);
+      return new ChangePasswordUseCase(
+        passwordRepository,
+        passwordHasher,
+        sessionInvalidation,
+        eventBus,
+      );
     },
-    inject: [PASSWORD_REPOSITORY_PORT, PASSWORD_HASHER_PORT, EVENT_BUS],
+    inject: [PASSWORD_REPOSITORY_PORT, PASSWORD_HASHER_PORT, SESSION_INVALIDATION_PORT, EVENT_BUS],
   },
 ];
 
 @Module({
-  imports: [PrismaModule, ConfigModule, EmailModule],
+  imports: [PrismaModule, ConfigModule, EmailModule, CacheModule],
   controllers: [ForgotPasswordController, ResetPasswordController, ChangePasswordController],
   providers,
   exports: [FORGOT_PASSWORD_PORT, RESET_PASSWORD_PORT, CHANGE_PASSWORD_PORT],

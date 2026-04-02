@@ -1,11 +1,24 @@
-import { Body, Controller, HttpCode, HttpStatus, Inject, Post, Req, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Inject,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiOperation, ApiTags, ApiUnauthorizedResponse } from '@nestjs/swagger';
-import { Throttle } from '@nestjs/throttler';
 import type { Request, Response } from 'express';
 import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
+import {
+  RateLimit,
+  RateLimitGuard,
+} from '@/bounded-contexts/platform/common/rate-limit/rate-limit.guard';
 import { createZodPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
 import type { CreateSessionPort, LoginPort } from '../../application/ports';
 import { CREATE_SESSION_PORT, LOGIN_PORT } from '../../application/ports';
@@ -107,7 +120,8 @@ export class LoginController {
 
   @Post('login/verify-2fa')
   @Public()
-  @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 attempts per minute to prevent brute force
+  @UseGuards(RateLimitGuard)
+  @RateLimit({ points: 5, duration: 60, keyStrategy: 'ip' }) // 5 attempts per minute to prevent brute force
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     operationId: 'auth_login_verify2fa',
