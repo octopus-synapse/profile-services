@@ -61,6 +61,12 @@ export class RedisConnectionService implements OnModuleDestroy {
   }
 
   async onModuleDestroy(): Promise<void> {
+    // In test environment, don't destroy the connection as tests share the app instance
+    // and destroying the connection breaks subsequent tests
+    if (process.env.NODE_ENV === 'test') {
+      return;
+    }
+
     if (this._client) {
       try {
         await this._client.quit();

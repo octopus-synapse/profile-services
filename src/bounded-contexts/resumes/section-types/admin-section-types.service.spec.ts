@@ -1,58 +1,30 @@
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import { beforeEach, describe, expect, it } from 'bun:test';
 import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { AdminSectionTypesService } from './admin-section-types.service';
+import { InMemorySectionTypesRepository } from './testing';
 
 describe('AdminSectionTypesService', () => {
   let service: AdminSectionTypesService;
-
-  const mockSectionType = {
-    id: 'cltest123',
-    key: 'test_section_v1',
-    slug: 'test-section',
-    title: 'Test Section',
-    description: 'A test section',
-    semanticKind: 'TEST',
-    version: 1,
-    isActive: true,
-    isSystem: false,
-    isRepeatable: true,
-    minItems: 0,
-    maxItems: null,
-    definition: { fields: [] },
-    uiSchema: {},
-    renderHints: {},
-    fieldStyles: {},
-    iconType: 'emoji',
-    icon: '📄',
-    translations: {
-      en: { title: 'Test Section', label: 'test' },
-    },
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
-
-  const mockPrismaService = {
-    sectionType: {
-      findMany: mock(() => Promise.resolve([]) as unknown),
-      findUnique: mock(() => Promise.resolve(null) as unknown),
-      findFirst: mock(() => Promise.resolve(null) as unknown),
-      create: mock(() => Promise.resolve(mockSectionType) as unknown),
-      update: mock(() => Promise.resolve(mockSectionType) as unknown),
-      delete: mock(() => Promise.resolve(mockSectionType) as unknown),
-      count: mock(() => Promise.resolve(0) as unknown),
-    },
-    resumeSection: {
-      count: mock(() => Promise.resolve(0) as unknown),
-    },
-  };
+  let repository: InMemorySectionTypesRepository;
 
   beforeEach(async () => {
+    repository = new InMemorySectionTypesRepository();
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AdminSectionTypesService,
-        { provide: PrismaService, useValue: mockPrismaService },
+        {
+          provide: PrismaService,
+          useValue: {
+            sectionType: repository,
+            resumeSection: {
+              count: (params: { where: { sectionTypeId: string } }) =>
+                repository.countResumeSections(params),
+            },
+          },
+        },
       ],
     }).compile();
 
@@ -61,10 +33,13 @@ describe('AdminSectionTypesService', () => {
 
   describe('findAll', () => {
     it('should return paginated section types', async () => {
-      mockPrismaService.sectionType.findMany.mockImplementation(() =>
-        Promise.resolve([mockSectionType]),
-      );
-      mockPrismaService.sectionType.count.mockImplementation(() => Promise.resolve(1));
+      repository.seedSectionType({
+        key: 'test_section_v1',
+        slug: 'test-section',
+        title: 'Test Section',
+        semanticKind: 'TEST',
+        version: 1,
+      });
 
       const result = await service.findAll({ page: 1, pageSize: 10 });
 
@@ -76,21 +51,84 @@ describe('AdminSectionTypesService', () => {
     });
 
     it('should use default pagination values', async () => {
-      mockPrismaService.sectionType.findMany.mockImplementation(() => Promise.resolve([]));
-      mockPrismaService.sectionType.count.mockImplementation(() => Promise.resolve(0));
-
       const result = await service.findAll({});
 
       expect(result.page).toBe(1);
       expect(result.pageSize).toBe(20);
     });
+
+    it('should filter by search term', async () => {
+      repository.seedSectionType({
+        key: 'work_experience_v1',
+        slug: 'work-experience',
+        title: 'Work Experience',
+        semanticKind: 'WORK_EXPERIENCE',
+        version: 1,
+      });
+      repository.seedSectionType({
+        key: 'education_v1',
+        slug: 'education',
+        title: 'Education',
+        semanticKind: 'EDUCATION',
+        version: 1,
+      });
+
+      const result = await service.findAll({ search: 'work', page: 1, pageSize: 10 });
+
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0].key).toBe('work_experience_v1');
+    });
+
+    it('should filter by isActive', async () => {
+      repository.seedSectionType({
+        key: 'active_v1',
+        title: 'Active',
+        isActive: true,
+      });
+      repository.seedSectionType({
+        key: 'inactive_v1',
+        title: 'Inactive',
+        isActive: false,
+      });
+
+      const result = await service.findAll({ isActive: true, page: 1, pageSize: 10 });
+
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0].key).toBe('active_v1');
+    });
+
+    it('should filter by semanticKind', async () => {
+      repository.seedSectionType({
+        key: 'work_v1',
+        title: 'Work',
+        semanticKind: 'WORK_EXPERIENCE',
+      });
+      repository.seedSectionType({
+        key: 'edu_v1',
+        title: 'Education',
+        semanticKind: 'EDUCATION',
+      });
+
+      const result = await service.findAll({
+        semanticKind: 'WORK_EXPERIENCE',
+        page: 1,
+        pageSize: 10,
+      });
+
+      expect(result.items).toHaveLength(1);
+      expect(result.items[0].key).toBe('work_v1');
+    });
   });
 
   describe('findOne', () => {
     it('should return section type by key', async () => {
-      mockPrismaService.sectionType.findUnique.mockImplementation(() =>
-        Promise.resolve(mockSectionType),
-      );
+      repository.seedSectionType({
+        key: 'test_section_v1',
+        slug: 'test-section',
+        title: 'Test Section',
+        semanticKind: 'TEST',
+        version: 1,
+      });
 
       const result = await service.findOne('test_section_v1');
 
@@ -98,8 +136,6 @@ describe('AdminSectionTypesService', () => {
     });
 
     it('should throw NotFoundException when not found', async () => {
-      mockPrismaService.sectionType.findUnique.mockImplementation(() => Promise.resolve(null));
-
       await expect(service.findOne('nonexistent')).rejects.toThrow(NotFoundException);
     });
   });
@@ -126,29 +162,34 @@ describe('AdminSectionTypesService', () => {
     };
 
     it('should create a new section type', async () => {
-      mockPrismaService.sectionType.findUnique.mockImplementation(() => Promise.resolve(null));
-      mockPrismaService.sectionType.findFirst.mockImplementation(() => Promise.resolve(null));
-      mockPrismaService.sectionType.create.mockImplementation(() =>
-        Promise.resolve({
-          ...mockSectionType,
-          ...createDto,
-          id: 'clnew123',
-        }),
-      );
-
       const result = await service.create(createDto);
 
       expect(result.key).toBe('new_section_v1');
+      expect(result.title).toBe('New Section');
+      expect(result.isSystem).toBe(false);
+      expect(result.isActive).toBe(true);
     });
 
     it('should throw ConflictException if key exists', async () => {
-      mockPrismaService.sectionType.findUnique.mockImplementation(() =>
-        Promise.resolve(mockSectionType),
-      );
+      repository.seedSectionType({
+        key: 'test_section_v1',
+        slug: 'test-section',
+        title: 'Test Section',
+      });
 
       await expect(service.create({ ...createDto, key: 'test_section_v1' })).rejects.toThrow(
         ConflictException,
       );
+    });
+
+    it('should throw ConflictException if slug + version exists', async () => {
+      repository.seedSectionType({
+        key: 'test_section_v1',
+        slug: 'new-section',
+        version: 1,
+      });
+
+      await expect(service.create(createDto)).rejects.toThrow(ConflictException);
     });
   });
 
@@ -158,17 +199,17 @@ describe('AdminSectionTypesService', () => {
       icon: '🔄',
     };
 
-    it('should update section type', async () => {
-      mockPrismaService.sectionType.findUnique.mockImplementation(() =>
-        Promise.resolve(mockSectionType),
-      );
-      mockPrismaService.sectionType.update.mockImplementation(() =>
-        Promise.resolve({
-          ...mockSectionType,
-          ...updateDto,
-        }),
-      );
+    beforeEach(() => {
+      repository.seedSectionType({
+        key: 'test_section_v1',
+        slug: 'test-section',
+        title: 'Test Section',
+        semanticKind: 'TEST',
+        version: 1,
+      });
+    });
 
+    it('should update section type', async () => {
       const result = await service.update('test_section_v1', updateDto);
 
       expect(result.title).toBe('Updated Title');
@@ -176,40 +217,99 @@ describe('AdminSectionTypesService', () => {
     });
 
     it('should throw NotFoundException when not found', async () => {
-      mockPrismaService.sectionType.findUnique.mockImplementation(() => Promise.resolve(null));
-
       await expect(service.update('nonexistent', updateDto)).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw BadRequestException when updating restricted fields on system types', async () => {
+      repository.seedSectionType({
+        key: 'system_section_v1',
+        slug: 'system',
+        title: 'System Section',
+        isSystem: true,
+      });
+
+      await expect(
+        service.update('system_section_v1', {
+          definition: { fields: [{ key: 'newField', type: 'string' }] },
+        }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should allow updating non-restricted fields on system types', async () => {
+      repository.seedSectionType({
+        key: 'system_section_v1',
+        slug: 'system',
+        title: 'System Section',
+        isSystem: true,
+      });
+
+      const result = await service.update('system_section_v1', { title: 'New Title' });
+
+      expect(result.title).toBe('New Title');
+    });
+
+    it('should merge translations correctly', async () => {
+      repository.seedSectionType({
+        key: 'test_section_v1',
+        slug: 'test',
+        title: 'Test',
+        translations: {
+          en: { title: 'Test', label: 'test' },
+          'pt-BR': { title: 'Teste', label: 'teste' },
+        },
+      });
+
+      const result = await service.update('test_section_v1', {
+        translations: {
+          en: { title: 'Updated Test', label: 'updated-test' },
+          es: { title: 'Prueba', label: 'prueba' },
+        },
+      });
+
+      const translations = result.translations as Record<string, { title: string; label?: string }>;
+      expect(translations.en.title).toBe('Updated Test');
+      expect(translations['pt-BR'].title).toBe('Teste');
+      expect(translations.es.title).toBe('Prueba');
     });
   });
 
   describe('remove', () => {
-    it('should delete unused section type', async () => {
-      mockPrismaService.sectionType.findUnique.mockImplementation(() =>
-        Promise.resolve(mockSectionType),
-      );
-      mockPrismaService.resumeSection.count.mockImplementation(() => Promise.resolve(0));
-      mockPrismaService.sectionType.delete.mockImplementation(() =>
-        Promise.resolve(mockSectionType),
-      );
+    beforeEach(() => {
+      repository.seedSectionType({
+        key: 'test_section_v1',
+        slug: 'test-section',
+        title: 'Test Section',
+      });
+    });
 
+    it('should delete unused section type', async () => {
       await service.remove('test_section_v1');
 
-      expect(mockPrismaService.sectionType.delete).toHaveBeenCalled();
+      expect(repository.getSectionType('test_section_v1')).toBeUndefined();
     });
 
     it('should throw NotFoundException when not found', async () => {
-      mockPrismaService.sectionType.findUnique.mockImplementation(() => Promise.resolve(null));
-
       await expect(service.remove('nonexistent')).rejects.toThrow(NotFoundException);
     });
 
     it('should throw BadRequestException for system types', async () => {
-      mockPrismaService.sectionType.findUnique.mockImplementation(() =>
-        Promise.resolve({
-          ...mockSectionType,
-          isSystem: true,
-        }),
-      );
+      repository.seedSectionType({
+        key: 'system_section_v1',
+        slug: 'system',
+        title: 'System',
+        isSystem: true,
+      });
+
+      await expect(service.remove('system_section_v1')).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw BadRequestException if section type is in use', async () => {
+      const sectionType = repository.getSectionType('test_section_v1');
+      if (!sectionType) throw new Error('Section type not found in test setup');
+      repository.seedResumeSection({
+        resumeId: 'resume-1',
+        sectionTypeId: sectionType.id,
+      });
 
       await expect(service.remove('test_section_v1')).rejects.toThrow(BadRequestException);
     });
@@ -217,17 +317,32 @@ describe('AdminSectionTypesService', () => {
 
   describe('getSemanticKinds', () => {
     it('should return unique semantic kinds', async () => {
-      mockPrismaService.sectionType.findMany.mockImplementation(() =>
-        Promise.resolve([
-          { semanticKind: 'WORK_EXPERIENCE' },
-          { semanticKind: 'EDUCATION' },
-          { semanticKind: 'SKILL_SET' },
-        ]),
-      );
+      repository.seedSectionType({
+        key: 'work_v1',
+        semanticKind: 'WORK_EXPERIENCE',
+      });
+      repository.seedSectionType({
+        key: 'work_v2',
+        semanticKind: 'WORK_EXPERIENCE',
+      });
+      repository.seedSectionType({
+        key: 'edu_v1',
+        semanticKind: 'EDUCATION',
+      });
+      repository.seedSectionType({
+        key: 'skill_v1',
+        semanticKind: 'SKILL_SET',
+      });
 
       const result = await service.getSemanticKinds();
 
-      expect(result).toEqual(['WORK_EXPERIENCE', 'EDUCATION', 'SKILL_SET']);
+      expect(result).toEqual(['EDUCATION', 'SKILL_SET', 'WORK_EXPERIENCE']);
+    });
+
+    it('should return empty array when no section types exist', async () => {
+      const result = await service.getSemanticKinds();
+
+      expect(result).toEqual([]);
     });
   });
 });

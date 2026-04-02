@@ -1,95 +1,52 @@
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import { Test, TestingModule } from '@nestjs/testing';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { beforeEach, describe, expect, it } from 'bun:test';
+import {
+  createSpokenLanguage,
+  DEFAULT_SPOKEN_LANGUAGES,
+  InMemorySpokenLanguageRepository,
+} from '../../testing';
 import { SpokenLanguagesService } from './spoken-languages.service';
 
 describe('SpokenLanguagesService', () => {
   let service: SpokenLanguagesService;
-  let prismaService: {
-    spokenLanguage: {
-      findMany: ReturnType<typeof mock>;
-      findUnique: ReturnType<typeof mock>;
-    };
-  };
-  let mockFindMany: ReturnType<typeof mock>;
-  let mockFindUnique: ReturnType<typeof mock>;
+  let languageRepo: InMemorySpokenLanguageRepository;
 
-  beforeEach(async () => {
-    mockFindMany = mock();
-    mockFindUnique = mock();
-
-    prismaService = {
-      spokenLanguage: {
-        findMany: mockFindMany,
-        findUnique: mockFindUnique,
-      },
-    };
-
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [SpokenLanguagesService, { provide: PrismaService, useValue: prismaService }],
-    }).compile();
-
-    service = module.get<SpokenLanguagesService>(SpokenLanguagesService);
+  beforeEach(() => {
+    languageRepo = new InMemorySpokenLanguageRepository();
+    languageRepo.seed(DEFAULT_SPOKEN_LANGUAGES);
+    service = new SpokenLanguagesService(languageRepo as never);
   });
 
   describe('getAll', () => {
     it('should return all active languages ordered by order field', async () => {
-      const mockLanguages = [
-        {
-          code: 'en',
-          nameEn: 'English',
-          namePtBr: 'Inglês',
-          nameEs: 'Inglés',
-          nativeName: 'English',
-        },
-        {
-          code: 'pt',
-          nameEn: 'Portuguese',
-          namePtBr: 'Português',
-          nameEs: 'Portugués',
-          nativeName: 'Português',
-        },
-        {
-          code: 'es',
-          nameEn: 'Spanish',
-          namePtBr: 'Espanhol',
-          nameEs: 'Español',
-          nativeName: 'Español',
-        },
-      ];
-
-      mockFindMany.mockResolvedValue(mockLanguages);
-
       const result = await service.findAllActiveLanguages();
 
-      expect(result).toEqual(mockLanguages);
-      expect(mockFindMany).toHaveBeenCalledWith({
-        where: { isActive: true },
-        orderBy: { order: 'asc' },
-        select: {
-          code: true,
-          nameEn: true,
-          namePtBr: true,
-          nameEs: true,
-          nativeName: true,
-        },
-      });
+      expect(result).toHaveLength(4);
+      expect(result[0].code).toBe('en');
+      expect(result[0].nameEn).toBe('English');
+      expect(result[1].code).toBe('pt');
+      expect(result[1].nameEn).toBe('Portuguese');
+      expect(result[2].code).toBe('es');
+      expect(result[2].nameEn).toBe('Spanish');
+      expect(result[3].code).toBe('fr');
+      expect(result[3].nameEn).toBe('French');
     });
 
     it('should filter out inactive languages', async () => {
-      mockFindMany.mockResolvedValue([]);
+      languageRepo.clear();
+      languageRepo.add(createSpokenLanguage({ code: 'en', nameEn: 'English', isActive: true }));
+      languageRepo.add(createSpokenLanguage({ code: 'de', nameEn: 'German', isActive: false }));
+      languageRepo.add(createSpokenLanguage({ code: 'fr', nameEn: 'French', isActive: true }));
 
-      await service.findAllActiveLanguages();
+      const result = await service.findAllActiveLanguages();
 
-      expect(mockFindMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { isActive: true },
-        }),
-      );
+      expect(result).toHaveLength(2);
+      expect(result.some((l) => l.code === 'en')).toBe(true);
+      expect(result.some((l) => l.code === 'fr')).toBe(true);
+      expect(result.some((l) => l.code === 'de')).toBe(false);
     });
 
     it('should return empty array when no languages found', async () => {
-      mockFindMany.mockResolvedValue([]);
+      languageRepo.clear();
 
       const result = await service.findAllActiveLanguages();
 
@@ -97,17 +54,16 @@ describe('SpokenLanguagesService', () => {
     });
 
     it('should handle null nativeName correctly', async () => {
-      const mockLanguages = [
-        {
+      languageRepo.clear();
+      languageRepo.add(
+        createSpokenLanguage({
           code: 'eo',
           nameEn: 'Esperanto',
           namePtBr: 'Esperanto',
           nameEs: 'Esperanto',
           nativeName: null,
-        },
-      ];
-
-      mockFindMany.mockResolvedValue(mockLanguages);
+        }),
+      );
 
       const result = await service.findAllActiveLanguages();
 
@@ -117,156 +73,106 @@ describe('SpokenLanguagesService', () => {
 
   describe('search', () => {
     it('should search languages by English name case-insensitively', async () => {
-      const query = 'port';
-      const mockLanguages = [
-        {
-          code: 'pt',
-          nameEn: 'Portuguese',
-          namePtBr: 'Português',
-          nameEs: 'Portugués',
-          nativeName: 'Português',
-        },
-      ];
+      const result = await service.searchLanguagesByName('port');
 
-      mockFindMany.mockResolvedValue(mockLanguages);
-
-      const result = await service.searchLanguagesByName(query);
-
-      expect(result).toEqual(mockLanguages);
-      expect(mockFindMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({
-            OR: expect.arrayContaining([{ nameEn: { contains: query, mode: 'insensitive' } }]),
-          }),
-        }),
-      );
+      expect(result).toHaveLength(1);
+      expect(result[0].code).toBe('pt');
+      expect(result[0].nameEn).toBe('Portuguese');
     });
 
     it('should search languages by Portuguese name', async () => {
-      const query = 'inglês';
-      const mockLanguages = [
-        {
-          code: 'en',
-          nameEn: 'English',
-          namePtBr: 'Inglês',
-          nameEs: 'Inglés',
-          nativeName: 'English',
-        },
-      ];
+      const result = await service.searchLanguagesByName('inglês');
 
-      mockFindMany.mockResolvedValue(mockLanguages);
-
-      await service.searchLanguagesByName(query);
-
-      expect(mockFindMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({
-            OR: expect.arrayContaining([{ namePtBr: { contains: query, mode: 'insensitive' } }]),
-          }),
-        }),
-      );
+      expect(result).toHaveLength(1);
+      expect(result[0].code).toBe('en');
+      expect(result[0].nameEn).toBe('English');
+      expect(result[0].namePtBr).toBe('Inglês');
     });
 
     it('should search languages by Spanish name', async () => {
-      const query = 'español';
-      mockFindMany.mockResolvedValue([]);
+      const result = await service.searchLanguagesByName('español');
 
-      await service.searchLanguagesByName(query);
-
-      expect(mockFindMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({
-            OR: expect.arrayContaining([{ nameEs: { contains: query, mode: 'insensitive' } }]),
-          }),
-        }),
-      );
+      expect(result).toHaveLength(1);
+      expect(result[0].code).toBe('es');
+      expect(result[0].nameEs).toBe('Español');
     });
 
     it('should search languages by native name', async () => {
-      const query = 'français';
-      const mockLanguages = [
-        {
-          code: 'fr',
-          nameEn: 'French',
-          namePtBr: 'Francês',
-          nameEs: 'Francés',
-          nativeName: 'Français',
-        },
-      ];
+      const result = await service.searchLanguagesByName('français');
 
-      mockFindMany.mockResolvedValue(mockLanguages);
-
-      await service.searchLanguagesByName(query);
-
-      expect(mockFindMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({
-            OR: expect.arrayContaining([{ nativeName: { contains: query, mode: 'insensitive' } }]),
-          }),
-        }),
-      );
+      expect(result).toHaveLength(1);
+      expect(result[0].code).toBe('fr');
+      expect(result[0].nameEn).toBe('French');
+      expect(result[0].nativeName).toBe('Français');
     });
 
     it('should apply default limit when not specified', async () => {
-      const query = 'en';
-      mockFindMany.mockResolvedValue([]);
+      languageRepo.clear();
+      for (let i = 0; i < 15; i++) {
+        languageRepo.add(
+          createSpokenLanguage({
+            code: `lang${i}`,
+            nameEn: `Language ${i}`,
+            order: i,
+          }),
+        );
+      }
 
-      await service.searchLanguagesByName(query);
+      const result = await service.searchLanguagesByName('language');
 
-      expect(mockFindMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          take: 10, // APP_CONFIG.SEARCH_AUTOCOMPLETE_LIMIT default
-        }),
-      );
+      expect(result.length).toBeLessThanOrEqual(10);
     });
 
     it('should respect custom limit parameter', async () => {
-      const query = 'en';
-      const customLimit = 10;
-      mockFindMany.mockResolvedValue([]);
+      languageRepo.clear();
+      for (let i = 0; i < 15; i++) {
+        languageRepo.add(
+          createSpokenLanguage({
+            code: `lang${i}`,
+            nameEn: `Language ${i}`,
+            order: i,
+          }),
+        );
+      }
 
-      await service.searchLanguagesByName(query, customLimit);
+      const result = await service.searchLanguagesByName('language', 5);
 
-      expect(mockFindMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          take: customLimit,
-        }),
-      );
+      expect(result.length).toBeLessThanOrEqual(5);
     });
 
     it('should order search results by order field', async () => {
-      const query = 'lan';
-      mockFindMany.mockResolvedValue([]);
-
-      await service.searchLanguagesByName(query);
-
-      expect(mockFindMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          orderBy: { order: 'asc' },
-        }),
+      languageRepo.clear();
+      languageRepo.add(
+        createSpokenLanguage({ code: 'pt', nameEn: 'Portuguese Language', order: 3 }),
       );
+      languageRepo.add(createSpokenLanguage({ code: 'en', nameEn: 'English Language', order: 1 }));
+      languageRepo.add(createSpokenLanguage({ code: 'es', nameEn: 'Spanish Language', order: 2 }));
+
+      const result = await service.searchLanguagesByName('Language');
+
+      expect(result).toHaveLength(3);
+      expect(result[0].code).toBe('en');
+      expect(result[1].code).toBe('es');
+      expect(result[2].code).toBe('pt');
     });
 
     it('should only search active languages', async () => {
-      const query = 'test';
-      mockFindMany.mockResolvedValue([]);
-
-      await service.searchLanguagesByName(query);
-
-      expect(mockFindMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({
-            isActive: true,
-          }),
-        }),
+      languageRepo.clear();
+      languageRepo.add(
+        createSpokenLanguage({ code: 'en', nameEn: 'TestLang English', isActive: true }),
       );
+      languageRepo.add(
+        createSpokenLanguage({ code: 'de', nameEn: 'TestLang German', isActive: false }),
+      );
+
+      const result = await service.searchLanguagesByName('TestLang');
+
+      expect(result).toHaveLength(1);
+      expect(result[0].code).toBe('en');
     });
 
     it('should return empty array when no matches found', async () => {
-      const query = 'xyz';
-      mockFindMany.mockResolvedValue([]);
-
-      const result = await service.searchLanguagesByName(query);
+      const result = await service.searchLanguagesByName('xyz');
 
       expect(result).toEqual([]);
     });
@@ -274,70 +180,53 @@ describe('SpokenLanguagesService', () => {
 
   describe('getByCode', () => {
     it('should return language by code', async () => {
-      const code = 'en';
-      const mockLanguage = {
-        code: 'en',
-        nameEn: 'English',
-        namePtBr: 'Inglês',
-        nameEs: 'Inglés',
-        nativeName: 'English',
-      };
+      const result = await service.findLanguageByCode('en');
 
-      mockFindUnique.mockResolvedValue(mockLanguage);
-
-      const result = await service.findLanguageByCode(code);
-
-      expect(result).toEqual(mockLanguage);
-      expect(mockFindUnique).toHaveBeenCalledWith({
-        where: { code },
-        select: {
-          code: true,
-          nameEn: true,
-          namePtBr: true,
-          nameEs: true,
-          nativeName: true,
-        },
-      });
+      expect(result).not.toBeNull();
+      expect(result?.code).toBe('en');
+      expect(result?.nameEn).toBe('English');
+      expect(result?.namePtBr).toBe('Inglês');
+      expect(result?.nameEs).toBe('Inglés');
+      expect(result?.nativeName).toBe('English');
     });
 
     it('should return null when language not found', async () => {
-      const code = 'nonexistent';
-
-      mockFindUnique.mockResolvedValue(null);
-
-      const result = await service.findLanguageByCode(code);
+      const result = await service.findLanguageByCode('nonexistent');
 
       expect(result).toBeNull();
     });
 
     it('should handle language with null native name', async () => {
-      const code = 'la';
-      const mockLanguage = {
-        code: 'la',
-        nameEn: 'Latin',
-        namePtBr: 'Latim',
-        nameEs: 'Latín',
-        nativeName: null,
-      };
+      languageRepo.add(
+        createSpokenLanguage({
+          code: 'la',
+          nameEn: 'Latin',
+          namePtBr: 'Latim',
+          nameEs: 'Latín',
+          nativeName: null,
+        }),
+      );
 
-      mockFindUnique.mockResolvedValue(mockLanguage);
+      const result = await service.findLanguageByCode('la');
 
-      const result = await service.findLanguageByCode(code);
-
+      expect(result).not.toBeNull();
       expect(result?.nativeName).toBeNull();
     });
 
     it('should query by exact code', async () => {
-      const code = 'pt-BR';
-      mockFindUnique.mockResolvedValue(null);
-
-      await service.findLanguageByCode(code);
-
-      expect(mockFindUnique).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { code },
+      languageRepo.add(
+        createSpokenLanguage({
+          code: 'pt-BR',
+          nameEn: 'Brazilian Portuguese',
+          namePtBr: 'Português Brasileiro',
+          nameEs: 'Portugués Brasileño',
         }),
       );
+
+      const result = await service.findLanguageByCode('pt-BR');
+
+      expect(result).not.toBeNull();
+      expect(result?.code).toBe('pt-BR');
     });
   });
 });

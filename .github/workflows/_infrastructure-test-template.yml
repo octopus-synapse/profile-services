@@ -1,0 +1,104 @@
+name: _infrastructure-test-template
+
+on:
+    workflow_call:
+        inputs:
+            test-command:
+                description: "Command to run tests"
+                required: true
+                type: string
+            test-name:
+                description: "Test name for summary"
+                required: true
+                type: string
+            db-name:
+                description: "Database name"
+                required: false
+                type: string
+                default: "test_db"
+            timeout:
+                description: "Timeout in minutes"
+                required: false
+                type: number
+                default: 15
+            pr-number:
+                description: "PR number for comment updates"
+                required: false
+                type: string
+                default: ""
+
+env:
+    DATABASE_URL: postgresql://postgres:postgres@localhost:5433/${{ inputs.db-name }}
+    REDIS_HOST: localhost
+    REDIS_PORT: 6380
+    NODE_ENV: test
+    JWT_SECRET: test-secret-key-for-ci-tests-minimum-32-chars
+    RATE_LIMIT_ENABLED: true
+
+jobs:
+    test:
+        name: ${{ inputs.test-name }} Tests
+        runs-on: ubuntu-latest
+        timeout-minutes: ${{ inputs.timeout }}
+
+        services:
+            postgres:
+                image: postgres:16-alpine
+                env:
+                    POSTGRES_USER: postgres
+                    POSTGRES_PASSWORD: postgres
+                    POSTGRES_DB: ${{ inputs.db-name }}
+                ports:
+                    - 5433:5432
+                options: >-
+                    --health-cmd pg_isready
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+
+            redis:
+                image: redis:7-alpine
+                ports:
+                    - 6380:6379
+                options: >-
+                    --health-cmd "redis-cli ping"
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Run tests
+              id: tests
+              uses: ./.github/actions/setup-infrastructure-test-env
+              with:
+                  test-command: ${{ inputs.test-command }}
+                  test-name: ${{ inputs.test-name }}
+                  artifact-name: ${{ inputs.test-name }}-results
+
+            - name: Update PR comment
+              if: always() && inputs.pr-number != ''
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  PR_NUMBER: ${{ inputs.pr-number }}
+                  GITHUB_REPOSITORY: ${{ github.repository }}
+              run: |
+                  chmod +x scripts/ci-comment.sh
+                  STATUS="${{ steps.tests.outputs.status || 'failure' }}"
+                  DURATION="${{ steps.tests.outputs.duration || '—' }}"
+                  PASS="${{ steps.tests.outputs.pass || '0' }}"
+                  FAIL="${{ steps.tests.outputs.fail || '0' }}"
+                  SKIP="${{ steps.tests.outputs.skip || '0' }}"
+
+                  # Build description with proper formatting
+                  if [[ "$STATUS" == "success" ]]; then
+                    DESC="${PASS} ✓"
+                    [[ "$SKIP" != "0" ]] && DESC="${DESC}, ${SKIP} skipped"
+                  else
+                    DESC="**${FAIL} FAILED** (${PASS} passed"
+                    [[ "$SKIP" != "0" ]] && DESC="${DESC}, ${SKIP} skipped"
+                    DESC="${DESC})"
+                  fi
+
+                  ./scripts/ci-comment.sh update "${{ inputs.test-name }}" "$STATUS" "$DESC" "${DURATION}"

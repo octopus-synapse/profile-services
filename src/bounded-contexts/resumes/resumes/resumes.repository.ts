@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
+import { ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { Resume } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { type CreateResumeData, type UpdateResumeData } from '@/shared-kernel';
@@ -74,11 +74,22 @@ export class ResumesRepository extends ResumesRepositoryPort {
   async deleteResumeForUser(id: string, userId: string): Promise<boolean> {
     this.logger.log(`Deleting resume: ${id}`);
 
-    await this.ensureResumeOwnership(id, userId);
-
-    await this.prisma.resume.delete({
-      where: { id },
+    // Use deleteMany with both id and userId to avoid race conditions
+    // This is atomic and handles concurrent delete requests gracefully
+    const result = await this.prisma.resume.deleteMany({
+      where: { id, userId },
     });
+
+    // If count is 0, either the resume doesn't exist or user doesn't own it
+    if (result.count === 0) {
+      // Check if resume exists but belongs to another user
+      const resume = await this.prisma.resume.findUnique({ where: { id } });
+      if (resume) {
+        throw new ForbiddenException('Access denied to resume');
+      }
+      // Resume doesn't exist - could have been deleted by concurrent request
+      throw new NotFoundException('Resume not found');
+    }
 
     return true;
   }

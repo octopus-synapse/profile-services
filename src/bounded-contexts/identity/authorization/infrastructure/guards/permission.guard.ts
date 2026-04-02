@@ -24,7 +24,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { AuthorizationService } from '../../services/authorization.service';
+import { AuthorizationService } from '../../application/services/authorization.service';
 
 // ============================================================================
 // Metadata Keys

@@ -7,8 +7,8 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { createMockResume } from '@test/factories/resume.factory';
-import { UsersRepository } from '@/bounded-contexts/identity/users/users.repository';
+import { createMockResume } from '@test/shared/factories/resume.factory';
+import { UsersRepository } from '@/bounded-contexts/identity/users';
 import { SectionTypeRepository } from '@/bounded-contexts/resumes/infrastructure/repositories';
 import { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.repository';
 import { DocxBuilderService } from './docx-builder.service';

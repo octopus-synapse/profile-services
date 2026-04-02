@@ -16,10 +16,11 @@ export class DeleteResumeUseCase {
       throw new NotFoundException(ERROR_MESSAGES.RESUME_NOT_FOUND);
     }
 
+    // Delete first, then publish event (prevents cache invalidation if delete fails)
+    await this.repository.deleteResumeById(resumeId);
+
     this.eventPublisher.publishResumeDeleted(resumeId, {
       userId: resume.userId,
     });
-
-    await this.repository.deleteResumeById(resumeId);
   }
 }

@@ -4,7 +4,7 @@
  * Test double for password reset token operations.
  */
 
-import type { PasswordResetTokenPort } from '../../../password-management/ports/outbound/token-service.port';
+import type { PasswordResetTokenPort } from '../../../password-management/domain/ports';
 
 export class StubTokenService implements PasswordResetTokenPort {
   private tokens: Map<string, { userId: string; createdAt: Date }> = new Map();
@@ -27,6 +27,12 @@ export class StubTokenService implements PasswordResetTokenPort {
       throw new Error('Invalid or expired token');
     }
     return data.userId;
+  }
+
+  async validateAndConsumeToken(token: string): Promise<string> {
+    const userId = await this.validateToken(token);
+    await this.invalidateToken(token);
+    return userId;
   }
 
   async invalidateToken(token: string): Promise<void> {

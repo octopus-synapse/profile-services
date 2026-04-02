@@ -7,6 +7,42 @@ import { Injectable } from '@nestjs/common';
 import { AppLoggerService } from '../../logger/logger.service';
 import { RedisConnectionService } from '../redis-connection.service';
 
+/**
+ * Error thrown when cache is unavailable for security-critical operations.
+ */
+export class CacheUnavailableError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'CacheUnavailableError';
+  }
+}
+
+/**
+ * Error thrown when a cache read operation fails.
+ */
+export class CacheReadError extends Error {
+  constructor(
+    message: string,
+    public readonly cause?: Error,
+  ) {
+    super(message);
+    this.name = 'CacheReadError';
+  }
+}
+
+/**
+ * Error thrown when a cache write operation fails.
+ */
+export class CacheWriteError extends Error {
+  constructor(
+    message: string,
+    public readonly cause?: Error,
+  ) {
+    super(message);
+    this.name = 'CacheWriteError';
+  }
+}
+
 @Injectable()
 export class CacheCoreService {
   constructor(
@@ -15,7 +51,8 @@ export class CacheCoreService {
   ) {}
 
   /**
-   * Get value from cache
+   * Get value from cache (fail-open: returns null on error)
+   * Use for non-critical cache lookups where missing data is acceptable.
    */
   async get<T>(key: string): Promise<T | null> {
     if (!this.isEnabled) return null;
@@ -33,7 +70,37 @@ export class CacheCoreService {
   }
 
   /**
-   * Set value in cache
+   * Get value from cache with security guarantees (fail-closed: throws on error)
+   * Use for security-critical operations where silent failures are unacceptable.
+   *
+   * @throws CacheUnavailableError if cache is disabled or unavailable
+   * @throws CacheReadError if the read operation fails
+   */
+  async getSecure<T>(key: string): Promise<T | null> {
+    if (!this.isEnabled) {
+      throw new CacheUnavailableError('Cache is disabled - cannot perform secure lookup');
+    }
+
+    const client = this.redisConnection.client;
+    if (!client) {
+      throw new CacheUnavailableError('Redis client not connected');
+    }
+
+    try {
+      const value = await client.get(key);
+      return value ? (JSON.parse(value) as T) : null;
+    } catch (error) {
+      this.logError(`Failed to get cache key (secure): ${key}`, error);
+      throw new CacheReadError(
+        `Failed to read security-critical cache key: ${key}`,
+        error instanceof Error ? error : undefined,
+      );
+    }
+  }
+
+  /**
+   * Set value in cache (fail-open: ignores errors)
+   * Use for non-critical cache operations where missing data is acceptable.
    */
   async set(key: string, value: unknown, ttl?: number): Promise<void> {
     if (!this.isEnabled) return;
@@ -50,6 +117,39 @@ export class CacheCoreService {
       }
     } catch (error) {
       this.logError(`Failed to set cache key: ${key}`, error);
+    }
+  }
+
+  /**
+   * Set value in cache with security guarantees (fail-closed: throws on error)
+   * Use for security-critical operations where silent failures are unacceptable.
+   *
+   * @throws CacheUnavailableError if cache is disabled or unavailable
+   * @throws CacheWriteError if the write operation fails
+   */
+  async setSecure(key: string, value: unknown, ttl?: number): Promise<void> {
+    if (!this.isEnabled) {
+      throw new CacheUnavailableError('Cache is disabled - cannot perform secure write');
+    }
+
+    const client = this.redisConnection.client;
+    if (!client) {
+      throw new CacheUnavailableError('Redis client not connected');
+    }
+
+    try {
+      const serialized = JSON.stringify(value);
+      if (ttl) {
+        await client.setex(key, ttl, serialized);
+      } else {
+        await client.set(key, serialized);
+      }
+    } catch (error) {
+      this.logError(`Failed to set cache key (secure): ${key}`, error);
+      throw new CacheWriteError(
+        `Failed to write security-critical cache key: ${key}`,
+        error instanceof Error ? error : undefined,
+      );
     }
   }
 

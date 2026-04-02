@@ -54,7 +54,7 @@ import { TechSkillsModule } from '@/bounded-contexts/skills-catalog/tech-skills/
 // Social Context (Activity Feed)
 import { SocialModule } from '@/bounded-contexts/social/social/social.module';
 // Translation Context
-import { TranslationModule } from '@/bounded-contexts/translation/translation/translation.module';
+import { TranslationModule } from '@/bounded-contexts/translation';
 import { RATE_LIMIT_CONFIG } from '@/shared-kernel';
 // Shared Kernel
 import { EventBusModule } from '@/shared-kernel/event-bus/event-bus.module';

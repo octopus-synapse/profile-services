@@ -15,6 +15,7 @@ export const RESUME_RELATIONS_INCLUDE = {
           key: true,
           title: true,
           semanticKind: true,
+          translations: true,
         },
       },
       items: {

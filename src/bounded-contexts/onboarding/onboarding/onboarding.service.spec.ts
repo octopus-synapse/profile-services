@@ -1,11 +1,17 @@
 import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
 import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { createMockResume } from '@test/factories/resume.factory';
+import { createMockResume } from '@test/shared/factories/resume.factory';
 import { AuditLogService } from '@/bounded-contexts/platform/common/audit/audit-log.service';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ERROR_MESSAGES } from '@/shared-kernel';
+import {
+  createOnboardingData,
+  createOnboardingUser,
+  InMemoryOnboardingProgressRepository,
+  InMemoryOnboardingRepository,
+} from '../testing';
 import { OnboardingService } from './onboarding.service';
 import { OnboardingCompletionService } from './services/onboarding-completion.service';
 import { OnboardingNavigationService } from './services/onboarding-navigation.service';
@@ -16,6 +22,8 @@ import { SectionTypeDefinitionQuery } from './services/section-type-definition.q
 
 describe('OnboardingService', () => {
   let service: OnboardingService;
+  let onboardingRepository: InMemoryOnboardingRepository;
+  let progressRepository: InMemoryOnboardingProgressRepository;
 
   const mockPrismaService = {
     user: {
@@ -57,6 +65,9 @@ describe('OnboardingService', () => {
   };
 
   beforeEach(async () => {
+    onboardingRepository = new InMemoryOnboardingRepository();
+    progressRepository = new InMemoryOnboardingProgressRepository();
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         OnboardingService,
@@ -98,12 +109,15 @@ describe('OnboardingService', () => {
     service = module.get<OnboardingService>(OnboardingService);
   });
 
-  afterEach(() => {});
+  afterEach(() => {
+    onboardingRepository.clear();
+    progressRepository.clear();
+  });
 
   describe('completeOnboarding', () => {
     it('should successfully complete onboarding', async () => {
       const userId = 'user-123';
-      const onboardingData = {
+      const onboardingData = createOnboardingData({
         username: 'johndoe',
         personalInfo: {
           fullName: 'John Doe',
@@ -172,9 +186,10 @@ describe('OnboardingService', () => {
             ],
           },
         ],
-      };
+      });
 
-      const mockUser = { id: userId, email: 'john@example.com' };
+      const mockUser = createOnboardingUser({ id: userId });
+      onboardingRepository.seedUser(mockUser);
       const mockResume = createMockResume({ id: 'resume-123', userId });
       const mockTx = {
         resume: { findFirst: mock(), upsert: mock() },
@@ -184,7 +199,10 @@ describe('OnboardingService', () => {
         user: { update: mock() },
       };
 
-      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+      mockPrismaService.user.findUnique.mockResolvedValue({
+        id: mockUser.id,
+        hasCompletedOnboarding: mockUser.hasCompletedOnboarding,
+      });
       mockResumeOnboardingService.upsertResumeWithTx.mockResolvedValue(mockResume);
       mockSectionOnboardingService.replaceSectionItems.mockResolvedValue(undefined);
       mockTx.user.update.mockResolvedValue({
@@ -245,7 +263,7 @@ describe('OnboardingService', () => {
 
     it('should throw NotFoundException if user does not exist', async () => {
       const userId = 'invalid-user';
-      const onboardingData = {
+      const onboardingData = createOnboardingData({
         username: 'johndoe',
         personalInfo: {
           fullName: 'John Doe',
@@ -260,7 +278,7 @@ describe('OnboardingService', () => {
           palette: 'blue',
         },
         sections: [],
-      };
+      });
 
       mockPrismaService.user.findUnique.mockResolvedValue(null);
 
@@ -289,12 +307,17 @@ describe('OnboardingService', () => {
     it('should successfully get onboarding status', async () => {
       const userId = 'user-123';
       const completedAt = new Date('2024-01-01');
-      const mockUser = {
+      const mockUser = createOnboardingUser({
+        id: userId,
         hasCompletedOnboarding: true,
         onboardingCompletedAt: completedAt,
-      };
+      });
 
-      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+      onboardingRepository.seedUser(mockUser);
+      mockPrismaService.user.findUnique.mockResolvedValue({
+        hasCompletedOnboarding: mockUser.hasCompletedOnboarding,
+        onboardingCompletedAt: mockUser.onboardingCompletedAt,
+      });
 
       const result = await service.getOnboardingStatus(userId);
 
@@ -314,12 +337,17 @@ describe('OnboardingService', () => {
 
     it('should return incomplete status for user who has not completed onboarding', async () => {
       const userId = 'user-123';
-      const mockUser = {
+      const mockUser = createOnboardingUser({
+        id: userId,
         hasCompletedOnboarding: false,
         onboardingCompletedAt: null,
-      };
+      });
 
-      mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
+      onboardingRepository.seedUser(mockUser);
+      mockPrismaService.user.findUnique.mockResolvedValue({
+        hasCompletedOnboarding: mockUser.hasCompletedOnboarding,
+        onboardingCompletedAt: mockUser.onboardingCompletedAt,
+      });
 
       const result = await service.getOnboardingStatus(userId);
 

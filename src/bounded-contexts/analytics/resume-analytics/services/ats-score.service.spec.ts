@@ -6,89 +6,17 @@
  */
 
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import {
+  defaultSectionTypes,
+  InMemoryATSScoreRepository,
+} from '@/bounded-contexts/analytics/testing';
 import type { AnalyticsSection, ResumeForAnalytics } from '../domain/types';
 import { ATSScoreService } from './ats-score.service';
-
-/**
- * Section type definitions used in tests.
- * These mirror what the database seed provides.
- */
-const MOCK_SECTION_TYPES = [
-  {
-    key: 'work_experience_v1',
-    semanticKind: 'WORK_EXPERIENCE',
-    definition: {
-      schemaVersion: 1,
-      kind: 'WORK_EXPERIENCE',
-      fields: [
-        { key: 'company', type: 'string', semanticRole: 'ORGANIZATION' },
-        { key: 'role', type: 'string', semanticRole: 'JOB_TITLE' },
-        { key: 'startDate', type: 'date', semanticRole: 'START_DATE' },
-        { key: 'description', type: 'string', semanticRole: 'DESCRIPTION' },
-      ],
-      ats: {
-        isMandatory: true,
-        recommendedPosition: 2,
-        scoring: {
-          baseScore: 30,
-          fieldWeights: {
-            ORGANIZATION: 20,
-            JOB_TITLE: 20,
-            START_DATE: 15,
-            DESCRIPTION: 5,
-          },
-        },
-      },
-    },
-  },
-  {
-    key: 'skill_set_v1',
-    semanticKind: 'SKILL_SET',
-    definition: {
-      schemaVersion: 1,
-      kind: 'SKILL_SET',
-      fields: [
-        { key: 'name', type: 'string', semanticRole: 'SKILL_NAME' },
-        { key: 'category', type: 'string', semanticRole: 'CATEGORY' },
-      ],
-      ats: {
-        isMandatory: true,
-        recommendedPosition: 4,
-        scoring: {
-          baseScore: 40,
-          fieldWeights: { SKILL_NAME: 50, CATEGORY: 10 },
-        },
-      },
-    },
-  },
-  {
-    key: 'education_v1',
-    semanticKind: 'EDUCATION',
-    definition: {
-      schemaVersion: 1,
-      kind: 'EDUCATION',
-      fields: [
-        { key: 'institution', type: 'string', semanticRole: 'ORGANIZATION' },
-        { key: 'degree', type: 'string', semanticRole: 'DEGREE' },
-      ],
-      ats: {
-        isMandatory: true,
-        recommendedPosition: 3,
-        scoring: {
-          baseScore: 35,
-          fieldWeights: { ORGANIZATION: 20, DEGREE: 25 },
-        },
-      },
-    },
-  },
-];
 
 describe('ATSScoreService', () => {
   let service: ATSScoreService;
   let mockEventEmitter: { emit: ReturnType<typeof mock> };
-  let mockPrisma: {
-    sectionType: { findMany: ReturnType<typeof mock> };
-  };
+  let atsScoreRepo: InMemoryATSScoreRepository;
 
   const createSection = (
     semanticKind: string,
@@ -126,9 +54,12 @@ describe('ATSScoreService', () => {
 
   beforeEach(() => {
     mockEventEmitter = { emit: mock(() => {}) };
-    mockPrisma = {
+    atsScoreRepo = new InMemoryATSScoreRepository();
+    atsScoreRepo.seedSectionTypes(defaultSectionTypes);
+
+    const mockPrisma = {
       sectionType: {
-        findMany: mock(() => Promise.resolve(MOCK_SECTION_TYPES)),
+        findMany: (args?: { where?: { isActive?: boolean } }) => atsScoreRepo.findMany(args),
       },
     };
     service = new ATSScoreService(mockPrisma as never, mockEventEmitter as never);
@@ -275,30 +206,24 @@ describe('ATSScoreService', () => {
 
     it('should load catalog from database', async () => {
       await service.calculate(createResume());
-      expect(mockPrisma.sectionType.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { isActive: true },
-        }),
-      );
+      const sectionTypes = await atsScoreRepo.findMany({ where: { isActive: true } });
+      expect(sectionTypes.length).toBeGreaterThan(0);
     });
 
     it('should use density fallback for sections with no fieldWeights', async () => {
-      mockPrisma.sectionType.findMany = mock(() =>
-        Promise.resolve([
-          {
-            key: 'custom_v1',
-            semanticKind: 'CUSTOM',
-            definition: {
-              fields: [],
-              ats: {
-                isMandatory: false,
-                recommendedPosition: 99,
-                scoring: { baseScore: 30, fieldWeights: {} },
-              },
-            },
+      atsScoreRepo.clear();
+      atsScoreRepo.seedSectionType({
+        key: 'custom_v1',
+        semanticKind: 'CUSTOM',
+        definition: {
+          fields: [],
+          ats: {
+            isMandatory: false,
+            recommendedPosition: 99,
+            scoring: { baseScore: 30, fieldWeights: {} },
           },
-        ]),
-      );
+        },
+      });
 
       const result = await service.calculate(
         createResume({

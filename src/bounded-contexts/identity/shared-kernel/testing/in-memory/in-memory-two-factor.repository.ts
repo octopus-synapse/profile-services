@@ -8,7 +8,7 @@ import type {
   BackupCodeRecord,
   TwoFactorRecord,
   TwoFactorRepositoryPort,
-} from '../../../two-factor-auth/ports/outbound/two-factor-repository.port';
+} from '../../../two-factor-auth/domain/ports/two-factor.repository.port';
 
 export class InMemoryTwoFactorRepository implements TwoFactorRepositoryPort {
   private records: Map<string, TwoFactorRecord> = new Map();
@@ -86,6 +86,22 @@ export class InMemoryTwoFactorRepository implements TwoFactorRepositoryPort {
         return;
       }
     }
+  }
+
+  async tryConsumeBackupCode(codeId: string): Promise<boolean> {
+    for (const codes of this.backupCodes.values()) {
+      const code = codes.find((c) => c.id === codeId);
+      if (code) {
+        // Only consume if not already used
+        if (!code.used) {
+          code.used = true;
+          code.usedAt = new Date();
+          return true;
+        }
+        return false; // Already used
+      }
+    }
+    return false; // Code not found
   }
 
   async deleteBackupCodes(userId: string): Promise<void> {

@@ -3641,7 +3641,7 @@
         ]
       }
     },
-    "/api/password/forgot": {
+    "/api/auth/forgot-password": {
       "post": {
         "description": "Sends a password reset email if the account exists. Always returns success to prevent email enumeration.",
         "operationId": "forgotPassword_handle",
@@ -3689,7 +3689,7 @@
         ]
       }
     },
-    "/api/password/reset": {
+    "/api/auth/reset-password": {
       "post": {
         "description": "Resets the user password using a valid reset token received via email.",
         "operationId": "resetPassword_handle",
@@ -9968,6 +9968,20 @@
             }
           },
           {
+            "name": "locale",
+            "required": false,
+            "in": "query",
+            "description": "Locale for translated section titles",
+            "schema": {
+              "enum": [
+                "en",
+                "pt-BR",
+                "es"
+              ],
+              "type": "string"
+            }
+          },
+          {
             "name": "target",
             "required": false,
             "in": "query",
@@ -10036,6 +10050,20 @@
             "required": true,
             "in": "path",
             "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "locale",
+            "required": false,
+            "in": "query",
+            "description": "Locale for translated section titles",
+            "schema": {
+              "enum": [
+                "en",
+                "pt-BR",
+                "es"
+              ],
               "type": "string"
             }
           },
@@ -14715,6 +14743,9 @@
       "VerifyAndEnable2faResponseDto": {
         "type": "object",
         "properties": {
+          "enabled": {
+            "type": "boolean"
+          },
           "backupCodes": {
             "type": "array",
             "items": {
@@ -14723,18 +14754,19 @@
           }
         },
         "required": [
+          "enabled",
           "backupCodes"
         ]
       },
       "VerifyAndEnable2faRequestDto": {
         "type": "object",
         "properties": {
-          "token": {
+          "code": {
             "type": "string"
           }
         },
         "required": [
-          "token"
+          "code"
         ]
       },
       "Get2faStatusResponseDto": {

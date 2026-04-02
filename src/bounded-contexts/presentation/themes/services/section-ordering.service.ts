@@ -3,9 +3,7 @@
  * Handles reordering of sections and items
  */
 
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { ERROR_MESSAGES } from '@/shared-kernel';
-import { moveItem, normalizeOrders } from '../utils';
+import { Injectable } from '@nestjs/common';
 import { ResumeConfigRepository } from './resume-config.repository';
 
 @Injectable()
@@ -22,14 +20,11 @@ export class SectionOrderingService {
     sectionId: string,
     newOrder: number,
   ): Promise<void> {
-    const config = await this.repo.get(userId, resumeId);
+    // Verify user owns the resume
+    await this.repo.get(userId, resumeId);
 
-    const idx = config.sections.findIndex((s) => s.id === sectionId);
-    if (idx === -1) throw new BadRequestException(ERROR_MESSAGES.SECTION_NOT_FOUND);
-
-    config.sections = moveItem(config.sections, idx, newOrder);
-
-    await this.repo.save(resumeId, config);
+    // Directly update ResumeSection order (bypasses theme config)
+    await this.repo.reorderSectionDirect(resumeId, sectionId, newOrder);
   }
 
   /**
@@ -74,15 +69,10 @@ export class SectionOrderingService {
       column?: string;
     }>,
   ): Promise<void> {
-    const config = await this.repo.get(userId, resumeId);
+    // Verify user owns the resume
+    await this.repo.get(userId, resumeId);
 
-    config.sections = config.sections.map((section) => {
-      const update = updates.find((u) => u.id === section.id);
-      return update ? { ...section, ...update } : section;
-    });
-
-    config.sections = normalizeOrders(config.sections);
-
-    await this.repo.save(resumeId, config);
+    // Directly update ResumeSection orders (bypasses theme config)
+    await this.repo.batchUpdateSectionsDirect(resumeId, updates);
   }
 }

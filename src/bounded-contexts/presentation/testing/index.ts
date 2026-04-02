@@ -52,6 +52,11 @@ export interface ThemeRecord {
   tags: string[];
   createdAt: Date;
   updatedAt: Date;
+  rejectionReason?: string | null;
+  rejectionCount?: number;
+  approvedById?: string | null;
+  approvedAt?: Date | null;
+  publishedAt?: Date | null;
 }
 
 // ============================================================================
@@ -192,14 +197,35 @@ export class InMemoryThemeRepository {
     return this.themes.get(where.id) ?? null;
   }
 
-  async update(where: { id: string }, data: Partial<ThemeRecord>): Promise<ThemeRecord> {
+  async update(
+    where: { id: string },
+    data: Partial<ThemeRecord> & { rejectionCount?: { increment: number } | number },
+  ): Promise<ThemeRecord> {
     const theme = this.themes.get(where.id);
     if (!theme) {
       throw new Error('Theme not found');
     }
+
+    // Handle rejectionCount increment before spreading
+    let rejectionCountValue = theme.rejectionCount;
+    if (data.rejectionCount !== undefined) {
+      if (
+        typeof data.rejectionCount === 'object' &&
+        data.rejectionCount !== null &&
+        'increment' in data.rejectionCount
+      ) {
+        const incrementObj = data.rejectionCount as { increment: number };
+        rejectionCountValue = (theme.rejectionCount ?? 0) + incrementObj.increment;
+      } else if (typeof data.rejectionCount === 'number') {
+        rejectionCountValue = data.rejectionCount;
+      }
+    }
+
+    const { rejectionCount, ...restData } = data;
     const updated: ThemeRecord = {
       ...theme,
-      ...data,
+      ...restData,
+      rejectionCount: rejectionCountValue,
       updatedAt: new Date(),
     };
     this.themes.set(where.id, updated);
@@ -213,6 +239,36 @@ export class InMemoryThemeRepository {
     }
     this.themes.delete(where.id);
     return theme;
+  }
+
+  async findMany(args?: {
+    where?: { status?: ThemeStatus; authorId?: string };
+    orderBy?: { createdAt?: 'asc' | 'desc' };
+    include?: { author?: { select: { id: boolean; name: boolean; email: boolean } } };
+  }): Promise<ThemeRecord[]> {
+    let themes = Array.from(this.themes.values());
+
+    // Filter by where clause
+    if (args?.where) {
+      const whereClause = args.where;
+      if (whereClause.status) {
+        themes = themes.filter((t) => t.status === whereClause.status);
+      }
+      if (whereClause.authorId) {
+        themes = themes.filter((t) => t.authorId === whereClause.authorId);
+      }
+    }
+
+    // Sort if orderBy specified
+    if (args?.orderBy?.createdAt) {
+      const orderDirection = args.orderBy.createdAt;
+      themes.sort((a, b) => {
+        const comparison = a.createdAt.getTime() - b.createdAt.getTime();
+        return orderDirection === 'asc' ? comparison : -comparison;
+      });
+    }
+
+    return themes;
   }
 
   async count(where?: { authorId?: string }): Promise<number> {
@@ -358,5 +414,10 @@ export const createTestTheme = (overrides: Partial<ThemeRecord> = {}): ThemeReco
   tags: [],
   createdAt: new Date(),
   updatedAt: new Date(),
+  rejectionReason: null,
+  rejectionCount: 0,
+  approvedById: null,
+  approvedAt: null,
+  publishedAt: null,
   ...overrides,
 });

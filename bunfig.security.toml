@@ -1,0 +1,9 @@
+[test]
+# Security tests configuration
+# Tests that validate security-critical behavior with production settings
+root = "./test/static-analysis/security"
+preload = ["./test/static-analysis/setup.ts"]
+timeout = 30000
+
+[install.scopes]
+"@octopus-synapse" = { token = "$GITHUB_TOKEN", url = "https://npm.pkg.github.com" }

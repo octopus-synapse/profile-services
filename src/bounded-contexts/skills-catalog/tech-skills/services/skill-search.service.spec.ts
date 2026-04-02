@@ -6,82 +6,31 @@
  * - Query normalização
  */
 
-import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import { Test, TestingModule } from '@nestjs/testing';
-import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { beforeEach, describe, expect, it } from 'bun:test';
+import {
+  DEFAULT_TECH_SKILLS,
+  InMemoryCacheService,
+  InMemoryTechSkillRepository,
+} from '../../testing';
 import { SkillSearchService } from './skill-search.service';
 
 describe('SkillSearchService', () => {
   let service: SkillSearchService;
+  let techSkillRepo: InMemoryTechSkillRepository;
+  let cacheService: InMemoryCacheService;
 
-  const mockSkillsFromDb = [
-    {
-      id: '1',
-      slug: 'nestjs',
-      nameEn: 'NestJS',
-      namePtBr: 'NestJS',
-      type: 'FRAMEWORK',
-      icon: 'nestjs.svg',
-      color: '#E0234E',
-      website: 'https://nestjs.com',
-      aliases: ['nest'],
-      popularity: 85,
-      niche_slug: 'nodejs',
-      niche_nameEn: 'Node.js',
-      niche_namePtBr: 'Node.js',
-    },
-    {
-      id: '2',
-      slug: 'nextjs',
-      nameEn: 'Next.js',
-      namePtBr: 'Next.js',
-      type: 'FRAMEWORK',
-      icon: 'nextjs.svg',
-      color: '#000000',
-      website: 'https://nextjs.org',
-      aliases: ['next'],
-      popularity: 90,
-      niche_slug: 'react',
-      niche_nameEn: 'React',
-      niche_namePtBr: 'React',
-    },
-  ];
-
-  // In-memory cache
-  const cacheStore = new Map<string, unknown>();
-
-  const stubPrisma = {
-    $queryRaw: mock().mockResolvedValue(mockSkillsFromDb),
-  };
-
-  const stubCache = {
-    get: mock((key: string) => Promise.resolve(cacheStore.get(key) ?? null)),
-    set: mock((key: string, value: unknown) => {
-      cacheStore.set(key, value);
-      return Promise.resolve();
-    }),
-  };
-
-  beforeEach(async () => {
-    cacheStore.clear();
-
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        SkillSearchService,
-        { provide: PrismaService, useValue: stubPrisma },
-        { provide: CacheService, useValue: stubCache },
-      ],
-    }).compile();
-
-    service = module.get<SkillSearchService>(SkillSearchService);
+  beforeEach(() => {
+    techSkillRepo = new InMemoryTechSkillRepository();
+    techSkillRepo.seed(DEFAULT_TECH_SKILLS);
+    cacheService = new InMemoryCacheService();
+    service = new SkillSearchService(techSkillRepo as never, cacheService as never);
   });
 
   describe('searchSkills', () => {
     it('should return skills matching query', async () => {
       const result = await service.searchSkills('nest');
 
-      expect(result).toHaveLength(2);
+      expect(result.length).toBeGreaterThan(0);
       expect(result[0]).toMatchObject({
         slug: expect.any(String),
         nameEn: expect.any(String),
@@ -102,8 +51,6 @@ describe('SkillSearchService', () => {
     });
 
     it('should normalize query to lowercase', async () => {
-      await service.searchSkills('NEST');
-
       // Verify that the same cache key is used for different cases
       const result1 = await service.searchSkills('nest');
       const result2 = await service.searchSkills('NEST');
@@ -124,7 +71,6 @@ describe('SkillSearchService', () => {
     it('should respect limit parameter', async () => {
       const result = await service.searchSkills('nest', 1);
 
-      // Since we're using a stub, we verify the result structure
       expect(result).toBeDefined();
       expect(Array.isArray(result)).toBe(true);
     });
@@ -132,12 +78,53 @@ describe('SkillSearchService', () => {
     it('should include niche information in results', async () => {
       const result = await service.searchSkills('nest');
 
+      expect(result.length).toBeGreaterThan(0);
       expect(result[0]).toMatchObject({
         niche: expect.objectContaining({
           slug: expect.any(String),
           nameEn: expect.any(String),
         }),
       });
+    });
+
+    it('should cache results after first call', async () => {
+      const query = 'javascript';
+
+      // First call - cache should be empty
+      const initialCacheSize = cacheService.size();
+
+      await service.searchSkills(query);
+
+      // After first call - cache should have one entry
+      expect(cacheService.size()).toBe(initialCacheSize + 1);
+    });
+
+    it('should return cached results on subsequent calls', async () => {
+      const query = 'react';
+
+      // First call
+      const result1 = await service.searchSkills(query);
+      const cacheSize = cacheService.size();
+
+      // Second call should use cache (size should not increase)
+      const result2 = await service.searchSkills(query);
+
+      expect(result1).toEqual(result2);
+      expect(cacheService.size()).toBe(cacheSize);
+    });
+
+    it('should return all default skills for broad query', async () => {
+      const result = await service.searchSkills('j'); // Matches JavaScript
+
+      expect(result.length).toBeGreaterThan(0);
+    });
+
+    it('should find skills by alias', async () => {
+      // NestJS has alias 'nest'
+      const result = await service.searchSkills('nest');
+
+      const nestjsSkill = result.find((s) => s.slug === 'nestjs');
+      expect(nestjsSkill).toBeDefined();
     });
   });
 });

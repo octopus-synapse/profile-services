@@ -6,7 +6,7 @@
 
 import { beforeEach, describe, expect, it } from 'bun:test';
 import { BadRequestException, UnprocessableEntityException } from '@nestjs/common';
-import { createMockResume } from '@test/factories/resume.factory';
+import { createMockResume } from '@test/shared/factories/resume.factory';
 import type { CreateResume } from '@/shared-kernel';
 import type { ResumeEventPublisher } from '../domain/ports';
 import { ResumesService } from './resumes.service';

@@ -7,7 +7,7 @@
 import type {
   PasswordRepositoryPort,
   UserWithPassword,
-} from '../../../password-management/ports/outbound/password-repository.port';
+} from '../../../password-management/domain/ports';
 
 export class InMemoryPasswordRepository implements PasswordRepositoryPort {
   private users: Map<string, UserWithPassword> = new Map();
