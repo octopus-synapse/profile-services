@@ -3641,7 +3641,7 @@
         ]
       }
     },
-    "/api/password/forgot": {
+    "/api/auth/forgot-password": {
       "post": {
         "description": "Sends a password reset email if the account exists. Always returns success to prevent email enumeration.",
         "operationId": "forgotPassword_handle",
@@ -3689,7 +3689,7 @@
         ]
       }
     },
-    "/api/password/reset": {
+    "/api/auth/reset-password": {
       "post": {
         "description": "Resets the user password using a valid reset token received via email.",
         "operationId": "resetPassword_handle",

@@ -42,17 +42,19 @@ export class RateLimitGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    // Skip in test environment
-    if (process.env.NODE_ENV === 'test') {
+    const request = context.switchToHttp().getRequest<RequestWithUser>();
+    const isProduction = process.env.NODE_ENV === 'production';
+    const isTest = process.env.NODE_ENV === 'test';
+
+    // E2E/Integration test bypass - check for special header in non-production environments
+    const hasE2EBypass = request.headers['x-e2e-bypass-rate-limit'] === 'true';
+    if (!isProduction && hasE2EBypass) {
       return true;
     }
 
-    const request = context.switchToHttp().getRequest<RequestWithUser>();
-
-    // E2E test bypass - check for special header in non-production environments
-    const isProduction = process.env.NODE_ENV === 'production';
-    const hasE2EBypass = request.headers['x-e2e-bypass-rate-limit'] === 'true';
-    if (!isProduction && hasE2EBypass) {
+    // In test environment, only enable rate limiting if RATE_LIMIT_ENABLED is set
+    // This allows security tests to verify rate limiting while keeping other tests fast
+    if (isTest && process.env.RATE_LIMIT_ENABLED !== 'true') {
       return true;
     }
     const response = context.switchToHttp().getResponse<Response>();

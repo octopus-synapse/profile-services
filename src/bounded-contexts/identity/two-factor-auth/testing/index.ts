@@ -100,6 +100,16 @@ export class InMemoryTwoFactorRepository implements TwoFactorRepositoryPort {
     }
   }
 
+  async tryConsumeBackupCode(codeId: string): Promise<boolean> {
+    const code = this.backupCodes.find((c) => c.id === codeId);
+    if (code && !code.used) {
+      code.used = true;
+      code.usedAt = new Date();
+      return true;
+    }
+    return false;
+  }
+
   async deleteBackupCodes(userId: string): Promise<void> {
     this.backupCodes = this.backupCodes.filter((c) => c.userId !== userId);
   }

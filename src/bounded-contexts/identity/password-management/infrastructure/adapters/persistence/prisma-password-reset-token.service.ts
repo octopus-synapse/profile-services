@@ -48,6 +48,38 @@ export class PrismaPasswordResetTokenService implements PasswordResetTokenPort {
     return resetToken.userId;
   }
 
+  /**
+   * Atomically validates and consumes a token using Prisma transaction.
+   * This prevents race conditions where the same token could be used twice.
+   */
+  async validateAndConsumeToken(token: string): Promise<string> {
+    return this.prisma.$transaction(async (tx) => {
+      // Find and lock the token row
+      const resetToken = await tx.passwordResetToken.findUnique({
+        where: { token },
+      });
+
+      if (!resetToken) {
+        throw new InvalidResetTokenException();
+      }
+
+      if (new Date() > resetToken.expiresAt) {
+        // Delete expired token
+        await tx.passwordResetToken.delete({
+          where: { token },
+        });
+        throw new InvalidResetTokenException();
+      }
+
+      // Immediately delete (consume) the token within the same transaction
+      await tx.passwordResetToken.delete({
+        where: { token },
+      });
+
+      return resetToken.userId;
+    });
+  }
+
   async invalidateToken(token: string): Promise<void> {
     await this.prisma.passwordResetToken.deleteMany({
       where: { token },

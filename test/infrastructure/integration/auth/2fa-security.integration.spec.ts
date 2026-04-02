@@ -110,20 +110,26 @@ describe('2FA Security - Bug Discovery Tests', () => {
       // Generate a TOTP token
       const totpToken = speakeasy.totp({ secret, encoding: 'base32' });
 
-      // Step 2: First use of token - should succeed
-      const firstUse = await getRequest().post('/api/auth/login/verify-2fa').send({
-        userId: testUser.userId,
-        code: totpToken,
-      });
+      // Step 2: First use of token - should succeed (bypass rate limit for non-rate-limit tests)
+      const firstUse = await getRequest()
+        .post('/api/auth/login/verify-2fa')
+        .set('x-e2e-bypass-rate-limit', 'true')
+        .send({
+          userId: testUser.userId,
+          code: totpToken,
+        });
 
       expect(firstUse.status).toBe(200);
       expect(firstUse.body.data?.accessToken).toBeDefined();
 
       // Step 3: REUSE same token - THIS SHOULD FAIL but will pass if bug exists
-      const secondUse = await getRequest().post('/api/auth/login/verify-2fa').send({
-        userId: testUser.userId,
-        code: totpToken,
-      });
+      const secondUse = await getRequest()
+        .post('/api/auth/login/verify-2fa')
+        .set('x-e2e-bypass-rate-limit', 'true')
+        .send({
+          userId: testUser.userId,
+          code: totpToken,
+        });
 
       // If this test FAILS (status is 200), there's a REPLAY ATTACK vulnerability!
       expect(secondUse.status).toBe(401);
@@ -234,10 +240,13 @@ describe('2FA Security - Bug Discovery Tests', () => {
         password: 'SecurePass123!',
       });
 
-      const firstUse = await getRequest().post('/api/auth/login/verify-2fa').send({
-        userId: testUser.userId,
-        code: backupCode,
-      });
+      const firstUse = await getRequest()
+        .post('/api/auth/login/verify-2fa')
+        .set('x-e2e-bypass-rate-limit', 'true')
+        .send({
+          userId: testUser.userId,
+          code: backupCode,
+        });
 
       // First use should work
       expect(firstUse.status).toBe(200);
@@ -248,10 +257,13 @@ describe('2FA Security - Bug Discovery Tests', () => {
         password: 'SecurePass123!',
       });
 
-      const secondUse = await getRequest().post('/api/auth/login/verify-2fa').send({
-        userId: testUser.userId,
-        code: backupCode,
-      });
+      const secondUse = await getRequest()
+        .post('/api/auth/login/verify-2fa')
+        .set('x-e2e-bypass-rate-limit', 'true')
+        .send({
+          userId: testUser.userId,
+          code: backupCode,
+        });
 
       // Second use should FAIL
       expect(secondUse.status).toBe(401);
@@ -352,10 +364,13 @@ describe('2FA Security - Bug Discovery Tests', () => {
       // Try to use attacker's valid token with victim's userId
       const attackerToken = speakeasy.totp({ secret: attackerSecret, encoding: 'base32' });
 
-      const response = await getRequest().post('/api/auth/login/verify-2fa').send({
-        userId: victim.userId, // Victim's ID
-        code: attackerToken, // Attacker's valid token
-      });
+      const response = await getRequest()
+        .post('/api/auth/login/verify-2fa')
+        .set('x-e2e-bypass-rate-limit', 'true')
+        .send({
+          userId: victim.userId, // Victim's ID
+          code: attackerToken, // Attacker's valid token
+        });
 
       // This should FAIL - can't use someone else's 2FA
       expect(response.status).toBe(401);

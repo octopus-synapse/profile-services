@@ -176,8 +176,8 @@ test('sdk-export controllers publish stable operation ids', () => {
 });
 
 test('generic handler names keep unique operation ids when sdk tags would collide', () => {
-  expect(getOperationId('/api/password/forgot', 'post')).toBe('forgotPassword_handle');
-  expect(getOperationId('/api/password/reset', 'post')).toBe('resetPassword_handle');
+  expect(getOperationId('/api/auth/forgot-password', 'post')).toBe('forgotPassword_handle');
+  expect(getOperationId('/api/auth/reset-password', 'post')).toBe('resetPassword_handle');
   expect(getOperationId('/api/email-verification/send', 'post')).toBe('sendVerification_handle');
 });
 

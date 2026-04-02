@@ -96,7 +96,8 @@ export class Validate2faUseCase implements Validate2faInboundPort {
 
   /**
    * Validates backup code for a user.
-   * Marks the code as used if valid.
+   * Uses atomic consume operation to prevent race conditions.
+   * Each backup code can only be used once.
    */
   async validateBackupCode(userId: string, code: string): Promise<boolean> {
     const backupCodes = await this.repository.findUnusedBackupCodes(userId);
@@ -109,8 +110,10 @@ export class Validate2faUseCase implements Validate2faInboundPort {
       const isValid = await this.hashService.compare(code, backupCode.codeHash);
 
       if (isValid) {
-        await this.repository.markBackupCodeUsed(backupCode.id);
-        return true;
+        // Atomically try to consume the code (prevents race conditions)
+        // If another request already consumed it, this returns false
+        const consumed = await this.repository.tryConsumeBackupCode(backupCode.id);
+        return consumed;
       }
     }
 

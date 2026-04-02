@@ -128,6 +128,22 @@ export class InMemoryTokenService implements PasswordResetTokenPort {
     return record.userId;
   }
 
+  async validateAndConsumeToken(token: string): Promise<string> {
+    const record = this.tokens.get(token);
+    if (!record) {
+      throw new Error('Invalid or expired reset token');
+    }
+
+    if (new Date() > record.expiresAt) {
+      this.tokens.delete(token);
+      throw new Error('Invalid or expired reset token');
+    }
+
+    // Atomically consume the token
+    this.tokens.delete(token);
+    return record.userId;
+  }
+
   async invalidateToken(token: string): Promise<void> {
     this.tokens.delete(token);
   }

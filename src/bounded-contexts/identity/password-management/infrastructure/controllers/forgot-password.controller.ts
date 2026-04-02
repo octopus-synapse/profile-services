@@ -1,5 +1,6 @@
 import { Body, Controller, HttpCode, HttpStatus, Inject, Post } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
@@ -14,15 +15,16 @@ import { ForgotPasswordDto, ForgotPasswordResponseDto } from './forgot-password.
   requiresAuth: false,
 })
 @ApiTags('Password Management')
-@Controller('password')
+@Controller('auth')
 export class ForgotPasswordController {
   constructor(
     @Inject(FORGOT_PASSWORD_PORT)
     private readonly forgotPassword: ForgotPasswordPort,
   ) {}
 
-  @Post('forgot')
+  @Post('forgot-password')
   @Public()
+  @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 requests per minute for auth endpoints
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Request password reset',

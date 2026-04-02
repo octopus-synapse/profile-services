@@ -19,6 +19,13 @@ export interface PasswordResetTokenPort {
   validateToken(token: string): Promise<string>;
 
   /**
+   * Atomically validates and consumes a token (prevents race conditions)
+   * @returns The userId associated with the token
+   * @throws InvalidResetTokenException if token is invalid, expired, or already used
+   */
+  validateAndConsumeToken(token: string): Promise<string>;
+
+  /**
    * Invalidates a token after use
    */
   invalidateToken(token: string): Promise<void>;

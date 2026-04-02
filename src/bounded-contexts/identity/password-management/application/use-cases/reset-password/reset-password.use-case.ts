@@ -35,8 +35,9 @@ export class ResetPasswordUseCase implements ResetPasswordPort {
     // Validate password strength (throws WeakPasswordException if invalid)
     Password.create(newPassword);
 
-    // Validate token and get user ID (throws InvalidResetTokenException if invalid)
-    const userId = await this.tokenService.validateToken(token);
+    // Atomically validate and consume token (prevents race conditions)
+    // The token is deleted within the same transaction as validation
+    const userId = await this.tokenService.validateAndConsumeToken(token);
 
     // Hash the new password
     const hashedPassword = await this.passwordHasher.hash(newPassword);
@@ -44,12 +45,9 @@ export class ResetPasswordUseCase implements ResetPasswordPort {
     // Update password
     await this.passwordRepository.updatePassword(userId, hashedPassword);
 
-    // Invalidate the used token
-    await this.tokenService.invalidateToken(token);
-
-    // Publish domain event
+    // Publish domain event (await to ensure handlers complete before returning)
     const event = new PasswordChangedEvent(userId, 'reset');
-    this.eventBus.publish(event);
+    await this.eventBus.publish(event);
 
     return { success: true };
   }

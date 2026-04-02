@@ -4,6 +4,8 @@
  * Outbound port for authentication-related persistence operations.
  */
 
+export const AUTHENTICATION_REPOSITORY_PORT = Symbol('AuthenticationRepositoryPort');
+
 export interface AuthUser {
   id: string;
   email: string;

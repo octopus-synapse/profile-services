@@ -67,6 +67,13 @@ export interface TwoFactorRepositoryPort {
   markBackupCodeUsed(codeId: string): Promise<void>;
 
   /**
+   * Atomically try to consume a backup code (mark as used).
+   * Returns true if the code was successfully consumed (was unused).
+   * Returns false if the code was already used (race condition prevented).
+   */
+  tryConsumeBackupCode(codeId: string): Promise<boolean>;
+
+  /**
    * Delete all backup codes for user
    */
   deleteBackupCodes(userId: string): Promise<void>;

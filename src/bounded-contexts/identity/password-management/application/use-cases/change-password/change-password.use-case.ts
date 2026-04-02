@@ -54,9 +54,9 @@ export class ChangePasswordUseCase implements ChangePasswordPort {
     // Update password
     await this.passwordRepository.updatePassword(userId, hashedPassword);
 
-    // Publish domain event
+    // Publish domain event (await to ensure handlers complete before returning)
     const event = new PasswordChangedEvent(userId, 'profile');
-    this.eventBus.publish(event);
+    await this.eventBus.publish(event);
 
     return { success: true };
   }

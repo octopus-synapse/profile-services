@@ -120,6 +120,29 @@ export class TwoFactorRepository implements TwoFactorRepositoryPort {
     });
   }
 
+  /**
+   * Atomically try to consume a backup code.
+   * Uses updateMany with a WHERE clause to ensure atomicity.
+   * Returns true if exactly one record was updated (code was unused).
+   * Returns false if no records were updated (code already used - race condition).
+   */
+  async tryConsumeBackupCode(codeId: string): Promise<boolean> {
+    const result = await this.prisma.twoFactorBackupCode.updateMany({
+      where: {
+        id: codeId,
+        used: false, // Only update if still unused
+      },
+      data: {
+        used: true,
+        usedAt: new Date(),
+      },
+    });
+
+    // If count is 1, we successfully consumed the code
+    // If count is 0, the code was already used (race condition prevented)
+    return result.count === 1;
+  }
+
   async deleteBackupCodes(userId: string): Promise<void> {
     await this.prisma.twoFactorBackupCode.deleteMany({
       where: { userId },

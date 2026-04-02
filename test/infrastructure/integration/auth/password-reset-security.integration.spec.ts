@@ -144,10 +144,13 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
       const prisma = getPrisma();
       const user = await prisma.user.findUnique({ where: { id: testUser.userId } });
 
-      // Request first password reset
-      await getRequest().post('/api/auth/forgot-password').send({
-        email: user?.email,
-      });
+      // Request first password reset (bypass rate limit for non-rate-limit tests)
+      await getRequest()
+        .post('/api/auth/forgot-password')
+        .set('x-e2e-bypass-rate-limit', 'true')
+        .send({
+          email: user?.email,
+        });
 
       // Get the first token
       const firstToken = await prisma.passwordResetToken.findFirst({
@@ -155,10 +158,13 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
         orderBy: { createdAt: 'desc' },
       });
 
-      // Request second password reset
-      await getRequest().post('/api/auth/forgot-password').send({
-        email: user?.email,
-      });
+      // Request second password reset (bypass rate limit)
+      await getRequest()
+        .post('/api/auth/forgot-password')
+        .set('x-e2e-bypass-rate-limit', 'true')
+        .send({
+          email: user?.email,
+        });
 
       // Count total valid tokens for this user
       const validTokens = await prisma.passwordResetToken.count({
@@ -288,14 +294,18 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
       const prisma = getPrisma();
       const user = await prisma.user.findUnique({ where: { id: testUserId } });
 
-      // Request for existing user
-      const existingUserResponse = await getRequest().post('/api/auth/forgot-password').send({
-        email: user?.email,
-      });
+      // Request for existing user (bypass rate limit)
+      const existingUserResponse = await getRequest()
+        .post('/api/auth/forgot-password')
+        .set('x-e2e-bypass-rate-limit', 'true')
+        .send({
+          email: user?.email,
+        });
 
-      // Request for non-existing user
+      // Request for non-existing user (bypass rate limit)
       const nonExistingUserResponse = await getRequest()
         .post('/api/auth/forgot-password')
+        .set('x-e2e-bypass-rate-limit', 'true')
         .send({
           email: `nonexistent-user-${Date.now()}@example.com`,
         });
@@ -434,6 +444,9 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
       });
 
       expect(resetResponse.status).toBe(200);
+
+      // Delay to ensure event handlers complete and Redis operations finish
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       // Try to use OLD access token - should be invalidated!
       const afterReset = await getRequest()

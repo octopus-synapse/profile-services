@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import type { Request } from 'express';
 import { Strategy } from 'passport-jwt';
+import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { AUTH_CONFIG } from '@/shared-kernel/constants/app.constants';
 
@@ -27,6 +28,8 @@ export interface AuthenticatedUser {
 }
 
 const USER_NOT_FOUND_MESSAGE = 'User not found';
+const TOKEN_INVALIDATED_MESSAGE = 'Token has been invalidated';
+const TOKEN_VALID_AFTER_KEY_PREFIX = 'auth:token_valid_after:';
 
 /**
  * Custom JWT extractor that checks both cookie and Authorization header
@@ -61,6 +64,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
     configService: ConfigService,
     private readonly prisma: PrismaService,
+    private readonly cacheService: CacheService,
   ) {
     const jwtSecret = configService.get<string>('JWT_SECRET');
     if (!jwtSecret) {
@@ -90,6 +94,17 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException(USER_NOT_FOUND_MESSAGE);
     }
 
+    // Check if token was issued before a password change
+    // Tokens issued AT or BEFORE the invalidation timestamp are considered invalid
+    // (use <= to handle same-second edge case)
+    const tokenValidAfter = await this.cacheService.get<number>(
+      `${TOKEN_VALID_AFTER_KEY_PREFIX}${payload.sub}`,
+    );
+
+    if (tokenValidAfter && payload.iat && payload.iat <= tokenValidAfter) {
+      throw new UnauthorizedException(TOKEN_INVALIDATED_MESSAGE);
+    }
+
     return {
       id: user.id, // For PermissionGuard compatibility
       userId: user.id,
@@ -99,5 +114,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       emailVerified: !!user.emailVerified,
       roles: user.roles,
     };
+  }
+
+  /**
+   * Static helper for cache key generation
+   */
+  static getTokenValidAfterKey(userId: string): string {
+    return `${TOKEN_VALID_AFTER_KEY_PREFIX}${userId}`;
   }
 }

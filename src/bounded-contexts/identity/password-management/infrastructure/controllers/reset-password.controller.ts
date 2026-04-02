@@ -14,14 +14,14 @@ import { ResetPasswordDto, ResetPasswordResponseDto } from './reset-password.dto
   requiresAuth: false,
 })
 @ApiTags('Password Management')
-@Controller('password')
+@Controller('auth')
 export class ResetPasswordController {
   constructor(
     @Inject(RESET_PASSWORD_PORT)
     private readonly resetPassword: ResetPasswordPort,
   ) {}
 
-  @Post('reset')
+  @Post('reset-password')
   @Public()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({

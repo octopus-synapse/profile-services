@@ -1,10 +1,11 @@
 // Re-export SessionPayload from domain for convenience
 export type { SessionPayload } from '../entities/session.entity';
-export type {
-  AuthenticationRepositoryPort,
-  AuthUser,
-  RefreshTokenData,
-  SessionAuthUser,
+export {
+  AUTHENTICATION_REPOSITORY_PORT,
+  type AuthenticationRepositoryPort,
+  type AuthUser,
+  type RefreshTokenData,
+  type SessionAuthUser,
 } from './authentication-repository.port';
 export type { PasswordHasherPort } from './password-hasher.port';
 export type {

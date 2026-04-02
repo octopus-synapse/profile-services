@@ -29,6 +29,12 @@ export class StubTokenService implements PasswordResetTokenPort {
     return data.userId;
   }
 
+  async validateAndConsumeToken(token: string): Promise<string> {
+    const userId = await this.validateToken(token);
+    await this.invalidateToken(token);
+    return userId;
+  }
+
   async invalidateToken(token: string): Promise<void> {
     this.tokens.delete(token);
   }
