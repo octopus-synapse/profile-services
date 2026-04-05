@@ -173,12 +173,12 @@ jobs:
             --ci-metrics=ci-metrics.json \
             --format=markdown)
 
-          echo "✅ Markdown card generated"
+          echo "Card generated"
 
-          # Post comment directly
+          # Post comment
           bun src/pr-comment/cli/post-comment.ts \
             --pr=${{ steps.pr.outputs.number }} \
             --stdin \
             --tag=ci-pipeline-status <<< "$CARD"
 
-          echo "✅ Comment posted to PR #${{ steps.pr.outputs.number }}"
+          echo "Comment posted to PR #${{ steps.pr.outputs.number }}"

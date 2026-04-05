@@ -311,102 +311,108 @@ ${renderFooter(data)}
 }
 
 // =============================================================================
-// Markdown Card Generation
+// Markdown Card Generation (HTML + shields.io)
 // =============================================================================
 
-function getStatusBadge(status: string, label: string): string {
-  const colors: Record<string, string> = {
-    success: '22c55e',
-    fail: 'ef4444',
-    running: '3b82f6',
-    skip: '6b7280',
-    pending: 'f59e0b',
-  };
-  const color = colors[status] || colors.pending;
+const STATUS_COLORS: Record<string, string> = {
+  success: '22c55e',
+  fail: 'ef4444',
+  running: 'f59e0b',
+  skip: '6b7280',
+  pending: 'f59e0b',
+};
+
+function statusDot(status: string): string {
+  const color = STATUS_COLORS[status] || STATUS_COLORS.pending;
+  return `![](https://img.shields.io/badge/%E2%97%8F-${color}?style=flat-square&labelColor=${color})`;
+}
+
+function statBadge(label: string, value: string | number, color: string): string {
   const encodedLabel = encodeURIComponent(label);
-  return `![${label}](https://img.shields.io/badge/${encodedLabel}-${color}?style=flat-square)`;
+  const encodedValue = encodeURIComponent(String(value));
+  return `![${label}](https://img.shields.io/badge/${encodedLabel}-${encodedValue}-${color}?style=flat-square)`;
 }
 
-function getStatusBadgeSmall(status: string): string {
-  const icons: Record<string, string> = {
-    success: '✓-22c55e',
-    fail: '✗-ef4444',
-    running: '⟳-3b82f6',
-    skip: '⊘-6b7280',
-    pending: '◷-f59e0b',
-  };
-  const badge = icons[status] || icons.pending;
-  return `![](https://img.shields.io/badge/${badge}?style=flat-square)`;
-}
-
-function mdRowEnhanced(check: PrecommitCheckResult | CIJobResult): string {
-  const statusBadge = getStatusBadgeSmall(check.status);
+function mdPrecommitRow(check: PrecommitCheckResult): string {
+  const dot = statusDot(check.status);
   const name = check.name.charAt(0).toUpperCase() + check.name.slice(1);
   const time = formatDuration(check.duration_ms);
-  const passed = check.passed ?? '-';
-  const failed = check.failed ?? '-';
-  const total = check.total ?? '-';
+  const suites = check.suites ?? '—';
+  const total = check.total ?? '—';
+  const passed = check.passed ?? '—';
+  const failed = check.failed ?? '—';
 
-  return `| ${statusBadge} | **${name}** | ${total} | ${passed} | ${failed} | \`${time}\` |`;
+  return `| ${dot} | ${name} | ${suites} | ${total} | ${passed} | ${failed} | ${time} |`;
+}
+
+function mdCIRow(job: CIJobResult): string {
+  const dot = statusDot(job.status);
+  const name = job.name.charAt(0).toUpperCase() + job.name.slice(1);
+  const time = formatDuration(job.duration_ms);
+  const isPending = job.status === 'pending' || job.status === 'running';
+  const suites = isPending ? '—' : (job.suites ?? '—');
+  const total = isPending ? '—' : (job.total ?? '—');
+  const passed = isPending ? '—' : (job.passed ?? '—');
+  const failed = isPending ? '—' : (job.failed ?? '—');
+
+  return `| ${dot} | ${name} | ${suites} | ${total} | ${passed} | ${failed} | ${time} |`;
 }
 
 export function generateMarkdownCard(data: CardData): string {
   const { metrics, git } = data;
   const { precommit, ci, overall } = metrics;
 
+  const passRate = overall.pass_rate.toFixed(1);
+  const passRateColor =
+    overall.pass_rate >= 80 ? '22c55e' : overall.pass_rate >= 50 ? 'f59e0b' : 'ef4444';
+  const statusColor = STATUS_COLORS[overall.status] || STATUS_COLORS.pending;
   const statusLabel = getStatusLabel(overall.status).toUpperCase();
-  const passRate = Math.round(overall.pass_rate);
 
-  // Build progress bar using unicode blocks
-  const filled = Math.round(passRate / 5);
-  const empty = 20 - filled;
-  const progressBar = '█'.repeat(filled) + '░'.repeat(empty);
+  let md = '';
 
-  // Header with status badge
-  let md = `## CI Pipeline Status\n\n`;
+  // Header
+  md += `## CI PIPELINE\n\n`;
+  md += `> **${git.commit_message}**\n`;
+  md += `> <sub>\`${git.commit_hash}\` · ${git.commit_author}</sub>\n`;
+  md += `> <sub>Branch: \`${git.branch}\`</sub>\n\n`;
 
-  // Status overview with badges
-  md += `${getStatusBadge(overall.status, statusLabel)} `;
-  md += `![Pass Rate](https://img.shields.io/badge/Pass_Rate-${passRate}%25-${passRate >= 80 ? '22c55e' : passRate >= 50 ? 'f59e0b' : 'ef4444'}?style=flat-square) `;
-  md += `![Tests](https://img.shields.io/badge/Tests-${overall.total_tests}-6366f1?style=flat-square) `;
-  md += `![Duration](https://img.shields.io/badge/Duration-${encodeURIComponent(formatDuration(overall.duration_ms))}-64748b?style=flat-square)\n\n`;
-
-  // Progress bar
-  md += `\`${progressBar}\` ${passRate}%\n\n`;
-
-  // Commit info
-  md += `> **${git.commit_message}**\n>\n`;
-  md += `> \`${git.commit_hash}\` by ${git.commit_author}`;
-  if (git.co_authors.length > 0) {
-    md += ` (+ ${git.co_authors.join(', ')})`;
-  }
-  md += `\n\n`;
-
-  // Pre-commit section
-  md += `<details open>\n<summary><b>📋 Pre-commit</b> · ${precommit.totals.passed}/${precommit.totals.total} passed · <code>${formatDuration(precommit.duration_ms)}</code></summary>\n\n`;
-  md += `| | Check | Total | Pass | Fail | Time |\n`;
-  md += `|:-:|:------|:-----:|:----:|:----:|-----:|\n`;
+  // PRE-COMMIT Section
+  md += `### PRE-COMMIT <sub>${formatDuration(precommit.duration_ms)}</sub>\n\n`;
+  md += `| | CHECK | SUITES | TOTAL | PASS | FAIL | TIME |\n`;
+  md += `|:-:|:------|:------:|:-----:|:----:|:----:|-----:|\n`;
   for (const check of precommit.checks) {
-    md += `${mdRowEnhanced(check)}\n`;
+    md += `${mdPrecommitRow(check)}\n`;
   }
-  md += `\n`;
-  if (precommit.attestation_hash) {
-    md += `🔐 Attestation: \`${precommit.attestation_hash.slice(0, 12)}\`\n`;
-  }
-  md += `\n</details>\n\n`;
+  md += `| | **TOTAL** | **${precommit.totals.suites}** | **${precommit.totals.total}** | **${precommit.totals.passed}** | **${precommit.totals.failed}** | **${formatDuration(precommit.duration_ms)}** |\n\n`;
 
-  // CI section
-  md += `<details open>\n<summary><b>🚀 CI Pipeline</b> · ${ci.totals.passed}/${ci.totals.total} passed · <code>${formatDuration(ci.duration_ms)}</code></summary>\n\n`;
-  md += `| | Job | Total | Pass | Fail | Time |\n`;
-  md += `|:-:|:----|:-----:|:----:|:----:|-----:|\n`;
-  for (const job of ci.jobs) {
-    md += `${mdRowEnhanced(job)}\n`;
+  if (precommit.attestation_hash) {
+    md += `<sub>ATTESTATION \`${precommit.attestation_hash}\`</sub>\n\n`;
   }
-  md += `\n</details>\n\n`;
+
+  // CI Section
+  md += `### CI <sub>${formatDuration(ci.duration_ms)}</sub>\n\n`;
+  md += `| | JOB | SUITES | TOTAL | PASS | FAIL | TIME |\n`;
+  md += `|:-:|:----|:------:|:-----:|:----:|:----:|-----:|\n`;
+  for (const job of ci.jobs) {
+    md += `${mdCIRow(job)}\n`;
+  }
+  md += `| | **TOTAL** | **${ci.totals.suites}** | **${ci.totals.total}** | **${ci.totals.passed}** | **${ci.totals.failed}** | **${formatDuration(ci.duration_ms)}** |\n\n`;
+
+  // Stats row with badges
+  md += `---\n\n`;
+  md += `${statBadge('PASS RATE', `${passRate}%`, passRateColor)} `;
+  md += `${statBadge('TOTAL TESTS', overall.total_tests, '6366f1')} `;
+  md += `${statBadge('DURATION', formatDuration(overall.duration_ms), '64748b')} `;
+  md += `${statBadge('STATUS', statusLabel, statusColor)}\n\n`;
+
+  md += `${statBadge('PASSED', overall.total_passed, '22c55e')} `;
+  md += `${statBadge('FAILED', overall.total_failed, overall.total_failed > 0 ? 'ef4444' : '6b7280')} `;
+  md += `${statBadge('SKIPPED', overall.total_skipped, overall.total_skipped > 0 ? 'f59e0b' : '6b7280')} `;
+  md += `${statBadge('ERRORS', 0, '6b7280')}\n\n`;
 
   // Footer
   md += `---\n`;
-  md += `<sub>🕐 ${git.timestamp} · Run #${git.run_number} · Branch: \`${git.branch}\`</sub>`;
+  md += `<sub>${git.timestamp} · workflow run #${git.run_number}</sub>`;
 
   return md;
 }
