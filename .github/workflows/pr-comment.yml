@@ -223,6 +223,9 @@ jobs:
           echo "image_url=$IMAGE_URL" >> $GITHUB_OUTPUT
           echo "✅ Card uploaded: $IMAGE_URL"
 
+          # Checkout back to original branch
+          git checkout ${{ github.event.workflow_run.head_sha || inputs.branch }}
+
       - name: Post PR Comment
         if: steps.pr.outputs.number
         env:
