@@ -4,6 +4,20 @@ on:
   workflow_run:
     workflows: ["CI"]
     types: [completed]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "PR number to comment on"
+        required: true
+        type: string
+      run_id:
+        description: "CI workflow run ID to get metrics from"
+        required: true
+        type: string
+      branch:
+        description: "Branch name"
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -13,13 +27,13 @@ permissions:
 jobs:
   comment:
     name: Update PR Comment
-    if: github.event.workflow_run.event == 'pull_request'
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.event == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ github.event.workflow_run.head_sha || inputs.branch }}
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -34,15 +48,20 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          PR_NUMBER=$(gh pr list \
-            --repo "${{ github.repository }}" \
-            --head "${{ github.event.workflow_run.head_branch }}" \
-            --state open \
-            --json number \
-            --jq '.[0].number')
+          # Use input if workflow_dispatch, otherwise find from branch
+          if [[ -n "${{ inputs.pr_number }}" ]]; then
+            PR_NUMBER="${{ inputs.pr_number }}"
+          else
+            PR_NUMBER=$(gh pr list \
+              --repo "${{ github.repository }}" \
+              --head "${{ github.event.workflow_run.head_branch }}" \
+              --state open \
+              --json number \
+              --jq '.[0].number')
+          fi
 
           if [[ -z "$PR_NUMBER" || "$PR_NUMBER" == "null" ]]; then
-            echo "No open PR found for branch ${{ github.event.workflow_run.head_branch }}"
+            echo "No open PR found"
             exit 0
           fi
 
@@ -55,7 +74,7 @@ jobs:
         uses: dawidd6/action-download-artifact@v6
         with:
           workflow: ci.yml
-          run_id: ${{ github.event.workflow_run.id }}
+          run_id: ${{ github.event.workflow_run.id || inputs.run_id }}
           name_is_regexp: true
           name: ".*attestation.*"
           path: ./artifacts
@@ -73,7 +92,7 @@ jobs:
             cat > .attestation << 'EOF'
           {
             "version": "3",
-            "tree_hash": "${{ github.event.workflow_run.head_sha }}",
+            "tree_hash": "${{ github.event.workflow_run.head_sha || github.sha }}",
             "metrics": {
               "swagger": {"status": "pending", "time_ms": 0},
               "typecheck": {"status": "pending", "time_ms": 0},
@@ -99,8 +118,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           # Get job details from the workflow run
+          RUN_ID="${{ github.event.workflow_run.id || inputs.run_id }}"
           JOBS=$(gh api \
-            "repos/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}/jobs" \
+            "repos/${{ github.repository }}/actions/runs/${RUN_ID}/jobs" \
             --jq '.jobs')
 
           # Helper to extract job info
@@ -142,9 +162,9 @@ jobs:
         if: steps.pr.outputs.number
         id: card
         env:
-          GITHUB_SHA: ${{ github.event.workflow_run.head_sha }}
-          GITHUB_REF_NAME: ${{ github.event.workflow_run.head_branch }}
-          GITHUB_RUN_NUMBER: ${{ github.event.workflow_run.run_number }}
+          GITHUB_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+          GITHUB_REF_NAME: ${{ github.event.workflow_run.head_branch || inputs.branch }}
+          GITHUB_RUN_NUMBER: ${{ github.event.workflow_run.run_number || github.run_number }}
         run: |
           # Generate SVG using TypeScript CLI
           bun src/pr-comment/cli/generate-card.ts \
@@ -171,6 +191,6 @@ jobs:
         if: steps.pr.outputs.number
         uses: actions/upload-artifact@v4
         with:
-          name: ci-card-${{ github.event.workflow_run.run_number }}
+          name: ci-card-${{ github.event.workflow_run.run_number || github.run_number }}
           path: ci-card.svg
           retention-days: 7
