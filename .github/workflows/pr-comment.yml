@@ -20,7 +20,7 @@ on:
         type: string
 
 permissions:
-  contents: write
+  contents: read
   pull-requests: write
   actions: read
 
@@ -158,94 +158,27 @@ jobs:
           echo "CI Metrics:"
           cat ci-metrics.json
 
-      - name: Generate CI Card
-        if: steps.pr.outputs.number
-        id: card
-        env:
-          GITHUB_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
-          GITHUB_REF_NAME: ${{ github.event.workflow_run.head_branch || inputs.branch }}
-          GITHUB_RUN_NUMBER: ${{ github.event.workflow_run.run_number || github.run_number }}
-        run: |
-          # Generate SVG using TypeScript CLI
-          bun src/pr-comment/cli/generate-card.ts \
-            --attestation=.attestation \
-            --ci-metrics=ci-metrics.json \
-            --format=svg > ci-card.svg
-
-          echo "✅ SVG card generated"
-
-          # Convert SVG to PNG using sharp
-          bun src/pr-comment/cli/convert-svg-to-png.ts ci-card.svg ci-card.png
-
-      - name: Upload Card to Branch
-        if: steps.pr.outputs.number
-        id: upload
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          PR_NUM="${{ steps.pr.outputs.number }}"
-          RUN_NUM="${{ github.event.workflow_run.run_number || github.run_number }}"
-          FILENAME="pr-${PR_NUM}-run-${RUN_NUM}.png"
-          BRANCH="ci-cards"
-
-          # Save current directory and PNG
-          WORK_DIR=$(pwd)
-          cp ci-card.png /tmp/${FILENAME}
-
-          # Configure git
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          # Check if branch exists, create orphan if not
-          if ! git ls-remote --heads origin "$BRANCH" | grep -q "$BRANCH"; then
-            echo "Creating orphan branch $BRANCH..."
-            git checkout --orphan "$BRANCH"
-            git rm -rf . 2>/dev/null || true
-            echo "# CI Card Images" > README.md
-            echo "" >> README.md
-            echo "This branch stores CI card images for PR comments." >> README.md
-            git add README.md
-            git commit -m "chore: initialize ci-cards branch"
-            git push origin "$BRANCH"
-          else
-            git fetch origin "$BRANCH"
-            git checkout "$BRANCH"
-          fi
-
-          # Copy and commit the image
-          cp /tmp/${FILENAME} ${FILENAME}
-          git add ${FILENAME}
-          git commit -m "chore: add CI card for PR #${PR_NUM} run ${RUN_NUM}" || echo "No changes"
-          git push origin "$BRANCH"
-
-          # Build raw URL
-          IMAGE_URL="https://raw.githubusercontent.com/${{ github.repository }}/${BRANCH}/${FILENAME}"
-          echo "image_url=$IMAGE_URL" >> $GITHUB_OUTPUT
-          echo "✅ Card uploaded: $IMAGE_URL"
-
-          # Checkout back to original branch
-          git checkout ${{ github.event.workflow_run.head_sha || inputs.branch }}
-
-      - name: Post PR Comment
+      - name: Generate & Post CI Card
         if: steps.pr.outputs.number
         env:
           GITHUB_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+          GITHUB_REF_NAME: ${{ github.event.workflow_run.head_branch || inputs.branch }}
+          GITHUB_RUN_NUMBER: ${{ github.event.workflow_run.run_number || github.run_number }}
         run: |
-          # Post comment with image URL from raw.githubusercontent.com
+          # Generate markdown card
+          CARD=$(bun src/pr-comment/cli/generate-card.ts \
+            --attestation=.attestation \
+            --ci-metrics=ci-metrics.json \
+            --format=markdown)
+
+          echo "✅ Markdown card generated"
+
+          # Post comment directly
           bun src/pr-comment/cli/post-comment.ts \
             --pr=${{ steps.pr.outputs.number }} \
-            --image-url="${{ steps.upload.outputs.image_url }}" \
-            --tag=ci-pipeline-status
+            --stdin \
+            --tag=ci-pipeline-status <<< "$CARD"
 
           echo "✅ Comment posted to PR #${{ steps.pr.outputs.number }}"
-
-      - name: Upload CI Card Artifact
-        if: steps.pr.outputs.number
-        uses: actions/upload-artifact@v4
-        with:
-          name: ci-card-${{ github.event.workflow_run.run_number || github.run_number }}
-          path: |
-            ci-card.svg
-            ci-card.png
-          retention-days: 7
