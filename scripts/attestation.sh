@@ -42,12 +42,16 @@ generate_attestation() {
     # Get list of checks that were run (from pre-commit)
     local checks="${ATTESTATION_CHECKS:-lint,typecheck,test}"
 
-    # Generate attestation JSON
+    # Get metrics JSON if available (from pre-commit)
+    local metrics="${ATTESTATION_METRICS:-{}}"
+
+    # Generate attestation JSON with metrics
     cat > "$ATTESTATION_FILE" << EOF
 {
-  "version": "2",
+  "version": "3",
   "tree_hash": "$tree_hash",
   "checks": "$(echo "$checks" | tr ',' ' ')",
+  "metrics": $metrics,
   "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
   "git_user": "$(git config user.email || echo 'unknown')"
 }

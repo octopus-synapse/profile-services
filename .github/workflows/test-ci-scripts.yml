@@ -1,0 +1,72 @@
+name: Test CI Scripts
+
+on:
+  push:
+    paths:
+      - '.github/scripts/**'
+  pull_request:
+    paths:
+      - '.github/scripts/**'
+
+jobs:
+  test-parser:
+    name: Test Parser Script
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Test parse-test-output.sh
+        run: |
+          # Create test fixtures
+          echo " 10 pass 2 fail 1 skip across 5 files" > test-fixture-1.txt
+          echo " 100 pass 0 fail across 20 files" > test-fixture-2.txt
+          echo "no metrics here" > test-fixture-3.txt
+
+          # Test fixture 1 - standard output
+          source .github/scripts/parse-test-output.sh test-fixture-1.txt
+          [[ "$PASS" == "10" ]] || { echo "FAIL: Expected PASS=10, got $PASS"; exit 1; }
+          [[ "$FAIL" == "2" ]] || { echo "FAIL: Expected FAIL=2, got $FAIL"; exit 1; }
+          [[ "$SKIP" == "1" ]] || { echo "FAIL: Expected SKIP=1, got $SKIP"; exit 1; }
+          [[ "$FILES" == "5" ]] || { echo "FAIL: Expected FILES=5, got $FILES"; exit 1; }
+          echo "Fixture 1: PASSED"
+
+          # Test fixture 2 - no fails/skips
+          source .github/scripts/parse-test-output.sh test-fixture-2.txt
+          [[ "$PASS" == "100" ]] || { echo "FAIL: Expected PASS=100, got $PASS"; exit 1; }
+          [[ "$FAIL" == "0" ]] || { echo "FAIL: Expected FAIL=0, got $FAIL"; exit 1; }
+          [[ "$FILES" == "20" ]] || { echo "FAIL: Expected FILES=20, got $FILES"; exit 1; }
+          echo "Fixture 2: PASSED"
+
+          # Test fixture 3 - no metrics (should default to 0)
+          source .github/scripts/parse-test-output.sh test-fixture-3.txt
+          [[ "$PASS" == "0" ]] || { echo "FAIL: Expected PASS=0, got $PASS"; exit 1; }
+          [[ "$FAIL" == "0" ]] || { echo "FAIL: Expected FAIL=0, got $FAIL"; exit 1; }
+          echo "Fixture 3: PASSED"
+
+          echo "All parser tests passed!"
+
+  test-summary:
+    name: Test Summary Script
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Test generate-summary.sh
+        run: |
+          # Test success case
+          export GITHUB_STEP_SUMMARY=/tmp/summary-1.md
+          .github/scripts/generate-summary.sh success "Unit Tests" 42 0 2 125
+          grep -q "Unit Tests Passed" /tmp/summary-1.md || { echo "FAIL: Missing success header"; exit 1; }
+          grep -q "| Passed | 42 |" /tmp/summary-1.md || { echo "FAIL: Missing pass count"; exit 1; }
+          echo "Success case: PASSED"
+
+          # Test failure case
+          export GITHUB_STEP_SUMMARY=/tmp/summary-2.md
+          echo "✗ test failed here" > /tmp/failures.txt
+          .github/scripts/generate-summary.sh failure "E2E Tests" 10 3 1 90 /tmp/failures.txt
+          grep -q "E2E Tests Failed" /tmp/summary-2.md || { echo "FAIL: Missing failure header"; exit 1; }
+          grep -q "| Failed | 3 |" /tmp/summary-2.md || { echo "FAIL: Missing fail count"; exit 1; }
+          grep -q "First Failures" /tmp/summary-2.md || { echo "FAIL: Missing failures section"; exit 1; }
+          echo "Failure case: PASSED"
+
+          echo "All summary tests passed!"

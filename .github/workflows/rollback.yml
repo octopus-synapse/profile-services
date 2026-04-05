@@ -9,7 +9,20 @@ on:
         type: string
 
 jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate image tag
+        run: |
+          TAG="${{ inputs.image_tag }}"
+          if [[ ! "$TAG" =~ ^[a-z0-9][a-z0-9._-]{0,127}$ ]]; then
+            echo "Error: Invalid image tag format: $TAG"
+            echo "Must start with lowercase letter/number, max 128 chars"
+            exit 1
+          fi
+
   rollback:
+    needs: validate
     uses: octopus-synapse/octopus-workflows/.github/workflows/rollback.yml@main
     with:
       image-tag: ${{ inputs.image_tag }}

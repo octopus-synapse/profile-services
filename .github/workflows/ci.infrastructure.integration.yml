@@ -2,12 +2,6 @@ name: _infrastructure-integration
 
 on:
   workflow_call:
-    inputs:
-      pr-number:
-        description: "PR number for comment updates"
-        required: false
-        type: string
-        default: ""
 
 jobs:
   test:
@@ -17,5 +11,4 @@ jobs:
       test-name: "Integration"
       db-name: "integration_test_db"
       timeout: 15
-      pr-number: ${{ inputs.pr-number }}
     secrets: inherit
