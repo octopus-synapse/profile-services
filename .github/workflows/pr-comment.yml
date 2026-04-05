@@ -21,12 +21,19 @@ jobs:
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
 
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install Dependencies
+        run: bun install --frozen-lockfile
+
       - name: Get PR Number
         id: pr
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          # Find PR for this head SHA
           PR_NUMBER=$(gh pr list \
             --repo "${{ github.repository }}" \
             --head "${{ github.event.workflow_run.head_branch }}" \
@@ -54,17 +61,36 @@ jobs:
           path: ./artifacts
           if_no_artifact_found: ignore
 
-      - name: Download Test Results
+      - name: Prepare Attestation
         if: steps.pr.outputs.number
-        continue-on-error: true
-        uses: dawidd6/action-download-artifact@v6
-        with:
-          workflow: ci.yml
-          run_id: ${{ github.event.workflow_run.id }}
-          name_is_regexp: true
-          name: ".*-results-.*"
-          path: ./artifacts
-          if_no_artifact_found: ignore
+        run: |
+          # Try to find attestation in artifacts or in repo
+          if [[ -f ./artifacts/.attestation ]]; then
+            cp ./artifacts/.attestation .attestation
+            echo "✅ Using attestation from CI artifacts"
+          elif [[ ! -f .attestation ]]; then
+            # Create minimal attestation if not found
+            cat > .attestation << 'EOF'
+          {
+            "version": "3",
+            "tree_hash": "${{ github.event.workflow_run.head_sha }}",
+            "metrics": {
+              "swagger": {"status": "pending", "time_ms": 0},
+              "typecheck": {"status": "pending", "time_ms": 0},
+              "lint": {"status": "pending", "time_ms": 0},
+              "unit": {"status": "pending", "time_ms": 0, "passed": 0, "failed": 0, "skipped": 0},
+              "arch": {"status": "pending", "time_ms": 0, "passed": 0, "failed": 0, "skipped": 0},
+              "contracts": {"status": "pending", "time_ms": 0, "passed": 0, "failed": 0, "skipped": 0}
+            }
+          }
+          EOF
+            echo "⚠️ Created minimal attestation (pre-commit not run)"
+          else
+            echo "✅ Using attestation from repository"
+          fi
+
+          echo "Attestation:"
+          cat .attestation
 
       - name: Collect CI Metrics
         if: steps.pr.outputs.number
@@ -99,74 +125,18 @@ jobs:
           E2E_INFO=$(get_job_info "E2E")
           SECURITY_INFO=$(get_job_info "Security")
 
-          # Parse test artifacts for detailed metrics
-          parse_test_output() {
-            local file="$1"
-            if [[ -f "$file" ]]; then
-              local content
-              content=$(tail -30 "$file" 2>/dev/null || cat "$file")
-              local pass=$(echo "$content" | grep -oE ' [0-9]+ pass' | grep -oE '[0-9]+' | head -1 || echo "0")
-              local fail=$(echo "$content" | grep -oE ' [0-9]+ fail' | grep -oE '[0-9]+' | head -1 || echo "0")
-              local skip=$(echo "$content" | grep -oE ' [0-9]+ skip' | grep -oE '[0-9]+' | head -1 || echo "0")
-              local files=$(echo "$content" | grep -oE 'across [0-9]+ files' | grep -oE '[0-9]+' | head -1 || echo "0")
-              echo "{\"passed\": ${pass:-0}, \"failed\": ${fail:-0}, \"skipped\": ${skip:-0}, \"suites\": ${files:-0}}"
-            else
-              echo "{\"passed\": 0, \"failed\": 0, \"skipped\": 0, \"suites\": 0}"
-            fi
-          }
-
-          # Find and parse test outputs
-          INTEGRATION_METRICS="{\"passed\": 0, \"failed\": 0, \"skipped\": 0, \"suites\": 0}"
-          E2E_METRICS="{\"passed\": 0, \"failed\": 0, \"skipped\": 0, \"suites\": 0}"
-
-          for f in $(find ./artifacts -name "test-output.txt" 2>/dev/null); do
-            dir=$(dirname "$f")
-            if [[ "$dir" == *"Integration"* || "$dir" == *"integration"* ]]; then
-              INTEGRATION_METRICS=$(parse_test_output "$f")
-            elif [[ "$dir" == *"E2E"* || "$dir" == *"e2e"* ]]; then
-              E2E_METRICS=$(parse_test_output "$f")
-            fi
-          done
-
           # Build CI metrics JSON
           cat > ci-metrics.json << EOF
           {
             "build": $(echo "$BUILD_INFO" | jq -c '. // {"status": "pending", "duration_ms": 0}'),
-            "integration": $(echo "$INTEGRATION_INFO" | jq -c --argjson m "$INTEGRATION_METRICS" '. + $m // {"status": "pending", "duration_ms": 0}'),
-            "e2e": $(echo "$E2E_INFO" | jq -c --argjson m "$E2E_METRICS" '. + $m // {"status": "pending", "duration_ms": 0}'),
+            "integration": $(echo "$INTEGRATION_INFO" | jq -c '. // {"status": "pending", "duration_ms": 0}'),
+            "e2e": $(echo "$E2E_INFO" | jq -c '. // {"status": "pending", "duration_ms": 0}'),
             "security": $(echo "$SECURITY_INFO" | jq -c '. // {"status": "pending", "duration_ms": 0}')
           }
           EOF
 
           echo "CI Metrics:"
           cat ci-metrics.json
-
-      - name: Prepare Attestation
-        if: steps.pr.outputs.number
-        run: |
-          # Try to find attestation in artifacts or in repo
-          if [[ -f ./artifacts/.attestation ]]; then
-            cp ./artifacts/.attestation .attestation
-          elif [[ ! -f .attestation ]]; then
-            # Create minimal attestation if not found
-            cat > .attestation << 'EOF'
-          {
-            "version": "3",
-            "tree_hash": "${{ github.event.workflow_run.head_sha }}",
-            "metrics": {
-              "swagger": {"status": "pending", "time_ms": 0},
-              "typecheck": {"status": "pending", "time_ms": 0},
-              "lint": {"status": "pending", "time_ms": 0},
-              "unit": {"status": "pending", "time_ms": 0, "passed": 0, "failed": 0, "skipped": 0},
-              "arch": {"status": "pending", "time_ms": 0, "passed": 0, "failed": 0, "skipped": 0},
-              "contracts": {"status": "pending", "time_ms": 0, "passed": 0, "failed": 0, "skipped": 0}
-            }
-          }
-          EOF
-          fi
-
-          echo "Attestation:"
-          cat .attestation
 
       - name: Generate CI Card
         if: steps.pr.outputs.number
@@ -176,55 +146,26 @@ jobs:
           GITHUB_REF_NAME: ${{ github.event.workflow_run.head_branch }}
           GITHUB_RUN_NUMBER: ${{ github.event.workflow_run.run_number }}
         run: |
-          chmod +x .github/scripts/generate-ci-card.sh
+          # Generate SVG using TypeScript CLI
+          bun src/pr-comment/cli/generate-card.ts \
+            --attestation=.attestation \
+            --ci-metrics=ci-metrics.json > ci-card.svg
 
-          # Generate SVG
-          SVG=$(.github/scripts/generate-ci-card.sh .attestation ci-metrics.json)
+          echo "✅ CI card generated"
 
-          # Save to file for comment
-          echo "$SVG" > ci-card.svg
-
-          # Create comment body with SVG
-          # Note: GitHub doesn't render inline SVG in comments, so we use a details block with image
-          cat > comment-body.md << 'COMMENT_EOF'
-          ## CI Pipeline Status
-
-          <details>
-          <summary>View CI Card</summary>
-
-          ```xml
-          COMMENT_EOF
-
-          cat ci-card.svg >> comment-body.md
-
-          cat >> comment-body.md << 'COMMENT_EOF'
-          ```
-
-          </details>
-
-          ---
-
-          COMMENT_EOF
-
-          # Add status summary
-          if [[ "${{ github.event.workflow_run.conclusion }}" == "success" ]]; then
-            echo "### ✅ All checks passed" >> comment-body.md
-          elif [[ "${{ github.event.workflow_run.conclusion }}" == "failure" ]]; then
-            echo "### ❌ Some checks failed" >> comment-body.md
-          else
-            echo "### ⏳ Checks in progress" >> comment-body.md
-          fi
-
-          echo "" >> comment-body.md
-          echo "📊 [View workflow run](https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }})" >> comment-body.md
-
-      - name: Create or Update Comment
+      - name: Post PR Comment
         if: steps.pr.outputs.number
-        uses: peter-evans/create-or-update-comment@v4
-        with:
-          issue-number: ${{ steps.pr.outputs.number }}
-          body-path: comment-body.md
-          comment-tag: ci-pipeline-status
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          # Post comment using TypeScript CLI
+          bun src/pr-comment/cli/post-comment.ts \
+            --pr=${{ steps.pr.outputs.number }} \
+            --svg=ci-card.svg \
+            --tag=ci-pipeline-status
+
+          echo "✅ Comment posted to PR #${{ steps.pr.outputs.number }}"
 
       - name: Upload CI Card Artifact
         if: steps.pr.outputs.number

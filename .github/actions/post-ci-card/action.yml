@@ -1,0 +1,61 @@
+name: 'Post CI Card'
+description: 'Generates CI status card SVG and posts it as PR comment'
+inputs:
+  attestation_file:
+    description: 'Path to attestation JSON file'
+    required: true
+    default: '.attestation'
+  ci_metrics_file:
+    description: 'Path to CI metrics JSON file (optional)'
+    required: false
+    default: ''
+  pr_number:
+    description: 'Pull request number'
+    required: true
+  github_token:
+    description: 'GitHub token for posting comments'
+    required: true
+  comment_tag:
+    description: 'Unique tag for identifying/updating comments'
+    required: false
+    default: 'ci-status-card'
+outputs:
+  svg_file:
+    description: 'Path to generated SVG file'
+    value: ${{ steps.generate.outputs.svg_file }}
+runs:
+  using: 'composite'
+  steps:
+    - name: Generate CI Card
+      id: generate
+      shell: bash
+      env:
+        ATTESTATION_FILE: ${{ inputs.attestation_file }}
+        CI_METRICS_FILE: ${{ inputs.ci_metrics_file }}
+      run: |
+        SVG_FILE="/tmp/ci-card-${{ inputs.pr_number }}.svg"
+
+        # Build command args
+        ARGS="--attestation=$ATTESTATION_FILE"
+        if [ -n "$CI_METRICS_FILE" ] && [ -f "$CI_METRICS_FILE" ]; then
+          ARGS="$ARGS --ci-metrics=$CI_METRICS_FILE"
+        fi
+
+        # Generate SVG
+        bun src/pr-comment/cli/generate-card.ts $ARGS > "$SVG_FILE"
+
+        echo "svg_file=$SVG_FILE" >> "$GITHUB_OUTPUT"
+        echo "✅ CI card generated at $SVG_FILE"
+
+    - name: Post PR Comment
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.github_token }}
+        GITHUB_REPOSITORY: ${{ github.repository }}
+      run: |
+        bun src/pr-comment/cli/post-comment.ts \
+          --pr=${{ inputs.pr_number }} \
+          --svg="${{ steps.generate.outputs.svg_file }}" \
+          --tag=${{ inputs.comment_tag }}
+
+        echo "✅ Comment posted to PR #${{ inputs.pr_number }}"
