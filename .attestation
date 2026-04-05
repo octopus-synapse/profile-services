@@ -3,13 +3,13 @@
   "tree_hash": "8151d257d322960851f62362f6feef741ab14f93",
   "checks": "typecheck lint test arch contracts",
   "metrics": {
-  "swagger": {"status":"ok","time_ms":1460},
-  "typecheck": {"status":"ok","time_ms":3886},
-  "lint": {"status":"ok","time_ms":964},
-  "unit": {"status":"ok","time_ms":3719,"passed":2036,"failed":0,"skipped":0},
-  "arch": {"status":"ok","time_ms":1077,"passed":42,"failed":0,"skipped":1},
-  "contracts": {"status":"ok","time_ms":532,"passed":45,"failed":0,"skipped":0}
+  "swagger": {"status":"ok","time_ms":1593},
+  "typecheck": {"status":"ok","time_ms":7365},
+  "lint": {"status":"ok","time_ms":1725},
+  "unit": {"status":"ok","time_ms":6302,"passed":2036,"failed":0,"skipped":0},
+  "arch": {"status":"ok","time_ms":2145,"passed":42,"failed":0,"skipped":1},
+  "contracts": {"status":"ok","time_ms":700,"passed":45,"failed":0,"skipped":0}
 }},
-  "timestamp": "2026-04-05T14:57:32Z",
+  "timestamp": "2026-04-05T15:47:10Z",
   "git_user": "enzo.patti@aluno.senai.br"
 }
