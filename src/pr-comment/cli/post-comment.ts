@@ -2,10 +2,12 @@
 /**
  * CLI: Post PR Comment
  *
- * Posts or updates a comment on a GitHub Pull Request with SVG content.
+ * Posts or updates a comment on a GitHub Pull Request with CI card image.
  *
  * Usage:
- *   bun post-comment.ts --pr=123 --svg=card.svg
+ *   bun post-comment.ts --pr=123 --image=card.png      # PNG as base64 data URI
+ *   bun post-comment.ts --pr=123 --svg=card.svg        # Raw SVG (may not render)
+ *   bun post-comment.ts --pr=123 --image-url=https://... # External image URL
  *   cat card.svg | bun post-comment.ts --pr=123 --stdin
  *
  * Environment:
@@ -42,14 +44,18 @@ const EnvSchema = z.object({
 // =============================================================================
 
 function printUsage(): void {
-  console.error('Usage: post-comment --pr=<number> --svg=<path>');
+  console.error('Usage: post-comment --pr=<number> --image=<path>');
+  console.error('       post-comment --pr=<number> --svg=<path>');
+  console.error('       post-comment --pr=<number> --image-url=<url>');
   console.error('       post-comment --pr=<number> --stdin');
   console.error('');
   console.error('Options:');
-  console.error('  --pr=<number>   Pull request number (required)');
-  console.error('  --svg=<path>    Path to SVG file');
-  console.error('  --stdin         Read SVG from stdin');
-  console.error('  --tag=<string>  Comment tag for updates (default: ci-status-card)');
+  console.error('  --pr=<number>        Pull request number (required)');
+  console.error('  --image=<path>       Path to PNG file (embedded as base64 data URI)');
+  console.error('  --svg=<path>         Path to SVG file (may not render in GitHub)');
+  console.error('  --image-url=<url>    External image URL');
+  console.error('  --stdin              Read content from stdin');
+  console.error('  --tag=<string>       Comment tag for updates (default: ci-status-card)');
   console.error('');
   console.error('Environment:');
   console.error('  GITHUB_TOKEN       GitHub API token (required)');
@@ -69,11 +75,22 @@ async function readFile(path: string): Promise<string> {
   return readFile(path, 'utf-8');
 }
 
-function parseArgs(): { prNumber?: number; svgPath?: string; stdin: boolean; tag: string } {
+interface CliArgs {
+  prNumber?: number;
+  svgPath?: string;
+  imagePath?: string;
+  imageUrl?: string;
+  stdin: boolean;
+  tag: string;
+}
+
+function parseArgs(): CliArgs {
   const args = process.argv.slice(2);
-  const result = {
-    prNumber: undefined as number | undefined,
-    svgPath: undefined as string | undefined,
+  const result: CliArgs = {
+    prNumber: undefined,
+    svgPath: undefined,
+    imagePath: undefined,
+    imageUrl: undefined,
     stdin: false,
     tag: COMMENT_TAG,
   };
@@ -85,6 +102,10 @@ function parseArgs(): { prNumber?: number; svgPath?: string; stdin: boolean; tag
       result.prNumber = parseInt(arg.replace('--pr=', ''), 10);
     } else if (arg.startsWith('--svg=')) {
       result.svgPath = arg.replace('--svg=', '');
+    } else if (arg.startsWith('--image=')) {
+      result.imagePath = arg.replace('--image=', '');
+    } else if (arg.startsWith('--image-url=')) {
+      result.imageUrl = arg.replace('--image-url=', '');
     } else if (arg.startsWith('--tag=')) {
       result.tag = arg.replace('--tag=', '');
     }
@@ -114,6 +135,28 @@ function parseRepository(): { owner: string; repo: string } {
   );
 }
 
+async function readImageAsBase64(path: string): Promise<string> {
+  const { readFile } = await import('node:fs/promises');
+  const buffer = await readFile(path);
+  return buffer.toString('base64');
+}
+
+function buildCommentBody(content: string, mode: 'svg' | 'image-base64' | 'image-url'): string {
+  const header = '## CI Pipeline Status\n\n';
+
+  switch (mode) {
+    case 'image-base64':
+      // PNG embedded as base64 data URI
+      return `${header}<img src="data:image/png;base64,${content}" alt="CI Pipeline Status" />\n`;
+    case 'image-url':
+      // External image URL
+      return `${header}![CI Pipeline Status](${content})\n`;
+    default:
+      // Raw SVG (may not render properly in GitHub)
+      return `${header}${content}\n`;
+  }
+}
+
 async function main(): Promise<void> {
   try {
     const args = parseArgs();
@@ -125,22 +168,33 @@ async function main(): Promise<void> {
       process.exit(1);
     }
 
-    // Get SVG content
-    let svgContent: string;
+    // Get content based on input mode
+    let commentBody: string;
 
-    if (args.stdin) {
-      svgContent = await readStdin();
+    if (args.imagePath) {
+      // PNG image -> base64 data URI
+      const base64 = await readImageAsBase64(args.imagePath);
+      commentBody = buildCommentBody(base64, 'image-base64');
+    } else if (args.imageUrl) {
+      // External image URL
+      commentBody = buildCommentBody(args.imageUrl, 'image-url');
+    } else if (args.stdin) {
+      // Raw content from stdin
+      const content = await readStdin();
+      commentBody = buildCommentBody(content.trim(), 'svg');
     } else if (args.svgPath) {
-      svgContent = await readFile(args.svgPath);
+      // SVG file (may not render)
+      const svgContent = await readFile(args.svgPath);
+      commentBody = buildCommentBody(svgContent.trim(), 'svg');
     } else {
-      console.error('Error: Either --svg=<path> or --stdin is required');
+      console.error('Error: One of --image, --svg, --image-url, or --stdin is required');
       printUsage();
       process.exit(1);
     }
 
-    // Validate SVG content
-    if (!svgContent.trim()) {
-      console.error('Error: SVG content is empty');
+    // Validate content
+    if (!commentBody.trim()) {
+      console.error('Error: Content is empty');
       process.exit(1);
     }
 
@@ -156,7 +210,7 @@ async function main(): Promise<void> {
     });
 
     // Post comment
-    await github.postComment(args.prNumber, svgContent, args.tag);
+    await github.postComment(args.prNumber, commentBody, args.tag);
 
     console.log(`Comment posted to PR #${args.prNumber}`);
   } catch (error) {

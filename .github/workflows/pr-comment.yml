@@ -169,9 +169,20 @@ jobs:
           # Generate SVG using TypeScript CLI
           bun src/pr-comment/cli/generate-card.ts \
             --attestation=.attestation \
-            --ci-metrics=ci-metrics.json > ci-card.svg
+            --ci-metrics=ci-metrics.json \
+            --format=svg > ci-card.svg
 
-          echo "✅ CI card generated"
+          echo "✅ SVG card generated"
+
+          # Convert SVG to PNG using sharp
+          bun -e "
+            import sharp from 'sharp';
+            import { readFileSync, writeFileSync } from 'fs';
+            const svg = readFileSync('ci-card.svg');
+            const png = await sharp(svg).png().toBuffer();
+            writeFileSync('ci-card.png', png);
+            console.log('✅ PNG card generated');
+          "
 
       - name: Post PR Comment
         if: steps.pr.outputs.number
@@ -179,10 +190,10 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
-          # Post comment using TypeScript CLI
+          # Post comment with PNG embedded as base64 data URI
           bun src/pr-comment/cli/post-comment.ts \
             --pr=${{ steps.pr.outputs.number }} \
-            --svg=ci-card.svg \
+            --image=ci-card.png \
             --tag=ci-pipeline-status
 
           echo "✅ Comment posted to PR #${{ steps.pr.outputs.number }}"
@@ -192,5 +203,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ci-card-${{ github.event.workflow_run.run_number || github.run_number }}
-          path: ci-card.svg
+          path: |
+            ci-card.svg
+            ci-card.png
           retention-days: 7

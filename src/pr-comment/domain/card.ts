@@ -309,3 +309,91 @@ ${renderStatsSection(data, colors)}
 ${renderFooter(data)}
 </svg>`;
 }
+
+// =============================================================================
+// Markdown Card Generation
+// =============================================================================
+
+function getStatusEmoji(status: string): string {
+  switch (status) {
+    case 'success':
+      return '✅';
+    case 'fail':
+      return '❌';
+    case 'running':
+      return '🔄';
+    case 'skip':
+      return '⏭️';
+    default:
+      return '⏳';
+  }
+}
+
+function mdRow(check: PrecommitCheckResult | CIJobResult): string {
+  const emoji = getStatusEmoji(check.status);
+  const name = check.name.charAt(0).toUpperCase() + check.name.slice(1);
+  const time = formatDuration(check.duration_ms);
+  const passed = check.passed ?? '-';
+  const failed = check.failed ?? '-';
+  const total = check.total ?? '-';
+
+  return `| ${emoji} | ${name} | ${total} | ${passed} | ${failed} | ${time} |`;
+}
+
+export function generateMarkdownCard(data: CardData): string {
+  const { metrics, git } = data;
+  const { precommit, ci, overall } = metrics;
+
+  const statusEmoji = getStatusEmoji(overall.status);
+  const statusLabel = getStatusLabel(overall.status);
+
+  // Header
+  let md = `## ${statusEmoji} CI Pipeline\n\n`;
+
+  // Commit info
+  md += `**${git.commit_message}**\n`;
+  md += `\`${git.commit_hash}\` · ${git.commit_author}`;
+  if (git.co_authors.length > 0) {
+    md += ` · Co-authored-by: ${git.co_authors.join(', ')}`;
+  }
+  md += `\n\n`;
+
+  // Pre-commit table
+  md += `### 📋 Pre-commit\n\n`;
+  md += `| | Check | Total | Pass | Fail | Time |\n`;
+  md += `|:-:|:------|:-----:|:----:|:----:|-----:|\n`;
+  for (const check of precommit.checks) {
+    md += `${mdRow(check)}\n`;
+  }
+  md += `| | **TOTAL** | **${precommit.totals.total}** | **${precommit.totals.passed}** | **${precommit.totals.failed}** | **${formatDuration(precommit.duration_ms)}** |\n\n`;
+
+  // Attestation
+  md += `> 🔒 Attestation: \`${precommit.attestation_hash?.slice(0, 12) || 'N/A'}\`\n\n`;
+
+  // CI table
+  md += `### 🚀 CI\n\n`;
+  md += `| | Job | Total | Pass | Fail | Time |\n`;
+  md += `|:-:|:----|:-----:|:----:|:----:|-----:|\n`;
+  for (const job of ci.jobs) {
+    md += `${mdRow(job)}\n`;
+  }
+  md += `| | **TOTAL** | **${ci.totals.total}** | **${ci.totals.passed}** | **${ci.totals.failed}** | **${formatDuration(ci.duration_ms)}** |\n\n`;
+
+  // Summary stats
+  md += `### 📊 Summary\n\n`;
+  md += `| Metric | Value |\n`;
+  md += `|:-------|------:|\n`;
+  md += `| Status | ${statusEmoji} ${statusLabel} |\n`;
+  md += `| Pass Rate | ${formatPercentage(overall.pass_rate)} |\n`;
+  md += `| Total Tests | ${formatNumber(overall.total_tests)} |\n`;
+  md += `| Passed | ${formatNumber(overall.total_passed)} |\n`;
+  md += `| Failed | ${formatNumber(overall.total_failed)} |\n`;
+  md += `| Skipped | ${formatNumber(overall.total_skipped)} |\n`;
+  md += `| Duration | ${formatDuration(overall.duration_ms)} |\n\n`;
+
+  // Footer
+  md += `---\n`;
+  md += `*${git.timestamp} · run #${git.run_number} · branch: \`${git.branch}\`*`;
+
+  return md;
+}

@@ -13,7 +13,7 @@
  */
 
 import { z } from 'zod';
-import { generateCard } from '../domain/card';
+import { generateCard, generateMarkdownCard } from '../domain/card';
 import { aggregateMetrics } from '../domain/metrics';
 import type { AttestationData, CIMetrics, GitContext } from '../domain/types';
 import { createFileReader } from '../infrastructure/file-reader';
@@ -114,12 +114,18 @@ async function readStdin(): Promise<string> {
   return Buffer.concat(chunks).toString('utf-8');
 }
 
-function parseArgs(): { attestationPath?: string; ciMetricsPath?: string; stdin: boolean } {
+function parseArgs(): {
+  attestationPath?: string;
+  ciMetricsPath?: string;
+  stdin: boolean;
+  format: 'svg' | 'markdown';
+} {
   const args = process.argv.slice(2);
   const result = {
     attestationPath: undefined as string | undefined,
     ciMetricsPath: undefined as string | undefined,
     stdin: false,
+    format: 'markdown' as 'svg' | 'markdown', // Default to markdown for GitHub compatibility
   };
 
   for (const arg of args) {
@@ -129,6 +135,10 @@ function parseArgs(): { attestationPath?: string; ciMetricsPath?: string; stdin:
       result.attestationPath = arg.replace('--attestation=', '');
     } else if (arg.startsWith('--ci-metrics=')) {
       result.ciMetricsPath = arg.replace('--ci-metrics=', '');
+    } else if (arg === '--format=svg') {
+      result.format = 'svg';
+    } else if (arg === '--format=markdown' || arg === '--format=md') {
+      result.format = 'markdown';
     }
   }
 
@@ -183,9 +193,11 @@ async function main(): Promise<void> {
 
     // Aggregate metrics and generate card
     const metrics = aggregateMetrics(attestation, ci);
-    const svg = generateCard({ metrics, git });
+    const cardData = { metrics, git };
 
-    console.log(svg);
+    const output = args.format === 'svg' ? generateCard(cardData) : generateMarkdownCard(cardData);
+
+    console.log(output);
   } catch (error) {
     if (error instanceof z.ZodError) {
       console.error('Validation error:', JSON.stringify(error.flatten().fieldErrors, null, 2));
