@@ -88,11 +88,7 @@ export function createGitHubClient(token: string, gql?: GraphQLFn) {
     /**
      * Gets PR labels for a commit SHA.
      */
-    async getPRLabels(
-      owner: string,
-      repo: string,
-      sha: string,
-    ): Promise<string[]> {
+    async getPRLabels(owner: string, repo: string, sha: string): Promise<string[]> {
       const response = (await client(PR_LABELS_QUERY, {
         owner,
         repo,
@@ -120,11 +116,7 @@ export function createGitHubClient(token: string, gql?: GraphQLFn) {
     /**
      * Gets merged PRs for a base branch.
      */
-    async getMergedPRs(
-      owner: string,
-      repo: string,
-      base: string,
-    ): Promise<PullRequest[]> {
+    async getMergedPRs(owner: string, repo: string, base: string): Promise<PullRequest[]> {
       const response = (await client(MERGED_PRS_QUERY, {
         owner,
         repo,

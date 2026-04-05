@@ -17,12 +17,7 @@ describe('gather-changelog-data CLI', () => {
 
     it('fails without --release-type', async () => {
       const proc = Bun.spawn(
-        [
-          'bun',
-          CLI_PATH,
-          '--next-version=v1.0.0',
-          '--repository=owner/repo',
-        ],
+        ['bun', CLI_PATH, '--next-version=v1.0.0', '--repository=owner/repo'],
         {
           stderr: 'pipe',
           env: { ...process.env, GITHUB_TOKEN: 'test-token' },

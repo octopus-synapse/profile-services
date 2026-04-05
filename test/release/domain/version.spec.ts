@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'bun:test';
 import {
-  parseVersion,
   calculateNextVersion,
+  compareVersions,
   formatVersion,
   formatVersionWithPrefix,
-  compareVersions,
+  parseVersion,
   type Version,
 } from '../../../src/release/domain/version';
 
@@ -86,23 +86,33 @@ describe('version', () => {
 
   describe('compareVersions', () => {
     it('returns 0 for equal versions', () => {
-      expect(compareVersions({ major: 1, minor: 2, patch: 3 }, { major: 1, minor: 2, patch: 3 })).toBe(0);
+      expect(
+        compareVersions({ major: 1, minor: 2, patch: 3 }, { major: 1, minor: 2, patch: 3 }),
+      ).toBe(0);
     });
 
     it('returns positive when first is greater (major)', () => {
-      expect(compareVersions({ major: 2, minor: 0, patch: 0 }, { major: 1, minor: 9, patch: 9 })).toBeGreaterThan(0);
+      expect(
+        compareVersions({ major: 2, minor: 0, patch: 0 }, { major: 1, minor: 9, patch: 9 }),
+      ).toBeGreaterThan(0);
     });
 
     it('returns positive when first is greater (minor)', () => {
-      expect(compareVersions({ major: 1, minor: 3, patch: 0 }, { major: 1, minor: 2, patch: 9 })).toBeGreaterThan(0);
+      expect(
+        compareVersions({ major: 1, minor: 3, patch: 0 }, { major: 1, minor: 2, patch: 9 }),
+      ).toBeGreaterThan(0);
     });
 
     it('returns positive when first is greater (patch)', () => {
-      expect(compareVersions({ major: 1, minor: 2, patch: 4 }, { major: 1, minor: 2, patch: 3 })).toBeGreaterThan(0);
+      expect(
+        compareVersions({ major: 1, minor: 2, patch: 4 }, { major: 1, minor: 2, patch: 3 }),
+      ).toBeGreaterThan(0);
     });
 
     it('returns negative when first is smaller', () => {
-      expect(compareVersions({ major: 1, minor: 2, patch: 3 }, { major: 1, minor: 2, patch: 4 })).toBeLessThan(0);
+      expect(
+        compareVersions({ major: 1, minor: 2, patch: 3 }, { major: 1, minor: 2, patch: 4 }),
+      ).toBeLessThan(0);
     });
   });
 });

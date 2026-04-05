@@ -11,13 +11,13 @@
  */
 
 import { z } from 'zod';
+import { isValidReleaseType, type ReleaseType } from '../domain/release-type';
 import {
-  parseVersion,
   calculateNextVersion,
   formatVersion,
   formatVersionWithPrefix,
+  parseVersion,
 } from '../domain/version';
-import { isValidReleaseType, type ReleaseType } from '../domain/release-type';
 
 const ArgsSchema = z.object({
   currentVersion: z.string().regex(/^v?\d+\.\d+\.\d+$/, 'Invalid semver'),

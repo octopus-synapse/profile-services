@@ -48,10 +48,7 @@ export function parseVersion(version: string): Version {
  * - minor: 1.2.3 → 1.3.0
  * - major: 1.2.3 → 2.0.0
  */
-export function calculateNextVersion(
-  current: Version,
-  type: ReleaseType,
-): Version {
+export function calculateNextVersion(current: Version, type: ReleaseType): Version {
   switch (type) {
     case 'patch':
       return { ...current, patch: current.patch + 1 };

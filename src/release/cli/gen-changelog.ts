@@ -22,10 +22,10 @@
 
 import { z } from 'zod';
 import {
-  formatPatchChangelog,
-  formatMinorChangelog,
-  formatMajorChangelog,
   formatChangelogFooter,
+  formatMajorChangelog,
+  formatMinorChangelog,
+  formatPatchChangelog,
   type PullRequest,
   type Tag,
 } from '../domain/changelog';

@@ -1,9 +1,9 @@
-import { describe, expect, it, mock, beforeEach } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import {
   createGitTagsClient,
   filterTagsByType,
-  type Tag,
   type GitTagsClient,
+  type Tag,
 } from '../../../src/release/infrastructure/git-tags';
 
 describe('git-tags', () => {
@@ -22,12 +22,7 @@ describe('git-tags', () => {
     it('filters patch tags (non-.0 releases)', () => {
       const patches = filterTagsByType(allTags, 'patch');
 
-      expect(patches.map((t) => t.name)).toEqual([
-        'v0.0.1',
-        'v0.0.2',
-        'v0.1.1',
-        'v1.0.1',
-      ]);
+      expect(patches.map((t) => t.name)).toEqual(['v0.0.1', 'v0.0.2', 'v0.1.1', 'v1.0.1']);
     });
 
     it('filters minor tags (v*.*.0 releases)', () => {

@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'bun:test';
 import {
-  formatPatchChangelog,
-  formatMinorChangelog,
-  formatMajorChangelog,
   formatChangelogFooter,
+  formatMajorChangelog,
+  formatMinorChangelog,
+  formatPatchChangelog,
   type PullRequest,
   type Tag,
 } from '../../../src/release/domain/changelog';
@@ -28,9 +28,7 @@ describe('changelog', () => {
     it('returns header with empty list for no PRs', () => {
       const result = formatPatchChangelog([]);
       expect(result).toContain('### Changes');
-      expect(result.split('\n').filter((l) => l.startsWith('-')).length).toBe(
-        0,
-      );
+      expect(result.split('\n').filter((l) => l.startsWith('-')).length).toBe(0);
     });
 
     it('preserves PR order', () => {
@@ -68,12 +66,7 @@ describe('changelog', () => {
         },
       ];
 
-      const result = formatMinorChangelog(
-        prs,
-        patchTags,
-        '2024-01-01T00:00:00Z',
-        'v0.1.0',
-      );
+      const result = formatMinorChangelog(prs, patchTags, '2024-01-01T00:00:00Z', 'v0.1.0');
 
       expect(result).toContain('### Changes since last minor release');
       expect(result).toContain('#### v0.0.1');
@@ -85,24 +78,14 @@ describe('changelog', () => {
         { number: 5, title: 'latest change', mergedAt: '2024-01-15T10:00:00Z' },
       ];
 
-      const result = formatMinorChangelog(
-        prs,
-        patchTags,
-        '2024-01-01T00:00:00Z',
-        'v0.1.0',
-      );
+      const result = formatMinorChangelog(prs, patchTags, '2024-01-01T00:00:00Z', 'v0.1.0');
 
       expect(result).toContain('#### v0.1.0');
       expect(result).toContain('- latest change #5');
     });
 
     it('handles empty tags list', () => {
-      const result = formatMinorChangelog(
-        basePRs,
-        [],
-        '2024-01-01T00:00:00Z',
-        'v0.1.0',
-      );
+      const result = formatMinorChangelog(basePRs, [], '2024-01-01T00:00:00Z', 'v0.1.0');
 
       expect(result).toContain('#### v0.1.0');
     });
@@ -153,11 +136,7 @@ describe('changelog', () => {
 
   describe('formatChangelogFooter', () => {
     it('formats footer with full changelog link', () => {
-      const result = formatChangelogFooter(
-        'owner/repo',
-        'v0.0.1',
-        'v0.0.2',
-      );
+      const result = formatChangelogFooter('owner/repo', 'v0.0.1', 'v0.0.2');
 
       expect(result).toContain('**Full Changelog**');
       expect(result).toContain('owner/repo');

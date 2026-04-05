@@ -23,17 +23,13 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 /**
  * Executes a function with exponential backoff retry.
  */
-async function withRetry<T>(
-  fn: () => Promise<T>,
-  maxAttempts = 3,
-  baseDelayMs = 1000,
-): Promise<T> {
+async function withRetry<T>(fn: () => Promise<T>, maxAttempts = 3, baseDelayMs = 1000): Promise<T> {
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
       return await fn();
     } catch (error) {
       if (attempt === maxAttempts) throw error;
-      const delay = baseDelayMs * Math.pow(2, attempt - 1);
+      const delay = baseDelayMs * 2 ** (attempt - 1);
       await sleep(delay);
     }
   }
@@ -47,17 +43,12 @@ const ArgsSchema = z
     repo: z.string().optional(),
     labels: z.string().optional(),
   })
-  .refine(
-    (data) => data.labels !== undefined || (data.sha && data.owner && data.repo),
-    {
-      message: 'Either --labels or (--sha, --owner, --repo) is required',
-    },
-  );
+  .refine((data) => data.labels !== undefined || (data.sha && data.owner && data.repo), {
+    message: 'Either --labels or (--sha, --owner, --repo) is required',
+  });
 
 function printUsage(): void {
-  console.error(
-    'Usage: get-pr-labels --sha=<commit> --owner=<owner> --repo=<repo>',
-  );
+  console.error('Usage: get-pr-labels --sha=<commit> --owner=<owner> --repo=<repo>');
   console.error('       get-pr-labels --labels="label1,label2"');
   console.error('');
   console.error('Environment: GITHUB_TOKEN (required for API access)');

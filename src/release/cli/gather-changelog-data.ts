@@ -19,12 +19,8 @@
  */
 
 import { z } from 'zod';
+import { createGitTagsClient, filterTagsByType, type Tag } from '../infrastructure/git-tags';
 import { createGitHubClient } from '../infrastructure/github-client';
-import {
-  createGitTagsClient,
-  filterTagsByType,
-  type Tag,
-} from '../infrastructure/git-tags';
 
 const ArgsSchema = z.object({
   releaseType: z.enum(['major', 'minor', 'patch']),
@@ -52,7 +48,7 @@ function parseArgs(): z.infer<typeof ArgsSchema> {
 
   for (const arg of process.argv.slice(2)) {
     if (arg === '--mock-data') {
-      args['mockData'] = true;
+      args.mockData = true;
       continue;
     }
 
@@ -67,11 +63,7 @@ function parseArgs(): z.infer<typeof ArgsSchema> {
   return ArgsSchema.parse(args);
 }
 
-function getMockData(
-  releaseType: string,
-  nextVersion: string,
-  repository: string,
-) {
+function getMockData(releaseType: string, nextVersion: string, repository: string) {
   const basePrs = [
     {
       number: 1,
@@ -133,9 +125,7 @@ async function main(): Promise<void> {
   try {
     // Get base tag
     const baseTag = await gitTagsClient.getBaseTag(releaseType);
-    const baseDate = baseTag
-      ? await gitTagsClient.getTagDate(baseTag)
-      : '2000-01-01T00:00:00Z';
+    const baseDate = baseTag ? await gitTagsClient.getTagDate(baseTag) : '2000-01-01T00:00:00Z';
 
     // Get PRs from both main and homolog
     const [prsMain, prsHomolog] = await Promise.all([
@@ -145,9 +135,9 @@ async function main(): Promise<void> {
 
     // Merge and deduplicate PRs
     const allPrs = [...prsMain, ...prsHomolog];
-    const uniquePrs = Array.from(
-      new Map(allPrs.map((pr) => [pr.number, pr])).values(),
-    ).sort((a, b) => a.mergedAt.localeCompare(b.mergedAt));
+    const uniquePrs = Array.from(new Map(allPrs.map((pr) => [pr.number, pr])).values()).sort(
+      (a, b) => a.mergedAt.localeCompare(b.mergedAt),
+    );
 
     // Get all tags
     const allTags = await gitTagsClient.getAllTags();

@@ -3,7 +3,6 @@ import {
   detectReleaseType,
   isValidReleaseType,
   RELEASE_TYPES,
-  type ReleaseType,
 } from '../../../src/release/domain/release-type';
 
 describe('release-type', () => {
@@ -85,9 +84,7 @@ describe('release-type', () => {
 
     // Mixed labels tests
     it('detects release label among other labels', () => {
-      expect(detectReleaseType(['bug', 'minor', 'documentation'])).toBe(
-        'minor',
-      );
+      expect(detectReleaseType(['bug', 'minor', 'documentation'])).toBe('minor');
     });
 
     it('handles labels with extra whitespace (trimmed input)', () => {

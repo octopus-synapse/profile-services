@@ -10,11 +10,7 @@ export type ReleaseType = 'major' | 'minor' | 'patch';
 /**
  * Release types in priority order (highest to lowest).
  */
-export const RELEASE_TYPES: readonly ReleaseType[] = [
-  'major',
-  'minor',
-  'patch',
-] as const;
+export const RELEASE_TYPES: readonly ReleaseType[] = ['major', 'minor', 'patch'] as const;
 
 /**
  * Type guard to check if a string is a valid release type.

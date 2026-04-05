@@ -32,11 +32,7 @@ function formatPRList(prs: PullRequest[]): string[] {
   return prs.map((pr) => `- ${pr.title} #${pr.number}`);
 }
 
-function appendPRSection(
-  lines: string[],
-  title: string,
-  prs: PullRequest[],
-): void {
+function appendPRSection(lines: string[], title: string, prs: PullRequest[]): void {
   if (prs.length === 0) return;
   lines.push(`#### ${title}`);
   lines.push(...formatPRList(prs));
@@ -49,11 +45,7 @@ function parseTagVersion(tagName: string): [number, number, number] {
   return [parts[0] ?? 0, parts[1] ?? 0, parts[2] ?? 0];
 }
 
-function findPatchesForMinor(
-  patchTags: Tag[],
-  majorNum: number,
-  minorNum: number,
-): Tag[] {
+function findPatchesForMinor(patchTags: Tag[], majorNum: number, minorNum: number): Tag[] {
   return patchTags.filter((t) => {
     const [tMajor, tMinor] = parseTagVersion(t.name);
     return tMajor === majorNum && tMinor === minorNum;
@@ -90,9 +82,7 @@ export function formatMinorChangelog(
 
   // Group by existing patch tags
   for (const tag of patchTags) {
-    const sectionPRs = prs.filter(
-      (pr) => pr.mergedAt > prevDate && pr.mergedAt <= tag.date,
-    );
+    const sectionPRs = prs.filter((pr) => pr.mergedAt > prevDate && pr.mergedAt <= tag.date);
 
     if (sectionPRs.length > 0) {
       lines.push(`#### ${tag.name}`);
@@ -200,13 +190,7 @@ export function formatMajorChangelog(
   const lines: string[] = ['### Changes since last major release', ''];
 
   // Phase 1: Process initial v0.0.x patches
-  let prevDate = processInitialPatches(
-    lines,
-    prs,
-    patchTags,
-    minorTags[0],
-    baseDate,
-  );
+  let prevDate = processInitialPatches(lines, prs, patchTags, minorTags[0], baseDate);
 
   // Phase 2: Process remaining minor releases
   const remainingMinors = minorTags[0] ? minorTags.slice(1) : minorTags;

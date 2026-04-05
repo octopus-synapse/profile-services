@@ -5,15 +5,14 @@
  * Used by GitHub Actions workflows for automated releases.
  */
 
-// Domain exports
 export {
-  parseVersion,
-  calculateNextVersion,
-  formatVersion,
-  formatVersionWithPrefix,
-  compareVersions,
-  type Version,
-} from './domain/version';
+  formatChangelogFooter,
+  formatMajorChangelog,
+  formatMinorChangelog,
+  formatPatchChangelog,
+  type PullRequest,
+  type Tag,
+} from './domain/changelog';
 
 export {
   detectReleaseType,
@@ -21,12 +20,12 @@ export {
   RELEASE_TYPES,
   type ReleaseType,
 } from './domain/release-type';
-
+// Domain exports
 export {
-  formatPatchChangelog,
-  formatMinorChangelog,
-  formatMajorChangelog,
-  formatChangelogFooter,
-  type PullRequest,
-  type Tag,
-} from './domain/changelog';
+  calculateNextVersion,
+  compareVersions,
+  formatVersion,
+  formatVersionWithPrefix,
+  parseVersion,
+  type Version,
+} from './domain/version';

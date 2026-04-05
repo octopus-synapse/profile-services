@@ -48,8 +48,7 @@ describe('detect-release CLI', () => {
 
   describe('with JSON input via stdin', () => {
     it('detects from JSON array of labels', async () => {
-      const result =
-        await $`echo '["feature", "minor"]' | bun ${CLI_PATH} --stdin`.text();
+      const result = await $`echo '["feature", "minor"]' | bun ${CLI_PATH} --stdin`.text();
       expect(result.trim()).toBe('minor');
     });
 
@@ -61,10 +60,9 @@ describe('detect-release CLI', () => {
 
   describe('error handling', () => {
     it('fails with invalid JSON in stdin mode', async () => {
-      const proc = Bun.spawn(
-        ['bash', '-c', `echo 'not json' | bun ${CLI_PATH} --stdin`],
-        { stderr: 'pipe' },
-      );
+      const proc = Bun.spawn(['bash', '-c', `echo 'not json' | bun ${CLI_PATH} --stdin`], {
+        stderr: 'pipe',
+      });
       const exitCode = await proc.exited;
 
       expect(exitCode).toBe(1);

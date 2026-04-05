@@ -13,9 +13,7 @@ export type Tag = {
   date: string; // ISO 8601
 };
 
-type ExecFn = (
-  cmd: string,
-) => Promise<{ stdout: string; exitCode: number | null }>;
+type ExecFn = (cmd: string) => Promise<{ stdout: string; exitCode: number | null }>;
 
 const DEFAULT_DATE = '2000-01-01T00:00:00Z';
 
@@ -40,6 +38,8 @@ export function filterTagsByType(tags: Tag[], type: ReleaseType): Tag[] {
         return patch === 0 && minor !== 0;
       case 'major':
         return patch === 0 && minor === 0;
+      default:
+        return false;
     }
   });
 }
@@ -69,9 +69,7 @@ export function createGitTagsClient(exec?: ExecFn) {
     }
 
     // Fallback to commit date
-    const commitResult = await runCmd(
-      `TZ=UTC git log -1 --format='%aI' "${tag}"`,
-    );
+    const commitResult = await runCmd(`TZ=UTC git log -1 --format='%aI' "${tag}"`);
 
     if (commitResult.exitCode === 0 && commitResult.stdout.trim()) {
       return commitResult.stdout.trim();
@@ -121,8 +119,7 @@ export function createGitTagsClient(exec?: ExecFn) {
           break;
         case 'major':
           // Most recent v*.0.0 tag
-          pattern =
-            "git tag -l 'v*' --sort=-v:refname | grep -E '^v[0-9]+\\.0\\.0$' | head -1";
+          pattern = "git tag -l 'v*' --sort=-v:refname | grep -E '^v[0-9]+\\.0\\.0$' | head -1";
           break;
       }
 

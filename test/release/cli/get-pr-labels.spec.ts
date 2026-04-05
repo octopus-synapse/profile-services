@@ -1,4 +1,4 @@
-import { describe, expect, it, mock, beforeEach } from 'bun:test';
+import { describe, expect, it } from 'bun:test';
 import { $ } from 'bun';
 
 const CLI_PATH = './src/release/cli/get-pr-labels.ts';
@@ -19,26 +19,20 @@ describe('get-pr-labels CLI', () => {
     });
 
     it('fails without --sha argument', async () => {
-      const proc = Bun.spawn(
-        ['bun', CLI_PATH, '--owner=owner', '--repo=repo'],
-        {
-          stderr: 'pipe',
-          env: { ...process.env, GITHUB_TOKEN: 'test-token' },
-        },
-      );
+      const proc = Bun.spawn(['bun', CLI_PATH, '--owner=owner', '--repo=repo'], {
+        stderr: 'pipe',
+        env: { ...process.env, GITHUB_TOKEN: 'test-token' },
+      });
       const exitCode = await proc.exited;
 
       expect(exitCode).toBe(1);
     });
 
     it('fails without GITHUB_TOKEN', async () => {
-      const proc = Bun.spawn(
-        ['bun', CLI_PATH, '--sha=abc123', '--owner=owner', '--repo=repo'],
-        {
-          stderr: 'pipe',
-          env: { ...process.env, GITHUB_TOKEN: undefined },
-        },
-      );
+      const proc = Bun.spawn(['bun', CLI_PATH, '--sha=abc123', '--owner=owner', '--repo=repo'], {
+        stderr: 'pipe',
+        env: { ...process.env, GITHUB_TOKEN: undefined },
+      });
       const exitCode = await proc.exited;
 
       expect(exitCode).toBe(1);
@@ -47,8 +41,7 @@ describe('get-pr-labels CLI', () => {
 
   describe('with --labels flag (bypass API)', () => {
     it('outputs labels directly when provided', async () => {
-      const result =
-        await $`bun ${CLI_PATH} --labels="patch,bug,enhancement"`.text();
+      const result = await $`bun ${CLI_PATH} --labels="patch,bug,enhancement"`.text();
 
       expect(result.trim()).toBe('patch,bug,enhancement');
     });

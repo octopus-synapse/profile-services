@@ -1,4 +1,5 @@
-import { describe, expect, it, mock, beforeEach } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import type { graphql } from '@octokit/graphql';
 import {
   createGitHubClient,
   type GitHubClient,
@@ -10,7 +11,7 @@ describe('github-client', () => {
 
   beforeEach(() => {
     mockGraphql = mock(() => Promise.resolve({}));
-    client = createGitHubClient('test-token', mockGraphql);
+    client = createGitHubClient('test-token', mockGraphql as unknown as typeof graphql);
   });
 
   describe('getPRLabels', () => {
@@ -88,7 +89,7 @@ describe('github-client', () => {
       await client.getPRLabels('myowner', 'myrepo', 'mysha');
 
       expect(mockGraphql).toHaveBeenCalledTimes(1);
-      const [query, variables] = mockGraphql.mock.calls[0];
+      const [_query, variables] = mockGraphql.mock.calls[0];
       expect(variables).toEqual({
         owner: 'myowner',
         repo: 'myrepo',

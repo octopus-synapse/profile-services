@@ -21,19 +21,24 @@ type WorkflowDocument = {
 // Project root - all paths are relative to this
 const PROJECT_ROOT = resolve(__dirname, '../../..');
 const RELEASE_WORKFLOW_PATH = join(PROJECT_ROOT, '.github/workflows/release.yml');
+const RELEASE_DOCKER_PATH = join(PROJECT_ROOT, '.github/workflows/_release-docker.yml');
 
 function readWorkflowDocuments(): WorkflowDocument[] {
   return loadAll(readFileSync(RELEASE_WORKFLOW_PATH, 'utf8')) as WorkflowDocument[];
 }
 
+function readDockerWorkflowDocuments(): WorkflowDocument[] {
+  return loadAll(readFileSync(RELEASE_DOCKER_PATH, 'utf8')) as WorkflowDocument[];
+}
+
 function readReleaseNotesStep(): WorkflowStep {
-  const documents = readWorkflowDocuments();
+  const documents = readDockerWorkflowDocuments();
 
   expect(documents).toHaveLength(1);
 
   const workflow = documents[0];
   const step = workflow.jobs?.['build-and-push']?.steps?.find(
-    (entry) => entry.name === 'Update release notes with Docker info',
+    (entry) => entry.name === 'Update release notes',
   );
 
   expect(step).toBeDefined();
@@ -77,7 +82,7 @@ describe('Release workflow contract', () => {
     expect(readWorkflowDocuments()).toHaveLength(1);
   });
 
-  test('release notes update step stays shell-parseable', () => {
+  test('release notes update step (in _release-docker.yml) stays shell-parseable', () => {
     const releaseNotesStep = readReleaseNotesStep();
     const script = renderShellScriptForSyntaxCheck(releaseNotesStep.run as string);
     const result = syntaxCheck(script);

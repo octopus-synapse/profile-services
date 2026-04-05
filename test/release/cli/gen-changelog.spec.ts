@@ -55,9 +55,7 @@ describe('gen-changelog CLI', () => {
     it('generates grouped by minors and patches', async () => {
       const input = JSON.stringify({
         releaseType: 'major',
-        prs: [
-          { number: 1, title: 'initial', mergedAt: '2024-01-05T00:00:00Z' },
-        ],
+        prs: [{ number: 1, title: 'initial', mergedAt: '2024-01-05T00:00:00Z' }],
         tags: [],
         minorTags: [],
         baseDate: '2024-01-01T00:00:00Z',
@@ -106,20 +104,16 @@ describe('gen-changelog CLI', () => {
 
   describe('error handling', () => {
     it('fails with invalid JSON', async () => {
-      const proc = Bun.spawn(
-        ['bash', '-c', `echo 'not json' | bun ${CLI_PATH}`],
-        { stderr: 'pipe' },
-      );
+      const proc = Bun.spawn(['bash', '-c', `echo 'not json' | bun ${CLI_PATH}`], {
+        stderr: 'pipe',
+      });
       const exitCode = await proc.exited;
 
       expect(exitCode).toBe(1);
     });
 
     it('fails with missing required fields', async () => {
-      const proc = Bun.spawn(
-        ['bash', '-c', `echo '{}' | bun ${CLI_PATH}`],
-        { stderr: 'pipe' },
-      );
+      const proc = Bun.spawn(['bash', '-c', `echo '{}' | bun ${CLI_PATH}`], { stderr: 'pipe' });
       const exitCode = await proc.exited;
 
       expect(exitCode).toBe(1);
