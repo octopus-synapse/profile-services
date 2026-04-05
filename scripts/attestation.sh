@@ -42,16 +42,48 @@ generate_attestation() {
     # Get list of checks that were run (from pre-commit)
     local checks="${ATTESTATION_CHECKS:-lint,typecheck,test}"
 
-    # Generate attestation JSON
-    cat > "$ATTESTATION_FILE" << EOF
+    # Get metrics JSON if available (from pre-commit)
+    local metrics="${ATTESTATION_METRICS:-{}}"
+
+    # Validate metrics is valid JSON, or use empty object
+    if command -v jq &> /dev/null; then
+        # Compact and validate the JSON, fallback to empty object
+        metrics=$(echo "$metrics" | jq -c '.' 2>/dev/null) || metrics='{}'
+        # Handle empty result
+        [ -z "$metrics" ] && metrics='{}'
+    fi
+
+    # Generate attestation JSON with metrics
+    # Use jq if available for proper formatting, otherwise use cat
+    if command -v jq &> /dev/null && [ "$metrics" != '{}' ]; then
+        jq -n \
+            --arg version "3" \
+            --arg tree_hash "$tree_hash" \
+            --arg checks "$(echo "$checks" | tr ',' ' ')" \
+            --argjson metrics "$metrics" \
+            --arg timestamp "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            --arg git_user "$(git config user.email || echo 'unknown')" \
+            '{
+                version: $version,
+                tree_hash: $tree_hash,
+                checks: $checks,
+                metrics: $metrics,
+                timestamp: $timestamp,
+                git_user: $git_user
+            }' > "$ATTESTATION_FILE"
+    else
+        # Fallback without jq - just use the metrics as-is
+        cat > "$ATTESTATION_FILE" << EOF
 {
-  "version": "2",
+  "version": "3",
   "tree_hash": "$tree_hash",
   "checks": "$(echo "$checks" | tr ',' ' ')",
+  "metrics": $metrics,
   "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
   "git_user": "$(git config user.email || echo 'unknown')"
 }
 EOF
+    fi
 
     # Stage the attestation file
     git add "$ATTESTATION_FILE"

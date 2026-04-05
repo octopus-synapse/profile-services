@@ -1,69 +1,51 @@
 name: _static-analysis-template
 
 on:
-    workflow_call:
-        inputs:
-            test-command:
-                description: "Command to run tests"
-                required: true
-                type: string
-            test-name:
-                description: "Test name for summary"
-                required: true
-                type: string
-            timeout:
-                description: "Timeout in minutes"
-                required: false
-                type: number
-                default: 10
-            pr-number:
-                description: "PR number for comment updates"
-                required: false
-                type: string
-                default: ""
+  workflow_call:
+    inputs:
+      test-command:
+        description: "Command to run tests"
+        required: true
+        type: string
+      test-name:
+        description: "Test name for summary"
+        required: true
+        type: string
+      timeout:
+        description: "Timeout in minutes"
+        required: false
+        type: number
+        default: 10
 
 env:
-    NODE_ENV: test
+  NODE_ENV: test
 
 jobs:
-    test:
-        name: ${{ inputs.test-name }} Tests
-        runs-on: ubuntu-latest
-        timeout-minutes: ${{ inputs.timeout }}
+  test:
+    name: ${{ inputs.test-name }} Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.timeout }}
 
-        steps:
-            - uses: actions/checkout@v4
+    steps:
+      - uses: actions/checkout@v4
 
-            - name: Run tests
-              id: tests
-              uses: ./.github/actions/setup-static-analysis-env
-              with:
-                  test-command: ${{ inputs.test-command }}
-                  test-name: ${{ inputs.test-name }}
-                  artifact-name: ${{ inputs.test-name }}-results
+      - name: Run tests
+        id: tests
+        uses: ./.github/actions/run-test-suite
+        with:
+          test-command: ${{ inputs.test-command }}
+          test-name: ${{ inputs.test-name }}
+          artifact-name: ${{ inputs.test-name }}-results
+          needs-db: 'false'
 
-            - name: Update PR comment
-              if: always() && inputs.pr-number != ''
-              env:
-                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  PR_NUMBER: ${{ inputs.pr-number }}
-                  GITHUB_REPOSITORY: ${{ github.repository }}
-              run: |
-                  chmod +x scripts/ci-comment.sh
-                  STATUS="${{ steps.tests.outputs.status || 'failure' }}"
-                  DURATION="${{ steps.tests.outputs.duration || '—' }}"
-                  PASS="${{ steps.tests.outputs.pass || '0' }}"
-                  FAIL="${{ steps.tests.outputs.fail || '0' }}"
-                  SKIP="${{ steps.tests.outputs.skip || '0' }}"
-
-                  # Build description with proper formatting
-                  if [[ "$STATUS" == "success" ]]; then
-                    DESC="${PASS} ✓"
-                    [[ "$SKIP" != "0" ]] && DESC="${DESC}, ${SKIP} skipped"
-                  else
-                    DESC="**${FAIL} FAILED** (${PASS} passed"
-                    [[ "$SKIP" != "0" ]] && DESC="${DESC}, ${SKIP} skipped"
-                    DESC="${DESC})"
-                  fi
-
-                  ./scripts/ci-comment.sh update "${{ inputs.test-name }}" "$STATUS" "$DESC" "${DURATION}"
+      - name: Summary
+        if: always()
+        run: |
+          .github/scripts/generate-summary.sh \
+            "${{ steps.tests.outputs.status || 'failure' }}" \
+            "${{ inputs.test-name }}" \
+            "${{ steps.tests.outputs.pass || '0' }}" \
+            "${{ steps.tests.outputs.fail || '0' }}" \
+            "${{ steps.tests.outputs.skip || '0' }}" \
+            "${{ steps.tests.outputs.duration || '0' }}" \
+            test-output.txt

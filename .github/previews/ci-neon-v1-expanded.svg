@@ -1,0 +1,198 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="650" height="340" viewBox="0 0 650 340" fill="none">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f172a" />
+      <stop offset="100%" style="stop-color:#020617" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
+      <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="650" height="340" rx="12" fill="url(#bgGrad)"/>
+  <rect width="650" height="340" rx="12" stroke="#06b6d4" stroke-opacity="0.15" stroke-width="1" fill="none"/>
+
+  <!-- Grid pattern -->
+  <pattern id="grid1" width="20" height="20" patternUnits="userSpaceOnUse">
+    <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#1e293b" stroke-width="0.5"/>
+  </pattern>
+  <rect width="650" height="340" fill="url(#grid1)" opacity="0.3"/>
+
+  <!-- Header -->
+  <rect x="0" y="0" width="650" height="50" rx="12" fill="#0f172a"/>
+  <rect x="0" y="40" width="650" height="10" fill="#0f172a"/>
+
+  <circle cx="24" cy="25" r="6" fill="#fbbf24" filter="url(#glow)"/>
+  <text x="42" y="22" fill="#f8fafc" font-family="JetBrains Mono, monospace" font-size="14" font-weight="600">CI PIPELINE</text>
+  <text x="42" y="38" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="10">refactor/consolidate-test-actions · 7e918eb</text>
+
+  <!-- PRE-COMMIT Section -->
+  <rect x="15" y="60" width="305" height="265" rx="8" fill="#1e293b" fill-opacity="0.5"/>
+  <text x="25" y="80" fill="#06b6d4" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600" filter="url(#glow)">PRE-COMMIT</text>
+  <text x="250" y="80" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="9">10.3s total</text>
+
+  <!-- Table header -->
+  <text x="25" y="100" fill="#475569" font-family="JetBrains Mono, monospace" font-size="8">CHECK</text>
+  <text x="120" y="100" fill="#475569" font-family="JetBrains Mono, monospace" font-size="8">SUITES</text>
+  <text x="160" y="100" fill="#475569" font-family="JetBrains Mono, monospace" font-size="8">TOTAL</text>
+  <text x="195" y="100" fill="#475569" font-family="JetBrains Mono, monospace" font-size="8">PASS</text>
+  <text x="225" y="100" fill="#475569" font-family="JetBrains Mono, monospace" font-size="8">FAIL</text>
+  <text x="255" y="100" fill="#475569" font-family="JetBrains Mono, monospace" font-size="8">SKIP</text>
+  <text x="285" y="100" fill="#475569" font-family="JetBrains Mono, monospace" font-size="8">TIME</text>
+
+  <line x1="25" y1="105" x2="305" y2="105" stroke="#1e293b" stroke-width="1"/>
+
+  <!-- Swagger -->
+  <circle cx="32" cy="120" r="4" fill="#22c55e"/>
+  <text x="42" y="123" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="10">Swagger</text>
+  <text x="120" y="123" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="9">—</text>
+  <text x="160" y="123" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="9">—</text>
+  <text x="195" y="123" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="9">—</text>
+  <text x="225" y="123" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="9">—</text>
+  <text x="255" y="123" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="9">—</text>
+  <text x="285" y="123" fill="#22c55e" font-family="JetBrains Mono, monospace" font-size="9">1.5s</text>
+
+  <!-- TypeCheck -->
+  <circle cx="32" cy="145" r="4" fill="#22c55e"/>
+  <text x="42" y="148" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="10">TypeCheck</text>
+  <text x="120" y="148" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="9">—</text>
+  <text x="160" y="148" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="9">—</text>
+  <text x="195" y="148" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="9">—</text>
+  <text x="225" y="148" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="9">0</text>
+  <text x="255" y="148" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="9">—</text>
+  <text x="285" y="148" fill="#22c55e" font-family="JetBrains Mono, monospace" font-size="9">3.3s</text>
+
+  <!-- Lint -->
+  <circle cx="32" cy="170" r="4" fill="#22c55e"/>
+  <text x="42" y="173" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="10">Lint</text>
+  <text x="120" y="173" fill="#06b6d4" font-family="JetBrains Mono, monospace" font-size="9">1546</text>
+  <text x="160" y="173" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="9">—</text>
+  <text x="195" y="173" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="9">—</text>
+  <text x="225" y="173" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="9">0</text>
+  <text x="255" y="173" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="9">—</text>
+  <text x="285" y="173" fill="#22c55e" font-family="JetBrains Mono, monospace" font-size="9">0.8s</text>
+
+  <!-- Unit Tests -->
+  <circle cx="32" cy="195" r="4" fill="#22c55e"/>
+  <text x="42" y="198" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="10">Unit</text>
+  <text x="120" y="198" fill="#06b6d4" font-family="JetBrains Mono, monospace" font-size="9">89</text>
+  <text x="160" y="198" fill="#f8fafc" font-family="JetBrains Mono, monospace" font-size="9" font-weight="600">2036</text>
+  <text x="195" y="198" fill="#22c55e" font-family="JetBrains Mono, monospace" font-size="9">2036</text>
+  <text x="225" y="198" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="9">0</text>
+  <text x="255" y="198" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="9">0</text>
+  <text x="285" y="198" fill="#22c55e" font-family="JetBrains Mono, monospace" font-size="9">3.7s</text>
+
+  <!-- Arch Tests -->
+  <circle cx="32" cy="220" r="4" fill="#22c55e"/>
+  <text x="42" y="223" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="10">Arch</text>
+  <text x="120" y="223" fill="#06b6d4" font-family="JetBrains Mono, monospace" font-size="9">5</text>
+  <text x="160" y="223" fill="#f8fafc" font-family="JetBrains Mono, monospace" font-size="9" font-weight="600">43</text>
+  <text x="195" y="223" fill="#22c55e" font-family="JetBrains Mono, monospace" font-size="9">42</text>
+  <text x="225" y="223" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="9">0</text>
+  <text x="255" y="223" fill="#fbbf24" font-family="JetBrains Mono, monospace" font-size="9">1</text>
+  <text x="285" y="223" fill="#22c55e" font-family="JetBrains Mono, monospace" font-size="9">1.0s</text>
+
+  <!-- Contract Tests -->
+  <circle cx="32" cy="245" r="4" fill="#22c55e"/>
+  <text x="42" y="248" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="10">Contracts</text>
+  <text x="120" y="248" fill="#06b6d4" font-family="JetBrains Mono, monospace" font-size="9">5</text>
+  <text x="160" y="248" fill="#f8fafc" font-family="JetBrains Mono, monospace" font-size="9" font-weight="600">45</text>
+  <text x="195" y="248" fill="#22c55e" font-family="JetBrains Mono, monospace" font-size="9">45</text>
+  <text x="225" y="248" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="9">0</text>
+  <text x="255" y="248" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="9">0</text>
+  <text x="285" y="248" fill="#22c55e" font-family="JetBrains Mono, monospace" font-size="9">0.5s</text>
+
+  <!-- Pre-commit totals -->
+  <line x1="25" y1="260" x2="305" y2="260" stroke="#1e293b" stroke-width="1"/>
+  <text x="42" y="278" fill="#06b6d4" font-family="JetBrains Mono, monospace" font-size="10" font-weight="600">TOTAL</text>
+  <text x="120" y="278" fill="#06b6d4" font-family="JetBrains Mono, monospace" font-size="9" font-weight="600">99</text>
+  <text x="160" y="278" fill="#f8fafc" font-family="JetBrains Mono, monospace" font-size="9" font-weight="600">2124</text>
+  <text x="195" y="278" fill="#22c55e" font-family="JetBrains Mono, monospace" font-size="9" font-weight="600">2123</text>
+  <text x="225" y="278" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="9">0</text>
+  <text x="255" y="278" fill="#fbbf24" font-family="JetBrains Mono, monospace" font-size="9">1</text>
+  <text x="280" y="278" fill="#22c55e" font-family="JetBrains Mono, monospace" font-size="9" font-weight="600">10.3s</text>
+
+  <!-- Attestation -->
+  <text x="25" y="310" fill="#475569" font-family="JetBrains Mono, monospace" font-size="8">ATTESTATION</text>
+  <text x="100" y="310" fill="#8b5cf6" font-family="JetBrains Mono, monospace" font-size="8">602e1695cd918a6222602c</text>
+
+  <!-- CI Section -->
+  <rect x="330" y="60" width="305" height="265" rx="8" fill="#1e293b" fill-opacity="0.5"/>
+  <text x="340" y="80" fill="#06b6d4" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600" filter="url(#glow)">CI</text>
+  <text x="565" y="80" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="9">4m 58s total</text>
+
+  <!-- Table header CI -->
+  <text x="340" y="100" fill="#475569" font-family="JetBrains Mono, monospace" font-size="8">JOB</text>
+  <text x="435" y="100" fill="#475569" font-family="JetBrains Mono, monospace" font-size="8">SUITES</text>
+  <text x="475" y="100" fill="#475569" font-family="JetBrains Mono, monospace" font-size="8">TOTAL</text>
+  <text x="515" y="100" fill="#475569" font-family="JetBrains Mono, monospace" font-size="8">PASS</text>
+  <text x="550" y="100" fill="#475569" font-family="JetBrains Mono, monospace" font-size="8">FAIL</text>
+  <text x="580" y="100" fill="#475569" font-family="JetBrains Mono, monospace" font-size="8">ERR</text>
+  <text x="605" y="100" fill="#475569" font-family="JetBrains Mono, monospace" font-size="8">TIME</text>
+
+  <line x1="340" y1="105" x2="620" y2="105" stroke="#1e293b" stroke-width="1"/>
+
+  <!-- Build -->
+  <circle cx="347" cy="120" r="4" fill="#22c55e"/>
+  <text x="357" y="123" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="10">Build</text>
+  <text x="435" y="123" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="9">—</text>
+  <text x="475" y="123" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="9">—</text>
+  <text x="515" y="123" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="9">—</text>
+  <text x="550" y="123" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="9">—</text>
+  <text x="580" y="123" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="9">—</text>
+  <text x="605" y="123" fill="#22c55e" font-family="JetBrains Mono, monospace" font-size="9">45s</text>
+
+  <!-- Integration -->
+  <circle cx="347" cy="145" r="4" fill="#ef4444"/>
+  <text x="357" y="148" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="10">Integration</text>
+  <text x="435" y="148" fill="#06b6d4" font-family="JetBrains Mono, monospace" font-size="9">23</text>
+  <text x="475" y="148" fill="#f8fafc" font-family="JetBrains Mono, monospace" font-size="9" font-weight="600">131</text>
+  <text x="515" y="148" fill="#22c55e" font-family="JetBrains Mono, monospace" font-size="9">127</text>
+  <text x="550" y="148" fill="#ef4444" font-family="JetBrains Mono, monospace" font-size="9" font-weight="600">1</text>
+  <text x="580" y="148" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="9">0</text>
+  <text x="600" y="148" fill="#ef4444" font-family="JetBrains Mono, monospace" font-size="9">2:27</text>
+
+  <!-- E2E -->
+  <circle cx="347" cy="170" r="4" fill="#22c55e"/>
+  <text x="357" y="173" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="10">E2E</text>
+  <text x="435" y="173" fill="#06b6d4" font-family="JetBrains Mono, monospace" font-size="9">8</text>
+  <text x="475" y="173" fill="#f8fafc" font-family="JetBrains Mono, monospace" font-size="9" font-weight="600">48</text>
+  <text x="515" y="173" fill="#22c55e" font-family="JetBrains Mono, monospace" font-size="9">48</text>
+  <text x="550" y="173" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="9">0</text>
+  <text x="580" y="173" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="9">0</text>
+  <text x="600" y="173" fill="#22c55e" font-family="JetBrains Mono, monospace" font-size="9">1:26</text>
+
+  <!-- Security -->
+  <circle cx="347" cy="195" r="4" fill="#22c55e"/>
+  <text x="357" y="198" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="10">Security</text>
+  <text x="435" y="198" fill="#06b6d4" font-family="JetBrains Mono, monospace" font-size="9">3</text>
+  <text x="475" y="198" fill="#f8fafc" font-family="JetBrains Mono, monospace" font-size="9" font-weight="600">12</text>
+  <text x="515" y="198" fill="#22c55e" font-family="JetBrains Mono, monospace" font-size="9">12</text>
+  <text x="550" y="198" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="9">0</text>
+  <text x="580" y="198" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="9">0</text>
+  <text x="605" y="198" fill="#22c55e" font-family="JetBrains Mono, monospace" font-size="9">22s</text>
+
+  <!-- CI totals -->
+  <line x1="340" y1="215" x2="620" y2="215" stroke="#1e293b" stroke-width="1"/>
+  <text x="357" y="233" fill="#06b6d4" font-family="JetBrains Mono, monospace" font-size="10" font-weight="600">TOTAL</text>
+  <text x="435" y="233" fill="#06b6d4" font-family="JetBrains Mono, monospace" font-size="9" font-weight="600">34</text>
+  <text x="475" y="233" fill="#f8fafc" font-family="JetBrains Mono, monospace" font-size="9" font-weight="600">191</text>
+  <text x="515" y="233" fill="#22c55e" font-family="JetBrains Mono, monospace" font-size="9" font-weight="600">187</text>
+  <text x="550" y="233" fill="#ef4444" font-family="JetBrains Mono, monospace" font-size="9" font-weight="600">1</text>
+  <text x="580" y="233" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="9">0</text>
+  <text x="600" y="233" fill="#06b6d4" font-family="JetBrains Mono, monospace" font-size="9" font-weight="600">4:58</text>
+
+  <!-- Summary stats -->
+  <rect x="340" y="250" width="140" height="45" rx="6" fill="#0f172a"/>
+  <text x="350" y="268" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="8">PASS RATE</text>
+  <text x="350" y="287" fill="#22c55e" font-family="JetBrains Mono, monospace" font-size="18" font-weight="700">99.57%</text>
+
+  <rect x="490" y="250" width="130" height="45" rx="6" fill="#0f172a"/>
+  <text x="500" y="268" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="8">ALL TESTS</text>
+  <text x="500" y="287" fill="#06b6d4" font-family="JetBrains Mono, monospace" font-size="18" font-weight="700">2,315</text>
+
+  <!-- Error details -->
+  <text x="340" y="318" fill="#ef4444" font-family="JetBrains Mono, monospace" font-size="8">FAILED: Unique constraint on `username`</text>
+</svg>

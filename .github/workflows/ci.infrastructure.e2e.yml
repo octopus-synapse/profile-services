@@ -2,12 +2,6 @@ name: _infrastructure-e2e
 
 on:
   workflow_call:
-    inputs:
-      pr-number:
-        description: "PR number for comment updates"
-        required: false
-        type: string
-        default: ""
 
 jobs:
   test:
@@ -17,5 +11,4 @@ jobs:
       test-name: "E2E"
       db-name: "e2e_test_db"
       timeout: 20
-      pr-number: ${{ inputs.pr-number }}
     secrets: inherit

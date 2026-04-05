@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="280" viewBox="0 0 400 280" fill="none">
+  <defs>
+    <linearGradient id="bgMin" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#18181b" />
+      <stop offset="100%" style="stop-color:#09090b" />
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#8b5cf6" />
+      <stop offset="100%" style="stop-color:#a78bfa" />
+    </linearGradient>
+    <linearGradient id="success" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#22c55e" />
+      <stop offset="100%" style="stop-color:#4ade80" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="400" height="280" rx="16" fill="url(#bgMin)"/>
+  <rect width="400" height="280" rx="16" stroke="#27272a" stroke-width="1" fill="none"/>
+
+  <!-- Accent line top -->
+  <rect x="24" y="0" width="60" height="3" rx="1.5" fill="url(#accent)"/>
+
+  <!-- Header -->
+  <text x="24" y="40" fill="#fafafa" font-family="Inter, system-ui, sans-serif" font-size="20" font-weight="600">CI Status</text>
+  <text x="24" y="58" fill="#52525b" font-family="Inter, system-ui, sans-serif" font-size="12">refactor/consolidate-test-actions</text>
+
+  <!-- Status badge -->
+  <rect x="310" y="25" width="70" height="26" rx="13" fill="#422006" stroke="#f59e0b" stroke-width="1"/>
+  <text x="345" y="43" fill="#fbbf24" font-family="Inter, system-ui, sans-serif" font-size="11" font-weight="500" text-anchor="middle">Running</text>
+
+  <!-- Divider -->
+  <line x1="24" y1="75" x2="376" y2="75" stroke="#27272a" stroke-width="1"/>
+
+  <!-- Metrics row -->
+  <g transform="translate(24, 90)">
+    <!-- Tests -->
+    <text x="0" y="0" fill="#71717a" font-family="Inter, system-ui, sans-serif" font-size="10" font-weight="500">TESTS</text>
+    <text x="0" y="25" fill="#fafafa" font-family="Inter, system-ui, sans-serif" font-size="24" font-weight="700">2,123</text>
+    <text x="75" y="25" fill="#22c55e" font-family="Inter, system-ui, sans-serif" font-size="12">all passing</text>
+  </g>
+
+  <g transform="translate(200, 90)">
+    <!-- Time -->
+    <text x="0" y="0" fill="#71717a" font-family="Inter, system-ui, sans-serif" font-size="10" font-weight="500">DURATION</text>
+    <text x="0" y="25" fill="#fafafa" font-family="Inter, system-ui, sans-serif" font-size="24" font-weight="700">4:58</text>
+    <text x="55" y="25" fill="#71717a" font-family="Inter, system-ui, sans-serif" font-size="12">total</text>
+  </g>
+
+  <g transform="translate(310, 90)">
+    <!-- Pass rate -->
+    <text x="0" y="0" fill="#71717a" font-family="Inter, system-ui, sans-serif" font-size="10" font-weight="500">PASS RATE</text>
+    <text x="0" y="25" fill="#8b5cf6" font-family="Inter, system-ui, sans-serif" font-size="24" font-weight="700">99.9%</text>
+  </g>
+
+  <!-- Jobs section -->
+  <text x="24" y="155" fill="#71717a" font-family="Inter, system-ui, sans-serif" font-size="10" font-weight="500">PIPELINE</text>
+
+  <!-- Job cards -->
+  <g transform="translate(24, 165)">
+    <!-- Pre-commit -->
+    <rect x="0" y="0" width="168" height="44" rx="8" fill="#27272a"/>
+    <circle cx="16" cy="22" r="5" fill="#22c55e"/>
+    <text x="30" y="18" fill="#fafafa" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="500">Pre-commit</text>
+    <text x="30" y="32" fill="#71717a" font-family="Inter, system-ui, sans-serif" font-size="10">10.3s · 5 checks</text>
+    <text x="150" y="25" fill="#22c55e" font-family="Inter, system-ui, sans-serif" font-size="11" font-weight="500">✓</text>
+  </g>
+
+  <g transform="translate(200, 165)">
+    <!-- Build -->
+    <rect x="0" y="0" width="168" height="44" rx="8" fill="#27272a"/>
+    <circle cx="16" cy="22" r="5" fill="#22c55e"/>
+    <text x="30" y="18" fill="#fafafa" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="500">Build</text>
+    <text x="30" y="32" fill="#71717a" font-family="Inter, system-ui, sans-serif" font-size="10">45s · Docker</text>
+    <text x="150" y="25" fill="#22c55e" font-family="Inter, system-ui, sans-serif" font-size="11" font-weight="500">✓</text>
+  </g>
+
+  <g transform="translate(24, 215)">
+    <!-- Integration -->
+    <rect x="0" y="0" width="168" height="44" rx="8" fill="#27272a" stroke="#ef4444" stroke-width="1"/>
+    <circle cx="16" cy="22" r="5" fill="#ef4444"/>
+    <text x="30" y="18" fill="#fafafa" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="500">Integration</text>
+    <text x="30" y="32" fill="#ef4444" font-family="Inter, system-ui, sans-serif" font-size="10">1 failed · 2:27</text>
+    <text x="150" y="25" fill="#ef4444" font-family="Inter, system-ui, sans-serif" font-size="11" font-weight="500">✗</text>
+  </g>
+
+  <g transform="translate(200, 215)">
+    <!-- E2E + Security combined -->
+    <rect x="0" y="0" width="80" height="44" rx="8" fill="#27272a"/>
+    <circle cx="14" cy="22" r="4" fill="#22c55e"/>
+    <text x="24" y="18" fill="#a1a1aa" font-family="Inter, system-ui, sans-serif" font-size="10">E2E</text>
+    <text x="24" y="32" fill="#71717a" font-family="Inter, system-ui, sans-serif" font-size="9">1:26</text>
+
+    <rect x="88" y="0" width="80" height="44" rx="8" fill="#27272a"/>
+    <circle cx="102" cy="22" r="4" fill="#22c55e"/>
+    <text x="112" y="18" fill="#a1a1aa" font-family="Inter, system-ui, sans-serif" font-size="10">Security</text>
+    <text x="112" y="32" fill="#71717a" font-family="Inter, system-ui, sans-serif" font-size="9">22s</text>
+  </g>
+
+  <!-- Footer -->
+  <text x="24" y="273" fill="#3f3f46" font-family="JetBrains Mono, monospace" font-size="9">attestation: 602e1695 · enzo.patti · 11:15 UTC</text>
+</svg>

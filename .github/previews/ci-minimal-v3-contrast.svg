@@ -1,0 +1,152 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="820" height="480" viewBox="0 0 820 480" fill="none">
+  <!-- V3: High Contrast - Pure black bg, pure white text, vivid semantic colors -->
+
+  <!-- Background -->
+  <rect width="820" height="480" rx="12" fill="#000000"/>
+  <rect width="820" height="480" rx="12" stroke="#333333" stroke-width="2" fill="none"/>
+
+  <!-- Header -->
+  <text x="32" y="44" fill="#ffffff" font-family="Inter, system-ui, sans-serif" font-size="24" font-weight="700">CI Pipeline</text>
+  <text x="32" y="70" fill="#888888" font-family="Inter, system-ui, sans-serif" font-size="14">refactor/consolidate-test-actions</text>
+
+  <!-- Status indicator - larger -->
+  <rect x="720" y="25" width="70" height="32" rx="16" fill="#ff0000"/>
+  <text x="755" y="47" fill="#ffffff" font-family="Inter, system-ui, sans-serif" font-size="13" font-weight="600" text-anchor="middle">FAIL</text>
+
+  <!-- PRE-COMMIT Section -->
+  <text x="32" y="118" fill="#ffffff" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="700">PRE-COMMIT</text>
+  <text x="180" y="118" fill="#00ff00" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="600">10.3s</text>
+
+  <!-- Table container -->
+  <rect x="32" y="135" width="370" height="305" rx="8" fill="#111111" stroke="#333333" stroke-width="1"/>
+
+  <!-- Header row -->
+  <text x="50" y="165" fill="#888888" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="700">CHECK</text>
+  <text x="155" y="165" fill="#888888" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="600">SUITES</text>
+  <text x="210" y="165" fill="#888888" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="600">TOTAL</text>
+  <text x="265" y="165" fill="#888888" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="600">PASS</text>
+  <text x="310" y="165" fill="#888888" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="600">FAIL</text>
+  <text x="350" y="165" fill="#888888" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="600">TIME</text>
+
+  <line x1="50" y1="178" x2="385" y2="178" stroke="#333333" stroke-width="1"/>
+
+  <!-- Swagger -->
+  <circle cx="60" cy="205" r="6" fill="#00ff00"/>
+  <text x="78" y="210" fill="#ffffff" font-family="Inter, system-ui, sans-serif" font-size="14">Swagger</text>
+  <text x="155" y="210" fill="#555555" font-family="Inter, system-ui, sans-serif" font-size="14">—</text>
+  <text x="210" y="210" fill="#555555" font-family="Inter, system-ui, sans-serif" font-size="14">—</text>
+  <text x="265" y="210" fill="#555555" font-family="Inter, system-ui, sans-serif" font-size="14">—</text>
+  <text x="310" y="210" fill="#555555" font-family="Inter, system-ui, sans-serif" font-size="14">—</text>
+  <text x="350" y="210" fill="#cccccc" font-family="Inter, system-ui, sans-serif" font-size="14">1.5s</text>
+
+  <!-- TypeCheck -->
+  <circle cx="60" cy="245" r="6" fill="#00ff00"/>
+  <text x="78" y="250" fill="#ffffff" font-family="Inter, system-ui, sans-serif" font-size="14">TypeCheck</text>
+  <text x="155" y="250" fill="#555555" font-family="Inter, system-ui, sans-serif" font-size="14">—</text>
+  <text x="210" y="250" fill="#555555" font-family="Inter, system-ui, sans-serif" font-size="14">—</text>
+  <text x="265" y="250" fill="#555555" font-family="Inter, system-ui, sans-serif" font-size="14">—</text>
+  <text x="310" y="250" fill="#555555" font-family="Inter, system-ui, sans-serif" font-size="14">0</text>
+  <text x="350" y="250" fill="#cccccc" font-family="Inter, system-ui, sans-serif" font-size="14">3.3s</text>
+
+  <!-- Lint -->
+  <circle cx="60" cy="285" r="6" fill="#00ff00"/>
+  <text x="78" y="290" fill="#ffffff" font-family="Inter, system-ui, sans-serif" font-size="14">Lint</text>
+  <text x="155" y="290" fill="#cccccc" font-family="Inter, system-ui, sans-serif" font-size="14">1546</text>
+  <text x="210" y="290" fill="#555555" font-family="Inter, system-ui, sans-serif" font-size="14">—</text>
+  <text x="265" y="290" fill="#555555" font-family="Inter, system-ui, sans-serif" font-size="14">—</text>
+  <text x="310" y="290" fill="#555555" font-family="Inter, system-ui, sans-serif" font-size="14">0</text>
+  <text x="350" y="290" fill="#cccccc" font-family="Inter, system-ui, sans-serif" font-size="14">0.8s</text>
+
+  <!-- Unit -->
+  <circle cx="60" cy="325" r="6" fill="#00ff00"/>
+  <text x="78" y="330" fill="#ffffff" font-family="Inter, system-ui, sans-serif" font-size="14">Unit</text>
+  <text x="155" y="330" fill="#cccccc" font-family="Inter, system-ui, sans-serif" font-size="14">89</text>
+  <text x="210" y="330" fill="#ffffff" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700">2036</text>
+  <text x="265" y="330" fill="#00ff00" font-family="Inter, system-ui, sans-serif" font-size="14">2036</text>
+  <text x="310" y="330" fill="#555555" font-family="Inter, system-ui, sans-serif" font-size="14">0</text>
+  <text x="350" y="330" fill="#cccccc" font-family="Inter, system-ui, sans-serif" font-size="14">3.7s</text>
+
+  <!-- Arch -->
+  <circle cx="60" cy="365" r="6" fill="#00ff00"/>
+  <text x="78" y="370" fill="#ffffff" font-family="Inter, system-ui, sans-serif" font-size="14">Arch</text>
+  <text x="155" y="370" fill="#cccccc" font-family="Inter, system-ui, sans-serif" font-size="14">5</text>
+  <text x="210" y="370" fill="#ffffff" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700">43</text>
+  <text x="265" y="370" fill="#00ff00" font-family="Inter, system-ui, sans-serif" font-size="14">42</text>
+  <text x="310" y="370" fill="#ffaa00" font-family="Inter, system-ui, sans-serif" font-size="14">1</text>
+  <text x="350" y="370" fill="#cccccc" font-family="Inter, system-ui, sans-serif" font-size="14">1.0s</text>
+
+  <!-- Contracts -->
+  <circle cx="60" cy="405" r="6" fill="#00ff00"/>
+  <text x="78" y="410" fill="#ffffff" font-family="Inter, system-ui, sans-serif" font-size="14">Contracts</text>
+  <text x="155" y="410" fill="#cccccc" font-family="Inter, system-ui, sans-serif" font-size="14">5</text>
+  <text x="210" y="410" fill="#ffffff" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700">45</text>
+  <text x="265" y="410" fill="#00ff00" font-family="Inter, system-ui, sans-serif" font-size="14">45</text>
+  <text x="310" y="410" fill="#555555" font-family="Inter, system-ui, sans-serif" font-size="14">0</text>
+  <text x="350" y="410" fill="#cccccc" font-family="Inter, system-ui, sans-serif" font-size="14">0.5s</text>
+
+  <!-- CI Section -->
+  <text x="420" y="118" fill="#ffffff" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="700">CI</text>
+  <text x="455" y="118" fill="#ffaa00" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="600">4m 58s</text>
+
+  <!-- CI Table container -->
+  <rect x="420" y="135" width="370" height="225" rx="8" fill="#111111" stroke="#333333" stroke-width="1"/>
+
+  <!-- CI Header row -->
+  <text x="438" y="165" fill="#888888" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="700">JOB</text>
+  <text x="543" y="165" fill="#888888" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="600">SUITES</text>
+  <text x="598" y="165" fill="#888888" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="600">TOTAL</text>
+  <text x="653" y="165" fill="#888888" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="600">PASS</text>
+  <text x="698" y="165" fill="#888888" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="600">FAIL</text>
+  <text x="738" y="165" fill="#888888" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="600">TIME</text>
+
+  <line x1="438" y1="178" x2="773" y2="178" stroke="#333333" stroke-width="1"/>
+
+  <!-- Build -->
+  <circle cx="448" cy="205" r="6" fill="#00ff00"/>
+  <text x="466" y="210" fill="#ffffff" font-family="Inter, system-ui, sans-serif" font-size="14">Build</text>
+  <text x="543" y="210" fill="#555555" font-family="Inter, system-ui, sans-serif" font-size="14">—</text>
+  <text x="598" y="210" fill="#555555" font-family="Inter, system-ui, sans-serif" font-size="14">—</text>
+  <text x="653" y="210" fill="#555555" font-family="Inter, system-ui, sans-serif" font-size="14">—</text>
+  <text x="698" y="210" fill="#555555" font-family="Inter, system-ui, sans-serif" font-size="14">—</text>
+  <text x="738" y="210" fill="#cccccc" font-family="Inter, system-ui, sans-serif" font-size="14">45s</text>
+
+  <!-- Integration -->
+  <circle cx="448" cy="245" r="6" fill="#ff0000"/>
+  <text x="466" y="250" fill="#ffffff" font-family="Inter, system-ui, sans-serif" font-size="14">Integration</text>
+  <text x="543" y="250" fill="#cccccc" font-family="Inter, system-ui, sans-serif" font-size="14">23</text>
+  <text x="598" y="250" fill="#ffffff" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700">131</text>
+  <text x="653" y="250" fill="#00ff00" font-family="Inter, system-ui, sans-serif" font-size="14">127</text>
+  <text x="698" y="250" fill="#ff0000" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700">1</text>
+  <text x="738" y="250" fill="#ff0000" font-family="Inter, system-ui, sans-serif" font-size="14">2:27</text>
+
+  <!-- E2E -->
+  <circle cx="448" cy="285" r="6" fill="#00ff00"/>
+  <text x="466" y="290" fill="#ffffff" font-family="Inter, system-ui, sans-serif" font-size="14">E2E</text>
+  <text x="543" y="290" fill="#cccccc" font-family="Inter, system-ui, sans-serif" font-size="14">8</text>
+  <text x="598" y="290" fill="#ffffff" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700">48</text>
+  <text x="653" y="290" fill="#00ff00" font-family="Inter, system-ui, sans-serif" font-size="14">48</text>
+  <text x="698" y="290" fill="#555555" font-family="Inter, system-ui, sans-serif" font-size="14">0</text>
+  <text x="738" y="290" fill="#cccccc" font-family="Inter, system-ui, sans-serif" font-size="14">1:26</text>
+
+  <!-- Security -->
+  <circle cx="448" cy="325" r="6" fill="#00ff00"/>
+  <text x="466" y="330" fill="#ffffff" font-family="Inter, system-ui, sans-serif" font-size="14">Security</text>
+  <text x="543" y="330" fill="#cccccc" font-family="Inter, system-ui, sans-serif" font-size="14">3</text>
+  <text x="598" y="330" fill="#ffffff" font-family="Inter, system-ui, sans-serif" font-size="14" font-weight="700">12</text>
+  <text x="653" y="330" fill="#00ff00" font-family="Inter, system-ui, sans-serif" font-size="14">12</text>
+  <text x="698" y="330" fill="#555555" font-family="Inter, system-ui, sans-serif" font-size="14">0</text>
+  <text x="738" y="330" fill="#cccccc" font-family="Inter, system-ui, sans-serif" font-size="14">22s</text>
+
+  <!-- Summary stats -->
+  <rect x="420" y="375" width="175" height="65" rx="8" fill="#111111" stroke="#333333" stroke-width="1"/>
+  <text x="438" y="402" fill="#888888" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="600">PASS RATE</text>
+  <text x="438" y="430" fill="#00ff00" font-family="Inter, system-ui, sans-serif" font-size="28" font-weight="700">99.6%</text>
+
+  <rect x="605" y="375" width="185" height="65" rx="8" fill="#111111" stroke="#333333" stroke-width="1"/>
+  <text x="623" y="402" fill="#888888" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="600">TOTAL TESTS</text>
+  <text x="623" y="430" fill="#ffffff" font-family="Inter, system-ui, sans-serif" font-size="28" font-weight="700">2,315</text>
+
+  <!-- Footer -->
+  <text x="32" y="460" fill="#555555" font-family="Inter, system-ui, sans-serif" font-size="12">602e1695cd918a62 · enzo.patti · 11:15 UTC</text>
+  <text x="420" y="460" fill="#ff0000" font-family="Inter, system-ui, sans-serif" font-size="12" font-weight="600">Unique constraint failed on `username`</text>
+</svg>

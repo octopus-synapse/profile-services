@@ -1,12 +1,12 @@
 #!/bin/sh
 # =============================================================================
-# Pre-Commit Hook - Fast Feedback Loop + Simple Attestation
+# Pre-Commit Hook - Fast Feedback Loop + Attestation with Metrics
 # =============================================================================
 #
 # What runs here (in parallel where possible):
 #   0. Swagger generation (MUST be first - generates files)
 #   1-5. In parallel: TypeCheck, Lint, Unit Tests, Arch Tests, Contract Tests
-#   6. Generate attestation (tree hash proof)
+#   6. Generate attestation with metrics (tree hash proof + check results)
 #
 # Security:
 #   The attestation includes the git tree hash of all staged files.
@@ -21,6 +21,34 @@ set -e
 TMPDIR=$(mktemp -d)
 trap "rm -rf $TMPDIR" EXIT
 
+# Helper: run check with timing
+run_timed() {
+    local name="$1"
+    local cmd="$2"
+    local start end elapsed
+    start=$(date +%s%3N 2>/dev/null || date +%s)
+    if eval "$cmd" > "$TMPDIR/${name}.log" 2>&1; then
+        echo "OK" > "$TMPDIR/${name}.status"
+    else
+        echo "FAIL" > "$TMPDIR/${name}.status"
+    fi
+    end=$(date +%s%3N 2>/dev/null || date +%s)
+    echo "$((end - start))" > "$TMPDIR/${name}.time"
+}
+
+# Helper: extract test metrics from bun test output
+extract_test_metrics() {
+    local logfile="$1"
+    local passed=0 failed=0 skipped=0
+    # bun test output: "X pass, Y fail, Z skip"
+    if grep -qE "[0-9]+ pass" "$logfile" 2>/dev/null; then
+        passed=$(grep -oE "[0-9]+ pass" "$logfile" | head -1 | grep -oE "[0-9]+" || echo 0)
+        failed=$(grep -oE "[0-9]+ fail" "$logfile" | head -1 | grep -oE "[0-9]+" || echo 0)
+        skipped=$(grep -oE "[0-9]+ skip" "$logfile" | head -1 | grep -oE "[0-9]+" || echo 0)
+    fi
+    echo "${passed}:${failed}:${skipped}"
+}
+
 echo "Pre-commit checks..."
 echo ""
 
@@ -28,11 +56,15 @@ echo ""
 # 0. Generate Swagger from @SdkExport decorators (MUST be first)
 # -----------------------------------------------------------------------------
 echo "  [0/6] Generating swagger.json..."
+SWAGGER_START=$(date +%s%3N 2>/dev/null || date +%s)
 if bun run scripts/generate-swagger-from-decorators.ts > "$TMPDIR/swagger.log" 2>&1; then
     bunx biome format --write src/graphql/schema.graphql 2>/dev/null || true
     git add swagger.json swagger-generation-report.json
     git add src/graphql/schema.graphql 2>/dev/null || true
     git add generated/schema.graphql 2>/dev/null || true
+    SWAGGER_END=$(date +%s%3N 2>/dev/null || date +%s)
+    echo "$((SWAGGER_END - SWAGGER_START))" > "$TMPDIR/swagger.time"
+    echo "OK" > "$TMPDIR/swagger.status"
 else
     echo "  ❌ Swagger generation failed"
     cat "$TMPDIR/swagger.log"
@@ -40,28 +72,28 @@ else
 fi
 
 # -----------------------------------------------------------------------------
-# 1-5. Run checks in PARALLEL
+# 1-5. Run checks in PARALLEL with timing
 # -----------------------------------------------------------------------------
 echo "  [1-5] Running checks in parallel..."
 
 # TypeCheck
-(bun run typecheck > "$TMPDIR/typecheck.log" 2>&1 && echo "OK" > "$TMPDIR/typecheck.status" || echo "FAIL" > "$TMPDIR/typecheck.status") &
+(run_timed "typecheck" "bun run typecheck") &
 PID_TC=$!
 
 # Lint
-(bun run lint:fast > "$TMPDIR/lint.log" 2>&1 && echo "OK" > "$TMPDIR/lint.status" || echo "FAIL" > "$TMPDIR/lint.status") &
+(run_timed "lint" "bun run lint:fast") &
 PID_LINT=$!
 
 # Unit Tests
-(bun test src/ > "$TMPDIR/unit.log" 2>&1 && echo "OK" > "$TMPDIR/unit.status" || echo "FAIL" > "$TMPDIR/unit.status") &
+(run_timed "unit" "bun test src/") &
 PID_UNIT=$!
 
 # Architecture Tests
-(bun test ./test/static-analysis/architecture > "$TMPDIR/arch.log" 2>&1 && echo "OK" > "$TMPDIR/arch.status" || echo "FAIL" > "$TMPDIR/arch.status") &
+(run_timed "arch" "bun test ./test/static-analysis/architecture") &
 PID_ARCH=$!
 
 # Contract Tests
-(bun test ./test/static-analysis/contracts > "$TMPDIR/contract.log" 2>&1 && echo "OK" > "$TMPDIR/contract.status" || echo "FAIL" > "$TMPDIR/contract.status") &
+(run_timed "contract" "bun test ./test/static-analysis/contracts") &
 PID_CONTRACT=$!
 
 # Wait for all processes
@@ -70,45 +102,26 @@ wait $PID_TC $PID_LINT $PID_UNIT $PID_ARCH $PID_CONTRACT
 # Check results and report
 FAILED=0
 
-if [ "$(cat $TMPDIR/typecheck.status)" = "FAIL" ]; then
-    echo "  ❌ TypeCheck failed"
-    cat "$TMPDIR/typecheck.log"
-    FAILED=1
-else
-    echo "  ✓ TypeCheck"
-fi
+check_result() {
+    local name="$1"
+    local display="$2"
+    local time_ms=$(cat "$TMPDIR/${name}.time" 2>/dev/null || echo "0")
+    local time_s=$(awk "BEGIN {printf \"%.1f\", $time_ms/1000}")
 
-if [ "$(cat $TMPDIR/lint.status)" = "FAIL" ]; then
-    echo "  ❌ Lint failed"
-    cat "$TMPDIR/lint.log"
-    FAILED=1
-else
-    echo "  ✓ Lint"
-fi
+    if [ "$(cat $TMPDIR/${name}.status)" = "FAIL" ]; then
+        echo "  ❌ $display failed (${time_s}s)"
+        cat "$TMPDIR/${name}.log"
+        FAILED=1
+    else
+        echo "  ✓ $display (${time_s}s)"
+    fi
+}
 
-if [ "$(cat $TMPDIR/unit.status)" = "FAIL" ]; then
-    echo "  ❌ Unit tests failed"
-    cat "$TMPDIR/unit.log"
-    FAILED=1
-else
-    echo "  ✓ Unit tests"
-fi
-
-if [ "$(cat $TMPDIR/arch.status)" = "FAIL" ]; then
-    echo "  ❌ Architecture tests failed"
-    cat "$TMPDIR/arch.log"
-    FAILED=1
-else
-    echo "  ✓ Architecture tests"
-fi
-
-if [ "$(cat $TMPDIR/contract.status)" = "FAIL" ]; then
-    echo "  ❌ Contract tests failed"
-    cat "$TMPDIR/contract.log"
-    FAILED=1
-else
-    echo "  ✓ Contract tests"
-fi
+check_result "typecheck" "TypeCheck"
+check_result "lint" "Lint"
+check_result "unit" "Unit tests"
+check_result "arch" "Architecture tests"
+check_result "contract" "Contract tests"
 
 if [ $FAILED -eq 1 ]; then
     echo ""
@@ -117,10 +130,46 @@ if [ $FAILED -eq 1 ]; then
 fi
 
 # -----------------------------------------------------------------------------
-# 6. Generate Attestation (tree hash proof)
+# 6. Generate Attestation with Metrics
 # -----------------------------------------------------------------------------
 echo "  [6/6] Generating attestation..."
-ATTESTATION_CHECKS="typecheck,lint,test,arch,contracts" ./scripts/attestation.sh generate
+
+# Extract metrics
+UNIT_METRICS=$(extract_test_metrics "$TMPDIR/unit.log")
+ARCH_METRICS=$(extract_test_metrics "$TMPDIR/arch.log")
+CONTRACT_METRICS=$(extract_test_metrics "$TMPDIR/contract.log")
+
+# Build metrics JSON
+# Build metrics JSON using jq for proper formatting
+METRICS_JSON=$(jq -n \
+  --argjson swagger_time "$(cat "$TMPDIR/swagger.time")" \
+  --argjson typecheck_time "$(cat "$TMPDIR/typecheck.time")" \
+  --argjson lint_time "$(cat "$TMPDIR/lint.time")" \
+  --argjson unit_time "$(cat "$TMPDIR/unit.time")" \
+  --argjson unit_passed "$(echo "$UNIT_METRICS" | cut -d: -f1)" \
+  --argjson unit_failed "$(echo "$UNIT_METRICS" | cut -d: -f2)" \
+  --argjson unit_skipped "$(echo "$UNIT_METRICS" | cut -d: -f3)" \
+  --argjson arch_time "$(cat "$TMPDIR/arch.time")" \
+  --argjson arch_passed "$(echo "$ARCH_METRICS" | cut -d: -f1)" \
+  --argjson arch_failed "$(echo "$ARCH_METRICS" | cut -d: -f2)" \
+  --argjson arch_skipped "$(echo "$ARCH_METRICS" | cut -d: -f3)" \
+  --argjson contract_time "$(cat "$TMPDIR/contract.time")" \
+  --argjson contract_passed "$(echo "$CONTRACT_METRICS" | cut -d: -f1)" \
+  --argjson contract_failed "$(echo "$CONTRACT_METRICS" | cut -d: -f2)" \
+  --argjson contract_skipped "$(echo "$CONTRACT_METRICS" | cut -d: -f3)" \
+  '{
+    swagger: {status: "ok", time_ms: $swagger_time},
+    typecheck: {status: "ok", time_ms: $typecheck_time},
+    lint: {status: "ok", time_ms: $lint_time},
+    unit: {status: "ok", time_ms: $unit_time, passed: $unit_passed, failed: $unit_failed, skipped: $unit_skipped},
+    arch: {status: "ok", time_ms: $arch_time, passed: $arch_passed, failed: $arch_failed, skipped: $arch_skipped},
+    contracts: {status: "ok", time_ms: $contract_time, passed: $contract_passed, failed: $contract_failed, skipped: $contract_skipped}
+  }'
+)
+
+export ATTESTATION_CHECKS="typecheck,lint,test,arch,contracts"
+export ATTESTATION_METRICS="$METRICS_JSON"
+./scripts/attestation.sh generate
 
 echo ""
 echo "Pre-commit passed!"

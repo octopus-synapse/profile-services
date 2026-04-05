@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="495" height="195" viewBox="0 0 495 195" fill="none">
+  <defs>
+    <linearGradient id="bgGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f172a" />
+      <stop offset="100%" style="stop-color:#020617" />
+    </linearGradient>
+    <linearGradient id="cyan" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#06b6d4" />
+      <stop offset="100%" style="stop-color:#22d3ee" />
+    </linearGradient>
+    <linearGradient id="pink" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ec4899" />
+      <stop offset="100%" style="stop-color:#f472b6" />
+    </linearGradient>
+    <filter id="neonGlow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="softGlow">
+      <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="495" height="195" rx="12" fill="url(#bgGrad2)"/>
+  <rect width="495" height="195" rx="12" stroke="#06b6d4" stroke-opacity="0.2" stroke-width="1" fill="none"/>
+
+  <!-- Grid pattern (subtle) -->
+  <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+    <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#1e293b" stroke-width="0.5"/>
+  </pattern>
+  <rect width="495" height="195" fill="url(#grid)" opacity="0.3"/>
+
+  <!-- Header bar -->
+  <rect x="0" y="0" width="495" height="50" rx="12" fill="#0f172a"/>
+  <rect x="0" y="40" width="495" height="10" fill="#0f172a"/>
+
+  <!-- Status indicator -->
+  <circle cx="24" cy="25" r="6" fill="#fbbf24" filter="url(#softGlow)"/>
+  <text x="42" y="22" fill="#f8fafc" font-family="JetBrains Mono, monospace" font-size="14" font-weight="600">CI PIPELINE</text>
+  <text x="42" y="38" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="10">refactor/consolidate-test-actions</text>
+
+  <!-- Live badge -->
+  <rect x="410" y="12" width="65" height="24" rx="12" fill="#7c3aed" fill-opacity="0.2" stroke="#7c3aed" stroke-width="1"/>
+  <circle cx="423" cy="24" r="3" fill="#7c3aed">
+    <animate attributeName="opacity" values="1;0.3;1" dur="1.5s" repeatCount="indefinite"/>
+  </circle>
+  <text x="433" y="28" fill="#a78bfa" font-family="JetBrains Mono, monospace" font-size="10">LIVE</text>
+
+  <!-- Main content grid -->
+  <!-- Pre-commit block -->
+  <rect x="15" y="60" width="155" height="120" rx="8" fill="#1e293b" fill-opacity="0.5"/>
+  <text x="25" y="80" fill="#06b6d4" font-family="JetBrains Mono, monospace" font-size="10" font-weight="600" filter="url(#softGlow)">PRE-COMMIT</text>
+
+  <text x="25" y="100" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="9">TypeCheck</text>
+  <text x="130" y="100" fill="#22c55e" font-family="JetBrains Mono, monospace" font-size="9">3.3s</text>
+
+  <text x="25" y="115" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="9">Lint</text>
+  <text x="130" y="115" fill="#22c55e" font-family="JetBrains Mono, monospace" font-size="9">0.8s</text>
+
+  <text x="25" y="130" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="9">Unit</text>
+  <text x="90" y="130" fill="#06b6d4" font-family="JetBrains Mono, monospace" font-size="9" font-weight="600">2036</text>
+  <text x="130" y="130" fill="#22c55e" font-family="JetBrains Mono, monospace" font-size="9">3.7s</text>
+
+  <text x="25" y="145" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="9">Arch</text>
+  <text x="90" y="145" fill="#06b6d4" font-family="JetBrains Mono, monospace" font-size="9" font-weight="600">42</text>
+  <text x="130" y="145" fill="#22c55e" font-family="JetBrains Mono, monospace" font-size="9">1.0s</text>
+
+  <text x="25" y="160" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="9">Contracts</text>
+  <text x="90" y="160" fill="#06b6d4" font-family="JetBrains Mono, monospace" font-size="9" font-weight="600">45</text>
+  <text x="130" y="160" fill="#22c55e" font-family="JetBrains Mono, monospace" font-size="9">0.5s</text>
+
+  <!-- CI/CD block -->
+  <rect x="180" y="60" width="155" height="120" rx="8" fill="#1e293b" fill-opacity="0.5"/>
+  <text x="190" y="80" fill="#ec4899" font-family="JetBrains Mono, monospace" font-size="10" font-weight="600" filter="url(#softGlow)">CI/CD JOBS</text>
+
+  <text x="190" y="100" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="9">Build</text>
+  <circle cx="290" cy="96" r="4" fill="#22c55e"/>
+  <text x="300" y="100" fill="#22c55e" font-family="JetBrains Mono, monospace" font-size="9">45s</text>
+
+  <text x="190" y="120" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="9">Integration</text>
+  <circle cx="290" cy="116" r="4" fill="#ef4444"/>
+  <text x="300" y="120" fill="#ef4444" font-family="JetBrains Mono, monospace" font-size="9">FAIL</text>
+
+  <text x="190" y="140" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="9">E2E</text>
+  <circle cx="290" cy="136" r="4" fill="#22c55e"/>
+  <text x="300" y="140" fill="#22c55e" font-family="JetBrains Mono, monospace" font-size="9">1:26</text>
+
+  <text x="190" y="160" fill="#94a3b8" font-family="JetBrains Mono, monospace" font-size="9">Security</text>
+  <circle cx="290" cy="156" r="4" fill="#22c55e"/>
+  <text x="300" y="160" fill="#22c55e" font-family="JetBrains Mono, monospace" font-size="9">22s</text>
+
+  <!-- Stats block -->
+  <rect x="345" y="60" width="135" height="120" rx="8" fill="#1e293b" fill-opacity="0.5"/>
+
+  <!-- Big number -->
+  <text x="412" y="105" fill="#f8fafc" font-family="JetBrains Mono, monospace" font-size="32" font-weight="700" text-anchor="middle">2,123</text>
+  <text x="412" y="120" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">TOTAL TESTS</text>
+
+  <!-- Progress bar -->
+  <rect x="360" y="135" width="105" height="6" rx="3" fill="#1e293b"/>
+  <rect x="360" y="135" width="100" height="6" rx="3" fill="url(#cyan)"/>
+
+  <text x="360" y="158" fill="#06b6d4" font-family="JetBrains Mono, monospace" font-size="11" font-weight="600">99.96%</text>
+  <text x="420" y="158" fill="#64748b" font-family="JetBrains Mono, monospace" font-size="9">pass rate</text>
+
+  <!-- Attestation footer -->
+  <text x="360" y="175" fill="#475569" font-family="JetBrains Mono, monospace" font-size="8">602e1695cd918a62</text>
+</svg>
