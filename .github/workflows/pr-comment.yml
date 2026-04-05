@@ -175,14 +175,7 @@ jobs:
           echo "✅ SVG card generated"
 
           # Convert SVG to PNG using sharp
-          bun -e "
-            import sharp from 'sharp';
-            import { readFileSync, writeFileSync } from 'fs';
-            const svg = readFileSync('ci-card.svg');
-            const png = await sharp(svg).png().toBuffer();
-            writeFileSync('ci-card.png', png);
-            console.log('✅ PNG card generated');
-          "
+          bun src/pr-comment/cli/convert-svg-to-png.ts ci-card.svg ci-card.png
 
       - name: Post PR Comment
         if: steps.pr.outputs.number
