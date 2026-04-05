@@ -1,0 +1,196 @@
+name: PR Comment
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "PR number to comment on"
+        required: true
+        type: string
+      run_id:
+        description: "CI workflow run ID to get metrics from"
+        required: true
+        type: string
+      branch:
+        description: "Branch name"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  pull-requests: write
+  actions: read
+
+jobs:
+  comment:
+    name: Update PR Comment
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.event == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || inputs.branch }}
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install Dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Get PR Number
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Use input if workflow_dispatch, otherwise find from branch
+          if [[ -n "${{ inputs.pr_number }}" ]]; then
+            PR_NUMBER="${{ inputs.pr_number }}"
+          else
+            PR_NUMBER=$(gh pr list \
+              --repo "${{ github.repository }}" \
+              --head "${{ github.event.workflow_run.head_branch }}" \
+              --state open \
+              --json number \
+              --jq '.[0].number')
+          fi
+
+          if [[ -z "$PR_NUMBER" || "$PR_NUMBER" == "null" ]]; then
+            echo "No open PR found"
+            exit 0
+          fi
+
+          echo "number=$PR_NUMBER" >> $GITHUB_OUTPUT
+          echo "Found PR #$PR_NUMBER"
+
+      - name: Download Attestation
+        if: steps.pr.outputs.number
+        continue-on-error: true
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: ci.yml
+          run_id: ${{ github.event.workflow_run.id || inputs.run_id }}
+          name_is_regexp: true
+          name: ".*attestation.*"
+          path: ./artifacts
+          if_no_artifact_found: ignore
+
+      - name: Prepare Attestation
+        if: steps.pr.outputs.number
+        run: |
+          # Try to find attestation in artifacts or in repo
+          if [[ -f ./artifacts/.attestation ]]; then
+            cp ./artifacts/.attestation .attestation
+            echo "✅ Using attestation from CI artifacts"
+          elif [[ ! -f .attestation ]]; then
+            # Create minimal attestation if not found
+            cat > .attestation << 'EOF'
+          {
+            "version": "3",
+            "tree_hash": "${{ github.event.workflow_run.head_sha || github.sha }}",
+            "metrics": {
+              "swagger": {"status": "pending", "time_ms": 0},
+              "typecheck": {"status": "pending", "time_ms": 0},
+              "lint": {"status": "pending", "time_ms": 0},
+              "unit": {"status": "pending", "time_ms": 0, "passed": 0, "failed": 0, "skipped": 0},
+              "arch": {"status": "pending", "time_ms": 0, "passed": 0, "failed": 0, "skipped": 0},
+              "contracts": {"status": "pending", "time_ms": 0, "passed": 0, "failed": 0, "skipped": 0}
+            }
+          }
+          EOF
+            echo "⚠️ Created minimal attestation (pre-commit not run)"
+          else
+            echo "✅ Using attestation from repository"
+          fi
+
+          echo "Attestation:"
+          cat .attestation
+
+      - name: Collect CI Metrics
+        if: steps.pr.outputs.number
+        id: metrics
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Get job details from the workflow run
+          RUN_ID="${{ github.event.workflow_run.id || inputs.run_id }}"
+          JOBS=$(gh api \
+            "repos/${{ github.repository }}/actions/runs/${RUN_ID}/jobs" \
+            --jq '.jobs')
+
+          # Helper to extract job info
+          get_job_info() {
+            local job_name="$1"
+            echo "$JOBS" | jq -r ".[] | select(.name | test(\"$job_name\"; \"i\")) | {
+              status: (if .conclusion == \"success\" then \"success\"
+                       elif .conclusion == \"failure\" then \"fail\"
+                       elif .status == \"in_progress\" then \"running\"
+                       else \"pending\" end),
+              duration_ms: (
+                if .completed_at and .started_at then
+                  (((.completed_at | fromdateiso8601) - (.started_at | fromdateiso8601)) * 1000)
+                else 0 end
+              )
+            }"
+          }
+
+          # Extract job statuses
+          BUILD_INFO=$(get_job_info "Build")
+          INTEGRATION_INFO=$(get_job_info "Integration")
+          E2E_INFO=$(get_job_info "E2E")
+          SECURITY_INFO=$(get_job_info "Security")
+
+          # Build CI metrics JSON
+          cat > ci-metrics.json << EOF
+          {
+            "build": $(echo "$BUILD_INFO" | jq -c '. // {"status": "pending", "duration_ms": 0}'),
+            "integration": $(echo "$INTEGRATION_INFO" | jq -c '. // {"status": "pending", "duration_ms": 0}'),
+            "e2e": $(echo "$E2E_INFO" | jq -c '. // {"status": "pending", "duration_ms": 0}'),
+            "security": $(echo "$SECURITY_INFO" | jq -c '. // {"status": "pending", "duration_ms": 0}')
+          }
+          EOF
+
+          echo "CI Metrics:"
+          cat ci-metrics.json
+
+      - name: Generate CI Card
+        if: steps.pr.outputs.number
+        id: card
+        env:
+          GITHUB_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+          GITHUB_REF_NAME: ${{ github.event.workflow_run.head_branch || inputs.branch }}
+          GITHUB_RUN_NUMBER: ${{ github.event.workflow_run.run_number || github.run_number }}
+        run: |
+          # Generate SVG using TypeScript CLI
+          bun src/pr-comment/cli/generate-card.ts \
+            --attestation=.attestation \
+            --ci-metrics=ci-metrics.json > ci-card.svg
+
+          echo "✅ CI card generated"
+
+      - name: Post PR Comment
+        if: steps.pr.outputs.number
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          # Post comment using TypeScript CLI
+          bun src/pr-comment/cli/post-comment.ts \
+            --pr=${{ steps.pr.outputs.number }} \
+            --svg=ci-card.svg \
+            --tag=ci-pipeline-status
+
+          echo "✅ Comment posted to PR #${{ steps.pr.outputs.number }}"
+
+      - name: Upload CI Card Artifact
+        if: steps.pr.outputs.number
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-card-${{ github.event.workflow_run.run_number || github.run_number }}
+          path: ci-card.svg
+          retention-days: 7
