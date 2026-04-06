@@ -311,104 +311,51 @@ ${renderFooter(data)}
 }
 
 // =============================================================================
-// Markdown Card Generation (HTML + shields.io)
+// Markdown Card Generation (pure markdown)
 // =============================================================================
 
-const STATUS_COLORS: Record<string, string> = {
-  success: '22c55e',
-  fail: 'ef4444',
-  running: 'f59e0b',
-  skip: '6b7280',
-  pending: 'f59e0b',
-};
-
-function dot(status: string): string {
-  const c = STATUS_COLORS[status] || STATUS_COLORS.pending;
-  return `<img src="https://img.shields.io/badge/%E2%97%8F-${c}?style=flat-square&labelColor=${c}" height="10"/>`;
-}
-
-function badge(label: string, value: string | number, color: string): string {
-  const l = encodeURIComponent(label);
-  const v = encodeURIComponent(String(value));
-  return `<img src="https://img.shields.io/badge/${l}-${v}-${color}?style=flat-square"/>`;
-}
-
-function fmtVal(v: number | null | undefined): string {
-  if (v === null || v === undefined) return '—';
-  return String(v);
-}
-
-function fmtTime(ms: number): string {
-  return formatDuration(ms);
+function val(v: number | null | undefined): string {
+  return v === null || v === undefined ? '-' : String(v);
 }
 
 export function generateMarkdownCard(data: CardData): string {
   const { metrics, git } = data;
   const { precommit, ci, overall } = metrics;
 
-  const passRate = overall.pass_rate.toFixed(1);
-  const passRateColor =
-    overall.pass_rate >= 80 ? '22c55e' : overall.pass_rate >= 50 ? 'f59e0b' : 'ef4444';
-  const statusColor = STATUS_COLORS[overall.status] || STATUS_COLORS.pending;
-  const statusLabel = getStatusLabel(overall.status).toUpperCase();
+  let md = `## CI Pipeline\n\n`;
+  md += `**${git.commit_message}** \`${git.commit_hash}\` on \`${git.branch}\`\n\n`;
 
-  let h = '';
-
-  // Header row
-  h += `<table width="100%"><tr>`;
-  h += `<td><h2>CI PIPELINE</h2></td>`;
-  h += `<td align="center"><b>${escapeXml(git.commit_message)}</b><br/><sub><code>${git.commit_hash}</code> · ${escapeXml(git.commit_author)}</sub></td>`;
-  h += `<td align="right"><sub>${escapeXml(git.branch)}</sub></td>`;
-  h += `</tr></table>\n\n`;
-
-  // Two-column layout
-  h += `<table width="100%"><tr valign="top">\n`;
-
-  // LEFT: PRE-COMMIT
-  h += `<td width="50%">\n\n`;
-  h += `**PRE-COMMIT** <sub>${fmtTime(precommit.duration_ms)}</sub>\n\n`;
-  h += `| | CHECK | SUITES | TOTAL | PASS | FAIL | TIME |\n`;
-  h += `|:--:|:--|:--:|:--:|:--:|:--:|--:|\n`;
+  // Pre-commit
+  md += `### Pre-commit\n\n`;
+  md += `| Check | Suites | Total | Pass | Fail | Time |\n`;
+  md += `|:------|:------:|:-----:|:----:|:----:|-----:|\n`;
   for (const c of precommit.checks) {
-    const name = c.name.charAt(0).toUpperCase() + c.name.slice(1);
-    h += `| ${dot(c.status)} | ${name} | ${fmtVal(c.suites)} | ${fmtVal(c.total)} | ${fmtVal(c.passed)} | ${fmtVal(c.failed)} | ${fmtTime(c.duration_ms)} |\n`;
+    const n = c.name.charAt(0).toUpperCase() + c.name.slice(1);
+    md += `| ${n} | ${val(c.suites)} | ${val(c.total)} | ${val(c.passed)} | ${val(c.failed)} | ${formatDuration(c.duration_ms)} |\n`;
   }
-  h += `| | **TOTAL** | ${precommit.totals.suites} | **${precommit.totals.total}** | **${precommit.totals.passed}** | ${precommit.totals.failed} | ${fmtTime(precommit.duration_ms)} |\n\n`;
-  if (precommit.attestation_hash) {
-    h += `<sub>ATTESTATION <code>${precommit.attestation_hash.slice(0, 24)}</code></sub>\n\n`;
-  }
-  h += `</td>\n`;
+  md += `| **Total** | **${precommit.totals.suites}** | **${precommit.totals.total}** | **${precommit.totals.passed}** | **${precommit.totals.failed}** | **${formatDuration(precommit.duration_ms)}** |\n\n`;
 
-  // RIGHT: CI
-  h += `<td width="50%">\n\n`;
-  h += `**CI** <sub>${fmtTime(ci.duration_ms)}</sub>\n\n`;
-  h += `| | JOB | SUITES | TOTAL | PASS | FAIL | TIME |\n`;
-  h += `|:--:|:--|:--:|:--:|:--:|:--:|--:|\n`;
+  // CI
+  md += `### CI\n\n`;
+  md += `| Job | Suites | Total | Pass | Fail | Time |\n`;
+  md += `|:----|:------:|:-----:|:----:|:----:|-----:|\n`;
   for (const j of ci.jobs) {
-    const name = j.name.charAt(0).toUpperCase() + j.name.slice(1);
-    const pending = j.status === 'pending' || j.status === 'running';
-    h += `| ${dot(j.status)} | ${name} | ${pending ? '—' : fmtVal(j.suites)} | ${pending ? '—' : fmtVal(j.total)} | ${pending ? '—' : fmtVal(j.passed)} | ${pending ? '—' : fmtVal(j.failed)} | ${fmtTime(j.duration_ms)} |\n`;
+    const n = j.name.charAt(0).toUpperCase() + j.name.slice(1);
+    md += `| ${n} | ${val(j.suites)} | ${val(j.total)} | ${val(j.passed)} | ${val(j.failed)} | ${formatDuration(j.duration_ms)} |\n`;
   }
-  h += `| | **TOTAL** | ${ci.totals.suites} | **${ci.totals.total}** | **${ci.totals.passed}** | ${ci.totals.failed} | ${fmtTime(ci.duration_ms)} |\n\n`;
-  h += `</td>\n`;
+  md += `| **Total** | **${ci.totals.suites}** | **${ci.totals.total}** | **${ci.totals.passed}** | **${ci.totals.failed}** | **${formatDuration(ci.duration_ms)}** |\n\n`;
 
-  h += `</tr></table>\n\n`;
-
-  // Stats badges row
-  h += `<table width="100%"><tr>`;
-  h += `<td align="center">${badge('PASS_RATE', `${passRate}%`, passRateColor)}</td>`;
-  h += `<td align="center">${badge('TOTAL_TESTS', formatNumber(overall.total_tests), '6366f1')}</td>`;
-  h += `<td align="center">${badge('DURATION', fmtTime(overall.duration_ms), '64748b')}</td>`;
-  h += `<td align="center">${badge('STATUS', statusLabel, statusColor)}</td>`;
-  h += `</tr><tr>`;
-  h += `<td align="center">${badge('PASSED', formatNumber(overall.total_passed), '22c55e')}</td>`;
-  h += `<td align="center">${badge('FAILED', overall.total_failed, overall.total_failed > 0 ? 'ef4444' : '6b7280')}</td>`;
-  h += `<td align="center">${badge('SKIPPED', overall.total_skipped, overall.total_skipped > 0 ? 'f59e0b' : '6b7280')}</td>`;
-  h += `<td align="center"><sub>PRE-COMMIT ${fmtTime(precommit.duration_ms)} · CI ${fmtTime(ci.duration_ms)}</sub></td>`;
-  h += `</tr></table>\n\n`;
+  // Summary
+  md += `### Summary\n\n`;
+  md += `| Pass Rate | Tests | Passed | Failed | Skipped | Duration |\n`;
+  md += `|:---------:|:-----:|:------:|:------:|:-------:|:--------:|\n`;
+  md += `| ${overall.pass_rate.toFixed(1)}% | ${overall.total_tests} | ${overall.total_passed} | ${overall.total_failed} | ${overall.total_skipped} | ${formatDuration(overall.duration_ms)} |\n\n`;
 
   // Footer
-  h += `---\n<sub>${git.timestamp} · workflow run #${git.run_number}</sub>`;
+  if (precommit.attestation_hash) {
+    md += `Attestation: \`${precommit.attestation_hash.slice(0, 12)}\`\n\n`;
+  }
+  md += `---\n${git.timestamp} | Run #${git.run_number}`;
 
-  return h;
+  return md;
 }
