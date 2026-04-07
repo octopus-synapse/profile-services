@@ -397,13 +397,18 @@ export class InMemoryUserRepository {
       if (!user) return null;
 
       if (args.select) {
-        const selected: Record<string, unknown> = {};
-        for (const key of Object.keys(args.select)) {
-          if (args.select[key]) {
-            selected[key] = user[key as keyof UserRecord];
-          }
-        }
-        return selected as unknown as UserRecord;
+        const selectClause = args.select;
+        const selected = Object.keys(selectClause).reduce<Partial<UserRecord>>(
+          (acc, key) => {
+            if (selectClause[key]) {
+              const typedKey = key as keyof UserRecord;
+              return { ...acc, [typedKey]: user[typedKey] };
+            }
+            return acc;
+          },
+          {},
+        );
+        return selected as UserRecord;
       }
 
       return user;
