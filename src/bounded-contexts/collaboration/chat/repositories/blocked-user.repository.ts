@@ -38,8 +38,8 @@ export class BlockedUserRepository {
   /**
    * Unblock a user.
    */
-  async unblock(blockerId: string, blockedId: string) {
-    return this.prisma.blockedUser.delete({
+  async unblock(blockerId: string, blockedId: string): Promise<void> {
+    await this.prisma.blockedUser.delete({
       where: {
         blockerId_blockedId: { blockerId, blockedId },
       },
