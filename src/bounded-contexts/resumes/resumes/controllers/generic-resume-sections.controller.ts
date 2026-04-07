@@ -69,14 +69,24 @@ export class GenericResumeSectionsController {
     const rawSectionTypes = await this.sectionsService.listSectionTypes();
 
     // Resolve translations for requested locale
-    const sectionTypes = rawSectionTypes.map((st) =>
-      resolveSectionTypeForLocale(st as Parameters<typeof resolveSectionTypeForLocale>[0], locale),
-    );
+    const sectionTypes = rawSectionTypes.map((st) => {
+      const resolved = resolveSectionTypeForLocale(
+        st as Parameters<typeof resolveSectionTypeForLocale>[0],
+        locale,
+      );
+      return {
+        ...resolved,
+        definition: (resolved.definition ?? {}) as Record<string, unknown>,
+        uiSchema: (resolved.uiSchema as Record<string, unknown>) ?? null,
+        renderHints: (resolved.renderHints ?? {}) as Record<string, unknown>,
+        fieldStyles: (resolved.fieldStyles ?? {}) as Record<string, unknown>,
+      };
+    });
 
     return {
       success: true,
       data: {
-        sectionTypes: sectionTypes as unknown as ResumeSectionTypesDataDto['sectionTypes'],
+        sectionTypes,
       },
     };
   }
