@@ -1,0 +1,377 @@
+/**
+ * Onboarding Controller — Session / Commands API
+ *
+ * Backend drives the entire onboarding flow.
+ * Frontend is a pure renderer — sends commands, receives session state.
+ *
+ * Endpoints:
+ *   GET  /session           → Full session state (steps, fields, data, navigation)
+ *   POST /session/next      → Advance to next step (with optional step data)
+ *   POST /session/previous  → Go back one step
+ *   POST /session/goto      → Jump to accessible step
+ *   POST /session/save      → Save current step data without advancing
+ *   POST /session/complete  → Complete onboarding (backend builds payload from progress)
+ *
+ * Legacy endpoints kept for backward compat:
+ *   GET  /progress           → Alias for GET /session
+ *   PUT  /progress           → Raw partial save
+ *   POST /                   → Complete with explicit payload
+ */
+
+import { Body, Controller, Get, HttpCode, HttpStatus, Inject, Post, Put, Query } from '@nestjs/common';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
+import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
+import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
+import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
+import { createZodPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
+import { parseLocale } from '@/shared-kernel/utils/locale-resolver';
+import {
+  buildOnboardingSteps,
+  calculateProgress,
+  getStepIndex,
+  type SectionTypeData,
+} from '../../domain/config/onboarding-steps.config';
+import { canProceedFromStep } from '../../domain/config/onboarding-validation';
+import { type OnboardingData, OnboardingDataSchema } from '../../domain/schemas/onboarding-data.schema';
+import {
+  ONBOARDING_USE_CASES,
+  type OnboardingUseCases,
+} from '../../domain/ports/onboarding.port';
+import {
+  ONBOARDING_PROGRESS_USE_CASES,
+  type OnboardingProgressUseCases,
+} from '../../domain/ports/onboarding-progress.port';
+import {
+  CompleteOnboardingRequestDto,
+  CompleteOnboardingResponseDto,
+  GotoStepRequestDto,
+  OnboardingSessionDto,
+  OnboardingStatusResponseDto,
+  PersonalInfoDto,
+  ProfessionalProfileDto,
+  SaveProgressRequestDto,
+  SaveProgressResponseDto,
+  SectionItemDto,
+  TemplateSelectionDto,
+} from '../dto';
+import { OnboardingProgressSchema, type OnboardingProgress } from '../../domain/schemas/onboarding-progress.schema';
+import type { OnboardingProgressData } from '../../domain/ports/onboarding-progress.port';
+
+// Backward compat alias
+export { OnboardingSessionDto as OnboardingProgressDto };
+
+const ONBOARDING_STEP_DATA_REQUEST_SCHEMA = {
+  type: 'object',
+  additionalProperties: true,
+  description: 'Data to save for the current step',
+} as const;
+
+// ============================================================================
+// Controller
+// ============================================================================
+
+@SdkExport({ tag: 'onboarding', description: 'Onboarding API' })
+@ApiTags('onboarding')
+@ApiBearerAuth('JWT-auth')
+@Controller('v1/onboarding')
+export class OnboardingController {
+  constructor(
+    @Inject(ONBOARDING_USE_CASES)
+    private readonly useCases: OnboardingUseCases,
+    @Inject(ONBOARDING_PROGRESS_USE_CASES)
+    private readonly progressUseCases: OnboardingProgressUseCases,
+  ) {}
+
+  // ==========================================================================
+  // Session / Commands API
+  // ==========================================================================
+
+  @Get('session')
+  @ApiOperation({
+    summary: 'Get onboarding session with field definitions and navigation',
+  })
+  @ApiQuery({
+    name: 'locale',
+    required: false,
+    description: 'Locale for translations (en, pt-BR, es). Defaults to en.',
+    example: 'pt-BR',
+  })
+  @ApiDataResponse(OnboardingSessionDto, {
+    description: 'Full session state — steps, fields, data, navigation',
+  })
+  async getSession(
+    @CurrentUser() user: UserPayload,
+    @Query('locale') localeParam?: string,
+  ): Promise<DataResponse<OnboardingSessionDto>> {
+    const locale = parseLocale(localeParam);
+    const [data, sectionTypes] = await Promise.all([
+      this.progressUseCases.getProgressUseCase.execute(user.userId),
+      this.useCases.getSectionTypeDefinitionsUseCase.execute(locale),
+    ]);
+    return { success: true, data: this.buildSession(data, sectionTypes) };
+  }
+
+  @Post('session/next')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Save current step data and advance to next step' })
+  @ApiQuery({
+    name: 'locale',
+    required: false,
+    description: 'Locale for translations (en, pt-BR, es). Defaults to en.',
+  })
+  @ApiBody({ schema: ONBOARDING_STEP_DATA_REQUEST_SCHEMA })
+  @ApiDataResponse(OnboardingSessionDto, { description: 'Updated session' })
+  async nextStep(
+    @CurrentUser() user: UserPayload,
+    @Body() body: Record<string, unknown>,
+    @Query('locale') localeParam?: string,
+  ): Promise<DataResponse<OnboardingSessionDto>> {
+    const locale = parseLocale(localeParam);
+    const stepData = body;
+
+    const rawData = await this.useCases.advanceOnboardingStepUseCase.execute(user.userId, stepData);
+    const sectionTypes = await this.useCases.getSectionTypeDefinitionsUseCase.execute(locale);
+    return { success: true, data: this.buildSession(rawData, sectionTypes) };
+  }
+
+  @Post('session/previous')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Go back to previous step' })
+  @ApiQuery({
+    name: 'locale',
+    required: false,
+    description: 'Locale for translations (en, pt-BR, es). Defaults to en.',
+  })
+  @ApiDataResponse(OnboardingSessionDto, { description: 'Updated session' })
+  async previousStep(
+    @CurrentUser() user: UserPayload,
+    @Query('locale') localeParam?: string,
+  ): Promise<DataResponse<OnboardingSessionDto>> {
+    const locale = parseLocale(localeParam);
+    const rawData = await this.useCases.goBackOnboardingStepUseCase.execute(user.userId);
+    const sectionTypes = await this.useCases.getSectionTypeDefinitionsUseCase.execute(locale);
+    return { success: true, data: this.buildSession(rawData, sectionTypes) };
+  }
+
+  @Post('session/goto')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Jump to an accessible step' })
+  @ApiQuery({
+    name: 'locale',
+    required: false,
+    description: 'Locale for translations (en, pt-BR, es). Defaults to en.',
+  })
+  @ApiBody({ type: GotoStepRequestDto })
+  @ApiDataResponse(OnboardingSessionDto, { description: 'Updated session' })
+  async gotoStep(
+    @CurrentUser() user: UserPayload,
+    @Body() body: GotoStepRequestDto,
+    @Query('locale') localeParam?: string,
+  ): Promise<DataResponse<OnboardingSessionDto>> {
+    const locale = parseLocale(localeParam);
+    const rawData = await this.useCases.gotoOnboardingStepUseCase.execute(user.userId, body.stepId);
+    const sectionTypes = await this.useCases.getSectionTypeDefinitionsUseCase.execute(locale);
+    return { success: true, data: this.buildSession(rawData, sectionTypes) };
+  }
+
+  @Post('session/save')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Save current step data without advancing' })
+  @ApiQuery({
+    name: 'locale',
+    required: false,
+    description: 'Locale for translations (en, pt-BR, es). Defaults to en.',
+  })
+  @ApiBody({ schema: ONBOARDING_STEP_DATA_REQUEST_SCHEMA })
+  @ApiDataResponse(OnboardingSessionDto, { description: 'Updated session' })
+  async saveStepData(
+    @CurrentUser() user: UserPayload,
+    @Body() body: Record<string, unknown>,
+    @Query('locale') localeParam?: string,
+  ): Promise<DataResponse<OnboardingSessionDto>> {
+    const locale = parseLocale(localeParam);
+    const stepData = body;
+    const rawData = await this.useCases.saveOnboardingStepDataUseCase.execute(user.userId, stepData);
+    const sectionTypes = await this.useCases.getSectionTypeDefinitionsUseCase.execute(locale);
+    return { success: true, data: this.buildSession(rawData, sectionTypes) };
+  }
+
+  @Post('session/complete')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Complete onboarding — backend builds payload from saved progress',
+  })
+  @ApiDataResponse(CompleteOnboardingResponseDto, {
+    description: 'Onboarding completed, resume created',
+  })
+  async completeFromSession(
+    @CurrentUser() user: UserPayload,
+  ): Promise<DataResponse<CompleteOnboardingResponseDto>> {
+    const result = await this.useCases.completeOnboardingFromProgressUseCase.execute(user.userId);
+    return {
+      success: true,
+      data: result as CompleteOnboardingResponseDto,
+      resumeId: result.resumeId,
+    } as DataResponse<CompleteOnboardingResponseDto> & { resumeId: string };
+  }
+
+  // ==========================================================================
+  // Legacy Endpoints (backward compat — will be deprecated)
+  // ==========================================================================
+
+  @Get('progress')
+  @ApiOperation({ summary: '[Legacy] Get onboarding progress' })
+  @ApiDataResponse(OnboardingSessionDto, {
+    description: 'Enriched progress data',
+  })
+  async getProgress(@CurrentUser() user: UserPayload): Promise<DataResponse<OnboardingSessionDto>> {
+    const [data, sectionTypes] = await Promise.all([
+      this.progressUseCases.getProgressUseCase.execute(user.userId),
+      this.useCases.getSectionTypeDefinitionsUseCase.execute(),
+    ]);
+    return { success: true, data: this.buildSession(data, sectionTypes) };
+  }
+
+  @Get('status')
+  @ApiOperation({ summary: '[Legacy] Get onboarding completion status' })
+  @ApiDataResponse(OnboardingStatusResponseDto, {
+    description: 'Onboarding completion status',
+  })
+  async getStatus(
+    @CurrentUser() user: UserPayload,
+  ): Promise<DataResponse<OnboardingStatusResponseDto>> {
+    const status = await this.useCases.getOnboardingStatusUseCase.execute(user.userId);
+    return {
+      success: true,
+      data: status,
+      ...status,
+    } as DataResponse<OnboardingStatusResponseDto> & OnboardingStatusResponseDto;
+  }
+
+  @Put('progress')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: '[Legacy] Save onboarding progress' })
+  @ApiBody({ type: SaveProgressRequestDto })
+  @ApiDataResponse(SaveProgressResponseDto, { description: 'Progress saved' })
+  async saveProgress(
+    @CurrentUser() user: UserPayload,
+    @Body(createZodPipe(OnboardingProgressSchema)) data: OnboardingProgress,
+  ): Promise<DataResponse<SaveProgressResponseDto>> {
+    const result = await this.progressUseCases.saveProgressUseCase.execute(user.userId, data);
+    return { success: true, data: result as SaveProgressResponseDto };
+  }
+
+  @Post()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: '[Legacy] Complete onboarding with explicit payload',
+  })
+  @ApiBody({ type: CompleteOnboardingRequestDto })
+  @ApiDataResponse(CompleteOnboardingResponseDto, {
+    description: 'Onboarding completed',
+  })
+  async completeOnboarding(
+    @CurrentUser() user: UserPayload,
+    @Body(createZodPipe(OnboardingDataSchema)) data: OnboardingData,
+  ): Promise<DataResponse<CompleteOnboardingResponseDto>> {
+    const result = await this.useCases.completeOnboardingUseCase.execute(user.userId, data);
+    return {
+      success: true,
+      data: result as CompleteOnboardingResponseDto,
+      resumeId: result.resumeId,
+    } as DataResponse<CompleteOnboardingResponseDto> & { resumeId: string };
+  }
+
+  // ============================================================================
+  // Private: Build session response
+  // ============================================================================
+
+  buildSession(
+    data: OnboardingProgressData,
+    sectionTypes: SectionTypeData[],
+  ): OnboardingSessionDto {
+    const steps = buildOnboardingSteps(sectionTypes);
+    const currentStepIndex = getStepIndex(data.currentStep, steps);
+    const totalSteps = steps.length;
+
+    const personalInfo = this.toPersonalInfo(data.personalInfo);
+    const professionalProfile = this.toProfessionalProfile(data.professionalProfile);
+    const templateSelection = this.toTemplateSelection(data.templateSelection);
+
+    const canProceed = canProceedFromStep(data.currentStep, {
+      username: data.username,
+      personalInfo,
+      professionalProfile,
+      templateSelection,
+    });
+
+    const nextStep = currentStepIndex < totalSteps - 1 ? steps[currentStepIndex + 1]?.id : null;
+    const previousStep = currentStepIndex > 0 ? steps[currentStepIndex - 1]?.id : null;
+
+    return {
+      currentStep: data.currentStep,
+      completedSteps: data.completedSteps,
+      progress: calculateProgress(currentStepIndex, totalSteps),
+      canProceed,
+      nextStep,
+      previousStep,
+      steps,
+      username: data.username ?? undefined,
+      personalInfo,
+      professionalProfile,
+      sections: data.sections?.map((s) => ({
+        sectionTypeKey: s.sectionTypeKey,
+        items: s.items?.map((item) => this.toItem(item)),
+        noData: s.noData,
+      })),
+      templateSelection,
+    };
+  }
+
+  private toItem(item: unknown): SectionItemDto {
+    if (typeof item === 'object' && item !== null) {
+      const obj = item as Record<string, unknown>;
+      return {
+        id: typeof obj.id === 'string' ? obj.id : undefined,
+        content:
+          typeof obj.content === 'object' ? (obj.content as Record<string, unknown>) : undefined,
+      };
+    }
+    return {};
+  }
+
+  private toPersonalInfo(value: unknown): PersonalInfoDto | undefined {
+    if (!value || typeof value !== 'object') return undefined;
+    const obj = value as Record<string, unknown>;
+    if (typeof obj.fullName !== 'string' || typeof obj.email !== 'string') return undefined;
+    return {
+      fullName: obj.fullName,
+      email: obj.email,
+      phone: typeof obj.phone === 'string' ? obj.phone : undefined,
+      location: typeof obj.location === 'string' ? obj.location : undefined,
+    };
+  }
+
+  private toProfessionalProfile(value: unknown): ProfessionalProfileDto | undefined {
+    if (!value || typeof value !== 'object') return undefined;
+    const obj = value as Record<string, unknown>;
+    return {
+      jobTitle: typeof obj.jobTitle === 'string' ? obj.jobTitle : '',
+      summary: typeof obj.summary === 'string' ? obj.summary : undefined,
+      linkedin: typeof obj.linkedin === 'string' ? obj.linkedin : undefined,
+      github: typeof obj.github === 'string' ? obj.github : undefined,
+      website: typeof obj.website === 'string' ? obj.website : undefined,
+    };
+  }
+
+  private toTemplateSelection(value: unknown): TemplateSelectionDto | undefined {
+    if (!value || typeof value !== 'object') return undefined;
+    const obj = value as Record<string, unknown>;
+    return {
+      templateId: typeof obj.templateId === 'string' ? obj.templateId : undefined,
+      colorScheme: typeof obj.colorScheme === 'string' ? obj.colorScheme : undefined,
+    };
+  }
+}
