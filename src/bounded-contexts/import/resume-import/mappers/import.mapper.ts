@@ -77,9 +77,10 @@ function toParsedResumeData(value: ResumeImport['mappedData']): ParsedResumeData
     });
   }
   if (Array.isArray(data.skills) && data.skills.length > 0) {
+    const skills: unknown[] = data.skills;
     sections.push({
       sectionTypeKey: 'skill_v1',
-      items: (data.skills as unknown[])
+      items: skills
         .filter((item): item is string => typeof item === 'string')
         .map((name) => ({ name })),
     });
