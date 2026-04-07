@@ -1,0 +1,9 @@
+[test]
+# Static analysis tests configuration
+# Tests that don't require runtime (architecture, contracts, security)
+root = "./test/static-analysis"
+preload = ["./test/static-analysis/setup.ts"]
+timeout = 30000
+
+[install.scopes]
+"@octopus-synapse" = { token = "$GITHUB_TOKEN", url = "https://npm.pkg.github.com" }
