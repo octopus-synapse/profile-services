@@ -45,13 +45,17 @@ export class InMemoryBenchmarkRepository {
     if (args?.select) {
       const selectClause = args.select;
       return results.map((record) => {
-        const selected: Record<string, unknown> = {};
-        for (const key of Object.keys(selectClause)) {
-          if (selectClause[key] && key in record) {
-            selected[key] = record[key as keyof ResumeAnalyticsRecord];
-          }
-        }
-        return selected as unknown as ResumeAnalyticsRecord;
+        const selected = Object.keys(selectClause).reduce<Partial<ResumeAnalyticsRecord>>(
+          (acc, key) => {
+            if (selectClause[key] && key in record) {
+              const typedKey = key as keyof ResumeAnalyticsRecord;
+              return { ...acc, [typedKey]: record[typedKey] };
+            }
+            return acc;
+          },
+          {},
+        );
+        return selected as ResumeAnalyticsRecord;
       });
     }
 
