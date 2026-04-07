@@ -1,6 +1,6 @@
 /**
  * Password Hash Service
- * Single Responsibility: Password hashing and validation using bcrypt
+ * Single Responsibility: Password hashing and validation using Bun.password
  *
  * This is a shared infrastructure service used by multiple Bounded Contexts:
  * - authentication (login validation)
@@ -9,17 +9,16 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import * as bcrypt from 'bcryptjs';
 
-const BCRYPT_ROUNDS = 12;
+const BCRYPT_COST = 12;
 
 @Injectable()
 export class PasswordHashService {
   async hash(password: string): Promise<string> {
-    return bcrypt.hash(password, BCRYPT_ROUNDS);
+    return Bun.password.hash(password, { algorithm: 'bcrypt', cost: BCRYPT_COST });
   }
 
   async compare(password: string, hash: string): Promise<boolean> {
-    return bcrypt.compare(password, hash);
+    return Bun.password.verify(password, hash);
   }
 }

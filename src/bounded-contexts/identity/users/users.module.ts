@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import * as bcrypt from 'bcryptjs';
 import { AuthorizationModule } from '@/bounded-contexts/identity/authorization';
 import { LoggerModule } from '@/bounded-contexts/platform/common/logger/logger.module';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
@@ -40,7 +39,7 @@ import {
     {
       provide: USER_MANAGEMENT_USE_CASES,
       useFactory: (prisma: PrismaService) =>
-        buildUserManagementUseCases(prisma, (password: string) => bcrypt.hash(password, 12)),
+        buildUserManagementUseCases(prisma, (password: string) => Bun.password.hash(password, { algorithm: 'bcrypt', cost: 12 })),
       inject: [PrismaService],
     },
     {
