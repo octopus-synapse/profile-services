@@ -1,5 +1,5 @@
-import { INestApplication } from '@nestjs/common';
-import helmet from 'helmet';
+import type { INestApplication } from '@nestjs/common';
+import type { NextFunction, Request, Response } from 'express';
 
 const DEFAULT_FRONTEND_ORIGIN = 'http://localhost:3000';
 const LOCAL_DEV_ORIGINS = [
@@ -10,27 +10,47 @@ const LOCAL_DEV_ORIGINS = [
 ];
 
 /**
- * Security configuration - Helmet setup
+ * Build the Content-Security-Policy header value.
+ * When Swagger is enabled the policy is relaxed to allow the Swagger UI assets.
+ */
+function buildCsp(enableSwagger: boolean): string {
+  if (enableSwagger) {
+    return [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net",
+      "style-src 'self' 'unsafe-inline' https:",
+      "font-src 'self' https: data:",
+      "img-src 'self' data: https:",
+      "connect-src 'self' https:",
+      "worker-src 'self' blob:",
+    ].join('; ');
+  }
+  return "default-src 'self'";
+}
+
+/**
+ * Security configuration - manual security headers
  * Single Responsibility: Configure security headers only
+ *
+ * Replaces the `helmet` package with explicit header assignments so
+ * there is no external runtime dependency for security headers.
  */
 export function configureSecurityHeaders(app: INestApplication, enableSwagger: boolean): void {
-  app.use(
-    helmet({
-      contentSecurityPolicy: enableSwagger
-        ? {
-            directives: {
-              defaultSrc: ["'self'"],
-              scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", 'https://cdn.jsdelivr.net'],
-              styleSrc: ["'self'", "'unsafe-inline'", 'https:'],
-              fontSrc: ["'self'", 'https:', 'data:'],
-              imgSrc: ["'self'", 'data:', 'https:'],
-              connectSrc: ["'self'", 'https:'],
-              workerSrc: ["'self'", 'blob:'],
-            },
-          }
-        : undefined,
-    }),
-  );
+  const csp = buildCsp(enableSwagger);
+
+  app.use((_req: Request, res: Response, next: NextFunction) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('X-XSS-Protection', '0');
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    res.setHeader('Content-Security-Policy', csp);
+    res.setHeader('X-Permitted-Cross-Domain-Policies', 'none');
+    res.setHeader('X-DNS-Prefetch-Control', 'off');
+    res.setHeader('X-Download-Options', 'noopen');
+    res.removeHeader('X-Powered-By');
+    next();
+  });
 }
 
 /**
