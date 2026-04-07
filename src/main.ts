@@ -1,9 +1,9 @@
 import { NestFactory } from '@nestjs/core';
-import cookieParser from 'cookie-parser';
 import {
   configureCors,
   configureSecurityHeaders,
 } from '@/bounded-contexts/platform/common/config/security.config';
+import { parseCookieHeader } from '@/bounded-contexts/platform/common/middleware/cookie-parser.middleware';
 import {
   configureSwagger,
   isSwaggerEnabled,
@@ -29,8 +29,11 @@ async function bootstrap() {
   app.useLogger(logger);
   app.setGlobalPrefix('api');
 
-  // Cookie Parser (for session-based auth)
-  app.use(cookieParser());
+  // Cookie Parser (for session-based auth) — uses lightweight built-in middleware
+  app.use((req: any, _res: any, next: any) => {
+    req.cookies ??= parseCookieHeader(req.headers.cookie);
+    next();
+  });
 
   // Security Configuration
   configureSecurityHeaders(app, isSwaggerEnabled());

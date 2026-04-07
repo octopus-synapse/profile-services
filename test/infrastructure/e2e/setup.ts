@@ -7,8 +7,8 @@
 import { setDefaultTimeout } from 'bun:test';
 import type { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import cookieParser from 'cookie-parser';
 import { AppModule } from '@/app.module';
+import { parseCookieHeader } from '@/bounded-contexts/platform/common/middleware/cookie-parser.middleware';
 import {
   configureExceptionHandling,
   configureValidation,
@@ -67,8 +67,11 @@ export async function createE2ETestApp(): Promise<{
   const app = moduleFixture.createNestApplication();
   app.setGlobalPrefix('api');
 
-  // Cookie parser for session-based auth testing
-  app.use(cookieParser());
+  // Cookie parser for session-based auth testing — uses lightweight built-in middleware
+  app.use((req: any, _res: any, next: any) => {
+    req.cookies ??= parseCookieHeader(req.headers.cookie);
+    next();
+  });
 
   // Apply same configuration as main.ts
   const logger = app.get(AppLoggerService);
