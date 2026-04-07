@@ -10,11 +10,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Document, Packer } from 'docx';
 import { UsersRepository } from '@/bounded-contexts/identity/users';
-import { SectionTypeRepository } from '@/bounded-contexts/resumes/infrastructure/repositories';
+import { SectionTypeRepository } from '@/bounded-contexts/resumes/shared-kernel/infrastructure/repositories';
 import { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.repository';
 import { ERROR_MESSAGES } from '@/shared-kernel';
-import { DocxUserData } from './docx.types';
-import { DocxSectionsService, GenericResumeSectionData } from './docx-sections.service';
+import type { DocxUserData } from './docx.types';
+import { DocxSectionsService } from './docx-sections.service';
+import type { GenericResumeSectionData } from './docx-sections.service';
 import { DocxStylesService } from './docx-styles.service';
 
 type ResumeSectionWithItems = {

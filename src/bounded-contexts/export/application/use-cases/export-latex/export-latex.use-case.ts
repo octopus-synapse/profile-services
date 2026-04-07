@@ -1,139 +1,70 @@
-import { Injectable, NotFoundException, Optional } from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { SectionTypeRepository } from '@/bounded-contexts/resumes/infrastructure/repositories';
+/**
+ * Export LaTeX Use Case
+ *
+ * Exports resume data as LaTeX document.
+ * Definition-driven - field extraction done generically from section item content.
+ */
 
-export interface LatexExportOptions {
+import { NotFoundException } from '@nestjs/common';
+import type {
+  GenericSectionContent,
+  GenericSectionWithMeta,
+  ResumeDataRepositoryPort,
+  ResumeForLatexExport,
+} from '../../../domain/ports/resume-data.repository.port';
+import type { SectionOrderingPort } from '../../../domain/ports/section-ordering.port';
+
+// ============================================================================
+// DTOs & Types
+// ============================================================================
+
+export interface ExportLatexDto {
+  resumeId: string;
   template?: 'simple' | 'moderncv';
   language?: 'en' | 'pt';
 }
 
-/**
- * Generic section item content
- */
-type GenericSectionContent = Record<string, unknown>;
+// ============================================================================
+// Use Case
+// ============================================================================
 
-/**
- * Generic section with items
- */
-interface GenericSection {
-  semanticKind: string;
-  sectionTypeKey: string;
-  title: string;
-  items: GenericSectionContent[];
-}
-
-type LatexResumeData = {
-  title: string | null;
-  fullName: string | null;
-  emailContact: string | null;
-  phone: string | null;
-  jobTitle: string | null;
-  user: {
-    name: string | null;
-    email: string | null;
-    phone: string | null;
-  };
-  sections: GenericSection[];
-};
-
-/**
- * ResumeLatexService - Definition-driven LaTeX export.
- *
- * Field extraction is done generically from section item content.
- * Section types loaded from SectionTypeRepository for ordering.
- */
-@Injectable()
-export class ResumeLatexService {
+export class ExportLatexUseCase {
   constructor(
-    private readonly prisma: PrismaService,
-    @Optional() private readonly sectionTypeRepo?: SectionTypeRepository,
+    private readonly resumeDataRepository: ResumeDataRepositoryPort,
+    private readonly sectionOrdering?: SectionOrderingPort,
   ) {}
 
-  async exportAsLatex(resumeId: string, options: LatexExportOptions = {}): Promise<string> {
-    const resume = await this.prisma.resume.findUnique({
-      where: { id: resumeId },
-      include: {
-        user: true,
-        resumeSections: {
-          include: {
-            sectionType: {
-              select: {
-                key: true,
-                semanticKind: true,
-                title: true,
-              },
-            },
-            items: {
-              orderBy: { order: 'asc' },
-              select: {
-                content: true,
-              },
-            },
-          },
-        },
-      },
-    });
+  async execute(dto: ExportLatexDto): Promise<string> {
+    const resume = await this.resumeDataRepository.findForLatexExport(dto.resumeId);
 
     if (!resume) {
       throw new NotFoundException('Resume not found');
     }
 
-    const latexData: LatexResumeData = {
-      title: resume.title,
-      fullName: resume.fullName,
-      emailContact: resume.emailContact,
-      phone: resume.phone,
-      jobTitle: resume.jobTitle,
-      user: resume.user,
-      sections: this.extractGenericSections(
-        resume.resumeSections.map((rs) => ({
-          sectionType: rs.sectionType,
-          items: rs.items.map((item) => ({ content: item.content })),
-        })),
-      ),
-    };
-
-    const template = options.template ?? 'simple';
-
-    if (template === 'moderncv') {
-      return this.generateModerncvTemplate(latexData);
+    // Sort sections by recommended position
+    if (this.sectionOrdering) {
+      resume.sections.sort((a, b) => {
+        const aPos = this.sectionOrdering!.getRecommendedPosition(a.sectionTypeKey);
+        const bPos = this.sectionOrdering!.getRecommendedPosition(b.sectionTypeKey);
+        return aPos - bPos;
+      });
     }
 
-    return this.generateSimpleTemplate(latexData);
+    const template = dto.template ?? 'simple';
+
+    if (template === 'moderncv') {
+      return this.generateModerncvTemplate(resume);
+    }
+
+    return this.generateSimpleTemplate(resume);
   }
 
-  async exportAsBuffer(resumeId: string, options: LatexExportOptions = {}): Promise<Buffer> {
-    const latex = await this.exportAsLatex(resumeId, options);
+  async executeAsBuffer(dto: ExportLatexDto): Promise<Buffer> {
+    const latex = await this.execute(dto);
     return Buffer.from(latex);
   }
 
-  /**
-   * Extract generic sections - no type-specific logic.
-   */
-  private extractGenericSections(
-    resumeSections: Array<{
-      sectionType: { key: string; semanticKind: string; title: string };
-      items: Array<{ content: unknown }>;
-    }>,
-  ): GenericSection[] {
-    return resumeSections
-      .map((rs) => ({
-        semanticKind: rs.sectionType.semanticKind,
-        sectionTypeKey: rs.sectionType.key,
-        title: rs.sectionType.title,
-        items: rs.items.map((item) => item.content as GenericSectionContent),
-      }))
-      .sort((a, b) => {
-        if (!this.sectionTypeRepo) return 0;
-        const aType = this.sectionTypeRepo.getByKey(a.sectionTypeKey);
-        const bType = this.sectionTypeRepo.getByKey(b.sectionTypeKey);
-        const aPos = aType?.definition.ats?.recommendedPosition ?? 99;
-        const bPos = bType?.definition.ats?.recommendedPosition ?? 99;
-        return aPos - bPos;
-      });
-  }
-
-  private generateSimpleTemplate(resume: LatexResumeData): string {
+  private generateSimpleTemplate(resume: ResumeForLatexExport): string {
     const name = this.escapeLatex(resume.user.name ?? resume.fullName ?? 'Unknown');
     const email = this.escapeLatex(resume.user.email ?? resume.emailContact ?? '');
     const phone = this.escapeLatex(resume.user.phone ?? resume.phone ?? '');
@@ -177,7 +108,7 @@ ${email}${phone ? ` \\textbar{} ${phone}` : ''}
    * Render a section in simple template format.
    * Uses generic field extraction - no hardcoded field names.
    */
-  private renderSimpleSection(section: GenericSection): string {
+  private renderSimpleSection(section: GenericSectionWithMeta): string {
     let latex = `\\section*{${this.escapeLatex(section.title)}}
 `;
 
@@ -221,7 +152,7 @@ ${email}${phone ? ` \\textbar{} ${phone}` : ''}
     return `${latex}\n`;
   }
 
-  private generateModerncvTemplate(resume: LatexResumeData): string {
+  private generateModerncvTemplate(resume: ResumeForLatexExport): string {
     const name = this.escapeLatex(resume.user.name ?? resume.fullName ?? 'Unknown');
     const email = this.escapeLatex(resume.user.email ?? resume.emailContact ?? '');
     const title = this.escapeLatex(resume.jobTitle ?? resume.title ?? '');
@@ -259,7 +190,7 @@ ${email}${phone ? ` \\textbar{} ${phone}` : ''}
   /**
    * Render a section in moderncv format.
    */
-  private renderModerncvSection(section: GenericSection): string {
+  private renderModerncvSection(section: GenericSectionWithMeta): string {
     let latex = `\\section{${this.escapeLatex(section.title)}}
 `;
 
