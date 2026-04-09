@@ -54,26 +54,43 @@ function toOptionalParsedResumeData(value: unknown): ParsedResumeData | undefine
   const sections: ParsedResumeData['sections'] = [];
 
   if (Array.isArray(data.experiences) && data.experiences.length > 0) {
-    sections.push({ sectionTypeKey: 'work_experience_v1', items: data.experiences as Array<Record<string, unknown>> });
+    sections.push({
+      sectionTypeKey: 'work_experience_v1',
+      items: data.experiences as Array<Record<string, unknown>>,
+    });
   }
   if (Array.isArray(data.education) && data.education.length > 0) {
-    sections.push({ sectionTypeKey: 'education_v1', items: data.education as Array<Record<string, unknown>> });
+    sections.push({
+      sectionTypeKey: 'education_v1',
+      items: data.education as Array<Record<string, unknown>>,
+    });
   }
   if (Array.isArray(data.skills) && data.skills.length > 0) {
     const skills: unknown[] = data.skills;
     sections.push({
       sectionTypeKey: 'skill_v1',
-      items: skills.filter((item): item is string => typeof item === 'string').map((name) => ({ name })),
+      items: skills
+        .filter((item): item is string => typeof item === 'string')
+        .map((name) => ({ name })),
     });
   }
   if (Array.isArray(data.certifications) && data.certifications.length > 0) {
-    sections.push({ sectionTypeKey: 'certification_v1', items: data.certifications as Array<Record<string, unknown>> });
+    sections.push({
+      sectionTypeKey: 'certification_v1',
+      items: data.certifications as Array<Record<string, unknown>>,
+    });
   }
   if (Array.isArray(data.languages) && data.languages.length > 0) {
-    sections.push({ sectionTypeKey: 'language_v1', items: data.languages as Array<Record<string, unknown>> });
+    sections.push({
+      sectionTypeKey: 'language_v1',
+      items: data.languages as Array<Record<string, unknown>>,
+    });
   }
   if (Array.isArray(data.projects) && data.projects.length > 0) {
-    sections.push({ sectionTypeKey: 'project_v1', items: data.projects as Array<Record<string, unknown>> });
+    sections.push({
+      sectionTypeKey: 'project_v1',
+      items: data.projects as Array<Record<string, unknown>>,
+    });
   }
 
   return {

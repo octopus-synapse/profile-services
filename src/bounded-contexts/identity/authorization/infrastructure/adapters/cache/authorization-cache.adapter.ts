@@ -5,8 +5,7 @@
  * and LRU-like eviction.
  */
 
-import type { UserAuthContext } from '../../../domain/entities/user-auth-context.entity';
-import type { UserId } from '../../../domain/entities/user-auth-context.entity';
+import type { UserAuthContext, UserId } from '../../../domain/entities/user-auth-context.entity';
 import type { AuthorizationCachePort } from '../../../domain/ports/authorization-cache.port';
 
 const DEFAULT_CACHE_TTL_SECONDS = 60; // 1 minute

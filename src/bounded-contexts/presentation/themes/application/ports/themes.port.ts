@@ -4,7 +4,6 @@
  * Defines the use cases interface and injection token for the Themes submodule.
  */
 
-import type { Prisma, ThemeStatus } from '@prisma/client';
 import type {
   ApplyThemeToResume,
   CreateTheme,
@@ -13,8 +12,11 @@ import type {
   ThemeApproval,
   UpdateTheme,
 } from '@/shared-kernel';
-import type { ResumeConfig } from '../../domain/ports/resume-config.repository.port';
-import type { ThemeEntity, ThemeWithAuthor, ThemeWithAuthorEmail } from '../../domain/ports/theme.repository.port';
+import type {
+  ThemeEntity,
+  ThemeWithAuthor,
+  ThemeWithAuthorEmail,
+} from '../../domain/ports/theme.repository.port';
 
 // ============================================================================
 // Injection Tokens
@@ -101,20 +103,46 @@ export interface ThemeUseCases {
 
   // Section Ordering
   reorderSectionUseCase: {
-    execute: (userId: string, resumeId: string, sectionId: string, newOrder: number) => Promise<void>;
+    execute: (
+      userId: string,
+      resumeId: string,
+      sectionId: string,
+      newOrder: number,
+    ) => Promise<void>;
   };
   reorderItemUseCase: {
-    execute: (userId: string, resumeId: string, sectionId: string, itemId: string, newOrder: number) => Promise<void>;
+    execute: (
+      userId: string,
+      resumeId: string,
+      sectionId: string,
+      itemId: string,
+      newOrder: number,
+    ) => Promise<void>;
   };
   batchReorderUseCase: {
-    execute: (userId: string, resumeId: string, updates: Array<{ id: string; visible?: boolean; order?: number; column?: string }>) => Promise<void>;
+    execute: (
+      userId: string,
+      resumeId: string,
+      updates: Array<{ id: string; visible?: boolean; order?: number; column?: string }>,
+    ) => Promise<void>;
   };
 
   // Section Visibility
   toggleSectionVisibilityUseCase: {
-    execute: (userId: string, resumeId: string, sectionId: string, visible: boolean) => Promise<void>;
+    execute: (
+      userId: string,
+      resumeId: string,
+      sectionId: string,
+      visible: boolean,
+    ) => Promise<void>;
   };
   toggleItemVisibilityUseCase: {
-    execute: (userId: string, resumeId: string, sectionId: string, itemId: string, visible: boolean) => Promise<void>;
+    execute: (
+      userId: string,
+      resumeId: string,
+      sectionId: string,
+      itemId: string,
+      visible: boolean,
+    ) => Promise<void>;
   };
 }

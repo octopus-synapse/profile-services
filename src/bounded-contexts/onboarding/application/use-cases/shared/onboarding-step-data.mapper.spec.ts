@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach } from 'bun:test';
-import { OnboardingStepDataMapper } from './onboarding-step-data.mapper';
+import { beforeEach, describe, expect, it } from 'bun:test';
 import type { OnboardingProgressData } from '../../../domain/ports/onboarding-progress.port';
+import { OnboardingStepDataMapper } from './onboarding-step-data.mapper';
 
 describe('OnboardingStepDataMapper', () => {
   let mapper: OnboardingStepDataMapper;

@@ -18,7 +18,17 @@
  *   POST /                   → Complete with explicit payload
  */
 
-import { Body, Controller, Get, HttpCode, HttpStatus, Inject, Post, Put, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Inject,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
@@ -34,15 +44,20 @@ import {
   type SectionTypeData,
 } from '../../domain/config/onboarding-steps.config';
 import { canProceedFromStep } from '../../domain/config/onboarding-validation';
-import { type OnboardingData, OnboardingDataSchema } from '../../domain/schemas/onboarding-data.schema';
-import {
-  ONBOARDING_USE_CASES,
-  type OnboardingUseCases,
-} from '../../domain/ports/onboarding.port';
+import { ONBOARDING_USE_CASES, type OnboardingUseCases } from '../../domain/ports/onboarding.port';
+import type { OnboardingProgressData } from '../../domain/ports/onboarding-progress.port';
 import {
   ONBOARDING_PROGRESS_USE_CASES,
   type OnboardingProgressUseCases,
 } from '../../domain/ports/onboarding-progress.port';
+import {
+  type OnboardingData,
+  OnboardingDataSchema,
+} from '../../domain/schemas/onboarding-data.schema';
+import {
+  type OnboardingProgress,
+  OnboardingProgressSchema,
+} from '../../domain/schemas/onboarding-progress.schema';
 import {
   CompleteOnboardingRequestDto,
   CompleteOnboardingResponseDto,
@@ -56,8 +71,6 @@ import {
   SectionItemDto,
   TemplateSelectionDto,
 } from '../dto';
-import { OnboardingProgressSchema, type OnboardingProgress } from '../../domain/schemas/onboarding-progress.schema';
-import type { OnboardingProgressData } from '../../domain/ports/onboarding-progress.port';
 
 // Backward compat alias
 export { OnboardingSessionDto as OnboardingProgressDto };
@@ -193,7 +206,10 @@ export class OnboardingController {
   ): Promise<DataResponse<OnboardingSessionDto>> {
     const locale = parseLocale(localeParam);
     const stepData = body;
-    const rawData = await this.useCases.saveOnboardingStepDataUseCase.execute(user.userId, stepData);
+    const rawData = await this.useCases.saveOnboardingStepDataUseCase.execute(
+      user.userId,
+      stepData,
+    );
     const sectionTypes = await this.useCases.getSectionTypeDefinitionsUseCase.execute(locale);
     return { success: true, data: this.buildSession(rawData, sectionTypes) };
   }

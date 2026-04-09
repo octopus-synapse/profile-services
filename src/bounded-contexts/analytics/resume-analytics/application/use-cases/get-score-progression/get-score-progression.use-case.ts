@@ -5,7 +5,10 @@
  */
 
 import type { ScoreProgression, ScoreProgressionPoint } from '../../../interfaces';
-import type { ResumeOwnershipPort, SnapshotRepositoryPort } from '../../ports/resume-analytics.port';
+import type {
+  ResumeOwnershipPort,
+  SnapshotRepositoryPort,
+} from '../../ports/resume-analytics.port';
 
 export class GetScoreProgressionUseCase {
   constructor(
@@ -37,6 +40,7 @@ export class GetScoreProgressionUseCase {
   private calculateChangePercent(points: ScoreProgressionPoint[]): number {
     if (points.length < 2) return 0;
     const first = points[0].score;
+    if (first === 0) return 0;
     return Math.round(((points[points.length - 1].score - first) / first) * 100);
   }
 }

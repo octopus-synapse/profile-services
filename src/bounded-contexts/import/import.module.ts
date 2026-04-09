@@ -8,15 +8,6 @@
 import { Module } from '@nestjs/common';
 import { LoggerModule } from '@/bounded-contexts/platform/common/logger/logger.module';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
-
-// Domain Ports
-import { IMPORT_JOB_REPOSITORY } from './domain/ports/import-job.repository.port';
-import { RESUME_CREATOR } from './domain/ports/resume-creator.port';
-
-// Infrastructure Adapters
-import { PrismaImportJobRepository } from './infrastructure/adapters/persistence/import-job.repository';
-import { PrismaResumeCreatorAdapter } from './infrastructure/adapters/persistence/resume-creator.adapter';
-
 // Use Cases
 import { CancelImportUseCase } from './application/use-cases/cancel-import/cancel-import.use-case';
 import { CreateImportJobUseCase } from './application/use-cases/create-import-job/create-import-job.use-case';
@@ -24,6 +15,12 @@ import { GetImportStatusUseCase } from './application/use-cases/get-import-statu
 import { ListImportHistoryUseCase } from './application/use-cases/list-import-history/list-import-history.use-case';
 import { ProcessImportUseCase } from './application/use-cases/process-import/process-import.use-case';
 import { RetryImportUseCase } from './application/use-cases/retry-import/retry-import.use-case';
+// Domain Ports
+import { IMPORT_JOB_REPOSITORY } from './domain/ports/import-job.repository.port';
+import { RESUME_CREATOR } from './domain/ports/resume-creator.port';
+// Infrastructure Adapters
+import { PrismaImportJobRepository } from './infrastructure/adapters/persistence/import-job.repository';
+import { PrismaResumeCreatorAdapter } from './infrastructure/adapters/persistence/resume-creator.adapter';
 
 // Controller
 import {

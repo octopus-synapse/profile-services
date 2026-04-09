@@ -62,9 +62,7 @@ export type UpdateProfileData = {
 // ============================================================================
 
 export abstract class UserProfileRepositoryPort {
-  abstract findUserByUsername(
-    username: string,
-  ): Promise<{
+  abstract findUserByUsername(username: string): Promise<{
     id: string;
     displayName: string | null;
     photoURL: string | null;

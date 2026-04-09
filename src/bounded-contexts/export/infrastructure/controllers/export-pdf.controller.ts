@@ -88,6 +88,12 @@ export class ExportPdfController {
     required: false,
     description: 'Custom banner color (hex)',
   })
+  @ApiQuery({
+    name: 'template',
+    required: false,
+    description: 'Template variant: "default" or "ats" (ATS-optimized for perfect score)',
+    enum: ['default', 'ats'],
+  })
   @ApiStreamResponse({
     mimeType: 'application/pdf',
     description: 'PDF document file',
@@ -97,6 +103,7 @@ export class ExportPdfController {
     @Query('palette') palette?: string,
     @Query('lang') lang?: string,
     @Query('bannerColor') bannerColor?: string,
+    @Query('template') template?: 'default' | 'ats',
   ): Promise<StreamableFile> {
     const exportId = randomUUID();
 
@@ -104,6 +111,7 @@ export class ExportPdfController {
     const safePalette = sanitizeQueryParam(palette);
     const safeLang = sanitizeQueryParam(lang);
     const safeBannerColor = sanitizeQueryParam(bannerColor);
+    const safeTemplate = template === 'ats' ? 'ats' as const : 'default' as const;
 
     // Emit export requested event before processing
     this.eventEmitter.emit(
@@ -121,6 +129,7 @@ export class ExportPdfController {
         lang: safeLang,
         bannerColor: safeBannerColor,
         userId: user.userId,
+        template: safeTemplate,
       });
 
       // Emit export completed event
@@ -148,6 +157,7 @@ export class ExportPdfController {
         palette: safePalette,
         lang: safeLang,
         bannerColor: safeBannerColor,
+        template: safeTemplate,
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
       });

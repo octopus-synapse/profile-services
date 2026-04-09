@@ -1,7 +1,7 @@
 /// <reference types="multer" />
 import { Injectable } from '@nestjs/common';
-import { ValidationSeverity } from '../../domain/interfaces';
 import type { FormatValidationResult, ValidationIssue } from '../../domain/interfaces';
+import { ValidationSeverity } from '../../domain/interfaces';
 import { FORMAT_VALIDATION } from './constants';
 
 @Injectable()

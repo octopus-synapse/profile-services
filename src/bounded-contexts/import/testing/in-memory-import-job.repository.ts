@@ -5,9 +5,7 @@
  * No Prisma, no database — pure Map-based storage.
  */
 
-import type {
-  ImportJobRepositoryPort,
-} from '../domain/ports/import-job.repository.port';
+import type { ImportJobRepositoryPort } from '../domain/ports/import-job.repository.port';
 import type {
   CreateImportJobParams,
   ImportJobData,

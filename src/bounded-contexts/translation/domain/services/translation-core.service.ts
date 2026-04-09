@@ -3,16 +3,18 @@
  * Handles basic translation operations using LibreTranslate
  */
 
-import { Logger } from '@nestjs/common';
+import type { LoggerPort } from '../ports/logger.port';
 import type { TranslationLanguage, TranslationResult } from '../types/translation.types';
 
 export class TranslationCoreService {
-  private readonly logger = new Logger(TranslationCoreService.name);
   private readonly libreTranslateUrl: string;
   private readonly timeoutMs: number;
   private isServiceAvailable = false;
 
-  constructor(libreTranslateUrl?: string) {
+  constructor(
+    private readonly logger: LoggerPort,
+    libreTranslateUrl?: string,
+  ) {
     this.libreTranslateUrl = libreTranslateUrl ?? 'http://libretranslate:5000';
     this.timeoutMs = 30_000;
   }

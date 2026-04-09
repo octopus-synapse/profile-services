@@ -8,10 +8,10 @@ import { beforeEach, describe, expect, it } from 'bun:test';
 import { InMemoryEventBus } from '../../../../shared-kernel/testing';
 import { PasswordResetRequestedEvent } from '../../../domain/events';
 import {
+  DEFAULT_USER,
   InMemoryEmailSender,
   InMemoryPasswordRepository,
   InMemoryTokenService,
-  DEFAULT_USER,
 } from '../../../testing';
 import { ForgotPasswordUseCase } from './forgot-password.use-case';
 
@@ -55,9 +55,9 @@ describe('ForgotPasswordUseCase', () => {
       expect(emailSender.wasEmailSentTo(DEFAULT_USER.email)).toBe(true);
       const lastEmail = emailSender.getLastSentEmail();
       expect(lastEmail).not.toBeNull();
-      expect(lastEmail!.to).toBe(DEFAULT_USER.email);
-      expect(lastEmail!.userName).toBe(DEFAULT_USER.name);
-      expect(lastEmail!.resetToken).toBe(tokens[0].token);
+      expect(lastEmail?.to).toBe(DEFAULT_USER.email);
+      expect(lastEmail?.userName).toBe(DEFAULT_USER.name);
+      expect(lastEmail?.resetToken).toBe(tokens[0].token);
 
       // Assert - event published
       expect(eventBus.hasPublished(PasswordResetRequestedEvent)).toBe(true);
@@ -114,7 +114,7 @@ describe('ForgotPasswordUseCase', () => {
 
       // Assert
       const storedToken = tokenService.getAllTokens()[0].token;
-      const emailedToken = emailSender.getLastSentEmail()!.resetToken;
+      const emailedToken = emailSender.getLastSentEmail()?.resetToken ?? '';
       expect(storedToken).toBe(emailedToken);
     });
   });

@@ -1,7 +1,6 @@
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { ResumeEventPublisher } from '../../shared-kernel/domain/ports';
-import { ResumesRepositoryPort } from '../ports/resumes-repository.port';
 import { ResumeVersionServicePort } from '../ports/resume-version-service.port';
+import { ResumesRepositoryPort } from '../ports/resumes-repository.port';
 import { RESUMES_USE_CASES, type ResumesUseCases } from './ports/resumes-use-cases.port';
 import { CreateResumeForUserUseCase } from './use-cases/create-resume-for-user/create-resume-for-user.use-case';
 import { DeleteResumeForUserUseCase } from './use-cases/delete-resume-for-user/delete-resume-for-user.use-case';

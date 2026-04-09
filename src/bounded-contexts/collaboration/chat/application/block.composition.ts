@@ -7,9 +7,7 @@ import { UnblockUserUseCase } from './use-cases/unblock-user/unblock-user.use-ca
 
 export { BLOCK_USE_CASES };
 
-export function buildBlockUseCases(
-  blockedUserRepo: BlockedUserRepository,
-): BlockUseCases {
+export function buildBlockUseCases(blockedUserRepo: BlockedUserRepository): BlockUseCases {
   return {
     blockUserUseCase: new BlockUserUseCase(blockedUserRepo),
     unblockUserUseCase: new UnblockUserUseCase(blockedUserRepo),

@@ -13,7 +13,6 @@ import type {
 import type {
   ResumeOwnershipPort,
   SnapshotRepositoryPort,
-  ViewTrackingRepositoryPort,
 } from '../../ports/resume-analytics.port';
 import type { CalculateAtsScoreUseCase } from '../calculate-ats-score/calculate-ats-score.use-case';
 import type { GetViewStatsUseCase } from '../get-view-stats/get-view-stats.use-case';

@@ -4,7 +4,13 @@
  * In-memory implementations for testing ATS validation functionality.
  */
 
-import type { SectionSemanticCatalogPort, SemanticResumeSnapshot } from '../ats/interfaces';
+import type {
+  SectionSemanticCatalogPort,
+  SemanticResumeSnapshot,
+  ThemeATSPort,
+  ThemeForATSScoring,
+  ThemeStyleConfig,
+} from '../ats/interfaces';
 
 interface StoredResumeSection {
   id: string;
@@ -159,4 +165,132 @@ export class InMemorySectionSemanticCatalogAdapter implements SectionSemanticCat
   clear(): void {
     this.snapshots.clear();
   }
+}
+
+/**
+ * In-Memory Theme ATS Adapter
+ *
+ * For testing theme ATS scoring without database dependency.
+ */
+export class InMemoryThemeATSAdapter implements ThemeATSPort {
+  private themes = new Map<string, ThemeForATSScoring>();
+
+  async getThemeById(themeId: string): Promise<ThemeForATSScoring | null> {
+    return this.themes.get(themeId) ?? null;
+  }
+
+  // Test helpers
+  seed(theme: ThemeForATSScoring): void {
+    this.themes.set(theme.id, theme);
+  }
+
+  seedMany(themes: ThemeForATSScoring[]): void {
+    for (const theme of themes) {
+      this.themes.set(theme.id, theme);
+    }
+  }
+
+  clear(): void {
+    this.themes.clear();
+  }
+
+  getAll(): ThemeForATSScoring[] {
+    return Array.from(this.themes.values());
+  }
+}
+
+/**
+ * Factory function to create optimal ATS theme config for testing
+ */
+export function createOptimalATSThemeConfig(): ThemeStyleConfig {
+  return {
+    version: '1.0.0',
+    layout: {
+      type: 'single-column',
+      paperSize: 'a4',
+      margins: 'normal',
+    },
+    tokens: {
+      typography: {
+        fontFamily: { heading: 'arial', body: 'arial' },
+        fontSize: 'base',
+        headingStyle: 'bold',
+      },
+      colors: {
+        colors: {
+          primary: '#000000',
+          secondary: '#333333',
+          background: '#FFFFFF',
+          surface: '#FFFFFF',
+          text: { primary: '#000000', secondary: '#333333', accent: '#000000' },
+          border: '#CCCCCC',
+          divider: '#CCCCCC',
+        },
+        borderRadius: 'none',
+        shadows: 'none',
+      },
+      spacing: {
+        density: 'comfortable',
+        sectionGap: 'md',
+        itemGap: 'sm',
+        contentPadding: 'sm',
+      },
+    },
+    sections: [
+      { id: 'header', visible: true, order: 0, column: 'full-width' },
+      { id: 'summary_v1', visible: true, order: 1, column: 'full-width' },
+      { id: 'work_experience_v1', visible: true, order: 2, column: 'full-width' },
+      { id: 'education_v1', visible: true, order: 3, column: 'full-width' },
+      { id: 'skill_set_v1', visible: true, order: 4, column: 'full-width' },
+    ],
+  };
+}
+
+/**
+ * Factory function to create suboptimal theme config for testing
+ */
+export function createSuboptimalATSThemeConfig(): ThemeStyleConfig {
+  return {
+    version: '1.0.0',
+    layout: {
+      type: 'two-column',
+      paperSize: 'a4',
+      margins: 'tight',
+      columnDistribution: '70-30',
+    },
+    tokens: {
+      typography: {
+        fontFamily: { heading: 'inter', body: 'roboto' },
+        fontSize: 'base',
+        headingStyle: 'accent-border',
+      },
+      colors: {
+        colors: {
+          primary: '#3B82F6',
+          secondary: '#64748B',
+          background: '#FFFFFF',
+          surface: '#F8FAFC',
+          text: { primary: '#1E293B', secondary: '#64748B', accent: '#3B82F6' },
+          border: '#E2E8F0',
+          divider: '#F1F5F9',
+        },
+        borderRadius: 'lg',
+        shadows: 'subtle',
+        gradients: { enabled: true, direction: 'to-right' },
+      },
+      spacing: {
+        density: 'compact',
+        sectionGap: 'sm',
+        itemGap: 'xs',
+        contentPadding: 'xs',
+      },
+    },
+    sections: [
+      { id: 'header', visible: true, order: 0, column: 'full-width' },
+      { id: 'summary_v1', visible: true, order: 1, column: 'main' },
+      { id: 'work_experience_v1', visible: true, order: 2, column: 'main' },
+      { id: 'skill_set_v1', visible: true, order: 3, column: 'sidebar' },
+      { id: 'education_v1', visible: true, order: 4, column: 'sidebar' },
+    ],
+  };
 }

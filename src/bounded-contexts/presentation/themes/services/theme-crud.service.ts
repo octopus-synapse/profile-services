@@ -15,7 +15,7 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { Prisma, ThemeStatus } from '@prisma/client';
-import { AuthorizationService } from '@/bounded-contexts/identity/authorization';
+import { AuthorizationPort } from '../domain/ports/authorization.port';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { CreateTheme, ERROR_MESSAGES, UpdateTheme } from '@/shared-kernel';
 import { validateLayoutConfig, validateSectionsConfig } from '../validators';
@@ -27,7 +27,7 @@ const MAX_THEMES_PER_USER = 5;
 export class ThemeCrudService {
   constructor(
     private prisma: PrismaService,
-    private authorizationService: AuthorizationService,
+    private authorizationService: AuthorizationPort,
   ) {}
 
   async createThemeForUser(userId: string, themeData: CreateTheme) {

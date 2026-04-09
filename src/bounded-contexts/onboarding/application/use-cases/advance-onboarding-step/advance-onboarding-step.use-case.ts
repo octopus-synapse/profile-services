@@ -3,8 +3,8 @@ import { buildOnboardingSteps, getStepIndex } from '../../../domain/config/onboa
 import { canProceedFromStep } from '../../../domain/config/onboarding-validation';
 import type { OnboardingProgressData } from '../../../domain/ports/onboarding-progress.port';
 import type { SectionTypeDefinitionPort } from '../../../domain/ports/section-type-definition.port';
+import type { GetProgressFn, SaveProgressFn } from '../shared/navigation.types';
 import { OnboardingStepDataMapper } from '../shared/onboarding-step-data.mapper';
-import type { SaveProgressFn, GetProgressFn } from '../shared/navigation.types';
 
 export class AdvanceOnboardingStepUseCase {
   private readonly stepDataMapper = new OnboardingStepDataMapper();
@@ -13,7 +13,9 @@ export class AdvanceOnboardingStepUseCase {
     private readonly saveProgress: SaveProgressFn,
     private readonly getProgress: GetProgressFn,
     private readonly sectionTypeDefinition: SectionTypeDefinitionPort,
-    private readonly logger?: { debug: (msg: string, ctx: string, meta?: Record<string, unknown>) => void },
+    private readonly logger?: {
+      debug: (msg: string, ctx: string, meta?: Record<string, unknown>) => void;
+    },
   ) {}
 
   async execute(

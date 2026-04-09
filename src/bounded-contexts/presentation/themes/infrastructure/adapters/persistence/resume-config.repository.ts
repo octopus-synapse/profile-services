@@ -9,8 +9,8 @@ import { Prisma } from '@prisma/client';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ERROR_MESSAGES } from '@/shared-kernel';
 import {
-  ResumeConfigRepositoryPort,
   type ResumeConfig,
+  ResumeConfigRepositoryPort,
 } from '../../../domain/ports/resume-config.repository.port';
 
 export class ResumeConfigRepository extends ResumeConfigRepositoryPort {

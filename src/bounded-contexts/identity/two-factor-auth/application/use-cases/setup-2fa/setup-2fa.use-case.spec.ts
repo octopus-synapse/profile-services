@@ -98,7 +98,7 @@ describe('Setup2faUseCase', () => {
       // Should still create a record
       const record = await repository.findByUserId(noEmailUserId);
       expect(record).not.toBeNull();
-      expect(record!.enabled).toBe(false);
+      expect(record?.enabled).toBe(false);
     });
   });
 });

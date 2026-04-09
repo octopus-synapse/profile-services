@@ -5,9 +5,5 @@
  */
 
 export abstract class AuthorizationPort {
-  abstract hasPermission(
-    userId: string,
-    resource: string,
-    action: string,
-  ): Promise<boolean>;
+  abstract hasPermission(userId: string, resource: string, action: string): Promise<boolean>;
 }

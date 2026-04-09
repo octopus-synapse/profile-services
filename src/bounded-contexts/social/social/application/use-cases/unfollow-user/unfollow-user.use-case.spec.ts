@@ -12,15 +12,33 @@ class StubFollowRepository {
   async deleteFollow(followerId: string, followingId: string) {
     this.calls.push({ method: 'deleteFollow', args: [followerId, followingId] });
   }
-  async createFollow() { return {} as never; }
-  async findFollow() { return null; }
-  async findFollowers() { return { data: [], total: 0 }; }
-  async findFollowing() { return { data: [], total: 0 }; }
-  async countFollowers() { return 0; }
-  async countFollowing() { return 0; }
-  async findFollowingIds() { return []; }
-  async findFollowerIds() { return []; }
-  async userExists() { return true; }
+  async createFollow() {
+    return {} as never;
+  }
+  async findFollow() {
+    return null;
+  }
+  async findFollowers() {
+    return { data: [], total: 0 };
+  }
+  async findFollowing() {
+    return { data: [], total: 0 };
+  }
+  async countFollowers() {
+    return 0;
+  }
+  async countFollowing() {
+    return 0;
+  }
+  async findFollowingIds() {
+    return [];
+  }
+  async findFollowerIds() {
+    return [];
+  }
+  async userExists() {
+    return true;
+  }
 }
 
 describe('UnfollowUserUseCase', () => {

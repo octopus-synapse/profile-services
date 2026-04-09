@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { ValidationSeverity } from '../../domain/interfaces';
 import {
   ATSSectionTypeAdapter,
   SectionDetectionPattern,
 } from '../../application/use-cases/ats-section-type.adapter';
+import { ValidationSeverity } from '../../domain/interfaces';
 import { CVSectionParser } from './cv-section.parser';
 
 /**

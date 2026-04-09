@@ -16,11 +16,7 @@ export class StubResumeCreator implements ResumeCreatorPort {
   }> = [];
   private idCounter = 1;
 
-  async create(
-    userId: string,
-    data: ParsedResumeData,
-    importId: string,
-  ): Promise<{ id: string }> {
+  async create(userId: string, data: ParsedResumeData, importId: string): Promise<{ id: string }> {
     const id = `resume-${this.idCounter++}`;
     this.createdResumes.push({ id, userId, data, importId });
     return { id };

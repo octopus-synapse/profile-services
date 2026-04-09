@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { ERROR_MESSAGES } from '@/shared-kernel';
+import type { OnboardingCompletionPort } from '../../../domain/ports/onboarding-completion.port';
 import {
   createOnboardingData,
   createOnboardingUser,
   InMemoryOnboardingRepository,
 } from '../../../testing';
-import type { OnboardingCompletionPort } from '../../../domain/ports/onboarding-completion.port';
 import { CompleteOnboardingUseCase } from './complete-onboarding.use-case';
 
 describe('CompleteOnboardingUseCase', () => {

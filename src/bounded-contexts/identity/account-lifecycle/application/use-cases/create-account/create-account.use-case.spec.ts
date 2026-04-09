@@ -5,16 +5,16 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { InMemoryTokenGenerator } from '../../../../authentication/testing';
 import { WeakPasswordException } from '../../../../password-management/domain/exceptions';
 import { InMemoryEventBus } from '../../../../shared-kernel/testing';
 import { AccountCreatedEvent } from '../../../domain/events';
 import { AccountAlreadyExistsException } from '../../../domain/exceptions';
 import {
+  createAccountData,
   InMemoryAccountLifecycleRepository,
   InMemoryPasswordHasher,
-  createAccountData,
 } from '../../../testing';
-import { InMemoryTokenGenerator } from '../../../../authentication/testing';
 import { CreateAccountUseCase } from './create-account.use-case';
 
 describe('CreateAccountUseCase', () => {
@@ -32,12 +32,7 @@ describe('CreateAccountUseCase', () => {
     eventBus = new InMemoryEventBus();
     tokenGenerator = new InMemoryTokenGenerator();
 
-    useCase = new CreateAccountUseCase(
-      repository,
-      passwordHasher,
-      eventBus,
-      tokenGenerator,
-    );
+    useCase = new CreateAccountUseCase(repository, passwordHasher, eventBus, tokenGenerator);
   });
 
   it('should create an account and return user data with auth tokens', async () => {
@@ -73,9 +68,9 @@ describe('CreateAccountUseCase', () => {
     // Assert
     const stored = await repository.findById(result.userId);
     expect(stored).not.toBeNull();
-    expect(stored!.email).toBe('jane@example.com');
-    expect(stored!.name).toBe('Jane Doe');
-    expect(stored!.isActive).toBe(true);
+    expect(stored?.email).toBe('jane@example.com');
+    expect(stored?.name).toBe('Jane Doe');
+    expect(stored?.isActive).toBe(true);
   });
 
   it('should hash the password before storing', async () => {
@@ -107,7 +102,7 @@ describe('CreateAccountUseCase', () => {
 
     // Assert
     const stored = await repository.findById(result.userId);
-    expect(stored!.name).toBeNull();
+    expect(stored?.name).toBeNull();
   });
 
   it('should publish AccountCreatedEvent', async () => {
@@ -131,9 +126,7 @@ describe('CreateAccountUseCase', () => {
 
   it('should throw AccountAlreadyExistsException when email is taken', async () => {
     // Arrange
-    repository.seedAccount(
-      createAccountData({ email: 'taken@example.com' }),
-    );
+    repository.seedAccount(createAccountData({ email: 'taken@example.com' }));
 
     const command = {
       email: 'taken@example.com',
@@ -157,9 +150,7 @@ describe('CreateAccountUseCase', () => {
 
   it('should not persist account when email already exists', async () => {
     // Arrange
-    repository.seedAccount(
-      createAccountData({ email: 'existing@example.com' }),
-    );
+    repository.seedAccount(createAccountData({ email: 'existing@example.com' }));
 
     const command = {
       email: 'existing@example.com',
@@ -180,9 +171,7 @@ describe('CreateAccountUseCase', () => {
 
   it('should not publish events when creation fails', async () => {
     // Arrange
-    repository.seedAccount(
-      createAccountData({ email: 'fail@example.com' }),
-    );
+    repository.seedAccount(createAccountData({ email: 'fail@example.com' }));
 
     const command = {
       email: 'fail@example.com',

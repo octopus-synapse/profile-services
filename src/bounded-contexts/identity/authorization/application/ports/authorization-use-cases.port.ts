@@ -5,10 +5,10 @@
  */
 
 import type { UserAuthContext, UserId } from '../../domain/entities/user-auth-context.entity';
+import type { AddToGroupParams } from '../use-cases/authorization-management/add-to-group.use-case';
 import type { AssignRoleParams } from '../use-cases/authorization-management/assign-role.use-case';
 import type { DenyPermissionParams } from '../use-cases/authorization-management/deny-permission.use-case';
 import type { GrantPermissionParams } from '../use-cases/authorization-management/grant-permission.use-case';
-import type { AddToGroupParams } from '../use-cases/authorization-management/add-to-group.use-case';
 import type { RevokeRoleParams } from '../use-cases/authorization-management/revoke-role.use-case';
 
 // ============================================================================

@@ -5,9 +5,8 @@
  */
 
 import type { AnalyticsEvent } from '@prisma/client';
-import type { ShareAnalyticsRepositoryPort } from '../../ports';
 
-export { type ShareAnalyticsRepositoryPort } from '../../ports';
+export type { ShareAnalyticsRepositoryPort } from '../../ports';
 
 export const SHARE_ANALYTICS_USE_CASES = Symbol('SHARE_ANALYTICS_USE_CASES');
 
@@ -36,7 +35,10 @@ export interface ShareAnalyticsUseCases {
     }>;
   };
   getShareAnalyticsUseCase: {
-    execute: (shareId: string, userId: string) => Promise<{
+    execute: (
+      shareId: string,
+      userId: string,
+    ) => Promise<{
       shareId: string;
       totalViews: number;
       totalDownloads: number;

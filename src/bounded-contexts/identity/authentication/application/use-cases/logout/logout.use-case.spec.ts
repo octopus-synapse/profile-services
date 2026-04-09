@@ -8,9 +8,9 @@ import { beforeEach, describe, expect, it } from 'bun:test';
 import { InMemoryEventBus } from '../../../../shared-kernel/testing';
 import { UserLoggedOutEvent } from '../../../domain/events';
 import {
-  InMemoryAuthenticationRepository,
   createAuthUser,
   createRefreshTokenData,
+  InMemoryAuthenticationRepository,
 } from '../../../testing';
 import { LogoutUseCase } from './logout.use-case';
 

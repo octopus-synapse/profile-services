@@ -42,7 +42,7 @@ describe('SyncProjectionOnResumeCreatedHandler', () => {
   });
 
   it('uses event aggregateId as the projection id', async () => {
-    const upsertMock = mock(async () => ({}));
+    const upsertMock = mock(async (_args: { where: { id: string } }) => ({}));
     const prisma = {
       analyticsResumeProjection: {
         upsert: upsertMock,
@@ -58,7 +58,7 @@ describe('SyncProjectionOnResumeCreatedHandler', () => {
     await handler.handle(event);
 
     expect(upsertMock).toHaveBeenCalledTimes(1);
-    const call = upsertMock.mock.calls[0][0] as { where: { id: string } };
+    const call = upsertMock.mock.calls[0][0];
     expect(call.where.id).toBe('resume-abc');
   });
 });

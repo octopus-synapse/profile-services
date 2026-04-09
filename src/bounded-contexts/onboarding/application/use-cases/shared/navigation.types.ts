@@ -10,5 +10,8 @@ import type {
   SaveProgressResult,
 } from '../../../domain/ports/onboarding-progress.port';
 
-export type SaveProgressFn = (userId: string, data: OnboardingProgressData) => Promise<SaveProgressResult>;
+export type SaveProgressFn = (
+  userId: string,
+  data: OnboardingProgressData,
+) => Promise<SaveProgressResult>;
 export type GetProgressFn = (userId: string) => Promise<OnboardingProgressData>;

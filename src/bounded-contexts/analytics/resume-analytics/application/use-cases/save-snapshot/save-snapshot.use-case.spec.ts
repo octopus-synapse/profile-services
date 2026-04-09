@@ -5,21 +5,44 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { InMemorySnapshotRepository } from '@/bounded-contexts/analytics/testing';
+import {
+  InMemorySnapshotRepository,
+  type SnapshotRecord,
+} from '@/bounded-contexts/analytics/testing';
 import type { SnapshotRepositoryPort } from '../../ports/resume-analytics.port';
 
 /**
  * Adapter to expose InMemorySnapshotRepository through the SnapshotRepositoryPort interface.
  */
+function toAnalyticsSnapshot(
+  record: SnapshotRecord,
+): import('../../../interfaces').AnalyticsSnapshot {
+  return {
+    id: record.id,
+    resumeId: record.resumeId,
+    atsScore: record.atsScore,
+    keywordScore: record.keywordScore,
+    completenessScore: record.completenessScore,
+    industryRank: record.industryRank ?? undefined,
+    totalInIndustry: record.totalInIndustry ?? undefined,
+    topKeywords: record.topKeywords,
+    missingKeywords: record.missingKeywords,
+    createdAt: record.createdAt,
+  };
+}
+
 function createSnapshotPort(repo: InMemorySnapshotRepository): SnapshotRepositoryPort {
   return {
-    save: (input) => repo.create({ data: { ...input, improvementSuggestions: [] } }),
-    getHistory: (resumeId, limit = 10) =>
-      repo.findMany({
+    save: async (input) =>
+      toAnalyticsSnapshot(await repo.create({ data: { ...input, improvementSuggestions: [] } })),
+    getHistory: async (resumeId, limit = 10) => {
+      const records = await repo.findMany({
         where: { resumeId },
         orderBy: { createdAt: 'desc' },
         take: limit,
-      }) as never,
+      });
+      return (records as SnapshotRecord[]).map(toAnalyticsSnapshot);
+    },
     getScoreProgression: async (resumeId, days = 30) => {
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - days);
@@ -94,8 +117,8 @@ describe('Snapshot Use Cases (via SnapshotRepositoryPort)', () => {
         atsScore: 85,
         keywordScore: 80,
         completenessScore: 90,
-        industryRank: null,
-        totalInIndustry: null,
+        industryRank: undefined,
+        totalInIndustry: undefined,
         topKeywords: [],
         missingKeywords: [],
         createdAt: expect.any(Date),

@@ -2,8 +2,8 @@
 
 import { Injectable } from '@nestjs/common';
 import * as mammoth from 'mammoth';
-import { ValidationSeverity } from '../../../domain/interfaces';
 import type { TextExtractionResult, ValidationIssue } from '../../../domain/interfaces';
+import { ValidationSeverity } from '../../../domain/interfaces';
 
 // Polyfill DOM APIs for pdf-parse
 if (typeof globalThis.DOMMatrix === 'undefined') {

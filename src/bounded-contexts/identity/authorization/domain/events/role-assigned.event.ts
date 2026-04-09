@@ -5,7 +5,7 @@
  * Listeners can update caches, send notifications, or audit log.
  */
 
-import { DomainEvent } from '@/shared-kernel';
+import { DomainEvent } from '../../../shared-kernel/domain/events';
 
 export interface RoleAssignedPayload {
   readonly roleId: string;
@@ -16,7 +16,17 @@ export interface RoleAssignedPayload {
 export class RoleAssignedEvent extends DomainEvent<RoleAssignedPayload> {
   static readonly TYPE = 'identity.authorization.role.assigned';
 
+  readonly eventType = RoleAssignedEvent.TYPE;
+  readonly aggregateId: string;
+  readonly payload: RoleAssignedPayload;
+
   constructor(userId: string, payload: RoleAssignedPayload) {
-    super(RoleAssignedEvent.TYPE, userId, payload);
+    super();
+    this.aggregateId = userId;
+    this.payload = payload;
+  }
+
+  protected getPayload(): Record<string, unknown> {
+    return { ...this.payload };
   }
 }

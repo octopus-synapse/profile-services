@@ -1,12 +1,9 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
-import {
-  InMemoryOnboardingProgressRepository,
-  createOnboardingProgress,
-} from '../../../testing';
-import { SaveProgressUseCase } from '../save-progress/save-progress.use-case';
+import { createOnboardingProgress, InMemoryOnboardingProgressRepository } from '../../../testing';
 import { GetProgressUseCase } from '../get-progress/get-progress.use-case';
+import { SaveProgressUseCase } from '../save-progress/save-progress.use-case';
+import type { GetProgressFn, SaveProgressFn } from '../shared/navigation.types';
 import { SaveOnboardingStepDataUseCase } from './save-onboarding-step-data.use-case';
-import type { SaveProgressFn, GetProgressFn } from '../shared/navigation.types';
 
 describe('SaveOnboardingStepDataUseCase', () => {
   let useCase: SaveOnboardingStepDataUseCase;
@@ -186,12 +183,12 @@ describe('SaveOnboardingStepDataUseCase', () => {
 
     // Assert — work_experience replaced, education preserved
     expect(result.sections).toHaveLength(2);
-    const workSection = (result.sections as Array<{ sectionTypeKey: string; items: unknown[] }>).find(
-      (s) => s.sectionTypeKey === 'work_experience_v1',
-    );
-    const eduSection = (result.sections as Array<{ sectionTypeKey: string; items: unknown[] }>).find(
-      (s) => s.sectionTypeKey === 'education_v1',
-    );
+    const workSection = (
+      result.sections as Array<{ sectionTypeKey: string; items: unknown[] }>
+    ).find((s) => s.sectionTypeKey === 'work_experience_v1');
+    const eduSection = (
+      result.sections as Array<{ sectionTypeKey: string; items: unknown[] }>
+    ).find((s) => s.sectionTypeKey === 'education_v1');
     expect(workSection?.items).toEqual([{ content: { company: 'NewCo' } }]);
     expect(eduSection?.items).toEqual([{ content: { school: 'MIT' } }]);
   });

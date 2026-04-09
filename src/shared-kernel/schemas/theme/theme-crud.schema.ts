@@ -44,6 +44,7 @@ export const CreateThemeSchema = z.object({
 });
 
 export type CreateTheme = z.infer<typeof CreateThemeSchema>;
+export class CreateThemeDto extends createZodDto(CreateThemeSchema) {}
 
 /**
  * Update Theme Schema
@@ -74,6 +75,10 @@ export const QueryThemesSchema = z.object({
 });
 
 export type QueryThemes = z.infer<typeof QueryThemesSchema>;
+
+// biome-ignore lint/nursery/noExportedImports: createZodDto needs to be here for DTO class
+import { createZodDto } from 'nestjs-zod';
+export class QueryThemesDto extends createZodDto(QueryThemesSchema) {}
 
 /**
  * Theme Application Schema

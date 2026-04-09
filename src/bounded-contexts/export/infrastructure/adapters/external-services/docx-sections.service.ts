@@ -9,16 +9,16 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { Paragraph, SectionType } from 'docx';
 import type { ISectionOptions } from 'docx';
+import { Paragraph, SectionType } from 'docx';
 import { SectionTypeRepository } from '@/bounded-contexts/resumes/shared-kernel/infrastructure/repositories';
 import type { DocxExportConfig } from '@/shared-kernel/schemas/sections';
 import { DocxHeaderBuilder } from '../builders';
-import { GenericDocxSectionBuilder } from '../builders/generic-docx-section.builder';
 import type {
   GenericSectionItemContent,
   SectionRenderContext,
 } from '../builders/generic-docx-section.builder';
+import { GenericDocxSectionBuilder } from '../builders/generic-docx-section.builder';
 import type { DocxUserData } from './docx.types';
 
 /**

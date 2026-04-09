@@ -9,18 +9,38 @@ import { GetFollowingIdsUseCase } from './get-following-ids.use-case';
 class StubFollowRepository {
   private _ids: string[] = [];
 
-  setFollowingIds(ids: string[]) { this._ids = ids; }
+  setFollowingIds(ids: string[]) {
+    this._ids = ids;
+  }
 
-  async findFollowingIds() { return this._ids; }
-  async createFollow() { return {} as never; }
+  async findFollowingIds() {
+    return this._ids;
+  }
+  async createFollow() {
+    return {} as never;
+  }
   async deleteFollow() {}
-  async findFollow() { return null; }
-  async findFollowers() { return { data: [], total: 0 }; }
-  async findFollowing() { return { data: [], total: 0 }; }
-  async countFollowers() { return 0; }
-  async countFollowing() { return 0; }
-  async findFollowerIds() { return []; }
-  async userExists() { return true; }
+  async findFollow() {
+    return null;
+  }
+  async findFollowers() {
+    return { data: [], total: 0 };
+  }
+  async findFollowing() {
+    return { data: [], total: 0 };
+  }
+  async countFollowers() {
+    return 0;
+  }
+  async countFollowing() {
+    return 0;
+  }
+  async findFollowerIds() {
+    return [];
+  }
+  async userExists() {
+    return true;
+  }
 }
 
 describe('GetFollowingIdsUseCase', () => {

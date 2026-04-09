@@ -10,6 +10,7 @@
  */
 
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
   Injectable,
@@ -94,6 +95,10 @@ export class CollaborationService {
       throw new ForbiddenException('Only resume owner can invite collaborators');
     }
 
+    if (inviterId === inviteeId) {
+      throw new BadRequestException('Cannot add yourself as a collaborator');
+    }
+
     // Check if already a collaborator
     const existing = await this.prisma.resumeCollaborator.findFirst({
       where: { resumeId, userId: inviteeId },
@@ -169,6 +174,14 @@ export class CollaborationService {
 
     if (resume.userId !== requesterId) {
       throw new ForbiddenException('Only resume owner can update roles');
+    }
+
+    const existing = await this.prisma.resumeCollaborator.findUnique({
+      where: { resumeId_userId: { resumeId, userId: targetUserId } },
+    });
+
+    if (!existing) {
+      throw new NotFoundException('Collaborator not found');
     }
 
     const collaborator = await this.prisma.resumeCollaborator.update({

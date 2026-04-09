@@ -19,9 +19,15 @@ class StubFollowRepository {
 
   calls: Array<{ method: string; args: unknown[] }> = [];
 
-  setUserExists(val: boolean) { this._userExists = val; }
-  setFindFollowResult(val: FollowWithUser | null) { this._findFollowResult = val; }
-  setCreateFollowResult(val: FollowWithUser) { this._createFollowResult = val; }
+  setUserExists(val: boolean) {
+    this._userExists = val;
+  }
+  setFindFollowResult(val: FollowWithUser | null) {
+    this._findFollowResult = val;
+  }
+  setCreateFollowResult(val: FollowWithUser) {
+    this._createFollowResult = val;
+  }
 
   async userExists(userId: string) {
     this.calls.push({ method: 'userExists', args: [userId] });
@@ -36,12 +42,24 @@ class StubFollowRepository {
     return this._createFollowResult;
   }
   async deleteFollow() {}
-  async findFollowers() { return { data: [], total: 0 }; }
-  async findFollowing() { return { data: [], total: 0 }; }
-  async countFollowers() { return 0; }
-  async countFollowing() { return 0; }
-  async findFollowingIds() { return []; }
-  async findFollowerIds() { return []; }
+  async findFollowers() {
+    return { data: [], total: 0 };
+  }
+  async findFollowing() {
+    return { data: [], total: 0 };
+  }
+  async countFollowers() {
+    return 0;
+  }
+  async countFollowing() {
+    return 0;
+  }
+  async findFollowingIds() {
+    return [];
+  }
+  async findFollowerIds() {
+    return [];
+  }
 }
 
 const stubEventPublisher = {

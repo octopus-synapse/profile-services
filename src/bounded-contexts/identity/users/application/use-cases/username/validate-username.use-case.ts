@@ -1,4 +1,4 @@
-import type { ValidateUsernameResponse, UsernameValidationError } from '@/shared-kernel';
+import type { UsernameValidationError, ValidateUsernameResponse } from '@/shared-kernel';
 import type { UsernameRepositoryPort } from '../../ports/username.port';
 
 /**

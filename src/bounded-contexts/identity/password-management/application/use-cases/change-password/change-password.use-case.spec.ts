@@ -14,10 +14,10 @@ import {
   WeakPasswordException,
 } from '../../../domain/exceptions';
 import {
+  DEFAULT_USER,
   InMemoryPasswordHasher,
   InMemoryPasswordRepository,
   InMemorySessionInvalidation,
-  DEFAULT_USER,
 } from '../../../testing';
 import { ChangePasswordUseCase } from './change-password.use-case';
 
@@ -70,7 +70,7 @@ describe('ChangePasswordUseCase', () => {
 
       // Assert - password updated
       const updatedUser = await passwordRepository.findById(DEFAULT_USER.id);
-      expect(updatedUser!.passwordHash).toBe(`hashed:${validNewPassword}`);
+      expect(updatedUser?.passwordHash).toBe(`hashed:${validNewPassword}`);
 
       // Assert - sessions invalidated
       expect(sessionInvalidation.wasInvalidated(DEFAULT_USER.id)).toBe(true);
@@ -115,7 +115,7 @@ describe('ChangePasswordUseCase', () => {
 
       // Assert - password unchanged
       const user = await passwordRepository.findById(DEFAULT_USER.id);
-      expect(user!.passwordHash).toBe(`hashed:${currentPassword}`);
+      expect(user?.passwordHash).toBe(`hashed:${currentPassword}`);
 
       // Assert - no sessions invalidated
       expect(sessionInvalidation.getInvalidations()).toHaveLength(0);
@@ -146,7 +146,7 @@ describe('ChangePasswordUseCase', () => {
 
       // Assert - password unchanged
       const user = await passwordRepository.findById(DEFAULT_USER.id);
-      expect(user!.passwordHash).toBe(hashedStrong);
+      expect(user?.passwordHash).toBe(hashedStrong);
 
       // Assert - no sessions invalidated
       expect(sessionInvalidation.getInvalidations()).toHaveLength(0);
@@ -213,7 +213,7 @@ describe('ChangePasswordUseCase', () => {
 
       // Assert - password unchanged
       const user = await passwordRepository.findById(DEFAULT_USER.id);
-      expect(user!.passwordHash).toBe(`hashed:${currentPassword}`);
+      expect(user?.passwordHash).toBe(`hashed:${currentPassword}`);
 
       // Assert - no sessions invalidated
       expect(sessionInvalidation.getInvalidations()).toHaveLength(0);

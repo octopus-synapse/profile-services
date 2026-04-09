@@ -20,7 +20,8 @@ const USER_LIST_SELECT = {
   updatedAt: true,
   image: true,
   emailVerified: true,
-  role: true,
+  roles: true,
+  isActive: true,
   lastLoginAt: true,
   _count: {
     select: {
@@ -65,7 +66,8 @@ export class UserManagementRepository extends UserManagementRepositoryPort {
       image: user.image,
       emailVerified: user.emailVerified,
       resumeCount: user._count.resumes,
-      role: user.role,
+      role: user.roles.includes('role_admin') ? 'ADMIN' : 'USER',
+      isActive: user.isActive,
       lastLoginAt: user.lastLoginAt,
     }));
 
@@ -112,6 +114,7 @@ export class UserManagementRepository extends UserManagementRepositoryPort {
       updatedAt: user.updatedAt,
       image: user.image,
       emailVerified: user.emailVerified,
+      isActive: user.isActive,
       resumes: user.resumes,
       preferences: user.preferences,
       counts: user._count,

@@ -39,7 +39,9 @@ import {
     {
       provide: USER_MANAGEMENT_USE_CASES,
       useFactory: (prisma: PrismaService) =>
-        buildUserManagementUseCases(prisma, (password: string) => Bun.password.hash(password, { algorithm: 'bcrypt', cost: 12 })),
+        buildUserManagementUseCases(prisma, (password: string) =>
+          Bun.password.hash(password, { algorithm: 'bcrypt', cost: 12 }),
+        ),
       inject: [PrismaService],
     },
     {

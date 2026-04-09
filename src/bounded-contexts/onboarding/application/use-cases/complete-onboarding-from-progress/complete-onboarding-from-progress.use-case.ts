@@ -2,8 +2,8 @@ import {
   type OnboardingValidationError,
   OnboardingValidationException,
 } from '../../../domain/exceptions/onboarding.exceptions';
-import type { OnboardingProgressData } from '../../../domain/ports/onboarding-progress.port';
 import type { CompletionResult } from '../../../domain/ports/onboarding-completion.port';
+import type { OnboardingProgressData } from '../../../domain/ports/onboarding-progress.port';
 import type { GetProgressFn } from '../shared/navigation.types';
 
 export interface CompleteOnboardingExecutor {

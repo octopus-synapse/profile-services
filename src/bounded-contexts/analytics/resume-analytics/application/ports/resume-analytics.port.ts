@@ -131,11 +131,7 @@ export interface ResumeAnalyticsUseCases {
     execute: (input: TrackView) => Promise<void>;
   };
   getViewStatsUseCase: {
-    execute: (
-      resumeId: string,
-      userId: string,
-      options: ViewStatsOptions,
-    ) => Promise<ViewStats>;
+    execute: (resumeId: string, userId: string, options: ViewStatsOptions) => Promise<ViewStats>;
   };
   /** @deprecated Used by BenchmarkService for GraphQL — kept for backward compat */
   getIndustryBenchmarks: (industry?: string) => Array<{

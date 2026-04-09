@@ -63,12 +63,7 @@ export function createGitClient(exec: ExecFn = defaultExec): GitClient {
     const body = stdout.replace(/^'|'$/g, '');
 
     const coAuthorRegex = /Co-authored-by:\s*([^<\n]+)/gi;
-    const matches: string[] = [];
-    let match;
-
-    while ((match = coAuthorRegex.exec(body)) !== null) {
-      matches.push(match[1].trim());
-    }
+    const matches = Array.from(body.matchAll(coAuthorRegex), (m) => m[1].trim());
 
     return matches.slice(0, 2); // Max 2 co-authors
   }

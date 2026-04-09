@@ -9,18 +9,38 @@ import { CheckFollowingUseCase } from './check-following.use-case';
 class StubFollowRepository {
   private _result: unknown = null;
 
-  setFindFollowResult(val: unknown) { this._result = val; }
+  setFindFollowResult(val: unknown) {
+    this._result = val;
+  }
 
-  async findFollow() { return this._result; }
-  async createFollow() { return {} as never; }
+  async findFollow() {
+    return this._result;
+  }
+  async createFollow() {
+    return {} as never;
+  }
   async deleteFollow() {}
-  async findFollowers() { return { data: [], total: 0 }; }
-  async findFollowing() { return { data: [], total: 0 }; }
-  async countFollowers() { return 0; }
-  async countFollowing() { return 0; }
-  async findFollowingIds() { return []; }
-  async findFollowerIds() { return []; }
-  async userExists() { return true; }
+  async findFollowers() {
+    return { data: [], total: 0 };
+  }
+  async findFollowing() {
+    return { data: [], total: 0 };
+  }
+  async countFollowers() {
+    return 0;
+  }
+  async countFollowing() {
+    return 0;
+  }
+  async findFollowingIds() {
+    return [];
+  }
+  async findFollowerIds() {
+    return [];
+  }
+  async userExists() {
+    return true;
+  }
 }
 
 describe('CheckFollowingUseCase', () => {

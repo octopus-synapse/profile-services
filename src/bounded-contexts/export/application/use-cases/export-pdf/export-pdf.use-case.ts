@@ -4,13 +4,17 @@
  * Generates a PDF document for a user's resume.
  */
 
-import type { PdfGeneratorOptions, PdfGeneratorPort } from '../../../domain/ports/pdf-generator.port';
+import type {
+  PdfGeneratorOptions,
+  PdfGeneratorPort,
+} from '../../../domain/ports/pdf-generator.port';
 
 export interface ExportPdfDto {
   palette?: string;
   lang?: string;
   bannerColor?: string;
   userId?: string;
+  template?: 'default' | 'ats';
 }
 
 export class ExportPdfUseCase {
@@ -22,6 +26,7 @@ export class ExportPdfUseCase {
       lang: dto.lang,
       bannerColor: dto.bannerColor,
       userId: dto.userId,
+      template: dto.template,
     };
 
     return this.pdfGenerator.generate(options);

@@ -4,10 +4,7 @@ import {
   IMPORT_JOB_REPOSITORY,
   type ImportJobRepositoryPort,
 } from '../../../domain/ports/import-job.repository.port';
-import {
-  RESUME_CREATOR,
-  type ResumeCreatorPort,
-} from '../../../domain/ports/resume-creator.port';
+import { RESUME_CREATOR, type ResumeCreatorPort } from '../../../domain/ports/resume-creator.port';
 import { JsonResumeParser } from '../../../domain/services/json-resume-parser';
 import type { ImportResult } from '../../../domain/types/import.types';
 

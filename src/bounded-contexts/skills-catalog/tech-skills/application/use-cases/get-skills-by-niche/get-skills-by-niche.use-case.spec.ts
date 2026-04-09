@@ -10,9 +10,9 @@ import {
   InMemoryTechSkillRepository,
 } from '../../../../testing';
 import type { TechSkill } from '../../../dto';
-import { TECH_SKILLS_CACHE_KEYS } from '../../../interfaces';
-import { TechSkillRepository } from '../../../infrastructure/adapters/persistence/tech-skill.repository';
 import { CacheAdapter } from '../../../infrastructure/adapters/persistence/cache.adapter';
+import { TechSkillRepository } from '../../../infrastructure/adapters/persistence/tech-skill.repository';
+import { TECH_SKILLS_CACHE_KEYS } from '../../../interfaces';
 import { GetSkillsByNicheUseCase } from './get-skills-by-niche.use-case';
 
 describe('GetSkillsByNicheUseCase', () => {

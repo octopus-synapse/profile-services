@@ -9,7 +9,9 @@ import { ExportLatexUseCase } from './export-latex.use-case';
 /**
  * In-Memory Resume Data Repository for LaTeX testing
  */
-class InMemoryResumeDataRepository implements Pick<ResumeDataRepositoryPort, 'findForJsonExport' | 'findForLatexExport'> {
+class InMemoryResumeDataRepository
+  implements Pick<ResumeDataRepositoryPort, 'findForJsonExport' | 'findForLatexExport'>
+{
   private resumes = new Map<string, ResumeForLatexExport>();
 
   async findForJsonExport(): Promise<null> {
@@ -29,7 +31,9 @@ class InMemoryResumeDataRepository implements Pick<ResumeDataRepositoryPort, 'fi
   }
 }
 
-function buildLatexResume(overrides: Partial<ReturnType<typeof createMockResume>> = {}): ResumeForLatexExport {
+function buildLatexResume(
+  overrides: Parameters<typeof createMockResume>[0] = {},
+): ResumeForLatexExport {
   const base = createMockResume({
     id: 'resume-123',
     userId: 'user-456',

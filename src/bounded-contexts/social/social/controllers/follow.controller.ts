@@ -15,6 +15,7 @@
 import { Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Query } from '@nestjs/common';
 import { ApiOperation, ApiParam, ApiProperty, ApiTags } from '@nestjs/swagger';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
+import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure/decorators/public.decorator';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
@@ -118,6 +119,7 @@ export class FollowController {
    * Get followers of a user.
    */
   @Get(':userId/followers')
+  @Public()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get followers for a user' })
   @ApiParam({ name: 'userId', type: 'string' })
@@ -197,6 +199,7 @@ export class FollowController {
    * Get social stats (followers and following counts) for a user.
    */
   @Get(':userId/social-stats')
+  @Public()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get social stats for a user' })
   @ApiParam({ name: 'userId', type: 'string' })

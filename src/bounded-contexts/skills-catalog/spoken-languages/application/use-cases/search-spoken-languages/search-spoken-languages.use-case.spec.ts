@@ -92,9 +92,7 @@ describe('SearchSpokenLanguagesUseCase', () => {
 
   it('should order search results by order field', async () => {
     languageRepo.clear();
-    languageRepo.add(
-      createSpokenLanguage({ code: 'pt', nameEn: 'Portuguese Language', order: 3 }),
-    );
+    languageRepo.add(createSpokenLanguage({ code: 'pt', nameEn: 'Portuguese Language', order: 3 }));
     languageRepo.add(createSpokenLanguage({ code: 'en', nameEn: 'English Language', order: 1 }));
     languageRepo.add(createSpokenLanguage({ code: 'es', nameEn: 'Spanish Language', order: 2 }));
 

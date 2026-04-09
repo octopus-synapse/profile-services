@@ -192,17 +192,13 @@ export class InMemorySpokenLanguageRepository {
       const selectClause = args?.select;
       if (selectClause) {
         return result.map((l) => {
-          const selected = Object.keys(selectClause).reduce<Partial<SpokenLanguageData>>(
-            (acc, key) => {
-              if (selectClause[key]) {
-                const typedKey = key as keyof SpokenLanguageData;
-                return { ...acc, [typedKey]: l[typedKey] };
-              }
-              return acc;
-            },
-            {},
-          );
-          return selected as SpokenLanguageData;
+          const selected: Record<string, unknown> = {};
+          for (const key of Object.keys(selectClause)) {
+            if (selectClause[key] && key in l) {
+              selected[key] = l[key as keyof SpokenLanguageData];
+            }
+          }
+          return selected as unknown as SpokenLanguageData;
         });
       }
 
@@ -215,17 +211,13 @@ export class InMemorySpokenLanguageRepository {
 
       if (args.select) {
         const selectClause = args.select;
-        const selected = Object.keys(selectClause).reduce<Partial<SpokenLanguageData>>(
-          (acc, key) => {
-            if (selectClause[key]) {
-              const typedKey = key as keyof SpokenLanguageData;
-              return { ...acc, [typedKey]: language[typedKey] };
-            }
-            return acc;
-          },
-          {},
-        );
-        return selected as SpokenLanguageData;
+        const selected: Record<string, unknown> = {};
+        for (const key of Object.keys(selectClause)) {
+          if (selectClause[key] && key in language) {
+            selected[key] = language[key as keyof SpokenLanguageData];
+          }
+        }
+        return selected as unknown as SpokenLanguageData;
       }
 
       return language;

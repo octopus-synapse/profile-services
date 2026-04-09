@@ -1,10 +1,10 @@
 import { PrismaClient } from '@prisma/client';
-import * as bcrypt from 'bcryptjs';
 import { seedAuthorization } from '../src/bounded-contexts/identity/authorization/seeds/seed-runner';
 import { createPrismaClientOptions } from '../src/bounded-contexts/platform/prisma/prisma-client-options';
 import { seedAnalyticsProjections } from './seeds/analytics-projection.seed';
 import { seedSectionTypes } from './seeds/section-type.seed';
 import { seedSpokenLanguages } from './seeds/spoken-language.seed';
+import { seedTechSkills } from './seeds/tech-skill.seed';
 import { seedThemes } from './seeds/theme.seed';
 import { seedUsernames } from './seeds/username.seed';
 
@@ -24,7 +24,10 @@ async function main() {
     const adminPassword = process.env.ADMIN_PASSWORD || 'Admin123!@#';
     const adminName = process.env.ADMIN_NAME || 'Admin User';
 
-    const hashedPassword = await bcrypt.hash(adminPassword, 10);
+    const hashedPassword = await Bun.password.hash(adminPassword, {
+      algorithm: 'bcrypt',
+      cost: 10,
+    });
 
     admin = await prisma.user.create({
       data: {
@@ -32,6 +35,7 @@ async function main() {
         passwordHash: hashedPassword,
         name: adminName,
         emailVerified: new Date(),
+        roles: ['role_user', 'role_admin'],
       },
     });
 
@@ -40,6 +44,14 @@ async function main() {
     console.log(`🔑 Password: ${adminPassword}`);
     console.log('\n⚠️  IMPORTANT: Change admin password after first login!');
   } else {
+    // Ensure admin has role_admin in the roles array
+    if (!admin.roles.includes('role_admin')) {
+      await prisma.user.update({
+        where: { id: admin.id },
+        data: { roles: ['role_user', 'role_admin'] },
+      });
+      console.log('✅ Admin user roles updated to include role_admin');
+    }
     console.log('✅ Admin user already exists');
   }
 
@@ -77,6 +89,9 @@ async function main() {
   // Seed semantic section types catalog
   await seedSectionTypes(prisma);
 
+  // Seed tech skills catalog (areas, niches, skills, programming languages)
+  await seedTechSkills(prisma);
+
   // Seed usernames for existing users without one
   await seedUsernames(prisma);
 
@@ -91,7 +106,10 @@ async function main() {
 
   if (!existingE2eUser) {
     const e2ePassword = 'E2E_Test_Password_123!';
-    const hashedE2ePassword = await bcrypt.hash(e2ePassword, 10);
+    const hashedE2ePassword = await Bun.password.hash(e2ePassword, {
+      algorithm: 'bcrypt',
+      cost: 10,
+    });
 
     await prisma.user.create({
       data: {

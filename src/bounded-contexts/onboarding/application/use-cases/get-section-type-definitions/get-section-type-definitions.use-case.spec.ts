@@ -1,8 +1,5 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
-import {
-  InMemorySectionTypeDefinition,
-  DEFAULT_SECTION_TYPES,
-} from '../../../testing';
+import { DEFAULT_SECTION_TYPES, InMemorySectionTypeDefinition } from '../../../testing';
 import { GetSectionTypeDefinitionsUseCase } from './get-section-type-definitions.use-case';
 
 describe('GetSectionTypeDefinitionsUseCase', () => {
@@ -24,12 +21,7 @@ describe('GetSectionTypeDefinitionsUseCase', () => {
     // Assert
     expect(result).toHaveLength(DEFAULT_SECTION_TYPES.length);
     expect(result.map((s) => s.key)).toEqual(
-      expect.arrayContaining([
-        'work_experience_v1',
-        'education_v1',
-        'skill_set_v1',
-        'language_v1',
-      ]),
+      expect.arrayContaining(['work_experience_v1', 'education_v1', 'skill_set_v1', 'language_v1']),
     );
   });
 

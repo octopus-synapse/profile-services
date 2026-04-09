@@ -1,12 +1,13 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
+import type { ConfigService } from '@nestjs/config';
 import { InMemoryEventBus } from '../../../../shared-kernel/testing';
 import { SessionCreatedEvent } from '../../../domain/events';
 import type { CookieWriter } from '../../../domain/ports/session-storage.port';
 import {
+  createSessionAuthUser,
   InMemoryAuthenticationRepository,
   InMemorySessionStorage,
   InMemoryTokenGenerator,
-  createSessionAuthUser,
 } from '../../../testing';
 import { CreateSessionUseCase } from './create-session.use-case';
 
@@ -14,7 +15,10 @@ import { CreateSessionUseCase } from './create-session.use-case';
 // Test Helpers
 // ═══════════════════════════════════════════════════════════════
 
-function createCookieWriter(): CookieWriter & { cookies: Record<string, string>; cleared: string[] } {
+function createCookieWriter(): CookieWriter & {
+  cookies: Record<string, string>;
+  cleared: string[];
+} {
   const writer = {
     cookies: {} as Record<string, string>,
     cleared: [] as string[],
@@ -29,7 +33,7 @@ function createCookieWriter(): CookieWriter & { cookies: Record<string, string>;
 }
 
 const mockConfigService = {
-  get: (_key: string, defaultValue: any) => defaultValue,
+  get: <T>(_key: string, defaultValue: T) => defaultValue,
 };
 
 describe('CreateSessionUseCase', () => {
@@ -49,7 +53,7 @@ describe('CreateSessionUseCase', () => {
       tokenGenerator,
       sessionStorage,
       eventBus,
-      mockConfigService as any,
+      mockConfigService as unknown as ConfigService,
     );
   });
 
@@ -89,7 +93,7 @@ describe('CreateSessionUseCase', () => {
     expect(result.user.needsEmailVerification).toBe(false);
 
     // Assert - cookie was set
-    expect(cookieWriter.cookies['session']).toBeDefined();
+    expect(cookieWriter.cookies.session).toBeDefined();
 
     // Assert - event published
     expect(eventBus.hasPublished(SessionCreatedEvent)).toBe(true);

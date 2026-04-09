@@ -16,6 +16,7 @@
 import { Body, Controller, Get, Param, Post, Query, Req } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
+import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure/decorators/public.decorator';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
@@ -52,6 +53,7 @@ interface AuthUser {
 export class ResumeAnalyticsController {
   constructor(private readonly analyticsService: ResumeAnalyticsFacade) {}
 
+  @Public()
   @Post(':resumeId/track-view')
   @ApiOperation({ summary: 'Track resume view (public endpoint)' })
   @ApiDataResponse(MessageResponseDto, {

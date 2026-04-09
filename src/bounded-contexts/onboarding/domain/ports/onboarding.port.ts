@@ -4,8 +4,8 @@
  * Defines domain types and repository abstraction for onboarding operations.
  */
 
-import type { OnboardingData } from '../schemas/onboarding-data.schema';
 import type { SectionTypeData } from '../config/onboarding-steps.config';
+import type { OnboardingData } from '../schemas/onboarding-data.schema';
 import type { OnboardingProgressData } from './onboarding-progress.port';
 
 // Generic transaction client type (implementation provided by repository)
@@ -67,7 +67,10 @@ export interface OnboardingUseCases {
     execute: (userId: string) => Promise<OnboardingStatus>;
   };
   advanceOnboardingStepUseCase: {
-    execute: (userId: string, stepData?: Record<string, unknown>) => Promise<OnboardingProgressData>;
+    execute: (
+      userId: string,
+      stepData?: Record<string, unknown>,
+    ) => Promise<OnboardingProgressData>;
   };
   goBackOnboardingStepUseCase: {
     execute: (userId: string) => Promise<OnboardingProgressData>;

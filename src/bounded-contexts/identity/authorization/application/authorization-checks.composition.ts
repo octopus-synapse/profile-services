@@ -5,7 +5,10 @@
  */
 
 import type { AuthorizationCachePort } from '../domain/ports/authorization-cache.port';
-import type { IGroupRepository, IRoleRepository } from '../domain/ports/authorization-repositories.port';
+import type {
+  IGroupRepository,
+  IRoleRepository,
+} from '../domain/ports/authorization-repositories.port';
 import { PermissionResolverService } from '../domain/services/permission-resolver.service';
 import { InMemoryAuthorizationCache } from '../infrastructure/adapters/cache/authorization-cache.adapter';
 import type { GroupRepository } from '../infrastructure/repositories/group.repository';
@@ -35,12 +38,7 @@ export function buildAuthorizationCheckUseCases(
   groupRepo: GroupRepository,
   userAuthRepo: UserAuthorizationRepository,
 ): AuthorizationCheckUseCases {
-  const resolver = new PermissionResolverService(
-    permissionRepo,
-    roleRepo,
-    groupRepo,
-    userAuthRepo,
-  );
+  const resolver = new PermissionResolverService(permissionRepo, roleRepo, groupRepo, userAuthRepo);
 
   const cache: AuthorizationCachePort = new InMemoryAuthorizationCache();
 
@@ -56,7 +54,10 @@ export function buildAuthorizationCheckUseCases(
     groupRepo as IGroupRepository,
   );
   const countUsersWithRoleUseCase = new CountUsersWithRoleUseCase(userAuthRepo);
-  const checkLastAdminUseCase = new CheckLastAdminUseCase(checkRoleUseCase, countUsersWithRoleUseCase);
+  const checkLastAdminUseCase = new CheckLastAdminUseCase(
+    checkRoleUseCase,
+    countUsersWithRoleUseCase,
+  );
 
   return {
     getAuthContextUseCase,

@@ -8,7 +8,53 @@
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 
 export class CleanupHelper {
+  private trackedThemeIds: string[] = [];
+  private trackedUserIds: string[] = [];
+
   constructor(private readonly prisma: PrismaService) {}
+
+  /**
+   * Track a theme ID for cleanup
+   */
+  trackTheme(themeId: string): void {
+    this.trackedThemeIds.push(themeId);
+  }
+
+  /**
+   * Track a user ID for cleanup
+   */
+  trackUser(userId: string): void {
+    this.trackedUserIds.push(userId);
+  }
+
+  /**
+   * Clean up all tracked test data
+   */
+  async cleanupTestData(): Promise<void> {
+    // Clean up tracked themes
+    for (const themeId of this.trackedThemeIds) {
+      await this.deleteThemeById(themeId);
+    }
+    this.trackedThemeIds = [];
+
+    // Clean up tracked users
+    for (const userId of this.trackedUserIds) {
+      await this.deleteUserById(userId);
+    }
+    this.trackedUserIds = [];
+  }
+
+  /**
+   * Delete theme by ID
+   */
+  async deleteThemeById(themeId: string): Promise<void> {
+    try {
+      await this.prisma.resumeTheme.delete({ where: { id: themeId } });
+    } catch (error) {
+      // Theme might not exist or already deleted
+      console.warn(`Cleanup warning for theme ${themeId}:`, error);
+    }
+  }
 
   /**
    * Delete user and all related data by email

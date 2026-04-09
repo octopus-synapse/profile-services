@@ -7,6 +7,8 @@
  * import { Permission, RequirePermission, hasPermission } from '@/shared-kernel/authorization';
  */
 
+// Authorization Port (ISP - for cross-BC consumers)
+export { AuthorizationCheckPort } from './authorization-check.port';
 // Ownership Decorators
 export {
   OWNERSHIP_KEY,
@@ -16,8 +18,8 @@ export {
 } from './ownership.guard';
 // Enums & Types
 export { Permission } from './permission.enum';
-// Guards
-export { PermissionGuard } from './permission.guard';
+// Guards & Metadata Keys
+export { PermissionGuard, ROLE_KEY, ROLES_KEY } from './permission.guard';
 export {
   PERMISSION_GROUPS,
   type PermissionGroup,
@@ -44,10 +46,16 @@ export {
 // Permission Decorators
 export {
   AdminOnly,
+  AdminOrApprover,
+  ApproverOnly,
+  CanManage,
   PERMISSION_KEY,
   PERMISSIONS_KEY,
   type PermissionStrategy,
+  Protected,
   RequirePermission,
   RequirePermissions,
+  RequireRole,
+  RequireRoles,
 } from './require-permission.decorator';
 export { getAllRoleIds, getRoleById, isValidRoleId, ROLES, type Role, type RoleId } from './roles';

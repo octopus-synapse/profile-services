@@ -1,7 +1,7 @@
 import type { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
+import type { BlockedUserRepository } from '../repositories/blocked-user.repository';
 import type { ConversationRepository } from '../repositories/conversation.repository';
 import type { MessageRepository } from '../repositories/message.repository';
-import type { BlockedUserRepository } from '../repositories/blocked-user.repository';
 import type { ChatCacheService } from '../services/chat-cache.service';
 import { CHAT_USE_CASES, type ChatUseCases } from './ports/chat.port';
 import { GetConversationUseCase } from './use-cases/get-conversation/get-conversation.use-case';

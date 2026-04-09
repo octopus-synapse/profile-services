@@ -15,6 +15,12 @@ RUN --mount=type=cache,target=/root/.bun/install/cache \
     bun install --frozen-lockfile && \
     bunx prisma generate
 
+# Layer 3: Install Typst CLI (needed for dev mode which uses this stage)
+RUN apk add --no-cache xz && \
+    wget -qO- https://github.com/typst/typst/releases/download/v0.13.1/typst-x86_64-unknown-linux-musl.tar.xz \
+    | tar -xJ -C /usr/local/bin/ --strip-components=1 typst-x86_64-unknown-linux-musl/typst && \
+    apk del xz
+
 # ==================================
 # Stage 2: Build (only reruns when src/ changes)
 # ==================================
@@ -25,9 +31,14 @@ COPY src ./src
 COPY tsconfig*.json ./
 COPY prisma.config.ts ./
 COPY data ./data
+COPY fonts ./fonts
 
 # Build application
 RUN bun run build
+
+# Copy Typst templates to dist for production
+RUN mkdir -p dist/templates/typst && \
+    cp -r src/bounded-contexts/export/infrastructure/typst/templates/* dist/templates/typst/
 
 # Clean dev dependencies
 RUN --mount=type=cache,target=/root/.bun/install/cache \
@@ -46,7 +57,13 @@ RUN apk add --no-cache \
     harfbuzz \
     ca-certificates \
     ttf-freefont \
-    tini
+    tini \
+    xz
+
+# Install Typst CLI (musl static binary)
+RUN wget -qO- https://github.com/typst/typst/releases/download/v0.13.1/typst-x86_64-unknown-linux-musl.tar.xz \
+    | tar -xJ -C /usr/local/bin/ --strip-components=1 typst-x86_64-unknown-linux-musl/typst && \
+    apk del xz
 
 ENV NODE_ENV=production \
     PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
@@ -63,6 +80,9 @@ COPY --from=builder --chown=nestjs:nodejs /app/dist ./dist
 COPY --from=builder --chown=nestjs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nestjs:nodejs /app/package.json ./package.json
 COPY --from=builder --chown=nestjs:nodejs /app/prisma ./prisma
+
+# Copy fonts for Typst PDF rendering
+COPY --from=builder --chown=nestjs:nodejs /app/fonts /usr/share/fonts/resume-fonts
 
 # Install Prisma CLI globally
 RUN bun install -g prisma@7

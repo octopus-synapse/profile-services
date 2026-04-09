@@ -2,8 +2,8 @@ import { NotFoundException } from '@nestjs/common';
 import sanitizeHtml from 'sanitize-html';
 import type { UpdateResume } from '@/shared-kernel';
 import type { ResumeEventPublisher } from '../../../../shared-kernel/domain/ports';
-import { ResumesRepositoryPort } from '../../../ports/resumes-repository.port';
 import { ResumeVersionServicePort } from '../../../ports/resume-version-service.port';
+import { ResumesRepositoryPort } from '../../../ports/resumes-repository.port';
 import type { ResumeResult } from '../../../ports/resumes-service.port';
 
 function sanitizeContent(text: string | undefined | null): string | undefined {

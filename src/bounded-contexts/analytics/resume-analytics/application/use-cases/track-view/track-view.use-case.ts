@@ -8,7 +8,10 @@ import { createHash } from 'node:crypto';
 import type { EventEmitter2 } from '@nestjs/event-emitter';
 import { TRAFFIC_SOURCES } from '../../../domain/value-objects/traffic-sources';
 import type { TrackView } from '../../../interfaces';
-import type { ResumeOwnershipPort, ViewTrackingRepositoryPort } from '../../ports/resume-analytics.port';
+import type {
+  ResumeOwnershipPort,
+  ViewTrackingRepositoryPort,
+} from '../../ports/resume-analytics.port';
 
 export class TrackViewUseCase {
   constructor(
@@ -37,11 +40,7 @@ export class TrackViewUseCase {
     const now = new Date();
     const startOfDay = new Date(now);
     startOfDay.setHours(0, 0, 0, 0);
-    const totalViews = await this.viewTrackingRepo.countViews(
-      input.resumeId,
-      new Date(0),
-      now,
-    );
+    const totalViews = await this.viewTrackingRepo.countViews(input.resumeId, new Date(0), now);
 
     this.eventEmitter.emit(`analytics:${input.resumeId}:view`, {
       type: 'view',

@@ -7,10 +7,7 @@ import {
   IMPORT_JOB_REPOSITORY,
   type ImportJobRepositoryPort,
 } from '../../../domain/ports/import-job.repository.port';
-import {
-  RESUME_CREATOR,
-  type ResumeCreatorPort,
-} from '../../../domain/ports/resume-creator.port';
+import { RESUME_CREATOR, type ResumeCreatorPort } from '../../../domain/ports/resume-creator.port';
 import type { ImportResult } from '../../../domain/types/import.types';
 import { ProcessImportUseCase } from '../process-import/process-import.use-case';
 

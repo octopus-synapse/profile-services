@@ -324,3 +324,13 @@ export const DEFAULT_ONBOARDING_PROGRESS: OnboardingProgressRecord = createOnboa
     email: 'john@example.com',
   },
 });
+
+// ============================================================================
+// RE-EXPORTS
+// ============================================================================
+
+export { InMemoryOnboardingCompletion } from './in-memory-onboarding-completion';
+export {
+  DEFAULT_SECTION_TYPES,
+  InMemorySectionTypeDefinition,
+} from './in-memory-section-type-definition';

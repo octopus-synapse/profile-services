@@ -9,11 +9,11 @@ import { InMemoryEventBus } from '../../../../shared-kernel/testing';
 import { PasswordChangedEvent } from '../../../domain/events';
 import { WeakPasswordException } from '../../../domain/exceptions';
 import {
+  DEFAULT_USER,
   InMemoryPasswordHasher,
   InMemoryPasswordRepository,
   InMemorySessionInvalidation,
   InMemoryTokenService,
-  DEFAULT_USER,
 } from '../../../testing';
 import { ResetPasswordUseCase } from './reset-password.use-case';
 
@@ -63,7 +63,7 @@ describe('ResetPasswordUseCase', () => {
 
       // Assert - password updated with hash
       const updatedUser = await passwordRepository.findById(DEFAULT_USER.id);
-      expect(updatedUser!.passwordHash).toBe(`hashed:${validNewPassword}`);
+      expect(updatedUser?.passwordHash).toBe(`hashed:${validNewPassword}`);
 
       // Assert - token consumed (no longer valid)
       expect(tokenService.hasToken(validToken)).toBe(false);
@@ -111,9 +111,9 @@ describe('ResetPasswordUseCase', () => {
       await tokenService.createToken(DEFAULT_USER.id, validToken);
 
       // Act & Assert
-      await expect(
-        useCase.execute({ token: validToken, newPassword: 'Ab1' }),
-      ).rejects.toThrow(WeakPasswordException);
+      await expect(useCase.execute({ token: validToken, newPassword: 'Ab1' })).rejects.toThrow(
+        WeakPasswordException,
+      );
 
       // Assert - token NOT consumed (validation happens before token consumption)
       expect(tokenService.hasToken(validToken)).toBe(true);
@@ -155,7 +155,7 @@ describe('ResetPasswordUseCase', () => {
 
       // Assert - password unchanged
       const user = await passwordRepository.findById(DEFAULT_USER.id);
-      expect(user!.passwordHash).toBe(DEFAULT_USER.passwordHash);
+      expect(user?.passwordHash).toBe(DEFAULT_USER.passwordHash);
 
       // Assert - no sessions invalidated
       expect(sessionInvalidation.getInvalidations()).toHaveLength(0);

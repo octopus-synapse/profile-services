@@ -6,12 +6,15 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
-import type { UserAuthContext } from '../../domain/entities/user-auth-context.entity';
+import {
+  AuthorizationServicePort,
+  type UserId,
+} from '../../application/ports/authorization-service.port';
 import {
   AUTHORIZATION_CHECK_USE_CASES,
   type AuthorizationCheckUseCases,
 } from '../../application/ports/authorization-use-cases.port';
-import { AuthorizationServicePort, type UserId } from '../../application/ports/authorization-service.port';
+import type { UserAuthContext } from '../../domain/entities/user-auth-context.entity';
 
 @Injectable()
 export class AuthorizationServiceAdapter extends AuthorizationServicePort {

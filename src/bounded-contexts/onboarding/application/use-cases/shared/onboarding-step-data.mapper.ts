@@ -3,7 +3,10 @@ import {
   isSectionStep,
   type SectionStep,
 } from '../../../domain/config/onboarding-steps.config';
-import type { OnboardingProgressData, SectionProgressData } from '../../../domain/ports/onboarding-progress.port';
+import type {
+  OnboardingProgressData,
+  SectionProgressData,
+} from '../../../domain/ports/onboarding-progress.port';
 
 /**
  * Maps step data from frontend commands into the correct progress structure.
@@ -75,12 +78,20 @@ export class OnboardingStepDataMapper {
         break;
       }
       case 'professional-profile': {
-        const value = this.extractObjectOrRoot(stepData, 'professionalProfile', this.professionalProfileKeys);
+        const value = this.extractObjectOrRoot(
+          stepData,
+          'professionalProfile',
+          this.professionalProfileKeys,
+        );
         if (value !== undefined) update.professionalProfile = value;
         break;
       }
       case 'template': {
-        const value = this.extractObjectOrRoot(stepData, 'templateSelection', this.templateSelectionKeys);
+        const value = this.extractObjectOrRoot(
+          stepData,
+          'templateSelection',
+          this.templateSelectionKeys,
+        );
         if (value !== undefined) update.templateSelection = value;
         break;
       }

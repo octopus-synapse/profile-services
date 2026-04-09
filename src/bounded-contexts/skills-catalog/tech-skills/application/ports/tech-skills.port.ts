@@ -7,7 +7,7 @@
 import type { ProgrammingLanguage } from '../../dto/programming-language.dto';
 import type { TechArea } from '../../dto/tech-area.dto';
 import type { TechNiche } from '../../dto/tech-niche.dto';
-import type { TechSkill, TechSkillRawQueryResult } from '../../dto/tech-skill.dto';
+import type { TechSkill } from '../../dto/tech-skill.dto';
 import type { SkillType, TechAreaType } from '../../interfaces';
 
 // ============================================================================

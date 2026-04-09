@@ -15,7 +15,7 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { ThemeStatus } from '@prisma/client';
-import { AuthorizationService } from '@/bounded-contexts/identity/authorization';
+import { AuthorizationPort } from '../domain/ports/authorization.port';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { ThemeApproval } from '@/shared-kernel';
 import { ERROR_MESSAGES } from '@/shared-kernel';
@@ -29,7 +29,7 @@ export class ThemeApprovalService {
   constructor(
     private prisma: PrismaService,
     private crud: ThemeCrudService,
-    private authorizationService: AuthorizationService,
+    private authorizationService: AuthorizationPort,
   ) {}
 
   async submitForApproval(userId: string, themeId: string) {

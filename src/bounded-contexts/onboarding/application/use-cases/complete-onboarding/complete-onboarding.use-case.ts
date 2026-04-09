@@ -4,9 +4,15 @@ import {
   type OnboardingValidationError,
   OnboardingValidationException,
 } from '../../../domain/exceptions/onboarding.exceptions';
-import { type OnboardingData, onboardingDataSchema } from '../../../domain/schemas/onboarding.schema';
-import type { OnboardingCompletionPort, CompletionResult } from '../../../domain/ports/onboarding-completion.port';
 import type { OnboardingRepositoryPort } from '../../../domain/ports/onboarding.port';
+import type {
+  CompletionResult,
+  OnboardingCompletionPort,
+} from '../../../domain/ports/onboarding-completion.port';
+import {
+  type OnboardingData,
+  onboardingDataSchema,
+} from '../../../domain/schemas/onboarding.schema';
 
 export interface CompleteOnboardingLogger {
   log: (msg: string, ctx: string, meta?: Record<string, unknown>) => void;
@@ -51,11 +57,9 @@ export class CompleteOnboardingUseCase {
     const user = await this.repository.findUserById(userId);
 
     if (!user) {
-      this.logger.warn(
-        'Onboarding attempted for non-existent user',
-        'CompleteOnboardingUseCase',
-        { userId },
-      );
+      this.logger.warn('Onboarding attempted for non-existent user', 'CompleteOnboardingUseCase', {
+        userId,
+      });
       throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
     }
 

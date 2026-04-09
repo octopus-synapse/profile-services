@@ -9,7 +9,7 @@
 
 import { Controller, Get, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiProperty, ApiTags } from '@nestjs/swagger';
-import { PermissionGuard, RequirePermission } from '@/bounded-contexts/identity/authorization';
+import { RequirePermission } from '@/shared-kernel/authorization';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
@@ -41,7 +41,7 @@ export class PlatformStatsResponseDto {
 @ApiTags('platform')
 @ApiBearerAuth('JWT-auth')
 @Controller('v1/platform')
-@UseGuards(JwtAuthGuard, PermissionGuard)
+@UseGuards(JwtAuthGuard)
 export class PlatformStatsController {
   constructor(private readonly statsService: PlatformStatsService) {}
 

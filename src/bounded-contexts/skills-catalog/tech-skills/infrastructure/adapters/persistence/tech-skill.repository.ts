@@ -1,8 +1,8 @@
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { TechSkillRepositoryPort } from '../../../application/ports/tech-skills.port';
 import type { TechSkill, TechSkillRawQueryResult } from '../../../dto/tech-skill.dto';
 import type { SkillType } from '../../../interfaces';
 import { mapRawSkillsTo, mapSkillsTo } from '../../../utils';
-import { TechSkillRepositoryPort } from '../../../application/ports/tech-skills.port';
 
 const NICHE_SELECT = { slug: true, nameEn: true, namePtBr: true } as const;
 

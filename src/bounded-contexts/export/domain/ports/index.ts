@@ -3,12 +3,12 @@
  */
 
 export { DocxBuilderPort } from './docx-builder.port';
-export { PdfGeneratorPort, type PdfGeneratorOptions } from './pdf-generator.port';
+export { type PdfGeneratorOptions, PdfGeneratorPort } from './pdf-generator.port';
 export {
-  ResumeDataRepositoryPort,
   type GenericSection,
   type GenericSectionContent,
   type GenericSectionWithMeta,
+  ResumeDataRepositoryPort,
   type ResumeForJsonExport,
   type ResumeForLatexExport,
 } from './resume-data.repository.port';

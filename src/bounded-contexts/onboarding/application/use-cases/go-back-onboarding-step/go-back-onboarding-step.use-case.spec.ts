@@ -1,15 +1,15 @@
-import { BadRequestException } from '@nestjs/common';
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { BadRequestException } from '@nestjs/common';
 import {
+  createOnboardingProgress,
+  DEFAULT_SECTION_TYPES,
   InMemoryOnboardingProgressRepository,
   InMemorySectionTypeDefinition,
-  DEFAULT_SECTION_TYPES,
-  createOnboardingProgress,
 } from '../../../testing';
-import { SaveProgressUseCase } from '../save-progress/save-progress.use-case';
 import { GetProgressUseCase } from '../get-progress/get-progress.use-case';
+import { SaveProgressUseCase } from '../save-progress/save-progress.use-case';
+import type { GetProgressFn, SaveProgressFn } from '../shared/navigation.types';
 import { GoBackOnboardingStepUseCase } from './go-back-onboarding-step.use-case';
-import type { SaveProgressFn, GetProgressFn } from '../shared/navigation.types';
 
 describe('GoBackOnboardingStepUseCase', () => {
   let useCase: GoBackOnboardingStepUseCase;
@@ -74,9 +74,7 @@ describe('GoBackOnboardingStepUseCase', () => {
 
     // Assert
     expect(result.currentStep).toBe('personal-info');
-    expect(result.completedSteps).toEqual(
-      expect.arrayContaining(['welcome', 'personal-info']),
-    );
+    expect(result.completedSteps).toEqual(expect.arrayContaining(['welcome', 'personal-info']));
   });
 
   it('goes back from a section step to professional-profile', async () => {

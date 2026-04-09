@@ -12,6 +12,10 @@ export class VerificationEmailSentEvent extends DomainEvent {
   readonly eventType = 'email.verification.sent';
   readonly aggregateId: string;
 
+  get payload(): Record<string, unknown> {
+    return this.getPayload();
+  }
+
   constructor(
     public readonly userId: string,
     public readonly email: string,
@@ -36,6 +40,10 @@ export class VerificationEmailSentEvent extends DomainEvent {
 export class EmailVerifiedEvent extends DomainEvent {
   readonly eventType = 'email.verified';
   readonly aggregateId: string;
+
+  get payload(): Record<string, unknown> {
+    return this.getPayload();
+  }
 
   constructor(
     public readonly userId: string,

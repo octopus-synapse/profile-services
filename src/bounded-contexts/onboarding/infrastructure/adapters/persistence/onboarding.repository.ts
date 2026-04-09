@@ -1,12 +1,12 @@
 import type { Prisma } from '@prisma/client';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { OnboardingData } from '../../../domain/schemas/onboarding.schema';
 import type {
   OnboardingStatus,
   TransactionClient,
   UserForOnboarding,
 } from '../../../domain/ports/onboarding.port';
 import { OnboardingRepositoryPort } from '../../../domain/ports/onboarding.port';
+import type { OnboardingData } from '../../../domain/schemas/onboarding.schema';
 
 export class OnboardingRepository extends OnboardingRepositoryPort {
   constructor(private readonly prisma: PrismaService) {

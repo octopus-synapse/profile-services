@@ -61,7 +61,7 @@ describe('VerifyAndEnable2faUseCase', () => {
 
       const record = await repository.findByUserId(userId);
       expect(record).not.toBeNull();
-      expect(record!.enabled).toBe(true);
+      expect(record?.enabled).toBe(true);
     });
 
     it('should store hashed backup codes in the repository', async () => {
@@ -113,7 +113,7 @@ describe('VerifyAndEnable2faUseCase', () => {
       }
 
       const record = await repository.findByUserId(userId);
-      expect(record!.enabled).toBe(false);
+      expect(record?.enabled).toBe(false);
     });
 
     it('should generate unique backup codes', async () => {

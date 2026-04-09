@@ -4,7 +4,7 @@
  * All domain events MUST extend this class.
  * Events are immutable records of something that happened in the domain.
  */
-export abstract class DomainEvent {
+export abstract class DomainEvent<TPayload = unknown> {
   /**
    * Unique event identifier
    */
@@ -24,6 +24,11 @@ export abstract class DomainEvent {
    * Aggregate root ID that generated this event
    */
   abstract readonly aggregateId: string;
+
+  /**
+   * Event-specific data
+   */
+  abstract readonly payload: TPayload;
 
   constructor() {
     this.eventId = crypto.randomUUID();

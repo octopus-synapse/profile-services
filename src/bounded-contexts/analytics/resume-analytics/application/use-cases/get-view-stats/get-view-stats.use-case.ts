@@ -5,7 +5,10 @@
  */
 
 import type { ViewStats, ViewStatsOptions } from '../../../interfaces';
-import type { ResumeOwnershipPort, ViewTrackingRepositoryPort } from '../../ports/resume-analytics.port';
+import type {
+  ResumeOwnershipPort,
+  ViewTrackingRepositoryPort,
+} from '../../ports/resume-analytics.port';
 
 export class GetViewStatsUseCase {
   constructor(
@@ -13,11 +16,7 @@ export class GetViewStatsUseCase {
     private readonly viewTrackingRepo: ViewTrackingRepositoryPort,
   ) {}
 
-  async execute(
-    resumeId: string,
-    userId: string,
-    options: ViewStatsOptions,
-  ): Promise<ViewStats> {
+  async execute(resumeId: string, userId: string, options: ViewStatsOptions): Promise<ViewStats> {
     await this.ownership.verifyOwnership(resumeId, userId);
     return this.getViewStats(resumeId, options);
   }

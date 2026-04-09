@@ -11,13 +11,13 @@ import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logg
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import {
-  buildOnboardingProgressUseCases,
-  ONBOARDING_PROGRESS_USE_CASES,
-} from './application/compositions/onboarding-progress.composition';
-import {
   buildOnboardingUseCases,
   ONBOARDING_USE_CASES,
 } from './application/compositions/onboarding.composition';
+import {
+  buildOnboardingProgressUseCases,
+  ONBOARDING_PROGRESS_USE_CASES,
+} from './application/compositions/onboarding-progress.composition';
 import { OnboardingController } from './infrastructure/controllers/onboarding.controller';
 
 @Module({

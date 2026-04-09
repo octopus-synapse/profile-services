@@ -1,5 +1,4 @@
-import { BadRequestException } from '@nestjs/common';
-import { SectionTypeRepository } from '@/bounded-contexts/resumes/shared-kernel/infrastructure/repositories';
+import { ValidationException } from '@/shared-kernel/exceptions';
 import type {
   FieldValidationError,
   SectionItemValidationResult,
@@ -7,6 +6,7 @@ import type {
   SectionValidationResult,
 } from '@/shared-kernel/schemas/sections';
 import { SectionDefinitionZodFactory } from '../../services/section-definition-zod.factory';
+import type { SectionTypeReadPort } from '../ports/section-type-read.port';
 
 /**
  * Generic Section Validation Service
@@ -23,7 +23,7 @@ import { SectionDefinitionZodFactory } from '../../services/section-definition-z
 export class GenericSectionValidationService {
   constructor(
     private readonly zodFactory: SectionDefinitionZodFactory,
-    private readonly sectionTypeRepo: SectionTypeRepository,
+    private readonly sectionTypeRepo: SectionTypeReadPort,
   ) {}
 
   /**
@@ -62,10 +62,9 @@ export class GenericSectionValidationService {
     const result = schema.safeParse(content);
 
     if (!result.success) {
-      throw new BadRequestException({
-        message: `Invalid content for section type ${sectionTypeKey}`,
-        errors: result.error.issues,
-      });
+      throw new ValidationException(
+        `Invalid content for section type ${sectionTypeKey}`,
+      );
     }
 
     return result.data;
@@ -191,7 +190,7 @@ export class GenericSectionValidationService {
   private getSectionType(key: string): SectionTypeWithDefinition {
     const sectionType = this.sectionTypeRepo.getByKey(key);
     if (!sectionType) {
-      throw new BadRequestException(`Unknown section type: ${key}`);
+      throw new ValidationException(`Unknown section type: ${key}`);
     }
     return sectionType;
   }

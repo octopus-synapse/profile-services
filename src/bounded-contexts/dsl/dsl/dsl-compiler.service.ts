@@ -78,6 +78,18 @@ export class DslCompilerService {
         version: validatedDsl.version,
         generatedAt: new Date().toISOString(),
       },
+      header: resumeData
+        ? {
+            fullName: resumeData.fullName,
+            jobTitle: resumeData.jobTitle,
+            phone: resumeData.phone,
+            email: resumeData.emailContact,
+            location: resumeData.location,
+            linkedin: resumeData.linkedin,
+            github: resumeData.github,
+            website: resumeData.website,
+          }
+        : undefined,
       page: pageLayout,
       sections,
       globalStyles: {
@@ -106,7 +118,7 @@ export class DslCompilerService {
     sectionTypeTitles?: Map<string, string>,
   ): ResumeAst['sections'] {
     return dsl.sections
-      .filter((s) => s.visible)
+      .filter((s) => s.visible && s.id !== 'header')
       .sort((a, b) => a.order - b.order)
       .map((section) => {
         const overrides = (dsl.itemOverrides?.[section.id] ?? []) as ItemOverride[];
@@ -156,6 +168,20 @@ export class DslCompilerService {
       return getPlaceholderData(sectionId, sectionTypeTitles);
     }
 
+    // Summary/objective sections: render as text section, not item section
+    if (section.semanticKind === 'SUMMARY' || section.semanticKind === 'OBJECTIVE') {
+      const textContent =
+        resume.summary ??
+        (section.items[0]?.content as Record<string, unknown>)?.text ??
+        '';
+      return {
+        semanticKind: section.semanticKind,
+        sectionTypeKey: section.sectionTypeKey,
+        title: section.title,
+        content: String(textContent),
+      };
+    }
+
     // Generic compilation - filter visible items
     const visibleItems = section.items
       .filter((item) => isItemVisible(item.id, overrides))
@@ -167,7 +193,7 @@ export class DslCompilerService {
     return {
       semanticKind: section.semanticKind,
       sectionTypeKey: section.sectionTypeKey,
-      title: section.title,
+      title: section.titleOverride || section.title,
       items: visibleItems,
     };
   }

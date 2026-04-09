@@ -10,9 +10,7 @@ import { SearchSpokenLanguagesUseCase } from './use-cases/search-spoken-language
 
 export { SPOKEN_LANGUAGES_USE_CASES };
 
-export function buildSpokenLanguagesUseCases(
-  prisma: PrismaService,
-): SpokenLanguagesUseCases {
+export function buildSpokenLanguagesUseCases(prisma: PrismaService): SpokenLanguagesUseCases {
   const repository = new SpokenLanguagesRepository(prisma);
 
   return {

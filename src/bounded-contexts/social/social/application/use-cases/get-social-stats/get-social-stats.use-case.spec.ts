@@ -10,19 +10,41 @@ class StubFollowRepository {
   private _followers = 0;
   private _following = 0;
 
-  setFollowersCount(n: number) { this._followers = n; }
-  setFollowingCount(n: number) { this._following = n; }
+  setFollowersCount(n: number) {
+    this._followers = n;
+  }
+  setFollowingCount(n: number) {
+    this._following = n;
+  }
 
-  async countFollowers() { return this._followers; }
-  async countFollowing() { return this._following; }
-  async createFollow() { return {} as never; }
+  async countFollowers() {
+    return this._followers;
+  }
+  async countFollowing() {
+    return this._following;
+  }
+  async createFollow() {
+    return {} as never;
+  }
   async deleteFollow() {}
-  async findFollow() { return null; }
-  async findFollowers() { return { data: [], total: 0 }; }
-  async findFollowing() { return { data: [], total: 0 }; }
-  async findFollowingIds() { return []; }
-  async findFollowerIds() { return []; }
-  async userExists() { return true; }
+  async findFollow() {
+    return null;
+  }
+  async findFollowers() {
+    return { data: [], total: 0 };
+  }
+  async findFollowing() {
+    return { data: [], total: 0 };
+  }
+  async findFollowingIds() {
+    return [];
+  }
+  async findFollowerIds() {
+    return [];
+  }
+  async userExists() {
+    return true;
+  }
 }
 
 describe('GetSocialStatsUseCase', () => {

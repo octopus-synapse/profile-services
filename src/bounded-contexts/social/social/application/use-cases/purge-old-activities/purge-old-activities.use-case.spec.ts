@@ -10,17 +10,29 @@ class StubActivityRepository {
   private _deleteCount = 0;
   calls: Array<{ method: string; args: unknown[] }> = [];
 
-  setDeleteCount(n: number) { this._deleteCount = n; }
+  setDeleteCount(n: number) {
+    this._deleteCount = n;
+  }
 
   async deleteOlderThan(date: Date) {
     this.calls.push({ method: 'deleteOlderThan', args: [date] });
     return this._deleteCount;
   }
-  async createActivity() { return {} as never; }
-  async findActivityWithUser() { return null; }
-  async findActivitiesByUserIds() { return { data: [], total: 0 }; }
-  async findUserActivities() { return { data: [], total: 0 }; }
-  async findUserActivitiesByType() { return { data: [], total: 0 }; }
+  async createActivity() {
+    return {} as never;
+  }
+  async findActivityWithUser() {
+    return null;
+  }
+  async findActivitiesByUserIds() {
+    return { data: [], total: 0 };
+  }
+  async findUserActivities() {
+    return { data: [], total: 0 };
+  }
+  async findUserActivitiesByType() {
+    return { data: [], total: 0 };
+  }
 }
 
 describe('PurgeOldActivitiesUseCase', () => {

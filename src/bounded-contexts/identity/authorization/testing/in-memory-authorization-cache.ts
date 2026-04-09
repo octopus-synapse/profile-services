@@ -1,5 +1,4 @@
-import type { UserAuthContext } from '../domain/entities/user-auth-context.entity';
-import type { UserId } from '../domain/entities/user-auth-context.entity';
+import type { UserAuthContext, UserId } from '../domain/entities/user-auth-context.entity';
 import type { AuthorizationCachePort } from '../domain/ports';
 
 export class InMemoryAuthorizationCache implements AuthorizationCachePort {

@@ -6,11 +6,11 @@
 
 import { beforeEach, describe, expect, it } from 'bun:test';
 import {
+  createBackupCodeRecord,
   DEFAULT_BACKUP_CODES,
   DEFAULT_ENABLED_TWO_FACTOR_RECORD,
   DEFAULT_TWO_FACTOR_RECORD,
   InMemoryTwoFactorRepository,
-  createBackupCodeRecord,
 } from '../../../testing';
 import { Get2faStatusUseCase } from './get-2fa-status.use-case';
 

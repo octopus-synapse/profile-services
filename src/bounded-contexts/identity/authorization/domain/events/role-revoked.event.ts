@@ -4,7 +4,7 @@
  * Emitted when a role is removed from a user.
  */
 
-import { DomainEvent } from '@/shared-kernel';
+import { DomainEvent } from '../../../shared-kernel/domain/events';
 
 export interface RoleRevokedPayload {
   readonly roleId: string;
@@ -15,7 +15,17 @@ export interface RoleRevokedPayload {
 export class RoleRevokedEvent extends DomainEvent<RoleRevokedPayload> {
   static readonly TYPE = 'identity.authorization.role.revoked';
 
+  readonly eventType = RoleRevokedEvent.TYPE;
+  readonly aggregateId: string;
+  readonly payload: RoleRevokedPayload;
+
   constructor(userId: string, payload: RoleRevokedPayload) {
-    super(RoleRevokedEvent.TYPE, userId, payload);
+    super();
+    this.aggregateId = userId;
+    this.payload = payload;
+  }
+
+  protected getPayload(): Record<string, unknown> {
+    return { ...this.payload };
   }
 }

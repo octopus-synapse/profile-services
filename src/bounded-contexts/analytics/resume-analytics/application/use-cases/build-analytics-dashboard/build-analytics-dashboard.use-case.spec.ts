@@ -7,7 +7,10 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import type { ResumeForAnalytics } from '../../../domain/types';
 import { InMemorySnapshot, InMemoryViewTracking } from '../../../testing';
-import type { ResumeOwnershipPort, SnapshotRepositoryPort } from '../../ports/resume-analytics.port';
+import type {
+  ResumeOwnershipPort,
+  SnapshotRepositoryPort,
+} from '../../ports/resume-analytics.port';
 import { BuildAnalyticsDashboardUseCase } from './build-analytics-dashboard.use-case';
 
 describe('BuildAnalyticsDashboardUseCase', () => {
@@ -85,7 +88,7 @@ describe('BuildAnalyticsDashboardUseCase', () => {
 
     // Create a snapshot repo port from InMemorySnapshot
     const snapshotRepo: SnapshotRepositoryPort = {
-      save: async () => ({} as never),
+      save: async () => ({}) as never,
       getHistory: async () => [],
       getScoreProgression: async (resumeId: string, days: number) =>
         snapshot.getScoreProgression(resumeId, days),

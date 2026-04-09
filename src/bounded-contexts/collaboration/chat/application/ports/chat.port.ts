@@ -59,7 +59,12 @@ export abstract class ConversationRepositoryPort {
   abstract getOtherParticipant(
     conversationId: string,
     userId: string,
-  ): Promise<{ id: string; displayName: string | null; photoURL: string | null; username: string | null } | null>;
+  ): Promise<{
+    id: string;
+    displayName: string | null;
+    photoURL: string | null;
+    username: string | null;
+  } | null>;
 }
 
 export abstract class MessageRepositoryPort {
@@ -84,10 +89,7 @@ export abstract class MessageRepositoryPort {
     totalUnread: number;
     byConversation: Record<string, number>;
   }>;
-  abstract getUnreadCountByConversation(
-    conversationId: string,
-    userId: string,
-  ): Promise<number>;
+  abstract getUnreadCountByConversation(conversationId: string, userId: string): Promise<number>;
 }
 
 export abstract class BlockedUserRepositoryPort {
@@ -97,10 +99,9 @@ export abstract class BlockedUserRepositoryPort {
 export abstract class ChatCachePort {
   abstract invalidateUnread(userId: string): Promise<void>;
   abstract invalidateConversations(userId: string): Promise<void>;
-  abstract getUnreadCount<T extends { totalUnread: number; byConversation: Record<string, number> }>(
-    userId: string,
-    computeFn: () => Promise<T>,
-  ): Promise<T>;
+  abstract getUnreadCount<
+    T extends { totalUnread: number; byConversation: Record<string, number> },
+  >(userId: string, computeFn: () => Promise<T>): Promise<T>;
 }
 
 // ============================================================================
@@ -114,7 +115,11 @@ export interface ChatUseCases {
     execute: (senderId: string, dto: SendMessage) => Promise<MessageResponse>;
   };
   sendMessageToConversationUseCase: {
-    execute: (senderId: string, conversationId: string, content: string) => Promise<MessageResponse>;
+    execute: (
+      senderId: string,
+      conversationId: string,
+      content: string,
+    ) => Promise<MessageResponse>;
   };
   getMessagesUseCase: {
     execute: (userId: string, query: GetMessagesQuery) => Promise<PaginatedMessagesResponse>;

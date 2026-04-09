@@ -10,7 +10,7 @@ import {
   GitHubUrlSchema,
   LinkedInUrlSchema,
   SocialUrlSchema,
-} from '@/bounded-contexts/identity/users/domain/schemas/professional-profile.schema';
+} from '@/shared-kernel/schemas/primitives';
 
 /**
  * Public User Schema

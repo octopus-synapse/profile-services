@@ -23,10 +23,7 @@ export interface SpokenLanguage {
 export abstract class SpokenLanguagesRepositoryPort {
   abstract findAllActive(): Promise<SpokenLanguage[]>;
 
-  abstract searchByName(
-    query: string,
-    limit: number,
-  ): Promise<SpokenLanguage[]>;
+  abstract searchByName(query: string, limit: number): Promise<SpokenLanguage[]>;
 
   abstract findByCode(code: string): Promise<SpokenLanguage | null>;
 }

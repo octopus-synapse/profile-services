@@ -13,6 +13,7 @@ import {
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ApiBearerAuth, ApiOperation, ApiProduces, ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiStreamResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
@@ -36,6 +37,7 @@ export class ExportDocxController {
   }
 
   @RequirePermission(Permission.RESUME_EXPORT)
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Get('resume/docx')
   @Header('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')
   @Header('Content-Disposition', 'attachment; filename="resume.docx"')

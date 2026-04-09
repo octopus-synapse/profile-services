@@ -9,10 +9,7 @@ import { EntityNotFoundException } from '../../../../shared-kernel/exceptions';
 import { InMemoryEventBus } from '../../../../shared-kernel/testing';
 import { AccountDeactivatedEvent } from '../../../domain/events';
 import { AccountDeactivatedException } from '../../../domain/exceptions';
-import {
-  InMemoryAccountLifecycleRepository,
-  createAccountData,
-} from '../../../testing';
+import { createAccountData, InMemoryAccountLifecycleRepository } from '../../../testing';
 import { DeactivateAccountUseCase } from './deactivate-account.use-case';
 
 describe('DeactivateAccountUseCase', () => {
@@ -37,7 +34,7 @@ describe('DeactivateAccountUseCase', () => {
     // Assert
     expect(result.success).toBe(true);
     const account = await repository.findById('user-1');
-    expect(account!.isActive).toBe(false);
+    expect(account?.isActive).toBe(false);
   });
 
   it('should publish AccountDeactivatedEvent', async () => {
@@ -69,21 +66,15 @@ describe('DeactivateAccountUseCase', () => {
 
   it('should throw EntityNotFoundException when account does not exist', async () => {
     // Arrange & Act & Assert
-    expect(
-      useCase.execute({ userId: 'nonexistent' }),
-    ).rejects.toThrow(EntityNotFoundException);
+    expect(useCase.execute({ userId: 'nonexistent' })).rejects.toThrow(EntityNotFoundException);
   });
 
   it('should throw AccountDeactivatedException when account is already deactivated', async () => {
     // Arrange
-    repository.seedAccount(
-      createAccountData({ id: 'user-1', isActive: false }),
-    );
+    repository.seedAccount(createAccountData({ id: 'user-1', isActive: false }));
 
     // Act & Assert
-    expect(
-      useCase.execute({ userId: 'user-1' }),
-    ).rejects.toThrow(AccountDeactivatedException);
+    expect(useCase.execute({ userId: 'user-1' })).rejects.toThrow(AccountDeactivatedException);
   });
 
   it('should not publish events when account is not found', async () => {
@@ -100,9 +91,7 @@ describe('DeactivateAccountUseCase', () => {
 
   it('should not publish events when account is already deactivated', async () => {
     // Arrange
-    repository.seedAccount(
-      createAccountData({ id: 'user-1', isActive: false }),
-    );
+    repository.seedAccount(createAccountData({ id: 'user-1', isActive: false }));
 
     // Act
     try {

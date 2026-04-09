@@ -31,7 +31,7 @@ describe('SyncProjectionOnResumeDeletedHandler', () => {
   });
 
   it('uses event aggregateId as the projection id to delete', async () => {
-    const deleteManyMock = mock(async () => ({ count: 1 }));
+    const deleteManyMock = mock(async (_args: { where: { id: string } }) => ({ count: 1 }));
     const prisma = {
       analyticsResumeProjection: {
         deleteMany: deleteManyMock,
@@ -46,7 +46,7 @@ describe('SyncProjectionOnResumeDeletedHandler', () => {
     await handler.handle(event);
 
     expect(deleteManyMock).toHaveBeenCalledTimes(1);
-    const call = deleteManyMock.mock.calls[0][0] as { where: { id: string } };
+    const call = deleteManyMock.mock.calls[0][0];
     expect(call.where.id).toBe('resume-xyz');
   });
 });

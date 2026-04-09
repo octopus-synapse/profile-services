@@ -13,11 +13,7 @@ import type { ParsedResumeData } from '../../../domain/types/import.types';
 export class PrismaResumeCreatorAdapter implements ResumeCreatorPort {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(
-    userId: string,
-    data: ParsedResumeData,
-    importId: string,
-  ): Promise<{ id: string }> {
+  async create(userId: string, data: ParsedResumeData, importId: string): Promise<{ id: string }> {
     const resume = await this.prisma.resume.create({
       data: {
         userId,

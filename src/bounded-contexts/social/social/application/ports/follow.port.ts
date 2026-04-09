@@ -47,17 +47,11 @@ export type FollowWithUser = {
 // ============================================================================
 
 export abstract class FollowRepositoryPort {
-  abstract createFollow(
-    followerId: string,
-    followingId: string,
-  ): Promise<FollowWithUser>;
+  abstract createFollow(followerId: string, followingId: string): Promise<FollowWithUser>;
 
   abstract deleteFollow(followerId: string, followingId: string): Promise<void>;
 
-  abstract findFollow(
-    followerId: string,
-    followingId: string,
-  ): Promise<FollowWithUser | null>;
+  abstract findFollow(followerId: string, followingId: string): Promise<FollowWithUser | null>;
 
   abstract findFollowers(
     userId: string,
@@ -88,10 +82,7 @@ export const FOLLOW_USE_CASES = Symbol('FOLLOW_USE_CASES');
 
 export interface FollowUseCases {
   followUserUseCase: {
-    execute: (
-      followerId: string,
-      followingId: string,
-    ) => Promise<FollowWithUser>;
+    execute: (followerId: string, followingId: string) => Promise<FollowWithUser>;
   };
   unfollowUserUseCase: {
     execute: (followerId: string, followingId: string) => Promise<void>;

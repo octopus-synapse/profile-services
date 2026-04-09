@@ -5,8 +5,7 @@
  * Enables different cache implementations (in-memory, Redis, etc.).
  */
 
-import type { UserAuthContext } from '../entities/user-auth-context.entity';
-import type { UserId } from '../entities/user-auth-context.entity';
+import type { UserAuthContext, UserId } from '../entities/user-auth-context.entity';
 
 export interface AuthorizationCachePort {
   get(userId: UserId): UserAuthContext | null;

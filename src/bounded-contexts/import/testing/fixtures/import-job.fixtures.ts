@@ -4,9 +4,7 @@
 
 import type { ImportJobData, JsonResumeSchema } from '../../domain/types/import.types';
 
-export function createImportJobFixture(
-  overrides: Partial<ImportJobData> = {},
-): ImportJobData {
+export function createImportJobFixture(overrides: Partial<ImportJobData> = {}): ImportJobData {
   return {
     id: 'import-1',
     userId: 'user-123',

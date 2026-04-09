@@ -10,6 +10,7 @@ import { ConflictException, DomainException } from '../../../shared-kernel/excep
  */
 export class InvalidVerificationTokenException extends DomainException {
   readonly code = 'INVALID_VERIFICATION_TOKEN';
+  readonly statusHint = 400;
   constructor(message: string = 'Invalid or expired verification token') {
     super(message);
   }
@@ -33,6 +34,7 @@ export class EmailAlreadyVerifiedException extends ConflictException {
  */
 export class VerificationTokenAlreadySentException extends DomainException {
   readonly code = 'VERIFICATION_TOKEN_ALREADY_SENT';
+  readonly statusHint = 429;
   constructor(retryAfterMinutes: number = 5) {
     super(
       `Verification email was already sent. Please wait ${retryAfterMinutes} minutes before requesting a new one.`,

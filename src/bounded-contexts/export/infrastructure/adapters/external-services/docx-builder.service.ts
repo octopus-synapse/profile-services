@@ -10,12 +10,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Document, Packer } from 'docx';
 import { UsersRepository } from '@/bounded-contexts/identity/users';
-import { SectionTypeRepository } from '@/bounded-contexts/resumes/shared-kernel/infrastructure/repositories';
 import { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.repository';
+import { SectionTypeRepository } from '@/bounded-contexts/resumes/shared-kernel/infrastructure/repositories';
 import { ERROR_MESSAGES } from '@/shared-kernel';
 import type { DocxUserData } from './docx.types';
-import { DocxSectionsService } from './docx-sections.service';
 import type { GenericResumeSectionData } from './docx-sections.service';
+import { DocxSectionsService } from './docx-sections.service';
 import { DocxStylesService } from './docx-styles.service';
 
 type ResumeSectionWithItems = {
@@ -74,15 +74,12 @@ export class DocxBuilderService {
     }
 
     const resume: ResumeWithSections = {
-      resumeSections: (
-        'resumeSections' in resumeData && Array.isArray(resumeData.resumeSections)
-          ? resumeData.resumeSections
-          : []
+      resumeSections: ('resumeSections' in resumeData && Array.isArray(resumeData.resumeSections)
+        ? resumeData.resumeSections
+        : []
       ).map((section: Record<string, unknown>) => ({
         sectionType: section.sectionType as ResumeSectionWithItems['sectionType'],
-        items: Array.isArray(section.items)
-          ? (section.items as Array<{ content: unknown }>)
-          : [],
+        items: Array.isArray(section.items) ? (section.items as Array<{ content: unknown }>) : [],
       })),
     };
     return { user, resume };

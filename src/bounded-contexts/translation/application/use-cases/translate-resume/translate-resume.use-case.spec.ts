@@ -82,7 +82,11 @@ describe('TranslateResumeUseCase', () => {
 
       await useCase.execute(resume, 'en-to-pt');
 
-      expect(fakeTranslationService.translate).toHaveBeenCalledWith('Experienced developer', 'en', 'pt');
+      expect(fakeTranslationService.translate).toHaveBeenCalledWith(
+        'Experienced developer',
+        'en',
+        'pt',
+      );
     });
   });
 

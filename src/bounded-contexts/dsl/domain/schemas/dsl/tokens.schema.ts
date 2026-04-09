@@ -9,6 +9,12 @@ export const FontFamilySchema = z.enum([
   'source-serif',
   'lato',
   'poppins',
+  'calibri',
+  'georgia',
+  'arial',
+  'times-new-roman',
+  'garamond',
+  'cambria',
 ]);
 
 export const FontSizeSchema = z.enum(['sm', 'base', 'lg']);

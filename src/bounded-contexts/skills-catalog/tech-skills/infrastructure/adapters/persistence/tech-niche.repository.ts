@@ -1,7 +1,7 @@
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { TechNicheRepositoryPort } from '../../../application/ports/tech-skills.port';
 import type { TechNiche } from '../../../dto/tech-niche.dto';
 import type { TechAreaType } from '../../../interfaces';
-import { TechNicheRepositoryPort } from '../../../application/ports/tech-skills.port';
 
 export class TechNicheRepository extends TechNicheRepositoryPort {
   constructor(private readonly prisma: PrismaService) {

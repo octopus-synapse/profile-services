@@ -2,9 +2,11 @@ import { Module } from '@nestjs/common';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { SectionTypeRepository } from '@/bounded-contexts/resumes/infrastructure/repositories';
-import { ATSController } from './ats.controller';
+import { CalculateThemeATSScoreUseCase } from '../application/use-cases/calculate-theme-ats-score/calculate-theme-ats-score.use-case';
+import { ThemeATSAdapter } from '../infrastructure/adapters/theme-ats.adapter';
+import { ATSController } from '../infrastructure/controllers/ats.controller';
 import { DateRangeExtractor, JobTitleExtractor, OrganizationExtractor } from './extractors';
-import { SECTION_SEMANTIC_CATALOG } from './interfaces';
+import { SECTION_SEMANTIC_CATALOG, THEME_ATS_PORT } from './interfaces';
 import { CVSectionParser } from './parsers/cv-section.parser';
 import {
   ContentQualitySemanticPolicy,
@@ -12,7 +14,7 @@ import {
   MandatorySemanticPolicy,
   SectionOrderSemanticPolicy,
 } from './policies';
-import { DefinitionDrivenScoringStrategy, SemanticScoringService } from './scoring';
+import { DefinitionDrivenScoringStrategy, SemanticScoringService, ThemeATSScoringStrategy } from './scoring';
 import { ATSService } from './services/ats.service';
 import { ATSSectionTypeAdapter } from './services/ats-section-type.adapter';
 import { EncodingNormalizerService } from './services/encoding-normalizer.service';
@@ -56,7 +58,12 @@ import { SectionOrderValidator } from './validators/section-order.validator';
       provide: SECTION_SEMANTIC_CATALOG,
       useExisting: SectionSemanticCatalogAdapter,
     },
+    // Theme ATS Scoring
+    ThemeATSScoringStrategy,
+    ThemeATSAdapter,
+    { provide: THEME_ATS_PORT, useExisting: ThemeATSAdapter },
+    CalculateThemeATSScoreUseCase,
   ],
-  exports: [ATSService, ATSSectionTypeAdapter],
+  exports: [ATSService, ATSSectionTypeAdapter, CalculateThemeATSScoreUseCase],
 })
 export class ATSModule {}

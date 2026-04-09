@@ -312,11 +312,20 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: stats:read"
           }
         },
         "security": [
           {
             "JWT-auth": []
+          },
+          {
+            "bearer": []
           }
         ],
         "summary": "Get platform statistics",
@@ -905,11 +914,20 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: resume:read"
           }
         },
         "security": [
           {
             "JWT-auth": []
+          },
+          {
+            "bearer": []
           }
         ],
         "summary": "List all resumes for a specific user",
@@ -956,11 +974,20 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: resume:read"
           }
         },
         "security": [
           {
             "JWT-auth": []
+          },
+          {
+            "bearer": []
           }
         ],
         "summary": "Get full resume details",
@@ -1005,11 +1032,20 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: resume:delete"
           }
         },
         "security": [
           {
             "JWT-auth": []
+          },
+          {
+            "bearer": []
           }
         ],
         "summary": "Delete a resume",
@@ -5249,11 +5285,20 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: user:read"
           }
         },
         "security": [
           {
             "JWT-auth": []
+          },
+          {
+            "bearer": []
           }
         ],
         "summary": "List all users with pagination",
@@ -5299,11 +5344,20 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: user:create"
           }
         },
         "security": [
           {
             "JWT-auth": []
+          },
+          {
+            "bearer": []
           }
         ],
         "summary": "Create a new user",
@@ -5350,11 +5404,20 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: user:read"
           }
         },
         "security": [
           {
             "JWT-auth": []
+          },
+          {
+            "bearer": []
           }
         ],
         "summary": "Get user details by ID",
@@ -5409,11 +5472,20 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: user:update"
           }
         },
         "security": [
           {
             "JWT-auth": []
+          },
+          {
+            "bearer": []
           }
         ],
         "summary": "Update user information",
@@ -5459,11 +5531,20 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: user:delete"
           }
         },
         "security": [
           {
             "JWT-auth": []
+          },
+          {
+            "bearer": []
           }
         ],
         "summary": "Delete a user",
@@ -5520,16 +5601,292 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: user:update"
           }
         },
         "security": [
           {
             "JWT-auth": []
+          },
+          {
+            "bearer": []
           }
         ],
         "summary": "Reset user password",
         "tags": [
           "users"
+        ]
+      }
+    },
+    "/api/v1/dsl/validate": {
+      "post": {
+        "operationId": "dsl_validate",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "description": "DSL object to validate",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "DSL validation result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/DslValidationResultDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "Validate DSL schema",
+        "tags": [
+          "dsl"
+        ]
+      }
+    },
+    "/api/v1/dsl/preview": {
+      "post": {
+        "operationId": "dsl_preview",
+        "parameters": [
+          {
+            "name": "target",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "html",
+                "pdf"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "DSL object to compile",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Preview AST compiled successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/DslPreviewResultDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "Compile DSL to AST (preview, no persistence)",
+        "tags": [
+          "dsl"
+        ]
+      }
+    },
+    "/api/v1/dsl/render/{resumeId}": {
+      "get": {
+        "operationId": "dsl_render",
+        "parameters": [
+          {
+            "name": "resumeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "locale",
+            "required": false,
+            "in": "query",
+            "description": "Locale for translated section titles",
+            "schema": {
+              "enum": [
+                "en",
+                "pt-BR",
+                "es"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "target",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "html",
+                "pdf"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AST for resume",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/DslAstResponseDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: resume:read"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get compiled AST for a resume",
+        "tags": [
+          "dsl"
+        ]
+      }
+    },
+    "/api/v1/dsl/render/public/{slug}": {
+      "get": {
+        "operationId": "dsl_renderPublic",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "locale",
+            "required": false,
+            "in": "query",
+            "description": "Locale for translated section titles",
+            "schema": {
+              "enum": [
+                "en",
+                "pt-BR",
+                "es"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "target",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "html",
+                "pdf"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AST for public resume",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/DslAstResponseDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get compiled AST for a public resume",
+        "tags": [
+          "dsl"
         ]
       }
     },
@@ -6914,13 +7271,13 @@
         ]
       }
     },
-    "/api/v1/themes": {
+    "/api/v1/themes/me": {
       "get": {
-        "operationId": "themes_findAllThemesWithPagination",
+        "operationId": "themes_getAllThemesByUser",
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Published themes returned",
+            "description": "User themes returned",
             "content": {
               "application/json": {
                 "schema": {
@@ -6932,7 +7289,7 @@
                       "type": "object",
                       "properties": {
                         "data": {
-                          "$ref": "#/components/schemas/ThemePaginatedListDataDto"
+                          "$ref": "#/components/schemas/ThemeListDataDto"
                         }
                       },
                       "required": [
@@ -6945,11 +7302,18 @@
             }
           }
         },
-        "summary": "List published themes",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get my themes",
         "tags": [
           "themes"
         ]
-      },
+      }
+    },
+    "/api/v1/themes": {
       "post": {
         "operationId": "themes_createThemeForUser",
         "parameters": [],
@@ -6999,24 +7363,124 @@
         "tags": [
           "themes"
         ]
-      }
-    },
-    "/api/v1/themes/popular": {
+      },
       "get": {
-        "operationId": "themes_findPopularThemes",
+        "operationId": "themes_findAllThemesWithPagination",
         "parameters": [
           {
-            "name": "limit",
-            "required": true,
+            "name": "status",
+            "required": false,
             "in": "query",
             "schema": {
-              "type": "number"
+              "type": "string",
+              "enum": [
+                "DRAFT",
+                "PRIVATE",
+                "PENDING_APPROVAL",
+                "PUBLISHED",
+                "REJECTED"
+              ]
+            }
+          },
+          {
+            "name": "category",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PROFESSIONAL",
+                "CREATIVE",
+                "TECHNICAL",
+                "ACADEMIC",
+                "MINIMAL",
+                "MODERN",
+                "CLASSIC",
+                "EXECUTIVE"
+              ]
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "authorId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "systemOnly",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "createdAt",
+              "type": "string",
+              "enum": [
+                "createdAt",
+                "updatedAt",
+                "usageCount",
+                "rating",
+                "name"
+              ]
+            }
+          },
+          {
+            "name": "sortDir",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "default": "desc",
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "exclusiveMinimum": false,
+              "default": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "exclusiveMaximum": false,
+              "exclusiveMinimum": false,
+              "default": 20,
+              "type": "integer"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Popular themes returned",
+            "description": "Published themes returned",
             "content": {
               "application/json": {
                 "schema": {
@@ -7028,7 +7492,7 @@
                       "type": "object",
                       "properties": {
                         "data": {
-                          "$ref": "#/components/schemas/ThemeListDataDto"
+                          "$ref": "#/components/schemas/ThemePaginatedListDataDto"
                         }
                       },
                       "required": [
@@ -7041,94 +7505,13 @@
             }
           }
         },
-        "summary": "Get popular themes",
-        "tags": [
-          "themes"
-        ]
-      }
-    },
-    "/api/v1/themes/system": {
-      "get": {
-        "operationId": "themes_findAllSystemThemes",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "System themes returned",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/ApiResponseDto"
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "data": {
-                          "$ref": "#/components/schemas/ThemeListDataDto"
-                        }
-                      },
-                      "required": [
-                        "data"
-                      ]
-                    }
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "summary": "Get system themes",
+        "summary": "List published themes",
         "tags": [
           "themes"
         ]
       }
     },
     "/api/v1/themes/{id}": {
-      "get": {
-        "operationId": "themes_findThemeById",
-        "parameters": [
-          {
-            "name": "id",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Theme returned by id",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/ApiResponseDto"
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "data": {
-                          "$ref": "#/components/schemas/ThemeNullableEntityDataDto"
-                        }
-                      },
-                      "required": [
-                        "data"
-                      ]
-                    }
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "summary": "Get theme by ID",
-        "tags": [
-          "themes"
-        ]
-      },
       "put": {
         "operationId": "themes_updateThemeForUser",
         "parameters": [
@@ -7214,15 +7597,22 @@
         "tags": [
           "themes"
         ]
-      }
-    },
-    "/api/v1/themes/me": {
+      },
       "get": {
-        "operationId": "themes_getAllThemesByUser",
-        "parameters": [],
+        "operationId": "themes_findThemeById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "User themes returned",
+            "description": "Theme returned by id",
             "content": {
               "application/json": {
                 "schema": {
@@ -7234,7 +7624,7 @@
                       "type": "object",
                       "properties": {
                         "data": {
-                          "$ref": "#/components/schemas/ThemeListDataDto"
+                          "$ref": "#/components/schemas/ThemeNullableEntityDataDto"
                         }
                       },
                       "required": [
@@ -7247,12 +7637,7 @@
             }
           }
         },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Get my themes",
+        "summary": "Get theme by ID",
         "tags": [
           "themes"
         ]
@@ -7442,9 +7827,18 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: theme:approve"
           }
         },
         "security": [
+          {
+            "bearer": []
+          },
           {
             "bearer": []
           }
@@ -7494,9 +7888,18 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: theme:approve"
           }
         },
         "security": [
+          {
+            "bearer": []
+          },
           {
             "bearer": []
           }
@@ -7545,14 +7948,106 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: theme:update"
           }
         },
         "security": [
           {
             "bearer": []
+          },
+          {
+            "bearer": []
           }
         ],
         "summary": "Submit a theme for approval",
+        "tags": [
+          "themes"
+        ]
+      }
+    },
+    "/api/v1/themes/popular": {
+      "get": {
+        "operationId": "themes_findPopularThemes",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Popular themes returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/ThemeListDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get popular themes",
+        "tags": [
+          "themes"
+        ]
+      }
+    },
+    "/api/v1/themes/system": {
+      "get": {
+        "operationId": "themes_findAllSystemThemes",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "System themes returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/ThemeListDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get system themes",
         "tags": [
           "themes"
         ]
@@ -9435,9 +9930,18 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: resume:update"
           }
         },
         "security": [
+          {
+            "bearer": []
+          },
           {
             "bearer": []
           }
@@ -9484,9 +9988,18 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: resume:read"
           }
         },
         "security": [
+          {
+            "bearer": []
+          },
           {
             "bearer": []
           }
@@ -9543,9 +10056,18 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: resume:update"
           }
         },
         "security": [
+          {
+            "bearer": []
+          },
           {
             "bearer": []
           }
@@ -9600,9 +10122,18 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: resume:update"
           }
         },
         "security": [
+          {
+            "bearer": []
+          },
           {
             "bearer": []
           }
@@ -9846,157 +10377,25 @@
         ]
       }
     },
-    "/api/v1/dsl/validate": {
-      "post": {
-        "operationId": "dsl_validate",
-        "parameters": [],
-        "requestBody": {
-          "required": true,
-          "description": "DSL object to validate",
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "string"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "DSL validation result",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/ApiResponseDto"
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "data": {
-                          "$ref": "#/components/schemas/DslValidationResultDto"
-                        }
-                      },
-                      "required": [
-                        "data"
-                      ]
-                    }
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "summary": "Validate DSL schema",
-        "tags": [
-          "dsl"
-        ]
-      }
-    },
-    "/api/v1/dsl/preview": {
-      "post": {
-        "operationId": "dsl_preview",
-        "parameters": [
-          {
-            "name": "target",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "enum": [
-                "html",
-                "pdf"
-              ],
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "description": "DSL object to compile",
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "string"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Preview AST compiled successfully",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/ApiResponseDto"
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "data": {
-                          "$ref": "#/components/schemas/DslPreviewResultDto"
-                        }
-                      },
-                      "required": [
-                        "data"
-                      ]
-                    }
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "summary": "Compile DSL to AST (preview, no persistence)",
-        "tags": [
-          "dsl"
-        ]
-      }
-    },
-    "/api/v1/dsl/render/{resumeId}": {
+    "/api/v1/ats/themes/{themeId}/score": {
       "get": {
-        "operationId": "dsl_render",
+        "description": "Calculates the ATS compatibility score for a specific theme based on its layout, typography, colors, and other visual properties. Returns a detailed breakdown and recommendations.",
+        "operationId": "atsValidation_calculateThemeScore",
         "parameters": [
           {
-            "name": "resumeId",
+            "name": "themeId",
             "required": true,
             "in": "path",
+            "description": "The unique identifier of the theme to score",
             "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "locale",
-            "required": false,
-            "in": "query",
-            "description": "Locale for translated section titles",
-            "schema": {
-              "enum": [
-                "en",
-                "pt-BR",
-                "es"
-              ],
-              "type": "string"
-            }
-          },
-          {
-            "name": "target",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "enum": [
-                "html",
-                "pdf"
-              ],
+              "example": "system-classic",
               "type": "string"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "AST for resume",
+            "description": "Theme ATS score calculated successfully",
             "content": {
               "application/json": {
                 "schema": {
@@ -10008,7 +10407,7 @@
                       "type": "object",
                       "properties": {
                         "data": {
-                          "$ref": "#/components/schemas/DslAstResponseDto"
+                          "$ref": "#/components/schemas/ThemeATSScoreResponseDto"
                         }
                       },
                       "required": [
@@ -10032,84 +10431,12 @@
             "bearer": []
           },
           {
-            "bearer": []
+            "JWT-auth": []
           }
         ],
-        "summary": "Get compiled AST for a resume",
+        "summary": "Calculate ATS score for a theme",
         "tags": [
-          "dsl"
-        ]
-      }
-    },
-    "/api/v1/dsl/render/public/{slug}": {
-      "get": {
-        "operationId": "dsl_renderPublic",
-        "parameters": [
-          {
-            "name": "slug",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "locale",
-            "required": false,
-            "in": "query",
-            "description": "Locale for translated section titles",
-            "schema": {
-              "enum": [
-                "en",
-                "pt-BR",
-                "es"
-              ],
-              "type": "string"
-            }
-          },
-          {
-            "name": "target",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "enum": [
-                "html",
-                "pdf"
-              ],
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "AST for public resume",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/ApiResponseDto"
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "data": {
-                          "$ref": "#/components/schemas/DslAstResponseDto"
-                        }
-                      },
-                      "required": [
-                        "data"
-                      ]
-                    }
-                  ]
-                }
-              }
-            }
-          }
-        },
-        "summary": "Get compiled AST for a public resume",
-        "tags": [
-          "dsl"
+          "ATS Validation"
         ]
       }
     },
@@ -13941,20 +14268,13 @@
       "TrackViewRequestDto": {
         "type": "object",
         "properties": {
-          "resumeId": {
-            "type": "string",
-            "minLength": 1
-          },
           "userAgent": {
             "type": "string"
           },
           "referer": {
             "type": "string"
           }
-        },
-        "required": [
-          "resumeId"
-        ]
+        }
       },
       "Object": {
         "type": "object",
@@ -15017,6 +15337,9 @@
                     "ADMIN"
                   ]
                 },
+                "isActive": {
+                  "type": "boolean"
+                },
                 "lastLoginAt": {
                   "type": "string",
                   "format": "date-time",
@@ -15035,6 +15358,7 @@
                 "emailVerified",
                 "resumeCount",
                 "role",
+                "isActive",
                 "lastLoginAt"
               ]
             }
@@ -15110,6 +15434,9 @@
                 "format": "date-time",
                 "nullable": true
               },
+              "isActive": {
+                "type": "boolean"
+              },
               "resumes": {
                 "type": "array",
                 "items": {
@@ -15181,6 +15508,7 @@
               "updatedAt",
               "image",
               "emailVerified",
+              "isActive",
               "resumes",
               "preferences",
               "counts"
@@ -15333,6 +15661,447 @@
         },
         "required": [
           "newPassword"
+        ]
+      },
+      "DslValidationErrorDto": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "example": "root.name",
+            "description": "Path to invalid field"
+          },
+          "message": {
+            "type": "string",
+            "example": "Required",
+            "description": "Error message"
+          }
+        },
+        "required": [
+          "path",
+          "message"
+        ]
+      },
+      "DslValidationResultDto": {
+        "type": "object",
+        "properties": {
+          "valid": {
+            "type": "boolean",
+            "example": true
+          },
+          "errors": {
+            "nullable": true,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DslValidationErrorDto"
+            }
+          }
+        },
+        "required": [
+          "valid"
+        ]
+      },
+      "DslPreviewResultDto": {
+        "type": "object",
+        "properties": {
+          "ast": {
+            "type": "object",
+            "description": "Compiled AST"
+          }
+        },
+        "required": [
+          "ast"
+        ]
+      },
+      "AstMetaDto": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "string",
+            "example": "1.0.0"
+          },
+          "generatedAt": {
+            "type": "string",
+            "example": "2026-02-15T12:00:00.000Z"
+          }
+        },
+        "required": [
+          "version",
+          "generatedAt"
+        ]
+      },
+      "ColumnDefinitionDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "col_main"
+          },
+          "widthPercentage": {
+            "type": "number",
+            "example": 66.67
+          },
+          "order": {
+            "type": "number",
+            "example": 0
+          }
+        },
+        "required": [
+          "id",
+          "widthPercentage",
+          "order"
+        ]
+      },
+      "PageLayoutDto": {
+        "type": "object",
+        "properties": {
+          "widthMm": {
+            "type": "number",
+            "example": 210,
+            "description": "Page width in mm (A4 = 210)"
+          },
+          "heightMm": {
+            "type": "number",
+            "example": 297,
+            "description": "Page height in mm (A4 = 297)"
+          },
+          "marginTopMm": {
+            "type": "number",
+            "example": 20
+          },
+          "marginBottomMm": {
+            "type": "number",
+            "example": 20
+          },
+          "marginLeftMm": {
+            "type": "number",
+            "example": 15
+          },
+          "marginRightMm": {
+            "type": "number",
+            "example": 15
+          },
+          "columns": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ColumnDefinitionDto"
+            }
+          },
+          "columnGapMm": {
+            "type": "number",
+            "example": 10
+          }
+        },
+        "required": [
+          "widthMm",
+          "heightMm",
+          "marginTopMm",
+          "marginBottomMm",
+          "marginLeftMm",
+          "marginRightMm",
+          "columns",
+          "columnGapMm"
+        ]
+      },
+      "GenericSectionItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "item_123"
+          },
+          "order": {
+            "type": "number",
+            "example": 0
+          },
+          "content": {
+            "type": "object",
+            "additionalProperties": true,
+            "example": {
+              "title": "Senior Software Engineer",
+              "company": "Tech Company Inc.",
+              "startDate": "2020-01"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "content"
+        ]
+      },
+      "GenericSectionDataDto": {
+        "type": "object",
+        "properties": {
+          "sectionTypeKey": {
+            "type": "string",
+            "example": "section_type_v1"
+          },
+          "semanticKind": {
+            "type": "string",
+            "example": "custom_section"
+          },
+          "title": {
+            "type": "string",
+            "example": "Selected Highlights"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GenericSectionItemDto"
+            }
+          },
+          "content": {
+            "type": "string",
+            "example": "Markdown or plain text content"
+          },
+          "metadata": {
+            "type": "object",
+            "additionalProperties": true,
+            "example": {
+              "variant": "timeline"
+            }
+          }
+        },
+        "required": [
+          "sectionTypeKey"
+        ]
+      },
+      "ResolvedBoxStyleDto": {
+        "type": "object",
+        "properties": {
+          "backgroundColor": {
+            "type": "string",
+            "example": "#ffffff"
+          },
+          "borderColor": {
+            "type": "string",
+            "example": "#e5e5e5"
+          },
+          "borderWidthPx": {
+            "type": "number",
+            "example": 0
+          },
+          "borderRadiusPx": {
+            "type": "number",
+            "example": 8
+          },
+          "paddingPx": {
+            "type": "number",
+            "example": 16
+          },
+          "marginBottomPx": {
+            "type": "number",
+            "example": 24
+          },
+          "shadow": {
+            "type": "string",
+            "example": "0 2px 4px rgba(0,0,0,0.1)"
+          }
+        },
+        "required": [
+          "backgroundColor",
+          "borderColor",
+          "borderWidthPx",
+          "borderRadiusPx",
+          "paddingPx",
+          "marginBottomPx"
+        ]
+      },
+      "ResolvedTypographyDto": {
+        "type": "object",
+        "properties": {
+          "fontFamily": {
+            "type": "string",
+            "example": "Inter, sans-serif"
+          },
+          "fontSizePx": {
+            "type": "number",
+            "example": 16
+          },
+          "lineHeight": {
+            "type": "number",
+            "example": 1.5
+          },
+          "fontWeight": {
+            "type": "number",
+            "example": 400
+          },
+          "textTransform": {
+            "type": "string",
+            "enum": [
+              "none",
+              "uppercase",
+              "lowercase",
+              "capitalize"
+            ],
+            "example": "none"
+          },
+          "textDecoration": {
+            "type": "string",
+            "enum": [
+              "none",
+              "underline",
+              "line-through"
+            ],
+            "example": "none"
+          }
+        },
+        "required": [
+          "fontFamily",
+          "fontSizePx",
+          "lineHeight",
+          "fontWeight",
+          "textTransform",
+          "textDecoration"
+        ]
+      },
+      "SectionStylesDto": {
+        "type": "object",
+        "properties": {
+          "container": {
+            "$ref": "#/components/schemas/ResolvedBoxStyleDto"
+          },
+          "title": {
+            "$ref": "#/components/schemas/ResolvedTypographyDto"
+          },
+          "content": {
+            "$ref": "#/components/schemas/ResolvedTypographyDto"
+          }
+        },
+        "required": [
+          "container",
+          "title",
+          "content"
+        ]
+      },
+      "PlacedSectionDto": {
+        "type": "object",
+        "properties": {
+          "sectionId": {
+            "type": "string",
+            "example": "sec_experience_1"
+          },
+          "columnId": {
+            "type": "string",
+            "example": "col_main"
+          },
+          "order": {
+            "type": "number",
+            "example": 0
+          },
+          "data": {
+            "description": "Generic section data. Structure is defined by sectionTypeKey and SectionType metadata.",
+            "example": {
+              "sectionTypeKey": "section_type_v1",
+              "semanticKind": "custom_section",
+              "title": "Selected Highlights",
+              "items": [
+                {
+                  "id": "item_1",
+                  "order": 0,
+                  "content": {
+                    "headline": "Senior Engineer",
+                    "organization": "Tech Corp",
+                    "startedAt": "2020-01",
+                    "isActive": true,
+                    "highlights": [
+                      "Led team of 5"
+                    ],
+                    "tags": [
+                      "TypeScript"
+                    ]
+                  }
+                }
+              ]
+            },
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/GenericSectionDataDto"
+              }
+            ]
+          },
+          "styles": {
+            "$ref": "#/components/schemas/SectionStylesDto"
+          }
+        },
+        "required": [
+          "sectionId",
+          "columnId",
+          "order",
+          "data",
+          "styles"
+        ]
+      },
+      "GlobalStylesDto": {
+        "type": "object",
+        "properties": {
+          "background": {
+            "type": "string",
+            "example": "#ffffff"
+          },
+          "textPrimary": {
+            "type": "string",
+            "example": "#1a1a1a"
+          },
+          "textSecondary": {
+            "type": "string",
+            "example": "#666666"
+          },
+          "accent": {
+            "type": "string",
+            "example": "#0066cc"
+          }
+        },
+        "required": [
+          "background",
+          "textPrimary",
+          "textSecondary",
+          "accent"
+        ]
+      },
+      "ResumeAstDto": {
+        "type": "object",
+        "properties": {
+          "meta": {
+            "$ref": "#/components/schemas/AstMetaDto"
+          },
+          "page": {
+            "$ref": "#/components/schemas/PageLayoutDto"
+          },
+          "sections": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PlacedSectionDto"
+            }
+          },
+          "globalStyles": {
+            "$ref": "#/components/schemas/GlobalStylesDto"
+          }
+        },
+        "required": [
+          "meta",
+          "page",
+          "sections",
+          "globalStyles"
+        ]
+      },
+      "DslAstResponseDto": {
+        "type": "object",
+        "properties": {
+          "ast": {
+            "$ref": "#/components/schemas/ResumeAstDto"
+          },
+          "resumeId": {
+            "type": "string",
+            "example": "clxxx..."
+          },
+          "slug": {
+            "type": "string",
+            "example": "john-doe-resume"
+          }
+        },
+        "required": [
+          "ast"
         ]
       },
       "OnboardingSessionDto": {
@@ -16372,46 +17141,6 @@
           "progress"
         ]
       },
-      "ThemePaginatedListDataDto": {
-        "type": "object",
-        "properties": {
-          "themes": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "additionalProperties": {}
-            }
-          },
-          "pagination": {
-            "type": "object",
-            "properties": {
-              "total": {
-                "type": "integer"
-              },
-              "page": {
-                "type": "integer"
-              },
-              "limit": {
-                "type": "integer"
-              },
-              "totalPages": {
-                "type": "integer"
-              }
-            },
-            "required": [
-              "total",
-              "page",
-              "limit",
-              "totalPages"
-            ],
-            "x-nestjs_zod-self-required": true
-          }
-        },
-        "required": [
-          "themes",
-          "pagination"
-        ]
-      },
       "ThemeListDataDto": {
         "type": "object",
         "properties": {
@@ -16425,20 +17154,6 @@
         },
         "required": [
           "themes"
-        ]
-      },
-      "ThemeNullableEntityDataDto": {
-        "type": "object",
-        "properties": {
-          "theme": {
-            "type": "object",
-            "additionalProperties": {},
-            "nullable": true,
-            "x-nestjs_zod-self-required": true
-          }
-        },
-        "required": [
-          "theme"
         ]
       },
       "ThemeEntityDataDto": {
@@ -16605,6 +17320,60 @@
         "required": [
           "themeId",
           "approved"
+        ]
+      },
+      "ThemePaginatedListDataDto": {
+        "type": "object",
+        "properties": {
+          "themes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": {}
+            }
+          },
+          "pagination": {
+            "type": "object",
+            "properties": {
+              "total": {
+                "type": "integer"
+              },
+              "page": {
+                "type": "integer"
+              },
+              "limit": {
+                "type": "integer"
+              },
+              "totalPages": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "total",
+              "page",
+              "limit",
+              "totalPages"
+            ],
+            "x-nestjs_zod-self-required": true
+          }
+        },
+        "required": [
+          "themes",
+          "pagination"
+        ]
+      },
+      "ThemeNullableEntityDataDto": {
+        "type": "object",
+        "properties": {
+          "theme": {
+            "type": "object",
+            "additionalProperties": {},
+            "nullable": true,
+            "x-nestjs_zod-self-required": true
+          }
+        },
+        "required": [
+          "theme"
         ]
       },
       "ResumeConfigOperationDataDto": {
@@ -17884,445 +18653,277 @@
           }
         }
       },
-      "DslValidationErrorDto": {
+      "ThemeATSScoreResponseDto": {
         "type": "object",
         "properties": {
-          "path": {
-            "type": "string",
-            "example": "root.name",
-            "description": "Path to invalid field"
+          "themeId": {
+            "description": "Unique identifier of the theme",
+            "type": "string"
           },
-          "message": {
-            "type": "string",
-            "example": "Required",
-            "description": "Error message"
-          }
-        },
-        "required": [
-          "path",
-          "message"
-        ]
-      },
-      "DslValidationResultDto": {
-        "type": "object",
-        "properties": {
-          "valid": {
-            "type": "boolean",
-            "example": true
+          "themeName": {
+            "description": "Display name of the theme",
+            "type": "string"
           },
-          "errors": {
-            "nullable": true,
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/DslValidationErrorDto"
-            }
-          }
-        },
-        "required": [
-          "valid"
-        ]
-      },
-      "DslPreviewResultDto": {
-        "type": "object",
-        "properties": {
-          "ast": {
+          "overallScore": {
+            "description": "Overall ATS compatibility score (0-100)",
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": false,
+            "maximum": 100,
+            "exclusiveMaximum": false
+          },
+          "isATSFriendly": {
+            "description": "Whether the theme is considered ATS-friendly (score >= 80)",
+            "type": "boolean"
+          },
+          "breakdown": {
+            "description": "Detailed score breakdown by criteria",
             "type": "object",
-            "description": "Compiled AST"
-          }
-        },
-        "required": [
-          "ast"
-        ]
-      },
-      "AstMetaDto": {
-        "type": "object",
-        "properties": {
-          "version": {
-            "type": "string",
-            "example": "1.0.0"
-          },
-          "generatedAt": {
-            "type": "string",
-            "example": "2026-02-15T12:00:00.000Z"
-          }
-        },
-        "required": [
-          "version",
-          "generatedAt"
-        ]
-      },
-      "ColumnDefinitionDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "example": "col_main"
-          },
-          "widthPercentage": {
-            "type": "number",
-            "example": 66.67
-          },
-          "order": {
-            "type": "number",
-            "example": 0
-          }
-        },
-        "required": [
-          "id",
-          "widthPercentage",
-          "order"
-        ]
-      },
-      "PageLayoutDto": {
-        "type": "object",
-        "properties": {
-          "widthMm": {
-            "type": "number",
-            "example": 210,
-            "description": "Page width in mm (A4 = 210)"
-          },
-          "heightMm": {
-            "type": "number",
-            "example": 297,
-            "description": "Page height in mm (A4 = 297)"
-          },
-          "marginTopMm": {
-            "type": "number",
-            "example": 20
-          },
-          "marginBottomMm": {
-            "type": "number",
-            "example": 20
-          },
-          "marginLeftMm": {
-            "type": "number",
-            "example": 15
-          },
-          "marginRightMm": {
-            "type": "number",
-            "example": 15
-          },
-          "columns": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ColumnDefinitionDto"
-            }
-          },
-          "columnGapMm": {
-            "type": "number",
-            "example": 10
-          }
-        },
-        "required": [
-          "widthMm",
-          "heightMm",
-          "marginTopMm",
-          "marginBottomMm",
-          "marginLeftMm",
-          "marginRightMm",
-          "columns",
-          "columnGapMm"
-        ]
-      },
-      "GenericSectionItemDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "example": "item_123"
-          },
-          "order": {
-            "type": "number",
-            "example": 0
-          },
-          "content": {
-            "type": "object",
-            "additionalProperties": true,
-            "example": {
-              "title": "Senior Software Engineer",
-              "company": "Tech Company Inc.",
-              "startDate": "2020-01"
-            }
-          }
-        },
-        "required": [
-          "id",
-          "content"
-        ]
-      },
-      "GenericSectionDataDto": {
-        "type": "object",
-        "properties": {
-          "sectionTypeKey": {
-            "type": "string",
-            "example": "section_type_v1"
-          },
-          "semanticKind": {
-            "type": "string",
-            "example": "custom_section"
-          },
-          "title": {
-            "type": "string",
-            "example": "Selected Highlights"
-          },
-          "items": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/GenericSectionItemDto"
-            }
-          },
-          "content": {
-            "type": "string",
-            "example": "Markdown or plain text content"
-          },
-          "metadata": {
-            "type": "object",
-            "additionalProperties": true,
-            "example": {
-              "variant": "timeline"
-            }
-          }
-        },
-        "required": [
-          "sectionTypeKey"
-        ]
-      },
-      "ResolvedBoxStyleDto": {
-        "type": "object",
-        "properties": {
-          "backgroundColor": {
-            "type": "string",
-            "example": "#ffffff"
-          },
-          "borderColor": {
-            "type": "string",
-            "example": "#e5e5e5"
-          },
-          "borderWidthPx": {
-            "type": "number",
-            "example": 0
-          },
-          "borderRadiusPx": {
-            "type": "number",
-            "example": 8
-          },
-          "paddingPx": {
-            "type": "number",
-            "example": 16
-          },
-          "marginBottomPx": {
-            "type": "number",
-            "example": 24
-          },
-          "shadow": {
-            "type": "string",
-            "example": "0 2px 4px rgba(0,0,0,0.1)"
-          }
-        },
-        "required": [
-          "backgroundColor",
-          "borderColor",
-          "borderWidthPx",
-          "borderRadiusPx",
-          "paddingPx",
-          "marginBottomPx"
-        ]
-      },
-      "ResolvedTypographyDto": {
-        "type": "object",
-        "properties": {
-          "fontFamily": {
-            "type": "string",
-            "example": "Inter, sans-serif"
-          },
-          "fontSizePx": {
-            "type": "number",
-            "example": 16
-          },
-          "lineHeight": {
-            "type": "number",
-            "example": 1.5
-          },
-          "fontWeight": {
-            "type": "number",
-            "example": 400
-          },
-          "textTransform": {
-            "type": "string",
-            "enum": [
-              "none",
-              "uppercase",
-              "lowercase",
-              "capitalize"
-            ],
-            "example": "none"
-          },
-          "textDecoration": {
-            "type": "string",
-            "enum": [
-              "none",
-              "underline",
-              "line-through"
-            ],
-            "example": "none"
-          }
-        },
-        "required": [
-          "fontFamily",
-          "fontSizePx",
-          "lineHeight",
-          "fontWeight",
-          "textTransform",
-          "textDecoration"
-        ]
-      },
-      "SectionStylesDto": {
-        "type": "object",
-        "properties": {
-          "container": {
-            "$ref": "#/components/schemas/ResolvedBoxStyleDto"
-          },
-          "title": {
-            "$ref": "#/components/schemas/ResolvedTypographyDto"
-          },
-          "content": {
-            "$ref": "#/components/schemas/ResolvedTypographyDto"
-          }
-        },
-        "required": [
-          "container",
-          "title",
-          "content"
-        ]
-      },
-      "PlacedSectionDto": {
-        "type": "object",
-        "properties": {
-          "sectionId": {
-            "type": "string",
-            "example": "sec_experience_1"
-          },
-          "columnId": {
-            "type": "string",
-            "example": "col_main"
-          },
-          "order": {
-            "type": "number",
-            "example": 0
-          },
-          "data": {
-            "description": "Generic section data. Structure is defined by sectionTypeKey and SectionType metadata.",
-            "example": {
-              "sectionTypeKey": "section_type_v1",
-              "semanticKind": "custom_section",
-              "title": "Selected Highlights",
-              "items": [
-                {
-                  "id": "item_1",
-                  "order": 0,
-                  "content": {
-                    "headline": "Senior Engineer",
-                    "organization": "Tech Corp",
-                    "startedAt": "2020-01",
-                    "isActive": true,
-                    "highlights": [
-                      "Led team of 5"
-                    ],
-                    "tags": [
-                      "TypeScript"
-                    ]
+            "properties": {
+              "layout": {
+                "description": "Layout type scoring (single vs two-column)",
+                "type": "object",
+                "properties": {
+                  "score": {
+                    "description": "Score achieved for this criterion",
+                    "type": "integer",
+                    "minimum": 0,
+                    "exclusiveMinimum": false
+                  },
+                  "maxScore": {
+                    "description": "Maximum possible score for this criterion",
+                    "type": "integer",
+                    "minimum": 0,
+                    "exclusiveMinimum": false
+                  },
+                  "details": {
+                    "description": "Explanation of the score",
+                    "type": "string"
                   }
-                }
-              ]
-            },
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/GenericSectionDataDto"
+                },
+                "required": [
+                  "score",
+                  "maxScore",
+                  "details"
+                ]
+              },
+              "typography": {
+                "description": "Font safety for ATS parsers",
+                "type": "object",
+                "properties": {
+                  "score": {
+                    "description": "Score achieved for this criterion",
+                    "type": "integer",
+                    "minimum": 0,
+                    "exclusiveMinimum": false
+                  },
+                  "maxScore": {
+                    "description": "Maximum possible score for this criterion",
+                    "type": "integer",
+                    "minimum": 0,
+                    "exclusiveMinimum": false
+                  },
+                  "details": {
+                    "description": "Explanation of the score",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "score",
+                  "maxScore",
+                  "details"
+                ]
+              },
+              "colorContrast": {
+                "description": "Text/background contrast",
+                "type": "object",
+                "properties": {
+                  "score": {
+                    "description": "Score achieved for this criterion",
+                    "type": "integer",
+                    "minimum": 0,
+                    "exclusiveMinimum": false
+                  },
+                  "maxScore": {
+                    "description": "Maximum possible score for this criterion",
+                    "type": "integer",
+                    "minimum": 0,
+                    "exclusiveMinimum": false
+                  },
+                  "details": {
+                    "description": "Explanation of the score",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "score",
+                  "maxScore",
+                  "details"
+                ]
+              },
+              "visualElements": {
+                "description": "Shadows, borders, gradients",
+                "type": "object",
+                "properties": {
+                  "score": {
+                    "description": "Score achieved for this criterion",
+                    "type": "integer",
+                    "minimum": 0,
+                    "exclusiveMinimum": false
+                  },
+                  "maxScore": {
+                    "description": "Maximum possible score for this criterion",
+                    "type": "integer",
+                    "minimum": 0,
+                    "exclusiveMinimum": false
+                  },
+                  "details": {
+                    "description": "Explanation of the score",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "score",
+                  "maxScore",
+                  "details"
+                ]
+              },
+              "sectionOrder": {
+                "description": "Section ordering alignment",
+                "type": "object",
+                "properties": {
+                  "score": {
+                    "description": "Score achieved for this criterion",
+                    "type": "integer",
+                    "minimum": 0,
+                    "exclusiveMinimum": false
+                  },
+                  "maxScore": {
+                    "description": "Maximum possible score for this criterion",
+                    "type": "integer",
+                    "minimum": 0,
+                    "exclusiveMinimum": false
+                  },
+                  "details": {
+                    "description": "Explanation of the score",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "score",
+                  "maxScore",
+                  "details"
+                ]
+              },
+              "paperSize": {
+                "description": "Paper format compatibility",
+                "type": "object",
+                "properties": {
+                  "score": {
+                    "description": "Score achieved for this criterion",
+                    "type": "integer",
+                    "minimum": 0,
+                    "exclusiveMinimum": false
+                  },
+                  "maxScore": {
+                    "description": "Maximum possible score for this criterion",
+                    "type": "integer",
+                    "minimum": 0,
+                    "exclusiveMinimum": false
+                  },
+                  "details": {
+                    "description": "Explanation of the score",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "score",
+                  "maxScore",
+                  "details"
+                ]
+              },
+              "margins": {
+                "description": "Margin settings",
+                "type": "object",
+                "properties": {
+                  "score": {
+                    "description": "Score achieved for this criterion",
+                    "type": "integer",
+                    "minimum": 0,
+                    "exclusiveMinimum": false
+                  },
+                  "maxScore": {
+                    "description": "Maximum possible score for this criterion",
+                    "type": "integer",
+                    "minimum": 0,
+                    "exclusiveMinimum": false
+                  },
+                  "details": {
+                    "description": "Explanation of the score",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "score",
+                  "maxScore",
+                  "details"
+                ]
+              },
+              "density": {
+                "description": "Content spacing/density",
+                "type": "object",
+                "properties": {
+                  "score": {
+                    "description": "Score achieved for this criterion",
+                    "type": "integer",
+                    "minimum": 0,
+                    "exclusiveMinimum": false
+                  },
+                  "maxScore": {
+                    "description": "Maximum possible score for this criterion",
+                    "type": "integer",
+                    "minimum": 0,
+                    "exclusiveMinimum": false
+                  },
+                  "details": {
+                    "description": "Explanation of the score",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "score",
+                  "maxScore",
+                  "details"
+                ]
               }
-            ]
+            },
+            "required": [
+              "layout",
+              "typography",
+              "colorContrast",
+              "visualElements",
+              "sectionOrder",
+              "paperSize",
+              "margins",
+              "density"
+            ],
+            "x-nestjs_zod-self-required": true
           },
-          "styles": {
-            "$ref": "#/components/schemas/SectionStylesDto"
-          }
-        },
-        "required": [
-          "sectionId",
-          "columnId",
-          "order",
-          "data",
-          "styles"
-        ]
-      },
-      "GlobalStylesDto": {
-        "type": "object",
-        "properties": {
-          "background": {
-            "type": "string",
-            "example": "#ffffff"
-          },
-          "textPrimary": {
-            "type": "string",
-            "example": "#1a1a1a"
-          },
-          "textSecondary": {
-            "type": "string",
-            "example": "#666666"
-          },
-          "accent": {
-            "type": "string",
-            "example": "#0066cc"
-          }
-        },
-        "required": [
-          "background",
-          "textPrimary",
-          "textSecondary",
-          "accent"
-        ]
-      },
-      "ResumeAstDto": {
-        "type": "object",
-        "properties": {
-          "meta": {
-            "$ref": "#/components/schemas/AstMetaDto"
-          },
-          "page": {
-            "$ref": "#/components/schemas/PageLayoutDto"
-          },
-          "sections": {
+          "recommendations": {
+            "description": "Suggestions to improve ATS compatibility",
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/PlacedSectionDto"
+              "type": "string"
             }
-          },
-          "globalStyles": {
-            "$ref": "#/components/schemas/GlobalStylesDto"
           }
         },
         "required": [
-          "meta",
-          "page",
-          "sections",
-          "globalStyles"
-        ]
-      },
-      "DslAstResponseDto": {
-        "type": "object",
-        "properties": {
-          "ast": {
-            "$ref": "#/components/schemas/ResumeAstDto"
-          },
-          "resumeId": {
-            "type": "string",
-            "example": "clxxx..."
-          },
-          "slug": {
-            "type": "string",
-            "example": "john-doe-resume"
-          }
-        },
-        "required": [
-          "ast"
+          "themeId",
+          "themeName",
+          "overallScore",
+          "isATSFriendly",
+          "breakdown",
+          "recommendations"
         ]
       },
       "PublicResumeDataDto": {

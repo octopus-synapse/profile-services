@@ -1,6 +1,6 @@
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { TechArea } from '../../../dto/tech-area.dto';
 import { TechAreaRepositoryPort } from '../../../application/ports/tech-skills.port';
+import type { TechArea } from '../../../dto/tech-area.dto';
 
 export class TechAreaRepository extends TechAreaRepositoryPort {
   constructor(private readonly prisma: PrismaService) {

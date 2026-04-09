@@ -1,15 +1,15 @@
-import { BadRequestException } from '@nestjs/common';
 import { beforeEach, describe, expect, it } from 'bun:test';
+import { BadRequestException } from '@nestjs/common';
 import {
+  createOnboardingProgress,
+  DEFAULT_SECTION_TYPES,
   InMemoryOnboardingProgressRepository,
   InMemorySectionTypeDefinition,
-  DEFAULT_SECTION_TYPES,
-  createOnboardingProgress,
 } from '../../../testing';
-import { SaveProgressUseCase } from '../save-progress/save-progress.use-case';
 import { GetProgressUseCase } from '../get-progress/get-progress.use-case';
+import { SaveProgressUseCase } from '../save-progress/save-progress.use-case';
+import type { GetProgressFn, SaveProgressFn } from '../shared/navigation.types';
 import { GotoOnboardingStepUseCase } from './goto-onboarding-step.use-case';
-import type { SaveProgressFn, GetProgressFn } from '../shared/navigation.types';
 
 describe('GotoOnboardingStepUseCase', () => {
   let useCase: GotoOnboardingStepUseCase;
@@ -48,9 +48,7 @@ describe('GotoOnboardingStepUseCase', () => {
 
     // Assert
     expect(result.currentStep).toBe('welcome');
-    expect(result.completedSteps).toEqual(
-      expect.arrayContaining(['welcome', 'personal-info']),
-    );
+    expect(result.completedSteps).toEqual(expect.arrayContaining(['welcome', 'personal-info']));
   });
 
   it('navigates to the current step (no-op)', async () => {
@@ -98,9 +96,7 @@ describe('GotoOnboardingStepUseCase', () => {
     );
 
     // Act & Assert
-    await expect(useCase.execute(USER_ID, 'nonexistent-step')).rejects.toThrow(
-      BadRequestException,
-    );
+    await expect(useCase.execute(USER_ID, 'nonexistent-step')).rejects.toThrow(BadRequestException);
     await expect(useCase.execute(USER_ID, 'nonexistent-step')).rejects.toThrow(
       'Unknown step: nonexistent-step',
     );

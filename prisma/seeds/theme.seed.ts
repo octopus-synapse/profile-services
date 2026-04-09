@@ -3,11 +3,12 @@
  */
 
 import { PrismaClient } from '@prisma/client';
+import { ATS_THEME } from './ats-theme.seed';
 import { CLASSIC_THEME } from './classic-theme.seed';
 import { MINIMAL_THEME } from './minimal-theme.seed';
 import { MODERN_THEME } from './modern-theme.seed';
 
-export const systemThemes = [MODERN_THEME, CLASSIC_THEME, MINIMAL_THEME];
+export const systemThemes = [MODERN_THEME, CLASSIC_THEME, MINIMAL_THEME, ATS_THEME];
 
 export async function seedThemes(prisma: PrismaClient, adminId: string) {
   for (const theme of systemThemes) {

@@ -13,9 +13,7 @@ import { UpdateSectionTypeUseCase } from './use-cases/update-section-type/update
 
 export { ADMIN_SECTION_TYPES_USE_CASES };
 
-export function buildAdminSectionTypesUseCases(
-  prisma: PrismaService,
-): AdminSectionTypesUseCases {
+export function buildAdminSectionTypesUseCases(prisma: PrismaService): AdminSectionTypesUseCases {
   const repository = new AdminSectionTypesRepository(prisma);
 
   return {

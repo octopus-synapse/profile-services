@@ -1,16 +1,16 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
-import {
-  InMemoryOnboardingProgressRepository,
-  InMemoryOnboardingCompletion,
-  createOnboardingProgress,
-} from '../../../testing';
 import { OnboardingValidationException } from '../../../domain/exceptions/onboarding.exceptions';
-import { GetProgressUseCase } from '../get-progress/get-progress.use-case';
 import {
-  CompleteOnboardingFromProgressUseCase,
-  type CompleteOnboardingExecutor,
-} from './complete-onboarding-from-progress.use-case';
+  createOnboardingProgress,
+  InMemoryOnboardingCompletion,
+  InMemoryOnboardingProgressRepository,
+} from '../../../testing';
+import { GetProgressUseCase } from '../get-progress/get-progress.use-case';
 import type { GetProgressFn } from '../shared/navigation.types';
+import {
+  type CompleteOnboardingExecutor,
+  CompleteOnboardingFromProgressUseCase,
+} from './complete-onboarding-from-progress.use-case';
 
 describe('CompleteOnboardingFromProgressUseCase', () => {
   let useCase: CompleteOnboardingFromProgressUseCase;
@@ -40,7 +40,13 @@ describe('CompleteOnboardingFromProgressUseCase', () => {
       createOnboardingProgress({
         userId: USER_ID,
         currentStep: 'review',
-        completedSteps: ['welcome', 'personal-info', 'username', 'professional-profile', 'template'],
+        completedSteps: [
+          'welcome',
+          'personal-info',
+          'username',
+          'professional-profile',
+          'template',
+        ],
         username: 'johndoe',
         personalInfo: { fullName: 'John Doe', email: 'john@example.com' },
         professionalProfile: { jobTitle: 'Engineer' },
@@ -73,7 +79,13 @@ describe('CompleteOnboardingFromProgressUseCase', () => {
       createOnboardingProgress({
         userId: USER_ID,
         currentStep: 'review',
-        completedSteps: ['welcome', 'personal-info', 'username', 'professional-profile', 'template'],
+        completedSteps: [
+          'welcome',
+          'personal-info',
+          'username',
+          'professional-profile',
+          'template',
+        ],
         username: 'johndoe',
         personalInfo: { fullName: 'John Doe', email: 'john@example.com' },
         professionalProfile: { jobTitle: 'Engineer' },

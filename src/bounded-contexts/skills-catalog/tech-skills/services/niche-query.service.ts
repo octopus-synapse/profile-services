@@ -54,6 +54,21 @@ export class TechNicheQueryService {
    * Get niches by area type
    */
   async getNichesByArea(areaType: TechAreaType): Promise<TechNiche[]> {
+    const validAreas = [
+      'DEVELOPMENT',
+      'DEVOPS',
+      'DATA',
+      'SECURITY',
+      'DESIGN',
+      'PRODUCT',
+      'QA',
+      'INFRASTRUCTURE',
+      'OTHER',
+    ];
+    if (!validAreas.includes(areaType)) {
+      return [];
+    }
+
     const cacheKey = `${TECH_SKILLS_CACHE_KEYS.SKILLS_BY_AREA}${areaType}`;
 
     const cached = await this.cache.get<TechNiche[]>(cacheKey);

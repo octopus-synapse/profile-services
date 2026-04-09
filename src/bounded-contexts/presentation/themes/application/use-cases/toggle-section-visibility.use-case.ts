@@ -15,9 +15,7 @@ export class ToggleSectionVisibilityUseCase {
   ): Promise<void> {
     const config = await this.repo.get(userId, resumeId);
 
-    config.sections = config.sections.map((s) =>
-      s.id === sectionId ? { ...s, visible } : s,
-    );
+    config.sections = config.sections.map((s) => (s.id === sectionId ? { ...s, visible } : s));
 
     await this.repo.save(resumeId, config);
   }

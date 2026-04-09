@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { ShareAnalyticsController } from './controllers/share-analytics.controller';
+import { ShareEventHandler } from './handlers/share-event.handler';
 import { PrismaShareAnalyticsRepository } from './infrastructure';
 import { SHARE_ANALYTICS_REPOSITORY } from './ports';
 import { ShareAnalyticsService } from './services/share-analytics.service';
@@ -14,6 +15,7 @@ import { ShareAnalyticsService } from './services/share-analytics.service';
       useClass: PrismaShareAnalyticsRepository,
     },
     ShareAnalyticsService,
+    ShareEventHandler,
   ],
   exports: [ShareAnalyticsService],
 })

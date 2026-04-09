@@ -1,6 +1,6 @@
 import type { OnboardingProgressData } from '../../../domain/ports/onboarding-progress.port';
+import type { GetProgressFn, SaveProgressFn } from '../shared/navigation.types';
 import { OnboardingStepDataMapper } from '../shared/onboarding-step-data.mapper';
-import type { SaveProgressFn, GetProgressFn } from '../shared/navigation.types';
 
 export class SaveOnboardingStepDataUseCase {
   private readonly stepDataMapper = new OnboardingStepDataMapper();

@@ -1,5 +1,8 @@
 import { EntityNotFoundException, ERROR_MESSAGES } from '@/shared-kernel';
-import type { OnboardingRepositoryPort, OnboardingStatus } from '../../../domain/ports/onboarding.port';
+import type {
+  OnboardingRepositoryPort,
+  OnboardingStatus,
+} from '../../../domain/ports/onboarding.port';
 
 export class GetOnboardingStatusUseCase {
   constructor(private readonly repository: OnboardingRepositoryPort) {}

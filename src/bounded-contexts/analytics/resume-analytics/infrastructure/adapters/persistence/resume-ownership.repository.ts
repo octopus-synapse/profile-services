@@ -6,8 +6,8 @@
 
 import { NotFoundException } from '@nestjs/common';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { ResumeForAnalytics } from '../../../domain/types';
 import type { ResumeOwnershipPort } from '../../../application/ports/resume-analytics.port';
+import type { ResumeForAnalytics } from '../../../domain/types';
 
 export class PrismaResumeOwnershipRepository implements ResumeOwnershipPort {
   constructor(private readonly prisma: PrismaService) {}

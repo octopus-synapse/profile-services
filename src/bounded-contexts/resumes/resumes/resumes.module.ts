@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { AuthorizationModule } from '@/bounded-contexts/identity/authorization';
 import { CacheModule } from '@/bounded-contexts/platform/common/cache/cache.module';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
@@ -32,7 +31,7 @@ import {
 import { ResumeManagementService } from './services/resume-management.service';
 
 @Module({
-  imports: [PrismaModule, ResumeVersionsModule, CacheModule, AuthorizationModule],
+  imports: [PrismaModule, ResumeVersionsModule, CacheModule],
   controllers: [ResumesController, ResumeManagementController, GenericResumeSectionsController],
   providers: [
     ResumesService,

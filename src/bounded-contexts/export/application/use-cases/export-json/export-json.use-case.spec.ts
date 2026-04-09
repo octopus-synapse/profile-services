@@ -45,7 +45,9 @@ function isProfileExportLike(value: unknown): value is ProfileExportLike {
 /**
  * In-Memory Resume Data Repository for testing
  */
-class InMemoryResumeDataRepository implements Pick<ResumeDataRepositoryPort, 'findForJsonExport' | 'findForLatexExport'> {
+class InMemoryResumeDataRepository
+  implements Pick<ResumeDataRepositoryPort, 'findForJsonExport' | 'findForLatexExport'>
+{
   private resumes = new Map<string, ResumeForJsonExport>();
 
   async findForJsonExport(resumeId: string): Promise<ResumeForJsonExport | null> {
@@ -58,17 +60,20 @@ class InMemoryResumeDataRepository implements Pick<ResumeDataRepositoryPort, 'fi
 
   seedResume(resume: ResumeForJsonExport & { resumeSections?: unknown }): void {
     // Transform the test data format into the port format
-    const sections = (resume as unknown as {
-      resumeSections: Array<{
-        sectionType: { semanticKind: string };
-        items: Array<{ content: Record<string, unknown> }>;
-      }>;
-    }).resumeSections?.map((rs) => ({
-      semanticKind: rs.sectionType.semanticKind,
-      items: rs.items.map((item) => ({
-        content: item.content,
-      })),
-    })) ?? resume.sections;
+    const sections =
+      (
+        resume as unknown as {
+          resumeSections: Array<{
+            sectionType: { semanticKind: string };
+            items: Array<{ content: Record<string, unknown> }>;
+          }>;
+        }
+      ).resumeSections?.map((rs) => ({
+        semanticKind: rs.sectionType.semanticKind,
+        items: rs.items.map((item) => ({
+          content: item.content,
+        })),
+      })) ?? resume.sections;
 
     this.resumes.set(resume.id, {
       ...resume,
@@ -85,18 +90,27 @@ describe('ExportJsonUseCase', () => {
   let useCase: ExportJsonUseCase;
   let repository: InMemoryResumeDataRepository;
 
+  const baseResume = createMockResume({
+    id: 'resume-123',
+    userId: 'user-456',
+    title: 'My Resume',
+    jobTitle: 'Software Engineer',
+    slug: 'john-doe',
+    summary: 'Experienced developer',
+    isPublic: true,
+    createdAt: new Date('2024-01-01'),
+    updatedAt: new Date('2024-06-01'),
+  });
+
   const mockResume = {
-    ...createMockResume({
-      id: 'resume-123',
-      userId: 'user-456',
-      title: 'My Resume',
-      jobTitle: 'Software Engineer',
-      slug: 'john-doe',
-      summary: 'Experienced developer',
-      isPublic: true,
-      createdAt: new Date('2024-01-01'),
-      updatedAt: new Date('2024-06-01'),
-    }),
+    id: baseResume.id,
+    title: baseResume.title,
+    slug: baseResume.slug,
+    summary: baseResume.summary,
+    jobTitle: baseResume.jobTitle,
+    createdAt: baseResume.createdAt,
+    updatedAt: baseResume.updatedAt,
+    sections: [] as ResumeForJsonExport['sections'],
     user: {
       name: 'John Doe',
       email: 'john@example.com',

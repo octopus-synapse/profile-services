@@ -1,7 +1,7 @@
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import {
-  SpokenLanguagesRepositoryPort,
   type SpokenLanguage,
+  SpokenLanguagesRepositoryPort,
 } from '../../../application/ports/spoken-languages.port';
 
 export class SpokenLanguagesRepository extends SpokenLanguagesRepositoryPort {

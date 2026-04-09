@@ -4,9 +4,9 @@
  * that resolves to a TestResponse with .status, .body, .headers, .text.
  */
 
-import type { INestApplication } from '@nestjs/common';
 import type { Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
+import type { INestApplication } from '@nestjs/common';
 
 export interface TestResponse {
   status: number;
@@ -31,7 +31,7 @@ class TestRequest {
   set(headers: Record<string, string>): this;
   set(keyOrHeaders: string | Record<string, string>, value?: string): this {
     if (typeof keyOrHeaders === 'string') {
-      this._headers[keyOrHeaders] = value!;
+      this._headers[keyOrHeaders] = value ?? '';
     } else {
       Object.assign(this._headers, keyOrHeaders);
     }
@@ -68,6 +68,7 @@ class TestRequest {
   }
 
   /** Execute the request and return a TestResponse (also works as a thenable). */
+  // biome-ignore lint/suspicious/noThenProperty: intentional thenable for supertest compat
   async then<TResult1 = TestResponse, TResult2 = never>(
     onfulfilled?: ((value: TestResponse) => TResult1 | PromiseLike<TResult1>) | null,
     onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
@@ -139,7 +140,8 @@ class TestRequest {
     const response: TestResponse = { status: res.status, headers, body, text };
 
     if (this._expectedStatus !== undefined && res.status !== this._expectedStatus) {
-      const preview = typeof body === 'string' ? body.slice(0, 200) : JSON.stringify(body).slice(0, 200);
+      const preview =
+        typeof body === 'string' ? body.slice(0, 200) : JSON.stringify(body).slice(0, 200);
       throw new Error(
         `Expected status ${this._expectedStatus} but got ${res.status} for ${this.method} ${this.path}\n${preview}`,
       );

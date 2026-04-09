@@ -44,8 +44,8 @@ export class ExportLatexUseCase {
     // Sort sections by recommended position
     if (this.sectionOrdering) {
       resume.sections.sort((a, b) => {
-        const aPos = this.sectionOrdering!.getRecommendedPosition(a.sectionTypeKey);
-        const bPos = this.sectionOrdering!.getRecommendedPosition(b.sectionTypeKey);
+        const aPos = this.sectionOrdering?.getRecommendedPosition(a.sectionTypeKey) ?? 0;
+        const bPos = this.sectionOrdering?.getRecommendedPosition(b.sectionTypeKey) ?? 0;
         return aPos - bPos;
       });
     }

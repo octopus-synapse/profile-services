@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { ValidationSeverity } from '../../domain/interfaces';
 import type { ValidationIssue, ValidationResult } from '../../domain/interfaces';
+import { ValidationSeverity } from '../../domain/interfaces';
 
 @Injectable()
 export class GrammarValidator {

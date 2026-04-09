@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
 import type { CookieReader } from '../../../domain/ports/session-storage.port';
 import {
+  createSessionAuthUser,
   InMemoryAuthenticationRepository,
   InMemorySessionStorage,
   InMemoryTokenGenerator,
-  createSessionAuthUser,
 } from '../../../testing';
 import { ValidateSessionUseCase } from './validate-session.use-case';
 
@@ -61,13 +61,13 @@ describe('ValidateSessionUseCase', () => {
     // Assert
     expect(result.success).toBe(true);
     expect(result.user).not.toBeNull();
-    expect(result.user!.id).toBe('user-1');
-    expect(result.user!.email).toBe('test@example.com');
-    expect(result.user!.name).toBe('Test User');
-    expect(result.user!.username).toBe('testuser');
-    expect(result.user!.isAdmin).toBe(false);
-    expect(result.user!.needsOnboarding).toBe(false);
-    expect(result.user!.needsEmailVerification).toBe(false);
+    expect(result.user?.id).toBe('user-1');
+    expect(result.user?.email).toBe('test@example.com');
+    expect(result.user?.name).toBe('Test User');
+    expect(result.user?.username).toBe('testuser');
+    expect(result.user?.isAdmin).toBe(false);
+    expect(result.user?.needsOnboarding).toBe(false);
+    expect(result.user?.needsEmailVerification).toBe(false);
   });
 
   it('returns failure when no session cookie is present', async () => {
@@ -170,10 +170,10 @@ describe('ValidateSessionUseCase', () => {
     // Assert
     expect(result.success).toBe(true);
     expect(result.user).not.toBeNull();
-    expect(result.user!.isAdmin).toBe(true);
-    expect(result.user!.needsOnboarding).toBe(true);
-    expect(result.user!.needsEmailVerification).toBe(true);
-    expect(result.user!.role).toBe('ADMIN');
-    expect(result.user!.roles).toEqual(['role_admin', 'role_user']);
+    expect(result.user?.isAdmin).toBe(true);
+    expect(result.user?.needsOnboarding).toBe(true);
+    expect(result.user?.needsEmailVerification).toBe(true);
+    expect(result.user?.role).toBe('ADMIN');
+    expect(result.user?.roles).toEqual(['role_admin', 'role_user']);
   });
 });

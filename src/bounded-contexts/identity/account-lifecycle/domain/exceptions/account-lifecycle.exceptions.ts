@@ -21,6 +21,7 @@ export class AccountAlreadyExistsException extends ConflictException {
  */
 export class AccountDeactivatedException extends DomainException {
   readonly code = 'ACCOUNT_DEACTIVATED';
+  readonly statusHint = 403;
   constructor() {
     super('Account is deactivated');
   }

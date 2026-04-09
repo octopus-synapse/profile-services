@@ -14,11 +14,21 @@ class StubActivityRepository {
     this.calls.push({ method: 'findUserActivitiesByType', args: [userId, type, pagination] });
     return { data: [], total: 0 };
   }
-  async createActivity() { return {} as never; }
-  async findActivityWithUser() { return null; }
-  async findActivitiesByUserIds() { return { data: [], total: 0 }; }
-  async findUserActivities() { return { data: [], total: 0 }; }
-  async deleteOlderThan() { return 0; }
+  async createActivity() {
+    return {} as never;
+  }
+  async findActivityWithUser() {
+    return null;
+  }
+  async findActivitiesByUserIds() {
+    return { data: [], total: 0 };
+  }
+  async findUserActivities() {
+    return { data: [], total: 0 };
+  }
+  async deleteOlderThan() {
+    return 0;
+  }
 }
 
 describe('GetActivitiesByTypeUseCase', () => {

@@ -26,7 +26,8 @@ describe('TranslationCoreService', () => {
 
   beforeEach(() => {
     fetchSpy = spyOn(globalThis, 'fetch').mockResolvedValue(mockFetchResponse({}));
-    service = new TranslationCoreService('http://localhost:5000');
+    const noopLogger = { log: () => {}, warn: () => {}, error: () => {} };
+    service = new TranslationCoreService(noopLogger, 'http://localhost:5000');
   });
 
   afterEach(() => {
@@ -47,7 +48,7 @@ describe('TranslationCoreService', () => {
 
     it('should return original text on HTTP error', async () => {
       (service as unknown as { isServiceAvailable: boolean }).isServiceAvailable = true;
-      fetchSpy.mockImplementation(() => Promise.reject(new Error('Connection refused')));
+      fetchSpy.mockRejectedValue(new Error('Connection refused'));
 
       const result = await service.translate('Hello world', 'en', 'pt');
 
@@ -57,7 +58,7 @@ describe('TranslationCoreService', () => {
 
     it('should return original text on timeout', async () => {
       (service as unknown as { isServiceAvailable: boolean }).isServiceAvailable = true;
-      fetchSpy.mockImplementation(() => Promise.reject(new Error('Timeout')));
+      fetchSpy.mockRejectedValue(new Error('Timeout'));
 
       const result = await service.translate('Hello world', 'en', 'pt');
 
@@ -67,7 +68,7 @@ describe('TranslationCoreService', () => {
 
     it('should continue main flow on translation failure', async () => {
       (service as unknown as { isServiceAvailable: boolean }).isServiceAvailable = true;
-      fetchSpy.mockImplementation(() => Promise.reject(new Error('Service error')));
+      fetchSpy.mockRejectedValue(new Error('Service error'));
 
       const result = await service.translate('Test text', 'pt', 'en');
 
@@ -79,9 +80,7 @@ describe('TranslationCoreService', () => {
   describe('Successful Translation', () => {
     it('should translate PT to EN', async () => {
       (service as unknown as { isServiceAvailable: boolean }).isServiceAvailable = true;
-      fetchSpy.mockImplementation(() =>
-        Promise.resolve(mockFetchResponse({ translatedText: 'Hello world' })),
-      );
+      fetchSpy.mockResolvedValue(mockFetchResponse({ translatedText: 'Hello world' }));
 
       const result = await service.translate('Olá mundo', 'pt', 'en');
 
@@ -93,9 +92,7 @@ describe('TranslationCoreService', () => {
 
     it('should translate EN to PT', async () => {
       (service as unknown as { isServiceAvailable: boolean }).isServiceAvailable = true;
-      fetchSpy.mockImplementation(() =>
-        Promise.resolve(mockFetchResponse({ translatedText: 'Olá mundo' })),
-      );
+      fetchSpy.mockResolvedValue(mockFetchResponse({ translatedText: 'Olá mundo' }));
 
       const result = await service.translate('Hello world', 'en', 'pt');
 
@@ -107,30 +104,26 @@ describe('TranslationCoreService', () => {
   describe('Supported Languages (PT-BR and EN only)', () => {
     it('should support pt as source language', async () => {
       (service as unknown as { isServiceAvailable: boolean }).isServiceAvailable = true;
-      fetchSpy.mockImplementation(() =>
-        Promise.resolve(mockFetchResponse({ translatedText: 'Translated' })),
-      );
+      fetchSpy.mockResolvedValue(mockFetchResponse({ translatedText: 'Translated' }));
 
       await service.translate('Text', 'pt', 'en');
 
       expect(fetchSpy).toHaveBeenCalled();
       const lastCall = fetchSpy.mock.calls[fetchSpy.mock.calls.length - 1];
-      const body = JSON.parse(lastCall[1].body as string);
+      const body = JSON.parse(lastCall?.[1]?.body as string);
       expect(body.source).toBe('pt');
       expect(body.target).toBe('en');
     });
 
     it('should support en as source language', async () => {
       (service as unknown as { isServiceAvailable: boolean }).isServiceAvailable = true;
-      fetchSpy.mockImplementation(() =>
-        Promise.resolve(mockFetchResponse({ translatedText: 'Traduzido' })),
-      );
+      fetchSpy.mockResolvedValue(mockFetchResponse({ translatedText: 'Traduzido' }));
 
       await service.translate('Text', 'en', 'pt');
 
       expect(fetchSpy).toHaveBeenCalled();
       const lastCall = fetchSpy.mock.calls[fetchSpy.mock.calls.length - 1];
-      const body = JSON.parse(lastCall[1].body as string);
+      const body = JSON.parse(lastCall?.[1]?.body as string);
       expect(body.source).toBe('en');
       expect(body.target).toBe('pt');
     });
@@ -156,9 +149,7 @@ describe('TranslationCoreService', () => {
 
   describe('Service Availability', () => {
     it('should check service health on init', async () => {
-      fetchSpy.mockImplementation(() =>
-        Promise.resolve(mockFetchResponse({ status: 'ok' })),
-      );
+      fetchSpy.mockResolvedValue(mockFetchResponse({ status: 'ok' }));
 
       const healthResult = await service.checkServiceHealth();
 
@@ -166,7 +157,7 @@ describe('TranslationCoreService', () => {
     });
 
     it('should mark service unavailable on health check failure', async () => {
-      fetchSpy.mockImplementation(() => Promise.reject(new Error('Connection failed')));
+      fetchSpy.mockRejectedValue(new Error('Connection failed'));
 
       const healthResult = await service.checkServiceHealth();
 

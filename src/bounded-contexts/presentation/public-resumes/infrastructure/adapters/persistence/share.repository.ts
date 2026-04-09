@@ -4,8 +4,8 @@
 
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import {
-  ShareRepositoryPort,
   type ShareEntity,
+  ShareRepositoryPort,
   type ShareWithResume,
 } from '../../../domain/ports/share.repository.port';
 

@@ -16,6 +16,7 @@ export type UserListItem = {
   emailVerified: Date | null;
   resumeCount: number;
   role: 'USER' | 'ADMIN';
+  isActive: boolean;
   lastLoginAt: Date | null;
 };
 
@@ -29,6 +30,7 @@ export type UserDetails = {
   updatedAt: Date;
   image: string | null;
   emailVerified: Date | null;
+  isActive: boolean;
   resumes: {
     id: string;
     title: string | null;

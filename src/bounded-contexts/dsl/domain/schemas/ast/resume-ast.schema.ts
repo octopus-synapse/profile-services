@@ -50,11 +50,25 @@ export const PlacedSectionSchema = z.object({
   }),
 });
 
+export const ResumeHeaderSchema = z
+  .object({
+    fullName: z.string().nullable(),
+    jobTitle: z.string().nullable(),
+    phone: z.string().nullable(),
+    email: z.string().nullable(),
+    location: z.string().nullable(),
+    linkedin: z.string().nullable(),
+    github: z.string().nullable(),
+    website: z.string().nullable(),
+  })
+  .optional();
+
 export const ResumeAstSchema = z.object({
   meta: z.object({
     version: z.string(),
     generatedAt: z.string(),
   }),
+  header: ResumeHeaderSchema,
   page: PageLayoutSchema,
   sections: z.array(PlacedSectionSchema),
   globalStyles: z.object({

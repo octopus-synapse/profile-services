@@ -22,7 +22,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { PermissionGuard, RequirePermission } from '@/bounded-contexts/identity/authorization';
+import { RequirePermission } from '@/shared-kernel/authorization';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
@@ -50,7 +50,7 @@ import {
 @ApiTags('users')
 @ApiBearerAuth('JWT-auth')
 @Controller('v1/users/manage')
-@UseGuards(JwtAuthGuard, PermissionGuard)
+@UseGuards(JwtAuthGuard)
 export class UserManagementController {
   constructor(private readonly userManagement: UserManagementService) {}
 
@@ -204,6 +204,7 @@ export class UserManagementController {
   }
 
   @Post(':id/reset-password')
+  @HttpCode(HttpStatus.OK)
   @RequirePermission('user', 'update')
   @ApiOperation({ summary: 'Reset user password' })
   @ApiDataResponse(UserOperationMessageDataDto, {

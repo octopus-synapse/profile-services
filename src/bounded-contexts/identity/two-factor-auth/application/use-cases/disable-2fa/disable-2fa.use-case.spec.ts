@@ -7,12 +7,12 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
 import { TwoFactorNotSetupException } from '../../../domain/exceptions';
 import {
+  createBackupCodeRecord,
+  createTwoFactorRecord,
   DEFAULT_BACKUP_CODES,
   DEFAULT_ENABLED_TWO_FACTOR_RECORD,
   DEFAULT_TWO_FACTOR_RECORD,
   InMemoryTwoFactorRepository,
-  createBackupCodeRecord,
-  createTwoFactorRecord,
 } from '../../../testing';
 import { Disable2faUseCase } from './disable-2fa.use-case';
 

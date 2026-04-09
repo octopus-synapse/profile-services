@@ -9,10 +9,10 @@ import { InMemoryEventBus } from '../../../../shared-kernel/testing';
 import { TokenRefreshedEvent } from '../../../domain/events';
 import { InvalidRefreshTokenException } from '../../../domain/exceptions';
 import {
-  InMemoryAuthenticationRepository,
-  InMemoryTokenGenerator,
   createAuthUser,
   createRefreshTokenData,
+  InMemoryAuthenticationRepository,
+  InMemoryTokenGenerator,
 } from '../../../testing';
 import { RefreshTokenUseCase } from './refresh-token.use-case';
 

@@ -4,10 +4,13 @@
  * Also handles resume caching and password verification.
  */
 
+import { toGenericSections } from '@/shared-kernel/schemas/sections';
 import type { CachePort } from '../../domain/ports/cache.port';
 import type { ResumeReadRepositoryPort } from '../../domain/ports/resume-read.repository.port';
-import type { ShareRepositoryPort, ShareWithResume } from '../../domain/ports/share.repository.port';
-import { toGenericSections } from '@/shared-kernel/schemas/sections';
+import type {
+  ShareRepositoryPort,
+  ShareWithResume,
+} from '../../domain/ports/share.repository.port';
 
 const CACHE_TTL = 60; // 60 seconds
 

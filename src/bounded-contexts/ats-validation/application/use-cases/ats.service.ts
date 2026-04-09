@@ -10,22 +10,26 @@ import type {
   ValidationSeverity,
 } from '../../domain/interfaces';
 import { SECTION_SEMANTIC_CATALOG } from '../../domain/interfaces';
-import { CVSectionParser } from '../../infrastructure/parsers/cv-section.parser';
+import type {
+  ValidateCV,
+  ValidationIssue,
+  ValidationResponse,
+} from '../../domain/schemas/ats.schema';
 import {
   ContentQualitySemanticPolicy,
   DuplicateSemanticPolicy,
   MandatorySemanticPolicy,
   SectionOrderSemanticPolicy,
 } from '../../domain/services/policies';
-import type { ValidateCV, ValidationIssue, ValidationResponse } from '../../domain/schemas/ats.schema';
 import { SemanticScoringService } from '../../domain/services/scoring';
+import { EncodingNormalizerService } from '../../infrastructure/adapters/external-services/encoding-normalizer.service';
+import { TextExtractionService } from '../../infrastructure/adapters/external-services/text-extraction.service';
+import { CVSectionParser } from '../../infrastructure/parsers/cv-section.parser';
 import { FileIntegrityValidator } from '../../infrastructure/validators/file-integrity.validator';
 import { FormatValidator } from '../../infrastructure/validators/format.validator';
 import { GrammarValidator } from '../../infrastructure/validators/grammar.validator';
 import { LayoutSafetyValidator } from '../../infrastructure/validators/layout-safety.validator';
 import { SectionOrderValidator } from '../../infrastructure/validators/section-order.validator';
-import { EncodingNormalizerService } from '../../infrastructure/adapters/external-services/encoding-normalizer.service';
-import { TextExtractionService } from '../../infrastructure/adapters/external-services/text-extraction.service';
 
 @Injectable()
 export class ATSService {

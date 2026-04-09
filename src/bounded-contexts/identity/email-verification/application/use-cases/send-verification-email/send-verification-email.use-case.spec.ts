@@ -53,9 +53,9 @@ describe('SendVerificationEmailUseCase', () => {
       // Email was sent
       const sentEmail = emailSender.getLastSentEmail();
       expect(sentEmail).not.toBeNull();
-      expect(sentEmail!.email).toBe(DEFAULT_USER.email);
-      expect(sentEmail!.userName).toBeNull();
-      expect(sentEmail!.verificationToken).toBe(tokens[0].token);
+      expect(sentEmail?.email).toBe(DEFAULT_USER.email);
+      expect(sentEmail?.userName).toBeNull();
+      expect(sentEmail?.verificationToken).toBe(tokens[0].token);
 
       // Domain event was published
       expect(eventBus.hasPublished(VerificationEmailSentEvent)).toBe(true);

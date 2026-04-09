@@ -17,29 +17,61 @@ class StubActivityRepository {
     this._total = total;
   }
 
-  async findActivitiesByUserIds() { return { data: this._data, total: this._total }; }
-  async createActivity() { return {} as never; }
-  async findActivityWithUser() { return null; }
-  async findUserActivities() { return { data: [], total: 0 }; }
-  async findUserActivitiesByType() { return { data: [], total: 0 }; }
-  async deleteOlderThan() { return 0; }
+  async findActivitiesByUserIds() {
+    return { data: this._data, total: this._total };
+  }
+  async createActivity() {
+    return {} as never;
+  }
+  async findActivityWithUser() {
+    return null;
+  }
+  async findUserActivities() {
+    return { data: [], total: 0 };
+  }
+  async findUserActivitiesByType() {
+    return { data: [], total: 0 };
+  }
+  async deleteOlderThan() {
+    return 0;
+  }
 }
 
 class StubFollowRepository {
   private _ids: string[] = ['user-2', 'user-3'];
 
-  setFollowingIds(ids: string[]) { this._ids = ids; }
+  setFollowingIds(ids: string[]) {
+    this._ids = ids;
+  }
 
-  async findFollowingIds() { return this._ids; }
-  async createFollow() { return {} as never; }
+  async findFollowingIds() {
+    return this._ids;
+  }
+  async createFollow() {
+    return {} as never;
+  }
   async deleteFollow() {}
-  async findFollow() { return null; }
-  async findFollowers() { return { data: [], total: 0 }; }
-  async findFollowing() { return { data: [], total: 0 }; }
-  async countFollowers() { return 0; }
-  async countFollowing() { return 0; }
-  async findFollowerIds() { return []; }
-  async userExists() { return true; }
+  async findFollow() {
+    return null;
+  }
+  async findFollowers() {
+    return { data: [], total: 0 };
+  }
+  async findFollowing() {
+    return { data: [], total: 0 };
+  }
+  async countFollowers() {
+    return 0;
+  }
+  async countFollowing() {
+    return 0;
+  }
+  async findFollowerIds() {
+    return [];
+  }
+  async userExists() {
+    return true;
+  }
 }
 
 describe('GetFeedUseCase', () => {
@@ -58,8 +90,24 @@ describe('GetFeedUseCase', () => {
 
   it('should return activities from followed users', async () => {
     const activities: ActivityWithUser[] = [
-      { id: 'a1', userId: 'user-2', type: ActivityType.RESUME_CREATED, metadata: {}, entityId: null, entityType: null, createdAt: new Date() },
-      { id: 'a2', userId: 'user-3', type: ActivityType.SKILL_ADDED, metadata: {}, entityId: null, entityType: null, createdAt: new Date() },
+      {
+        id: 'a1',
+        userId: 'user-2',
+        type: ActivityType.RESUME_CREATED,
+        metadata: {},
+        entityId: null,
+        entityType: null,
+        createdAt: new Date(),
+      },
+      {
+        id: 'a2',
+        userId: 'user-3',
+        type: ActivityType.SKILL_ADDED,
+        metadata: {},
+        entityId: null,
+        entityType: null,
+        createdAt: new Date(),
+      },
     ];
     activityRepo.setResult(activities, 2);
 

@@ -96,9 +96,8 @@ async function main(): Promise<void> {
   const client = createGitHubClient(token);
 
   try {
-    const labels = await withRetry(() =>
-      client.getPRLabels(parsed.owner!, parsed.repo!, parsed.sha!),
-    );
+    const { owner, repo, sha } = parsed as Required<Pick<typeof parsed, 'owner' | 'repo' | 'sha'>>;
+    const labels = await withRetry(() => client.getPRLabels(owner, repo, sha));
     console.log(labels.join(','));
   } catch (error) {
     console.error('Error fetching PR labels:', error);

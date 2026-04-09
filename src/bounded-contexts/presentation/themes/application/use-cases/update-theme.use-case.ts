@@ -35,10 +35,7 @@ export class UpdateThemeUseCase {
     });
   }
 
-  private async assertCanEdit(
-    theme: { authorId: string; isSystemTheme: boolean },
-    userId: string,
-  ) {
+  private async assertCanEdit(theme: { authorId: string; isSystemTheme: boolean }, userId: string) {
     if (theme.isSystemTheme) {
       const hasPermission = await this.authorization.hasPermission(userId, 'theme', 'manage');
       if (!hasPermission) {

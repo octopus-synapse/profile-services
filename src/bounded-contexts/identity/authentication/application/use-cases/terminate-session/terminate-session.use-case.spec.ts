@@ -1,8 +1,7 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
 import { InMemoryEventBus } from '../../../../shared-kernel/testing';
 import { SessionTerminatedEvent } from '../../../domain/events';
-import type { CookieReader } from '../../../domain/ports/session-storage.port';
-import type { CookieWriter } from '../../../domain/ports/session-storage.port';
+import type { CookieReader, CookieWriter } from '../../../domain/ports/session-storage.port';
 import { InMemorySessionStorage, InMemoryTokenGenerator } from '../../../testing';
 import { TerminateSessionUseCase } from './terminate-session.use-case';
 
@@ -14,7 +13,10 @@ function createCookieReader(cookies: Record<string, string> = {}): CookieReader 
   return { getCookie: (name: string) => cookies[name] };
 }
 
-function createCookieWriter(): CookieWriter & { cookies: Record<string, string>; cleared: string[] } {
+function createCookieWriter(): CookieWriter & {
+  cookies: Record<string, string>;
+  cleared: string[];
+} {
   const writer = {
     cookies: {} as Record<string, string>,
     cleared: [] as string[],

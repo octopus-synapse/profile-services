@@ -3,8 +3,8 @@ import {
   ImportCannotBeCancelledException,
   ImportNotFoundException,
 } from '../../../domain/exceptions/import.exceptions';
-import { InMemoryImportJobRepository } from '../../../testing/in-memory-import-job.repository';
 import { createImportJobFixture } from '../../../testing/fixtures/import-job.fixtures';
+import { InMemoryImportJobRepository } from '../../../testing/in-memory-import-job.repository';
 import { CancelImportUseCase } from './cancel-import.use-case';
 
 describe('CancelImportUseCase', () => {
@@ -32,8 +32,6 @@ describe('CancelImportUseCase', () => {
   it('should throw ImportCannotBeCancelledException for completed import', async () => {
     repository.seed(createImportJobFixture({ id: 'completed-1', status: 'COMPLETED' }));
 
-    await expect(useCase.execute('completed-1')).rejects.toThrow(
-      ImportCannotBeCancelledException,
-    );
+    await expect(useCase.execute('completed-1')).rejects.toThrow(ImportCannotBeCancelledException);
   });
 });

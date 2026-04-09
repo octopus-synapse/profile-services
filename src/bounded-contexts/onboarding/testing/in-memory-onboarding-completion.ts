@@ -1,8 +1,8 @@
-import type { OnboardingData } from '../domain/schemas/onboarding-data.schema';
 import {
-  OnboardingCompletionPort,
   type CompletionResult,
+  OnboardingCompletionPort,
 } from '../domain/ports/onboarding-completion.port';
+import type { OnboardingData } from '../domain/schemas/onboarding-data.schema';
 
 interface CompletionRecord {
   userId: string;

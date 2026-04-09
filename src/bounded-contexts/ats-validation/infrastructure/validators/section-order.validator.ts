@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { ValidationSeverity } from '../../domain/interfaces';
-import type { ParsedCV, ValidationIssue, ValidationResult } from '../../domain/interfaces';
 import { ATSSectionTypeAdapter } from '../../application/use-cases/ats-section-type.adapter';
+import type { ParsedCV, ValidationIssue, ValidationResult } from '../../domain/interfaces';
+import { ValidationSeverity } from '../../domain/interfaces';
 
 /**
  * SectionOrderValidator - Validates section order using definition-driven rules.

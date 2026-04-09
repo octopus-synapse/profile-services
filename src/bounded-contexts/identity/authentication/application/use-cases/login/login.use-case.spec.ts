@@ -149,9 +149,9 @@ describe('LoginUseCase', () => {
     });
 
     it('should throw InvalidCredentialsException and publish LoginFailedEvent on wrong password', async () => {
-      expect(
-        useCase.execute({ email, password: 'wrongPassword', ipAddress }),
-      ).rejects.toThrow(InvalidCredentialsException);
+      expect(useCase.execute({ email, password: 'wrongPassword', ipAddress })).rejects.toThrow(
+        InvalidCredentialsException,
+      );
 
       const failedEvents = eventBus.getEventsByType(LoginFailedEvent);
       expect(failedEvents).toHaveLength(1);
@@ -204,9 +204,9 @@ describe('LoginUseCase', () => {
     it('should throw Invalid2faCodeException and publish LoginFailedEvent on invalid code', async () => {
       validate2fa.setValidCode(userId, '123456', 'totp');
 
-      expect(
-        useCase.completeWithTwoFactor({ userId, code: '000000', ipAddress }),
-      ).rejects.toThrow(Invalid2faCodeException);
+      expect(useCase.completeWithTwoFactor({ userId, code: '000000', ipAddress })).rejects.toThrow(
+        Invalid2faCodeException,
+      );
 
       const failedEvents = eventBus.getEventsByType(LoginFailedEvent);
       expect(failedEvents).toHaveLength(1);

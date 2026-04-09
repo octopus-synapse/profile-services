@@ -12,14 +12,10 @@ import { InternalServerErrorException, StreamableFile } from '@nestjs/common';
 import { Test, type TestingModule } from '@nestjs/testing';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { EventPublisher } from '@/shared-kernel';
-import { ExportController } from './export.controller';
 import { EXPORT_USE_CASES, type ExportUseCases } from '../../application/ports/export.port';
+import { InMemoryBannerCapture, NullEventPublisher, NullLogger } from '../../testing';
 import { BannerCaptureService } from '../adapters/external-services/banner-capture.service';
-import {
-  InMemoryBannerCapture,
-  NullEventPublisher,
-  NullLogger,
-} from '../../testing';
+import { ExportController } from './export.controller';
 
 const mockExportUseCases: ExportUseCases = {
   exportDocxUseCase: {

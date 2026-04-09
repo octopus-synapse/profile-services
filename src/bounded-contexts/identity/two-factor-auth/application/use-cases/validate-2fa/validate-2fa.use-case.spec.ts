@@ -57,7 +57,7 @@ describe('Validate2faUseCase', () => {
       await useCase.validateToken(userId, validToken);
 
       const record = await repository.findByUserId(userId);
-      expect(record!.lastUsedAt).not.toBeNull();
+      expect(record?.lastUsedAt).not.toBeNull();
     });
 
     it('should return false for an invalid TOTP token', async () => {
@@ -119,9 +119,27 @@ describe('Validate2faUseCase', () => {
 
   describe('validateBackupCode', () => {
     beforeEach(() => {
-      repository.seedBackupCode({ id: 'backup-1', userId, codeHash: 'hashed:ABCD-1234', used: false, usedAt: null });
-      repository.seedBackupCode({ id: 'backup-2', userId, codeHash: 'hashed:EFGH-5678', used: false, usedAt: null });
-      repository.seedBackupCode({ id: 'backup-3', userId, codeHash: 'hashed:IJKL-9012', used: false, usedAt: null });
+      repository.seedBackupCode({
+        id: 'backup-1',
+        userId,
+        codeHash: 'hashed:ABCD-1234',
+        used: false,
+        usedAt: null,
+      });
+      repository.seedBackupCode({
+        id: 'backup-2',
+        userId,
+        codeHash: 'hashed:EFGH-5678',
+        used: false,
+        usedAt: null,
+      });
+      repository.seedBackupCode({
+        id: 'backup-3',
+        userId,
+        codeHash: 'hashed:IJKL-9012',
+        used: false,
+        usedAt: null,
+      });
     });
 
     it('should return true for a valid unused backup code', async () => {
@@ -167,9 +185,27 @@ describe('Validate2faUseCase', () => {
 
   describe('validate', () => {
     beforeEach(() => {
-      repository.seedBackupCode({ id: 'backup-1', userId, codeHash: 'hashed:ABCD-1234', used: false, usedAt: null });
-      repository.seedBackupCode({ id: 'backup-2', userId, codeHash: 'hashed:EFGH-5678', used: false, usedAt: null });
-      repository.seedBackupCode({ id: 'backup-3', userId, codeHash: 'hashed:IJKL-9012', used: false, usedAt: null });
+      repository.seedBackupCode({
+        id: 'backup-1',
+        userId,
+        codeHash: 'hashed:ABCD-1234',
+        used: false,
+        usedAt: null,
+      });
+      repository.seedBackupCode({
+        id: 'backup-2',
+        userId,
+        codeHash: 'hashed:EFGH-5678',
+        used: false,
+        usedAt: null,
+      });
+      repository.seedBackupCode({
+        id: 'backup-3',
+        userId,
+        codeHash: 'hashed:IJKL-9012',
+        used: false,
+        usedAt: null,
+      });
     });
 
     it('should return valid with method totp for a valid TOTP token', async () => {

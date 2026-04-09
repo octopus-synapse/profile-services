@@ -1,8 +1,5 @@
 import { ResumesRepositoryPort } from '../../../ports/resumes-repository.port';
-import type {
-  ResumeResult,
-  UserResumesPaginatedResult,
-} from '../../../ports/resumes-service.port';
+import type { ResumeResult, UserResumesPaginatedResult } from '../../../ports/resumes-service.port';
 
 export class FindAllUserResumesUseCase {
   constructor(private readonly repository: ResumesRepositoryPort) {}

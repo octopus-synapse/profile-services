@@ -143,8 +143,6 @@ export class OwnershipGuard implements CanActivate {
     }
 
     // Call findUnique dynamically via Reflect to avoid type incompatibility
-    return Reflect.apply(delegate.findUnique, delegate, [
-      { where: { id } },
-    ]) as Promise<unknown>;
+    return Reflect.apply(delegate.findUnique, delegate, [{ where: { id } }]) as Promise<unknown>;
   }
 }

@@ -4,17 +4,17 @@
  * Wires theme use cases with their dependencies following Clean Architecture.
  */
 
-import type { AuthorizationServicePort } from '@/bounded-contexts/identity/authorization';
+import type { AuthorizationPort } from '../../domain/ports/authorization.port';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { EventPublisher } from '@/shared-kernel';
-import { ResumeConfigRepository } from '../../infrastructure/adapters/persistence/resume-config.repository';
 import { ResumeRepository } from '../../infrastructure/adapters/persistence/resume.repository';
+import { ResumeConfigRepository } from '../../infrastructure/adapters/persistence/resume-config.repository';
 import { ThemeRepository } from '../../infrastructure/adapters/persistence/theme.repository';
 import { THEME_USE_CASES, type ThemeUseCases } from '../ports/themes.port';
 import { ApplyThemeToResumeUseCase } from '../use-cases/apply-theme-to-resume.use-case';
 import { BatchReorderUseCase } from '../use-cases/batch-reorder.use-case';
-import { CreateThemeAsAdminUseCase } from '../use-cases/create-theme-as-admin.use-case';
 import { CreateThemeUseCase } from '../use-cases/create-theme.use-case';
+import { CreateThemeAsAdminUseCase } from '../use-cases/create-theme-as-admin.use-case';
 import { DeleteThemeUseCase } from '../use-cases/delete-theme.use-case';
 import { FindThemeByIdUseCase } from '../use-cases/find-theme-by-id.use-case';
 import { ForkThemeUseCase } from '../use-cases/fork-theme.use-case';
@@ -37,7 +37,7 @@ export { THEME_USE_CASES };
 
 export function buildThemeUseCases(
   prisma: PrismaService,
-  authorizationService: AuthorizationServicePort,
+  authorizationService: AuthorizationPort,
   eventPublisher: EventPublisher,
 ): ThemeUseCases {
   const themeRepo = new ThemeRepository(prisma);

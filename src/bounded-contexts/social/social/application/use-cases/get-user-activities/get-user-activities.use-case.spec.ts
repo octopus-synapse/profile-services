@@ -16,12 +16,24 @@ class StubActivityRepository {
     this._total = total;
   }
 
-  async findUserActivities() { return { data: this._data, total: this._total }; }
-  async createActivity() { return {} as never; }
-  async findActivityWithUser() { return null; }
-  async findActivitiesByUserIds() { return { data: [], total: 0 }; }
-  async findUserActivitiesByType() { return { data: [], total: 0 }; }
-  async deleteOlderThan() { return 0; }
+  async findUserActivities() {
+    return { data: this._data, total: this._total };
+  }
+  async createActivity() {
+    return {} as never;
+  }
+  async findActivityWithUser() {
+    return null;
+  }
+  async findActivitiesByUserIds() {
+    return { data: [], total: 0 };
+  }
+  async findUserActivitiesByType() {
+    return { data: [], total: 0 };
+  }
+  async deleteOlderThan() {
+    return 0;
+  }
 }
 
 describe('GetUserActivitiesUseCase', () => {
@@ -35,7 +47,15 @@ describe('GetUserActivitiesUseCase', () => {
 
   it('should return activities for a specific user', async () => {
     const activities: ActivityWithUser[] = [
-      { id: 'a1', userId: 'user-1', type: ActivityType.RESUME_CREATED, metadata: {}, entityId: null, entityType: null, createdAt: new Date() },
+      {
+        id: 'a1',
+        userId: 'user-1',
+        type: ActivityType.RESUME_CREATED,
+        metadata: {},
+        entityId: null,
+        entityType: null,
+        createdAt: new Date(),
+      },
     ];
     repository.setResult(activities, 1);
 

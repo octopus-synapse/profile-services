@@ -27,7 +27,7 @@ describe('GetPublicProfileUseCase', () => {
       findResumeByUserId: mock(async () => mockResume),
       findUserProfileById: mock(async () => null),
       findUserById: mock(async () => ({ id: 'user-1' })),
-      updateUserProfile: mock(async () => ({}) as any),
+      updateUserProfile: mock(async () => ({}) as unknown),
     } as UserProfileRepositoryPort;
 
     useCase = new GetPublicProfileUseCase(repository);

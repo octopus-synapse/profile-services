@@ -10,10 +10,7 @@ import { InMemoryEventBus } from '../../../../shared-kernel/testing';
 import { DELETION_CONFIRMATION_PHRASE } from '../../../application/ports';
 import { AccountDeletedEvent } from '../../../domain/events';
 import { AccountDeletionRequiresConfirmationException } from '../../../domain/exceptions';
-import {
-  InMemoryAccountLifecycleRepository,
-  createAccountData,
-} from '../../../testing';
+import { createAccountData, InMemoryAccountLifecycleRepository } from '../../../testing';
 import { DeleteAccountUseCase } from './delete-account.use-case';
 
 describe('DeleteAccountUseCase', () => {
@@ -30,9 +27,7 @@ describe('DeleteAccountUseCase', () => {
 
   it('should permanently delete an account', async () => {
     // Arrange
-    repository.seedAccount(
-      createAccountData({ id: 'user-1', email: 'delete@example.com' }),
-    );
+    repository.seedAccount(createAccountData({ id: 'user-1', email: 'delete@example.com' }));
 
     // Act
     const result = await useCase.execute({
@@ -48,9 +43,7 @@ describe('DeleteAccountUseCase', () => {
 
   it('should publish AccountDeletedEvent with user email', async () => {
     // Arrange
-    repository.seedAccount(
-      createAccountData({ id: 'user-1', email: 'delete@example.com' }),
-    );
+    repository.seedAccount(createAccountData({ id: 'user-1', email: 'delete@example.com' }));
 
     // Act
     await useCase.execute({
@@ -91,9 +84,7 @@ describe('DeleteAccountUseCase', () => {
 
   it('should not delete account when confirmation phrase is wrong', async () => {
     // Arrange
-    repository.seedAccount(
-      createAccountData({ id: 'user-1', email: 'keep@example.com' }),
-    );
+    repository.seedAccount(createAccountData({ id: 'user-1', email: 'keep@example.com' }));
 
     // Act
     try {

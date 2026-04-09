@@ -56,7 +56,7 @@ describe('VerifyEmailUseCase', () => {
       // User is now verified
       const users = repository.getAllUsers();
       const user = users.find((u) => u.id === DEFAULT_USER.id);
-      expect(user!.emailVerified).toBe(true);
+      expect(user?.emailVerified).toBe(true);
 
       // Token was deleted
       const tokens = repository.getAllTokens();
@@ -121,9 +121,7 @@ describe('VerifyEmailUseCase', () => {
         'orphan@example.com',
       );
 
-      expect(useCase.execute({ token: 'orphan-token' })).rejects.toThrow(
-        EntityNotFoundException,
-      );
+      expect(useCase.execute({ token: 'orphan-token' })).rejects.toThrow(EntityNotFoundException);
     });
 
     it('should throw EmailAlreadyVerifiedException and delete token when email is already verified', async () => {
@@ -194,7 +192,7 @@ describe('VerifyEmailUseCase', () => {
 
       const users = repository.getAllUsers();
       const user = users.find((u) => u.id === DEFAULT_USER.id);
-      expect(user!.emailVerified).toBe(false);
+      expect(user?.emailVerified).toBe(false);
       expect(eventBus.getPublishedEvents()).toHaveLength(0);
     });
   });

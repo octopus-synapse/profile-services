@@ -41,6 +41,8 @@ const EnvironmentSchema = z.object({
   SENDGRID_API_KEY: z.string().optional(),
   EMAIL_FROM: z.string().email().default('noreply@profile.com'),
   EMAIL_FROM_NAME: z.string().default('ProFile'),
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.coerce.number().int().default(1025),
 
   // Frontend
   FRONTEND_URL: z.string().url().default('http://localhost:3000'),

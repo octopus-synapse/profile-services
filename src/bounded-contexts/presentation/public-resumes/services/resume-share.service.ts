@@ -49,7 +49,9 @@ export class ResumeShareService {
     }
 
     // Hash password if provided
-    const hashedPassword = dto.password ? await Bun.password.hash(dto.password, { algorithm: 'bcrypt', cost: 10 }) : null;
+    const hashedPassword = dto.password
+      ? await Bun.password.hash(dto.password, { algorithm: 'bcrypt', cost: 10 })
+      : null;
 
     // Verify resume ownership
     const resume = await this.prisma.resume.findUnique({

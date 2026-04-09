@@ -9,7 +9,7 @@ import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
-import type { QueryThemes } from '@/shared-kernel';
+import { QueryThemesDto } from '@/shared-kernel';
 import {
   ThemeListDataDto,
   ThemeNullableEntityDataDto,
@@ -30,7 +30,7 @@ export class PublicThemeController {
     description: 'Published themes returned',
   })
   async findAllThemesWithPagination(
-    @Query() queryOptions: QueryThemes,
+    @Query() queryOptions: QueryThemesDto,
   ): Promise<DataResponse<ThemePaginatedListDataDto>> {
     const themes = await this.queryService.findAllThemesWithPagination(queryOptions);
 

@@ -57,7 +57,7 @@ services:
       target: deps
     container_name: profile-backend-dev
     restart: unless-stopped
-    command: sh -c "bun run db:setup && bun run db:seed && bun run dev"
+    command: sh -c "bun run db:setup && bun run prisma:seed && bun run start:dev"
     environment:
       NODE_ENV: ${NODE_ENV:-development} # Allow override for E2E testing
       PORT: ${BACKEND_PORT:-3001}
@@ -65,11 +65,13 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_PASSWORD: ${REDIS_PASSWORD:-redis}
-      JWT_SECRET: ${JWT_SECRET:-dev-secret-key}
+      JWT_SECRET: ${JWT_SECRET:-your-development-secret-key-change-in-production}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-7d}
       SENDGRID_API_KEY: ${SENDGRID_API_KEY}
-      EMAIL_FROM: ${EMAIL_FROM:-${SENDGRID_EMAIL_FROM}}
+      EMAIL_FROM: ${EMAIL_FROM:-efpatti.dev@gmail.com}
       EMAIL_FROM_NAME: ${EMAIL_FROM_NAME:-ProFile}
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
       MINIO_ENDPOINT: ${MINIO_ENDPOINT}
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
@@ -92,22 +94,42 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      mailpit:
+        condition: service_healthy
       libretranslate:
         condition: service_healthy
     networks:
       - profile-dev-network
     volumes:
-      - ./src:/app/src:delegated
-      - ./test:/app/test:delegated
-      - ./data:/app/data:delegated
-      - ./prisma:/app/prisma:delegated
-      - ./prisma.config.ts:/app/prisma.config.ts:delegated
-      - ./tsconfig.json:/app/tsconfig.json:delegated
-      - ./tsconfig.build.json:/app/tsconfig.build.json:delegated
-      - ./nest-cli.json:/app/nest-cli.json:delegated
-      - ./package.json:/app/package.json:delegated
+      - ../../src:/app/src:delegated
+      - ../../test:/app/test:delegated
+      - ../../data:/app/data:delegated
+      - ../../prisma:/app/prisma:delegated
+      - ../../prisma.config.ts:/app/prisma.config.ts:delegated
+      - ../../tsconfig.json:/app/tsconfig.json:delegated
+      - ../../tsconfig.build.json:/app/tsconfig.build.json:delegated
+      - ../../nest-cli.json:/app/nest-cli.json:delegated
+      - ../../package.json:/app/package.json:delegated
       - /app/node_modules
-      - ./logs:/app/logs
+      - ../../logs:/app/logs
+
+  # ==================================
+  # Mailpit - Local Email Testing
+  # ==================================
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: profile-mailpit-dev
+    restart: unless-stopped
+    ports:
+      - "8025:8025"
+      - "1025:1025"
+    networks:
+      - profile-dev-network
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8025/api/v1/info"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
 
   # ==================================
   # LibreTranslate Translation Service

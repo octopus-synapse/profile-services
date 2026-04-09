@@ -7,13 +7,13 @@
 
 import { beforeEach, describe, expect, it } from 'bun:test';
 import { ConflictException, ValidationException } from '@/shared-kernel';
-import type { OnboardingProgress } from '../../../domain/schemas/onboarding-progress.schema';
 import type {
   OnboardingProgressData,
   OnboardingProgressRepositoryPort,
   ProgressRecord,
   SaveProgressResult,
 } from '../../../domain/ports/onboarding-progress.port';
+import type { OnboardingProgress } from '../../../domain/schemas/onboarding-progress.schema';
 import { SaveProgressUseCase } from './save-progress.use-case';
 
 // ============================================================================

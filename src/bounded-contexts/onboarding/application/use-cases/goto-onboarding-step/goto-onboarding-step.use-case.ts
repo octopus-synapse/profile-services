@@ -2,7 +2,7 @@ import { BadRequestException } from '@nestjs/common';
 import { buildOnboardingSteps, getStepIndex } from '../../../domain/config/onboarding-steps.config';
 import type { OnboardingProgressData } from '../../../domain/ports/onboarding-progress.port';
 import type { SectionTypeDefinitionPort } from '../../../domain/ports/section-type-definition.port';
-import type { SaveProgressFn, GetProgressFn } from '../shared/navigation.types';
+import type { GetProgressFn, SaveProgressFn } from '../shared/navigation.types';
 
 export class GotoOnboardingStepUseCase {
   constructor(

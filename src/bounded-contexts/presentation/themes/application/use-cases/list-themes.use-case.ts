@@ -22,10 +22,7 @@ export type ThemePaginatedResult<TTheme = unknown> = {
 export class ListThemesUseCase {
   constructor(private readonly themeRepo: ThemeRepositoryPort) {}
 
-  async execute(
-    queryOptions: QueryThemes,
-    userId?: string,
-  ): Promise<ThemePaginatedResult> {
+  async execute(queryOptions: QueryThemes, userId?: string): Promise<ThemePaginatedResult> {
     const whereClause = this.buildWhereClause(queryOptions, userId);
     const {
       sortBy = 'createdAt',

@@ -3,7 +3,6 @@ import {
   configureCors,
   configureSecurityHeaders,
 } from '@/bounded-contexts/platform/common/config/security.config';
-import { parseCookieHeader } from '@/bounded-contexts/platform/common/middleware/cookie-parser.middleware';
 import {
   configureSwagger,
   isSwaggerEnabled,
@@ -14,6 +13,7 @@ import {
   configureValidation,
 } from '@/bounded-contexts/platform/common/config/validation.config';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import { parseCookieHeader } from '@/bounded-contexts/platform/common/middleware/cookie-parser.middleware';
 import { AppModule } from './app.module';
 
 /**
@@ -30,10 +30,16 @@ async function bootstrap() {
   app.setGlobalPrefix('api');
 
   // Cookie Parser (for session-based auth) — uses lightweight built-in middleware
-  app.use((req: any, _res: any, next: any) => {
-    req.cookies ??= parseCookieHeader(req.headers.cookie);
-    next();
-  });
+  app.use(
+    (
+      req: { cookies?: Record<string, string>; headers: { cookie?: string } },
+      _res: unknown,
+      next: () => void,
+    ) => {
+      req.cookies ??= parseCookieHeader(req.headers.cookie);
+      next();
+    },
+  );
 
   // Security Configuration
   configureSecurityHeaders(app, isSwaggerEnabled());

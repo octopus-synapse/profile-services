@@ -25,9 +25,7 @@ export function buildExportUseCases(
   sectionTypeRepo?: SectionTypeRepository,
 ): ExportUseCases {
   const resumeDataRepository = new ResumeDataRepository(prisma);
-  const sectionOrdering = sectionTypeRepo
-    ? new SectionOrderingAdapter(sectionTypeRepo)
-    : undefined;
+  const sectionOrdering = sectionTypeRepo ? new SectionOrderingAdapter(sectionTypeRepo) : undefined;
 
   return {
     exportDocxUseCase: new ExportDocxUseCase(docxBuilder),

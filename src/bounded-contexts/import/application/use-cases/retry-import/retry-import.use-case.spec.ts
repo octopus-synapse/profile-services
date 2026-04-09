@@ -3,9 +3,9 @@ import {
   ImportCannotBeRetriedException,
   ImportNotFoundException,
 } from '../../../domain/exceptions/import.exceptions';
+import { createImportJobFixture } from '../../../testing/fixtures/import-job.fixtures';
 import { InMemoryImportJobRepository } from '../../../testing/in-memory-import-job.repository';
 import { StubResumeCreator } from '../../../testing/stub-resume-creator';
-import { createImportJobFixture } from '../../../testing/fixtures/import-job.fixtures';
 import { RetryImportUseCase } from './retry-import.use-case';
 
 describe('RetryImportUseCase', () => {
@@ -41,8 +41,6 @@ describe('RetryImportUseCase', () => {
   it('should throw ImportCannotBeRetriedException for non-failed import', async () => {
     repository.seed(createImportJobFixture({ id: 'completed-1', status: 'COMPLETED' }));
 
-    await expect(useCase.execute('completed-1')).rejects.toThrow(
-      ImportCannotBeRetriedException,
-    );
+    await expect(useCase.execute('completed-1')).rejects.toThrow(ImportCannotBeRetriedException);
   });
 });

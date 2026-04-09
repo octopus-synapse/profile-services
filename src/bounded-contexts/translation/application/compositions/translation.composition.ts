@@ -18,7 +18,12 @@ export { TRANSLATION_USE_CASES };
 export async function buildTranslationUseCases(
   libreTranslateUrl?: string,
 ): Promise<TranslationUseCases> {
-  const coreService = new TranslationCoreService(libreTranslateUrl);
+  const logger = {
+    log: (msg: string) => console.log(`[Translation] ${msg}`),
+    warn: (msg: string) => console.warn(`[Translation] ${msg}`),
+    error: (msg: string) => console.error(`[Translation] ${msg}`),
+  };
+  const coreService = new TranslationCoreService(logger, libreTranslateUrl);
 
   // Initialize service health check (replaces OnModuleInit)
   await coreService.checkServiceHealth();

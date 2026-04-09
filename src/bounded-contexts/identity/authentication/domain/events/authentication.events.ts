@@ -12,6 +12,10 @@ export class UserLoggedInEvent extends DomainEvent {
   readonly eventType = 'auth.user.logged_in';
   readonly aggregateId: string;
 
+  get payload(): Record<string, unknown> {
+    return this.getPayload();
+  }
+
   constructor(
     public readonly userId: string,
     public readonly loginMethod: 'password' | 'oauth' | 'token' | '2fa_totp' | '2fa_backup_code',
@@ -41,6 +45,10 @@ export class UserLoggedOutEvent extends DomainEvent {
   readonly eventType = 'auth.user.logged_out';
   readonly aggregateId: string;
 
+  get payload(): Record<string, unknown> {
+    return this.getPayload();
+  }
+
   constructor(
     public readonly userId: string,
     public readonly logoutType: 'manual' | 'token_expired' | 'all_sessions',
@@ -65,6 +73,10 @@ export class UserLoggedOutEvent extends DomainEvent {
 export class LoginFailedEvent extends DomainEvent {
   readonly eventType = 'auth.login.failed';
   readonly aggregateId: string;
+
+  get payload(): Record<string, unknown> {
+    return this.getPayload();
+  }
 
   constructor(
     public readonly email: string,
@@ -97,6 +109,10 @@ export class TokenRefreshedEvent extends DomainEvent {
   readonly eventType = 'auth.token.refreshed';
   readonly aggregateId: string;
 
+  get payload(): Record<string, unknown> {
+    return this.getPayload();
+  }
+
   constructor(public readonly userId: string) {
     super();
     this.aggregateId = userId;
@@ -117,6 +133,10 @@ export class TokenRefreshedEvent extends DomainEvent {
 export class SessionCreatedEvent extends DomainEvent {
   readonly eventType = 'auth.session.created';
   readonly aggregateId: string;
+
+  get payload(): Record<string, unknown> {
+    return this.getPayload();
+  }
 
   constructor(
     public readonly sessionId: string,
@@ -146,6 +166,10 @@ export class SessionCreatedEvent extends DomainEvent {
 export class SessionTerminatedEvent extends DomainEvent {
   readonly eventType = 'auth.session.terminated';
   readonly aggregateId: string;
+
+  get payload(): Record<string, unknown> {
+    return this.getPayload();
+  }
 
   constructor(
     public readonly sessionId: string,

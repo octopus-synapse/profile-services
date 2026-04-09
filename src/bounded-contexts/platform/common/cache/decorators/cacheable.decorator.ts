@@ -185,11 +185,7 @@ const CACHE_SERVICE_PROPERTY = 'cacheService';
  * ```
  */
 export function Cacheable(options: CacheableOptions): MethodDecorator {
-  return (
-    _target: object,
-    _propertyKey: string | symbol,
-    descriptor: PropertyDescriptor,
-  ): void => {
+  return (_target: object, _propertyKey: string | symbol, descriptor: PropertyDescriptor): void => {
     const originalMethod = descriptor.value;
 
     if (typeof originalMethod !== 'function') {

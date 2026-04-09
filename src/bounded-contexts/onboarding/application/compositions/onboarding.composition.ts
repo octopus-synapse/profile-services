@@ -3,21 +3,21 @@ import type { AppLoggerService } from '@/bounded-contexts/platform/common/logger
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ONBOARDING_USE_CASES, type OnboardingUseCases } from '../../domain/ports/onboarding.port';
 import { OnboardingRepository } from '../../infrastructure/adapters/persistence/onboarding.repository';
-import { OnboardingProgressRepository } from '../../infrastructure/adapters/persistence/onboarding-progress.repository';
 import { OnboardingCompletionAdapter } from '../../infrastructure/adapters/persistence/onboarding-completion.adapter';
+import { OnboardingProgressRepository } from '../../infrastructure/adapters/persistence/onboarding-progress.repository';
 import { ResumeOnboardingAdapter } from '../../infrastructure/adapters/persistence/resume-onboarding.adapter';
 import { ResumeSectionOnboardingAdapter } from '../../infrastructure/adapters/persistence/resume-section-onboarding.adapter';
 import { SectionTypeDefinitionAdapter } from '../../infrastructure/adapters/persistence/section-type-definition.adapter';
-import { GetOnboardingStatusUseCase } from '../use-cases/get-onboarding-status/get-onboarding-status.use-case';
+import { AdvanceOnboardingStepUseCase } from '../use-cases/advance-onboarding-step/advance-onboarding-step.use-case';
 import { CompleteOnboardingUseCase } from '../use-cases/complete-onboarding/complete-onboarding.use-case';
 import { CompleteOnboardingFromProgressUseCase } from '../use-cases/complete-onboarding-from-progress/complete-onboarding-from-progress.use-case';
-import { AdvanceOnboardingStepUseCase } from '../use-cases/advance-onboarding-step/advance-onboarding-step.use-case';
+import { GetOnboardingStatusUseCase } from '../use-cases/get-onboarding-status/get-onboarding-status.use-case';
+import { GetProgressUseCase } from '../use-cases/get-progress/get-progress.use-case';
+import { GetSectionTypeDefinitionsUseCase } from '../use-cases/get-section-type-definitions/get-section-type-definitions.use-case';
 import { GoBackOnboardingStepUseCase } from '../use-cases/go-back-onboarding-step/go-back-onboarding-step.use-case';
 import { GotoOnboardingStepUseCase } from '../use-cases/goto-onboarding-step/goto-onboarding-step.use-case';
 import { SaveOnboardingStepDataUseCase } from '../use-cases/save-onboarding-step-data/save-onboarding-step-data.use-case';
-import { GetSectionTypeDefinitionsUseCase } from '../use-cases/get-section-type-definitions/get-section-type-definitions.use-case';
 import { SaveProgressUseCase } from '../use-cases/save-progress/save-progress.use-case';
-import { GetProgressUseCase } from '../use-cases/get-progress/get-progress.use-case';
 
 export { ONBOARDING_USE_CASES };
 
@@ -41,10 +41,11 @@ export function buildOnboardingUseCases(
   const getProgressUseCase = new GetProgressUseCase(progressRepository);
 
   // Wrap use cases as functions for navigation
-  const saveProgressFn: import('../use-cases/shared/navigation.types').SaveProgressFn = (userId, data) =>
-    saveProgressUseCase.execute(userId, data);
-  const getProgressFn = (userId: string) =>
-    getProgressUseCase.execute(userId);
+  const saveProgressFn: import('../use-cases/shared/navigation.types').SaveProgressFn = (
+    userId,
+    data,
+  ) => saveProgressUseCase.execute(userId, data);
+  const getProgressFn = (userId: string) => getProgressUseCase.execute(userId);
 
   // Completion use cases
   const completeOnboardingUseCase = new CompleteOnboardingUseCase(
@@ -82,7 +83,9 @@ export function buildOnboardingUseCases(
 
   // Query use cases
   const getOnboardingStatusUseCase = new GetOnboardingStatusUseCase(onboardingRepository);
-  const getSectionTypeDefinitionsUseCase = new GetSectionTypeDefinitionsUseCase(sectionTypeDefinition);
+  const getSectionTypeDefinitionsUseCase = new GetSectionTypeDefinitionsUseCase(
+    sectionTypeDefinition,
+  );
 
   return {
     completeOnboardingUseCase,

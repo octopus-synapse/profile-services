@@ -6,8 +6,8 @@
 
 import { beforeEach, describe, expect, it } from 'bun:test';
 import { Test, type TestingModule } from '@nestjs/testing';
-import type { ResumePDFOptions } from '../helpers';
-import { PdfGeneratorService } from './pdf-generator.service';
+import type { PdfGeneratorOptions } from '../../domain/ports/pdf-generator.port';
+import { TypstPdfGeneratorService } from '../../infrastructure/adapters/external-services/typst-pdf-generator.service';
 import { ResumePDFService } from './resume-pdf.service';
 
 /**
@@ -15,11 +15,11 @@ import { ResumePDFService } from './resume-pdf.service';
  */
 class InMemoryPdfGenerator {
   private buffer = Buffer.from('pdf-content');
-  private lastOptions: ResumePDFOptions | null = null;
+  private lastOptions: PdfGeneratorOptions | null = null;
   private shouldFail = false;
   private error: Error | null = null;
 
-  async generate(options: ResumePDFOptions = {}): Promise<Buffer> {
+  async generate(options: PdfGeneratorOptions = {}): Promise<Buffer> {
     this.lastOptions = options;
     if (this.shouldFail && this.error) {
       throw this.error;
@@ -27,7 +27,7 @@ class InMemoryPdfGenerator {
     return this.buffer;
   }
 
-  getLastOptions(): ResumePDFOptions | null {
+  getLastOptions(): PdfGeneratorOptions | null {
     return this.lastOptions;
   }
 
@@ -54,7 +54,7 @@ describe('ResumePDFService', () => {
       providers: [
         ResumePDFService,
         {
-          provide: PdfGeneratorService,
+          provide: TypstPdfGeneratorService,
           useValue: generatorService,
         },
       ],

@@ -73,15 +73,12 @@ export class DocxBuilderService {
     }
 
     const resume: ResumeWithSections = {
-      resumeSections: (
-        'resumeSections' in resumeData && Array.isArray(resumeData.resumeSections)
-          ? resumeData.resumeSections
-          : []
+      resumeSections: ('resumeSections' in resumeData && Array.isArray(resumeData.resumeSections)
+        ? resumeData.resumeSections
+        : []
       ).map((section: Record<string, unknown>) => ({
         sectionType: section.sectionType as ResumeSectionWithItems['sectionType'],
-        items: Array.isArray(section.items)
-          ? (section.items as Array<{ content: unknown }>)
-          : [],
+        items: Array.isArray(section.items) ? (section.items as Array<{ content: unknown }>) : [],
       })),
     };
     return { user, resume };

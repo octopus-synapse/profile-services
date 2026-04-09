@@ -1,13 +1,13 @@
 export { AuthorizationPort } from './authorization.port';
-export {
-  ResumeConfigRepositoryPort,
-  type ResumeConfig,
-} from './resume-config.repository.port';
 export { ResumeRepositoryPort, type ResumeWithTheme } from './resume.repository.port';
 export {
-  ThemeRepositoryPort,
+  type ResumeConfig,
+  ResumeConfigRepositoryPort,
+} from './resume-config.repository.port';
+export {
   type CreateThemeData,
   type ThemeEntity,
+  ThemeRepositoryPort,
   type ThemeWithAuthor,
   type ThemeWithAuthorEmail,
   type UpdateThemeData,

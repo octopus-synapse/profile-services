@@ -7,8 +7,11 @@
 
 import type { Prisma } from '@prisma/client';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import {
+  type CompletionResult,
+  OnboardingCompletionPort,
+} from '../../../domain/ports/onboarding-completion.port';
 import type { OnboardingData } from '../../../domain/schemas/onboarding-data.schema';
-import { OnboardingCompletionPort, type CompletionResult } from '../../../domain/ports/onboarding-completion.port';
 import type { ResumeOnboardingAdapter } from './resume-onboarding.adapter';
 import type { ResumeSectionOnboardingAdapter } from './resume-section-onboarding.adapter';
 

@@ -57,6 +57,22 @@ export class SkillQueryService {
 
   /** Get skills by type */
   async getSkillsByType(type: SkillType, limit = 50): Promise<TechSkill[]> {
+    const validTypes = [
+      'LANGUAGE',
+      'FRAMEWORK',
+      'LIBRARY',
+      'DATABASE',
+      'TOOL',
+      'PLATFORM',
+      'METHODOLOGY',
+      'SOFT_SKILL',
+      'CERTIFICATION',
+      'OTHER',
+    ];
+    if (!validTypes.includes(type)) {
+      return [];
+    }
+
     const skills = await this.prisma.techSkill.findMany({
       where: { isActive: true, type },
       take: limit,

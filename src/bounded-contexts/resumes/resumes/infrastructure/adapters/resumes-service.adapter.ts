@@ -1,6 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { CreateResume, UpdateResume } from '@/shared-kernel';
-import { RESUMES_USE_CASES, type ResumesUseCases } from '../../application/ports/resumes-use-cases.port';
+import {
+  RESUMES_USE_CASES,
+  type ResumesUseCases,
+} from '../../application/ports/resumes-use-cases.port';
 import {
   type ResumeResult,
   type ResumeSlots,
@@ -37,11 +40,7 @@ export class ResumesServiceAdapter extends ResumesServicePort {
     return this.useCases.createResumeForUserUseCase.execute(userId, data);
   }
 
-  async updateResumeForUser(
-    id: string,
-    userId: string,
-    data: UpdateResume,
-  ): Promise<ResumeResult> {
+  async updateResumeForUser(id: string, userId: string, data: UpdateResume): Promise<ResumeResult> {
     return this.useCases.updateResumeForUserUseCase.execute(id, userId, data);
   }
 

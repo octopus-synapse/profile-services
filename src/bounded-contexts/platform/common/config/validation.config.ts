@@ -1,5 +1,6 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { ZodValidationPipe } from 'nestjs-zod';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { AllExceptionsFilter } from '../filters/http-exception.filter';
 import { AppLoggerService } from '../logger/logger.service';
@@ -8,13 +9,12 @@ import { AppLoggerService } from '../logger/logger.service';
  * Global validation pipe configuration
  * Single Responsibility: Configure request validation only
  *
- * Architecture: Validation is handled by validation pipes from
- * @/shared-kernel at the route level.
- * Global pipe is kept for legacy compatibility but does minimal work.
+ * Uses nestjs-zod ZodValidationPipe globally so all createZodDto DTOs
+ * are validated automatically without per-route pipe decoration.
  */
 export function configureValidation(app: INestApplication): void {
-  // Minimal global validation - actual validation done at route level
   app.useGlobalPipes(
+    new ZodValidationPipe(),
     new ValidationPipe({
       transform: true,
       transformOptions: { enableImplicitConversion: true },

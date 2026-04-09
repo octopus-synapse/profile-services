@@ -1,5 +1,9 @@
 import type { TechNiche } from '../../../dto/tech-niche.dto';
-import { TECH_SKILLS_CACHE_KEYS, TECH_SKILLS_CACHE_TTL, type TechAreaType } from '../../../interfaces';
+import {
+  TECH_SKILLS_CACHE_KEYS,
+  TECH_SKILLS_CACHE_TTL,
+  type TechAreaType,
+} from '../../../interfaces';
 import type { CachePort, TechNicheRepositoryPort } from '../../ports/tech-skills.port';
 
 export class GetNichesByAreaUseCase {

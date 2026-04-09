@@ -8,8 +8,8 @@
 import { Logger } from '@nestjs/common';
 import { type Prisma, ResumeTemplate, ThemeStatus } from '@prisma/client';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { normalizeTemplateSelection } from '../../../domain/schemas/onboarding-data.schema';
 import type { OnboardingData } from '../../../domain/schemas/onboarding.schema';
+import { normalizeTemplateSelection } from '../../../domain/schemas/onboarding-data.schema';
 
 // Valid template values from Prisma enum
 const VALID_TEMPLATES = Object.values(ResumeTemplate);

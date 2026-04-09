@@ -1,6 +1,6 @@
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { ProgrammingLanguage } from '../../../dto/programming-language.dto';
 import { ProgrammingLanguageRepositoryPort } from '../../../application/ports/tech-skills.port';
+import type { ProgrammingLanguage } from '../../../dto/programming-language.dto';
 
 export class ProgrammingLanguageRepository extends ProgrammingLanguageRepositoryPort {
   constructor(private readonly prisma: PrismaService) {

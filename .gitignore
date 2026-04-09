@@ -127,3 +127,4 @@ prisma/*.db-journal
 .turbo
 data/mec-courses.csv
 generated/
+.claude/worktrees/

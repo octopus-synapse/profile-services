@@ -6,8 +6,7 @@
 
 import type { IUserAuthorizationRepository } from '../../../domain/ports/authorization-repositories.port';
 
-export interface CountUsersWithRoleRepository
-  extends Pick<IUserAuthorizationRepository, never> {
+export interface CountUsersWithRoleRepository extends Pick<IUserAuthorizationRepository, never> {
   countUsersWithRoleName(roleName: string): Promise<number>;
 }
 

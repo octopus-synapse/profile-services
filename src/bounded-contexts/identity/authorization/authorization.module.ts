@@ -28,6 +28,7 @@
  */
 
 import { Global, Module } from '@nestjs/common';
+import { AuthorizationCheckPort } from '@/shared-kernel/authorization';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 
 // Domain
@@ -67,6 +68,11 @@ import {
       provide: AuthorizationServicePort,
       useExisting: AuthorizationService,
     },
+    // Shared-kernel port (narrow ISP interface for cross-BC consumers)
+    {
+      provide: AuthorizationCheckPort,
+      useExisting: AuthorizationService,
+    },
   ],
   exports: [
     // Export service for use in other modules
@@ -75,6 +81,9 @@ import {
 
     // Export port abstraction for dependency injection
     AuthorizationServicePort,
+
+    // Export shared-kernel port for cross-BC consumers
+    AuthorizationCheckPort,
 
     // Export guards for use in controllers
     PermissionGuard,

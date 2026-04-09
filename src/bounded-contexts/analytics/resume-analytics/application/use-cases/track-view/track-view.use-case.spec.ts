@@ -6,7 +6,10 @@
 
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { InMemoryViewTrackingRepository } from '@/bounded-contexts/analytics/testing';
-import type { ResumeOwnershipPort, ViewTrackingRepositoryPort } from '../../ports/resume-analytics.port';
+import type {
+  ResumeOwnershipPort,
+  ViewTrackingRepositoryPort,
+} from '../../ports/resume-analytics.port';
 import { GetViewStatsUseCase } from '../get-view-stats/get-view-stats.use-case';
 import { TrackViewUseCase } from './track-view.use-case';
 
@@ -21,7 +24,9 @@ describe('TrackViewUseCase & GetViewStatsUseCase', () => {
   /**
    * Adapter wrapping InMemoryViewTrackingRepository as ViewTrackingRepositoryPort.
    */
-  function createViewTrackingPort(repo: InMemoryViewTrackingRepository): ViewTrackingRepositoryPort {
+  function createViewTrackingPort(
+    repo: InMemoryViewTrackingRepository,
+  ): ViewTrackingRepositoryPort {
     return {
       trackView: async (data) => {
         await repo.create({ data });
@@ -48,7 +53,7 @@ describe('TrackViewUseCase & GetViewStatsUseCase', () => {
     const mockOwnership: ResumeOwnershipPort = {
       verifyOwnership: async () => {},
       verifyResumeExists: async () => {},
-      getResumeWithDetails: async () => ({} as never),
+      getResumeWithDetails: async () => ({}) as never,
     };
 
     trackViewUseCase = new TrackViewUseCase(

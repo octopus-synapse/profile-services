@@ -9,7 +9,7 @@
 
 import { Controller, Delete, Get, HttpCode, HttpStatus, Param, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
-import { PermissionGuard, RequirePermission } from '@/bounded-contexts/identity/authorization';
+import { RequirePermission } from '@/shared-kernel/authorization';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
@@ -25,7 +25,7 @@ import { ResumeManagementService } from '../services/resume-management.service';
 @ApiTags('resumes')
 @ApiBearerAuth('JWT-auth')
 @Controller('v1/resumes/manage')
-@UseGuards(JwtAuthGuard, PermissionGuard)
+@UseGuards(JwtAuthGuard)
 export class ResumeManagementController {
   constructor(private readonly resumeManagement: ResumeManagementService) {}
 

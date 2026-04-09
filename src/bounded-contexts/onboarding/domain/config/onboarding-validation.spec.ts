@@ -1,7 +1,7 @@
-import { describe, it, expect } from 'bun:test';
+import { describe, expect, it } from 'bun:test';
 import {
-  canProceedFromStep,
   canCompleteOnboarding,
+  canProceedFromStep,
   type OnboardingDataForValidation,
 } from './onboarding-validation';
 

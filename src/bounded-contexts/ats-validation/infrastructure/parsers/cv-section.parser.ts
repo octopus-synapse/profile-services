@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { ATSSectionTypeAdapter } from '../../application/use-cases/ats-section-type.adapter';
 import type {
   CVSection,
   ParsedCV,
@@ -6,7 +7,6 @@ import type {
   ValidationIssue,
 } from '../../domain/interfaces';
 import { ValidationSeverity } from '../../domain/interfaces';
-import { ATSSectionTypeAdapter } from '../../application/use-cases/ats-section-type.adapter';
 
 /**
  * CVSectionParser - Parses CV text and detects sections using definition-driven patterns.

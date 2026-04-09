@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
 import { ImportNotFoundException } from '../../../domain/exceptions/import.exceptions';
+import { sampleJsonResume } from '../../../testing/fixtures/import-job.fixtures';
 import { InMemoryImportJobRepository } from '../../../testing/in-memory-import-job.repository';
 import { StubResumeCreator } from '../../../testing/stub-resume-creator';
-import { sampleJsonResume } from '../../../testing/fixtures/import-job.fixtures';
 import { ProcessImportUseCase } from './process-import.use-case';
 
 describe('ProcessImportUseCase', () => {

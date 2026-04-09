@@ -1,8 +1,8 @@
 export {
   BLOCK_USE_CASES,
+  type BlockedUserWithDetails,
   BlockRepositoryPort,
   type BlockUseCases,
-  type BlockedUserWithDetails,
 } from './block.port';
 export {
   BlockedUserRepositoryPort,

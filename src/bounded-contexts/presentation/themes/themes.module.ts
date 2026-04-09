@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
-import { AuthorizationModule } from '@/bounded-contexts/identity/authorization';
+import { AuthorizationCheckPort } from '@/shared-kernel/authorization';
+import { AuthorizationPort } from './domain/ports/authorization.port';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import {
   PublicThemeController,
@@ -18,11 +19,13 @@ import {
 } from './services';
 
 @Module({
-  imports: [PrismaModule, AuthorizationModule],
+  imports: [PrismaModule],
   controllers: [
-    PublicThemeController,
+    // UserThemeController MUST come before PublicThemeController
+    // so that @Get('me') matches before @Get(':id')
     UserThemeController,
     ThemeApprovalController,
+    PublicThemeController,
     SectionConfigController,
   ],
   providers: [
@@ -33,6 +36,7 @@ import {
     ResumeConfigRepository,
     SectionVisibilityService,
     SectionOrderingService,
+    { provide: AuthorizationPort, useExisting: AuthorizationCheckPort },
   ],
   exports: [
     ThemeCrudService,

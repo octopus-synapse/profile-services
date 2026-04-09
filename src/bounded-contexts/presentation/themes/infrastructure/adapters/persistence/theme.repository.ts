@@ -7,9 +7,9 @@
 import type { Prisma } from '@prisma/client';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import {
-  ThemeRepositoryPort,
   type CreateThemeData,
   type ThemeEntity,
+  ThemeRepositoryPort,
   type ThemeWithAuthor,
   type ThemeWithAuthorEmail,
   type UpdateThemeData,

@@ -16,7 +16,7 @@ import {
   ApiPropertyOptional,
   ApiTags,
 } from '@nestjs/swagger';
-import { PermissionGuard, RequirePermission } from '@/bounded-contexts/identity/authorization';
+import { RequirePermission } from '@/shared-kernel/authorization';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
@@ -43,7 +43,7 @@ class ThemeApprovalRequestDto {
 @SdkExport({ tag: 'themes', description: 'Themes API' })
 @ApiTags('themes')
 @Controller('v1/themes/approval')
-@UseGuards(JwtAuthGuard, PermissionGuard)
+@UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class ThemeApprovalController {
   constructor(

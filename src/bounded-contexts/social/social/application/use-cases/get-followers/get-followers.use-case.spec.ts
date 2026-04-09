@@ -15,16 +15,34 @@ class StubFollowRepository {
     this._total = total;
   }
 
-  async findFollowers() { return { data: this._data, total: this._total }; }
-  async createFollow() { return {} as never; }
+  async findFollowers() {
+    return { data: this._data, total: this._total };
+  }
+  async createFollow() {
+    return {} as never;
+  }
   async deleteFollow() {}
-  async findFollow() { return null; }
-  async findFollowing() { return { data: [], total: 0 }; }
-  async countFollowers() { return 0; }
-  async countFollowing() { return 0; }
-  async findFollowingIds() { return []; }
-  async findFollowerIds() { return []; }
-  async userExists() { return true; }
+  async findFollow() {
+    return null;
+  }
+  async findFollowing() {
+    return { data: [], total: 0 };
+  }
+  async countFollowers() {
+    return 0;
+  }
+  async countFollowing() {
+    return 0;
+  }
+  async findFollowingIds() {
+    return [];
+  }
+  async findFollowerIds() {
+    return [];
+  }
+  async userExists() {
+    return true;
+  }
 }
 
 describe('GetFollowersUseCase', () => {

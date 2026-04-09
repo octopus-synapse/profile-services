@@ -8,8 +8,8 @@ import {
   InMemoryCacheService,
   InMemoryTechSkillRepository,
 } from '../../../../testing';
-import { TechSkillRepository } from '../../../infrastructure/adapters/persistence/tech-skill.repository';
 import { CacheAdapter } from '../../../infrastructure/adapters/persistence/cache.adapter';
+import { TechSkillRepository } from '../../../infrastructure/adapters/persistence/tech-skill.repository';
 import { SearchSkillsUseCase } from './search-skills.use-case';
 
 describe('SearchSkillsUseCase', () => {
