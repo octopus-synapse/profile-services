@@ -1,9 +1,9 @@
 import { describe, expect, test } from 'bun:test';
 import {
+  AstDesignTokensSchema,
+  AtsConfigSchema,
   ResumeAstV2Schema,
   ResumeMetadataSchema,
-  AtsConfigSchema,
-  AstDesignTokensSchema,
 } from './resume-ast-v2.schema';
 
 // ── Fixtures ────────────────────────────────────────────────────────
@@ -20,9 +20,22 @@ function validDesignTokens() {
       background: '#ffffff',
     },
     header: {
-      name: { fontSize: 24, fontWeight: 700, fontFamily: 'Inter', color: '#111', tracking: 0, alignment: 'left' as const },
+      name: {
+        fontSize: 24,
+        fontWeight: 700,
+        fontFamily: 'Inter',
+        color: '#111',
+        tracking: 0,
+        alignment: 'left' as const,
+      },
       jobTitle: { fontSize: 14, fontWeight: 400, fontFamily: 'Inter', color: '#333', tracking: 0 },
-      contact: { fontSize: 10, fontFamily: 'Inter', color: '#555', separator: '|', separatorColor: '#ccc' },
+      contact: {
+        fontSize: 10,
+        fontFamily: 'Inter',
+        color: '#555',
+        separator: '|',
+        separatorColor: '#ccc',
+      },
       divider: { show: true, weight: 1, color: '#000', marginTop: 8, marginBottom: 8 },
     },
     sectionHeader: {
@@ -45,10 +58,40 @@ function validDesignTokens() {
       employmentType: { separator: ' - ' },
       link: { fontSize: 10, fontFamily: 'Inter', color: '#0066cc', underline: true },
     },
-    bullets: { marker: '\u2022', fontSize: 10, fontFamily: 'Inter', color: '#333', spacing: 2, indent: 12, bodyIndent: 4, marginTop: 2 },
-    technologies: { show: true, label: 'Technologies:', fontSize: 10, fontFamily: 'Inter', color: '#555', labelWeight: 600, marginTop: 4 },
-    skillsList: { fontSize: 10, fontFamily: 'Inter', color: '#333', separator: ',', separatorColor: '#999', justify: false },
-    textSection: { fontSize: 10, fontFamily: 'Inter', color: '#333', lineHeight: 1.5, justify: true },
+    bullets: {
+      marker: '\u2022',
+      fontSize: 10,
+      fontFamily: 'Inter',
+      color: '#333',
+      spacing: 2,
+      indent: 12,
+      bodyIndent: 4,
+      marginTop: 2,
+    },
+    technologies: {
+      show: true,
+      label: 'Technologies:',
+      fontSize: 10,
+      fontFamily: 'Inter',
+      color: '#555',
+      labelWeight: 600,
+      marginTop: 4,
+    },
+    skillsList: {
+      fontSize: 10,
+      fontFamily: 'Inter',
+      color: '#333',
+      separator: ',',
+      separatorColor: '#999',
+      justify: false,
+    },
+    textSection: {
+      fontSize: 10,
+      fontFamily: 'Inter',
+      color: '#333',
+      lineHeight: 1.5,
+      justify: true,
+    },
     global: { fontFamily: 'Inter', fontSize: 10, color: '#333', lineHeight: 1.4, justify: false },
   };
 }
@@ -142,7 +185,10 @@ describe('AtsConfigSchema', () => {
   });
 
   test('accepts boundary values 0 and 100', () => {
-    expect(AtsConfigSchema.parse({ themeScore: 0, resumeScore: 100 })).toEqual({ themeScore: 0, resumeScore: 100 });
+    expect(AtsConfigSchema.parse({ themeScore: 0, resumeScore: 100 })).toEqual({
+      themeScore: 0,
+      resumeScore: 100,
+    });
   });
 
   test('rejects score above 100', () => {

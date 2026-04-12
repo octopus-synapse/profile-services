@@ -7,8 +7,8 @@
  * Pipeline: userId → load resume + DSL → compile ResumeAst → serialize JSON → Typst compile → PDF
  */
 
-import { Inject, Injectable, Logger, NotFoundException, forwardRef } from '@nestjs/common';
-import { DslRepository } from '@/bounded-contexts/dsl/dsl/dsl.repository';
+import { forwardRef, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { DslRepository } from '@/bounded-contexts/dsl/dsl.repository';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { SupportedLocale } from '@/shared-kernel/utils/locale-resolver';
 import type { PdfGeneratorOptions } from '../../../domain/ports/pdf-generator.port';
@@ -49,11 +49,17 @@ export class TypstPdfGeneratorService {
 
     this.logger.log(`Generating Typst PDF for user ${userId} with locale ${locale}`);
 
-    // 1. Find the user's primary resume
-    const resumeId = await this.findPrimaryResumeId(userId);
+    // 1. Find resume: use explicit resumeId or fall back to user's primary
+    const resumeId = options.resumeId ?? (await this.findPrimaryResumeId(userId));
 
     // 2. Use DslRepository to load resume + theme + compile AST
-    const { ast } = await this.dslRepository.render(resumeId, userId, 'pdf', locale);
+    const { ast } = await this.dslRepository.render(
+      resumeId,
+      userId,
+      'pdf',
+      locale,
+      options.themeStyleConfig,
+    );
 
     // 3. Serialize AST to JSON for Typst templates
     const jsonData = this.serializer.serialize(ast);

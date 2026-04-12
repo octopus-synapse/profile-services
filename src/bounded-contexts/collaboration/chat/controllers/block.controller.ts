@@ -5,6 +5,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Inject,
   Param,
   Post,
   Req,
@@ -26,14 +27,13 @@ import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-exp
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { createZodPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
+import { BLOCK_USE_CASES, type BlockUseCases } from '../application/ports/block.port';
 import {
   type BlockedUserResponse,
   BlockUserRequestDto,
   BlockUserSchema,
 } from '../schemas/chat.schema';
-import { BlockService } from '../services/block.service';
 
-// Wrapper DTOs for responses
 export class BlockUserDataDto {
   @ApiProperty({ type: 'object', additionalProperties: true })
   block!: BlockedUserResponse;
@@ -55,7 +55,7 @@ export class IsBlockedDataDto {
 @RequirePermission(Permission.CHAT_USE)
 @Controller('chat/blocked')
 export class BlockController {
-  constructor(private readonly blockService: BlockService) {}
+  constructor(@Inject(BLOCK_USE_CASES) private readonly block: BlockUseCases) {}
 
   @Post()
   @ApiOperation({ summary: 'Block a user' })
@@ -69,7 +69,7 @@ export class BlockController {
     @Body(createZodPipe(BlockUserSchema))
     dto: ReturnType<typeof BlockUserSchema.parse>,
   ): Promise<DataResponse<BlockUserDataDto>> {
-    const block = await this.blockService.blockUser(req.user.userId, dto);
+    const block = await this.block.blockUserUseCase.execute(req.user.userId, dto);
     return { success: true, data: { block } };
   }
 
@@ -85,7 +85,7 @@ export class BlockController {
     @Req() req: AuthenticatedRequest,
     @Param('userId') userId: string,
   ): Promise<void> {
-    await this.blockService.unblockUser(req.user.userId, userId);
+    await this.block.unblockUserUseCase.execute(req.user.userId, userId);
   }
 
   @Get()
@@ -96,7 +96,7 @@ export class BlockController {
   async getBlockedUsers(
     @Req() req: AuthenticatedRequest,
   ): Promise<DataResponse<BlockedUsersListDataDto>> {
-    const blockedUsers = await this.blockService.getBlockedUsers(req.user.userId);
+    const blockedUsers = await this.block.getBlockedUsersUseCase.execute(req.user.userId);
     return { success: true, data: { blockedUsers } };
   }
 
@@ -108,7 +108,7 @@ export class BlockController {
     @Req() req: AuthenticatedRequest,
     @Param('userId') userId: string,
   ): Promise<DataResponse<IsBlockedDataDto>> {
-    const result = await this.blockService.isBlocked(req.user.userId, userId);
+    const result = await this.block.checkBlockStatusUseCase.execute(req.user.userId, userId);
     return { success: true, data: { isBlocked: result } };
   }
 }

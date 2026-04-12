@@ -111,7 +111,7 @@ export class ExportPdfController {
     const safePalette = sanitizeQueryParam(palette);
     const safeLang = sanitizeQueryParam(lang);
     const safeBannerColor = sanitizeQueryParam(bannerColor);
-    const safeTemplate = template === 'ats' ? 'ats' as const : 'default' as const;
+    const safeTemplate = template === 'ats' ? ('ats' as const) : ('default' as const);
 
     // Emit export requested event before processing
     this.eventEmitter.emit(

@@ -7,6 +7,15 @@
 import type { ImportJobData, ParsedResumeData } from '../../domain/types/import.types';
 import type { ImportJobDto, ImportResultDto, ParsedResumeDataDto } from '../dto';
 
+const LEGACY_SECTION_KEYS: Array<{ field: string; sectionTypeKey: string }> = [
+  { field: 'experiences', sectionTypeKey: 'work_experience_v1' },
+  { field: 'education', sectionTypeKey: 'education_v1' },
+  { field: 'skills', sectionTypeKey: 'skill_v1' },
+  { field: 'certifications', sectionTypeKey: 'certification_v1' },
+  { field: 'languages', sectionTypeKey: 'language_v1' },
+  { field: 'projects', sectionTypeKey: 'project_v1' },
+];
+
 export function toImportJobDto(job: ImportJobData): ImportJobDto {
   const data =
     job.rawData && typeof job.rawData === 'object' && !Array.isArray(job.rawData)
@@ -19,14 +28,14 @@ export function toImportJobDto(job: ImportJobData): ImportJobDto {
     source: job.source,
     status: job.status,
     data,
-    parsedData: toOptionalParsedResumeData(job.mappedData),
+    parsedData: parseMappedData(job.mappedData),
     resumeId: job.resumeId ?? undefined,
     errors: job.errors,
     createdAt: job.createdAt.toISOString(),
   };
 }
 
-function toOptionalParsedResumeData(value: unknown): ParsedResumeData | undefined {
+export function parseMappedData(value: unknown): ParsedResumeData | undefined {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     return undefined;
   }
@@ -50,47 +59,26 @@ function toOptionalParsedResumeData(value: unknown): ParsedResumeData | undefine
     };
   }
 
-  // Legacy fallback
+  // Legacy fallback: convert section-specific arrays to generic sections
   const sections: ParsedResumeData['sections'] = [];
 
-  if (Array.isArray(data.experiences) && data.experiences.length > 0) {
-    sections.push({
-      sectionTypeKey: 'work_experience_v1',
-      items: data.experiences as Array<Record<string, unknown>>,
-    });
-  }
-  if (Array.isArray(data.education) && data.education.length > 0) {
-    sections.push({
-      sectionTypeKey: 'education_v1',
-      items: data.education as Array<Record<string, unknown>>,
-    });
-  }
-  if (Array.isArray(data.skills) && data.skills.length > 0) {
-    const skills: unknown[] = data.skills;
-    sections.push({
-      sectionTypeKey: 'skill_v1',
-      items: skills
-        .filter((item): item is string => typeof item === 'string')
-        .map((name) => ({ name })),
-    });
-  }
-  if (Array.isArray(data.certifications) && data.certifications.length > 0) {
-    sections.push({
-      sectionTypeKey: 'certification_v1',
-      items: data.certifications as Array<Record<string, unknown>>,
-    });
-  }
-  if (Array.isArray(data.languages) && data.languages.length > 0) {
-    sections.push({
-      sectionTypeKey: 'language_v1',
-      items: data.languages as Array<Record<string, unknown>>,
-    });
-  }
-  if (Array.isArray(data.projects) && data.projects.length > 0) {
-    sections.push({
-      sectionTypeKey: 'project_v1',
-      items: data.projects as Array<Record<string, unknown>>,
-    });
+  for (const { field, sectionTypeKey } of LEGACY_SECTION_KEYS) {
+    if (!Array.isArray(data[field]) || (data[field] as unknown[]).length === 0) continue;
+
+    if (field === 'skills') {
+      const skills = data[field] as unknown[];
+      sections.push({
+        sectionTypeKey,
+        items: skills
+          .filter((item): item is string => typeof item === 'string')
+          .map((name) => ({ name })),
+      });
+    } else {
+      sections.push({
+        sectionTypeKey,
+        items: data[field] as Array<Record<string, unknown>>,
+      });
+    }
   }
 
   return {

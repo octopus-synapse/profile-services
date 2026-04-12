@@ -6,7 +6,7 @@
 
 import { Module } from '@nestjs/common';
 import { ChatModule } from './chat/chat.module';
-import { CollaborationModule as ResumeSharingModule } from './collaboration/collaboration.module';
+import { ResumeSharingModule } from './sharing/collaboration.module';
 
 @Module({
   imports: [ChatModule, ResumeSharingModule],

@@ -96,9 +96,7 @@ describe('DesignTokensV2Schema', () => {
     });
 
     it('should use blue accent for section header accent bar', () => {
-      expect(DESIGN_TOKENS_V2_DEFAULTS.sectionHeader.accentBar.color).toBe(
-        '#2563eb',
-      );
+      expect(DESIGN_TOKENS_V2_DEFAULTS.sectionHeader.accentBar.color).toBe('#2563eb');
     });
 
     it('should use white page background', () => {
@@ -188,9 +186,7 @@ describe('migrateFromSymbolicTokens', () => {
       ...baseV1,
       spacing: { ...baseV1.spacing, density: 'spacious' },
     });
-    expect(compact.sectionHeader.marginTop).toBeLessThan(
-      spacious.sectionHeader.marginTop,
-    );
+    expect(compact.sectionHeader.marginTop).toBeLessThan(spacious.sectionHeader.marginTop);
     expect(compact.entry.gap).toBeLessThan(spacious.entry.gap);
   });
 

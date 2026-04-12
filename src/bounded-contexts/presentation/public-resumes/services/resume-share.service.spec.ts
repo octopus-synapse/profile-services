@@ -199,7 +199,10 @@ describe('ResumeShareService', () => {
     });
 
     it('should verify correct password', async () => {
-      const hashedPassword = '$2b$10$abcdefghijklmnopqrstuvwxyz1234567890';
+      const hashedPassword = await Bun.password.hash('secret123', {
+        algorithm: 'bcrypt',
+        cost: 10,
+      });
 
       const isValid = await service.verifyPassword('secret123', hashedPassword);
 

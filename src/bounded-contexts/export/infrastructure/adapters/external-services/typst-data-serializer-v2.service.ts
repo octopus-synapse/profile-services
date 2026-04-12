@@ -256,9 +256,7 @@ export class TypstDataSerializerV2Service {
   // Private helpers
   // -----------------------------------------------------------------------
 
-  private transformContainer(
-    container: ResumeAstV2SectionStyles['container'],
-  ): TypstBoxStyleV2 {
+  private transformContainer(container: ResumeAstV2SectionStyles['container']): TypstBoxStyleV2 {
     const result: TypstBoxStyleV2 = {
       backgroundColor: container.backgroundColor,
       borderColor: container.borderColor,
@@ -275,9 +273,7 @@ export class TypstDataSerializerV2Service {
     return result;
   }
 
-  private transformTypography(
-    typo: ResumeAstV2SectionStyles['title'],
-  ): TypstTypographyV2 {
+  private transformTypography(typo: ResumeAstV2SectionStyles['title']): TypstTypographyV2 {
     return {
       fontFamily: this.extractPrimaryFont(typo.fontFamily),
       fontSizePt: this.pxToPt(typo.fontSizePx),
@@ -300,9 +296,7 @@ export class TypstDataSerializerV2Service {
         },
         jobTitle: {
           ...theme.header.jobTitle,
-          fontFamily: this.extractPrimaryFont(
-            theme.header.jobTitle.fontFamily,
-          ),
+          fontFamily: this.extractPrimaryFont(theme.header.jobTitle.fontFamily),
         },
         contact: {
           ...theme.header.contact,

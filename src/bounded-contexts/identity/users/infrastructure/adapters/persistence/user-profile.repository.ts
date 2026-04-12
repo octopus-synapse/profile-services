@@ -1,5 +1,5 @@
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.repository';
+import type { ResumesRepository } from '@/bounded-contexts/resumes/core/resumes.repository';
 import type { UpdateProfileData, UserProfile } from '../../../application/ports/user-profile.port';
 import { UserProfileRepositoryPort } from '../../../application/ports/user-profile.port';
 

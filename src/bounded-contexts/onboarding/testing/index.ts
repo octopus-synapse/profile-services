@@ -5,19 +5,19 @@
  * Following clean architecture - no Prisma, no mocks.
  */
 
-import type { OnboardingData } from '../onboarding/domain/schemas/onboarding-data.schema';
 import type {
   OnboardingStatus,
   TransactionClient,
   UserForOnboarding,
-} from '../onboarding/onboarding/ports/onboarding.port';
-import { OnboardingRepositoryPort } from '../onboarding/onboarding/ports/onboarding.port';
+} from '../domain/ports/onboarding.port';
+import { OnboardingRepositoryPort } from '../domain/ports/onboarding.port';
 import type {
   OnboardingProgressData,
   ProgressRecord,
   SectionProgressData,
-} from '../onboarding/services/onboarding-progress/ports/onboarding-progress.port';
-import { OnboardingProgressRepositoryPort } from '../onboarding/services/onboarding-progress/ports/onboarding-progress.port';
+} from '../domain/ports/onboarding-progress.port';
+import { OnboardingProgressRepositoryPort } from '../domain/ports/onboarding-progress.port';
+import type { OnboardingData } from '../domain/schemas/onboarding-data.schema';
 
 // ============================================================================
 // TYPES

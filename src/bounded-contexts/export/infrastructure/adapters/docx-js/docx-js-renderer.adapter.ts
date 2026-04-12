@@ -7,10 +7,7 @@
 
 import { Injectable } from '@nestjs/common';
 
-import {
-  DocxRendererPort,
-  type DocxRenderOptions,
-} from '../../../domain/ports/docx-renderer.port';
+import { DocxRendererPort, type DocxRenderOptions } from '../../../domain/ports/docx-renderer.port';
 import { mapAstToDocxDocument, renderDocxBuffer } from './ast-to-docx.mapper';
 
 @Injectable()

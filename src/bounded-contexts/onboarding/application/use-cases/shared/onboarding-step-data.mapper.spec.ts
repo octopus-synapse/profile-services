@@ -269,14 +269,16 @@ describe('OnboardingStepDataMapper', () => {
   describe('unknown steps', () => {
     it('should not modify update for unknown static steps', () => {
       const update: OnboardingProgressData = { currentStep: 'welcome', completedSteps: [] };
+      const keysBefore = Object.keys(update).length;
       mapper.mergeStepData(update, 'welcome', { someData: true }, baseProgress);
-      expect(Object.keys(update)).toHaveLength(0);
+      expect(Object.keys(update)).toHaveLength(keysBefore);
     });
 
     it('should not modify update for review step', () => {
       const update: OnboardingProgressData = { currentStep: 'welcome', completedSteps: [] };
+      const keysBefore = Object.keys(update).length;
       mapper.mergeStepData(update, 'review', { someData: true }, baseProgress);
-      expect(Object.keys(update)).toHaveLength(0);
+      expect(Object.keys(update)).toHaveLength(keysBefore);
     });
   });
 });

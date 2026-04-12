@@ -5,11 +5,11 @@
  * to compile .typ templates into PDF buffers.
  */
 
+import { spawn } from 'node:child_process';
+import { access, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import { Injectable, Logger } from '@nestjs/common';
 import { nanoid } from 'nanoid';
-import { mkdir, readFile, rm, writeFile, symlink, access } from 'node:fs/promises';
-import { join } from 'node:path';
-import { spawn } from 'node:child_process';
 
 const DEFAULT_TIMEOUT_MS = 30_000;
 const TYPST_BINARY = process.env.TYPST_BINARY_PATH ?? 'typst';
@@ -145,9 +145,7 @@ export class TypstCompilerService {
       entries.map((entry) => {
         const src = join(templatesPath, entry.name);
         const dest = join(workDir, entry.name);
-        return entry.isDirectory()
-          ? cp(src, dest, { recursive: true })
-          : copyFile(src, dest);
+        return entry.isDirectory() ? cp(src, dest, { recursive: true }) : copyFile(src, dest);
       }),
     );
   }
@@ -189,6 +187,75 @@ export class TypstCompilerService {
               `Typst binary not found at "${TYPST_BINARY}". Install Typst or set TYPST_BINARY_PATH.`,
             ),
           );
+        } else {
+          reject(err);
+        }
+      });
+    });
+  }
+
+  /**
+   * Compile to PNG image (first page only).
+   * Typst outputs {name}{page}.png — we read page 1.
+   */
+  async compileToImage(
+    jsonData: string,
+    templatesPath: string,
+    options: TypstCompileOptions & { ppi?: number } = {},
+  ): Promise<Buffer> {
+    const workDir = join('/tmp', `typst-${nanoid(10)}`);
+    const timeout = options.timeout ?? DEFAULT_TIMEOUT_MS;
+
+    try {
+      await mkdir(workDir, { recursive: true });
+
+      await Promise.all([
+        writeFile(join(workDir, 'data.json'), jsonData, 'utf-8'),
+        this.linkTemplates(workDir, templatesPath),
+      ]);
+
+      const inputPath = join(workDir, 'resume.typ');
+      const outputPath = join(workDir, 'output{n}.png');
+      const ppi = options.ppi ?? 150;
+
+      const result = await this.execTypstWithArgs(
+        ['compile', '--font-path', FONT_PATH, '--ppi', String(ppi), inputPath, outputPath],
+        timeout,
+      );
+
+      if (result.exitCode !== 0) {
+        throw new Error(`Typst PNG compilation failed: ${this.parseTypstError(result.stderr)}`);
+      }
+
+      // Read first page
+      return await readFile(join(workDir, 'output1.png'));
+    } finally {
+      await rm(workDir, { recursive: true, force: true }).catch(() => {});
+    }
+  }
+
+  private execTypstWithArgs(
+    args: string[],
+    timeout: number,
+  ): Promise<{ exitCode: number; stdout: string; stderr: string }> {
+    return new Promise((resolve, reject) => {
+      const child = spawn(TYPST_BINARY, args, {
+        timeout,
+        stdio: ['ignore', 'pipe', 'pipe'],
+      });
+
+      let stdout = '';
+      let stderr = '';
+      child.stdout.on('data', (data: Buffer) => {
+        stdout += data.toString();
+      });
+      child.stderr.on('data', (data: Buffer) => {
+        stderr += data.toString();
+      });
+      child.on('close', (code) => resolve({ exitCode: code ?? 1, stdout, stderr }));
+      child.on('error', (err) => {
+        if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
+          reject(new Error(`Typst binary not found at "${TYPST_BINARY}".`));
         } else {
           reject(err);
         }

@@ -98,7 +98,7 @@ export class PermissionGuard implements CanActivate {
       this.ensureAuthCheck('role-based');
 
       if (singleRole) {
-        const has = await this.authCheck!.hasRole(user!.id, singleRole);
+        const has = await this.authCheck?.hasRole(user?.id, singleRole);
         if (!has) {
           throw new ForbiddenException(`Permission denied: requires role '${singleRole}'`);
         }
@@ -108,7 +108,7 @@ export class PermissionGuard implements CanActivate {
       if (multipleRoles && multipleRoles.length > 0) {
         // Check if user has ANY of the required roles
         const results = await Promise.all(
-          multipleRoles.map((role) => this.authCheck!.hasRole(user!.id, role)),
+          multipleRoles.map((role) => this.authCheck?.hasRole(user?.id, role)),
         );
         if (!results.some(Boolean)) {
           throw new ForbiddenException(
@@ -149,8 +149,8 @@ export class PermissionGuard implements CanActivate {
       if (isDynamicPermission(singlePermission)) {
         // Dynamic: use AuthorizationCheckPort
         this.ensureAuthCheck('dynamic permission');
-        const allowed = await this.authCheck!.hasPermission(
-          user!.id,
+        const allowed = await this.authCheck?.hasPermission(
+          user?.id,
           singlePermission.resource,
           singlePermission.action,
         );
@@ -161,7 +161,7 @@ export class PermissionGuard implements CanActivate {
         }
       } else {
         // Static: use pure function with roles
-        if (!hasPermission(user!.roles, singlePermission)) {
+        if (!hasPermission(user?.roles, singlePermission)) {
           throw new ForbiddenException(`Permission denied: ${singlePermission}`);
         }
       }
@@ -180,13 +180,11 @@ export class PermissionGuard implements CanActivate {
         this.ensureAuthCheck('dynamic permissions');
         const allowed =
           strategy === 'any'
-            ? await this.authCheck!.hasAnyPermission(user!.id, multiplePermissions)
-            : await this.authCheck!.hasAllPermissions(user!.id, multiplePermissions);
+            ? await this.authCheck?.hasAnyPermission(user?.id, multiplePermissions)
+            : await this.authCheck?.hasAllPermissions(user?.id, multiplePermissions);
 
         if (!allowed) {
-          const permList = multiplePermissions
-            .map((p) => `${p.resource}:${p.action}`)
-            .join(', ');
+          const permList = multiplePermissions.map((p) => `${p.resource}:${p.action}`).join(', ');
           throw new ForbiddenException(
             `Permission denied: requires ${strategy === 'any' ? 'any of' : 'all of'} [${permList}]`,
           );
@@ -196,8 +194,8 @@ export class PermissionGuard implements CanActivate {
         const staticPerms = multiplePermissions as Permission[];
         const allowed =
           strategy === 'any'
-            ? hasAnyPermission(user!.roles, staticPerms)
-            : hasAllPermissions(user!.roles, staticPerms);
+            ? hasAnyPermission(user?.roles, staticPerms)
+            : hasAllPermissions(user?.roles, staticPerms);
 
         if (!allowed) {
           const permList = staticPerms.join(', ');

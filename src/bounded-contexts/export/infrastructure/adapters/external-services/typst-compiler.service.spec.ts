@@ -5,10 +5,9 @@
  * Mocks child_process.spawn to avoid requiring Typst binary in CI.
  */
 
-import { beforeEach, describe, expect, it, mock, spyOn } from 'bun:test';
-import { Test, TestingModule } from '@nestjs/testing';
+import { beforeEach, describe, expect, it, spyOn } from 'bun:test';
 import * as fs from 'node:fs/promises';
-import * as path from 'node:path';
+import { Test, TestingModule } from '@nestjs/testing';
 import { TypstCompilerService } from './typst-compiler.service';
 
 describe('TypstCompilerService', () => {
@@ -44,9 +43,7 @@ describe('TypstCompilerService', () => {
 
       const svc = new TypstCompilerService();
 
-      await expect(
-        svc.compile('{}', '/tmp/fake-templates'),
-      ).rejects.toThrow();
+      await expect(svc.compile('{}', '/tmp/fake-templates')).rejects.toThrow();
 
       process.env.TYPST_BINARY_PATH = originalEnv;
     });

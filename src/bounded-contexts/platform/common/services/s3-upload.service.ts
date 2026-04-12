@@ -70,8 +70,8 @@ export class S3UploadService {
 
     await this.client.send(command);
 
-    // Build MinIO URL
-    const endpoint = process.env.MINIO_ENDPOINT;
+    // Build MinIO URL — use public endpoint if available (for Docker networking)
+    const endpoint = process.env.MINIO_PUBLIC_ENDPOINT ?? process.env.MINIO_ENDPOINT;
     const url = `${endpoint}/${this.bucket}/${key}`;
 
     this.logger.log('File uploaded to MinIO successfully', 'S3UploadService', {

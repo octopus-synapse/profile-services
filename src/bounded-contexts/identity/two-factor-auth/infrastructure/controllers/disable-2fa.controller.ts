@@ -3,11 +3,8 @@ import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { ApiEmptyDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
-import { Disable2faUseCase } from '../../application/use-cases/disable-2fa/disable-2fa.use-case';
-import {
-  TWO_FACTOR_REPOSITORY_PORT,
-  type TwoFactorRepositoryPort,
-} from '../../domain/ports/two-factor.repository.port';
+import { DISABLE_2FA_PORT } from '../../application/ports';
+import type { Disable2faUseCase } from '../../application/use-cases/disable-2fa/disable-2fa.use-case';
 
 interface AuthenticatedRequest extends Request {
   user: { id: string };
@@ -22,14 +19,10 @@ interface AuthenticatedRequest extends Request {
 @ApiBearerAuth()
 @Controller('auth/2fa')
 export class Disable2faController {
-  private readonly useCase: Disable2faUseCase;
-
   constructor(
-    @Inject(TWO_FACTOR_REPOSITORY_PORT)
-    repository: TwoFactorRepositoryPort,
-  ) {
-    this.useCase = new Disable2faUseCase(repository);
-  }
+    @Inject(DISABLE_2FA_PORT)
+    private readonly useCase: Disable2faUseCase,
+  ) {}
 
   @Delete()
   @HttpCode(HttpStatus.NO_CONTENT)

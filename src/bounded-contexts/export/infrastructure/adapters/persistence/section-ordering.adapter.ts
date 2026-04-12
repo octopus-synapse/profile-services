@@ -4,7 +4,7 @@
  * Adapts SectionTypeRepository to the SectionOrderingPort.
  */
 
-import type { SectionTypeRepository } from '@/bounded-contexts/resumes/shared-kernel/infrastructure/repositories';
+import type { SectionTypeRepository } from '@/bounded-contexts/resumes/infrastructure/repositories';
 import type { SectionOrderingPort } from '../../../domain/ports/section-ordering.port';
 
 export class SectionOrderingAdapter implements SectionOrderingPort {

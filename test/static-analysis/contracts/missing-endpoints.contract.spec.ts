@@ -207,7 +207,7 @@ describe('Backend DTO vs Swagger Schema Comparison', () => {
     // Read backend DTO file
     const dtoPath = join(
       PROJECT_ROOT,
-      'src/bounded-contexts/import/resume-import/dto/import.dto.ts',
+      'src/bounded-contexts/import/infrastructure/dto/import-job.dto.ts',
     );
     const dtoContent = readFileSync(dtoPath, 'utf-8');
 
@@ -232,7 +232,7 @@ describe('Backend DTO vs Swagger Schema Comparison', () => {
   test('Zod schemas are converted to swagger schema', () => {
     const dtoPath = join(
       PROJECT_ROOT,
-      'src/bounded-contexts/import/resume-import/dto/import.dto.ts',
+      'src/bounded-contexts/import/infrastructure/dto/import-job.dto.ts',
     );
     const dtoContent = readFileSync(dtoPath, 'utf-8');
 

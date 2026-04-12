@@ -76,7 +76,7 @@ export const QueryThemesSchema = z.object({
 
 export type QueryThemes = z.infer<typeof QueryThemesSchema>;
 
-// biome-ignore lint/nursery/noExportedImports: createZodDto needs to be here for DTO class
+// biome-ignore lint/correctness/noUndeclaredDependencies: createZodDto needs to be here for DTO class
 import { createZodDto } from 'nestjs-zod';
 export class QueryThemesDto extends createZodDto(QueryThemesSchema) {}
 

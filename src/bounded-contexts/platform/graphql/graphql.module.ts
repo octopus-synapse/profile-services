@@ -6,7 +6,7 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { GraphQLError } from 'graphql';
 import { ResumeAnalyticsModule } from '@/bounded-contexts/analytics/resume-analytics/resume-analytics.module';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
-import { ResumesModule } from '@/bounded-contexts/resumes/resumes/resumes.module';
+import { ResumesCoreModule } from '@/bounded-contexts/resumes/core/resumes.module';
 import { ResumeResolver } from './resolvers/resume.resolver';
 
 /**
@@ -64,7 +64,7 @@ import { ResumeResolver } from './resolvers/resume.resolver';
       },
     }),
     PrismaModule,
-    ResumesModule,
+    ResumesCoreModule,
     ResumeAnalyticsModule,
   ],
   providers: [ResumeResolver],

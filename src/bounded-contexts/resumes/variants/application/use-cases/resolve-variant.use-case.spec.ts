@@ -66,7 +66,7 @@ function makeVariant(overrides: Partial<VariantData> = {}): VariantData {
   };
 }
 
-function makeSection(overrides: Partial<ReturnType<typeof makeSection>> = {}) {
+function makeSection(overrides: Record<string, unknown> = {}) {
   return {
     id: 'section-1',
     sectionTypeKey: 'experience',

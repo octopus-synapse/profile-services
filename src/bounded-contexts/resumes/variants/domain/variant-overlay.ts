@@ -83,13 +83,48 @@ function applyOrderOverrides(
   sections: GenericResumeSection[],
   orderOverrides: Record<string, number>,
 ): void {
+  if (Object.keys(orderOverrides).length === 0) return;
+
+  // Separate sections with overrides from those without
+  const withOverride: GenericResumeSection[] = [];
+  const withoutOverride: GenericResumeSection[] = [];
+
   for (const section of sections) {
     if (section.id in orderOverrides) {
       (section as { order: number }).order = orderOverrides[section.id];
+      withOverride.push(section);
+    } else {
+      withoutOverride.push(section);
     }
   }
 
-  sections.sort((a, b) => a.order - b.order);
+  // Sort overridden sections by their new order
+  withOverride.sort((a, b) => a.order - b.order);
+
+  // Merge: place overridden sections at their target positions,
+  // non-overridden sections fill remaining slots in original order
+  const result: GenericResumeSection[] = new Array(sections.length);
+  const _overrideByOrder = new Map(withOverride.map((s) => [s.order, s]));
+
+  // Place overridden sections at their target indices (clamped to bounds)
+  for (const section of withOverride) {
+    const targetIdx = Math.min(section.order, sections.length - 1);
+    result[targetIdx] = section;
+  }
+
+  // Fill remaining slots with non-overridden sections in original order
+  let fillIdx = 0;
+  for (const section of withoutOverride) {
+    while (fillIdx < result.length && result[fillIdx] !== undefined) fillIdx++;
+    if (fillIdx < result.length) result[fillIdx] = section;
+    fillIdx++;
+  }
+
+  // Update the original array in-place
+  for (let i = 0; i < sections.length; i++) {
+    sections[i] = result[i];
+    (sections[i] as { order: number }).order = i;
+  }
 }
 
 export function applyVariantOverlay(

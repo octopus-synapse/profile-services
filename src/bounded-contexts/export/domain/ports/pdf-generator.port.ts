@@ -13,6 +13,8 @@ export interface PdfGeneratorOptions {
   userId?: string;
   timeout?: number;
   template?: PdfTemplate;
+  resumeId?: string;
+  themeStyleConfig?: Record<string, unknown>;
 }
 
 export abstract class PdfGeneratorPort {

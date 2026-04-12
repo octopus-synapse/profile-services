@@ -1,10 +1,7 @@
 import { describe, expect, it } from 'bun:test';
-import { AtsScore } from '../../../domain/value-objects/ats-score';
+import type { ThemeForScoring, ThemeScorerPort } from '../../../domain/ports/ats-scorer.port';
 import type { AtsScoreBreakdown } from '../../../domain/value-objects/ats-score';
-import type {
-  ThemeForScoring,
-  ThemeScorerPort,
-} from '../../../domain/ports/ats-scorer.port';
+import { AtsScore } from '../../../domain/value-objects/ats-score';
 import { ScoreThemeUseCase } from './score-theme.use-case';
 
 const makeBreakdown = (): AtsScoreBreakdown[] => [

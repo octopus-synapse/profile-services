@@ -1,5 +1,10 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import { BadRequestException, ConflictException, ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import type { EventPublisher } from '@/shared-kernel';
 import type { ResumeReadRepositoryPort } from '../../domain/ports/resume-read.repository.port';
 import type { ShareRepositoryPort } from '../../domain/ports/share.repository.port';
@@ -78,19 +83,17 @@ describe('CreateShareUseCase', () => {
   });
 
   it('should throw BadRequestException for invalid slug format', async () => {
-    await expect(
-      useCase.execute(userId, { resumeId, slug: 'invalid slug!@#' }),
-    ).rejects.toThrow(BadRequestException);
+    await expect(useCase.execute(userId, { resumeId, slug: 'invalid slug!@#' })).rejects.toThrow(
+      BadRequestException,
+    );
   });
 
   it('should throw ConflictException when slug already exists', async () => {
-    shareRepo.findBySlugOnly = mock(() =>
-      Promise.resolve({ id: 'existing', slug: 'taken-slug' }),
-    );
+    shareRepo.findBySlugOnly = mock(() => Promise.resolve({ id: 'existing', slug: 'taken-slug' }));
 
-    await expect(
-      useCase.execute(userId, { resumeId, slug: 'taken-slug' }),
-    ).rejects.toThrow(ConflictException);
+    await expect(useCase.execute(userId, { resumeId, slug: 'taken-slug' })).rejects.toThrow(
+      ConflictException,
+    );
   });
 
   it('should throw NotFoundException when resume does not exist', async () => {
@@ -100,9 +103,7 @@ describe('CreateShareUseCase', () => {
   });
 
   it('should throw ForbiddenException when user does not own the resume', async () => {
-    resumeRepo.findById = mock(() =>
-      Promise.resolve({ id: resumeId, userId: 'other-user' }),
-    );
+    resumeRepo.findById = mock(() => Promise.resolve({ id: resumeId, userId: 'other-user' }));
 
     await expect(useCase.execute(userId, { resumeId })).rejects.toThrow(ForbiddenException);
   });

@@ -68,9 +68,7 @@ function buildHeaderParagraphs(header: AstHeader): Paragraph[] {
     );
   }
 
-  const contactParts = [header.email, header.phone, header.linkedin, header.github].filter(
-    Boolean,
-  );
+  const contactParts = [header.email, header.phone, header.linkedin, header.github].filter(Boolean);
 
   if (contactParts.length > 0) {
     paragraphs.push(

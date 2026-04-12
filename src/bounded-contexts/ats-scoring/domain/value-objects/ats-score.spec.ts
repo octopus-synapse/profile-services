@@ -1,13 +1,11 @@
 import { describe, expect, it } from 'bun:test';
-import { AtsScore } from './ats-score';
 import type { AtsScoreBreakdown } from './ats-score';
+import { AtsScore } from './ats-score';
 
 describe('AtsScore', () => {
   describe('construction', () => {
     it('should create an AtsScore with valid values', () => {
-      const breakdown: AtsScoreBreakdown[] = [
-        { criterion: 'layout', score: 90, weight: 0.5 },
-      ];
+      const breakdown: AtsScoreBreakdown[] = [{ criterion: 'layout', score: 90, weight: 0.5 }];
       const score = new AtsScore(90, breakdown, ['Fix contrast']);
 
       expect(score.overall).toBe(90);
@@ -100,9 +98,7 @@ describe('AtsScore', () => {
     });
 
     it('should exclude items without recommendations even if score is low', () => {
-      const breakdown: AtsScoreBreakdown[] = [
-        { criterion: 'layout', score: 50, weight: 1.0 },
-      ];
+      const breakdown: AtsScoreBreakdown[] = [{ criterion: 'layout', score: 50, weight: 1.0 }];
 
       const score = AtsScore.fromBreakdown(breakdown);
 

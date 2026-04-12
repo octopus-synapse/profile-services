@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import type { User } from '@prisma/client';
-import { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.repository';
-import { GenericResumeSectionsService } from '@/bounded-contexts/resumes/resumes/services/generic-resume-sections.service';
+import { ResumesRepository } from '@/bounded-contexts/resumes/core/resumes.repository';
+import { GenericResumeSectionsService } from '@/bounded-contexts/resumes/core/services/generic-resume-sections.service';
 import type { ResumeModel } from '../models/resume.model';
 import { ResumeTemplate } from '../models/resume.model';
 import { ResumeResolver } from '../resolvers/resume.resolver';

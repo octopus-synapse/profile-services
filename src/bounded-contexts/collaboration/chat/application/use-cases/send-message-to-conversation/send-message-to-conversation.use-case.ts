@@ -1,11 +1,11 @@
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import type { MessageResponse } from '../../../schemas/chat.schema';
+import { mapMessageToResponse } from '../../mappers/chat.mapper';
 import type {
   BlockedUserRepositoryPort,
   ChatCachePort,
   ConversationRepositoryPort,
   MessageRepositoryPort,
-  MessageWithSender,
 } from '../../ports/chat.port';
 
 export class SendMessageToConversationUseCase {
@@ -57,23 +57,6 @@ export class SendMessageToConversationUseCase {
       this.chatCache.invalidateConversations(otherParticipant.id),
     ]);
 
-    return this.mapMessageToResponse(message);
-  }
-
-  private mapMessageToResponse(message: MessageWithSender): MessageResponse {
-    return {
-      id: message.id,
-      conversationId: message.conversationId,
-      senderId: message.senderId,
-      content: message.content,
-      isRead: message.isRead,
-      readAt: message.readAt?.toISOString() ?? null,
-      createdAt: message.createdAt.toISOString(),
-      sender: {
-        id: message.sender.id,
-        displayName: message.sender.displayName,
-        photoURL: message.sender.photoURL,
-      },
-    };
+    return mapMessageToResponse(message);
   }
 }

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'bun:test';
 import {
-  resolveHeader,
   type ResumeHeaderOverrides,
+  resolveHeader,
   type UserHeaderData,
   type VariantHeaderOverrides,
 } from './header-resolver';

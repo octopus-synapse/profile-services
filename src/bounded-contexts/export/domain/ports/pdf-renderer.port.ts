@@ -6,10 +6,7 @@ export interface PdfRenderOptions {
 }
 
 export abstract class PdfRendererPort {
-  abstract render(
-    astJson: string,
-    options?: PdfRenderOptions,
-  ): Promise<Buffer>;
+  abstract render(astJson: string, options?: PdfRenderOptions): Promise<Buffer>;
 }
 
 export const PDF_RENDERER = Symbol('PDF_RENDERER');

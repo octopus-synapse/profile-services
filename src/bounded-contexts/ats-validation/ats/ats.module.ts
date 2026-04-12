@@ -14,7 +14,11 @@ import {
   MandatorySemanticPolicy,
   SectionOrderSemanticPolicy,
 } from './policies';
-import { DefinitionDrivenScoringStrategy, SemanticScoringService, ThemeATSScoringStrategy } from './scoring';
+import {
+  DefinitionDrivenScoringStrategy,
+  SemanticScoringService,
+  ThemeATSScoringStrategy,
+} from './scoring';
 import { ATSService } from './services/ats.service';
 import { ATSSectionTypeAdapter } from './services/ats-section-type.adapter';
 import { EncodingNormalizerService } from './services/encoding-normalizer.service';

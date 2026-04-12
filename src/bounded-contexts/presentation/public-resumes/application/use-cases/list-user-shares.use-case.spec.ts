@@ -72,9 +72,7 @@ describe('ListUserSharesUseCase', () => {
   });
 
   it('should throw ForbiddenException when user does not own the resume', async () => {
-    resumeRepo.findById = mock(() =>
-      Promise.resolve({ id: resumeId, userId: 'other-user' }),
-    );
+    resumeRepo.findById = mock(() => Promise.resolve({ id: resumeId, userId: 'other-user' }));
 
     await expect(useCase.execute(userId, resumeId)).rejects.toThrow(ForbiddenException);
   });

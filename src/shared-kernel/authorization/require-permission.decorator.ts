@@ -12,7 +12,7 @@
 import { applyDecorators, SetMetadata, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiForbiddenResponse, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { Permission } from './permission.enum';
-import { ROLE_KEY, ROLES_KEY, PermissionGuard } from './permission.guard';
+import { PermissionGuard, ROLE_KEY, ROLES_KEY } from './permission.guard';
 
 export const PERMISSION_KEY = 'required_permission';
 export const PERMISSIONS_KEY = 'required_permissions';
@@ -48,9 +48,7 @@ export function RequirePermission(permissionOrResource: Permission | string, act
   const metadata =
     action !== undefined ? { resource: permissionOrResource, action } : permissionOrResource;
   const description =
-    action !== undefined
-      ? `${permissionOrResource}:${action}`
-      : String(permissionOrResource);
+    action !== undefined ? `${permissionOrResource}:${action}` : String(permissionOrResource);
 
   return applyDecorators(
     SetMetadata(PERMISSION_KEY, metadata),
@@ -158,8 +156,7 @@ export const CanManage = (resource: string) => RequirePermission(resource, 'mana
  * @Post()
  * createResume() {}
  */
-export const Protected = (resource: string, action: string) =>
-  RequirePermission(resource, action);
+export const Protected = (resource: string, action: string) => RequirePermission(resource, action);
 
 /**
  * Require theme approval permission.

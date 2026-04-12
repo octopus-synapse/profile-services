@@ -1,7 +1,10 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import type { CachePort } from '../../domain/ports/cache.port';
 import type { ResumeReadRepositoryPort } from '../../domain/ports/resume-read.repository.port';
-import type { ShareRepositoryPort, ShareWithResume } from '../../domain/ports/share.repository.port';
+import type {
+  ShareRepositoryPort,
+  ShareWithResume,
+} from '../../domain/ports/share.repository.port';
 import { GetShareBySlugUseCase } from './get-share-by-slug.use-case';
 
 describe('GetShareBySlugUseCase', () => {

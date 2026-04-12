@@ -4,13 +4,9 @@ import type { Request } from 'express';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
+import { REGENERATE_BACKUP_CODES_PORT } from '../../application/ports';
 import { RegenerateBackupCodesResponseDto } from '../../application/use-cases/regenerate-backup-codes/regenerate-backup-codes.dto';
-import { RegenerateBackupCodesUseCase } from '../../application/use-cases/regenerate-backup-codes/regenerate-backup-codes.use-case';
-import { HASH_SERVICE_PORT, type HashServicePort } from '../../domain/ports/hash-service.port';
-import {
-  TWO_FACTOR_REPOSITORY_PORT,
-  type TwoFactorRepositoryPort,
-} from '../../domain/ports/two-factor.repository.port';
+import type { RegenerateBackupCodesUseCase } from '../../application/use-cases/regenerate-backup-codes/regenerate-backup-codes.use-case';
 
 interface AuthenticatedRequest extends Request {
   user: { id: string };
@@ -25,16 +21,10 @@ interface AuthenticatedRequest extends Request {
 @ApiBearerAuth()
 @Controller('auth/2fa')
 export class RegenerateBackupCodesController {
-  private readonly useCase: RegenerateBackupCodesUseCase;
-
   constructor(
-    @Inject(TWO_FACTOR_REPOSITORY_PORT)
-    repository: TwoFactorRepositoryPort,
-    @Inject(HASH_SERVICE_PORT)
-    hashService: HashServicePort,
-  ) {
-    this.useCase = new RegenerateBackupCodesUseCase(repository, hashService);
-  }
+    @Inject(REGENERATE_BACKUP_CODES_PORT)
+    private readonly useCase: RegenerateBackupCodesUseCase,
+  ) {}
 
   @Post('backup-codes/regenerate')
   @HttpCode(HttpStatus.OK)

@@ -1,8 +1,8 @@
 import { Logger, UseGuards } from '@nestjs/common';
 import { Args, ID, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import type { User } from '@prisma/client';
-import { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.repository';
-import { GenericResumeSectionsService } from '@/bounded-contexts/resumes/resumes/services/generic-resume-sections.service';
+import { ResumesRepository } from '@/bounded-contexts/resumes/core/resumes.repository';
+import { GenericResumeSectionsService } from '@/bounded-contexts/resumes/core/services/generic-resume-sections.service';
 import { CurrentUser } from '../decorators/current-user.decorator';
 import { GqlAuthGuard } from '../guards/gql-auth.guard';
 import { ResumeModel } from '../models/resume.model';

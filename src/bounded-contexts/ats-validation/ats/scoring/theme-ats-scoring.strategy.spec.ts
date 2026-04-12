@@ -6,13 +6,8 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import type {
-  ThemeATSScoreBreakdown,
-  ThemeStyleConfig,
-} from '../interfaces/theme-ats-scoring.interface';
-import {
-  THEME_ATS_SCORE_WEIGHTS,
-} from '../interfaces/theme-ats-scoring.interface';
+import type { ThemeStyleConfig } from '../interfaces/theme-ats-scoring.interface';
+import { THEME_ATS_SCORE_WEIGHTS } from '../interfaces/theme-ats-scoring.interface';
 import { ThemeATSScoringStrategy } from './theme-ats-scoring.strategy';
 
 describe('ThemeATSScoringStrategy', () => {
@@ -78,18 +73,22 @@ describe('ThemeATSScoringStrategy', () => {
 
   describe('Layout Scoring', () => {
     it('should return 25 for single-column layout', () => {
-      const config = createBaseStyleConfig({ layout: { type: 'single-column', paperSize: 'a4', margins: 'normal' } });
+      const config = createBaseStyleConfig({
+        layout: { type: 'single-column', paperSize: 'a4', margins: 'normal' },
+      });
       const result = strategy.score(config);
-      
+
       expect(result.layout.score).toBe(THEME_ATS_SCORE_WEIGHTS.LAYOUT);
       expect(result.layout.maxScore).toBe(THEME_ATS_SCORE_WEIGHTS.LAYOUT);
       expect(result.layout.details.toLowerCase()).toContain('single-column');
     });
 
     it('should return 10 for two-column layout', () => {
-      const config = createBaseStyleConfig({ layout: { type: 'two-column', paperSize: 'a4', margins: 'normal' } });
+      const config = createBaseStyleConfig({
+        layout: { type: 'two-column', paperSize: 'a4', margins: 'normal' },
+      });
       const result = strategy.score(config);
-      
+
       expect(result.layout.score).toBe(10);
       expect(result.layout.maxScore).toBe(THEME_ATS_SCORE_WEIGHTS.LAYOUT);
       expect(result.layout.details.toLowerCase()).toContain('two-column');
@@ -104,13 +103,17 @@ describe('ThemeATSScoringStrategy', () => {
     it('should return 20 for ATS-safe fonts (arial)', () => {
       const config = createBaseStyleConfig({
         tokens: {
-          typography: { fontFamily: { heading: 'arial', body: 'arial' }, fontSize: 'base', headingStyle: 'bold' },
+          typography: {
+            fontFamily: { heading: 'arial', body: 'arial' },
+            fontSize: 'base',
+            headingStyle: 'bold',
+          },
           colors: createBaseStyleConfig().tokens.colors,
           spacing: createBaseStyleConfig().tokens.spacing,
         },
       });
       const result = strategy.score(config);
-      
+
       expect(result.typography.score).toBe(THEME_ATS_SCORE_WEIGHTS.TYPOGRAPHY);
       expect(result.typography.details).toContain('ATS-safe');
     });
@@ -118,39 +121,51 @@ describe('ThemeATSScoringStrategy', () => {
     it('should return 20 for ATS-safe fonts (calibri)', () => {
       const config = createBaseStyleConfig({
         tokens: {
-          typography: { fontFamily: { heading: 'calibri', body: 'calibri' }, fontSize: 'base', headingStyle: 'bold' },
+          typography: {
+            fontFamily: { heading: 'calibri', body: 'calibri' },
+            fontSize: 'base',
+            headingStyle: 'bold',
+          },
           colors: createBaseStyleConfig().tokens.colors,
           spacing: createBaseStyleConfig().tokens.spacing,
         },
       });
       const result = strategy.score(config);
-      
+
       expect(result.typography.score).toBe(THEME_ATS_SCORE_WEIGHTS.TYPOGRAPHY);
     });
 
     it('should return 20 for ATS-safe fonts (times new roman)', () => {
       const config = createBaseStyleConfig({
         tokens: {
-          typography: { fontFamily: { heading: 'times new roman', body: 'times new roman' }, fontSize: 'base', headingStyle: 'bold' },
+          typography: {
+            fontFamily: { heading: 'times new roman', body: 'times new roman' },
+            fontSize: 'base',
+            headingStyle: 'bold',
+          },
           colors: createBaseStyleConfig().tokens.colors,
           spacing: createBaseStyleConfig().tokens.spacing,
         },
       });
       const result = strategy.score(config);
-      
+
       expect(result.typography.score).toBe(THEME_ATS_SCORE_WEIGHTS.TYPOGRAPHY);
     });
 
     it('should return 15 for mixed fonts (one safe, one custom)', () => {
       const config = createBaseStyleConfig({
         tokens: {
-          typography: { fontFamily: { heading: 'arial', body: 'custom-font' }, fontSize: 'base', headingStyle: 'bold' },
+          typography: {
+            fontFamily: { heading: 'arial', body: 'custom-font' },
+            fontSize: 'base',
+            headingStyle: 'bold',
+          },
           colors: createBaseStyleConfig().tokens.colors,
           spacing: createBaseStyleConfig().tokens.spacing,
         },
       });
       const result = strategy.score(config);
-      
+
       expect(result.typography.score).toBe(15);
       expect(result.typography.details.toLowerCase()).toContain('mixed');
     });
@@ -158,13 +173,17 @@ describe('ThemeATSScoringStrategy', () => {
     it('should return 10 for non-standard fonts', () => {
       const config = createBaseStyleConfig({
         tokens: {
-          typography: { fontFamily: { heading: 'inter', body: 'roboto' }, fontSize: 'base', headingStyle: 'bold' },
+          typography: {
+            fontFamily: { heading: 'inter', body: 'roboto' },
+            fontSize: 'base',
+            headingStyle: 'bold',
+          },
           colors: createBaseStyleConfig().tokens.colors,
           spacing: createBaseStyleConfig().tokens.spacing,
         },
       });
       const result = strategy.score(config);
-      
+
       expect(result.typography.score).toBe(10);
       expect(result.typography.details.toLowerCase()).toContain('non-standard');
     });
@@ -178,7 +197,7 @@ describe('ThemeATSScoringStrategy', () => {
     it('should return 10 for high contrast (black on white)', () => {
       const config = createBaseStyleConfig();
       const result = strategy.score(config);
-      
+
       expect(result.colorContrast.score).toBe(THEME_ATS_SCORE_WEIGHTS.COLOR_CONTRAST);
       expect(result.colorContrast.details.toLowerCase()).toContain('high contrast');
     });
@@ -204,7 +223,7 @@ describe('ThemeATSScoringStrategy', () => {
         },
       });
       const result = strategy.score(config);
-      
+
       expect(result.colorContrast.score).toBe(10);
     });
 
@@ -229,7 +248,7 @@ describe('ThemeATSScoringStrategy', () => {
         },
       });
       const result = strategy.score(config);
-      
+
       expect(result.colorContrast.score).toBe(5);
       expect(result.colorContrast.details.toLowerCase()).toContain('colored');
     });
@@ -253,7 +272,7 @@ describe('ThemeATSScoringStrategy', () => {
         },
       });
       const result = strategy.score(config);
-      
+
       expect(result.visualElements.score).toBe(THEME_ATS_SCORE_WEIGHTS.VISUAL_ELEMENTS);
       expect(result.visualElements.details.toLowerCase()).toContain('minimal');
     });
@@ -271,7 +290,7 @@ describe('ThemeATSScoringStrategy', () => {
         },
       });
       const result = strategy.score(config);
-      
+
       expect(result.visualElements.score).toBe(10);
     });
 
@@ -288,7 +307,7 @@ describe('ThemeATSScoringStrategy', () => {
         },
       });
       const result = strategy.score(config);
-      
+
       expect(result.visualElements.score).toBe(5);
     });
 
@@ -306,7 +325,7 @@ describe('ThemeATSScoringStrategy', () => {
         },
       });
       const result = strategy.score(config);
-      
+
       expect(result.visualElements.score).toBeLessThanOrEqual(5);
     });
   });
@@ -328,7 +347,7 @@ describe('ThemeATSScoringStrategy', () => {
         ],
       });
       const result = strategy.score(config);
-      
+
       expect(result.sectionOrder.score).toBe(THEME_ATS_SCORE_WEIGHTS.SECTION_ORDER);
       expect(result.sectionOrder.details.toLowerCase()).toContain('optimal');
     });
@@ -344,7 +363,7 @@ describe('ThemeATSScoringStrategy', () => {
         ],
       });
       const result = strategy.score(config);
-      
+
       expect(result.sectionOrder.score).toBeLessThan(THEME_ATS_SCORE_WEIGHTS.SECTION_ORDER);
     });
 
@@ -360,7 +379,7 @@ describe('ThemeATSScoringStrategy', () => {
         ],
       });
       const result = strategy.score(config);
-      
+
       expect(result.sectionOrder.score).toBeLessThan(THEME_ATS_SCORE_WEIGHTS.SECTION_ORDER);
       expect(result.sectionOrder.details).toContain('sidebar');
     });
@@ -372,23 +391,29 @@ describe('ThemeATSScoringStrategy', () => {
 
   describe('Paper Size Scoring', () => {
     it('should return 5 for A4 paper size', () => {
-      const config = createBaseStyleConfig({ layout: { type: 'single-column', paperSize: 'a4', margins: 'normal' } });
+      const config = createBaseStyleConfig({
+        layout: { type: 'single-column', paperSize: 'a4', margins: 'normal' },
+      });
       const result = strategy.score(config);
-      
+
       expect(result.paperSize.score).toBe(THEME_ATS_SCORE_WEIGHTS.PAPER_SIZE);
     });
 
     it('should return 5 for letter paper size', () => {
-      const config = createBaseStyleConfig({ layout: { type: 'single-column', paperSize: 'letter', margins: 'normal' } });
+      const config = createBaseStyleConfig({
+        layout: { type: 'single-column', paperSize: 'letter', margins: 'normal' },
+      });
       const result = strategy.score(config);
-      
+
       expect(result.paperSize.score).toBe(THEME_ATS_SCORE_WEIGHTS.PAPER_SIZE);
     });
 
     it('should return 3 for non-standard paper size', () => {
-      const config = createBaseStyleConfig({ layout: { type: 'single-column', paperSize: 'a3', margins: 'normal' } });
+      const config = createBaseStyleConfig({
+        layout: { type: 'single-column', paperSize: 'a3', margins: 'normal' },
+      });
       const result = strategy.score(config);
-      
+
       expect(result.paperSize.score).toBe(3);
     });
   });
@@ -399,30 +424,38 @@ describe('ThemeATSScoringStrategy', () => {
 
   describe('Margins Scoring', () => {
     it('should return 5 for normal margins', () => {
-      const config = createBaseStyleConfig({ layout: { type: 'single-column', paperSize: 'a4', margins: 'normal' } });
+      const config = createBaseStyleConfig({
+        layout: { type: 'single-column', paperSize: 'a4', margins: 'normal' },
+      });
       const result = strategy.score(config);
-      
+
       expect(result.margins.score).toBe(THEME_ATS_SCORE_WEIGHTS.MARGINS);
     });
 
     it('should return 4 for wide margins', () => {
-      const config = createBaseStyleConfig({ layout: { type: 'single-column', paperSize: 'a4', margins: 'wide' } });
+      const config = createBaseStyleConfig({
+        layout: { type: 'single-column', paperSize: 'a4', margins: 'wide' },
+      });
       const result = strategy.score(config);
-      
+
       expect(result.margins.score).toBe(4);
     });
 
     it('should return 3 for relaxed margins', () => {
-      const config = createBaseStyleConfig({ layout: { type: 'single-column', paperSize: 'a4', margins: 'relaxed' } });
+      const config = createBaseStyleConfig({
+        layout: { type: 'single-column', paperSize: 'a4', margins: 'relaxed' },
+      });
       const result = strategy.score(config);
-      
+
       expect(result.margins.score).toBe(3);
     });
 
     it('should return 2 for tight margins', () => {
-      const config = createBaseStyleConfig({ layout: { type: 'single-column', paperSize: 'a4', margins: 'tight' } });
+      const config = createBaseStyleConfig({
+        layout: { type: 'single-column', paperSize: 'a4', margins: 'tight' },
+      });
       const result = strategy.score(config);
-      
+
       expect(result.margins.score).toBe(2);
     });
   });
@@ -437,11 +470,16 @@ describe('ThemeATSScoringStrategy', () => {
         tokens: {
           typography: createBaseStyleConfig().tokens.typography,
           colors: createBaseStyleConfig().tokens.colors,
-          spacing: { density: 'comfortable', sectionGap: 'md', itemGap: 'sm', contentPadding: 'sm' },
+          spacing: {
+            density: 'comfortable',
+            sectionGap: 'md',
+            itemGap: 'sm',
+            contentPadding: 'sm',
+          },
         },
       });
       const result = strategy.score(config);
-      
+
       expect(result.density.score).toBe(THEME_ATS_SCORE_WEIGHTS.DENSITY);
     });
 
@@ -454,7 +492,7 @@ describe('ThemeATSScoringStrategy', () => {
         },
       });
       const result = strategy.score(config);
-      
+
       expect(result.density.score).toBe(4);
     });
 
@@ -467,7 +505,7 @@ describe('ThemeATSScoringStrategy', () => {
         },
       });
       const result = strategy.score(config);
-      
+
       expect(result.density.score).toBe(3);
     });
   });
@@ -480,8 +518,8 @@ describe('ThemeATSScoringStrategy', () => {
     it('should calculate overall score as sum of all criteria', () => {
       const config = createBaseStyleConfig();
       const result = strategy.score(config);
-      
-      const expectedSum = 
+
+      const expectedSum =
         result.layout.score +
         result.typography.score +
         result.colorContrast.score +
@@ -490,7 +528,7 @@ describe('ThemeATSScoringStrategy', () => {
         result.paperSize.score +
         result.margins.score +
         result.density.score;
-      
+
       expect(strategy.calculateOverallScore(result)).toBe(expectedSum);
     });
 
@@ -498,7 +536,7 @@ describe('ThemeATSScoringStrategy', () => {
       const config = createBaseStyleConfig();
       const result = strategy.score(config);
       const overall = strategy.calculateOverallScore(result);
-      
+
       expect(overall).toBeLessThanOrEqual(100);
     });
 
@@ -507,17 +545,21 @@ describe('ThemeATSScoringStrategy', () => {
       const suboptimalConfig = createBaseStyleConfig({
         layout: { type: 'two-column', paperSize: 'a4', margins: 'normal' },
         tokens: {
-          typography: { fontFamily: { heading: 'inter', body: 'roboto' }, fontSize: 'base', headingStyle: 'bold' },
+          typography: {
+            fontFamily: { heading: 'inter', body: 'roboto' },
+            fontSize: 'base',
+            headingStyle: 'bold',
+          },
           colors: createBaseStyleConfig().tokens.colors,
           spacing: createBaseStyleConfig().tokens.spacing,
         },
       });
-      
+
       const optimalResult = strategy.score(optimalConfig);
       const suboptimalResult = strategy.score(suboptimalConfig);
-      
+
       expect(strategy.calculateOverallScore(suboptimalResult)).toBeLessThan(
-        strategy.calculateOverallScore(optimalResult)
+        strategy.calculateOverallScore(optimalResult),
       );
     });
   });
@@ -528,32 +570,42 @@ describe('ThemeATSScoringStrategy', () => {
 
   describe('Recommendations Generation', () => {
     it('should recommend single-column for two-column layout', () => {
-      const config = createBaseStyleConfig({ layout: { type: 'two-column', paperSize: 'a4', margins: 'normal' } });
+      const config = createBaseStyleConfig({
+        layout: { type: 'two-column', paperSize: 'a4', margins: 'normal' },
+      });
       const result = strategy.score(config);
       const recommendations = strategy.generateRecommendations(result);
-      
-      expect(recommendations.some(r => r.toLowerCase().includes('single-column'))).toBe(true);
+
+      expect(recommendations.some((r) => r.toLowerCase().includes('single-column'))).toBe(true);
     });
 
     it('should recommend ATS-safe fonts for non-standard fonts', () => {
       const config = createBaseStyleConfig({
         tokens: {
-          typography: { fontFamily: { heading: 'inter', body: 'roboto' }, fontSize: 'base', headingStyle: 'bold' },
+          typography: {
+            fontFamily: { heading: 'inter', body: 'roboto' },
+            fontSize: 'base',
+            headingStyle: 'bold',
+          },
           colors: createBaseStyleConfig().tokens.colors,
           spacing: createBaseStyleConfig().tokens.spacing,
         },
       });
       const result = strategy.score(config);
       const recommendations = strategy.generateRecommendations(result);
-      
-      expect(recommendations.some(r => r.toLowerCase().includes('arial') || r.toLowerCase().includes('calibri'))).toBe(true);
+
+      expect(
+        recommendations.some(
+          (r) => r.toLowerCase().includes('arial') || r.toLowerCase().includes('calibri'),
+        ),
+      ).toBe(true);
     });
 
     it('should return empty recommendations for optimal config', () => {
       const config = createBaseStyleConfig();
       const result = strategy.score(config);
       const recommendations = strategy.generateRecommendations(result);
-      
+
       // Optimal config should have few or no recommendations
       expect(recommendations.length).toBeLessThanOrEqual(2);
     });

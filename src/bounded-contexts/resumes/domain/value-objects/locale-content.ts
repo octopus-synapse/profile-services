@@ -24,10 +24,7 @@ export type LocalizedSection = z.infer<typeof LocalizedSectionSchema>;
 export const LocaleContentSchema = z.object({
   defaultLocale: SupportedLocaleSchema,
   locales: z.array(SupportedLocaleSchema).min(1),
-  sections: z.record(
-    z.string(),
-    z.record(SupportedLocaleSchema, LocalizedSectionSchema),
-  ),
+  sections: z.record(z.string(), z.record(SupportedLocaleSchema, LocalizedSectionSchema)),
 });
 
 export type LocaleContent = z.infer<typeof LocaleContentSchema>;
@@ -45,25 +42,19 @@ export function resolveForLocale(
 
   for (const [sectionKey, localeMap] of Object.entries(content.sections)) {
     const section =
-      localeMap[locale] ??
-      localeMap[content.defaultLocale] ??
-      Object.values(localeMap)[0];
+      localeMap[locale] ?? localeMap[content.defaultLocale] ?? Object.values(localeMap)[0];
 
     if (section) {
       resolved[sectionKey] = section;
     }
   }
 
-  const actualLocale =
-    content.locales.includes(locale) ? locale : content.defaultLocale;
+  const actualLocale = content.locales.includes(locale) ? locale : content.defaultLocale;
 
   return { locale: actualLocale, sections: resolved };
 }
 
-export function migrateFromLegacy(
-  contentPtBr: unknown,
-  contentEn: unknown,
-): LocaleContent {
+export function migrateFromLegacy(contentPtBr: unknown, contentEn: unknown): LocaleContent {
   const hasPtBr = contentPtBr != null && typeof contentPtBr === 'object';
   const hasEn = contentEn != null && typeof contentEn === 'object';
 
@@ -71,8 +62,7 @@ export function migrateFromLegacy(
   if (hasPtBr) locales.push('pt-BR');
   if (hasEn) locales.push('en');
 
-  const defaultLocale: SupportedLocale =
-    hasPtBr ? 'pt-BR' : hasEn ? 'en' : 'pt-BR';
+  const defaultLocale: SupportedLocale = hasPtBr ? 'pt-BR' : hasEn ? 'en' : 'pt-BR';
 
   if (locales.length === 0) {
     return { defaultLocale: 'pt-BR', locales: ['pt-BR'], sections: {} };

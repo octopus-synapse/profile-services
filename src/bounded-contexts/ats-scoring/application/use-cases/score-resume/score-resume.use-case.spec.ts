@@ -1,10 +1,7 @@
 import { describe, expect, it } from 'bun:test';
-import { AtsScore } from '../../../domain/value-objects/ats-score';
+import type { ResumeForScoring, ResumeScorerPort } from '../../../domain/ports/ats-scorer.port';
 import type { AtsScoreBreakdown } from '../../../domain/value-objects/ats-score';
-import type {
-  ResumeForScoring,
-  ResumeScorerPort,
-} from '../../../domain/ports/ats-scorer.port';
+import { AtsScore } from '../../../domain/value-objects/ats-score';
 import { ScoreResumeUseCase } from './score-resume.use-case';
 
 const makeBreakdown = (): AtsScoreBreakdown[] => [
@@ -16,7 +13,12 @@ const makeBreakdown = (): AtsScoreBreakdown[] => [
 const makeResume = (): ResumeForScoring => ({
   id: 'resume-1',
   sections: [
-    { sectionTypeKey: 'work_exp_v1', semanticKind: 'WORK_EXPERIENCE', itemCount: 3, hasContent: true },
+    {
+      sectionTypeKey: 'work_exp_v1',
+      semanticKind: 'WORK_EXPERIENCE',
+      itemCount: 3,
+      hasContent: true,
+    },
     { sectionTypeKey: 'education_v1', semanticKind: 'EDUCATION', itemCount: 2, hasContent: true },
   ],
   hasSummary: false,

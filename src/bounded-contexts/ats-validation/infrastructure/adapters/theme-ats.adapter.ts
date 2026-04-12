@@ -6,12 +6,12 @@
  */
 
 import { Injectable } from '@nestjs/common';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type {
   ThemeATSPort,
   ThemeForATSScoring,
   ThemeStyleConfig,
 } from '../../ats/interfaces/theme-ats-scoring.interface';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 
 @Injectable()
 export class ThemeATSAdapter implements ThemeATSPort {

@@ -226,9 +226,7 @@ export class ThemeATSScoringStrategy {
       : null;
   }
 
-  private scoreVisualElements(
-    config: ThemeStyleConfig,
-  ): ThemeATSScoreBreakdown['visualElements'] {
+  private scoreVisualElements(config: ThemeStyleConfig): ThemeATSScoreBreakdown['visualElements'] {
     const { shadows, borderRadius, gradients } = config.tokens.colors;
     const maxScore = THEME_ATS_SCORE_WEIGHTS.VISUAL_ELEMENTS;
 
@@ -288,8 +286,7 @@ export class ThemeATSScoringStrategy {
     // Check for sidebar placement (ATS issue)
     const sidebarSections = sortedSections.filter((s) => s.column === 'sidebar');
     const hasSidebarContent =
-      sidebarSections.length > 0 &&
-      sidebarSections.some((s) => this.isImportantSection(s.id));
+      sidebarSections.length > 0 && sidebarSections.some((s) => this.isImportantSection(s.id));
 
     if (hasSidebarContent) {
       return {

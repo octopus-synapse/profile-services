@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'bun:test';
 import {
-  type ResumeDslV2,
-  ResumeDslV2Schema,
   buildDefaultDsl,
   mergeDslWithOverrides,
+  type ResumeDslV2,
+  ResumeDslV2Schema,
 } from './resume-dsl';
 
 describe('ResumeDslV2Schema', () => {

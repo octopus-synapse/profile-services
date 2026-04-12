@@ -8,15 +8,16 @@
 import { Module } from '@nestjs/common';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
-import { SectionTypeRepository } from '@/bounded-contexts/resumes/shared-kernel/infrastructure/repositories';
+import { SectionTypeRepository } from '@/bounded-contexts/resumes/infrastructure/repositories';
 
 // Application (orchestrator)
 import { ATSService } from './application/use-cases/ats.service';
 import { ATSSectionTypeAdapter } from './application/use-cases/ats-section-type.adapter';
 import { CalculateThemeATSScoreUseCase } from './application/use-cases/calculate-theme-ats-score/calculate-theme-ats-score.use-case';
+import { THEME_ATS_PORT } from './ats/interfaces';
+import { ThemeATSScoringStrategy } from './ats/scoring/theme-ats-scoring.strategy';
 // Domain (pure logic, interfaces)
 import { SECTION_SEMANTIC_CATALOG } from './domain/interfaces';
-import { THEME_ATS_PORT } from './ats/interfaces';
 import {
   ContentQualitySemanticPolicy,
   DuplicateSemanticPolicy,
@@ -24,12 +25,11 @@ import {
   SectionOrderSemanticPolicy,
 } from './domain/services/policies';
 import { DefinitionDrivenScoringStrategy, SemanticScoringService } from './domain/services/scoring';
-import { ThemeATSScoringStrategy } from './ats/scoring/theme-ats-scoring.strategy';
-// Infrastructure
-import { ThemeATSAdapter } from './infrastructure/adapters/theme-ats.adapter';
 import { EncodingNormalizerService } from './infrastructure/adapters/external-services/encoding-normalizer.service';
 import { SectionSemanticCatalogAdapter } from './infrastructure/adapters/external-services/section-semantic-catalog.adapter';
 import { TextExtractionService } from './infrastructure/adapters/external-services/text-extraction.service';
+// Infrastructure
+import { ThemeATSAdapter } from './infrastructure/adapters/theme-ats.adapter';
 import { ATSController } from './infrastructure/controllers/ats.controller';
 import {
   DateRangeExtractor,

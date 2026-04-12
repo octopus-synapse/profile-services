@@ -4,17 +4,9 @@ import type { Request } from 'express';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
+import { SETUP_2FA_PORT } from '../../application/ports';
 import { Setup2faResponseDto } from '../../application/use-cases/setup-2fa/setup-2fa.dto';
-import { Setup2faUseCase } from '../../application/use-cases/setup-2fa/setup-2fa.use-case';
-import {
-  QR_CODE_SERVICE_PORT,
-  type QrCodeServicePort,
-} from '../../domain/ports/qrcode-service.port';
-import { TOTP_SERVICE_PORT, type TotpServicePort } from '../../domain/ports/totp-service.port';
-import {
-  TWO_FACTOR_REPOSITORY_PORT,
-  type TwoFactorRepositoryPort,
-} from '../../domain/ports/two-factor.repository.port';
+import type { Setup2faUseCase } from '../../application/use-cases/setup-2fa/setup-2fa.use-case';
 
 interface AuthenticatedRequest extends Request {
   user: { id: string };
@@ -29,18 +21,10 @@ interface AuthenticatedRequest extends Request {
 @ApiBearerAuth()
 @Controller('auth/2fa')
 export class Setup2faController {
-  private readonly useCase: Setup2faUseCase;
-
   constructor(
-    @Inject(TWO_FACTOR_REPOSITORY_PORT)
-    repository: TwoFactorRepositoryPort,
-    @Inject(TOTP_SERVICE_PORT)
-    totpService: TotpServicePort,
-    @Inject(QR_CODE_SERVICE_PORT)
-    qrCodeService: QrCodeServicePort,
-  ) {
-    this.useCase = new Setup2faUseCase(repository, totpService, qrCodeService);
-  }
+    @Inject(SETUP_2FA_PORT)
+    private readonly useCase: Setup2faUseCase,
+  ) {}
 
   @Post('setup')
   @HttpCode(HttpStatus.OK)

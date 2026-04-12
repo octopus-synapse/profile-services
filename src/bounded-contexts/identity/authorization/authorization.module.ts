@@ -28,8 +28,8 @@
  */
 
 import { Global, Module } from '@nestjs/common';
-import { AuthorizationCheckPort } from '@/shared-kernel/authorization';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
+import { AuthorizationCheckPort } from '@/shared-kernel/authorization';
 
 // Domain
 // (Domain services are created by application services, not injected)

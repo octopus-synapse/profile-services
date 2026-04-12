@@ -8,7 +8,7 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { DslRepository } from '@/bounded-contexts/dsl/dsl/dsl.repository';
+import { DslRepository } from '@/bounded-contexts/dsl/dsl.repository';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { TypstCompilerService } from './typst-compiler.service';
 import { TypstDataSerializerService } from './typst-data-serializer.service';
@@ -111,7 +111,13 @@ describe('TypstPdfGeneratorService', () => {
     it('should compile DSL with correct locale', async () => {
       await service.generate({ userId: 'user-1', lang: 'en' });
 
-      expect(mockDslRepository.render).toHaveBeenCalledWith('resume-123', 'user-1', 'pdf', 'en');
+      expect(mockDslRepository.render).toHaveBeenCalledWith(
+        'resume-123',
+        'user-1',
+        'pdf',
+        'en',
+        undefined,
+      );
     });
 
     it('should default locale to pt-br', async () => {
@@ -122,6 +128,7 @@ describe('TypstPdfGeneratorService', () => {
         'user-1',
         'pdf',
         'pt-BR',
+        undefined,
       );
     });
 
@@ -129,21 +136,17 @@ describe('TypstPdfGeneratorService', () => {
       await service.generate({ userId: 'user-1' });
 
       expect(mockSerializer.serialize).toHaveBeenCalledWith(MOCK_AST);
-      expect(mockCompiler.compile).toHaveBeenCalledWith(
-        '{"mock":"data"}',
-        '/app/templates/typst',
-        { timeout: undefined },
-      );
+      expect(mockCompiler.compile).toHaveBeenCalledWith('{"mock":"data"}', '/app/templates/typst', {
+        timeout: undefined,
+      });
     });
 
     it('should pass timeout option to compiler', async () => {
       await service.generate({ userId: 'user-1', timeout: 15000 });
 
-      expect(mockCompiler.compile).toHaveBeenCalledWith(
-        '{"mock":"data"}',
-        '/app/templates/typst',
-        { timeout: 15000 },
-      );
+      expect(mockCompiler.compile).toHaveBeenCalledWith('{"mock":"data"}', '/app/templates/typst', {
+        timeout: 15000,
+      });
     });
   });
 });

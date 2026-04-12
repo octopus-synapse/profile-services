@@ -376,21 +376,16 @@ interface SymbolicV1Tokens {
   };
 }
 
-export function migrateFromSymbolicTokens(
-  v1tokens: SymbolicV1Tokens,
-): DesignTokensV2 {
+export function migrateFromSymbolicTokens(v1tokens: SymbolicV1Tokens): DesignTokensV2 {
   const { typography, colors, spacing } = v1tokens;
 
-  const headingFamily =
-    FONT_FAMILIES[typography.fontFamily.heading] ?? FONT_FAMILIES.inter;
-  const bodyFamily =
-    FONT_FAMILIES[typography.fontFamily.body] ?? FONT_FAMILIES.inter;
+  const headingFamily = FONT_FAMILIES[typography.fontFamily.heading] ?? FONT_FAMILIES.inter;
+  const bodyFamily = FONT_FAMILIES[typography.fontFamily.body] ?? FONT_FAMILIES.inter;
   const sizes = FONT_SIZES[typography.fontSize] ?? FONT_SIZES.base;
   const density = DENSITY_FACTORS[spacing.density] ?? DENSITY_FACTORS.comfortable;
   const sectionGap = SPACING_SIZES[spacing.sectionGap] ?? SPACING_SIZES.md;
   const itemGap = SPACING_SIZES[spacing.itemGap] ?? SPACING_SIZES.sm;
-  const contentPadding =
-    SPACING_SIZES[spacing.contentPadding] ?? SPACING_SIZES.md;
+  const contentPadding = SPACING_SIZES[spacing.contentPadding] ?? SPACING_SIZES.md;
 
   const textPrimary = colors.colors.text.primary;
   const textSecondary = colors.colors.text.secondary;

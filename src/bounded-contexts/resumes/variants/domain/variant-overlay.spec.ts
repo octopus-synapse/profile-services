@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'bun:test';
+import type { VariantOverrides } from './variant.types';
 import type { GenericResumeSection } from './variant-overlay';
 import { applyVariantOverlay } from './variant-overlay';
-import type { VariantOverrides } from './variant.types';
 
 function makeSection(overrides: Partial<GenericResumeSection> = {}): GenericResumeSection {
   return {
@@ -67,9 +67,7 @@ describe('applyVariantOverlay', () => {
   });
 
   it('should hide a section via visibility override', () => {
-    const base: GenericResumeSection[] = [
-      makeSection({ id: 'section-skills', isVisible: true }),
-    ];
+    const base: GenericResumeSection[] = [makeSection({ id: 'section-skills', isVisible: true })];
 
     const overrides: VariantOverrides = {
       ...emptyOverrides(),
@@ -127,9 +125,7 @@ describe('applyVariantOverlay', () => {
         id: 'section-exp',
         title: 'Experience',
         order: 0,
-        items: [
-          { id: 'item-1', content: { title: 'Engineer' }, isVisible: true, order: 0 },
-        ],
+        items: [{ id: 'item-1', content: { title: 'Engineer' }, isVisible: true, order: 0 }],
       }),
       makeSection({
         id: 'section-skills',
@@ -177,9 +173,7 @@ describe('applyVariantOverlay', () => {
         id: 'section-exp',
         isVisible: true,
         order: 0,
-        items: [
-          { id: 'item-1', content: { title: 'Engineer' }, isVisible: true, order: 0 },
-        ],
+        items: [{ id: 'item-1', content: { title: 'Engineer' }, isVisible: true, order: 0 }],
       }),
     ];
 

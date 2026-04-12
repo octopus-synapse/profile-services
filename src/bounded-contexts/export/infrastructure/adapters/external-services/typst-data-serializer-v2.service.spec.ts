@@ -17,9 +17,7 @@ import { TypstDataSerializerV2Service } from './typst-data-serializer-v2.service
 // Fixtures
 // ---------------------------------------------------------------------------
 
-const makeTheme = (
-  overrides: Partial<ResumeAstV2Theme> = {},
-): ResumeAstV2Theme => ({
+const makeTheme = (overrides: Partial<ResumeAstV2Theme> = {}): ResumeAstV2Theme => ({
   page: {
     width: 210,
     height: 297,
@@ -76,9 +74,7 @@ const makeTheme = (
   ...overrides,
 });
 
-const makeAst = (
-  overrides: Partial<ResumeAstV2Input> = {},
-): ResumeAstV2Input => ({
+const makeAst = (overrides: Partial<ResumeAstV2Input> = {}): ResumeAstV2Input => ({
   meta: { version: '2.0.0', generatedAt: '2026-01-01T00:00:00.000Z' },
   header: {
     fullName: 'Jane Doe',
@@ -107,9 +103,7 @@ const makeAst = (
         semanticKind: 'WORK_EXPERIENCE',
         sectionTypeKey: 'work_experience_v1',
         title: 'Experience',
-        items: [
-          { id: 'item-1', content: { role: 'Engineer', company: 'Acme' } },
-        ],
+        items: [{ id: 'item-1', content: { role: 'Engineer', company: 'Acme' } }],
       },
       styles: {
         container: {
@@ -165,7 +159,7 @@ describe('TypstDataSerializerV2Service', () => {
       const result = service.serialize(makeAst({ theme: makeTheme() }));
       const parsed = JSON.parse(result) as TypstResumeDataV2;
       expect(parsed.theme).toBeDefined();
-      expect(parsed.theme!.page.width).toBe(210);
+      expect(parsed.theme?.page.width).toBe(210);
     });
 
     it('should not include theme key when theme is absent', () => {
@@ -223,8 +217,7 @@ describe('TypstDataSerializerV2Service', () => {
 
     it('should handle unknown font stacks by extracting first font', () => {
       const ast = makeAst();
-      ast.sections[0].styles.title.fontFamily =
-        'CustomFont, Arial, sans-serif';
+      ast.sections[0].styles.title.fontFamily = 'CustomFont, Arial, sans-serif';
       const data = service.transform(ast);
       expect(data.sections[0].styles.title.fontFamily).toBe('CustomFont');
     });
@@ -239,10 +232,10 @@ describe('TypstDataSerializerV2Service', () => {
     it('should sanitize font families in theme tokens', () => {
       const theme = makeTheme();
       const data = service.transform(makeAst({ theme }));
-      expect(data.theme!.header.name.fontFamily).toBe('Inter');
-      expect(data.theme!.header.jobTitle.fontFamily).toBe('Inter');
-      expect(data.theme!.header.contact.fontFamily).toBe('Inter');
-      expect(data.theme!.global.fontFamily).toBe('Inter');
+      expect(data.theme?.header.name.fontFamily).toBe('Inter');
+      expect(data.theme?.header.jobTitle.fontFamily).toBe('Inter');
+      expect(data.theme?.header.contact.fontFamily).toBe('Inter');
+      expect(data.theme?.global.fontFamily).toBe('Inter');
     });
 
     it('should sanitize different font families in theme', () => {
@@ -256,7 +249,7 @@ describe('TypstDataSerializerV2Service', () => {
         },
       });
       const data = service.transform(makeAst({ theme }));
-      expect(data.theme!.global.fontFamily).toBe('Merriweather');
+      expect(data.theme?.global.fontFamily).toBe('Merriweather');
     });
   });
 
@@ -286,8 +279,8 @@ describe('TypstDataSerializerV2Service', () => {
     it('should include header when present', () => {
       const data = service.transform(makeAst());
       expect(data.header).toBeDefined();
-      expect(data.header!.fullName).toBe('Jane Doe');
-      expect(data.header!.email).toBe('jane@example.com');
+      expect(data.header?.fullName).toBe('Jane Doe');
+      expect(data.header?.email).toBe('jane@example.com');
     });
 
     it('should omit header when not in AST', () => {
@@ -323,25 +316,25 @@ describe('TypstDataSerializerV2Service', () => {
       const theme = makeTheme();
       const data = service.transform(makeAst({ theme }));
 
-      expect(data.theme!.page).toEqual(theme.page);
-      expect(data.theme!.header.divider).toEqual(theme.header.divider);
-      expect(data.theme!.sectionHeader).toEqual(theme.sectionHeader);
-      expect(data.theme!.entry).toEqual(theme.entry);
-      expect(data.theme!.bullets).toEqual(theme.bullets);
-      expect(data.theme!.technologies).toEqual(theme.technologies);
-      expect(data.theme!.skillsList).toEqual(theme.skillsList);
-      expect(data.theme!.textSection).toEqual(theme.textSection);
+      expect(data.theme?.page).toEqual(theme.page);
+      expect(data.theme?.header.divider).toEqual(theme.header.divider);
+      expect(data.theme?.sectionHeader).toEqual(theme.sectionHeader);
+      expect(data.theme?.entry).toEqual(theme.entry);
+      expect(data.theme?.bullets).toEqual(theme.bullets);
+      expect(data.theme?.technologies).toEqual(theme.technologies);
+      expect(data.theme?.skillsList).toEqual(theme.skillsList);
+      expect(data.theme?.textSection).toEqual(theme.textSection);
     });
 
     it('should preserve numeric theme values unchanged', () => {
       const theme = makeTheme();
       const data = service.transform(makeAst({ theme }));
 
-      expect(data.theme!.header.name.fontSize).toBe(24);
-      expect(data.theme!.header.name.tracking).toBe(0.5);
-      expect(data.theme!.header.divider.weight).toBe(1);
-      expect(data.theme!.global.lineHeight).toBe(1.3);
-      expect(data.theme!.global.justify).toBe(true);
+      expect(data.theme?.header.name.fontSize).toBe(24);
+      expect(data.theme?.header.name.tracking).toBe(0.5);
+      expect(data.theme?.header.divider.weight).toBe(1);
+      expect(data.theme?.global.lineHeight).toBe(1.3);
+      expect(data.theme?.global.justify).toBe(true);
     });
   });
 
@@ -356,7 +349,7 @@ describe('TypstDataSerializerV2Service', () => {
       expect(parsed.meta.generatedAt).toBe('2026-01-01T00:00:00.000Z');
 
       // Header
-      expect(parsed.header!.fullName).toBe('Jane Doe');
+      expect(parsed.header?.fullName).toBe('Jane Doe');
 
       // Page
       expect(parsed.page.widthMm).toBe(210);
@@ -373,9 +366,9 @@ describe('TypstDataSerializerV2Service', () => {
 
       // Theme with sanitized fonts
       expect(parsed.theme).toBeDefined();
-      expect(parsed.theme!.header.name.fontFamily).toBe('Inter');
-      expect(parsed.theme!.global.fontFamily).toBe('Inter');
-      expect(parsed.theme!.page.width).toBe(210);
+      expect(parsed.theme?.header.name.fontFamily).toBe('Inter');
+      expect(parsed.theme?.global.fontFamily).toBe('Inter');
+      expect(parsed.theme?.page.width).toBe(210);
     });
   });
 });

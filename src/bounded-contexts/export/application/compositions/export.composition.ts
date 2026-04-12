@@ -5,7 +5,7 @@
  */
 
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { SectionTypeRepository } from '@/bounded-contexts/resumes/shared-kernel/infrastructure/repositories';
+import type { SectionTypeRepository } from '@/bounded-contexts/resumes/infrastructure/repositories';
 import type { DocxBuilderPort } from '../../domain/ports/docx-builder.port';
 import type { PdfGeneratorPort } from '../../domain/ports/pdf-generator.port';
 import { ResumeDataRepository } from '../../infrastructure/adapters/persistence/resume-data.repository';

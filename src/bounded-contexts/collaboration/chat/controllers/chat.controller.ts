@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query, Req } from '@nestjs/common';
+import { Body, Controller, Get, Inject, Param, Post, Query, Req } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import type { AuthenticatedRequest } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
@@ -6,6 +6,7 @@ import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-exp
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { ZodValidationPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
+import { CHAT_USE_CASES, type ChatUseCases } from '../application/ports/chat.port';
 import {
   GetConversationsQueryDto,
   GetConversationsQuerySchema,
@@ -23,7 +24,6 @@ import {
   MessagesListDataDto,
   UnreadCountDataDto,
 } from '../dto/chat-response.dto';
-import { ChatService } from '../services/chat.service';
 
 @SdkExport({ tag: 'chat', description: 'Chat API' })
 @ApiTags('Chat')
@@ -31,7 +31,7 @@ import { ChatService } from '../services/chat.service';
 @RequirePermission(Permission.CHAT_USE)
 @Controller('chat')
 export class ChatController {
-  constructor(private readonly chatService: ChatService) {}
+  constructor(@Inject(CHAT_USE_CASES) private readonly chat: ChatUseCases) {}
 
   @Post('messages')
   @ApiOperation({ summary: 'Send a message to a user' })
@@ -43,7 +43,7 @@ export class ChatController {
     @Req() req: AuthenticatedRequest,
     @Body() dto: SendMessageDto,
   ): Promise<DataResponse<ChatMessageDataDto>> {
-    const message = await this.chatService.sendMessage(req.user.userId, dto);
+    const message = await this.chat.sendMessageUseCase.execute(req.user.userId, dto);
     return { success: true, data: { message } };
   }
 
@@ -59,7 +59,7 @@ export class ChatController {
     @Param('conversationId') conversationId: string,
     @Body() dto: SendMessageToConversationDto,
   ): Promise<DataResponse<ChatMessageDataDto>> {
-    const message = await this.chatService.sendMessageToConversation(
+    const message = await this.chat.sendMessageToConversationUseCase.execute(
       req.user.userId,
       conversationId,
       dto.content,
@@ -76,7 +76,7 @@ export class ChatController {
     @Req() req: AuthenticatedRequest,
     @Query(new ZodValidationPipe(GetConversationsQuerySchema)) query: GetConversationsQueryDto,
   ): Promise<DataResponse<ConversationsListDataDto>> {
-    const conversations = await this.chatService.getConversations(req.user.userId, query);
+    const conversations = await this.chat.getConversationsUseCase.execute(req.user.userId, query);
     return { success: true, data: { conversations } };
   }
 
@@ -88,7 +88,10 @@ export class ChatController {
     @Req() req: AuthenticatedRequest,
     @Param('conversationId') conversationId: string,
   ): Promise<DataResponse<ConversationDataDto>> {
-    const conversation = await this.chatService.getConversation(req.user.userId, conversationId);
+    const conversation = await this.chat.getConversationUseCase.execute(
+      req.user.userId,
+      conversationId,
+    );
     return { success: true, data: { conversation } };
   }
 
@@ -101,7 +104,7 @@ export class ChatController {
     @Param('conversationId') conversationId: string,
     @Query(new ZodValidationPipe(GetMessagesQuerySchema)) query: GetMessagesQueryDto,
   ): Promise<DataResponse<MessagesListDataDto>> {
-    const messages = await this.chatService.getMessages(req.user.userId, {
+    const messages = await this.chat.getMessagesUseCase.execute(req.user.userId, {
       conversationId,
       cursor: query.cursor,
       limit: query.limit ?? 50,
@@ -120,7 +123,10 @@ export class ChatController {
     @Req() req: AuthenticatedRequest,
     @Param('conversationId') conversationId: string,
   ): Promise<DataResponse<MarkAsReadDataDto>> {
-    const result = await this.chatService.markConversationAsRead(req.user.userId, conversationId);
+    const result = await this.chat.markConversationReadUseCase.execute(
+      req.user.userId,
+      conversationId,
+    );
     return { success: true, data: { count: result.count } };
   }
 
@@ -130,7 +136,7 @@ export class ChatController {
   async getUnreadCount(
     @Req() req: AuthenticatedRequest,
   ): Promise<DataResponse<UnreadCountDataDto>> {
-    const unread = await this.chatService.getUnreadCount(req.user.userId);
+    const unread = await this.chat.getUnreadCountUseCase.execute(req.user.userId);
     return {
       success: true,
       data: {
@@ -150,11 +156,17 @@ export class ChatController {
     @Req() req: AuthenticatedRequest,
     @Param('userId') userId: string,
   ): Promise<DataResponse<ConversationNullableDataDto>> {
-    const conversationId = await this.chatService.getConversationId(req.user.userId, userId);
+    const conversationId = await this.chat.getConversationIdUseCase.execute(
+      req.user.userId,
+      userId,
+    );
     if (!conversationId) {
       return { success: true, data: { conversationId: null } };
     }
-    const conversation = await this.chatService.getConversation(req.user.userId, conversationId);
+    const conversation = await this.chat.getConversationUseCase.execute(
+      req.user.userId,
+      conversationId,
+    );
     return { success: true, data: { conversationId, conversation } };
   }
 }

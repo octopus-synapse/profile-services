@@ -5,8 +5,8 @@
  */
 
 import { Module } from '@nestjs/common';
+import { ResumesCoreModule } from './core/resumes.module';
 import { ResumeVersionsModule } from './resume-versions/resume-versions.module';
-import { ResumesModule as ResumesCoreModule } from './resumes/resumes.module';
 import { AdminSectionTypesModule } from './section-types/admin-section-types.module';
 
 @Module({

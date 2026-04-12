@@ -81,9 +81,7 @@ export class ResolveVariantUseCase {
           for (const [field, value] of Object.entries(item.content)) {
             const overrideKey = `${itemKey}:${field}`;
             resolvedContent[field] =
-              overrideKey in overrides.textOverrides
-                ? overrides.textOverrides[overrideKey]
-                : value;
+              overrideKey in overrides.textOverrides ? overrides.textOverrides[overrideKey] : value;
           }
 
           const itemVisible =
@@ -92,9 +90,7 @@ export class ResolveVariantUseCase {
               : item.isVisible;
 
           const itemOrder =
-            itemKey in overrides.orderOverrides
-              ? overrides.orderOverrides[itemKey]
-              : item.order;
+            itemKey in overrides.orderOverrides ? overrides.orderOverrides[itemKey] : item.order;
 
           return {
             ...item,

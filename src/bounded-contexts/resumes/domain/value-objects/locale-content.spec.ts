@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'bun:test';
 import {
   addLocale,
+  type LocaleContent,
   LocaleContentSchema,
+  type LocalizedSection,
   migrateFromLegacy,
   resolveForLocale,
-  type LocaleContent,
-  type LocalizedSection,
 } from './locale-content';
 
 describe('LocaleContent', () => {
@@ -88,9 +88,7 @@ describe('LocaleContent', () => {
     it('should fall back to defaultLocale when requested locale is missing', () => {
       const result = resolveForLocale(validContent, 'es');
       expect(result.locale).toBe('pt-BR');
-      expect(result.sections.work_experience_v1.title).toBe(
-        'Experiencia Profissional',
-      );
+      expect(result.sections.work_experience_v1.title).toBe('Experiencia Profissional');
     });
 
     it('should fall back to first available locale when both requested and default are missing', () => {
@@ -148,8 +146,8 @@ describe('LocaleContent', () => {
       const result = migrateFromLegacy(ptBr, en);
       expect(result.defaultLocale).toBe('pt-BR');
       expect(result.locales).toEqual(['pt-BR', 'en']);
-      expect(result.sections.legacy_content_v1['pt-BR'].items).toEqual([ptBr]);
-      expect(result.sections.legacy_content_v1.en.items).toEqual([en]);
+      expect(result.sections.legacy_content_v1?.['pt-BR']?.items).toEqual([ptBr]);
+      expect(result.sections.legacy_content_v1?.en?.items).toEqual([en]);
     });
 
     it('should migrate when only pt-BR is present', () => {
@@ -158,8 +156,8 @@ describe('LocaleContent', () => {
       const result = migrateFromLegacy(ptBr, null);
       expect(result.defaultLocale).toBe('pt-BR');
       expect(result.locales).toEqual(['pt-BR']);
-      expect(result.sections.legacy_content_v1['pt-BR'].items).toEqual([ptBr]);
-      expect(result.sections.legacy_content_v1.en).toBeUndefined();
+      expect(result.sections.legacy_content_v1?.['pt-BR']?.items).toEqual([ptBr]);
+      expect(result.sections.legacy_content_v1?.en).toBeUndefined();
     });
 
     it('should migrate when only en is present', () => {
@@ -168,7 +166,7 @@ describe('LocaleContent', () => {
       const result = migrateFromLegacy(null, en);
       expect(result.defaultLocale).toBe('en');
       expect(result.locales).toEqual(['en']);
-      expect(result.sections.legacy_content_v1.en.items).toEqual([en]);
+      expect(result.sections.legacy_content_v1?.en?.items).toEqual([en]);
     });
 
     it('should return empty content with default locale when neither exists', () => {
@@ -197,9 +195,7 @@ describe('LocaleContent', () => {
 
       const result = addLocale(validContent, 'es', newSections);
       expect(result.locales).toContain('es');
-      expect(result.sections.work_experience_v1.es.title).toBe(
-        'Experiencia Laboral',
-      );
+      expect(result.sections.work_experience_v1?.es?.title).toBe('Experiencia Laboral');
     });
 
     it('should preserve existing locales and sections', () => {
@@ -212,12 +208,8 @@ describe('LocaleContent', () => {
       const result = addLocale(validContent, 'es', newSections);
       expect(result.locales).toContain('pt-BR');
       expect(result.locales).toContain('en');
-      expect(result.sections.work_experience_v1['pt-BR'].title).toBe(
-        'Experiencia Profissional',
-      );
-      expect(result.sections.work_experience_v1.en.title).toBe(
-        'Work Experience',
-      );
+      expect(result.sections.work_experience_v1?.['pt-BR']?.title).toBe('Experiencia Profissional');
+      expect(result.sections.work_experience_v1?.en?.title).toBe('Work Experience');
     });
 
     it('should not duplicate locale if it already exists', () => {
@@ -230,9 +222,7 @@ describe('LocaleContent', () => {
       const result = addLocale(validContent, 'en', newSections);
       const enCount = result.locales.filter((l) => l === 'en').length;
       expect(enCount).toBe(1);
-      expect(result.sections.work_experience_v1.en.title).toBe(
-        'Updated Work Experience',
-      );
+      expect(result.sections.work_experience_v1?.en?.title).toBe('Updated Work Experience');
     });
 
     it('should add new sections that did not exist before', () => {
@@ -244,7 +234,7 @@ describe('LocaleContent', () => {
       };
 
       const result = addLocale(validContent, 'es', newSections);
-      expect(result.sections.education_v1.es.title).toBe('Educacion');
+      expect(result.sections.education_v1?.es?.title).toBe('Educacion');
       expect(result.sections.work_experience_v1).toBeDefined();
     });
 
