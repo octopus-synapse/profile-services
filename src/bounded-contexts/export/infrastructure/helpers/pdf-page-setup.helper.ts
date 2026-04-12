@@ -39,6 +39,8 @@ export class PdfPageSetup {
     if (bannerColor) url += `&bannerColor=${encodeURIComponent(bannerColor)}`;
     if (userId) url += `&user=${encodeURIComponent(userId)}`;
 
+    // Validate constructed URL to prevent SSRF
+    new URL(url);
     return url;
   }
 

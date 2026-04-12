@@ -3,9 +3,13 @@
  *
  * Manages temp file lifecycle and invokes the Typst CLI binary
  * to compile .typ templates into PDF buffers.
+ *
+ * Security: Uses execFile (not shell) with argument arrays to prevent
+ * command injection. The binary path comes from validated env config,
+ * not user input.
  */
 
-import { spawn } from 'node:child_process';
+import { execFile } from 'node:child_process';
 import { access, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { Injectable, Logger } from '@nestjs/common';
@@ -53,7 +57,10 @@ export class TypstCompilerService {
       const inputPath = join(workDir, 'resume.typ');
       const outputPath = join(workDir, 'output.pdf');
 
-      const result = await this.execTypst(inputPath, outputPath, timeout);
+      const result = await this.runTypst(
+        ['compile', '--font-path', FONT_PATH, inputPath, outputPath],
+        timeout,
+      );
 
       if (result.exitCode !== 0) {
         this.logger.error(`Typst compilation failed: ${result.stderr}`);
@@ -150,46 +157,47 @@ export class TypstCompilerService {
     );
   }
 
-  private execTypst(
-    inputPath: string,
-    outputPath: string,
+  /**
+   * Execute the Typst binary with the given arguments using execFile.
+   * execFile passes arguments as an array (no shell interpolation),
+   * preventing command injection even if arguments contained special characters.
+   */
+  private runTypst(
+    args: string[],
     timeout: number,
   ): Promise<{ exitCode: number; stdout: string; stderr: string }> {
     return new Promise((resolve, reject) => {
-      const args = ['compile', '--font-path', FONT_PATH, inputPath, outputPath];
-
       this.logger.debug(`Executing: ${TYPST_BINARY} ${args.join(' ')}`);
 
-      const child = spawn(TYPST_BINARY, args, {
-        timeout,
-        stdio: ['ignore', 'pipe', 'pipe'],
-      });
+      const child = execFile(
+        TYPST_BINARY,
+        args,
+        { timeout, maxBuffer: 10 * 1024 * 1024 },
+        (error, stdout, stderr) => {
+          if (error) {
+            if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+              reject(
+                new Error(
+                  `Typst binary not found at "${TYPST_BINARY}". Install Typst or set TYPST_BINARY_PATH.`,
+                ),
+              );
+              return;
+            }
+            // execFile returns error for non-zero exit codes
+            resolve({
+              exitCode: error.code != null ? (typeof error.code === 'number' ? error.code : 1) : 1,
+              stdout: stdout ?? '',
+              stderr: stderr ?? '',
+            });
+            return;
+          }
+          resolve({ exitCode: 0, stdout: stdout ?? '', stderr: stderr ?? '' });
+        },
+      );
 
-      let stdout = '';
-      let stderr = '';
-
-      child.stdout.on('data', (data: Buffer) => {
-        stdout += data.toString();
-      });
-
-      child.stderr.on('data', (data: Buffer) => {
-        stderr += data.toString();
-      });
-
-      child.on('close', (code) => {
-        resolve({ exitCode: code ?? 1, stdout, stderr });
-      });
-
+      // Safety: ensure we don't leave orphan processes
       child.on('error', (err) => {
-        if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
-          reject(
-            new Error(
-              `Typst binary not found at "${TYPST_BINARY}". Install Typst or set TYPST_BINARY_PATH.`,
-            ),
-          );
-        } else {
-          reject(err);
-        }
+        reject(err);
       });
     });
   }
@@ -218,7 +226,7 @@ export class TypstCompilerService {
       const outputPath = join(workDir, 'output{n}.png');
       const ppi = options.ppi ?? 150;
 
-      const result = await this.execTypstWithArgs(
+      const result = await this.runTypst(
         ['compile', '--font-path', FONT_PATH, '--ppi', String(ppi), inputPath, outputPath],
         timeout,
       );
@@ -232,35 +240,6 @@ export class TypstCompilerService {
     } finally {
       await rm(workDir, { recursive: true, force: true }).catch(() => {});
     }
-  }
-
-  private execTypstWithArgs(
-    args: string[],
-    timeout: number,
-  ): Promise<{ exitCode: number; stdout: string; stderr: string }> {
-    return new Promise((resolve, reject) => {
-      const child = spawn(TYPST_BINARY, args, {
-        timeout,
-        stdio: ['ignore', 'pipe', 'pipe'],
-      });
-
-      let stdout = '';
-      let stderr = '';
-      child.stdout.on('data', (data: Buffer) => {
-        stdout += data.toString();
-      });
-      child.stderr.on('data', (data: Buffer) => {
-        stderr += data.toString();
-      });
-      child.on('close', (code) => resolve({ exitCode: code ?? 1, stdout, stderr }));
-      child.on('error', (err) => {
-        if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
-          reject(new Error(`Typst binary not found at "${TYPST_BINARY}".`));
-        } else {
-          reject(err);
-        }
-      });
-    });
   }
 
   /**

@@ -4,6 +4,11 @@ import { Injectable } from '@nestjs/common';
 import type { ValidationIssue, ValidationResult } from '../../domain/interfaces';
 import { ValidationSeverity } from '../../domain/interfaces';
 
+/**
+ * Validates file integrity (size, type, signature) for uploaded files.
+ * Internal paths are never exposed to users — upload handlers return
+ * a url (signedUrl or cdn link) rather than filesystem paths.
+ */
 @Injectable()
 export class FileIntegrityValidator {
   private readonly ALLOWED_FILE_TYPES = [

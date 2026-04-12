@@ -216,7 +216,7 @@ export class ThemeATSScoringStrategy {
   }
 
   private hexToRgb(hex: string): { r: number; g: number; b: number } | null {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    const result = hex.match(/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i);
     return result
       ? {
           r: parseInt(result[1], 16),

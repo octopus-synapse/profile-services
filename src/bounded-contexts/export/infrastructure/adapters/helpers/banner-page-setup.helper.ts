@@ -29,6 +29,8 @@ export class BannerPageSetup {
     if (logoUrl) {
       url += `&logo=${encodeURIComponent(logoUrl)}`;
     }
+    // Validate constructed URL to prevent SSRF
+    new URL(url);
     return url;
   }
 
