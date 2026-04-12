@@ -4,7 +4,7 @@
  * Emitted when a permission is explicitly denied to a user.
  */
 
-import { DomainEvent } from '@/shared-kernel';
+import { DomainEvent } from '../../../shared-kernel/domain/events';
 
 export interface PermissionDeniedPayload {
   readonly permissionId: string;
@@ -15,7 +15,17 @@ export interface PermissionDeniedPayload {
 export class PermissionDeniedEvent extends DomainEvent<PermissionDeniedPayload> {
   static readonly TYPE = 'identity.authorization.permission.denied';
 
+  readonly eventType = PermissionDeniedEvent.TYPE;
+  readonly aggregateId: string;
+  readonly payload: PermissionDeniedPayload;
+
   constructor(userId: string, payload: PermissionDeniedPayload) {
-    super(PermissionDeniedEvent.TYPE, userId, payload);
+    super();
+    this.aggregateId = userId;
+    this.payload = payload;
+  }
+
+  protected getPayload(): Record<string, unknown> {
+    return { ...this.payload };
   }
 }

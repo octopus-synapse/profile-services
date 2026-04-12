@@ -1,13 +1,7 @@
-# Observability Stack for ProFile Services
-# Includes Prometheus, AlertManager, and exporters
-#
 # Usage:
-#   docker-compose -f docker-compose.dev.yml -f docker-compose.observability.yml up -d
+#   docker compose -f docker-compose.dev.yml -f docker-compose.observability.yml up -d
 
 services:
-  # ==========================================================================
-  # Prometheus - Metrics Collection & Alerting
-  # ==========================================================================
   prometheus:
     image: prom/prometheus:v2.48.0
     container_name: profile-prometheus
@@ -29,9 +23,6 @@ services:
     depends_on:
       - alertmanager
 
-  # ==========================================================================
-  # AlertManager - Alert Routing & Notifications
-  # ==========================================================================
   alertmanager:
     image: prom/alertmanager:v0.26.0
     container_name: profile-alertmanager
@@ -51,9 +42,6 @@ services:
     networks:
       - profile-dev-network
 
-  # ==========================================================================
-  # PostgreSQL Exporter - Database Metrics
-  # ==========================================================================
   postgres-exporter:
     image: prometheuscommunity/postgres-exporter:v0.15.0
     container_name: profile-postgres-exporter
@@ -67,9 +55,6 @@ services:
     depends_on:
       - postgres
 
-  # ==========================================================================
-  # Redis Exporter - Cache Metrics
-  # ==========================================================================
   redis-exporter:
     image: oliver006/redis_exporter:v1.55.0
     container_name: profile-redis-exporter
@@ -84,9 +69,6 @@ services:
     depends_on:
       - redis
 
-  # ==========================================================================
-  # Node Exporter - System Metrics
-  # ==========================================================================
   node-exporter:
     image: prom/node-exporter:v1.7.0
     container_name: profile-node-exporter
@@ -105,9 +87,6 @@ services:
     networks:
       - profile-dev-network
 
-  # ==========================================================================
-  # Grafana - Visualization (Optional)
-  # ==========================================================================
   grafana:
     image: grafana/grafana:10.2.2
     container_name: profile-grafana
@@ -125,9 +104,6 @@ services:
     depends_on:
       - prometheus
 
-# ==========================================================================
-# Volumes
-# ==========================================================================
 volumes:
   prometheus_data:
     name: profile-prometheus-data

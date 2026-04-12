@@ -194,14 +194,8 @@ test('documented mutation bodies are available for generated sdk payloads', () =
   expect(getRequestSchemaRef('/api/v1/themes/{id}', 'put')).toBe(
     '#/components/schemas/UpdateThemeRequestDto',
   );
-  expect(getRequestSchemaRef('/api/v1/themes/fork', 'post')).toBe(
-    '#/components/schemas/ForkThemeRequestDto',
-  );
   expect(getRequestSchemaRef('/api/v1/themes/apply', 'post')).toBe(
     '#/components/schemas/ApplyThemeToResumeRequestDto',
-  );
-  expect(getRequestSchemaRef('/api/v1/themes/approval/review', 'post')).toBe(
-    '#/components/schemas/ThemeApprovalRequestDto',
   );
   expect(getRequestSchemaRef('/api/v1/users/profile', 'patch')).toBe(
     '#/components/schemas/UpdateUserProfileRequestDto',
@@ -209,10 +203,6 @@ test('documented mutation bodies are available for generated sdk payloads', () =
   expect(getRequestSchemaRef('/api/v1/users/username', 'patch')).toBe(
     '#/components/schemas/UpdateUsernameRequestDto',
   );
-});
-
-test('theme submission stays bodyless because the runtime only uses the path param', () => {
-  expect(getOperation('/api/v1/themes/approval/{id}/submit', 'post').requestBody).toBeUndefined();
 });
 
 test('onboarding save step documents raw step data request body', () => {

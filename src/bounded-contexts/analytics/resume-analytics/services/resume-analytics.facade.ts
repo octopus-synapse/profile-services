@@ -160,6 +160,7 @@ export class ResumeAnalyticsFacade {
   private calculateChangePercent(points: ScoreProgressionPoint[]): number {
     if (points.length < 2) return 0;
     const first = points[0].score;
+    if (first === 0) return 0;
     return Math.round(((points[points.length - 1].score - first) / first) * 100);
   }
 

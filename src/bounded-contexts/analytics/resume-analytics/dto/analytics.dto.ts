@@ -45,7 +45,6 @@ const TrendEnum = z.enum(['improving', 'stable', 'declining']);
 // ============================================================================
 
 const TrackViewRequestSchema = z.object({
-  resumeId: z.string().min(1),
   userAgent: z.string().optional(),
   referer: z.string().optional(),
 });

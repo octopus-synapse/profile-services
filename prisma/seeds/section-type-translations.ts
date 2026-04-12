@@ -23,7 +23,7 @@ export const sectionTypeTranslations: Record<string, SectionTypeTranslations> = 
     en: {
       title: 'Work Experience',
       description: 'Professional work history and employment',
-      label: 'work',
+      label: 'Work Experience',
       noDataLabel: "I don't have work experience to add right now",
       placeholder: 'Add your professional experience...',
       addLabel: 'Add Experience',
@@ -31,7 +31,7 @@ export const sectionTypeTranslations: Record<string, SectionTypeTranslations> = 
     'pt-BR': {
       title: 'Experiência Profissional',
       description: 'Histórico de trabalho e empregos',
-      label: 'trabalho',
+      label: 'Trabalho',
       noDataLabel: 'Não tenho experiência profissional para adicionar agora',
       placeholder: 'Adicione sua experiência profissional...',
       addLabel: 'Adicionar Experiência',
@@ -39,7 +39,7 @@ export const sectionTypeTranslations: Record<string, SectionTypeTranslations> = 
     es: {
       title: 'Experiencia Laboral',
       description: 'Historial de trabajo y empleo',
-      label: 'trabajo',
+      label: 'Trabajo',
       noDataLabel: 'No tengo experiencia laboral para agregar ahora',
       placeholder: 'Agrega tu experiencia profesional...',
       addLabel: 'Agregar Experiencia',
@@ -50,7 +50,7 @@ export const sectionTypeTranslations: Record<string, SectionTypeTranslations> = 
     en: {
       title: 'Education',
       description: 'Academic history and qualifications',
-      label: 'edu',
+      label: 'Education',
       noDataLabel: "I don't have education to add right now",
       placeholder: 'Add your education...',
       addLabel: 'Add Education',
@@ -58,7 +58,7 @@ export const sectionTypeTranslations: Record<string, SectionTypeTranslations> = 
     'pt-BR': {
       title: 'Formação Acadêmica',
       description: 'Histórico acadêmico e qualificações',
-      label: 'formação',
+      label: 'Formação',
       noDataLabel: 'Não tenho formação acadêmica para adicionar agora',
       placeholder: 'Adicione sua formação acadêmica...',
       addLabel: 'Adicionar Formação',
@@ -66,7 +66,7 @@ export const sectionTypeTranslations: Record<string, SectionTypeTranslations> = 
     es: {
       title: 'Educación',
       description: 'Historial académico y calificaciones',
-      label: 'educación',
+      label: 'Educación',
       noDataLabel: 'No tengo educación para agregar ahora',
       placeholder: 'Agrega tu educación...',
       addLabel: 'Agregar Educación',
@@ -77,7 +77,7 @@ export const sectionTypeTranslations: Record<string, SectionTypeTranslations> = 
     en: {
       title: 'Skills',
       description: 'Technical and professional skills',
-      label: 'skills',
+      label: 'Skills',
       noDataLabel: "I'm still developing my skills",
       placeholder: 'Add your skills...',
       addLabel: 'Add Skill',
@@ -85,7 +85,7 @@ export const sectionTypeTranslations: Record<string, SectionTypeTranslations> = 
     'pt-BR': {
       title: 'Habilidades',
       description: 'Habilidades técnicas e profissionais',
-      label: 'habilidades',
+      label: 'Habilidades',
       noDataLabel: 'Ainda estou desenvolvendo minhas habilidades',
       placeholder: 'Adicione suas habilidades...',
       addLabel: 'Adicionar Habilidade',
@@ -93,7 +93,7 @@ export const sectionTypeTranslations: Record<string, SectionTypeTranslations> = 
     es: {
       title: 'Habilidades',
       description: 'Habilidades técnicas y profesionales',
-      label: 'habilidades',
+      label: 'Habilidades',
       noDataLabel: 'Todavía estoy desarrollando mis habilidades',
       placeholder: 'Agrega tus habilidades...',
       addLabel: 'Agregar Habilidad',
@@ -104,7 +104,7 @@ export const sectionTypeTranslations: Record<string, SectionTypeTranslations> = 
     en: {
       title: 'Languages',
       description: 'Spoken languages and proficiency levels',
-      label: 'languages',
+      label: 'Languages',
       noDataLabel: "I don't have additional languages to add",
       placeholder: 'Add languages you speak...',
       addLabel: 'Add Language',
@@ -112,7 +112,7 @@ export const sectionTypeTranslations: Record<string, SectionTypeTranslations> = 
     'pt-BR': {
       title: 'Idiomas',
       description: 'Idiomas falados e níveis de proficiência',
-      label: 'idiomas',
+      label: 'Idiomas',
       noDataLabel: 'Não tenho idiomas adicionais para adicionar',
       placeholder: 'Adicione os idiomas que você fala...',
       addLabel: 'Adicionar Idioma',
@@ -120,7 +120,7 @@ export const sectionTypeTranslations: Record<string, SectionTypeTranslations> = 
     es: {
       title: 'Idiomas',
       description: 'Idiomas hablados y niveles de competencia',
-      label: 'idiomas',
+      label: 'Idiomas',
       noDataLabel: 'No tengo idiomas adicionales para agregar',
       placeholder: 'Agrega los idiomas que hablas...',
       addLabel: 'Agregar Idioma',

@@ -6,7 +6,7 @@
 
 interface StoredSender {
   id: string;
-  displayName: string | null;
+  name: string | null;
   photoURL: string | null;
 }
 
@@ -192,7 +192,7 @@ export class InMemoryMessageRepository {
     }
     const sender: StoredSender = {
       id: senderId,
-      displayName: `User ${senderId}`,
+      name: `User ${senderId}`,
       photoURL: null,
     };
     this.senders.set(senderId, sender);
@@ -202,7 +202,7 @@ export class InMemoryMessageRepository {
   seedSender(sender: Partial<StoredSender> & { id: string }): void {
     this.senders.set(sender.id, {
       id: sender.id,
-      displayName: sender.displayName ?? `User ${sender.id}`,
+      name: sender.name ?? `User ${sender.id}`,
       photoURL: sender.photoURL ?? null,
     });
   }

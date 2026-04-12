@@ -1,0 +1,106 @@
+/**
+ * Activity Feed SSE Controller
+ *
+ * Provides Server-Sent Events (SSE) for real-time activity feed updates.
+ * Replaces HTTP polling with push-based updates.
+ *
+ * Martin Fowler: "Push beats polling for real-time data."
+ */
+
+import { Controller, MessageEvent, Param, Sse } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { filter, fromEvent, map, Observable } from 'rxjs';
+import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
+import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
+import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import { Permission, RequirePermission } from '@/shared-kernel/authorization';
+import type { ActivityType } from '../application/ports/activity.port';
+
+interface ActivityFeedEvent {
+  id: string;
+  userId: string;
+  type: ActivityType;
+  metadata: Record<string, string | number | boolean | null>;
+  entityId: string | null;
+  entityType: string | null;
+  createdAt: Date;
+  user?: {
+    id: string;
+    name: string | null;
+    username: string | null;
+    photoURL: string | null;
+  };
+}
+
+@SdkExport({
+  tag: 'social',
+  description: 'Social Activity Feed API',
+  requiresAuth: true,
+})
+@ApiTags('Social Feed')
+@ApiBearerAuth()
+@Controller('v1/feed')
+export class ActivityFeedSseController {
+  constructor(private readonly eventEmitter: EventEmitter2) {}
+
+  /**
+   * Subscribe to activity feed updates via SSE.
+   * Emits new activities from followed users in real-time.
+   *
+   * Usage:
+   * ```typescript
+   * const eventSource = new EventSource('/v1/feed/subscribe', {
+   *   headers: { Authorization: 'Bearer token' }
+   * });
+   * eventSource.onmessage = (event) => {
+   *   const activity = JSON.parse(event.data);
+   *   console.log('New activity:', activity);
+   * };
+   * ```
+   */
+  @Sse('subscribe')
+  @RequirePermission(Permission.SOCIAL_USE)
+  @ApiOperation({
+    summary: 'Subscribe to activity feed stream',
+    description: 'Streams real-time feed updates for the authenticated user.',
+  })
+  subscribeToFeed(@CurrentUser() user: UserPayload): Observable<MessageEvent> {
+    // Listen to activity events for this user's feed
+    return fromEvent<ActivityFeedEvent>(this.eventEmitter, `feed:user:${user.userId}`).pipe(
+      filter((activity): activity is ActivityFeedEvent => Boolean(activity)),
+      map((activity) => ({
+        data: activity,
+        id: activity.id,
+        type: 'activity',
+        retry: 10000, // Retry after 10s if connection drops
+      })),
+    );
+  }
+
+  /**
+   * Subscribe to specific activity types via SSE.
+   * Allows filtering to specific activity types (e.g., only RESUME_CREATED).
+   */
+  @Sse('subscribe/:type')
+  @RequirePermission(Permission.SOCIAL_USE)
+  @ApiOperation({
+    summary: 'Subscribe to activity type stream',
+    description: 'Streams real-time feed updates filtered by activity type.',
+  })
+  @ApiParam({ name: 'type', type: 'string' })
+  subscribeToActivityType(
+    @CurrentUser() user: UserPayload,
+    @Param('type') type: ActivityType,
+  ): Observable<MessageEvent> {
+    return fromEvent<ActivityFeedEvent>(this.eventEmitter, `feed:user:${user.userId}`).pipe(
+      filter((activity) => activity.type === type),
+      map((activity) => ({
+        data: activity,
+        id: activity.id,
+        type: 'activity',
+        retry: 10000,
+      })),
+    );
+  }
+}

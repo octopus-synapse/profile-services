@@ -4,17 +4,12 @@ import type { Request } from 'express';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
+import { VERIFY_AND_ENABLE_2FA_PORT } from '../../application/ports';
 import {
   VerifyAndEnable2faRequestDto,
   VerifyAndEnable2faResponseDto,
 } from '../../application/use-cases/verify-and-enable-2fa/verify-and-enable-2fa.dto';
-import { VerifyAndEnable2faUseCase } from '../../application/use-cases/verify-and-enable-2fa/verify-and-enable-2fa.use-case';
-import { HASH_SERVICE_PORT, type HashServicePort } from '../../domain/ports/hash-service.port';
-import { TOTP_SERVICE_PORT, type TotpServicePort } from '../../domain/ports/totp-service.port';
-import {
-  TWO_FACTOR_REPOSITORY_PORT,
-  type TwoFactorRepositoryPort,
-} from '../../domain/ports/two-factor.repository.port';
+import type { VerifyAndEnable2faUseCase } from '../../application/use-cases/verify-and-enable-2fa/verify-and-enable-2fa.use-case';
 
 interface AuthenticatedRequest extends Request {
   user: { id: string };
@@ -29,18 +24,10 @@ interface AuthenticatedRequest extends Request {
 @ApiBearerAuth()
 @Controller('auth/2fa')
 export class VerifyAndEnable2faController {
-  private readonly useCase: VerifyAndEnable2faUseCase;
-
   constructor(
-    @Inject(TWO_FACTOR_REPOSITORY_PORT)
-    repository: TwoFactorRepositoryPort,
-    @Inject(TOTP_SERVICE_PORT)
-    totpService: TotpServicePort,
-    @Inject(HASH_SERVICE_PORT)
-    hashService: HashServicePort,
-  ) {
-    this.useCase = new VerifyAndEnable2faUseCase(repository, totpService, hashService);
-  }
+    @Inject(VERIFY_AND_ENABLE_2FA_PORT)
+    private readonly useCase: VerifyAndEnable2faUseCase,
+  ) {}
 
   @Post('verify')
   @HttpCode(HttpStatus.OK)

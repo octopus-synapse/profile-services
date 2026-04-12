@@ -185,12 +185,8 @@ const CACHE_SERVICE_PROPERTY = 'cacheService';
  * ```
  */
 export function Cacheable(options: CacheableOptions): MethodDecorator {
-  return <T>(
-    _target: object,
-    _propertyKey: string | symbol,
-    descriptor: TypedPropertyDescriptor<T>,
-  ): TypedPropertyDescriptor<T> | undefined => {
-    const originalMethod = descriptor.value as (...args: unknown[]) => Promise<unknown>;
+  return (_target: object, _propertyKey: string | symbol, descriptor: PropertyDescriptor): void => {
+    const originalMethod = descriptor.value;
 
     if (typeof originalMethod !== 'function') {
       throw new Error(`@Cacheable can only be applied to methods. Got: ${typeof originalMethod}`);
@@ -201,7 +197,7 @@ export function Cacheable(options: CacheableOptions): MethodDecorator {
 
       // If no cache service, just call the original method
       if (!cacheService) {
-        return originalMethod.apply(this, args) as unknown;
+        return Reflect.apply(originalMethod, this, args);
       }
 
       const cacheKey = buildCacheKey(options.key, args);
@@ -217,7 +213,7 @@ export function Cacheable(options: CacheableOptions): MethodDecorator {
       }
 
       // Call original method
-      const result: unknown = await originalMethod.apply(this, args);
+      const result: unknown = await Reflect.apply(originalMethod, this, args);
 
       // Cache the result (fire-and-forget, don't fail on cache write errors)
       try {
@@ -233,8 +229,6 @@ export function Cacheable(options: CacheableOptions): MethodDecorator {
       }
 
       return result;
-    } as unknown as T;
-
-    return descriptor;
+    };
   };
 }

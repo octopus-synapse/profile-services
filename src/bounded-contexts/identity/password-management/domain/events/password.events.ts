@@ -12,6 +12,10 @@ export class PasswordResetRequestedEvent extends DomainEvent {
   readonly eventType = 'password.reset.requested';
   readonly aggregateId: string;
 
+  get payload(): Record<string, unknown> {
+    return this.getPayload();
+  }
+
   constructor(
     public readonly userId: string,
     public readonly email: string,
@@ -36,6 +40,10 @@ export class PasswordResetRequestedEvent extends DomainEvent {
 export class PasswordChangedEvent extends DomainEvent {
   readonly eventType = 'password.changed';
   readonly aggregateId: string;
+
+  get payload(): Record<string, unknown> {
+    return this.getPayload();
+  }
 
   constructor(
     public readonly userId: string,

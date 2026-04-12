@@ -7,7 +7,6 @@
 import { setDefaultTimeout } from 'bun:test';
 import type { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import cookieParser from 'cookie-parser';
 import { AppModule } from '@/app.module';
 import {
   configureExceptionHandling,
@@ -15,6 +14,7 @@ import {
 } from '@/bounded-contexts/platform/common/config/validation.config';
 import { EmailSenderService } from '@/bounded-contexts/platform/common/email/services/email-sender.service';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import { parseCookieHeader } from '@/bounded-contexts/platform/common/middleware/cookie-parser.middleware';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { AuthHelper } from './helpers/auth.helper';
 import { CleanupHelper } from './helpers/cleanup.helper';
@@ -67,8 +67,17 @@ export async function createE2ETestApp(): Promise<{
   const app = moduleFixture.createNestApplication();
   app.setGlobalPrefix('api');
 
-  // Cookie parser for session-based auth testing
-  app.use(cookieParser());
+  // Cookie parser for session-based auth testing — uses lightweight built-in middleware
+  app.use(
+    (
+      req: { cookies?: Record<string, string>; headers: { cookie?: string } },
+      _res: unknown,
+      next: () => void,
+    ) => {
+      req.cookies ??= parseCookieHeader(req.headers.cookie);
+      next();
+    },
+  );
 
   // Apply same configuration as main.ts
   const logger = app.get(AppLoggerService);

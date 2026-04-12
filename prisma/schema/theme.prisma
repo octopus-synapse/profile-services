@@ -32,6 +32,9 @@ model ResumeTheme {
   rejectionReason String?   @db.Text
   rejectionCount  Int       @default(0) // BUG-007 FIX: Track rejection count for resubmission limit
 
+  // ATS compatibility score (0-100), calculated on create/update
+  atsScore Int?
+
   // Stats
   usageCount  Int    @default(0)
   rating      Float?

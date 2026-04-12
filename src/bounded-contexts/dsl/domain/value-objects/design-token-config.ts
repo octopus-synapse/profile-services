@@ -7,6 +7,12 @@ export const FONT_FAMILIES: Record<string, string> = {
   'source-serif': 'Source Serif Pro, Georgia, serif',
   lato: 'Lato, Arial, sans-serif',
   poppins: 'Poppins, Arial, sans-serif',
+  calibri: 'Calibri, Arial, sans-serif',
+  georgia: 'Georgia, serif',
+  arial: 'Arial, Helvetica, sans-serif',
+  'times-new-roman': 'Times New Roman, Times, serif',
+  garamond: 'Garamond, Georgia, serif',
+  cambria: 'Cambria, Georgia, serif',
 };
 
 export const FONT_SIZES: Record<string, { base: number; heading: number }> = {

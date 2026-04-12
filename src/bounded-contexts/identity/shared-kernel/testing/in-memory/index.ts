@@ -2,6 +2,8 @@ export type { AuditEntry, ExportAuditEntry } from './in-memory-audit-logger';
 export { InMemoryAuditLogger } from './in-memory-audit-logger';
 export { InMemoryConsentRepository } from './in-memory-consent.repository';
 export { InMemoryDataExportRepository } from './in-memory-data-export.repository';
+export type { PublishedEvent } from './in-memory-event-bus';
+export { InMemoryEventBus } from './in-memory-event-bus';
 export { InMemoryPasswordRepository } from './in-memory-password.repository';
 export { InMemoryTwoFactorRepository } from './in-memory-two-factor.repository';
 export { InMemoryUserManagementRepository } from './in-memory-user-management.repository';

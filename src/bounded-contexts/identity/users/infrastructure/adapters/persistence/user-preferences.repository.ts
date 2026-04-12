@@ -55,13 +55,13 @@ export class UserPreferencesRepository extends UserPreferencesRepositoryPort {
       },
     });
 
-    // Update User fields if provided (displayName, photoURL are on User model)
-    if (data.displayName !== undefined || data.photoURL !== undefined) {
+    // Update User fields if provided (name, photoURL are on User model)
+    if (data.name !== undefined || data.photoURL !== undefined) {
       await this.prisma.user.update({
         where: { id: userId },
         data: {
-          ...(data.displayName !== undefined && {
-            displayName: data.displayName,
+          ...(data.name !== undefined && {
+            name: data.name,
           }),
           ...(data.photoURL !== undefined && { image: data.photoURL }),
         },

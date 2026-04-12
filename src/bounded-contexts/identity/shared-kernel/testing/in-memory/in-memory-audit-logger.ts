@@ -5,8 +5,10 @@
  * Stores audit entries in memory for verification.
  */
 
-import type { AuditAction } from '@prisma/client';
-import type { AuditLoggerPort } from '../../../account-lifecycle/domain/ports/audit-logger.port';
+import type {
+  AuditAction,
+  AuditLoggerPort,
+} from '../../../account-lifecycle/domain/ports/audit-logger.port';
 
 export interface AuditEntry {
   userId: string;

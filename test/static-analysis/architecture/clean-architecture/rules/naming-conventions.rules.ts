@@ -51,12 +51,14 @@ export function checkRepositoryFileNaming(): RuleResult {
         if (!directoryExists(repoPath)) continue;
 
         const allFiles = getFilesInDirectory(repoPath, '.ts').filter((f) => f !== 'index.ts');
-        // Allow .repository.ts, .adapter.ts, .service.ts (for legacy adapters)
+        // Allow .repository.ts, .adapter.ts, .service.ts, .spec.ts, index.ts
         const invalidFiles = allFiles.filter(
           (f) =>
             !f.endsWith('.repository.ts') &&
             !f.endsWith('.adapter.ts') &&
-            !f.endsWith('.service.ts'),
+            !f.endsWith('.service.ts') &&
+            !f.endsWith('.spec.ts') &&
+            f !== 'index.ts',
         );
 
         for (const file of invalidFiles) {

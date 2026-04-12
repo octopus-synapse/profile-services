@@ -33,11 +33,11 @@ export class StubEventBus implements EventBusPort {
     return this.events.map((e) => e.event);
   }
 
-  getEventsByType<T extends DomainEvent>(type: new (...args: unknown[]) => T): T[] {
+  getEventsByType<T extends DomainEvent>(type: abstract new (...args: never[]) => T): T[] {
     return this.events.filter((e) => e.event instanceof type).map((e) => e.event as T);
   }
 
-  hasPublished<T extends DomainEvent>(type: new (...args: unknown[]) => T): boolean {
+  hasPublished<T extends DomainEvent>(type: abstract new (...args: never[]) => T): boolean {
     return this.events.some((e) => e.event instanceof type);
   }
 

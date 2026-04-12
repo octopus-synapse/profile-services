@@ -3,25 +3,30 @@
  * No authentication required
  */
 
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Controller, Get, Param, Query, Res } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import type { Response } from 'express';
 import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure/decorators/public.decorator';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
-import type { QueryThemes } from '@/shared-kernel';
+import { QueryThemesDto } from '@/shared-kernel';
 import {
   ThemeListDataDto,
   ThemeNullableEntityDataDto,
   ThemePaginatedListDataDto,
 } from '../dto/controller-response.dto';
+import { ThemePreviewService } from '../infrastructure/adapters/theme-preview.adapter';
 import { ThemeQueryService } from '../services';
 
 @SdkExport({ tag: 'themes', description: 'Themes API' })
 @ApiTags('themes')
 @Controller('v1/themes')
 export class PublicThemeController {
-  constructor(private queryService: ThemeQueryService) {}
+  constructor(
+    private queryService: ThemeQueryService,
+    private previewService: ThemePreviewService,
+  ) {}
 
   @Get()
   @Public()
@@ -30,7 +35,7 @@ export class PublicThemeController {
     description: 'Published themes returned',
   })
   async findAllThemesWithPagination(
-    @Query() queryOptions: QueryThemes,
+    @Query() queryOptions: QueryThemesDto,
   ): Promise<DataResponse<ThemePaginatedListDataDto>> {
     const themes = await this.queryService.findAllThemesWithPagination(queryOptions);
 
@@ -71,6 +76,32 @@ export class PublicThemeController {
         themes,
       },
     };
+  }
+
+  @Get(':themeId/preview.pdf')
+  @Public()
+  @ApiOperation({ summary: 'Get or generate theme preview PDF' })
+  async getThemePreview(@Param('themeId') themeId: string, @Res() res: Response): Promise<void> {
+    const theme = await this.queryService.findThemeById(themeId);
+    if (!theme) {
+      res.status(404).json({ success: false, message: 'Theme not found' });
+      return;
+    }
+
+    // If preview exists, redirect to MinIO
+    if (theme.thumbnailUrl) {
+      res.redirect(302, theme.thumbnailUrl);
+      return;
+    }
+
+    // Generate on-demand
+    const url = await this.previewService.generateAndUploadPreview(themeId);
+    if (url) {
+      res.redirect(302, url);
+      return;
+    }
+
+    res.status(503).json({ success: false, message: 'Preview generation unavailable' });
   }
 
   @Get(':id')

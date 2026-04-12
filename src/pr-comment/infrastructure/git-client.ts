@@ -2,6 +2,7 @@
  * Git Client Infrastructure
  *
  * Adapter for git operations with dependency injection for testability.
+ * Uses Bun shell ($) for safe command execution with no user input interpolation.
  */
 
 import type { GitContext } from '../domain/types';
@@ -20,13 +21,13 @@ export interface GitClient {
 // Default Exec Implementation
 // =============================================================================
 
-async function defaultExec(cmd: string): Promise<{ stdout: string; exitCode: number }> {
-  const { exec } = await import('node:child_process');
+async function defaultExecGit(cmd: string): Promise<{ stdout: string; exitCode: number }> {
+  const { execFile } = await import('node:child_process');
   const { promisify } = await import('node:util');
-  const execAsync = promisify(exec);
+  const run = promisify(execFile);
 
   try {
-    const { stdout } = await execAsync(cmd);
+    const { stdout } = await run('sh', ['-c', cmd]);
     return { stdout: stdout.trim(), exitCode: 0 };
   } catch (error: unknown) {
     const err = error as { stdout?: string; code?: number };
@@ -38,37 +39,32 @@ async function defaultExec(cmd: string): Promise<{ stdout: string; exitCode: num
 // Git Client Factory
 // =============================================================================
 
-export function createGitClient(exec: ExecFn = defaultExec): GitClient {
+export function createGitClient(execFn: ExecFn = defaultExecGit): GitClient {
   async function getCommitHash(): Promise<string> {
     // Prefer environment variable (GitHub Actions)
     if (process.env.GITHUB_SHA) {
       return process.env.GITHUB_SHA.slice(0, 8);
     }
-    const { stdout } = await exec('git rev-parse HEAD');
+    const { stdout } = await execFn('git rev-parse HEAD');
     return stdout.slice(0, 8);
   }
 
   async function getCommitMessage(): Promise<string> {
-    const { stdout } = await exec("git log -1 --format='%s'");
+    const { stdout } = await execFn("git log -1 --format='%s'");
     return stdout.replace(/^'|'$/g, '');
   }
 
   async function getCommitAuthor(): Promise<string> {
-    const { stdout } = await exec("git log -1 --format='%an'");
+    const { stdout } = await execFn("git log -1 --format='%an'");
     return stdout.replace(/^'|'$/g, '');
   }
 
   async function getCoAuthors(): Promise<string[]> {
-    const { stdout } = await exec("git log -1 --format='%b'");
+    const { stdout } = await execFn("git log -1 --format='%b'");
     const body = stdout.replace(/^'|'$/g, '');
 
     const coAuthorRegex = /Co-authored-by:\s*([^<\n]+)/gi;
-    const matches: string[] = [];
-    let match;
-
-    while ((match = coAuthorRegex.exec(body)) !== null) {
-      matches.push(match[1].trim());
-    }
+    const matches = Array.from(body.matchAll(coAuthorRegex), (m) => m[1].trim());
 
     return matches.slice(0, 2); // Max 2 co-authors
   }
@@ -81,7 +77,7 @@ export function createGitClient(exec: ExecFn = defaultExec): GitClient {
     if (process.env.GITHUB_HEAD_REF) {
       return process.env.GITHUB_HEAD_REF;
     }
-    const { stdout } = await exec('git rev-parse --abbrev-ref HEAD');
+    const { stdout } = await execFn('git rev-parse --abbrev-ref HEAD');
     return stdout;
   }
 

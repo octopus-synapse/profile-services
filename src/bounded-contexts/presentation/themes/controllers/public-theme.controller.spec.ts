@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
+import { ThemePreviewService } from '../infrastructure/adapters/theme-preview.adapter';
 import { ThemeQueryService } from '../services/theme-query.service';
 import { PublicThemeController } from './public-theme.controller';
 
@@ -22,7 +23,10 @@ describe('PublicThemeController - Contract', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [PublicThemeController],
-      providers: [{ provide: ThemeQueryService, useValue: createQueryService() }],
+      providers: [
+        { provide: ThemeQueryService, useValue: createQueryService() },
+        { provide: ThemePreviewService, useValue: { generatePreview: async () => null } },
+      ],
     }).compile();
 
     controller = module.get<PublicThemeController>(PublicThemeController);

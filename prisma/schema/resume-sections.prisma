@@ -32,10 +32,15 @@ model SectionType {
   // Format: { "en": { "title": "...", "label": "...", ... }, "pt-BR": { ... }, "es": { ... } }
   translations Json @default("{}")
 
+  // Field examples for onboarding placeholders
+  // Format: { "company": ["Google", "Nubank", "iFood"], "role": ["Senior Developer", "Tech Lead"] }
+  examples Json @default("{}")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  resumeSections ResumeSection[]
+  resumeSections    ResumeSection[]
+  onboardingSteps   OnboardingStep[]
 
   @@unique([slug, version])
   @@index([semanticKind])

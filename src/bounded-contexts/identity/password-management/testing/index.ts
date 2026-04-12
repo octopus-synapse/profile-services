@@ -13,6 +13,7 @@ import type {
   PasswordRepositoryPort,
   PasswordResetEmailPort,
   PasswordResetTokenPort,
+  SessionInvalidationPort,
   UserWithPassword,
 } from '../domain/ports';
 
@@ -204,6 +205,31 @@ export class InMemoryEmailSender implements PasswordResetEmailPort {
 
   getEmailCount(): number {
     return this.sentEmails.length;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// IN-MEMORY SESSION INVALIDATION
+// ═══════════════════════════════════════════════════════════════
+
+export class InMemorySessionInvalidation implements SessionInvalidationPort {
+  private invalidatedUsers: string[] = [];
+
+  async invalidateAllSessions(userId: string): Promise<void> {
+    this.invalidatedUsers.push(userId);
+  }
+
+  // Test helpers
+  clear(): void {
+    this.invalidatedUsers = [];
+  }
+
+  getInvalidations(): string[] {
+    return [...this.invalidatedUsers];
+  }
+
+  wasInvalidated(userId: string): boolean {
+    return this.invalidatedUsers.includes(userId);
   }
 }
 

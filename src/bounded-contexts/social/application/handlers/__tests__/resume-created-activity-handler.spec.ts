@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { ResumeCreatedEvent } from '@/bounded-contexts/resumes';
-import { ActivityService } from '../../../social/services/activity.service';
+import { ActivityService } from '../../../services/activity.service';
 import { ResumeCreatedActivityHandler } from '../resume-created-activity.handler';
 
 describe('ResumeCreatedActivityHandler', () => {

@@ -5,8 +5,8 @@
  * Stores data in memory using Map for O(1) lookups.
  */
 
-import type { ConsentDocumentType } from '@prisma/client';
 import type {
+  ConsentDocumentType,
   ConsentRecord,
   ConsentRepositoryPort,
   CreateConsentData,

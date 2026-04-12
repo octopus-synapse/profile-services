@@ -8,14 +8,14 @@
  * - Password hashing
  */
 
-import type { AuditAction, ConsentDocumentType } from '@prisma/client';
 import type {
   AccountData,
   AccountLifecycleRepositoryPort,
   CreateAccountData,
 } from '../domain/ports/account-lifecycle-repository.port';
-import type { AuditLoggerPort } from '../domain/ports/audit-logger.port';
+import type { AuditAction, AuditLoggerPort } from '../domain/ports/audit-logger.port';
 import type {
+  ConsentDocumentType,
   ConsentRecord,
   ConsentRepositoryPort,
   CreateConsentData,

@@ -95,7 +95,10 @@ describe('Export PDF Timeout & Security - Bug Discovery Tests', () => {
      * Test that unauthenticated requests are rejected
      */
     it('should reject export without authentication', async () => {
-      const response = await getRequest().get('/api/v1/export/resume/pdf').timeout(10000);
+      const response = await getRequest()
+        .get('/api/v1/export/resume/pdf')
+        .set('x-e2e-bypass-rate-limit', 'true')
+        .timeout(10000);
 
       // Should be 401 Unauthorized
       expect(response.status).toBe(401);
@@ -105,6 +108,7 @@ describe('Export PDF Timeout & Security - Bug Discovery Tests', () => {
       const response = await getRequest()
         .get('/api/v1/export/resume/pdf')
         .set('Authorization', 'Bearer invalid-token-12345')
+        .set('x-e2e-bypass-rate-limit', 'true')
         .timeout(10000);
 
       // Should be 401 Unauthorized
@@ -321,6 +325,7 @@ describe('Export PDF Timeout & Security - Bug Discovery Tests', () => {
       const response = await getRequest()
         .get('/api/v1/export/resume/pdf')
         .set('Authorization', `Bearer ${accessToken}`)
+        .set('x-e2e-bypass-rate-limit', 'true')
         .timeout(70000);
 
       // Should either succeed or fail gracefully

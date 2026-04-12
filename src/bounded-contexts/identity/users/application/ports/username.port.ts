@@ -17,8 +17,19 @@ export type UsernameAvailability = {
   available: boolean;
 };
 
+export type UsernameValidationErrorCode =
+  | 'TOO_SHORT'
+  | 'TOO_LONG'
+  | 'INVALID_FORMAT'
+  | 'INVALID_START'
+  | 'INVALID_END'
+  | 'CONSECUTIVE_UNDERSCORES'
+  | 'RESERVED'
+  | 'UPPERCASE'
+  | 'ALREADY_TAKEN';
+
 export type UsernameValidationError = {
-  code: string;
+  code: UsernameValidationErrorCode;
   message: string;
 };
 

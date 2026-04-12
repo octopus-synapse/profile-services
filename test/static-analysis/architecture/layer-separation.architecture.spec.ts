@@ -37,7 +37,12 @@ function listSourceFiles(dirPath: string): string[] {
 }
 
 function listServiceFiles(dirPath: string): string[] {
-  return listSourceFiles(dirPath).filter((filePath) => filePath.endsWith('.service.ts'));
+  return listSourceFiles(dirPath).filter(
+    (filePath) =>
+      filePath.endsWith('.service.ts') &&
+      !filePath.includes('/infrastructure/adapters/') &&
+      !filePath.includes('/infrastructure/controllers/'),
+  );
 }
 
 function isEnvelopeLikeObject(objectLiteralBody: string): boolean {

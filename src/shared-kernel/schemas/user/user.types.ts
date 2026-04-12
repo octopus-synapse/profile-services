@@ -149,7 +149,6 @@ export const UserDetailsSchema = z.object({
   email: z.string().email(),
   name: z.string().nullable(),
   username: z.string().nullable(),
-  displayName: z.string().nullable(),
   photoURL: z.string().url().nullable(),
   bio: z.string().nullable(),
   location: z.string().nullable(),

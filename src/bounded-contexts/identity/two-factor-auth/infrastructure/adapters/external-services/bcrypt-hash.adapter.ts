@@ -1,22 +1,21 @@
 /**
  * Bcrypt Hash Adapter
  *
- * Implementation of HashServicePort using bcrypt library.
+ * Implementation of HashServicePort using Bun.password.
  */
 
 import { Injectable } from '@nestjs/common';
-import * as bcrypt from 'bcryptjs';
 import type { HashServicePort } from '../../../domain/ports/hash-service.port';
 
-const SALT_ROUNDS = 10;
+const BCRYPT_COST = 10;
 
 @Injectable()
 export class BcryptHashAdapter implements HashServicePort {
   async hash(value: string): Promise<string> {
-    return bcrypt.hash(value, SALT_ROUNDS);
+    return Bun.password.hash(value, { algorithm: 'bcrypt', cost: BCRYPT_COST });
   }
 
   async compare(value: string, hash: string): Promise<boolean> {
-    return bcrypt.compare(value, hash);
+    return Bun.password.verify(value, hash);
   }
 }

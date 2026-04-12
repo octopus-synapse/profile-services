@@ -4,12 +4,9 @@ import type { Request } from 'express';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
+import { GET_2FA_STATUS_PORT } from '../../application/ports';
 import { Get2faStatusResponseDto } from '../../application/use-cases/get-2fa-status/get-2fa-status.dto';
-import { Get2faStatusUseCase } from '../../application/use-cases/get-2fa-status/get-2fa-status.use-case';
-import {
-  TWO_FACTOR_REPOSITORY_PORT,
-  type TwoFactorRepositoryPort,
-} from '../../domain/ports/two-factor.repository.port';
+import type { Get2faStatusUseCase } from '../../application/use-cases/get-2fa-status/get-2fa-status.use-case';
 
 interface AuthenticatedRequest extends Request {
   user: { id: string };
@@ -24,14 +21,10 @@ interface AuthenticatedRequest extends Request {
 @ApiBearerAuth()
 @Controller('auth/2fa')
 export class Get2faStatusController {
-  private readonly useCase: Get2faStatusUseCase;
-
   constructor(
-    @Inject(TWO_FACTOR_REPOSITORY_PORT)
-    repository: TwoFactorRepositoryPort,
-  ) {
-    this.useCase = new Get2faStatusUseCase(repository);
-  }
+    @Inject(GET_2FA_STATUS_PORT)
+    private readonly useCase: Get2faStatusUseCase,
+  ) {}
 
   @Get('status')
   @ApiOperation({

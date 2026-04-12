@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
 import type { Request } from 'express';
-import { ResumeVersionServicePort } from '@/bounded-contexts/resumes/resumes/ports/resume-version-service.port';
+import { ResumeVersionServicePort } from '@/bounded-contexts/resumes/core/ports/resume-version-service.port';
 import { ResumeVersionController } from './resume-version.controller';
 
 /**

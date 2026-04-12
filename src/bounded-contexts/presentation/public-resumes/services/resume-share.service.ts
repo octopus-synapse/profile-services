@@ -5,7 +5,6 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import * as bcrypt from 'bcryptjs';
 import { nanoid } from 'nanoid';
 import { CacheCoreService } from '@/bounded-contexts/platform/common/cache/services/cache-core.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
@@ -50,7 +49,9 @@ export class ResumeShareService {
     }
 
     // Hash password if provided
-    const hashedPassword = dto.password ? await bcrypt.hash(dto.password, 10) : null;
+    const hashedPassword = dto.password
+      ? await Bun.password.hash(dto.password, { algorithm: 'bcrypt', cost: 10 })
+      : null;
 
     // Verify resume ownership
     const resume = await this.prisma.resume.findUnique({
@@ -152,7 +153,7 @@ export class ResumeShareService {
   }
 
   async verifyPassword(plaintext: string, hash: string): Promise<boolean> {
-    return bcrypt.compare(plaintext, hash);
+    return Bun.password.verify(plaintext, hash);
   }
 
   async deleteShare(userId: string, shareId: string) {

@@ -1,0 +1,67 @@
+/**
+ * GetUserActivitiesUseCase Tests
+ */
+
+import { beforeEach, describe, expect, it } from 'bun:test';
+import type { ActivityRepositoryPort, ActivityWithUser } from '../../ports/activity.port';
+import { ActivityType } from '../../ports/activity.port';
+import { GetUserActivitiesUseCase } from './get-user-activities.use-case';
+
+class StubActivityRepository {
+  private _data: ActivityWithUser[] = [];
+  private _total = 0;
+
+  setResult(data: ActivityWithUser[], total: number) {
+    this._data = data;
+    this._total = total;
+  }
+
+  async findUserActivities() {
+    return { data: this._data, total: this._total };
+  }
+  async createActivity() {
+    return {} as never;
+  }
+  async findActivityWithUser() {
+    return null;
+  }
+  async findActivitiesByUserIds() {
+    return { data: [], total: 0 };
+  }
+  async findUserActivitiesByType() {
+    return { data: [], total: 0 };
+  }
+  async deleteOlderThan() {
+    return 0;
+  }
+}
+
+describe('GetUserActivitiesUseCase', () => {
+  let useCase: GetUserActivitiesUseCase;
+  let repository: StubActivityRepository;
+
+  beforeEach(() => {
+    repository = new StubActivityRepository();
+    useCase = new GetUserActivitiesUseCase(repository as unknown as ActivityRepositoryPort);
+  });
+
+  it('should return activities for a specific user', async () => {
+    const activities: ActivityWithUser[] = [
+      {
+        id: 'a1',
+        userId: 'user-1',
+        type: ActivityType.RESUME_CREATED,
+        metadata: {},
+        entityId: null,
+        entityType: null,
+        createdAt: new Date(),
+      },
+    ];
+    repository.setResult(activities, 1);
+
+    const result = await useCase.execute('user-1', { page: 1, limit: 10 });
+
+    expect(result.data).toHaveLength(1);
+    expect(result.total).toBe(1);
+  });
+});

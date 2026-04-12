@@ -34,6 +34,7 @@ const UserListItemSchema = z.object({
   emailVerified: z.string().datetime().nullable(),
   resumeCount: z.number().int(),
   role: z.enum(['USER', 'ADMIN']),
+  isActive: z.boolean(),
   lastLoginAt: z.string().datetime().nullable(),
 });
 
@@ -71,6 +72,7 @@ const UserDetailsSchema = z.object({
   updatedAt: z.string().datetime(),
   image: z.string().nullable(),
   emailVerified: z.string().datetime().nullable(),
+  isActive: z.boolean(),
   resumes: z.array(UserResumeItemSchema),
   preferences: z.unknown().nullable(),
   counts: UserCountsSchema,

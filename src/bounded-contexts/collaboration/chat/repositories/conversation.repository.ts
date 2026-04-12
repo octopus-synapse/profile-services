@@ -21,7 +21,7 @@ export class ConversationRepository {
         participant1: {
           select: {
             id: true,
-            displayName: true,
+            name: true,
             photoURL: true,
             username: true,
           },
@@ -29,7 +29,7 @@ export class ConversationRepository {
         participant2: {
           select: {
             id: true,
-            displayName: true,
+            name: true,
             photoURL: true,
             username: true,
           },
@@ -45,7 +45,7 @@ export class ConversationRepository {
         participant1: {
           select: {
             id: true,
-            displayName: true,
+            name: true,
             photoURL: true,
             username: true,
           },
@@ -53,7 +53,7 @@ export class ConversationRepository {
         participant2: {
           select: {
             id: true,
-            displayName: true,
+            name: true,
             photoURL: true,
             username: true,
           },
@@ -72,7 +72,7 @@ export class ConversationRepository {
         participant1: {
           select: {
             id: true,
-            displayName: true,
+            name: true,
             photoURL: true,
             username: true,
           },
@@ -80,7 +80,7 @@ export class ConversationRepository {
         participant2: {
           select: {
             id: true,
-            displayName: true,
+            name: true,
             photoURL: true,
             username: true,
           },
@@ -109,7 +109,7 @@ export class ConversationRepository {
         participant1: {
           select: {
             id: true,
-            displayName: true,
+            name: true,
             photoURL: true,
             username: true,
           },
@@ -117,7 +117,7 @@ export class ConversationRepository {
         participant2: {
           select: {
             id: true,
-            displayName: true,
+            name: true,
             photoURL: true,
             username: true,
           },

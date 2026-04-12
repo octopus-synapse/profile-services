@@ -5,19 +5,19 @@
  * Following clean architecture - no Prisma, no mocks.
  */
 
-import type { OnboardingData } from '../onboarding/domain/schemas/onboarding-data.schema';
 import type {
   OnboardingStatus,
   TransactionClient,
   UserForOnboarding,
-} from '../onboarding/onboarding/ports/onboarding.port';
-import { OnboardingRepositoryPort } from '../onboarding/onboarding/ports/onboarding.port';
+} from '../domain/ports/onboarding.port';
+import { OnboardingRepositoryPort } from '../domain/ports/onboarding.port';
 import type {
   OnboardingProgressData,
   ProgressRecord,
   SectionProgressData,
-} from '../onboarding/services/onboarding-progress/ports/onboarding-progress.port';
-import { OnboardingProgressRepositoryPort } from '../onboarding/services/onboarding-progress/ports/onboarding-progress.port';
+} from '../domain/ports/onboarding-progress.port';
+import { OnboardingProgressRepositoryPort } from '../domain/ports/onboarding-progress.port';
+import type { OnboardingData } from '../domain/schemas/onboarding-data.schema';
 
 // ============================================================================
 // TYPES
@@ -28,7 +28,7 @@ export interface OnboardingUserData {
   hasCompletedOnboarding: boolean;
   onboardingCompletedAt: Date | null;
   username: string | null;
-  displayName: string | null;
+  name: string | null;
   phone: string | null;
   location: string | null;
   bio: string | null;
@@ -86,7 +86,7 @@ export class InMemoryOnboardingRepository extends OnboardingRepositoryPort {
       hasCompletedOnboarding: false,
       onboardingCompletedAt: null,
       username: null,
-      displayName: null,
+      name: null,
       phone: null,
       location: null,
       bio: null,
@@ -100,7 +100,7 @@ export class InMemoryOnboardingRepository extends OnboardingRepositoryPort {
       hasCompletedOnboarding: true,
       onboardingCompletedAt: new Date(),
       username: data.username,
-      displayName: data.personalInfo.fullName,
+      name: data.personalInfo.fullName,
       phone: data.personalInfo.phone ?? null,
       location: data.personalInfo.location ?? null,
       bio: data.professionalProfile.summary,
@@ -243,7 +243,7 @@ export function createOnboardingUser(
     hasCompletedOnboarding: false,
     onboardingCompletedAt: null,
     username: null,
-    displayName: null,
+    name: null,
     phone: null,
     location: null,
     bio: null,
@@ -310,7 +310,7 @@ export const DEFAULT_COMPLETED_ONBOARDING_USER: OnboardingUserData = createOnboa
   hasCompletedOnboarding: true,
   onboardingCompletedAt: new Date('2024-01-01'),
   username: 'completeduser',
-  displayName: 'Completed User',
+  name: 'Completed User',
   bio: 'A user who completed onboarding',
 });
 
@@ -324,3 +324,13 @@ export const DEFAULT_ONBOARDING_PROGRESS: OnboardingProgressRecord = createOnboa
     email: 'john@example.com',
   },
 });
+
+// ============================================================================
+// RE-EXPORTS
+// ============================================================================
+
+export { InMemoryOnboardingCompletion } from './in-memory-onboarding-completion';
+export {
+  DEFAULT_SECTION_TYPES,
+  InMemorySectionTypeDefinition,
+} from './in-memory-section-type-definition';

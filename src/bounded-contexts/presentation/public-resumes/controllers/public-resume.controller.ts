@@ -9,11 +9,12 @@ import {
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
-import { ShareAnalyticsService } from '@/bounded-contexts/analytics/share-analytics/services/share-analytics.service';
 import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
+import { EventPublisher } from '@/shared-kernel';
+import { ShareDownloadedEvent, ShareViewedEvent } from '../../shared-kernel/domain/events';
 import { PublicResumeDataDto } from '../dto/public-resume-response.dto';
 import { ResumeShareService } from '../services/resume-share.service';
 
@@ -28,7 +29,7 @@ import { ResumeShareService } from '../services/resume-share.service';
 export class PublicResumeController {
   constructor(
     private readonly shareService: ResumeShareService,
-    private readonly analyticsService: ShareAnalyticsService,
+    private readonly eventPublisher: EventPublisher,
   ) {}
 
   @Get(':slug')
@@ -76,13 +77,14 @@ export class PublicResumeController {
       req.socket.remoteAddress ??
       'unknown';
 
-    await this.analyticsService.trackEvent({
-      shareId: share.id,
-      event: 'VIEW',
-      ip,
-      userAgent: req.headers['user-agent'],
-      referer: req.headers.referer,
-    });
+    await this.eventPublisher.publishAsync(
+      new ShareViewedEvent(share.id, {
+        shareId: share.id,
+        ip,
+        userAgent: req.headers['user-agent'],
+        referer: req.headers.referer,
+      }),
+    );
 
     const resume = await this.shareService.getResumeWithCache(share.resumeId);
     const shareInfo = {
@@ -149,13 +151,14 @@ export class PublicResumeController {
       req.socket.remoteAddress ??
       'unknown';
 
-    void this.analyticsService.trackEvent({
-      shareId: share.id,
-      event: 'DOWNLOAD',
-      ip,
-      userAgent: req.headers['user-agent'],
-      referer: req.headers.referer,
-    });
+    this.eventPublisher.publish(
+      new ShareDownloadedEvent(share.id, {
+        shareId: share.id,
+        ip,
+        userAgent: req.headers['user-agent'],
+        referer: req.headers.referer,
+      }),
+    );
 
     const resume = await this.shareService.getResumeWithCache(share.resumeId);
     const shareInfo = {

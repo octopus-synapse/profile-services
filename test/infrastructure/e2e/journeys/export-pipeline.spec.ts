@@ -246,9 +246,10 @@ describe('E2E Journey 5: Export Pipeline', () => {
       const response = await request(app.getHttpServer())
         .get('/api/v1/export/resume/pdf')
         .set('Authorization', `Bearer ${testUser.token}`)
+        .set('x-e2e-bypass-rate-limit', 'true')
         .query({ palette: 'nonexistent-palette' });
 
-      // Should either succeed with default or return error
+      // Should either succeed with default palette or return client error
       expect([200, 400, 500]).toContain(response.status);
     }, 60000);
 
@@ -259,9 +260,10 @@ describe('E2E Journey 5: Export Pipeline', () => {
 
       const response = await request(app.getHttpServer())
         .get('/api/v1/export/resume/pdf')
-        .set('Authorization', `Bearer ${minimalResult.token}`);
+        .set('Authorization', `Bearer ${minimalResult.token}`)
+        .set('x-e2e-bypass-rate-limit', 'true');
 
-      // Should either succeed with empty resume or return error
+      // Should either succeed with empty resume or return client error
       expect([200, 400, 500]).toContain(response.status);
 
       // Cleanup minimal user

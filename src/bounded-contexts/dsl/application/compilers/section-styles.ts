@@ -1,4 +1,4 @@
-import type { ResolvedTokens } from '../../dsl/token-resolver.service';
+import type { ResolvedTokens } from '../../token-resolver.service';
 
 type TextDecoration = 'none' | 'underline' | 'line-through';
 type TextTransform = 'none' | 'uppercase' | 'lowercase' | 'capitalize';

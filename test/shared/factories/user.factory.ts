@@ -18,7 +18,6 @@ export interface CreateMockUserOptions {
   updatedAt?: Date;
   passwordHash?: string | null;
   image?: string | null;
-  displayName?: string | null;
   photoURL?: string | null;
   usernameUpdatedAt?: Date | null;
   phone?: string | null;
@@ -45,7 +44,6 @@ const defaultUser: User = {
   passwordHash: 'hashed-password',
   image: null,
   primaryResumeId: null,
-  displayName: null,
   photoURL: null,
   usernameUpdatedAt: null,
   phone: null,

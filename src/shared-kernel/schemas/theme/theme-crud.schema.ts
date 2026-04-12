@@ -5,6 +5,7 @@
  * Single source of truth for theme management.
  */
 
+import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import {
   ThemeCategorySchema,
@@ -44,6 +45,7 @@ export const CreateThemeSchema = z.object({
 });
 
 export type CreateTheme = z.infer<typeof CreateThemeSchema>;
+export class CreateThemeDto extends createZodDto(CreateThemeSchema) {}
 
 /**
  * Update Theme Schema
@@ -74,6 +76,8 @@ export const QueryThemesSchema = z.object({
 });
 
 export type QueryThemes = z.infer<typeof QueryThemesSchema>;
+
+export class QueryThemesDto extends createZodDto(QueryThemesSchema) {}
 
 /**
  * Theme Application Schema

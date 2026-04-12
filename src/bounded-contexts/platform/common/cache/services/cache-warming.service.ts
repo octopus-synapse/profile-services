@@ -147,7 +147,6 @@ export class CacheWarmingService {
           name: true,
           email: true,
           username: true,
-          displayName: true,
           bio: true,
           preferences: true,
         },

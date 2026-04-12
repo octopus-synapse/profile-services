@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { ShareAnalyticsService } from '@/bounded-contexts/analytics/share-analytics/services/share-analytics.service';
+import { EventPublisher } from '@/shared-kernel';
 import { ResumeShareService } from '../services/resume-share.service';
 import { PublicResumeController } from './public-resume.controller';
 
@@ -41,6 +42,7 @@ describe('PublicResumeController - Contract', () => {
       providers: [
         { provide: ResumeShareService, useValue: createShareService() },
         { provide: ShareAnalyticsService, useValue: createAnalyticsService() },
+        { provide: EventPublisher, useValue: { publish: () => {}, publishAsync: async () => {} } },
       ],
     }).compile();
 

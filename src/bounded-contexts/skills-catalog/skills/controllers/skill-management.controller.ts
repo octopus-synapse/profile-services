@@ -1,10 +1,10 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { PermissionGuard, RequirePermission } from '@/bounded-contexts/identity/authorization';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
+import { RequirePermission } from '@/shared-kernel/authorization';
 import { DeleteSkillDataDto, SkillDataDto, SkillsDataDto } from '../dto/controller-response.dto';
 import type {
   CreateSkillData,
@@ -15,7 +15,7 @@ import { SkillManagementService } from '../services/skill-management.service';
 @SdkExport({ tag: 'resume-skills', description: 'Resume skill management' })
 @ApiTags('Resume Skills')
 @Controller('v1/resumes/:resumeId/skills')
-@UseGuards(JwtAuthGuard, PermissionGuard)
+@UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
 export class SkillManagementController {
   constructor(private readonly skillManagementService: SkillManagementService) {}

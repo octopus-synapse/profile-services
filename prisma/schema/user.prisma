@@ -21,7 +21,6 @@ model User {
   // Profile fields
   username          String?   @unique
   usernameUpdatedAt DateTime?
-  displayName       String?
   photoURL          String?
   bio               String?   @db.Text
   location          String?

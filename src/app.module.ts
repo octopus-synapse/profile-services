@@ -8,26 +8,23 @@ import { SearchModule } from '@/bounded-contexts/analytics/search/search.module'
 import { ShareAnalyticsModule } from '@/bounded-contexts/analytics/share-analytics/share-analytics.module';
 // ATS Context
 import { ATSModule } from '@/bounded-contexts/ats-validation/ats/ats.module';
-import { ChatModule } from '@/bounded-contexts/collaboration/chat/chat.module';
 // Collaboration Context
-import { CollaborationModule } from '@/bounded-contexts/collaboration/collaboration/collaboration.module';
+import { CollaborationModule } from '@/bounded-contexts/collaboration/collaboration.module';
 // DSL Context
-import { DslModule } from '@/bounded-contexts/dsl/dsl/dsl.module';
+import { DslModule } from '@/bounded-contexts/dsl';
 // Export Context
-import { ExportModule } from '@/bounded-contexts/export/export/export.module';
+import { ExportModule } from '@/bounded-contexts/export/export.module';
 // Identity Context
 import { IdentityModule } from '@/bounded-contexts/identity';
 import { AuthorizationModule } from '@/bounded-contexts/identity/authorization/authorization.module';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure/guards/jwt-auth.guard';
 import { UsersModule } from '@/bounded-contexts/identity/users/users.module';
 // Import Context
-import { ResumeImportModule } from '@/bounded-contexts/import/resume-import/resume-import.module';
-import { GitHubModule } from '@/bounded-contexts/integration/integrations/github/github.module';
-import { MecSyncModule } from '@/bounded-contexts/integration/mec-sync/mec-sync.module';
+import { ImportModule } from '@/bounded-contexts/import';
 // Integration Context
-import { UploadModule } from '@/bounded-contexts/integration/upload/upload.module';
+import { IntegrationModule } from '@/bounded-contexts/integration';
 // Onboarding Context
-import { OnboardingModule } from '@/bounded-contexts/onboarding/onboarding/onboarding.module';
+import { OnboardingModule } from '@/bounded-contexts/onboarding';
 import { AuditLogModule } from '@/bounded-contexts/platform/common/audit/audit-log.module';
 import { CacheModule } from '@/bounded-contexts/platform/common/cache/cache.module';
 import { validate } from '@/bounded-contexts/platform/common/config/env.validation';
@@ -42,17 +39,14 @@ import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PublicResumesModule } from '@/bounded-contexts/presentation/public-resumes/public-resumes.module';
 // Presentation Context
 import { ThemesModule } from '@/bounded-contexts/presentation/themes/themes.module';
-import { ResumeVersionsModule } from '@/bounded-contexts/resumes/resume-versions/resume-versions.module';
 // Resumes Context
-import { ResumesModule } from '@/bounded-contexts/resumes/resumes/resumes.module';
-// Admin Modules
-import { AdminSectionTypesModule } from '@/bounded-contexts/resumes/section-types';
+import { ResumesModule } from '@/bounded-contexts/resumes';
 // Skills Catalog Context
 import { SkillsModule } from '@/bounded-contexts/skills-catalog/skills/skills.module';
 import { SpokenLanguagesModule } from '@/bounded-contexts/skills-catalog/spoken-languages/spoken-languages.module';
 import { TechSkillsModule } from '@/bounded-contexts/skills-catalog/tech-skills/tech-skills.module';
 // Social Context (Activity Feed)
-import { SocialModule } from '@/bounded-contexts/social/social/social.module';
+import { SocialModule } from '@/bounded-contexts/social/social.module';
 // Translation Context
 import { TranslationModule } from '@/bounded-contexts/translation';
 import { RATE_LIMIT_CONFIG } from '@/shared-kernel';
@@ -91,30 +85,23 @@ import { AppController } from './app.controller';
     IdentityModule,
     UsersModule,
     ResumesModule,
-    ResumeVersionsModule,
+    DslModule,
     OnboardingModule,
     ExportModule,
-    ResumeImportModule,
-    UploadModule,
-    GitHubModule,
+    ImportModule,
+    IntegrationModule,
     ThemesModule,
-    MecSyncModule,
     TechSkillsModule,
     SkillsModule,
     SpokenLanguagesModule,
     TranslationModule,
     ATSModule,
-    DslModule,
     PublicResumesModule,
     ShareAnalyticsModule,
     ResumeAnalyticsModule,
-    ChatModule,
     SearchModule,
     CollaborationModule,
     SocialModule,
-
-    // Admin Modules
-    AdminSectionTypesModule,
   ],
   controllers: [AppController],
   providers: [

@@ -37,7 +37,7 @@ describe('Smoke Tests - Application Bootstrap', () => {
     });
 
     it('should import ResumesModule', async () => {
-      const { ResumesModule } = await import('@/bounded-contexts/resumes/resumes/resumes.module');
+      const { ResumesModule } = await import('@/bounded-contexts/resumes');
       expect(ResumesModule).toBeDefined();
     });
 
@@ -52,9 +52,7 @@ describe('Smoke Tests - Application Bootstrap', () => {
     });
 
     it('should import OnboardingModule', async () => {
-      const { OnboardingModule } = await import(
-        '@/bounded-contexts/onboarding/onboarding/onboarding.module'
-      );
+      const { OnboardingModule } = await import('@/bounded-contexts/onboarding');
       expect(OnboardingModule).toBeDefined();
     });
 
@@ -64,13 +62,13 @@ describe('Smoke Tests - Application Bootstrap', () => {
   });
 
   describe('Core Services Imports', () => {
-    it('should import UsersService', async () => {
-      const { UsersService } = await import('@/bounded-contexts/identity/users');
-      expect(UsersService).toBeDefined();
+    it('should import UsersModule', async () => {
+      const { UsersModule } = await import('@/bounded-contexts/identity/users');
+      expect(UsersModule).toBeDefined();
     });
 
     it('should import ResumesService', async () => {
-      const { ResumesService } = await import('@/bounded-contexts/resumes/resumes/resumes.service');
+      const { ResumesService } = await import('@/bounded-contexts/resumes/core/resumes.service');
       expect(ResumesService).toBeDefined();
     });
 
@@ -123,40 +121,38 @@ describe('Smoke Tests - Application Bootstrap', () => {
 
   describe('Social Module Imports', () => {
     it('should import SocialModule', async () => {
-      const { SocialModule } = await import('@/bounded-contexts/social/social/social.module');
+      const { SocialModule } = await import('@/bounded-contexts/social/social.module');
       expect(SocialModule).toBeDefined();
     });
 
     it('should import FollowService', async () => {
-      const { FollowService } = await import(
-        '@/bounded-contexts/social/social/services/follow.service'
-      );
+      const { FollowService } = await import('@/bounded-contexts/social/services/follow.service');
       expect(FollowService).toBeDefined();
     });
 
     it('should import ActivityService', async () => {
       const { ActivityService } = await import(
-        '@/bounded-contexts/social/social/services/activity.service'
+        '@/bounded-contexts/social/services/activity.service'
       );
       expect(ActivityService).toBeDefined();
     });
 
     it('should import FollowController', async () => {
       const { FollowController } = await import(
-        '@/bounded-contexts/social/social/controllers/follow.controller'
+        '@/bounded-contexts/social/controllers/follow.controller'
       );
       expect(FollowController).toBeDefined();
     });
 
     it('should import ActivityController', async () => {
       const { ActivityController } = await import(
-        '@/bounded-contexts/social/social/controllers/activity.controller'
+        '@/bounded-contexts/social/controllers/activity.controller'
       );
       expect(ActivityController).toBeDefined();
     });
 
     it('should export all social features from index', async () => {
-      const social = await import('@/bounded-contexts/social/social');
+      const social = await import('@/bounded-contexts/social');
       expect(social.SocialModule).toBeDefined();
       expect(social.FollowService).toBeDefined();
       expect(social.ActivityService).toBeDefined();

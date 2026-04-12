@@ -2,20 +2,15 @@ import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
 import type { Socket } from 'socket.io';
-import { BlockedUserRepository } from '../repositories/blocked-user.repository';
+import { CHAT_USE_CASES } from '../application/ports/chat.port';
 import { ConversationRepository } from '../repositories/conversation.repository';
-import { MessageRepository } from '../repositories/message.repository';
-import { BlockService } from '../services/block.service';
-import { ChatService } from '../services/chat.service';
 import { ChatCacheService } from '../services/chat-cache.service';
 import {
   createMockBroadcastOperator,
   createMockServer,
   createMockSocket,
-  InMemoryBlockedUserRepository,
   InMemoryChatCacheService,
   InMemoryConversationRepository,
-  InMemoryMessageRepository,
 } from '../testing';
 import { ChatGateway } from './chat.gateway';
 import type { AuthenticatedSocket } from './ws-auth.guard';
@@ -23,20 +18,15 @@ import type { AuthenticatedSocket } from './ws-auth.guard';
 describe('ChatGateway', () => {
   let gateway: ChatGateway;
   let conversationRepo: InMemoryConversationRepository;
-  let messageRepo: InMemoryMessageRepository;
-  let blockedUserRepo: InMemoryBlockedUserRepository;
   let chatCache: InMemoryChatCacheService;
   let jwtService: { verify: ReturnType<typeof mock>; verifyAsync: ReturnType<typeof mock> };
-  let chatService: {
-    sendMessageToConversation: ReturnType<typeof mock>;
-    markConversationAsRead: ReturnType<typeof mock>;
+  let chatUseCases: {
+    sendMessageToConversationUseCase: { execute: ReturnType<typeof mock> };
+    markConversationReadUseCase: { execute: ReturnType<typeof mock> };
   };
-  let blockService: { isBlocked: ReturnType<typeof mock> };
 
   beforeEach(async () => {
     conversationRepo = new InMemoryConversationRepository();
-    messageRepo = new InMemoryMessageRepository();
-    blockedUserRepo = new InMemoryBlockedUserRepository();
     chatCache = new InMemoryChatCacheService();
 
     jwtService = {
@@ -44,36 +34,27 @@ describe('ChatGateway', () => {
       verifyAsync: mock(() => Promise.resolve({ sub: 'user-1', email: 'user1@test.com' })),
     };
 
-    chatService = {
-      sendMessageToConversation: mock(),
-      markConversationAsRead: mock(),
-    };
-
-    blockService = {
-      isBlocked: mock(() => Promise.resolve(false)),
+    chatUseCases = {
+      sendMessageToConversationUseCase: { execute: mock() },
+      markConversationReadUseCase: { execute: mock() },
     };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ChatGateway,
         { provide: JwtService, useValue: jwtService },
-        { provide: ChatService, useValue: chatService },
-        { provide: BlockService, useValue: blockService },
+        { provide: CHAT_USE_CASES, useValue: chatUseCases },
         { provide: ConversationRepository, useValue: conversationRepo },
-        { provide: MessageRepository, useValue: messageRepo },
-        { provide: BlockedUserRepository, useValue: blockedUserRepo },
         { provide: ChatCacheService, useValue: chatCache },
       ],
     }).compile();
 
     gateway = module.get<ChatGateway>(ChatGateway);
 
-    // Mock the server with proper types
     gateway.server = createMockServer();
 
-    // Seed test data
-    conversationRepo.seedUser({ id: 'user-1', displayName: 'User 1', username: 'user1' });
-    conversationRepo.seedUser({ id: 'user-2', displayName: 'User 2', username: 'user2' });
+    conversationRepo.seedUser({ id: 'user-1', name: 'User 1', username: 'user1' });
+    conversationRepo.seedUser({ id: 'user-2', name: 'User 2', username: 'user2' });
     conversationRepo.seedConversation({
       id: 'conv-1',
       participant1Id: 'user-1',
@@ -85,7 +66,6 @@ describe('ChatGateway', () => {
     it('should disconnect client without valid authentication', async () => {
       const mockSocket = createMockSocket({ userId: undefined }) as unknown as Socket;
 
-      // Auth guard will return null for unauthenticated users (no token)
       jwtService.verifyAsync.mockRejectedValue(new Error('Invalid token'));
 
       await gateway.handleConnection(mockSocket);
@@ -96,10 +76,8 @@ describe('ChatGateway', () => {
     it('should track socket when authenticated', async () => {
       const mockSocket = createMockSocket();
 
-      // Mock JWT verification
       jwtService.verify.mockReturnValue({ sub: 'user-1' });
 
-      // Need to manually set userId since we're mocking the auth guard
       (mockSocket as AuthenticatedSocket).userId = 'user-1';
 
       await gateway.handleConnection(mockSocket);
@@ -132,11 +110,9 @@ describe('ChatGateway', () => {
       const mockSocket = createMockSocket();
       jwtService.verify.mockReturnValue({ sub: 'user-1' });
 
-      // First connect
       await gateway.handleConnection(mockSocket);
       expect(gateway.isUserOnline('user-1')).toBe(true);
 
-      // Then disconnect
       gateway.handleDisconnect(mockSocket);
       expect(gateway.isUserOnline('user-1')).toBe(false);
     });
@@ -144,7 +120,6 @@ describe('ChatGateway', () => {
     it('should handle disconnect without userId gracefully', () => {
       const mockSocket = createMockSocket({ userId: undefined });
 
-      // Should not throw
       expect(() => gateway.handleDisconnect(mockSocket)).not.toThrow();
     });
 
@@ -157,10 +132,8 @@ describe('ChatGateway', () => {
       await gateway.handleConnection(socket1);
       await gateway.handleConnection(socket2);
 
-      // Disconnect one socket
       gateway.handleDisconnect(socket1);
 
-      // User should still be online
       expect(gateway.isUserOnline('user-1')).toBe(true);
     });
   });
@@ -173,11 +146,11 @@ describe('ChatGateway', () => {
         conversationId: 'conv-1',
         senderId: 'user-1',
         content: 'Hello!',
-        createdAt: new Date(),
+        createdAt: new Date().toISOString(),
         isRead: false,
       };
 
-      chatService.sendMessageToConversation.mockResolvedValue(mockMessage);
+      chatUseCases.sendMessageToConversationUseCase.execute.mockResolvedValue(mockMessage);
 
       const result = await gateway.handleSendMessage(mockSocket, {
         conversationId: 'conv-1',
@@ -198,11 +171,11 @@ describe('ChatGateway', () => {
         conversationId: 'conv-1',
         senderId: 'user-1',
         content: 'Hello!',
-        createdAt: new Date(),
+        createdAt: new Date().toISOString(),
         isRead: false,
       };
 
-      chatService.sendMessageToConversation.mockResolvedValue(mockMessage);
+      chatUseCases.sendMessageToConversationUseCase.execute.mockResolvedValue(mockMessage);
 
       await gateway.handleSendMessage(mockSocket, {
         conversationId: 'conv-1',
@@ -215,7 +188,9 @@ describe('ChatGateway', () => {
 
     it('should return error on failure', async () => {
       const mockSocket = createMockSocket();
-      chatService.sendMessageToConversation.mockRejectedValue(new Error('Test error'));
+      chatUseCases.sendMessageToConversationUseCase.execute.mockRejectedValue(
+        new Error('Test error'),
+      );
 
       const result = await gateway.handleSendMessage(mockSocket, {
         conversationId: 'conv-1',
@@ -274,19 +249,22 @@ describe('ChatGateway', () => {
   describe('handleMarkRead', () => {
     it('should mark messages as read and return success', async () => {
       const mockSocket = createMockSocket();
-      chatService.markConversationAsRead.mockResolvedValue({ count: 5 });
+      chatUseCases.markConversationReadUseCase.execute.mockResolvedValue({ count: 5 });
 
       const result = await gateway.handleMarkRead(mockSocket, { conversationId: 'conv-1' });
 
       expect(result.success).toBe(true);
-      expect(chatService.markConversationAsRead).toHaveBeenCalledWith('user-1', 'conv-1');
+      expect(chatUseCases.markConversationReadUseCase.execute).toHaveBeenCalledWith(
+        'user-1',
+        'conv-1',
+      );
     });
 
     it('should broadcast read receipt to conversation', async () => {
       const broadcastOperator = createMockBroadcastOperator();
       const mockSocket = createMockSocket();
       mockSocket.to = mock(() => broadcastOperator);
-      chatService.markConversationAsRead.mockResolvedValue({ count: 5 });
+      chatUseCases.markConversationReadUseCase.execute.mockResolvedValue({ count: 5 });
 
       await gateway.handleMarkRead(mockSocket, { conversationId: 'conv-1' });
 
@@ -301,7 +279,9 @@ describe('ChatGateway', () => {
 
     it('should return error on failure', async () => {
       const mockSocket = createMockSocket();
-      chatService.markConversationAsRead.mockRejectedValue(new Error('Not authorized'));
+      chatUseCases.markConversationReadUseCase.execute.mockRejectedValue(
+        new Error('Not authorized'),
+      );
 
       const result = await gateway.handleMarkRead(mockSocket, { conversationId: 'conv-1' });
 

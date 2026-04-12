@@ -127,15 +127,22 @@ export class OwnershipGuard implements CanActivate {
 
   private async loadResource(model: string, id: string): Promise<unknown> {
     // Use Prisma's dynamic model access
-    type FindUniqueFn = (args: { where: { id: string } }) => Promise<unknown>;
-    const prismaModel = (this.prisma as unknown as Record<string, { findUnique?: FindUniqueFn }>)[
-      model
-    ];
-
-    if (!prismaModel?.findUnique) {
+    if (!(model in this.prisma)) {
       throw new Error(`Unknown model: ${model}`);
     }
 
-    return prismaModel.findUnique({ where: { id } });
+    const delegate = this.prisma[model as keyof typeof this.prisma];
+
+    if (
+      typeof delegate !== 'object' ||
+      delegate === null ||
+      !('findUnique' in delegate) ||
+      typeof delegate.findUnique !== 'function'
+    ) {
+      throw new Error(`Unknown model: ${model}`);
+    }
+
+    // Call findUnique dynamically via Reflect to avoid type incompatibility
+    return Reflect.apply(delegate.findUnique, delegate, [{ where: { id } }]) as Promise<unknown>;
   }
 }

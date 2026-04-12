@@ -1,16 +1,15 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
-// Shared modules
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
-// Controllers
+import { EventPublisher } from '@/shared-kernel';
+import { BLOCK_USE_CASES, buildBlockUseCases } from './application/block.composition';
+import { buildChatUseCases, CHAT_USE_CASES } from './application/chat.composition';
 import { BlockController, ChatController } from './controllers';
-// Gateways
 import { ChatGateway } from './gateways';
-// Repositories
 import { BlockedUserRepository, ConversationRepository, MessageRepository } from './repositories';
-// Services
-import { BlockService, ChatCacheService, ChatService } from './services';
+import { ChatCacheService } from './services';
+import { ChatUserSearchService } from './services/user-search.service';
 
 @Module({
   imports: [
@@ -24,19 +23,34 @@ import { BlockService, ChatCacheService, ChatService } from './services';
   ],
   controllers: [ChatController, BlockController],
   providers: [
-    // Services
+    // Infrastructure
     ChatCacheService,
-    ChatService,
-    BlockService,
-
-    // Repositories
+    ChatUserSearchService,
     ConversationRepository,
     MessageRepository,
     BlockedUserRepository,
 
-    // Gateways
+    // Use-case compositions
+    {
+      provide: CHAT_USE_CASES,
+      useFactory: buildChatUseCases,
+      inject: [
+        ConversationRepository,
+        MessageRepository,
+        BlockedUserRepository,
+        EventPublisher,
+        ChatCacheService,
+      ],
+    },
+    {
+      provide: BLOCK_USE_CASES,
+      useFactory: buildBlockUseCases,
+      inject: [BlockedUserRepository],
+    },
+
+    // Gateway
     ChatGateway,
   ],
-  exports: [ChatService, BlockService, ChatGateway],
+  exports: [CHAT_USE_CASES, BLOCK_USE_CASES, ChatGateway],
 })
 export class ChatModule {}

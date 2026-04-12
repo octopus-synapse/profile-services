@@ -1,0 +1,50 @@
+// Onboarding Flow Configuration
+// Admin-editable steps, validation, strength weights, translations
+
+model OnboardingStep {
+  id    String @id @default(cuid())
+  key   String @unique
+  order Int
+
+  component String
+  icon      String  @default("📄")
+  required  Boolean @default(false)
+
+  // Link to SectionType for section steps
+  sectionTypeKey String?
+  sectionType    SectionType? @relation(fields: [sectionTypeKey], references: [key])
+
+  // Field definitions for form steps
+  // Format: [{ "key": "fullName", "type": "text", "widget": null, "required": true, "examples": ["Maria Silva", "João Pedro"] }]
+  fields Json @default("[]")
+
+  // Per-locale translations
+  // Format: { "en": { "label": "Personal Info", "description": "...", "fieldLabels": { "fullName": "Full Name" } }, "pt-BR": {...} }
+  translations Json @default("{}")
+
+  // Validation rules (generic)
+  // Format: { "requiredFields": ["fullName", "email"], "minLength": { "username": 3 }, "maxLength": { "username": 30 } }
+  validation Json @default("{}")
+
+  // Points contributed to resume strength score (total across all steps = 100)
+  strengthWeight Int @default(0)
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([order])
+  @@index([isActive])
+}
+
+model OnboardingConfig {
+  id  String @id @default(cuid())
+  key String @unique @default("default")
+
+  // Strength level thresholds and messages
+  // Format: [{ "minScore": 0, "level": "weak", "message": "Let's get started!" }, ...]
+  strengthLevels Json @default("[]")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

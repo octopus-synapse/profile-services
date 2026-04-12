@@ -17,7 +17,7 @@ export class MessageRepository {
       },
       include: {
         sender: {
-          select: { id: true, displayName: true, photoURL: true },
+          select: { id: true, name: true, photoURL: true },
         },
       },
     });
@@ -40,7 +40,7 @@ export class MessageRepository {
       orderBy: { createdAt: 'desc' },
       include: {
         sender: {
-          select: { id: true, displayName: true, photoURL: true },
+          select: { id: true, name: true, photoURL: true },
         },
       },
     });
@@ -158,7 +158,7 @@ export class MessageRepository {
       where: { id: messageId },
       include: {
         sender: {
-          select: { id: true, displayName: true, photoURL: true },
+          select: { id: true, name: true, photoURL: true },
         },
       },
     });

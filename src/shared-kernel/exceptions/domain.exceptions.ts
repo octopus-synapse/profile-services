@@ -27,6 +27,7 @@ export abstract class DomainException extends Error {
  */
 export class EntityNotFoundException extends DomainException {
   readonly code = 'ENTITY_NOT_FOUND';
+  readonly statusHint = 404;
 
   constructor(
     public readonly entityType: string,
@@ -59,6 +60,7 @@ export class ConflictException extends DomainException {
  */
 export class UnauthorizedException extends DomainException {
   readonly code = 'UNAUTHORIZED';
+  readonly statusHint = 401;
 
   constructor(message = 'Unauthorized') {
     super(message);
@@ -71,6 +73,7 @@ export class UnauthorizedException extends DomainException {
  */
 export class ForbiddenException extends DomainException {
   readonly code = 'FORBIDDEN';
+  readonly statusHint = 403;
 
   constructor(message = 'Access denied') {
     super(message);
@@ -83,6 +86,7 @@ export class ForbiddenException extends DomainException {
  */
 export class ValidationException extends DomainException {
   readonly code = 'VALIDATION_ERROR';
+  readonly statusHint = 400;
 
   constructor(
     message: string,
@@ -98,6 +102,7 @@ export class ValidationException extends DomainException {
  */
 export class BusinessRuleViolationException extends DomainException {
   readonly code = 'BUSINESS_RULE_VIOLATION';
+  readonly statusHint = 422;
 
   constructor(message: string) {
     super(message);
@@ -110,6 +115,7 @@ export class BusinessRuleViolationException extends DomainException {
  */
 export class LimitExceededException extends DomainException {
   readonly code = 'LIMIT_EXCEEDED';
+  readonly statusHint = 422;
 
   constructor(
     public readonly limitType: string,

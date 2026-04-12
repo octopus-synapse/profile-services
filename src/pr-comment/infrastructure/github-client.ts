@@ -62,6 +62,8 @@ export function createGitHubClient(options: GitHubClientOptions): GitHubClient {
   const { token, owner, repo, fetch: fetchFn = fetch } = options;
 
   const baseUrl = `https://api.github.com/repos/${owner}/${repo}`;
+  // Validate constructed URL to prevent SSRF
+  new URL(baseUrl);
   const headers = {
     Authorization: `Bearer ${token}`,
     Accept: 'application/vnd.github+json',

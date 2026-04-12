@@ -12,6 +12,10 @@ export class AccountCreatedEvent extends DomainEvent {
   readonly eventType = 'account.created';
   readonly aggregateId: string;
 
+  get payload(): Record<string, unknown> {
+    return this.getPayload();
+  }
+
   constructor(
     public readonly userId: string,
     public readonly email: string,
@@ -36,6 +40,10 @@ export class AccountCreatedEvent extends DomainEvent {
 export class AccountDeactivatedEvent extends DomainEvent {
   readonly eventType = 'account.deactivated';
   readonly aggregateId: string;
+
+  get payload(): Record<string, unknown> {
+    return this.getPayload();
+  }
 
   constructor(
     public readonly userId: string,
@@ -62,6 +70,10 @@ export class AccountReactivatedEvent extends DomainEvent {
   readonly eventType = 'account.reactivated';
   readonly aggregateId: string;
 
+  get payload(): Record<string, unknown> {
+    return this.getPayload();
+  }
+
   constructor(public readonly userId: string) {
     super();
     this.aggregateId = userId;
@@ -82,6 +94,10 @@ export class AccountReactivatedEvent extends DomainEvent {
 export class AccountDeletedEvent extends DomainEvent {
   readonly eventType = 'account.deleted';
   readonly aggregateId: string;
+
+  get payload(): Record<string, unknown> {
+    return this.getPayload();
+  }
 
   constructor(
     public readonly userId: string,

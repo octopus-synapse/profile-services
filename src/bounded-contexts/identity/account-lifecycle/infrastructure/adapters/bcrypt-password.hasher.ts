@@ -1,16 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import * as bcrypt from 'bcryptjs';
 import type { PasswordHasherPort } from '../../domain/ports';
 
-const SALT_ROUNDS = 12;
+const BCRYPT_COST = 12;
 
 @Injectable()
 export class BcryptPasswordHasher implements PasswordHasherPort {
   async hash(password: string): Promise<string> {
-    return bcrypt.hash(password, SALT_ROUNDS);
+    return Bun.password.hash(password, { algorithm: 'bcrypt', cost: BCRYPT_COST });
   }
 
   async compare(password: string, hash: string): Promise<boolean> {
-    return bcrypt.compare(password, hash);
+    return Bun.password.verify(password, hash);
   }
 }

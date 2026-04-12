@@ -194,7 +194,7 @@ export class InMemorySpokenLanguageRepository {
         return result.map((l) => {
           const selected: Record<string, unknown> = {};
           for (const key of Object.keys(selectClause)) {
-            if (selectClause[key]) {
+            if (selectClause[key] && key in l) {
               selected[key] = l[key as keyof SpokenLanguageData];
             }
           }
@@ -210,9 +210,10 @@ export class InMemorySpokenLanguageRepository {
       if (!language) return null;
 
       if (args.select) {
+        const selectClause = args.select;
         const selected: Record<string, unknown> = {};
-        for (const key of Object.keys(args.select)) {
-          if (args.select[key]) {
+        for (const key of Object.keys(selectClause)) {
+          if (selectClause[key] && key in language) {
             selected[key] = language[key as keyof SpokenLanguageData];
           }
         }

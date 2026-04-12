@@ -32,7 +32,8 @@ import {
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
-import type { ApplyThemeToResume, CreateTheme, ForkTheme, UpdateTheme } from '@/shared-kernel';
+import type { ApplyThemeToResume, ForkTheme, UpdateTheme } from '@/shared-kernel';
+import { CreateThemeDto } from '@/shared-kernel';
 import {
   ThemeApplyDataDto,
   ThemeEntityDataDto,
@@ -116,7 +117,7 @@ export class UserThemeController {
   })
   async createThemeForUser(
     @CurrentUser('userId') userId: string,
-    @Body() themeData: CreateTheme,
+    @Body() themeData: CreateThemeDto,
   ): Promise<DataResponse<ThemeEntityDataDto>> {
     const theme = await this.crudService.createThemeForUser(userId, themeData);
     return { success: true, data: { theme } };
@@ -166,6 +167,7 @@ export class UserThemeController {
   }
 
   @Post('apply')
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Apply theme to resume' })
   @ApiBody({ type: ApplyThemeToResumeRequestDto })
   @ApiDataResponse(ThemeApplyDataDto, {

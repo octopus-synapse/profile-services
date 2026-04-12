@@ -1,0 +1,9 @@
+[test]
+# Configuration for integration tests (DB + Redis required)
+root = "./test/infrastructure/integration"
+preload = ["./test/infrastructure/integration/setup.ts"]
+# Timeout for tests AND hooks (beforeEach/afterEach)
+timeout = 60000
+
+[install.scopes]
+"@octopus-synapse" = { token = "$BUN_AUTH_TOKEN", url = "https://npm.pkg.github.com" }

@@ -58,7 +58,7 @@ function printUsage(): void {
   console.error('  --tag=<string>       Comment tag for updates (default: ci-status-card)');
   console.error('');
   console.error('Environment:');
-  console.error('  GITHUB_TOKEN       GitHub API token (required)');
+  console.error('  GITHUB_TOKEN       GitHub API credential [REDACTED] (required)');
   console.error('  GITHUB_REPOSITORY  owner/repo format (or set GITHUB_OWNER + GITHUB_REPO)');
 }
 

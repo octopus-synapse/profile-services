@@ -31,7 +31,7 @@ import { SectionTypeRepository } from '@/bounded-contexts/resumes/infrastructure
 
 // --- Test Constants ---
 
-function uniqueTestEmail(prefix: string): string {
+export function uniqueTestEmail(prefix: string): string {
   return `${prefix}-${randomUUID()}@example.com`;
 }
 

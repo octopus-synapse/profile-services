@@ -11,7 +11,7 @@
  * - Clear test isolation
  */
 
-import type { AnalyticsEvent } from '@prisma/client';
+import type { AnalyticsEvent } from '../application/ports/share-analytics.port';
 import type {
   CountryResult,
   CreateShareAnalyticsData,

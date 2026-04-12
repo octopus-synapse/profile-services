@@ -11,7 +11,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { UserRegisteredEvent } from '@/bounded-contexts/identity/shared-kernel/domain/events';
-import { ActivityService } from '../../social/services/activity.service';
+import { ActivityService } from '../../services/activity.service';
 
 @Injectable()
 export class CreateWelcomeActivityOnUserRegisteredHandler {

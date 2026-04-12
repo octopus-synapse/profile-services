@@ -104,8 +104,10 @@ describe('Public Resumes Integration', () => {
       const prisma = getPrisma();
 
       // Create password-protected share directly
-      const bcrypt = await import('bcryptjs');
-      const hashedPassword = await bcrypt.hash('secret123', 10);
+      const hashedPassword = await Bun.password.hash('secret123', {
+        algorithm: 'bcrypt',
+        cost: 10,
+      });
 
       const protectedShare = await prisma.resumeShare.create({
         data: {

@@ -10,14 +10,14 @@ import {
   GitHubUrlSchema,
   LinkedInUrlSchema,
   SocialUrlSchema,
-} from '@/bounded-contexts/identity/users/domain/schemas/professional-profile.schema';
+} from '@/shared-kernel/schemas/primitives';
 
 /**
  * Public User Schema
  * Subset of user information safe to expose publicly
  */
 export const PublicUserSchema = z.object({
-  displayName: z.string().nullable(),
+  name: z.string().nullable(),
   photoURL: z.string().url().nullable(),
   bio: z.string().max(500).nullable(),
   location: z.string().max(100).nullable(),

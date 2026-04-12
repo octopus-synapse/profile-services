@@ -3,7 +3,17 @@
  * Handles user profile operations
  */
 
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Patch, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Inject,
+  Param,
+  Patch,
+  Query,
+} from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -20,7 +30,11 @@ import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-exp
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import type { UpdateUser, UpdateUsername } from '@/shared-kernel';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
-import { UsersService } from '../../application/services/users.service';
+import {
+  USER_PROFILE_USE_CASES,
+  type UserProfileUseCases,
+} from '../../application/ports/user-profile.port';
+import { UsernameService } from '../../application/services/username.service';
 import {
   PublicProfileDataDto,
   UsernameAvailabilityDataDto,
@@ -29,46 +43,22 @@ import {
 } from '../../dto/controller-response.dto';
 
 class UpdateUserProfileRequestDto {
-  @ApiPropertyOptional()
-  name?: string;
-
-  @ApiPropertyOptional()
-  username?: string;
-
-  @ApiPropertyOptional({ maxLength: 500 })
-  bio?: string;
-
-  @ApiPropertyOptional({ maxLength: 100 })
-  location?: string;
-
-  @ApiPropertyOptional({ format: 'uri' })
-  website?: string;
-
-  @ApiPropertyOptional({ maxLength: 100 })
-  company?: string;
-
-  @ApiPropertyOptional({ maxLength: 100 })
-  title?: string;
-
-  @ApiPropertyOptional({ maxLength: 20 })
-  phone?: string;
-
-  @ApiPropertyOptional({ format: 'uri' })
-  linkedin?: string;
-
-  @ApiPropertyOptional({ format: 'uri' })
-  github?: string;
-
-  @ApiPropertyOptional({ format: 'uri' })
-  twitter?: string;
-
-  @ApiPropertyOptional({ format: 'uri' })
-  image?: string;
+  @ApiPropertyOptional() name?: string;
+  @ApiPropertyOptional() username?: string;
+  @ApiPropertyOptional({ maxLength: 500 }) bio?: string;
+  @ApiPropertyOptional({ maxLength: 100 }) location?: string;
+  @ApiPropertyOptional({ format: 'uri' }) website?: string;
+  @ApiPropertyOptional({ maxLength: 100 }) company?: string;
+  @ApiPropertyOptional({ maxLength: 100 }) title?: string;
+  @ApiPropertyOptional({ maxLength: 20 }) phone?: string;
+  @ApiPropertyOptional({ format: 'uri' }) linkedin?: string;
+  @ApiPropertyOptional({ format: 'uri' }) github?: string;
+  @ApiPropertyOptional({ format: 'uri' }) twitter?: string;
+  @ApiPropertyOptional({ format: 'uri' }) image?: string;
 }
 
 class UpdateUsernameRequestDto {
-  @ApiPropertyOptional()
-  username?: string;
+  @ApiPropertyOptional() username?: string;
 }
 
 @SdkExport({ tag: 'users', description: 'Users API' })
@@ -76,45 +66,39 @@ class UpdateUsernameRequestDto {
 @ApiBearerAuth('JWT-auth')
 @Controller('v1/users')
 export class UsersProfileController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    @Inject(USER_PROFILE_USE_CASES)
+    private readonly profile: UserProfileUseCases,
+    private readonly usernameService: UsernameService,
+  ) {}
 
   private buildProfileData(
     profile: Record<string, unknown>,
   ): UserProfileDataDto & Record<string, unknown> {
-    return {
-      ...profile,
-      profile,
-    };
+    return { ...profile, profile };
   }
 
   @Public()
   @Get(':username/profile')
   @ApiOperation({ summary: "Get a user's public profile by username" })
-  @ApiDataResponse(PublicProfileDataDto, {
-    description: 'Public profile retrieved',
-  })
+  @ApiDataResponse(PublicProfileDataDto, { description: 'Public profile retrieved' })
   async getPublicProfileByUsername(
     @Param('username') username: string,
   ): Promise<DataResponse<PublicProfileDataDto>> {
-    const profile = await this.usersService.getPublicProfileByUsername(username);
-    return {
-      success: true,
-      data: {
-        user: profile.user,
-        resume: profile.resume,
-      },
-    };
+    const data = await this.profile.getPublicProfileUseCase.execute(username);
+    return { success: true, data: { user: data.user, resume: data.resume } };
   }
 
   @RequirePermission(Permission.USER_PROFILE_READ)
   @Get('profile')
   @ApiOperation({ summary: 'Get current user profile' })
-  @ApiDataResponse(UserProfileDataDto, {
-    description: 'User profile retrieved successfully',
-  })
+  @ApiDataResponse(UserProfileDataDto, { description: 'User profile retrieved successfully' })
   async getProfile(@CurrentUser() user: UserPayload): Promise<DataResponse<UserProfileDataDto>> {
-    const profile = await this.usersService.getProfile(user.userId);
-    return { success: true, data: this.buildProfileData(profile) };
+    const result = await this.profile.getProfileUseCase.execute(user.userId);
+    return {
+      success: true,
+      data: this.buildProfileData(result as unknown as Record<string, unknown>),
+    };
   }
 
   @RequirePermission(Permission.USER_PROFILE_UPDATE)
@@ -122,18 +106,15 @@ export class UsersProfileController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update current user profile' })
   @ApiBody({ type: UpdateUserProfileRequestDto })
-  @ApiDataResponse(UserProfileDataDto, {
-    description: 'Profile updated successfully',
-  })
+  @ApiDataResponse(UserProfileDataDto, { description: 'Profile updated successfully' })
   async updateProfile(
     @CurrentUser() user: UserPayload,
     @Body() updateUserData: UpdateUser,
   ): Promise<DataResponse<UserProfileDataDto>> {
-    const result = await this.usersService.updateProfile(user.userId, updateUserData);
-
+    const result = await this.profile.updateProfileUseCase.execute(user.userId, updateUserData);
     return {
       success: true,
-      data: this.buildProfileData(result),
+      data: this.buildProfileData(result as unknown as Record<string, unknown>),
     };
   }
 
@@ -142,21 +123,15 @@ export class UsersProfileController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update username (once every 30 days)' })
   @ApiBody({ type: UpdateUsernameRequestDto })
-  @ApiDataResponse(UsernameUpdateDataDto, {
-    description: 'Username updated successfully',
-  })
+  @ApiDataResponse(UsernameUpdateDataDto, { description: 'Username updated successfully' })
   async updateUsername(
     @CurrentUser() user: UserPayload,
     @Body() updateUsername: UpdateUsername,
   ): Promise<DataResponse<UsernameUpdateDataDto>> {
-    const result = await this.usersService.updateUsername(user.userId, updateUsername);
-
+    const result = await this.usernameService.updateUsername(user.userId, updateUsername);
     return {
       success: true,
-      data: {
-        username: result.username,
-        message: 'Username updated successfully',
-      },
+      data: { username: result.username, message: 'Username updated successfully' },
     };
   }
 
@@ -169,21 +144,18 @@ export class UsersProfileController {
     description: 'Username to check',
     example: 'john_doe',
   })
-  @ApiDataResponse(UsernameAvailabilityDataDto, {
-    description: 'Username availability status',
-  })
+  @ApiDataResponse(UsernameAvailabilityDataDto, { description: 'Username availability status' })
   async checkUsernameAvailability(
     @CurrentUser() user: UserPayload,
     @Query('username') username: string,
   ): Promise<DataResponse<UsernameAvailabilityDataDto>> {
-    const availability = await this.usersService.checkUsernameAvailability(username, user.userId);
-
+    const availability = await this.usernameService.checkUsernameAvailability(
+      username,
+      user.userId,
+    );
     return {
       success: true,
-      data: {
-        username: availability.username,
-        available: availability.available,
-      },
+      data: { username: availability.username, available: availability.available },
     };
   }
 }

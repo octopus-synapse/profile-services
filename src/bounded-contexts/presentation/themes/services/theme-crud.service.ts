@@ -1,93 +1,106 @@
 /**
  * Theme CRUD Service
- * Handles basic create, read, update, delete operations for themes
  *
- * BUG-006 FIX: Enforces max 5 themes per user limit
- *
- * Authorization: Uses permission-based access control.
- * Required permissions: theme:manage for admin operations
+ * Admin-only CRUD operations for themes.
+ * All themes are public. Users can only read/apply themes.
  */
 
-import {
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-  UnprocessableEntityException,
-} from '@nestjs/common';
-import { Prisma, ThemeStatus } from '@prisma/client';
-import { AuthorizationService } from '@/bounded-contexts/identity/authorization';
+import { ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { CreateTheme, ERROR_MESSAGES, UpdateTheme } from '@/shared-kernel';
+import { AtsScorngPort } from '../domain/ports/ats-scoring.port';
+import { AuthorizationPort } from '../domain/ports/authorization.port';
+import { ThemePreviewPort } from '../domain/ports/theme-preview.port';
 import { validateLayoutConfig, validateSectionsConfig } from '../validators';
-
-/** Maximum themes a user can create */
-const MAX_THEMES_PER_USER = 5;
 
 @Injectable()
 export class ThemeCrudService {
+  private readonly logger = new Logger(ThemeCrudService.name);
+
   constructor(
     private prisma: PrismaService,
-    private authorizationService: AuthorizationService,
+    private authorizationService: AuthorizationPort,
+    private atsScoring: AtsScorngPort,
+    private previewService: ThemePreviewPort,
   ) {}
 
-  async createThemeForUser(userId: string, themeData: CreateTheme) {
-    this.validateConfig(themeData.styleConfig);
-
-    // BUG-006 FIX: Check theme limit before creating
-    const existingThemeCount = await this.prisma.resumeTheme.count({
-      where: { authorId: userId },
-    });
-
-    if (existingThemeCount >= MAX_THEMES_PER_USER) {
-      throw new UnprocessableEntityException(ERROR_MESSAGES.THEME_LIMIT_REACHED);
-    }
-
-    const themeCreationData = {
-      name: themeData.name,
-      description: themeData.description,
-      category: themeData.category,
-      tags: themeData.tags ?? [],
-      styleConfig: themeData.styleConfig as Prisma.InputJsonValue,
-      parentThemeId: themeData.parentThemeId,
-      authorId: userId,
-      status: ThemeStatus.PRIVATE,
-    };
-
-    return this.prisma.resumeTheme.create({
-      data: themeCreationData,
-    });
+  private calculateAtsScore(styleConfig: Record<string, unknown>): number {
+    const breakdown = this.atsScoring.score(styleConfig);
+    return this.atsScoring.calculateOverallScore(breakdown);
   }
 
-  async updateThemeForUser(userId: string, themeId: string, updateThemeData: UpdateTheme) {
+  async createThemeForUser(adminId: string, themeData: CreateTheme) {
+    await this.assertIsAdmin(adminId);
+    this.validateConfig(themeData.styleConfig);
+
+    const theme = await this.prisma.resumeTheme.create({
+      data: {
+        name: themeData.name,
+        description: themeData.description,
+        category: themeData.category,
+        tags: themeData.tags ?? [],
+        styleConfig: themeData.styleConfig as Prisma.InputJsonValue,
+        parentThemeId: themeData.parentThemeId,
+        authorId: adminId,
+        status: 'PUBLISHED',
+        approvedById: adminId,
+        approvedAt: new Date(),
+        publishedAt: new Date(),
+        atsScore: this.calculateAtsScore(themeData.styleConfig),
+      },
+    });
+
+    this.previewService.generateAndUploadPreview(theme.id).catch((err) => {
+      this.logger.warn(
+        `Preview generation failed for theme ${theme.id}: ${(err as Error).message}`,
+      );
+    });
+
+    return theme;
+  }
+
+  async updateThemeForUser(adminId: string, themeId: string, updateThemeData: UpdateTheme) {
     const existingTheme = await this.findThemeByIdOrThrow(themeId);
-    await this.assertCanEdit(existingTheme, userId);
+    await this.assertCanEdit(existingTheme, adminId);
 
     if (updateThemeData.styleConfig) {
       this.validateConfig(updateThemeData.styleConfig);
     }
 
-    const themeUpdateData = {
-      name: updateThemeData.name,
-      description: updateThemeData.description,
-      category: updateThemeData.category,
-      tags: updateThemeData.tags,
-      styleConfig: updateThemeData.styleConfig as Prisma.InputJsonValue,
-    };
-
-    return this.prisma.resumeTheme.update({
+    const theme = await this.prisma.resumeTheme.update({
       where: { id: themeId },
-      data: themeUpdateData,
+      data: {
+        name: updateThemeData.name,
+        description: updateThemeData.description,
+        category: updateThemeData.category,
+        tags: updateThemeData.tags,
+        styleConfig: updateThemeData.styleConfig as Prisma.InputJsonValue,
+        ...(updateThemeData.styleConfig && {
+          atsScore: this.calculateAtsScore(updateThemeData.styleConfig),
+        }),
+      },
     });
+
+    if (updateThemeData.styleConfig) {
+      this.previewService.generateAndUploadPreview(theme.id).catch((err) => {
+        this.logger.warn(
+          `Preview regeneration failed for theme ${theme.id}: ${(err as Error).message}`,
+        );
+      });
+    }
+
+    return theme;
   }
 
-  async deleteThemeForUser(userId: string, themeId: string) {
+  async deleteThemeForUser(adminId: string, themeId: string) {
     const existingTheme = await this.findThemeByIdOrThrow(themeId);
 
     if (existingTheme.isSystemTheme) {
       throw new ForbiddenException(ERROR_MESSAGES.CANNOT_DELETE_SYSTEM_THEMES);
     }
-    if (existingTheme.authorId !== userId) {
-      throw new ForbiddenException(ERROR_MESSAGES.CAN_ONLY_DELETE_OWN_THEMES);
+    if (existingTheme.authorId !== adminId) {
+      await this.assertIsAdmin(adminId);
     }
 
     return this.prisma.resumeTheme.delete({ where: { id: themeId } });
@@ -99,76 +112,6 @@ export class ThemeCrudService {
     });
     if (!foundTheme) throw new NotFoundException(ERROR_MESSAGES.THEME_NOT_FOUND);
     return foundTheme;
-  }
-
-  /**
-   * Submit a theme for approval (status change to PENDING_APPROVAL)
-   * BUG-007: Delegates to ThemeApprovalService but exposed here for convenience
-   */
-  async submitThemeForApproval(userId: string, themeId: string) {
-    const existingTheme = await this.findThemeByIdOrThrow(themeId);
-
-    if (existingTheme.authorId !== userId) {
-      throw new ForbiddenException(ERROR_MESSAGES.CAN_ONLY_SUBMIT_OWN_THEMES);
-    }
-
-    const validStatuses: ThemeStatus[] = [ThemeStatus.PRIVATE, ThemeStatus.REJECTED];
-    if (!validStatuses.includes(existingTheme.status)) {
-      throw new ForbiddenException(ERROR_MESSAGES.THEME_MUST_BE_PRIVATE_OR_REJECTED);
-    }
-
-    return this.prisma.resumeTheme.update({
-      where: { id: themeId },
-      data: { status: ThemeStatus.PENDING_APPROVAL, rejectionReason: null },
-    });
-  }
-
-  /**
-   * Reject a theme (admin action)
-   */
-  async rejectThemeByAdmin(adminId: string, themeId: string, rejectionReason: string) {
-    await this.assertIsAdmin(adminId);
-    const existingTheme = await this.findThemeByIdOrThrow(themeId);
-
-    if (existingTheme.status !== ThemeStatus.PENDING_APPROVAL) {
-      throw new ForbiddenException(ERROR_MESSAGES.THEME_NOT_PENDING_APPROVAL);
-    }
-
-    return this.prisma.resumeTheme.update({
-      where: { id: themeId },
-      data: {
-        status: ThemeStatus.REJECTED,
-        rejectionReason: rejectionReason,
-        approvedById: adminId,
-        approvedAt: new Date(),
-      },
-    });
-  }
-
-  /**
-   * BUG-013 FIX: Admin can create themes directly as PUBLISHED
-   */
-  async createThemeAsAdmin(adminId: string, themeData: CreateTheme) {
-    await this.assertIsAdmin(adminId);
-    this.validateConfig(themeData.styleConfig);
-
-    const adminThemeCreationData = {
-      name: themeData.name,
-      description: themeData.description,
-      category: themeData.category,
-      tags: themeData.tags ?? [],
-      styleConfig: themeData.styleConfig as Prisma.InputJsonValue,
-      parentThemeId: themeData.parentThemeId,
-      authorId: adminId,
-      status: ThemeStatus.PUBLISHED,
-      approvedById: adminId,
-      approvedAt: new Date(),
-      publishedAt: new Date(),
-    };
-
-    return this.prisma.resumeTheme.create({
-      data: adminThemeCreationData,
-    });
   }
 
   private async assertIsAdmin(userId: string) {
@@ -185,14 +128,7 @@ export class ThemeCrudService {
 
   private async assertCanEdit(theme: { authorId: string; isSystemTheme: boolean }, userId: string) {
     if (theme.isSystemTheme) {
-      const hasPermission = await this.authorizationService.hasPermission(
-        userId,
-        'theme',
-        'manage',
-      );
-      if (!hasPermission) {
-        throw new ForbiddenException(ERROR_MESSAGES.ONLY_ADMINS_CAN_EDIT_SYSTEM_THEMES);
-      }
+      await this.assertIsAdmin(userId);
     } else if (theme.authorId !== userId) {
       throw new ForbiddenException(ERROR_MESSAGES.CAN_ONLY_EDIT_OWN_THEMES);
     }

@@ -3,7 +3,12 @@
  * Repository port for consent persistence
  */
 
-import type { ConsentDocumentType } from '@prisma/client';
+export const ConsentDocumentType = {
+  TERMS_OF_SERVICE: 'TERMS_OF_SERVICE',
+  PRIVACY_POLICY: 'PRIVACY_POLICY',
+  MARKETING_CONSENT: 'MARKETING_CONSENT',
+} as const;
+export type ConsentDocumentType = (typeof ConsentDocumentType)[keyof typeof ConsentDocumentType];
 
 export interface ConsentRecord {
   id: string;

@@ -21,7 +21,7 @@
 # Options:
 #   --no-cleanup    Don't stop containers after tests (only for manual mode)
 #   --filter <pat>  Run only tests matching pattern
-#   --file <path>   Run specific test file (relative to integration root)
+#   --file <f> ...  Run specific test file(s) (relative to integration root)
 #   --verbose       Show more output
 #
 # Examples:
@@ -31,6 +31,7 @@
 #   ./scripts/run-integration.sh test         # Starts test env, runs tests, stops
 #   ./scripts/run-integration.sh --filter auth
 #   ./scripts/run-integration.sh --file auth.integration.spec.ts
+#   ./scripts/run-integration.sh --file auth.integration.spec.ts cache.integration.spec.ts
 
 set -euo pipefail
 
@@ -53,7 +54,7 @@ ENVIRONMENT=""
 CLEANUP=true
 VERBOSE=false
 FILTER=""
-FILE=""
+FILES=()
 AUTO_DETECT=true
 STARTED_BY_US=false
 
@@ -68,7 +69,13 @@ while [[ $# -gt 0 ]]; do
         --no-cleanup) CLEANUP=false; shift ;;
         --verbose) VERBOSE=true; shift ;;
         --filter) FILTER="$2"; shift 2 ;;
-        --file) FILE="$2"; shift 2 ;;
+        --file)
+            shift
+            while [[ $# -gt 0 ]] && [[ ! "$1" =~ ^-- ]] && [[ ! "$1" =~ ^(dev|e2e|test|prod)$ ]]; do
+                FILES+=("$1")
+                shift
+            done
+            ;;
         --help|-h)
             head -35 "$0" | tail -33
             exit 0
@@ -317,8 +324,10 @@ TEST_CMD="bun test --config=bunfig.integration.toml"
 if [[ -n "$FILTER" ]]; then
     TEST_CMD="$TEST_CMD --test-name-pattern '$FILTER'"
 fi
-if [[ -n "$FILE" ]]; then
-    TEST_CMD="$TEST_CMD ./test/infrastructure/integration/$FILE"
+if [[ ${#FILES[@]} -gt 0 ]]; then
+    for f in "${FILES[@]}"; do
+        TEST_CMD="$TEST_CMD ./test/infrastructure/integration/$f"
+    done
 fi
 
 # Run tests

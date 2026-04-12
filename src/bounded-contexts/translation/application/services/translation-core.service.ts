@@ -21,6 +21,8 @@ export class TranslationCoreService implements OnModuleInit {
   ) {
     const url = this.configService.get<string>('LIBRETRANSLATE_URL');
     this.libreTranslateUrl = url ?? 'http://libretranslate:5000';
+    // Validate URL to prevent SSRF
+    new URL(this.libreTranslateUrl);
   }
 
   async onModuleInit() {

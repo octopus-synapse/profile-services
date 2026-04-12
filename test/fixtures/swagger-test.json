@@ -1,0 +1,95 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "ProFile API - Test",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/resume-import/json": {
+      "post": {
+        "operationId": "importJson",
+        "tags": ["resume-import"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JsonResumeSchemaDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Import started successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportResultDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/resume-import/{importId}": {
+      "get": {
+        "operationId": "getImportStatus",
+        "tags": ["resume-import"],
+        "parameters": [
+          {
+            "name": "importId",
+            "in": "path",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Import job status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImportJobDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "JsonResumeSchemaDto": {
+        "type": "object",
+        "properties": {
+          "basics": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "email": { "type": "string" }
+            }
+          }
+        }
+      },
+      "ImportResultDto": {
+        "type": "object",
+        "properties": {
+          "importId": { "type": "string" },
+          "status": { "type": "string", "enum": ["pending", "processing", "completed", "failed"] }
+        }
+      },
+      "ImportJobDto": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "userId": { "type": "string" },
+          "status": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        }
+      }
+    }
+  }
+}

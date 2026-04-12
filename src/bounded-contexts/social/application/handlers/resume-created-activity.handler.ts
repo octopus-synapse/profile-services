@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { ResumeCreatedEvent } from '@/bounded-contexts/resumes';
-import { ActivityService } from '../../social/services/activity.service';
+import { ActivityService } from '../../services/activity.service';
 
 @Injectable()
 export class ResumeCreatedActivityHandler {
