@@ -12,9 +12,9 @@ import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { ActivityService } from '@/bounded-contexts/social/social/services/activity.service';
-import { FollowService } from '@/bounded-contexts/social/social/services/follow.service';
-import { SocialModule } from '@/bounded-contexts/social/social/social.module';
+import { ActivityService } from '@/bounded-contexts/social/services/activity.service';
+import { FollowService } from '@/bounded-contexts/social/services/follow.service';
+import { SocialModule } from '@/bounded-contexts/social/social.module';
 
 // Skip integration tests in CI unless database is available
 const describeIntegration =

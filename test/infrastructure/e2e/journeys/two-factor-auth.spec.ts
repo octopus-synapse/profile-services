@@ -215,7 +215,12 @@ describe('E2E Journey: Two-Factor Authentication', () => {
 
   describe('Step 7: Complete login with valid 2FA code', () => {
     it('should complete login with valid TOTP code', async () => {
-      // First login to get userId
+      // Wait for a fresh TOTP window to avoid any replay issues with Step 4
+      const secondsIntoWindow = Math.floor(Date.now() / 1000) % 30;
+      if (secondsIntoWindow > 25) {
+        await new Promise((resolve) => setTimeout(resolve, (31 - secondsIntoWindow) * 1000));
+      }
+
       const loginResponse = await request(app.getHttpServer()).post('/api/auth/login').send({
         email: testUser.email,
         password: testUser.password,
@@ -223,12 +228,9 @@ describe('E2E Journey: Two-Factor Authentication', () => {
 
       const userId = loginResponse.body.data.userId;
 
-      // Generate valid TOTP code for the NEXT time window to avoid
-      // replay protection blocking the same code used in Step 4
       const validCode = speakeasy.totp({
         secret: twoFactorSecret,
         encoding: 'base32',
-        time: Math.floor(Date.now() / 1000) + 30,
       });
 
       const response = await request(app.getHttpServer()).post('/api/auth/login/verify-2fa').send({
@@ -242,7 +244,6 @@ describe('E2E Journey: Two-Factor Authentication', () => {
       expect(response.body.data.refreshToken).toBeDefined();
       expect(response.body.data.userId).toBeDefined();
 
-      // Update token for subsequent requests
       testUser.token = response.body.data.accessToken;
     });
   });
