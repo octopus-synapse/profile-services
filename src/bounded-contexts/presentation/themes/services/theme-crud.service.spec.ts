@@ -8,15 +8,11 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { ThemeStatus } from '@prisma/client';
-import { AuthorizationService } from '@/bounded-contexts/identity/authorization';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import {
-  createTestTheme,
-  InMemoryThemeRepository,
-  StubAuthorizationService,
-  type ThemeRecord,
-} from '../../testing';
+import { createTestTheme, InMemoryThemeRepository, StubAuthorizationService } from '../../testing';
+import { AuthorizationPort } from '../domain/ports/authorization.port';
+import type { JsonValue, ThemeEntity } from '../domain/ports/theme.repository.port';
+import { ThemeStatus } from '../domain/ports/theme.repository.port';
 import { ThemeCrudService } from './theme-crud.service';
 
 describe('ThemeCrudService', () => {
@@ -24,7 +20,7 @@ describe('ThemeCrudService', () => {
   let themeRepo: InMemoryThemeRepository;
   let authService: StubAuthorizationService;
 
-  const testTheme: ThemeRecord = createTestTheme({
+  const testTheme: ThemeEntity = createTestTheme({
     id: 'theme-1',
     name: 'My Theme',
     description: 'A cool theme',
@@ -38,27 +34,31 @@ describe('ThemeCrudService', () => {
   const buildPrismaService = () => ({
     resumeTheme: {
       count: mock(async (args?: { where?: { authorId?: string } }) => {
-        return themeRepo.count(args?.where);
+        if (args?.where?.authorId) return themeRepo.countByAuthor(args.where.authorId);
+        return themeRepo.getAll().length;
       }),
-      create: mock(async (args: { data: Omit<ThemeRecord, 'id' | 'createdAt' | 'updatedAt'> }) => {
-        return themeRepo.create(args.data);
+      create: mock(async (args: { data: Record<string, unknown> }) => {
+        return themeRepo.create({
+          name: args.data.name as string,
+          description: args.data.description as string,
+          category: args.data.category as ThemeEntity['category'],
+          tags: (args.data.tags as string[]) ?? [],
+          styleConfig: (args.data.styleConfig ?? null) as JsonValue,
+          authorId: args.data.authorId as string,
+          status: (args.data.status as ThemeEntity['status']) ?? ThemeStatus.PRIVATE,
+        });
       }),
-      update: mock(
-        async (args: {
-          where: { id: string };
-          data: Partial<ThemeRecord> & { rejectionCount?: { increment: number } | number };
-        }) => {
-          return themeRepo.update(args.where, args.data);
-        },
-      ),
+      update: mock(async (args: { where: { id: string }; data: Record<string, unknown> }) => {
+        return themeRepo.update(args.where.id, args.data);
+      }),
       findUnique: mock(async (args: { where: { id: string } }) => {
-        return themeRepo.findUnique(args.where);
+        return themeRepo.findById(args.where.id);
       }),
       findMany: mock(async () => {
         return themeRepo.getAll();
       }),
       delete: mock(async (args: { where: { id: string } }) => {
-        return themeRepo.delete(args.where);
+        return themeRepo.delete(args.where.id);
       }),
     },
     user: {
@@ -66,34 +66,36 @@ describe('ThemeCrudService', () => {
     },
   });
 
-  const buildAuthorizationService = () => ({
-    hasPermission: mock(async (userId: string, resource: string, action: string) => {
-      return authService.hasPermission(userId, `${resource}:${action}`);
-    }),
-  });
-
   const setupService = async () => {
     themeRepo = new InMemoryThemeRepository();
     authService = new StubAuthorizationService();
 
     const prismaService = buildPrismaService();
-    const authorizationService = buildAuthorizationService();
+
+    const { AtsScorngPort } = await import('../domain/ports/ats-scoring.port');
+    const { ThemePreviewPort } = await import('../domain/ports/theme-preview.port');
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ThemeCrudService,
         { provide: PrismaService, useValue: prismaService },
-        { provide: AuthorizationService, useValue: authorizationService },
+        { provide: AuthorizationPort, useValue: authService },
+        {
+          provide: AtsScorngPort,
+          useValue: { score: () => ({}), calculateOverallScore: () => 80 },
+        },
+        { provide: ThemePreviewPort, useValue: { generateAndUploadPreview: async () => null } },
       ],
     }).compile();
 
     service = module.get<ThemeCrudService>(ThemeCrudService);
 
-    return { prismaService, authorizationService };
+    return { prismaService };
   };
 
   beforeEach(async () => {
     await setupService();
+    authService.grantPermission('user-123', 'theme:manage');
   });
 
   describe('create', () => {
@@ -107,7 +109,7 @@ describe('ThemeCrudService', () => {
       expect(result).toBeDefined();
       expect(result.name).toBe('New Theme');
       expect(result.authorId).toBe('user-123');
-      expect(result.status).toBe(ThemeStatus.PRIVATE);
+      expect(result.status).toBe('PUBLISHED');
     });
 
     it('should validate layout config if provided', async () => {
@@ -137,34 +139,22 @@ describe('ThemeCrudService', () => {
       themeRepo.seed([testTheme]);
 
       await expect(
-        service.updateThemeForUser('different-user', 'theme-1', {
-          name: 'Hacked',
-        }),
+        service.updateThemeForUser('different-user', 'theme-1', { name: 'Hacked' }),
       ).rejects.toThrow(ForbiddenException);
     });
 
     it('should allow user with theme:manage permission to update system theme', async () => {
-      const systemTheme: ThemeRecord = {
-        ...testTheme,
-        isSystemTheme: true,
-      };
-      themeRepo.seed([systemTheme]);
+      themeRepo.seed([{ ...testTheme, isSystemTheme: true }]);
       authService.grantPermission('admin', 'theme:manage');
 
-      const result = await service.updateThemeForUser('admin', 'theme-1', {
-        name: 'Updated',
-      });
+      const result = await service.updateThemeForUser('admin', 'theme-1', { name: 'Updated' });
 
       expect(result).toBeDefined();
       expect(result.name).toBe('Updated');
     });
 
     it('should reject user without theme:manage permission updating system theme', async () => {
-      const systemTheme: ThemeRecord = {
-        ...testTheme,
-        isSystemTheme: true,
-      };
-      themeRepo.seed([systemTheme]);
+      themeRepo.seed([{ ...testTheme, isSystemTheme: true }]);
 
       await expect(
         service.updateThemeForUser('user', 'theme-1', { name: 'Hacked' }),
@@ -184,8 +174,7 @@ describe('ThemeCrudService', () => {
 
       await service.deleteThemeForUser('user-123', 'theme-1');
 
-      const remaining = themeRepo.getAll();
-      expect(remaining.length).toBe(0);
+      expect(themeRepo.getAll().length).toBe(0);
     });
 
     it('should reject deleting theme owned by different user', async () => {
@@ -197,11 +186,7 @@ describe('ThemeCrudService', () => {
     });
 
     it('should reject deleting system theme', async () => {
-      const systemTheme: ThemeRecord = {
-        ...testTheme,
-        isSystemTheme: true,
-      };
-      themeRepo.seed([systemTheme]);
+      themeRepo.seed([{ ...testTheme, isSystemTheme: true }]);
 
       await expect(service.deleteThemeForUser('user-123', 'theme-1')).rejects.toThrow(
         ForbiddenException,
@@ -221,12 +206,7 @@ describe('ThemeCrudService', () => {
 
       const result = await service.findThemeByIdOrThrow('theme-1');
 
-      expect(result).toEqual(
-        expect.objectContaining({
-          id: 'theme-1',
-          name: 'My Theme',
-        }),
-      );
+      expect(result).toEqual(expect.objectContaining({ id: 'theme-1', name: 'My Theme' }));
     });
 
     it('should throw NotFoundException when not found', async () => {

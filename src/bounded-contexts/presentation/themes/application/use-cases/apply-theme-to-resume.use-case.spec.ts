@@ -1,29 +1,17 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
 
 import { ForbiddenException, NotFoundException } from '@nestjs/common';
-import { ThemeCategory, ThemeStatus } from '@prisma/client';
 import type { EventPublisher } from '@/shared-kernel';
+import { createTestTheme, InMemoryThemeRepository } from '../../../testing';
 import type { ResumeRepositoryPort } from '../../domain/ports/resume.repository.port';
-import type {
-  ThemeRepositoryPort,
-  ThemeWithAuthor,
-} from '../../domain/ports/theme.repository.port';
 import { ApplyThemeToResumeUseCase } from './apply-theme-to-resume.use-case';
 
 describe('ApplyThemeToResumeUseCase', () => {
   let useCase: ApplyThemeToResumeUseCase;
+  let themeRepo: InMemoryThemeRepository;
   let foundResume: { id: string; userId: string } | null;
-  let foundTheme: ThemeWithAuthor | null;
   let appliedTheme: { resumeId: string; themeId: string } | null;
-  let incrementedThemeId: string | null;
   let publishedEvents: unknown[];
-
-  const themeRepo = {
-    findByIdWithAuthor: async () => foundTheme,
-    incrementUsageCount: async (id: string) => {
-      incrementedThemeId = id;
-    },
-  } as unknown as ThemeRepositoryPort;
 
   const resumeRepo = {
     findById: async () => foundResume,
@@ -39,36 +27,26 @@ describe('ApplyThemeToResumeUseCase', () => {
   } as unknown as EventPublisher;
 
   beforeEach(() => {
+    themeRepo = new InMemoryThemeRepository();
+    themeRepo.seed([createTestTheme({ id: 'theme-1' })]);
     foundResume = { id: 'resume-1', userId: 'user-1' };
-    foundTheme = {
-      id: 'theme-1',
-      status: ThemeStatus.PUBLISHED,
-      authorId: 'author-1',
-    } as unknown as ThemeWithAuthor;
     appliedTheme = null;
-    incrementedThemeId = null;
     publishedEvents = [];
     useCase = new ApplyThemeToResumeUseCase(themeRepo, resumeRepo, eventPublisher);
   });
 
-  it('should apply a published theme to a resume', async () => {
+  it('should apply a theme to a resume', async () => {
     await useCase.execute('user-1', { resumeId: 'resume-1', themeId: 'theme-1' });
 
     expect(appliedTheme).toEqual({ resumeId: 'resume-1', themeId: 'theme-1' });
-    expect(incrementedThemeId).toBe('theme-1');
     expect(publishedEvents).toHaveLength(1);
   });
 
-  it('should allow applying own unpublished theme', async () => {
-    foundTheme = {
-      id: 'theme-1',
-      status: ThemeStatus.PRIVATE,
-      authorId: 'user-1',
-    } as unknown as ThemeWithAuthor;
-
+  it('should increment theme usage count', async () => {
     await useCase.execute('user-1', { resumeId: 'resume-1', themeId: 'theme-1' });
 
-    expect(appliedTheme).toBeTruthy();
+    const theme = await themeRepo.findById('theme-1');
+    expect(theme?.usageCount).toBe(1);
   });
 
   it('should throw ForbiddenException when resume does not belong to user', async () => {
@@ -88,23 +66,9 @@ describe('ApplyThemeToResumeUseCase', () => {
     ).rejects.toThrow(ForbiddenException);
   });
 
-  it('should throw NotFoundException when theme is not accessible', async () => {
-    foundTheme = null;
-
+  it('should throw NotFoundException when theme does not exist', async () => {
     await expect(
-      useCase.execute('user-1', { resumeId: 'resume-1', themeId: 'theme-1' }),
-    ).rejects.toThrow(NotFoundException);
-  });
-
-  it('should throw NotFoundException when theme is unpublished and not owned by user', async () => {
-    foundTheme = {
-      id: 'theme-1',
-      status: ThemeStatus.PRIVATE,
-      authorId: 'other-user',
-    } as unknown as ThemeWithAuthor;
-
-    await expect(
-      useCase.execute('user-1', { resumeId: 'resume-1', themeId: 'theme-1' }),
+      useCase.execute('user-1', { resumeId: 'resume-1', themeId: 'nonexistent' }),
     ).rejects.toThrow(NotFoundException);
   });
 });

@@ -42,7 +42,7 @@ describe('ReorderItemUseCase', () => {
     await useCase.execute('user-1', 'resume-1', 'sec-1', 'item-1', 5);
 
     expect(savedConfig).not.toBeNull();
-    expect(savedConfig!.itemOverrides['sec-1']).toEqual([
+    expect(savedConfig?.itemOverrides['sec-1']).toEqual([
       { itemId: 'item-1', visible: true, order: 5 },
     ]);
   });
@@ -56,7 +56,7 @@ describe('ReorderItemUseCase', () => {
 
     await useCase.execute('user-1', 'resume-1', 'sec-1', 'item-1', 10);
 
-    expect(savedConfig!.itemOverrides['sec-1']).toEqual([
+    expect(savedConfig?.itemOverrides['sec-1']).toEqual([
       { itemId: 'item-1', visible: false, order: 10 },
     ]);
   });

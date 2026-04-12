@@ -5,11 +5,11 @@
  */
 
 import { ForbiddenException } from '@nestjs/common';
-import { Prisma, ThemeStatus } from '@prisma/client';
 import type { CreateTheme } from '@/shared-kernel';
 import { ERROR_MESSAGES } from '@/shared-kernel';
 import type { AuthorizationPort } from '../../domain/ports/authorization.port';
 import type { ThemeRepositoryPort } from '../../domain/ports/theme.repository.port';
+import { type JsonValue, ThemeStatus } from '../../domain/ports/theme.repository.port';
 import { validateLayoutConfig, validateSectionsConfig } from '../../validators';
 
 export class CreateThemeAsAdminUseCase {
@@ -27,7 +27,7 @@ export class CreateThemeAsAdminUseCase {
       description: themeData.description,
       category: themeData.category,
       tags: themeData.tags ?? [],
-      styleConfig: themeData.styleConfig as Prisma.InputJsonValue,
+      styleConfig: themeData.styleConfig as JsonValue,
       parentThemeId: themeData.parentThemeId,
       authorId: adminId,
       status: ThemeStatus.PUBLISHED,

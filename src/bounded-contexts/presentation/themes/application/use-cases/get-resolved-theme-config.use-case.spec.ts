@@ -11,21 +11,23 @@ describe('GetResolvedThemeConfigUseCase', () => {
   let useCase: GetResolvedThemeConfigUseCase;
   let foundResume: ResumeWithTheme | null;
 
+  const baseResume: ResumeWithTheme = {
+    id: 'resume-1',
+    userId: 'user-1',
+    activeThemeId: 'theme-1',
+    customTheme: null,
+    activeTheme: {
+      id: 'theme-1',
+      styleConfig: { colors: { primary: '#000' }, font: 'Arial' },
+    },
+  };
+
   const resumeRepo = {
     findByIdWithTheme: async () => foundResume,
   } as unknown as ResumeRepositoryPort;
 
   beforeEach(() => {
-    foundResume = {
-      id: 'resume-1',
-      userId: 'user-1',
-      activeThemeId: 'theme-1',
-      customTheme: null,
-      activeTheme: {
-        id: 'theme-1',
-        styleConfig: { colors: { primary: '#000' }, font: 'Arial' },
-      },
-    };
+    foundResume = { ...baseResume };
     useCase = new GetResolvedThemeConfigUseCase(resumeRepo);
   });
 
@@ -37,7 +39,7 @@ describe('GetResolvedThemeConfigUseCase', () => {
 
   it('should return merged config when custom overrides exist', async () => {
     foundResume = {
-      ...foundResume!,
+      ...baseResume,
       customTheme: { colors: { primary: '#fff' } },
     };
 
@@ -53,7 +55,7 @@ describe('GetResolvedThemeConfigUseCase', () => {
 
   it('should return null when resume has no active theme', async () => {
     foundResume = {
-      ...foundResume!,
+      ...baseResume,
       activeThemeId: null,
       activeTheme: null,
     };
@@ -64,7 +66,7 @@ describe('GetResolvedThemeConfigUseCase', () => {
   });
 
   it('should throw ForbiddenException when resume does not belong to user', async () => {
-    foundResume = { ...foundResume!, userId: 'other-user' };
+    foundResume = { ...baseResume, userId: 'other-user' };
 
     await expect(useCase.execute('resume-1', 'user-1')).rejects.toThrow(ForbiddenException);
   });

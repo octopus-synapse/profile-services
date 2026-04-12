@@ -1,42 +1,39 @@
-import { Module } from '@nestjs/common';
-import { AuthorizationCheckPort } from '@/shared-kernel/authorization';
-import { AuthorizationPort } from './domain/ports/authorization.port';
+import { forwardRef, Module } from '@nestjs/common';
+import { ThemeATSScoringStrategy } from '@/bounded-contexts/ats-validation/ats/scoring/theme-ats-scoring.strategy';
+import { DslModule } from '@/bounded-contexts/dsl/dsl.module';
+import { ExportModule } from '@/bounded-contexts/export/export.module';
+import { S3UploadService } from '@/bounded-contexts/platform/common/services/s3-upload.service';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
-import {
-  PublicThemeController,
-  SectionConfigController,
-  ThemeApprovalController,
-  UserThemeController,
-} from './controllers';
+import { AuthorizationCheckPort } from '@/shared-kernel/authorization';
+import { PublicThemeController, SectionConfigController, UserThemeController } from './controllers';
+import { AtsScorngPort } from './domain/ports/ats-scoring.port';
+import { AuthorizationPort } from './domain/ports/authorization.port';
+import { ThemePreviewPort } from './domain/ports/theme-preview.port';
+import { ThemePreviewService } from './infrastructure/adapters/theme-preview.adapter';
 import {
   ResumeConfigRepository,
   SectionOrderingService,
   SectionVisibilityService,
   ThemeApplicationService,
-  ThemeApprovalService,
   ThemeCrudService,
   ThemeQueryService,
 } from './services';
 
 @Module({
-  imports: [PrismaModule],
-  controllers: [
-    // UserThemeController MUST come before PublicThemeController
-    // so that @Get('me') matches before @Get(':id')
-    UserThemeController,
-    ThemeApprovalController,
-    PublicThemeController,
-    SectionConfigController,
-  ],
+  imports: [PrismaModule, DslModule, forwardRef(() => ExportModule)],
+  controllers: [UserThemeController, PublicThemeController, SectionConfigController],
   providers: [
     ThemeCrudService,
     ThemeQueryService,
-    ThemeApprovalService,
     ThemeApplicationService,
     ResumeConfigRepository,
     SectionVisibilityService,
     SectionOrderingService,
+    ThemePreviewService,
+    S3UploadService,
     { provide: AuthorizationPort, useExisting: AuthorizationCheckPort },
+    { provide: AtsScorngPort, useClass: ThemeATSScoringStrategy },
+    { provide: ThemePreviewPort, useExisting: ThemePreviewService },
   ],
   exports: [
     ThemeCrudService,
@@ -44,6 +41,7 @@ import {
     ThemeApplicationService,
     SectionVisibilityService,
     SectionOrderingService,
+    ThemePreviewService,
   ],
 })
 export class ThemesModule {}

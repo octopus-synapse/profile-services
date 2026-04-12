@@ -32,8 +32,8 @@ import {
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
-import { CreateThemeDto } from '@/shared-kernel';
 import type { ApplyThemeToResume, ForkTheme, UpdateTheme } from '@/shared-kernel';
+import { CreateThemeDto } from '@/shared-kernel';
 import {
   ThemeApplyDataDto,
   ThemeEntityDataDto,

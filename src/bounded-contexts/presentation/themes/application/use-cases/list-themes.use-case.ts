@@ -1,11 +1,12 @@
 /**
  * List Themes Use Case
+ *
+ * All themes are public. No visibility filtering needed.
  */
 
-import { Prisma, ThemeStatus } from '@prisma/client';
 import type { QueryThemes } from '@/shared-kernel';
 import { APP_CONFIG } from '@/shared-kernel';
-import type { ThemeRepositoryPort } from '../../domain/ports/theme.repository.port';
+import type { ThemeFilter, ThemeRepositoryPort } from '../../domain/ports/theme.repository.port';
 
 export type ThemePagination = {
   total: number;
@@ -22,8 +23,8 @@ export type ThemePaginatedResult<TTheme = unknown> = {
 export class ListThemesUseCase {
   constructor(private readonly themeRepo: ThemeRepositoryPort) {}
 
-  async execute(queryOptions: QueryThemes, userId?: string): Promise<ThemePaginatedResult> {
-    const whereClause = this.buildWhereClause(queryOptions, userId);
+  async execute(queryOptions: QueryThemes): Promise<ThemePaginatedResult> {
+    const filter = this.buildFilter(queryOptions);
     const {
       sortBy = 'createdAt',
       sortDir = 'desc',
@@ -32,8 +33,9 @@ export class ListThemesUseCase {
     } = queryOptions;
 
     const result = await this.themeRepo.findManyWithPagination({
-      where: whereClause,
-      orderBy: { [sortBy]: sortDir },
+      filter,
+      sortBy,
+      sortDir,
       skip: (page - 1) * limit,
       take: limit,
     });
@@ -49,23 +51,14 @@ export class ListThemesUseCase {
     };
   }
 
-  private buildWhereClause(query: QueryThemes, userId?: string): Prisma.ResumeThemeWhereInput {
-    const where: Prisma.ResumeThemeWhereInput = {};
+  private buildFilter(query: QueryThemes): ThemeFilter {
+    const filter: ThemeFilter = {};
 
-    if (query.status) where.status = query.status;
-    else if (!userId) where.status = ThemeStatus.PUBLISHED;
+    if (query.category) filter.category = query.category;
+    if (query.systemOnly) filter.isSystemTheme = true;
+    if (query.authorId) filter.authorId = query.authorId;
+    if (query.search) filter.search = query.search;
 
-    if (query.category) where.category = query.category;
-    if (query.systemOnly) where.isSystemTheme = true;
-    if (query.authorId) where.authorId = query.authorId;
-
-    if (query.search) {
-      where.OR = [
-        { name: { contains: query.search, mode: 'insensitive' } },
-        { description: { contains: query.search, mode: 'insensitive' } },
-      ];
-    }
-
-    return where;
+    return filter;
   }
 }

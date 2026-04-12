@@ -45,7 +45,7 @@ describe('ToggleSectionVisibilityUseCase', () => {
     await useCase.execute('user-1', 'resume-1', 'sec-1', false);
 
     expect(savedConfig).not.toBeNull();
-    const section = savedConfig!.sections.find((s) => s.id === 'sec-1');
+    const section = savedConfig?.sections.find((s) => s.id === 'sec-1');
     expect(section?.visible).toBe(false);
   });
 
@@ -59,14 +59,14 @@ describe('ToggleSectionVisibilityUseCase', () => {
 
     await useCase.execute('user-1', 'resume-1', 'sec-1', true);
 
-    const section = savedConfig!.sections.find((s) => s.id === 'sec-1');
+    const section = savedConfig?.sections.find((s) => s.id === 'sec-1');
     expect(section?.visible).toBe(true);
   });
 
   it('should not modify other sections', async () => {
     await useCase.execute('user-1', 'resume-1', 'sec-1', false);
 
-    const otherSection = savedConfig!.sections.find((s) => s.id === 'sec-2');
+    const otherSection = savedConfig?.sections.find((s) => s.id === 'sec-2');
     expect(otherSection?.visible).toBe(true);
   });
 

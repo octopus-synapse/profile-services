@@ -1,31 +1,28 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
-import type { ThemeRepositoryPort } from '../../domain/ports/theme.repository.port';
+import { createTestTheme, InMemoryThemeRepository } from '../../../testing';
 import { GetSystemThemesUseCase } from './get-system-themes.use-case';
 
 describe('GetSystemThemesUseCase', () => {
   let useCase: GetSystemThemesUseCase;
-  let themeRepo: { findSystemThemes: ReturnType<typeof Function> };
-
-  const systemThemes = [
-    { id: 'sys-1', name: 'Default', isSystemTheme: true },
-    { id: 'sys-2', name: 'Minimal', isSystemTheme: true },
-  ];
+  let themeRepo: InMemoryThemeRepository;
 
   beforeEach(() => {
-    themeRepo = {
-      findSystemThemes: async () => systemThemes,
-    };
-    useCase = new GetSystemThemesUseCase(themeRepo as unknown as ThemeRepositoryPort);
+    themeRepo = new InMemoryThemeRepository();
+    themeRepo.seed([
+      createTestTheme({ id: 'sys-1', name: 'Default', isSystemTheme: true }),
+      createTestTheme({ id: 'sys-2', name: 'Minimal', isSystemTheme: true }),
+    ]);
+    useCase = new GetSystemThemesUseCase(themeRepo);
   });
 
   it('should return all system themes', async () => {
     const result = await useCase.execute();
 
-    expect(result).toEqual(systemThemes);
+    expect(result).toHaveLength(2);
   });
 
   it('should return empty array when no system themes exist', async () => {
-    themeRepo.findSystemThemes = async () => [];
+    themeRepo.seed([]);
 
     const result = await useCase.execute();
 

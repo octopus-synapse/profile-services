@@ -42,7 +42,7 @@ describe('ToggleItemVisibilityUseCase', () => {
     await useCase.execute('user-1', 'resume-1', 'sec-1', 'item-1', false);
 
     expect(savedConfig).not.toBeNull();
-    expect(savedConfig!.itemOverrides['sec-1']).toEqual([
+    expect(savedConfig?.itemOverrides['sec-1']).toEqual([
       { itemId: 'item-1', visible: false, order: 999 },
     ]);
   });
@@ -56,7 +56,7 @@ describe('ToggleItemVisibilityUseCase', () => {
 
     await useCase.execute('user-1', 'resume-1', 'sec-1', 'item-1', false);
 
-    expect(savedConfig!.itemOverrides['sec-1']).toEqual([
+    expect(savedConfig?.itemOverrides['sec-1']).toEqual([
       { itemId: 'item-1', visible: false, order: 2 },
     ]);
   });
@@ -64,7 +64,7 @@ describe('ToggleItemVisibilityUseCase', () => {
   it('should set visible to true for a new item override', async () => {
     await useCase.execute('user-1', 'resume-1', 'sec-1', 'item-2', true);
 
-    expect(savedConfig!.itemOverrides['sec-1']).toEqual([
+    expect(savedConfig?.itemOverrides['sec-1']).toEqual([
       { itemId: 'item-2', visible: true, order: 999 },
     ]);
   });
@@ -72,9 +72,9 @@ describe('ToggleItemVisibilityUseCase', () => {
   it('should throw when config is not found (ownership check fails)', async () => {
     shouldThrowOnGet = new Error('NotFoundException');
 
-    await expect(
-      useCase.execute('user-1', 'resume-1', 'sec-1', 'item-1', false),
-    ).rejects.toThrow('NotFoundException');
+    await expect(useCase.execute('user-1', 'resume-1', 'sec-1', 'item-1', false)).rejects.toThrow(
+      'NotFoundException',
+    );
     expect(savedConfig).toBeNull();
   });
 });

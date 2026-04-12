@@ -1,34 +1,30 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
-import type { ThemeRepositoryPort } from '../../domain/ports/theme.repository.port';
+import { createTestTheme, InMemoryThemeRepository } from '../../../testing';
 import { GetUserThemesUseCase } from './get-user-themes.use-case';
 
 describe('GetUserThemesUseCase', () => {
   let useCase: GetUserThemesUseCase;
-  let themeRepo: { findByAuthor: ReturnType<typeof Function> };
+  let themeRepo: InMemoryThemeRepository;
 
   const userId = 'user-1';
-  const userThemes = [
-    { id: 'theme-1', name: 'Theme 1', authorId: userId },
-    { id: 'theme-2', name: 'Theme 2', authorId: userId },
-  ];
 
   beforeEach(() => {
-    themeRepo = {
-      findByAuthor: async () => userThemes,
-    };
-    useCase = new GetUserThemesUseCase(themeRepo as unknown as ThemeRepositoryPort);
+    themeRepo = new InMemoryThemeRepository();
+    themeRepo.seed([
+      createTestTheme({ id: 'theme-1', name: 'Theme 1', authorId: userId }),
+      createTestTheme({ id: 'theme-2', name: 'Theme 2', authorId: userId }),
+    ]);
+    useCase = new GetUserThemesUseCase(themeRepo);
   });
 
   it('should return themes for the given user', async () => {
     const result = await useCase.execute(userId);
 
-    expect(result).toEqual(userThemes);
+    expect(result).toHaveLength(2);
   });
 
   it('should return empty array when user has no themes', async () => {
-    themeRepo.findByAuthor = async () => [];
-
-    const result = await useCase.execute(userId);
+    const result = await useCase.execute('no-themes-user');
 
     expect(result).toEqual([]);
   });

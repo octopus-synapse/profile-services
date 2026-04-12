@@ -2,31 +2,13 @@
  * Themes Port
  *
  * Defines the use cases interface and injection token for the Themes submodule.
+ * Themes are public and admin-managed. Users can only apply and query themes.
  */
 
-import type {
-  ApplyThemeToResume,
-  CreateTheme,
-  ForkTheme,
-  QueryThemes,
-  ThemeApproval,
-  UpdateTheme,
-} from '@/shared-kernel';
-import type {
-  ThemeEntity,
-  ThemeWithAuthor,
-  ThemeWithAuthorEmail,
-} from '../../domain/ports/theme.repository.port';
-
-// ============================================================================
-// Injection Tokens
-// ============================================================================
+import type { ApplyThemeToResume, CreateTheme, QueryThemes } from '@/shared-kernel';
+import type { ThemeEntity, ThemeWithAuthor } from '../../domain/ports/theme.repository.port';
 
 export const THEME_USE_CASES = Symbol('THEME_USE_CASES');
-
-// ============================================================================
-// Pagination Types
-// ============================================================================
 
 export type ThemePagination = {
   total: number;
@@ -40,45 +22,18 @@ export type ThemePaginatedResult<TTheme = unknown> = {
   pagination: ThemePagination;
 };
 
-// ============================================================================
-// Use Cases Interface
-// ============================================================================
-
 export interface ThemeUseCases {
-  // CRUD
-  createThemeUseCase: {
-    execute: (userId: string, themeData: CreateTheme) => Promise<ThemeEntity>;
-  };
-  updateThemeUseCase: {
-    execute: (userId: string, themeId: string, updateData: UpdateTheme) => Promise<ThemeEntity>;
-  };
-  deleteThemeUseCase: {
-    execute: (userId: string, themeId: string) => Promise<ThemeEntity>;
-  };
-  getThemeUseCase: {
-    execute: (themeId: string) => Promise<ThemeEntity>;
-  };
+  // Admin CRUD
   createThemeAsAdminUseCase: {
     execute: (adminId: string, themeData: CreateTheme) => Promise<ThemeEntity>;
   };
-
-  // Approval
-  submitThemeForApprovalUseCase: {
-    execute: (userId: string, themeId: string) => Promise<ThemeEntity>;
-  };
-  reviewThemeUseCase: {
-    execute: (approverId: string, dto: ThemeApproval) => Promise<ThemeEntity>;
-  };
-  getPendingApprovalsUseCase: {
-    execute: (approverId: string) => Promise<ThemeWithAuthorEmail[]>;
+  getThemeUseCase: {
+    execute: (themeId: string) => Promise<ThemeEntity>;
   };
 
   // Application
   applyThemeToResumeUseCase: {
     execute: (userId: string, data: ApplyThemeToResume) => Promise<void>;
-  };
-  forkThemeUseCase: {
-    execute: (userId: string, data: ForkTheme) => Promise<ThemeEntity>;
   };
   getResolvedThemeConfigUseCase: {
     execute: (resumeId: string, userId: string) => Promise<Record<string, unknown> | null>;
@@ -86,7 +41,7 @@ export interface ThemeUseCases {
 
   // Query
   listThemesUseCase: {
-    execute: (query: QueryThemes, userId?: string) => Promise<ThemePaginatedResult>;
+    execute: (query: QueryThemes) => Promise<ThemePaginatedResult>;
   };
   getPopularThemesUseCase: {
     execute: (limit?: number) => Promise<ThemeWithAuthor[]>;
@@ -98,7 +53,7 @@ export interface ThemeUseCases {
     execute: (userId: string) => Promise<ThemeEntity[]>;
   };
   findThemeByIdUseCase: {
-    execute: (themeId: string, userId?: string) => Promise<ThemeWithAuthor | null>;
+    execute: (themeId: string) => Promise<ThemeWithAuthor | null>;
   };
 
   // Section Ordering

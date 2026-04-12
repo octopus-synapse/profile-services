@@ -1,85 +1,93 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { ThemeStatus } from '@prisma/client';
-import type { ThemeRepositoryPort } from '../../domain/ports/theme.repository.port';
+import type { QueryThemes } from '@/shared-kernel';
+import { createTestTheme, InMemoryThemeRepository } from '../../../testing';
+import { ThemeCategory, ThemeStatus } from '../../domain/ports/theme.repository.port';
 import { ListThemesUseCase } from './list-themes.use-case';
+
+const defaultQuery: QueryThemes = {
+  sortBy: 'createdAt',
+  sortDir: 'desc',
+  page: 1,
+  limit: 20,
+};
+
+const query = (overrides: Partial<QueryThemes> = {}): QueryThemes => ({
+  ...defaultQuery,
+  ...overrides,
+});
 
 describe('ListThemesUseCase', () => {
   let useCase: ListThemesUseCase;
-  let themeRepo: { findManyWithPagination: ReturnType<typeof Function> };
-  let lastQuery: Record<string, unknown> | null;
-
-  const themes = [
-    { id: 'theme-1', name: 'Theme 1' },
-    { id: 'theme-2', name: 'Theme 2' },
-  ];
+  let themeRepo: InMemoryThemeRepository;
 
   beforeEach(() => {
-    lastQuery = null;
-    themeRepo = {
-      findManyWithPagination: async (opts: Record<string, unknown>) => {
-        lastQuery = opts;
-        return { themes, total: 2 };
-      },
-    };
-    useCase = new ListThemesUseCase(themeRepo as unknown as ThemeRepositoryPort);
+    themeRepo = new InMemoryThemeRepository();
+    themeRepo.seed([
+      createTestTheme({ id: 'theme-1', name: 'Theme 1', status: ThemeStatus.PUBLISHED }),
+      createTestTheme({ id: 'theme-2', name: 'Theme 2', status: ThemeStatus.PUBLISHED }),
+    ]);
+    useCase = new ListThemesUseCase(themeRepo);
   });
 
   it('should return paginated themes with defaults', async () => {
-    const result = await useCase.execute({});
+    const result = await useCase.execute(query());
 
-    expect(result.themes).toEqual(themes);
+    expect(result.themes).toHaveLength(2);
     expect(result.pagination.total).toBe(2);
     expect(result.pagination.page).toBe(1);
     expect(result.pagination.totalPages).toBe(1);
   });
 
-  it('should filter by PUBLISHED status when no userId is provided', async () => {
-    await useCase.execute({});
+  it('should return all themes without visibility filtering', async () => {
+    themeRepo.seed([
+      createTestTheme({ id: 'theme-1', status: ThemeStatus.PUBLISHED }),
+      createTestTheme({ id: 'theme-2', status: ThemeStatus.PRIVATE }),
+    ]);
 
-    expect((lastQuery as Record<string, unknown>).where).toEqual({
-      status: ThemeStatus.PUBLISHED,
-    });
-  });
+    const result = await useCase.execute(query());
 
-  it('should not force PUBLISHED status when userId is provided', async () => {
-    await useCase.execute({}, 'user-1');
-
-    expect((lastQuery as Record<string, unknown>).where).toEqual({});
-  });
-
-  it('should apply status filter when explicitly provided', async () => {
-    await useCase.execute({ status: ThemeStatus.PRIVATE });
-
-    expect(
-      ((lastQuery as Record<string, unknown>).where as Record<string, unknown>).status,
-    ).toBe(ThemeStatus.PRIVATE);
-  });
-
-  it('should apply search filter', async () => {
-    await useCase.execute({ search: 'modern' });
-
-    const where = (lastQuery as Record<string, unknown>).where as Record<string, unknown>;
-    expect(where.OR).toBeDefined();
+    expect(result.themes).toHaveLength(2);
   });
 
   it('should apply category filter', async () => {
-    await useCase.execute({ category: 'PROFESSIONAL' as never });
+    themeRepo.seed([
+      createTestTheme({
+        id: 'theme-1',
+        category: ThemeCategory.PROFESSIONAL,
+        status: ThemeStatus.PUBLISHED,
+      }),
+      createTestTheme({
+        id: 'theme-2',
+        category: ThemeCategory.CREATIVE,
+        status: ThemeStatus.PUBLISHED,
+      }),
+    ]);
 
-    const where = (lastQuery as Record<string, unknown>).where as Record<string, unknown>;
-    expect(where.category).toBe('PROFESSIONAL');
+    const result = await useCase.execute(query({ category: ThemeCategory.PROFESSIONAL }));
+
+    expect(result.themes).toHaveLength(1);
   });
 
   it('should apply systemOnly filter', async () => {
-    await useCase.execute({ systemOnly: true });
+    themeRepo.seed([
+      createTestTheme({ id: 'theme-1', isSystemTheme: true, status: ThemeStatus.PUBLISHED }),
+      createTestTheme({ id: 'theme-2', isSystemTheme: false, status: ThemeStatus.PUBLISHED }),
+    ]);
 
-    const where = (lastQuery as Record<string, unknown>).where as Record<string, unknown>;
-    expect(where.isSystemTheme).toBe(true);
+    const result = await useCase.execute(query({ systemOnly: true }));
+
+    expect(result.themes).toHaveLength(1);
+    expect((result.themes[0] as { id: string }).id).toBe('theme-1');
   });
 
   it('should calculate pagination correctly', async () => {
-    themeRepo.findManyWithPagination = async () => ({ themes: [], total: 50 });
+    themeRepo.seed(
+      Array.from({ length: 50 }, (_, i) =>
+        createTestTheme({ id: `theme-${i}`, status: ThemeStatus.PUBLISHED }),
+      ),
+    );
 
-    const result = await useCase.execute({ page: 2, limit: 10 });
+    const result = await useCase.execute(query({ page: 2, limit: 10 }));
 
     expect(result.pagination.page).toBe(2);
     expect(result.pagination.limit).toBe(10);
