@@ -9,6 +9,5 @@ export {
   type ThemeEntity,
   ThemeRepositoryPort,
   type ThemeWithAuthor,
-  type ThemeWithAuthorEmail,
   type UpdateThemeData,
 } from './theme.repository.port';

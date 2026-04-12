@@ -4,7 +4,7 @@
  * Abstraction for resume operations needed by theme use cases.
  */
 
-import type { Prisma } from '@prisma/client';
+import type { JsonValue } from './theme.repository.port';
 
 export type ResumeWithTheme = {
   id: string;
@@ -22,9 +22,5 @@ export abstract class ResumeRepositoryPort {
 
   abstract findByIdWithTheme(id: string): Promise<ResumeWithTheme | null>;
 
-  abstract applyTheme(
-    resumeId: string,
-    themeId: string,
-    customizations: Prisma.InputJsonValue,
-  ): Promise<void>;
+  abstract applyTheme(resumeId: string, themeId: string, customizations: JsonValue): Promise<void>;
 }

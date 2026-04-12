@@ -6,7 +6,18 @@
  */
 
 import { mock } from 'bun:test';
-import type { ThemeStatus } from '@prisma/client';
+import { AuthorizationPort } from '../themes/domain/ports/authorization.port';
+import type {
+  CreateThemeData,
+  ThemeEntity,
+  ThemeFilter,
+  ThemeWithAuthor,
+  UpdateThemeData,
+} from '../themes/domain/ports/theme.repository.port';
+import {
+  ThemeRepositoryPort,
+  type ThemeStatus,
+} from '../themes/domain/ports/theme.repository.port';
 
 // ============================================================================
 // Type Definitions
@@ -39,25 +50,7 @@ export interface ResumeSectionRecord {
   items: Array<{ content: unknown }>;
 }
 
-export interface ThemeRecord {
-  id: string;
-  name: string;
-  description: string | null;
-  category: string;
-  status: ThemeStatus;
-  authorId: string;
-  styleConfig: unknown;
-  parentThemeId: string | null;
-  isSystemTheme: boolean;
-  tags: string[];
-  createdAt: Date;
-  updatedAt: Date;
-  rejectionReason?: string | null;
-  rejectionCount?: number;
-  approvedById?: string | null;
-  approvedAt?: Date | null;
-  publishedAt?: Date | null;
-}
+export type ThemeRecord = ThemeEntity;
 
 // ============================================================================
 // In-Memory Resume Share Repository
@@ -163,29 +156,72 @@ export class InMemoryResumeRepository {
 }
 
 // ============================================================================
-// In-Memory Theme Repository
+// In-Memory Theme Repository (implements ThemeRepositoryPort)
 // ============================================================================
 
-export class InMemoryThemeRepository {
-  private themes: Map<string, ThemeRecord> = new Map();
+export class InMemoryThemeRepository extends ThemeRepositoryPort {
+  private themes: Map<string, ThemeEntity> = new Map();
+  private authors: Map<
+    string,
+    { id: string; name: string | null; username: string | null; email: string | null }
+  > = new Map();
 
-  seed(themes: ThemeRecord[]): void {
+  seed(themes: ThemeEntity[]): void {
     this.clear();
     for (const theme of themes) {
       this.themes.set(theme.id, theme);
     }
   }
 
-  clear(): void {
-    this.themes.clear();
+  seedAuthors(
+    authors: Array<{
+      id: string;
+      name: string | null;
+      username: string | null;
+      email: string | null;
+    }>,
+  ): void {
+    for (const author of authors) {
+      this.authors.set(author.id, author);
+    }
   }
 
-  async create(data: Omit<ThemeRecord, 'id' | 'createdAt' | 'updatedAt'>): Promise<ThemeRecord> {
+  clear(): void {
+    this.themes.clear();
+    this.authors.clear();
+  }
+
+  getAll(): ThemeEntity[] {
+    return Array.from(this.themes.values());
+  }
+
+  async create(data: CreateThemeData): Promise<ThemeEntity> {
     const id = `theme-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
     const now = new Date();
-    const theme: ThemeRecord = {
-      ...data,
+    const theme: ThemeEntity = {
       id,
+      name: data.name,
+      description: data.description ?? null,
+      category: data.category,
+      status: data.status,
+      authorId: data.authorId,
+      styleConfig: data.styleConfig,
+      sectionStyles: {},
+      thumbnailUrl: null,
+      previewImages: [],
+      parentThemeId: data.parentThemeId ?? null,
+      isSystemTheme: false,
+      tags: data.tags,
+      usageCount: 0,
+      rating: null,
+      ratingCount: 0,
+      version: '1.0.0',
+      rejectionReason: null,
+      rejectionCount: 0,
+      approvedById: data.approvedById ?? null,
+      approvedAt: data.approvedAt ?? null,
+      publishedAt: data.publishedAt ?? null,
+      atsScore: null,
       createdAt: now,
       updatedAt: now,
     };
@@ -193,93 +229,128 @@ export class InMemoryThemeRepository {
     return theme;
   }
 
-  async findUnique(where: { id: string }): Promise<ThemeRecord | null> {
-    return this.themes.get(where.id) ?? null;
+  async findById(id: string): Promise<ThemeEntity | null> {
+    return this.themes.get(id) ?? null;
   }
 
-  async update(
-    where: { id: string },
-    data: Partial<ThemeRecord> & { rejectionCount?: { increment: number } | number },
-  ): Promise<ThemeRecord> {
-    const theme = this.themes.get(where.id);
-    if (!theme) {
-      throw new Error('Theme not found');
+  async findByIdWithAuthor(id: string): Promise<ThemeWithAuthor | null> {
+    const theme = this.themes.get(id);
+    if (!theme) return null;
+    return this.withAuthor(theme);
+  }
+
+  async update(id: string, data: UpdateThemeData): Promise<ThemeEntity> {
+    const theme = this.themes.get(id);
+    if (!theme) throw new Error('Theme not found');
+
+    let rejectionCount = theme.rejectionCount;
+    if (
+      data.rejectionCount &&
+      typeof data.rejectionCount === 'object' &&
+      'increment' in data.rejectionCount
+    ) {
+      rejectionCount += data.rejectionCount.increment;
     }
 
-    // Handle rejectionCount increment before spreading
-    let rejectionCountValue = theme.rejectionCount;
-    if (data.rejectionCount !== undefined) {
-      if (
-        typeof data.rejectionCount === 'object' &&
-        data.rejectionCount !== null &&
-        'increment' in data.rejectionCount
-      ) {
-        const incrementObj = data.rejectionCount as { increment: number };
-        rejectionCountValue = (theme.rejectionCount ?? 0) + incrementObj.increment;
-      } else if (typeof data.rejectionCount === 'number') {
-        rejectionCountValue = data.rejectionCount;
-      }
-    }
-
-    const { rejectionCount, ...restData } = data;
-    const updated: ThemeRecord = {
+    const { rejectionCount: _, ...rest } = data;
+    const updated: ThemeEntity = {
       ...theme,
-      ...restData,
-      rejectionCount: rejectionCountValue,
+      ...rest,
+      rejectionCount,
       updatedAt: new Date(),
     };
-    this.themes.set(where.id, updated);
+    this.themes.set(id, updated);
     return updated;
   }
 
-  async delete(where: { id: string }): Promise<ThemeRecord> {
-    const theme = this.themes.get(where.id);
-    if (!theme) {
-      throw new Error('Theme not found');
-    }
-    this.themes.delete(where.id);
+  async delete(id: string): Promise<ThemeEntity> {
+    const theme = this.themes.get(id);
+    if (!theme) throw new Error('Theme not found');
+    this.themes.delete(id);
     return theme;
   }
 
-  async findMany(args?: {
-    where?: { status?: ThemeStatus; authorId?: string };
-    orderBy?: { createdAt?: 'asc' | 'desc' };
-    include?: { author?: { select: { id: boolean; name: boolean; email: boolean } } };
-  }): Promise<ThemeRecord[]> {
+  async countByAuthor(authorId: string): Promise<number> {
+    return Array.from(this.themes.values()).filter((t) => t.authorId === authorId).length;
+  }
+
+  async findManyWithPagination(options: {
+    filter: ThemeFilter;
+    sortBy: string;
+    sortDir: 'asc' | 'desc';
+    skip: number;
+    take: number;
+  }): Promise<{ themes: ThemeWithAuthor[]; total: number }> {
     let themes = Array.from(this.themes.values());
 
-    // Filter by where clause
-    if (args?.where) {
-      const whereClause = args.where;
-      if (whereClause.status) {
-        themes = themes.filter((t) => t.status === whereClause.status);
-      }
-      if (whereClause.authorId) {
-        themes = themes.filter((t) => t.authorId === whereClause.authorId);
-      }
+    const f = options.filter;
+    if (f.status) themes = themes.filter((t) => t.status === f.status);
+    if (f.authorId) themes = themes.filter((t) => t.authorId === f.authorId);
+    if (f.category) themes = themes.filter((t) => t.category === f.category);
+    if (f.isSystemTheme !== undefined)
+      themes = themes.filter((t) => t.isSystemTheme === f.isSystemTheme);
+    if (f.search) {
+      const s = f.search.toLowerCase();
+      themes = themes.filter(
+        (t) => t.name.toLowerCase().includes(s) || t.description?.toLowerCase().includes(s),
+      );
     }
 
-    // Sort if orderBy specified
-    if (args?.orderBy?.createdAt) {
-      const orderDirection = args.orderBy.createdAt;
-      themes.sort((a, b) => {
-        const comparison = a.createdAt.getTime() - b.createdAt.getTime();
-        return orderDirection === 'asc' ? comparison : -comparison;
-      });
-    }
+    const total = themes.length;
 
-    return themes;
+    themes.sort((a, b) => {
+      const aVal = (a as Record<string, unknown>)[options.sortBy];
+      const bVal = (b as Record<string, unknown>)[options.sortBy];
+      if (aVal instanceof Date && bVal instanceof Date) {
+        return options.sortDir === 'asc'
+          ? aVal.getTime() - bVal.getTime()
+          : bVal.getTime() - aVal.getTime();
+      }
+      return 0;
+    });
+
+    themes = themes.slice(options.skip, options.skip + options.take);
+
+    return { themes: themes.map((t) => this.withAuthor(t)), total };
   }
 
-  async count(where?: { authorId?: string }): Promise<number> {
-    if (!where) return this.themes.size;
-    return Array.from(this.themes.values()).filter(
-      (t) => !where.authorId || t.authorId === where.authorId,
+  async findPopular(limit: number): Promise<ThemeWithAuthor[]> {
+    const themes = Array.from(this.themes.values())
+      .sort((a, b) => b.usageCount - a.usageCount)
+      .slice(0, limit);
+    return themes.map((t) => this.withAuthor(t));
+  }
+
+  async findSystemThemes(): Promise<ThemeEntity[]> {
+    return Array.from(this.themes.values()).filter((t) => t.isSystemTheme);
+  }
+
+  async findByAuthor(authorId: string): Promise<ThemeEntity[]> {
+    return Array.from(this.themes.values()).filter((t) => t.authorId === authorId);
+  }
+
+  async incrementUsageCount(id: string): Promise<void> {
+    const theme = this.themes.get(id);
+    if (theme) {
+      theme.usageCount += 1;
+      this.themes.set(id, theme);
+    }
+  }
+
+  private withAuthor(theme: ThemeEntity): ThemeWithAuthor {
+    const author = this.authors.get(theme.authorId);
+    const forkCount = Array.from(this.themes.values()).filter(
+      (t) => t.parentThemeId === theme.id,
     ).length;
-  }
-
-  getAll(): ThemeRecord[] {
-    return Array.from(this.themes.values());
+    return {
+      ...theme,
+      author: {
+        id: theme.authorId,
+        name: author?.name ?? null,
+        username: author?.username ?? null,
+      },
+      _count: { resumes: 0, forks: forkCount },
+    };
   }
 }
 
@@ -350,7 +421,7 @@ export class StubEventPublisher {
 // Stub Authorization Service
 // ============================================================================
 
-export class StubAuthorizationService {
+export class StubAuthorizationService extends AuthorizationPort {
   private permissions: Map<string, Set<string>> = new Map();
 
   grantPermission(userId: string, permission: string): void {
@@ -364,8 +435,8 @@ export class StubAuthorizationService {
     this.permissions.get(userId)?.delete(permission);
   }
 
-  async hasPermission(userId: string, permission: string): Promise<boolean> {
-    return this.permissions.get(userId)?.has(permission) ?? false;
+  async hasPermission(userId: string, resource: string, action: string): Promise<boolean> {
+    return this.permissions.get(userId)?.has(`${resource}:${action}`) ?? false;
   }
 
   clear(): void {
@@ -401,23 +472,31 @@ export const createTestResume = (overrides: Partial<ResumeRecord> = {}): ResumeR
   ...overrides,
 });
 
-export const createTestTheme = (overrides: Partial<ThemeRecord> = {}): ThemeRecord => ({
+export const createTestTheme = (overrides: Partial<ThemeEntity> = {}): ThemeEntity => ({
   id: 'theme-123',
   name: 'Professional Theme',
   description: 'A professional theme for resumes',
-  category: 'PROFESSIONAL',
+  category: 'PROFESSIONAL' as ThemeEntity['category'],
   status: 'PRIVATE' as ThemeStatus,
   authorId: 'user-123',
   styleConfig: { colors: { primary: '#000' } },
+  sectionStyles: {},
+  thumbnailUrl: null,
+  previewImages: [],
   parentThemeId: null,
   isSystemTheme: false,
   tags: [],
-  createdAt: new Date(),
-  updatedAt: new Date(),
+  usageCount: 0,
+  rating: null,
+  ratingCount: 0,
+  version: '1.0.0',
   rejectionReason: null,
   rejectionCount: 0,
   approvedById: null,
   approvedAt: null,
   publishedAt: null,
+  atsScore: null,
+  createdAt: new Date(),
+  updatedAt: new Date(),
   ...overrides,
 });

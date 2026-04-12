@@ -10,6 +10,7 @@ import {
   ResumeRepositoryPort,
   type ResumeWithTheme,
 } from '../../../domain/ports/resume.repository.port';
+import type { JsonValue } from '../../../domain/ports/theme.repository.port';
 
 export class ResumeRepository extends ResumeRepositoryPort {
   constructor(private readonly prisma: PrismaService) {
@@ -24,23 +25,18 @@ export class ResumeRepository extends ResumeRepositoryPort {
   }
 
   async findByIdWithTheme(id: string): Promise<ResumeWithTheme | null> {
-    const result = await this.prisma.resume.findUnique({
+    return this.prisma.resume.findUnique({
       where: { id },
       include: { activeTheme: true },
     });
-    return result;
   }
 
-  async applyTheme(
-    resumeId: string,
-    themeId: string,
-    customizations: Prisma.InputJsonValue,
-  ): Promise<void> {
+  async applyTheme(resumeId: string, themeId: string, customizations: JsonValue): Promise<void> {
     await this.prisma.resume.update({
       where: { id: resumeId },
       data: {
         activeThemeId: themeId,
-        customTheme: customizations,
+        customTheme: customizations as Prisma.InputJsonValue,
       },
     });
   }
