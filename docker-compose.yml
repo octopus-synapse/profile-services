@@ -1,53 +1,24 @@
-version: "3.8"
-
 services:
-  # ==================================
-  # PostgreSQL Database
-  # ==================================
   postgres:
-    image: postgres:16-alpine
+    extends:
+      file: infra/docker/compose/postgres.yml
+      service: postgres
     container_name: profile-postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-profile}
-      PGDATA: /var/lib/postgresql/data/pgdata
-    ports:
-      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - profile-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
-  # ==================================
-  # Redis Cache
-  # ==================================
   redis:
-    image: redis:7-alpine
+    extends:
+      file: infra/docker/compose/redis.yml
+      service: redis
     container_name: profile-redis
-    restart: unless-stopped
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis}
-    ports:
-      - "${REDIS_PORT:-6379}:6379"
     volumes:
       - redis_data:/data
     networks:
       - profile-network
-    healthcheck:
-      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
 
-  # ==================================
-  # Backend (NestJS)
-  # ==================================
   backend:
     image: ${DOCKER_IMAGE:-ghcr.io/octopus-synapse/profile-services:${IMAGE_TAG:-latest}}
     container_name: profile-backend
@@ -80,30 +51,12 @@ services:
       - profile-network
     volumes:
       - backend_logs:/app/logs
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "bun",
-          "-e",
-          "const port = process.env.PORT || 3001; fetch(`http://localhost:${port}/api/health`).then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
-        ]
-      interval: 30s
-      timeout: 3s
-      retries: 3
-      start_period: 40s
 
-# ==================================
-# Networks
-# ==================================
 networks:
   profile-network:
     external: true
     name: profile-network
 
-# ==================================
-# Volumes
-# ==================================
 volumes:
   postgres_data:
     name: profile-postgres-data

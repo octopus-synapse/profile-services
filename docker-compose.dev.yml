@@ -1,55 +1,66 @@
 services:
-  # ==================================
-  # PostgreSQL Database
-  # ==================================
   postgres:
-    image: postgres:16-alpine
+    extends:
+      file: infra/docker/compose/postgres.yml
+      service: postgres
     container_name: profile-postgres-dev
-    restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_DB: ${POSTGRES_DB:-profile_dev}
-      PGDATA: /var/lib/postgresql/data/pgdata
-    ports:
-      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_dev_data:/var/lib/postgresql/data
     networks:
       - profile-dev-network
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-profile_dev}",
-        ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
-  # ==================================
-  # Redis Cache
-  # ==================================
   redis:
-    image: redis:7-alpine
+    extends:
+      file: infra/docker/compose/redis.yml
+      service: redis
     container_name: profile-redis-dev
-    restart: unless-stopped
-    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis}
-    ports:
-      - "${REDIS_PORT:-6379}:6379"
     volumes:
       - redis_dev_data:/data
     networks:
       - profile-dev-network
-    healthcheck:
-      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
 
-  # ==================================
-  # Backend (NestJS) - Development Mode
-  # ==================================
+  minio:
+    extends:
+      file: infra/docker/compose/minio.yml
+      service: minio
+    container_name: profile-minio-dev
+    volumes:
+      - minio_dev_data:/data
+    networks:
+      - profile-dev-network
+
+  minio-init:
+    image: minio/mc
+    container_name: profile-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 $${MINIO_ROOT_USER:-minioadmin} $${MINIO_ROOT_PASSWORD:-minioadmin};
+      mc mb local/$${MINIO_BUCKET:-profile-uploads} --ignore-existing;
+      mc anonymous set download local/$${MINIO_BUCKET:-profile-uploads};
+      echo 'Bucket ready';
+      "
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin}
+      MINIO_BUCKET: ${MINIO_BUCKET:-profile-uploads}
+    networks:
+      - profile-dev-network
+
+  libretranslate:
+    extends:
+      file: infra/docker/compose/libretranslate.yml
+      service: libretranslate
+    container_name: profile-libretranslate-dev
+    volumes:
+      - libretranslate_models:/home/libretranslate/.local
+    networks:
+      - profile-dev-network
+
   backend:
     build:
       context: .
@@ -59,7 +70,7 @@ services:
     restart: unless-stopped
     command: sh -c "bunx prisma generate && bunx prisma migrate deploy && bun run prisma/seed.ts && bun run start:dev"
     environment:
-      NODE_ENV: ${NODE_ENV:-development} # Allow override for E2E testing
+      NODE_ENV: ${NODE_ENV:-development}
       PORT: ${BACKEND_PORT:-3001}
       DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-profile_dev}?schema=public
       REDIS_HOST: redis
@@ -70,19 +81,17 @@ services:
       SENDGRID_API_KEY: ${SENDGRID_API_KEY}
       EMAIL_FROM: ${EMAIL_FROM:-${SENDGRID_EMAIL_FROM}}
       EMAIL_FROM_NAME: ${EMAIL_FROM_NAME:-ProFile}
-      MINIO_ENDPOINT: ${MINIO_ENDPOINT}
-      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
-      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin}
       MINIO_BUCKET: ${MINIO_BUCKET:-profile-uploads}
+      MINIO_PUBLIC_ENDPOINT: http://localhost:9000
+      LIBRETRANSLATE_URL: http://libretranslate:5000
       LOG_LEVEL: debug
       INTERNAL_API_TOKEN: ${INTERNAL_API_TOKEN:-dev-mec-sync-token-123}
-      LIBRETRANSLATE_URL: http://libretranslate:5000
-      # Rate limits - can be overridden for E2E tests
       RATE_LIMIT_MAX: ${RATE_LIMIT_MAX:-100}
       RATE_LIMIT_AUTH_MAX: ${RATE_LIMIT_AUTH_MAX:-5}
-      # Skip email verification - override for E2E tests (SKIP_EMAIL_VERIFICATION=true)
       SKIP_EMAIL_VERIFICATION: ${SKIP_EMAIL_VERIFICATION:-false}
-      # Skip ToS check - override for E2E tests (SKIP_TOS_CHECK=true)
       SKIP_TOS_CHECK: ${SKIP_TOS_CHECK:-false}
     ports:
       - "${BACKEND_PORT:-3001}:3001"
@@ -91,6 +100,8 @@ services:
       postgres:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      minio:
         condition: service_healthy
       libretranslate:
         condition: service_healthy
@@ -103,58 +114,27 @@ services:
       - ./prisma:/app/prisma:delegated
       - ./prisma.config.ts:/app/prisma.config.ts:delegated
       - ./tsconfig.json:/app/tsconfig.json:delegated
+      - ./scripts:/app/scripts:delegated
       - ./tsconfig.build.json:/app/tsconfig.build.json:delegated
       - ./nest-cli.json:/app/nest-cli.json:delegated
       - ./package.json:/app/package.json:delegated
       - /app/node_modules
       - ./logs:/app/logs
 
-  # ==================================
-  # LibreTranslate Translation Service
-  # ==================================
-  libretranslate:
-    image: libretranslate/libretranslate:latest
-    container_name: profile-libretranslate-dev
-    restart: unless-stopped
-    environment:
-      LT_LOAD_ONLY: "pt,en"
-      LT_UPDATE_MODELS: "true"
-    ports:
-      - "${LIBRETRANSLATE_PORT:-5000}:5000"
-    networks:
-      - profile-dev-network
-    volumes:
-      - libretranslate_models:/home/libretranslate/.local
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          'python -c "import urllib.request; urllib.request.urlopen(''http://localhost:5000/languages'')" || exit 1',
-        ]
-      interval: 30s
-      timeout: 10s
-      retries: 10
-      start_period: 180s
-    deploy:
-      resources:
-        limits:
-          memory: 4G
-
-# ==================================
-# Networks
-# ==================================
 networks:
   profile-dev-network:
     driver: bridge
     name: profile-dev-network
 
-# ==================================
-# Volumes
-# ==================================
 volumes:
   postgres_dev_data:
     name: profile-postgres-dev-data
+    external: true
   redis_dev_data:
     name: profile-redis-dev-data
+    external: true
+  minio_dev_data:
+    name: profile-minio-dev-data
   libretranslate_models:
     name: profile-libretranslate-models
+    external: true
