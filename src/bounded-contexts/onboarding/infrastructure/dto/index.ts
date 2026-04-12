@@ -5,8 +5,6 @@ export * from './complete-onboarding-response.dto';
 // Request DTOs
 export * from './goto-step-request.dto';
 export * from './onboarding-session-response.dto';
-// Backward compat alias
-export { OnboardingSessionDto as OnboardingProgressDto } from './onboarding-session-response.dto';
 export * from './onboarding-status-response.dto';
 export * from './personal-info.dto';
 export * from './professional-profile.dto';

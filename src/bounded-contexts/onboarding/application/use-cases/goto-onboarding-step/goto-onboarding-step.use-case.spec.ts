@@ -102,8 +102,7 @@ describe('GotoOnboardingStepUseCase', () => {
     );
   });
 
-  it('throws when jumping to a future step that is not completed', async () => {
-    // Arrange — user at welcome, trying to jump to professional-profile
+  it('allows jumping to any step (non-linear flow)', async () => {
     progressRepo.seedProgress(
       createOnboardingProgress({
         userId: USER_ID,
@@ -112,13 +111,9 @@ describe('GotoOnboardingStepUseCase', () => {
       }),
     );
 
-    // Act & Assert
-    await expect(useCase.execute(USER_ID, 'professional-profile')).rejects.toThrow(
-      BadRequestException,
-    );
-    await expect(useCase.execute(USER_ID, 'professional-profile')).rejects.toThrow(
-      'not accessible yet',
-    );
+    const result = await useCase.execute(USER_ID, 'professional-profile');
+
+    expect(result.currentStep).toBe('professional-profile');
   });
 
   it('allows jumping to a future step if it was previously completed', async () => {

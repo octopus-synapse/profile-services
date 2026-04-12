@@ -20,15 +20,6 @@ export class GotoOnboardingStepUseCase {
       throw new BadRequestException(`Unknown step: ${stepId}`);
     }
 
-    const isAccessible =
-      progress.completedSteps.includes(stepId) ||
-      stepId === progress.currentStep ||
-      targetIndex <= getStepIndex(progress.currentStep, steps);
-
-    if (!isAccessible) {
-      throw new BadRequestException(`Step ${stepId} is not accessible yet`);
-    }
-
     await this.saveProgress(userId, {
       currentStep: stepId,
       completedSteps: progress.completedSteps,

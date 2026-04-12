@@ -31,11 +31,19 @@ const StepMetaSchema = z.object({
   sectionTypeKey: z.string().optional(),
 });
 
+const StrengthSchema = z.object({
+  score: z.number().int().min(0).max(100),
+  message: z.string(),
+  level: z.enum(['weak', 'growing', 'strong', 'excellent', 'complete']),
+});
+
 export const OnboardingSessionSchema = z.object({
   currentStep: z.string(),
   completedSteps: z.array(z.string()),
   progress: z.number().int().min(0).max(100),
+  strength: StrengthSchema.optional(),
   canProceed: z.boolean(),
+  missingRequired: z.array(z.string()).optional(),
   nextStep: z.string().nullable().optional(),
   previousStep: z.string().nullable().optional(),
   steps: z.array(StepMetaSchema),
