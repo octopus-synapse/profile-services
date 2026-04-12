@@ -1,5 +1,5 @@
-import type { Prisma } from '@prisma/client';
 import type { ListSectionTypesQueryDto, SectionTypeListResponseDto } from '../../../dto';
+import type { SectionTypeFilter } from '../../ports/admin-section-types.port';
 import { AdminSectionTypesRepositoryPort } from '../../ports/admin-section-types.port';
 import { toResponseDto } from '../../to-response-dto';
 
@@ -12,27 +12,15 @@ export class ListSectionTypesAdminUseCase {
     const { search, isActive, semanticKind } = query;
     const skip = (page - 1) * pageSize;
 
-    const where: Prisma.SectionTypeWhereInput = {};
+    const filter: SectionTypeFilter = {};
 
-    if (search) {
-      where.OR = [
-        { key: { contains: search, mode: 'insensitive' } },
-        { title: { contains: search, mode: 'insensitive' } },
-        { slug: { contains: search, mode: 'insensitive' } },
-      ];
-    }
-
-    if (isActive !== undefined) {
-      where.isActive = isActive;
-    }
-
-    if (semanticKind) {
-      where.semanticKind = semanticKind;
-    }
+    if (search) filter.search = search;
+    if (isActive !== undefined) filter.isActive = isActive;
+    if (semanticKind) filter.semanticKind = semanticKind;
 
     const [items, total] = await Promise.all([
-      this.repository.findMany(where, skip, pageSize),
-      this.repository.count(where),
+      this.repository.findMany(filter, skip, pageSize),
+      this.repository.count(filter),
     ]);
 
     return {

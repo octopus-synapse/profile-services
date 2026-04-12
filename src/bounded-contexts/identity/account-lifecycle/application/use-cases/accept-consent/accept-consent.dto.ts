@@ -3,9 +3,9 @@
  * Input/output DTOs for the accept consent use-case and HTTP layer
  */
 
-import { ConsentDocumentType } from '@prisma/client';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
+import { ConsentDocumentType } from '../../../domain/ports/consent-repository.port';
 
 // ============================================================================
 // Use-case DTOs (internal)

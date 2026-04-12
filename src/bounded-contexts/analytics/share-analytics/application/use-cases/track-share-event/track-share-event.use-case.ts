@@ -5,8 +5,8 @@
  */
 
 import { createHash } from 'node:crypto';
-import type { AnalyticsEvent } from '@prisma/client';
 import type { ShareAnalyticsRepositoryPort } from '../../../ports';
+import type { AnalyticsEvent } from '../../ports/share-analytics.port';
 
 interface TrackEvent {
   shareId: string;

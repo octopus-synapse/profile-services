@@ -1,8 +1,11 @@
-import { Prisma } from '@prisma/client';
+import type { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import {
   AdminSectionTypesRepositoryPort,
+  type CreateSectionTypeData,
+  type SectionTypeFilter,
   type SectionTypeRecord,
+  type UpdateSectionTypeData,
 } from '../../application/ports/admin-section-types.port';
 
 export class AdminSectionTypesRepository extends AdminSectionTypesRepositoryPort {
@@ -11,20 +14,20 @@ export class AdminSectionTypesRepository extends AdminSectionTypesRepositoryPort
   }
 
   async findMany(
-    where: Prisma.SectionTypeWhereInput,
+    filter: SectionTypeFilter,
     skip: number,
     take: number,
   ): Promise<SectionTypeRecord[]> {
     return this.prisma.sectionType.findMany({
-      where,
+      where: this.buildPrismaWhere(filter),
       skip,
       take,
       orderBy: { createdAt: 'desc' },
     });
   }
 
-  async count(where: Prisma.SectionTypeWhereInput): Promise<number> {
-    return this.prisma.sectionType.count({ where });
+  async count(filter: SectionTypeFilter): Promise<number> {
+    return this.prisma.sectionType.count({ where: this.buildPrismaWhere(filter) });
   }
 
   async findByKey(key: string): Promise<SectionTypeRecord | null> {
@@ -43,12 +46,17 @@ export class AdminSectionTypesRepository extends AdminSectionTypesRepositoryPort
     return this.prisma.sectionType.findFirst({ where });
   }
 
-  async create(data: Prisma.SectionTypeCreateInput): Promise<SectionTypeRecord> {
-    return this.prisma.sectionType.create({ data });
+  async create(data: CreateSectionTypeData): Promise<SectionTypeRecord> {
+    return this.prisma.sectionType.create({
+      data: data as Prisma.SectionTypeCreateInput,
+    });
   }
 
-  async update(key: string, data: Prisma.SectionTypeUpdateInput): Promise<SectionTypeRecord> {
-    return this.prisma.sectionType.update({ where: { key }, data });
+  async update(key: string, data: UpdateSectionTypeData): Promise<SectionTypeRecord> {
+    return this.prisma.sectionType.update({
+      where: { key },
+      data: data as Prisma.SectionTypeUpdateInput,
+    });
   }
 
   async delete(key: string): Promise<void> {
@@ -56,9 +64,7 @@ export class AdminSectionTypesRepository extends AdminSectionTypesRepositoryPort
   }
 
   async countResumeSectionsForType(sectionTypeId: string): Promise<number> {
-    return this.prisma.resumeSection.count({
-      where: { sectionTypeId },
-    });
+    return this.prisma.resumeSection.count({ where: { sectionTypeId } });
   }
 
   async findDistinctSemanticKinds(): Promise<string[]> {
@@ -68,5 +74,21 @@ export class AdminSectionTypesRepository extends AdminSectionTypesRepositoryPort
       orderBy: { semanticKind: 'asc' },
     });
     return result.map((r) => r.semanticKind);
+  }
+
+  private buildPrismaWhere(filter: SectionTypeFilter): Prisma.SectionTypeWhereInput {
+    const where: Prisma.SectionTypeWhereInput = {};
+
+    if (filter.isActive !== undefined) where.isActive = filter.isActive;
+    if (filter.semanticKind) where.semanticKind = filter.semanticKind;
+    if (filter.search) {
+      where.OR = [
+        { key: { contains: filter.search, mode: 'insensitive' } },
+        { title: { contains: filter.search, mode: 'insensitive' } },
+        { slug: { contains: filter.search, mode: 'insensitive' } },
+      ];
+    }
+
+    return where;
   }
 }

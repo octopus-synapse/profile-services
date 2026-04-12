@@ -4,7 +4,11 @@
  * Defines the use cases interface and injection token for Share Analytics.
  */
 
-import type { AnalyticsEvent } from '@prisma/client';
+export const AnalyticsEvent = {
+  VIEW: 'VIEW',
+  DOWNLOAD: 'DOWNLOAD',
+} as const;
+export type AnalyticsEvent = (typeof AnalyticsEvent)[keyof typeof AnalyticsEvent];
 
 export type { ShareAnalyticsRepositoryPort } from '../../ports';
 

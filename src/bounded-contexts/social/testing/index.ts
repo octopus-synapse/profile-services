@@ -7,7 +7,7 @@
  * - User interactions
  */
 
-import type { ActivityType } from '@prisma/client';
+import type { ActivityType } from '../application/ports/activity.port';
 
 // ═══════════════════════════════════════════════════════════════
 // TYPES

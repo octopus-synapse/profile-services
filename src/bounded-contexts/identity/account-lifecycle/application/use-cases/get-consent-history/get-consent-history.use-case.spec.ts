@@ -5,8 +5,8 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { ConsentDocumentType } from '@prisma/client';
 import { InMemoryConsentRepository } from '../../../../shared-kernel/testing';
+import { ConsentDocumentType } from '../../../domain/ports/consent-repository.port';
 import { GetConsentHistoryUseCase } from './get-consent-history.use-case';
 
 describe('GetConsentHistoryUseCase', () => {

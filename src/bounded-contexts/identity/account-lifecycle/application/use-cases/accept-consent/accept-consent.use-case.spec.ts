@@ -5,12 +5,13 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { AuditAction, ConsentDocumentType } from '@prisma/client';
 import {
   InMemoryAuditLogger,
   InMemoryConsentRepository,
   StubVersionConfig,
 } from '../../../../shared-kernel/testing';
+import { AuditAction } from '../../../domain/ports/audit-logger.port';
+import { ConsentDocumentType } from '../../../domain/ports/consent-repository.port';
 import { AcceptConsentUseCase } from './accept-consent.use-case';
 
 describe('AcceptConsentUseCase', () => {

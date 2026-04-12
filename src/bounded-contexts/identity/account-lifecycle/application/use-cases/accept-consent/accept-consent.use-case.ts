@@ -5,8 +5,8 @@
  * with audit trail including IP and user agent.
  */
 
-import { AuditAction } from '@prisma/client';
 import type { AuditLoggerPort } from '../../../domain/ports/audit-logger.port';
+import { AuditAction } from '../../../domain/ports/audit-logger.port';
 import type { AcceptConsentInput, AcceptConsentOutput } from './accept-consent.dto';
 import type { ConsentRepositoryPort } from './accept-consent.port';
 

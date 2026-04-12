@@ -5,17 +5,20 @@
  * Provides helper methods for test setup and assertions.
  */
 
-import type { User, UserPreferences } from '@prisma/client';
 import type { UpdateFullPreferences, UpdatePreferences, UpdateProfile } from '@/shared-kernel';
+import type {
+  UserEntity,
+  UserPreferencesEntity,
+} from '../../../users/domain/ports/users-repository.port';
 import { UsersRepositoryPort } from '../../../users/domain/ports/users-repository.port';
 
-interface StoredUser extends User {
-  preferences?: UserPreferences | null;
+interface StoredUser extends UserEntity {
+  preferences?: UserPreferencesEntity | null;
 }
 
 export class InMemoryUsersRepository extends UsersRepositoryPort {
   private users = new Map<string, StoredUser>();
-  private preferences = new Map<string, UserPreferences>();
+  private preferences = new Map<string, UserPreferencesEntity>();
   private takenUsernames = new Set<string>();
 
   // ============ Test Helpers ============
@@ -61,8 +64,8 @@ export class InMemoryUsersRepository extends UsersRepositoryPort {
   /**
    * Seed user preferences
    */
-  seedPreferences(prefs: Partial<UserPreferences> & { id: string; userId: string }): void {
-    const fullPrefs: UserPreferences = {
+  seedPreferences(prefs: Partial<UserPreferencesEntity> & { id: string; userId: string }): void {
+    const fullPrefs: UserPreferencesEntity = {
       id: prefs.id,
       userId: prefs.userId,
       theme: prefs.theme ?? 'dark',
@@ -128,14 +131,14 @@ export class InMemoryUsersRepository extends UsersRepositoryPort {
 
   // ============ Repository Interface Implementation ============
 
-  async findUserById(userId: string): Promise<User | null> {
+  async findUserById(userId: string): Promise<UserEntity | null> {
     const user = this.users.get(userId);
     return user ?? null;
   }
 
   async findUserWithPreferencesById(
     userId: string,
-  ): Promise<(User & { preferences: UserPreferences | null }) | null> {
+  ): Promise<(UserEntity & { preferences: UserPreferencesEntity | null }) | null> {
     const user = this.users.get(userId);
     if (!user) return null;
 
@@ -147,7 +150,7 @@ export class InMemoryUsersRepository extends UsersRepositoryPort {
 
   async findUserByUsername(
     username: string,
-  ): Promise<(User & { preferences: UserPreferences | null }) | null> {
+  ): Promise<(UserEntity & { preferences: UserPreferencesEntity | null }) | null> {
     const normalizedUsername = username.toLowerCase();
     const user = Array.from(this.users.values()).find(
       (u) => u.username?.toLowerCase() === normalizedUsername,
@@ -161,7 +164,7 @@ export class InMemoryUsersRepository extends UsersRepositoryPort {
     };
   }
 
-  async findUserProfileById(userId: string): Promise<Partial<User> | null> {
+  async findUserProfileById(userId: string): Promise<Partial<UserEntity> | null> {
     const user = this.users.get(userId);
     if (!user) return null;
 
@@ -180,7 +183,7 @@ export class InMemoryUsersRepository extends UsersRepositoryPort {
     };
   }
 
-  async findUserPreferencesById(userId: string): Promise<Partial<User> | null> {
+  async findUserPreferencesById(userId: string): Promise<Partial<UserEntity> | null> {
     const user = this.users.get(userId);
     if (!user) return null;
 
@@ -188,7 +191,7 @@ export class InMemoryUsersRepository extends UsersRepositoryPort {
     return prefs ? { ...user, ...prefs } : user;
   }
 
-  async findFullUserPreferencesByUserId(userId: string): Promise<UserPreferences | null> {
+  async findFullUserPreferencesByUserId(userId: string): Promise<UserPreferencesEntity | null> {
     return this.preferences.get(userId) ?? null;
   }
 
@@ -230,7 +233,7 @@ export class InMemoryUsersRepository extends UsersRepositoryPort {
     email: string;
     displayName?: string;
     photoURL?: string;
-  }): Promise<User> {
+  }): Promise<UserEntity> {
     const now = new Date();
     const user: StoredUser = {
       id: userData.id,
@@ -262,7 +265,7 @@ export class InMemoryUsersRepository extends UsersRepositoryPort {
     return user;
   }
 
-  async updateUserAccount(userId: string, userData: Partial<User>): Promise<User> {
+  async updateUserAccount(userId: string, userData: Partial<UserEntity>): Promise<UserEntity> {
     const user = this.users.get(userId);
     if (!user) {
       throw new Error(`User not found: ${userId}`);
@@ -286,7 +289,7 @@ export class InMemoryUsersRepository extends UsersRepositoryPort {
     this.preferences.delete(userId);
   }
 
-  async updateUserProfile(userId: string, profile: UpdateProfile): Promise<User> {
+  async updateUserProfile(userId: string, profile: UpdateProfile): Promise<UserEntity> {
     const user = this.users.get(userId);
     if (!user) {
       throw new Error(`User not found: ${userId}`);
@@ -308,18 +311,18 @@ export class InMemoryUsersRepository extends UsersRepositoryPort {
         ...existingPrefs,
         ...preferences,
         updatedAt: new Date(),
-      } as UserPreferences);
+      } as UserPreferencesEntity);
     }
   }
 
   async upsertFullUserPreferences(
     userId: string,
     preferences: UpdateFullPreferences,
-  ): Promise<UserPreferences> {
+  ): Promise<UserPreferencesEntity> {
     const existingPrefs = this.preferences.get(userId);
     const now = new Date();
 
-    const newPrefs: UserPreferences = {
+    const newPrefs: UserPreferencesEntity = {
       id: existingPrefs?.id ?? `pref-${userId}`,
       userId,
       theme: preferences.theme ?? existingPrefs?.theme ?? 'dark',
@@ -372,7 +375,7 @@ export class InMemoryUsersRepository extends UsersRepositoryPort {
     }
   }
 
-  async updateUsername(userId: string, username: string): Promise<User> {
+  async updateUsername(userId: string, username: string): Promise<UserEntity> {
     const user = this.users.get(userId);
     if (!user) {
       throw new Error(`User not found: ${userId}`);

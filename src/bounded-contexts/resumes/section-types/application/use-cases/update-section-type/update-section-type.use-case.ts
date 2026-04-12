@@ -1,6 +1,6 @@
 import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 import type { SectionTypeResponseDto, UpdateSectionTypeDto } from '../../../dto';
+import type { JsonValue } from '../../ports/admin-section-types.port';
 import { AdminSectionTypesRepositoryPort } from '../../ports/admin-section-types.port';
 import { toResponseDto } from '../../to-response-dto';
 
@@ -64,16 +64,13 @@ export class UpdateSectionTypeUseCase {
       isRepeatable: dto.isRepeatable,
       minItems: dto.minItems,
       maxItems: dto.maxItems,
-      definition: dto.definition as Prisma.InputJsonValue | undefined,
-      uiSchema:
-        dto.uiSchema === null
-          ? Prisma.JsonNull
-          : (dto.uiSchema as Prisma.InputJsonValue | undefined),
-      renderHints: dto.renderHints as Prisma.InputJsonValue | undefined,
-      fieldStyles: dto.fieldStyles as Prisma.InputJsonValue | undefined,
+      definition: dto.definition as JsonValue | undefined,
+      uiSchema: dto.uiSchema === null ? null : (dto.uiSchema as JsonValue | undefined),
+      renderHints: dto.renderHints as JsonValue | undefined,
+      fieldStyles: dto.fieldStyles as JsonValue | undefined,
       iconType: dto.iconType,
       icon: dto.icon,
-      translations: mergedTranslations as Prisma.InputJsonValue | undefined,
+      translations: mergedTranslations as JsonValue | undefined,
     });
 
     return toResponseDto(sectionType);

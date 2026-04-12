@@ -2,9 +2,9 @@
  * Get Consent History DTO
  */
 
-import type { ConsentDocumentType } from '@prisma/client';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
+import type { ConsentDocumentType } from '../../../domain/ports/consent-repository.port';
 
 export interface GetConsentHistoryInput {
   userId: string;

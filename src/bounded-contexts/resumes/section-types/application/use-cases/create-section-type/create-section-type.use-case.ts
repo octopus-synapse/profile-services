@@ -1,6 +1,6 @@
 import { ConflictException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 import type { CreateSectionTypeDto, SectionTypeResponseDto } from '../../../dto';
+import type { JsonValue } from '../../ports/admin-section-types.port';
 import { AdminSectionTypesRepositoryPort } from '../../ports/admin-section-types.port';
 import { toResponseDto } from '../../to-response-dto';
 
@@ -30,13 +30,13 @@ export class CreateSectionTypeUseCase {
       isRepeatable: dto.isRepeatable,
       minItems: dto.minItems,
       maxItems: dto.maxItems,
-      definition: dto.definition as Prisma.InputJsonValue,
-      uiSchema: dto.uiSchema as Prisma.InputJsonValue | undefined,
-      renderHints: dto.renderHints as Prisma.InputJsonValue | undefined,
-      fieldStyles: dto.fieldStyles as Prisma.InputJsonValue | undefined,
+      definition: dto.definition as JsonValue,
+      uiSchema: dto.uiSchema as JsonValue | undefined,
+      renderHints: dto.renderHints as JsonValue | undefined,
+      fieldStyles: dto.fieldStyles as JsonValue | undefined,
       iconType: dto.iconType,
       icon: dto.icon,
-      translations: dto.translations as Prisma.InputJsonValue,
+      translations: dto.translations as JsonValue,
       isSystem: false,
       isActive: true,
     });

@@ -3,7 +3,7 @@
  * Repository port for consent persistence
  */
 
-import type { ConsentDocumentType } from '@prisma/client';
+import type { ConsentDocumentType } from '../../../domain/ports/consent-repository.port';
 
 export interface ConsentRecord {
   id: string;

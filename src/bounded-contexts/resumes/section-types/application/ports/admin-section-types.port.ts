@@ -1,4 +1,3 @@
-import type { Prisma } from '@prisma/client';
 import type {
   CreateSectionTypeDto,
   ListSectionTypesQueryDto,
@@ -7,16 +6,77 @@ import type {
   UpdateSectionTypeDto,
 } from '../../dto';
 
-export type SectionTypeRecord = Prisma.SectionTypeGetPayload<object>;
+export type JsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | JsonValue[]
+  | { [key: string]: JsonValue | undefined };
+
+export type SectionTypeRecord = {
+  id: string;
+  key: string;
+  slug: string;
+  title: string;
+  description: string | null;
+  semanticKind: string;
+  version: number;
+  isActive: boolean;
+  isSystem: boolean;
+  isRepeatable: boolean;
+  minItems: number;
+  maxItems: number | null;
+  definition: JsonValue;
+  uiSchema: JsonValue | null;
+  renderHints: JsonValue;
+  fieldStyles: JsonValue;
+  iconType: string;
+  icon: string;
+  translations: JsonValue;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+export type SectionTypeFilter = {
+  isActive?: boolean;
+  semanticKind?: string;
+  search?: string;
+};
+
+export type CreateSectionTypeData = {
+  key: string;
+  slug: string;
+  title: string;
+  description?: string;
+  semanticKind: string;
+  version?: number;
+  isActive?: boolean;
+  isSystem?: boolean;
+  isRepeatable?: boolean;
+  minItems?: number;
+  maxItems?: number;
+  definition: JsonValue;
+  uiSchema?: JsonValue;
+  renderHints?: JsonValue;
+  fieldStyles?: JsonValue;
+  iconType?: string;
+  icon?: string;
+  translations?: JsonValue;
+};
+
+export type UpdateSectionTypeData = {
+  [K in keyof CreateSectionTypeData]?: CreateSectionTypeData[K] | null;
+};
 
 export abstract class AdminSectionTypesRepositoryPort {
   abstract findMany(
-    where: Prisma.SectionTypeWhereInput,
+    filter: SectionTypeFilter,
     skip: number,
     take: number,
   ): Promise<SectionTypeRecord[]>;
 
-  abstract count(where: Prisma.SectionTypeWhereInput): Promise<number>;
+  abstract count(filter: SectionTypeFilter): Promise<number>;
 
   abstract findByKey(key: string): Promise<SectionTypeRecord | null>;
 
@@ -26,9 +86,9 @@ export abstract class AdminSectionTypesRepositoryPort {
     excludeId?: string,
   ): Promise<SectionTypeRecord | null>;
 
-  abstract create(data: Prisma.SectionTypeCreateInput): Promise<SectionTypeRecord>;
+  abstract create(data: CreateSectionTypeData): Promise<SectionTypeRecord>;
 
-  abstract update(key: string, data: Prisma.SectionTypeUpdateInput): Promise<SectionTypeRecord>;
+  abstract update(key: string, data: UpdateSectionTypeData): Promise<SectionTypeRecord>;
 
   abstract delete(key: string): Promise<void>;
 

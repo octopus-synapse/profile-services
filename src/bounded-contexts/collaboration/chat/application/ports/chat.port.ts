@@ -4,7 +4,6 @@
  * Defines domain types and repository abstraction for chat operations.
  */
 
-import type { Prisma } from '@prisma/client';
 import type {
   ConversationResponse,
   GetConversationsQuery,
@@ -19,22 +18,40 @@ import type {
 // Domain Types
 // ============================================================================
 
-export type MessageWithSender = Prisma.MessageGetPayload<{
-  include: {
-    sender: { select: { id: true; displayName: true; photoURL: true } };
-  };
-}>;
+type ChatUserProfile = {
+  id: string;
+  displayName: string | null;
+  photoURL: string | null;
+};
 
-export type ConversationWithParticipants = Prisma.ConversationGetPayload<{
-  include: {
-    participant1: {
-      select: { id: true; displayName: true; photoURL: true; username: true };
-    };
-    participant2: {
-      select: { id: true; displayName: true; photoURL: true; username: true };
-    };
-  };
-}>;
+type ChatUserProfileWithUsername = ChatUserProfile & {
+  username: string | null;
+};
+
+export type MessageWithSender = {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  content: string;
+  isRead: boolean;
+  readAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+  sender: ChatUserProfile;
+};
+
+export type ConversationWithParticipants = {
+  id: string;
+  participant1Id: string;
+  participant2Id: string;
+  lastMessageContent: string | null;
+  lastMessageSenderId: string | null;
+  lastMessageAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+  participant1: ChatUserProfileWithUsername;
+  participant2: ChatUserProfileWithUsername;
+};
 
 // ============================================================================
 // Repository Ports (Abstractions)
