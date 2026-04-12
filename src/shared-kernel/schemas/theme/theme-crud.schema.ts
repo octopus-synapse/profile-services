@@ -5,8 +5,8 @@
  * Single source of truth for theme management.
  */
 
-import { z } from 'zod';
 import { createZodDto } from 'nestjs-zod';
+import { z } from 'zod';
 import {
   ThemeCategorySchema,
   ThemeStatusSchema,
@@ -77,8 +77,6 @@ export const QueryThemesSchema = z.object({
 
 export type QueryThemes = z.infer<typeof QueryThemesSchema>;
 
-// biome-ignore lint/correctness/noUndeclaredDependencies: createZodDto needs to be here for DTO class
-import { createZodDto } from 'nestjs-zod';
 export class QueryThemesDto extends createZodDto(QueryThemesSchema) {}
 
 /**

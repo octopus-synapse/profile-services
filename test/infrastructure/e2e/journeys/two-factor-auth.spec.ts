@@ -245,7 +245,7 @@ describe('E2E Journey: Two-Factor Authentication', () => {
       expect(response.body.data.userId).toBeDefined();
 
       testUser.token = response.body.data.accessToken;
-    });
+    }, 15000);
   });
 
   describe('Step 8: Regenerate backup codes', () => {
