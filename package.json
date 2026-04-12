@@ -30,7 +30,7 @@
     "test:integration:dev": "./scripts/run-integration.sh dev",
     "test:integration:test": "./scripts/run-integration.sh test",
     "test:integration:run": "DATABASE_URL=postgresql://postgres:postgres@localhost:5433/profile_test REDIS_HOST=localhost REDIS_PORT=6380 JWT_SECRET=test_secret_key_minimum_32_characters_long NODE_ENV=test bun test --config=bunfig.integration.toml",
-    "db:setup:test": "bunx prisma generate --config ./prisma.config.ts && bunx prisma db push --config ./prisma.config.ts --force-reset --accept-data-loss && bun run prisma/seed.ts",
+    "db:setup:test": "bunx prisma generate --config ./prisma.config.ts && bunx prisma migrate deploy --config ./prisma.config.ts && bun run prisma/seed.ts",
     "test:static": "bun test --config=bunfig.static-analysis.toml",
     "test:arch": "bun test ./test/static-analysis/architecture",
     "test:contracts": "bun test ./test/static-analysis/contracts",
