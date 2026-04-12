@@ -30,14 +30,12 @@ export type FollowWithUser = {
     id: string;
     name: string | null;
     username: string | null;
-    displayName: string | null;
     photoURL: string | null;
   };
   following?: {
     id: string;
     name: string | null;
     username: string | null;
-    displayName: string | null;
     photoURL: string | null;
   };
 };

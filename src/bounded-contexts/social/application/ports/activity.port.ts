@@ -35,7 +35,6 @@ export type ActivityWithUser = {
     id: string;
     name: string | null;
     username: string | null;
-    displayName: string | null;
     photoURL: string | null;
   };
 };

@@ -24,6 +24,7 @@ import {
   MessagesListDataDto,
   UnreadCountDataDto,
 } from '../dto/chat-response.dto';
+import { ChatUserSearchService } from '../services/user-search.service';
 
 @SdkExport({ tag: 'chat', description: 'Chat API' })
 @ApiTags('Chat')
@@ -31,7 +32,10 @@ import {
 @RequirePermission(Permission.CHAT_USE)
 @Controller('chat')
 export class ChatController {
-  constructor(@Inject(CHAT_USE_CASES) private readonly chat: ChatUseCases) {}
+  constructor(
+    @Inject(CHAT_USE_CASES) private readonly chat: ChatUseCases,
+    private readonly userSearch: ChatUserSearchService,
+  ) {}
 
   @Post('messages')
   @ApiOperation({ summary: 'Send a message to a user' })
@@ -168,5 +172,12 @@ export class ChatController {
       conversationId,
     );
     return { success: true, data: { conversationId, conversation } };
+  }
+
+  @Get('users/search')
+  @ApiOperation({ summary: 'Search users to start a conversation' })
+  async searchUsers(@Req() req: AuthenticatedRequest, @Query('q') query: string) {
+    const users = await this.userSearch.search(query, req.user.userId);
+    return { success: true, data: { users } };
   }
 }

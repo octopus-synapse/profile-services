@@ -14,7 +14,7 @@ import {
 } from 'docx';
 
 interface UserHeaderData {
-  displayName: string | null;
+  name: string | null;
   email: string | null;
   phone: string | null;
   website: string | null;
@@ -40,9 +40,9 @@ export class DocxHeaderBuilder {
     });
   }
 
-  createTitleParagraph(displayName: string | null): Paragraph {
+  createTitleParagraph(name: string | null): Paragraph {
     return new Paragraph({
-      text: displayName ?? 'Unnamed User',
+      text: name ?? 'Unnamed User',
       heading: HeadingLevel.TITLE,
       alignment: AlignmentType.CENTER,
     });

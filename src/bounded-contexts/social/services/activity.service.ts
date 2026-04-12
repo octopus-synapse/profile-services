@@ -30,7 +30,6 @@ export interface ActivityWithUser {
     id: string;
     name: string | null;
     username: string | null;
-    displayName: string | null;
     photoURL: string | null;
   };
 }
@@ -84,7 +83,6 @@ export class ActivityService {
             id: true,
             name: true,
             username: true,
-            displayName: true,
             photoURL: true,
           },
         },
@@ -153,7 +151,6 @@ export class ActivityService {
               id: true,
               name: true,
               username: true,
-              displayName: true,
               photoURL: true,
             },
           },

@@ -22,14 +22,12 @@ export interface FollowRecord {
     id: string;
     name: string | null;
     username: string | null;
-    displayName: string | null;
     photoURL: string | null;
   };
   following?: {
     id: string;
     name: string | null;
     username: string | null;
-    displayName: string | null;
     photoURL: string | null;
   };
 }
@@ -46,7 +44,6 @@ export interface ActivityRecord {
     id: string;
     name: string | null;
     username: string | null;
-    displayName: string | null;
     photoURL: string | null;
   };
 }
@@ -55,7 +52,6 @@ export interface UserRecord {
   id: string;
   name: string | null;
   username: string | null;
-  displayName: string | null;
   photoURL: string | null;
 }
 
@@ -461,7 +457,6 @@ export function createUserRecord(overrides: Partial<UserRecord> = {}): UserRecor
     id: `user-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
     name: 'Test User',
     username: 'testuser',
-    displayName: 'Test User',
     photoURL: null,
     ...overrides,
   };
@@ -476,21 +471,18 @@ export const DEFAULT_USERS: UserRecord[] = [
     id: 'user-1',
     name: 'Alice Smith',
     username: 'alice',
-    displayName: 'Alice',
     photoURL: null,
   }),
   createUserRecord({
     id: 'user-2',
     name: 'Bob Johnson',
     username: 'bob',
-    displayName: 'Bob',
     photoURL: null,
   }),
   createUserRecord({
     id: 'user-3',
     name: 'Charlie Brown',
     username: 'charlie',
-    displayName: 'Charlie',
     photoURL: null,
   }),
 ];

@@ -39,7 +39,6 @@ export class InMemoryUsersRepository extends UsersRepositoryPort {
       roles: user.roles ?? ['role_user'],
       username: user.username ?? null,
       usernameUpdatedAt: user.usernameUpdatedAt ?? null,
-      displayName: user.displayName ?? null,
       photoURL: user.photoURL ?? null,
       bio: user.bio ?? null,
       location: user.location ?? null,
@@ -173,7 +172,6 @@ export class InMemoryUsersRepository extends UsersRepositoryPort {
       name: user.name,
       email: user.email,
       username: user.username,
-      displayName: user.displayName,
       photoURL: user.photoURL,
       bio: user.bio,
       location: user.location,
@@ -231,16 +229,15 @@ export class InMemoryUsersRepository extends UsersRepositoryPort {
   async createUserAccount(userData: {
     id: string;
     email: string;
-    displayName?: string;
+    name?: string;
     photoURL?: string;
   }): Promise<UserEntity> {
     const now = new Date();
     const user: StoredUser = {
       id: userData.id,
       email: userData.email,
-      displayName: userData.displayName ?? null,
+      name: userData.name ?? null,
       photoURL: userData.photoURL ?? null,
-      name: null,
       emailVerified: null,
       image: null,
       passwordHash: null,

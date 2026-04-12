@@ -88,12 +88,6 @@ export class DocxBuilderService {
   private normalizeUser(user: Record<string, unknown>): DocxUserData {
     return {
       name: typeof user.name === 'string' ? user.name : null,
-      displayName:
-        typeof user.displayName === 'string'
-          ? user.displayName
-          : typeof user.name === 'string'
-            ? user.name
-            : null,
       bio: typeof user.bio === 'string' ? user.bio : null,
       email: typeof user.email === 'string' ? user.email : null,
       phone: typeof user.phone === 'string' ? user.phone : null,

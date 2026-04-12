@@ -136,7 +136,10 @@ export class OnboardingController {
     ]);
     return {
       success: true,
-      data: this.buildSession(data, stepConfigs, strengthConfig, locale, systemThemes),
+      data: this.buildSession(data, stepConfigs, strengthConfig, locale, systemThemes, {
+        name: user.name,
+        email: user.email,
+      }),
     };
   }
 
@@ -356,12 +359,21 @@ export class OnboardingController {
     strengthConfig?: import('../../domain/ports/onboarding-config.port').StrengthConfig,
     locale = 'en',
     systemThemes?: OnboardingThemeOption[],
+    userDefaults?: { name?: string; email?: string },
   ): OnboardingSessionDto {
     const steps = this.resolveSteps(stepConfigs, locale, systemThemes);
     const currentStepIndex = steps.findIndex((s) => s.id === data.currentStep);
     const totalSteps = steps.length;
 
-    const personalInfo = this.toPersonalInfo(data.personalInfo);
+    const rawPersonalInfo = this.toPersonalInfo(data.personalInfo);
+    const personalInfo =
+      rawPersonalInfo ??
+      (userDefaults
+        ? {
+            fullName: userDefaults.name ?? '',
+            email: userDefaults.email ?? '',
+          }
+        : undefined);
     const professionalProfile = this.toProfessionalProfile(data.professionalProfile);
     const templateSelection = this.toTemplateSelection(data.templateSelection);
 

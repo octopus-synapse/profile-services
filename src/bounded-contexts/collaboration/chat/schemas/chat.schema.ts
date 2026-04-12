@@ -101,7 +101,7 @@ export const MessageResponseSchema = z.object({
   createdAt: z.string().datetime(),
   sender: z.object({
     id: z.string(),
-    displayName: z.string().nullable(),
+    name: z.string().nullable(),
     photoURL: z.string().nullable(),
   }),
 });
@@ -115,7 +115,7 @@ export const ConversationResponseSchema = z.object({
   id: z.string(),
   participant: z.object({
     id: z.string(),
-    displayName: z.string().nullable(),
+    name: z.string().nullable(),
     photoURL: z.string().nullable(),
     username: z.string().nullable(),
   }),
@@ -165,7 +165,7 @@ export const BlockedUserResponseSchema = z.object({
   reason: z.string().nullable(),
   user: z.object({
     id: z.string(),
-    displayName: z.string().nullable(),
+    name: z.string().nullable(),
     photoURL: z.string().nullable(),
     username: z.string().nullable(),
   }),

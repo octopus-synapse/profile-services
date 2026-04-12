@@ -16,7 +16,7 @@ const UserProfileResponseSchema = z.object({
   id: z.string(),
   email: z.string().email(),
   username: z.string().optional(),
-  displayName: z.string().optional(),
+  name: z.string().optional(),
   photoURL: z.string().url().optional(),
   bio: z.string().optional(),
   location: z.string().optional(),
@@ -31,7 +31,7 @@ const UserProfileResponseSchema = z.object({
 
 const PublicProfileResponseSchema = z.object({
   username: z.string(),
-  displayName: z.string().optional(),
+  name: z.string().optional(),
   photoURL: z.string().url().optional(),
   bio: z.string().optional(),
   location: z.string().optional(),
@@ -40,7 +40,7 @@ const PublicProfileResponseSchema = z.object({
 const UserPreferencesResponseSchema = z.object({
   palette: z.string().optional(),
   bannerColor: z.string().optional(),
-  displayName: z.string().optional(),
+  name: z.string().optional(),
   photoURL: z.string().url().optional(),
 });
 

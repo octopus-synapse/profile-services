@@ -108,7 +108,6 @@ describe('DocxBuilderService', () => {
       expect(stubSectionsService.createMainSection).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'John Doe',
-          displayName: 'John Doe',
           email: 'john@example.com',
         }),
         // Sections array is empty because mockResume.resumeSections is empty

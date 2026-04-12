@@ -11,7 +11,7 @@ const mockProfile: UserProfile = {
   id: 'user-1',
   email: 'john@example.com',
   username: 'johndoe',
-  displayName: 'John Doe',
+  name: 'John Doe',
   photoURL: null,
   bio: 'A developer',
   location: 'NYC',
@@ -29,14 +29,14 @@ describe('UpdateProfileUseCase', () => {
   let repository: UserProfileRepositoryPort;
 
   const updateData: UpdateProfileData = {
-    displayName: 'Jane Doe',
+    name: 'Jane Doe',
     bio: 'Updated bio',
     location: 'LA',
   };
 
   const updatedProfile: UserProfile = {
     ...mockProfile,
-    displayName: 'Jane Doe',
+    name: 'Jane Doe',
     bio: 'Updated bio',
     location: 'LA',
     updatedAt: new Date('2024-07-01'),

@@ -10,15 +10,20 @@ import {
   Header,
   Inject,
   InternalServerErrorException,
+  Param,
   Query,
   StreamableFile,
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ApiBearerAuth, ApiOperation, ApiProduces, ApiQuery, ApiTags } from '@nestjs/swagger';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
-import { ApiStreamResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
+import {
+  ApiDataResponse,
+  ApiStreamResponse,
+} from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import { EXPORT_USE_CASES, type ExportUseCases } from '../../application/ports/export.port';
@@ -160,6 +165,33 @@ export class ExportPdfController {
         template: safeTemplate,
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
+      });
+      throw new InternalServerErrorException('Failed to generate PDF. Please try again later.');
+    }
+  }
+
+  @Get('user/:userId/resume/pdf')
+  @ApiOperation({ summary: "Generate another user's resume as PDF (base64)" })
+  @ApiDataResponse(Object, { description: 'PDF as base64 string' })
+  async downloadUserResumePDF(
+    @CurrentUser() _user: UserPayload,
+    @Param('userId') targetUserId: string,
+  ): Promise<DataResponse<{ pdf: string; filename: string }>> {
+    try {
+      const buffer = await this.useCases.exportPdfUseCase.execute({
+        userId: targetUserId,
+      });
+      return {
+        success: true,
+        data: {
+          pdf: buffer.toString('base64'),
+          filename: 'resume.pdf',
+        },
+      };
+    } catch (error) {
+      this.logger.errorWithMeta('Failed to generate PDF for user', {
+        targetUserId,
+        error: error instanceof Error ? error.message : String(error),
       });
       throw new InternalServerErrorException('Failed to generate PDF. Please try again later.');
     }

@@ -109,7 +109,12 @@ export function canCompleteOnboarding(
 
   for (const step of steps) {
     if (!step.required) continue;
-    if (step.component === 'welcome' || step.component === 'complete') continue;
+    if (
+      step.component === 'welcome' ||
+      step.component === 'complete' ||
+      step.component === 'review'
+    )
+      continue;
 
     if (!completedSteps.includes(step.key)) {
       missingSteps.push(step.key);

@@ -42,9 +42,8 @@ export class DocxSectionsService {
    * Create main section with all resume content - DEFINITION-DRIVEN
    */
   createMainSection(user: DocxUserData, sections: GenericResumeSectionData[]): ISectionOptions {
-    const displayName = user.displayName ?? user.name ?? null;
     const children: Paragraph[] = [
-      this.headerBuilder.createTitleParagraph(displayName),
+      this.headerBuilder.createTitleParagraph(user.name),
       this.headerBuilder.createContactParagraph(user),
       this.headerBuilder.createLinksParagraph(user),
     ];

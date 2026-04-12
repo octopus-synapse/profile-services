@@ -42,14 +42,12 @@ export interface FollowWithUser {
     id: string;
     name: string | null;
     username: string | null;
-    displayName: string | null;
     photoURL: string | null;
   };
   following?: {
     id: string;
     name: string | null;
     username: string | null;
-    displayName: string | null;
     photoURL: string | null;
   };
 }
@@ -101,7 +99,6 @@ export class FollowService {
             id: true,
             name: true,
             username: true,
-            displayName: true,
             photoURL: true,
           },
         },
@@ -157,7 +154,6 @@ export class FollowService {
               id: true,
               name: true,
               username: true,
-              displayName: true,
               photoURL: true,
             },
           },
@@ -199,7 +195,6 @@ export class FollowService {
               id: true,
               name: true,
               username: true,
-              displayName: true,
               photoURL: true,
             },
           },

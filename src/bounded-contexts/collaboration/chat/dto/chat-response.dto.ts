@@ -13,7 +13,7 @@ import { z } from 'zod';
 
 const MessageSenderSchema = z.object({
   id: z.string(),
-  displayName: z.string().nullable(),
+  name: z.string().nullable(),
   photoURL: z.string().nullable(),
 });
 
@@ -30,7 +30,7 @@ const MessageSchema = z.object({
 
 const ConversationParticipantSchema = z.object({
   id: z.string(),
-  displayName: z.string().nullable(),
+  name: z.string().nullable(),
   photoURL: z.string().nullable(),
   username: z.string().nullable(),
 });

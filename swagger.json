@@ -7139,6 +7139,58 @@
         ]
       }
     },
+    "/api/v1/export/user/{userId}/resume/pdf": {
+      "get": {
+        "operationId": "export_downloadUserResumePDF",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "PDF as base64 string",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "additionalProperties": true
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Generate another user's resume as PDF (base64)",
+        "tags": [
+          "export"
+        ]
+      }
+    },
     "/api/v1/export/resume/docx": {
       "get": {
         "operationId": "export_exportResumeDOCX",
@@ -12095,6 +12147,44 @@
           }
         ],
         "summary": "Get or create conversation with a user",
+        "tags": [
+          "Chat"
+        ]
+      }
+    },
+    "/api/chat/users/search": {
+      "get": {
+        "operationId": "chat_searchUsers",
+        "parameters": [
+          {
+            "name": "q",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: chat:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Search users to start a conversation",
         "tags": [
           "Chat"
         ]
@@ -19653,7 +19743,7 @@
                   "id": {
                     "type": "string"
                   },
-                  "displayName": {
+                  "name": {
                     "type": "string",
                     "nullable": true
                   },
@@ -19664,7 +19754,7 @@
                 },
                 "required": [
                   "id",
-                  "displayName",
+                  "name",
                   "photoURL"
                 ]
               }
@@ -19737,7 +19827,7 @@
                         "id": {
                           "type": "string"
                         },
-                        "displayName": {
+                        "name": {
                           "type": "string",
                           "nullable": true
                         },
@@ -19752,7 +19842,7 @@
                       },
                       "required": [
                         "id",
-                        "displayName",
+                        "name",
                         "photoURL",
                         "username"
                       ]
@@ -19836,7 +19926,7 @@
                   "id": {
                     "type": "string"
                   },
-                  "displayName": {
+                  "name": {
                     "type": "string",
                     "nullable": true
                   },
@@ -19851,7 +19941,7 @@
                 },
                 "required": [
                   "id",
-                  "displayName",
+                  "name",
                   "photoURL",
                   "username"
                 ]
@@ -19944,7 +20034,7 @@
                         "id": {
                           "type": "string"
                         },
-                        "displayName": {
+                        "name": {
                           "type": "string",
                           "nullable": true
                         },
@@ -19955,7 +20045,7 @@
                       },
                       "required": [
                         "id",
-                        "displayName",
+                        "name",
                         "photoURL"
                       ]
                     }
@@ -20041,7 +20131,7 @@
                   "id": {
                     "type": "string"
                   },
-                  "displayName": {
+                  "name": {
                     "type": "string",
                     "nullable": true
                   },
@@ -20056,7 +20146,7 @@
                 },
                 "required": [
                   "id",
-                  "displayName",
+                  "name",
                   "photoURL",
                   "username"
                 ]

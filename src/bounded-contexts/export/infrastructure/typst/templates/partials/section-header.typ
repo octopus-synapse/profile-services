@@ -5,7 +5,7 @@
 #let render-section-header(title-text, title-style, accent-color) = {
   let transformed = apply-transform(title-text, title-style.textTransform)
 
-  block(width: 100%, above: 16pt, below: 4pt, {
+  block(width: 100%, above: 24pt, below: 6pt, {
     grid(
       columns: (3pt, 1fr),
       column-gutter: 7pt,

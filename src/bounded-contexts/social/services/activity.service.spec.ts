@@ -23,7 +23,6 @@ interface ActivityRecord {
     id: string;
     name: string | null;
     username: string | null;
-    displayName: string | null;
     photoURL: string | null;
   };
 }
@@ -44,7 +43,6 @@ function createActivityRecord(overrides: Partial<ActivityRecord> = {}): Activity
       id: 'user-1',
       name: 'Test User',
       username: 'testuser',
-      displayName: 'Test',
       photoURL: null,
     },
     ...overrides,

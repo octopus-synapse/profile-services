@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 export const ConversationParticipantSchema = z.object({
   id: z.string(),
-  displayName: z.string().nullable(),
+  name: z.string().nullable(),
   photoURL: z.string().nullable(),
   username: z.string().nullable(),
 });

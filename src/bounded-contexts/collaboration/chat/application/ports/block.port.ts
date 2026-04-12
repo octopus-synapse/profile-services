@@ -18,7 +18,7 @@ export type BlockedUserWithDetails = {
   createdAt: Date;
   blocked: {
     id: string;
-    displayName: string | null;
+    name: string | null;
     photoURL: string | null;
     username: string | null;
   };

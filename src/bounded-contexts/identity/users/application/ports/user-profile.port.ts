@@ -9,7 +9,9 @@
 // ============================================================================
 
 export type PublicProfileUser = {
-  displayName: string | null;
+  id: string;
+  username: string;
+  name: string | null;
   photoURL: string | null;
   bio: string | null;
   location: string | null;
@@ -27,7 +29,7 @@ export type UserProfile = {
   id: string;
   email: string | null;
   username?: string | null;
-  displayName?: string | null;
+  name?: string | null;
   photoURL?: string | null;
   bio?: string | null;
   location?: string | null;
@@ -53,7 +55,6 @@ export type UpdateProfileData = {
   github?: string;
   twitter?: string;
   image?: string;
-  displayName?: string;
   photoURL?: string;
 };
 
@@ -64,14 +65,14 @@ export type UpdateProfileData = {
 export abstract class UserProfileRepositoryPort {
   abstract findUserByUsername(username: string): Promise<{
     id: string;
-    displayName: string | null;
+    username: string | null;
+    name: string | null;
     photoURL: string | null;
     bio: string | null;
     location: string | null;
     website: string | null;
     linkedin: string | null;
     github: string | null;
-    preferences: { profileVisibility: string } | null;
   } | null>;
 
   abstract findResumeByUserId(userId: string): Promise<Record<string, unknown> | null>;

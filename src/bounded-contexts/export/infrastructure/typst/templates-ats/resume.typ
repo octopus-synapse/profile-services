@@ -15,31 +15,31 @@
 #let sections = data.sections
 #let header = data.at("header", default: none)
 
-// ATS-safe font override — ignore theme font entirely
-#let ats-font = "Calibri"
+// ATS-safe font: use Libertinus Serif (bundled with Typst), fallback to Calibri
+#let ats-font = "Libertinus Serif"
 
-// Force A4, white background, normal margins (20mm)
+// Force A4, white background, tight margins
 #set page(
   width: 210mm,
   height: 297mm,
   margin: (
-    top: 20mm,
-    bottom: 20mm,
-    left: 20mm,
-    right: 20mm,
+    top: 10mm,
+    bottom: 10mm,
+    left: 12mm,
+    right: 12mm,
   ),
   fill: white,
 )
 
-// Force ATS-safe defaults: Calibri, black text, 11pt
+// Force ATS-safe defaults: Calibri, black text, 10pt
 #set text(
   font: ats-font,
-  size: 11pt,
+  size: 10pt,
   fill: black,
 )
 
 #set par(
-  leading: 0.65em,
+  leading: 0.5em,
   justify: false,
 )
 
@@ -55,7 +55,7 @@
     align(center, text(font: ats-font, size: 11pt, fill: luma(60), job-title))
   }
 
-  v(4pt)
+  v(2pt)
 
   {
     let items = ()
@@ -86,9 +86,9 @@
     }
   }
 
-  v(8pt)
-  line(length: 100%, stroke: 0.5pt + black)
-  v(6pt)
+  v(2pt)
+  line(length: 100%, stroke: 0.4pt + black)
+  v(2pt)
 }
 
 // Section renderer dispatcher

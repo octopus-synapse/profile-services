@@ -5,14 +5,14 @@ import { GetPublicProfileUseCase } from './get-public-profile.use-case';
 
 const mockFoundUser = {
   id: 'user-1',
-  displayName: 'John Doe',
+  username: 'johndoe',
+  name: 'John Doe',
   photoURL: 'https://example.com/photo.jpg',
   bio: 'A developer',
   location: 'NYC',
   website: 'https://johndoe.com',
   linkedin: 'johndoe',
   github: 'johndoe',
-  preferences: { profileVisibility: 'public' },
 };
 
 const mockResume = { sections: ['education', 'experience'] };
@@ -37,7 +37,9 @@ describe('GetPublicProfileUseCase', () => {
     const result = await useCase.execute('johndoe');
 
     expect(result.user).toEqual({
-      displayName: 'John Doe',
+      id: 'user-1',
+      username: 'johndoe',
+      name: 'John Doe',
       photoURL: 'https://example.com/photo.jpg',
       bio: 'A developer',
       location: 'NYC',
@@ -54,24 +56,6 @@ describe('GetPublicProfileUseCase', () => {
     repository.findUserByUsername = mock(async () => null);
 
     await expect(useCase.execute('nonexistent')).rejects.toThrow(EntityNotFoundException);
-  });
-
-  it('throws EntityNotFoundException when profile is not public', async () => {
-    repository.findUserByUsername = mock(async () => ({
-      ...mockFoundUser,
-      preferences: { profileVisibility: 'private' },
-    }));
-
-    await expect(useCase.execute('johndoe')).rejects.toThrow(EntityNotFoundException);
-  });
-
-  it('throws EntityNotFoundException when preferences are null', async () => {
-    repository.findUserByUsername = mock(async () => ({
-      ...mockFoundUser,
-      preferences: null,
-    }));
-
-    await expect(useCase.execute('johndoe')).rejects.toThrow(EntityNotFoundException);
   });
 
   it('returns domain entity, not envelope', async () => {

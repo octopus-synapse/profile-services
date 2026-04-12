@@ -9,7 +9,6 @@ const USER_SELECT = {
   id: true,
   name: true,
   username: true,
-  displayName: true,
   photoURL: true,
 } as const;
 

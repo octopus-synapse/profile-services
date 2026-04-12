@@ -17,7 +17,7 @@ export class UserMutationRepository {
   async createUserAccount(userData: {
     id: string;
     email: string;
-    displayName?: string;
+    name?: string;
     photoURL?: string;
   }): Promise<User> {
     this.logger.log(`Creating user account: ${userData.email}`);

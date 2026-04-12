@@ -22,7 +22,7 @@ const UrlSchema = z.string().url('Invalid URL').max(500, 'URL too long');
  * Used for updating user profile information.
  */
 export const UpdateProfileSchema = z.object({
-  displayName: z.string().max(100, 'Name too long').optional(),
+  name: z.string().max(100, 'Name too long').optional(),
   photoURL: UrlSchema.optional(),
   bio: z.string().max(500, 'Bio too long').optional(),
   location: UserLocationSchema,
@@ -42,7 +42,7 @@ export type UpdateProfile = z.infer<typeof UpdateProfileSchema>;
 export const UpdatePreferencesSchema = z.object({
   palette: z.string().optional(),
   bannerColor: z.string().optional(),
-  displayName: z.string().max(100, 'Name too long').optional(),
+  name: z.string().max(100, 'Name too long').optional(),
   photoURL: UrlSchema.optional(),
 });
 
@@ -57,7 +57,7 @@ export const UpdateFullPreferencesSchema = z.object({
   theme: z.string().optional(),
   palette: z.string().optional(),
   bannerColor: z.string().optional(),
-  displayName: z.string().max(100).optional(),
+  name: z.string().max(100).optional(),
   photoURL: UrlSchema.optional(),
   // Localization
   language: z.string().max(10).optional(),

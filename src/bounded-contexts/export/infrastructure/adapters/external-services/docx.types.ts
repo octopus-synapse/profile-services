@@ -7,7 +7,6 @@
 
 export type DocxUserData = {
   name: string | null;
-  displayName: string | null;
   bio: string | null;
   email: string | null;
   phone: string | null;

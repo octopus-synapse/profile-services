@@ -37,7 +37,7 @@ export type FullUserPreferences = {
 };
 
 export type UpdatePreferencesData = {
-  displayName?: string;
+  name?: string;
   photoURL?: string;
   palette?: string;
   bannerColor?: string;

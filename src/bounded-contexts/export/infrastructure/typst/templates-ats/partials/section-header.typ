@@ -9,10 +9,10 @@
 #let render-section-header(title-text, title-style, ats-font) = {
   let transformed = apply-transform(title-text, title-style.textTransform)
 
-  block(width: 100%, above: 0.8em, below: 0.4em, {
+  block(width: 100%, above: 0.3em, below: 0.15em, {
     text(
       font: ats-font,
-      size: 13pt,
+      size: 10.5pt,
       weight: "bold",
       fill: black,
       upper(transformed),

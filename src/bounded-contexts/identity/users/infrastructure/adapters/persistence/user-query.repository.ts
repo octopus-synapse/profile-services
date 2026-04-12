@@ -45,7 +45,7 @@ export class UserQueryRepository {
     return await this.prisma.user.findUnique({
       where: { id: userId },
       select: {
-        displayName: true,
+        name: true,
         photoURL: true,
       },
     });

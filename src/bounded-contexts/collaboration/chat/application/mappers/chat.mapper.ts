@@ -24,7 +24,7 @@ export function mapMessageToResponse(message: MessageWithSender): MessageRespons
     createdAt: message.createdAt.toISOString(),
     sender: {
       id: message.sender.id,
-      displayName: message.sender.displayName,
+      name: message.sender.name,
       photoURL: message.sender.photoURL,
     },
   };
@@ -44,7 +44,7 @@ export function mapConversationToResponse(
     id: conversation.id,
     participant: {
       id: participant.id,
-      displayName: participant.displayName,
+      name: participant.name,
       photoURL: participant.photoURL,
       username: participant.username,
     },
@@ -69,7 +69,7 @@ export function mapBlockedUserToResponse(record: BlockedUserWithDetails): Blocke
     reason: record.reason,
     user: {
       id: record.blocked.id,
-      displayName: record.blocked.displayName,
+      name: record.blocked.name,
       photoURL: record.blocked.photoURL,
       username: record.blocked.username,
     },

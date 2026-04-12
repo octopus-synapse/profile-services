@@ -28,7 +28,7 @@ export interface OnboardingUserData {
   hasCompletedOnboarding: boolean;
   onboardingCompletedAt: Date | null;
   username: string | null;
-  displayName: string | null;
+  name: string | null;
   phone: string | null;
   location: string | null;
   bio: string | null;
@@ -86,7 +86,7 @@ export class InMemoryOnboardingRepository extends OnboardingRepositoryPort {
       hasCompletedOnboarding: false,
       onboardingCompletedAt: null,
       username: null,
-      displayName: null,
+      name: null,
       phone: null,
       location: null,
       bio: null,
@@ -100,7 +100,7 @@ export class InMemoryOnboardingRepository extends OnboardingRepositoryPort {
       hasCompletedOnboarding: true,
       onboardingCompletedAt: new Date(),
       username: data.username,
-      displayName: data.personalInfo.fullName,
+      name: data.personalInfo.fullName,
       phone: data.personalInfo.phone ?? null,
       location: data.personalInfo.location ?? null,
       bio: data.professionalProfile.summary,
@@ -243,7 +243,7 @@ export function createOnboardingUser(
     hasCompletedOnboarding: false,
     onboardingCompletedAt: null,
     username: null,
-    displayName: null,
+    name: null,
     phone: null,
     location: null,
     bio: null,
@@ -310,7 +310,7 @@ export const DEFAULT_COMPLETED_ONBOARDING_USER: OnboardingUserData = createOnboa
   hasCompletedOnboarding: true,
   onboardingCompletedAt: new Date('2024-01-01'),
   username: 'completeduser',
-  displayName: 'Completed User',
+  name: 'Completed User',
   bio: 'A user who completed onboarding',
 });
 

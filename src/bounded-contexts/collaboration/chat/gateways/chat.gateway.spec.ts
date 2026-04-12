@@ -53,8 +53,8 @@ describe('ChatGateway', () => {
 
     gateway.server = createMockServer();
 
-    conversationRepo.seedUser({ id: 'user-1', displayName: 'User 1', username: 'user1' });
-    conversationRepo.seedUser({ id: 'user-2', displayName: 'User 2', username: 'user2' });
+    conversationRepo.seedUser({ id: 'user-1', name: 'User 1', username: 'user1' });
+    conversationRepo.seedUser({ id: 'user-2', name: 'User 2', username: 'user2' });
     conversationRepo.seedConversation({
       id: 'conv-1',
       participant1Id: 'user-1',

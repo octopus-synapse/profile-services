@@ -18,7 +18,7 @@
   fill: white,
 )
 
-#set text(font: "Inter", size: 9.5pt, fill: rgb("#1a1a1a"))
+#set text(font: ("Inter", "Libertinus Serif"), size: 8.5pt, fill: rgb("#1a1a1a"))
 #set par(leading: 4.5pt, justify: true)
 #set list(indent: 0pt, body-indent: 5pt, marker: [--], spacing: 4pt)
 
@@ -63,18 +63,9 @@
   }
 }
 
-// ─── Render with page break after experience ───
+// ─── Render all sections ───
 #let sorted-sections = sections.sorted(key: s => s.order)
-#let experience-keys = ("work_experience_v1",)
 
-#for (idx, section) in sorted-sections.enumerate() {
-  let sk = section.data.at("sectionTypeKey", default: "")
-  let prev-sk = if idx > 0 { sorted-sections.at(idx - 1).data.at("sectionTypeKey", default: "") } else { "" }
-
-  // Page break when transitioning OUT of experience into a non-experience section
-  if idx > 0 and experience-keys.contains(prev-sk) and not experience-keys.contains(sk) {
-    pagebreak()
-  }
-
+#for section in sorted-sections {
   render-section(section, global-styles)
 }

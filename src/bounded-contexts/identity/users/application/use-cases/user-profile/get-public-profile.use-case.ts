@@ -13,7 +13,7 @@ export class GetPublicProfileUseCase {
   async execute(username: string): Promise<PublicProfileData> {
     const foundUser = await this.repository.findUserByUsername(username);
 
-    if (!foundUser || foundUser.preferences?.profileVisibility !== 'public') {
+    if (!foundUser) {
       throw new EntityNotFoundException('Public profile');
     }
 
@@ -21,7 +21,9 @@ export class GetPublicProfileUseCase {
 
     return {
       user: {
-        displayName: foundUser.displayName,
+        id: foundUser.id,
+        username: foundUser.username!,
+        name: foundUser.name,
         photoURL: foundUser.photoURL,
         bio: foundUser.bio,
         location: foundUser.location,

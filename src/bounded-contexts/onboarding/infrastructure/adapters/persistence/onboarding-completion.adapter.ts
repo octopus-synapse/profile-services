@@ -67,7 +67,7 @@ export class OnboardingCompletionAdapter extends OnboardingCompletionPort {
         hasCompletedOnboarding: true,
         onboardingCompletedAt: new Date(),
         username: data.username,
-        displayName: data.personalInfo.fullName,
+        name: data.personalInfo.fullName,
         phone: data.personalInfo.phone ?? null,
         location: data.personalInfo.location ?? null,
         bio: data.professionalProfile.summary,

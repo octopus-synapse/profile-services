@@ -9,6 +9,7 @@ import { BlockController, ChatController } from './controllers';
 import { ChatGateway } from './gateways';
 import { BlockedUserRepository, ConversationRepository, MessageRepository } from './repositories';
 import { ChatCacheService } from './services';
+import { ChatUserSearchService } from './services/user-search.service';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { ChatCacheService } from './services';
   providers: [
     // Infrastructure
     ChatCacheService,
+    ChatUserSearchService,
     ConversationRepository,
     MessageRepository,
     BlockedUserRepository,

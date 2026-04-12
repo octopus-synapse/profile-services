@@ -15,6 +15,7 @@ export interface ExportPdfDto {
   bannerColor?: string;
   userId?: string;
   template?: 'default' | 'ats';
+  themeStyleConfig?: Record<string, unknown>;
 }
 
 export class ExportPdfUseCase {
@@ -27,6 +28,7 @@ export class ExportPdfUseCase {
       bannerColor: dto.bannerColor,
       userId: dto.userId,
       template: dto.template,
+      themeStyleConfig: dto.themeStyleConfig,
     };
 
     return this.pdfGenerator.generate(options);

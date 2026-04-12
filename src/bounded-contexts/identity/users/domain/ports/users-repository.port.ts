@@ -27,7 +27,6 @@ export type UserEntity = {
   roles: string[];
   username: string | null;
   usernameUpdatedAt: Date | null;
-  displayName: string | null;
   photoURL: string | null;
   bio: string | null;
   location: string | null;
@@ -85,7 +84,7 @@ export abstract class UsersRepositoryPort {
   abstract createUserAccount(userData: {
     id: string;
     email: string;
-    displayName?: string;
+    name?: string;
     photoURL?: string;
   }): Promise<UserEntity>;
   abstract updateUserAccount(userId: string, userData: Partial<UserEntity>): Promise<UserEntity>;

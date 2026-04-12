@@ -7,15 +7,13 @@ import { UsersProfileController } from './users-profile.controller';
 
 const createMockProfileUseCases = () => ({
   getPublicProfileUseCase: {
-    execute: mock(() =>
-      Promise.resolve({ user: { displayName: 'John' }, resume: { id: 'resume-1' } }),
-    ),
+    execute: mock(() => Promise.resolve({ user: { name: 'John' }, resume: { id: 'resume-1' } })),
   },
   getProfileUseCase: {
     execute: mock(() => Promise.resolve({ id: 'user-1', email: 'john@example.com' })),
   },
   updateProfileUseCase: {
-    execute: mock(() => Promise.resolve({ displayName: 'John Updated' })),
+    execute: mock(() => Promise.resolve({ name: 'John Updated' })),
   },
 });
 

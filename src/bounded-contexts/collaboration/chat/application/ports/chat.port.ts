@@ -20,7 +20,7 @@ import type {
 
 type ChatUserProfile = {
   id: string;
-  displayName: string | null;
+  name: string | null;
   photoURL: string | null;
 };
 
@@ -78,7 +78,7 @@ export abstract class ConversationRepositoryPort {
     userId: string,
   ): Promise<{
     id: string;
-    displayName: string | null;
+    name: string | null;
     photoURL: string | null;
     username: string | null;
   } | null>;

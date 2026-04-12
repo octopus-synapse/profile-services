@@ -21,7 +21,6 @@ function createActivityRecord(overrides: Partial<ActivityWithUser> = {}): Activi
       id: 'user-1',
       name: 'Test User',
       username: 'testuser',
-      displayName: 'Test',
       photoURL: null,
     },
     ...overrides,

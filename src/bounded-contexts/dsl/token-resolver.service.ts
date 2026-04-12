@@ -61,7 +61,7 @@ export class TokenResolverService {
         bodyFontFamily: FONT_FAMILIES[typography.fontFamily.body] ?? FONT_FAMILIES.inter,
         baseFontSizePx: fontSize.base,
         headingFontSizePx: fontSize.heading,
-        lineHeight: 1.5,
+        lineHeight: 1.2,
         headingFontWeight: headingStyle.fontWeight,
         bodyFontWeight: 400,
         headingTextTransform: headingStyle.textTransform,

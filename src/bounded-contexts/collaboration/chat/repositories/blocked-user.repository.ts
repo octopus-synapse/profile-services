@@ -26,7 +26,7 @@ export class BlockedUserRepository {
         blocked: {
           select: {
             id: true,
-            displayName: true,
+            name: true,
             photoURL: true,
             username: true,
           },
@@ -84,7 +84,7 @@ export class BlockedUserRepository {
         blocked: {
           select: {
             id: true,
-            displayName: true,
+            name: true,
             photoURL: true,
             username: true,
           },

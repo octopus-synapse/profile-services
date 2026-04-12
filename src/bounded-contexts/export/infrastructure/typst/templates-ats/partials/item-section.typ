@@ -121,10 +121,10 @@
     for (idx, item) in items.enumerate() {
       render-entry-item(item, ats-font)
       if idx < items.len() - 1 {
-        v(6pt)
+        v(2pt)
       }
     }
   }
 
-  v(8pt)
+  v(2pt)
 }

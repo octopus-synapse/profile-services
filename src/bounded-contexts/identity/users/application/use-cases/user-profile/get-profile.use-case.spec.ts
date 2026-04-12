@@ -7,7 +7,7 @@ const mockProfile: UserProfile = {
   id: 'user-1',
   email: 'john@example.com',
   username: 'johndoe',
-  displayName: 'John Doe',
+  name: 'John Doe',
   photoURL: null,
   bio: 'A developer',
   location: 'NYC',

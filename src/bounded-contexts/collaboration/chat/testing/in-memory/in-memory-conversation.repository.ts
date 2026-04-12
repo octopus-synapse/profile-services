@@ -6,7 +6,7 @@
 
 interface StoredUser {
   id: string;
-  displayName: string | null;
+  name: string | null;
   photoURL: string | null;
   username: string | null;
 }
@@ -142,7 +142,7 @@ export class InMemoryConversationRepository {
     }
     const user: StoredUser = {
       id: userId,
-      displayName: `User ${userId}`,
+      name: `User ${userId}`,
       photoURL: null,
       username: userId,
     };
@@ -153,7 +153,7 @@ export class InMemoryConversationRepository {
   seedUser(user: Partial<StoredUser> & { id: string }): void {
     this.users.set(user.id, {
       id: user.id,
-      displayName: user.displayName ?? `User ${user.id}`,
+      name: user.name ?? `User ${user.id}`,
       photoURL: user.photoURL ?? null,
       username: user.username ?? user.id,
     });

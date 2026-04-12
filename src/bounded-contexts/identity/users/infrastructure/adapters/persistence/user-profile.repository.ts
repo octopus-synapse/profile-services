@@ -16,16 +16,14 @@ export class UserProfileRepository extends UserProfileRepositoryPort {
       where: { username },
       select: {
         id: true,
-        displayName: true,
+        username: true,
+        name: true,
         photoURL: true,
         bio: true,
         location: true,
         website: true,
         linkedin: true,
         github: true,
-        preferences: {
-          select: { profileVisibility: true },
-        },
       },
     });
   }
