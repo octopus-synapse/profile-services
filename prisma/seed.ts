@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { seedAuthorization } from '../src/bounded-contexts/identity/authorization/seeds/seed-runner';
 import { createPrismaClientOptions } from '../src/bounded-contexts/platform/prisma/prisma-client-options';
 import { seedAnalyticsProjections } from './seeds/analytics-projection.seed';
+import { seedOnboardingSteps } from './seeds/onboarding-step.seed';
 import { seedSectionTypes } from './seeds/section-type.seed';
 import { seedSpokenLanguages } from './seeds/spoken-language.seed';
 import { seedTechSkills } from './seeds/tech-skill.seed';
@@ -88,6 +89,9 @@ async function main() {
 
   // Seed semantic section types catalog
   await seedSectionTypes(prisma);
+
+  // Seed onboarding flow config (steps, strength, examples)
+  await seedOnboardingSteps(prisma);
 
   // Seed tech skills catalog (areas, niches, skills, programming languages)
   await seedTechSkills(prisma);
