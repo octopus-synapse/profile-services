@@ -147,9 +147,20 @@ export class AllExceptionsFilter implements ExceptionFilter {
         details = { ...details, ...extraDetails };
       }
     } else if (exception instanceof Error) {
-      // Keep message generic for 500s; preserve the original message for 4xx
       if (status < 500) {
         message = exception.message;
+      }
+
+      // Support domain exceptions with getResponse() (e.g., OnboardingValidationException)
+      if (
+        'getResponse' in exception &&
+        typeof (exception as Record<string, unknown>).getResponse === 'function'
+      ) {
+        const domainResponse = (
+          exception as { getResponse: () => Record<string, unknown> }
+        ).getResponse();
+        if (domainResponse.code) code = domainResponse.code as string;
+        if (domainResponse.details) details = { ...details, details: domainResponse.details };
       }
     }
 

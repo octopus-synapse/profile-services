@@ -9,10 +9,10 @@
 
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Document, Packer } from 'docx';
-import { UsersRepository } from '@/bounded-contexts/identity/users';
-import { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.repository';
-import { SectionTypeRepository } from '@/bounded-contexts/resumes/shared-kernel/infrastructure/repositories';
+import { ResumesRepository } from '@/bounded-contexts/resumes/core/resumes.repository';
+import { SectionTypeRepository } from '@/bounded-contexts/resumes/infrastructure/repositories';
 import { ERROR_MESSAGES } from '@/shared-kernel';
+import { UserDataPort } from '../../../domain/ports/user-data.port';
 import type { DocxUserData } from './docx.types';
 import type { GenericResumeSectionData } from './docx-sections.service';
 import { DocxSectionsService } from './docx-sections.service';
@@ -37,7 +37,7 @@ type ResumeWithSections = {
 export class DocxBuilderService {
   constructor(
     private readonly resumesRepository: ResumesRepository,
-    private readonly usersRepository: UsersRepository,
+    private readonly usersRepository: UserDataPort,
     private readonly sectionsService: DocxSectionsService,
     private readonly stylesService: DocxStylesService,
     private readonly sectionTypeRepo: SectionTypeRepository,
@@ -63,7 +63,7 @@ export class DocxBuilderService {
    * Load user and resume data
    */
   private async loadUserAndResume(userId: string) {
-    const user = await this.usersRepository.findUserById(userId);
+    const user = await this.usersRepository.findById(userId);
     if (!user) {
       throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
     }

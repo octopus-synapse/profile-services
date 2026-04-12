@@ -10,13 +10,13 @@
  */
 
 import { z } from 'zod';
-import { ProfessionalProfileSchema } from '@/bounded-contexts/identity/users/domain/schemas/professional-profile.schema';
-import { UsernameSchema } from '@/bounded-contexts/identity/users/domain/schemas/username.schema';
 import {
   OnboardingSectionItemSchema,
   PersonalInfoSchema,
   TemplateSelectionSchema,
 } from './onboarding-data.schema';
+import { ProfessionalProfileSchema } from './professional-profile.schema';
+import { UsernameSchema } from './username.schema';
 
 const StaticOnboardingStepSchema = z.enum([
   'welcome',

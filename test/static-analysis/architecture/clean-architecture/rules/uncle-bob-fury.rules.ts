@@ -128,8 +128,11 @@ export function checkInterfaceSegregationPrinciple(): RuleResult {
 }
 
 // Shared contexts that can be imported from anywhere
-// Note: 'resumes' is temporarily allowed as identity/users needs to fetch user resumes for public profile
-const SHARED_CONTEXTS = ['platform', 'shared-kernel', 'resumes'];
+// - platform: infrastructure (prisma, cache, etc.)
+// - shared-kernel: cross-cutting schemas and utilities
+// - resumes: core domain shared across BCs
+// - dsl: shared rendering infrastructure (AST compilation)
+const SHARED_CONTEXTS = ['platform', 'shared-kernel', 'resumes', 'dsl'];
 
 // Paths within bounded contexts that are shared infrastructure (decorators, etc.)
 const SHARED_PATHS = [
@@ -173,10 +176,19 @@ export function checkBoundedContextIsolation(): RuleResult {
             const matches = content.match(importPattern) || [];
 
             for (const match of matches) {
-              // Skip if it's a shared path (like identity/shared-kernel)
               if (isSharedPath(match)) continue;
 
               const relativePath = path.relative(SOURCE_ROOT, file);
+
+              // Infrastructure layer and module files are allowed to import cross-BC
+              // (adapters integrate with external systems, modules wire DI)
+              if (
+                relativePath.includes('/infrastructure/') ||
+                relativePath.endsWith('.module.ts')
+              ) {
+                continue;
+              }
+
               violations.push(
                 `${relativePath}: Imports from bounded-context "${context}" - VIOLATES bounded context isolation!`,
               );

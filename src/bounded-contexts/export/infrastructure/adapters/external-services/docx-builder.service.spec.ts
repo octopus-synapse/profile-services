@@ -8,9 +8,9 @@ import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { createMockResume } from '@test/shared/factories/resume.factory';
-import { UsersRepository } from '@/bounded-contexts/identity/users';
-import { ResumesRepository } from '@/bounded-contexts/resumes/resumes/resumes.repository';
-import { SectionTypeRepository } from '@/bounded-contexts/resumes/shared-kernel/infrastructure/repositories';
+import { ResumesRepository } from '@/bounded-contexts/resumes/core/resumes.repository';
+import { SectionTypeRepository } from '@/bounded-contexts/resumes/infrastructure/repositories';
+import { UserDataPort } from '../../../domain/ports/user-data.port';
 import { DocxBuilderService } from './docx-builder.service';
 import { DocxSectionsService } from './docx-sections.service';
 import { DocxStylesService } from './docx-styles.service';
@@ -44,7 +44,7 @@ describe('DocxBuilderService', () => {
   };
 
   const stubUsersRepository = {
-    findUserById: mock().mockResolvedValue(mockUser),
+    findById: mock().mockResolvedValue(mockUser),
   };
 
   const stubSectionsService = {
@@ -71,7 +71,7 @@ describe('DocxBuilderService', () => {
       providers: [
         DocxBuilderService,
         { provide: ResumesRepository, useValue: stubResumesRepository },
-        { provide: UsersRepository, useValue: stubUsersRepository },
+        { provide: UserDataPort, useValue: stubUsersRepository },
         { provide: DocxSectionsService, useValue: stubSectionsService },
         { provide: DocxStylesService, useValue: stubStylesService },
         { provide: SectionTypeRepository, useValue: stubSectionTypeRepository },
@@ -90,7 +90,7 @@ describe('DocxBuilderService', () => {
     });
 
     it('should throw NotFoundException when user not found', async () => {
-      stubUsersRepository.findUserById.mockResolvedValueOnce(null);
+      stubUsersRepository.findById.mockResolvedValueOnce(null);
 
       await expect(async () => await service.generate('nonexistent')).toThrow(NotFoundException);
     });

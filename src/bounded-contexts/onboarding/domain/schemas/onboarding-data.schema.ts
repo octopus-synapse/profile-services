@@ -13,10 +13,10 @@
  */
 
 import { z } from 'zod';
-import { ProfessionalProfileSchema } from '@/bounded-contexts/identity/users/domain/schemas/professional-profile.schema';
-import { UsernameSchema } from '@/bounded-contexts/identity/users/domain/schemas/username.schema';
 import { EmailSchema } from '@/shared-kernel/schemas/primitives';
 import { normalizeSectionTypeKey } from '@/shared-kernel/utils/section-type-key.util';
+import { ProfessionalProfileSchema } from './professional-profile.schema';
+import { UsernameSchema } from './username.schema';
 
 // ============================================================================
 // Shared Enum Schemas

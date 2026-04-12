@@ -1,5 +1,3 @@
-import { BadRequestException, HttpStatus } from '@nestjs/common';
-
 /**
  * Structured error response for onboarding validation failures.
  * Frontend displays these messages directly - no hardcoded validation needed.
@@ -10,32 +8,30 @@ export interface OnboardingValidationError {
   message: string;
 }
 
-interface OnboardingExceptionResponse {
-  statusCode: number;
-  error: string;
-  code: string;
-  message: string;
-  details: OnboardingValidationError[];
-}
-
 /**
- * Exception for onboarding validation failures.
- * Returns structured errors that frontend can display directly.
+ * Domain exception for onboarding validation failures.
+ * Mapped to HTTP 400 by the infrastructure layer (exception filter).
  */
-export class OnboardingValidationException extends BadRequestException {
+export class OnboardingValidationException extends Error {
+  readonly statusCode = 400;
+
   constructor(
     public readonly code: string,
     message: string,
     public readonly details: OnboardingValidationError[] = [],
   ) {
-    const response: OnboardingExceptionResponse = {
-      statusCode: HttpStatus.BAD_REQUEST,
+    super(message);
+    this.name = 'OnboardingValidationException';
+  }
+
+  getResponse() {
+    return {
+      statusCode: this.statusCode,
       error: 'Onboarding Validation Failed',
-      code,
-      message,
-      details,
+      code: this.code,
+      message: this.message,
+      details: this.details,
     };
-    super(response);
   }
 
   static missingRequiredData(missing: string[]): OnboardingValidationException {
@@ -88,7 +84,7 @@ export class OnboardingValidationException extends BadRequestException {
     return new OnboardingValidationException(
       'STEP_NOT_COMPLETED',
       `Step "${stepId}" must be completed first`,
-      [{ code: 'STEP_INCOMPLETE', field: stepId, message: `Complete this step before proceeding` }],
+      [{ code: 'STEP_INCOMPLETE', field: stepId, message: 'Complete this step before proceeding' }],
     );
   }
 }

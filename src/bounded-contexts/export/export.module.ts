@@ -9,19 +9,19 @@
  */
 
 import { Module } from '@nestjs/common';
-import { UsersModule } from '@/bounded-contexts/identity/users/users.module';
+import { DslModule } from '@/bounded-contexts/dsl/dsl.module';
 import { LoggerModule } from '@/bounded-contexts/platform/common/logger/logger.module';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { ResumesModule as ResumesCoreModule } from '@/bounded-contexts/resumes/resumes/resumes.module';
-import { SectionTypeRepository } from '@/bounded-contexts/resumes/shared-kernel/infrastructure/repositories';
+import { ResumesCoreModule } from '@/bounded-contexts/resumes/core/resumes.module';
+import { SectionTypeRepository } from '@/bounded-contexts/resumes/infrastructure/repositories';
 
 // Application Compositions (Clean Architecture)
 import {
   buildExportUseCases,
   EXPORT_USE_CASES,
 } from './application/compositions/export.composition';
-
+import { UserDataPort } from './domain/ports/user-data.port';
 // Infrastructure Adapters (external services)
 import { BannerCaptureService } from './infrastructure/adapters/external-services/banner-capture.service';
 import { BrowserManagerService } from './infrastructure/adapters/external-services/browser-manager.service';
@@ -31,7 +31,7 @@ import { DocxStylesService } from './infrastructure/adapters/external-services/d
 import { TypstCompilerService } from './infrastructure/adapters/external-services/typst-compiler.service';
 import { TypstDataSerializerService } from './infrastructure/adapters/external-services/typst-data-serializer.service';
 import { TypstPdfGeneratorService } from './infrastructure/adapters/external-services/typst-pdf-generator.service';
-
+import { UserDataAdapter } from './infrastructure/adapters/persistence/user-data.adapter';
 // Infrastructure (builders, controllers)
 import { GenericDocxSectionBuilder } from './infrastructure/builders/generic-docx-section.builder';
 import {
@@ -42,7 +42,7 @@ import {
 } from './infrastructure/controllers';
 
 @Module({
-  imports: [ResumesCoreModule, UsersModule, LoggerModule, PrismaModule],
+  imports: [ResumesCoreModule, LoggerModule, PrismaModule, DslModule],
   controllers: [
     ExportBannerController,
     ExportPdfController,
@@ -74,7 +74,16 @@ import {
     DocxBuilderService,
     DocxSectionsService,
     DocxStylesService,
+    UserDataAdapter,
+    { provide: UserDataPort, useExisting: UserDataAdapter },
   ],
-  exports: [EXPORT_USE_CASES, BannerCaptureService, BrowserManagerService],
+  exports: [
+    EXPORT_USE_CASES,
+    BannerCaptureService,
+    BrowserManagerService,
+    TypstPdfGeneratorService,
+    TypstCompilerService,
+    TypstDataSerializerService,
+  ],
 })
 export class ExportModule {}

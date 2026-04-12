@@ -5,7 +5,6 @@
  * Session/Commands API — backend drives the entire flow.
  */
 
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import type { SectionDefinition } from '@/shared-kernel/schemas/sections';
 
 /** Step identifier types */
@@ -22,94 +21,32 @@ export type SectionStep = `section:${string}`;
 export type OnboardingStepId = StaticStep | SectionStep;
 
 /** Field descriptor for a step — drives frontend form rendering */
-export class StepFieldDto {
-  @ApiProperty({ example: 'company', description: 'Field key' })
-  key!: string;
-
-  @ApiProperty({ example: 'text', description: 'UI input type' })
-  type!: string;
-
-  @ApiProperty({ example: 'Company', description: 'Display label' })
-  label!: string;
-
-  @ApiProperty({ example: true, description: 'Whether the field is required' })
-  required!: boolean;
-
-  @ApiPropertyOptional({
-    example: ['beginner', 'intermediate', 'advanced'],
-    description: 'Options for select fields',
-  })
+export interface StepField {
+  key: string;
+  type: string;
+  label: string;
+  required: boolean;
   options?: string[];
-
-  @ApiPropertyOptional({
-    example: 'textarea',
-    description: 'Widget hint (textarea, text)',
-  })
   widget?: string;
 }
 
-/** Step metadata for SDK — includes everything the frontend needs to render */
-export class StepMetaDto {
-  @ApiProperty({
-    example: 'personal-info',
-    description: 'Unique step identifier',
-  })
-  id!: string;
-
-  @ApiProperty({ example: 'user', description: 'Short label for UI' })
-  label!: string;
-
-  @ApiProperty({
-    example: 'Personal Information',
-    description: 'Human-readable description',
-  })
-  description!: string;
-
-  @ApiProperty({
-    example: true,
-    description: 'Whether this step must be completed',
-  })
-  required!: boolean;
-
-  @ApiProperty({
-    example: 'personal-info',
-    description: 'Component type hint for frontend rendering',
-  })
-  component!: string;
-
-  @ApiPropertyOptional({
-    example: '💼',
-    description: 'Icon emoji or identifier',
-  })
+/** Step metadata — includes everything the frontend needs to render */
+export interface StepMeta {
+  id: string;
+  label: string;
+  description: string;
+  required: boolean;
+  component: string;
   icon?: string;
-
-  @ApiPropertyOptional({
-    type: [StepFieldDto],
-    description: 'Field definitions for form rendering (section steps)',
-  })
-  fields?: StepFieldDto[];
-
-  @ApiPropertyOptional({
-    example: "I don't have experience to add",
-    description: 'Label for the "no data" checkbox (section steps)',
-  })
+  fields?: StepField[];
   noDataLabel?: string;
-
-  @ApiPropertyOptional({
-    example: 'Add your work experience...',
-    description: 'Placeholder / helper text',
-  })
   placeholder?: string;
-
-  @ApiPropertyOptional({
-    example: 'Add Experience',
-    description: 'Label for the add-item button (section steps)',
-  })
   addLabel?: string;
+  data?: Record<string, unknown>[];
 }
 
-/** Map SectionDefinition fields → StepFieldDto[] */
-function mapDefinitionToFields(definition: SectionDefinition): StepFieldDto[] {
+/** Map SectionDefinition fields → StepField[] */
+function mapDefinitionToFields(definition: SectionDefinition): StepField[] {
   return definition.fields
     .filter((f) => f.key && f.type !== 'array' && f.type !== 'object')
     .map((f) => {
@@ -139,68 +76,206 @@ function mapDefinitionToFields(definition: SectionDefinition): StepFieldDto[] {
     });
 }
 
-/** Static steps (always present) */
-const STATIC_STEPS_BEFORE_SECTIONS: StepMetaDto[] = [
-  {
-    id: 'welcome',
-    label: 'init',
-    description: 'Welcome to ProFile',
-    required: true,
-    component: 'welcome',
-    icon: '🚀',
+/** Translations for static steps */
+type StepTranslation = { label: string; description: string; fields?: Record<string, string> };
+
+const STATIC_STEP_TRANSLATIONS: Record<string, Record<string, StepTranslation>> = {
+  welcome: {
+    en: { label: 'Welcome', description: 'Welcome to ProFile' },
+    'pt-BR': { label: 'Início', description: 'Bem-vindo ao ProFile' },
+    es: { label: 'Inicio', description: 'Bienvenido a ProFile' },
   },
+  'personal-info': {
+    en: {
+      label: 'Personal Info',
+      description: 'Personal Information',
+      fields: { fullName: 'Full Name', email: 'Email', phone: 'Phone', location: 'Location' },
+    },
+    'pt-BR': {
+      label: 'Dados Pessoais',
+      description: 'Informações Pessoais',
+      fields: {
+        fullName: 'Nome Completo',
+        email: 'E-mail',
+        phone: 'Telefone',
+        location: 'Localização',
+      },
+    },
+    es: {
+      label: 'Datos Personales',
+      description: 'Información Personal',
+      fields: {
+        fullName: 'Nombre Completo',
+        email: 'Correo',
+        phone: 'Teléfono',
+        location: 'Ubicación',
+      },
+    },
+  },
+  username: {
+    en: {
+      label: 'Username',
+      description: 'Choose Your Username',
+      fields: { username: 'Username' },
+    },
+    'pt-BR': {
+      label: 'Usuário',
+      description: 'Escolha seu Usuário',
+      fields: { username: 'Nome de Usuário' },
+    },
+    es: {
+      label: 'Usuario',
+      description: 'Elige tu Usuario',
+      fields: { username: 'Nombre de Usuario' },
+    },
+  },
+  'professional-profile': {
+    en: {
+      label: 'Profile',
+      description: 'Professional Profile',
+      fields: {
+        jobTitle: 'Job Title',
+        summary: 'Summary',
+        linkedin: 'LinkedIn',
+        github: 'GitHub',
+        website: 'Website',
+      },
+    },
+    'pt-BR': {
+      label: 'Perfil',
+      description: 'Perfil Profissional',
+      fields: {
+        jobTitle: 'Cargo',
+        summary: 'Resumo',
+        linkedin: 'LinkedIn',
+        github: 'GitHub',
+        website: 'Website',
+      },
+    },
+    es: {
+      label: 'Perfil',
+      description: 'Perfil Profesional',
+      fields: {
+        jobTitle: 'Puesto',
+        summary: 'Resumen',
+        linkedin: 'LinkedIn',
+        github: 'GitHub',
+        website: 'Sitio Web',
+      },
+    },
+  },
+  template: {
+    en: {
+      label: 'Theme',
+      description: 'Choose Your Theme',
+      fields: { templateId: 'Template', colorScheme: 'Color Scheme' },
+    },
+    'pt-BR': {
+      label: 'Tema',
+      description: 'Escolha seu Tema',
+      fields: { templateId: 'Modelo', colorScheme: 'Esquema de Cores' },
+    },
+    es: {
+      label: 'Tema',
+      description: 'Elige tu Tema',
+      fields: { templateId: 'Plantilla', colorScheme: 'Esquema de Colores' },
+    },
+  },
+  review: {
+    en: { label: 'Review', description: 'Review & Submit' },
+    'pt-BR': { label: 'Revisão', description: 'Revisar e Enviar' },
+    es: { label: 'Revisión', description: 'Revisar y Enviar' },
+  },
+  complete: {
+    en: { label: 'Done', description: 'Setup Complete' },
+    'pt-BR': { label: 'Pronto', description: 'Configuração Completa' },
+    es: { label: 'Listo', description: 'Configuración Completa' },
+  },
+};
+
+function resolveStaticStep(id: string, locale: string): StepTranslation {
+  const translations = STATIC_STEP_TRANSLATIONS[id];
+  return translations?.[locale] ?? translations?.en ?? { label: id, description: id };
+}
+
+/** Static step base definitions (without translations) */
+interface StaticStepBase {
+  id: string;
+  required: boolean;
+  component: string;
+  icon: string;
+  fields?: Omit<StepField, 'label'>[];
+}
+
+const STATIC_STEPS_BEFORE: StaticStepBase[] = [
+  { id: 'welcome', required: true, component: 'welcome', icon: '🚀' },
   {
     id: 'personal-info',
-    label: 'user',
-    description: 'Personal Information',
     required: true,
     component: 'personal-info',
     icon: '👤',
+    fields: [
+      { key: 'fullName', type: 'text', required: true },
+      { key: 'email', type: 'email', required: true },
+      { key: 'phone', type: 'text', required: false },
+      { key: 'location', type: 'text', required: false },
+    ],
   },
   {
     id: 'username',
-    label: '@',
-    description: 'Choose Your Username',
     required: true,
     component: 'username',
     icon: '@',
+    fields: [{ key: 'username', type: 'text', required: true }],
   },
   {
     id: 'professional-profile',
-    label: 'profile',
-    description: 'Professional Profile',
     required: true,
     component: 'professional-profile',
     icon: '💼',
+    fields: [
+      { key: 'jobTitle', type: 'text', required: true },
+      { key: 'summary', type: 'textarea', required: false, widget: 'textarea' },
+      { key: 'linkedin', type: 'url', required: false },
+      { key: 'github', type: 'url', required: false },
+      { key: 'website', type: 'url', required: false },
+    ],
   },
 ];
 
-const STATIC_STEPS_AFTER_SECTIONS: StepMetaDto[] = [
+const STATIC_STEPS_AFTER: StaticStepBase[] = [
   {
     id: 'template',
-    label: 'theme',
-    description: 'Choose Your Theme',
     required: true,
     component: 'template',
     icon: '🎨',
+    fields: [
+      { key: 'templateId', type: 'text', required: false },
+      { key: 'colorScheme', type: 'text', required: true },
+    ],
   },
-  {
-    id: 'review',
-    label: 'review',
-    description: 'Review & Submit',
-    required: true,
-    component: 'review',
-    icon: '✓',
-  },
-  {
-    id: 'complete',
-    label: 'done',
-    description: 'Setup Complete',
-    required: true,
-    component: 'complete',
-    icon: '🎉',
-  },
+  { id: 'review', required: true, component: 'review', icon: '✓' },
+  { id: 'complete', required: true, component: 'complete', icon: '🎉' },
 ];
+
+function buildStaticSteps(bases: StaticStepBase[], locale: string): StepMeta[] {
+  return bases.map((base) => {
+    const t = resolveStaticStep(base.id, locale);
+    const fields = base.fields?.map((f) => ({
+      ...f,
+      label: t.fields?.[f.key] ?? f.key,
+    }));
+    return {
+      id: base.id,
+      label: t.label,
+      description: t.description,
+      required: base.required,
+      component: base.component,
+      icon: base.icon,
+      ...(fields ? { fields } : {}),
+    };
+  });
+}
 
 /** Section type data from database — includes resolved translations */
 export interface SectionTypeData {
@@ -238,7 +313,7 @@ const DEFAULT_SECTION_LABELS: Record<
   }
 > = {
   work_experience_v1: {
-    label: 'work',
+    label: 'Work Experience',
     required: false,
     icon: '💼',
     noDataLabel: "I don't have work experience to add",
@@ -246,7 +321,7 @@ const DEFAULT_SECTION_LABELS: Record<
     addLabel: 'Add Experience',
   },
   education_v1: {
-    label: 'edu',
+    label: 'Education',
     required: false,
     icon: '🎓',
     noDataLabel: "I don't have education to add",
@@ -254,7 +329,7 @@ const DEFAULT_SECTION_LABELS: Record<
     addLabel: 'Add Education',
   },
   skill_set_v1: {
-    label: 'skills',
+    label: 'Skills',
     required: true,
     icon: '⚡',
     noDataLabel: "I'm still developing my skills",
@@ -262,7 +337,7 @@ const DEFAULT_SECTION_LABELS: Record<
     addLabel: 'Add Skill',
   },
   language_v1: {
-    label: 'lang',
+    label: 'Languages',
     required: false,
     icon: '🌍',
     noDataLabel: "I don't have languages to add",
@@ -275,10 +350,25 @@ const DEFAULT_SECTION_LABELS: Record<
  * Build all onboarding steps with field definitions from DB
  * Now uses resolved translations from SectionTypeData
  */
-export function buildOnboardingSteps(sectionTypeData?: SectionTypeData[]): StepMetaDto[] {
+/** Minimal theme data for the template step */
+export interface OnboardingThemeOption {
+  id: string;
+  name: string;
+  description: string | null;
+  category: string;
+  tags: string[];
+  atsScore: number | null;
+  thumbnailUrl: string | null;
+}
+
+export function buildOnboardingSteps(
+  sectionTypeData?: SectionTypeData[],
+  locale = 'en',
+  systemThemes?: OnboardingThemeOption[],
+): StepMeta[] {
   const sectionMap = new Map((sectionTypeData ?? []).map((st) => [st.key, st]));
 
-  const sectionSteps: StepMetaDto[] = SECTION_ORDER_KEYS.map((key) => {
+  const sectionSteps: StepMeta[] = SECTION_ORDER_KEYS.map((key) => {
     const dbData = sectionMap.get(key);
     const fallback = DEFAULT_SECTION_LABELS[key];
 
@@ -292,7 +382,7 @@ export function buildOnboardingSteps(sectionTypeData?: SectionTypeData[]): StepM
     const required = fallback?.required ?? false;
 
     // Parse definition to get field descriptors
-    let fields: StepFieldDto[] | undefined;
+    let fields: StepField[] | undefined;
     if (dbData?.definition) {
       try {
         const def = dbData.definition as SectionDefinition;
@@ -318,7 +408,25 @@ export function buildOnboardingSteps(sectionTypeData?: SectionTypeData[]): StepM
     };
   });
 
-  return [...STATIC_STEPS_BEFORE_SECTIONS, ...sectionSteps, ...STATIC_STEPS_AFTER_SECTIONS];
+  const afterSteps = buildStaticSteps(STATIC_STEPS_AFTER, locale);
+
+  // Inject system themes as data into the template step
+  if (systemThemes?.length) {
+    const templateStep = afterSteps.find((s) => s.id === 'template');
+    if (templateStep) {
+      templateStep.data = systemThemes.map((t) => ({
+        id: t.id,
+        name: t.name,
+        description: t.description,
+        category: t.category,
+        tags: t.tags,
+        atsScore: t.atsScore,
+        thumbnailUrl: t.thumbnailUrl,
+      }));
+    }
+  }
+
+  return [...buildStaticSteps(STATIC_STEPS_BEFORE, locale), ...sectionSteps, ...afterSteps];
 }
 
 /**
@@ -338,7 +446,7 @@ export function getSectionTypeFromStep(stepId: SectionStep): string {
 /**
  * Get step index in the flow
  */
-export function getStepIndex(stepId: string, steps: StepMetaDto[]): number {
+export function getStepIndex(stepId: string, steps: StepMeta[]): number {
   return steps.findIndex((s) => s.id === stepId);
 }
 
