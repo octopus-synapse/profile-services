@@ -29,21 +29,21 @@ jobs:
       ENV_VARS: |
         NODE_ENV=production
         BACKEND_PORT=${{ secrets.BACKEND_PORT }}
-        POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+        POSTGRES_USER="${{ secrets.POSTGRES_USER }}"
         POSTGRES_PASSWORD="${{ secrets.POSTGRES_PASSWORD }}"
-        POSTGRES_DB=${{ secrets.POSTGRES_DB }}
+        POSTGRES_DB="${{ secrets.POSTGRES_DB }}"
         DATABASE_URL="postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@postgres:5432/${{ secrets.POSTGRES_DB }}?schema=public"
         REDIS_HOST=redis
         REDIS_PORT=6379
         REDIS_PASSWORD="${{ secrets.REDIS_PASSWORD }}"
         JWT_SECRET="${{ secrets.JWT_SECRET }}"
         JWT_EXPIRATION=7d
-        SENDGRID_API_KEY=${{ secrets.SENDGRID_API_KEY }}
-        SENDGRID_EMAIL_FROM=${{ secrets.SENDGRID_EMAIL_FROM }}
-        MINIO_ENDPOINT=${{ secrets.MINIO_ENDPOINT }}
-        MINIO_ACCESS_KEY=${{ secrets.MINIO_ACCESS_KEY }}
+        SENDGRID_API_KEY="${{ secrets.SENDGRID_API_KEY }}"
+        SENDGRID_EMAIL_FROM="${{ secrets.SENDGRID_EMAIL_FROM }}"
+        MINIO_ENDPOINT="${{ secrets.MINIO_ENDPOINT }}"
+        MINIO_ACCESS_KEY="${{ secrets.MINIO_ACCESS_KEY }}"
         MINIO_SECRET_KEY="${{ secrets.MINIO_SECRET_KEY }}"
-        MINIO_BUCKET=${{ secrets.MINIO_BUCKET }}
-        INTERNAL_API_TOKEN=${{ secrets.INTERNAL_API_TOKEN }}
+        MINIO_BUCKET="${{ secrets.MINIO_BUCKET }}"
+        INTERNAL_API_TOKEN="${{ secrets.INTERNAL_API_TOKEN }}"
         ATTESTATION_WITNESS_SIGNING_PRIVATE_KEY="${{ secrets.ATTESTATION_WITNESS_SIGNING_PRIVATE_KEY }}"
-        ATTESTATION_WITNESS_KEY_ID=${{ secrets.ATTESTATION_WITNESS_KEY_ID }}
+        ATTESTATION_WITNESS_KEY_ID="${{ secrets.ATTESTATION_WITNESS_KEY_ID }}"

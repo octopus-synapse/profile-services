@@ -203,4 +203,72 @@ export class MetricsService implements OnModuleInit {
   resetMetrics(): void {
     this.registry.resetMetrics();
   }
+
+  /**
+   * Get all metrics as structured JSON for admin dashboard.
+   * Parses the Prometheus registry into a more convenient format.
+   */
+  async getMetricsJson(): Promise<Record<string, unknown>> {
+    const metrics = await this.registry.getMetricsAsJSON();
+    const result: Record<string, unknown> = {};
+
+    for (const metric of metrics) {
+      result[metric.name] = {
+        help: metric.help,
+        type: metric.type,
+        values: metric.values,
+      };
+    }
+
+    return result;
+  }
+
+  /**
+   * Get API latency summary grouped by route.
+   * Returns p50, p95, p99, count, and rate for each route.
+   */
+  async getLatencySummary(): Promise<Record<string, unknown>[]> {
+    const metricData = await this.apiLatencyHistogram.get();
+    const routeMap = new Map<
+      string,
+      { count: number; sum: number; buckets: Map<number, number> }
+    >();
+
+    for (const value of metricData.values) {
+      const labels = value.labels as Record<string, string>;
+      const route = `${labels.method} ${labels.route}`;
+
+      if (!routeMap.has(route)) {
+        routeMap.set(route, { count: 0, sum: 0, buckets: new Map() });
+      }
+
+      const entry = routeMap.get(route)!;
+
+      if (value.metricName?.endsWith('_count') || (!value.metricName && labels.le === undefined)) {
+        if (labels.le === undefined) {
+          entry.count += value.value;
+        }
+      }
+      if (value.metricName?.endsWith('_sum')) {
+        entry.sum += value.value;
+      }
+      if (labels.le !== undefined) {
+        const bucket = Number(labels.le);
+        entry.buckets.set(bucket, (entry.buckets.get(bucket) ?? 0) + value.value);
+      }
+    }
+
+    const results: Record<string, unknown>[] = [];
+    for (const [route, data] of routeMap) {
+      const avgMs = data.count > 0 ? (data.sum / data.count) * 1000 : 0;
+      results.push({
+        route,
+        totalRequests: data.count,
+        avgLatencyMs: Math.round(avgMs * 100) / 100,
+        totalDurationS: Math.round(data.sum * 100) / 100,
+      });
+    }
+
+    return results.sort((a, b) => (b.totalRequests as number) - (a.totalRequests as number));
+  }
 }

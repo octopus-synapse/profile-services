@@ -2853,6 +2853,35 @@
         ]
       }
     },
+    "/api/v1/admin/metrics/overview": {
+      "get": {
+        "operationId": "adminMetrics_getOverview",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: platform:manage"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get all metrics as JSON",
+        "tags": [
+          "Admin - Metrics"
+        ]
+      }
+    },
     "/api/resume-analytics/{resumeId}/track-view": {
       "post": {
         "operationId": "resumeAnalytics_trackView",
