@@ -115,13 +115,63 @@ const UserOperationMessageDataSchema = z.object({
 // Profile & Preferences
 // ============================================================================
 
+const PublicProfileUserSchema = z.object({
+  id: z.string(),
+  username: z.string(),
+  name: z.string().nullable(),
+  photoURL: z.string().nullable(),
+  bio: z.string().nullable(),
+  location: z.string().nullable(),
+  website: z.string().nullable(),
+  linkedin: z.string().nullable(),
+  github: z.string().nullable(),
+});
+
+const PublicProfileResumeSchema = z.object({
+  id: z.string(),
+  title: z.string().nullable(),
+  template: z.string(),
+  language: z.string(),
+  isPublic: z.boolean(),
+  slug: z.string().nullable(),
+  fullName: z.string().nullable(),
+  jobTitle: z.string().nullable(),
+  phone: z.string().nullable(),
+  emailContact: z.string().nullable(),
+  location: z.string().nullable(),
+  linkedin: z.string().nullable(),
+  github: z.string().nullable(),
+  website: z.string().nullable(),
+  summary: z.string().nullable(),
+  accentColor: z.string().nullable(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
 const PublicProfileDataSchema = z.object({
-  user: z.record(z.unknown()),
-  resume: z.record(z.unknown()).nullable(),
+  user: PublicProfileUserSchema,
+  resume: PublicProfileResumeSchema.nullable(),
+});
+
+const UserProfileSchema = z.object({
+  id: z.string(),
+  email: z.string().nullable(),
+  username: z.string().nullable().optional(),
+  name: z.string().nullable().optional(),
+  photoURL: z.string().nullable().optional(),
+  bio: z.string().nullable().optional(),
+  location: z.string().nullable().optional(),
+  phone: z.string().nullable().optional(),
+  website: z.string().nullable().optional(),
+  linkedin: z.string().nullable().optional(),
+  github: z.string().nullable().optional(),
+  twitter: z.string().nullable().optional(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
 });
 
 const UserProfileDataSchema = z.object({
-  profile: z.record(z.unknown()),
+  profile: UserProfileSchema,
 });
 
 const UsernameUpdateDataSchema = z.object({
@@ -134,12 +184,44 @@ const UsernameAvailabilityDataSchema = z.object({
   available: z.boolean(),
 });
 
+const BasicUserPreferencesSchema = z.object({
+  theme: z.string().optional(),
+  language: z.string().optional(),
+  emailNotifications: z.boolean().optional(),
+});
+
+const FullUserPreferencesSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  theme: z.string(),
+  palette: z.string(),
+  bannerColor: z.string().nullable(),
+  language: z.string(),
+  dateFormat: z.string(),
+  timezone: z.string(),
+  emailNotifications: z.boolean(),
+  resumeExpiryAlerts: z.boolean(),
+  weeklyDigest: z.boolean(),
+  marketingEmails: z.boolean(),
+  emailMilestones: z.boolean(),
+  emailShareExpiring: z.boolean(),
+  digestFrequency: z.string(),
+  profileVisibility: z.string(),
+  showEmail: z.boolean(),
+  showPhone: z.boolean(),
+  allowSearchEngineIndex: z.boolean(),
+  defaultExportFormat: z.string(),
+  includePhotoInExport: z.boolean(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
 const UserPreferencesDataSchema = z.object({
-  preferences: z.record(z.unknown()),
+  preferences: BasicUserPreferencesSchema,
 });
 
 const UserFullPreferencesDataSchema = z.object({
-  preferences: z.record(z.unknown()),
+  preferences: FullUserPreferencesSchema,
 });
 
 // ============================================================================
@@ -157,9 +239,14 @@ export class CreatedUserDto extends createZodDto(CreatedUserSchema) {}
 export class UpdatedUserDto extends createZodDto(UpdatedUserSchema) {}
 export class UserMutationDataDto extends createZodDto(UserMutationDataSchema) {}
 export class UserOperationMessageDataDto extends createZodDto(UserOperationMessageDataSchema) {}
+export class PublicProfileUserDto extends createZodDto(PublicProfileUserSchema) {}
+export class PublicProfileResumeDto extends createZodDto(PublicProfileResumeSchema) {}
 export class PublicProfileDataDto extends createZodDto(PublicProfileDataSchema) {}
+export class UserProfileDto extends createZodDto(UserProfileSchema) {}
 export class UserProfileDataDto extends createZodDto(UserProfileDataSchema) {}
 export class UsernameUpdateDataDto extends createZodDto(UsernameUpdateDataSchema) {}
 export class UsernameAvailabilityDataDto extends createZodDto(UsernameAvailabilityDataSchema) {}
+export class BasicUserPreferencesDto extends createZodDto(BasicUserPreferencesSchema) {}
+export class FullUserPreferencesDto extends createZodDto(FullUserPreferencesSchema) {}
 export class UserPreferencesDataDto extends createZodDto(UserPreferencesDataSchema) {}
 export class UserFullPreferencesDataDto extends createZodDto(UserFullPreferencesDataSchema) {}

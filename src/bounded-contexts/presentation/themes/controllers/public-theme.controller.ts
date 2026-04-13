@@ -42,10 +42,10 @@ export class PublicThemeController {
     return {
       success: true,
       data: {
-        themes: themes.themes as Record<string, unknown>[],
+        themes: themes.themes,
         pagination: themes.pagination,
       },
-    };
+    } as DataResponse<ThemePaginatedListDataDto>;
   }
 
   @Get('popular')

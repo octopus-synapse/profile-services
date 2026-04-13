@@ -11,9 +11,17 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
+import {
+  ApiDataResponse,
+  ApiEmptyDataResponse,
+} from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import { AdminSpokenLanguagesService } from './admin-spoken-languages.service';
+import {
+  SpokenLanguageDataDto,
+  SpokenLanguageListDataDto,
+} from './dto/admin-spoken-languages-response.dto';
 
 @SdkExport({
   tag: 'admin-spoken-languages',
@@ -33,6 +41,7 @@ export class AdminSpokenLanguagesController {
   @ApiQuery({ name: 'pageSize', required: false, type: Number })
   @ApiQuery({ name: 'search', required: false, type: String })
   @ApiQuery({ name: 'isActive', required: false, type: Boolean })
+  @ApiDataResponse(SpokenLanguageListDataDto, { description: 'List of spoken languages' })
   async findAll(
     @Query('page') page?: number,
     @Query('pageSize') pageSize?: number,
@@ -49,18 +58,21 @@ export class AdminSpokenLanguagesController {
 
   @Get(':code')
   @ApiOperation({ summary: 'Get spoken language by code' })
+  @ApiDataResponse(SpokenLanguageDataDto, { description: 'Spoken language details' })
   async findOne(@Param('code') code: string) {
     return this.service.findOne(code);
   }
 
   @Post()
   @ApiOperation({ summary: 'Create spoken language' })
+  @ApiDataResponse(SpokenLanguageDataDto, { description: 'Spoken language created', status: 201 })
   async create(@Body() dto: Record<string, unknown>) {
     return this.service.create(dto);
   }
 
   @Patch(':code')
   @ApiOperation({ summary: 'Update spoken language' })
+  @ApiDataResponse(SpokenLanguageDataDto, { description: 'Spoken language updated' })
   async update(@Param('code') code: string, @Body() dto: Record<string, unknown>) {
     return this.service.update(code, dto);
   }
@@ -68,6 +80,7 @@ export class AdminSpokenLanguagesController {
   @Delete(':code')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete spoken language' })
+  @ApiEmptyDataResponse({ description: 'Spoken language deleted', status: 204 })
   async remove(@Param('code') code: string) {
     await this.service.remove(code);
   }

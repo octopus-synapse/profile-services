@@ -11,9 +11,14 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
+import {
+  ApiDataResponse,
+  ApiEmptyDataResponse,
+} from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import { AdminTechAreasService } from './admin-tech-areas.service';
+import { TechAreaDataDto, TechAreaListDataDto } from './dto/admin-tech-areas-response.dto';
 
 @SdkExport({
   tag: 'admin-tech-areas',
@@ -33,6 +38,7 @@ export class AdminTechAreasController {
   @ApiQuery({ name: 'pageSize', required: false, type: Number })
   @ApiQuery({ name: 'search', required: false, type: String })
   @ApiQuery({ name: 'isActive', required: false, type: Boolean })
+  @ApiDataResponse(TechAreaListDataDto, { description: 'List of tech areas' })
   async findAll(
     @Query('page') page?: number,
     @Query('pageSize') pageSize?: number,
@@ -49,18 +55,21 @@ export class AdminTechAreasController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get tech area by ID' })
+  @ApiDataResponse(TechAreaDataDto, { description: 'Tech area details' })
   async findOne(@Param('id') id: string) {
     return this.service.findOne(id);
   }
 
   @Post()
   @ApiOperation({ summary: 'Create tech area' })
+  @ApiDataResponse(TechAreaDataDto, { description: 'Tech area created', status: 201 })
   async create(@Body() dto: Record<string, unknown>) {
     return this.service.create(dto);
   }
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update tech area' })
+  @ApiDataResponse(TechAreaDataDto, { description: 'Tech area updated' })
   async update(@Param('id') id: string, @Body() dto: Record<string, unknown>) {
     return this.service.update(id, dto);
   }
@@ -68,6 +77,7 @@ export class AdminTechAreasController {
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete tech area' })
+  @ApiEmptyDataResponse({ description: 'Tech area deleted', status: 204 })
   async remove(@Param('id') id: string) {
     await this.service.remove(id);
   }

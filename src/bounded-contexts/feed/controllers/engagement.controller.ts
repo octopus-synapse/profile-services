@@ -17,9 +17,19 @@
 import { Body, Controller, Delete, HttpCode, HttpStatus, Param, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
+import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
+import {
+  BookmarkDataDto,
+  LikeDataDto,
+  ReportDataDto,
+  RepostDataDto,
+  UnbookmarkDataDto,
+  UnlikeDataDto,
+  VoteDataDto,
+} from '../dto/feed-response.dto';
 import { EngagementService } from '../services/engagement.service';
 import { PollService } from '../services/poll.service';
 import { ReportService } from '../services/report.service';
@@ -47,6 +57,7 @@ export class EngagementController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Like a post' })
   @ApiParam({ name: 'id', type: 'string' })
+  @ApiDataResponse(LikeDataDto, { description: 'Post liked' })
   async like(@CurrentUser() user: UserPayload, @Param('id') postId: string) {
     return this.engagementService.like(postId, user.userId);
   }
@@ -58,6 +69,7 @@ export class EngagementController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Unlike a post' })
   @ApiParam({ name: 'id', type: 'string' })
+  @ApiDataResponse(UnlikeDataDto, { description: 'Post unliked' })
   async unlike(@CurrentUser() user: UserPayload, @Param('id') postId: string) {
     return this.engagementService.unlike(postId, user.userId);
   }
@@ -69,6 +81,7 @@ export class EngagementController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Bookmark a post' })
   @ApiParam({ name: 'id', type: 'string' })
+  @ApiDataResponse(BookmarkDataDto, { description: 'Post bookmarked' })
   async bookmark(@CurrentUser() user: UserPayload, @Param('id') postId: string) {
     return this.engagementService.bookmark(postId, user.userId);
   }
@@ -80,6 +93,7 @@ export class EngagementController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Remove bookmark from a post' })
   @ApiParam({ name: 'id', type: 'string' })
+  @ApiDataResponse(UnbookmarkDataDto, { description: 'Bookmark removed' })
   async unbookmark(@CurrentUser() user: UserPayload, @Param('id') postId: string) {
     return this.engagementService.unbookmark(postId, user.userId);
   }
@@ -91,6 +105,7 @@ export class EngagementController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Repost a post' })
   @ApiParam({ name: 'id', type: 'string' })
+  @ApiDataResponse(RepostDataDto, { description: 'Post reposted' })
   async repost(
     @CurrentUser() user: UserPayload,
     @Param('id') postId: string,
@@ -106,6 +121,7 @@ export class EngagementController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Report a post' })
   @ApiParam({ name: 'id', type: 'string' })
+  @ApiDataResponse(ReportDataDto, { description: 'Post reported' })
   async report(
     @CurrentUser() user: UserPayload,
     @Param('id') postId: string,
@@ -121,6 +137,7 @@ export class EngagementController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Vote on a poll' })
   @ApiParam({ name: 'id', type: 'string' })
+  @ApiDataResponse(VoteDataDto, { description: 'Vote recorded' })
   async vote(
     @CurrentUser() user: UserPayload,
     @Param('id') postId: string,

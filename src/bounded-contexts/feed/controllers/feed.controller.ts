@@ -13,9 +13,15 @@ import { Controller, Get, HttpCode, HttpStatus, Param, Query } from '@nestjs/com
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import type { PostType } from '@prisma/client';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
+import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
+import {
+  FeedBookmarksDataDto,
+  FeedTimelineDataDto,
+  UserPostsDataDto,
+} from '../dto/feed-response.dto';
 import { FeedService } from '../services/feed.service';
 import { PostService } from '../services/post.service';
 
@@ -43,6 +49,9 @@ export class FeedController {
   @ApiQuery({ name: 'cursor', required: false, type: String })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiQuery({ name: 'type', required: false, type: String })
+  @ApiDataResponse(FeedTimelineDataDto, {
+    description: 'Feed timeline with posts',
+  })
   async getTimeline(
     @CurrentUser() user: UserPayload,
     @Query('cursor') cursor?: string,
@@ -65,6 +74,9 @@ export class FeedController {
   @ApiOperation({ summary: 'Get bookmarked posts' })
   @ApiQuery({ name: 'cursor', required: false, type: String })
   @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiDataResponse(FeedBookmarksDataDto, {
+    description: 'Bookmarked posts',
+  })
   async getBookmarks(
     @CurrentUser() user: UserPayload,
     @Query('cursor') cursor?: string,
@@ -86,6 +98,7 @@ export class FeedController {
   @ApiParam({ name: 'userId', type: 'string' })
   @ApiQuery({ name: 'cursor', required: false, type: String })
   @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiDataResponse(UserPostsDataDto, { description: 'User posts' })
   async getUserPosts(
     @Param('userId') userId: string,
     @Query('cursor') cursor?: string,

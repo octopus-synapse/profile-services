@@ -66,7 +66,10 @@ export class UsersPreferencesController {
     @CurrentUser() user: UserPayload,
   ): Promise<DataResponse<UserFullPreferencesDataDto>> {
     const preferences = await this.preferences.getFullPreferencesUseCase.execute(user.userId);
-    return { success: true, data: { preferences } };
+    return {
+      success: true,
+      data: { preferences } as unknown as UserFullPreferencesDataDto,
+    };
   }
 
   @RequirePermission(Permission.USER_PROFILE_UPDATE)

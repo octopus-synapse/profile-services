@@ -35,11 +35,18 @@ import {
 import type { PostType, Prisma } from '@prisma/client';
 import { v4 } from 'uuid';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
+import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { S3UploadService } from '@/bounded-contexts/platform/common/services/s3-upload.service';
 import { ERROR_MESSAGES, FILE_UPLOAD_CONFIG } from '@/shared-kernel';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
+import {
+  PostByIdDataDto,
+  PostCreatedDataDto,
+  PostDeletedDataDto,
+  PostImageUploadDataDto,
+} from '../dto/feed-response.dto';
 import { LinkPreviewService } from '../services/link-preview.service';
 import { PostService } from '../services/post.service';
 
@@ -65,6 +72,10 @@ export class PostController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new post' })
+  @ApiDataResponse(PostCreatedDataDto, {
+    status: 201,
+    description: 'Post created successfully',
+  })
   async create(
     @CurrentUser() user: UserPayload,
     @Body()
@@ -102,6 +113,7 @@ export class PostController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get a post by ID' })
   @ApiParam({ name: 'id', type: 'string' })
+  @ApiDataResponse(PostByIdDataDto, { description: 'Post details' })
   async findById(@Param('id') id: string) {
     return this.postService.findById(id);
   }
@@ -113,6 +125,7 @@ export class PostController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete a post' })
   @ApiParam({ name: 'id', type: 'string' })
+  @ApiDataResponse(PostDeletedDataDto, { description: 'Post deleted' })
   async delete(@CurrentUser() user: UserPayload, @Param('id') id: string) {
     await this.postService.delete(id, user.userId);
     return { deleted: true };
@@ -133,6 +146,9 @@ export class PostController {
         file: { type: 'string', format: 'binary' },
       },
     },
+  })
+  @ApiDataResponse(PostImageUploadDataDto, {
+    description: 'Image uploaded successfully',
   })
   async uploadImage(@CurrentUser() user: UserPayload, @UploadedFile() file: Express.Multer.File) {
     if (!file) {

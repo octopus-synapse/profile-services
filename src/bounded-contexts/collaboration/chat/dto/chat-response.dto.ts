@@ -119,3 +119,20 @@ export class MessagesListDataDto extends createZodDto(MessagesListDataSchema) {}
 export class MarkAsReadDataDto extends createZodDto(MarkAsReadDataSchema) {}
 export class UnreadCountDataDto extends createZodDto(UnreadCountDataSchema) {}
 export class ConversationNullableDataDto extends createZodDto(ConversationNullableDataSchema) {}
+
+// ============================================================================
+// User Search DTO (non-Zod, used for Swagger only)
+// ============================================================================
+
+const ChatUserSearchItemSchema = z.object({
+  id: z.string(),
+  name: z.string().nullable(),
+  username: z.string().nullable(),
+  photoURL: z.string().nullable(),
+});
+
+const ChatUserSearchDataSchema = z.object({
+  users: z.array(ChatUserSearchItemSchema),
+});
+
+export class ChatUserSearchDataDto extends createZodDto(ChatUserSearchDataSchema) {}
