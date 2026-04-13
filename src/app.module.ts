@@ -44,6 +44,8 @@ import { GraphqlModule } from '@/bounded-contexts/platform/graphql/graphql.modul
 import { HealthModule } from '@/bounded-contexts/platform/health/health.module';
 import { MetricsModule } from '@/bounded-contexts/platform/metrics/metrics.module';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
+// Test Runner
+import { TestRunnerModule } from '@/bounded-contexts/platform/test-runner/test-runner.module';
 import { PublicResumesModule } from '@/bounded-contexts/presentation/public-resumes/public-resumes.module';
 // Presentation Context
 import { ThemesModule } from '@/bounded-contexts/presentation/themes/themes.module';
@@ -118,6 +120,7 @@ import { AppController } from './app.controller';
     FeedModule,
     JobsModule,
     NotificationsModule,
+    TestRunnerModule,
   ],
   controllers: [AppController],
   providers: [

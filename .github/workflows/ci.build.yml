@@ -48,7 +48,9 @@ jobs:
           push: false
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
+          cache-from: |
+            type=gha
+            type=registry,ref=ghcr.io/octopus-synapse/profile-services:cache
           cache-to: type=gha,mode=max
 
       - name: Summary
