@@ -6,15 +6,13 @@
  */
 
 import { Logger } from '@nestjs/common';
-import { type Prisma, ResumeTemplate, ThemeStatus } from '@prisma/client';
+import { type Prisma, ResumeTemplate } from '@prisma/client';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { OnboardingData } from '../../../domain/schemas/onboarding.schema';
 import { normalizeTemplateSelection } from '../../../domain/schemas/onboarding-data.schema';
 
-// Valid template values from Prisma enum
 const VALID_TEMPLATES = Object.values(ResumeTemplate);
 const DEFAULT_TEMPLATE = ResumeTemplate.PROFESSIONAL;
-const DEFAULT_THEME_NAME = 'Modern';
 
 export class ResumeOnboardingAdapter {
   private readonly logger = new Logger(ResumeOnboardingAdapter.name);
@@ -54,30 +52,25 @@ export class ResumeOnboardingAdapter {
       template,
     };
 
+    // Resolve the theme the user selected
+    const selectedThemeId = await this.resolveThemeId(tx, normalized.colorScheme);
+
     const resume = await tx.resume.upsert({
       where: { id: existingResume?.id ?? 'nonexistent' },
-      update: resumeData,
-      create: { userId, ...resumeData },
+      update: { ...resumeData, activeThemeId: selectedThemeId },
+      create: { userId, ...resumeData, activeThemeId: selectedThemeId },
     });
 
-    // Set as primary resume if it's the first one created during onboarding
     if (isFirstResume) {
       await tx.user.update({
         where: { id: userId },
         data: { primaryResumeId: resume.id },
       });
       this.logger.log(`Set resume ${resume.id} as primary for user ${userId}`);
+    }
 
-      // Apply default theme to new resumes
-      const defaultTheme = await this.findDefaultTheme(tx);
-      if (defaultTheme) {
-        await tx.resume.update({
-          where: { id: resume.id },
-          data: { activeThemeId: defaultTheme.id },
-        });
-        this.logger.log(`Applied default theme "${defaultTheme.name}" to resume ${resume.id}`);
-        return { ...resume, activeThemeId: defaultTheme.id };
-      }
+    if (selectedThemeId) {
+      this.logger.log(`Applied theme ${selectedThemeId} to resume ${resume.id}`);
     }
 
     this.logger.log(`Resume upserted: ${resume.id}`);
@@ -85,16 +78,21 @@ export class ResumeOnboardingAdapter {
   }
 
   /**
-   * Find the default system theme to apply to new resumes.
-   * Returns the "Modern" system theme if available.
+   * Resolve the theme ID from the user's selection.
+   * The colorScheme field contains the theme ID selected during onboarding.
    */
-  private async findDefaultTheme(tx: Prisma.TransactionClient) {
-    return tx.resumeTheme.findFirst({
-      where: {
-        isSystemTheme: true,
-        status: ThemeStatus.PUBLISHED,
-        name: { equals: DEFAULT_THEME_NAME, mode: 'insensitive' },
-      },
+  private async resolveThemeId(
+    tx: Prisma.TransactionClient,
+    themeIdOrName: string,
+  ): Promise<string | null> {
+    // Try by exact ID first
+    const byId = await tx.resumeTheme.findUnique({ where: { id: themeIdOrName } });
+    if (byId) return byId.id;
+
+    // Fallback: search by name
+    const byName = await tx.resumeTheme.findFirst({
+      where: { name: { equals: themeIdOrName, mode: 'insensitive' } },
     });
+    return byName?.id ?? null;
   }
 }

@@ -119,6 +119,9 @@ function createFakePrismaStore() {
         },
       },
       resumeTheme: {
+        findUnique: async ({ where }: { where: { id: string } }) => {
+          return themeStore.get(where.id) ?? null;
+        },
         findFirst: async ({
           where,
         }: {
@@ -244,46 +247,52 @@ describe('ResumeOnboardingAdapter', () => {
     });
   });
 
-  describe('default theme application', () => {
-    it('should apply default Modern theme when creating new resume', async () => {
-      const data = createOnboardingData();
+  describe('theme from user selection', () => {
+    it('should set activeThemeId from selected theme id', async () => {
+      const data = createOnboardingData({
+        templateSelection: { templateId: 'PROFESSIONAL', colorScheme: 'theme-modern-default' },
+      });
 
       const result = await adapter.upsertResume('user-1', data);
 
       expect(result.activeThemeId).toBe('theme-modern-default');
     });
 
-    it('should set activeThemeId to the Modern system theme', async () => {
-      const data = createOnboardingData();
+    it('should resolve theme by name if id not found', async () => {
+      const data = createOnboardingData({
+        templateSelection: { templateId: 'PROFESSIONAL', colorScheme: 'Modern' },
+      });
+
+      const result = await adapter.upsertResume('user-1', data);
+
+      expect(result.activeThemeId).toBe('theme-modern-default');
+    });
+
+    it('should set null activeThemeId if theme not found', async () => {
+      const data = createOnboardingData({
+        templateSelection: { templateId: 'PROFESSIONAL', colorScheme: 'nonexistent-theme' },
+      });
 
       await adapter.upsertResume('user-1', data);
 
       const savedResume = store.resumeStore.get('resume-1');
-      expect(savedResume?.activeThemeId).toBe('theme-modern-default');
+      expect(savedResume?.activeThemeId).toBeNull();
     });
 
-    it('should not change activeThemeId when updating existing resume', async () => {
-      // Create first resume with default theme
-      const data = createOnboardingData();
-      const firstResume = await adapter.upsertResume('user-1', data);
-
-      // Manually change theme (simulating user changed it)
-      const existingResume = store.resumeStore.get(firstResume.id);
-      if (!existingResume) throw new Error('Resume not found in store');
-      store.resumeStore.set(firstResume.id, {
-        ...existingResume,
-        activeThemeId: 'theme-custom',
+    it('should update activeThemeId on existing resume', async () => {
+      const data = createOnboardingData({
+        templateSelection: { templateId: 'PROFESSIONAL', colorScheme: 'theme-modern-default' },
       });
+      await adapter.upsertResume('user-1', data);
 
-      // Update resume via onboarding
       const updatedData = createOnboardingData({
         personalInfo: { ...data.personalInfo, fullName: 'Updated Name' },
+        templateSelection: { templateId: 'PROFESSIONAL', colorScheme: 'theme-modern-default' },
       });
       await adapter.upsertResume('user-1', updatedData);
 
-      // Theme should remain unchanged
-      const savedResume = store.resumeStore.get(firstResume.id);
-      expect(savedResume?.activeThemeId).toBe('theme-custom');
+      const savedResume = store.resumeStore.get('resume-1');
+      expect(savedResume?.activeThemeId).toBe('theme-modern-default');
     });
   });
 });
