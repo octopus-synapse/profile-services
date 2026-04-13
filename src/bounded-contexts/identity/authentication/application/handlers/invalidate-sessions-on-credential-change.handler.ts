@@ -26,6 +26,11 @@ export class InvalidateSessionsOnCredentialChangeHandler {
     private readonly logger: AppLoggerService,
   ) {}
 
+  @OnEvent('auth.session.invalidate')
+  async handleSessionInvalidate(event: { userId: string }): Promise<void> {
+    await this.authRepository.invalidateSessionCache(event.userId);
+  }
+
   @OnEvent('password.changed')
   async handle(event: PasswordChangedEvent): Promise<void> {
     const { userId, changedVia } = event;

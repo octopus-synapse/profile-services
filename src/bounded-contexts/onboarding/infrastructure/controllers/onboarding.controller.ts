@@ -274,6 +274,7 @@ export class OnboardingController {
     @CurrentUser() user: UserPayload,
   ): Promise<DataResponse<CompleteOnboardingResponseDto>> {
     const result = await this.useCases.completeOnboardingFromProgressUseCase.execute(user.userId);
+    this.eventEmitter.emit('auth.session.invalidate', { userId: user.userId });
     return {
       success: true,
       data: result as CompleteOnboardingResponseDto,
@@ -342,6 +343,7 @@ export class OnboardingController {
     @Body(createZodPipe(OnboardingDataSchema)) data: OnboardingData,
   ): Promise<DataResponse<CompleteOnboardingResponseDto>> {
     const result = await this.useCases.completeOnboardingUseCase.execute(user.userId, data);
+    this.eventEmitter.emit('auth.session.invalidate', { userId: user.userId });
     return {
       success: true,
       data: result as CompleteOnboardingResponseDto,
