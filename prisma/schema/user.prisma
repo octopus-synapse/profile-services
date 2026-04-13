@@ -62,6 +62,10 @@ model User {
   following  Follow[]   @relation("Followers")
   activities Activity[] @relation("UserActivities")
 
+  // Connection features
+  sentConnections     Connection[] @relation("SentConnections")
+  receivedConnections Connection[] @relation("ReceivedConnections")
+
   // Two-Factor Authentication
   twoFactorAuth        TwoFactorAuth?
   twoFactorBackupCodes TwoFactorBackupCode[]

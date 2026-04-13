@@ -69,7 +69,7 @@ class StubFollowService {
     totalPages: 0,
   };
   private isFollowingResult = false;
-  private socialStatsResult = { followers: 0, following: 0 };
+  private socialStatsResult = { followers: 0, following: 0, connections: 0 };
 
   calls: Array<{ method: string; args: unknown[] }> = [];
 
@@ -93,7 +93,11 @@ class StubFollowService {
     this.isFollowingResult = result;
   }
 
-  setSocialStatsResult(result: { followers: number; following: number }): void {
+  setSocialStatsResult(result: {
+    followers: number;
+    following: number;
+    connections: number;
+  }): void {
     this.socialStatsResult = result;
   }
 
@@ -128,7 +132,9 @@ class StubFollowService {
     return this.isFollowingResult;
   }
 
-  async getSocialStats(userId: string): Promise<{ followers: number; following: number }> {
+  async getSocialStats(
+    userId: string,
+  ): Promise<{ followers: number; following: number; connections: number }> {
     this.calls.push({ method: 'getSocialStats', args: [userId] });
     return this.socialStatsResult;
   }
@@ -302,12 +308,13 @@ describe('FollowController', () => {
       stubFollowService.setSocialStatsResult({
         followers: 100,
         following: 50,
+        connections: 30,
       });
 
       const result = await controller.getSocialStats(userId);
 
       expect(result.success).toBe(true);
-      expect(result.data).toEqual({ followers: 100, following: 50 });
+      expect(result.data).toEqual({ followers: 100, following: 50, connections: 30 });
     });
   });
 });

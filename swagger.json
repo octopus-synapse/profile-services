@@ -12997,6 +12997,381 @@
         ]
       }
     },
+    "/api/v1/users/{userId}/connect": {
+      "post": {
+        "operationId": "connection_sendConnectionRequest",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: social:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Send a connection request",
+        "tags": [
+          "social-connections"
+        ]
+      }
+    },
+    "/api/v1/connections/{id}/accept": {
+      "put": {
+        "operationId": "connection_acceptConnection",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: social:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Accept a connection request",
+        "tags": [
+          "social-connections"
+        ]
+      }
+    },
+    "/api/v1/connections/{id}/reject": {
+      "put": {
+        "operationId": "connection_rejectConnection",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: social:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Reject a connection request",
+        "tags": [
+          "social-connections"
+        ]
+      }
+    },
+    "/api/v1/connections/{id}": {
+      "delete": {
+        "operationId": "connection_removeConnection",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: social:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Remove a connection",
+        "tags": [
+          "social-connections"
+        ]
+      }
+    },
+    "/api/v1/users/me/connections": {
+      "get": {
+        "operationId": "connection_getConnections",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Connections list returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/ConnectionListDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: social:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get accepted connections",
+        "tags": [
+          "social-connections"
+        ]
+      }
+    },
+    "/api/v1/users/me/connections/pending": {
+      "get": {
+        "operationId": "connection_getPendingRequests",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Pending requests returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/PendingRequestsDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: social:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get pending connection requests",
+        "tags": [
+          "social-connections"
+        ]
+      }
+    },
+    "/api/v1/users/me/connections/suggestions": {
+      "get": {
+        "operationId": "connection_getConnectionSuggestions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Suggestions returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/SuggestionsDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: social:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get connection suggestions",
+        "tags": [
+          "social-connections"
+        ]
+      }
+    },
+    "/api/v1/users/{userId}/connection-stats": {
+      "get": {
+        "operationId": "connection_getConnectionStats",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Connection stats returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/ConnectionStatsDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "summary": "Get connection stats for a user",
+        "tags": [
+          "social-connections"
+        ]
+      }
+    },
+    "/api/v1/users/{userId}/is-connected": {
+      "get": {
+        "operationId": "connection_isConnected",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Connection check returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/ConnectionCheckDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: social:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Check connection status",
+        "tags": [
+          "social-connections"
+        ]
+      }
+    },
     "/api/v1/users/{userId}/feed": {
       "get": {
         "operationId": "activity_getFeed",
@@ -20452,11 +20827,149 @@
           "following": {
             "type": "number",
             "example": 75
+          },
+          "connections": {
+            "type": "number",
+            "example": 30
           }
         },
         "required": [
           "followers",
-          "following"
+          "following",
+          "connections"
+        ]
+      },
+      "ConnectionListDataDto": {
+        "type": "object",
+        "properties": {
+          "connections": {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "array",
+                "items": {}
+              },
+              "total": {
+                "type": "integer"
+              },
+              "page": {
+                "type": "integer"
+              },
+              "limit": {
+                "type": "integer"
+              },
+              "totalPages": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "data",
+              "total",
+              "page",
+              "limit",
+              "totalPages"
+            ],
+            "x-nestjs_zod-self-required": true
+          }
+        },
+        "required": [
+          "connections"
+        ]
+      },
+      "PendingRequestsDataDto": {
+        "type": "object",
+        "properties": {
+          "pendingRequests": {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "array",
+                "items": {}
+              },
+              "total": {
+                "type": "integer"
+              },
+              "page": {
+                "type": "integer"
+              },
+              "limit": {
+                "type": "integer"
+              },
+              "totalPages": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "data",
+              "total",
+              "page",
+              "limit",
+              "totalPages"
+            ],
+            "x-nestjs_zod-self-required": true
+          }
+        },
+        "required": [
+          "pendingRequests"
+        ]
+      },
+      "SuggestionsDataDto": {
+        "type": "object",
+        "properties": {
+          "suggestions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "username": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "photoURL": {
+                  "type": "string",
+                  "nullable": true
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "username",
+                "photoURL"
+              ]
+            }
+          }
+        },
+        "required": [
+          "suggestions"
+        ]
+      },
+      "ConnectionStatsDto": {
+        "type": "object",
+        "properties": {
+          "connections": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "connections"
+        ]
+      },
+      "ConnectionCheckDto": {
+        "type": "object",
+        "properties": {
+          "isConnected": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "isConnected"
         ]
       },
       "ActivityFeedDataDto": {

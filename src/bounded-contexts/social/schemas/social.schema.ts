@@ -36,6 +36,7 @@ export type FollowResult = z.infer<typeof FollowResultSchema>;
 export const SocialStatsSchema = z.object({
   followersCount: z.number().int().nonnegative(),
   followingCount: z.number().int().nonnegative(),
+  connectionsCount: z.number().int().nonnegative().optional(),
   isFollowing: z.boolean().optional(),
 });
 
@@ -91,6 +92,7 @@ export const SocialActivityTypeEnum = z.enum([
   'SECTION_ITEM_UPDATED',
   'SECTION_ITEM_REMOVED',
   'FOLLOWED_USER',
+  'CONNECTED_USER',
   'PROFILE_UPDATED',
 ]);
 

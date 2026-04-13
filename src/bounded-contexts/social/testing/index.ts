@@ -426,6 +426,292 @@ export class InMemoryUserRepository {
 }
 
 // ═══════════════════════════════════════════════════════════════
+// TYPES - CONNECTIONS
+// ═══════════════════════════════════════════════════════════════
+
+export type ConnectionStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED';
+
+export interface ConnectionRecord {
+  id: string;
+  requesterId: string;
+  targetId: string;
+  status: ConnectionStatus;
+  createdAt: Date;
+  updatedAt: Date;
+  requester?: {
+    id: string;
+    name: string | null;
+    username: string | null;
+    photoURL: string | null;
+  };
+  target?: {
+    id: string;
+    name: string | null;
+    username: string | null;
+    photoURL: string | null;
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════
+// IN-MEMORY CONNECTION REPOSITORY
+// ═══════════════════════════════════════════════════════════════
+
+export class InMemoryConnectionRepository {
+  private connections: ConnectionRecord[] = [];
+
+  // Prisma-like interface
+  readonly connection = {
+    create: async (args: {
+      data: {
+        requesterId: string;
+        targetId: string;
+      };
+      include?: {
+        requester?: { select?: Record<string, boolean> };
+        target?: { select?: Record<string, boolean> };
+      };
+    }): Promise<ConnectionRecord> => {
+      const now = new Date();
+      const connection: ConnectionRecord = {
+        id: `conn-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        requesterId: args.data.requesterId,
+        targetId: args.data.targetId,
+        status: 'PENDING',
+        createdAt: now,
+        updatedAt: now,
+      };
+
+      this.connections.push(connection);
+      return connection;
+    },
+
+    findUnique: async (args: {
+      where: { id?: string; requesterId_targetId?: { requesterId: string; targetId: string } };
+      include?: {
+        requester?: { select?: Record<string, boolean> };
+        target?: { select?: Record<string, boolean> };
+      };
+    }): Promise<ConnectionRecord | null> => {
+      let connection: ConnectionRecord | undefined;
+
+      if (args.where.id) {
+        connection = this.connections.find((c) => c.id === args.where.id);
+      } else if (args.where.requesterId_targetId) {
+        const { requesterId, targetId } = args.where.requesterId_targetId;
+        connection = this.connections.find(
+          (c) => c.requesterId === requesterId && c.targetId === targetId,
+        );
+      }
+
+      return connection ?? null;
+    },
+
+    findFirst: async (args: {
+      where: {
+        OR?: Array<{ requesterId?: string; targetId?: string }>;
+        requesterId?: string;
+        targetId?: string;
+        status?: ConnectionStatus;
+      };
+      include?: {
+        requester?: { select?: Record<string, boolean> };
+        target?: { select?: Record<string, boolean> };
+      };
+    }): Promise<ConnectionRecord | null> => {
+      const connection = this.connections.find((c) => {
+        if (args.where.status && c.status !== args.where.status) return false;
+
+        if (args.where.OR) {
+          return args.where.OR.some(
+            (cond) =>
+              (!cond.requesterId || c.requesterId === cond.requesterId) &&
+              (!cond.targetId || c.targetId === cond.targetId),
+          );
+        }
+
+        return (
+          (!args.where.requesterId || c.requesterId === args.where.requesterId) &&
+          (!args.where.targetId || c.targetId === args.where.targetId)
+        );
+      });
+
+      return connection ?? null;
+    },
+
+    findMany: async (args?: {
+      where?: {
+        OR?: Array<{ requesterId?: string; targetId?: string }>;
+        requesterId?: string;
+        targetId?: string;
+        status?: ConnectionStatus;
+      };
+      include?: {
+        requester?: { select?: Record<string, boolean> };
+        target?: { select?: Record<string, boolean> };
+      };
+      select?: {
+        requesterId?: boolean;
+        targetId?: boolean;
+      };
+      orderBy?: { createdAt?: 'asc' | 'desc'; updatedAt?: 'asc' | 'desc' };
+      skip?: number;
+      take?: number;
+    }): Promise<ConnectionRecord[] | Array<{ requesterId?: string; targetId?: string }>> => {
+      let result = [...this.connections];
+
+      if (args?.where) {
+        result = result.filter((c) => {
+          if (args.where?.status && c.status !== args.where.status) return false;
+
+          if (args.where?.OR) {
+            return args.where.OR.some(
+              (cond) =>
+                (!cond.requesterId || c.requesterId === cond.requesterId) &&
+                (!cond.targetId || c.targetId === cond.targetId),
+            );
+          }
+
+          return (
+            (!args.where?.requesterId || c.requesterId === args.where.requesterId) &&
+            (!args.where?.targetId || c.targetId === args.where.targetId)
+          );
+        });
+      }
+
+      // Order by
+      if (args?.orderBy?.createdAt) {
+        result.sort((a, b) => {
+          const order = args.orderBy?.createdAt === 'desc' ? -1 : 1;
+          return order * (a.createdAt.getTime() - b.createdAt.getTime());
+        });
+      }
+      if (args?.orderBy?.updatedAt) {
+        result.sort((a, b) => {
+          const order = args.orderBy?.updatedAt === 'desc' ? -1 : 1;
+          return order * (a.updatedAt.getTime() - b.updatedAt.getTime());
+        });
+      }
+
+      // Pagination
+      if (args?.skip !== undefined) {
+        result = result.slice(args.skip);
+      }
+      if (args?.take !== undefined) {
+        result = result.slice(0, args.take);
+      }
+
+      // Apply select if provided
+      if (args?.select) {
+        return result.map((c) => {
+          const selected: { requesterId?: string; targetId?: string } = {};
+          if (args.select?.requesterId) selected.requesterId = c.requesterId;
+          if (args.select?.targetId) selected.targetId = c.targetId;
+          return selected;
+        });
+      }
+
+      return result;
+    },
+
+    count: async (args?: {
+      where?: {
+        OR?: Array<{ requesterId?: string; targetId?: string }>;
+        requesterId?: string;
+        targetId?: string;
+        status?: ConnectionStatus;
+      };
+    }): Promise<number> => {
+      let result = this.connections;
+
+      if (args?.where) {
+        result = result.filter((c) => {
+          if (args.where?.status && c.status !== args.where.status) return false;
+
+          if (args.where?.OR) {
+            return args.where.OR.some(
+              (cond) =>
+                (!cond.requesterId || c.requesterId === cond.requesterId) &&
+                (!cond.targetId || c.targetId === cond.targetId),
+            );
+          }
+
+          return (
+            (!args.where?.requesterId || c.requesterId === args.where.requesterId) &&
+            (!args.where?.targetId || c.targetId === args.where.targetId)
+          );
+        });
+      }
+
+      return result.length;
+    },
+
+    update: async (args: {
+      where: { id: string };
+      data: { status: ConnectionStatus };
+      include?: {
+        requester?: { select?: Record<string, boolean> };
+        target?: { select?: Record<string, boolean> };
+      };
+    }): Promise<ConnectionRecord> => {
+      const index = this.connections.findIndex((c) => c.id === args.where.id);
+      if (index === -1) throw new Error('Connection not found');
+
+      this.connections[index] = {
+        ...this.connections[index],
+        status: args.data.status,
+        updatedAt: new Date(),
+      };
+
+      return this.connections[index];
+    },
+
+    delete: async (args: { where: { id: string } }): Promise<ConnectionRecord> => {
+      const index = this.connections.findIndex((c) => c.id === args.where.id);
+      if (index === -1) throw new Error('Connection not found');
+
+      const [removed] = this.connections.splice(index, 1);
+      return removed;
+    },
+
+    deleteMany: async (args: {
+      where: {
+        requesterId?: string;
+        targetId?: string;
+      };
+    }): Promise<{ count: number }> => {
+      const initialLength = this.connections.length;
+
+      this.connections = this.connections.filter(
+        (c) =>
+          !(
+            (!args.where.requesterId || c.requesterId === args.where.requesterId) &&
+            (!args.where.targetId || c.targetId === args.where.targetId)
+          ),
+      );
+
+      return { count: initialLength - this.connections.length };
+    },
+  };
+
+  // Test helpers
+  seed(connections: ConnectionRecord[]): void {
+    this.connections = [...connections];
+  }
+
+  add(connection: ConnectionRecord): void {
+    this.connections.push(connection);
+  }
+
+  clear(): void {
+    this.connections = [];
+  }
+
+  getAll(): ConnectionRecord[] {
+    return [...this.connections];
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
 // FACTORY FUNCTIONS
 // ═══════════════════════════════════════════════════════════════
 
@@ -448,6 +734,21 @@ export function createActivityRecord(overrides: Partial<ActivityRecord> = {}): A
     entityId: null,
     entityType: null,
     createdAt: new Date(),
+    ...overrides,
+  };
+}
+
+export function createConnectionRecord(
+  overrides: Partial<ConnectionRecord> = {},
+): ConnectionRecord {
+  const now = new Date();
+  return {
+    id: `conn-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    requesterId: 'user-1',
+    targetId: 'user-2',
+    status: 'PENDING',
+    createdAt: now,
+    updatedAt: now,
     ...overrides,
   };
 }
@@ -505,6 +806,25 @@ export const DEFAULT_FOLLOWS: FollowRecord[] = [
     followerId: 'user-2',
     followingId: 'user-1',
     createdAt: new Date('2024-01-03'),
+  }),
+];
+
+export const DEFAULT_CONNECTIONS: ConnectionRecord[] = [
+  createConnectionRecord({
+    id: 'conn-1',
+    requesterId: 'user-1',
+    targetId: 'user-2',
+    status: 'ACCEPTED',
+    createdAt: new Date('2024-01-01'),
+    updatedAt: new Date('2024-01-02'),
+  }),
+  createConnectionRecord({
+    id: 'conn-2',
+    requesterId: 'user-3',
+    targetId: 'user-1',
+    status: 'PENDING',
+    createdAt: new Date('2024-01-03'),
+    updatedAt: new Date('2024-01-03'),
   }),
 ];
 

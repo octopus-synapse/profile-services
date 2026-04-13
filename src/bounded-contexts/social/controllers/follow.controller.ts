@@ -44,6 +44,9 @@ class SocialStatsDto {
 
   @ApiProperty({ example: 75 })
   following!: number;
+
+  @ApiProperty({ example: 30 })
+  connections!: number;
 }
 
 // --- Controller ---

@@ -28,3 +28,24 @@ model Activity {
   @@index([type, createdAt])
   @@index([entityId])
 }
+
+model Connection {
+  id          String           @id @default(cuid())
+  requesterId String
+  requester   User             @relation("SentConnections", fields: [requesterId], references: [id], onDelete: Cascade)
+  targetId    String
+  target      User             @relation("ReceivedConnections", fields: [targetId], references: [id], onDelete: Cascade)
+  status      ConnectionStatus @default(PENDING)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@unique([requesterId, targetId])
+  @@index([requesterId, status])
+  @@index([targetId, status])
+}
+
+enum ConnectionStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}

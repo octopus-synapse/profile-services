@@ -17,21 +17,29 @@ import {
 } from './application/handlers';
 import { ActivityController } from './controllers/activity.controller';
 import { ActivityFeedSseController } from './controllers/activity-feed-sse.controller';
+import { ConnectionController } from './controllers/connection.controller';
 import { FollowController } from './controllers/follow.controller';
 import { ActivityService } from './services/activity.service';
+import { ConnectionService } from './services/connection.service';
 import { FollowService } from './services/follow.service';
 
 @Module({
   imports: [PrismaModule, LoggerModule, EventEmitterModule, EventBusModule],
-  controllers: [FollowController, ActivityController, ActivityFeedSseController],
+  controllers: [
+    FollowController,
+    ConnectionController,
+    ActivityController,
+    ActivityFeedSseController,
+  ],
   providers: [
     FollowService,
+    ConnectionService,
     ActivityService,
     ResumeCreatedActivityHandler,
     ResumePublishedActivityHandler,
     CreateWelcomeActivityOnUserRegisteredHandler,
     CleanupSocialOnUserDeleteHandler,
   ],
-  exports: [FollowService, ActivityService],
+  exports: [FollowService, ConnectionService, ActivityService],
 })
 export class SocialModule {}

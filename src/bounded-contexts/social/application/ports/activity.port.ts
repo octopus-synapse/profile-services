@@ -14,6 +14,7 @@ export const ActivityType = {
   SKILL_ADDED: 'SKILL_ADDED',
   PROFILE_UPDATED: 'PROFILE_UPDATED',
   FOLLOWED_USER: 'FOLLOWED_USER',
+  CONNECTED_USER: 'CONNECTED_USER',
 } as const;
 export type ActivityType = (typeof ActivityType)[keyof typeof ActivityType];
 

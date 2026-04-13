@@ -18,6 +18,7 @@ const ACTIVITY_TYPE_MAPPING: Record<ActivityType, SocialActivityType> = {
   SKILL_ADDED: 'section_item_added',
   PROFILE_UPDATED: 'resume_created',
   FOLLOWED_USER: 'user_followed',
+  CONNECTED_USER: 'user_followed',
 };
 
 export class CreateActivityUseCase {

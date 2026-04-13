@@ -25,13 +25,25 @@ export class CleanupSocialOnUserDeleteHandler {
 
     this.logger.log(`Cleaning up social data for deleted user: ${userId}`);
 
-    // Delete follows where user is follower or following
-    const [followsAsFollower, followsAsFollowing, activities] = await Promise.all([
+    // Delete follows, connections, and activities where user is involved
+    const [
+      followsAsFollower,
+      followsAsFollowing,
+      connectionsAsRequester,
+      connectionsAsTarget,
+      activities,
+    ] = await Promise.all([
       this.prisma.follow.deleteMany({
         where: { followerId: userId },
       }),
       this.prisma.follow.deleteMany({
         where: { followingId: userId },
+      }),
+      this.prisma.connection.deleteMany({
+        where: { requesterId: userId },
+      }),
+      this.prisma.connection.deleteMany({
+        where: { targetId: userId },
       }),
       this.prisma.activity.deleteMany({
         where: { userId },
@@ -42,6 +54,8 @@ export class CleanupSocialOnUserDeleteHandler {
       `Cleaned up social data for user ${userId}: ` +
         `${followsAsFollower.count} follows as follower, ` +
         `${followsAsFollowing.count} follows as following, ` +
+        `${connectionsAsRequester.count} connections as requester, ` +
+        `${connectionsAsTarget.count} connections as target, ` +
         `${activities.count} activities`,
     );
   }

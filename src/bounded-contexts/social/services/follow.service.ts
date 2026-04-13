@@ -251,12 +251,20 @@ export class FollowService {
   /**
    * Get social stats for a user.
    */
-  async getSocialStats(userId: string): Promise<{ followers: number; following: number }> {
-    const [followers, following] = await Promise.all([
+  async getSocialStats(
+    userId: string,
+  ): Promise<{ followers: number; following: number; connections: number }> {
+    const [followers, following, connections] = await Promise.all([
       this.getFollowersCount(userId),
       this.getFollowingCount(userId),
+      this.prisma.connection.count({
+        where: {
+          status: 'ACCEPTED',
+          OR: [{ requesterId: userId }, { targetId: userId }],
+        },
+      }),
     ]);
 
-    return { followers, following };
+    return { followers, following, connections };
   }
 }

@@ -104,6 +104,7 @@ enum ActivityType {
   SKILL_ADDED
   PROFILE_UPDATED
   FOLLOWED_USER
+  CONNECTED_USER
 }
 
 enum AttestationWitnessStatus {

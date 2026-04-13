@@ -114,6 +114,7 @@ export class ActivityService {
       SKILL_ADDED: 'section_item_added',
       PROFILE_UPDATED: 'resume_created',
       FOLLOWED_USER: 'user_followed',
+      CONNECTED_USER: 'user_followed',
     };
     return mapping[prismaType];
   }
