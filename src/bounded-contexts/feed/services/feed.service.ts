@@ -24,17 +24,20 @@ export class FeedService {
   /**
    * Get the feed timeline for a user.
    *
+   * Shows posts from everyone, prioritizing content from followed users,
+   * connections, co-authored posts, and the user's own posts (including scheduled).
+   *
    * 1. Get followingIds from Follow table + connectionIds from Connection table (ACCEPTED)
-   * 2. Query posts WHERE (authorId IN [...ids, userId] OR coAuthors has userId), isDeleted=false, isPublished=true
-   *    Exception: the user's own scheduled (unpublished) posts are included
-   * 3. Optional type filter
-   * 4. Cursor-based pagination (createdAt < cursor)
-   * 5. Include whether current user liked/bookmarked each post
-   * 6. Include thread context for threaded posts
-   * 7. Return { posts, nextCursor }
+   * 2. Query all published posts (+ own unpublished scheduled posts)
+   * 3. Sort with prioritized content first (personal network), then chronological
+   * 4. Optional type filter
+   * 5. Cursor-based pagination (createdAt < cursor)
+   * 6. Include whether current user liked/bookmarked each post
+   * 7. Include thread context for threaded posts
+   * 8. Return { posts, nextCursor }
    */
   async getTimeline(userId: string, cursor?: string, limit = 20, type?: PostType) {
-    // 1. Get IDs of users whose posts should appear in the feed
+    // 1. Get IDs of users whose posts should be prioritized in the feed
     const [followingRecords, connectionRecords] = await Promise.all([
       this.prisma.follow.findMany({
         where: { followerId: userId },
@@ -54,28 +57,15 @@ export class FeedService {
       c.requesterId === userId ? c.targetId : c.requesterId,
     );
 
-    const feedUserIds = [...new Set([...followingIds, ...connectionIds, userId])];
+    const prioritizedUserIds = new Set([...followingIds, ...connectionIds, userId]);
 
-    // 2. Query posts: published posts from feed users + co-authored posts + own unpublished (scheduled)
+    // 2. Query all published posts (+ own unpublished scheduled posts) — no author filter
     const posts = await this.prisma.post.findMany({
       where: {
         isDeleted: false,
         ...(type ? { type } : {}),
         ...(cursor ? { createdAt: { lt: new Date(cursor) } } : {}),
-        OR: [
-          {
-            authorId: { in: feedUserIds },
-            isPublished: true,
-          },
-          {
-            coAuthors: { has: userId },
-            isPublished: true,
-          },
-          {
-            authorId: userId,
-            isPublished: false,
-          },
-        ],
+        OR: [{ isPublished: true }, { authorId: userId, isPublished: false }],
       },
       include: {
         author: { select: AUTHOR_SELECT },
@@ -86,8 +76,22 @@ export class FeedService {
         },
       },
       orderBy: { createdAt: 'desc' },
-      take: limit,
+      take: limit * 3, // fetch more so prioritization has room to pick
     });
+
+    // Sort: prioritized posts first (by author in network or co-author), then by createdAt desc
+    const isPrioritized = (post: (typeof posts)[number]) =>
+      prioritizedUserIds.has(post.authorId) || post.coAuthors.includes(userId);
+
+    posts.sort((a, b) => {
+      const aPrio = isPrioritized(a) ? 1 : 0;
+      const bPrio = isPrioritized(b) ? 1 : 0;
+      if (aPrio !== bPrio) return bPrio - aPrio;
+      return b.createdAt.getTime() - a.createdAt.getTime();
+    });
+
+    // Trim to requested limit
+    posts.splice(limit);
 
     // 3. Check if current user liked/bookmarked each post
     if (posts.length > 0) {
