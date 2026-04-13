@@ -88,6 +88,35 @@ export class UserManagementService {
   }
 
   /**
+   * Assign roles to a user
+   */
+  async assignRoles(userId: string, roles: string[], assignedBy: string): Promise<void> {
+    const validRoles = ['role_user', 'role_admin'];
+    for (const role of roles) {
+      if (!validRoles.includes(role)) {
+        throw new BadRequestException(`Invalid role: ${role}`);
+      }
+    }
+
+    // Prevent removing admin role from last admin
+    if (!roles.includes('role_admin')) {
+      const currentUser = await this.useCases.getUserDetailsUseCase.execute(userId);
+      if (
+        (currentUser as Record<string, unknown>).roles &&
+        ((currentUser as Record<string, unknown>).roles as string[]).includes('role_admin')
+      ) {
+        const adminCount = await this.authService.countUsersWithRole('admin');
+        if (adminCount <= 1) {
+          throw new BadRequestException('Cannot remove admin role from the last admin user');
+        }
+      }
+    }
+
+    // Use the use case or direct Prisma update
+    await this.useCases.updateUserUseCase.execute(userId, { roles } as Record<string, unknown>);
+  }
+
+  /**
    * Prevent deleting the last user with elevated permissions.
    * This prevents a situation where no one can manage users anymore.
    */

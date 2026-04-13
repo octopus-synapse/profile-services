@@ -448,6 +448,35 @@
         ]
       }
     },
+    "/api/v1/admin/dashboard/metrics": {
+      "get": {
+        "operationId": "adminDashboard_getMetrics",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: platform:stats_read"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get platform metrics for admin dashboard",
+        "tags": [
+          "Admin - Dashboard"
+        ]
+      }
+    },
     "/api/v1/resumes": {
       "get": {
         "operationId": "resumes_getAllUserResumes",
@@ -5623,6 +5652,41 @@
         ]
       }
     },
+    "/api/v1/users/manage/{id}/roles": {
+      "patch": {
+        "operationId": "users_assignRoles",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: user:role_assign"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Assign roles to a user",
+        "tags": [
+          "users"
+        ]
+      }
+    },
     "/api/v1/admin/section-types": {
       "get": {
         "operationId": "adminSectionTypes_findAll",
@@ -6813,6 +6877,35 @@
           }
         ],
         "summary": "Create onboarding step",
+        "tags": [
+          "Admin - Onboarding"
+        ]
+      }
+    },
+    "/api/v1/admin/onboarding/stats": {
+      "get": {
+        "operationId": "adminOnboarding_getStats",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: section_type:manage"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get onboarding funnel statistics",
         "tags": [
           "Admin - Onboarding"
         ]
@@ -10821,6 +10914,1025 @@
         ]
       }
     },
+    "/api/v1/admin/tech-areas": {
+      "get": {
+        "operationId": "adminTechAreas_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "isActive",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: skill:manage"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List all tech areas",
+        "tags": [
+          "Admin - Tech Areas"
+        ]
+      },
+      "post": {
+        "operationId": "adminTechAreas_create",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: skill:manage"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create tech area",
+        "tags": [
+          "Admin - Tech Areas"
+        ]
+      }
+    },
+    "/api/v1/admin/tech-areas/{id}": {
+      "get": {
+        "operationId": "adminTechAreas_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: skill:manage"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get tech area by ID",
+        "tags": [
+          "Admin - Tech Areas"
+        ]
+      },
+      "patch": {
+        "operationId": "adminTechAreas_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: skill:manage"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update tech area",
+        "tags": [
+          "Admin - Tech Areas"
+        ]
+      },
+      "delete": {
+        "operationId": "adminTechAreas_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: skill:manage"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete tech area",
+        "tags": [
+          "Admin - Tech Areas"
+        ]
+      }
+    },
+    "/api/v1/admin/tech-niches": {
+      "get": {
+        "operationId": "adminTechNiches_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "areaId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "isActive",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: skill:manage"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List all tech niches",
+        "tags": [
+          "Admin - Tech Niches"
+        ]
+      },
+      "post": {
+        "operationId": "adminTechNiches_create",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: skill:manage"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create tech niche",
+        "tags": [
+          "Admin - Tech Niches"
+        ]
+      }
+    },
+    "/api/v1/admin/tech-niches/{id}": {
+      "get": {
+        "operationId": "adminTechNiches_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: skill:manage"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get tech niche by ID",
+        "tags": [
+          "Admin - Tech Niches"
+        ]
+      },
+      "patch": {
+        "operationId": "adminTechNiches_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: skill:manage"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update tech niche",
+        "tags": [
+          "Admin - Tech Niches"
+        ]
+      },
+      "delete": {
+        "operationId": "adminTechNiches_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: skill:manage"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete tech niche",
+        "tags": [
+          "Admin - Tech Niches"
+        ]
+      }
+    },
+    "/api/v1/admin/tech-skills": {
+      "get": {
+        "operationId": "adminTechSkills_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "nicheId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "isActive",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: skill:manage"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List all tech skills",
+        "tags": [
+          "Admin - Tech Skills"
+        ]
+      },
+      "post": {
+        "operationId": "adminTechSkills_create",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: skill:manage"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create tech skill",
+        "tags": [
+          "Admin - Tech Skills"
+        ]
+      }
+    },
+    "/api/v1/admin/tech-skills/{id}": {
+      "get": {
+        "operationId": "adminTechSkills_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: skill:manage"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get tech skill by ID",
+        "tags": [
+          "Admin - Tech Skills"
+        ]
+      },
+      "patch": {
+        "operationId": "adminTechSkills_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: skill:manage"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update tech skill",
+        "tags": [
+          "Admin - Tech Skills"
+        ]
+      },
+      "delete": {
+        "operationId": "adminTechSkills_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: skill:manage"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete tech skill",
+        "tags": [
+          "Admin - Tech Skills"
+        ]
+      }
+    },
+    "/api/v1/admin/spoken-languages": {
+      "get": {
+        "operationId": "adminSpokenLanguages_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "isActive",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: skill:manage"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List all spoken languages",
+        "tags": [
+          "Admin - Spoken Languages"
+        ]
+      },
+      "post": {
+        "operationId": "adminSpokenLanguages_create",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: skill:manage"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create spoken language",
+        "tags": [
+          "Admin - Spoken Languages"
+        ]
+      }
+    },
+    "/api/v1/admin/spoken-languages/{code}": {
+      "get": {
+        "operationId": "adminSpokenLanguages_findOne",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: skill:manage"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get spoken language by code",
+        "tags": [
+          "Admin - Spoken Languages"
+        ]
+      },
+      "patch": {
+        "operationId": "adminSpokenLanguages_update",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: skill:manage"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update spoken language",
+        "tags": [
+          "Admin - Spoken Languages"
+        ]
+      },
+      "delete": {
+        "operationId": "adminSpokenLanguages_remove",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: skill:manage"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete spoken language",
+        "tags": [
+          "Admin - Spoken Languages"
+        ]
+      }
+    },
+    "/api/v1/admin/programming-languages": {
+      "get": {
+        "operationId": "adminProgrammingLanguages_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "isActive",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: skill:manage"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List all programming languages",
+        "tags": [
+          "Admin - Programming Languages"
+        ]
+      },
+      "post": {
+        "operationId": "adminProgrammingLanguages_create",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: skill:manage"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Create programming language",
+        "tags": [
+          "Admin - Programming Languages"
+        ]
+      }
+    },
+    "/api/v1/admin/programming-languages/{slug}": {
+      "get": {
+        "operationId": "adminProgrammingLanguages_findOne",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: skill:manage"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get programming language by slug",
+        "tags": [
+          "Admin - Programming Languages"
+        ]
+      },
+      "patch": {
+        "operationId": "adminProgrammingLanguages_update",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: skill:manage"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update programming language",
+        "tags": [
+          "Admin - Programming Languages"
+        ]
+      },
+      "delete": {
+        "operationId": "adminProgrammingLanguages_remove",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: skill:manage"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete programming language",
+        "tags": [
+          "Admin - Programming Languages"
+        ]
+      }
+    },
     "/api/v1/ats/validate": {
       "post": {
         "description": "Upload a CV (PDF or DOCX) to validate its compatibility with Applicant Tracking Systems. Returns detailed validation results including issues and suggestions.",
@@ -11635,6 +12747,49 @@
         "summary": "Find similar resumes by resume id",
         "tags": [
           "search"
+        ]
+      }
+    },
+    "/api/v1/admin/analytics/overview": {
+      "get": {
+        "operationId": "adminAnalytics_getOverview",
+        "parameters": [
+          {
+            "name": "period",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "day",
+                "week",
+                "month"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: analytics:read_all"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get platform-wide analytics overview",
+        "tags": [
+          "Admin - Analytics"
         ]
       }
     },
@@ -12687,6 +13842,156 @@
         "summary": "Get resumes shared with current user",
         "tags": [
           "Collaboration"
+        ]
+      }
+    },
+    "/api/v1/admin/chat/stats": {
+      "get": {
+        "operationId": "adminChat_getStats",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: platform:manage"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get chat statistics",
+        "tags": [
+          "Admin - Chat"
+        ]
+      }
+    },
+    "/api/v1/admin/chat/conversations": {
+      "get": {
+        "operationId": "adminChat_getConversations",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: platform:manage"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List all conversations",
+        "tags": [
+          "Admin - Chat"
+        ]
+      }
+    },
+    "/api/v1/admin/collaborations/stats": {
+      "get": {
+        "operationId": "adminCollaborations_getStats",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: platform:manage"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get collaboration statistics",
+        "tags": [
+          "Admin - Collaborations"
+        ]
+      }
+    },
+    "/api/v1/admin/collaborations": {
+      "get": {
+        "operationId": "adminCollaborations_getCollaborations",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: platform:manage"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List all collaborations",
+        "tags": [
+          "Admin - Collaborations"
         ]
       }
     },

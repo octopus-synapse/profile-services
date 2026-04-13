@@ -27,6 +27,13 @@ export class AdminOnboardingController {
     return { success: true, data: { steps } };
   }
 
+  @Get('stats')
+  @ApiOperation({ summary: 'Get onboarding funnel statistics' })
+  async getStats() {
+    const stats = await this.service.getStats();
+    return { success: true, data: { stats } };
+  }
+
   @Get('steps/:key')
   @ApiOperation({ summary: 'Get onboarding step by key' })
   @ApiParam({ name: 'key', type: String })

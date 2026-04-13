@@ -62,4 +62,24 @@ export class AdminOnboardingService {
       create: { key: 'default', strengthLevels: body.strengthLevels ?? [] },
     });
   }
+
+  async getStats() {
+    const [totalStarted, totalCompleted, allProgress] = await Promise.all([
+      this.prisma.onboardingProgress.count(),
+      this.prisma.user.count({ where: { hasCompletedOnboarding: true } }),
+      this.prisma.onboardingProgress.findMany({
+        select: { currentStep: true, completedSteps: true },
+      }),
+    ]);
+
+    const completionRate = totalStarted > 0 ? Math.round((totalCompleted / totalStarted) * 100) : 0;
+
+    const dropOffByStep: Record<string, number> = {};
+    for (const progress of allProgress) {
+      const step = progress.currentStep;
+      dropOffByStep[step] = (dropOffByStep[step] ?? 0) + 1;
+    }
+
+    return { totalStarted, totalCompleted, completionRate, dropOffByStep };
+  }
 }

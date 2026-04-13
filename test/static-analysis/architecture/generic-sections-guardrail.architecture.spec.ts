@@ -83,6 +83,7 @@ const ALLOWED_LEGACY_PATHS = [
   '/bounded-contexts/integration/',
   '/bounded-contexts/onboarding/',
   '/bounded-contexts/import/',
+  '/bounded-contexts/skills-catalog/admin/',
 ];
 
 function listProductionFiles(dirPath: string): string[] {

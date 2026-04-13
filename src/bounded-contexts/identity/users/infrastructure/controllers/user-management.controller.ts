@@ -217,4 +217,16 @@ export class UserManagementController {
     await this.userManagement.resetPassword(userId, data);
     return { success: true, data: { message: 'Password reset successfully' } };
   }
+
+  @Patch(':id/roles')
+  @RequirePermission('user', 'role_assign')
+  @ApiOperation({ summary: 'Assign roles to a user' })
+  async assignRoles(
+    @Param('id') userId: string,
+    @Body() data: { roles: string[] },
+    @Req() req: { user: { userId: string } },
+  ): Promise<DataResponse<UserOperationMessageDataDto>> {
+    await this.userManagement.assignRoles(userId, data.roles, req.user.userId);
+    return { success: true, data: { message: 'Roles updated successfully' } };
+  }
 }

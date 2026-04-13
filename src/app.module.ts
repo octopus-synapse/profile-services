@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { AdminAnalyticsModule } from '@/bounded-contexts/analytics/admin/admin-analytics.module';
 import { ResumeAnalyticsModule } from '@/bounded-contexts/analytics/resume-analytics/resume-analytics.module';
 import { SearchModule } from '@/bounded-contexts/analytics/search/search.module';
 // Analytics Context
@@ -9,6 +10,7 @@ import { ShareAnalyticsModule } from '@/bounded-contexts/analytics/share-analyti
 // ATS Context
 import { ATSModule } from '@/bounded-contexts/ats-validation/ats/ats.module';
 // Collaboration Context
+import { AdminCollaborationModule } from '@/bounded-contexts/collaboration/admin/admin-collaboration.module';
 import { CollaborationModule } from '@/bounded-contexts/collaboration/collaboration.module';
 // DSL Context
 import { DslModule } from '@/bounded-contexts/dsl';
@@ -42,6 +44,7 @@ import { ThemesModule } from '@/bounded-contexts/presentation/themes/themes.modu
 // Resumes Context
 import { ResumesModule } from '@/bounded-contexts/resumes';
 // Skills Catalog Context
+import { AdminCatalogModule } from '@/bounded-contexts/skills-catalog/admin/admin-catalog.module';
 import { SkillsModule } from '@/bounded-contexts/skills-catalog/skills/skills.module';
 import { SpokenLanguagesModule } from '@/bounded-contexts/skills-catalog/spoken-languages/spoken-languages.module';
 import { TechSkillsModule } from '@/bounded-contexts/skills-catalog/tech-skills/tech-skills.module';
@@ -94,13 +97,16 @@ import { AppController } from './app.controller';
     TechSkillsModule,
     SkillsModule,
     SpokenLanguagesModule,
+    AdminCatalogModule,
     TranslationModule,
     ATSModule,
     PublicResumesModule,
     ShareAnalyticsModule,
     ResumeAnalyticsModule,
     SearchModule,
+    AdminAnalyticsModule,
     CollaborationModule,
+    AdminCollaborationModule,
     SocialModule,
   ],
   controllers: [AppController],
