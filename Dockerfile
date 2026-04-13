@@ -55,8 +55,7 @@ RUN --mount=type=cache,target=/root/.bun/install/cache \
     bun install --production --frozen-lockfile
 
 # Stage 3: Production Runtime (pre-built base with chromium, typst, fonts, tini)
-ARG BASE_IMAGE=ghcr.io/octopus-synapse/profile-services-base:latest
-FROM ${BASE_IMAGE} AS runner
+FROM ghcr.io/octopus-synapse/profile-services-base:latest AS runner
 
 ENV NODE_ENV=production \
     PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
