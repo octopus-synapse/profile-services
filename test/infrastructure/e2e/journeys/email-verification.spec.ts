@@ -166,7 +166,7 @@ describe('E2E Journey: Email Verification', () => {
       });
 
       expect(user).not.toBeNull();
-      expect(user!.emailVerified).not.toBeNull();
+      expect(user?.emailVerified).not.toBeNull();
 
       // Re-login to get a fresh token that includes emailVerified claim
       const loginResponse = await request(app.getHttpServer()).post('/api/auth/login').send({

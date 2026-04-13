@@ -14285,6 +14285,54 @@
         ]
       }
     },
+    "/api/v1/users/me/social-stats": {
+      "get": {
+        "operationId": "follow_getMySocialStats",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Social stats returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/MySocialStatsDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: social:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get social stats for authenticated user",
+        "tags": [
+          "social-follow"
+        ]
+      }
+    },
     "/api/v1/users/{userId}/social-stats": {
       "get": {
         "operationId": "follow_getSocialStats",
@@ -14328,6 +14376,54 @@
         "summary": "Get social stats for a user",
         "tags": [
           "social-follow"
+        ]
+      }
+    },
+    "/api/v1/users/me/network-summary": {
+      "get": {
+        "operationId": "connection_getNetworkSummary",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Network summary returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/NetworkSummaryDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: social:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get network summary for authenticated user",
+        "tags": [
+          "social-connections"
         ]
       }
     },
@@ -14923,6 +15019,1020 @@
         "summary": "Subscribe to activity type stream",
         "tags": [
           "Social Feed"
+        ]
+      }
+    },
+    "/api/v1/posts": {
+      "post": {
+        "operationId": "posts_create",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: feed:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Create a new post",
+        "tags": [
+          "posts"
+        ]
+      }
+    },
+    "/api/v1/posts/{id}": {
+      "get": {
+        "operationId": "posts_findById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: feed:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Get a post by ID",
+        "tags": [
+          "posts"
+        ]
+      },
+      "delete": {
+        "operationId": "posts_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: feed:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Delete a post",
+        "tags": [
+          "posts"
+        ]
+      }
+    },
+    "/api/v1/posts/upload-image": {
+      "post": {
+        "operationId": "posts_uploadImage",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: feed:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Upload post image",
+        "tags": [
+          "posts"
+        ]
+      }
+    },
+    "/api/v1/feed": {
+      "get": {
+        "operationId": "feed_getTimeline",
+        "parameters": [
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: feed:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Get feed timeline",
+        "tags": [
+          "feed"
+        ]
+      }
+    },
+    "/api/v1/feed/bookmarks": {
+      "get": {
+        "operationId": "feed_getBookmarks",
+        "parameters": [
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: feed:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Get bookmarked posts",
+        "tags": [
+          "feed"
+        ]
+      }
+    },
+    "/api/v1/feed/user/{userId}": {
+      "get": {
+        "operationId": "feed_getUserPosts",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: feed:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Get posts by user",
+        "tags": [
+          "feed"
+        ]
+      }
+    },
+    "/api/v1/posts/{id}/comments": {
+      "get": {
+        "operationId": "comments_getByPost",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: feed:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Get comments for a post",
+        "tags": [
+          "comments"
+        ]
+      },
+      "post": {
+        "operationId": "comments_create",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: feed:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Create a comment",
+        "tags": [
+          "comments"
+        ]
+      }
+    },
+    "/api/v1/posts/comments/{id}": {
+      "delete": {
+        "operationId": "comments_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: feed:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Delete a comment",
+        "tags": [
+          "comments"
+        ]
+      }
+    },
+    "/api/v1/posts/{id}/like": {
+      "post": {
+        "operationId": "engagement_like",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: feed:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Like a post",
+        "tags": [
+          "engagement"
+        ]
+      },
+      "delete": {
+        "operationId": "engagement_unlike",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: feed:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Unlike a post",
+        "tags": [
+          "engagement"
+        ]
+      }
+    },
+    "/api/v1/posts/{id}/bookmark": {
+      "post": {
+        "operationId": "engagement_bookmark",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: feed:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Bookmark a post",
+        "tags": [
+          "engagement"
+        ]
+      },
+      "delete": {
+        "operationId": "engagement_unbookmark",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: feed:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Remove bookmark from a post",
+        "tags": [
+          "engagement"
+        ]
+      }
+    },
+    "/api/v1/posts/{id}/repost": {
+      "post": {
+        "operationId": "engagement_repost",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: feed:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Repost a post",
+        "tags": [
+          "engagement"
+        ]
+      }
+    },
+    "/api/v1/posts/{id}/report": {
+      "post": {
+        "operationId": "engagement_report",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: feed:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Report a post",
+        "tags": [
+          "engagement"
+        ]
+      }
+    },
+    "/api/v1/posts/{id}/poll/vote": {
+      "post": {
+        "operationId": "engagement_vote",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: feed:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Vote on a poll",
+        "tags": [
+          "engagement"
+        ]
+      }
+    },
+    "/api/v1/jobs": {
+      "get": {
+        "operationId": "jobs_findAll",
+        "parameters": [
+          {
+            "name": "page",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "skills",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: feed:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "jobs"
+        ]
+      },
+      "post": {
+        "operationId": "jobs_create",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: job:create"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "jobs"
+        ]
+      }
+    },
+    "/api/v1/jobs/mine": {
+      "get": {
+        "operationId": "jobs_getMyJobs",
+        "parameters": [
+          {
+            "name": "page",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: job:create"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "jobs"
+        ]
+      }
+    },
+    "/api/v1/jobs/{id}": {
+      "get": {
+        "operationId": "jobs_findById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: feed:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "jobs"
+        ]
+      },
+      "patch": {
+        "operationId": "jobs_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: job:create"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "jobs"
+        ]
+      },
+      "delete": {
+        "operationId": "jobs_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: job:create"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "jobs"
+        ]
+      }
+    },
+    "/api/v1/notifications": {
+      "get": {
+        "operationId": "notifications_getByUser",
+        "parameters": [
+          {
+            "name": "cursor",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: notification:read"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
+    "/api/v1/notifications/unread-count": {
+      "get": {
+        "operationId": "notifications_getUnreadCount",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: notification:read"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
+    "/api/v1/notifications/mark-read": {
+      "post": {
+        "operationId": "notifications_markRead",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: notification:read"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "notifications"
         ]
       }
     }
@@ -22151,6 +23261,33 @@
           "isFollowing"
         ]
       },
+      "MySocialStatsDto": {
+        "type": "object",
+        "properties": {
+          "followers": {
+            "type": "number",
+            "example": 120
+          },
+          "following": {
+            "type": "number",
+            "example": 75
+          },
+          "connections": {
+            "type": "number",
+            "example": 30
+          },
+          "pendingInvitations": {
+            "type": "number",
+            "example": 3
+          }
+        },
+        "required": [
+          "followers",
+          "following",
+          "connections",
+          "pendingInvitations"
+        ]
+      },
       "SocialStatsDto": {
         "type": "object",
         "properties": {
@@ -22171,6 +23308,161 @@
           "followers",
           "following",
           "connections"
+        ]
+      },
+      "NetworkSummaryDataDto": {
+        "type": "object",
+        "properties": {
+          "stats": {
+            "type": "object",
+            "properties": {
+              "connections": {
+                "type": "integer"
+              },
+              "followers": {
+                "type": "integer"
+              },
+              "following": {
+                "type": "integer"
+              },
+              "pendingInvitations": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "connections",
+              "followers",
+              "following",
+              "pendingInvitations"
+            ],
+            "x-nestjs_zod-self-required": true
+          },
+          "pendingRequests": {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "array",
+                "items": {}
+              },
+              "total": {
+                "type": "integer"
+              },
+              "page": {
+                "type": "integer"
+              },
+              "limit": {
+                "type": "integer"
+              },
+              "totalPages": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "data",
+              "total",
+              "page",
+              "limit",
+              "totalPages"
+            ],
+            "x-nestjs_zod-self-required": true
+          },
+          "connections": {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "array",
+                "items": {}
+              },
+              "total": {
+                "type": "integer"
+              },
+              "page": {
+                "type": "integer"
+              },
+              "limit": {
+                "type": "integer"
+              },
+              "totalPages": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "data",
+              "total",
+              "page",
+              "limit",
+              "totalPages"
+            ],
+            "x-nestjs_zod-self-required": true
+          },
+          "suggestions": {
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "username": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "photoURL": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "score": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "username",
+                    "photoURL",
+                    "reason",
+                    "score"
+                  ]
+                }
+              },
+              "total": {
+                "type": "integer"
+              },
+              "page": {
+                "type": "integer"
+              },
+              "limit": {
+                "type": "integer"
+              },
+              "totalPages": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "data",
+              "total",
+              "page",
+              "limit",
+              "totalPages"
+            ],
+            "x-nestjs_zod-self-required": true
+          }
+        },
+        "required": [
+          "stats",
+          "pendingRequests",
+          "connections",
+          "suggestions"
         ]
       },
       "ConnectionListDataDto": {
@@ -22251,33 +23543,66 @@
         "type": "object",
         "properties": {
           "suggestions": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "string"
-                },
-                "name": {
-                  "type": "string",
-                  "nullable": true
-                },
-                "username": {
-                  "type": "string",
-                  "nullable": true
-                },
-                "photoURL": {
-                  "type": "string",
-                  "nullable": true
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "username": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "photoURL": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "reason": {
+                      "type": "string"
+                    },
+                    "score": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "username",
+                    "photoURL",
+                    "reason",
+                    "score"
+                  ]
                 }
               },
-              "required": [
-                "id",
-                "name",
-                "username",
-                "photoURL"
-              ]
-            }
+              "total": {
+                "type": "integer"
+              },
+              "page": {
+                "type": "integer"
+              },
+              "limit": {
+                "type": "integer"
+              },
+              "totalPages": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "data",
+              "total",
+              "page",
+              "limit",
+              "totalPages"
+            ],
+            "x-nestjs_zod-self-required": true
           }
         },
         "required": [

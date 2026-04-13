@@ -113,3 +113,41 @@ enum AttestationWitnessStatus {
   SUCCEEDED
   FAILED
 }
+
+// Feed
+enum PostType {
+  ACHIEVEMENT
+  OPPORTUNITY
+  LEARNING
+  BUILD
+  QUESTION
+  REPOST
+}
+
+enum ReportStatus {
+  PENDING
+  REVIEWED
+  DISMISSED
+}
+
+// Notifications
+enum NotificationType {
+  POST_LIKED
+  POST_COMMENTED
+  POST_REPOSTED
+  POST_BOOKMARKED
+  COMMENT_REPLIED
+  CONNECTION_REQUEST
+  CONNECTION_ACCEPTED
+  FOLLOW_NEW
+}
+
+// Jobs
+enum JobType {
+  INTERNSHIP
+  CONTRACT
+  FULL_TIME
+  PART_TIME
+  VOLUNTEER
+  FREELANCE
+}

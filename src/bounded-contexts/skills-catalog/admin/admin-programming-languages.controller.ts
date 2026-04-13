@@ -39,34 +39,30 @@ export class AdminProgrammingLanguagesController {
     @Query('search') search?: string,
     @Query('isActive') isActive?: boolean,
   ) {
-    const result = await this.service.findAll({
+    return this.service.findAll({
       page: page ? Number(page) : undefined,
       pageSize: pageSize ? Number(pageSize) : undefined,
       search,
       isActive: isActive !== undefined ? String(isActive) === 'true' : undefined,
     });
-    return { success: true, data: result };
   }
 
   @Get(':slug')
   @ApiOperation({ summary: 'Get programming language by slug' })
   async findOne(@Param('slug') slug: string) {
-    const result = await this.service.findOne(slug);
-    return { success: true, data: result };
+    return this.service.findOne(slug);
   }
 
   @Post()
   @ApiOperation({ summary: 'Create programming language' })
   async create(@Body() dto: Record<string, unknown>) {
-    const result = await this.service.create(dto);
-    return { success: true, data: result };
+    return this.service.create(dto);
   }
 
   @Patch(':slug')
   @ApiOperation({ summary: 'Update programming language' })
   async update(@Param('slug') slug: string, @Body() dto: Record<string, unknown>) {
-    const result = await this.service.update(slug, dto);
-    return { success: true, data: result };
+    return this.service.update(slug, dto);
   }
 
   @Delete(':slug')

@@ -1,15 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { paginate, patchData } from '@/shared-kernel/database';
 
 @Injectable()
 export class AdminProgrammingLanguagesService {
   constructor(private readonly prisma: PrismaService) {}
 
   async findAll(query: { page?: number; pageSize?: number; search?: string; isActive?: boolean }) {
-    const page = query.page ?? 1;
-    const pageSize = query.pageSize ?? 20;
-    const skip = (page - 1) * pageSize;
     const where: Prisma.ProgrammingLanguageWhereInput = {};
 
     if (query.search) {
@@ -20,17 +18,12 @@ export class AdminProgrammingLanguagesService {
     }
     if (query.isActive !== undefined) where.isActive = query.isActive;
 
-    const [items, total] = await Promise.all([
-      this.prisma.programmingLanguage.findMany({
-        where,
-        skip,
-        take: pageSize,
-        orderBy: { order: 'asc' },
-      }),
-      this.prisma.programmingLanguage.count({ where }),
-    ]);
-
-    return { items, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
+    return paginate(this.prisma.programmingLanguage, {
+      page: query.page,
+      pageSize: query.pageSize,
+      where,
+      orderBy: { order: 'asc' },
+    });
   }
 
   async findOne(slug: string) {
@@ -65,22 +58,23 @@ export class AdminProgrammingLanguagesService {
     const existing = await this.prisma.programmingLanguage.findUnique({ where: { slug } });
     if (!existing) throw new NotFoundException(`Programming language '${slug}' not found`);
 
-    const data: Record<string, unknown> = {};
-    if (dto.slug !== undefined) data.slug = dto.slug;
-    if (dto.nameEn !== undefined) data.nameEn = dto.nameEn;
-    if (dto.namePtBr !== undefined) data.namePtBr = dto.namePtBr;
-    if (dto.descriptionEn !== undefined) data.descriptionEn = dto.descriptionEn;
-    if (dto.descriptionPtBr !== undefined) data.descriptionPtBr = dto.descriptionPtBr;
-    if (dto.icon !== undefined) data.icon = dto.icon;
-    if (dto.color !== undefined) data.color = dto.color;
-    if (dto.website !== undefined) data.website = dto.website;
-    if (dto.paradigms !== undefined) data.paradigms = dto.paradigms;
-    if (dto.typing !== undefined) data.typing = dto.typing;
-    if (dto.aliases !== undefined) data.aliases = dto.aliases;
-    if (dto.fileExtensions !== undefined) data.fileExtensions = dto.fileExtensions;
-    if (dto.popularity !== undefined) data.popularity = dto.popularity;
-    if (dto.order !== undefined) data.order = dto.order;
-    if (dto.isActive !== undefined) data.isActive = dto.isActive;
+    const data = patchData(dto, [
+      'slug',
+      'nameEn',
+      'namePtBr',
+      'descriptionEn',
+      'descriptionPtBr',
+      'icon',
+      'color',
+      'website',
+      'paradigms',
+      'typing',
+      'aliases',
+      'fileExtensions',
+      'popularity',
+      'order',
+      'isActive',
+    ]);
 
     return this.prisma.programmingLanguage.update({ where: { slug }, data });
   }

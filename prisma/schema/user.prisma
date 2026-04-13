@@ -84,6 +84,20 @@ model User {
   userGroups      UserGroup[]
   userPermissions UserPermission[]
 
+  // Feed
+  posts              Post[]           @relation("UserPosts")
+  postComments       PostComment[]    @relation("UserComments")
+  postLikes          PostLike[]       @relation("UserLikes")
+  postBookmarks      PostBookmark[]   @relation("UserBookmarks")
+  postReports        PostReport[]     @relation("UserReports")
+
+  // Notifications
+  notifications      Notification[]   @relation("UserNotifications")
+  notificationActors Notification[]   @relation("NotificationActors")
+
+  // Jobs
+  jobs               Job[]            @relation("UserJobs")
+
   // Identity tokens
   passwordResetTokens      PasswordResetToken[]
   emailVerificationTokens  EmailVerificationToken[]

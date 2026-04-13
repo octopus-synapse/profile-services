@@ -145,6 +145,15 @@ class StubFollowService {
 }
 
 /**
+ * Stub ConnectionService for testing
+ */
+class StubConnectionService {
+  async getPendingRequests() {
+    return { data: [], total: 0, page: 1, limit: 1, totalPages: 0 };
+  }
+}
+
+/**
  * Stub ActivityService for testing
  */
 class StubActivityService {
@@ -162,11 +171,17 @@ describe('FollowController', () => {
   let controller: FollowController;
   let stubFollowService: StubFollowService;
   let stubActivityService: StubActivityService;
+  let stubConnectionService: StubConnectionService;
 
   beforeEach(() => {
     stubFollowService = new StubFollowService();
     stubActivityService = new StubActivityService();
-    controller = new FollowController(stubFollowService as never, stubActivityService as never);
+    stubConnectionService = new StubConnectionService();
+    controller = new FollowController(
+      stubFollowService as unknown as ConstructorParameters<typeof FollowController>[0],
+      stubActivityService as unknown as ConstructorParameters<typeof FollowController>[1],
+      stubConnectionService as unknown as ConstructorParameters<typeof FollowController>[2],
+    );
   });
 
   describe('POST /users/:userId/follow', () => {

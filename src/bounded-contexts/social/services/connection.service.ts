@@ -40,6 +40,15 @@ export interface ConnectionUser {
   photoURL: string | null;
 }
 
+export interface ConnectionSuggestion {
+  id: string;
+  name: string | null;
+  username: string | null;
+  photoURL: string | null;
+  reason: string;
+  score: number;
+}
+
 export interface ConnectionWithUser {
   id: string;
   requesterId: string;
@@ -49,6 +58,16 @@ export interface ConnectionWithUser {
   updatedAt: Date;
   requester?: ConnectionUser;
   target?: ConnectionUser;
+}
+
+interface SuggestionRow {
+  id: string;
+  name: string | null;
+  username: string | null;
+  photoURL: string | null;
+  reason: string;
+  score: number;
+  total_count: number;
 }
 
 const USER_SELECT = {
@@ -264,7 +283,10 @@ export class ConnectionService {
     ]);
 
     return {
-      data,
+      data: data.map((conn) => ({
+        ...conn,
+        user: conn.requesterId === userId ? conn.requester : conn.target,
+      })),
       total,
       page,
       limit,
@@ -305,7 +327,10 @@ export class ConnectionService {
     ]);
 
     return {
-      data,
+      data: data.map((conn) => ({
+        ...conn,
+        user: conn.requesterId === userId ? conn.target : conn.requester,
+      })),
       total,
       page,
       limit,
@@ -351,29 +376,103 @@ export class ConnectionService {
   }
 
   /**
-   * Get connection suggestions: users not connected, not pending, not self.
+   * Get connection suggestions ranked by relevance.
+   *
+   * Signals (with weights):
+   * - direct_follow: user follows this candidate (weight 10)
+   * - second_degree_follows: people the user follows who also follow candidate (weight 3 each)
+   * - mutual_connections: user's connections who are also connected to candidate (weight 4 each)
+   *
+   * Excludes: self, anyone with existing Connection record (PENDING/ACCEPTED/REJECTED).
    */
-  async getConnectionSuggestions(userId: string): Promise<ConnectionUser[]> {
-    const existingConnections = await this.prisma.connection.findMany({
-      where: {
-        OR: [{ requesterId: userId }, { targetId: userId }],
-      },
-      select: { requesterId: true, targetId: true },
-    });
+  async getConnectionSuggestions(
+    userId: string,
+    pagination: PaginationParams,
+  ): Promise<PaginatedResult<ConnectionSuggestion>> {
+    const { page, limit } = pagination;
+    const offset = (page - 1) * limit;
 
-    const excludeIds = new Set<string>([userId]);
-    for (const conn of existingConnections) {
-      excludeIds.add(conn.requesterId);
-      excludeIds.add(conn.targetId);
-    }
+    const rows = await this.prisma.$queryRaw<SuggestionRow[]>`
+      WITH excluded AS (
+        SELECT ${userId}::text AS id
+        UNION
+        SELECT CASE WHEN "requesterId" = ${userId} THEN "targetId" ELSE "requesterId" END
+        FROM "Connection"
+        WHERE "requesterId" = ${userId} OR "targetId" = ${userId}
+      ),
+      my_connections AS (
+        SELECT CASE WHEN "requesterId" = ${userId} THEN "targetId" ELSE "requesterId" END AS user_id
+        FROM "Connection"
+        WHERE ("requesterId" = ${userId} OR "targetId" = ${userId})
+          AND status = 'ACCEPTED'
+      ),
+      my_following AS (
+        SELECT "followingId" AS user_id
+        FROM "Follow"
+        WHERE "followerId" = ${userId}
+      ),
+      candidates AS (
+        SELECT
+          u.id,
+          u.name,
+          u.username,
+          u."photoURL",
+          CASE WHEN EXISTS (
+            SELECT 1 FROM my_following mf WHERE mf.user_id = u.id
+          ) THEN 1 ELSE 0 END AS direct_follow,
+          (SELECT COUNT(*)::int FROM my_following mf
+           JOIN "Follow" f ON f."followerId" = mf.user_id AND f."followingId" = u.id
+          ) AS second_degree_follows,
+          (SELECT COUNT(*)::int FROM my_connections mc
+           JOIN "Connection" c ON c.status = 'ACCEPTED'
+             AND (
+               (c."requesterId" = mc.user_id AND c."targetId" = u.id) OR
+               (c."targetId" = mc.user_id AND c."requesterId" = u.id)
+             )
+          ) AS mutual_connections
+        FROM "User" u
+        WHERE u."isActive" = true
+          AND u.id NOT IN (SELECT id FROM excluded)
+      ),
+      scored AS (
+        SELECT
+          c.id, c.name, c.username, c."photoURL",
+          (c.direct_follow * 10 + c.second_degree_follows * 3 + c.mutual_connections * 4) AS score,
+          CASE
+            WHEN c.mutual_connections >= 1 THEN
+              c.mutual_connections || ' mutual connection' || CASE WHEN c.mutual_connections > 1 THEN 's' ELSE '' END
+            WHEN c.direct_follow = 1 THEN
+              'Followed by you'
+            WHEN c.second_degree_follows >= 1 THEN
+              'Followed by @' || COALESCE(
+                (SELECT u2.username FROM my_following mf
+                 JOIN "Follow" f ON f."followerId" = mf.user_id AND f."followingId" = c.id
+                 JOIN "User" u2 ON u2.id = mf.user_id
+                 LIMIT 1),
+                'someone you follow'
+              )
+            ELSE 'Suggested for you'
+          END AS reason,
+          COUNT(*) OVER()::int AS total_count
+        FROM candidates c
+      )
+      SELECT id, name, username, "photoURL", reason, score, total_count
+      FROM scored
+      ORDER BY score DESC, name ASC, id ASC
+      LIMIT ${limit} OFFSET ${offset}
+    `;
 
-    return this.prisma.user.findMany({
-      where: {
-        id: { notIn: Array.from(excludeIds) },
-        isActive: true,
-      },
-      select: USER_SELECT,
-      take: 10,
-    });
+    const total = rows.length > 0 ? Number(rows[0].total_count) : 0;
+
+    return {
+      data: rows.map(({ total_count, ...row }) => ({
+        ...row,
+        score: Number(row.score),
+      })),
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 }

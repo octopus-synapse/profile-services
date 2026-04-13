@@ -36,7 +36,7 @@ describeIntegration('Collaboration Integration Tests', () => {
   let collaboratorUserId: string;
 
   // Second collaborator
-  let collaborator2Token: string;
+  let _collaborator2Token: string;
   let collaborator2UserId: string;
 
   // Non-collaborator (outsider)
@@ -77,7 +77,7 @@ describeIntegration('Collaboration Integration Tests', () => {
     const collab2Auth = await createTestUserAndLogin({
       email: `collab-user2-${uniqueTestId()}@example.com`,
     });
-    collaborator2Token = collab2Auth.accessToken;
+    _collaborator2Token = collab2Auth.accessToken;
     collaborator2UserId = collab2Auth.userId;
 
     // Create outsider user

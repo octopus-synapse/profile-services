@@ -55,16 +55,14 @@ export class AdminSectionTypesController {
     @Query(new ZodValidationPipe(ListSectionTypesQuerySchema))
     query: ListSectionTypesQueryDto,
   ) {
-    const result = await this.service.findAll(query);
-    return { success: true, data: result };
+    return this.service.findAll(query);
   }
 
   @Get('semantic-kinds')
   @ApiOperation({ summary: 'Get all unique semantic kinds' })
   @ApiDataResponse(SemanticKindsDataDto, { description: 'List of semantic kinds' })
   async getSemanticKinds() {
-    const result = await this.service.getSemanticKinds();
-    return { success: true, data: result };
+    return this.service.getSemanticKinds();
   }
 
   @Get(':key')
@@ -72,8 +70,7 @@ export class AdminSectionTypesController {
   @ApiParam({ name: 'key', description: 'Section type key (e.g., work_experience_v1)' })
   @ApiDataResponse(SectionTypeDataDto, { description: 'Section type details' })
   async findOne(@Param('key') key: string) {
-    const result = await this.service.findOne(key);
-    return { success: true, data: result };
+    return this.service.findOne(key);
   }
 
   @Post()
@@ -83,8 +80,7 @@ export class AdminSectionTypesController {
     @Body(new ZodValidationPipe(CreateSectionTypeSchema))
     dto: CreateSectionTypeDto,
   ) {
-    const result = await this.service.create(dto);
-    return { success: true, data: result };
+    return this.service.create(dto);
   }
 
   @Patch(':key')
@@ -96,8 +92,7 @@ export class AdminSectionTypesController {
     @Body(new ZodValidationPipe(UpdateSectionTypeSchema))
     dto: UpdateSectionTypeDto,
   ) {
-    const result = await this.service.update(key, dto);
-    return { success: true, data: result };
+    return this.service.update(key, dto);
   }
 
   @Delete(':key')

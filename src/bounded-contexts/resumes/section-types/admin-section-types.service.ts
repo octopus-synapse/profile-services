@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { paginate } from '@/shared-kernel/database';
 import type {
   CreateSectionTypeDto,
   ListSectionTypesQueryDto,
@@ -22,11 +23,7 @@ export class AdminSectionTypesService {
    * List section types with pagination and filters
    */
   async findAll(query: ListSectionTypesQueryDto): Promise<SectionTypeListResponseDto> {
-    const page = query.page ?? 1;
-    const pageSize = query.pageSize ?? 20;
     const { search, isActive, semanticKind } = query;
-    const skip = (page - 1) * pageSize;
-
     const where: Prisma.SectionTypeWhereInput = {};
 
     if (search) {
@@ -45,22 +42,16 @@ export class AdminSectionTypesService {
       where.semanticKind = semanticKind;
     }
 
-    const [items, total] = await Promise.all([
-      this.prisma.sectionType.findMany({
-        where,
-        skip,
-        take: pageSize,
-        orderBy: { createdAt: 'desc' },
-      }),
-      this.prisma.sectionType.count({ where }),
-    ]);
+    const result = await paginate(this.prisma.sectionType, {
+      page: query.page,
+      pageSize: query.pageSize,
+      where,
+      orderBy: { createdAt: 'desc' },
+    });
 
     return {
-      items: items.map(this.toResponseDto),
-      total,
-      page,
-      pageSize,
-      totalPages: Math.ceil(total / pageSize),
+      ...result,
+      items: result.items.map(this.toResponseDto),
     };
   }
 

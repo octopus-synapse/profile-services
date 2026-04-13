@@ -24,14 +24,14 @@ export class AdminOnboardingController {
   @ApiOperation({ summary: 'List all onboarding steps' })
   async listSteps() {
     const steps = await this.service.listSteps();
-    return { success: true, data: { steps } };
+    return { steps };
   }
 
   @Get('stats')
   @ApiOperation({ summary: 'Get onboarding funnel statistics' })
   async getStats() {
     const stats = await this.service.getStats();
-    return { success: true, data: { stats } };
+    return { stats };
   }
 
   @Get('steps/:key')
@@ -40,14 +40,14 @@ export class AdminOnboardingController {
   async getStep(@Param('key') key: string) {
     const step = await this.service.getStep(key);
     if (!step) return { success: false, message: 'Step not found' };
-    return { success: true, data: { step } };
+    return { step };
   }
 
   @Post('steps')
   @ApiOperation({ summary: 'Create onboarding step' })
   async createStep(@Body() body: Record<string, unknown>) {
     const step = await this.service.createStep(body);
-    return { success: true, data: { step } };
+    return { step };
   }
 
   @Put('steps/:key')
@@ -55,7 +55,7 @@ export class AdminOnboardingController {
   @ApiParam({ name: 'key', type: String })
   async updateStep(@Param('key') key: string, @Body() body: Record<string, unknown>) {
     const step = await this.service.updateStep(key, body);
-    return { success: true, data: { step } };
+    return { step };
   }
 
   @Delete('steps/:key')
@@ -70,13 +70,13 @@ export class AdminOnboardingController {
   @ApiOperation({ summary: 'Get onboarding config (strength levels)' })
   async getConfig() {
     const config = await this.service.getConfig();
-    return { success: true, data: { config } };
+    return { config };
   }
 
   @Put('config')
   @ApiOperation({ summary: 'Update onboarding config' })
   async updateConfig(@Body() body: Record<string, unknown>) {
     const config = await this.service.updateConfig(body);
-    return { success: true, data: { config } };
+    return { config };
   }
 }

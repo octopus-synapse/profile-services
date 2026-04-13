@@ -41,35 +41,31 @@ export class AdminTechNichesController {
     @Query('areaId') areaId?: string,
     @Query('isActive') isActive?: boolean,
   ) {
-    const result = await this.service.findAll({
+    return this.service.findAll({
       page: page ? Number(page) : undefined,
       pageSize: pageSize ? Number(pageSize) : undefined,
       search,
       areaId,
       isActive: isActive !== undefined ? String(isActive) === 'true' : undefined,
     });
-    return { success: true, data: result };
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get tech niche by ID' })
   async findOne(@Param('id') id: string) {
-    const result = await this.service.findOne(id);
-    return { success: true, data: result };
+    return this.service.findOne(id);
   }
 
   @Post()
   @ApiOperation({ summary: 'Create tech niche' })
   async create(@Body() dto: Record<string, unknown>) {
-    const result = await this.service.create(dto);
-    return { success: true, data: result };
+    return this.service.create(dto);
   }
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update tech niche' })
   async update(@Param('id') id: string, @Body() dto: Record<string, unknown>) {
-    const result = await this.service.update(id, dto);
-    return { success: true, data: result };
+    return this.service.update(id, dto);
   }
 
   @Delete(':id')

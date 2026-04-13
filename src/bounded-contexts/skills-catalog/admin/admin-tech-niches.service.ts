@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { paginate, patchData } from '@/shared-kernel/database';
 
 @Injectable()
 export class AdminTechNichesService {
@@ -13,9 +14,6 @@ export class AdminTechNichesService {
     areaId?: string;
     isActive?: boolean;
   }) {
-    const page = query.page ?? 1;
-    const pageSize = query.pageSize ?? 20;
-    const skip = (page - 1) * pageSize;
     const where: Prisma.TechNicheWhereInput = {};
 
     if (query.search) {
@@ -27,12 +25,12 @@ export class AdminTechNichesService {
     if (query.areaId) where.areaId = query.areaId;
     if (query.isActive !== undefined) where.isActive = query.isActive;
 
-    const [items, total] = await Promise.all([
-      this.prisma.techNiche.findMany({ where, skip, take: pageSize, orderBy: { order: 'asc' } }),
-      this.prisma.techNiche.count({ where }),
-    ]);
-
-    return { items, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
+    return paginate(this.prisma.techNiche, {
+      page: query.page,
+      pageSize: query.pageSize,
+      where,
+      orderBy: { order: 'asc' },
+    });
   }
 
   async findOne(id: string) {
@@ -62,17 +60,18 @@ export class AdminTechNichesService {
     const existing = await this.prisma.techNiche.findUnique({ where: { id } });
     if (!existing) throw new NotFoundException(`Tech niche '${id}' not found`);
 
-    const data: Record<string, unknown> = {};
-    if (dto.slug !== undefined) data.slug = dto.slug;
-    if (dto.nameEn !== undefined) data.nameEn = dto.nameEn;
-    if (dto.namePtBr !== undefined) data.namePtBr = dto.namePtBr;
-    if (dto.descriptionEn !== undefined) data.descriptionEn = dto.descriptionEn;
-    if (dto.descriptionPtBr !== undefined) data.descriptionPtBr = dto.descriptionPtBr;
-    if (dto.icon !== undefined) data.icon = dto.icon;
-    if (dto.color !== undefined) data.color = dto.color;
-    if (dto.order !== undefined) data.order = dto.order;
-    if (dto.isActive !== undefined) data.isActive = dto.isActive;
-    if (dto.areaId !== undefined) data.areaId = dto.areaId;
+    const data = patchData(dto, [
+      'slug',
+      'nameEn',
+      'namePtBr',
+      'descriptionEn',
+      'descriptionPtBr',
+      'icon',
+      'color',
+      'order',
+      'isActive',
+      'areaId',
+    ]);
 
     return this.prisma.techNiche.update({ where: { id }, data });
   }
