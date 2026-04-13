@@ -89,6 +89,10 @@ export class PostController {
       imageUrl?: string;
       linkUrl?: string;
       originalPostId?: string;
+      coAuthors?: string[];
+      scheduledAt?: string;
+      threadId?: string;
+      codeSnippet?: { language: string; code: string; filename?: string };
     },
   ) {
     // Auto-fetch link preview if linkUrl is provided

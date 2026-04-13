@@ -5,6 +5,7 @@
  */
 
 import { Module } from '@nestjs/common';
+import { NotificationsModule } from '@/bounded-contexts/notifications/notifications.module';
 import { S3UploadService } from '@/bounded-contexts/platform/common/services/s3-upload.service';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { CommentController } from './controllers/comment.controller';
@@ -20,7 +21,7 @@ import { PostService } from './services/post.service';
 import { ReportService } from './services/report.service';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, NotificationsModule],
   controllers: [PostController, FeedController, CommentController, EngagementController],
   providers: [
     PostService,

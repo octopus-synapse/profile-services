@@ -6,6 +6,7 @@
 
 import type { SectionTypeData } from '../config/onboarding-steps.config';
 import type { OnboardingData } from '../schemas/onboarding-data.schema';
+import type { OnboardingStepConfig } from './onboarding-config.port';
 import type { OnboardingProgressData } from './onboarding-progress.port';
 
 // Generic transaction client type (implementation provided by repository)
@@ -83,5 +84,8 @@ export interface OnboardingUseCases {
   };
   getSectionTypeDefinitionsUseCase: {
     execute: (locale?: string) => Promise<SectionTypeData[]>;
+  };
+  restartOnboardingUseCase: {
+    execute: (userId: string, steps: OnboardingStepConfig[]) => Promise<{ success: boolean }>;
   };
 }

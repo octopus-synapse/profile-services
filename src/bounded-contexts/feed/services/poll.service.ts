@@ -4,7 +4,12 @@
  * Handles poll voting, results, and vote checking on posts.
  */
 
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 
 @Injectable()
@@ -12,7 +17,8 @@ export class PollService {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
-   * Vote on a poll. Fails if user has already voted.
+   * Vote on a poll. Fails if user has already voted or if poll is closed.
+   * Authors can vote on their own polls.
    */
   async vote(postId: string, userId: string, optionIndex: number) {
     const post = await this.prisma.post.findUnique({
@@ -23,7 +29,12 @@ export class PollService {
       throw new NotFoundException('Post not found');
     }
 
-    // Check if already voted
+    // Check if poll deadline has passed
+    if (post.pollDeadline && new Date(post.pollDeadline) < new Date()) {
+      throw new BadRequestException('Poll is closed');
+    }
+
+    // Check if already voted (unique constraint)
     const existing = await this.prisma.pollVote.findUnique({
       where: { postId_userId: { postId, userId } },
     });
@@ -32,9 +43,15 @@ export class PollService {
       throw new ConflictException('You have already voted on this poll');
     }
 
-    const vote = await this.prisma.pollVote.create({
-      data: { postId, userId, optionIndex },
-    });
+    const [vote] = await this.prisma.$transaction([
+      this.prisma.pollVote.create({
+        data: { postId, userId, optionIndex },
+      }),
+      this.prisma.post.update({
+        where: { id: postId },
+        data: { votesCount: { increment: 1 } },
+      }),
+    ]);
 
     return vote;
   }

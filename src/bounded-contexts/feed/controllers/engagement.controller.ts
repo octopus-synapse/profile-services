@@ -16,6 +16,7 @@
 
 import { Body, Controller, Delete, HttpCode, HttpStatus, Param, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import type { ReactionType } from '@prisma/client';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
@@ -58,8 +59,12 @@ export class EngagementController {
   @ApiOperation({ summary: 'Like a post' })
   @ApiParam({ name: 'id', type: 'string' })
   @ApiDataResponse(LikeDataDto, { description: 'Post liked' })
-  async like(@CurrentUser() user: UserPayload, @Param('id') postId: string) {
-    return this.engagementService.like(postId, user.userId);
+  async like(
+    @CurrentUser() user: UserPayload,
+    @Param('id') postId: string,
+    @Body() body: { reactionType?: ReactionType },
+  ) {
+    return this.engagementService.like(postId, user.userId, body.reactionType);
   }
 
   /**

@@ -68,6 +68,27 @@ export class PostDto {
   @ApiPropertyOptional({ example: 'https://example.com' })
   linkUrl?: string;
 
+  @ApiProperty({ type: [String], example: ['user-456'] })
+  coAuthors!: string[];
+
+  @ApiPropertyOptional({ example: '2025-06-01T12:00:00.000Z' })
+  scheduledAt?: string;
+
+  @ApiProperty({ example: true })
+  isPublished!: boolean;
+
+  @ApiPropertyOptional({ example: 'thread-123' })
+  threadId?: string;
+
+  @ApiPropertyOptional({ example: '2025-06-15T12:00:00.000Z' })
+  pollDeadline?: string;
+
+  @ApiProperty({ example: 0 })
+  votesCount!: number;
+
+  @ApiPropertyOptional({ example: { language: 'typescript', code: 'console.log("hi")' } })
+  codeSnippet?: Record<string, unknown>;
+
   @ApiProperty({ example: 0 })
   likesCount!: number;
 
@@ -118,8 +139,18 @@ class FeedPostDto extends PostDto {
   @ApiPropertyOptional({ example: true })
   isLiked?: boolean;
 
+  @ApiPropertyOptional({
+    example: 'LIKE',
+    enum: ['LIKE', 'CELEBRATE', 'LOVE', 'INSIGHTFUL', 'CURIOUS'],
+    nullable: true,
+  })
+  reactionType?: string | null;
+
   @ApiPropertyOptional({ example: false })
   isBookmarked?: boolean;
+
+  @ApiPropertyOptional({ type: [PostDto] })
+  threadPosts?: PostDto[];
 }
 
 export class FeedTimelineDataDto {
@@ -201,11 +232,17 @@ export class LikeDataDto {
   @ApiProperty({ example: 'user-123' })
   userId!: string;
 
+  @ApiProperty({ example: 'LIKE', enum: ['LIKE', 'CELEBRATE', 'LOVE', 'INSIGHTFUL', 'CURIOUS'] })
+  reactionType!: string;
+
   @ApiPropertyOptional({ example: 'user-456' })
   postAuthorId?: string;
 
   @ApiProperty({ example: false })
   alreadyLiked!: boolean;
+
+  @ApiPropertyOptional({ example: false })
+  updated?: boolean;
 }
 
 export class UnlikeDataDto {

@@ -76,14 +76,65 @@ function mapDefinitionToFields(definition: SectionDefinition): StepField[] {
     });
 }
 
+/** Feature descriptor for welcome step */
+interface WelcomeFeature {
+  icon: string;
+  title: string;
+  description: string;
+}
+
 /** Translations for static steps */
-type StepTranslation = { label: string; description: string; fields?: Record<string, string> };
+type StepTranslation = {
+  label: string;
+  description: string;
+  fields?: Record<string, string>;
+  features?: WelcomeFeature[];
+};
 
 const STATIC_STEP_TRANSLATIONS: Record<string, Record<string, StepTranslation>> = {
   welcome: {
-    en: { label: 'Welcome', description: 'Welcome to ProFile' },
-    'pt-BR': { label: 'Início', description: 'Bem-vindo ao ProFile' },
-    es: { label: 'Inicio', description: 'Bienvenido a ProFile' },
+    en: {
+      label: 'Welcome',
+      description: 'Create your professional resume in minutes',
+      features: [
+        { icon: '📄', title: 'ATS-Optimized Resume', description: 'Score 90+ guaranteed' },
+        { icon: '🎨', title: 'Professional Templates', description: 'Clean design that impresses' },
+        { icon: '⚡', title: 'Ready in Minutes', description: 'Guided step-by-step' },
+        { icon: '🌐', title: 'Public Profile', description: 'Share with recruiters' },
+      ],
+    },
+    'pt-BR': {
+      label: 'Início',
+      description: 'Crie seu currículo profissional em minutos',
+      features: [
+        { icon: '📄', title: 'Currículo ATS', description: 'Score 90+ garantido' },
+        {
+          icon: '🎨',
+          title: 'Templates profissionais',
+          description: 'Design limpo que impressiona',
+        },
+        {
+          icon: '⚡',
+          title: 'Pronto em minutos',
+          description: 'Preenchimento guiado passo a passo',
+        },
+        { icon: '🌐', title: 'Perfil público', description: 'Compartilhe com recrutadores' },
+      ],
+    },
+    es: {
+      label: 'Inicio',
+      description: 'Crea tu currículum profesional en minutos',
+      features: [
+        { icon: '📄', title: 'Currículum ATS', description: 'Puntuación 90+ garantizada' },
+        {
+          icon: '🎨',
+          title: 'Plantillas profesionales',
+          description: 'Diseño limpio que impresiona',
+        },
+        { icon: '⚡', title: 'Listo en minutos', description: 'Guía paso a paso' },
+        { icon: '🌐', title: 'Perfil público', description: 'Comparte con reclutadores' },
+      ],
+    },
   },
   'personal-info': {
     en: {
@@ -205,10 +256,25 @@ interface StaticStepBase {
   component: string;
   icon: string;
   fields?: Omit<StepField, 'label'>[];
+  data?: Record<string, unknown>;
 }
 
 const STATIC_STEPS_BEFORE: StaticStepBase[] = [
-  { id: 'welcome', required: true, component: 'welcome', icon: '🚀' },
+  {
+    id: 'welcome',
+    required: true,
+    component: 'welcome',
+    icon: '🚀',
+    data: {
+      features: [
+        { icon: '📄', title: 'ATS-Optimized Resume', description: 'Score 90+ guaranteed' },
+        { icon: '🎨', title: 'Professional Templates', description: 'Clean design that impresses' },
+        { icon: '⚡', title: 'Ready in Minutes', description: 'Guided step-by-step' },
+        { icon: '🌐', title: 'Public Profile', description: 'Share with recruiters' },
+      ],
+      estimatedMinutes: 5,
+    },
+  },
   {
     id: 'personal-info',
     required: true,
@@ -265,6 +331,17 @@ function buildStaticSteps(bases: StaticStepBase[], locale: string): StepMeta[] {
       ...f,
       label: t.fields?.[f.key] ?? f.key,
     }));
+
+    // Build data with translated features if available
+    let data: Record<string, unknown>[] | undefined;
+    if (base.data) {
+      const translatedData = { ...base.data };
+      if (t.features) {
+        translatedData.features = t.features;
+      }
+      data = [translatedData];
+    }
+
     return {
       id: base.id,
       label: t.label,
@@ -273,6 +350,7 @@ function buildStaticSteps(bases: StaticStepBase[], locale: string): StepMeta[] {
       component: base.component,
       icon: base.icon,
       ...(fields ? { fields } : {}),
+      ...(data ? { data } : {}),
     };
   });
 }
