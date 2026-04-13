@@ -17,6 +17,7 @@ import {
 } from '../dto/chat-request.dto';
 import {
   ChatMessageDataDto,
+  ChatUserSearchDataDto,
   ConversationDataDto,
   ConversationNullableDataDto,
   ConversationsListDataDto,
@@ -176,7 +177,13 @@ export class ChatController {
 
   @Get('users/search')
   @ApiOperation({ summary: 'Search users to start a conversation' })
-  async searchUsers(@Req() req: AuthenticatedRequest, @Query('q') query: string) {
+  @ApiDataResponse(ChatUserSearchDataDto, {
+    description: 'List of matching users',
+  })
+  async searchUsers(
+    @Req() req: AuthenticatedRequest,
+    @Query('q') query: string,
+  ): Promise<DataResponse<ChatUserSearchDataDto>> {
     const users = await this.userSearch.search(query, req.user.userId);
     return { success: true, data: { users } };
   }

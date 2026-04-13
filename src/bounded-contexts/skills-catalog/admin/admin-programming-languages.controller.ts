@@ -11,9 +11,17 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
+import {
+  ApiDataResponse,
+  ApiEmptyDataResponse,
+} from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import { AdminProgrammingLanguagesService } from './admin-programming-languages.service';
+import {
+  ProgrammingLanguageDataDto,
+  ProgrammingLanguageListDataDto,
+} from './dto/admin-programming-languages-response.dto';
 
 @SdkExport({
   tag: 'admin-programming-languages',
@@ -33,6 +41,7 @@ export class AdminProgrammingLanguagesController {
   @ApiQuery({ name: 'pageSize', required: false, type: Number })
   @ApiQuery({ name: 'search', required: false, type: String })
   @ApiQuery({ name: 'isActive', required: false, type: Boolean })
+  @ApiDataResponse(ProgrammingLanguageListDataDto, { description: 'List of programming languages' })
   async findAll(
     @Query('page') page?: number,
     @Query('pageSize') pageSize?: number,
@@ -49,18 +58,24 @@ export class AdminProgrammingLanguagesController {
 
   @Get(':slug')
   @ApiOperation({ summary: 'Get programming language by slug' })
+  @ApiDataResponse(ProgrammingLanguageDataDto, { description: 'Programming language details' })
   async findOne(@Param('slug') slug: string) {
     return this.service.findOne(slug);
   }
 
   @Post()
   @ApiOperation({ summary: 'Create programming language' })
+  @ApiDataResponse(ProgrammingLanguageDataDto, {
+    description: 'Programming language created',
+    status: 201,
+  })
   async create(@Body() dto: Record<string, unknown>) {
     return this.service.create(dto);
   }
 
   @Patch(':slug')
   @ApiOperation({ summary: 'Update programming language' })
+  @ApiDataResponse(ProgrammingLanguageDataDto, { description: 'Programming language updated' })
   async update(@Param('slug') slug: string, @Body() dto: Record<string, unknown>) {
     return this.service.update(slug, dto);
   }
@@ -68,6 +83,7 @@ export class AdminProgrammingLanguagesController {
   @Delete(':slug')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete programming language' })
+  @ApiEmptyDataResponse({ description: 'Programming language deleted', status: 204 })
   async remove(@Param('slug') slug: string) {
     await this.service.remove(slug);
   }

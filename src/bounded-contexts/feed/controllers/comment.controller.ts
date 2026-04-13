@@ -22,9 +22,15 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
+import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
+import {
+  CommentCreatedDataDto,
+  CommentDeletedDataDto,
+  CommentsListDataDto,
+} from '../dto/feed-response.dto';
 import { CommentService } from '../services/comment.service';
 
 @SdkExport({
@@ -48,6 +54,9 @@ export class CommentController {
   @ApiParam({ name: 'id', type: 'string' })
   @ApiQuery({ name: 'cursor', required: false, type: String })
   @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiDataResponse(CommentsListDataDto, {
+    description: 'List of comments for the post',
+  })
   async getByPost(
     @Param('id') postId: string,
     @Query('cursor') cursor?: string,
@@ -63,6 +72,10 @@ export class CommentController {
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a comment' })
   @ApiParam({ name: 'id', type: 'string' })
+  @ApiDataResponse(CommentCreatedDataDto, {
+    status: 201,
+    description: 'Comment created',
+  })
   async create(
     @CurrentUser() user: UserPayload,
     @Param('id') postId: string,
@@ -78,6 +91,7 @@ export class CommentController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Delete a comment' })
   @ApiParam({ name: 'id', type: 'string' })
+  @ApiDataResponse(CommentDeletedDataDto, { description: 'Comment deleted' })
   async delete(@CurrentUser() user: UserPayload, @Param('id') id: string) {
     await this.commentService.delete(id, user.userId);
     return { deleted: true };

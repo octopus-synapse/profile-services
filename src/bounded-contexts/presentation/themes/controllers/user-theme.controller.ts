@@ -196,6 +196,6 @@ export class UserThemeController {
     @Param('resumeId') resumeId: string,
   ): Promise<DataResponse<ThemeResolvedConfigDataDto>> {
     const config = await this.appService.getResolvedConfig(resumeId, userId);
-    return { success: true, data: { config } };
+    return { success: true, data: { config: config as Record<string, string> | null } };
   }
 }

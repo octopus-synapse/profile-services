@@ -454,7 +454,29 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Platform dashboard metrics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AdminDashboardMetricsDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -2859,7 +2881,29 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Platform metrics overview",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AdminMetricsOverviewDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -6861,7 +6905,29 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "List of onboarding steps",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/OnboardingStepListDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -6888,7 +6954,29 @@
         "parameters": [],
         "responses": {
           "201": {
-            "description": ""
+            "description": "Onboarding step created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/OnboardingStepDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -6917,7 +7005,29 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Onboarding funnel statistics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/OnboardingStatsDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -6955,7 +7065,29 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Onboarding step details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/OnboardingStepDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -6991,7 +7123,29 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Onboarding step updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/OnboardingStepDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -7027,7 +7181,7 @@
         ],
         "responses": {
           "204": {
-            "description": ""
+            "description": "Onboarding step deleted"
           },
           "401": {
             "description": "Authentication required"
@@ -7056,7 +7210,29 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Onboarding configuration",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/OnboardingConfigDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -7083,7 +7259,29 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Onboarding configuration updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/OnboardingConfigDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -10982,7 +11180,29 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "List of tech areas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/TechAreaListDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -11009,7 +11229,29 @@
         "parameters": [],
         "responses": {
           "201": {
-            "description": ""
+            "description": "Tech area created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/TechAreaDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -11047,7 +11289,29 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Tech area details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/TechAreaDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -11083,7 +11347,29 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Tech area updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/TechAreaDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -11119,7 +11405,7 @@
         ],
         "responses": {
           "204": {
-            "description": ""
+            "description": "Tech area deleted"
           },
           "401": {
             "description": "Authentication required"
@@ -11189,7 +11475,29 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "List of tech niches",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/TechNicheListDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -11216,7 +11524,29 @@
         "parameters": [],
         "responses": {
           "201": {
-            "description": ""
+            "description": "Tech niche created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/TechNicheDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -11254,7 +11584,29 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Tech niche details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/TechNicheDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -11290,7 +11642,29 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Tech niche updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/TechNicheDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -11326,7 +11700,7 @@
         ],
         "responses": {
           "204": {
-            "description": ""
+            "description": "Tech niche deleted"
           },
           "401": {
             "description": "Authentication required"
@@ -11404,7 +11778,29 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "List of tech skills",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/TechSkillListDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -11431,7 +11827,29 @@
         "parameters": [],
         "responses": {
           "201": {
-            "description": ""
+            "description": "Tech skill created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/TechSkillDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -11469,7 +11887,29 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Tech skill details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/TechSkillDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -11505,7 +11945,29 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Tech skill updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/TechSkillDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -11541,7 +12003,7 @@
         ],
         "responses": {
           "204": {
-            "description": ""
+            "description": "Tech skill deleted"
           },
           "401": {
             "description": "Authentication required"
@@ -11603,7 +12065,29 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "List of spoken languages",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/SpokenLanguageListDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -11630,7 +12114,29 @@
         "parameters": [],
         "responses": {
           "201": {
-            "description": ""
+            "description": "Spoken language created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/SpokenLanguageDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -11668,7 +12174,29 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Spoken language details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/SpokenLanguageDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -11704,7 +12232,29 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Spoken language updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/SpokenLanguageDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -11740,7 +12290,7 @@
         ],
         "responses": {
           "204": {
-            "description": ""
+            "description": "Spoken language deleted"
           },
           "401": {
             "description": "Authentication required"
@@ -11802,7 +12352,29 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "List of programming languages",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/ProgrammingLanguageListDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -11829,7 +12401,29 @@
         "parameters": [],
         "responses": {
           "201": {
-            "description": ""
+            "description": "Programming language created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/ProgrammingLanguageDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -11867,7 +12461,29 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Programming language details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/ProgrammingLanguageDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -11903,7 +12519,29 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Programming language updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/ProgrammingLanguageDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -11939,7 +12577,7 @@
         ],
         "responses": {
           "204": {
-            "description": ""
+            "description": "Programming language deleted"
           },
           "401": {
             "description": "Authentication required"
@@ -12799,7 +13437,29 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Platform analytics overview",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AdminAnalyticsOverviewDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -13351,7 +14011,29 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "List of matching users",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/ChatUserSearchDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -13880,7 +14562,29 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Chat statistics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AdminChatStatsDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -13926,7 +14630,29 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "List of conversations",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AdminChatConversationsDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -13955,7 +14681,29 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Collaboration statistics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AdminCollaborationStatsDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -14001,7 +14749,29 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "List of collaborations",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AdminCollaborationsListDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -15028,7 +15798,29 @@
         "parameters": [],
         "responses": {
           "201": {
-            "description": ""
+            "description": "Post created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/PostCreatedDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -15066,7 +15858,29 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Post details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/PostByIdDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -15102,7 +15916,29 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Post deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/PostDeletedDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -15147,7 +15983,29 @@
         },
         "responses": {
           "200": {
-            "description": ""
+            "description": "Image uploaded successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/PostImageUploadDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -15201,7 +16059,29 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Feed timeline with posts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/FeedTimelineDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -15247,7 +16127,29 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Bookmarked posts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/FeedBookmarksDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -15301,7 +16203,29 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "User posts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/UserPostsDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -15355,7 +16279,29 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "List of comments for the post",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/CommentsListDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -15391,7 +16337,29 @@
         ],
         "responses": {
           "201": {
-            "description": ""
+            "description": "Comment created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/CommentCreatedDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -15429,7 +16397,29 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Comment deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/CommentDeletedDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -15467,7 +16457,29 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Post liked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/LikeDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -15503,7 +16515,29 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Post unliked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/UnlikeDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -15541,7 +16575,29 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Post bookmarked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/BookmarkDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -15577,7 +16633,29 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Bookmark removed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/UnbookmarkDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -15615,7 +16693,29 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Post reposted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/RepostDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -15653,7 +16753,29 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Post reported",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/ReportDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -15691,7 +16813,29 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Vote recorded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/VoteDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -15941,7 +17085,7 @@
         "parameters": [
           {
             "name": "cursor",
-            "required": true,
+            "required": false,
             "in": "query",
             "schema": {
               "type": "string"
@@ -15949,7 +17093,7 @@
           },
           {
             "name": "limit",
-            "required": true,
+            "required": false,
             "in": "query",
             "schema": {
               "type": "number"
@@ -15958,7 +17102,29 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "List of notifications",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/NotificationsListDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -15975,6 +17141,7 @@
             "bearer": []
           }
         ],
+        "summary": "Get notifications for current user",
         "tags": [
           "notifications"
         ]
@@ -15986,7 +17153,29 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Unread notification count",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/UnreadCountDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -16003,6 +17192,7 @@
             "bearer": []
           }
         ],
+        "summary": "Get unread notification count",
         "tags": [
           "notifications"
         ]
@@ -16014,7 +17204,29 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Notifications marked as read",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/MarkReadDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
           },
           "401": {
             "description": "Authentication required"
@@ -16031,6 +17243,7 @@
             "bearer": []
           }
         ],
+        "summary": "Mark notifications as read",
         "tags": [
           "notifications"
         ]
@@ -16368,6 +17581,57 @@
         },
         "required": [
           "types"
+        ]
+      },
+      "AdminDashboardMetricsDataDto": {
+        "type": "object",
+        "properties": {
+          "totalUsers": {
+            "type": "integer"
+          },
+          "totalResumes": {
+            "type": "integer"
+          },
+          "activeUsers7d": {
+            "type": "integer"
+          },
+          "activeUsers30d": {
+            "type": "integer"
+          },
+          "totalViews": {
+            "type": "integer"
+          },
+          "signupsThisWeek": {
+            "type": "integer"
+          },
+          "signupsThisMonth": {
+            "type": "integer"
+          },
+          "resumesThisWeek": {
+            "type": "integer"
+          },
+          "resumesThisMonth": {
+            "type": "integer"
+          },
+          "averageAtsScore": {
+            "type": "integer"
+          },
+          "onboardingCompletionRate": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "totalUsers",
+          "totalResumes",
+          "activeUsers7d",
+          "activeUsers30d",
+          "totalViews",
+          "signupsThisWeek",
+          "signupsThisMonth",
+          "resumesThisWeek",
+          "resumesThisMonth",
+          "averageAtsScore",
+          "onboardingCompletionRate"
         ]
       },
       "PaginatedResumesDataDto": {
@@ -16794,7 +18058,238 @@
             "type": "array",
             "items": {
               "type": "object",
-              "additionalProperties": {}
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "userId": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "template": {
+                  "type": "string"
+                },
+                "language": {
+                  "type": "string"
+                },
+                "isPublic": {
+                  "type": "boolean"
+                },
+                "slug": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "fullName": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "jobTitle": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "summary": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "accentColor": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "activeThemeId": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "createdAt": {},
+                "updatedAt": {},
+                "resumeSections": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "resumeId": {
+                        "type": "string"
+                      },
+                      "sectionTypeId": {
+                        "type": "string"
+                      },
+                      "titleOverride": {
+                        "type": "string",
+                        "nullable": true
+                      },
+                      "isVisible": {
+                        "type": "boolean"
+                      },
+                      "order": {
+                        "type": "integer"
+                      },
+                      "createdAt": {},
+                      "updatedAt": {},
+                      "sectionType": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "key": {
+                            "type": "string"
+                          },
+                          "slug": {
+                            "type": "string"
+                          },
+                          "title": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string",
+                            "nullable": true
+                          },
+                          "semanticKind": {
+                            "type": "string"
+                          },
+                          "version": {
+                            "type": "integer"
+                          },
+                          "isActive": {
+                            "type": "boolean"
+                          },
+                          "isSystem": {
+                            "type": "boolean"
+                          },
+                          "isRepeatable": {
+                            "type": "boolean"
+                          },
+                          "minItems": {
+                            "type": "integer"
+                          },
+                          "maxItems": {
+                            "type": "integer",
+                            "nullable": true
+                          },
+                          "definition": {},
+                          "uiSchema": {
+                            "nullable": true
+                          },
+                          "renderHints": {},
+                          "fieldStyles": {},
+                          "iconType": {
+                            "type": "string"
+                          },
+                          "icon": {
+                            "type": "string"
+                          },
+                          "translations": {},
+                          "examples": {},
+                          "createdAt": {},
+                          "updatedAt": {}
+                        },
+                        "required": [
+                          "id",
+                          "key",
+                          "slug",
+                          "title",
+                          "description",
+                          "semanticKind",
+                          "version",
+                          "isActive",
+                          "isSystem",
+                          "isRepeatable",
+                          "minItems",
+                          "maxItems",
+                          "definition",
+                          "uiSchema",
+                          "renderHints",
+                          "fieldStyles",
+                          "iconType",
+                          "icon",
+                          "translations",
+                          "examples",
+                          "createdAt",
+                          "updatedAt"
+                        ]
+                      },
+                      "items": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string"
+                            },
+                            "resumeSectionId": {
+                              "type": "string"
+                            },
+                            "content": {},
+                            "isVisible": {
+                              "type": "boolean"
+                            },
+                            "order": {
+                              "type": "integer"
+                            },
+                            "createdAt": {},
+                            "updatedAt": {}
+                          },
+                          "required": [
+                            "id",
+                            "resumeSectionId",
+                            "content",
+                            "isVisible",
+                            "order",
+                            "createdAt",
+                            "updatedAt"
+                          ]
+                        }
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "resumeId",
+                      "sectionTypeId",
+                      "titleOverride",
+                      "isVisible",
+                      "order",
+                      "createdAt",
+                      "updatedAt",
+                      "sectionType",
+                      "items"
+                    ]
+                  }
+                },
+                "_count": {
+                  "type": "object",
+                  "properties": {
+                    "resumeSections": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "resumeSections"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "userId",
+                "title",
+                "template",
+                "language",
+                "isPublic",
+                "slug",
+                "fullName",
+                "jobTitle",
+                "summary",
+                "accentColor",
+                "activeThemeId",
+                "createdAt",
+                "updatedAt",
+                "resumeSections",
+                "_count"
+              ]
             }
           }
         },
@@ -16807,7 +18302,278 @@
         "properties": {
           "resume": {
             "type": "object",
-            "additionalProperties": {},
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "userId": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string",
+                "nullable": true
+              },
+              "template": {
+                "type": "string"
+              },
+              "language": {
+                "type": "string"
+              },
+              "isPublic": {
+                "type": "boolean"
+              },
+              "slug": {
+                "type": "string",
+                "nullable": true
+              },
+              "fullName": {
+                "type": "string",
+                "nullable": true
+              },
+              "jobTitle": {
+                "type": "string",
+                "nullable": true
+              },
+              "phone": {
+                "type": "string",
+                "nullable": true
+              },
+              "emailContact": {
+                "type": "string",
+                "nullable": true
+              },
+              "location": {
+                "type": "string",
+                "nullable": true
+              },
+              "linkedin": {
+                "type": "string",
+                "nullable": true
+              },
+              "github": {
+                "type": "string",
+                "nullable": true
+              },
+              "website": {
+                "type": "string",
+                "nullable": true
+              },
+              "summary": {
+                "type": "string",
+                "nullable": true
+              },
+              "accentColor": {
+                "type": "string",
+                "nullable": true
+              },
+              "activeThemeId": {
+                "type": "string",
+                "nullable": true
+              },
+              "createdAt": {},
+              "updatedAt": {},
+              "user": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "name": {
+                    "type": "string",
+                    "nullable": true
+                  }
+                },
+                "required": [
+                  "id",
+                  "email",
+                  "name"
+                ]
+              },
+              "resumeSections": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "resumeId": {
+                      "type": "string"
+                    },
+                    "sectionTypeId": {
+                      "type": "string"
+                    },
+                    "titleOverride": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "isVisible": {
+                      "type": "boolean"
+                    },
+                    "order": {
+                      "type": "integer"
+                    },
+                    "createdAt": {},
+                    "updatedAt": {},
+                    "sectionType": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "key": {
+                          "type": "string"
+                        },
+                        "slug": {
+                          "type": "string"
+                        },
+                        "title": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "semanticKind": {
+                          "type": "string"
+                        },
+                        "version": {
+                          "type": "integer"
+                        },
+                        "isActive": {
+                          "type": "boolean"
+                        },
+                        "isSystem": {
+                          "type": "boolean"
+                        },
+                        "isRepeatable": {
+                          "type": "boolean"
+                        },
+                        "minItems": {
+                          "type": "integer"
+                        },
+                        "maxItems": {
+                          "type": "integer",
+                          "nullable": true
+                        },
+                        "definition": {},
+                        "uiSchema": {
+                          "nullable": true
+                        },
+                        "renderHints": {},
+                        "fieldStyles": {},
+                        "iconType": {
+                          "type": "string"
+                        },
+                        "icon": {
+                          "type": "string"
+                        },
+                        "translations": {},
+                        "examples": {},
+                        "createdAt": {},
+                        "updatedAt": {}
+                      },
+                      "required": [
+                        "id",
+                        "key",
+                        "slug",
+                        "title",
+                        "description",
+                        "semanticKind",
+                        "version",
+                        "isActive",
+                        "isSystem",
+                        "isRepeatable",
+                        "minItems",
+                        "maxItems",
+                        "definition",
+                        "uiSchema",
+                        "renderHints",
+                        "fieldStyles",
+                        "iconType",
+                        "icon",
+                        "translations",
+                        "examples",
+                        "createdAt",
+                        "updatedAt"
+                      ]
+                    },
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "resumeSectionId": {
+                            "type": "string"
+                          },
+                          "content": {},
+                          "isVisible": {
+                            "type": "boolean"
+                          },
+                          "order": {
+                            "type": "integer"
+                          },
+                          "createdAt": {},
+                          "updatedAt": {}
+                        },
+                        "required": [
+                          "id",
+                          "resumeSectionId",
+                          "content",
+                          "isVisible",
+                          "order",
+                          "createdAt",
+                          "updatedAt"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "resumeId",
+                    "sectionTypeId",
+                    "titleOverride",
+                    "isVisible",
+                    "order",
+                    "createdAt",
+                    "updatedAt",
+                    "sectionType",
+                    "items"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "id",
+              "userId",
+              "title",
+              "template",
+              "language",
+              "isPublic",
+              "slug",
+              "fullName",
+              "jobTitle",
+              "phone",
+              "emailContact",
+              "location",
+              "linkedin",
+              "github",
+              "website",
+              "summary",
+              "accentColor",
+              "activeThemeId",
+              "createdAt",
+              "updatedAt",
+              "user",
+              "resumeSections"
+            ],
             "x-nestjs_zod-self-required": true
           }
         },
@@ -16890,23 +18656,12 @@
                   "type": "integer",
                   "nullable": true
                 },
-                "definition": {
-                  "type": "object",
-                  "additionalProperties": {}
-                },
+                "definition": {},
                 "uiSchema": {
-                  "type": "object",
-                  "additionalProperties": {},
                   "nullable": true
                 },
-                "renderHints": {
-                  "type": "object",
-                  "additionalProperties": {}
-                },
-                "fieldStyles": {
-                  "type": "object",
-                  "additionalProperties": {}
-                }
+                "renderHints": {},
+                "fieldStyles": {}
               },
               "required": [
                 "id",
@@ -16946,7 +18701,157 @@
             "type": "array",
             "items": {
               "type": "object",
-              "additionalProperties": {}
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "resumeId": {
+                  "type": "string"
+                },
+                "sectionTypeId": {
+                  "type": "string"
+                },
+                "titleOverride": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "isVisible": {
+                  "type": "boolean"
+                },
+                "order": {
+                  "type": "integer"
+                },
+                "createdAt": {},
+                "updatedAt": {},
+                "sectionType": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "key": {
+                      "type": "string"
+                    },
+                    "slug": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "semanticKind": {
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "integer"
+                    },
+                    "isActive": {
+                      "type": "boolean"
+                    },
+                    "isSystem": {
+                      "type": "boolean"
+                    },
+                    "isRepeatable": {
+                      "type": "boolean"
+                    },
+                    "minItems": {
+                      "type": "integer"
+                    },
+                    "maxItems": {
+                      "type": "integer",
+                      "nullable": true
+                    },
+                    "definition": {},
+                    "uiSchema": {
+                      "nullable": true
+                    },
+                    "renderHints": {},
+                    "fieldStyles": {},
+                    "iconType": {
+                      "type": "string"
+                    },
+                    "icon": {
+                      "type": "string"
+                    },
+                    "translations": {},
+                    "examples": {},
+                    "createdAt": {},
+                    "updatedAt": {}
+                  },
+                  "required": [
+                    "id",
+                    "key",
+                    "slug",
+                    "title",
+                    "description",
+                    "semanticKind",
+                    "version",
+                    "isActive",
+                    "isSystem",
+                    "isRepeatable",
+                    "minItems",
+                    "maxItems",
+                    "definition",
+                    "uiSchema",
+                    "renderHints",
+                    "fieldStyles",
+                    "iconType",
+                    "icon",
+                    "translations",
+                    "examples",
+                    "createdAt",
+                    "updatedAt"
+                  ],
+                  "nullable": true
+                },
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "resumeSectionId": {
+                        "type": "string"
+                      },
+                      "content": {},
+                      "isVisible": {
+                        "type": "boolean"
+                      },
+                      "order": {
+                        "type": "integer"
+                      },
+                      "createdAt": {},
+                      "updatedAt": {}
+                    },
+                    "required": [
+                      "id",
+                      "resumeSectionId",
+                      "content",
+                      "isVisible",
+                      "order",
+                      "createdAt",
+                      "updatedAt"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "id",
+                "resumeId",
+                "sectionTypeId",
+                "titleOverride",
+                "isVisible",
+                "order",
+                "createdAt",
+                "updatedAt",
+                "sectionType",
+                "items"
+              ]
             }
           }
         },
@@ -16959,7 +18864,32 @@
         "properties": {
           "item": {
             "type": "object",
-            "additionalProperties": {},
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "resumeSectionId": {
+                "type": "string"
+              },
+              "content": {},
+              "isVisible": {
+                "type": "boolean"
+              },
+              "order": {
+                "type": "integer"
+              },
+              "createdAt": {},
+              "updatedAt": {}
+            },
+            "required": [
+              "id",
+              "resumeSectionId",
+              "content",
+              "isVisible",
+              "order",
+              "createdAt",
+              "updatedAt"
+            ],
             "x-nestjs_zod-self-required": true
           }
         },
@@ -17312,6 +19242,103 @@
         },
         "required": [
           "text"
+        ]
+      },
+      "AdminMetricsOverviewDataDto": {
+        "type": "object",
+        "properties": {
+          "counters": {
+            "type": "object",
+            "properties": {
+              "resumeCreated": {
+                "type": "number"
+              },
+              "userSignups": {
+                "type": "number"
+              },
+              "exportCompleted": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "resumeCreated",
+              "userSignups",
+              "exportCompleted"
+            ],
+            "x-nestjs_zod-self-required": true
+          },
+          "gauges": {
+            "type": "object",
+            "properties": {
+              "activeUsers": {
+                "type": "number"
+              },
+              "pendingExports": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "activeUsers",
+              "pendingExports"
+            ],
+            "x-nestjs_zod-self-required": true
+          },
+          "process": {
+            "type": "object",
+            "properties": {
+              "uptimeSeconds": {
+                "type": "number"
+              },
+              "heapUsedMb": {
+                "type": "number"
+              },
+              "heapTotalMb": {
+                "type": "number"
+              },
+              "eventLoopLagMs": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "uptimeSeconds",
+              "heapUsedMb",
+              "heapTotalMb",
+              "eventLoopLagMs"
+            ],
+            "x-nestjs_zod-self-required": true
+          },
+          "latency": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "route": {
+                  "type": "string"
+                },
+                "totalRequests": {
+                  "type": "number"
+                },
+                "avgLatencyMs": {
+                  "type": "number"
+                },
+                "totalDurationS": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "route",
+                "totalRequests",
+                "avgLatencyMs",
+                "totalDurationS"
+              ]
+            }
+          }
+        },
+        "required": [
+          "counters",
+          "gauges",
+          "process",
+          "latency"
         ]
       },
       "MessageResponseDto": {
@@ -18189,12 +20216,141 @@
         "properties": {
           "user": {
             "type": "object",
-            "additionalProperties": {},
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "username": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string",
+                "nullable": true
+              },
+              "photoURL": {
+                "type": "string",
+                "nullable": true
+              },
+              "bio": {
+                "type": "string",
+                "nullable": true
+              },
+              "location": {
+                "type": "string",
+                "nullable": true
+              },
+              "website": {
+                "type": "string",
+                "nullable": true
+              },
+              "linkedin": {
+                "type": "string",
+                "nullable": true
+              },
+              "github": {
+                "type": "string",
+                "nullable": true
+              }
+            },
+            "required": [
+              "id",
+              "username",
+              "name",
+              "photoURL",
+              "bio",
+              "location",
+              "website",
+              "linkedin",
+              "github"
+            ],
             "x-nestjs_zod-self-required": true
           },
           "resume": {
             "type": "object",
-            "additionalProperties": {},
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string",
+                "nullable": true
+              },
+              "template": {
+                "type": "string"
+              },
+              "language": {
+                "type": "string"
+              },
+              "isPublic": {
+                "type": "boolean"
+              },
+              "slug": {
+                "type": "string",
+                "nullable": true
+              },
+              "fullName": {
+                "type": "string",
+                "nullable": true
+              },
+              "jobTitle": {
+                "type": "string",
+                "nullable": true
+              },
+              "phone": {
+                "type": "string",
+                "nullable": true
+              },
+              "emailContact": {
+                "type": "string",
+                "nullable": true
+              },
+              "location": {
+                "type": "string",
+                "nullable": true
+              },
+              "linkedin": {
+                "type": "string",
+                "nullable": true
+              },
+              "github": {
+                "type": "string",
+                "nullable": true
+              },
+              "website": {
+                "type": "string",
+                "nullable": true
+              },
+              "summary": {
+                "type": "string",
+                "nullable": true
+              },
+              "accentColor": {
+                "type": "string",
+                "nullable": true
+              },
+              "createdAt": {},
+              "updatedAt": {}
+            },
+            "required": [
+              "id",
+              "title",
+              "template",
+              "language",
+              "isPublic",
+              "slug",
+              "fullName",
+              "jobTitle",
+              "phone",
+              "emailContact",
+              "location",
+              "linkedin",
+              "github",
+              "website",
+              "summary",
+              "accentColor",
+              "createdAt",
+              "updatedAt"
+            ],
             "nullable": true,
             "x-nestjs_zod-self-required": true
           }
@@ -18209,7 +20365,63 @@
         "properties": {
           "profile": {
             "type": "object",
-            "additionalProperties": {},
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "email": {
+                "type": "string",
+                "nullable": true
+              },
+              "username": {
+                "type": "string",
+                "nullable": true
+              },
+              "name": {
+                "type": "string",
+                "nullable": true
+              },
+              "photoURL": {
+                "type": "string",
+                "nullable": true
+              },
+              "bio": {
+                "type": "string",
+                "nullable": true
+              },
+              "location": {
+                "type": "string",
+                "nullable": true
+              },
+              "phone": {
+                "type": "string",
+                "nullable": true
+              },
+              "website": {
+                "type": "string",
+                "nullable": true
+              },
+              "linkedin": {
+                "type": "string",
+                "nullable": true
+              },
+              "github": {
+                "type": "string",
+                "nullable": true
+              },
+              "twitter": {
+                "type": "string",
+                "nullable": true
+              },
+              "createdAt": {},
+              "updatedAt": {}
+            },
+            "required": [
+              "id",
+              "email",
+              "createdAt",
+              "updatedAt"
+            ],
             "x-nestjs_zod-self-required": true
           }
         },
@@ -18312,7 +20524,17 @@
         "properties": {
           "preferences": {
             "type": "object",
-            "additionalProperties": {},
+            "properties": {
+              "theme": {
+                "type": "string"
+              },
+              "language": {
+                "type": "string"
+              },
+              "emailNotifications": {
+                "type": "boolean"
+              }
+            },
             "x-nestjs_zod-self-required": true
           }
         },
@@ -18336,7 +20558,99 @@
         "properties": {
           "preferences": {
             "type": "object",
-            "additionalProperties": {},
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "userId": {
+                "type": "string"
+              },
+              "theme": {
+                "type": "string"
+              },
+              "palette": {
+                "type": "string"
+              },
+              "bannerColor": {
+                "type": "string",
+                "nullable": true
+              },
+              "language": {
+                "type": "string"
+              },
+              "dateFormat": {
+                "type": "string"
+              },
+              "timezone": {
+                "type": "string"
+              },
+              "emailNotifications": {
+                "type": "boolean"
+              },
+              "resumeExpiryAlerts": {
+                "type": "boolean"
+              },
+              "weeklyDigest": {
+                "type": "boolean"
+              },
+              "marketingEmails": {
+                "type": "boolean"
+              },
+              "emailMilestones": {
+                "type": "boolean"
+              },
+              "emailShareExpiring": {
+                "type": "boolean"
+              },
+              "digestFrequency": {
+                "type": "string"
+              },
+              "profileVisibility": {
+                "type": "string"
+              },
+              "showEmail": {
+                "type": "boolean"
+              },
+              "showPhone": {
+                "type": "boolean"
+              },
+              "allowSearchEngineIndex": {
+                "type": "boolean"
+              },
+              "defaultExportFormat": {
+                "type": "string"
+              },
+              "includePhotoInExport": {
+                "type": "boolean"
+              },
+              "createdAt": {},
+              "updatedAt": {}
+            },
+            "required": [
+              "id",
+              "userId",
+              "theme",
+              "palette",
+              "bannerColor",
+              "language",
+              "dateFormat",
+              "timezone",
+              "emailNotifications",
+              "resumeExpiryAlerts",
+              "weeklyDigest",
+              "marketingEmails",
+              "emailMilestones",
+              "emailShareExpiring",
+              "digestFrequency",
+              "profileVisibility",
+              "showEmail",
+              "showPhone",
+              "allowSearchEngineIndex",
+              "defaultExportFormat",
+              "includePhotoInExport",
+              "createdAt",
+              "updatedAt"
+            ],
             "x-nestjs_zod-self-required": true
           }
         },
@@ -19948,6 +22262,218 @@
           "templateSelection"
         ]
       },
+      "OnboardingStepListDataDto": {
+        "type": "object",
+        "properties": {
+          "steps": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "key": {
+                  "type": "string"
+                },
+                "order": {
+                  "type": "integer"
+                },
+                "component": {
+                  "type": "string"
+                },
+                "icon": {
+                  "type": "string"
+                },
+                "required": {
+                  "type": "boolean"
+                },
+                "sectionTypeKey": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "fields": {},
+                "translations": {},
+                "validation": {},
+                "strengthWeight": {
+                  "type": "integer"
+                },
+                "isActive": {
+                  "type": "boolean"
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "updatedAt": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "required": [
+                "id",
+                "key",
+                "order",
+                "component",
+                "icon",
+                "required",
+                "sectionTypeKey",
+                "fields",
+                "translations",
+                "validation",
+                "strengthWeight",
+                "isActive",
+                "createdAt",
+                "updatedAt"
+              ]
+            }
+          }
+        },
+        "required": [
+          "steps"
+        ]
+      },
+      "OnboardingStatsDataDto": {
+        "type": "object",
+        "properties": {
+          "stats": {
+            "type": "object",
+            "properties": {
+              "totalStarted": {
+                "type": "integer"
+              },
+              "totalCompleted": {
+                "type": "integer"
+              },
+              "completionRate": {
+                "type": "integer"
+              },
+              "dropOffByStep": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "number"
+                }
+              }
+            },
+            "required": [
+              "totalStarted",
+              "totalCompleted",
+              "completionRate",
+              "dropOffByStep"
+            ],
+            "x-nestjs_zod-self-required": true
+          }
+        },
+        "required": [
+          "stats"
+        ]
+      },
+      "OnboardingStepDataDto": {
+        "type": "object",
+        "properties": {
+          "step": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "key": {
+                "type": "string"
+              },
+              "order": {
+                "type": "integer"
+              },
+              "component": {
+                "type": "string"
+              },
+              "icon": {
+                "type": "string"
+              },
+              "required": {
+                "type": "boolean"
+              },
+              "sectionTypeKey": {
+                "type": "string",
+                "nullable": true
+              },
+              "fields": {},
+              "translations": {},
+              "validation": {},
+              "strengthWeight": {
+                "type": "integer"
+              },
+              "isActive": {
+                "type": "boolean"
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "updatedAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "id",
+              "key",
+              "order",
+              "component",
+              "icon",
+              "required",
+              "sectionTypeKey",
+              "fields",
+              "translations",
+              "validation",
+              "strengthWeight",
+              "isActive",
+              "createdAt",
+              "updatedAt"
+            ],
+            "x-nestjs_zod-self-required": true
+          }
+        },
+        "required": [
+          "step"
+        ]
+      },
+      "OnboardingConfigDataDto": {
+        "type": "object",
+        "properties": {
+          "config": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "key": {
+                "type": "string"
+              },
+              "strengthLevels": {},
+              "createdAt": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "updatedAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "id",
+              "key",
+              "strengthLevels",
+              "createdAt",
+              "updatedAt"
+            ],
+            "nullable": true,
+            "x-nestjs_zod-self-required": true
+          }
+        },
+        "required": [
+          "config"
+        ]
+      },
       "ImportResultDto": {
         "type": "object",
         "properties": {
@@ -21043,7 +23569,97 @@
             "type": "array",
             "items": {
               "type": "object",
-              "additionalProperties": {}
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "authorId": {
+                  "type": "string"
+                },
+                "category": {
+                  "type": "string"
+                },
+                "tags": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "styleConfig": {},
+                "sectionStyles": {},
+                "thumbnailUrl": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "previewImages": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "status": {
+                  "type": "string"
+                },
+                "isSystemTheme": {
+                  "type": "boolean"
+                },
+                "atsScore": {
+                  "type": "integer",
+                  "nullable": true
+                },
+                "usageCount": {
+                  "type": "integer"
+                },
+                "rating": {
+                  "type": "number",
+                  "nullable": true
+                },
+                "ratingCount": {
+                  "type": "integer"
+                },
+                "version": {
+                  "type": "string"
+                },
+                "parentThemeId": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "createdAt": {},
+                "updatedAt": {},
+                "publishedAt": {
+                  "nullable": true
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "description",
+                "authorId",
+                "category",
+                "tags",
+                "styleConfig",
+                "sectionStyles",
+                "thumbnailUrl",
+                "previewImages",
+                "status",
+                "isSystemTheme",
+                "atsScore",
+                "usageCount",
+                "rating",
+                "ratingCount",
+                "version",
+                "parentThemeId",
+                "createdAt",
+                "updatedAt",
+                "publishedAt"
+              ]
             }
           }
         },
@@ -21056,7 +23672,97 @@
         "properties": {
           "theme": {
             "type": "object",
-            "additionalProperties": {},
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string",
+                "nullable": true
+              },
+              "authorId": {
+                "type": "string"
+              },
+              "category": {
+                "type": "string"
+              },
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "styleConfig": {},
+              "sectionStyles": {},
+              "thumbnailUrl": {
+                "type": "string",
+                "nullable": true
+              },
+              "previewImages": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "status": {
+                "type": "string"
+              },
+              "isSystemTheme": {
+                "type": "boolean"
+              },
+              "atsScore": {
+                "type": "integer",
+                "nullable": true
+              },
+              "usageCount": {
+                "type": "integer"
+              },
+              "rating": {
+                "type": "number",
+                "nullable": true
+              },
+              "ratingCount": {
+                "type": "integer"
+              },
+              "version": {
+                "type": "string"
+              },
+              "parentThemeId": {
+                "type": "string",
+                "nullable": true
+              },
+              "createdAt": {},
+              "updatedAt": {},
+              "publishedAt": {
+                "nullable": true
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "description",
+              "authorId",
+              "category",
+              "tags",
+              "styleConfig",
+              "sectionStyles",
+              "thumbnailUrl",
+              "previewImages",
+              "status",
+              "isSystemTheme",
+              "atsScore",
+              "usageCount",
+              "rating",
+              "ratingCount",
+              "version",
+              "parentThemeId",
+              "createdAt",
+              "updatedAt",
+              "publishedAt"
+            ],
             "x-nestjs_zod-self-required": true
           }
         },
@@ -21185,7 +23891,9 @@
         "properties": {
           "config": {
             "type": "object",
-            "additionalProperties": {},
+            "additionalProperties": {
+              "type": "string"
+            },
             "nullable": true,
             "x-nestjs_zod-self-required": true
           }
@@ -21201,7 +23909,133 @@
             "type": "array",
             "items": {
               "type": "object",
-              "additionalProperties": {}
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "authorId": {
+                  "type": "string"
+                },
+                "category": {
+                  "type": "string"
+                },
+                "tags": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "styleConfig": {},
+                "sectionStyles": {},
+                "thumbnailUrl": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "previewImages": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "status": {
+                  "type": "string"
+                },
+                "isSystemTheme": {
+                  "type": "boolean"
+                },
+                "atsScore": {
+                  "type": "integer",
+                  "nullable": true
+                },
+                "usageCount": {
+                  "type": "integer"
+                },
+                "rating": {
+                  "type": "number",
+                  "nullable": true
+                },
+                "ratingCount": {
+                  "type": "integer"
+                },
+                "version": {
+                  "type": "string"
+                },
+                "parentThemeId": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "createdAt": {},
+                "updatedAt": {},
+                "publishedAt": {
+                  "nullable": true
+                },
+                "author": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "username": {
+                      "type": "string",
+                      "nullable": true
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "username"
+                  ]
+                },
+                "_count": {
+                  "type": "object",
+                  "properties": {
+                    "resumes": {
+                      "type": "integer"
+                    },
+                    "forks": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "resumes",
+                    "forks"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "description",
+                "authorId",
+                "category",
+                "tags",
+                "styleConfig",
+                "sectionStyles",
+                "thumbnailUrl",
+                "previewImages",
+                "status",
+                "isSystemTheme",
+                "atsScore",
+                "usageCount",
+                "rating",
+                "ratingCount",
+                "version",
+                "parentThemeId",
+                "createdAt",
+                "updatedAt",
+                "publishedAt"
+              ]
             }
           },
           "pagination": {
@@ -21239,7 +24073,133 @@
         "properties": {
           "theme": {
             "type": "object",
-            "additionalProperties": {},
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string",
+                "nullable": true
+              },
+              "authorId": {
+                "type": "string"
+              },
+              "category": {
+                "type": "string"
+              },
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "styleConfig": {},
+              "sectionStyles": {},
+              "thumbnailUrl": {
+                "type": "string",
+                "nullable": true
+              },
+              "previewImages": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "status": {
+                "type": "string"
+              },
+              "isSystemTheme": {
+                "type": "boolean"
+              },
+              "atsScore": {
+                "type": "integer",
+                "nullable": true
+              },
+              "usageCount": {
+                "type": "integer"
+              },
+              "rating": {
+                "type": "number",
+                "nullable": true
+              },
+              "ratingCount": {
+                "type": "integer"
+              },
+              "version": {
+                "type": "string"
+              },
+              "parentThemeId": {
+                "type": "string",
+                "nullable": true
+              },
+              "createdAt": {},
+              "updatedAt": {},
+              "publishedAt": {
+                "nullable": true
+              },
+              "author": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "username": {
+                    "type": "string",
+                    "nullable": true
+                  }
+                },
+                "required": [
+                  "id",
+                  "name",
+                  "username"
+                ]
+              },
+              "_count": {
+                "type": "object",
+                "properties": {
+                  "resumes": {
+                    "type": "integer"
+                  },
+                  "forks": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "resumes",
+                  "forks"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "description",
+              "authorId",
+              "category",
+              "tags",
+              "styleConfig",
+              "sectionStyles",
+              "thumbnailUrl",
+              "previewImages",
+              "status",
+              "isSystemTheme",
+              "atsScore",
+              "usageCount",
+              "rating",
+              "ratingCount",
+              "version",
+              "parentThemeId",
+              "createdAt",
+              "updatedAt",
+              "publishedAt"
+            ],
             "nullable": true,
             "x-nestjs_zod-self-required": true
           }
@@ -21295,7 +24255,7 @@
       "TechAreaListDataDto": {
         "type": "object",
         "properties": {
-          "areas": {
+          "items": {
             "type": "array",
             "items": {
               "type": "object",
@@ -21330,6 +24290,17 @@
                 },
                 "order": {
                   "type": "integer"
+                },
+                "isActive": {
+                  "type": "boolean"
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "updatedAt": {
+                  "type": "string",
+                  "format": "date-time"
                 }
               },
               "required": [
@@ -21341,19 +24312,38 @@
                 "descriptionPtBr",
                 "icon",
                 "color",
-                "order"
+                "order",
+                "isActive",
+                "createdAt",
+                "updatedAt"
               ]
             }
+          },
+          "total": {
+            "type": "integer"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "pageSize": {
+            "type": "integer"
+          },
+          "totalPages": {
+            "type": "integer"
           }
         },
         "required": [
-          "areas"
+          "items",
+          "total",
+          "page",
+          "pageSize",
+          "totalPages"
         ]
       },
       "TechNicheListDataDto": {
         "type": "object",
         "properties": {
-          "niches": {
+          "items": {
             "type": "array",
             "items": {
               "type": "object",
@@ -21389,8 +24379,19 @@
                 "order": {
                   "type": "integer"
                 },
-                "areaType": {
+                "isActive": {
+                  "type": "boolean"
+                },
+                "areaId": {
                   "type": "string"
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "updatedAt": {
+                  "type": "string",
+                  "format": "date-time"
                 }
               },
               "required": [
@@ -21403,19 +24404,38 @@
                 "icon",
                 "color",
                 "order",
-                "areaType"
+                "isActive",
+                "areaId",
+                "createdAt",
+                "updatedAt"
               ]
             }
+          },
+          "total": {
+            "type": "integer"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "pageSize": {
+            "type": "integer"
+          },
+          "totalPages": {
+            "type": "integer"
           }
         },
         "required": [
-          "niches"
+          "items",
+          "total",
+          "page",
+          "pageSize",
+          "totalPages"
         ]
       },
       "ProgrammingLanguageListDataDto": {
         "type": "object",
         "properties": {
-          "languages": {
+          "items": {
             "type": "array",
             "items": {
               "type": "object",
@@ -21432,11 +24452,33 @@
                 "namePtBr": {
                   "type": "string"
                 },
+                "descriptionEn": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "descriptionPtBr": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "icon": {
+                  "type": "string",
+                  "nullable": true
+                },
                 "color": {
                   "type": "string",
                   "nullable": true
                 },
                 "website": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "paradigms": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "typing": {
                   "type": "string",
                   "nullable": true
                 },
@@ -21452,18 +24494,22 @@
                     "type": "string"
                   }
                 },
-                "paradigms": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  }
-                },
-                "typing": {
-                  "type": "string",
-                  "nullable": true
-                },
                 "popularity": {
                   "type": "integer"
+                },
+                "order": {
+                  "type": "integer"
+                },
+                "isActive": {
+                  "type": "boolean"
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "updatedAt": {
+                  "type": "string",
+                  "format": "date-time"
                 }
               },
               "required": [
@@ -21471,25 +24517,48 @@
                 "slug",
                 "nameEn",
                 "namePtBr",
+                "descriptionEn",
+                "descriptionPtBr",
+                "icon",
                 "color",
                 "website",
-                "aliases",
-                "fileExtensions",
                 "paradigms",
                 "typing",
-                "popularity"
+                "aliases",
+                "fileExtensions",
+                "popularity",
+                "order",
+                "isActive",
+                "createdAt",
+                "updatedAt"
               ]
             }
+          },
+          "total": {
+            "type": "integer"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "pageSize": {
+            "type": "integer"
+          },
+          "totalPages": {
+            "type": "integer"
           }
         },
         "required": [
-          "languages"
+          "items",
+          "total",
+          "page",
+          "pageSize",
+          "totalPages"
         ]
       },
       "TechSkillListDataDto": {
         "type": "object",
         "properties": {
-          "skills": {
+          "items": {
             "type": "array",
             "items": {
               "type": "object",
@@ -21506,6 +24575,14 @@
                 "namePtBr": {
                   "type": "string"
                 },
+                "descriptionEn": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "descriptionPtBr": {
+                  "type": "string",
+                  "nullable": true
+                },
                 "type": {
                   "type": "string"
                 },
@@ -21521,7 +24598,17 @@
                   "type": "string",
                   "nullable": true
                 },
+                "nicheId": {
+                  "type": "string",
+                  "nullable": true
+                },
                 "aliases": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "keywords": {
                   "type": "array",
                   "items": {
                     "type": "string"
@@ -21530,25 +24617,19 @@
                 "popularity": {
                   "type": "integer"
                 },
-                "niche": {
-                  "type": "object",
-                  "properties": {
-                    "slug": {
-                      "type": "string"
-                    },
-                    "nameEn": {
-                      "type": "string"
-                    },
-                    "namePtBr": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "slug",
-                    "nameEn",
-                    "namePtBr"
-                  ],
-                  "nullable": true
+                "order": {
+                  "type": "integer"
+                },
+                "isActive": {
+                  "type": "boolean"
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "updatedAt": {
+                  "type": "string",
+                  "format": "date-time"
                 }
               },
               "required": [
@@ -21556,19 +24637,42 @@
                 "slug",
                 "nameEn",
                 "namePtBr",
+                "descriptionEn",
+                "descriptionPtBr",
                 "type",
                 "icon",
                 "color",
                 "website",
+                "nicheId",
                 "aliases",
+                "keywords",
                 "popularity",
-                "niche"
+                "order",
+                "isActive",
+                "createdAt",
+                "updatedAt"
               ]
             }
+          },
+          "total": {
+            "type": "integer"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "pageSize": {
+            "type": "integer"
+          },
+          "totalPages": {
+            "type": "integer"
           }
         },
         "required": [
-          "skills"
+          "items",
+          "total",
+          "page",
+          "pageSize",
+          "totalPages"
         ]
       },
       "TechSearchResultsDataDto": {
@@ -21874,38 +24978,443 @@
       "SpokenLanguageDataDto": {
         "type": "object",
         "properties": {
-          "language": {
-            "type": "object",
-            "properties": {
-              "code": {
-                "type": "string"
-              },
-              "nameEn": {
-                "type": "string"
-              },
-              "namePtBr": {
-                "type": "string"
-              },
-              "nameEs": {
-                "type": "string"
-              },
-              "nativeName": {
-                "type": "string",
-                "nullable": true
-              }
-            },
-            "required": [
-              "code",
-              "nameEn",
-              "namePtBr",
-              "nameEs",
-              "nativeName"
-            ],
-            "x-nestjs_zod-self-required": true
+          "id": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "nameEn": {
+            "type": "string"
+          },
+          "namePtBr": {
+            "type": "string"
+          },
+          "nameEs": {
+            "type": "string"
+          },
+          "nativeName": {
+            "type": "string",
+            "nullable": true
+          },
+          "order": {
+            "type": "integer"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
           }
         },
         "required": [
-          "language"
+          "id",
+          "code",
+          "nameEn",
+          "namePtBr",
+          "nameEs",
+          "nativeName",
+          "order",
+          "isActive",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "TechAreaDataDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          },
+          "nameEn": {
+            "type": "string"
+          },
+          "namePtBr": {
+            "type": "string"
+          },
+          "descriptionEn": {
+            "type": "string",
+            "nullable": true
+          },
+          "descriptionPtBr": {
+            "type": "string",
+            "nullable": true
+          },
+          "icon": {
+            "type": "string",
+            "nullable": true
+          },
+          "color": {
+            "type": "string",
+            "nullable": true
+          },
+          "order": {
+            "type": "integer"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "nameEn",
+          "namePtBr",
+          "descriptionEn",
+          "descriptionPtBr",
+          "icon",
+          "color",
+          "order",
+          "isActive",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "TechNicheDataDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "nameEn": {
+            "type": "string"
+          },
+          "namePtBr": {
+            "type": "string"
+          },
+          "descriptionEn": {
+            "type": "string",
+            "nullable": true
+          },
+          "descriptionPtBr": {
+            "type": "string",
+            "nullable": true
+          },
+          "icon": {
+            "type": "string",
+            "nullable": true
+          },
+          "color": {
+            "type": "string",
+            "nullable": true
+          },
+          "order": {
+            "type": "integer"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "areaId": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "nameEn",
+          "namePtBr",
+          "descriptionEn",
+          "descriptionPtBr",
+          "icon",
+          "color",
+          "order",
+          "isActive",
+          "areaId",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "TechSkillDataDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "nameEn": {
+            "type": "string"
+          },
+          "namePtBr": {
+            "type": "string"
+          },
+          "descriptionEn": {
+            "type": "string",
+            "nullable": true
+          },
+          "descriptionPtBr": {
+            "type": "string",
+            "nullable": true
+          },
+          "type": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string",
+            "nullable": true
+          },
+          "color": {
+            "type": "string",
+            "nullable": true
+          },
+          "website": {
+            "type": "string",
+            "nullable": true
+          },
+          "nicheId": {
+            "type": "string",
+            "nullable": true
+          },
+          "aliases": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "keywords": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "popularity": {
+            "type": "integer"
+          },
+          "order": {
+            "type": "integer"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "nameEn",
+          "namePtBr",
+          "descriptionEn",
+          "descriptionPtBr",
+          "type",
+          "icon",
+          "color",
+          "website",
+          "nicheId",
+          "aliases",
+          "keywords",
+          "popularity",
+          "order",
+          "isActive",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "SpokenLanguageListDataDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "string"
+                },
+                "nameEn": {
+                  "type": "string"
+                },
+                "namePtBr": {
+                  "type": "string"
+                },
+                "nameEs": {
+                  "type": "string"
+                },
+                "nativeName": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "order": {
+                  "type": "integer"
+                },
+                "isActive": {
+                  "type": "boolean"
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "updatedAt": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "required": [
+                "id",
+                "code",
+                "nameEn",
+                "namePtBr",
+                "nameEs",
+                "nativeName",
+                "order",
+                "isActive",
+                "createdAt",
+                "updatedAt"
+              ]
+            }
+          },
+          "total": {
+            "type": "integer"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "pageSize": {
+            "type": "integer"
+          },
+          "totalPages": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize",
+          "totalPages"
+        ]
+      },
+      "ProgrammingLanguageDataDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "nameEn": {
+            "type": "string"
+          },
+          "namePtBr": {
+            "type": "string"
+          },
+          "descriptionEn": {
+            "type": "string",
+            "nullable": true
+          },
+          "descriptionPtBr": {
+            "type": "string",
+            "nullable": true
+          },
+          "icon": {
+            "type": "string",
+            "nullable": true
+          },
+          "color": {
+            "type": "string",
+            "nullable": true
+          },
+          "website": {
+            "type": "string",
+            "nullable": true
+          },
+          "paradigms": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "typing": {
+            "type": "string",
+            "nullable": true
+          },
+          "aliases": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "fileExtensions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "popularity": {
+            "type": "integer"
+          },
+          "order": {
+            "type": "integer"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "nameEn",
+          "namePtBr",
+          "descriptionEn",
+          "descriptionPtBr",
+          "icon",
+          "color",
+          "website",
+          "paradigms",
+          "typing",
+          "aliases",
+          "fileExtensions",
+          "popularity",
+          "order",
+          "isActive",
+          "createdAt",
+          "updatedAt"
         ]
       },
       "ATSValidationResponseDto": {
@@ -22263,7 +25772,119 @@
         "properties": {
           "resume": {
             "type": "object",
-            "additionalProperties": {},
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "userId": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string",
+                "nullable": true
+              },
+              "template": {
+                "type": "string"
+              },
+              "language": {
+                "type": "string"
+              },
+              "isPublic": {
+                "type": "boolean"
+              },
+              "slug": {
+                "type": "string",
+                "nullable": true
+              },
+              "fullName": {
+                "type": "string",
+                "nullable": true
+              },
+              "jobTitle": {
+                "type": "string",
+                "nullable": true
+              },
+              "phone": {
+                "type": "string",
+                "nullable": true
+              },
+              "emailContact": {
+                "type": "string",
+                "nullable": true
+              },
+              "location": {
+                "type": "string",
+                "nullable": true
+              },
+              "linkedin": {
+                "type": "string",
+                "nullable": true
+              },
+              "github": {
+                "type": "string",
+                "nullable": true
+              },
+              "website": {
+                "type": "string",
+                "nullable": true
+              },
+              "summary": {
+                "type": "string",
+                "nullable": true
+              },
+              "accentColor": {
+                "type": "string",
+                "nullable": true
+              },
+              "activeThemeId": {
+                "type": "string",
+                "nullable": true
+              },
+              "createdAt": {},
+              "updatedAt": {},
+              "sections": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "semanticKind": {
+                      "type": "string"
+                    },
+                    "items": {
+                      "type": "array",
+                      "items": {}
+                    }
+                  },
+                  "required": [
+                    "semanticKind",
+                    "items"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "id",
+              "userId",
+              "title",
+              "template",
+              "language",
+              "isPublic",
+              "slug",
+              "fullName",
+              "jobTitle",
+              "phone",
+              "emailContact",
+              "location",
+              "linkedin",
+              "github",
+              "website",
+              "summary",
+              "accentColor",
+              "activeThemeId",
+              "createdAt",
+              "updatedAt",
+              "sections"
+            ],
             "nullable": true,
             "x-nestjs_zod-self-required": true
           },
@@ -22274,8 +25895,6 @@
                 "type": "string"
               },
               "expiresAt": {
-                "type": "string",
-                "format": "date-time",
                 "nullable": true
               }
             },
@@ -22411,7 +26030,77 @@
         "properties": {
           "analytics": {
             "type": "object",
-            "additionalProperties": {},
+            "properties": {
+              "shareId": {
+                "type": "string"
+              },
+              "totalViews": {
+                "type": "integer"
+              },
+              "totalDownloads": {
+                "type": "integer"
+              },
+              "uniqueVisitors": {
+                "type": "integer"
+              },
+              "byCountry": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "country": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "count": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "country",
+                    "count"
+                  ]
+                }
+              },
+              "recentEvents": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "event": {
+                      "type": "string",
+                      "enum": [
+                        "VIEW",
+                        "DOWNLOAD"
+                      ]
+                    },
+                    "country": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "city": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "createdAt": {}
+                  },
+                  "required": [
+                    "event",
+                    "country",
+                    "city",
+                    "createdAt"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "shareId",
+              "totalViews",
+              "totalDownloads",
+              "uniqueVisitors",
+              "byCountry",
+              "recentEvents"
+            ],
             "x-nestjs_zod-self-required": true
           }
         },
@@ -22426,7 +26115,44 @@
             "type": "array",
             "items": {
               "type": "object",
-              "additionalProperties": {}
+              "properties": {
+                "eventType": {
+                  "type": "string",
+                  "enum": [
+                    "VIEW",
+                    "DOWNLOAD"
+                  ]
+                },
+                "ipAddress": {
+                  "type": "string"
+                },
+                "userAgent": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "referrer": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "country": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "city": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "createdAt": {}
+              },
+              "required": [
+                "eventType",
+                "ipAddress",
+                "userAgent",
+                "referrer",
+                "country",
+                "city",
+                "createdAt"
+              ]
             }
           }
         },
@@ -22572,6 +26298,135 @@
         },
         "required": [
           "resumes"
+        ]
+      },
+      "AdminAnalyticsOverviewDataDto": {
+        "type": "object",
+        "properties": {
+          "userGrowth": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "date": {
+                  "type": "string"
+                },
+                "count": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "date",
+                "count"
+              ]
+            }
+          },
+          "resumesByLanguage": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "language": {
+                  "type": "string"
+                },
+                "count": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "language",
+                "count"
+              ]
+            }
+          },
+          "atsScoreDistribution": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "bucket": {
+                  "type": "string"
+                },
+                "count": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "bucket",
+                "count"
+              ]
+            }
+          },
+          "mostUsedSections": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "sectionTypeId": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "key": {
+                  "type": "string"
+                },
+                "count": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "sectionTypeId",
+                "title",
+                "key",
+                "count"
+              ]
+            }
+          },
+          "importSources": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "source": {
+                  "type": "string"
+                },
+                "count": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "source",
+                "count"
+              ]
+            }
+          },
+          "viewSources": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "source": {
+                  "type": "string"
+                },
+                "count": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "source",
+                "count"
+              ]
+            }
+          }
+        },
+        "required": [
+          "userGrowth",
+          "resumesByLanguage",
+          "atsScoreDistribution",
+          "mostUsedSections",
+          "importSources",
+          "viewSources"
         ]
       },
       "ChatMessageDataDto": {
@@ -22961,20 +26816,13 @@
       "UnreadCountDataDto": {
         "type": "object",
         "properties": {
-          "totalUnread": {
-            "type": "integer"
-          },
-          "byConversation": {
-            "type": "object",
-            "additionalProperties": {
-              "type": "integer"
-            },
-            "x-nestjs_zod-self-required": true
+          "count": {
+            "type": "number",
+            "example": 5
           }
         },
         "required": [
-          "totalUnread",
-          "byConversation"
+          "count"
         ]
       },
       "ConversationNullableDataDto": {
@@ -23064,6 +26912,43 @@
         },
         "required": [
           "conversationId"
+        ]
+      },
+      "ChatUserSearchDataDto": {
+        "type": "object",
+        "properties": {
+          "users": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "username": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "photoURL": {
+                  "type": "string",
+                  "nullable": true
+                }
+              },
+              "required": [
+                "id",
+                "name",
+                "username",
+                "photoURL"
+              ]
+            }
+          }
+        },
+        "required": [
+          "users"
         ]
       },
       "BlockUserDataDto": {
@@ -23196,6 +27081,276 @@
         },
         "required": [
           "sharedResumes"
+        ]
+      },
+      "AdminChatStatsDataDto": {
+        "type": "object",
+        "properties": {
+          "totalConversations": {
+            "type": "integer"
+          },
+          "totalMessages": {
+            "type": "integer"
+          },
+          "activeConversations": {
+            "type": "integer"
+          },
+          "activeChatUsers": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "totalConversations",
+          "totalMessages",
+          "activeConversations",
+          "activeChatUsers"
+        ]
+      },
+      "AdminChatConversationsDataDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "updatedAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "participant1Id": {
+                  "type": "string"
+                },
+                "participant2Id": {
+                  "type": "string"
+                },
+                "participant1": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "email": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "email"
+                  ]
+                },
+                "participant2": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "email": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "email"
+                  ]
+                },
+                "lastMessageContent": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "lastMessageAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "nullable": true
+                },
+                "lastMessageSenderId": {
+                  "type": "string",
+                  "nullable": true
+                }
+              },
+              "required": [
+                "id",
+                "createdAt",
+                "updatedAt",
+                "participant1Id",
+                "participant2Id",
+                "participant1",
+                "participant2",
+                "lastMessageContent",
+                "lastMessageAt",
+                "lastMessageSenderId"
+              ]
+            }
+          },
+          "total": {
+            "type": "integer"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "pageSize": {
+            "type": "integer"
+          },
+          "totalPages": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize",
+          "totalPages"
+        ]
+      },
+      "AdminCollaborationStatsDataDto": {
+        "type": "object",
+        "properties": {
+          "totalCollaborations": {
+            "type": "integer"
+          },
+          "byRole": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "role": {
+                  "type": "string"
+                },
+                "count": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "role",
+                "count"
+              ]
+            }
+          }
+        },
+        "required": [
+          "totalCollaborations",
+          "byRole"
+        ]
+      },
+      "AdminCollaborationsListDataDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "resumeId": {
+                  "type": "string"
+                },
+                "userId": {
+                  "type": "string"
+                },
+                "role": {
+                  "type": "string"
+                },
+                "invitedBy": {
+                  "type": "string"
+                },
+                "invitedAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "joinedAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "nullable": true
+                },
+                "user": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "email": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "email"
+                  ]
+                },
+                "resume": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": "string",
+                      "nullable": true
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "title"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "resumeId",
+                "userId",
+                "role",
+                "invitedBy",
+                "invitedAt",
+                "joinedAt",
+                "user",
+                "resume"
+              ]
+            }
+          },
+          "total": {
+            "type": "integer"
+          },
+          "page": {
+            "type": "integer"
+          },
+          "pageSize": {
+            "type": "integer"
+          },
+          "totalPages": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize",
+          "totalPages"
         ]
       },
       "FollowIdDto": {
@@ -23749,6 +27904,1002 @@
         },
         "required": [
           "activities"
+        ]
+      },
+      "AuthorDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "user-123"
+          },
+          "name": {
+            "type": "string",
+            "example": "John Doe",
+            "nullable": true
+          },
+          "username": {
+            "type": "string",
+            "example": "johndoe",
+            "nullable": true
+          },
+          "photoURL": {
+            "type": "string",
+            "example": "https://example.com/photo.jpg",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "username",
+          "photoURL"
+        ]
+      },
+      "OriginalPostDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "post-456"
+          },
+          "author": {
+            "$ref": "#/components/schemas/AuthorDto"
+          }
+        },
+        "required": [
+          "id",
+          "author"
+        ]
+      },
+      "PostCreatedDataDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "post-123"
+          },
+          "authorId": {
+            "type": "string",
+            "example": "user-123"
+          },
+          "type": {
+            "type": "string",
+            "example": "TEXT"
+          },
+          "subtype": {
+            "type": "string",
+            "example": "article"
+          },
+          "content": {
+            "type": "string",
+            "example": "Hello world!"
+          },
+          "hardSkills": {
+            "example": [
+              "typescript"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "softSkills": {
+            "example": [
+              "leadership"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "hashtags": {
+            "example": [
+              "#tech"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "imageUrl": {
+            "type": "string",
+            "example": "https://example.com/image.jpg"
+          },
+          "linkUrl": {
+            "type": "string",
+            "example": "https://example.com"
+          },
+          "likesCount": {
+            "type": "number",
+            "example": 0
+          },
+          "commentsCount": {
+            "type": "number",
+            "example": 0
+          },
+          "repostsCount": {
+            "type": "number",
+            "example": 0
+          },
+          "bookmarksCount": {
+            "type": "number",
+            "example": 0
+          },
+          "isDeleted": {
+            "type": "boolean",
+            "example": false
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2025-01-01T00:00:00.000Z"
+          },
+          "author": {
+            "$ref": "#/components/schemas/AuthorDto"
+          },
+          "originalPost": {
+            "$ref": "#/components/schemas/OriginalPostDto"
+          }
+        },
+        "required": [
+          "id",
+          "authorId",
+          "type",
+          "hardSkills",
+          "softSkills",
+          "hashtags",
+          "likesCount",
+          "commentsCount",
+          "repostsCount",
+          "bookmarksCount",
+          "isDeleted",
+          "createdAt",
+          "author"
+        ]
+      },
+      "PostByIdDataDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "post-123"
+          },
+          "authorId": {
+            "type": "string",
+            "example": "user-123"
+          },
+          "type": {
+            "type": "string",
+            "example": "TEXT"
+          },
+          "subtype": {
+            "type": "string",
+            "example": "article"
+          },
+          "content": {
+            "type": "string",
+            "example": "Hello world!"
+          },
+          "hardSkills": {
+            "example": [
+              "typescript"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "softSkills": {
+            "example": [
+              "leadership"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "hashtags": {
+            "example": [
+              "#tech"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "imageUrl": {
+            "type": "string",
+            "example": "https://example.com/image.jpg"
+          },
+          "linkUrl": {
+            "type": "string",
+            "example": "https://example.com"
+          },
+          "likesCount": {
+            "type": "number",
+            "example": 0
+          },
+          "commentsCount": {
+            "type": "number",
+            "example": 0
+          },
+          "repostsCount": {
+            "type": "number",
+            "example": 0
+          },
+          "bookmarksCount": {
+            "type": "number",
+            "example": 0
+          },
+          "isDeleted": {
+            "type": "boolean",
+            "example": false
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2025-01-01T00:00:00.000Z"
+          },
+          "author": {
+            "$ref": "#/components/schemas/AuthorDto"
+          },
+          "originalPost": {
+            "$ref": "#/components/schemas/OriginalPostDto"
+          }
+        },
+        "required": [
+          "id",
+          "authorId",
+          "type",
+          "hardSkills",
+          "softSkills",
+          "hashtags",
+          "likesCount",
+          "commentsCount",
+          "repostsCount",
+          "bookmarksCount",
+          "isDeleted",
+          "createdAt",
+          "author"
+        ]
+      },
+      "PostDeletedDataDto": {
+        "type": "object",
+        "properties": {
+          "deleted": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "deleted"
+        ]
+      },
+      "PostImageUploadDataDto": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "example": "https://cdn.example.com/posts/user-123/image.jpg"
+          },
+          "key": {
+            "type": "string",
+            "example": "posts/user-123/image.jpg"
+          }
+        },
+        "required": [
+          "url",
+          "key"
+        ]
+      },
+      "FeedPostDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "post-123"
+          },
+          "authorId": {
+            "type": "string",
+            "example": "user-123"
+          },
+          "type": {
+            "type": "string",
+            "example": "TEXT"
+          },
+          "subtype": {
+            "type": "string",
+            "example": "article"
+          },
+          "content": {
+            "type": "string",
+            "example": "Hello world!"
+          },
+          "hardSkills": {
+            "example": [
+              "typescript"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "softSkills": {
+            "example": [
+              "leadership"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "hashtags": {
+            "example": [
+              "#tech"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "imageUrl": {
+            "type": "string",
+            "example": "https://example.com/image.jpg"
+          },
+          "linkUrl": {
+            "type": "string",
+            "example": "https://example.com"
+          },
+          "likesCount": {
+            "type": "number",
+            "example": 0
+          },
+          "commentsCount": {
+            "type": "number",
+            "example": 0
+          },
+          "repostsCount": {
+            "type": "number",
+            "example": 0
+          },
+          "bookmarksCount": {
+            "type": "number",
+            "example": 0
+          },
+          "isDeleted": {
+            "type": "boolean",
+            "example": false
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2025-01-01T00:00:00.000Z"
+          },
+          "author": {
+            "$ref": "#/components/schemas/AuthorDto"
+          },
+          "originalPost": {
+            "$ref": "#/components/schemas/OriginalPostDto"
+          },
+          "isLiked": {
+            "type": "boolean",
+            "example": true
+          },
+          "isBookmarked": {
+            "type": "boolean",
+            "example": false
+          }
+        },
+        "required": [
+          "id",
+          "authorId",
+          "type",
+          "hardSkills",
+          "softSkills",
+          "hashtags",
+          "likesCount",
+          "commentsCount",
+          "repostsCount",
+          "bookmarksCount",
+          "isDeleted",
+          "createdAt",
+          "author"
+        ]
+      },
+      "FeedTimelineDataDto": {
+        "type": "object",
+        "properties": {
+          "posts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FeedPostDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "example": "2025-01-01T00:00:00.000Z",
+            "nullable": true
+          }
+        },
+        "required": [
+          "posts",
+          "nextCursor"
+        ]
+      },
+      "FeedBookmarksDataDto": {
+        "type": "object",
+        "properties": {
+          "posts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FeedPostDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "example": "2025-01-01T00:00:00.000Z",
+            "nullable": true
+          }
+        },
+        "required": [
+          "posts",
+          "nextCursor"
+        ]
+      },
+      "PostDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "post-123"
+          },
+          "authorId": {
+            "type": "string",
+            "example": "user-123"
+          },
+          "type": {
+            "type": "string",
+            "example": "TEXT"
+          },
+          "subtype": {
+            "type": "string",
+            "example": "article"
+          },
+          "content": {
+            "type": "string",
+            "example": "Hello world!"
+          },
+          "hardSkills": {
+            "example": [
+              "typescript"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "softSkills": {
+            "example": [
+              "leadership"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "hashtags": {
+            "example": [
+              "#tech"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "imageUrl": {
+            "type": "string",
+            "example": "https://example.com/image.jpg"
+          },
+          "linkUrl": {
+            "type": "string",
+            "example": "https://example.com"
+          },
+          "likesCount": {
+            "type": "number",
+            "example": 0
+          },
+          "commentsCount": {
+            "type": "number",
+            "example": 0
+          },
+          "repostsCount": {
+            "type": "number",
+            "example": 0
+          },
+          "bookmarksCount": {
+            "type": "number",
+            "example": 0
+          },
+          "isDeleted": {
+            "type": "boolean",
+            "example": false
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2025-01-01T00:00:00.000Z"
+          },
+          "author": {
+            "$ref": "#/components/schemas/AuthorDto"
+          },
+          "originalPost": {
+            "$ref": "#/components/schemas/OriginalPostDto"
+          }
+        },
+        "required": [
+          "id",
+          "authorId",
+          "type",
+          "hardSkills",
+          "softSkills",
+          "hashtags",
+          "likesCount",
+          "commentsCount",
+          "repostsCount",
+          "bookmarksCount",
+          "isDeleted",
+          "createdAt",
+          "author"
+        ]
+      },
+      "UserPostsDataDto": {
+        "type": "object",
+        "properties": {
+          "posts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PostDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "example": "2025-01-01T00:00:00.000Z",
+            "nullable": true
+          }
+        },
+        "required": [
+          "posts",
+          "nextCursor"
+        ]
+      },
+      "CommentReplyDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "comment-789"
+          },
+          "postId": {
+            "type": "string",
+            "example": "post-123"
+          },
+          "authorId": {
+            "type": "string",
+            "example": "user-456"
+          },
+          "content": {
+            "type": "string",
+            "example": "Great point!"
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2025-01-01T00:00:00.000Z"
+          },
+          "author": {
+            "$ref": "#/components/schemas/AuthorDto"
+          }
+        },
+        "required": [
+          "id",
+          "postId",
+          "authorId",
+          "content",
+          "createdAt",
+          "author"
+        ]
+      },
+      "CommentDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "comment-789"
+          },
+          "postId": {
+            "type": "string",
+            "example": "post-123"
+          },
+          "authorId": {
+            "type": "string",
+            "example": "user-456"
+          },
+          "content": {
+            "type": "string",
+            "example": "Great point!"
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2025-01-01T00:00:00.000Z"
+          },
+          "author": {
+            "$ref": "#/components/schemas/AuthorDto"
+          },
+          "replies": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CommentReplyDto"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "postId",
+          "authorId",
+          "content",
+          "createdAt",
+          "author",
+          "replies"
+        ]
+      },
+      "CommentsListDataDto": {
+        "type": "object",
+        "properties": {
+          "comments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CommentDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "example": "2025-01-01T00:00:00.000Z",
+            "nullable": true
+          }
+        },
+        "required": [
+          "comments",
+          "nextCursor"
+        ]
+      },
+      "CommentCreatedDataDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "comment-789"
+          },
+          "postId": {
+            "type": "string",
+            "example": "post-123"
+          },
+          "authorId": {
+            "type": "string",
+            "example": "user-456"
+          },
+          "content": {
+            "type": "string",
+            "example": "Great point!"
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2025-01-01T00:00:00.000Z"
+          },
+          "author": {
+            "$ref": "#/components/schemas/AuthorDto"
+          }
+        },
+        "required": [
+          "id",
+          "postId",
+          "authorId",
+          "content",
+          "createdAt",
+          "author"
+        ]
+      },
+      "CommentDeletedDataDto": {
+        "type": "object",
+        "properties": {
+          "deleted": {
+            "type": "boolean",
+            "example": true
+          }
+        },
+        "required": [
+          "deleted"
+        ]
+      },
+      "LikeDataDto": {
+        "type": "object",
+        "properties": {
+          "postId": {
+            "type": "string",
+            "example": "post-123"
+          },
+          "userId": {
+            "type": "string",
+            "example": "user-123"
+          },
+          "postAuthorId": {
+            "type": "string",
+            "example": "user-456"
+          },
+          "alreadyLiked": {
+            "type": "boolean",
+            "example": false
+          }
+        },
+        "required": [
+          "postId",
+          "userId",
+          "alreadyLiked"
+        ]
+      },
+      "UnlikeDataDto": {
+        "type": "object",
+        "properties": {
+          "postId": {
+            "type": "string",
+            "example": "post-123"
+          },
+          "userId": {
+            "type": "string",
+            "example": "user-123"
+          }
+        },
+        "required": [
+          "postId",
+          "userId"
+        ]
+      },
+      "BookmarkDataDto": {
+        "type": "object",
+        "properties": {
+          "postId": {
+            "type": "string",
+            "example": "post-123"
+          },
+          "userId": {
+            "type": "string",
+            "example": "user-123"
+          },
+          "alreadyBookmarked": {
+            "type": "boolean",
+            "example": false
+          }
+        },
+        "required": [
+          "postId",
+          "userId",
+          "alreadyBookmarked"
+        ]
+      },
+      "UnbookmarkDataDto": {
+        "type": "object",
+        "properties": {
+          "postId": {
+            "type": "string",
+            "example": "post-123"
+          },
+          "userId": {
+            "type": "string",
+            "example": "user-123"
+          }
+        },
+        "required": [
+          "postId",
+          "userId"
+        ]
+      },
+      "RepostDataDto": {
+        "type": "object",
+        "properties": {
+          "postId": {
+            "type": "string",
+            "example": "post-123"
+          },
+          "userId": {
+            "type": "string",
+            "example": "user-123"
+          },
+          "reposted": {
+            "type": "boolean",
+            "example": true
+          },
+          "id": {
+            "type": "string",
+            "example": "post-789"
+          },
+          "author": {
+            "$ref": "#/components/schemas/AuthorDto"
+          }
+        }
+      },
+      "ReportDataDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "report-123"
+          },
+          "postId": {
+            "type": "string",
+            "example": "post-123"
+          },
+          "userId": {
+            "type": "string",
+            "example": "user-123"
+          },
+          "reason": {
+            "type": "string",
+            "example": "Inappropriate content"
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2025-01-01T00:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "postId",
+          "userId",
+          "reason",
+          "createdAt"
+        ]
+      },
+      "VoteDataDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "vote-123"
+          },
+          "postId": {
+            "type": "string",
+            "example": "post-123"
+          },
+          "userId": {
+            "type": "string",
+            "example": "user-123"
+          },
+          "optionIndex": {
+            "type": "number",
+            "example": 0
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2025-01-01T00:00:00.000Z"
+          }
+        },
+        "required": [
+          "id",
+          "postId",
+          "userId",
+          "optionIndex",
+          "createdAt"
+        ]
+      },
+      "NotificationActorDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "user-456"
+          },
+          "name": {
+            "type": "string",
+            "example": "Jane Doe",
+            "nullable": true
+          },
+          "username": {
+            "type": "string",
+            "example": "janedoe",
+            "nullable": true
+          },
+          "photoURL": {
+            "type": "string",
+            "example": "https://example.com/photo.jpg",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "username",
+          "photoURL"
+        ]
+      },
+      "NotificationDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "notif-123"
+          },
+          "userId": {
+            "type": "string",
+            "example": "user-123"
+          },
+          "type": {
+            "type": "string",
+            "example": "LIKE"
+          },
+          "actorId": {
+            "type": "string",
+            "example": "user-456"
+          },
+          "message": {
+            "type": "string",
+            "example": "Jane liked your post"
+          },
+          "entityType": {
+            "type": "string",
+            "example": "POST"
+          },
+          "entityId": {
+            "type": "string",
+            "example": "post-123"
+          },
+          "read": {
+            "type": "boolean",
+            "example": false
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2025-01-01T00:00:00.000Z"
+          },
+          "actor": {
+            "$ref": "#/components/schemas/NotificationActorDto"
+          }
+        },
+        "required": [
+          "id",
+          "userId",
+          "type",
+          "actorId",
+          "message",
+          "read",
+          "createdAt",
+          "actor"
+        ]
+      },
+      "NotificationsListDataDto": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NotificationDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "example": "notif-456",
+            "nullable": true
+          }
+        },
+        "required": [
+          "data",
+          "nextCursor"
+        ]
+      },
+      "MarkReadDataDto": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "number",
+            "example": 3
+          }
+        },
+        "required": [
+          "count"
         ]
       }
     }

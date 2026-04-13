@@ -1,7 +1,13 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Post, Query, Req } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
+import {
+  MarkReadDataDto,
+  NotificationsListDataDto,
+  UnreadCountDataDto,
+} from '../dto/notification-response.dto';
 import { NotificationService } from '../services/notification.service';
 
 @SdkExport({ tag: 'notifications', description: 'Notifications API' })
@@ -14,6 +20,12 @@ export class NotificationController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get notifications for current user' })
+  @ApiQuery({ name: 'cursor', required: false, type: String })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiDataResponse(NotificationsListDataDto, {
+    description: 'List of notifications',
+  })
   async getByUser(
     @Req() req: { user: { userId: string } },
     @Query('cursor') cursor?: string,
@@ -28,6 +40,10 @@ export class NotificationController {
 
   @Get('unread-count')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get unread notification count' })
+  @ApiDataResponse(UnreadCountDataDto, {
+    description: 'Unread notification count',
+  })
   async getUnreadCount(@Req() req: { user: { userId: string } }) {
     const count = await this.notificationService.getUnreadCount(req.user.userId);
     return { count };
@@ -35,6 +51,10 @@ export class NotificationController {
 
   @Post('mark-read')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Mark notifications as read' })
+  @ApiDataResponse(MarkReadDataDto, {
+    description: 'Notifications marked as read',
+  })
   async markRead(
     @Req() req: { user: { userId: string } },
     @Body() body: { notificationId?: string },

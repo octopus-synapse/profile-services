@@ -1,8 +1,10 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import { AdminAnalyticsService } from './admin-analytics.service';
+import { AdminAnalyticsOverviewDataDto } from './dto/admin-analytics-response.dto';
 
 @SdkExport({ tag: 'admin-analytics', description: 'Admin Analytics API', requiresAuth: true })
 @ApiTags('Admin - Analytics')
@@ -15,6 +17,7 @@ export class AdminAnalyticsController {
   @Get('overview')
   @ApiOperation({ summary: 'Get platform-wide analytics overview' })
   @ApiQuery({ name: 'period', required: false, enum: ['day', 'week', 'month'] })
+  @ApiDataResponse(AdminAnalyticsOverviewDataDto, { description: 'Platform analytics overview' })
   async getOverview(@Query('period') period?: 'day' | 'week' | 'month') {
     return this.service.getOverview(period ?? 'week');
   }

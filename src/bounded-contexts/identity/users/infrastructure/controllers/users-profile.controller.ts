@@ -32,6 +32,7 @@ import type { UpdateUser, UpdateUsername } from '@/shared-kernel';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import {
   USER_PROFILE_USE_CASES,
+  type UserProfile,
   type UserProfileUseCases,
 } from '../../application/ports/user-profile.port';
 import { UsernameService } from '../../application/services/username.service';
@@ -72,9 +73,7 @@ export class UsersProfileController {
     private readonly usernameService: UsernameService,
   ) {}
 
-  private buildProfileData(
-    profile: Record<string, unknown>,
-  ): UserProfileDataDto & Record<string, unknown> {
+  private buildProfileData(profile: UserProfile): UserProfileDataDto & Record<string, unknown> {
     return { ...profile, profile };
   }
 
@@ -86,7 +85,10 @@ export class UsersProfileController {
     @Param('username') username: string,
   ): Promise<DataResponse<PublicProfileDataDto>> {
     const data = await this.profile.getPublicProfileUseCase.execute(username);
-    return { success: true, data: { user: data.user, resume: data.resume } };
+    return {
+      success: true,
+      data: { user: data.user, resume: data.resume } as unknown as PublicProfileDataDto,
+    };
   }
 
   @RequirePermission(Permission.USER_PROFILE_READ)
@@ -97,7 +99,7 @@ export class UsersProfileController {
     const result = await this.profile.getProfileUseCase.execute(user.userId);
     return {
       success: true,
-      data: this.buildProfileData(result as unknown as Record<string, unknown>),
+      data: this.buildProfileData(result),
     };
   }
 
@@ -114,7 +116,7 @@ export class UsersProfileController {
     const result = await this.profile.updateProfileUseCase.execute(user.userId, updateUserData);
     return {
       success: true,
-      data: this.buildProfileData(result as unknown as Record<string, unknown>),
+      data: this.buildProfileData(result),
     };
   }
 

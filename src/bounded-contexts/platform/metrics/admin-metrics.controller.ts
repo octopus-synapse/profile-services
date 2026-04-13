@@ -1,7 +1,9 @@
 import { Controller, Get } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
+import { AdminMetricsOverviewDataDto } from './dto/admin-metrics-response.dto';
 import { MetricsService } from './metrics.service';
 
 @SdkExport({
@@ -18,6 +20,7 @@ export class AdminMetricsController {
 
   @Get('overview')
   @ApiOperation({ summary: 'Get all metrics as JSON' })
+  @ApiDataResponse(AdminMetricsOverviewDataDto, { description: 'Platform metrics overview' })
   async getOverview() {
     const [metricsJson, latencySummary] = await Promise.all([
       this.metricsService.getMetricsJson(),

@@ -11,9 +11,14 @@ import {
   Query,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
+import {
+  ApiDataResponse,
+  ApiEmptyDataResponse,
+} from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import { AdminTechNichesService } from './admin-tech-niches.service';
+import { TechNicheDataDto, TechNicheListDataDto } from './dto/admin-tech-niches-response.dto';
 
 @SdkExport({
   tag: 'admin-tech-niches',
@@ -34,6 +39,7 @@ export class AdminTechNichesController {
   @ApiQuery({ name: 'search', required: false, type: String })
   @ApiQuery({ name: 'areaId', required: false, type: String })
   @ApiQuery({ name: 'isActive', required: false, type: Boolean })
+  @ApiDataResponse(TechNicheListDataDto, { description: 'List of tech niches' })
   async findAll(
     @Query('page') page?: number,
     @Query('pageSize') pageSize?: number,
@@ -52,18 +58,21 @@ export class AdminTechNichesController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get tech niche by ID' })
+  @ApiDataResponse(TechNicheDataDto, { description: 'Tech niche details' })
   async findOne(@Param('id') id: string) {
     return this.service.findOne(id);
   }
 
   @Post()
   @ApiOperation({ summary: 'Create tech niche' })
+  @ApiDataResponse(TechNicheDataDto, { description: 'Tech niche created', status: 201 })
   async create(@Body() dto: Record<string, unknown>) {
     return this.service.create(dto);
   }
 
   @Patch(':id')
   @ApiOperation({ summary: 'Update tech niche' })
+  @ApiDataResponse(TechNicheDataDto, { description: 'Tech niche updated' })
   async update(@Param('id') id: string, @Body() dto: Record<string, unknown>) {
     return this.service.update(id, dto);
   }
@@ -71,6 +80,7 @@ export class AdminTechNichesController {
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete tech niche' })
+  @ApiEmptyDataResponse({ description: 'Tech niche deleted', status: 204 })
   async remove(@Param('id') id: string) {
     await this.service.remove(id);
   }

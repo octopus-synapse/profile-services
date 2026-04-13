@@ -3,7 +3,7 @@
   "generatedBy": "nest-swagger",
   "paths": 250,
   "operations": 303,
-  "schemas": 208,
+  "schemas": 252,
   "tags": [
     "auth",
     "export",
