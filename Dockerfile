@@ -54,22 +54,9 @@ RUN mkdir -p dist/templates/typst && \
 RUN --mount=type=cache,target=/root/.bun/install/cache \
     bun install --production --frozen-lockfile
 
-# Stage 3: Production Runtime
-FROM oven/bun:1.3.11-alpine AS runner
-
-RUN apk add --no-cache \
-    chromium \
-    nss \
-    freetype \
-    harfbuzz \
-    ca-certificates \
-    ttf-freefont \
-    tini \
-    xz
-
-RUN wget -qO- https://github.com/typst/typst/releases/download/v0.13.1/typst-x86_64-unknown-linux-musl.tar.xz \
-    | tar -xJ -C /usr/local/bin/ --strip-components=1 typst-x86_64-unknown-linux-musl/typst && \
-    apk del xz
+# Stage 3: Production Runtime (pre-built base with chromium, typst, fonts, tini)
+ARG BASE_IMAGE=ghcr.io/octopus-synapse/profile-services-base:latest
+FROM ${BASE_IMAGE} AS runner
 
 ENV NODE_ENV=production \
     PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \

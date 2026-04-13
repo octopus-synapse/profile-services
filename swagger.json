@@ -16035,6 +16035,52 @@
           "notifications"
         ]
       }
+    },
+    "/api/v1/admin/test/run": {
+      "post": {
+        "operationId": "testRunner_runTests",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: admin:full_access"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Run a test suite",
+        "tags": [
+          "Admin - Test Runner"
+        ]
+      }
+    },
+    "/api/v1/admin/test/suites": {
+      "get": {
+        "operationId": "testRunner_getSuites",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: admin:full_access"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List available test suites",
+        "tags": [
+          "Admin - Test Runner"
+        ]
+      }
     }
   },
   "info": {

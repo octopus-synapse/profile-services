@@ -34,7 +34,9 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}:${{ inputs.tag }}
             ghcr.io/${{ github.repository }}:latest
-          cache-from: type=gha
+          cache-from: |
+            type=gha
+            type=registry,ref=ghcr.io/octopus-synapse/profile-services:cache
           cache-to: type=gha,mode=max
 
       - name: Update release notes
