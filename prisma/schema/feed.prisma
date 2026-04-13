@@ -1,0 +1,125 @@
+// Feed: Posts, Comments, Likes, Bookmarks, Reports, Polls
+
+model Post {
+  id       String @id @default(cuid())
+  authorId String
+  author   User   @relation("UserPosts", fields: [authorId], references: [id])
+
+  type    PostType
+  subtype String?
+
+  // Global content
+  content    String?  @db.Text
+  hardSkills String[]
+  softSkills String[]
+  hashtags   String[]
+
+  // Structured data per post type (flexible JSON)
+  data Json?
+
+  // Media
+  imageUrl    String?
+  linkUrl     String?
+  linkPreview Json? // { title, description, image, domain }
+
+  // Repost
+  originalPostId String?
+  originalPost   Post?  @relation("Reposts", fields: [originalPostId], references: [id])
+  reposts        Post[] @relation("Reposts")
+
+  // Denormalized counters
+  likesCount     Int @default(0)
+  commentsCount  Int @default(0)
+  repostsCount   Int @default(0)
+  bookmarksCount Int @default(0)
+
+  // Status
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  likes     PostLike[]
+  comments  PostComment[]
+  bookmarks PostBookmark[]
+  reports   PostReport[]
+  pollVotes PollVote[]
+
+  @@index([authorId, createdAt])
+  @@index([type, createdAt])
+  @@index([createdAt])
+  @@index([originalPostId])
+}
+
+model PostComment {
+  id       String @id @default(cuid())
+  postId   String
+  post     Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId String
+  author   User   @relation("UserComments", fields: [authorId], references: [id])
+
+  content  String         @db.Text
+  parentId String?
+  parent   PostComment?   @relation("CommentReplies", fields: [parentId], references: [id])
+  replies  PostComment[]  @relation("CommentReplies")
+
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([postId, createdAt])
+  @@index([parentId])
+}
+
+model PostLike {
+  id     String @id @default(cuid())
+  postId String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation("UserLikes", fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userId])
+}
+
+model PostBookmark {
+  id     String @id @default(cuid())
+  postId String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation("UserBookmarks", fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userId])
+}
+
+model PostReport {
+  id     String @id @default(cuid())
+  postId String
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation("UserReports", fields: [userId], references: [id])
+
+  reason String       @db.Text
+  status ReportStatus @default(PENDING)
+
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userId])
+}
+
+model PollVote {
+  id          String @id @default(cuid())
+  postId      String
+  post        Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId      String
+  optionIndex Int
+
+  createdAt DateTime @default(now())
+
+  @@unique([postId, userId])
+}

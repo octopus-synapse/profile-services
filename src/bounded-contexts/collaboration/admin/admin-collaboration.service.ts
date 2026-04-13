@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { paginate } from '@/shared-kernel/database';
 
 @Injectable()
 export class AdminCollaborationService {
@@ -21,23 +22,14 @@ export class AdminCollaborationService {
   }
 
   async getCollaborations(query: { page?: number; pageSize?: number }) {
-    const page = query.page ?? 1;
-    const pageSize = query.pageSize ?? 20;
-    const skip = (page - 1) * pageSize;
-
-    const [items, total] = await Promise.all([
-      this.prisma.resumeCollaborator.findMany({
-        include: {
-          user: { select: { id: true, name: true, email: true } },
-          resume: { select: { id: true, title: true } },
-        },
-        orderBy: { invitedAt: 'desc' },
-        skip,
-        take: pageSize,
-      }),
-      this.prisma.resumeCollaborator.count(),
-    ]);
-
-    return { items, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
+    return paginate(this.prisma.resumeCollaborator, {
+      page: query.page,
+      pageSize: query.pageSize,
+      orderBy: { invitedAt: 'desc' },
+      include: {
+        user: { select: { id: true, name: true, email: true } },
+        resume: { select: { id: true, title: true } },
+      },
+    });
   }
 }

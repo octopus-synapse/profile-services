@@ -137,6 +137,17 @@ class StubPrismaService {
     this.userFindManyResult = result;
   }
 
+  private queryRawResult: unknown[] = [];
+
+  async $queryRaw<T = unknown>(): Promise<T> {
+    this.calls.push({ method: '$queryRaw', args: [] });
+    return this.queryRawResult as T;
+  }
+
+  setQueryRawResult(result: unknown[]): void {
+    this.queryRawResult = result;
+  }
+
   getCallsFor(method: string): Array<{ method: string; args: unknown[] }> {
     return this.calls.filter((c) => c.method === method);
   }
@@ -561,16 +572,56 @@ describe('ConnectionService', () => {
   });
 
   describe('getConnectionSuggestions', () => {
-    it('should return users not connected to the current user', async () => {
-      stubPrisma.setConnectionFindManyResult([]);
-      stubPrisma.setUserFindManyResult([
-        { id: 'user-4', name: 'User 4' },
-        { id: 'user-5', name: 'User 5' },
+    it('should return paginated suggestions with reason and score', async () => {
+      stubPrisma.setQueryRawResult([
+        {
+          id: 'user-4',
+          name: 'User 4',
+          username: 'user4',
+          photoURL: null,
+          reason: '2 mutual connections',
+          score: 8,
+          total_count: 2,
+        },
+        {
+          id: 'user-5',
+          name: 'User 5',
+          username: 'user5',
+          photoURL: null,
+          reason: 'Suggested for you',
+          score: 0,
+          total_count: 2,
+        },
       ]);
 
-      const result = await service.getConnectionSuggestions('user-1');
+      const result = await service.getConnectionSuggestions('user-1', { page: 1, limit: 20 });
 
-      expect(result).toHaveLength(2);
+      expect(result.data).toHaveLength(2);
+      expect(result.total).toBe(2);
+      expect(result.page).toBe(1);
+      expect(result.limit).toBe(20);
+      expect(result.totalPages).toBe(1);
+      expect(result.data[0].reason).toBe('2 mutual connections');
+      expect(result.data[0].score).toBe(8);
+      expect(result.data[1].reason).toBe('Suggested for you');
+    });
+
+    it('should return empty paginated result when no suggestions', async () => {
+      stubPrisma.setQueryRawResult([]);
+
+      const result = await service.getConnectionSuggestions('user-1', { page: 1, limit: 20 });
+
+      expect(result.data).toHaveLength(0);
+      expect(result.total).toBe(0);
+      expect(result.totalPages).toBe(0);
+    });
+
+    it('should compute pagination offset correctly', async () => {
+      stubPrisma.setQueryRawResult([]);
+
+      await service.getConnectionSuggestions('user-1', { page: 3, limit: 10 });
+
+      expect(stubPrisma.getCallsFor('$queryRaw').length).toBe(1);
     });
   });
 });

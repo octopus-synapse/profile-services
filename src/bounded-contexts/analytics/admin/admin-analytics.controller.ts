@@ -16,7 +16,6 @@ export class AdminAnalyticsController {
   @ApiOperation({ summary: 'Get platform-wide analytics overview' })
   @ApiQuery({ name: 'period', required: false, enum: ['day', 'week', 'month'] })
   async getOverview(@Query('period') period?: 'day' | 'week' | 'month') {
-    const result = await this.service.getOverview(period ?? 'week');
-    return { success: true, data: result };
+    return this.service.getOverview(period ?? 'week');
   }
 }

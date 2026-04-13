@@ -71,6 +71,13 @@ export const PERMISSION_GROUPS = {
     permissions: [Permission.SOCIAL_USE],
   },
 
+  // User can use feed and jobs
+  FEED_USER: {
+    id: 'grp_feed_user',
+    displayName: 'Feed User',
+    permissions: [Permission.FEED_USE, Permission.JOB_CREATE, Permission.NOTIFICATION_READ],
+  },
+
   // ============================================================================
   // Admin Capabilities
   // ============================================================================
@@ -115,6 +122,13 @@ export const PERMISSION_GROUPS = {
     id: 'grp_platform_admin',
     displayName: 'Platform Admin',
     permissions: [Permission.PLATFORM_STATS_READ, Permission.PLATFORM_MANAGE],
+  },
+
+  // Admin can moderate feed and manage jobs
+  FEED_ADMIN: {
+    id: 'grp_feed_admin',
+    displayName: 'Feed Admin',
+    permissions: [Permission.FEED_MODERATE, Permission.JOB_MANAGE],
   },
 
   // Super admin - bypass all

@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { AdminAnalyticsModule } from '@/bounded-contexts/analytics/admin/admin-analytics.module';
 import { ResumeAnalyticsModule } from '@/bounded-contexts/analytics/resume-analytics/resume-analytics.module';
@@ -16,6 +16,8 @@ import { CollaborationModule } from '@/bounded-contexts/collaboration/collaborat
 import { DslModule } from '@/bounded-contexts/dsl';
 // Export Context
 import { ExportModule } from '@/bounded-contexts/export/export.module';
+// Feed Context
+import { FeedModule } from '@/bounded-contexts/feed/feed.module';
 // Identity Context
 import { IdentityModule } from '@/bounded-contexts/identity';
 import { AuthorizationModule } from '@/bounded-contexts/identity/authorization/authorization.module';
@@ -25,6 +27,10 @@ import { UsersModule } from '@/bounded-contexts/identity/users/users.module';
 import { ImportModule } from '@/bounded-contexts/import';
 // Integration Context
 import { IntegrationModule } from '@/bounded-contexts/integration';
+// Jobs Context
+import { JobsModule } from '@/bounded-contexts/jobs/jobs.module';
+// Notifications Context
+import { NotificationsModule } from '@/bounded-contexts/notifications/notifications.module';
 // Onboarding Context
 import { OnboardingModule } from '@/bounded-contexts/onboarding';
 import { AuditLogModule } from '@/bounded-contexts/platform/common/audit/audit-log.module';
@@ -55,6 +61,7 @@ import { TranslationModule } from '@/bounded-contexts/translation';
 import { RATE_LIMIT_CONFIG } from '@/shared-kernel';
 // Shared Kernel
 import { EventBusModule } from '@/shared-kernel/event-bus/event-bus.module';
+import { ApiResponseInterceptor } from '@/shared-kernel/interceptors/api-response.interceptor';
 import { AppController } from './app.controller';
 
 @Module({
@@ -108,9 +115,17 @@ import { AppController } from './app.controller';
     CollaborationModule,
     AdminCollaborationModule,
     SocialModule,
+    FeedModule,
+    JobsModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [
+    // Global Interceptor (wraps responses with { success, data })
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ApiResponseInterceptor,
+    },
     // Global Guards (order matters: Throttler → JWT Auth)
     {
       provide: APP_GUARD,

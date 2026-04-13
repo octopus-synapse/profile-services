@@ -1,0 +1,22 @@
+// Notifications: In-app notifications for user engagement
+
+model Notification {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation("UserNotifications", fields: [userId], references: [id])
+
+  type    NotificationType
+  actorId String?
+  actor   User?  @relation("NotificationActors", fields: [actorId], references: [id])
+
+  entityType String? // "post", "comment", "connection"
+  entityId   String?
+
+  message String
+  read    Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, read, createdAt])
+  @@index([userId, createdAt])
+}

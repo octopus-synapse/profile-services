@@ -37,17 +37,61 @@ import {
   ConnectionCheckDto,
   ConnectionListDataDto,
   ConnectionStatsDto,
+  NetworkSummaryDataDto,
   PendingRequestsDataDto,
   SuggestionsDataDto,
 } from '../dto/connection-response.dto';
 import { ConnectionService } from '../services/connection.service';
+import { FollowService } from '../services/follow.service';
 
 // --- Controller ---
 
 @ApiTags('social-connections')
 @Controller()
 export class ConnectionController {
-  constructor(private readonly connectionService: ConnectionService) {}
+  constructor(
+    private readonly connectionService: ConnectionService,
+    private readonly followService: FollowService,
+  ) {}
+
+  /**
+   * Get a complete network summary for the authenticated user.
+   * Returns stats, pending requests, connections, and suggestions in a single call.
+   */
+  @Get('v1/users/me/network-summary')
+  @RequirePermission(Permission.SOCIAL_USE)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get network summary for authenticated user' })
+  @ApiDataResponse(NetworkSummaryDataDto, { description: 'Network summary returned' })
+  async getNetworkSummary(
+    @CurrentUser() user: UserPayload,
+  ): Promise<DataResponse<NetworkSummaryDataDto>> {
+    const defaultPagination = { page: 1, limit: 10 };
+
+    const [pendingRequests, connections, suggestions, socialStats, pendingCount] =
+      await Promise.all([
+        this.connectionService.getPendingRequests(user.userId, defaultPagination),
+        this.connectionService.getConnections(user.userId, defaultPagination),
+        this.connectionService.getConnectionSuggestions(user.userId, { page: 1, limit: 20 }),
+        this.followService.getSocialStats(user.userId),
+        this.connectionService.getPendingRequests(user.userId, { page: 1, limit: 1 }),
+      ]);
+
+    return {
+      success: true,
+      data: {
+        stats: {
+          connections: socialStats.connections,
+          followers: socialStats.followers,
+          following: socialStats.following,
+          pendingInvitations: pendingCount.total,
+        },
+        pendingRequests,
+        connections,
+        suggestions,
+      },
+    };
+  }
 
   /**
    * Send a connection request to a user.
@@ -194,8 +238,13 @@ export class ConnectionController {
   @ApiDataResponse(SuggestionsDataDto, { description: 'Suggestions returned' })
   async getConnectionSuggestions(
     @CurrentUser() user: UserPayload,
+    @Query('page') page = 1,
+    @Query('limit') limit = 20,
   ): Promise<DataResponse<SuggestionsDataDto>> {
-    const suggestions = await this.connectionService.getConnectionSuggestions(user.userId);
+    const suggestions = await this.connectionService.getConnectionSuggestions(user.userId, {
+      page: Number(page),
+      limit: Math.min(Number(limit), 20),
+    });
 
     return {
       success: true,

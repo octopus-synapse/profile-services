@@ -90,7 +90,7 @@ export class UserManagementService {
   /**
    * Assign roles to a user
    */
-  async assignRoles(userId: string, roles: string[], assignedBy: string): Promise<void> {
+  async assignRoles(userId: string, roles: string[], _assignedBy: string): Promise<void> {
     const validRoles = ['role_user', 'role_admin'];
     for (const role of roles) {
       if (!validRoles.includes(role)) {

@@ -1,15 +1,13 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma, TechAreaType } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { paginate, patchData } from '@/shared-kernel/database';
 
 @Injectable()
 export class AdminTechAreasService {
   constructor(private readonly prisma: PrismaService) {}
 
   async findAll(query: { page?: number; pageSize?: number; search?: string; isActive?: boolean }) {
-    const page = query.page ?? 1;
-    const pageSize = query.pageSize ?? 20;
-    const skip = (page - 1) * pageSize;
     const where: Prisma.TechAreaWhereInput = {};
 
     if (query.search) {
@@ -20,12 +18,12 @@ export class AdminTechAreasService {
     }
     if (query.isActive !== undefined) where.isActive = query.isActive;
 
-    const [items, total] = await Promise.all([
-      this.prisma.techArea.findMany({ where, skip, take: pageSize, orderBy: { order: 'asc' } }),
-      this.prisma.techArea.count({ where }),
-    ]);
-
-    return { items, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
+    return paginate(this.prisma.techArea, {
+      page: query.page,
+      pageSize: query.pageSize,
+      where,
+      orderBy: { order: 'asc' },
+    });
   }
 
   async findOne(id: string) {
@@ -54,15 +52,16 @@ export class AdminTechAreasService {
     const existing = await this.prisma.techArea.findUnique({ where: { id } });
     if (!existing) throw new NotFoundException(`Tech area '${id}' not found`);
 
-    const data: Record<string, unknown> = {};
-    if (dto.nameEn !== undefined) data.nameEn = dto.nameEn;
-    if (dto.namePtBr !== undefined) data.namePtBr = dto.namePtBr;
-    if (dto.descriptionEn !== undefined) data.descriptionEn = dto.descriptionEn;
-    if (dto.descriptionPtBr !== undefined) data.descriptionPtBr = dto.descriptionPtBr;
-    if (dto.icon !== undefined) data.icon = dto.icon;
-    if (dto.color !== undefined) data.color = dto.color;
-    if (dto.order !== undefined) data.order = dto.order;
-    if (dto.isActive !== undefined) data.isActive = dto.isActive;
+    const data = patchData(dto, [
+      'nameEn',
+      'namePtBr',
+      'descriptionEn',
+      'descriptionPtBr',
+      'icon',
+      'color',
+      'order',
+      'isActive',
+    ]);
 
     return this.prisma.techArea.update({ where: { id }, data });
   }

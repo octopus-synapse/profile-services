@@ -39,7 +39,7 @@ describe('E2E Journey: Analytics Pipeline', () => {
     userId?: string;
   };
   let resumeId: string;
-  let firstSnapshotAtsScore: number;
+  let _firstSnapshotAtsScore: number;
 
   beforeAll(async () => {
     const testApp = await createE2ETestApp();
@@ -121,7 +121,7 @@ describe('E2E Journey: Analytics Pipeline', () => {
       expect(response.body.data.atsScore).toBeGreaterThanOrEqual(0);
       expect(response.body.data.atsScore).toBeLessThanOrEqual(100);
 
-      firstSnapshotAtsScore = response.body.data.atsScore;
+      _firstSnapshotAtsScore = response.body.data.atsScore;
     });
   });
 

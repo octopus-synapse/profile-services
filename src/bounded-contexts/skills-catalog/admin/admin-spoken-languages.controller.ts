@@ -39,34 +39,30 @@ export class AdminSpokenLanguagesController {
     @Query('search') search?: string,
     @Query('isActive') isActive?: boolean,
   ) {
-    const result = await this.service.findAll({
+    return this.service.findAll({
       page: page ? Number(page) : undefined,
       pageSize: pageSize ? Number(pageSize) : undefined,
       search,
       isActive: isActive !== undefined ? String(isActive) === 'true' : undefined,
     });
-    return { success: true, data: result };
   }
 
   @Get(':code')
   @ApiOperation({ summary: 'Get spoken language by code' })
   async findOne(@Param('code') code: string) {
-    const result = await this.service.findOne(code);
-    return { success: true, data: result };
+    return this.service.findOne(code);
   }
 
   @Post()
   @ApiOperation({ summary: 'Create spoken language' })
   async create(@Body() dto: Record<string, unknown>) {
-    const result = await this.service.create(dto);
-    return { success: true, data: result };
+    return this.service.create(dto);
   }
 
   @Patch(':code')
   @ApiOperation({ summary: 'Update spoken language' })
   async update(@Param('code') code: string, @Body() dto: Record<string, unknown>) {
-    const result = await this.service.update(code, dto);
-    return { success: true, data: result };
+    return this.service.update(code, dto);
   }
 
   @Delete(':code')

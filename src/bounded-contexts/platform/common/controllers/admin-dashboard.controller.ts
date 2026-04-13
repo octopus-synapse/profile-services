@@ -19,7 +19,6 @@ export class AdminDashboardController {
   @Get('metrics')
   @ApiOperation({ summary: 'Get platform metrics for admin dashboard' })
   async getMetrics() {
-    const metrics = await this.service.getMetrics();
-    return { success: true, data: metrics };
+    return this.service.getMetrics();
   }
 }

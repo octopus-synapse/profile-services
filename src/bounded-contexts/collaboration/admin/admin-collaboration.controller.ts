@@ -19,8 +19,7 @@ export class AdminCollaborationController {
   @Get('stats')
   @ApiOperation({ summary: 'Get collaboration statistics' })
   async getStats() {
-    const stats = await this.service.getStats();
-    return { success: true, data: stats };
+    return this.service.getStats();
   }
 
   @Get()
@@ -28,10 +27,9 @@ export class AdminCollaborationController {
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'pageSize', required: false, type: Number })
   async getCollaborations(@Query('page') page?: number, @Query('pageSize') pageSize?: number) {
-    const result = await this.service.getCollaborations({
+    return this.service.getCollaborations({
       page: page ? Number(page) : undefined,
       pageSize: pageSize ? Number(pageSize) : undefined,
     });
-    return { success: true, data: result };
   }
 }

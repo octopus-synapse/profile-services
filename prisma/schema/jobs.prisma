@@ -1,0 +1,27 @@
+// Jobs: Job listings posted by users
+
+model Job {
+  id       String @id @default(cuid())
+  authorId String
+  author   User   @relation("UserJobs", fields: [authorId], references: [id])
+
+  title        String
+  company      String
+  location     String?
+  jobType      JobType
+  description  String   @db.Text
+  requirements String[]
+  skills       String[]
+  salaryRange  String?
+  applyUrl     String?
+
+  isActive  Boolean   @default(true)
+  expiresAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([authorId])
+  @@index([jobType, createdAt])
+  @@index([isActive, createdAt])
+}

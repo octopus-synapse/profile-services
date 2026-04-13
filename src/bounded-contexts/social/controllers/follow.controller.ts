@@ -26,6 +26,7 @@ import {
   UnfollowDataDto,
 } from '../dto/controller-response.dto';
 import { ActivityService } from '../services/activity.service';
+import { ConnectionService } from '../services/connection.service';
 import { FollowService } from '../services/follow.service';
 
 class FollowIdDto {
@@ -49,6 +50,11 @@ class SocialStatsDto {
   connections!: number;
 }
 
+class MySocialStatsDto extends SocialStatsDto {
+  @ApiProperty({ example: 3 })
+  pendingInvitations!: number;
+}
+
 // --- Controller ---
 
 @ApiTags('social-follow')
@@ -57,6 +63,7 @@ export class FollowController {
   constructor(
     private readonly followService: FollowService,
     private readonly activityService: ActivityService,
+    private readonly connectionService: ConnectionService,
   ) {}
 
   /**
@@ -195,6 +202,31 @@ export class FollowController {
     return {
       success: true,
       data: { isFollowing },
+    };
+  }
+
+  /**
+   * Get social stats for the authenticated user, including pending invitations.
+   */
+  @Get('me/social-stats')
+  @RequirePermission(Permission.SOCIAL_USE)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get social stats for authenticated user' })
+  @ApiDataResponse(MySocialStatsDto, { description: 'Social stats returned' })
+  async getMySocialStats(
+    @CurrentUser() user: UserPayload,
+  ): Promise<DataResponse<MySocialStatsDto>> {
+    const [stats, pendingResult] = await Promise.all([
+      this.followService.getSocialStats(user.userId),
+      this.connectionService.getPendingRequests(user.userId, { page: 1, limit: 1 }),
+    ]);
+
+    return {
+      success: true,
+      data: {
+        ...stats,
+        pendingInvitations: pendingResult.total,
+      },
     };
   }
 

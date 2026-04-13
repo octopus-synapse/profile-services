@@ -33,6 +33,7 @@ const ConnectionDataSchema = z.object({
   updatedAt: z.date(),
   requester: ConnectionUserSchema.optional(),
   target: ConnectionUserSchema.optional(),
+  user: ConnectionUserSchema.optional(),
 });
 
 const ConnectionListDataSchema = z.object({
@@ -51,10 +52,35 @@ const ConnectionCheckSchema = z.object({
   isConnected: z.boolean(),
 });
 
-const SuggestionUserSchema = ConnectionUserSchema;
+const SuggestionUserSchema = z.object({
+  id: z.string(),
+  name: z.string().nullable(),
+  username: z.string().nullable(),
+  photoURL: z.string().nullable(),
+  reason: z.string(),
+  score: z.number(),
+});
 
 const SuggestionsDataSchema = z.object({
-  suggestions: z.array(SuggestionUserSchema),
+  suggestions: PaginatedResultSchema.extend({
+    data: z.array(SuggestionUserSchema),
+  }),
+});
+
+const NetworkSummaryStatsSchema = z.object({
+  connections: z.number().int(),
+  followers: z.number().int(),
+  following: z.number().int(),
+  pendingInvitations: z.number().int(),
+});
+
+const NetworkSummaryDataSchema = z.object({
+  stats: NetworkSummaryStatsSchema,
+  pendingRequests: PaginatedResultSchema,
+  connections: PaginatedResultSchema,
+  suggestions: PaginatedResultSchema.extend({
+    data: z.array(SuggestionUserSchema),
+  }),
 });
 
 // ============================================================================
@@ -67,3 +93,4 @@ export class PendingRequestsDataDto extends createZodDto(PendingRequestsDataSche
 export class ConnectionStatsDto extends createZodDto(ConnectionStatsSchema) {}
 export class ConnectionCheckDto extends createZodDto(ConnectionCheckSchema) {}
 export class SuggestionsDataDto extends createZodDto(SuggestionsDataSchema) {}
+export class NetworkSummaryDataDto extends createZodDto(NetworkSummaryDataSchema) {}

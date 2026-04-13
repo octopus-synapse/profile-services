@@ -15,8 +15,7 @@ export class AdminChatController {
   @Get('stats')
   @ApiOperation({ summary: 'Get chat statistics' })
   async getStats() {
-    const stats = await this.service.getStats();
-    return { success: true, data: stats };
+    return this.service.getStats();
   }
 
   @Get('conversations')
@@ -24,10 +23,9 @@ export class AdminChatController {
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'pageSize', required: false, type: Number })
   async getConversations(@Query('page') page?: number, @Query('pageSize') pageSize?: number) {
-    const result = await this.service.getConversations({
+    return this.service.getConversations({
       page: page ? Number(page) : undefined,
       pageSize: pageSize ? Number(pageSize) : undefined,
     });
-    return { success: true, data: result };
   }
 }
