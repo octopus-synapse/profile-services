@@ -3,6 +3,7 @@
  *
  * Handles feed timeline generation and bookmark retrieval.
  * Builds timeline from followed users, connections, and own posts.
+ * Includes co-authored posts and thread context.
  */
 
 import { Injectable } from '@nestjs/common';
@@ -24,11 +25,13 @@ export class FeedService {
    * Get the feed timeline for a user.
    *
    * 1. Get followingIds from Follow table + connectionIds from Connection table (ACCEPTED)
-   * 2. Query posts WHERE authorId IN [...ids, userId], isDeleted=false
+   * 2. Query posts WHERE (authorId IN [...ids, userId] OR coAuthors has userId), isDeleted=false, isPublished=true
+   *    Exception: the user's own scheduled (unpublished) posts are included
    * 3. Optional type filter
    * 4. Cursor-based pagination (createdAt < cursor)
    * 5. Include whether current user liked/bookmarked each post
-   * 6. Return { posts, nextCursor }
+   * 6. Include thread context for threaded posts
+   * 7. Return { posts, nextCursor }
    */
   async getTimeline(userId: string, cursor?: string, limit = 20, type?: PostType) {
     // 1. Get IDs of users whose posts should appear in the feed
@@ -53,13 +56,26 @@ export class FeedService {
 
     const feedUserIds = [...new Set([...followingIds, ...connectionIds, userId])];
 
-    // 2. Query posts
+    // 2. Query posts: published posts from feed users + co-authored posts + own unpublished (scheduled)
     const posts = await this.prisma.post.findMany({
       where: {
-        authorId: { in: feedUserIds },
         isDeleted: false,
         ...(type ? { type } : {}),
         ...(cursor ? { createdAt: { lt: new Date(cursor) } } : {}),
+        OR: [
+          {
+            authorId: { in: feedUserIds },
+            isPublished: true,
+          },
+          {
+            coAuthors: { has: userId },
+            isPublished: true,
+          },
+          {
+            authorId: userId,
+            isPublished: false,
+          },
+        ],
       },
       include: {
         author: { select: AUTHOR_SELECT },
@@ -80,7 +96,7 @@ export class FeedService {
       const [likes, bookmarks] = await Promise.all([
         this.prisma.postLike.findMany({
           where: { postId: { in: postIds }, userId },
-          select: { postId: true },
+          select: { postId: true, reactionType: true },
         }),
         this.prisma.postBookmark.findMany({
           where: { postId: { in: postIds }, userId },
@@ -88,13 +104,42 @@ export class FeedService {
         }),
       ]);
 
-      const likedPostIds = new Set(likes.map((l) => l.postId));
+      const likedPostMap = new Map(likes.map((l) => [l.postId, l.reactionType]));
       const bookmarkedPostIds = new Set(bookmarks.map((b) => b.postId));
+
+      // 4. Collect thread context for threaded posts
+      const threadIds = [
+        ...new Set(posts.filter((p) => p.threadId).map((p) => p.threadId as string)),
+      ];
+      const threadPosts =
+        threadIds.length > 0
+          ? await this.prisma.post.findMany({
+              where: {
+                threadId: { in: threadIds },
+                isDeleted: false,
+                isPublished: true,
+              },
+              include: {
+                author: { select: AUTHOR_SELECT },
+              },
+              orderBy: { createdAt: 'asc' },
+            })
+          : [];
+
+      const threadMap = new Map<string, typeof threadPosts>();
+      for (const tp of threadPosts) {
+        if (!tp.threadId) continue;
+        const existing = threadMap.get(tp.threadId) ?? [];
+        existing.push(tp);
+        threadMap.set(tp.threadId, existing);
+      }
 
       const enrichedPosts = posts.map((post) => ({
         ...post,
-        isLiked: likedPostIds.has(post.id),
+        isLiked: likedPostMap.has(post.id),
+        reactionType: likedPostMap.get(post.id) ?? null,
         isBookmarked: bookmarkedPostIds.has(post.id),
+        threadPosts: post.threadId ? (threadMap.get(post.threadId) ?? []) : [],
       }));
 
       const nextCursor =

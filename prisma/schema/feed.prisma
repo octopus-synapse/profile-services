@@ -27,6 +27,23 @@ model Post {
   originalPost   Post?  @relation("Reposts", fields: [originalPostId], references: [id])
   reposts        Post[] @relation("Reposts")
 
+  // Co-authors
+  coAuthors String[]
+
+  // Scheduling
+  scheduledAt DateTime?
+  isPublished Boolean   @default(true)
+
+  // Thread
+  threadId String?
+
+  // Poll
+  pollDeadline DateTime?
+  votesCount   Int       @default(0)
+
+  // Code snippet
+  codeSnippet Json?
+
   // Denormalized counters
   likesCount     Int @default(0)
   commentsCount  Int @default(0)
@@ -51,6 +68,8 @@ model Post {
   @@index([type, createdAt])
   @@index([createdAt])
   @@index([originalPostId])
+  @@index([originalPostId, authorId])
+  @@index([threadId])
 }
 
 model PostComment {
@@ -79,6 +98,8 @@ model PostLike {
   post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
   userId String
   user   User   @relation("UserLikes", fields: [userId], references: [id])
+
+  reactionType ReactionType @default(LIKE)
 
   createdAt DateTime @default(now())
 

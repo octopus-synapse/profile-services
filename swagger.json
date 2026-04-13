@@ -6607,6 +6607,48 @@
         ]
       }
     },
+    "/api/v1/onboarding/session/validate": {
+      "post": {
+        "operationId": "onboarding_validateStep",
+        "parameters": [
+          {
+            "name": "locale",
+            "required": false,
+            "in": "query",
+            "description": "Locale for translations (en, pt-BR, es). Defaults to en.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "additionalProperties": true,
+                "description": "Data to save for the current step"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Validate step fields without saving",
+        "tags": [
+          "onboarding"
+        ]
+      }
+    },
     "/api/v1/onboarding/session/save": {
       "post": {
         "operationId": "onboarding_saveStepData",
@@ -6708,6 +6750,58 @@
           }
         ],
         "summary": "Complete onboarding — backend builds payload from saved progress",
+        "tags": [
+          "onboarding"
+        ]
+      }
+    },
+    "/api/v1/onboarding/session/restart": {
+      "post": {
+        "operationId": "onboarding_restartOnboarding",
+        "parameters": [
+          {
+            "name": "locale",
+            "required": false,
+            "in": "query",
+            "description": "Locale for translations (en, pt-BR, es). Defaults to en.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "New session pre-populated with existing data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/OnboardingSessionDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Restart onboarding with existing profile data",
         "tags": [
           "onboarding"
         ]
@@ -16858,6 +16952,176 @@
         ]
       }
     },
+    "/api/v1/notifications": {
+      "get": {
+        "operationId": "notifications_getByUser",
+        "parameters": [
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of notifications",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/NotificationsListDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: notification:read"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get notifications for current user",
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
+    "/api/v1/notifications/unread-count": {
+      "get": {
+        "operationId": "notifications_getUnreadCount",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Unread notification count",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/UnreadCountDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: notification:read"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get unread notification count",
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
+    "/api/v1/notifications/mark-read": {
+      "post": {
+        "operationId": "notifications_markRead",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Notifications marked as read",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/MarkReadDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: notification:read"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Mark notifications as read",
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
     "/api/v1/jobs": {
       "get": {
         "operationId": "jobs_findAll",
@@ -17076,176 +17340,6 @@
         ],
         "tags": [
           "jobs"
-        ]
-      }
-    },
-    "/api/v1/notifications": {
-      "get": {
-        "operationId": "notifications_getByUser",
-        "parameters": [
-          {
-            "name": "cursor",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "limit",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "List of notifications",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/ApiResponseDto"
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "data": {
-                          "$ref": "#/components/schemas/NotificationsListDataDto"
-                        }
-                      },
-                      "required": [
-                        "data"
-                      ]
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Authentication required"
-          },
-          "403": {
-            "description": "Requires permission: notification:read"
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          },
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Get notifications for current user",
-        "tags": [
-          "notifications"
-        ]
-      }
-    },
-    "/api/v1/notifications/unread-count": {
-      "get": {
-        "operationId": "notifications_getUnreadCount",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Unread notification count",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/ApiResponseDto"
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "data": {
-                          "$ref": "#/components/schemas/UnreadCountDataDto"
-                        }
-                      },
-                      "required": [
-                        "data"
-                      ]
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Authentication required"
-          },
-          "403": {
-            "description": "Requires permission: notification:read"
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          },
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Get unread notification count",
-        "tags": [
-          "notifications"
-        ]
-      }
-    },
-    "/api/v1/notifications/mark-read": {
-      "post": {
-        "operationId": "notifications_markRead",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Notifications marked as read",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "allOf": [
-                    {
-                      "$ref": "#/components/schemas/ApiResponseDto"
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "data": {
-                          "$ref": "#/components/schemas/MarkReadDataDto"
-                        }
-                      },
-                      "required": [
-                        "data"
-                      ]
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Authentication required"
-          },
-          "403": {
-            "description": "Requires permission: notification:read"
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          },
-          {
-            "bearer": []
-          }
-        ],
-        "summary": "Mark notifications as read",
-        "tags": [
-          "notifications"
         ]
       }
     },
@@ -28010,6 +28104,42 @@
             "type": "string",
             "example": "https://example.com"
           },
+          "coAuthors": {
+            "example": [
+              "user-456"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "scheduledAt": {
+            "type": "string",
+            "example": "2025-06-01T12:00:00.000Z"
+          },
+          "isPublished": {
+            "type": "boolean",
+            "example": true
+          },
+          "threadId": {
+            "type": "string",
+            "example": "thread-123"
+          },
+          "pollDeadline": {
+            "type": "string",
+            "example": "2025-06-15T12:00:00.000Z"
+          },
+          "votesCount": {
+            "type": "number",
+            "example": 0
+          },
+          "codeSnippet": {
+            "type": "object",
+            "example": {
+              "language": "typescript",
+              "code": "console.log(\"hi\")"
+            }
+          },
           "likesCount": {
             "type": "number",
             "example": 0
@@ -28048,6 +28178,9 @@
           "hardSkills",
           "softSkills",
           "hashtags",
+          "coAuthors",
+          "isPublished",
+          "votesCount",
           "likesCount",
           "commentsCount",
           "repostsCount",
@@ -28115,6 +28248,42 @@
             "type": "string",
             "example": "https://example.com"
           },
+          "coAuthors": {
+            "example": [
+              "user-456"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "scheduledAt": {
+            "type": "string",
+            "example": "2025-06-01T12:00:00.000Z"
+          },
+          "isPublished": {
+            "type": "boolean",
+            "example": true
+          },
+          "threadId": {
+            "type": "string",
+            "example": "thread-123"
+          },
+          "pollDeadline": {
+            "type": "string",
+            "example": "2025-06-15T12:00:00.000Z"
+          },
+          "votesCount": {
+            "type": "number",
+            "example": 0
+          },
+          "codeSnippet": {
+            "type": "object",
+            "example": {
+              "language": "typescript",
+              "code": "console.log(\"hi\")"
+            }
+          },
           "likesCount": {
             "type": "number",
             "example": 0
@@ -28153,6 +28322,9 @@
           "hardSkills",
           "softSkills",
           "hashtags",
+          "coAuthors",
+          "isPublished",
+          "votesCount",
           "likesCount",
           "commentsCount",
           "repostsCount",
@@ -28189,159 +28361,6 @@
         "required": [
           "url",
           "key"
-        ]
-      },
-      "FeedPostDto": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "example": "post-123"
-          },
-          "authorId": {
-            "type": "string",
-            "example": "user-123"
-          },
-          "type": {
-            "type": "string",
-            "example": "TEXT"
-          },
-          "subtype": {
-            "type": "string",
-            "example": "article"
-          },
-          "content": {
-            "type": "string",
-            "example": "Hello world!"
-          },
-          "hardSkills": {
-            "example": [
-              "typescript"
-            ],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "softSkills": {
-            "example": [
-              "leadership"
-            ],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "hashtags": {
-            "example": [
-              "#tech"
-            ],
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          },
-          "imageUrl": {
-            "type": "string",
-            "example": "https://example.com/image.jpg"
-          },
-          "linkUrl": {
-            "type": "string",
-            "example": "https://example.com"
-          },
-          "likesCount": {
-            "type": "number",
-            "example": 0
-          },
-          "commentsCount": {
-            "type": "number",
-            "example": 0
-          },
-          "repostsCount": {
-            "type": "number",
-            "example": 0
-          },
-          "bookmarksCount": {
-            "type": "number",
-            "example": 0
-          },
-          "isDeleted": {
-            "type": "boolean",
-            "example": false
-          },
-          "createdAt": {
-            "type": "string",
-            "example": "2025-01-01T00:00:00.000Z"
-          },
-          "author": {
-            "$ref": "#/components/schemas/AuthorDto"
-          },
-          "originalPost": {
-            "$ref": "#/components/schemas/OriginalPostDto"
-          },
-          "isLiked": {
-            "type": "boolean",
-            "example": true
-          },
-          "isBookmarked": {
-            "type": "boolean",
-            "example": false
-          }
-        },
-        "required": [
-          "id",
-          "authorId",
-          "type",
-          "hardSkills",
-          "softSkills",
-          "hashtags",
-          "likesCount",
-          "commentsCount",
-          "repostsCount",
-          "bookmarksCount",
-          "isDeleted",
-          "createdAt",
-          "author"
-        ]
-      },
-      "FeedTimelineDataDto": {
-        "type": "object",
-        "properties": {
-          "posts": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/FeedPostDto"
-            }
-          },
-          "nextCursor": {
-            "type": "string",
-            "example": "2025-01-01T00:00:00.000Z",
-            "nullable": true
-          }
-        },
-        "required": [
-          "posts",
-          "nextCursor"
-        ]
-      },
-      "FeedBookmarksDataDto": {
-        "type": "object",
-        "properties": {
-          "posts": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/FeedPostDto"
-            }
-          },
-          "nextCursor": {
-            "type": "string",
-            "example": "2025-01-01T00:00:00.000Z",
-            "nullable": true
-          }
-        },
-        "required": [
-          "posts",
-          "nextCursor"
         ]
       },
       "PostDto": {
@@ -28402,6 +28421,42 @@
             "type": "string",
             "example": "https://example.com"
           },
+          "coAuthors": {
+            "example": [
+              "user-456"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "scheduledAt": {
+            "type": "string",
+            "example": "2025-06-01T12:00:00.000Z"
+          },
+          "isPublished": {
+            "type": "boolean",
+            "example": true
+          },
+          "threadId": {
+            "type": "string",
+            "example": "thread-123"
+          },
+          "pollDeadline": {
+            "type": "string",
+            "example": "2025-06-15T12:00:00.000Z"
+          },
+          "votesCount": {
+            "type": "number",
+            "example": 0
+          },
+          "codeSnippet": {
+            "type": "object",
+            "example": {
+              "language": "typescript",
+              "code": "console.log(\"hi\")"
+            }
+          },
           "likesCount": {
             "type": "number",
             "example": 0
@@ -28440,6 +28495,9 @@
           "hardSkills",
           "softSkills",
           "hashtags",
+          "coAuthors",
+          "isPublished",
+          "votesCount",
           "likesCount",
           "commentsCount",
           "repostsCount",
@@ -28447,6 +28505,216 @@
           "isDeleted",
           "createdAt",
           "author"
+        ]
+      },
+      "FeedPostDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "post-123"
+          },
+          "authorId": {
+            "type": "string",
+            "example": "user-123"
+          },
+          "type": {
+            "type": "string",
+            "example": "TEXT"
+          },
+          "subtype": {
+            "type": "string",
+            "example": "article"
+          },
+          "content": {
+            "type": "string",
+            "example": "Hello world!"
+          },
+          "hardSkills": {
+            "example": [
+              "typescript"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "softSkills": {
+            "example": [
+              "leadership"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "hashtags": {
+            "example": [
+              "#tech"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "imageUrl": {
+            "type": "string",
+            "example": "https://example.com/image.jpg"
+          },
+          "linkUrl": {
+            "type": "string",
+            "example": "https://example.com"
+          },
+          "coAuthors": {
+            "example": [
+              "user-456"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "scheduledAt": {
+            "type": "string",
+            "example": "2025-06-01T12:00:00.000Z"
+          },
+          "isPublished": {
+            "type": "boolean",
+            "example": true
+          },
+          "threadId": {
+            "type": "string",
+            "example": "thread-123"
+          },
+          "pollDeadline": {
+            "type": "string",
+            "example": "2025-06-15T12:00:00.000Z"
+          },
+          "votesCount": {
+            "type": "number",
+            "example": 0
+          },
+          "codeSnippet": {
+            "type": "object",
+            "example": {
+              "language": "typescript",
+              "code": "console.log(\"hi\")"
+            }
+          },
+          "likesCount": {
+            "type": "number",
+            "example": 0
+          },
+          "commentsCount": {
+            "type": "number",
+            "example": 0
+          },
+          "repostsCount": {
+            "type": "number",
+            "example": 0
+          },
+          "bookmarksCount": {
+            "type": "number",
+            "example": 0
+          },
+          "isDeleted": {
+            "type": "boolean",
+            "example": false
+          },
+          "createdAt": {
+            "type": "string",
+            "example": "2025-01-01T00:00:00.000Z"
+          },
+          "author": {
+            "$ref": "#/components/schemas/AuthorDto"
+          },
+          "originalPost": {
+            "$ref": "#/components/schemas/OriginalPostDto"
+          },
+          "isLiked": {
+            "type": "boolean",
+            "example": true
+          },
+          "reactionType": {
+            "type": "string",
+            "example": "LIKE",
+            "enum": [
+              "LIKE",
+              "CELEBRATE",
+              "LOVE",
+              "INSIGHTFUL",
+              "CURIOUS"
+            ],
+            "nullable": true
+          },
+          "isBookmarked": {
+            "type": "boolean",
+            "example": false
+          },
+          "threadPosts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PostDto"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "authorId",
+          "type",
+          "hardSkills",
+          "softSkills",
+          "hashtags",
+          "coAuthors",
+          "isPublished",
+          "votesCount",
+          "likesCount",
+          "commentsCount",
+          "repostsCount",
+          "bookmarksCount",
+          "isDeleted",
+          "createdAt",
+          "author"
+        ]
+      },
+      "FeedTimelineDataDto": {
+        "type": "object",
+        "properties": {
+          "posts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FeedPostDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "example": "2025-01-01T00:00:00.000Z",
+            "nullable": true
+          }
+        },
+        "required": [
+          "posts",
+          "nextCursor"
+        ]
+      },
+      "FeedBookmarksDataDto": {
+        "type": "object",
+        "properties": {
+          "posts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FeedPostDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "example": "2025-01-01T00:00:00.000Z",
+            "nullable": true
+          }
+        },
+        "required": [
+          "posts",
+          "nextCursor"
         ]
       },
       "UserPostsDataDto": {
@@ -28627,6 +28895,17 @@
             "type": "string",
             "example": "user-123"
           },
+          "reactionType": {
+            "type": "string",
+            "example": "LIKE",
+            "enum": [
+              "LIKE",
+              "CELEBRATE",
+              "LOVE",
+              "INSIGHTFUL",
+              "CURIOUS"
+            ]
+          },
           "postAuthorId": {
             "type": "string",
             "example": "user-456"
@@ -28634,11 +28913,16 @@
           "alreadyLiked": {
             "type": "boolean",
             "example": false
+          },
+          "updated": {
+            "type": "boolean",
+            "example": false
           }
         },
         "required": [
           "postId",
           "userId",
+          "reactionType",
           "alreadyLiked"
         ]
       },

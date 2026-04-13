@@ -43,6 +43,7 @@ import { calculateStrength } from '../../domain/config/onboarding-strength';
 import {
   canCompleteOnboarding,
   canProceedFromStep,
+  validateStepFields,
 } from '../../domain/config/onboarding-validation';
 import { ONBOARDING_USE_CASES, type OnboardingUseCases } from '../../domain/ports/onboarding.port';
 import {
@@ -227,6 +228,42 @@ export class OnboardingController {
     };
   }
 
+  @Post('session/validate')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Validate step fields without saving' })
+  @ApiQuery({
+    name: 'locale',
+    required: false,
+    description: 'Locale for translations (en, pt-BR, es). Defaults to en.',
+  })
+  @ApiBody({ schema: ONBOARDING_STEP_DATA_REQUEST_SCHEMA })
+  async validateStep(
+    @CurrentUser() user: UserPayload,
+    @Body() body: { stepId?: string; data: Record<string, string> },
+    @Query('locale') localeParam?: string,
+  ): Promise<DataResponse<{ valid: boolean; errors: Record<string, string> }>> {
+    const _locale = parseLocale(localeParam);
+
+    // Get current progress to determine step
+    const progress = await this.progressUseCases.getProgressUseCase.execute(user.userId);
+    const stepId = body.stepId ?? progress.currentStep;
+
+    // Get step config
+    const stepConfigs = await this.onboardingConfig.getActiveSteps();
+    const step = stepConfigs.find((s) => s.key === stepId);
+
+    if (!step) {
+      return { success: true, data: { valid: false, errors: { _step: 'unknown_step' } } };
+    }
+
+    const errors = validateStepFields(step, body.data);
+
+    return {
+      success: true,
+      data: { valid: Object.keys(errors).length === 0, errors },
+    };
+  }
+
   @Post('session/save')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Save current step data without advancing' })
@@ -280,6 +317,32 @@ export class OnboardingController {
       data: result as CompleteOnboardingResponseDto,
       resumeId: result.resumeId,
     } as DataResponse<CompleteOnboardingResponseDto> & { resumeId: string };
+  }
+
+  @Post('session/restart')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Restart onboarding with existing profile data' })
+  @ApiQuery({
+    name: 'locale',
+    required: false,
+    description: 'Locale for translations (en, pt-BR, es). Defaults to en.',
+  })
+  @ApiDataResponse(OnboardingSessionDto, {
+    description: 'New session pre-populated with existing data',
+  })
+  async restartOnboarding(
+    @CurrentUser() user: UserPayload,
+    @Query('locale') localeParam?: string,
+  ): Promise<DataResponse<OnboardingSessionDto>> {
+    const locale = parseLocale(localeParam);
+    const stepConfigs = await this.onboardingConfig.getActiveSteps();
+
+    await this.useCases.restartOnboardingUseCase.execute(user.userId, stepConfigs);
+
+    // Invalidate session cache so frontend picks up hasCompletedOnboarding = false
+    this.eventEmitter.emit('auth.session.invalidate', { userId: user.userId });
+
+    return this.getSession(user, locale);
   }
 
   // ==========================================================================

@@ -122,6 +122,15 @@ enum PostType {
   BUILD
   QUESTION
   REPOST
+  CHALLENGE
+}
+
+enum ReactionType {
+  LIKE
+  CELEBRATE
+  LOVE
+  INSIGHTFUL
+  CURIOUS
 }
 
 enum ReportStatus {

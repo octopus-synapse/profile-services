@@ -24,6 +24,7 @@ export class PostService {
    * Create a new post.
    * Parses hashtags from content via regex.
    * If type is REPOST with originalPostId, increments repostsCount on original.
+   * Supports co-authors, scheduled posts, threads, and code snippets.
    */
   async create(
     authorId: string,
@@ -38,9 +39,17 @@ export class PostService {
       linkUrl?: string;
       linkPreview?: Prisma.InputJsonValue;
       originalPostId?: string;
+      coAuthors?: string[];
+      scheduledAt?: string;
+      threadId?: string;
+      codeSnippet?: { language: string; code: string; filename?: string };
     },
   ) {
     const hashtags = dto.content ? this.parseHashtags(dto.content) : [];
+
+    // Determine if post should be published
+    const scheduledAt = dto.scheduledAt ? new Date(dto.scheduledAt) : undefined;
+    const isPublished = !(scheduledAt && scheduledAt > new Date());
 
     const post = await this.prisma.post.create({
       data: {
@@ -56,6 +65,13 @@ export class PostService {
         linkUrl: dto.linkUrl,
         linkPreview: dto.linkPreview ?? undefined,
         originalPostId: dto.originalPostId,
+        coAuthors: dto.coAuthors ?? [],
+        scheduledAt,
+        isPublished,
+        threadId: dto.threadId,
+        codeSnippet: dto.codeSnippet
+          ? (dto.codeSnippet as unknown as Prisma.InputJsonValue)
+          : undefined,
       },
       include: {
         author: { select: AUTHOR_SELECT },

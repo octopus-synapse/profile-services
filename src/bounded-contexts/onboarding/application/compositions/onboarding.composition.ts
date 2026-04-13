@@ -16,6 +16,7 @@ import { GetProgressUseCase } from '../use-cases/get-progress/get-progress.use-c
 import { GetSectionTypeDefinitionsUseCase } from '../use-cases/get-section-type-definitions/get-section-type-definitions.use-case';
 import { GoBackOnboardingStepUseCase } from '../use-cases/go-back-onboarding-step/go-back-onboarding-step.use-case';
 import { GotoOnboardingStepUseCase } from '../use-cases/goto-onboarding-step/goto-onboarding-step.use-case';
+import { RestartOnboardingUseCase } from '../use-cases/restart-onboarding/restart-onboarding.use-case';
 import { SaveOnboardingStepDataUseCase } from '../use-cases/save-onboarding-step-data/save-onboarding-step-data.use-case';
 import { SaveProgressUseCase } from '../use-cases/save-progress/save-progress.use-case';
 
@@ -87,6 +88,9 @@ export function buildOnboardingUseCases(
     sectionTypeDefinition,
   );
 
+  // Restart use case
+  const restartOnboardingUseCase = new RestartOnboardingUseCase(prisma, progressRepository);
+
   return {
     completeOnboardingUseCase,
     completeOnboardingFromProgressUseCase,
@@ -96,5 +100,6 @@ export function buildOnboardingUseCases(
     gotoOnboardingStepUseCase,
     saveOnboardingStepDataUseCase,
     getSectionTypeDefinitionsUseCase,
+    restartOnboardingUseCase,
   };
 }
