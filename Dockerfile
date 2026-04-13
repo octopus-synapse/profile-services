@@ -85,6 +85,9 @@ COPY --from=builder --chown=nestjs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nestjs:nodejs /app/package.json ./package.json
 COPY --from=builder --chown=nestjs:nodejs /app/tsconfig.json ./tsconfig.json
 COPY --from=builder --chown=nestjs:nodejs /app/prisma ./prisma
+COPY --from=builder --chown=nestjs:nodejs /app/prisma.config.ts ./prisma.config.ts
+
+RUN mkdir -p /app/generated /app/logs /app/data && chown -R nestjs:nodejs /app/generated /app/logs /app/data
 COPY --from=builder --chown=nestjs:nodejs /app/fonts /usr/share/fonts/resume-fonts
 
 RUN bun install -g prisma@7
