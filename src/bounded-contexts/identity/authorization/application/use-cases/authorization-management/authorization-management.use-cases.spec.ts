@@ -6,8 +6,8 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import type { EventPublisherPort } from '@/shared-kernel';
-import { InMemoryEventBus } from '../../../../shared-kernel/testing';
+import type { DomainEvent } from '@/shared-kernel/event-bus/domain/domain-event';
+import type { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import {
   GroupMembershipChangedEvent,
   PermissionDeniedEvent,
@@ -15,8 +15,31 @@ import {
   RoleAssignedEvent,
   RoleRevokedEvent,
 } from '../../../domain/events';
-import type { UserAuthorizationRepository } from '../../../infrastructure/repositories/user-authorization.repository';
 import { InMemoryUserAuthorizationRepository } from '../../../testing';
+
+class InMemoryEventBus implements EventPublisherPort {
+  private readonly events: DomainEvent<unknown>[] = [];
+
+  publish<T>(event: DomainEvent<T>): void {
+    this.events.push(event);
+  }
+
+  async publishAsync<T>(event: DomainEvent<T>): Promise<void> {
+    this.events.push(event);
+  }
+
+  getEventsByType<T extends DomainEvent<unknown>>(
+    ctor: abstract new (...args: never[]) => T,
+  ): T[] {
+    return this.events.filter((e): e is T => e instanceof ctor);
+  }
+
+  hasPublished<T extends DomainEvent<unknown>>(
+    ctor: abstract new (...args: never[]) => T,
+  ): boolean {
+    return this.events.some((e) => e instanceof ctor);
+  }
+}
 import { AddToGroupUseCase } from './add-to-group.use-case';
 import { AssignRoleUseCase } from './assign-role.use-case';
 import { DenyPermissionUseCase } from './deny-permission.use-case';
@@ -38,8 +61,8 @@ describe('AssignRoleUseCase', () => {
     userAuthRepo = new InMemoryUserAuthorizationRepository();
     eventBus = new InMemoryEventBus();
     useCase = new AssignRoleUseCase(
-      userAuthRepo as unknown as UserAuthorizationRepository,
-      eventBus as unknown as EventPublisherPort,
+      userAuthRepo,
+      eventBus,
     );
   });
 
@@ -99,8 +122,8 @@ describe('RevokeRoleUseCase', () => {
     userAuthRepo = new InMemoryUserAuthorizationRepository();
     eventBus = new InMemoryEventBus();
     useCase = new RevokeRoleUseCase(
-      userAuthRepo as unknown as UserAuthorizationRepository,
-      eventBus as unknown as EventPublisherPort,
+      userAuthRepo,
+      eventBus,
     );
   });
 
@@ -157,8 +180,8 @@ describe('GrantPermissionUseCase', () => {
     userAuthRepo = new InMemoryUserAuthorizationRepository();
     eventBus = new InMemoryEventBus();
     useCase = new GrantPermissionUseCase(
-      userAuthRepo as unknown as UserAuthorizationRepository,
-      eventBus as unknown as EventPublisherPort,
+      userAuthRepo,
+      eventBus,
     );
   });
 
@@ -210,8 +233,8 @@ describe('DenyPermissionUseCase', () => {
     userAuthRepo = new InMemoryUserAuthorizationRepository();
     eventBus = new InMemoryEventBus();
     useCase = new DenyPermissionUseCase(
-      userAuthRepo as unknown as UserAuthorizationRepository,
-      eventBus as unknown as EventPublisherPort,
+      userAuthRepo,
+      eventBus,
     );
   });
 
@@ -270,8 +293,8 @@ describe('AddToGroupUseCase', () => {
     userAuthRepo = new InMemoryUserAuthorizationRepository();
     eventBus = new InMemoryEventBus();
     useCase = new AddToGroupUseCase(
-      userAuthRepo as unknown as UserAuthorizationRepository,
-      eventBus as unknown as EventPublisherPort,
+      userAuthRepo,
+      eventBus,
     );
   });
 
@@ -319,8 +342,8 @@ describe('RemoveFromGroupUseCase', () => {
     userAuthRepo = new InMemoryUserAuthorizationRepository();
     eventBus = new InMemoryEventBus();
     useCase = new RemoveFromGroupUseCase(
-      userAuthRepo as unknown as UserAuthorizationRepository,
-      eventBus as unknown as EventPublisherPort,
+      userAuthRepo,
+      eventBus,
     );
   });
 

@@ -3,10 +3,10 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import type { ActivityRepositoryPort } from '../../ports/activity.port';
+import { ActivityRepositoryPort, type ActivityWithUser } from '../../ports/activity.port';
 import { PurgeOldActivitiesUseCase } from './purge-old-activities.use-case';
 
-class StubActivityRepository {
+class StubActivityRepository implements ActivityRepositoryPort {
   private _deleteCount = 0;
   calls: Array<{ method: string; args: unknown[] }> = [];
 
@@ -18,8 +18,8 @@ class StubActivityRepository {
     this.calls.push({ method: 'deleteOlderThan', args: [date] });
     return this._deleteCount;
   }
-  async createActivity() {
-    return {} as never;
+  async createActivity(): Promise<ActivityWithUser> {
+    throw new Error('not used in test');
   }
   async findActivityWithUser() {
     return null;
@@ -41,7 +41,7 @@ describe('PurgeOldActivitiesUseCase', () => {
 
   beforeEach(() => {
     repository = new StubActivityRepository();
-    useCase = new PurgeOldActivitiesUseCase(repository as unknown as ActivityRepositoryPort);
+    useCase = new PurgeOldActivitiesUseCase(repository);
   });
 
   it('should delete activities older than specified days', async () => {

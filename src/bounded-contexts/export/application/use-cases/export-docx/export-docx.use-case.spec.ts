@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test';
-import { NotFoundException } from '@nestjs/common';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type { DocxBuilderPort } from '../../../domain/ports/docx-builder.port';
 import { ExportDocxUseCase } from './export-docx.use-case';
 
@@ -28,29 +28,29 @@ describe('ExportDocxUseCase', () => {
       expect(mockDocxBuilder.generate).toHaveBeenCalledWith('user-123');
     });
 
-    it('should throw NotFoundException when user not found', async () => {
+    it('should throw EntityNotFoundException when user not found', async () => {
       (mockDocxBuilder.generate as ReturnType<typeof mock>).mockRejectedValue(
-        new NotFoundException('User not found'),
+        new EntityNotFoundException('User'),
       );
 
       await expect(async () => await useCase.execute({ userId: 'non-existent-user' })).toThrow(
-        NotFoundException,
+        EntityNotFoundException,
       );
       await expect(async () => await useCase.execute({ userId: 'non-existent-user' })).toThrow(
         'User not found',
       );
     });
 
-    it('should throw NotFoundException when resume not found', async () => {
+    it('should throw EntityNotFoundException when resume not found', async () => {
       (mockDocxBuilder.generate as ReturnType<typeof mock>).mockRejectedValue(
-        new NotFoundException('Resume not found for this user'),
+        new EntityNotFoundException('Resume'),
       );
 
       await expect(async () => await useCase.execute({ userId: 'user-123' })).toThrow(
-        NotFoundException,
+        EntityNotFoundException,
       );
       await expect(async () => await useCase.execute({ userId: 'user-123' })).toThrow(
-        'Resume not found for this user',
+        'Resume not found',
       );
     });
 

@@ -1,7 +1,11 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import type { JobType } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { paginate } from '@/shared-kernel/database';
+import { paginate, searchWhere } from '@/shared-kernel/database';
+import {
+  EntityNotFoundException,
+  ForbiddenException,
+} from '@/shared-kernel/exceptions/domain.exceptions';
 
 @Injectable()
 export class JobService {
@@ -49,11 +53,7 @@ export class JobService {
     const where: Record<string, unknown> = { isActive: true };
 
     if (query.search) {
-      where.OR = [
-        { title: { contains: query.search, mode: 'insensitive' } },
-        { company: { contains: query.search, mode: 'insensitive' } },
-        { description: { contains: query.search, mode: 'insensitive' } },
-      ];
+      where.OR = searchWhere(query.search, ['title', 'company', 'description']);
     }
 
     if (query.jobType) {
@@ -88,7 +88,7 @@ export class JobService {
     });
 
     if (!job) {
-      throw new NotFoundException('Job not found');
+      throw new EntityNotFoundException('Job', id);
     }
 
     return job;
@@ -114,7 +114,7 @@ export class JobService {
     const job = await this.prisma.job.findUnique({ where: { id } });
 
     if (!job) {
-      throw new NotFoundException('Job not found');
+      throw new EntityNotFoundException('Job', id);
     }
 
     if (job.authorId !== userId) {
@@ -131,7 +131,7 @@ export class JobService {
     const job = await this.prisma.job.findUnique({ where: { id } });
 
     if (!job) {
-      throw new NotFoundException('Job not found');
+      throw new EntityNotFoundException('Job', id);
     }
 
     if (job.authorId !== userId) {

@@ -5,7 +5,7 @@
  * Definition-driven - sections exported generically.
  */
 
-import { NotFoundException } from '@nestjs/common';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type {
   ResumeDataRepositoryPort,
   ResumeForJsonExport,
@@ -62,7 +62,7 @@ export class ExportJsonUseCase {
     const resume = await this.resumeDataRepository.findForJsonExport(dto.resumeId);
 
     if (!resume) {
-      throw new NotFoundException('Resume not found');
+      throw new EntityNotFoundException('Resume', dto.resumeId);
     }
 
     if (dto.format === 'profile') {

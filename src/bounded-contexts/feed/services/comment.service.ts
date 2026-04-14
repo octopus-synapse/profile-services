@@ -5,8 +5,12 @@
  * Manages denormalized commentsCount on posts.
  */
 
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import {
+  EntityNotFoundException,
+  ForbiddenException,
+} from '@/shared-kernel/exceptions/domain.exceptions';
 
 const AUTHOR_SELECT = {
   id: true,
@@ -30,7 +34,7 @@ export class CommentService {
     });
 
     if (!post || post.isDeleted) {
-      throw new NotFoundException('Post not found');
+      throw new EntityNotFoundException('Post', postId);
     }
 
     // If replying, verify parent comment exists
@@ -40,7 +44,7 @@ export class CommentService {
       });
 
       if (!parent || parent.isDeleted) {
-        throw new NotFoundException('Parent comment not found');
+        throw new EntityNotFoundException('Comment', parentId);
       }
     }
 
@@ -108,7 +112,7 @@ export class CommentService {
     });
 
     if (!comment || comment.isDeleted) {
-      throw new NotFoundException('Comment not found');
+      throw new EntityNotFoundException('Comment', id);
     }
 
     if (comment.authorId !== userId) {

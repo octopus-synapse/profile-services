@@ -177,6 +177,97 @@ export class ConnectionRepository extends ConnectionRepositoryPort {
     });
   }
 
+  async findRankedSuggestions(
+    userId: string,
+    pagination: PaginationParams,
+  ): Promise<{
+    data: Array<ConnectionUser & { reason: string; score: number }>;
+    total: number;
+  }> {
+    const { page, limit } = pagination;
+    const offset = (page - 1) * limit;
+
+    const rows = await this.prisma.$queryRaw<SuggestionRow[]>`
+      WITH excluded AS (
+        SELECT ${userId}::text AS id
+        UNION
+        SELECT CASE WHEN "requesterId" = ${userId} THEN "targetId" ELSE "requesterId" END
+        FROM "Connection"
+        WHERE "requesterId" = ${userId} OR "targetId" = ${userId}
+      ),
+      my_connections AS (
+        SELECT CASE WHEN "requesterId" = ${userId} THEN "targetId" ELSE "requesterId" END AS user_id
+        FROM "Connection"
+        WHERE ("requesterId" = ${userId} OR "targetId" = ${userId})
+          AND status = 'ACCEPTED'
+      ),
+      my_following AS (
+        SELECT "followingId" AS user_id
+        FROM "Follow"
+        WHERE "followerId" = ${userId}
+      ),
+      candidates AS (
+        SELECT
+          u.id,
+          u.name,
+          u.username,
+          u."photoURL",
+          CASE WHEN EXISTS (
+            SELECT 1 FROM my_following mf WHERE mf.user_id = u.id
+          ) THEN 1 ELSE 0 END AS direct_follow,
+          (SELECT COUNT(*)::int FROM my_following mf
+           JOIN "Follow" f ON f."followerId" = mf.user_id AND f."followingId" = u.id
+          ) AS second_degree_follows,
+          (SELECT COUNT(*)::int FROM my_connections mc
+           JOIN "Connection" c ON c.status = 'ACCEPTED'
+             AND (
+               (c."requesterId" = mc.user_id AND c."targetId" = u.id) OR
+               (c."targetId" = mc.user_id AND c."requesterId" = u.id)
+             )
+          ) AS mutual_connections
+        FROM "User" u
+        WHERE u."isActive" = true
+          AND u.id NOT IN (SELECT id FROM excluded)
+      ),
+      scored AS (
+        SELECT
+          c.id, c.name, c.username, c."photoURL",
+          (c.direct_follow * 10 + c.second_degree_follows * 3 + c.mutual_connections * 4) AS score,
+          CASE
+            WHEN c.mutual_connections >= 1 THEN
+              c.mutual_connections || ' mutual connection' || CASE WHEN c.mutual_connections > 1 THEN 's' ELSE '' END
+            WHEN c.direct_follow = 1 THEN
+              'Followed by you'
+            WHEN c.second_degree_follows >= 1 THEN
+              'Followed by @' || COALESCE(
+                (SELECT u2.username FROM my_following mf
+                 JOIN "Follow" f ON f."followerId" = mf.user_id AND f."followingId" = c.id
+                 JOIN "User" u2 ON u2.id = mf.user_id
+                 LIMIT 1),
+                'someone you follow'
+              )
+            ELSE 'Suggested for you'
+          END AS reason,
+          COUNT(*) OVER()::int AS total_count
+        FROM candidates c
+      )
+      SELECT id, name, username, "photoURL", reason, score, total_count
+      FROM scored
+      ORDER BY score DESC, name ASC, id ASC
+      LIMIT ${limit} OFFSET ${offset}
+    `;
+
+    const total = rows.length > 0 ? Number(rows[0].total_count) : 0;
+
+    return {
+      data: rows.map(({ total_count: _total, ...row }) => ({
+        ...row,
+        score: Number(row.score),
+      })),
+      total,
+    };
+  }
+
   async userExists(userId: string): Promise<boolean> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -184,4 +275,14 @@ export class ConnectionRepository extends ConnectionRepositoryPort {
     });
     return user !== null;
   }
+}
+
+interface SuggestionRow {
+  id: string;
+  name: string | null;
+  username: string | null;
+  photoURL: string | null;
+  reason: string;
+  score: number;
+  total_count: number;
 }

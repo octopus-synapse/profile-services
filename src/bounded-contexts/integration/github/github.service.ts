@@ -6,6 +6,7 @@
 
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { API_LIMITS } from '@/shared-kernel';
+import { extractGitHubUsername } from './github.utils';
 import { GitHubApiService, GitHubDatabaseService, GitHubSyncService } from './services';
 
 @Injectable()
@@ -92,7 +93,7 @@ export class GitHubService {
     return {
       hasSynced: openSourceList.length > 0 || achievementsList.length > 0,
       lastSyncedAt: resume.updatedAt,
-      githubUsername: github ? this.extractUsername(github) : null,
+      githubUsername: github ? extractGitHubUsername(github) : null,
       stats: {
         totalStars: (resume as { totalStars?: number }).totalStars ?? 0,
         openSourceProjects: openSourceList.length,
@@ -134,14 +135,6 @@ export class GitHubService {
       if (error instanceof HttpException) throw error;
       throw new HttpException('Failed to fetch GitHub summary', HttpStatus.INTERNAL_SERVER_ERROR);
     }
-  }
-
-  private extractUsername(githubUrl: string): string {
-    return githubUrl
-      .replace('https://github.com/', '')
-      .replace('http://github.com/', '')
-      .replace('github.com/', '')
-      .split('/')[0];
   }
 
   private asRecord(value: unknown): Record<string, unknown> {

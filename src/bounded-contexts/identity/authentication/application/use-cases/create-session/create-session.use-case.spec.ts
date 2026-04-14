@@ -1,5 +1,4 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
-import type { ConfigService } from '@nestjs/config';
 import { InMemoryEventBus } from '../../../../shared-kernel/testing';
 import { SessionCreatedEvent } from '../../../domain/events';
 import type { CookieWriter } from '../../../domain/ports/session-storage.port';
@@ -53,7 +52,7 @@ describe('CreateSessionUseCase', () => {
       tokenGenerator,
       sessionStorage,
       eventBus,
-      mockConfigService as unknown as ConfigService,
+      mockConfigService,
     );
   });
 

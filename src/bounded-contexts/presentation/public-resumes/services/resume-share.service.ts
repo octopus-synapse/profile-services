@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto';
 import {
   BadRequestException,
   ConflictException,
@@ -5,7 +6,6 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { nanoid } from 'nanoid';
 import { CacheCoreService } from '@/bounded-contexts/platform/common/cache/services/cache-core.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { EventPublisher } from '@/shared-kernel';
@@ -201,7 +201,11 @@ export class ResumeShareService {
   }
 
   private generateSlug(): string {
-    return nanoid(10); // 10 characters
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+    const bytes = randomBytes(10);
+    let slug = '';
+    for (let i = 0; i < 10; i++) slug += alphabet[bytes[i] % alphabet.length];
+    return slug;
   }
 
   private isValidSlug(slug: string): boolean {

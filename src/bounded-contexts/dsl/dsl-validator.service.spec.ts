@@ -8,7 +8,7 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { BadRequestException } from '@nestjs/common';
+import { ValidationException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { DslValidatorService } from './dsl-validator.service';
 
 describe('DslValidatorService', () => {
@@ -49,16 +49,16 @@ describe('DslValidatorService', () => {
   });
 
   describe('validateOrThrow', () => {
-    it('should throw BadRequestException for null input', () => {
-      expect(() => service.validateOrThrow(null)).toThrow(BadRequestException);
+    it('should throw ValidationException for null input', () => {
+      expect(() => service.validateOrThrow(null)).toThrow(ValidationException);
     });
 
-    it('should throw BadRequestException for invalid structure', () => {
-      expect(() => service.validateOrThrow({ invalid: 'data' })).toThrow(BadRequestException);
+    it('should throw ValidationException for invalid structure', () => {
+      expect(() => service.validateOrThrow({ invalid: 'data' })).toThrow(ValidationException);
     });
 
-    it('should throw BadRequestException for missing required fields', () => {
-      expect(() => service.validateOrThrow({ version: '1.0.0' })).toThrow(BadRequestException);
+    it('should throw ValidationException for missing required fields', () => {
+      expect(() => service.validateOrThrow({ version: '1.0.0' })).toThrow(ValidationException);
     });
   });
 

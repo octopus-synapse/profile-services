@@ -2,7 +2,10 @@
  * List User Shares Use Case
  */
 
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  EntityNotFoundException,
+  ForbiddenException,
+} from '@/shared-kernel/exceptions/domain.exceptions';
 import type { ResumeReadRepositoryPort } from '../../domain/ports/resume-read.repository.port';
 import type { ShareRepositoryPort } from '../../domain/ports/share.repository.port';
 
@@ -16,7 +19,7 @@ export class ListUserSharesUseCase {
     const resume = await this.resumeRepo.findById(resumeId);
 
     if (!resume) {
-      throw new NotFoundException('Resume not found');
+      throw new EntityNotFoundException('Resume', resumeId);
     }
 
     if (resume.userId !== userId) {

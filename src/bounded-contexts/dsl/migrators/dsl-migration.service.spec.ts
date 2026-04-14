@@ -3,9 +3,9 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import type { ResumeDsl } from '@/bounded-contexts/dsl/domain/schemas/dsl';
+import { ValidationException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type { DslMigrator } from './base.migrator';
 import { DslMigrationService } from './dsl-migration.service';
 
@@ -100,7 +100,7 @@ describe('DslMigrationService', () => {
     });
 
     it('should throw if no migrator found', () => {
-      expect(() => service.migrate(mockDslV1, '3.0.0')).toThrow(BadRequestException);
+      expect(() => service.migrate(mockDslV1, '3.0.0')).toThrow(ValidationException);
     });
 
     it('should apply migration chain', () => {
@@ -119,7 +119,7 @@ describe('DslMigrationService', () => {
 
       service.registerMigrators([circularMigrator]);
 
-      expect(() => service.migrate(mockDslV1, '2.0.0')).toThrow(BadRequestException);
+      expect(() => service.migrate(mockDslV1, '2.0.0')).toThrow(ValidationException);
     });
 
     it('should throw if migration result has wrong version', () => {
@@ -131,7 +131,7 @@ describe('DslMigrationService', () => {
 
       service.registerMigrators([badMigrator]);
 
-      expect(() => service.migrate(mockDslV1, '2.0.0')).toThrow(BadRequestException);
+      expect(() => service.migrate(mockDslV1, '2.0.0')).toThrow(ValidationException);
     });
   });
 
@@ -170,7 +170,7 @@ describe('DslMigrationService', () => {
     });
 
     it('should throw if no path exists', () => {
-      expect(() => service.getMigrationPath('1.0.0', '4.0.0')).toThrow(BadRequestException);
+      expect(() => service.getMigrationPath('1.0.0', '4.0.0')).toThrow(ValidationException);
     });
   });
 });

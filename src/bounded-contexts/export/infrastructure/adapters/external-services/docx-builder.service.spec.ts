@@ -5,11 +5,11 @@
  */
 
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { createMockResume } from '@test/shared/factories/resume.factory';
 import { ResumesRepository } from '@/bounded-contexts/resumes/core/resumes.repository';
 import { SectionTypeRepository } from '@/bounded-contexts/resumes/infrastructure/repositories';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { UserDataPort } from '../../../domain/ports/user-data.port';
 import { DocxBuilderService } from './docx-builder.service';
 import { DocxSectionsService } from './docx-sections.service';
@@ -89,16 +89,18 @@ describe('DocxBuilderService', () => {
       expect(result.length).toBeGreaterThan(0);
     });
 
-    it('should throw NotFoundException when user not found', async () => {
+    it('should throw EntityNotFoundException when user not found', async () => {
       stubUsersRepository.findById.mockResolvedValueOnce(null);
 
-      await expect(async () => await service.generate('nonexistent')).toThrow(NotFoundException);
+      await expect(async () => await service.generate('nonexistent')).toThrow(
+        EntityNotFoundException,
+      );
     });
 
-    it('should throw NotFoundException when resume not found', async () => {
+    it('should throw EntityNotFoundException when resume not found', async () => {
       stubResumesRepository.findResumeByUserId.mockResolvedValueOnce(null);
 
-      await expect(async () => await service.generate('user-1')).toThrow(NotFoundException);
+      await expect(async () => await service.generate('user-1')).toThrow(EntityNotFoundException);
     });
 
     it('should use sections service to create document structure', async () => {

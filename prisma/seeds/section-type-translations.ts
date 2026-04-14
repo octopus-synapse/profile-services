@@ -8,10 +8,11 @@
 export interface SectionTypeTranslation {
   title: string;
   description: string;
-  label: string; // Short label for UI (e.g., "work", "edu")
-  noDataLabel: string; // Message when user has no data for this section
-  placeholder: string; // Placeholder text for inputs
-  addLabel: string; // "Add Experience", "Add Education", etc.
+  label: string;
+  noDataLabel: string;
+  placeholder: string;
+  addLabel: string;
+  fieldLabels?: Record<string, string>;
 }
 
 export type SectionTypeTranslations = {
@@ -35,6 +36,15 @@ export const sectionTypeTranslations: Record<string, SectionTypeTranslations> = 
       noDataLabel: 'Não tenho experiência profissional para adicionar agora',
       placeholder: 'Adicione sua experiência profissional...',
       addLabel: 'Adicionar Experiência',
+      fieldLabels: {
+        company: 'Empresa',
+        role: 'Cargo',
+        employmentType: 'Tipo de Contrato',
+        startDate: 'Data de Início',
+        endDate: 'Data de Término',
+        description: 'Descrição',
+        achievements: 'Conquistas',
+      },
     },
     es: {
       title: 'Experiencia Laboral',
@@ -62,6 +72,13 @@ export const sectionTypeTranslations: Record<string, SectionTypeTranslations> = 
       noDataLabel: 'Não tenho formação acadêmica para adicionar agora',
       placeholder: 'Adicione sua formação acadêmica...',
       addLabel: 'Adicionar Formação',
+      fieldLabels: {
+        institution: 'Instituição',
+        degree: 'Grau',
+        field: 'Área de Estudo',
+        startDate: 'Data de Início',
+        endDate: 'Data de Término',
+      },
     },
     es: {
       title: 'Educación',
@@ -89,6 +106,10 @@ export const sectionTypeTranslations: Record<string, SectionTypeTranslations> = 
       noDataLabel: 'Ainda estou desenvolvendo minhas habilidades',
       placeholder: 'Adicione suas habilidades...',
       addLabel: 'Adicionar Habilidade',
+      fieldLabels: {
+        name: 'Nome da Habilidade',
+        category: 'Categoria',
+      },
     },
     es: {
       title: 'Habilidades',
@@ -116,6 +137,10 @@ export const sectionTypeTranslations: Record<string, SectionTypeTranslations> = 
       noDataLabel: 'Não tenho idiomas adicionais para adicionar',
       placeholder: 'Adicione os idiomas que você fala...',
       addLabel: 'Adicionar Idioma',
+      fieldLabels: {
+        name: 'Idioma',
+        level: 'Nível',
+      },
     },
     es: {
       title: 'Idiomas',

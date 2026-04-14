@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { BenchmarkRepositoryPort } from '../application/ports/resume-analytics.port';
 import type {
   BenchmarkRecommendation,
   IndustryBenchmark,
@@ -10,17 +10,13 @@ import type {
 
 @Injectable()
 export class BenchmarkService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly repository: BenchmarkRepositoryPort) {}
 
   async getIndustryBenchmark(
     yourScore: number,
     _options: IndustryBenchmarkOptions,
   ): Promise<IndustryBenchmark> {
-    const allSnapshots = await this.prisma.resumeAnalytics.findMany({
-      select: { atsScore: true },
-    });
-
-    const scores = allSnapshots.map((s) => s.atsScore);
+    const scores = await this.repository.getAllAtsScores();
     const avgScore = this.calculateAverage(scores);
     const yourPercentile = this.calculatePercentile(yourScore, scores);
 
@@ -85,10 +81,7 @@ export class BenchmarkService {
   }
 
   /**
-   * Get industry benchmarks for GraphQL aggregation queries
-   *
-   * Returns aggregated benchmark data across industries.
-   * If industry filter is provided, returns only that industry.
+   * Get industry benchmarks for GraphQL aggregation queries.
    */
   getIndustryBenchmarks(industry?: string): Array<{
     industry: string;
@@ -98,7 +91,6 @@ export class BenchmarkService {
     percentile50: number;
     percentile75: number;
   }> {
-    // Mock data - in production, this would aggregate from resume analytics
     const mockBenchmarks = [
       {
         industry: 'Technology',

@@ -1,4 +1,7 @@
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  EntityNotFoundException,
+  ForbiddenException,
+} from '@/shared-kernel/exceptions/domain.exceptions';
 import type { CollaborationRepositoryPort } from '../../domain/ports/collaboration-repository.port';
 import type {
   CollaboratorWithUser,
@@ -10,12 +13,12 @@ export class UpdateRoleUseCase {
 
   async execute(params: UpdateRoleParams): Promise<CollaboratorWithUser> {
     const resume = await this.repo.findResumeOwner(params.resumeId);
-    if (!resume) throw new NotFoundException('Resume not found');
+    if (!resume) throw new EntityNotFoundException('Resume', params.resumeId);
     if (resume.userId !== params.requesterId)
       throw new ForbiddenException('Only resume owner can update roles');
 
     const existing = await this.repo.findCollaborator(params.resumeId, params.targetUserId);
-    if (!existing) throw new NotFoundException('Collaborator not found');
+    if (!existing) throw new EntityNotFoundException('Collaborator', params.targetUserId);
 
     return this.repo.updateRole(params.resumeId, params.targetUserId, params.newRole);
   }

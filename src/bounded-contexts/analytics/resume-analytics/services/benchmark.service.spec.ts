@@ -18,13 +18,7 @@ describe('BenchmarkService', () => {
   beforeEach(() => {
     benchmarkRepo = new InMemoryBenchmarkRepository();
     benchmarkRepo.seedMultipleAnalytics(defaultResumeAnalytics);
-
-    const mockPrisma = {
-      resumeAnalytics: {
-        findMany: (args?: { select?: Record<string, boolean> }) => benchmarkRepo.findMany(args),
-      },
-    };
-    service = new BenchmarkService(mockPrisma as never);
+    service = new BenchmarkService(benchmarkRepo);
   });
 
   describe('getIndustryBenchmark', () => {

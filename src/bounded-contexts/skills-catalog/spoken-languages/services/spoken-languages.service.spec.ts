@@ -13,7 +13,7 @@ describe('SpokenLanguagesService', () => {
   beforeEach(() => {
     languageRepo = new InMemorySpokenLanguageRepository();
     languageRepo.seed(DEFAULT_SPOKEN_LANGUAGES);
-    service = new SpokenLanguagesService(languageRepo as never);
+    service = new SpokenLanguagesService(languageRepo);
   });
 
   describe('getAll', () => {

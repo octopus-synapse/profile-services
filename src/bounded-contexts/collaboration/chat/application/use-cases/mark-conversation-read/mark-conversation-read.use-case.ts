@@ -1,4 +1,4 @@
-import { ForbiddenException } from '@nestjs/common';
+import { ForbiddenException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type {
   ChatCachePort,
   ConversationRepositoryPort,

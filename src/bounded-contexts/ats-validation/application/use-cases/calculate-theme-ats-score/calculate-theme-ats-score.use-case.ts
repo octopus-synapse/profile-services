@@ -5,7 +5,8 @@
  * Uses ThemeATSScoringStrategy to evaluate theme configuration.
  */
 
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type {
   ThemeATSPort,
   ThemeATSScoreResult,
@@ -34,7 +35,7 @@ export class CalculateThemeATSScoreUseCase {
     const theme = await this.themePort.getThemeById(themeId);
 
     if (!theme) {
-      throw new NotFoundException(`Theme with ID '${themeId}' not found`);
+      throw new EntityNotFoundException('Theme', themeId);
     }
 
     const breakdown = this.scoringStrategy.score(theme.styleConfig);

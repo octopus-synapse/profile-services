@@ -1,4 +1,4 @@
-import { NotFoundException } from '@nestjs/common';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { ResumeOwnershipPolicy } from '../policies/resume-ownership.policy';
 import { SectionTypePolicy } from '../policies/section-type.policy';
 import { GenericResumeSectionsRepositoryPort } from '../ports/generic-resume-sections-repository.port';
@@ -26,7 +26,7 @@ export class DeleteSectionItemUseCase {
     );
 
     if (!existingItem) {
-      throw new NotFoundException('Section item not found');
+      throw new EntityNotFoundException('SectionItem', itemId);
     }
 
     await this.repository.deleteSectionItem(itemId);

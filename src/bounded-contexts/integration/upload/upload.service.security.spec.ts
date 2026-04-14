@@ -11,10 +11,10 @@
  */
 
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import { BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { S3UploadService } from '@/bounded-contexts/platform/common/services/s3-upload.service';
+import { ValidationException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { FileUpload, UploadService } from './upload.service';
 
 describe('UploadService - SECURITY BUG DETECTION', () => {
@@ -70,7 +70,7 @@ describe('UploadService - SECURITY BUG DETECTION', () => {
 
       // BUG: This should throw but doesn't!
       await expect(service.uploadProfileImage('user-123', maliciousSvg)).rejects.toThrow(
-        BadRequestException,
+        ValidationException,
       );
     });
 
@@ -83,7 +83,7 @@ describe('UploadService - SECURITY BUG DETECTION', () => {
       };
 
       await expect(service.uploadProfileImage('user-123', maliciousSvg)).rejects.toThrow(
-        BadRequestException,
+        ValidationException,
       );
     });
   });
@@ -106,7 +106,7 @@ describe('UploadService - SECURITY BUG DETECTION', () => {
 
       // BUG: This should detect it's not a real JPEG!
       await expect(service.uploadProfileImage('user-123', spoofedFile)).rejects.toThrow(
-        BadRequestException,
+        ValidationException,
       );
     });
 
@@ -120,7 +120,7 @@ describe('UploadService - SECURITY BUG DETECTION', () => {
       };
 
       await expect(service.uploadProfileImage('user-123', invalidJpeg)).rejects.toThrow(
-        BadRequestException,
+        ValidationException,
       );
     });
 
@@ -133,7 +133,7 @@ describe('UploadService - SECURITY BUG DETECTION', () => {
       };
 
       await expect(service.uploadProfileImage('user-123', invalidPng)).rejects.toThrow(
-        BadRequestException,
+        ValidationException,
       );
     });
   });
@@ -155,7 +155,7 @@ describe('UploadService - SECURITY BUG DETECTION', () => {
 
       // BUG: This extracts 'php' as extension but should reject!
       await expect(service.uploadProfileImage('user-123', doubleExtension)).rejects.toThrow(
-        BadRequestException,
+        ValidationException,
       );
     });
 
@@ -168,7 +168,7 @@ describe('UploadService - SECURITY BUG DETECTION', () => {
       };
 
       await expect(service.uploadProfileImage('user-123', nullByteAttack)).rejects.toThrow(
-        BadRequestException,
+        ValidationException,
       );
     });
 
@@ -181,7 +181,7 @@ describe('UploadService - SECURITY BUG DETECTION', () => {
       };
 
       await expect(service.uploadProfileImage('user-123', traversalAttack)).rejects.toThrow(
-        BadRequestException,
+        ValidationException,
       );
     });
   });

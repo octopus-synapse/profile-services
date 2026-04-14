@@ -6,7 +6,7 @@
 
 import type { EventPublisherPort } from '@/shared-kernel';
 import { RoleAssignedEvent } from '../../../domain/events';
-import type { UserAuthorizationRepository } from '../../../infrastructure/repositories/user-authorization.repository';
+import type { IUserAuthorizationRepository } from '../../../domain/ports/authorization-repositories.port';
 
 export interface AssignRoleParams {
   userId: string;
@@ -17,7 +17,7 @@ export interface AssignRoleParams {
 
 export class AssignRoleUseCase {
   constructor(
-    private readonly userAuthRepo: UserAuthorizationRepository,
+    private readonly userAuthRepo: IUserAuthorizationRepository,
     private readonly eventPublisher: EventPublisherPort,
   ) {}
 

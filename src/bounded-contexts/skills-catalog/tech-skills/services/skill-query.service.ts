@@ -1,61 +1,45 @@
 /**
  * Tech Skill Query Service
- * Handles cached queries for tech skills
+ * Handles cached queries for tech skills.
  */
 
 import { Injectable } from '@nestjs/common';
-import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { SkillQueryPort } from '../application/ports/query-facade.ports';
+import { CachePort, TechSkillRepositoryPort } from '../application/ports/tech-skills.port';
 import type { TechSkill } from '../dto';
 import { type SkillType, TECH_SKILLS_CACHE_KEYS, TECH_SKILLS_CACHE_TTL } from '../interfaces';
-import { mapSkillsTo } from '../utils';
-
-const NICHE_SELECT = { slug: true, nameEn: true, namePtBr: true } as const;
 
 @Injectable()
-export class SkillQueryService {
+export class SkillQueryService extends SkillQueryPort {
   constructor(
-    private readonly prisma: PrismaService,
-    private readonly cache: CacheService,
-  ) {}
+    private readonly repository: TechSkillRepositoryPort,
+    private readonly cache: CachePort,
+  ) {
+    super();
+  }
 
-  /** Get all skills */
   async getAllSkills(): Promise<TechSkill[]> {
     const cacheKey = TECH_SKILLS_CACHE_KEYS.SKILLS_LIST;
 
     const cached = await this.cache.get<TechSkill[]>(cacheKey);
     if (cached) return cached;
 
-    const skills = await this.prisma.techSkill.findMany({
-      where: { isActive: true },
-      orderBy: { popularity: 'desc' },
-      include: { niche: { select: NICHE_SELECT } },
-    });
-
-    const result = mapSkillsTo(skills);
+    const result = await this.repository.findAllActive();
     await this.cache.set(cacheKey, result, TECH_SKILLS_CACHE_TTL.SKILLS_LIST);
     return result;
   }
 
-  /** Get skills by niche slug */
   async getSkillsByNiche(nicheSlug: string): Promise<TechSkill[]> {
     const cacheKey = `${TECH_SKILLS_CACHE_KEYS.SKILLS_BY_NICHE}${nicheSlug}`;
 
     const cached = await this.cache.get<TechSkill[]>(cacheKey);
     if (cached) return cached;
 
-    const skills = await this.prisma.techSkill.findMany({
-      where: { isActive: true, niche: { slug: nicheSlug } },
-      orderBy: { popularity: 'desc' },
-      include: { niche: { select: NICHE_SELECT } },
-    });
-
-    const result = mapSkillsTo(skills);
+    const result = await this.repository.findByNiche(nicheSlug);
     await this.cache.set(cacheKey, result, TECH_SKILLS_CACHE_TTL.SKILLS_BY_NICHE);
     return result;
   }
 
-  /** Get skills by type */
   async getSkillsByType(type: SkillType, limit = 50): Promise<TechSkill[]> {
     const validTypes = [
       'LANGUAGE',
@@ -73,13 +57,6 @@ export class SkillQueryService {
       return [];
     }
 
-    const skills = await this.prisma.techSkill.findMany({
-      where: { isActive: true, type },
-      take: limit,
-      orderBy: { popularity: 'desc' },
-      include: { niche: { select: NICHE_SELECT } },
-    });
-
-    return mapSkillsTo(skills);
+    return this.repository.findByType(type, limit);
   }
 }

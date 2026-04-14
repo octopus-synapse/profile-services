@@ -7,11 +7,11 @@
  * Milestone 5 - Issue #39
  */
 
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Document, Packer } from 'docx';
 import { ResumesRepository } from '@/bounded-contexts/resumes/core/resumes.repository';
 import { SectionTypeRepository } from '@/bounded-contexts/resumes/infrastructure/repositories';
-import { ERROR_MESSAGES } from '@/shared-kernel';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { UserDataPort } from '../../../domain/ports/user-data.port';
 import type { DocxUserData } from './docx.types';
 import type { GenericResumeSectionData } from './docx-sections.service';
@@ -65,12 +65,12 @@ export class DocxBuilderService {
   private async loadUserAndResume(userId: string) {
     const user = await this.usersRepository.findById(userId);
     if (!user) {
-      throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
+      throw new EntityNotFoundException('User', userId);
     }
 
     const resumeData = await this.resumesRepository.findResumeByUserId(userId);
     if (!resumeData) {
-      throw new NotFoundException(ERROR_MESSAGES.RESUME_NOT_FOUND_FOR_USER);
+      throw new EntityNotFoundException('Resume');
     }
 
     const resume: ResumeWithSections = {

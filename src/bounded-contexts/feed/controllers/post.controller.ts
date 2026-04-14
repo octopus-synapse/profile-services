@@ -10,6 +10,7 @@
  * - POST   /v1/posts/upload-image - Upload post image
  */
 
+import { randomUUID } from 'node:crypto';
 import {
   BadRequestException,
   Body,
@@ -33,7 +34,6 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import type { PostType, Prisma } from '@prisma/client';
-import { v4 } from 'uuid';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
@@ -100,7 +100,7 @@ export class PostController {
     if (body.linkUrl) {
       const preview = await this.linkPreviewService.fetchPreview(body.linkUrl);
       if (preview) {
-        linkPreview = preview as unknown as Prisma.InputJsonValue;
+        linkPreview = preview;
       }
     }
 
@@ -171,7 +171,7 @@ export class PostController {
     }
 
     const extension = file.originalname.split('.').pop()?.toLowerCase() ?? 'jpg';
-    const key = `posts/${user.userId}/${v4()}.${extension}`;
+    const key = `posts/${user.userId}/${randomUUID()}.${extension}`;
 
     const result = await this.s3UploadService.uploadFile(file.buffer, key, file.mimetype);
 

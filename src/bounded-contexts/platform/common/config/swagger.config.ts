@@ -5,6 +5,7 @@ import {
   SDK_EXPORT_KEY,
   type SdkExportOptions,
 } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import { unwrapClientSpec } from './unwrap-client-spec';
 
 /**
  * Check if Swagger documentation should be enabled
@@ -28,6 +29,7 @@ export function configureSwagger(app: INestApplication): void {
   });
 
   SwaggerModule.setup('api/swagger', app, document);
+  SwaggerModule.setup('api/client-swagger', app, unwrapClientSpec(document));
 }
 
 export function createSwaggerDocument(app: INestApplication): OpenAPIObject {

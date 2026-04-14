@@ -8,7 +8,6 @@ import {
   DEFAULT_SPOKEN_LANGUAGES,
   InMemorySpokenLanguageRepository,
 } from '../../../../testing';
-import { SpokenLanguagesRepository } from '../../../infrastructure/adapters/persistence/spoken-languages.repository';
 import { SearchSpokenLanguagesUseCase } from './search-spoken-languages.use-case';
 
 describe('SearchSpokenLanguagesUseCase', () => {
@@ -18,8 +17,7 @@ describe('SearchSpokenLanguagesUseCase', () => {
   beforeEach(() => {
     languageRepo = new InMemorySpokenLanguageRepository();
     languageRepo.seed(DEFAULT_SPOKEN_LANGUAGES);
-    const repository = new SpokenLanguagesRepository(languageRepo as never);
-    useCase = new SearchSpokenLanguagesUseCase(repository);
+    useCase = new SearchSpokenLanguagesUseCase(languageRepo);
   });
 
   it('should search languages by English name case-insensitively', async () => {

@@ -6,7 +6,9 @@
 
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import type { ResumeForAnalytics } from '../../../domain/types';
+import type { ATSScoreResult, ViewStats, ViewStatsOptions } from '../../../interfaces';
 import { InMemorySnapshot, InMemoryViewTracking } from '../../../testing';
+import type { AtsScoringPort, ViewStatsProviderPort } from '../../ports/facade.ports';
 import type {
   ResumeOwnershipPort,
   SnapshotRepositoryPort,
@@ -18,24 +20,18 @@ describe('BuildAnalyticsDashboardUseCase', () => {
   let viewTracking: InMemoryViewTracking;
   let snapshot: InMemorySnapshot;
 
-  const mockAtsScore = {
-    calculate: mock(() => ({
-      score: 85,
-      sectionBreakdown: [
-        {
-          sectionKind: 'SKILLS',
-          sectionTypeKey: 'skill_v1',
-          score: 80,
-        },
-        {
-          sectionKind: 'WORK_EXPERIENCE',
-          sectionTypeKey: 'work_experience_v1',
-          score: 90,
-        },
-      ],
-      issues: [],
-      recommendations: ['Add more keywords'],
-    })),
+  const mockAtsScoreResult: ATSScoreResult = {
+    score: 85,
+    sectionBreakdown: [
+      { sectionKind: 'SKILLS', sectionTypeKey: 'skill_v1', score: 80 },
+      { sectionKind: 'WORK_EXPERIENCE', sectionTypeKey: 'work_experience_v1', score: 90 },
+    ],
+    issues: [],
+    recommendations: ['Add more keywords'],
+  };
+
+  const mockAtsScore: AtsScoringPort = {
+    calculate: mock(async () => mockAtsScoreResult),
   };
 
   const mockResume: ResumeForAnalytics = {
@@ -78,26 +74,26 @@ describe('BuildAnalyticsDashboardUseCase', () => {
       getResumeWithDetails: async () => mockResume,
     };
 
-    // Create a mock GetViewStatsUseCase that delegates to in-memory viewTracking
-    const mockGetViewStatsUseCase = {
-      execute: async (resumeId: string, _userId: string, options: { period: string }) =>
-        viewTracking.getViewStats(resumeId, options as never),
-      getViewStats: async (resumeId: string, options: { period: string }) =>
-        viewTracking.getViewStats(resumeId, options as never),
+    const viewStatsProvider: ViewStatsProviderPort = {
+      getViewStats: (resumeId: string, options: ViewStatsOptions): Promise<ViewStats> =>
+        viewTracking.getViewStats(resumeId, options),
     };
 
-    // Create a snapshot repo port from InMemorySnapshot
     const snapshotRepo: SnapshotRepositoryPort = {
-      save: async () => ({}) as never,
-      getHistory: async () => [],
-      getScoreProgression: async (resumeId: string, days: number) =>
-        snapshot.getScoreProgression(resumeId, days),
+      async save() {
+        throw new Error('not used in test');
+      },
+      async getHistory() {
+        return [];
+      },
+      getScoreProgression: (resumeId: string, days?: number) =>
+        snapshot.getScoreProgression(resumeId, days ?? 30),
     };
 
     useCase = new BuildAnalyticsDashboardUseCase(
       mockOwnership,
-      mockGetViewStatsUseCase as never,
-      mockAtsScore as never,
+      viewStatsProvider,
+      mockAtsScore,
       snapshotRepo,
     );
 

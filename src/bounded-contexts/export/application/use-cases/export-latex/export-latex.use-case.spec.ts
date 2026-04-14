@@ -1,17 +1,16 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
 import { createMockResume } from '@test/shared/factories/resume.factory';
-import type {
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
+import {
   ResumeDataRepositoryPort,
-  ResumeForLatexExport,
+  type ResumeForLatexExport,
 } from '../../../domain/ports/resume-data.repository.port';
 import { ExportLatexUseCase } from './export-latex.use-case';
 
 /**
  * In-Memory Resume Data Repository for LaTeX testing
  */
-class InMemoryResumeDataRepository
-  implements Pick<ResumeDataRepositoryPort, 'findForJsonExport' | 'findForLatexExport'>
-{
+class InMemoryResumeDataRepository implements ResumeDataRepositoryPort {
   private resumes = new Map<string, ResumeForLatexExport>();
 
   async findForJsonExport(): Promise<null> {
@@ -125,7 +124,7 @@ describe('ExportLatexUseCase', () => {
     repository = new InMemoryResumeDataRepository();
     repository.seedResume('resume-123', buildLatexResume());
 
-    useCase = new ExportLatexUseCase(repository as unknown as ResumeDataRepositoryPort);
+    useCase = new ExportLatexUseCase(repository);
   });
 
   describe('execute', () => {
@@ -212,7 +211,9 @@ describe('ExportLatexUseCase', () => {
     it('should throw NotFoundException when resume not found', async () => {
       repository.clear();
 
-      await expect(useCase.execute({ resumeId: 'unknown' })).rejects.toThrow('Resume not found');
+      await expect(useCase.execute({ resumeId: 'unknown' })).rejects.toThrow(
+        EntityNotFoundException,
+      );
     });
   });
 

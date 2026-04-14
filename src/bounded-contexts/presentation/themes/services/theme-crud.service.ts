@@ -5,10 +5,14 @@
  * All themes are public. Users can only read/apply themes.
  */
 
-import { ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { CreateTheme, ERROR_MESSAGES, UpdateTheme } from '@/shared-kernel';
+import {
+  EntityNotFoundException,
+  ForbiddenException,
+} from '@/shared-kernel/exceptions/domain.exceptions';
 import { AtsScorngPort } from '../domain/ports/ats-scoring.port';
 import { AuthorizationPort } from '../domain/ports/authorization.port';
 import { ThemePreviewPort } from '../domain/ports/theme-preview.port';
@@ -110,7 +114,7 @@ export class ThemeCrudService {
     const foundTheme = await this.prisma.resumeTheme.findUnique({
       where: { id: themeId },
     });
-    if (!foundTheme) throw new NotFoundException(ERROR_MESSAGES.THEME_NOT_FOUND);
+    if (!foundTheme) throw new EntityNotFoundException('Theme', themeId);
     return foundTheme;
   }
 

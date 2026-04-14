@@ -1,4 +1,4 @@
-import { ForbiddenException } from '@nestjs/common';
+import { ForbiddenException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type { GetMessagesQuery, PaginatedMessagesResponse } from '../../../schemas/chat.schema';
 import { mapMessageToResponse } from '../../mappers/chat.mapper';
 import type { ConversationRepositoryPort, MessageRepositoryPort } from '../../ports/chat.port';

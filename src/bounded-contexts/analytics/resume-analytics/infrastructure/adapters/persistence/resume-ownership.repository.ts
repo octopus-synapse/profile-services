@@ -4,8 +4,8 @@
  * Handles resume ownership verification and data retrieval for analytics.
  */
 
-import { NotFoundException } from '@nestjs/common';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type { ResumeOwnershipPort } from '../../../application/ports/resume-analytics.port';
 import type { ResumeForAnalytics } from '../../../domain/types';
 
@@ -18,7 +18,7 @@ export class PrismaResumeOwnershipRepository implements ResumeOwnershipPort {
       select: { id: true },
     });
 
-    if (!projection) throw new NotFoundException('Resume not found or access denied');
+    if (!projection) throw new EntityNotFoundException('Resume', resumeId);
   }
 
   async verifyResumeExists(resumeId: string): Promise<void> {
@@ -27,7 +27,7 @@ export class PrismaResumeOwnershipRepository implements ResumeOwnershipPort {
       select: { id: true },
     });
 
-    if (!projection) throw new NotFoundException('Resume not found');
+    if (!projection) throw new EntityNotFoundException('Resume', resumeId);
   }
 
   async getResumeWithDetails(resumeId: string): Promise<ResumeForAnalytics> {

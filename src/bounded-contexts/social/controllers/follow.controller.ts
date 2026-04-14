@@ -21,13 +21,15 @@ import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/curre
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import {
+  ActivityLoggerPort,
+  ConnectionReaderPort,
+  FollowReaderPort,
+} from '../application/ports/facade.ports';
+import {
   FollowingListDataDto,
   FollowListDataDto,
   UnfollowDataDto,
 } from '../dto/controller-response.dto';
-import { ActivityService } from '../services/activity.service';
-import { ConnectionService } from '../services/connection.service';
-import { FollowService } from '../services/follow.service';
 
 class FollowIdDto {
   @ApiProperty({ example: 'follow-123' })
@@ -61,9 +63,9 @@ class MySocialStatsDto extends SocialStatsDto {
 @Controller('v1/users')
 export class FollowController {
   constructor(
-    private readonly followService: FollowService,
-    private readonly activityService: ActivityService,
-    private readonly connectionService: ConnectionService,
+    private readonly followService: FollowReaderPort,
+    private readonly activityService: ActivityLoggerPort,
+    private readonly connectionService: ConnectionReaderPort,
   ) {}
 
   /**

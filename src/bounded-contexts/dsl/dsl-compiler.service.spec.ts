@@ -9,8 +9,8 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { BadRequestException } from '@nestjs/common';
 import type { ResumeDsl } from '@/bounded-contexts/dsl/domain/schemas/dsl';
+import { ValidationException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type { GenericResume } from '@/shared-kernel/schemas/sections';
 import { DslCompilerService } from './dsl-compiler.service';
 import { DslValidatorService } from './dsl-validator.service';
@@ -93,16 +93,16 @@ describe('DslCompilerService', () => {
   });
 
   describe('validation behavior', () => {
-    it('should throw BadRequestException for invalid DSL', () => {
-      expect(() => service.compileFromRaw(null)).toThrow(BadRequestException);
+    it('should throw ValidationException for invalid DSL', () => {
+      expect(() => service.compileFromRaw(null)).toThrow(ValidationException);
     });
 
-    it('should throw BadRequestException for empty object', () => {
-      expect(() => service.compileFromRaw({})).toThrow(BadRequestException);
+    it('should throw ValidationException for empty object', () => {
+      expect(() => service.compileFromRaw({})).toThrow(ValidationException);
     });
 
-    it('should throw BadRequestException for invalid structure', () => {
-      expect(() => service.compileFromRaw({ invalid: 'data' })).toThrow(BadRequestException);
+    it('should throw ValidationException for invalid structure', () => {
+      expect(() => service.compileFromRaw({ invalid: 'data' })).toThrow(ValidationException);
     });
   });
 

@@ -5,25 +5,33 @@
  * loaded from the database. ZERO hardcoded section knowledge.
  */
 
-import type { EventEmitter2 } from '@nestjs/event-emitter';
-import type { EventPublisher } from '@/shared-kernel';
+import { Inject } from '@nestjs/common';
+import type { EventPublisherPort } from '@/shared-kernel';
 import { AtsScoreCalculatedEvent } from '../../../../shared-kernel/domain/events';
 import { generateRecommendations } from '../../../domain/services';
 import type { AnalyticsSection, ResumeForAnalytics } from '../../../domain/types';
 import type { ATSIssue, ATSScoreResult, SectionScoreBreakdown } from '../../../interfaces';
+import {
+  ANALYTICS_EVENT_BUS_PORT,
+  AnalyticsEventBusPort,
+} from '../../ports/analytics-event-bus.port';
+import { AtsScoringPort } from '../../ports/facade.ports';
 import type {
   AtsScoreCatalogPort,
   ResumeOwnershipPort,
   SectionTypeAtsConfig,
 } from '../../ports/resume-analytics.port';
 
-export class CalculateAtsScoreUseCase {
+export class CalculateAtsScoreUseCase extends AtsScoringPort {
   constructor(
     private readonly catalog: AtsScoreCatalogPort,
     private readonly ownership: ResumeOwnershipPort,
-    private readonly eventEmitter: EventEmitter2,
-    private readonly eventPublisher: EventPublisher,
-  ) {}
+    @Inject(ANALYTICS_EVENT_BUS_PORT)
+    private readonly eventBus: AnalyticsEventBusPort,
+    private readonly eventPublisher: EventPublisherPort,
+  ) {
+    super();
+  }
 
   async execute(resumeId: string, userId: string): Promise<ATSScoreResult> {
     await this.ownership.verifyOwnership(resumeId, userId);
@@ -40,9 +48,6 @@ export class CalculateAtsScoreUseCase {
     return result;
   }
 
-  /**
-   * Core calculation — also used by other use cases (dashboard, snapshot).
-   */
   async calculate(resume: ResumeForAnalytics, resumeId?: string): Promise<ATSScoreResult> {
     const catalogEntries = await this.catalog.loadCatalog();
 
@@ -62,7 +67,7 @@ export class CalculateAtsScoreUseCase {
     };
 
     if (resumeId) {
-      this.eventEmitter.emit(`analytics:${resumeId}:ats_score`, {
+      this.eventBus.emit(`analytics:${resumeId}:ats_score`, {
         type: 'ats_score',
         resumeId,
         data: { atsScore: result.score, timestamp: new Date() },

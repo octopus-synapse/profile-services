@@ -1,14 +1,31 @@
 import { describe, expect, it, mock } from 'bun:test';
 import { SectionRemovedEvent } from '@/bounded-contexts/resumes';
+import { AnalyticsProjectionPort } from '../../ports/analytics-projection.port';
 import { SyncProjectionOnSectionRemovedHandler } from '../sync-projection-on-section-removed.handler';
+
+class StubAnalyticsProjection implements AnalyticsProjectionPort {
+  decrementSectionCount = mock(async (_resumeId: string, _semanticKind: string) => {});
+  async upsertProjection(
+    _resumeId: string,
+    _data: { userId: string; title: string },
+  ): Promise<void> {
+    throw new Error('not used in test');
+  }
+  async deleteProjection(_resumeId: string): Promise<void> {
+    throw new Error('not used in test');
+  }
+  async touchProjection(_resumeId: string): Promise<void> {
+    throw new Error('not used in test');
+  }
+  async incrementSectionCount(_resumeId: string, _semanticKind: string): Promise<void> {
+    throw new Error('not used in test');
+  }
+}
 
 describe('SyncProjectionOnSectionRemovedHandler', () => {
   it('decrements projection count using semantic sectionKind', async () => {
-    const prisma = {
-      $executeRaw: mock(async () => 1),
-    } as unknown as ConstructorParameters<typeof SyncProjectionOnSectionRemovedHandler>[0];
-
-    const handler = new SyncProjectionOnSectionRemovedHandler(prisma);
+    const projection = new StubAnalyticsProjection();
+    const handler = new SyncProjectionOnSectionRemovedHandler(projection);
     const event = new SectionRemovedEvent('resume-1', {
       userId: 'user-1',
       sectionId: 'item-1',
@@ -19,23 +36,19 @@ describe('SyncProjectionOnSectionRemovedHandler', () => {
 
     await handler.handle(event);
 
-    expect(prisma.$executeRaw).toHaveBeenCalled();
+    expect(projection.decrementSectionCount).toHaveBeenCalledWith('resume-1', 'EDUCATION');
   });
 
   it('ignores events without sectionKind', async () => {
-    const prisma = {
-      $executeRaw: mock(async () => 1),
-    } as unknown as ConstructorParameters<typeof SyncProjectionOnSectionRemovedHandler>[0];
-
-    const handler = new SyncProjectionOnSectionRemovedHandler(prisma);
+    const projection = new StubAnalyticsProjection();
+    const handler = new SyncProjectionOnSectionRemovedHandler(projection);
     const event = new SectionRemovedEvent('resume-3', {
       userId: 'user-1',
       sectionId: 'item-3',
-      // No sectionKind provided
     });
 
     await handler.handle(event);
 
-    expect(prisma.$executeRaw).not.toHaveBeenCalled();
+    expect(projection.decrementSectionCount).not.toHaveBeenCalled();
   });
 });

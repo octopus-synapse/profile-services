@@ -1,4 +1,4 @@
-import { BadRequestException } from '@nestjs/common';
+import { ValidationException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { buildOnboardingSteps, getStepIndex } from '../../../domain/config/onboarding-steps.config';
 import { canProceedFromStep } from '../../../domain/config/onboarding-validation';
 import type { OnboardingProgressData } from '../../../domain/ports/onboarding-progress.port';
@@ -28,7 +28,7 @@ export class AdvanceOnboardingStepUseCase {
     const nextStep = currentIndex < steps.length - 1 ? steps[currentIndex + 1] : null;
 
     if (!nextStep) {
-      throw new BadRequestException('Already at the last step');
+      throw new ValidationException('Already at the last step');
     }
 
     // Merge step data into progress for validation
@@ -49,7 +49,7 @@ export class AdvanceOnboardingStepUseCase {
           | undefined,
       })
     ) {
-      throw new BadRequestException(
+      throw new ValidationException(
         `Cannot proceed from ${progress.currentStep}: required fields missing`,
       );
     }

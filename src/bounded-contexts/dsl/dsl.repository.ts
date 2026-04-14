@@ -1,7 +1,11 @@
-import { BadRequestException, Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import type { ResumeAst } from '@/bounded-contexts/dsl/domain/schemas/ast/resume-ast.schema';
 import type { ResumeDsl } from '@/bounded-contexts/dsl/domain/schemas/dsl';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import {
+  EntityNotFoundException,
+  ValidationException,
+} from '@/shared-kernel/exceptions/domain.exceptions';
 import type {
   GenericResume,
   GenericResumeSection,
@@ -167,11 +171,11 @@ export class DslRepository {
     ]);
 
     if (!share?.isActive) {
-      throw new BadRequestException('Resume not found or not public');
+      throw new EntityNotFoundException('ResumeShare', slug);
     }
 
     if (share.expiresAt && new Date() > share.expiresAt) {
-      throw new BadRequestException('Resume not found or not public');
+      throw new EntityNotFoundException('ResumeShare', slug);
     }
 
     const normalizedResume = this.normalizeToGenericResume(share.resume, locale);
@@ -191,7 +195,7 @@ export class DslRepository {
     });
 
     if (!resume) {
-      throw new BadRequestException('Resume not found');
+      throw new EntityNotFoundException('Resume', resumeId);
     }
 
     return this.normalizeToGenericResume(resume, locale);
@@ -270,7 +274,7 @@ export class DslRepository {
     const baseDsl = resume.activeTheme?.styleConfig;
 
     if (!baseDsl || Object.keys(baseDsl as object).length === 0) {
-      throw new BadRequestException(
+      throw new ValidationException(
         'Resume has no active theme. Please apply a theme before rendering.',
       );
     }

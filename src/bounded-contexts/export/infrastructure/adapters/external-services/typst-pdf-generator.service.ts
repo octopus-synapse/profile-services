@@ -7,9 +7,10 @@
  * Pipeline: userId → load resume + DSL → compile ResumeAst → serialize JSON → Typst compile → PDF
  */
 
-import { forwardRef, Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import { DslRepository } from '@/bounded-contexts/dsl/dsl.repository';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type { SupportedLocale } from '@/shared-kernel/utils/locale-resolver';
 import type { PdfGeneratorOptions } from '../../../domain/ports/pdf-generator.port';
 import { TypstCompilerService } from './typst-compiler.service';
@@ -84,7 +85,7 @@ export class TypstPdfGeneratorService {
     });
 
     if (!user?.primaryResumeId) {
-      throw new NotFoundException('User has no primary resume configured');
+      throw new EntityNotFoundException('Resume');
     }
 
     return user.primaryResumeId;

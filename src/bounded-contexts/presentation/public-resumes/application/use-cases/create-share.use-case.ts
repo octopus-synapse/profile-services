@@ -9,7 +9,7 @@ import {
   ForbiddenException,
   NotFoundException,
 } from '@nestjs/common';
-import type { EventPublisher } from '@/shared-kernel';
+import type { EventPublisherPort } from '@/shared-kernel';
 import { ResumePublishedEvent } from '../../../shared-kernel/domain/events';
 import type { ResumeReadRepositoryPort } from '../../domain/ports/resume-read.repository.port';
 import type { ShareRepositoryPort } from '../../domain/ports/share.repository.port';
@@ -25,7 +25,7 @@ export class CreateShareUseCase {
   constructor(
     private readonly shareRepo: ShareRepositoryPort,
     private readonly resumeRepo: ResumeReadRepositoryPort,
-    private readonly eventPublisher: EventPublisher,
+    private readonly eventPublisher: EventPublisherPort,
   ) {}
 
   async execute(userId: string, dto: CreateShareDto) {

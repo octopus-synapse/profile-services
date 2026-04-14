@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { ResumeCreatedEvent } from '@/bounded-contexts/resumes';
-import { ActivityService } from '../../services/activity.service';
+import { ActivityCreatorPort } from '../ports/facade.ports';
 
 @Injectable()
 export class ResumeCreatedActivityHandler {
-  constructor(private readonly activityService: ActivityService) {}
+  constructor(private readonly activityService: ActivityCreatorPort) {}
 
   @OnEvent(ResumeCreatedEvent.TYPE)
   async handle(event: ResumeCreatedEvent): Promise<void> {

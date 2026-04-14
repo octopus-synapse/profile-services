@@ -1,14 +1,31 @@
 import { describe, expect, it, mock } from 'bun:test';
 import { SectionAddedEvent } from '@/bounded-contexts/resumes';
+import { AnalyticsProjectionPort } from '../../ports/analytics-projection.port';
 import { SyncProjectionOnSectionAddedHandler } from '../sync-projection-on-section-added.handler';
+
+class StubAnalyticsProjection implements AnalyticsProjectionPort {
+  incrementSectionCount = mock(async (_resumeId: string, _semanticKind: string) => {});
+  async upsertProjection(
+    _resumeId: string,
+    _data: { userId: string; title: string },
+  ): Promise<void> {
+    throw new Error('not used in test');
+  }
+  async deleteProjection(_resumeId: string): Promise<void> {
+    throw new Error('not used in test');
+  }
+  async touchProjection(_resumeId: string): Promise<void> {
+    throw new Error('not used in test');
+  }
+  async decrementSectionCount(_resumeId: string, _semanticKind: string): Promise<void> {
+    throw new Error('not used in test');
+  }
+}
 
 describe('SyncProjectionOnSectionAddedHandler', () => {
   it('increments projection count using semantic sectionKind', async () => {
-    const prisma = {
-      $executeRaw: mock(async () => 1),
-    } as unknown as ConstructorParameters<typeof SyncProjectionOnSectionAddedHandler>[0];
-
-    const handler = new SyncProjectionOnSectionAddedHandler(prisma);
+    const projection = new StubAnalyticsProjection();
+    const handler = new SyncProjectionOnSectionAddedHandler(projection);
     const event = new SectionAddedEvent('resume-1', {
       userId: 'user-1',
       sectionId: 'item-1',
@@ -19,23 +36,19 @@ describe('SyncProjectionOnSectionAddedHandler', () => {
 
     await handler.handle(event);
 
-    expect(prisma.$executeRaw).toHaveBeenCalled();
+    expect(projection.incrementSectionCount).toHaveBeenCalledWith('resume-1', 'WORK_EXPERIENCE');
   });
 
   it('ignores events without sectionKind', async () => {
-    const prisma = {
-      $executeRaw: mock(async () => 1),
-    } as unknown as ConstructorParameters<typeof SyncProjectionOnSectionAddedHandler>[0];
-
-    const handler = new SyncProjectionOnSectionAddedHandler(prisma);
+    const projection = new StubAnalyticsProjection();
+    const handler = new SyncProjectionOnSectionAddedHandler(projection);
     const event = new SectionAddedEvent('resume-3', {
       userId: 'user-1',
       sectionId: 'item-3',
-      // No sectionKind provided
     });
 
     await handler.handle(event);
 
-    expect(prisma.$executeRaw).not.toHaveBeenCalled();
+    expect(projection.incrementSectionCount).not.toHaveBeenCalled();
   });
 });

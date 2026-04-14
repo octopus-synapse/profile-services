@@ -37,8 +37,12 @@ import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/curre
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { createZodPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
+import type { SectionDefinition } from '@/shared-kernel/schemas/sections';
 import { parseLocale } from '@/shared-kernel/utils/locale-resolver';
-import type { OnboardingThemeOption } from '../../domain/config/onboarding-steps.config';
+import type {
+  OnboardingThemeOption,
+  SectionTypeData,
+} from '../../domain/config/onboarding-steps.config';
 import { calculateStrength } from '../../domain/config/onboarding-strength';
 import {
   canCompleteOnboarding,
@@ -55,6 +59,7 @@ import {
   ONBOARDING_PROGRESS_USE_CASES,
   type OnboardingProgressUseCases,
 } from '../../domain/ports/onboarding-progress.port';
+import { SectionTypeDefinitionPort } from '../../domain/ports/section-type-definition.port';
 import { SystemThemesPort } from '../../domain/ports/system-themes.port';
 import {
   type OnboardingData,
@@ -101,6 +106,7 @@ export class OnboardingController {
     private readonly systemThemes: SystemThemesPort,
     private readonly onboardingConfig: OnboardingConfigPort,
     private readonly eventEmitter: EventEmitter2,
+    private readonly sectionTypeDefs: SectionTypeDefinitionPort,
   ) {}
 
   private async getSystemThemes(): Promise<OnboardingThemeOption[]> {
@@ -129,18 +135,27 @@ export class OnboardingController {
     @Query('locale') localeParam?: string,
   ): Promise<DataResponse<OnboardingSessionDto>> {
     const locale = parseLocale(localeParam);
-    const [data, stepConfigs, strengthConfig, systemThemes] = await Promise.all([
+    const [data, stepConfigs, strengthConfig, systemThemes, sectionTypes] = await Promise.all([
       this.progressUseCases.getProgressUseCase.execute(user.userId),
       this.onboardingConfig.getActiveSteps(),
       this.onboardingConfig.getStrengthConfig(),
       this.getSystemThemes(),
+      this.sectionTypeDefs.findAll(locale),
     ]);
     return {
       success: true,
-      data: this.buildSession(data, stepConfigs, strengthConfig, locale, systemThemes, {
-        name: user.name,
-        email: user.email,
-      }),
+      data: this.buildSession(
+        data,
+        stepConfigs,
+        strengthConfig,
+        locale,
+        systemThemes,
+        {
+          name: user.name,
+          email: user.email,
+        },
+        sectionTypes,
+      ),
     };
   }
 
@@ -425,8 +440,9 @@ export class OnboardingController {
     locale = 'en',
     systemThemes?: OnboardingThemeOption[],
     userDefaults?: { name?: string; email?: string },
+    sectionTypes?: SectionTypeData[],
   ): OnboardingSessionDto {
-    const steps = this.resolveSteps(stepConfigs, locale, systemThemes);
+    const steps = this.resolveSteps(stepConfigs, locale, systemThemes, sectionTypes);
     const currentStepIndex = steps.findIndex((s) => s.id === data.currentStep);
     const totalSteps = steps.length;
 
@@ -501,10 +517,13 @@ export class OnboardingController {
     stepConfigs: OnboardingStepConfig[],
     locale: string,
     systemThemes?: OnboardingThemeOption[],
+    sectionTypes?: SectionTypeData[],
   ) {
+    const sectionMap = new Map((sectionTypes ?? []).map((st) => [st.key, st]));
+
     return stepConfigs.map((step) => {
       const t = step.translations[locale] ?? step.translations.en ?? {};
-      const fields = step.fields.map((f) => ({
+      let fields = step.fields.map((f) => ({
         key: f.key,
         type: f.type,
         label: t.fieldLabels?.[f.key] ?? f.key,
@@ -512,7 +531,44 @@ export class OnboardingController {
         widget: f.widget,
         options: undefined as string[] | undefined,
         examples: f.examples,
+        minLength: step.validation.minLength?.[f.key],
+        maxLength: step.validation.maxLength?.[f.key],
       }));
+
+      if (fields.length === 0 && step.sectionTypeKey) {
+        const sectionType = sectionMap.get(step.sectionTypeKey);
+        if (sectionType?.definition) {
+          const def = sectionType.definition as SectionDefinition;
+          if (def.fields) {
+            fields = def.fields
+              .filter((f) => f.key && f.type !== 'array' && f.type !== 'object')
+              .map((f) => {
+                const meta = (f.meta ?? {}) as Record<string, unknown>;
+                let uiType: string;
+                if (f.type === 'enum') uiType = 'select';
+                else if (f.type === 'date') uiType = 'date';
+                else if (f.type === 'number') uiType = 'number';
+                else if (f.type === 'boolean') uiType = 'checkbox';
+                else
+                  uiType =
+                    typeof meta.widget === 'string' && meta.widget === 'textarea'
+                      ? 'textarea'
+                      : 'text';
+                return {
+                  key: f.key!,
+                  type: uiType,
+                  label: typeof meta.label === 'string' ? meta.label : f.key!,
+                  required: f.required ?? false,
+                  widget: typeof meta.widget === 'string' ? meta.widget : undefined,
+                  options: f.enum,
+                  examples: undefined as string[] | undefined,
+                  minLength: undefined as number | undefined,
+                  maxLength: undefined as number | undefined,
+                };
+              });
+          }
+        }
+      }
 
       const result: Record<string, unknown> = {
         id: step.key,

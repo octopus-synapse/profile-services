@@ -1,4 +1,4 @@
-import { ConflictException } from '@nestjs/common';
+import { ConflictException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type { CreateSectionTypeDto, SectionTypeResponseDto } from '../../../dto';
 import type { JsonValue } from '../../ports/admin-section-types.port';
 import { AdminSectionTypesRepositoryPort } from '../../ports/admin-section-types.port';

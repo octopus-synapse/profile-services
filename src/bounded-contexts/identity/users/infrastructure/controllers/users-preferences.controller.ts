@@ -18,6 +18,7 @@ import {
 } from '../../application/ports/user-preferences.port';
 import {
   UserFullPreferencesDataDto,
+  UserFullPreferencesDataSchema,
   UserOperationMessageDataDto,
   UserPreferencesDataDto,
 } from '../../dto/controller-response.dto';
@@ -68,7 +69,7 @@ export class UsersPreferencesController {
     const preferences = await this.preferences.getFullPreferencesUseCase.execute(user.userId);
     return {
       success: true,
-      data: { preferences } as unknown as UserFullPreferencesDataDto,
+      data: UserFullPreferencesDataSchema.parse({ preferences }),
     };
   }
 

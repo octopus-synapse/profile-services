@@ -5,6 +5,7 @@
 
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { API_LIMITS } from '@/shared-kernel';
+import { extractGitHubUsername } from '../github.utils';
 import { GitHubAchievementService } from './github-achievement.service';
 import { GitHubApiService } from './github-api.service';
 import { GitHubContributionService } from './github-contribution.service';
@@ -109,15 +110,7 @@ export class GitHubSyncService {
       throw new HttpException('No GitHub username found in resume', HttpStatus.BAD_REQUEST);
     }
 
-    const githubUsername = this.extractUsername(resume.github);
+    const githubUsername = extractGitHubUsername(resume.github);
     return this.syncUserGitHub(userId, githubUsername, resumeId);
-  }
-
-  private extractUsername(githubUrl: string): string {
-    return githubUrl
-      .replace('https://github.com/', '')
-      .replace('http://github.com/', '')
-      .replace('github.com/', '')
-      .split('/')[0];
   }
 }

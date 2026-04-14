@@ -5,15 +5,65 @@ import { USER_PROFILE_USE_CASES } from '../../application/ports/user-profile.por
 import { UsernameService } from '../../application/services/username.service';
 import { UsersProfileController } from './users-profile.controller';
 
+const makePublicUser = () => ({
+  id: 'user-1',
+  username: 'john',
+  name: 'John',
+  photoURL: null,
+  bio: null,
+  location: null,
+  website: null,
+  linkedin: null,
+  github: null,
+});
+
+const makePublicResume = () => ({
+  id: 'resume-1',
+  title: 'Resume',
+  template: 'default',
+  language: 'en',
+  isPublic: true,
+  slug: null,
+  fullName: null,
+  jobTitle: null,
+  phone: null,
+  emailContact: null,
+  location: null,
+  linkedin: null,
+  github: null,
+  website: null,
+  summary: null,
+  accentColor: null,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+});
+
 const createMockProfileUseCases = () => ({
   getPublicProfileUseCase: {
-    execute: mock(() => Promise.resolve({ user: { name: 'John' }, resume: { id: 'resume-1' } })),
+    execute: mock(() =>
+      Promise.resolve({ user: makePublicUser(), resume: makePublicResume() }),
+    ),
   },
   getProfileUseCase: {
-    execute: mock(() => Promise.resolve({ id: 'user-1', email: 'john@example.com' })),
+    execute: mock(() =>
+      Promise.resolve({
+        id: 'user-1',
+        email: 'john@example.com',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }),
+    ),
   },
   updateProfileUseCase: {
-    execute: mock(() => Promise.resolve({ name: 'John Updated' })),
+    execute: mock(() =>
+      Promise.resolve({
+        id: 'user-1',
+        email: 'john@example.com',
+        name: 'John Updated',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }),
+    ),
   },
 });
 

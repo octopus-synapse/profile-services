@@ -1,4 +1,7 @@
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  EntityNotFoundException,
+  ForbiddenException,
+} from '@/shared-kernel/exceptions/domain.exceptions';
 import { GenericResumeSectionsRepositoryPort } from '../ports/generic-resume-sections-repository.port';
 
 export class ResumeOwnershipPolicy {
@@ -8,7 +11,7 @@ export class ResumeOwnershipPolicy {
     const resume = await this.repository.findResumeOwner(resumeId);
 
     if (!resume) {
-      throw new NotFoundException('Resume not found');
+      throw new EntityNotFoundException('Resume', resumeId);
     }
 
     if (resume.userId !== userId) {

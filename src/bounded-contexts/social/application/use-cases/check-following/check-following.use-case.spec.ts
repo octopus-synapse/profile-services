@@ -3,21 +3,24 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import type { FollowRepositoryPort } from '../../ports/follow.port';
+import {
+  FollowRepositoryPort,
+  type FollowWithUser,
+} from '../../ports/follow.port';
 import { CheckFollowingUseCase } from './check-following.use-case';
 
-class StubFollowRepository {
-  private _result: unknown = null;
+class StubFollowRepository implements FollowRepositoryPort {
+  private _result: FollowWithUser | null = null;
 
-  setFindFollowResult(val: unknown) {
+  setFindFollowResult(val: FollowWithUser | null) {
     this._result = val;
   }
 
   async findFollow() {
     return this._result;
   }
-  async createFollow() {
-    return {} as never;
+  async createFollow(): Promise<FollowWithUser> {
+    throw new Error('not used in test');
   }
   async deleteFollow() {}
   async findFollowers() {
@@ -49,11 +52,16 @@ describe('CheckFollowingUseCase', () => {
 
   beforeEach(() => {
     repository = new StubFollowRepository();
-    useCase = new CheckFollowingUseCase(repository as unknown as FollowRepositoryPort);
+    useCase = new CheckFollowingUseCase(repository);
   });
 
   it('should return true when following', async () => {
-    repository.setFindFollowResult({ id: 'follow-1' });
+    repository.setFindFollowResult({
+      id: 'follow-1',
+      followerId: 'user-1',
+      followingId: 'user-2',
+      createdAt: new Date(),
+    });
     expect(await useCase.execute('user-1', 'user-2')).toBe(true);
   });
 

@@ -5,10 +5,14 @@
  * Manages denormalized counters on the Post model.
  */
 
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import type { ReactionType } from '@prisma/client';
 import { NotificationService } from '@/bounded-contexts/notifications/services/notification.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import {
+  ConflictException,
+  EntityNotFoundException,
+} from '@/shared-kernel/exceptions/domain.exceptions';
 
 const AUTHOR_SELECT = {
   id: true,
@@ -34,7 +38,7 @@ export class EngagementService {
     });
 
     if (!post || post.isDeleted) {
-      throw new NotFoundException('Post not found');
+      throw new EntityNotFoundException('Post', postId);
     }
 
     // Check if already reacted
@@ -101,7 +105,7 @@ export class EngagementService {
     });
 
     if (!existing) {
-      throw new NotFoundException('Like not found');
+      throw new EntityNotFoundException('Like', postId);
     }
 
     await this.prisma.$transaction([
@@ -127,7 +131,7 @@ export class EngagementService {
     });
 
     if (!post || post.isDeleted) {
-      throw new NotFoundException('Post not found');
+      throw new EntityNotFoundException('Post', postId);
     }
 
     const existing = await this.prisma.postBookmark.findUnique({
@@ -160,7 +164,7 @@ export class EngagementService {
     });
 
     if (!existing) {
-      throw new NotFoundException('Bookmark not found');
+      throw new EntityNotFoundException('Bookmark', postId);
     }
 
     await this.prisma.$transaction([
@@ -188,7 +192,7 @@ export class EngagementService {
     });
 
     if (!post || post.isDeleted) {
-      throw new NotFoundException('Post not found');
+      throw new EntityNotFoundException('Post', postId);
     }
 
     // Check for duplicate repost

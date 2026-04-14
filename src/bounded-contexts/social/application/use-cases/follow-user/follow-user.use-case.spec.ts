@@ -3,11 +3,15 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
-import type { FollowRepositoryPort, FollowWithUser } from '../../ports/follow.port';
+import {
+  ConflictException,
+  EntityNotFoundException,
+  ValidationException,
+} from '@/shared-kernel/exceptions/domain.exceptions';
+import { FollowRepositoryPort, type FollowWithUser } from '../../ports/follow.port';
 import { FollowUserUseCase } from './follow-user.use-case';
 
-class StubFollowRepository {
+class StubFollowRepository implements FollowRepositoryPort {
   private _userExists = true;
   private _findFollowResult: FollowWithUser | null = null;
   private _createFollowResult: FollowWithUser = {
@@ -73,10 +77,7 @@ describe('FollowUserUseCase', () => {
 
   beforeEach(() => {
     repository = new StubFollowRepository();
-    useCase = new FollowUserUseCase(
-      repository as unknown as FollowRepositoryPort,
-      stubEventPublisher,
-    );
+    useCase = new FollowUserUseCase(repository, stubEventPublisher);
   });
 
   it('should create a follow relationship', async () => {
@@ -86,13 +87,13 @@ describe('FollowUserUseCase', () => {
     expect(repository.calls.some((c) => c.method === 'createFollow')).toBe(true);
   });
 
-  it('should throw BadRequestException when trying to follow yourself', async () => {
-    await expect(useCase.execute('user-1', 'user-1')).rejects.toThrow(BadRequestException);
+  it('should throw ValidationException when trying to follow yourself', async () => {
+    await expect(useCase.execute('user-1', 'user-1')).rejects.toThrow(ValidationException);
   });
 
-  it('should throw NotFoundException when target user does not exist', async () => {
+  it('should throw EntityNotFoundException when target user does not exist', async () => {
     repository.setUserExists(false);
-    await expect(useCase.execute('user-1', 'user-2')).rejects.toThrow(NotFoundException);
+    await expect(useCase.execute('user-1', 'user-2')).rejects.toThrow(EntityNotFoundException);
   });
 
   it('should throw ConflictException when already following', async () => {

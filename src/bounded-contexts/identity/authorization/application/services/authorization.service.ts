@@ -12,8 +12,14 @@
  * - Provides simple API for guards and controllers
  */
 
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { UserAuthContext, type UserId } from '../../domain/entities/user-auth-context.entity';
+import type {
+  IGroupRepository,
+  IPermissionRepository,
+  IRoleRepository,
+  IUserAuthorizationRepository,
+} from '../../domain/ports/authorization-repositories.port';
 import { PermissionResolverService } from '../../domain/services/permission-resolver.service';
 import { GroupRepository } from '../../infrastructure/repositories/group.repository';
 import { PermissionRepository } from '../../infrastructure/repositories/permission.repository';
@@ -44,10 +50,14 @@ export class AuthorizationService extends AuthorizationServicePort {
   private readonly resolver: PermissionResolverService;
 
   constructor(
-    private readonly permissionRepo: PermissionRepository,
-    private readonly roleRepo: RoleRepository,
-    private readonly groupRepo: GroupRepository,
-    private readonly userAuthRepo: UserAuthorizationRepository,
+    @Inject(PermissionRepository)
+    private readonly permissionRepo: IPermissionRepository,
+    @Inject(RoleRepository)
+    private readonly roleRepo: IRoleRepository,
+    @Inject(GroupRepository)
+    private readonly groupRepo: IGroupRepository,
+    @Inject(UserAuthorizationRepository)
+    private readonly userAuthRepo: IUserAuthorizationRepository,
   ) {
     super();
     this.resolver = new PermissionResolverService(

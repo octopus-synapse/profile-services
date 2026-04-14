@@ -1,5 +1,9 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  EntityNotFoundException,
+  ForbiddenException,
+  ValidationException,
+} from '@/shared-kernel/exceptions/domain.exceptions';
 import {
   createTestGenericResumeSectionsService,
   InMemoryGenericResumeSectionsRepository,
@@ -46,7 +50,7 @@ describe('GenericResumeSectionsService', () => {
         service.createItem('resume-1', 'summary_v2', 'user-1', {
           text: 'Senior engineer with 10 years of experience',
         }),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow(ValidationException);
     });
 
     it('enforces single item when definition disallows multiple items', async () => {
@@ -79,7 +83,7 @@ describe('GenericResumeSectionsService', () => {
         service.createItem('resume-1', 'summary_v1', 'user-1', {
           text: 'Another summary',
         }),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow(ValidationException);
     });
 
     it('creates resume section automatically when missing', async () => {
@@ -123,7 +127,7 @@ describe('GenericResumeSectionsService', () => {
         service.createItem('resume-1', 'work_experience_v1', 'user-1', {
           company: 'Octopus',
         }),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow(ValidationException);
     });
 
     it('accepts valid content with all required fields', async () => {
@@ -207,7 +211,7 @@ describe('GenericResumeSectionsService', () => {
   });
 
   describe('updateItem', () => {
-    it('throws NotFoundException when updating missing section item', async () => {
+    it('throws EntityNotFoundException when updating missing section item', async () => {
       repository.seedResume({ id: 'resume-1', userId: 'user-1' });
       repository.seedSectionType({
         id: 'section-type-1',
@@ -224,7 +228,7 @@ describe('GenericResumeSectionsService', () => {
         service.updateItem('resume-1', 'summary_v1', 'item-missing', 'user-1', {
           text: 'updated',
         }),
-      ).rejects.toThrow(NotFoundException);
+      ).rejects.toThrow(EntityNotFoundException);
     });
 
     it('updates item content successfully', async () => {
@@ -287,12 +291,12 @@ describe('GenericResumeSectionsService', () => {
         service.updateItem('resume-1', 'work_experience_v1', 'item-1', 'user-1', {
           company: 'New Company',
         }),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow(ValidationException);
     });
   });
 
   describe('deleteItem', () => {
-    it('throws NotFoundException when deleting missing section item', async () => {
+    it('throws EntityNotFoundException when deleting missing section item', async () => {
       repository.seedResume({ id: 'resume-1', userId: 'user-1' });
       repository.seedSectionType({
         id: 'section-type-1',
@@ -307,7 +311,7 @@ describe('GenericResumeSectionsService', () => {
 
       await expect(
         service.deleteItem('resume-1', 'summary_v1', 'item-missing', 'user-1'),
-      ).rejects.toThrow(NotFoundException);
+      ).rejects.toThrow(EntityNotFoundException);
     });
 
     it('deletes item successfully', async () => {

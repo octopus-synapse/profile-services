@@ -1,17 +1,36 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { ResumeCreatedEvent } from '@/bounded-contexts/resumes';
-import { ActivityService } from '../../../services/activity.service';
+import type { ActivityWithUser } from '../../ports/activity.port';
+import { ActivityCreatorPort } from '../../ports/facade.ports';
 import { ResumeCreatedActivityHandler } from '../resume-created-activity.handler';
+
+class StubActivityCreator extends ActivityCreatorPort {
+  createActivity = mock(
+    async (
+      userId: string,
+      _type: string,
+      _metadata?: unknown,
+      entityId?: string,
+      entityType?: string,
+    ): Promise<ActivityWithUser> => ({
+      id: 'activity-1',
+      userId,
+      type: 'RESUME_CREATED',
+      metadata: null,
+      entityId: entityId ?? null,
+      entityType: entityType ?? null,
+      createdAt: new Date(),
+    }),
+  );
+}
 
 describe('ResumeCreatedActivityHandler', () => {
   let handler: ResumeCreatedActivityHandler;
-  let mockActivityService: { createActivity: ReturnType<typeof mock> };
+  let activityCreator: StubActivityCreator;
 
   beforeEach(() => {
-    mockActivityService = {
-      createActivity: mock(() => Promise.resolve({ id: 'activity-1' })),
-    };
-    handler = new ResumeCreatedActivityHandler(mockActivityService as unknown as ActivityService);
+    activityCreator = new StubActivityCreator();
+    handler = new ResumeCreatedActivityHandler(activityCreator);
   });
 
   it('creates activity with RESUME_CREATED type', async () => {
@@ -22,7 +41,7 @@ describe('ResumeCreatedActivityHandler', () => {
 
     await handler.handle(event);
 
-    expect(mockActivityService.createActivity).toHaveBeenCalledWith(
+    expect(activityCreator.createActivity).toHaveBeenCalledWith(
       'user-1',
       'RESUME_CREATED',
       { resumeTitle: 'Resume' },
@@ -39,7 +58,7 @@ describe('ResumeCreatedActivityHandler', () => {
 
     await handler.handle(event);
 
-    expect(mockActivityService.createActivity.mock.calls[0][0]).toBe('user-abc');
+    expect(activityCreator.createActivity.mock.calls[0][0]).toBe('user-abc');
   });
 
   it('creates activity with resumeId as entityId', async () => {
@@ -50,6 +69,6 @@ describe('ResumeCreatedActivityHandler', () => {
 
     await handler.handle(event);
 
-    expect(mockActivityService.createActivity.mock.calls[0][3]).toBe('resume-xyz');
+    expect(activityCreator.createActivity.mock.calls[0][3]).toBe('resume-xyz');
   });
 });

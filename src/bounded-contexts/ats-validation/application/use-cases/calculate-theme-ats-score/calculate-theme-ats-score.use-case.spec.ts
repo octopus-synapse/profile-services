@@ -5,7 +5,7 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { NotFoundException } from '@nestjs/common';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { ThemeATSScoringStrategy } from '../../../ats/scoring/theme-ats-scoring.strategy';
 import {
   createOptimalATSThemeConfig,
@@ -30,17 +30,17 @@ describe('CalculateThemeATSScoreUseCase', () => {
   // ============================================================================
 
   describe('Error Handling', () => {
-    it('should throw NotFoundException when theme does not exist', async () => {
-      expect(useCase.execute('non-existent-theme')).rejects.toThrow(NotFoundException);
+    it('should throw EntityNotFoundException when theme does not exist', async () => {
+      expect(useCase.execute('non-existent-theme')).rejects.toThrow(EntityNotFoundException);
     });
 
-    it('should throw NotFoundException with descriptive message', async () => {
+    it('should throw EntityNotFoundException with descriptive message', async () => {
       try {
         await useCase.execute('missing-theme-id');
         expect(true).toBe(false); // Should not reach here
       } catch (error) {
-        expect(error).toBeInstanceOf(NotFoundException);
-        expect((error as NotFoundException).message).toContain('Theme');
+        expect(error).toBeInstanceOf(EntityNotFoundException);
+        expect((error as EntityNotFoundException).message).toContain('Theme');
       }
     });
   });

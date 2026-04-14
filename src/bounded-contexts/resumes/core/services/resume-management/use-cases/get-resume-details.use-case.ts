@@ -1,5 +1,4 @@
-import { NotFoundException } from '@nestjs/common';
-import { ERROR_MESSAGES } from '@/shared-kernel';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import {
   type ResumeDetails,
   ResumeManagementRepositoryPort,
@@ -12,7 +11,7 @@ export class GetResumeDetailsUseCase {
     const resume = await this.repository.findResumeDetailsById(resumeId);
 
     if (!resume) {
-      throw new NotFoundException(ERROR_MESSAGES.RESUME_NOT_FOUND);
+      throw new EntityNotFoundException('Resume', resumeId);
     }
 
     return resume;

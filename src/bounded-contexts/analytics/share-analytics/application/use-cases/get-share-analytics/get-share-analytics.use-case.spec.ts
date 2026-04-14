@@ -6,7 +6,10 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { ForbiddenException } from '@nestjs/common';
+import {
+  EntityNotFoundException,
+  ForbiddenException,
+} from '@/shared-kernel/exceptions/domain.exceptions';
 import { InMemoryShareAnalyticsRepository } from '../../../testing';
 import { GetShareAnalyticsUseCase } from './get-share-analytics.use-case';
 
@@ -29,8 +32,8 @@ describe('GetShareAnalyticsUseCase', () => {
     });
   });
 
-  it('should throw ForbiddenException when share not found', async () => {
-    await expect(useCase.execute('non-existent', userId)).rejects.toThrow(ForbiddenException);
+  it('should throw EntityNotFoundException when share not found', async () => {
+    await expect(useCase.execute('non-existent', userId)).rejects.toThrow(EntityNotFoundException);
   });
 
   it('should throw ForbiddenException when user does not own the resume', async () => {

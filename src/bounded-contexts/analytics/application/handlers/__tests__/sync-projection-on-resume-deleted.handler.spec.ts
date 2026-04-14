@@ -1,52 +1,46 @@
-/**
- * SyncProjectionOnResumeDeletedHandler - Unit Tests
- *
- * Verifies the handler deletes the analytics projection
- * when a resume is deleted.
- */
-
 import { describe, expect, it, mock } from 'bun:test';
 import { ResumeDeletedEvent } from '@/bounded-contexts/resumes';
+import { AnalyticsProjectionPort } from '../../ports/analytics-projection.port';
 import { SyncProjectionOnResumeDeletedHandler } from '../sync-projection-on-resume-deleted.handler';
+
+class StubAnalyticsProjection implements AnalyticsProjectionPort {
+  deleteProjection = mock(async (_resumeId: string) => {});
+  async upsertProjection(
+    _resumeId: string,
+    _data: { userId: string; title: string },
+  ): Promise<void> {
+    throw new Error('not used in test');
+  }
+  async touchProjection(_resumeId: string): Promise<void> {
+    throw new Error('not used in test');
+  }
+  async incrementSectionCount(_resumeId: string, _semanticKind: string): Promise<void> {
+    throw new Error('not used in test');
+  }
+  async decrementSectionCount(_resumeId: string, _semanticKind: string): Promise<void> {
+    throw new Error('not used in test');
+  }
+}
 
 describe('SyncProjectionOnResumeDeletedHandler', () => {
   it('deletes the analytics projection for the resume', async () => {
-    const deleteManyMock = mock(async () => ({ count: 1 }));
-    const prisma = {
-      analyticsResumeProjection: {
-        deleteMany: deleteManyMock,
-      },
-    } as unknown as ConstructorParameters<typeof SyncProjectionOnResumeDeletedHandler>[0];
-
-    const handler = new SyncProjectionOnResumeDeletedHandler(prisma);
-    const event = new ResumeDeletedEvent('resume-1', {
-      userId: 'user-1',
-    });
+    const projection = new StubAnalyticsProjection();
+    const handler = new SyncProjectionOnResumeDeletedHandler(projection);
+    const event = new ResumeDeletedEvent('resume-1', { userId: 'user-1' });
 
     await handler.handle(event);
 
-    expect(deleteManyMock).toHaveBeenCalledWith({
-      where: { id: 'resume-1' },
-    });
+    expect(projection.deleteProjection).toHaveBeenCalledWith('resume-1');
   });
 
   it('uses event aggregateId as the projection id to delete', async () => {
-    const deleteManyMock = mock(async (_args: { where: { id: string } }) => ({ count: 1 }));
-    const prisma = {
-      analyticsResumeProjection: {
-        deleteMany: deleteManyMock,
-      },
-    } as unknown as ConstructorParameters<typeof SyncProjectionOnResumeDeletedHandler>[0];
-
-    const handler = new SyncProjectionOnResumeDeletedHandler(prisma);
-    const event = new ResumeDeletedEvent('resume-xyz', {
-      userId: 'user-2',
-    });
+    const projection = new StubAnalyticsProjection();
+    const handler = new SyncProjectionOnResumeDeletedHandler(projection);
+    const event = new ResumeDeletedEvent('resume-xyz', { userId: 'user-2' });
 
     await handler.handle(event);
 
-    expect(deleteManyMock).toHaveBeenCalledTimes(1);
-    const call = deleteManyMock.mock.calls[0][0];
-    expect(call.where.id).toBe('resume-xyz');
+    expect(projection.deleteProjection).toHaveBeenCalledTimes(1);
+    expect(projection.deleteProjection.mock.calls[0][0]).toBe('resume-xyz');
   });
 });

@@ -128,11 +128,11 @@ describe('TechSkillsQueryService', () => {
     };
 
     service = new TechSkillsQueryService(
-      mockAreaQuery as never,
-      mockNicheQuery as never,
-      mockLanguageQuery as never,
-      mockSkillQuery as never,
-      mockSkillSearch as never,
+      mockAreaQuery,
+      mockNicheQuery,
+      mockLanguageQuery,
+      mockSkillQuery,
+      mockSkillSearch,
     );
   });
 

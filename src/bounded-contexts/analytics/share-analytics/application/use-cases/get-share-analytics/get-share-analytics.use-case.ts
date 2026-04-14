@@ -4,7 +4,10 @@
  * Retrieves aggregated analytics for a shared resume.
  */
 
-import { ForbiddenException } from '@nestjs/common';
+import {
+  EntityNotFoundException,
+  ForbiddenException,
+} from '@/shared-kernel/exceptions/domain.exceptions';
 import type { ShareAnalyticsRepositoryPort } from '../../../ports';
 
 export class GetShareAnalyticsUseCase {
@@ -14,7 +17,7 @@ export class GetShareAnalyticsUseCase {
     const share = await this.repository.findShareWithOwner(shareId);
 
     if (!share) {
-      throw new ForbiddenException('Share not found');
+      throw new EntityNotFoundException('Share', shareId);
     }
 
     if (share.resume.userId !== userId) {

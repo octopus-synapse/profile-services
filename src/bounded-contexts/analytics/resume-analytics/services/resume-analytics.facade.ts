@@ -1,6 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { EventPublisher } from '@/shared-kernel';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { AtsScoreCalculatedEvent } from '../../domain/events';
 import type { ResumeForAnalytics } from '../domain/types';
 import type {
@@ -170,7 +171,7 @@ export class ResumeAnalyticsFacade {
       select: { id: true },
     });
 
-    if (!projection) throw new NotFoundException('Resume not found or access denied');
+    if (!projection) throw new EntityNotFoundException('Resume', resumeId);
   }
 
   private async verifyResumeExists(resumeId: string): Promise<void> {
@@ -179,7 +180,7 @@ export class ResumeAnalyticsFacade {
       select: { id: true },
     });
 
-    if (!projection) throw new NotFoundException('Resume not found');
+    if (!projection) throw new EntityNotFoundException('Resume', resumeId);
   }
 
   private async getResumeWithDetails(resumeId: string): Promise<ResumeForAnalytics> {

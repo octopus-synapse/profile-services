@@ -5,13 +5,15 @@
  */
 
 import { Injectable } from '@nestjs/common';
+import {
+  LanguageQueryPort,
+  SkillQueryPort,
+  SkillSearchPort,
+  TechAreaQueryPort,
+  TechNicheQueryPort,
+} from '../application/ports/query-facade.ports';
 import { type ProgrammingLanguage, type TechArea, type TechNiche, type TechSkill } from '../dto';
 import type { SkillType, TechAreaType } from '../interfaces';
-import { TechAreaQueryService } from './area-query.service';
-import { LanguageQueryService } from './language-query.service';
-import { TechNicheQueryService } from './niche-query.service';
-import { SkillQueryService } from './skill-query.service';
-import { SkillSearchService } from './skill-search.service';
 
 // Re-export DTOs for centralized consumption
 export type {
@@ -24,11 +26,11 @@ export type {
 @Injectable()
 export class TechSkillsQueryService {
   constructor(
-    private readonly areaQuery: TechAreaQueryService,
-    private readonly nicheQuery: TechNicheQueryService,
-    private readonly languageQuery: LanguageQueryService,
-    private readonly skillQuery: SkillQueryService,
-    private readonly skillSearch: SkillSearchService,
+    private readonly areaQuery: TechAreaQueryPort,
+    private readonly nicheQuery: TechNicheQueryPort,
+    private readonly languageQuery: LanguageQueryPort,
+    private readonly skillQuery: SkillQueryPort,
+    private readonly skillSearch: SkillSearchPort,
   ) {}
 
   /** Get all tech areas */

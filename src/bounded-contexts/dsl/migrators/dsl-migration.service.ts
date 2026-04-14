@@ -3,8 +3,9 @@
  * Handles version migrations for ResumeDSL schemas
  */
 
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import type { ResumeDsl } from '@/bounded-contexts/dsl/domain/schemas/dsl';
+import { ValidationException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type { DslMigrator } from './base.migrator';
 
 @Injectable()
@@ -42,14 +43,14 @@ export class DslMigrationService {
     while (currentVersion !== targetVersion) {
       // Detect circular migration
       if (visitedVersions.has(currentVersion)) {
-        throw new BadRequestException(`Circular migration detected at version ${currentVersion}`);
+        throw new ValidationException(`Circular migration detected at version ${currentVersion}`);
       }
       visitedVersions.add(currentVersion);
 
       // Get migrator for current version
       const migrator = this.migrators.get(currentVersion);
       if (!migrator) {
-        throw new BadRequestException(
+        throw new ValidationException(
           `No migrator found for version ${currentVersion}. Cannot migrate to ${targetVersion}`,
         );
       }
@@ -61,7 +62,7 @@ export class DslMigrationService {
 
       // Validate migration result
       if (currentDsl.version !== currentVersion) {
-        throw new BadRequestException(
+        throw new ValidationException(
           `Migration failed: expected version ${currentVersion}, got ${currentDsl.version}`,
         );
       }
@@ -105,13 +106,13 @@ export class DslMigrationService {
 
     while (currentVersion !== toVersion) {
       if (visitedVersions.has(currentVersion)) {
-        throw new BadRequestException(`Circular migration path detected`);
+        throw new ValidationException(`Circular migration path detected`);
       }
       visitedVersions.add(currentVersion);
 
       const migrator = this.migrators.get(currentVersion);
       if (!migrator) {
-        throw new BadRequestException(`No migration path from ${fromVersion} to ${toVersion}`);
+        throw new ValidationException(`No migration path from ${fromVersion} to ${toVersion}`);
       }
 
       currentVersion = migrator.toVersion;

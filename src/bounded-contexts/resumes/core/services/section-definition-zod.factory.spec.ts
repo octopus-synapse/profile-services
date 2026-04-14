@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { BadRequestException } from '@nestjs/common';
+import { ValidationException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { SectionDefinitionZodFactory } from './section-definition-zod.factory';
 
 describe('SectionDefinitionZodFactory', () => {
@@ -35,7 +35,7 @@ describe('SectionDefinitionZodFactory', () => {
   });
 
   it('rejects invalid definition', () => {
-    expect(() => factory.buildSchema({ kind: 'WORK_EXPERIENCE' })).toThrow(BadRequestException);
+    expect(() => factory.buildSchema({ kind: 'WORK_EXPERIENCE' })).toThrow(ValidationException);
   });
 
   it('validates arrays and dates', () => {

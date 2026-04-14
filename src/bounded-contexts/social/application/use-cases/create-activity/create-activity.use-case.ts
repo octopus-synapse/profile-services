@@ -26,7 +26,7 @@ export class CreateActivityUseCase {
     private readonly activityRepository: ActivityRepositoryPort,
     private readonly followRepository: FollowRepositoryPort,
     private readonly eventPublisher: EventPublisherPort,
-    private readonly eventEmitter: EventEmitter2,
+    private readonly eventEmitter: Pick<EventEmitter2, 'emit'>,
   ) {}
 
   async execute(

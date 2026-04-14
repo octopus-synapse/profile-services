@@ -1,32 +1,41 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import type { SkillManagementRepositoryPort } from './skill-management/ports/skill-management-repository.port';
+import { SkillManagementPort } from './skill-management/ports/skill-management.port';
 import { SkillManagementService } from './skill-management/skill-management.service';
 import { ListSkillsUseCase } from './skill-management/use-cases/list-skills.use-case';
 
+class StubSkillManagementPort extends SkillManagementPort {
+  listSkills = mock((): string[] => ['TypeScript', 'React']);
+}
+
 describe('SkillManagementService', () => {
   let service: SkillManagementService;
+  let skillManagementPort: StubSkillManagementPort;
   let listSkillsUseCase: ListSkillsUseCase;
   let mockRepository: SkillManagementRepositoryPort;
 
   beforeEach(() => {
-    listSkillsUseCase = {
-      execute: mock(() => ['TypeScript', 'React']),
-    } as unknown as ListSkillsUseCase;
+    skillManagementPort = new StubSkillManagementPort();
+    listSkillsUseCase = new ListSkillsUseCase(skillManagementPort);
 
     mockRepository = {
-      resumeExists: mock(() => Promise.resolve(true)),
-      ensureSkillSection: mock(() => Promise.resolve({ id: 'section-1' })),
-      getNextOrderValue: mock(() => Promise.resolve(0)),
-      createSkillItem: mock(() =>
-        Promise.resolve({ id: 'item-1', order: 0, content: { name: 'TS', category: 'lang' } }),
-      ),
-      findSkillSectionWithItems: mock(() => Promise.resolve(null)),
-      findSkillById: mock(() => Promise.resolve(null)),
-      updateSkillContent: mock(() =>
-        Promise.resolve({ id: 'item-1', order: 0, content: { name: 'TS', category: 'lang' } }),
-      ),
-      deleteSkill: mock(() => Promise.resolve()),
-    } as unknown as SkillManagementRepositoryPort;
+      resumeExists: mock(async () => true),
+      ensureSkillSection: mock(async () => ({ id: 'section-1' })),
+      getNextOrderValue: mock(async () => 0),
+      createSkillItem: mock(async () => ({
+        id: 'item-1',
+        order: 0,
+        content: { name: 'TS', category: 'lang' },
+      })),
+      findSkillSectionWithItems: mock(async () => null),
+      findSkillById: mock(async () => null),
+      updateSkillContent: mock(async () => ({
+        id: 'item-1',
+        order: 0,
+        content: { name: 'TS', category: 'lang' },
+      })),
+      deleteSkill: mock(async () => {}),
+    };
 
     service = new SkillManagementService(listSkillsUseCase, mockRepository);
   });
@@ -34,7 +43,7 @@ describe('SkillManagementService', () => {
   it('delegates listSkills to ListSkillsUseCase', () => {
     const result = service.listSkills();
 
-    expect(listSkillsUseCase.execute).toHaveBeenCalled();
+    expect(skillManagementPort.listSkills).toHaveBeenCalled();
     expect(result).toEqual(['TypeScript', 'React']);
   });
 

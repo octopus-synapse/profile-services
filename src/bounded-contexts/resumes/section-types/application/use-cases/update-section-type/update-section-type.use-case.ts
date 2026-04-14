@@ -1,4 +1,8 @@
-import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  EntityNotFoundException,
+  ValidationException,
+} from '@/shared-kernel/exceptions/domain.exceptions';
 import type { SectionTypeResponseDto, UpdateSectionTypeDto } from '../../../dto';
 import type { JsonValue } from '../../ports/admin-section-types.port';
 import { AdminSectionTypesRepositoryPort } from '../../ports/admin-section-types.port';
@@ -11,7 +15,7 @@ export class UpdateSectionTypeUseCase {
     const existing = await this.repository.findByKey(key);
 
     if (!existing) {
-      throw new NotFoundException(`Section type '${key}' not found`);
+      throw new EntityNotFoundException('SectionType', key);
     }
 
     if (existing.isSystem) {
@@ -21,7 +25,7 @@ export class UpdateSectionTypeUseCase {
       );
 
       if (attemptedRestrictedUpdate) {
-        throw new BadRequestException(
+        throw new ValidationException(
           'Cannot modify key, semanticKind, or definition of system section types',
         );
       }
