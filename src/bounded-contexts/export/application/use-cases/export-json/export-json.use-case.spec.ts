@@ -46,8 +46,7 @@ function isProfileExportLike(value: unknown): value is ProfileExportLike {
 /**
  * In-Memory Resume Data Repository for testing
  */
-class InMemoryResumeDataRepository implements ResumeDataRepositoryPort
-{
+class InMemoryResumeDataRepository implements ResumeDataRepositoryPort {
   private resumes = new Map<string, ResumeForJsonExport>();
 
   async findForJsonExport(resumeId: string): Promise<ResumeForJsonExport | null> {

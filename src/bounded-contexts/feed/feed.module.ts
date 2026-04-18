@@ -12,6 +12,7 @@ import { CommentController } from './controllers/comment.controller';
 import { EngagementController } from './controllers/engagement.controller';
 import { FeedController } from './controllers/feed.controller';
 import { PostController } from './controllers/post.controller';
+import { UserEngagementController } from './controllers/user-engagement.controller';
 import { CommentService } from './services/comment.service';
 import { EngagementService } from './services/engagement.service';
 import { FeedService } from './services/feed.service';
@@ -22,7 +23,13 @@ import { ReportService } from './services/report.service';
 
 @Module({
   imports: [PrismaModule, NotificationsModule],
-  controllers: [PostController, FeedController, CommentController, EngagementController],
+  controllers: [
+    PostController,
+    FeedController,
+    CommentController,
+    EngagementController,
+    UserEngagementController,
+  ],
   providers: [
     PostService,
     FeedService,

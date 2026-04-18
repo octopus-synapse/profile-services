@@ -59,7 +59,9 @@ echo "  [0/6] Generating swagger.json..."
 SWAGGER_START=$(date +%s%3N 2>/dev/null || date +%s)
 if bun run scripts/generate-swagger-from-decorators.ts > "$TMPDIR/swagger.log" 2>&1; then
     bunx biome format --write src/graphql/schema.graphql 2>/dev/null || true
+    bunx biome format --write swagger.json client-swagger.json 2>/dev/null || true
     git add swagger.json swagger-generation-report.json
+    git add client-swagger.json 2>/dev/null || true
     git add src/graphql/schema.graphql 2>/dev/null || true
     git add generated/schema.graphql 2>/dev/null || true
     SWAGGER_END=$(date +%s%3N 2>/dev/null || date +%s)

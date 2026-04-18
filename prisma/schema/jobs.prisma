@@ -15,13 +15,76 @@ model Job {
   salaryRange  String?
   applyUrl     String?
 
+  // Structured currency/remote/language fields. Free-form `salaryRange` stays
+  // (we still display it verbatim); these unlock server-side filtering and
+  // let Fit Score reason about English requirements without NLP on every job.
+  paymentCurrency PaymentCurrency?
+  remotePolicy    RemotePolicy?
+  minEnglishLevel EnglishLevel?
+
   isActive  Boolean   @default(true)
   expiresAt DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  bookmarks    JobBookmark[]
+  applications JobApplication[]
+
+  // Resume versions tailored *for* this job. Populated by the tailor pipeline
+  // so we can (a) avoid re-running the LLM when a tailored version already
+  // exists and (b) show "X users tailored their CV for this job" analytics.
+  tailoredResumeVersions ResumeVersion[] @relation("JobTailoredResumeVersions")
+
+  // Automation — curated items pointing at this job.
+  curatedItems WeeklyCuratedItem[] @relation("JobCuratedItems")
+
   @@index([authorId])
   @@index([jobType, createdAt])
   @@index([isActive, createdAt])
+  @@index([paymentCurrency, isActive, createdAt])
+  @@index([remotePolicy, isActive, createdAt])
+}
+
+model JobBookmark {
+  id     String @id @default(cuid())
+  jobId  String
+  job    Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  userId String
+
+  createdAt DateTime @default(now())
+
+  @@unique([jobId, userId])
+  @@index([userId, createdAt])
+}
+
+model JobApplication {
+  id     String @id @default(cuid())
+  jobId  String
+  job    Job    @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  userId String
+
+  coverLetter String? @db.Text
+  resumeId    String?
+
+  status    JobApplicationStatus @default(SUBMITTED)
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
+
+  // Timeline events — ordered by `occurredAt`. Used by the tracker service to
+  // render "enviada → visualizada → entrevista → oferta/silêncio" and to
+  // compute per-company response percentiles.
+  events JobApplicationEvent[]
+
+  @@unique([jobId, userId])
+  @@index([userId, createdAt])
+  @@index([jobId, createdAt])
+}
+
+enum JobApplicationStatus {
+  SUBMITTED
+  VIEWED
+  REJECTED
+  ACCEPTED
+  WITHDRAWN
 }

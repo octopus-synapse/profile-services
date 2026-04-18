@@ -4,8 +4,8 @@ import {
   ForbiddenException,
 } from '@/shared-kernel/exceptions/domain.exceptions';
 import {
-  ShareRepositoryPort,
   type ShareEntity,
+  ShareRepositoryPort,
   type ShareWithResume,
 } from '../../domain/ports/share.repository.port';
 import { DeleteShareUseCase } from './delete-share.use-case';
@@ -24,9 +24,7 @@ const makeShare = (overrides: Partial<ShareEntity> = {}): ShareEntity => ({
 
 class StubShareRepository implements ShareRepositoryPort {
   findByIdWithResume = mock(
-    async (
-      _id: string,
-    ): Promise<(ShareEntity & { resume: { userId: string } }) | null> => ({
+    async (_id: string): Promise<(ShareEntity & { resume: { userId: string } }) | null> => ({
       ...makeShare(),
       resume: { userId: 'user-123' },
     }),

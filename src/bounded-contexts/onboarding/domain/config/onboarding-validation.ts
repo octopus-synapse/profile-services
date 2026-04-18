@@ -129,59 +129,6 @@ export function canCompleteOnboarding(
   return { valid: missingSteps.length === 0, missingSteps };
 }
 
-/**
- * Field-level validation for a step's data.
- * Returns a map of field key → error code for each invalid field.
- * Empty object means all fields are valid.
- */
-export function validateStepFields(
-  step: OnboardingStepConfig,
-  data: Record<string, string>,
-): Record<string, string> {
-  const errors: Record<string, string> = {};
-
-  if (!step.fields) return errors;
-
-  for (const field of step.fields) {
-    const value = data[field.key] ?? '';
-
-    // Required check
-    if (field.required && !value.trim()) {
-      errors[field.key] = 'required';
-      continue;
-    }
-
-    if (!value.trim()) continue; // Skip other validations for empty optional fields
-
-    // Min length
-    const minLen = step.validation?.minLength?.[field.key];
-    if (minLen && value.length < minLen) {
-      errors[field.key] = `min_length:${minLen}`;
-      continue;
-    }
-
-    // Max length
-    const maxLen = step.validation?.maxLength?.[field.key];
-    if (maxLen && value.length > maxLen) {
-      errors[field.key] = `max_length:${maxLen}`;
-      continue;
-    }
-
-    // Email format
-    if (field.type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-      errors[field.key] = 'invalid_email';
-      continue;
-    }
-
-    // URL format
-    if (field.type === 'url' && value && !/^https?:\/\/.+/.test(value)) {
-      errors[field.key] = 'invalid_url';
-    }
-  }
-
-  return errors;
-}
-
 function canCompleteOnboardingLegacy(
   completedSteps: string[],
   data: OnboardingDataForValidation,

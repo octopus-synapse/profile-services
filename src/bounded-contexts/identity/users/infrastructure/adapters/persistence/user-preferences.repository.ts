@@ -1,11 +1,37 @@
+import type { ApplyMode, EnglishLevel, PaymentCurrency, RemotePolicy } from '@prisma/client';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import {
   type FullUserPreferences,
   type UpdateFullPreferencesData,
   type UpdatePreferencesData,
+  type UserApplyCriteriaData,
   type UserPreferences,
   UserPreferencesRepositoryPort,
 } from '../../../application/ports/user-preferences.port';
+
+/** Shape that Prisma hands us back when we include applyCriteria on the row. */
+type PrismaCriteria = {
+  minFit: number | null;
+  stacks: string[];
+  seniorities: string[];
+  remotePolicies: RemotePolicy[];
+  paymentCurrencies: PaymentCurrency[];
+  minSalaryUsd: number | null;
+  defaultCover: string | null;
+};
+
+function toCriteriaData(c: PrismaCriteria | null | undefined): UserApplyCriteriaData | null {
+  if (!c) return null;
+  return {
+    minFit: c.minFit,
+    stacks: c.stacks,
+    seniorities: c.seniorities,
+    remotePolicies: c.remotePolicies,
+    paymentCurrencies: c.paymentCurrencies,
+    minSalaryUsd: c.minSalaryUsd,
+    defaultCover: c.defaultCover,
+  };
+}
 
 export class UserPreferencesRepository extends UserPreferencesRepositoryPort {
   constructor(private readonly prisma: PrismaService) {
@@ -72,6 +98,7 @@ export class UserPreferencesRepository extends UserPreferencesRepositoryPort {
   async findFullPreferences(userId: string): Promise<FullUserPreferences | null> {
     const prefs = await this.prisma.userPreferences.findUnique({
       where: { userId },
+      include: { applyCriteria: true },
     });
 
     if (!prefs) return null;
@@ -98,6 +125,8 @@ export class UserPreferencesRepository extends UserPreferencesRepositoryPort {
       allowSearchEngineIndex: prefs.allowSearchEngineIndex,
       defaultExportFormat: prefs.defaultExportFormat,
       includePhotoInExport: prefs.includePhotoInExport,
+      applyMode: prefs.applyMode,
+      applyCriteria: toCriteriaData(prefs.applyCriteria),
       createdAt: prefs.createdAt,
       updatedAt: prefs.updatedAt,
     };
@@ -129,6 +158,7 @@ export class UserPreferencesRepository extends UserPreferencesRepositoryPort {
         allowSearchEngineIndex: data.allowSearchEngineIndex ?? false,
         defaultExportFormat: data.defaultExportFormat ?? 'pdf',
         includePhotoInExport: data.includePhotoInExport ?? true,
+        applyMode: (data.applyMode as ApplyMode | undefined) ?? 'ONE_CLICK',
       },
       update: {
         ...(data.theme !== undefined && { theme: data.theme }),
@@ -171,33 +201,77 @@ export class UserPreferencesRepository extends UserPreferencesRepositoryPort {
         ...(data.includePhotoInExport !== undefined && {
           includePhotoInExport: data.includePhotoInExport,
         }),
+        ...(data.applyMode !== undefined && {
+          applyMode: data.applyMode as ApplyMode,
+        }),
       },
     });
 
+    // Upsert the criteria row separately so callers can patch a subset of
+    // fields. Only touch it when the payload explicitly mentions criteria.
+    if (data.applyCriteria) {
+      const c = data.applyCriteria;
+      await this.prisma.userApplyCriteria.upsert({
+        where: { preferencesId: prefs.id },
+        create: {
+          preferencesId: prefs.id,
+          minFit: c.minFit ?? null,
+          stacks: c.stacks ?? [],
+          seniorities: c.seniorities ?? [],
+          remotePolicies: (c.remotePolicies ?? []) as RemotePolicy[],
+          paymentCurrencies: (c.paymentCurrencies ?? []) as PaymentCurrency[],
+          minSalaryUsd: c.minSalaryUsd ?? null,
+          defaultCover: c.defaultCover ?? null,
+        },
+        update: {
+          ...(c.minFit !== undefined && { minFit: c.minFit }),
+          ...(c.stacks !== undefined && { stacks: c.stacks }),
+          ...(c.seniorities !== undefined && { seniorities: c.seniorities }),
+          ...(c.remotePolicies !== undefined && {
+            remotePolicies: c.remotePolicies as RemotePolicy[],
+          }),
+          ...(c.paymentCurrencies !== undefined && {
+            paymentCurrencies: c.paymentCurrencies as PaymentCurrency[],
+          }),
+          ...(c.minSalaryUsd !== undefined && { minSalaryUsd: c.minSalaryUsd }),
+          ...(c.defaultCover !== undefined && { defaultCover: c.defaultCover }),
+        },
+      });
+    }
+
+    const hydrated = await this.prisma.userPreferences.findUniqueOrThrow({
+      where: { userId },
+      include: { applyCriteria: true },
+    });
+
     return {
-      id: prefs.id,
-      userId: prefs.userId,
-      theme: prefs.theme,
-      palette: prefs.palette,
-      bannerColor: prefs.bannerColor,
-      language: prefs.language,
-      dateFormat: prefs.dateFormat,
-      timezone: prefs.timezone,
-      emailNotifications: prefs.emailNotifications,
-      resumeExpiryAlerts: prefs.resumeExpiryAlerts,
-      weeklyDigest: prefs.weeklyDigest,
-      marketingEmails: prefs.marketingEmails,
-      emailMilestones: prefs.emailMilestones,
-      emailShareExpiring: prefs.emailShareExpiring,
-      digestFrequency: prefs.digestFrequency,
-      profileVisibility: prefs.profileVisibility,
-      showEmail: prefs.showEmail,
-      showPhone: prefs.showPhone,
-      allowSearchEngineIndex: prefs.allowSearchEngineIndex,
-      defaultExportFormat: prefs.defaultExportFormat,
-      includePhotoInExport: prefs.includePhotoInExport,
-      createdAt: prefs.createdAt,
-      updatedAt: prefs.updatedAt,
+      id: hydrated.id,
+      userId: hydrated.userId,
+      theme: hydrated.theme,
+      palette: hydrated.palette,
+      bannerColor: hydrated.bannerColor,
+      language: hydrated.language,
+      dateFormat: hydrated.dateFormat,
+      timezone: hydrated.timezone,
+      emailNotifications: hydrated.emailNotifications,
+      resumeExpiryAlerts: hydrated.resumeExpiryAlerts,
+      weeklyDigest: hydrated.weeklyDigest,
+      marketingEmails: hydrated.marketingEmails,
+      emailMilestones: hydrated.emailMilestones,
+      emailShareExpiring: hydrated.emailShareExpiring,
+      digestFrequency: hydrated.digestFrequency,
+      profileVisibility: hydrated.profileVisibility,
+      showEmail: hydrated.showEmail,
+      showPhone: hydrated.showPhone,
+      allowSearchEngineIndex: hydrated.allowSearchEngineIndex,
+      defaultExportFormat: hydrated.defaultExportFormat,
+      includePhotoInExport: hydrated.includePhotoInExport,
+      applyMode: hydrated.applyMode,
+      applyCriteria: toCriteriaData(hydrated.applyCriteria),
+      createdAt: hydrated.createdAt,
+      updatedAt: hydrated.updatedAt,
     };
   }
 }
+// Keep EnglishLevel import live for future criteria filters (English floor).
+export type { EnglishLevel };

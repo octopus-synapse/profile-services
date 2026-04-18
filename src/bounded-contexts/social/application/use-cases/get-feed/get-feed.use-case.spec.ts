@@ -3,8 +3,11 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { ActivityRepositoryPort, type ActivityWithUser } from '../../ports/activity.port';
-import { ActivityType } from '../../ports/activity.port';
+import {
+  ActivityRepositoryPort,
+  ActivityType,
+  type ActivityWithUser,
+} from '../../ports/activity.port';
 import { FollowRepositoryPort, type FollowWithUser } from '../../ports/follow.port';
 import { GetFeedUseCase } from './get-feed.use-case';
 

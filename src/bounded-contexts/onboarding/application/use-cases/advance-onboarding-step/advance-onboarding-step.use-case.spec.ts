@@ -126,35 +126,39 @@ describe('AdvanceOnboardingStepUseCase', () => {
     await expect(useCase.execute(USER_ID)).rejects.toThrow('Already at the last step');
   });
 
-  it('throws when required fields are missing for current step', async () => {
-    // Arrange — personal-info step requires fullName and email
+  it('advances from personal-info even when required fields are missing', async () => {
+    // Navigation through the onboarding is intentionally free — users can
+    // advance even with required fields empty. Missing required data is
+    // surfaced via the sidebar red-badge and blocks COMPLETION, not advance.
     progressRepo.seedProgress(
       createOnboardingProgress({
         userId: USER_ID,
         currentStep: 'personal-info',
         completedSteps: ['welcome'],
-        personalInfo: null, // Missing required data
+        personalInfo: null,
       }),
     );
 
-    // Act & Assert
-    await expect(useCase.execute(USER_ID)).rejects.toThrow(ValidationException);
-    await expect(useCase.execute(USER_ID)).rejects.toThrow('required fields missing');
+    const result = await useCase.execute(USER_ID);
+
+    expect(result.currentStep).toBe('username');
+    expect(result.completedSteps).toContain('personal-info');
   });
 
-  it('throws when username step has no username', async () => {
-    // Arrange
+  it('advances from username even when username is missing', async () => {
     progressRepo.seedProgress(
       createOnboardingProgress({
         userId: USER_ID,
         currentStep: 'username',
         completedSteps: ['welcome', 'personal-info'],
-        username: null, // Missing required username
+        username: null,
       }),
     );
 
-    // Act & Assert
-    await expect(useCase.execute(USER_ID)).rejects.toThrow(ValidationException);
+    const result = await useCase.execute(USER_ID);
+
+    expect(result.currentStep).toBe('professional-profile');
+    expect(result.completedSteps).toContain('username');
   });
 
   it('does not duplicate current step in completedSteps', async () => {

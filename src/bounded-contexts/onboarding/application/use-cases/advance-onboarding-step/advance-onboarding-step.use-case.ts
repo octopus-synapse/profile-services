@@ -1,6 +1,5 @@
 import { ValidationException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { buildOnboardingSteps, getStepIndex } from '../../../domain/config/onboarding-steps.config';
-import { canProceedFromStep } from '../../../domain/config/onboarding-validation';
 import type { OnboardingProgressData } from '../../../domain/ports/onboarding-progress.port';
 import type { SectionTypeDefinitionPort } from '../../../domain/ports/section-type-definition.port';
 import type { GetProgressFn, SaveProgressFn } from '../shared/navigation.types';
@@ -31,28 +30,10 @@ export class AdvanceOnboardingStepUseCase {
       throw new ValidationException('Already at the last step');
     }
 
-    // Merge step data into progress for validation
+    // Business rule: navigation through the onboarding is free — users can advance
+    // even with required fields empty. Missing required data is surfaced via the
+    // sidebar red-badge and blocks onboarding COMPLETION, not intermediate advance.
     const update = this.buildNextStepUpdate(progress, nextStep.id, stepData);
-
-    // Validate before advancing - check if current step requirements are met
-    if (
-      !canProceedFromStep(progress.currentStep, {
-        username: (update.username ?? progress.username) as string | undefined,
-        personalInfo: (update.personalInfo ?? progress.personalInfo) as
-          | { fullName?: string; email?: string }
-          | undefined,
-        professionalProfile: (update.professionalProfile ?? progress.professionalProfile) as
-          | { jobTitle?: string }
-          | undefined,
-        templateSelection: (update.templateSelection ?? progress.templateSelection) as
-          | { colorScheme?: string }
-          | undefined,
-      })
-    ) {
-      throw new ValidationException(
-        `Cannot proceed from ${progress.currentStep}: required fields missing`,
-      );
-    }
 
     await this.saveProgress(userId, update);
     return this.getProgress(userId);

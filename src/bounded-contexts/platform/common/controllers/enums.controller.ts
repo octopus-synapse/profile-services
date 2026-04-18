@@ -76,12 +76,7 @@ export class EnumsController {
     description: 'List of section types',
   })
   getSectionTypes(): DataResponse<SectionTypesDataDto> {
-    const allTypes = this.sectionTypesService.getAll();
-    const types: SectionTypeResponseDto[] = allTypes.map((st) => ({
-      key: st.key,
-      semanticKind: st.semanticKind,
-      title: st.title,
-    }));
+    const types: SectionTypeResponseDto[] = this.sectionTypesService.getAllAsDto();
     return {
       success: true,
       data: { types },

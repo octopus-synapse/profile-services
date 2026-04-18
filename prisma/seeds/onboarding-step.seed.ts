@@ -45,15 +45,9 @@ const steps: OnboardingStepSeed[] = [
         examples: ['Maria Silva', 'João Pedro', 'Ana Costa', 'Lucas Ferreira'],
       },
       {
-        key: 'email',
-        type: 'email',
-        required: true,
-        examples: ['maria@email.com', 'joao.pedro@gmail.com'],
-      },
-      {
         key: 'phone',
         type: 'text',
-        required: false,
+        required: true,
         examples: ['+55 11 99999-0000', '+55 21 98888-1111'],
       },
       {
@@ -69,7 +63,6 @@ const steps: OnboardingStepSeed[] = [
         description: 'Personal Information',
         fieldLabels: {
           fullName: 'Full Name',
-          email: 'Email',
           phone: 'Phone',
           location: 'Location',
         },
@@ -79,7 +72,6 @@ const steps: OnboardingStepSeed[] = [
         description: 'Informações Pessoais',
         fieldLabels: {
           fullName: 'Nome Completo',
-          email: 'E-mail',
           phone: 'Telefone',
           location: 'Localização',
         },
@@ -89,13 +81,12 @@ const steps: OnboardingStepSeed[] = [
         description: 'Información Personal',
         fieldLabels: {
           fullName: 'Nombre Completo',
-          email: 'Correo',
           phone: 'Teléfono',
           location: 'Ubicación',
         },
       },
     },
-    validation: { requiredFields: ['fullName', 'email'] },
+    validation: { requiredFields: ['fullName', 'phone'] },
     strengthWeight: 15,
   },
   {

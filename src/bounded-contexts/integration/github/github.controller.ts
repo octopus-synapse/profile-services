@@ -14,6 +14,7 @@ import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/a
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
+import { toPinnedRepos } from './github.presenter';
 import { GitHubService } from './github.service';
 import type { GitHubSyncResult } from './services/github-sync.service';
 
@@ -186,11 +187,7 @@ export class GitHubController {
       followers: 0,
       following: 0,
       topLanguages: [],
-      pinnedRepos: (result.topRepos ?? []).map((repo) => ({
-        name: repo.name,
-        description: repo.description ?? undefined,
-        url: repo.url,
-      })),
+      pinnedRepos: toPinnedRepos(result.topRepos ?? []),
     };
   }
 

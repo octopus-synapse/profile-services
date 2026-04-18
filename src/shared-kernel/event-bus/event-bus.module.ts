@@ -1,6 +1,6 @@
 import { Global, Module } from '@nestjs/common';
 import { EventEmitterModule } from '@nestjs/event-emitter';
-import { EventPublisher } from './event-publisher';
+import { EventPublisher, EventPublisherPort } from './event-publisher';
 
 @Global()
 @Module({
@@ -11,7 +11,7 @@ import { EventPublisher } from './event-publisher';
       verboseMemoryLeak: true,
     }),
   ],
-  providers: [EventPublisher],
-  exports: [EventPublisher],
+  providers: [EventPublisher, { provide: EventPublisherPort, useExisting: EventPublisher }],
+  exports: [EventPublisher, EventPublisherPort],
 })
 export class EventBusModule {}

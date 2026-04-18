@@ -4,7 +4,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { HealthCheckResultDto, HealthController } from './health.controller';
 import {
   DatabaseHealthIndicator,
+  OpenAIHealthIndicator,
   RedisHealthIndicator,
+  SmtpHealthIndicator,
   StorageHealthIndicator,
   TranslateHealthIndicator,
 } from './indicators';
@@ -44,6 +46,8 @@ describe('HealthController', () => {
   let redisIndicator: ReturnType<typeof createIndicator>;
   let storageIndicator: ReturnType<typeof createIndicator>;
   let translateIndicator: ReturnType<typeof createIndicator>;
+  let smtpIndicator: ReturnType<typeof createIndicator>;
+  let openAIIndicator: ReturnType<typeof createIndicator>;
 
   const setupController = async (
     healthCheckOptions?: Parameters<typeof createHealthCheckService>[0],
@@ -53,6 +57,8 @@ describe('HealthController', () => {
     redisIndicator = createIndicator();
     storageIndicator = createIndicator();
     translateIndicator = createIndicator();
+    smtpIndicator = createIndicator();
+    openAIIndicator = createIndicator();
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [HealthController],
@@ -62,6 +68,8 @@ describe('HealthController', () => {
         { provide: RedisHealthIndicator, useValue: redisIndicator },
         { provide: StorageHealthIndicator, useValue: storageIndicator },
         { provide: TranslateHealthIndicator, useValue: translateIndicator },
+        { provide: SmtpHealthIndicator, useValue: smtpIndicator },
+        { provide: OpenAIHealthIndicator, useValue: openAIIndicator },
       ],
     }).compile();
 
@@ -101,6 +109,8 @@ describe('HealthController', () => {
         expect.any(Function),
         expect.any(Function),
         expect.any(Function),
+        expect.any(Function),
+        expect.any(Function),
       ]);
     });
 
@@ -113,6 +123,8 @@ describe('HealthController', () => {
       expect(redisIndicator.isHealthy).toHaveBeenCalledWith('redis');
       expect(storageIndicator.isHealthy).toHaveBeenCalledWith('storage');
       expect(translateIndicator.isHealthy).toHaveBeenCalledWith('translate');
+      expect(smtpIndicator.isHealthy).toHaveBeenCalledWith('smtp');
+      expect(openAIIndicator.isHealthy).toHaveBeenCalledWith('openai');
     });
   });
 

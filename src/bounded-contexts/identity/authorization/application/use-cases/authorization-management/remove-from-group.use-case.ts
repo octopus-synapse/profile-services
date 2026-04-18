@@ -4,7 +4,7 @@
  * Removes a user from a group and publishes a domain event.
  */
 
-import type { EventPublisherPort } from '@/shared-kernel';
+import { EventPublisherPort } from '@/shared-kernel';
 import { GroupMembershipChangedEvent } from '../../../domain/events';
 import type { IUserAuthorizationRepository } from '../../../domain/ports/authorization-repositories.port';
 

@@ -11,6 +11,11 @@ import {
   ShareDeleteDataDto,
   ShareListDataDto,
 } from '../dto/share-management-response.dto';
+import {
+  type SharePayload,
+  toSharePayload,
+  toSharePayloadList,
+} from '../presenters/share-management.presenter';
 import { ResumeShareService } from '../services/resume-share.service';
 
 interface CreateShare {
@@ -20,44 +25,12 @@ interface CreateShare {
   expiresAt?: string;
 }
 
-type SharePayload = {
-  id: string;
-  slug: string;
-  resumeId: string;
-  isActive: boolean;
-  hasPassword: boolean;
-  expiresAt: string | null;
-  createdAt: string;
-  publicUrl: string;
-};
-
 @SdkExport({ tag: 'resumes', description: 'Share Management API' })
 @ApiTags('shares')
 @ApiBearerAuth('JWT-auth')
 @Controller('v1/shares')
 export class ShareManagementController {
   constructor(private readonly shareService: ResumeShareService) {}
-
-  private toSharePayload(share: {
-    id: string;
-    slug: string;
-    resumeId: string;
-    isActive: boolean;
-    password: string | null;
-    expiresAt: Date | null;
-    createdAt: Date;
-  }): SharePayload {
-    return {
-      id: share.id,
-      slug: share.slug,
-      resumeId: share.resumeId,
-      isActive: share.isActive,
-      hasPassword: !!share.password,
-      expiresAt: share.expiresAt?.toISOString() ?? null,
-      createdAt: share.createdAt.toISOString(),
-      publicUrl: `/api/v1/public/resumes/${share.slug}`,
-    };
-  }
 
   @Post()
   @RequirePermission(Permission.RESUME_UPDATE)
@@ -75,7 +48,7 @@ export class ShareManagementController {
       ...dto,
       expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : undefined,
     });
-    const sharePayload = this.toSharePayload(share);
+    const sharePayload = toSharePayload(share);
 
     return {
       success: true,
@@ -93,7 +66,7 @@ export class ShareManagementController {
     @CurrentUser() user: UserPayload,
   ): Promise<DataResponse<ShareListDataDto>> {
     const shares = await this.shareService.listUserShares(user.userId, resumeId);
-    const sharePayloads = shares.map((share) => this.toSharePayload(share));
+    const sharePayloads = toSharePayloadList(shares);
 
     return {
       success: true,

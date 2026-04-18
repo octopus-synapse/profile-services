@@ -4,7 +4,7 @@
  * Wires all authorization management use cases with their dependencies.
  */
 
-import type { EventPublisherPort } from '@/shared-kernel';
+import { EventPublisherPort } from '@/shared-kernel';
 import type { UserAuthorizationRepository } from '../infrastructure/repositories/user-authorization.repository';
 import {
   AUTHORIZATION_MANAGEMENT_USE_CASES,

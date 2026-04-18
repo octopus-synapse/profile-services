@@ -1,5 +1,5 @@
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
+import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import { ConnectionRepository } from '../infrastructure/adapters/persistence/connection.repository';
 import { CONNECTION_USE_CASES, type ConnectionUseCases } from './ports/connection.port';
 import { AcceptConnectionUseCase } from './use-cases/accept-connection/accept-connection.use-case';

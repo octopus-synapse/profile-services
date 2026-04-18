@@ -31,6 +31,8 @@ export type UserDetails = {
   image: string | null;
   emailVerified: Date | null;
   isActive: boolean;
+  lastLoginAt: Date | null;
+  roles: string[];
   resumes: {
     id: string;
     title: string | null;

@@ -11,7 +11,11 @@ import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-exp
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import { TranslationService } from '../../application/services';
-import type { TranslationLanguage } from '../../domain/types/translation.types';
+import type {
+  LanguageDetectionResult,
+  SourceLanguage,
+  TranslationLanguage,
+} from '../../domain/types/translation.types';
 import {
   BatchTranslationResultDto,
   HealthCheckResponseDto,
@@ -55,10 +59,21 @@ export class TranslationController {
   async translateText(@Body() dto: TranslateTextDto): Promise<DataResponse<TranslationResultDto>> {
     const result = await this.translationService.translate(
       dto.text,
-      dto.sourceLanguage as TranslationLanguage,
+      dto.sourceLanguage as SourceLanguage,
       dto.targetLanguage as TranslationLanguage,
     );
     return { success: true, data: result };
+  }
+
+  @Post('detect')
+  @RequirePermission(Permission.RESUME_READ)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Detect the language of a text' })
+  async detect(
+    @Body() dto: TranslateSimpleDto,
+  ): Promise<DataResponse<{ detections: LanguageDetectionResult[] }>> {
+    const detections = await this.translationService.detectLanguage(dto.text);
+    return { success: true, data: { detections } };
   }
 
   @Post('batch')
@@ -74,7 +89,7 @@ export class TranslationController {
   ): Promise<DataResponse<BatchTranslationResultDto>> {
     const result = await this.translationService.translateBatch(
       dto.texts,
-      dto.sourceLanguage as TranslationLanguage,
+      dto.sourceLanguage as SourceLanguage,
       dto.targetLanguage as TranslationLanguage,
     );
     return { success: true, data: result };

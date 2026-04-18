@@ -1,5 +1,5 @@
 import type { EventEmitter2 } from '@nestjs/event-emitter';
-import type { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
+import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import { ActivityCreatedEvent, type SocialActivityType } from '../../../domain/events';
 import type {
   ActivityRepositoryPort,

@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { seedAuthorization } from '../src/bounded-contexts/identity/authorization/seeds/seed-runner';
 import { createPrismaClientOptions } from '../src/bounded-contexts/platform/prisma/prisma-client-options';
 import { seedAnalyticsProjections } from './seeds/analytics-projection.seed';
+import { seedEnzoferracini } from './seeds/enzoferracini.seed';
 import { seedJobs } from './seeds/job.seed';
 import { seedOnboardingSteps } from './seeds/onboarding-step.seed';
 import { seedSectionTypes } from './seeds/section-type.seed';
@@ -38,6 +39,7 @@ async function main() {
         name: adminName,
         emailVerified: new Date(),
         roles: ['role_user', 'role_admin'],
+        hasCompletedOnboarding: true,
       },
     });
 
@@ -53,6 +55,13 @@ async function main() {
         data: { roles: ['role_user', 'role_admin'] },
       });
       console.log('✅ Admin user roles updated to include role_admin');
+    }
+    if (!admin.hasCompletedOnboarding) {
+      await prisma.user.update({
+        where: { id: admin.id },
+        data: { hasCompletedOnboarding: true },
+      });
+      console.log('✅ Admin user onboarding flag set to true');
     }
     console.log('✅ Admin user already exists');
   }
@@ -137,6 +146,9 @@ async function main() {
   } else {
     console.log('✅ E2E test user already exists');
   }
+
+  // Seed enzoferracini user (fixture for patch-careers-ui e2e resume-download tests)
+  await seedEnzoferracini(prisma);
 }
 
 main()

@@ -4,11 +4,11 @@ import type { Request } from 'express';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
+import { ShareAnalyticsReaderPort } from '../application/ports/share-analytics-reader.port';
 import {
   ShareAnalyticsEventsDataDto,
   ShareAnalyticsSummaryDataDto,
 } from '../dto/controller-response.dto';
-import { ShareAnalyticsReaderPort } from '../application/ports/share-analytics-reader.port';
 
 export interface RequestWithUser extends Partial<Request> {
   user: { userId: string; email: string };

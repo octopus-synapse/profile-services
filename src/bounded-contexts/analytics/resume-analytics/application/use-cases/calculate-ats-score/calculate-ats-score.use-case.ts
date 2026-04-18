@@ -6,7 +6,7 @@
  */
 
 import { Inject } from '@nestjs/common';
-import type { EventPublisherPort } from '@/shared-kernel';
+import { EventPublisherPort } from '@/shared-kernel';
 import { AtsScoreCalculatedEvent } from '../../../../shared-kernel/domain/events';
 import { generateRecommendations } from '../../../domain/services';
 import type { AnalyticsSection, ResumeForAnalytics } from '../../../domain/types';

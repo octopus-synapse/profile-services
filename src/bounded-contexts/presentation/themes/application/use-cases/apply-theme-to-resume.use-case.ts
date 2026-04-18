@@ -4,8 +4,7 @@
  * All themes are public — no visibility check needed.
  */
 
-import type { ApplyThemeToResume, EventPublisherPort } from '@/shared-kernel';
-import { ERROR_MESSAGES } from '@/shared-kernel';
+import { type ApplyThemeToResume, ERROR_MESSAGES, EventPublisherPort } from '@/shared-kernel';
 import {
   EntityNotFoundException,
   ForbiddenException,

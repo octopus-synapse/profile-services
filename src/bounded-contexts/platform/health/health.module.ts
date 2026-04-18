@@ -6,7 +6,9 @@ import { TranslationModule } from '@/bounded-contexts/translation';
 import { HealthController } from './health.controller';
 import {
   DatabaseHealthIndicator,
+  OpenAIHealthIndicator,
   RedisHealthIndicator,
+  SmtpHealthIndicator,
   StorageHealthIndicator,
   TranslateHealthIndicator,
 } from './indicators';
@@ -19,6 +21,8 @@ import {
     RedisHealthIndicator,
     StorageHealthIndicator,
     TranslateHealthIndicator,
+    SmtpHealthIndicator,
+    OpenAIHealthIndicator,
   ],
 })
 export class HealthModule {}

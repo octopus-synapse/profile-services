@@ -1,0 +1,38 @@
+// Success Stories — curated "from X to Y in Z days" cards used on the
+// landing carousel and sprinkled across the feed. Ownership is on the user
+// (opt-in) but creation happens via admin curation so we keep quality tight.
+
+model SuccessStory {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation("UserSuccessStories", fields: [userId], references: [id], onDelete: Cascade)
+
+  headline   String // "From intern to Pleno at Deel in 90 days"
+  beforeText String @db.Text // "Estudante de CS no 4º período"
+  afterText  String @db.Text // "Engenheiro Pleno na Deel, remoto em USD"
+  quote      String @db.Text // 1–3 sentence testimonial
+
+  /** How long the journey took, in days — used for the "in Z days" suffix. */
+  timeframeDays Int?
+
+  /** Only PUBLISHED stories are surfaced publicly. Draft / pending lets us
+   *  review before it hits the landing. */
+  status    SuccessStoryStatus @default(DRAFT)
+  publishedAt DateTime?
+
+  // Display ordering on the landing carousel. Higher first.
+  weight Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, weight, publishedAt])
+  @@index([userId])
+}
+
+enum SuccessStoryStatus {
+  DRAFT
+  PENDING_REVIEW
+  PUBLISHED
+  ARCHIVED
+}

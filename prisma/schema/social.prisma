@@ -49,3 +49,41 @@ enum ConnectionStatus {
   ACCEPTED
   REJECTED
 }
+
+model SkillEndorsement {
+  id              String @id @default(cuid())
+  endorsedUserId  String
+  skillName       String
+  endorserUserId  String
+
+  createdAt DateTime @default(now())
+
+  @@unique([endorsedUserId, skillName, endorserUserId])
+  @@index([endorsedUserId, skillName])
+  @@index([endorserUserId])
+}
+
+enum SkillProficiency {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  EXPERT
+}
+
+// Self-declared proficiency per skill. Orthogonal to endorsements — the
+// former is "how I see myself", the latter is "what peers vouched for".
+model UserSkillProficiency {
+  id          String           @id @default(cuid())
+  userId      String
+  user        User             @relation("UserSkillProficiencies", fields: [userId], references: [id], onDelete: Cascade)
+  skillName   String
+  proficiency SkillProficiency @default(INTERMEDIATE)
+  yearsOfExperience Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, skillName])
+  @@index([userId])
+  @@index([skillName])
+}

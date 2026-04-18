@@ -115,6 +115,8 @@ export class UserManagementRepository extends UserManagementRepositoryPort {
       image: user.image,
       emailVerified: user.emailVerified,
       isActive: user.isActive,
+      lastLoginAt: user.lastLoginAt,
+      roles: user.roles,
       resumes: user.resumes,
       preferences: user.preferences,
       counts: user._count,

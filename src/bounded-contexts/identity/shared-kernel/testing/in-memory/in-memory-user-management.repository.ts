@@ -159,6 +159,10 @@ export class InMemoryUserManagementRepository extends UserManagementRepositoryPo
       image: user.image,
       emailVerified: user.emailVerified,
       isActive: user.isActive,
+      lastLoginAt: user.lastLoginAt ?? null,
+      roles: (user as { roles?: string[] }).roles ?? [
+        user.role === 'ADMIN' ? 'role_admin' : 'role_user',
+      ],
       resumes: user.resumes,
       preferences: user.preferences,
       counts: user.counts,

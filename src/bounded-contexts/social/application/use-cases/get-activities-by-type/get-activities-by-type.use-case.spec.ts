@@ -3,8 +3,11 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { ActivityRepositoryPort, type ActivityWithUser } from '../../ports/activity.port';
-import { ActivityType } from '../../ports/activity.port';
+import {
+  ActivityRepositoryPort,
+  ActivityType,
+  type ActivityWithUser,
+} from '../../ports/activity.port';
 import { GetActivitiesByTypeUseCase } from './get-activities-by-type.use-case';
 
 class StubActivityRepository implements ActivityRepositoryPort {

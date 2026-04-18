@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { Request, Response } from 'express';
+import { AllowUnverifiedEmail } from '@/bounded-contexts/identity/shared-kernel/infrastructure/decorators/allow-unverified-email.decorator';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure/guards/jwt-auth.guard';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
@@ -57,6 +58,7 @@ function createCookieWriter(res: Response): CookieWriter {
 
 @SdkExport({ tag: 'auth', description: 'User authentication - logout' })
 @ApiTags('auth')
+@AllowUnverifiedEmail()
 @Controller('auth')
 export class LogoutController {
   constructor(

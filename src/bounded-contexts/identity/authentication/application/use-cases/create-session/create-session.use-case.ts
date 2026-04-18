@@ -9,12 +9,12 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 
 /** Narrow view of ConfigService used by this use case (DIP). */
 export interface SessionConfigPort {
   get<T>(key: string, defaultValue: T): T;
 }
+
 import type { EventBusPort } from '../../../../shared-kernel/ports';
 import { Session, SessionCreatedEvent } from '../../../domain';
 import type {

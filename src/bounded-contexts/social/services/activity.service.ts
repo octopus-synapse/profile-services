@@ -6,7 +6,7 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
-import type { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
+import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import {
   ActivityRepositoryPort,
   type ActivityType,
@@ -22,10 +22,7 @@ import {
   SOCIAL_EVENT_BUS_PORT,
   SocialEventBusPort,
 } from '../application/ports/social-event-bus.port';
-import {
-  SOCIAL_LOGGER_PORT,
-  SocialLoggerPort,
-} from '../application/ports/social-logger.port';
+import { SOCIAL_LOGGER_PORT, SocialLoggerPort } from '../application/ports/social-logger.port';
 import { ActivityCreatedEvent, type SocialActivityType } from '../domain/events';
 import type { PaginatedResult, PaginationParams } from './follow.service';
 
@@ -151,10 +148,7 @@ export class ActivityService
 
     const count = await this.activityRepo.deleteOlderThan(cutoffDate);
 
-    this.logger.log(
-      `Deleted ${count} activities older than ${days} days`,
-      'ActivityService',
-    );
+    this.logger.log(`Deleted ${count} activities older than ${days} days`, 'ActivityService');
 
     return count;
   }

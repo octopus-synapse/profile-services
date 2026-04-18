@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
 
 import {
-  ResumeConfigRepositoryPort,
   type ResumeConfig,
+  ResumeConfigRepositoryPort,
 } from '../../domain/ports/resume-config.repository.port';
 import { ReorderSectionUseCase } from './reorder-section.use-case';
 
