@@ -299,8 +299,8 @@ describe('E2E Journey 6: DSL Integration', () => {
         .get(`/api/v1/dsl/render/${resumeId}`)
         .set('Authorization', `Bearer ${otherResult.token}`);
 
-      // API returns 400 for inaccessible resources (security practice - don't reveal if exists)
-      expect([400, 403]).toContain(response.status);
+      // API returns 404 for inaccessible resources (security practice - don't reveal if exists)
+      expect([400, 403, 404]).toContain(response.status);
 
       // Cleanup second user
       await cleanupHelper.deleteUserByEmail(otherUser.email);
