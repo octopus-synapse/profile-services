@@ -98,6 +98,18 @@ export class AntiGhostingService {
       };
 
       await this.remind(user.email, user.name, stale);
+
+      // Mirror the email reminder as an in-app notification so users who
+      // don't open email still see the nudge in the bell + notifications
+      // page. The notification preferences UI lets them mute it.
+      await this.prisma.notification.create({
+        data: {
+          userId: app.userId,
+          type: 'APPLICATION_STALE',
+          message: `Aplicação para ${stale.company} (${stale.jobTitle}) está há ${daysSilent} dias sem resposta. Considere enviar um follow-up.`,
+        },
+      });
+
       await this.prisma.jobApplicationReminderLog.create({
         data: { applicationId: app.id, threshold },
       });

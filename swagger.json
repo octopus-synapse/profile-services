@@ -12877,7 +12877,42 @@
             "bearer": []
           }
         ],
-        "summary": "Run a resume AST through the ATS parser simulator and return the extracted text + warnings.",
+        "summary": "Run an explicit AtsSimulationInput payload through the simulator. Use this when the caller has already shaped the AST.",
+        "tags": [
+          "ats"
+        ]
+      }
+    },
+    "/api/v1/ats/simulate/{resumeId}": {
+      "get": {
+        "operationId": "ats_simulateForResume",
+        "parameters": [
+          {
+            "name": "resumeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: resume:read"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Convenience endpoint: load a resume by id, map it to AtsSimulationInput, and run the simulator in one call.",
         "tags": [
           "ats"
         ]
