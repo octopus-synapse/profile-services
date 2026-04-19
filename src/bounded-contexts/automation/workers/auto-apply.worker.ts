@@ -100,27 +100,30 @@ export class AutoApplyWorker extends WorkerHost implements OnModuleInit {
     let submitted = 0;
     for (const pick of picks) {
       try {
-        // Generate a tailored variant first so the cover letter reflects
-        // the job. We fire-and-forget the result id — the JobApplication
-        // links back by resumeId so we can surface it later.
-        await this.tailor.tailorForJob({
-          resumeId: user.primaryResumeId,
-          userId,
-          jobId: pick.jobId,
-        });
-
-        // Idempotent — the unique (jobId, userId) constraint protects us.
+        // Idempotent — the unique (jobId, userId) constraint protects us;
+        // skip early so we don't pay the LLM cost for a re-application.
         const existing = await this.prisma.jobApplication.findUnique({
           where: { jobId_userId: { jobId: pick.jobId, userId } },
         });
         if (existing) continue;
+
+        // Generate a tailored variant first so the CV + cover letter reflect
+        // the specific job. The returned versionId is linked on the
+        // JobApplication so the tracker + analytics can show "applied with
+        // tailored variant" and measure tailoring ROI.
+        const tailored = await this.tailor.tailorForJob({
+          resumeId: user.primaryResumeId,
+          userId,
+          jobId: pick.jobId,
+        });
 
         await this.prisma.jobApplication.create({
           data: {
             jobId: pick.jobId,
             userId,
             resumeId: user.primaryResumeId,
-            coverLetter: user.preferences?.applyCriteria?.defaultCover ?? null,
+            tailoredVersionId: tailored.versionId,
+            coverLetter: tailored.summary ?? user.preferences?.applyCriteria?.defaultCover ?? null,
           },
         });
         submitted++;

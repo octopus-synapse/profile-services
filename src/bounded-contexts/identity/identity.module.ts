@@ -6,6 +6,7 @@ import { OAuthModule } from './oauth/oauth.module';
 // Bounded Context Modules
 import { PasswordManagementModule } from './password-management';
 import { TwoFactorAuthModule } from './two-factor-auth';
+import { ShadowProfileModule } from './users/shadow-profile/shadow-profile.module';
 
 /**
  * Identity Module
@@ -28,6 +29,7 @@ import { TwoFactorAuthModule } from './two-factor-auth';
     AuthenticationModule,
     TwoFactorAuthModule,
     OAuthModule,
+    ShadowProfileModule,
   ],
   exports: [
     PasswordManagementModule,
@@ -36,6 +38,7 @@ import { TwoFactorAuthModule } from './two-factor-auth';
     AuthenticationModule,
     TwoFactorAuthModule,
     OAuthModule,
+    ShadowProfileModule,
   ],
 })
 export class IdentityModule {}

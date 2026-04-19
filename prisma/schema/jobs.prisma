@@ -67,6 +67,12 @@ model JobApplication {
   coverLetter String? @db.Text
   resumeId    String?
 
+  // When the auto-apply worker sends an AI-tailored CV the version id is
+  // stored here so the tracker UI can render "you applied with this
+  // tailored variant" and downstream analytics can measure whether
+  // tailored versions respond at a higher rate than the master.
+  tailoredVersionId String?
+
   status    JobApplicationStatus @default(SUBMITTED)
   createdAt DateTime             @default(now())
   updatedAt DateTime             @updatedAt

@@ -5,8 +5,10 @@ import { EmailModule } from '@/bounded-contexts/platform/common/email/email.modu
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { ResumeVersionsModule } from '@/bounded-contexts/resumes/resume-versions/resume-versions.module';
 import { ApplyModeController } from './controllers/apply-mode.controller';
+import { RageApplyController } from './controllers/rage-apply.controller';
 import { ApplyModeService } from './services/apply-mode.service';
 import { CuratedSelectorService } from './services/curated-selector.service';
+import { RageApplyService } from './services/rage-apply.service';
 import { AUTO_APPLY_QUEUE, AutoApplyWorker } from './workers/auto-apply.worker';
 import { WEEKLY_CURATED_QUEUE, WeeklyCuratedWorker } from './workers/weekly-curated.worker';
 
@@ -26,8 +28,14 @@ import { WEEKLY_CURATED_QUEUE, WeeklyCuratedWorker } from './workers/weekly-cura
     ResumeVersionsModule,
     BullModule.registerQueue({ name: WEEKLY_CURATED_QUEUE }, { name: AUTO_APPLY_QUEUE }),
   ],
-  controllers: [ApplyModeController],
-  providers: [ApplyModeService, CuratedSelectorService, WeeklyCuratedWorker, AutoApplyWorker],
-  exports: [CuratedSelectorService],
+  controllers: [ApplyModeController, RageApplyController],
+  providers: [
+    ApplyModeService,
+    CuratedSelectorService,
+    WeeklyCuratedWorker,
+    AutoApplyWorker,
+    RageApplyService,
+  ],
+  exports: [CuratedSelectorService, RageApplyService],
 })
 export class AutomationModule {}

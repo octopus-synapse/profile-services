@@ -34,6 +34,7 @@ import { SOCIAL_LOGGER_PORT } from './application/ports/social-logger.port';
 import { ActivityController } from './controllers/activity.controller';
 import { ActivityFeedSseController } from './controllers/activity-feed-sse.controller';
 import { ConnectionController } from './controllers/connection.controller';
+import { ConnectionRecsController } from './controllers/connection-recs.controller';
 import { FollowController } from './controllers/follow.controller';
 import { SkillEndorsementController } from './controllers/skill-endorsement.controller';
 import { AppLoggerSocialAdapter } from './infrastructure/adapters/app-logger.adapter';
@@ -43,7 +44,10 @@ import { ConnectionRepository } from './infrastructure/adapters/persistence/conn
 import { FollowRepository } from './infrastructure/adapters/persistence/follow.repository';
 import { ActivityService } from './services/activity.service';
 import { ConnectionService } from './services/connection.service';
+import { ConnectionRecsService } from './services/connection-recs.service';
 import { FollowService } from './services/follow.service';
+import { SkillDecayService } from './services/skill-decay.service';
+import { SkillDecayWorker } from './services/skill-decay.worker';
 import { SkillEndorsementService } from './services/skill-endorsement.service';
 import { SkillProficiencyService } from './services/skill-proficiency.service';
 import { SkillProficiencyController } from './skill-proficiency.controller';
@@ -53,6 +57,7 @@ import { SkillProficiencyController } from './skill-proficiency.controller';
   controllers: [
     FollowController,
     ConnectionController,
+    ConnectionRecsController,
     ActivityController,
     ActivityFeedSseController,
     SkillEndorsementController,
@@ -64,6 +69,9 @@ import { SkillProficiencyController } from './skill-proficiency.controller';
     ActivityService,
     SkillEndorsementService,
     SkillProficiencyService,
+    SkillDecayService,
+    SkillDecayWorker,
+    ConnectionRecsService,
     ResumeCreatedActivityHandler,
     ResumePublishedActivityHandler,
     CreateWelcomeActivityOnUserRegisteredHandler,

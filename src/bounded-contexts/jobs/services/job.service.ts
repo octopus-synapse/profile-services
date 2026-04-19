@@ -9,6 +9,7 @@ import {
   ForbiddenException,
 } from '@/shared-kernel/exceptions/domain.exceptions';
 import { ApplicationTrackerService } from '../tracker/application-tracker.service';
+import { computeFitScore, type FitScore } from './compute-fit-score';
 
 /** 0–100 coverage of `needles` that appear (case-insensitively) in `haystack`. */
 function percentOverlap(needles: string[], haystack: string[]): number {
@@ -356,6 +357,76 @@ export class JobService {
       }
     }
     return [...skills];
+  }
+
+  /**
+   * Lightweight, structured fit score for every job in a listing. Uses the
+   * job's `skills[]` + `minEnglishLevel` + `remotePolicy` and the user's
+   * aggregated resume skills — no LLM, no keyword matching — so it's cheap
+   * enough to attach to every row of /jobs listings.
+   */
+  async scoreJobsForUser(
+    userId: string,
+    jobs: Array<{
+      id: string;
+      skills: string[];
+      minEnglishLevel: EnglishLevel | null;
+      remotePolicy: RemotePolicy | null;
+    }>,
+  ): Promise<Map<string, FitScore>> {
+    const resumeSkills = await this.collectUserSkills(userId);
+
+    // No structured english/remote signal on resume today, so leave those
+    // null — the scorer falls back to neutral (0.5–1) factors. This query
+    // still runs through the skills collector above so we can enrich every
+    // job in a single pass per request.
+    const out = new Map<string, FitScore>();
+    for (const job of jobs) {
+      out.set(
+        job.id,
+        computeFitScore({
+          resumeSkills,
+          resumeEnglish: null,
+          resumeRemotePref: null,
+          jobSkills: job.skills ?? [],
+          jobMinEnglish: job.minEnglishLevel,
+          jobRemotePolicy: job.remotePolicy,
+        }),
+      );
+    }
+    return out;
+  }
+
+  /**
+   * findAll + per-row fit score, in a single service call so the controller
+   * stays a one-liner. Returns the original listing shape with a `fitScore`
+   * field added to every item.
+   */
+  async findAllWithFitScore(
+    filters: Parameters<JobService['findAll']>[0],
+    userId: string,
+  ): Promise<unknown> {
+    const listing = await this.findAll(filters, userId);
+    const items = ((listing as { data?: unknown[]; items?: unknown[] }).data ??
+      (listing as { items?: unknown[] }).items ??
+      []) as Array<Record<string, unknown>>;
+
+    const scored = await this.scoreJobsForUser(
+      userId,
+      items.map((job) => ({
+        id: String(job.id),
+        skills: Array.isArray(job.skills) ? (job.skills as string[]) : [],
+        minEnglishLevel: (job.minEnglishLevel as EnglishLevel | null) ?? null,
+        remotePolicy: (job.remotePolicy as RemotePolicy | null) ?? null,
+      })),
+    );
+
+    const enrichedItems = items.map((job) => ({
+      ...job,
+      fitScore: scored.get(String(job.id)) ?? null,
+    }));
+
+    return { ...listing, items: enrichedItems };
   }
 
   async getMyApplications(userId: string, page = 1, limit = 20) {

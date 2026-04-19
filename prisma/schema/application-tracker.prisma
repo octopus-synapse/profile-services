@@ -28,3 +28,16 @@ enum JobApplicationEventType {
   WITHDRAWN            // User pulled out.
   FOLLOW_UP_SENT       // User sent a follow-up — unblocks the silence detector.
 }
+
+// Tracks which silence thresholds (7/14/21 days) have been reminded per
+// application so the anti-ghosting cron is idempotent across retries.
+model JobApplicationReminderLog {
+  id            String   @id @default(cuid())
+  applicationId String
+  threshold     Int
+  sentAt        DateTime @default(now())
+
+  @@unique([applicationId, threshold])
+  @@index([applicationId])
+  @@map("job_application_reminder_logs")
+}

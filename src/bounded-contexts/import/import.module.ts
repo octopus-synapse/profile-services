@@ -14,6 +14,8 @@ import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import { CancelImportUseCase } from './application/use-cases/cancel-import/cancel-import.use-case';
 import { CreateImportJobUseCase } from './application/use-cases/create-import-job/create-import-job.use-case';
 import { GetImportStatusUseCase } from './application/use-cases/get-import-status/get-import-status.use-case';
+import { GITHUB_API_PORT } from './application/use-cases/import-github/github-api.port';
+import { ImportGithubUseCase } from './application/use-cases/import-github/import-github.use-case';
 import { ListImportHistoryUseCase } from './application/use-cases/list-import-history/list-import-history.use-case';
 import { ProcessImportUseCase } from './application/use-cases/process-import/process-import.use-case';
 import { RetryImportUseCase } from './application/use-cases/retry-import/retry-import.use-case';
@@ -21,10 +23,12 @@ import { RetryImportUseCase } from './application/use-cases/retry-import/retry-i
 import { IMPORT_JOB_REPOSITORY } from './domain/ports/import-job.repository.port';
 import { RESUME_CREATOR } from './domain/ports/resume-creator.port';
 // Infrastructure Adapters
+import { GithubApiAdapter } from './infrastructure/adapters/github-api.adapter';
 import { GithubImportService } from './infrastructure/adapters/github-import.service';
 import { PdfImportService } from './infrastructure/adapters/pdf-import.service';
 import { PrismaImportJobRepository } from './infrastructure/adapters/persistence/import-job.repository';
 import { PrismaResumeCreatorAdapter } from './infrastructure/adapters/persistence/resume-creator.adapter';
+import { GithubImportController } from './infrastructure/controllers/github-import.controller';
 
 // Controller
 import {
@@ -39,13 +43,15 @@ import {
 
 @Module({
   imports: [PrismaModule, LoggerModule, AiModule, OAuthModule],
-  controllers: [ResumeImportController],
+  controllers: [ResumeImportController, GithubImportController],
   providers: [
     // Outbound Adapters
     { provide: IMPORT_JOB_REPOSITORY, useClass: PrismaImportJobRepository },
     { provide: RESUME_CREATOR, useClass: PrismaResumeCreatorAdapter },
+    { provide: GITHUB_API_PORT, useClass: GithubApiAdapter },
     PdfImportService,
     GithubImportService,
+    ImportGithubUseCase,
 
     // Use Cases (inbound ports)
     {

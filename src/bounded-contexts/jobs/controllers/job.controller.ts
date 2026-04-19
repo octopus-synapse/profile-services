@@ -69,6 +69,42 @@ export class JobController {
     );
   }
 
+  @Get('with-fit-score')
+  @RequirePermission(Permission.FEED_USE)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary:
+      'Same as GET /jobs but each item is enriched with a 0-100 structured fit score for the current user.',
+  })
+  async findAllWithFitScore(
+    @Req() req: { user: { userId: string } },
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+    @Query('search') search?: string,
+    @Query('jobType') jobType?: JobType,
+    @Query('skills') skills?: string,
+    @Query('paymentCurrency') paymentCurrency?: string,
+    @Query('remotePolicy') remotePolicy?: string,
+    @Query('minEnglishLevel') minEnglishLevel?: EnglishLevel,
+  ) {
+    const skillsArray = parseSkillsCsv(skills);
+    const currencyArray = parsePaymentCurrencies(paymentCurrency);
+    const remoteArray = parseRemotePolicies(remotePolicy);
+    return this.jobService.findAllWithFitScore(
+      {
+        page: page ? Number(page) : undefined,
+        limit: limit ? Number(limit) : undefined,
+        search,
+        jobType,
+        skills: skillsArray,
+        paymentCurrency: currencyArray,
+        remotePolicy: remoteArray,
+        minEnglishLevel,
+      },
+      req.user.userId,
+    );
+  }
+
   @Get('mine')
   @RequirePermission(Permission.JOB_CREATE)
   @HttpCode(HttpStatus.OK)

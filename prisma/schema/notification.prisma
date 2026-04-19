@@ -48,3 +48,18 @@ enum EmailDeliveryMode {
   DAILY
   OFF
 }
+
+// One row per user per ISO-week that received the weekly digest.
+// Guarantees the cron job is idempotent: a retry after a partial failure
+// cannot double-send.
+model UserWeeklyDigestLog {
+  id        String   @id @default(cuid())
+  userId    String
+  weekKey   String // YYYY-Www format (ISO-8601 week)
+  sentAt    DateTime @default(now())
+
+  @@unique([userId, weekKey])
+  @@index([weekKey])
+  @@index([userId])
+  @@map("user_weekly_digest_logs")
+}

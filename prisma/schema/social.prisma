@@ -87,3 +87,20 @@ model UserSkillProficiency {
   @@index([userId])
   @@index([skillName])
 }
+
+// One row per (user, skill, quarter) that the decay scan has nagged.
+// Keeps the cron from re-notifying the same skill every week and lets
+// analytics see which skills decay most often.
+model SkillDecayLog {
+  id               String   @id @default(cuid())
+  userId           String
+  skillName        String
+  quarterKey       String // YYYY-Qn
+  daysSinceTouched Int
+  emittedAt        DateTime @default(now())
+
+  @@unique([userId, skillName, quarterKey])
+  @@index([userId])
+  @@index([quarterKey])
+  @@map("skill_decay_logs")
+}

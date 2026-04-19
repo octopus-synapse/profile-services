@@ -31,3 +31,17 @@ model ResumeVersion {
   @@index([tailoredJobId])
   @@map("resume_versions")
 }
+
+// Records which anniversary emails have already been sent per resume, so
+// the time-capsule cron is idempotent across retries and restarts.
+model ResumeTimeCapsuleLog {
+  id           String   @id @default(cuid())
+  resumeId     String
+  capsuleYear  Int
+  skipped      Boolean  @default(false)
+  sentAt       DateTime @default(now())
+
+  @@unique([resumeId, capsuleYear])
+  @@index([capsuleYear])
+  @@map("resume_time_capsule_logs")
+}

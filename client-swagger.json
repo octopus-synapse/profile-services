@@ -2798,6 +2798,104 @@
         "tags": ["auth-oauth"]
       }
     },
+    "/api/v1/shadow-profiles/github": {
+      "post": {
+        "operationId": "shadowProfile_upsertGithub",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: user:manage"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Admin: build or refresh a GitHub-based shadow profile. Call once per login; idempotent.",
+        "tags": ["shadow-profile"]
+      }
+    },
+    "/api/v1/shadow-profiles/candidates": {
+      "get": {
+        "operationId": "shadowProfile_findCandidates",
+        "parameters": [
+          {
+            "name": "email",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "githubLogin",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: user:profile_read"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Find unclaimed shadow profiles matching an email and/or github login. Used by the signup flow.",
+        "tags": ["shadow-profile"]
+      }
+    },
+    "/api/v1/shadow-profiles/{id}/claim": {
+      "post": {
+        "operationId": "shadowProfile_claim",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: user:profile_update"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Claim a shadow profile as the authenticated user. One-shot — cannot be undone.",
+        "tags": ["shadow-profile"]
+      }
+    },
     "/api/v1/users/{username}/profile": {
       "get": {
         "operationId": "users_getPublicProfileByUsername",
@@ -5040,6 +5138,30 @@
         ],
         "summary": "Retry failed import",
         "tags": ["Resume Import"]
+      }
+    },
+    "/api/v1/import/github/parse": {
+      "post": {
+        "operationId": "import_parse",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: resume:update"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Parse a GitHub profile (repos + languages) into suggested resume content. Does not write to the resume — the client previews, the user accepts.",
+        "tags": ["import"]
       }
     },
     "/api/v1/integrations/github/summary/{username}": {
@@ -8104,6 +8226,30 @@
         "tags": ["ATS Validation"]
       }
     },
+    "/api/v1/ats/simulate": {
+      "post": {
+        "operationId": "ats_simulate",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: resume:read"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Run a resume AST through the ATS parser simulator and return the extracted text + warnings.",
+        "tags": ["ats"]
+      }
+    },
     "/api/v1/public/resumes/{slug}/og.png": {
       "get": {
         "operationId": "resumes_getOgImage",
@@ -11110,6 +11256,39 @@
         "tags": ["social-connections"]
       }
     },
+    "/api/v1/users/me/connection-recommendations": {
+      "get": {
+        "operationId": "social_getRecs",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: social:use"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Users sharing the most skills with you",
+        "tags": ["social"]
+      }
+    },
     "/api/v1/users/{userId}/feed": {
       "get": {
         "operationId": "activity_getFeed",
@@ -12572,6 +12751,79 @@
         "tags": ["jobs"]
       }
     },
+    "/api/v1/jobs/with-fit-score": {
+      "get": {
+        "operationId": "jobs_findAllWithFitScore",
+        "parameters": [
+          {
+            "name": "page",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "skills",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "paymentCurrency",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "remotePolicy",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: feed:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Same as GET /jobs but each item is enriched with a 0-100 structured fit score for the current user.",
+        "tags": ["jobs"]
+      }
+    },
     "/api/v1/jobs/mine": {
       "get": {
         "operationId": "jobs_getMyJobs",
@@ -13168,6 +13420,30 @@
         ],
         "summary": "Reject a curated item.",
         "tags": ["apply-mode"]
+      }
+    },
+    "/api/v1/automation/rage-apply": {
+      "post": {
+        "operationId": "automation_run",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: feed:use"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Submit tailored applications to every open job that matches minFit. Bounded by maxApplications (default 20, cap 100).",
+        "tags": ["automation"]
       }
     },
     "/api/v1/badges/me": {
