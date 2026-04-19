@@ -15,13 +15,14 @@ import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-exp
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { ParseCuidPipe } from '@/bounded-contexts/platform/common/pipes/parse-cuid.pipe';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
-import { parseLocale, resolveSectionTypeForLocale } from '@/shared-kernel/utils/locale-resolver';
+import { parseLocale } from '@/shared-kernel/utils/locale-resolver';
 import {
   ResumeSectionDeleteDataDto,
   ResumeSectionItemDataDto,
   ResumeSectionsDataDto,
   ResumeSectionTypesDataDto,
 } from '../dto/generic-sections-response.dto';
+import { toResumeSectionTypesData } from '../presenters/generic-resume-sections.presenter';
 import { GenericResumeSectionsService } from '../services/generic-resume-sections.service';
 
 /**
@@ -67,27 +68,12 @@ export class GenericResumeSectionsController {
   ): Promise<DataResponse<ResumeSectionTypesDataDto>> {
     const locale = parseLocale(localeParam);
     const rawSectionTypes = await this.sectionsService.listSectionTypes();
-
-    // Resolve translations for requested locale
-    const sectionTypes = rawSectionTypes.map((st) => {
-      const resolved = resolveSectionTypeForLocale(
-        st as Parameters<typeof resolveSectionTypeForLocale>[0],
-        locale,
-      );
-      return {
-        ...resolved,
-        definition: (resolved.definition ?? {}) as Record<string, unknown>,
-        uiSchema: (resolved.uiSchema as Record<string, unknown>) ?? null,
-        renderHints: (resolved.renderHints ?? {}) as Record<string, unknown>,
-        fieldStyles: (resolved.fieldStyles ?? {}) as Record<string, unknown>,
-      };
-    });
-
     return {
       success: true,
-      data: {
-        sectionTypes,
-      },
+      data: toResumeSectionTypesData(
+        rawSectionTypes as Parameters<typeof toResumeSectionTypesData>[0],
+        locale,
+      ),
     };
   }
 

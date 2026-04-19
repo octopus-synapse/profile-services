@@ -31,7 +31,9 @@ import {
   type CollaborationUseCases,
 } from './application/collaboration.composition';
 import type { CollaboratorWithUser } from './domain/types/collaboration.types';
+import { CreateCollabCommentDto } from './dto/collab-comment.dto';
 import { InviteCollaboratorDto, UpdateRoleDto } from './dto/collaboration.dto';
+import { CollabCommentService } from './services/collab-comment.service';
 
 export class CollaboratorDataDto {
   @ApiProperty({ type: 'object', additionalProperties: true })
@@ -60,6 +62,7 @@ export class CollaborationController {
   constructor(
     @Inject(COLLABORATION_USE_CASES)
     private readonly collaboration: CollaborationUseCases,
+    private readonly comments: CollabCommentService,
   ) {}
 
   @Post(':resumeId/collaborators')
@@ -151,5 +154,58 @@ export class CollaborationController {
   ): Promise<DataResponse<SharedResumesListDataDto>> {
     const sharedResumes = await this.collaboration.getSharedWithMe.execute(user.userId);
     return { success: true, data: { sharedResumes } };
+  }
+
+  // -------- Comments --------
+
+  @Get(':resumeId/comments')
+  @ApiOperation({ summary: 'List collaboration comments on a resume' })
+  async listComments(
+    @Param('resumeId') resumeId: string,
+    @CurrentUser() user: UserPayload,
+  ): Promise<DataResponse<{ comments: unknown[] }>> {
+    const comments = await this.comments.listForResume(resumeId, user.userId);
+    return { success: true, data: { comments } };
+  }
+
+  @Post(':resumeId/comments')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Add a comment / reply to a resume' })
+  @ApiBody({ type: CreateCollabCommentDto })
+  async createComment(
+    @Param('resumeId') resumeId: string,
+    @Body() dto: CreateCollabCommentDto,
+    @CurrentUser() user: UserPayload,
+  ): Promise<DataResponse<{ comment: unknown }>> {
+    const comment = await this.comments.create({
+      resumeId,
+      authorId: user.userId,
+      content: dto.content,
+      parentId: dto.parentId,
+      sectionId: dto.sectionId,
+      itemId: dto.itemId,
+    });
+    return { success: true, data: { comment } };
+  }
+
+  @Post('comments/:commentId/resolve')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Mark a comment thread as resolved' })
+  async resolveComment(
+    @Param('commentId') commentId: string,
+    @CurrentUser() user: UserPayload,
+  ): Promise<DataResponse<{ comment: unknown }>> {
+    const comment = await this.comments.resolve(commentId, user.userId);
+    return { success: true, data: { comment } };
+  }
+
+  @Delete('comments/:commentId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Delete a comment (author or resume owner)' })
+  async deleteComment(
+    @Param('commentId') commentId: string,
+    @CurrentUser() user: UserPayload,
+  ): Promise<void> {
+    await this.comments.delete(commentId, user.userId);
   }
 }

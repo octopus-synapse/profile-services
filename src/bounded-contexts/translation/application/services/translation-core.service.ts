@@ -5,7 +5,12 @@
 
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import type { TranslationLanguage, TranslationResult } from '../../domain/types/translation.types';
+import type {
+  LanguageDetectionResult,
+  SourceLanguage,
+  TranslationLanguage,
+  TranslationResult,
+} from '../../domain/types/translation.types';
 
 @Injectable()
 export class TranslationCoreService implements OnModuleInit {
@@ -44,7 +49,7 @@ export class TranslationCoreService implements OnModuleInit {
 
   async translate(
     text: string,
-    sourceLanguage: TranslationLanguage,
+    sourceLanguage: SourceLanguage,
     targetLanguage: TranslationLanguage,
   ): Promise<TranslationResult> {
     if (!text || text.trim().length === 0) {
@@ -69,18 +74,44 @@ export class TranslationCoreService implements OnModuleInit {
         signal: AbortSignal.timeout(15000),
       });
 
-      const data = (await response.json()) as { translatedText?: string };
+      const data = (await response.json()) as {
+        translatedText?: string;
+        detectedLanguage?: { language?: string };
+      };
+      const detected = data.detectedLanguage?.language;
+      const detectedLanguage =
+        detected === 'pt' || detected === 'en' ? (detected as TranslationLanguage) : undefined;
       return {
         original: text,
         translated: data.translatedText ?? text,
         sourceLanguage,
         targetLanguage,
+        detectedLanguage,
       };
     } catch (error) {
       this.logger.error(
         `Translation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
       return { original: text, translated: text, sourceLanguage, targetLanguage };
+    }
+  }
+
+  async detectLanguage(text: string): Promise<LanguageDetectionResult[]> {
+    if (!text || text.trim().length === 0 || !this.isServiceAvailable) return [];
+    try {
+      const response = await fetch(`${this.libreTranslateUrl}/detect`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ q: text }),
+        signal: AbortSignal.timeout(5000),
+      });
+      const data = (await response.json()) as LanguageDetectionResult[] | undefined;
+      return Array.isArray(data) ? data : [];
+    } catch (error) {
+      this.logger.error(
+        `Language detection failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+      return [];
     }
   }
 

@@ -59,10 +59,7 @@ const _assertValidation: AssertEqual<
   z.infer<typeof onboardingStepValidationSchema>,
   OnboardingStepValidation
 > = true;
-const _assertStrengthLevel: AssertEqual<
-  z.infer<typeof strengthLevelSchema>,
-  StrengthLevel
-> = true;
+const _assertStrengthLevel: AssertEqual<z.infer<typeof strengthLevelSchema>, StrengthLevel> = true;
 void _assertField;
 void _assertTranslation;
 void _assertValidation;

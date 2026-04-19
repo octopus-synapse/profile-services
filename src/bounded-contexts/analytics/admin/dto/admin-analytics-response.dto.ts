@@ -33,6 +33,33 @@ const ViewSourceEntrySchema = z.object({
   count: z.number().int(),
 });
 
+const ActiveUsersSchema = z.object({
+  dau: z.number().int(),
+  mau: z.number().int(),
+});
+
+const ContentStatsSchema = z.object({
+  posts: z.number().int(),
+  comments: z.number().int(),
+  reactions: z.number().int(),
+});
+
+const SocialStatsSchema = z.object({
+  pendingInvitations: z.number().int(),
+  acceptedConnections: z.number().int(),
+  rejectedConnections: z.number().int(),
+  blockedUsers: z.number().int(),
+  acceptanceRate: z.number().int(),
+});
+
+const JobStatsSchema = z.object({
+  postedJobs: z.number().int(),
+  activeJobs: z.number().int(),
+  applications: z.number().int(),
+  withdrawn: z.number().int(),
+  applicationsPerJob: z.number(),
+});
+
 const AdminAnalyticsOverviewDataSchema = z.object({
   userGrowth: z.array(UserGrowthEntrySchema),
   resumesByLanguage: z.array(ResumesByLanguageEntrySchema),
@@ -40,6 +67,10 @@ const AdminAnalyticsOverviewDataSchema = z.object({
   mostUsedSections: z.array(MostUsedSectionEntrySchema),
   importSources: z.array(ImportSourceEntrySchema),
   viewSources: z.array(ViewSourceEntrySchema),
+  activeUsers: ActiveUsersSchema,
+  contentStats: ContentStatsSchema,
+  socialStats: SocialStatsSchema,
+  jobStats: JobStatsSchema,
 });
 
 export class AdminAnalyticsOverviewDataDto extends createZodDto(AdminAnalyticsOverviewDataSchema) {}

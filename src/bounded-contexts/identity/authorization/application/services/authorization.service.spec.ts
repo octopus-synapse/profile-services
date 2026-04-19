@@ -62,14 +62,13 @@ describe('AuthorizationService', () => {
     const mockRoles = [makeRole('role-1', 'user', ['perm-1', 'perm-2'])];
 
     mockPermissionRepo = {
-      findById: mock(async (id: PermissionId) =>
-        mockPermissions.find((p) => p.id === id) ?? null,
-      ),
+      findById: mock(async (id: PermissionId) => mockPermissions.find((p) => p.id === id) ?? null),
       findByIds: mock(async (ids: PermissionId[]) =>
         mockPermissions.filter((p) => ids.includes(p.id)),
       ),
-      findByKey: mock(async (resource: string, action: string) =>
-        mockPermissions.find((p) => p.resource === resource && p.action === action) ?? null,
+      findByKey: mock(
+        async (resource: string, action: string) =>
+          mockPermissions.find((p) => p.resource === resource && p.action === action) ?? null,
       ),
     };
 
@@ -92,9 +91,9 @@ describe('AuthorizationService', () => {
           { permissionId: 'perm-3', granted: true },
         ],
       ),
-      getUserRoles: mock(async (_userId: UserId): Promise<UserRoleAssignment[]> => [
-        { roleId: 'role-1' },
-      ]),
+      getUserRoles: mock(
+        async (_userId: UserId): Promise<UserRoleAssignment[]> => [{ roleId: 'role-1' }],
+      ),
       getUserGroups: mock(async (_userId: UserId): Promise<UserGroupMembership[]> => []),
       assignRole: mock(async () => {}),
       revokeRole: mock(async () => {}),

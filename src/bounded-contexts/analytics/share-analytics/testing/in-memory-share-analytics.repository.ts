@@ -16,6 +16,7 @@ import type {
   CountryResult,
   CreateShareAnalyticsData,
   DetailedEventResult,
+  DeviceTypeResult,
   EventCountResult,
   EventFilters,
   RecentEventResult,
@@ -45,6 +46,9 @@ export class InMemoryShareAnalyticsRepository implements ShareAnalyticsRepositor
       referer: data.referer ?? null,
       country: data.country ?? null,
       city: data.city ?? null,
+      deviceType: data.deviceType ?? null,
+      browser: data.browser ?? null,
+      os: data.os ?? null,
       createdAt: new Date(),
     };
     this.analytics.set(id, record);
@@ -81,6 +85,23 @@ export class InMemoryShareAnalyticsRepository implements ShareAnalyticsRepositor
       ipHash,
       _count: { ipHash: count },
     }));
+  }
+
+  async groupByDeviceType(shareId: string): Promise<DeviceTypeResult[]> {
+    const events = this.getAnalyticsForShare(shareId);
+    const counts = new Map<string, number>();
+
+    for (const record of events) {
+      const key = record.deviceType ?? 'unknown';
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+
+    return Array.from(counts.entries())
+      .map(([deviceType, count]) => ({
+        deviceType,
+        _count: { deviceType: count },
+      }))
+      .sort((a, b) => b._count.deviceType - a._count.deviceType);
   }
 
   async groupByCountry(shareId: string, limit: number): Promise<CountryResult[]> {
@@ -133,15 +154,31 @@ export class InMemoryShareAnalyticsRepository implements ShareAnalyticsRepositor
 
     return events
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
-      .map(({ event, ipHash, userAgent, referer, country, city, createdAt }) => ({
-        event,
-        ipHash,
-        userAgent,
-        referer,
-        country,
-        city,
-        createdAt,
-      }));
+      .map(
+        ({
+          event,
+          ipHash,
+          userAgent,
+          referer,
+          country,
+          city,
+          deviceType,
+          browser,
+          os,
+          createdAt,
+        }) => ({
+          event,
+          ipHash,
+          userAgent,
+          referer,
+          country,
+          city,
+          deviceType,
+          browser,
+          os,
+          createdAt,
+        }),
+      );
   }
 
   // =========================================================================
@@ -172,6 +209,9 @@ export class InMemoryShareAnalyticsRepository implements ShareAnalyticsRepositor
         referer: record.referer ?? null,
         country: record.country ?? null,
         city: record.city ?? null,
+        deviceType: record.deviceType ?? null,
+        browser: record.browser ?? null,
+        os: record.os ?? null,
         createdAt: record.createdAt ?? new Date(),
       });
     }

@@ -47,6 +47,7 @@ import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logg
 import { EventPublisher } from '@/shared-kernel';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import { EXPORT_USE_CASES, type ExportUseCases } from '../../application/ports/export.port';
+import { parseBundleFormats } from '../../application/utils/parse-bundle-formats';
 import { ExportCompletedEvent, ExportFailedEvent, ExportRequestedEvent } from '../../domain/events';
 import { BannerCaptureService } from '../adapters/external-services/banner-capture.service';
 
@@ -237,6 +238,66 @@ export class ExportController {
         stack: error instanceof Error ? error.stack : undefined,
       });
       throw new InternalServerErrorException('Failed to generate DOCX. Please try again later.');
+    }
+  }
+
+  @RequirePermission(Permission.RESUME_EXPORT)
+  @Get('resume/bundle')
+  @ApiOperation({
+    summary: 'Download resume as a single zip containing PDF, DOCX and JSON formats',
+  })
+  @Header('Content-Type', 'application/zip')
+  @Header('Content-Disposition', 'attachment; filename="resume-bundle.zip"')
+  @ApiStreamResponse({ mimeType: 'application/zip', description: 'Zip file with all formats' })
+  @ApiProduces('application/zip')
+  @ApiQuery({
+    name: 'formats',
+    required: false,
+    description: 'Comma-separated subset of pdf,docx,json (default: all)',
+  })
+  async exportResumeBundle(
+    @CurrentUser() user: UserPayload,
+    @Query('formats') formats?: string,
+  ): Promise<StreamableFile> {
+    const exportId = randomUUID();
+    const parsed = parseBundleFormats(formats);
+
+    this.eventPublisher.publish(
+      new ExportRequestedEvent(exportId, {
+        resumeId: 'user-default',
+        userId: user.userId,
+        format: 'bundle',
+      }),
+    );
+
+    try {
+      const buffer = await this.useCases.exportBundleUseCase.execute({
+        userId: user.userId,
+        resumeId: user.userId,
+        formats: parsed,
+      });
+
+      this.eventPublisher.publish(
+        new ExportCompletedEvent(exportId, {
+          resumeId: 'user-default',
+          fileUrl: 'inline',
+        }),
+      );
+
+      return new StreamableFile(buffer);
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+      this.eventPublisher.publish(
+        new ExportFailedEvent(exportId, { resumeId: 'user-default', reason }),
+      );
+      this.logger.errorWithMeta('Failed to generate export bundle', {
+        userId: user.userId,
+        error: reason,
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+      throw new InternalServerErrorException(
+        'Failed to generate export bundle. Please try again later.',
+      );
     }
   }
 }

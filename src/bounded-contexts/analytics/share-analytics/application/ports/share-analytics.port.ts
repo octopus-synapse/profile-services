@@ -22,6 +22,9 @@ interface TrackEvent {
   referer?: string;
   country?: string;
   city?: string;
+  deviceType?: string;
+  browser?: string;
+  os?: string;
 }
 
 export interface ShareAnalyticsUseCases {
@@ -35,6 +38,9 @@ export interface ShareAnalyticsUseCases {
       referer: string | null;
       country: string | null;
       city: string | null;
+      deviceType: string | null;
+      browser: string | null;
+      os: string | null;
       createdAt: Date;
     }>;
   };
@@ -48,6 +54,7 @@ export interface ShareAnalyticsUseCases {
       totalDownloads: number;
       uniqueVisitors: number;
       byCountry: Array<{ country: string | null; count: number }>;
+      byDeviceType: Array<{ deviceType: string | null; count: number }>;
       recentEvents: Array<{
         event: AnalyticsEvent;
         country: string | null;
@@ -73,6 +80,9 @@ export interface ShareAnalyticsUseCases {
         referrer: string | null;
         country: string | null;
         city: string | null;
+        deviceType: string | null;
+        browser: string | null;
+        os: string | null;
         createdAt: Date;
       }>
     >;

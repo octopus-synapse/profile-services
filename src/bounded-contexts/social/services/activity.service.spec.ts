@@ -4,7 +4,7 @@
 
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import type { DomainEvent } from '@/shared-kernel/event-bus/domain/domain-event';
-import type { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
+import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import { ActivityType } from '../application/ports/activity.port';
 import {
   InMemoryActivityRepository,
@@ -111,11 +111,10 @@ describe('ActivityService', () => {
       activityRepo.seedActivity({ userId: 'user-1', type: ActivityType.RESUME_CREATED });
       activityRepo.seedActivity({ userId: 'user-1', type: ActivityType.SKILL_ADDED });
 
-      const result = await service.getActivitiesByType(
-        'user-1',
-        ActivityType.RESUME_CREATED,
-        { page: 1, limit: 10 },
-      );
+      const result = await service.getActivitiesByType('user-1', ActivityType.RESUME_CREATED, {
+        page: 1,
+        limit: 10,
+      });
 
       expect(result.data).toHaveLength(1);
       expect(result.data[0].type).toBe(ActivityType.RESUME_CREATED);

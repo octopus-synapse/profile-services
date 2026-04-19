@@ -26,7 +26,7 @@ describe('TranslationCoreService', () => {
     globalThis.fetch = mock(async (url: string | URL | Request, init?: RequestInit) => {
       fetchCalls.push({ url: String(url), init });
       return fetchResult as unknown as Response;
-    }) as typeof fetch;
+    }) as unknown as typeof fetch;
     service = new TranslationCoreService(stubConfigService as never);
   });
 
@@ -46,7 +46,7 @@ describe('TranslationCoreService', () => {
       (service as unknown as { isServiceAvailable: boolean }).isServiceAvailable = true;
       globalThis.fetch = mock(async () => {
         throw new Error('Connection refused');
-      }) as typeof fetch;
+      }) as unknown as typeof fetch;
       const result = await service.translate('Hello world', 'en', 'pt');
       expect(result.original).toBe('Hello world');
       expect(result.translated).toBe('Hello world');
@@ -56,7 +56,7 @@ describe('TranslationCoreService', () => {
       (service as unknown as { isServiceAvailable: boolean }).isServiceAvailable = true;
       globalThis.fetch = mock(async () => {
         throw new Error('Timeout');
-      }) as typeof fetch;
+      }) as unknown as typeof fetch;
       const result = await service.translate('Hello world', 'en', 'pt');
       expect(result.original).toBe('Hello world');
       expect(result.translated).toBe('Hello world');
@@ -66,7 +66,7 @@ describe('TranslationCoreService', () => {
       (service as unknown as { isServiceAvailable: boolean }).isServiceAvailable = true;
       globalThis.fetch = mock(async () => {
         throw new Error('Service error');
-      }) as typeof fetch;
+      }) as unknown as typeof fetch;
       const result = await service.translate('Test text', 'pt', 'en');
       expect(result).toBeDefined();
       expect(result.translated).toBe('Test text');
@@ -136,7 +136,7 @@ describe('TranslationCoreService', () => {
     it('should mark service unavailable on health check failure', async () => {
       globalThis.fetch = mock(async () => {
         throw new Error('Connection failed');
-      }) as typeof fetch;
+      }) as unknown as typeof fetch;
       const healthResult = await service.checkServiceHealth();
       expect(healthResult).toBe(false);
       expect(service.isAvailable()).toBe(false);

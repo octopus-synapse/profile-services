@@ -70,6 +70,7 @@ model Resume {
   viewEvents      ResumeViewEvent[]        @relation("ResumeViews")
   import          ResumeImport?
   collaborators   ResumeCollaborator[]     @relation("ResumeCollaborators")
+  collabComments  CollaborationComment[]   @relation("ResumeComments")
 
   @@index([userId])
   @@index([slug])

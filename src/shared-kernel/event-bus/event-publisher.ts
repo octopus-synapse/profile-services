@@ -2,14 +2,16 @@ import { Injectable } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { DomainEvent } from './domain/domain-event';
 
-export interface EventPublisherPort {
-  publish<T>(event: DomainEvent<T>): void;
-  publishAsync<T>(event: DomainEvent<T>): Promise<void>;
+export abstract class EventPublisherPort {
+  abstract publish<T>(event: DomainEvent<T>): void;
+  abstract publishAsync<T>(event: DomainEvent<T>): Promise<void>;
 }
 
 @Injectable()
-export class EventPublisher implements EventPublisherPort {
-  constructor(private readonly emitter: EventEmitter2) {}
+export class EventPublisher extends EventPublisherPort {
+  constructor(private readonly emitter: EventEmitter2) {
+    super();
+  }
 
   publish<T>(event: DomainEvent<T>): void {
     this.emitter.emit(event.eventType, event);

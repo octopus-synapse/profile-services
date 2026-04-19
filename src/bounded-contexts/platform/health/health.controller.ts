@@ -7,7 +7,9 @@ import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-exp
 import { type DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import {
   DatabaseHealthIndicator,
+  OpenAIHealthIndicator,
   RedisHealthIndicator,
+  SmtpHealthIndicator,
   StorageHealthIndicator,
   TranslateHealthIndicator,
 } from './indicators';
@@ -41,6 +43,8 @@ export class HealthController {
     private redis: RedisHealthIndicator,
     private storage: StorageHealthIndicator,
     private translate: TranslateHealthIndicator,
+    private smtp: SmtpHealthIndicator,
+    private openai: OpenAIHealthIndicator,
   ) {}
 
   @Public()
@@ -56,7 +60,29 @@ export class HealthController {
       () => this.redis.isHealthy('redis'),
       () => this.storage.isHealthy('storage'),
       () => this.translate.isHealthy('translate'),
+      () => this.smtp.isHealthy('smtp'),
+      () => this.openai.isHealthy('openai'),
     ]);
+    return { success: true, data: result as HealthCheckResultDto };
+  }
+
+  @Public()
+  @Get('smtp')
+  @HealthCheck()
+  @ApiOperation({ summary: 'Run SMTP/email provider health check' })
+  @ApiDataResponse(HealthCheckResultDto, { description: 'SMTP health status' })
+  async checkSmtp(): Promise<DataResponse<HealthCheckResultDto>> {
+    const result = await this.health.check([() => this.smtp.isHealthy('smtp')]);
+    return { success: true, data: result as HealthCheckResultDto };
+  }
+
+  @Public()
+  @Get('openai')
+  @HealthCheck()
+  @ApiOperation({ summary: 'Run OpenAI configuration health check' })
+  @ApiDataResponse(HealthCheckResultDto, { description: 'OpenAI health status' })
+  async checkOpenAI(): Promise<DataResponse<HealthCheckResultDto>> {
+    const result = await this.health.check([() => this.openai.isHealthy('openai')]);
     return { success: true, data: result as HealthCheckResultDto };
   }
 

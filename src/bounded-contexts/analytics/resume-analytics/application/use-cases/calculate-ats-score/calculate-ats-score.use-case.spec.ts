@@ -10,9 +10,9 @@ import {
   defaultSectionTypes,
   InMemoryATSScoreRepository,
 } from '@/bounded-contexts/analytics/testing';
-import type { AnalyticsSection, ResumeForAnalytics } from '../../../domain/types';
-import type { EventPublisherPort } from '@/shared-kernel';
+import { EventPublisherPort } from '@/shared-kernel';
 import type { DomainEvent } from '@/shared-kernel/event-bus/domain/domain-event';
+import type { AnalyticsSection, ResumeForAnalytics } from '../../../domain/types';
 import { AnalyticsEventBusPort } from '../../ports/analytics-event-bus.port';
 import type { ResumeOwnershipPort } from '../../ports/resume-analytics.port';
 import { CalculateAtsScoreUseCase } from './calculate-ats-score.use-case';

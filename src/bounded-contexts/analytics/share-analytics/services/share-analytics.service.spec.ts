@@ -29,7 +29,7 @@ describe('ShareAnalyticsService', () => {
 
   beforeEach(() => {
     repository = new InMemoryShareAnalyticsRepository();
-    service = new ShareAnalyticsService(repository);
+    service = new ShareAnalyticsService(repository, { lookup: async () => null });
 
     // Seed a share with owner
     repository.seedShare({

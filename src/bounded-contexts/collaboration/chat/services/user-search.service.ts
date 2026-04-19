@@ -28,7 +28,7 @@ export class ChatUserSearchService {
         photoURL: true,
       },
       take: limit,
-      orderBy: { username: 'asc' },
+      orderBy: { createdAt: 'desc' },
     });
   }
 }

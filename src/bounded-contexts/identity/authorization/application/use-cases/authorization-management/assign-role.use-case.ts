@@ -4,7 +4,7 @@
  * Assigns a role to a user and publishes a domain event.
  */
 
-import type { EventPublisherPort } from '@/shared-kernel';
+import { EventPublisherPort } from '@/shared-kernel';
 import { RoleAssignedEvent } from '../../../domain/events';
 import type { IUserAuthorizationRepository } from '../../../domain/ports/authorization-repositories.port';
 

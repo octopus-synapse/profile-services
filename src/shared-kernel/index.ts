@@ -34,7 +34,7 @@ export {
   DomainEvent,
   EventBusModule,
   EventPublisher,
-  type EventPublisherPort,
+  EventPublisherPort,
 } from './event-bus';
 // ============================================================================
 // Exceptions (Base Exceptions)

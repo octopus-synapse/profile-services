@@ -130,7 +130,7 @@ export class InMemorySpokenLanguageRepository extends SpokenLanguagesRepositoryP
           (l.nameEn.toLowerCase().includes(q) ||
             l.namePtBr.toLowerCase().includes(q) ||
             l.nameEs.toLowerCase().includes(q) ||
-            (l.nativeName !== null && l.nativeName.toLowerCase().includes(q))),
+            l.nativeName?.toLowerCase().includes(q)),
       )
       .sort((a, b) => a.order - b.order)
       .slice(0, limit)

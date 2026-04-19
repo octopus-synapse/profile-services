@@ -5,13 +5,13 @@
  */
 
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import type { DomainEvent } from '@/shared-kernel/event-bus/domain/domain-event';
+import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import {
   ConflictException,
   EntityNotFoundException,
   ValidationException,
 } from '@/shared-kernel/exceptions/domain.exceptions';
-import type { DomainEvent } from '@/shared-kernel/event-bus/domain/domain-event';
-import type { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import {
   InMemoryConnectionRepository,
   InMemoryFollowRepository,

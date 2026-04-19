@@ -5,7 +5,8 @@
  */
 
 import { Module } from '@nestjs/common';
-import { EventEmitterModule } from '@nestjs/event-emitter';
+import { EventEmitter2, EventEmitterModule } from '@nestjs/event-emitter';
+import { CacheModule } from '@/bounded-contexts/platform/common/cache/cache.module';
 import { LoggerModule } from '@/bounded-contexts/platform/common/logger/logger.module';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
@@ -14,6 +15,7 @@ import { EventBusModule } from '@/shared-kernel/event-bus/event-bus.module';
 import {
   CleanupSocialOnUserDeleteHandler,
   CreateWelcomeActivityOnUserRegisteredHandler,
+  MutualFollowOnConnectionAcceptedHandler,
   ResumeCreatedActivityHandler,
   ResumePublishedActivityHandler,
 } from './application/handlers';
@@ -32,8 +34,9 @@ import { SOCIAL_LOGGER_PORT } from './application/ports/social-logger.port';
 import { ActivityController } from './controllers/activity.controller';
 import { ActivityFeedSseController } from './controllers/activity-feed-sse.controller';
 import { ConnectionController } from './controllers/connection.controller';
+import { ConnectionRecsController } from './controllers/connection-recs.controller';
 import { FollowController } from './controllers/follow.controller';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { SkillEndorsementController } from './controllers/skill-endorsement.controller';
 import { AppLoggerSocialAdapter } from './infrastructure/adapters/app-logger.adapter';
 import { EventEmitterSocialEventBusAdapter } from './infrastructure/adapters/event-emitter-social-event-bus.adapter';
 import { ActivityRepository } from './infrastructure/adapters/persistence/activity.repository';
@@ -41,24 +44,39 @@ import { ConnectionRepository } from './infrastructure/adapters/persistence/conn
 import { FollowRepository } from './infrastructure/adapters/persistence/follow.repository';
 import { ActivityService } from './services/activity.service';
 import { ConnectionService } from './services/connection.service';
+import { ConnectionRecsService } from './services/connection-recs.service';
 import { FollowService } from './services/follow.service';
+import { SkillDecayService } from './services/skill-decay.service';
+import { SkillDecayWorker } from './services/skill-decay.worker';
+import { SkillEndorsementService } from './services/skill-endorsement.service';
+import { SkillProficiencyService } from './services/skill-proficiency.service';
+import { SkillProficiencyController } from './skill-proficiency.controller';
 
 @Module({
-  imports: [PrismaModule, LoggerModule, EventEmitterModule, EventBusModule],
+  imports: [PrismaModule, LoggerModule, EventEmitterModule, EventBusModule, CacheModule],
   controllers: [
     FollowController,
     ConnectionController,
+    ConnectionRecsController,
     ActivityController,
     ActivityFeedSseController,
+    SkillEndorsementController,
+    SkillProficiencyController,
   ],
   providers: [
     FollowService,
     ConnectionService,
     ActivityService,
+    SkillEndorsementService,
+    SkillProficiencyService,
+    SkillDecayService,
+    SkillDecayWorker,
+    ConnectionRecsService,
     ResumeCreatedActivityHandler,
     ResumePublishedActivityHandler,
     CreateWelcomeActivityOnUserRegisteredHandler,
     CleanupSocialOnUserDeleteHandler,
+    MutualFollowOnConnectionAcceptedHandler,
     // Repository port bindings
     {
       provide: FollowRepositoryPort,

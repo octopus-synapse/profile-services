@@ -55,20 +55,48 @@ export class DslValidatorService {
    * Check if a DSL version is supported
    */
   isSupportedVersion(version: string): boolean {
-    const supported = ['1.0.0'];
-    return supported.includes(version);
+    return SUPPORTED_VERSIONS.includes(version);
   }
 
   /**
-   * Migrate DSL from old version to current
-   * TODO: Implement version migration logic
+   * Migrate DSL from an older version to the target. Uses a forward-only
+   * chain of single-step migrators. Each migrator bumps the version by one
+   * minor, so migrating v1.0.0 → v1.2.0 runs the v1.0.0→v1.1.0 migrator, then
+   * the v1.1.0→v1.2.0 one.
    */
   migrate(dsl: ResumeDsl, targetVersion: string): ResumeDsl {
-    if (dsl.version === targetVersion) {
-      return dsl;
+    if (!this.isSupportedVersion(targetVersion)) {
+      throw new ValidationException(`Target DSL version ${targetVersion} is not supported`);
     }
-    // Future: Add migration logic here
-    // v1 → v2, v2 → v3, etc.
-    return dsl;
+
+    let current: ResumeDsl = dsl;
+    let guard = 0;
+    while (current.version !== targetVersion) {
+      const step = MIGRATIONS[current.version];
+      if (!step) {
+        throw new ValidationException(
+          `No migration path from ${current.version} to ${targetVersion}`,
+        );
+      }
+      current = step(current);
+      guard += 1;
+      if (guard > 20) {
+        throw new ValidationException('Migration loop detected');
+      }
+    }
+    return current;
   }
 }
+
+/** Ordered supported versions. Newest last. */
+const SUPPORTED_VERSIONS: string[] = ['1.0.0'];
+
+/**
+ * One-step forward migrators. Each function takes a DSL at version `K` and
+ * returns the same DSL upgraded to version `K+1`. When adding v1.1.0, append
+ * it to `SUPPORTED_VERSIONS` and register the `'1.0.0'` migrator here.
+ */
+const MIGRATIONS: Record<string, (dsl: ResumeDsl) => ResumeDsl> = {
+  // Example (left as documentation until v1.1.0 lands):
+  // '1.0.0': (dsl) => ({ ...dsl, version: '1.1.0', /* field moves */ }),
+};

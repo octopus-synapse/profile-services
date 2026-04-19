@@ -134,6 +134,41 @@ export class CommentService {
   }
 
   /**
+   * List comments authored by a user across all posts (for profile activity tab).
+   * Cursor-paginated by createdAt DESC.
+   */
+  async getByUser(userId: string, cursor?: string, limit = 20) {
+    const safeLimit = Math.min(limit, 50);
+
+    const comments = await this.prisma.postComment.findMany({
+      where: {
+        authorId: userId,
+        isDeleted: false,
+        ...(cursor ? { createdAt: { lt: new Date(cursor) } } : {}),
+      },
+      include: {
+        author: { select: AUTHOR_SELECT },
+        post: {
+          select: {
+            id: true,
+            type: true,
+            content: true,
+            authorId: true,
+            author: { select: AUTHOR_SELECT },
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: safeLimit,
+    });
+
+    const nextCursor =
+      comments.length === safeLimit ? comments[comments.length - 1].createdAt.toISOString() : null;
+
+    return { comments, nextCursor };
+  }
+
+  /**
    * Get replies for a specific comment with cursor-based pagination.
    */
   async getReplies(commentId: string, cursor?: string, limit = 20) {

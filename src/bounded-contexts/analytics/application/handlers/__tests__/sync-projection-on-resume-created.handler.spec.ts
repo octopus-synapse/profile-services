@@ -4,7 +4,9 @@ import { AnalyticsProjectionPort } from '../../ports/analytics-projection.port';
 import { SyncProjectionOnResumeCreatedHandler } from '../sync-projection-on-resume-created.handler';
 
 class StubAnalyticsProjection implements AnalyticsProjectionPort {
-  upsertProjection = mock(async (_resumeId: string, _data: { userId: string; title: string }) => {});
+  upsertProjection = mock(
+    async (_resumeId: string, _data: { userId: string; title: string }) => {},
+  );
   async deleteProjection(_resumeId: string): Promise<void> {
     throw new Error('not used in test');
   }

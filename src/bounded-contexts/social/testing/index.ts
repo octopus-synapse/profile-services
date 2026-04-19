@@ -63,9 +63,7 @@ export class InMemoryFollowRepository extends FollowRepositoryPort {
 
   async findFollow(followerId: string, followingId: string): Promise<FollowWithUser | null> {
     return (
-      this.follows.find(
-        (f) => f.followerId === followerId && f.followingId === followingId,
-      ) ?? null
+      this.follows.find((f) => f.followerId === followerId && f.followingId === followingId) ?? null
     );
   }
 
@@ -282,21 +280,13 @@ export class InMemoryConnectionRepository extends ConnectionRepositoryPort {
     return this.connections.find((c) => c.id === id) ?? null;
   }
 
-  async findConnection(
-    requesterId: string,
-    targetId: string,
-  ): Promise<ConnectionWithUser | null> {
+  async findConnection(requesterId: string, targetId: string): Promise<ConnectionWithUser | null> {
     return (
-      this.connections.find(
-        (c) => c.requesterId === requesterId && c.targetId === targetId,
-      ) ?? null
+      this.connections.find((c) => c.requesterId === requesterId && c.targetId === targetId) ?? null
     );
   }
 
-  async findConnectionBetween(
-    userA: string,
-    userB: string,
-  ): Promise<ConnectionWithUser | null> {
+  async findConnectionBetween(userA: string, userB: string): Promise<ConnectionWithUser | null> {
     return (
       this.connections.find(
         (c) =>
@@ -335,16 +325,27 @@ export class InMemoryConnectionRepository extends ConnectionRepositoryPort {
     };
   }
 
+  async findSentRequests(
+    userId: string,
+    pagination: PaginationParams,
+  ): Promise<{ data: ConnectionWithUser[]; total: number }> {
+    const { page, limit } = pagination;
+    const filtered = this.connections
+      .filter((c) => c.requesterId === userId && c.status === 'PENDING')
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    return {
+      data: filtered.slice((page - 1) * limit, page * limit),
+      total: filtered.length,
+    };
+  }
+
   async findAcceptedConnections(
     userId: string,
     pagination: PaginationParams,
   ): Promise<{ data: ConnectionWithUser[]; total: number }> {
     const { page, limit } = pagination;
     const filtered = this.connections
-      .filter(
-        (c) =>
-          c.status === 'ACCEPTED' && (c.requesterId === userId || c.targetId === userId),
-      )
+      .filter((c) => c.status === 'ACCEPTED' && (c.requesterId === userId || c.targetId === userId))
       .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
     return {
       data: filtered.slice((page - 1) * limit, page * limit),

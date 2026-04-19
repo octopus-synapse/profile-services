@@ -58,6 +58,11 @@ export abstract class ConnectionRepositoryPort {
     pagination: PaginationParams,
   ): Promise<{ data: ConnectionWithUser[]; total: number }>;
 
+  abstract findSentRequests(
+    userId: string,
+    pagination: PaginationParams,
+  ): Promise<{ data: ConnectionWithUser[]; total: number }>;
+
   abstract findAcceptedConnections(
     userId: string,
     pagination: PaginationParams,

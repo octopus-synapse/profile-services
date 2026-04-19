@@ -38,6 +38,11 @@ export type FollowWithUser = {
     username: string | null;
     photoURL: string | null;
   };
+  /**
+   * Present when the list is fetched by an authenticated viewer — indicates
+   * whether the viewer is currently following the person on this row.
+   */
+  isFollowedByMe?: boolean;
 };
 
 // ============================================================================

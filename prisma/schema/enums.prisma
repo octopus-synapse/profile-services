@@ -125,6 +125,17 @@ enum PostType {
   CHALLENGE
 }
 
+// Blind Mode — categories where anonymous posting is allowed. Restricts the
+// `isAnonymous` toggle to topics where identity hiding is legitimate, so the
+// feature doesn't become a spam vector for generic content.
+enum AnonymousCategory {
+  SALARY
+  INTERVIEW
+  LAYOFF
+  TOXIC_CULTURE
+  HARASSMENT
+}
+
 enum ReactionType {
   LIKE
   CELEBRATE
@@ -149,6 +160,9 @@ enum NotificationType {
   CONNECTION_REQUEST
   CONNECTION_ACCEPTED
   FOLLOW_NEW
+  SKILL_DECAY            // A tracked skill has been idle for 120+ days.
+  APPLICATION_STALE      // Application tracker: no update for 7/14/21 days.
+  CONNECTION_RECOMMENDATION // Suggested connection based on skill overlap.
 }
 
 // Jobs
@@ -159,4 +173,38 @@ enum JobType {
   PART_TIME
   VOLUNTEER
   FREELANCE
+}
+
+// Currency a job pays in. Lets the UI highlight "remoto em USD/EUR" as
+// first-class instead of pattern-matching `salaryRange` strings on the client.
+enum PaymentCurrency {
+  BRL
+  USD
+  EUR
+  GBP
+}
+
+// Work arrangement — answers "posso trabalhar de casa?" directly.
+enum RemotePolicy {
+  REMOTE
+  HYBRID
+  ONSITE
+}
+
+// Minimum English proficiency the role requires.
+// Uses CEFR-inspired buckets kept coarse on purpose so recruiters can fill it
+// without second-guessing between, say, B1 vs B2.
+enum EnglishLevel {
+  BASIC
+  INTERMEDIATE
+  ADVANCED
+  FLUENT
+}
+
+// How the user wants to apply to jobs. Drives the behaviour of the "Apply"
+// button + whether the weekly-curated / auto-apply workers pick the user up.
+enum ApplyMode {
+  ONE_CLICK
+  WEEKLY_CURATED
+  AUTO_APPLY
 }

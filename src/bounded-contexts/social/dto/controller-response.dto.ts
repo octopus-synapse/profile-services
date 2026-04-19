@@ -18,6 +18,39 @@ const PaginatedResultSchema = z.object({
   totalPages: z.number().int(),
 });
 
+const FollowUserSchema = z.object({
+  id: z.string(),
+  name: z.string().nullable(),
+  username: z.string().nullable(),
+  photoURL: z.string().nullable(),
+});
+
+const FollowerRowSchema = z.object({
+  id: z.string(),
+  followerId: z.string(),
+  followingId: z.string(),
+  createdAt: z.union([z.string(), z.date()]),
+  follower: FollowUserSchema.optional(),
+  isFollowedByMe: z.boolean().optional(),
+});
+
+const FollowingRowSchema = z.object({
+  id: z.string(),
+  followerId: z.string(),
+  followingId: z.string(),
+  createdAt: z.union([z.string(), z.date()]),
+  following: FollowUserSchema.optional(),
+  isFollowedByMe: z.boolean().optional(),
+});
+
+const FollowersPaginatedSchema = PaginatedResultSchema.extend({
+  data: z.array(FollowerRowSchema),
+});
+
+const FollowingPaginatedSchema = PaginatedResultSchema.extend({
+  data: z.array(FollowingRowSchema),
+});
+
 const ActivityFeedDataSchema = z.object({
   feed: PaginatedResultSchema,
 });
@@ -27,11 +60,11 @@ const ActivityListDataSchema = z.object({
 });
 
 const FollowListDataSchema = z.object({
-  followers: PaginatedResultSchema,
+  followers: FollowersPaginatedSchema,
 });
 
 const FollowingListDataSchema = z.object({
-  following: PaginatedResultSchema,
+  following: FollowingPaginatedSchema,
 });
 
 const UnfollowDataSchema = z.object({

@@ -6,7 +6,7 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
-import type { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
+import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import {
   ConflictException,
   EntityNotFoundException,
@@ -18,10 +18,7 @@ import {
   type ConnectionWithUser,
 } from '../application/ports/connection.port';
 import type { PaginatedResult, PaginationParams } from '../application/ports/follow.port';
-import {
-  SOCIAL_LOGGER_PORT,
-  SocialLoggerPort,
-} from '../application/ports/social-logger.port';
+import { SOCIAL_LOGGER_PORT, SocialLoggerPort } from '../application/ports/social-logger.port';
 import { ConnectionAcceptedEvent, ConnectionRequestedEvent } from '../domain/events';
 
 export type { ConnectionUser, ConnectionWithUser, PaginatedResult, PaginationParams };
@@ -80,10 +77,7 @@ export class ConnectionService {
     return connection;
   }
 
-  async acceptConnection(
-    connectionId: string,
-    currentUserId: string,
-  ): Promise<ConnectionWithUser> {
+  async acceptConnection(connectionId: string, currentUserId: string): Promise<ConnectionWithUser> {
     const connection = await this.connectionRepo.findConnectionById(connectionId);
 
     if (!connection) {
@@ -113,10 +107,7 @@ export class ConnectionService {
     return updated;
   }
 
-  async rejectConnection(
-    connectionId: string,
-    currentUserId: string,
-  ): Promise<ConnectionWithUser> {
+  async rejectConnection(connectionId: string, currentUserId: string): Promise<ConnectionWithUser> {
     const connection = await this.connectionRepo.findConnectionById(connectionId);
 
     if (!connection) {
@@ -137,6 +128,27 @@ export class ConnectionService {
     );
 
     return updated;
+  }
+
+  async withdrawSentRequest(connectionId: string, currentUserId: string): Promise<void> {
+    const connection = await this.connectionRepo.findConnectionById(connectionId);
+
+    if (!connection) {
+      throw new EntityNotFoundException('Connection');
+    }
+    if (connection.status !== 'PENDING') {
+      throw new ValidationException('Connection request is not pending');
+    }
+    if (connection.requesterId !== currentUserId) {
+      throw new ValidationException('Only the requester can withdraw a sent request');
+    }
+
+    await this.connectionRepo.deleteConnection(connectionId);
+
+    this.logger.debug(
+      `User ${currentUserId} withdrew sent connection request ${connectionId}`,
+      'ConnectionService',
+    );
   }
 
   async removeConnection(connectionId: string, currentUserId: string): Promise<void> {
@@ -170,7 +182,26 @@ export class ConnectionService {
     return {
       data: data.map((conn) => ({
         ...conn,
-        user: conn.requesterId === userId ? conn.requester : conn.target,
+        user: conn.requesterId === userId ? conn.target : conn.requester,
+      })),
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
+  async getSentRequests(
+    userId: string,
+    pagination: PaginationParams,
+  ): Promise<PaginatedResult<ConnectionWithUser & { user?: ConnectionUser }>> {
+    const { page, limit } = pagination;
+    const { data, total } = await this.connectionRepo.findSentRequests(userId, pagination);
+
+    return {
+      data: data.map((conn) => ({
+        ...conn,
+        user: conn.target,
       })),
       total,
       page,
@@ -205,6 +236,25 @@ export class ConnectionService {
   async isConnected(userA: string, userB: string): Promise<boolean> {
     const connection = await this.connectionRepo.findConnectionBetween(userA, userB);
     return connection !== null && connection.status === 'ACCEPTED';
+  }
+
+  /**
+   * Relationship summary between two users from userA's perspective.
+   * `pendingSentConnectionId` is the connection row ID if userA has a pending
+   * outbound request to userB — the caller uses it to offer a withdraw action.
+   */
+  async getConnectionStatusWith(
+    userA: string,
+    userB: string,
+  ): Promise<{ isConnected: boolean; pendingSentConnectionId: string | null }> {
+    const connection = await this.connectionRepo.findConnectionBetween(userA, userB);
+    if (!connection) {
+      return { isConnected: false, pendingSentConnectionId: null };
+    }
+    const isConnected = connection.status === 'ACCEPTED';
+    const pendingSentConnectionId =
+      connection.status === 'PENDING' && connection.requesterId === userA ? connection.id : null;
+    return { isConnected, pendingSentConnectionId };
   }
 
   async getConnectionStats(userId: string): Promise<{ connections: number }> {

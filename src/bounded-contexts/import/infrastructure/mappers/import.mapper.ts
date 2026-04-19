@@ -16,6 +16,12 @@ const LEGACY_SECTION_KEYS: Array<{ field: string; sectionTypeKey: string }> = [
   { field: 'projects', sectionTypeKey: 'project_v1' },
 ];
 
+export function toImportJobDtoList(jobs: ImportJobData[]): ImportJobDto[] {
+  const out: ImportJobDto[] = [];
+  for (const job of jobs) out.push(toImportJobDto(job));
+  return out;
+}
+
 export function toImportJobDto(job: ImportJobData): ImportJobDto {
   const data =
     job.rawData && typeof job.rawData === 'object' && !Array.isArray(job.rawData)

@@ -8,10 +8,7 @@ export class AnalyticsProjectionAdapter extends AnalyticsProjectionPort {
     super();
   }
 
-  async upsertProjection(
-    resumeId: string,
-    data: { userId: string; title: string },
-  ): Promise<void> {
+  async upsertProjection(resumeId: string, data: { userId: string; title: string }): Promise<void> {
     await this.prisma.analyticsResumeProjection.upsert({
       where: { id: resumeId },
       create: {

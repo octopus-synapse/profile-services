@@ -50,5 +50,6 @@ model ResumeViewEvent {
   @@index([resumeId])
   @@index([createdAt])
   @@index([source])
+  @@index([resumeId, createdAt])
   @@map("resume_view_events")
 }

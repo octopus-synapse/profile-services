@@ -13,7 +13,7 @@
  */
 
 import { Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, Query } from '@nestjs/common';
-import { ApiOperation, ApiParam, ApiProperty, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiProperty, ApiQuery, ApiTags } from '@nestjs/swagger';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure/decorators/public.decorator';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
@@ -128,25 +128,33 @@ export class FollowController {
   }
 
   /**
-   * Get followers of a user.
+   * Get followers of a user (auth required — response includes
+   * `isFollowedByMe` per row indicating whether the viewer follows them).
    */
   @Get(':userId/followers')
-  @Public()
+  @RequirePermission(Permission.SOCIAL_USE)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get followers for a user' })
   @ApiParam({ name: 'userId', type: 'string' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiDataResponse(FollowListDataDto, {
     description: 'Followers list returned',
   })
   async getFollowers(
+    @CurrentUser() viewer: UserPayload,
     @Param('userId') userId: string,
     @Query('page') page = 1,
     @Query('limit') limit = 10,
   ): Promise<DataResponse<FollowListDataDto>> {
-    const result = await this.followService.getFollowers(userId, {
-      page: Number(page),
-      limit: Math.min(Number(limit), 100), // Cap at 100
-    });
+    const result = await this.followService.getFollowers(
+      userId,
+      {
+        page: Number(page),
+        limit: Math.min(Number(limit), 100), // Cap at 100
+      },
+      viewer.userId,
+    );
 
     return {
       success: true,
@@ -157,24 +165,33 @@ export class FollowController {
   }
 
   /**
-   * Get users that a user is following.
+   * Get users that a user is following. Response rows include `isFollowedByMe`
+   * so the viewer can show follow-back state without round-trips.
    */
   @Get(':userId/following')
+  @RequirePermission(Permission.SOCIAL_USE)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get users followed by a user' })
   @ApiParam({ name: 'userId', type: 'string' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiDataResponse(FollowingListDataDto, {
     description: 'Following list returned',
   })
   async getFollowing(
+    @CurrentUser() viewer: UserPayload,
     @Param('userId') userId: string,
     @Query('page') page = 1,
     @Query('limit') limit = 10,
   ): Promise<DataResponse<FollowingListDataDto>> {
-    const result = await this.followService.getFollowing(userId, {
-      page: Number(page),
-      limit: Math.min(Number(limit), 100),
-    });
+    const result = await this.followService.getFollowing(
+      userId,
+      {
+        page: Number(page),
+        limit: Math.min(Number(limit), 100),
+      },
+      viewer.userId,
+    );
 
     return {
       success: true,

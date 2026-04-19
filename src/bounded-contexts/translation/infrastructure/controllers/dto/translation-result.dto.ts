@@ -6,6 +6,7 @@ export const TranslationResultSchema = z.object({
   translated: z.string(),
   sourceLanguage: z.string(),
   targetLanguage: z.string(),
+  detectedLanguage: z.string().optional(),
 });
 
 export class TranslationResultDto extends createZodDto(TranslationResultSchema) {}

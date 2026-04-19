@@ -1,0 +1,43 @@
+// Post-application tracker — every meaningful moment in an application's life
+// is an event, not just the current status. That lets the UI render a true
+// timeline (submitted → viewed → interview → offer/silence) and lets us
+// compute per-company response percentiles across all users' applications.
+
+model JobApplicationEvent {
+  id            String         @id @default(cuid())
+  applicationId String
+  application   JobApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  type JobApplicationEventType
+  /** Optional note the user or recruiter can attach (interview notes, etc.). */
+  note String? @db.Text
+
+  occurredAt DateTime @default(now())
+
+  @@index([applicationId, occurredAt])
+  @@index([type, occurredAt])
+}
+
+enum JobApplicationEventType {
+  SUBMITTED            // Auto-emitted when user applies.
+  VIEWED               // Recruiter opened the application.
+  INTERVIEW_SCHEDULED  // User self-reports an interview booked.
+  INTERVIEW_COMPLETED  // User self-reports the interview happened.
+  OFFER_RECEIVED       // Offer came in.
+  REJECTED             // Application declined.
+  WITHDRAWN            // User pulled out.
+  FOLLOW_UP_SENT       // User sent a follow-up — unblocks the silence detector.
+}
+
+// Tracks which silence thresholds (7/14/21 days) have been reminded per
+// application so the anti-ghosting cron is idempotent across retries.
+model JobApplicationReminderLog {
+  id            String   @id @default(cuid())
+  applicationId String
+  threshold     Int
+  sentAt        DateTime @default(now())
+
+  @@unique([applicationId, threshold])
+  @@index([applicationId])
+  @@map("job_application_reminder_logs")
+}

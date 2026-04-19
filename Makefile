@@ -1,5 +1,7 @@
 .PHONY: help dev prod build up down logs clean restart status
 
+DOCKER_COMPOSE ?= docker compose
+
 # Default target
 help:
 	@echo "Profile Application - Docker Commands"
@@ -40,116 +42,116 @@ help:
 # Development Environment
 # ==========================================
 dev:
-	docker-compose -f docker-compose.dev.yml up -d
+	$(DOCKER_COMPOSE) -f docker-compose.dev.yml up -d
 
 dev-build:
-	docker-compose -f docker-compose.dev.yml up -d --build
+	$(DOCKER_COMPOSE) -f docker-compose.dev.yml up -d --build
 
 dev-down:
-	docker-compose -f docker-compose.dev.yml down
+	$(DOCKER_COMPOSE) -f docker-compose.dev.yml down
 
 dev-logs:
-	docker-compose -f docker-compose.dev.yml logs -f
+	$(DOCKER_COMPOSE) -f docker-compose.dev.yml logs -f
 
 # ==========================================
 # Production Environment
 # ==========================================
 prod:
-	docker-compose up -d
+	$(DOCKER_COMPOSE) up -d
 
 prod-build:
-	docker-compose up -d --build
+	$(DOCKER_COMPOSE) up -d --build
 
 prod-down:
-	docker-compose down
+	$(DOCKER_COMPOSE) down
 
 prod-logs:
-	docker-compose logs -f
+	$(DOCKER_COMPOSE) logs -f
 
 # ==========================================
 # Database Commands
 # ==========================================
 db-migrate:
-	docker-compose exec frontend bunx prisma migrate dev
+	$(DOCKER_COMPOSE) exec frontend bunx prisma migrate dev
 
 db-migrate-deploy:
-	docker-compose exec frontend bunx prisma migrate deploy
+	$(DOCKER_COMPOSE) exec frontend bunx prisma migrate deploy
 
 db-studio:
-	docker-compose exec frontend bunx prisma studio
+	$(DOCKER_COMPOSE) exec frontend bunx prisma studio
 
 db-seed:
-	docker-compose exec frontend bunx prisma db seed
+	$(DOCKER_COMPOSE) exec frontend bunx prisma db seed
 
 db-backup:
 	@echo "Creating database backup..."
-	docker-compose exec postgres pg_dump -U postgres profile > backup_$(shell date +%Y%m%d_%H%M%S).sql
+	$(DOCKER_COMPOSE) exec postgres pg_dump -U postgres profile > backup_$(shell date +%Y%m%d_%H%M%S).sql
 	@echo "Backup created successfully!"
 
 db-restore:
 	@echo "Restoring database from backup..."
 	@read -p "Enter backup file path: " backup_file; \
-	docker-compose exec -T postgres psql -U postgres profile < $$backup_file
+	$(DOCKER_COMPOSE) exec -T postgres psql -U postgres profile < $$backup_file
 	@echo "Database restored successfully!"
 
 # ==========================================
 # Shell Access
 # ==========================================
 backend-shell:
-	docker-compose exec backend sh
+	$(DOCKER_COMPOSE) exec backend sh
 
 frontend-shell:
-	docker-compose exec frontend sh
+	$(DOCKER_COMPOSE) exec frontend sh
 
 postgres-shell:
-	docker-compose exec postgres psql -U postgres -d profile
+	$(DOCKER_COMPOSE) exec postgres psql -U postgres -d profile
 
 redis-shell:
-	docker-compose exec redis redis-cli
+	$(DOCKER_COMPOSE) exec redis redis-cli
 
 # ==========================================
 # Backend Commands
 # ==========================================
 backend-test:
-	docker-compose exec backend npm test
+	$(DOCKER_COMPOSE) exec backend npm test
 
 backend-lint:
-	docker-compose exec backend bun run lint
+	$(DOCKER_COMPOSE) exec backend bun run lint
 
 backend-build:
-	docker-compose exec backend bun run build
+	$(DOCKER_COMPOSE) exec backend bun run build
 
 # ==========================================
 # Frontend Commands
 # ==========================================
 frontend-test:
-	docker-compose exec frontend bun test
+	$(DOCKER_COMPOSE) exec frontend bun test
 
 frontend-lint:
-	docker-compose exec frontend bun run lint
+	$(DOCKER_COMPOSE) exec frontend bun run lint
 
 frontend-build:
-	docker-compose exec frontend bun run build
+	$(DOCKER_COMPOSE) exec frontend bun run build
 
 # ==========================================
 # Utility Commands
 # ==========================================
 status:
-	docker-compose ps
+	$(DOCKER_COMPOSE) ps
 
 logs:
-	docker-compose logs -f
+	$(DOCKER_COMPOSE) logs -f
 
 restart:
-	docker-compose restart
+	$(DOCKER_COMPOSE) restart
 
 clean:
 	@echo "WARNING: This will remove all containers and volumes!"
 	@read -p "Are you sure? [y/N] " -n 1 -r; \
 	echo; \
 	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
-		docker-compose down -v; \
-		docker-compose -f docker-compose.dev.yml down -v; \
+		$(DOCKER_COMPOSE) down -v; \
+		$(DOCKER_COMPOSE) -f docker-compose.dev.yml down -v; \
 		echo "Cleanup completed!"; \
 	fi
 
@@ -158,8 +160,8 @@ clean-all:
 	@read -p "Are you sure? [y/N] " -n 1 -r; \
 	echo; \
 	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
-		docker-compose down -v --rmi all; \
-		docker-compose -f docker-compose.dev.yml down -v --rmi all; \
+		$(DOCKER_COMPOSE) down -v --rmi all; \
+		$(DOCKER_COMPOSE) -f docker-compose.dev.yml down -v --rmi all; \
 		docker system prune -a -f; \
 		echo "Complete cleanup done!"; \
 	fi
@@ -182,5 +184,5 @@ health:
 	@echo "Checking services health..."
 	@curl -f http://localhost:3001/health || echo "Backend: DOWN"
 	@curl -f http://localhost:3000/api/health || echo "Frontend: DOWN"
-	@docker-compose exec postgres pg_isready -U postgres || echo "PostgreSQL: DOWN"
-	@docker-compose exec redis redis-cli ping || echo "Redis: DOWN"
+	@$(DOCKER_COMPOSE) exec postgres pg_isready -U postgres || echo "PostgreSQL: DOWN"
+	@$(DOCKER_COMPOSE) exec redis redis-cli ping || echo "Redis: DOWN"

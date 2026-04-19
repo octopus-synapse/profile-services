@@ -3,12 +3,13 @@ FROM oven/bun:1.3.11-alpine AS deps
 
 WORKDIR /app
 
-COPY package.json bun.lock* ./
+COPY package.json bun.lock* bunfig.toml ./
 COPY prisma ./prisma
 COPY prisma.config.ts ./
 
-RUN --mount=type=cache,target=/root/.bun/install/cache \
-    bun install --frozen-lockfile && \
+RUN --mount=type=secret,id=GITHUB_TOKEN,env=GITHUB_TOKEN \
+    --mount=type=cache,target=/root/.bun/install/cache \
+    bun install --frozen-lockfile --ignore-scripts && \
     bunx prisma generate
 
 RUN apk add --no-cache xz && \
@@ -23,12 +24,13 @@ RUN apk add --no-cache bash git tar gzip openssl
 
 WORKDIR /app
 
-COPY package.json bun.lock* ./
+COPY package.json bun.lock* bunfig.toml ./
 COPY prisma ./prisma
 COPY prisma.config.ts ./
 
-RUN --mount=type=cache,target=/root/.bun/install/cache \
-    bun install --frozen-lockfile && \
+RUN --mount=type=secret,id=GITHUB_TOKEN,env=GITHUB_TOKEN \
+    --mount=type=cache,target=/root/.bun/install/cache \
+    bun install --frozen-lockfile --ignore-scripts && \
     bunx prisma generate
 
 COPY src ./src

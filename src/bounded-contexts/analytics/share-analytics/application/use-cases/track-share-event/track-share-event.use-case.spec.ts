@@ -6,8 +6,16 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
+import type { GeoLocation, GeoLookupPort } from '../../../ports/geo-lookup.port';
 import { InMemoryShareAnalyticsRepository } from '../../../testing';
 import { TrackShareEventUseCase } from './track-share-event.use-case';
+
+class StubGeoLookup implements GeoLookupPort {
+  constructor(private readonly result: GeoLocation | null) {}
+  async lookup(_ip: string): Promise<GeoLocation | null> {
+    return this.result;
+  }
+}
 
 describe('TrackShareEventUseCase', () => {
   let useCase: TrackShareEventUseCase;
@@ -15,7 +23,7 @@ describe('TrackShareEventUseCase', () => {
 
   beforeEach(() => {
     repository = new InMemoryShareAnalyticsRepository();
-    useCase = new TrackShareEventUseCase(repository);
+    useCase = new TrackShareEventUseCase(repository, new StubGeoLookup(null));
   });
 
   it('should create an analytics record with hashed IP', async () => {
@@ -75,5 +83,70 @@ describe('TrackShareEventUseCase', () => {
     expect(result.referer).toBeNull();
     expect(result.country).toBeNull();
     expect(result.city).toBeNull();
+    expect(result.deviceType).toBeNull();
+    expect(result.browser).toBeNull();
+    expect(result.os).toBeNull();
+  });
+
+  it('should auto-derive deviceType/browser/os from userAgent', async () => {
+    const result = await useCase.execute({
+      shareId: 'share-1',
+      event: 'VIEW',
+      ip: '1.1.1.1',
+      userAgent:
+        'Mozilla/5.0 (iPhone; CPU iPhone OS 16_5 like Mac OS X) AppleWebKit/605.1.15 Version/16.0 Mobile/15E148 Safari/604.1',
+    });
+
+    expect(result.deviceType).toBe('mobile');
+    expect(result.os).toBe('iOS');
+    expect(result.browser).toBe('Safari');
+  });
+
+  it('should not overwrite explicit deviceType when caller supplies it', async () => {
+    const result = await useCase.execute({
+      shareId: 'share-1',
+      event: 'VIEW',
+      ip: '1.1.1.1',
+      userAgent: 'Googlebot/2.1 (+http://www.google.com/bot.html)',
+      deviceType: 'desktop',
+    });
+
+    expect(result.deviceType).toBe('desktop');
+  });
+
+  it('should fill country/city from geo lookup when not provided', async () => {
+    const repoWithGeo = new InMemoryShareAnalyticsRepository();
+    const geoCase = new TrackShareEventUseCase(
+      repoWithGeo,
+      new StubGeoLookup({ country: 'BR', city: 'São Paulo' }),
+    );
+
+    const result = await geoCase.execute({
+      shareId: 'share-geo',
+      event: 'VIEW',
+      ip: '200.150.100.50',
+    });
+
+    expect(result.country).toBe('BR');
+    expect(result.city).toBe('São Paulo');
+  });
+
+  it('should prefer explicit country/city over geo lookup result', async () => {
+    const repoWithGeo = new InMemoryShareAnalyticsRepository();
+    const geoCase = new TrackShareEventUseCase(
+      repoWithGeo,
+      new StubGeoLookup({ country: 'BR', city: 'São Paulo' }),
+    );
+
+    const result = await geoCase.execute({
+      shareId: 'share-geo',
+      event: 'VIEW',
+      ip: '200.150.100.50',
+      country: 'US',
+      city: 'New York',
+    });
+
+    expect(result.country).toBe('US');
+    expect(result.city).toBe('New York');
   });
 });

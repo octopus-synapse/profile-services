@@ -16,13 +16,11 @@ concurrency:
 
 permissions:
   contents: read
+  packages: read
+  pull-requests: write
 
 jobs:
-  # ═══════════════════════════════════════════════════════════════════════════
-  # Gate: Skip duplicates
-  # ═══════════════════════════════════════════════════════════════════════════
   should-skip:
-    name: Skip Check
     runs-on: ubuntu-latest
     outputs:
       should_skip: ${{ steps.skip.outputs.should_skip }}
@@ -34,12 +32,8 @@ jobs:
           skip_after_successful_duplicate: "true"
           paths_ignore: '["CHANGELOG.md", ".release-please-manifest.json", "*.md", "docs/**"]'
 
-  # ═══════════════════════════════════════════════════════════════════════════
-  # Gate: Detect changes
-  # ═══════════════════════════════════════════════════════════════════════════
   detect-changes:
-    name: Detect Changes
-    needs: [should-skip]
+    needs: should-skip
     if: needs.should-skip.outputs.should_skip != 'true'
     runs-on: ubuntu-latest
     outputs:
@@ -62,45 +56,15 @@ jobs:
             prisma:
               - 'prisma/**'
 
-  # ═══════════════════════════════════════════════════════════════════════════
-  # Gate: Verify pre-commit attestation
-  # ═══════════════════════════════════════════════════════════════════════════
   verify-attestation:
-    name: Pre-commit
-    needs: [should-skip]
+    needs: should-skip
     if: needs.should-skip.outputs.should_skip != 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: octopus-synapse/octopus-workflows/.github/actions/verify-attestation@v1
 
-      - name: Verify Attestation
-        run: |
-          chmod +x ./scripts/attestation.sh
-          ./scripts/attestation.sh verify
-
-      - name: Summary
-        if: always()
-        run: |
-          if [ -f .attestation ]; then
-            echo "## ✅ Pre-commit Verified" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            if command -v jq &> /dev/null; then
-              echo "| Check | Passed | Time |" >> $GITHUB_STEP_SUMMARY
-              echo "|-------|--------|------|" >> $GITHUB_STEP_SUMMARY
-              jq -r '.metrics | to_entries[] | "| \(.key) | \(.value.passed // "—") | \(.value.time_ms // 0)ms |"' .attestation 2>/dev/null >> $GITHUB_STEP_SUMMARY || true
-            fi
-          else
-            echo "## ❌ Pre-commit Missing" >> $GITHUB_STEP_SUMMARY
-            echo "Run \`git commit\` without \`--no-verify\`" >> $GITHUB_STEP_SUMMARY
-          fi
-
-  # ═══════════════════════════════════════════════════════════════════════════
-  # Build: Docker smoke test
-  # ═══════════════════════════════════════════════════════════════════════════
   build:
-    name: Build
     needs: [should-skip, detect-changes]
     if: |
       always() &&
@@ -111,11 +75,7 @@ jobs:
       image_tag: pr-${{ github.event.pull_request.number || github.run_number }}-${{ github.sha }}
     secrets: inherit
 
-  # ═══════════════════════════════════════════════════════════════════════════
-  # Test: Integration
-  # ═══════════════════════════════════════════════════════════════════════════
   integration:
-    name: Integration
     needs: [should-skip, detect-changes, verify-attestation]
     if: |
       always() &&
@@ -125,11 +85,7 @@ jobs:
     uses: ./.github/workflows/ci.infrastructure.integration.yml
     secrets: inherit
 
-  # ═══════════════════════════════════════════════════════════════════════════
-  # Test: E2E
-  # ═══════════════════════════════════════════════════════════════════════════
   e2e:
-    name: E2E
     needs: [should-skip, detect-changes, verify-attestation]
     if: |
       always() &&
@@ -139,11 +95,7 @@ jobs:
     uses: ./.github/workflows/ci.infrastructure.e2e.yml
     secrets: inherit
 
-  # ═══════════════════════════════════════════════════════════════════════════
-  # Test: Security
-  # ═══════════════════════════════════════════════════════════════════════════
   security:
-    name: Security
     needs: [should-skip, detect-changes, verify-attestation]
     if: |
       always() &&
@@ -153,17 +105,12 @@ jobs:
     uses: ./.github/workflows/ci.static-analysis.security.yml
     secrets: inherit
 
-  # ═══════════════════════════════════════════════════════════════════════════
-  # Summary: Final status check
-  # ═══════════════════════════════════════════════════════════════════════════
   status:
-    name: CI Status
     needs: [verify-attestation, build, integration, e2e, security]
     if: always()
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/evaluate-ci-results
+      - uses: octopus-synapse/octopus-workflows/.github/actions/evaluate-ci-results@v1
         with:
           attestation: ${{ needs.verify-attestation.result }}
           build: ${{ needs.build.result }}

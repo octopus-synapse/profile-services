@@ -1,0 +1,38 @@
+// User-registered webhooks for event notifications.
+model WebhookConfig {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation("UserWebhooks", fields: [userId], references: [id], onDelete: Cascade)
+
+  url       String
+  secret    String
+  events    String[] // e.g. ['resume.created', 'ats.score.updated']
+  enabled   Boolean  @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  deliveries WebhookDelivery[]
+
+  @@index([userId])
+  @@index([enabled])
+}
+
+// Audit trail of every delivery attempt.
+model WebhookDelivery {
+  id         String   @id @default(cuid())
+  webhookId  String
+  webhook    WebhookConfig @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+
+  eventType  String
+  payload    Json
+  attempt    Int      @default(1)
+  success    Boolean  @default(false)
+  statusCode Int?
+  errorMessage String?
+
+  createdAt  DateTime @default(now())
+
+  @@index([webhookId, createdAt])
+  @@index([success, createdAt])
+}

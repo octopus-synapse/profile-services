@@ -19,3 +19,22 @@ model AnalyticsResumeProjection {
   @@index([userId])
   @@map("analytics_resume_projection")
 }
+
+// Pre-aggregated view counts per resume per day — refreshed by a daily cron
+// so the admin dashboard doesn't hit ResumeViewEvent with heavy GROUP BYs.
+model ResumeViewsDailyProjection {
+  id        String   @id @default(cuid())
+  resumeId  String
+  userId    String
+  day       DateTime // truncated to 00:00 UTC
+  viewCount Int      @default(0)
+  uniqueVisitorCount Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([resumeId, day])
+  @@index([userId, day])
+  @@index([day])
+  @@map("resume_views_daily")
+}

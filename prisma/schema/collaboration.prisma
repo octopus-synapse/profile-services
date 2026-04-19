@@ -21,3 +21,34 @@ model ResumeCollaborator {
   @@index([resumeId])
   @@index([userId])
 }
+
+// Inline review comments on a resume, optionally anchored to a section/item.
+model CollaborationComment {
+  id          String    @id @default(cuid())
+  resumeId    String
+  resume      Resume    @relation("ResumeComments", fields: [resumeId], references: [id], onDelete: Cascade)
+  authorId    String
+  author      User      @relation("AuthoredCollabComments", fields: [authorId], references: [id], onDelete: Cascade)
+
+  // Thread support — top-level comments have parentId = null
+  parentId    String?
+  parent      CollaborationComment?  @relation("CollabCommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies     CollaborationComment[] @relation("CollabCommentReplies")
+
+  // Anchors (optional): ties the comment to a specific section/item
+  sectionId   String?
+  itemId      String?
+
+  content     String    @db.Text
+  resolved    Boolean   @default(false)
+  resolvedAt  DateTime?
+  resolvedById String?
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([resumeId, createdAt])
+  @@index([authorId])
+  @@index([parentId])
+  @@index([resumeId, resolved])
+}

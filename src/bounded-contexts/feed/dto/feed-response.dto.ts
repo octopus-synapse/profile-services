@@ -149,6 +149,15 @@ class FeedPostDto extends PostDto {
   @ApiPropertyOptional({ example: false })
   isBookmarked?: boolean;
 
+  @ApiPropertyOptional({ example: false })
+  isReposted?: boolean;
+
+  @ApiPropertyOptional({ example: false })
+  hasVoted?: boolean;
+
+  @ApiPropertyOptional({ example: 0, nullable: true })
+  myVoteIndex?: number | null;
+
   @ApiPropertyOptional({ type: [PostDto] })
   threadPosts?: PostDto[];
 }

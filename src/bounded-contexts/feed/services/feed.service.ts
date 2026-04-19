@@ -9,12 +9,15 @@
 import { Injectable } from '@nestjs/common';
 import type { PostType } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { maskAnonymous } from './post.service';
 
 const AUTHOR_SELECT = {
   id: true,
   name: true,
   username: true,
   photoURL: true,
+  bio: true,
+  location: true,
 } as const;
 
 @Injectable()
@@ -97,7 +100,7 @@ export class FeedService {
     if (posts.length > 0) {
       const postIds = posts.map((p) => p.id);
 
-      const [likes, bookmarks] = await Promise.all([
+      const [likes, bookmarks, myReposts, myVotes] = await Promise.all([
         this.prisma.postLike.findMany({
           where: { postId: { in: postIds }, userId },
           select: { postId: true, reactionType: true },
@@ -106,10 +109,27 @@ export class FeedService {
           where: { postId: { in: postIds }, userId },
           select: { postId: true },
         }),
+        this.prisma.post.findMany({
+          where: {
+            authorId: userId,
+            type: 'REPOST',
+            originalPostId: { in: postIds },
+            isDeleted: false,
+          },
+          select: { originalPostId: true },
+        }),
+        this.prisma.pollVote.findMany({
+          where: { postId: { in: postIds }, userId },
+          select: { postId: true, optionIndex: true },
+        }),
       ]);
 
       const likedPostMap = new Map(likes.map((l) => [l.postId, l.reactionType]));
       const bookmarkedPostIds = new Set(bookmarks.map((b) => b.postId));
+      const repostedPostIds = new Set(
+        myReposts.map((r) => r.originalPostId).filter((id): id is string => Boolean(id)),
+      );
+      const voteByPostId = new Map(myVotes.map((v) => [v.postId, v.optionIndex]));
 
       // 4. Collect thread context for threaded posts
       const threadIds = [
@@ -138,13 +158,24 @@ export class FeedService {
         threadMap.set(tp.threadId, existing);
       }
 
-      const enrichedPosts = posts.map((post) => ({
-        ...post,
-        isLiked: likedPostMap.has(post.id),
-        reactionType: likedPostMap.get(post.id) ?? null,
-        isBookmarked: bookmarkedPostIds.has(post.id),
-        threadPosts: post.threadId ? (threadMap.get(post.threadId) ?? []) : [],
-      }));
+      const enrichedPosts = posts.map((post) => {
+        // Apply blind-mode masking on both the outer post and any embedded
+        // originalPost (reposts of anonymous posts stay anonymous).
+        const masked = maskAnonymous(post);
+        if (masked.originalPost) {
+          masked.originalPost = maskAnonymous(masked.originalPost);
+        }
+        return {
+          ...masked,
+          isLiked: likedPostMap.has(post.id),
+          reactionType: likedPostMap.get(post.id) ?? null,
+          isBookmarked: bookmarkedPostIds.has(post.id),
+          isReposted: repostedPostIds.has(post.id),
+          hasVoted: voteByPostId.has(post.id),
+          myVoteIndex: voteByPostId.get(post.id) ?? null,
+          threadPosts: post.threadId ? (threadMap.get(post.threadId) ?? []) : [],
+        };
+      });
 
       const nextCursor =
         enrichedPosts.length === limit

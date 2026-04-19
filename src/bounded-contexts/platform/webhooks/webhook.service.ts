@@ -88,9 +88,10 @@ export class WebhookService {
    * Fetches user's webhook configurations and delivers HTTP POST requests.
    */
   private async sendWebhooks(userId: string, eventType: string, payload: unknown): Promise<void> {
-    // TODO: Query webhook configurations from database
-    // For now, this is a placeholder - in production you'd have a WebhookConfig table
-    const webhooks = this.getWebhookConfigurations(userId, eventType);
+    const webhooks = await this.prisma.webhookConfig.findMany({
+      where: { userId, enabled: true, events: { has: eventType } },
+      select: { id: true, url: true, secret: true },
+    });
 
     if (webhooks.length === 0) {
       this.logger.debug(`[Webhook] No webhooks configured for user ${userId}, event ${eventType}`);
@@ -100,7 +101,7 @@ export class WebhookService {
     // Send webhooks in parallel with error handling
     const results = await Promise.allSettled(
       webhooks.map((webhook) =>
-        this.deliverWebhook(webhook.url, webhook.secret, eventType, payload),
+        this.deliverWebhook(webhook.id, webhook.url, webhook.secret, eventType, payload),
       ),
     );
 
@@ -118,6 +119,7 @@ export class WebhookService {
    * Sends HTTP POST with HMAC signature for verification.
    */
   private async deliverWebhook(
+    webhookId: string,
     url: string,
     secret: string,
     eventType: string,
@@ -136,6 +138,7 @@ export class WebhookService {
     let attempt = 0;
 
     while (attempt < maxRetries) {
+      attempt++;
       try {
         const response = await fetch(url, {
           method: 'POST',
@@ -145,28 +148,60 @@ export class WebhookService {
             'X-Webhook-Event': eventType,
           },
           body,
+          signal: AbortSignal.timeout(15_000),
         });
 
         if (!response.ok) {
+          await this.logDelivery(webhookId, eventType, payload, attempt, false, response.status);
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
 
+        await this.logDelivery(webhookId, eventType, payload, attempt, true, response.status);
         this.logger.log(`[Webhook] Successfully delivered to ${url}`);
         return;
       } catch (error) {
-        attempt++;
+        const message = error instanceof Error ? error.message : 'Unknown error';
         this.logger.warn(
-          `[Webhook] Delivery failed (attempt ${attempt}/${maxRetries}): ${error instanceof Error ? error.message : 'Unknown error'}`,
+          `[Webhook] Delivery failed (attempt ${attempt}/${maxRetries}): ${message}`,
         );
 
         if (attempt < maxRetries) {
-          // Exponential backoff: 1s, 2s, 4s
+          // Exponential backoff: 2s, 4s, 8s
           const delay = 2 ** attempt * 1000;
           await new Promise((resolve) => setTimeout(resolve, delay));
         } else {
+          await this.logDelivery(webhookId, eventType, payload, attempt, false, null, message);
           throw error;
         }
       }
+    }
+  }
+
+  private async logDelivery(
+    webhookId: string,
+    eventType: string,
+    payload: unknown,
+    attempt: number,
+    success: boolean,
+    statusCode: number | null,
+    errorMessage?: string,
+  ): Promise<void> {
+    try {
+      await this.prisma.webhookDelivery.create({
+        data: {
+          webhookId,
+          eventType,
+          payload: payload as never,
+          attempt,
+          success,
+          statusCode: statusCode ?? undefined,
+          errorMessage,
+        },
+      });
+    } catch (err) {
+      this.logger.error(
+        `[Webhook] Failed to log delivery: ${err instanceof Error ? err.message : 'unknown'}`,
+      );
     }
   }
 
@@ -190,25 +225,5 @@ export class WebhookService {
     return Array.from(new Uint8Array(signature))
       .map((b) => b.toString(16).padStart(2, '0'))
       .join('');
-  }
-
-  /**
-   * Helper: Get Webhook Configurations
-   *
-   * Fetches user's webhook subscriptions from database.
-   * TODO: Implement WebhookConfig table and query logic.
-   */
-  private getWebhookConfigurations(
-    userId: string,
-    eventType: string,
-  ): Array<{ url: string; secret: string }> {
-    // Placeholder - in production, query from WebhookConfig table:
-    // return this.prisma.webhookConfig.findMany({
-    //   where: { userId, events: { has: eventType }, enabled: true },
-    //   select: { url: true, secret: true }
-    // });
-
-    this.logger.debug(`[Webhook] TODO: Query webhooks for user ${userId}, event ${eventType}`);
-    return [];
   }
 }

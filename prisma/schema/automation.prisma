@@ -1,0 +1,65 @@
+// Automation — Weekly Curated batches + Auto-Apply bookkeeping.
+//
+// A WeeklyCuratedBatch is the weekly digest we mail to users on the
+// WEEKLY_CURATED apply mode. It holds N WeeklyCuratedItems, each pointing at
+// a candidate job. The user approves/rejects each item from email or the
+// dashboard; approval fans out into a JobApplication (via JobsApplyUseCase).
+
+model WeeklyCuratedBatch {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation("UserCuratedBatches", fields: [userId], references: [id], onDelete: Cascade)
+
+  // Anchor date of the week (Monday 00:00 BRT). One batch per user per week.
+  weekOf DateTime
+
+  sentAt DateTime?
+  status WeeklyCuratedBatchStatus @default(PENDING)
+
+  items WeeklyCuratedItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, weekOf])
+  @@index([userId, createdAt])
+  @@index([status])
+}
+
+model WeeklyCuratedItem {
+  id      String             @id @default(cuid())
+  batchId String
+  batch   WeeklyCuratedBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+
+  jobId String
+  job   Job    @relation("JobCuratedItems", fields: [jobId], references: [id], onDelete: Cascade)
+
+  matchScore Int // 0–100 snapshot so the UI doesn't re-score on read.
+  status     WeeklyCuratedItemStatus @default(PENDING_APPROVAL)
+  decidedAt  DateTime?
+
+  // When approved, we link the resulting JobApplication (if the apply flow
+  // produced one). Kept loose because the application may be created later.
+  applicationId String?
+
+  createdAt DateTime @default(now())
+
+  @@unique([batchId, jobId])
+  @@index([batchId])
+  @@index([jobId])
+  @@index([status])
+}
+
+enum WeeklyCuratedBatchStatus {
+  PENDING    // picked, awaiting send
+  SENT       // email dispatched, items awaiting user decision
+  COMPLETED  // user decided every item (or batch expired)
+  FAILED     // transient error; retryable
+}
+
+enum WeeklyCuratedItemStatus {
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+  EXPIRED
+}

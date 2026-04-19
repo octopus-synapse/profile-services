@@ -24,13 +24,16 @@ model Conversation {
   lastMessageSenderId String?
 
   // Messages
-  messages Message[]
+  messages    Message[]
+  preferences ConversationPreference[]
 
   // Indexes
   @@unique([participant1Id, participant2Id])
   @@index([participant1Id])
   @@index([participant2Id])
   @@index([lastMessageAt])
+  @@index([participant1Id, lastMessageAt])
+  @@index([participant2Id, lastMessageAt])
   @@map("conversations")
 }
 
@@ -62,6 +65,23 @@ model Message {
   @@index([senderId])
   @@index([isRead])
   @@map("messages")
+}
+
+// Per-user preferences on a conversation: pin to top + mute notifications.
+model ConversationPreference {
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation("UserConversationPrefs", fields: [userId], references: [id], onDelete: Cascade)
+  pinned         Boolean      @default(false)
+  muted          Boolean      @default(false)
+  mutedUntil     DateTime?
+
+  updatedAt DateTime @updatedAt
+
+  @@id([conversationId, userId])
+  @@index([userId, pinned])
+  @@map("conversation_preferences")
 }
 
 model BlockedUser {

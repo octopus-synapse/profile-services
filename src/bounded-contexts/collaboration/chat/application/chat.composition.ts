@@ -1,4 +1,4 @@
-import type { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
+import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import type { BlockedUserRepository } from '../repositories/blocked-user.repository';
 import type { ConversationRepository } from '../repositories/conversation.repository';
 import type { MessageRepository } from '../repositories/message.repository';

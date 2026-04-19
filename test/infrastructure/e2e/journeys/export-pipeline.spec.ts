@@ -83,8 +83,8 @@ describe('E2E Journey 5: Export Pipeline', () => {
 
       expect(response.status).toBe(200);
 
-      // Validate Content-Type header
-      expect(response.headers['content-type']).toBe(
+      // Validate Content-Type header (NestJS may append charset=utf-8 in CI).
+      expect(response.headers['content-type']).toContain(
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       );
 

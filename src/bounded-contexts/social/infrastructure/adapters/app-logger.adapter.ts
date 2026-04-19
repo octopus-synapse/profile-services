@@ -20,12 +20,7 @@ export class AppLoggerSocialAdapter extends SocialLoggerPort {
     this.logger.warn(message, context, meta);
   }
 
-  error(
-    message: string,
-    trace?: string,
-    context?: string,
-    meta?: Record<string, unknown>,
-  ): void {
+  error(message: string, trace?: string, context?: string, meta?: Record<string, unknown>): void {
     this.logger.error(message, trace, context, meta);
   }
 }

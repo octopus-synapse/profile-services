@@ -111,6 +111,32 @@ export class ConnectionRepository extends ConnectionRepositoryPort {
     return { data, total };
   }
 
+  async findSentRequests(
+    userId: string,
+    pagination: PaginationParams,
+  ): Promise<{ data: ConnectionWithUser[]; total: number }> {
+    const { page, limit } = pagination;
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await Promise.all([
+      this.prisma.connection.findMany({
+        where: { requesterId: userId, status: 'PENDING' },
+        include: {
+          requester: { select: USER_SELECT },
+          target: { select: USER_SELECT },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+      }),
+      this.prisma.connection.count({
+        where: { requesterId: userId, status: 'PENDING' },
+      }),
+    ]);
+
+    return { data, total };
+  }
+
   async findAcceptedConnections(
     userId: string,
     pagination: PaginationParams,

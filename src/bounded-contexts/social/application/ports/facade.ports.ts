@@ -52,10 +52,12 @@ export abstract class FollowReaderPort {
   abstract getFollowers(
     userId: string,
     pagination: PaginationParams,
+    viewerId?: string,
   ): Promise<PaginatedResult<FollowWithUser>>;
   abstract getFollowing(
     userId: string,
     pagination: PaginationParams,
+    viewerId?: string,
   ): Promise<PaginatedResult<FollowWithUser>>;
   abstract getSocialStats(
     userId: string,
@@ -68,4 +70,3 @@ export abstract class ConnectionReaderPort {
     pagination: PaginationParams,
   ): Promise<PaginatedResult<ConnectionWithUser & { user?: ConnectionUser }>>;
 }
-

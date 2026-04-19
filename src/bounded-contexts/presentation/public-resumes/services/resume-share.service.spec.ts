@@ -374,4 +374,144 @@ describe('ResumeShareService', () => {
       expect(result).toBeDefined();
     });
   });
+
+  describe('Slug Aliases', () => {
+    let createdShareId: string;
+    let prismaService: ReturnType<typeof buildPrismaService>;
+    const aliases = new Map<string, { id: string; shareId: string; slug: string }>();
+    const aliasBySlug = new Map<string, string>();
+
+    beforeEach(async () => {
+      const setup = await setupService();
+      prismaService = setup.prismaService;
+      aliases.clear();
+      aliasBySlug.clear();
+
+      const created = await service.createShare('user-123', {
+        resumeId: 'resume-123',
+        slug: 'primary-slug',
+      });
+      createdShareId = created.id;
+
+      // Wire alias prisma surface used by service
+      // biome-ignore lint/suspicious/noExplicitAny: test stub typed loosely
+      (prismaService as any).resumeShareAlias = {
+        create: mock(async (args: { data: { shareId: string; slug: string } }) => {
+          const id = `alias-${aliases.size + 1}`;
+          const record = { id, shareId: args.data.shareId, slug: args.data.slug };
+          aliases.set(id, record);
+          aliasBySlug.set(args.data.slug, id);
+          return record;
+        }),
+        findUnique: mock(async (args: { where: { id?: string; slug?: string } }) => {
+          if (args.where.id) return aliases.get(args.where.id) ?? null;
+          if (args.where.slug) {
+            const id = aliasBySlug.get(args.where.slug);
+            return id ? (aliases.get(id) ?? null) : null;
+          }
+          return null;
+        }),
+        findMany: mock(async (args: { where: { shareId: string } }) => {
+          return Array.from(aliases.values()).filter((a) => a.shareId === args.where.shareId);
+        }),
+        delete: mock(async (args: { where: { id: string } }) => {
+          const a = aliases.get(args.where.id);
+          if (!a) throw new Error('alias not found');
+          aliases.delete(args.where.id);
+          aliasBySlug.delete(a.slug);
+          return a;
+        }),
+      };
+
+      // Make share findUnique include resume userId for ownership checks
+      type ShareRow = {
+        id: string;
+        resumeId: string;
+        slug: string;
+        password: string | null;
+        expiresAt: Date | null;
+        isActive: boolean;
+        createdAt: Date;
+        updatedAt: Date;
+      };
+      const buildShareRow = (): ShareRow => ({
+        id: createdShareId,
+        resumeId: 'resume-123',
+        slug: 'primary-slug',
+        password: null,
+        expiresAt: null,
+        isActive: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      prismaService.resumeShare.findUnique = mock(
+        async (args: { where: { id?: string; slug?: string }; include?: unknown }) => {
+          let share: ShareRow | null = null;
+          if (args.where.id === createdShareId) {
+            share = buildShareRow();
+          } else if (args.where.slug === 'primary-slug') {
+            share = buildShareRow();
+          }
+          if (!share) return null;
+          if (args.include) return { ...share, resume: { id: 'resume-123', userId: 'user-123' } };
+          return share;
+        },
+      );
+    });
+
+    it('should add an alias to an existing share', async () => {
+      const alias = await service.addAlias('user-123', createdShareId, 'enzo-2026');
+
+      expect(alias.slug).toBe('enzo-2026');
+      expect(alias.shareId).toBe(createdShareId);
+    });
+
+    it('should reject alias creation by non-owner', async () => {
+      await expect(service.addAlias('other-user', createdShareId, 'someone-elses')).rejects.toThrow(
+        'access',
+      );
+    });
+
+    it('should reject invalid alias slug format', async () => {
+      await expect(service.addAlias('user-123', createdShareId, 'has spaces!')).rejects.toThrow(
+        'Invalid slug format',
+      );
+    });
+
+    it('should reject alias slug already used by a primary share', async () => {
+      await expect(service.addAlias('user-123', createdShareId, 'primary-slug')).rejects.toThrow(
+        'in use',
+      );
+    });
+
+    it('should reject duplicate alias slug', async () => {
+      await service.addAlias('user-123', createdShareId, 'enzo-2026');
+      await expect(service.addAlias('user-123', createdShareId, 'enzo-2026')).rejects.toThrow(
+        'in use',
+      );
+    });
+
+    it('should resolve alias slug to the underlying share via getBySlug', async () => {
+      await service.addAlias('user-123', createdShareId, 'enzo-2026');
+      const share = await service.getBySlug('enzo-2026');
+
+      expect(share).not.toBeNull();
+      expect(share?.id).toBe(createdShareId);
+      expect(share?.slug).toBe('primary-slug');
+    });
+
+    it('should remove an alias by id', async () => {
+      const alias = await service.addAlias('user-123', createdShareId, 'enzo-2026');
+      await service.removeAlias('user-123', alias.id);
+
+      const found = await service.getBySlug('enzo-2026');
+      expect(found).toBeNull();
+    });
+
+    it('should reject alias removal by non-owner', async () => {
+      const alias = await service.addAlias('user-123', createdShareId, 'enzo-2026');
+      await expect(service.removeAlias('other-user', alias.id)).rejects.toThrow('access');
+    });
+  });
 });

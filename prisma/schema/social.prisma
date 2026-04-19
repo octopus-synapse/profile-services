@@ -49,3 +49,58 @@ enum ConnectionStatus {
   ACCEPTED
   REJECTED
 }
+
+model SkillEndorsement {
+  id              String @id @default(cuid())
+  endorsedUserId  String
+  skillName       String
+  endorserUserId  String
+
+  createdAt DateTime @default(now())
+
+  @@unique([endorsedUserId, skillName, endorserUserId])
+  @@index([endorsedUserId, skillName])
+  @@index([endorserUserId])
+}
+
+enum SkillProficiency {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  EXPERT
+}
+
+// Self-declared proficiency per skill. Orthogonal to endorsements — the
+// former is "how I see myself", the latter is "what peers vouched for".
+model UserSkillProficiency {
+  id          String           @id @default(cuid())
+  userId      String
+  user        User             @relation("UserSkillProficiencies", fields: [userId], references: [id], onDelete: Cascade)
+  skillName   String
+  proficiency SkillProficiency @default(INTERMEDIATE)
+  yearsOfExperience Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, skillName])
+  @@index([userId])
+  @@index([skillName])
+}
+
+// One row per (user, skill, quarter) that the decay scan has nagged.
+// Keeps the cron from re-notifying the same skill every week and lets
+// analytics see which skills decay most often.
+model SkillDecayLog {
+  id               String   @id @default(cuid())
+  userId           String
+  skillName        String
+  quarterKey       String // YYYY-Qn
+  daysSinceTouched Int
+  emittedAt        DateTime @default(now())
+
+  @@unique([userId, skillName, quarterKey])
+  @@index([userId])
+  @@index([quarterKey])
+  @@map("skill_decay_logs")
+}

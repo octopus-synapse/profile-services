@@ -39,6 +39,7 @@ async function main() {
         name: adminName,
         emailVerified: new Date(),
         roles: ['role_user', 'role_admin'],
+        hasCompletedOnboarding: true,
       },
     });
 
@@ -54,6 +55,13 @@ async function main() {
         data: { roles: ['role_user', 'role_admin'] },
       });
       console.log('✅ Admin user roles updated to include role_admin');
+    }
+    if (!admin.hasCompletedOnboarding) {
+      await prisma.user.update({
+        where: { id: admin.id },
+        data: { hasCompletedOnboarding: true },
+      });
+      console.log('✅ Admin user onboarding flag set to true');
     }
     console.log('✅ Admin user already exists');
   }

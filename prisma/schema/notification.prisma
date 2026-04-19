@@ -15,8 +15,51 @@ model Notification {
   message String
   read    Boolean @default(false)
 
+  // Email delivery tracking — null means "never sent", value means "sent at that time".
+  emailSentAt      DateTime?
+  emailDigestSentAt DateTime?
+
   createdAt DateTime @default(now())
 
   @@index([userId, read, createdAt])
   @@index([userId, createdAt])
+  @@index([emailDigestSentAt])
+}
+
+model NotificationPreference {
+  id           String           @id @default(cuid())
+  userId       String
+  type         NotificationType
+  enabled      Boolean          @default(true)
+  // Per-type email delivery override. null/true = email on each event; false = never email.
+  emailEnabled Boolean          @default(true)
+  // Instant vs. batched delivery — 'INSTANT' sends per-event, 'DAILY' rolls up in a digest.
+  emailDelivery EmailDeliveryMode @default(INSTANT)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, type])
+  @@index([userId])
+}
+
+enum EmailDeliveryMode {
+  INSTANT
+  DAILY
+  OFF
+}
+
+// One row per user per ISO-week that received the weekly digest.
+// Guarantees the cron job is idempotent: a retry after a partial failure
+// cannot double-send.
+model UserWeeklyDigestLog {
+  id        String   @id @default(cuid())
+  userId    String
+  weekKey   String // YYYY-Www format (ISO-8601 week)
+  sentAt    DateTime @default(now())
+
+  @@unique([userId, weekKey])
+  @@index([weekKey])
+  @@index([userId])
+  @@map("user_weekly_digest_logs")
 }

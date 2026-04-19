@@ -3,10 +3,7 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import {
-  FollowRepositoryPort,
-  type FollowWithUser,
-} from '../../ports/follow.port';
+import { FollowRepositoryPort, type FollowWithUser } from '../../ports/follow.port';
 import { CheckFollowingUseCase } from './check-following.use-case';
 
 class StubFollowRepository implements FollowRepositoryPort {
