@@ -16,6 +16,8 @@ concurrency:
 
 permissions:
   contents: read
+  packages: read
+  pull-requests: write
 
 jobs:
   should-skip:
