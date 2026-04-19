@@ -1,8 +1,13 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import type { IdempotencyService } from '@/bounded-contexts/platform/common/idempotency/idempotency.service';
 import { ResumeCreatedEvent } from '@/bounded-contexts/resumes';
 import type { ActivityWithUser } from '../../ports/activity.port';
 import { ActivityCreatorPort } from '../../ports/facade.ports';
 import { ResumeCreatedActivityHandler } from '../resume-created-activity.handler';
+
+const idempotency = {
+  once: <T>(_key: string, fn: () => Promise<T>) => fn(),
+} as unknown as IdempotencyService;
 
 class StubActivityCreator extends ActivityCreatorPort {
   createActivity = mock(
@@ -30,7 +35,7 @@ describe('ResumeCreatedActivityHandler', () => {
 
   beforeEach(() => {
     activityCreator = new StubActivityCreator();
-    handler = new ResumeCreatedActivityHandler(activityCreator);
+    handler = new ResumeCreatedActivityHandler(activityCreator, idempotency);
   });
 
   it('creates activity with RESUME_CREATED type', async () => {

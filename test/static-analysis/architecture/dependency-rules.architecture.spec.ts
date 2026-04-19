@@ -189,10 +189,9 @@ describe('Architecture', () => {
         });
       });
 
-      // Controllers may have SOME logic - this is a warning, not strict rule
-      if (violations.length > 25) {
-        expect(violations.length).toBeLessThan(25);
-      }
+      // Controllers must stay thin: no iteration, no throw-if. Move DTO
+      // projection to presenters and validation to services/use-cases.
+      expect(violations).toEqual([]);
     });
 
     it('should not have database queries in controllers', () => {

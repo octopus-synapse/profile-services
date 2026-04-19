@@ -7,8 +7,8 @@ import {
 } from '@nestjs/common';
 import { ResumeReadRepositoryPort } from '../../domain/ports/resume-read.repository.port';
 import {
-  ShareRepositoryPort,
   type ShareEntity,
+  ShareRepositoryPort,
   type ShareWithResume,
 } from '../../domain/ports/share.repository.port';
 import { CreateShareUseCase } from './create-share.use-case';
@@ -46,15 +46,15 @@ class StubShareRepository implements ShareRepositoryPort {
 }
 
 type ResumeRecord = { id: string; userId: string };
-type ResumeWithSections = Awaited<
-  ReturnType<ResumeReadRepositoryPort['findByIdWithSections']>
->;
+type ResumeWithSections = Awaited<ReturnType<ResumeReadRepositoryPort['findByIdWithSections']>>;
 
 class StubResumeReadRepository implements ResumeReadRepositoryPort {
-  findById = mock(async (_id: string): Promise<ResumeRecord | null> => ({
-    id: 'resume-456',
-    userId: 'user-123',
-  }));
+  findById = mock(
+    async (_id: string): Promise<ResumeRecord | null> => ({
+      id: 'resume-456',
+      userId: 'user-123',
+    }),
+  );
   async findByIdWithSections(_id: string): Promise<ResumeWithSections> {
     throw new Error('not used in test');
   }

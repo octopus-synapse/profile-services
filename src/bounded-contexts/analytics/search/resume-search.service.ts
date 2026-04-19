@@ -74,20 +74,23 @@ export class ResumeSearchService {
       sortBy = 'relevance',
     } = params;
 
-    const offset = (page - 1) * limit;
+    const safeLimit = Number(limit) || 20;
+    const safePage = Number(page) || 1;
+    const offset = (safePage - 1) * safeLimit;
     const searchTerms = this.normalizeSearchTerms(query);
 
-    // Build the WHERE clause as a Prisma.Sql so every user-supplied value stays
-    // a bound parameter. Prisma.join then renumbers placeholders automatically.
+    // Build dynamic WHERE conditions as Prisma.Sql fragments so values are
+    // bound through Prisma's parameterizer (avoids `$N` collisions when the
+    // outer template also injects values like LIMIT/OFFSET).
     const conditions: Prisma.Sql[] = [Prisma.sql`"isPublic" = true`];
 
     if (searchTerms) {
-      const pattern = `%${searchTerms}%`;
+      const like = `%${searchTerms}%`;
       conditions.push(Prisma.sql`(
-        "fullName" ILIKE ${pattern} OR
-        "jobTitle" ILIKE ${pattern} OR
-        "summary" ILIKE ${pattern} OR
-        "techPersona" ILIKE ${pattern}
+        "fullName" ILIKE ${like} OR
+        "jobTitle" ILIKE ${like} OR
+        "summary" ILIKE ${like} OR
+        "techPersona" ILIKE ${like}
       )`);
     }
 
@@ -104,9 +107,7 @@ export class ResumeSearchService {
     }
 
     const whereClause = Prisma.join(conditions, ' AND ');
-    // ORDER BY must stay a raw fragment — buildOrderClause returns a
-    // whitelisted column/direction string, never user input.
-    const orderClause = Prisma.raw(this.buildOrderClause(sortBy));
+    const orderClause = this.buildOrderClauseSql(sortBy);
 
     const searchQuery = Prisma.sql`
       SELECT
@@ -122,7 +123,7 @@ export class ResumeSearchService {
       FROM "Resume"
       WHERE ${whereClause}
       ORDER BY ${orderClause}
-      LIMIT ${limit}
+      LIMIT ${safeLimit}
       OFFSET ${offset}
     `;
 
@@ -287,16 +288,17 @@ export class ResumeSearchService {
   }
 
   /**
-   * Build ORDER BY clause based on sort option
+   * Build ORDER BY clause as a Prisma.Sql fragment so it can be safely
+   * interpolated inside a Prisma.sql template.
    */
-  private buildOrderClause(sortBy: string): string {
+  private buildOrderClauseSql(sortBy: string): Prisma.Sql {
     switch (sortBy) {
       case 'date':
-        return '"createdAt" DESC';
+        return Prisma.sql`"createdAt" DESC`;
       case 'views':
-        return '"profileViews" DESC';
+        return Prisma.sql`"profileViews" DESC`;
       default:
-        return '"profileViews" DESC, "createdAt" DESC';
+        return Prisma.sql`"profileViews" DESC, "createdAt" DESC`;
     }
   }
 

@@ -29,6 +29,8 @@ describe('UpdateFullPreferencesUseCase', () => {
     allowSearchEngineIndex: false,
     defaultExportFormat: 'pdf',
     includePhotoInExport: true,
+    applyMode: 'ONE_CLICK' as const,
+    applyCriteria: null,
     createdAt: new Date('2026-01-01'),
     updatedAt: new Date('2026-01-02'),
   };

@@ -5,8 +5,8 @@ import {
 } from '@/shared-kernel/exceptions/domain.exceptions';
 import { ResumeReadRepositoryPort } from '../../domain/ports/resume-read.repository.port';
 import {
-  ShareRepositoryPort,
   type ShareEntity,
+  ShareRepositoryPort,
   type ShareWithResume,
 } from '../../domain/ports/share.repository.port';
 import { ListUserSharesUseCase } from './list-user-shares.use-case';
@@ -23,9 +23,7 @@ const makeShare = (overrides: Partial<ShareEntity>): ShareEntity => ({
   ...overrides,
 });
 
-type ResumeWithSections = Awaited<
-  ReturnType<ResumeReadRepositoryPort['findByIdWithSections']>
->;
+type ResumeWithSections = Awaited<ReturnType<ResumeReadRepositoryPort['findByIdWithSections']>>;
 
 class StubShareRepository implements ShareRepositoryPort {
   findByResumeId = mock(

@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { CollaborationStartedEvent } from '@/bounded-contexts/collaboration/domain/events';
-import type { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
+import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import type { CollaborationRepositoryPort } from '../../domain/ports/collaboration-repository.port';
 import type {
   CollaboratorWithUser,

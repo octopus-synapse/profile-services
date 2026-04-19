@@ -14,6 +14,7 @@ import {
   TechAreaQueryPort,
   TechNicheQueryPort,
 } from './application/ports/query-facade.ports';
+import { CachePort, TechSkillRepositoryPort } from './application/ports/tech-skills.port';
 import {
   TechAreaController,
   TechNicheController,
@@ -21,6 +22,8 @@ import {
   TechSkillsQueryController,
   TechSkillsSyncController,
 } from './controllers';
+import { CacheAdapter } from './infrastructure/adapters/persistence/cache.adapter';
+import { TechSkillRepository } from './infrastructure/adapters/persistence/tech-skill.repository';
 import { TechAreaQueryService } from './services/area-query.service';
 import { GithubLinguistParserService } from './services/github-linguist-parser.service';
 import { LanguageQueryService } from './services/language-query.service';
@@ -58,15 +61,18 @@ import { TechSkillsSyncService } from './services/tech-skills-sync.service';
     LanguageQueryService,
     SkillQueryService,
     SkillSearchService,
-    // Parser services
-    GithubLinguistParserService,
-    StackOverflowParserService,
-    // Query Facade Ports
+    // Query facade ports → concrete services
     { provide: TechAreaQueryPort, useExisting: TechAreaQueryService },
     { provide: TechNicheQueryPort, useExisting: TechNicheQueryService },
     { provide: LanguageQueryPort, useExisting: LanguageQueryService },
     { provide: SkillQueryPort, useExisting: SkillQueryService },
     { provide: SkillSearchPort, useExisting: SkillSearchService },
+    // Repository / cache ports → adapters
+    { provide: TechSkillRepositoryPort, useClass: TechSkillRepository },
+    { provide: CachePort, useClass: CacheAdapter },
+    // Parser services
+    GithubLinguistParserService,
+    StackOverflowParserService,
     // Guards
     InternalAuthGuard,
   ],

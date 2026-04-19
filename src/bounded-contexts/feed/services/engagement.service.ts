@@ -289,4 +289,39 @@ export class EngagementService {
     if (!matches) return [];
     return [...new Set(matches.map((tag) => tag.toLowerCase()))];
   }
+
+  /**
+   * List a user's reactions across posts (for profile activity tab).
+   * Cursor-paginated by createdAt DESC.
+   */
+  async getReactionsByUser(userId: string, cursor?: string, limit = 20) {
+    const safeLimit = Math.min(limit, 50);
+
+    const reactions = await this.prisma.postLike.findMany({
+      where: {
+        userId,
+        ...(cursor ? { createdAt: { lt: new Date(cursor) } } : {}),
+      },
+      include: {
+        post: {
+          select: {
+            id: true,
+            type: true,
+            content: true,
+            authorId: true,
+            author: { select: AUTHOR_SELECT },
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: safeLimit,
+    });
+
+    const nextCursor =
+      reactions.length === safeLimit
+        ? reactions[reactions.length - 1].createdAt.toISOString()
+        : null;
+
+    return { reactions, nextCursor };
+  }
 }

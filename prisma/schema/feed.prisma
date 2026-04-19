@@ -54,6 +54,14 @@ model Post {
   isDeleted Boolean   @default(false)
   deletedAt DateTime?
 
+  // Blind Mode — when `isAnonymous=true` the feed serializer hides author
+  // identity (id, name, photo, username) and shows a generic label derived
+  // from the author's headline/role. The row still references `authorId`
+  // internally so moderation, spam control, and per-user rate limits keep
+  // working; `anonymousCategory` narrows the toggle to legitimate topics.
+  isAnonymous       Boolean            @default(false)
+  anonymousCategory AnonymousCategory?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

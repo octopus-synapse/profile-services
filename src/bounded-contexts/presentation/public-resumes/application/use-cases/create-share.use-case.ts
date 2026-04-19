@@ -9,7 +9,7 @@ import {
   ForbiddenException,
   NotFoundException,
 } from '@nestjs/common';
-import type { EventPublisherPort } from '@/shared-kernel';
+import { EventPublisherPort } from '@/shared-kernel';
 import { ResumePublishedEvent } from '../../../shared-kernel/domain/events';
 import type { ResumeReadRepositoryPort } from '../../domain/ports/resume-read.repository.port';
 import type { ShareRepositoryPort } from '../../domain/ports/share.repository.port';

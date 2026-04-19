@@ -15,13 +15,19 @@ import { WebhookService } from './webhook.service';
 
 describe('WebhookService', () => {
   let service: WebhookService;
-  let mockPrismaService: Record<string, never>;
+  let mockPrismaService: {
+    webhookConfig: { findMany: () => Promise<unknown[]> };
+    webhookDelivery: { create: () => Promise<unknown> };
+  };
 
   const mockUserId = 'user-123';
   const mockResumeId = 'resume-456';
 
   beforeEach(async () => {
-    mockPrismaService = {};
+    mockPrismaService = {
+      webhookConfig: { findMany: async () => [] },
+      webhookDelivery: { create: async () => ({}) },
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [

@@ -1,8 +1,5 @@
 import { z } from 'zod';
-import type {
-  GithubLanguage,
-  GithubLanguagesYml,
-} from '../interfaces/github-linguist.interface';
+import type { GithubLanguage, GithubLanguagesYml } from '../interfaces/github-linguist.interface';
 
 const githubLanguageSchema = z.object({
   type: z.enum(['programming', 'data', 'markup', 'prose']),

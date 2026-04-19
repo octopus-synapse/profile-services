@@ -40,9 +40,7 @@ const makePublicResume = () => ({
 
 const createMockProfileUseCases = () => ({
   getPublicProfileUseCase: {
-    execute: mock(() =>
-      Promise.resolve({ user: makePublicUser(), resume: makePublicResume() }),
-    ),
+    execute: mock(() => Promise.resolve({ user: makePublicUser(), resume: makePublicResume() })),
   },
   getProfileUseCase: {
     execute: mock(() =>

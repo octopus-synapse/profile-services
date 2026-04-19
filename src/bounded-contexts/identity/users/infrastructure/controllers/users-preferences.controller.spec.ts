@@ -26,6 +26,16 @@ const makeFullPreferences = () => ({
   allowSearchEngineIndex: true,
   defaultExportFormat: 'pdf',
   includePhotoInExport: true,
+  applyMode: 'ONE_CLICK' as const,
+  applyCriteria: {
+    minFit: null,
+    stacks: [],
+    seniorities: [],
+    remotePolicies: [],
+    paymentCurrencies: [],
+    minSalaryUsd: null,
+    defaultCover: null,
+  },
   createdAt: new Date(),
   updatedAt: new Date(),
 });

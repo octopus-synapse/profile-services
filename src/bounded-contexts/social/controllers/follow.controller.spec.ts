@@ -55,15 +55,20 @@ class StubFollowReader extends FollowReaderPort {
     async (
       _userId: string,
       _pagination: PaginationParams,
+      _viewerId?: string,
     ): Promise<PaginatedResult<FollowWithUser>> => this.followersResult,
   );
   getFollowing = mock(
     async (
       _userId: string,
       _pagination: PaginationParams,
+      _viewerId?: string,
     ): Promise<PaginatedResult<FollowWithUser>> => this.followingResult,
   );
-  getSocialStats = mock(async (): Promise<{ followers: number; following: number; connections: number }> => this.socialStatsResult);
+  getSocialStats = mock(
+    async (): Promise<{ followers: number; following: number; connections: number }> =>
+      this.socialStatsResult,
+  );
 
   setFollowResult(r: FollowWithUser): void {
     this.followResult = r;
@@ -174,13 +179,17 @@ describe('FollowController', () => {
 
       stubFollowReader.setFollowersResult(mockFollowers);
 
-      const result = await controller.getFollowers('user-1', 1, 10);
+      const result = await controller.getFollowers(makeUser('viewer-1'), 'user-1', 1, 10);
 
       expect(result.success).toBe(true);
-      expect(stubFollowReader.getFollowers).toHaveBeenCalledWith('user-1', {
-        page: 1,
-        limit: 10,
-      });
+      expect(stubFollowReader.getFollowers).toHaveBeenCalledWith(
+        'user-1',
+        {
+          page: 1,
+          limit: 10,
+        },
+        'viewer-1',
+      );
     });
   });
 
@@ -204,7 +213,7 @@ describe('FollowController', () => {
 
       stubFollowReader.setFollowingResult(mockFollowing);
 
-      const result = await controller.getFollowing('user-1', 1, 10);
+      const result = await controller.getFollowing(makeUser('viewer-1'), 'user-1', 1, 10);
 
       expect(result.success).toBe(true);
     });

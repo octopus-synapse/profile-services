@@ -33,7 +33,7 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
-import type { PostType, Prisma } from '@prisma/client';
+import type { Prisma } from '@prisma/client';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
@@ -41,6 +41,7 @@ import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-exp
 import { S3UploadService } from '@/bounded-contexts/platform/common/services/s3-upload.service';
 import { ERROR_MESSAGES, FILE_UPLOAD_CONFIG } from '@/shared-kernel';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
+import { CreatePostDto } from '../dto/create-post-request.dto';
 import {
   PostByIdDataDto,
   PostCreatedDataDto,
@@ -72,29 +73,12 @@ export class PostController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create a new post' })
+  @ApiBody({ type: CreatePostDto })
   @ApiDataResponse(PostCreatedDataDto, {
     status: 201,
     description: 'Post created successfully',
   })
-  async create(
-    @CurrentUser() user: UserPayload,
-    @Body()
-    body: {
-      type: PostType;
-      subtype?: string;
-      content?: string;
-      hardSkills?: string[];
-      softSkills?: string[];
-      data?: Prisma.InputJsonValue;
-      imageUrl?: string;
-      linkUrl?: string;
-      originalPostId?: string;
-      coAuthors?: string[];
-      scheduledAt?: string;
-      threadId?: string;
-      codeSnippet?: { language: string; code: string; filename?: string };
-    },
-  ) {
+  async create(@CurrentUser() user: UserPayload, @Body() body: CreatePostDto) {
     // Auto-fetch link preview if linkUrl is provided
     let linkPreview: Prisma.InputJsonValue | undefined;
     if (body.linkUrl) {
@@ -106,6 +90,10 @@ export class PostController {
 
     return this.postService.create(user.userId, {
       ...body,
+      // `data` is `unknown` on the Zod DTO (validation pushed to the consuming
+      // service so each post type can enforce its own shape). Prisma's column
+      // is `Json?` which accepts any JSON; the cast only bridges TS.
+      data: body.data as Prisma.InputJsonValue | undefined,
       linkPreview,
     });
   }

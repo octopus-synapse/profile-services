@@ -1,4 +1,12 @@
-// Resume Version - Snapshot history for rollback
+// Resume Version - Snapshot history for rollback AND tailored variants.
+//
+// Two kinds of rows live here now:
+//   1. Plain snapshots (isTailored=false, tailoredJobId=null) — the original
+//      rollback history created by CreateSnapshotUseCase.
+//   2. Tailored variants (isTailored=true, tailoredJobId set) — a rewrite of
+//      the master resume for a specific job, produced by the LLM pipeline.
+// Storing both in the same table lets the UI show a single unified list and
+// keeps the rollback mechanism useful on either kind.
 
 model ResumeVersion {
   id       String @id @default(cuid())
@@ -9,10 +17,17 @@ model ResumeVersion {
   snapshot      Json // Full resume state
   label         String? // Optional version label
 
+  // Tailored-variant metadata. Both fields null on plain snapshots.
+  isTailored    Boolean @default(false)
+  tailoredJobId String?
+  tailoredJob   Job?    @relation("JobTailoredResumeVersions", fields: [tailoredJobId], references: [id], onDelete: SetNull)
+
   createdAt DateTime @default(now())
 
   @@unique([resumeId, versionNumber])
   @@index([resumeId])
   @@index([createdAt])
+  @@index([resumeId, isTailored, createdAt])
+  @@index([tailoredJobId])
   @@map("resume_versions")
 }

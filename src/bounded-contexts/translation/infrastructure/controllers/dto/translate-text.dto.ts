@@ -3,8 +3,8 @@ import { z } from 'zod';
 
 export const TranslateTextSchema = z.object({
   text: z.string().min(1, 'Text is required'),
-  sourceLanguage: z.string().min(2).max(10),
-  targetLanguage: z.string().min(2).max(10),
+  sourceLanguage: z.enum(['pt', 'en', 'auto']).default('auto'),
+  targetLanguage: z.enum(['pt', 'en']),
 });
 
 export class TranslateTextDto extends createZodDto(TranslateTextSchema) {}

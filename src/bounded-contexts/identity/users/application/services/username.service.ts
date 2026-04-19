@@ -12,6 +12,7 @@ import type {
   UsernameValidationError,
   ValidateUsernameResponse,
 } from '@/shared-kernel';
+import { RESERVED_USERNAMES as RESERVED_USERNAMES_LIST } from '@/shared-kernel/schemas/primitives';
 import { UsersRepository } from '../../infrastructure/adapters/persistence/users.repository';
 import {
   type UpdatedUsername,
@@ -20,40 +21,7 @@ import {
   type UsernameUseCases,
 } from '../ports/username.port';
 
-/**
- * Reserved usernames that cannot be used by regular users.
- */
-const RESERVED_USERNAMES = new Set([
-  'admin',
-  'api',
-  'www',
-  'support',
-  'help',
-  'root',
-  'system',
-  'null',
-  'undefined',
-  'me',
-  'profile',
-  'settings',
-  'login',
-  'logout',
-  'register',
-  'signup',
-  'signin',
-  'auth',
-  'oauth',
-  'callback',
-  'webhook',
-  'webhooks',
-  'status',
-  'health',
-  'ping',
-  'static',
-  'assets',
-  'public',
-  'private',
-]);
+const RESERVED_USERNAMES: ReadonlySet<string> = new Set(RESERVED_USERNAMES_LIST);
 
 @Injectable()
 export class UsernameService {
@@ -83,20 +51,41 @@ export class UsernameService {
   }
 
   /**
-   * Check username availability
-   * @returns UsernameAvailability (domain data)
+   * Check username availability.
+   *
+   * Validates format and reserved-name rules before hitting the database.
+   * Returns the specific reason when not available so the UI can render
+   * an accurate message.
    */
   async checkUsernameAvailability(
     username: string,
     userId?: string,
   ): Promise<UsernameAvailability> {
-    const normalizedUsername = username.toLowerCase();
-    const isTaken = await this.usersRepository.isUsernameTaken(normalizedUsername, userId);
+    const normalized = username.trim().toLowerCase();
 
-    return {
-      username: normalizedUsername,
-      available: !isTaken,
-    };
+    if (!this.isValidUsernameFormat(normalized)) {
+      return { username: normalized, available: false, reason: 'invalid_format' };
+    }
+
+    if (RESERVED_USERNAMES.has(normalized)) {
+      return { username: normalized, available: false, reason: 'reserved' };
+    }
+
+    const isTaken = await this.usersRepository.isUsernameTaken(normalized, userId);
+    if (isTaken) {
+      return { username: normalized, available: false, reason: 'taken' };
+    }
+
+    return { username: normalized, available: true };
+  }
+
+  private isValidUsernameFormat(username: string): boolean {
+    if (username.length < 3 || username.length > 30) return false;
+    if (!/^[a-z0-9_]+$/.test(username)) return false;
+    if (!/^[a-z0-9]/.test(username)) return false;
+    if (!/[a-z0-9]$/.test(username)) return false;
+    if (username.includes('__')) return false;
+    return true;
   }
 
   /**

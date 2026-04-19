@@ -80,6 +80,14 @@ export interface KeywordWarning {
   affectedKeywords: string[];
 }
 
+export interface JobMatchDimensions {
+  hardSkills?: number;
+  softSkills?: number;
+  experience?: number;
+  languages?: number;
+  location?: number;
+}
+
 export interface JobMatchResult {
   matchScore: number;
   matchedKeywords: string[];
@@ -90,6 +98,8 @@ export interface JobMatchResult {
     similarity: number;
   }>;
   recommendations: string[];
+  /** Per-dimension coverage; populated by callers that have the context. */
+  dimensions?: JobMatchDimensions;
 }
 
 export interface IndustryBenchmarkOptions {

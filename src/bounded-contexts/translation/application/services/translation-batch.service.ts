@@ -6,6 +6,7 @@
 import { Injectable } from '@nestjs/common';
 import type {
   BatchTranslationResult,
+  SourceLanguage,
   TranslationLanguage,
   TranslationResult,
 } from '../../domain/types/translation.types';
@@ -19,7 +20,7 @@ export class TranslationBatchService {
 
   async translateBatch(
     texts: string[],
-    sourceLanguage: TranslationLanguage,
+    sourceLanguage: SourceLanguage,
     targetLanguage: TranslationLanguage,
   ): Promise<BatchTranslationResult> {
     const translations: TranslationResult[] = [];

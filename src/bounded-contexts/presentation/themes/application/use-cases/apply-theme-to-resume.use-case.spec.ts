@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
-import type { EventPublisherPort } from '@/shared-kernel';
+import { EventPublisherPort } from '@/shared-kernel';
 import type { DomainEvent } from '@/shared-kernel/event-bus/domain/domain-event';
 import {
   EntityNotFoundException,

@@ -33,9 +33,7 @@ const colorsSchema = z.object({
   }),
   borderRadius: z.string(),
   shadows: z.string(),
-  gradients: z
-    .object({ enabled: z.boolean(), direction: z.string() })
-    .optional(),
+  gradients: z.object({ enabled: z.boolean(), direction: z.string() }).optional(),
 });
 
 const spacingSchema = z.object({

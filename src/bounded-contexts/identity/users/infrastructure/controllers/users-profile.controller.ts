@@ -158,7 +158,11 @@ export class UsersProfileController {
     );
     return {
       success: true,
-      data: { username: availability.username, available: availability.available },
+      data: {
+        username: availability.username,
+        available: availability.available,
+        ...(availability.reason ? { reason: availability.reason } : {}),
+      },
     };
   }
 }

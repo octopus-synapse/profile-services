@@ -37,11 +37,16 @@ import {
 // Domain Ports
 import type {
   AuthenticationRepositoryPort,
+  LoginAttemptsPort,
   PasswordHasherPort,
   SessionStoragePort,
   TokenGeneratorPort,
 } from './domain/ports';
-import { AUTHENTICATION_REPOSITORY_PORT, TOKEN_GENERATOR_PORT } from './domain/ports';
+import {
+  AUTHENTICATION_REPOSITORY_PORT,
+  LOGIN_ATTEMPTS_PORT,
+  TOKEN_GENERATOR_PORT,
+} from './domain/ports';
 
 // Infrastructure Adapters
 import {
@@ -50,6 +55,8 @@ import {
   JwtTokenGenerator,
   PrismaAuthenticationRepository,
 } from './infrastructure/adapters';
+import { PrismaLoginAttemptsAdapter } from './infrastructure/adapters/prisma-login-attempts.adapter';
+import { SessionDeviceService } from './infrastructure/adapters/session-device.service';
 
 // Infrastructure Controllers
 import {
@@ -88,6 +95,7 @@ const EVENT_BUS = Symbol('EventBusPort');
   providers: [
     // JWT Strategy for passport auth
     JwtStrategy,
+    SessionDeviceService,
     // Outbound Adapters
     {
       provide: AUTHENTICATION_REPOSITORY_PORT,
@@ -109,6 +117,10 @@ const EVENT_BUS = Symbol('EventBusPort');
       provide: SESSION_STORAGE,
       useClass: CookieSessionStorage,
     },
+    {
+      provide: LOGIN_ATTEMPTS_PORT,
+      useClass: PrismaLoginAttemptsAdapter,
+    },
 
     // Use Cases (bound to inbound ports)
     {
@@ -119,8 +131,16 @@ const EVENT_BUS = Symbol('EventBusPort');
         tokenGenerator: TokenGeneratorPort,
         eventBus: EventBusPort,
         validate2fa: Validate2faInboundPort,
+        loginAttempts: LoginAttemptsPort,
       ) => {
-        return new LoginUseCase(repository, passwordHasher, tokenGenerator, eventBus, validate2fa);
+        return new LoginUseCase(
+          repository,
+          passwordHasher,
+          tokenGenerator,
+          eventBus,
+          validate2fa,
+          loginAttempts,
+        );
       },
       inject: [
         AUTHENTICATION_REPOSITORY_PORT,
@@ -128,6 +148,7 @@ const EVENT_BUS = Symbol('EventBusPort');
         TOKEN_GENERATOR_PORT,
         EVENT_BUS,
         VALIDATE_2FA_INBOUND_PORT,
+        LOGIN_ATTEMPTS_PORT,
       ],
     },
     {

@@ -1,6 +1,6 @@
 import type { EventEmitter2 } from '@nestjs/event-emitter';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
+import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import { ActivityRepository } from '../infrastructure/adapters/persistence/activity.repository';
 import { FollowRepository } from '../infrastructure/adapters/persistence/follow.repository';
 import { ACTIVITY_USE_CASES, type ActivityUseCases } from './ports/activity.port';

@@ -6,6 +6,8 @@
  */
 
 import { Module } from '@nestjs/common';
+import { AiModule } from '@/bounded-contexts/ai/ai.module';
+import { OAuthModule } from '@/bounded-contexts/identity/oauth/oauth.module';
 import { LoggerModule } from '@/bounded-contexts/platform/common/logger/logger.module';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 // Use Cases
@@ -19,6 +21,8 @@ import { RetryImportUseCase } from './application/use-cases/retry-import/retry-i
 import { IMPORT_JOB_REPOSITORY } from './domain/ports/import-job.repository.port';
 import { RESUME_CREATOR } from './domain/ports/resume-creator.port';
 // Infrastructure Adapters
+import { GithubImportService } from './infrastructure/adapters/github-import.service';
+import { PdfImportService } from './infrastructure/adapters/pdf-import.service';
 import { PrismaImportJobRepository } from './infrastructure/adapters/persistence/import-job.repository';
 import { PrismaResumeCreatorAdapter } from './infrastructure/adapters/persistence/resume-creator.adapter';
 
@@ -34,12 +38,14 @@ import {
 } from './infrastructure/controllers/resume-import.controller';
 
 @Module({
-  imports: [PrismaModule, LoggerModule],
+  imports: [PrismaModule, LoggerModule, AiModule, OAuthModule],
   controllers: [ResumeImportController],
   providers: [
     // Outbound Adapters
     { provide: IMPORT_JOB_REPOSITORY, useClass: PrismaImportJobRepository },
     { provide: RESUME_CREATOR, useClass: PrismaResumeCreatorAdapter },
+    PdfImportService,
+    GithubImportService,
 
     // Use Cases (inbound ports)
     {

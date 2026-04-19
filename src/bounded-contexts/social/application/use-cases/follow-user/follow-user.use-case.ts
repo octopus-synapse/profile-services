@@ -1,4 +1,4 @@
-import type { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
+import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import {
   ConflictException,
   EntityNotFoundException,

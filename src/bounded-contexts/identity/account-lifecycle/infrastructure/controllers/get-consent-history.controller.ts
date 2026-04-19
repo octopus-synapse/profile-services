@@ -14,6 +14,7 @@ import {
 } from '../../../shared-kernel/infrastructure';
 import { ConsentHistoryResponseDto } from '../../application/use-cases/get-consent-history/get-consent-history.dto';
 import { GetConsentHistoryUseCase } from '../../application/use-cases/get-consent-history/get-consent-history.use-case';
+import { toConsentHistoryResponse } from '../presenters/get-consent-history.presenter';
 
 interface RequestWithUser extends Request {
   user: { userId: string; email: string };
@@ -49,16 +50,6 @@ export class GetConsentHistoryController {
       userId: req.user.userId,
     });
 
-    return {
-      success: true,
-      data: result.map((record) => ({
-        id: record.id,
-        documentType: record.documentType,
-        version: record.version,
-        acceptedAt: record.acceptedAt.toISOString(),
-        ipAddress: record.ipAddress ?? '',
-        userAgent: record.userAgent ?? '',
-      })),
-    };
+    return { success: true, data: toConsentHistoryResponse(result) };
   }
 }

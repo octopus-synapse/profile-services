@@ -8,9 +8,12 @@ export type UpdatedUsername = {
   username: string;
 };
 
+export type UsernameUnavailableReason = 'taken' | 'reserved' | 'invalid_format';
+
 export type UsernameAvailability = {
   username: string;
   available: boolean;
+  reason?: UsernameUnavailableReason;
 };
 
 export type UsernameValidationError = {

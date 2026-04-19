@@ -58,10 +58,15 @@ export class UserMutationRepository {
     preferences: UpdateFullPreferences,
   ): Promise<UserPreferences> {
     this.logger.log(`Upserting full preferences for user: ${userId}`);
+    // `applyCriteria` is a nested relation on the Prisma model — Prisma rejects
+    // raw partials in a spread. Pull it out so only scalar fields flow into
+    // `create` / `update` here; the dedicated preferences repository handles
+    // the criteria upsert explicitly.
+    const { applyCriteria: _criteria, ...scalars } = preferences;
     return await this.prisma.userPreferences.upsert({
       where: { userId },
-      create: { userId, ...preferences },
-      update: preferences,
+      create: { userId, ...scalars },
+      update: scalars,
     });
   }
 

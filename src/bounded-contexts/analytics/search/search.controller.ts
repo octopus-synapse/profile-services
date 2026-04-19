@@ -17,6 +17,7 @@ import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-exp
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { SEARCH_SERVICE_PORT, type SearchServicePort } from './ports';
 import type { SearchParams } from './resume-search.service';
+import { parseCsvQuery } from './search.presenter';
 
 /** DTO for search result item */
 export class SearchResultItemDto {
@@ -118,7 +119,7 @@ export class SearchController {
   ): Promise<DataResponse<SearchResultsResponseDto>> {
     const params: SearchParams = {
       query: query || '',
-      skills: skills ? skills.split(',').map((s) => s.trim()) : undefined,
+      skills: parseCsvQuery(skills),
       location,
       minExperienceYears: minExp ? parseInt(minExp, 10) : undefined,
       maxExperienceYears: maxExp ? parseInt(maxExp, 10) : undefined,

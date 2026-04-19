@@ -6,6 +6,7 @@
 import type { TranslationCoreService } from '../../../domain/services/translation-core.service';
 import type {
   BatchTranslationResult,
+  SourceLanguage,
   TranslationLanguage,
   TranslationResult,
 } from '../../../domain/types/translation.types';
@@ -17,7 +18,7 @@ export class TranslateBatchUseCase {
 
   async execute(
     texts: string[],
-    sourceLanguage: TranslationLanguage,
+    sourceLanguage: SourceLanguage,
     targetLanguage: TranslationLanguage,
   ): Promise<BatchTranslationResult> {
     const translations: TranslationResult[] = [];

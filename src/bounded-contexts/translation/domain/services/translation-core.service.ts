@@ -4,7 +4,12 @@
  */
 
 import type { LoggerPort } from '../ports/logger.port';
-import type { TranslationLanguage, TranslationResult } from '../types/translation.types';
+import type {
+  LanguageDetectionResult,
+  SourceLanguage,
+  TranslationLanguage,
+  TranslationResult,
+} from '../types/translation.types';
 
 export class TranslationCoreService {
   private readonly libreTranslateUrl: string;
@@ -40,7 +45,7 @@ export class TranslationCoreService {
 
   async translate(
     text: string,
-    sourceLanguage: TranslationLanguage,
+    sourceLanguage: SourceLanguage,
     targetLanguage: TranslationLanguage,
   ): Promise<TranslationResult> {
     if (!text || text.trim().length === 0) {
@@ -75,13 +80,19 @@ export class TranslationCoreService {
         signal: AbortSignal.timeout(this.timeoutMs),
       });
 
-      const responseData = (await response.json()) as { translatedText?: string } | undefined;
+      const responseData = (await response.json()) as
+        | { translatedText?: string; detectedLanguage?: { language?: string } }
+        | undefined;
       const translatedText = responseData?.translatedText ?? text;
+      const detected = responseData?.detectedLanguage?.language;
+      const detectedLanguage =
+        detected === 'pt' || detected === 'en' ? (detected as TranslationLanguage) : undefined;
       return {
         original: text,
         translated: translatedText,
         sourceLanguage,
         targetLanguage,
+        detectedLanguage,
       };
     } catch (error) {
       this.logger.error(
@@ -93,6 +104,27 @@ export class TranslationCoreService {
         sourceLanguage,
         targetLanguage,
       };
+    }
+  }
+
+  async detectLanguage(text: string): Promise<LanguageDetectionResult[]> {
+    if (!text || text.trim().length === 0 || !this.isServiceAvailable) {
+      return [];
+    }
+    try {
+      const response = await fetch(`${this.libreTranslateUrl}/detect`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ q: text }),
+        signal: AbortSignal.timeout(this.timeoutMs),
+      });
+      const data = (await response.json()) as LanguageDetectionResult[] | undefined;
+      return Array.isArray(data) ? data : [];
+    } catch (error) {
+      this.logger.error(
+        `Language detection failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+      return [];
     }
   }
 

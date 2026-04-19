@@ -1701,6 +1701,449 @@
         ]
       }
     },
+    "/api/v1/resumes/{resumeId}/tailor": {
+      "post": {
+        "operationId": "resumes_tailorForJob",
+        "parameters": [
+          {
+            "name": "resumeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TailorResumeRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Rewrite this resume for a specific job using the AI pipeline.",
+        "tags": [
+          "resume-tailor"
+        ]
+      }
+    },
+    "/api/v1/resumes/{resumeId}/tailored-versions": {
+      "get": {
+        "operationId": "resumes_listTailored",
+        "parameters": [
+          {
+            "name": "resumeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "List tailored resume variants produced by the AI.",
+        "tags": [
+          "resume-tailor"
+        ]
+      }
+    },
+    "/api/v1/resumes/{resumeId}/diff": {
+      "get": {
+        "operationId": "resumes_getDiff",
+        "parameters": [
+          {
+            "name": "resumeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "versionId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Structured diff between the master resume and a tailored version.",
+        "tags": [
+          "resume-tailor"
+        ]
+      }
+    },
+    "/api/health/smtp": {
+      "get": {
+        "operationId": "platform_checkSmtp",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The Health Check is successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "ok"
+                    },
+                    "info": {
+                      "type": "object",
+                      "example": {
+                        "database": {
+                          "status": "up"
+                        }
+                      },
+                      "additionalProperties": {
+                        "type": "object",
+                        "required": [
+                          "status"
+                        ],
+                        "properties": {
+                          "status": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": true
+                      },
+                      "nullable": true
+                    },
+                    "error": {
+                      "type": "object",
+                      "example": {},
+                      "additionalProperties": {
+                        "type": "object",
+                        "required": [
+                          "status"
+                        ],
+                        "properties": {
+                          "status": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": true
+                      },
+                      "nullable": true
+                    },
+                    "details": {
+                      "type": "object",
+                      "example": {
+                        "database": {
+                          "status": "up"
+                        }
+                      },
+                      "additionalProperties": {
+                        "type": "object",
+                        "required": [
+                          "status"
+                        ],
+                        "properties": {
+                          "status": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The Health Check is not successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "info": {
+                      "type": "object",
+                      "example": {
+                        "database": {
+                          "status": "up"
+                        }
+                      },
+                      "additionalProperties": {
+                        "type": "object",
+                        "required": [
+                          "status"
+                        ],
+                        "properties": {
+                          "status": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": true
+                      },
+                      "nullable": true
+                    },
+                    "error": {
+                      "type": "object",
+                      "example": {
+                        "redis": {
+                          "status": "down",
+                          "message": "Could not connect"
+                        }
+                      },
+                      "additionalProperties": {
+                        "type": "object",
+                        "required": [
+                          "status"
+                        ],
+                        "properties": {
+                          "status": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": true
+                      },
+                      "nullable": true
+                    },
+                    "details": {
+                      "type": "object",
+                      "example": {
+                        "database": {
+                          "status": "up"
+                        },
+                        "redis": {
+                          "status": "down",
+                          "message": "Could not connect"
+                        }
+                      },
+                      "additionalProperties": {
+                        "type": "object",
+                        "required": [
+                          "status"
+                        ],
+                        "properties": {
+                          "status": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Run SMTP/email provider health check",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/api/health/openai": {
+      "get": {
+        "operationId": "platform_checkOpenAI",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "The Health Check is successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "ok"
+                    },
+                    "info": {
+                      "type": "object",
+                      "example": {
+                        "database": {
+                          "status": "up"
+                        }
+                      },
+                      "additionalProperties": {
+                        "type": "object",
+                        "required": [
+                          "status"
+                        ],
+                        "properties": {
+                          "status": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": true
+                      },
+                      "nullable": true
+                    },
+                    "error": {
+                      "type": "object",
+                      "example": {},
+                      "additionalProperties": {
+                        "type": "object",
+                        "required": [
+                          "status"
+                        ],
+                        "properties": {
+                          "status": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": true
+                      },
+                      "nullable": true
+                    },
+                    "details": {
+                      "type": "object",
+                      "example": {
+                        "database": {
+                          "status": "up"
+                        }
+                      },
+                      "additionalProperties": {
+                        "type": "object",
+                        "required": [
+                          "status"
+                        ],
+                        "properties": {
+                          "status": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The Health Check is not successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "info": {
+                      "type": "object",
+                      "example": {
+                        "database": {
+                          "status": "up"
+                        }
+                      },
+                      "additionalProperties": {
+                        "type": "object",
+                        "required": [
+                          "status"
+                        ],
+                        "properties": {
+                          "status": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": true
+                      },
+                      "nullable": true
+                    },
+                    "error": {
+                      "type": "object",
+                      "example": {
+                        "redis": {
+                          "status": "down",
+                          "message": "Could not connect"
+                        }
+                      },
+                      "additionalProperties": {
+                        "type": "object",
+                        "required": [
+                          "status"
+                        ],
+                        "properties": {
+                          "status": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": true
+                      },
+                      "nullable": true
+                    },
+                    "details": {
+                      "type": "object",
+                      "example": {
+                        "database": {
+                          "status": "up"
+                        },
+                        "redis": {
+                          "status": "down",
+                          "message": "Could not connect"
+                        }
+                      },
+                      "additionalProperties": {
+                        "type": "object",
+                        "required": [
+                          "status"
+                        ],
+                        "properties": {
+                          "status": {
+                            "type": "string"
+                          }
+                        },
+                        "additionalProperties": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "summary": "Run OpenAI configuration health check",
+        "tags": [
+          "health"
+        ]
+      }
+    },
     "/api/health/db": {
       "get": {
         "operationId": "platform_checkDatabase",
@@ -2663,6 +3106,42 @@
           }
         ],
         "summary": "Translate a single text",
+        "tags": [
+          "Translation"
+        ]
+      }
+    },
+    "/api/v1/translation/detect": {
+      "post": {
+        "operationId": "translation_detect",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TranslateSimpleDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: resume:read"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Detect the language of a text",
         "tags": [
           "Translation"
         ]
@@ -3785,6 +4264,67 @@
         ]
       }
     },
+    "/api/auth/sessions": {
+      "get": {
+        "operationId": "auth_listSessions",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: resume:read"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List active sessions (devices) for the current user.",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/auth/sessions/{id}": {
+      "delete": {
+        "operationId": "auth_revokeSession",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: resume:read"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Revoke a specific session (device) by refresh-token id.",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
     "/api/auth/2fa/setup": {
       "post": {
         "description": "Generates TOTP secret and QR code. 2FA is not enabled until verified.",
@@ -3985,6 +4525,94 @@
         "summary": "Regenerate backup codes",
         "tags": [
           "Two-Factor Auth"
+        ]
+      }
+    },
+    "/api/v1/auth/oauth/github/start": {
+      "get": {
+        "operationId": "auth_githubStart",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Start GitHub OAuth sign-in.",
+        "tags": [
+          "auth-oauth"
+        ]
+      }
+    },
+    "/api/v1/auth/oauth/github/callback": {
+      "get": {
+        "operationId": "auth_githubCallback",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "GitHub OAuth callback.",
+        "tags": [
+          "auth-oauth"
+        ]
+      }
+    },
+    "/api/v1/auth/oauth/linkedin/start": {
+      "get": {
+        "operationId": "auth_linkedinStart",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Start LinkedIn OAuth sign-in.",
+        "tags": [
+          "auth-oauth"
+        ]
+      }
+    },
+    "/api/v1/auth/oauth/linkedin/callback": {
+      "get": {
+        "operationId": "auth_linkedinCallback",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "LinkedIn OAuth callback.",
+        "tags": [
+          "auth-oauth"
+        ]
+      }
+    },
+    "/api/v1/auth/oauth/available/{provider}": {
+      "get": {
+        "operationId": "auth_available",
+        "parameters": [
+          {
+            "name": "provider",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "enum": [
+                "github",
+                "linkedin"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Whether a given OAuth provider is configured.",
+        "tags": [
+          "auth-oauth"
         ]
       }
     },
@@ -4325,6 +4953,16 @@
       "patch": {
         "operationId": "users_updatePreferences",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePreferencesDto"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Preferences updated successfully",
@@ -4425,6 +5063,16 @@
       "patch": {
         "operationId": "users_updateFullPreferences",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateFullPreferencesDto"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Full preferences updated successfully",
@@ -5754,48 +6402,6 @@
         ]
       }
     },
-    "/api/v1/onboarding/session/validate": {
-      "post": {
-        "operationId": "onboarding_validateStep",
-        "parameters": [
-          {
-            "name": "locale",
-            "required": false,
-            "in": "query",
-            "description": "Locale for translations (en, pt-BR, es). Defaults to en.",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "additionalProperties": true,
-                "description": "Data to save for the current step"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "JWT-auth": []
-          }
-        ],
-        "summary": "Validate step fields without saving",
-        "tags": [
-          "onboarding"
-        ]
-      }
-    },
     "/api/v1/onboarding/session/save": {
       "post": {
         "operationId": "onboarding_saveStepData",
@@ -6906,6 +7512,161 @@
         "summary": "Export resume as LaTeX",
         "tags": [
           "Export"
+        ]
+      }
+    },
+    "/api/resume-import/pdf": {
+      "post": {
+        "description": "Accepts a PDF upload (multipart/form-data, field name `file`), extracts the text with pdf-parse and structures it with the LLM. Creates a Resume row and marks it as primary when the user has none.",
+        "operationId": "resumeImport_importPdf",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "description": "Binary PDF payload",
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "file"
+                ],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "PDF file (max 5MB)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "CV imported from PDF",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/ImportResultDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: resume:import"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Import resume from a PDF file",
+        "tags": [
+          "Resume Import"
+        ]
+      }
+    },
+    "/api/resume-import/github": {
+      "post": {
+        "description": "Uses the user's previously-connected GitHub OAuth token to fetch top repos and derive skills + BUILD posts. Fails with 409 GITHUB_NOT_CONNECTED if the user hasn't linked GitHub yet.",
+        "operationId": "resumeImport_importGithub",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "GitHub data imported",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/ImportResultDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: resume:import"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Import profile data from GitHub",
+        "tags": [
+          "Resume Import"
+        ]
+      }
+    },
+    "/api/resume-import/linkedin": {
+      "post": {
+        "description": "Placeholder endpoint. Returns 503 until the LinkedIn v2 API client lands. Frontend should treat this as 'em breve' for now.",
+        "operationId": "resumeImport_importLinkedin",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: resume:import"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Import profile data from LinkedIn (scaffold)",
+        "tags": [
+          "Resume Import"
         ]
       }
     },
@@ -13576,6 +14337,59 @@
         ]
       }
     },
+    "/api/v1/events": {
+      "post": {
+        "description": "Accepts up to 100 events per request. Events are stored as-is; props is free-form JSON.",
+        "operationId": "platformEvents_track",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrackEventsBodyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Events accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/TrackEventsDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Ingest a batch of product events",
+        "tags": [
+          "Platform Events"
+        ]
+      }
+    },
     "/api/chat/messages": {
       "post": {
         "operationId": "chat_sendMessage",
@@ -14358,6 +15172,102 @@
         ]
       }
     },
+    "/api/chat/conversations/{conversationId}/preferences/pin": {
+      "post": {
+        "operationId": "chat_setPin",
+        "parameters": [
+          {
+            "name": "conversationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetPinDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: chat:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Pin / unpin a conversation for the current user.",
+        "tags": [
+          "Chat"
+        ]
+      }
+    },
+    "/api/chat/conversations/{conversationId}/preferences/mute": {
+      "post": {
+        "operationId": "chat_setMute",
+        "parameters": [
+          {
+            "name": "conversationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetMuteDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: chat:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Mute / unmute notifications for a conversation.",
+        "tags": [
+          "Chat"
+        ]
+      }
+    },
     "/api/resumes/{resumeId}/collaborators": {
       "post": {
         "operationId": "collaboration_invite",
@@ -14645,6 +15555,154 @@
           }
         ],
         "summary": "Get resumes shared with current user",
+        "tags": [
+          "Collaboration"
+        ]
+      }
+    },
+    "/api/resumes/{resumeId}/comments": {
+      "get": {
+        "operationId": "collaboration_listComments",
+        "parameters": [
+          {
+            "name": "resumeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: collaboration:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List collaboration comments on a resume",
+        "tags": [
+          "Collaboration"
+        ]
+      },
+      "post": {
+        "operationId": "collaboration_createComment",
+        "parameters": [
+          {
+            "name": "resumeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCollabCommentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: collaboration:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Add a comment / reply to a resume",
+        "tags": [
+          "Collaboration"
+        ]
+      }
+    },
+    "/api/resumes/comments/{commentId}/resolve": {
+      "post": {
+        "operationId": "collaboration_resolveComment",
+        "parameters": [
+          {
+            "name": "commentId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: collaboration:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Mark a comment thread as resolved",
+        "tags": [
+          "Collaboration"
+        ]
+      }
+    },
+    "/api/resumes/comments/{commentId}": {
+      "delete": {
+        "operationId": "collaboration_deleteComment",
+        "parameters": [
+          {
+            "name": "commentId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: collaboration:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a comment (author or resume owner)",
         "tags": [
           "Collaboration"
         ]
@@ -15011,6 +16069,22 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -15038,8 +16112,19 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: social:use"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Get followers for a user",
         "tags": [
           "social-follow"
@@ -15056,6 +16141,22 @@
             "in": "path",
             "schema": {
               "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
             }
           }
         ],
@@ -15084,8 +16185,19 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: social:use"
           }
         },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
         "summary": "Get users followed by a user",
         "tags": [
           "social-follow"
@@ -15387,6 +16499,38 @@
         ]
       }
     },
+    "/api/v1/connections/{id}/withdraw": {
+      "delete": {
+        "operationId": "connection_withdrawSentRequest",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: social:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Withdraw a sent (pending) connection request",
+        "tags": [
+          "social-connections"
+        ]
+      }
+    },
     "/api/v1/connections/{id}": {
       "delete": {
         "operationId": "connection_removeConnection",
@@ -15422,7 +16566,24 @@
     "/api/v1/users/me/connections": {
       "get": {
         "operationId": "connection_getConnections",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Connections list returned",
@@ -15470,7 +16631,24 @@
     "/api/v1/users/me/connections/pending": {
       "get": {
         "operationId": "connection_getPendingRequests",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Pending requests returned",
@@ -15515,10 +16693,92 @@
         ]
       }
     },
+    "/api/v1/users/me/connections/sent": {
+      "get": {
+        "operationId": "connection_getSentRequests",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sent requests returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/PendingRequestsDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: social:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get sent (pending) connection requests",
+        "tags": [
+          "social-connections"
+        ]
+      }
+    },
     "/api/v1/users/me/connections/suggestions": {
       "get": {
         "operationId": "connection_getConnectionSuggestions",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Suggestions returned",
@@ -15886,10 +17146,323 @@
         ]
       }
     },
+    "/api/v1/users/{userId}/skills": {
+      "get": {
+        "operationId": "skillEndorsements_getSkills",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: social:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List a user’s skills with endorsement counts",
+        "tags": [
+          "skill-endorsements"
+        ]
+      }
+    },
+    "/api/v1/users/{userId}/skills/{skill}/endorse": {
+      "post": {
+        "operationId": "skillEndorsements_endorse",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "skill",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: social:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Endorse a user for a skill",
+        "tags": [
+          "skill-endorsements"
+        ]
+      },
+      "delete": {
+        "operationId": "skillEndorsements_withdraw",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "skill",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: social:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Withdraw a previously given endorsement",
+        "tags": [
+          "skill-endorsements"
+        ]
+      }
+    },
+    "/api/v1/users/{userId}/skills/{skill}/endorsers": {
+      "get": {
+        "operationId": "skillEndorsements_getEndorsers",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "skill",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: social:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List endorsers for a specific skill",
+        "tags": [
+          "skill-endorsements"
+        ]
+      }
+    },
+    "/api/v1/me/skill-proficiency": {
+      "get": {
+        "operationId": "skills_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: user:profile_update"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List my declared skill proficiencies.",
+        "tags": [
+          "Skills"
+        ]
+      }
+    },
+    "/api/v1/me/skill-proficiency/{skillName}": {
+      "put": {
+        "operationId": "skills_set",
+        "parameters": [
+          {
+            "name": "skillName",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetProficiencyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: user:profile_update"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Set proficiency for a skill (creates if missing).",
+        "tags": [
+          "Skills"
+        ]
+      },
+      "delete": {
+        "operationId": "skills_clear",
+        "parameters": [
+          {
+            "name": "skillName",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: user:profile_update"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Clear proficiency for a skill.",
+        "tags": [
+          "Skills"
+        ]
+      }
+    },
     "/api/v1/posts": {
       "post": {
         "operationId": "posts_create",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePostDto"
+              }
+            }
+          }
+        },
         "responses": {
           "201": {
             "description": "Post created successfully",
@@ -16952,6 +18525,114 @@
         ]
       }
     },
+    "/api/v1/users/{userId}/comments": {
+      "get": {
+        "operationId": "userEngagement_getComments",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: feed:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "List comments authored by a user",
+        "tags": [
+          "user-engagement"
+        ]
+      }
+    },
+    "/api/v1/users/{userId}/reactions": {
+      "get": {
+        "operationId": "userEngagement_getReactions",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "cursor",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: feed:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "List reactions given by a user",
+        "tags": [
+          "user-engagement"
+        ]
+      }
+    },
     "/api/v1/notifications": {
       "get": {
         "operationId": "notifications_getByUser",
@@ -17122,6 +18803,100 @@
         ]
       }
     },
+    "/api/v1/notifications/preferences": {
+      "get": {
+        "operationId": "notifications_getPreferences",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: notification:read"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Get notification preferences for the current user",
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
+    "/api/v1/notifications/preferences/{type}": {
+      "put": {
+        "operationId": "notifications_setPreference",
+        "parameters": [
+          {
+            "name": "type",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: notification:read"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update a notification type preference (in-app enable + email channel + delivery mode).",
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
+    "/api/v1/notifications/subscribe": {
+      "get": {
+        "description": "Pushes new notifications as they are created for the authenticated user.",
+        "operationId": "notifications_subscribe",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: notification:read"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Subscribe to notification stream",
+        "tags": [
+          "Notifications SSE"
+        ]
+      }
+    },
     "/api/v1/jobs": {
       "get": {
         "operationId": "jobs_findAll",
@@ -17157,6 +18932,31 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "paymentCurrency",
+            "required": false,
+            "in": "query",
+            "description": "CSV of BRL|USD|EUR|GBP",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "remotePolicy",
+            "required": false,
+            "in": "query",
+            "description": "CSV of REMOTE|HYBRID|ONSITE",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "minEnglishLevel",
+            "required": false,
+            "in": "query",
+            "description": "Max level the viewer accepts. Returns jobs whose required level is ≤ this (or null).",
+            "schema": {}
           }
         ],
         "responses": {
@@ -17240,6 +19040,135 @@
             "bearer": []
           }
         ],
+        "tags": [
+          "jobs"
+        ]
+      }
+    },
+    "/api/v1/jobs/bookmarks": {
+      "get": {
+        "operationId": "jobs_getBookmarkedJobs",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: feed:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List jobs bookmarked by the current user",
+        "tags": [
+          "jobs"
+        ]
+      }
+    },
+    "/api/v1/jobs/recommended": {
+      "get": {
+        "operationId": "jobs_getRecommendedJobs",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: feed:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List jobs recommended for the current user based on resume skills",
+        "tags": [
+          "jobs"
+        ]
+      }
+    },
+    "/api/v1/jobs/applications": {
+      "get": {
+        "operationId": "jobs_getMyApplications",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: feed:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List active applications submitted by the current user",
         "tags": [
           "jobs"
         ]
@@ -17343,6 +19272,551 @@
         ]
       }
     },
+    "/api/v1/jobs/{id}/fit": {
+      "get": {
+        "operationId": "jobs_getFit",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: feed:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Fit score breakdown for this job against the viewer's primary resume",
+        "tags": [
+          "jobs"
+        ]
+      }
+    },
+    "/api/v1/jobs/{id}/bookmark": {
+      "post": {
+        "operationId": "jobs_bookmark",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: feed:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Bookmark a job",
+        "tags": [
+          "jobs"
+        ]
+      },
+      "delete": {
+        "operationId": "jobs_unbookmark",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: feed:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Remove a job bookmark",
+        "tags": [
+          "jobs"
+        ]
+      }
+    },
+    "/api/v1/jobs/{id}/apply": {
+      "post": {
+        "operationId": "jobs_apply",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: feed:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Submit a quick application to a job",
+        "tags": [
+          "jobs"
+        ]
+      },
+      "delete": {
+        "operationId": "jobs_withdrawApplication",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: feed:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Withdraw the current user application to a job",
+        "tags": [
+          "jobs"
+        ]
+      }
+    },
+    "/api/v1/jobs/applications/tracker": {
+      "get": {
+        "operationId": "applicationTracker_getTimeline",
+        "parameters": [
+          {
+            "name": "silentDays",
+            "required": false,
+            "in": "query",
+            "description": "Silence threshold in days. Defaults to 10.",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: feed:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Full application timeline for the viewer (enviada → visualizada → entrevista → oferta/silêncio).",
+        "tags": [
+          "application-tracker"
+        ]
+      }
+    },
+    "/api/v1/jobs/applications/{applicationId}/events": {
+      "post": {
+        "operationId": "applicationTracker_recordEvent",
+        "parameters": [
+          {
+            "name": "applicationId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecordApplicationEventDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: feed:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Record a timeline event on an application (viewed, interview scheduled, offer, etc.).",
+        "tags": [
+          "application-tracker"
+        ]
+      }
+    },
+    "/api/v1/jobs/applications/companies/{company}/response-stats": {
+      "get": {
+        "operationId": "applicationTracker_companyResponseStats",
+        "parameters": [
+          {
+            "name": "company",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: feed:use"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Per-company response percentiles (p50/p90 days to first response).",
+        "tags": [
+          "application-tracker"
+        ]
+      }
+    },
+    "/api/v1/apply-mode/weekly-curated/current": {
+      "get": {
+        "operationId": "applyMode_current",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "This week's curated batch for the viewer.",
+        "tags": [
+          "apply-mode"
+        ]
+      }
+    },
+    "/api/v1/apply-mode/weekly-curated/{itemId}/approve": {
+      "post": {
+        "operationId": "applyMode_approve",
+        "parameters": [
+          {
+            "name": "itemId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Approve a curated item — submits a JobApplication using the user's primary resume.",
+        "tags": [
+          "apply-mode"
+        ]
+      }
+    },
+    "/api/v1/apply-mode/weekly-curated/{itemId}/reject": {
+      "post": {
+        "operationId": "applyMode_reject",
+        "parameters": [
+          {
+            "name": "itemId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Reject a curated item.",
+        "tags": [
+          "apply-mode"
+        ]
+      }
+    },
+    "/api/v1/badges/me": {
+      "get": {
+        "operationId": "badges_listMine",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Badges awarded to the viewer.",
+        "tags": [
+          "badges"
+        ]
+      }
+    },
+    "/api/v1/badges/user/{userId}": {
+      "get": {
+        "operationId": "badges_listForUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Public list of badges for a given user.",
+        "tags": [
+          "badges"
+        ]
+      }
+    },
+    "/api/v1/success-stories": {
+      "get": {
+        "operationId": "successStories_listPublic",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Published success stories for the landing carousel.",
+        "tags": [
+          "success-stories"
+        ]
+      },
+      "post": {
+        "operationId": "successStories_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSuccessStoryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: admin:full_access"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Create a success story (admin).",
+        "tags": [
+          "success-stories"
+        ]
+      }
+    },
+    "/api/v1/success-stories/{id}": {
+      "patch": {
+        "operationId": "successStories_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSuccessStoryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: admin:full_access"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Update a success story (admin).",
+        "tags": [
+          "success-stories"
+        ]
+      },
+      "delete": {
+        "operationId": "successStories_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: admin:full_access"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Delete a success story (admin).",
+        "tags": [
+          "success-stories"
+        ]
+      }
+    },
     "/api/v1/admin/test/run": {
       "post": {
         "operationId": "testRunner_runTests",
@@ -17386,6 +19860,179 @@
         "summary": "List available test suites",
         "tags": [
           "Admin - Test Runner"
+        ]
+      }
+    },
+    "/api/v1/webhooks": {
+      "get": {
+        "operationId": "webhooks_list",
+        "parameters": [],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: resume:read"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List webhooks registered by the current user.",
+        "tags": [
+          "Webhooks"
+        ]
+      },
+      "post": {
+        "operationId": "webhooks_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateWebhookDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: resume:update"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Register a new webhook subscription.",
+        "tags": [
+          "Webhooks"
+        ]
+      }
+    },
+    "/api/v1/webhooks/{id}": {
+      "patch": {
+        "operationId": "webhooks_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateWebhookDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: resume:update"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Update a webhook subscription.",
+        "tags": [
+          "Webhooks"
+        ]
+      },
+      "delete": {
+        "operationId": "webhooks_delete",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: resume:update"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Delete a webhook subscription.",
+        "tags": [
+          "Webhooks"
+        ]
+      }
+    },
+    "/api/v1/webhooks/{id}/deliveries": {
+      "get": {
+        "operationId": "webhooks_deliveries",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: resume:read"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List recent delivery attempts for a webhook.",
+        "tags": [
+          "Webhooks"
         ]
       }
     }
@@ -19106,6 +21753,27 @@
           "version"
         ]
       },
+      "TailorResumeRequestDto": {
+        "type": "object",
+        "properties": {
+          "jobId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "jobDescription": {
+            "type": "string",
+            "minLength": 10
+          },
+          "jobTitle": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "jobCompany": {
+            "type": "string",
+            "maxLength": 200
+          }
+        }
+      },
       "HealthCheckResultDto": {
         "type": "object",
         "properties": {
@@ -19245,6 +21913,18 @@
           "targetLanguage"
         ]
       },
+      "TranslateSimpleDto": {
+        "type": "object",
+        "properties": {
+          "text": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "text"
+        ]
+      },
       "BatchTranslationResultDto": {
         "type": "object",
         "properties": {
@@ -19324,18 +22004,6 @@
           "texts",
           "sourceLanguage",
           "targetLanguage"
-        ]
-      },
-      "TranslateSimpleDto": {
-        "type": "object",
-        "properties": {
-          "text": {
-            "type": "string",
-            "minLength": 1
-          }
-        },
-        "required": [
-          "text"
         ]
       },
       "AdminMetricsOverviewDataDto": {
@@ -20557,6 +23225,14 @@
           },
           "available": {
             "type": "boolean"
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "taken",
+              "reserved",
+              "invalid_format"
+            ]
           }
         },
         "required": [
@@ -20597,6 +23273,26 @@
         "required": [
           "message"
         ]
+      },
+      "UpdatePreferencesDto": {
+        "type": "object",
+        "properties": {
+          "palette": {
+            "type": "string"
+          },
+          "bannerColor": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "photoURL": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 500
+          }
+        }
       },
       "UserFullPreferencesDataDto": {
         "type": "object",
@@ -20668,6 +23364,80 @@
               "includePhotoInExport": {
                 "type": "boolean"
               },
+              "applyMode": {
+                "type": "string",
+                "enum": [
+                  "ONE_CLICK",
+                  "WEEKLY_CURATED",
+                  "AUTO_APPLY"
+                ]
+              },
+              "applyCriteria": {
+                "type": "object",
+                "properties": {
+                  "minFit": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "exclusiveMinimum": false,
+                    "maximum": 100,
+                    "exclusiveMaximum": false,
+                    "nullable": true
+                  },
+                  "stacks": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "seniorities": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "remotePolicies": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "REMOTE",
+                        "HYBRID",
+                        "ONSITE"
+                      ]
+                    }
+                  },
+                  "paymentCurrencies": {
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "BRL",
+                        "USD",
+                        "EUR",
+                        "GBP"
+                      ]
+                    }
+                  },
+                  "minSalaryUsd": {
+                    "type": "integer",
+                    "nullable": true
+                  },
+                  "defaultCover": {
+                    "type": "string",
+                    "nullable": true
+                  }
+                },
+                "required": [
+                  "minFit",
+                  "stacks",
+                  "seniorities",
+                  "remotePolicies",
+                  "paymentCurrencies",
+                  "minSalaryUsd",
+                  "defaultCover"
+                ],
+                "nullable": true
+              },
               "createdAt": {},
               "updatedAt": {}
             },
@@ -20693,6 +23463,8 @@
               "allowSearchEngineIndex",
               "defaultExportFormat",
               "includePhotoInExport",
+              "applyMode",
+              "applyCriteria",
               "createdAt",
               "updatedAt"
             ],
@@ -20702,6 +23474,153 @@
         "required": [
           "preferences"
         ]
+      },
+      "UpdateFullPreferencesDto": {
+        "type": "object",
+        "properties": {
+          "theme": {
+            "type": "string"
+          },
+          "palette": {
+            "type": "string"
+          },
+          "bannerColor": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "photoURL": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 500
+          },
+          "language": {
+            "type": "string",
+            "maxLength": 10
+          },
+          "dateFormat": {
+            "type": "string"
+          },
+          "timezone": {
+            "type": "string",
+            "maxLength": 50
+          },
+          "emailNotifications": {
+            "type": "boolean"
+          },
+          "resumeExpiryAlerts": {
+            "type": "boolean"
+          },
+          "weeklyDigest": {
+            "type": "boolean"
+          },
+          "marketingEmails": {
+            "type": "boolean"
+          },
+          "emailMilestones": {
+            "type": "boolean"
+          },
+          "emailShareExpiring": {
+            "type": "boolean"
+          },
+          "digestFrequency": {
+            "type": "string",
+            "enum": [
+              "DAILY",
+              "WEEKLY",
+              "MONTHLY"
+            ]
+          },
+          "profileVisibility": {
+            "type": "string"
+          },
+          "showEmail": {
+            "type": "boolean"
+          },
+          "showPhone": {
+            "type": "boolean"
+          },
+          "allowSearchEngineIndex": {
+            "type": "boolean"
+          },
+          "defaultExportFormat": {
+            "type": "string"
+          },
+          "includePhotoInExport": {
+            "type": "boolean"
+          },
+          "applyMode": {
+            "type": "string",
+            "enum": [
+              "ONE_CLICK",
+              "WEEKLY_CURATED",
+              "AUTO_APPLY"
+            ]
+          },
+          "applyCriteria": {
+            "type": "object",
+            "properties": {
+              "minFit": {
+                "type": "integer",
+                "minimum": 0,
+                "exclusiveMinimum": false,
+                "maximum": 100,
+                "exclusiveMaximum": false
+              },
+              "stacks": {
+                "type": "array",
+                "maxItems": 40,
+                "items": {
+                  "type": "string",
+                  "maxLength": 60
+                }
+              },
+              "seniorities": {
+                "type": "array",
+                "maxItems": 10,
+                "items": {
+                  "type": "string",
+                  "maxLength": 30
+                }
+              },
+              "remotePolicies": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "REMOTE",
+                    "HYBRID",
+                    "ONSITE"
+                  ]
+                }
+              },
+              "paymentCurrencies": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "BRL",
+                    "USD",
+                    "EUR",
+                    "GBP"
+                  ]
+                }
+              },
+              "minSalaryUsd": {
+                "type": "integer",
+                "minimum": 0,
+                "exclusiveMinimum": false
+              },
+              "defaultCover": {
+                "type": "string",
+                "maxLength": 4000
+              }
+            },
+            "x-nestjs_zod-self-required": false
+          }
+        }
       },
       "UserManagementListDataDto": {
         "type": "object",
@@ -20856,6 +23775,17 @@
               "isActive": {
                 "type": "boolean"
               },
+              "lastLoginAt": {
+                "type": "string",
+                "format": "date-time",
+                "nullable": true
+              },
+              "roles": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
               "resumes": {
                 "type": "array",
                 "items": {
@@ -20928,6 +23858,8 @@
               "image",
               "emailVerified",
               "isActive",
+              "lastLoginAt",
+              "roles",
               "resumes",
               "preferences",
               "counts"
@@ -21971,8 +24903,7 @@
               }
             },
             "required": [
-              "fullName",
-              "email"
+              "fullName"
             ],
             "x-nestjs_zod-self-required": false
           },
@@ -22142,8 +25073,7 @@
               }
             },
             "required": [
-              "fullName",
-              "email"
+              "fullName"
             ],
             "x-nestjs_zod-self-required": false
           },
@@ -22245,8 +25175,7 @@
               }
             },
             "required": [
-              "fullName",
-              "email"
+              "fullName"
             ],
             "x-nestjs_zod-self-required": true
           },
@@ -26531,6 +29460,98 @@
                 "count"
               ]
             }
+          },
+          "activeUsers": {
+            "type": "object",
+            "properties": {
+              "dau": {
+                "type": "integer"
+              },
+              "mau": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "dau",
+              "mau"
+            ],
+            "x-nestjs_zod-self-required": true
+          },
+          "contentStats": {
+            "type": "object",
+            "properties": {
+              "posts": {
+                "type": "integer"
+              },
+              "comments": {
+                "type": "integer"
+              },
+              "reactions": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "posts",
+              "comments",
+              "reactions"
+            ],
+            "x-nestjs_zod-self-required": true
+          },
+          "socialStats": {
+            "type": "object",
+            "properties": {
+              "pendingInvitations": {
+                "type": "integer"
+              },
+              "acceptedConnections": {
+                "type": "integer"
+              },
+              "rejectedConnections": {
+                "type": "integer"
+              },
+              "blockedUsers": {
+                "type": "integer"
+              },
+              "acceptanceRate": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "pendingInvitations",
+              "acceptedConnections",
+              "rejectedConnections",
+              "blockedUsers",
+              "acceptanceRate"
+            ],
+            "x-nestjs_zod-self-required": true
+          },
+          "jobStats": {
+            "type": "object",
+            "properties": {
+              "postedJobs": {
+                "type": "integer"
+              },
+              "activeJobs": {
+                "type": "integer"
+              },
+              "applications": {
+                "type": "integer"
+              },
+              "withdrawn": {
+                "type": "integer"
+              },
+              "applicationsPerJob": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "postedJobs",
+              "activeJobs",
+              "applications",
+              "withdrawn",
+              "applicationsPerJob"
+            ],
+            "x-nestjs_zod-self-required": true
           }
         },
         "required": [
@@ -26539,7 +29560,59 @@
           "atsScoreDistribution",
           "mostUsedSections",
           "importSources",
-          "viewSources"
+          "viewSources",
+          "activeUsers",
+          "contentStats",
+          "socialStats",
+          "jobStats"
+        ]
+      },
+      "TrackEventsDataDto": {
+        "type": "object",
+        "properties": {
+          "accepted": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": false
+          }
+        },
+        "required": [
+          "accepted"
+        ]
+      },
+      "TrackEventsBodyDto": {
+        "type": "object",
+        "properties": {
+          "events": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 100,
+            "items": {
+              "type": "object",
+              "properties": {
+                "event": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120
+                },
+                "props": {
+                  "type": "object",
+                  "additionalProperties": {}
+                },
+                "occurredAt": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "required": [
+                "event",
+                "occurredAt"
+              ]
+            }
+          }
+        },
+        "required": [
+          "events"
         ]
       },
       "ChatMessageDataDto": {
@@ -27119,6 +30192,32 @@
           "isBlocked"
         ]
       },
+      "SetPinDto": {
+        "type": "object",
+        "properties": {
+          "pinned": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "pinned"
+        ]
+      },
+      "SetMuteDto": {
+        "type": "object",
+        "properties": {
+          "muted": {
+            "type": "boolean"
+          },
+          "mutedUntil": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "muted"
+        ]
+      },
       "CollaboratorDataDto": {
         "type": "object",
         "properties": {
@@ -27194,6 +30293,28 @@
         },
         "required": [
           "sharedResumes"
+        ]
+      },
+      "CreateCollabCommentDto": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4000
+          },
+          "parentId": {
+            "type": "string"
+          },
+          "sectionId": {
+            "type": "string"
+          },
+          "itemId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "content"
         ]
       },
       "AdminChatStatsDataDto": {
@@ -27497,7 +30618,63 @@
             "properties": {
               "data": {
                 "type": "array",
-                "items": {}
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "followerId": {
+                      "type": "string"
+                    },
+                    "followingId": {
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {}
+                      ]
+                    },
+                    "follower": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "username": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "photoURL": {
+                          "type": "string",
+                          "nullable": true
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "username",
+                        "photoURL"
+                      ]
+                    },
+                    "isFollowedByMe": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "followerId",
+                    "followingId",
+                    "createdAt"
+                  ]
+                }
               },
               "total": {
                 "type": "integer"
@@ -27534,7 +30711,63 @@
             "properties": {
               "data": {
                 "type": "array",
-                "items": {}
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "followerId": {
+                      "type": "string"
+                    },
+                    "followingId": {
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {}
+                      ]
+                    },
+                    "following": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "username": {
+                          "type": "string",
+                          "nullable": true
+                        },
+                        "photoURL": {
+                          "type": "string",
+                          "nullable": true
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "username",
+                        "photoURL"
+                      ]
+                    },
+                    "isFollowedByMe": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "followerId",
+                    "followingId",
+                    "createdAt"
+                  ]
+                }
               },
               "total": {
                 "type": "integer"
@@ -27939,10 +31172,15 @@
         "properties": {
           "isConnected": {
             "type": "boolean"
+          },
+          "pendingSentConnectionId": {
+            "type": "string",
+            "nullable": true
           }
         },
         "required": [
-          "isConnected"
+          "isConnected",
+          "pendingSentConnectionId"
         ]
       },
       "ActivityFeedDataDto": {
@@ -28017,6 +31255,30 @@
         },
         "required": [
           "activities"
+        ]
+      },
+      "SetProficiencyDto": {
+        "type": "object",
+        "properties": {
+          "proficiency": {
+            "type": "string",
+            "enum": [
+              "BEGINNER",
+              "INTERMEDIATE",
+              "ADVANCED",
+              "EXPERT"
+            ]
+          },
+          "yearsOfExperience": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": false,
+            "maximum": 80,
+            "exclusiveMaximum": false
+          }
+        },
+        "required": [
+          "proficiency"
         ]
       },
       "AuthorDto": {
@@ -28207,6 +31469,127 @@
           "isDeleted",
           "createdAt",
           "author"
+        ]
+      },
+      "CreatePostDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "ACHIEVEMENT",
+              "OPPORTUNITY",
+              "LEARNING",
+              "BUILD",
+              "QUESTION",
+              "REPOST",
+              "CHALLENGE"
+            ],
+            "x-enumNames": [
+              "ACHIEVEMENT",
+              "OPPORTUNITY",
+              "LEARNING",
+              "BUILD",
+              "QUESTION",
+              "REPOST",
+              "CHALLENGE"
+            ]
+          },
+          "subtype": {
+            "type": "string",
+            "maxLength": 60
+          },
+          "content": {
+            "type": "string",
+            "maxLength": 5000
+          },
+          "hardSkills": {
+            "type": "array",
+            "maxItems": 40,
+            "items": {
+              "type": "string",
+              "maxLength": 60
+            }
+          },
+          "softSkills": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "type": "string",
+              "maxLength": 60
+            }
+          },
+          "data": {
+            "type": "object",
+            "properties": {},
+            "x-nestjs_zod-self-required": false
+          },
+          "imageUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "linkUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "originalPostId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "coAuthors": {
+            "type": "array",
+            "maxItems": 8,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "scheduledAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "threadId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "codeSnippet": {
+            "type": "object",
+            "properties": {
+              "language": {
+                "type": "string",
+                "maxLength": 40
+              },
+              "code": {
+                "type": "string",
+                "maxLength": 20000
+              },
+              "filename": {
+                "type": "string",
+                "maxLength": 120
+              }
+            },
+            "required": [
+              "language",
+              "code"
+            ],
+            "x-nestjs_zod-self-required": false
+          },
+          "isAnonymous": {
+            "type": "boolean"
+          },
+          "anonymousCategory": {
+            "type": "string",
+            "enum": [
+              "SALARY",
+              "INTERVIEW",
+              "LAYOFF",
+              "TOXIC_CULTURE",
+              "HARASSMENT"
+            ]
+          }
+        },
+        "required": [
+          "type"
         ]
       },
       "PostByIdDataDto": {
@@ -28669,6 +32052,19 @@
           "isBookmarked": {
             "type": "boolean",
             "example": false
+          },
+          "isReposted": {
+            "type": "boolean",
+            "example": false
+          },
+          "hasVoted": {
+            "type": "boolean",
+            "example": false
+          },
+          "myVoteIndex": {
+            "type": "number",
+            "example": 0,
+            "nullable": true
           },
           "threadPosts": {
             "type": "array",
@@ -29204,6 +32600,182 @@
         "required": [
           "count"
         ]
+      },
+      "RecordApplicationEventDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "VIEWED",
+              "INTERVIEW_SCHEDULED",
+              "INTERVIEW_COMPLETED",
+              "OFFER_RECEIVED",
+              "REJECTED",
+              "WITHDRAWN",
+              "FOLLOW_UP_SENT"
+            ]
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "CreateSuccessStoryDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "headline": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "beforeText": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "afterText": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "quote": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "timeframeDays": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": false,
+            "maximum": 3650,
+            "exclusiveMaximum": false
+          },
+          "weight": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "PENDING_REVIEW",
+              "PUBLISHED",
+              "ARCHIVED"
+            ]
+          }
+        },
+        "required": [
+          "userId",
+          "headline",
+          "beforeText",
+          "afterText",
+          "quote"
+        ]
+      },
+      "UpdateSuccessStoryDto": {
+        "type": "object",
+        "properties": {
+          "headline": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "beforeText": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "afterText": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "quote": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "timeframeDays": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": false,
+            "maximum": 3650,
+            "exclusiveMaximum": false
+          },
+          "weight": {
+            "type": "integer"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "PENDING_REVIEW",
+              "PUBLISHED",
+              "ARCHIVED"
+            ]
+          }
+        }
+      },
+      "CreateWebhookDto": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "events": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "enum": [
+                "resume.created",
+                "resume.published",
+                "ats.score.updated"
+              ]
+            }
+          }
+        },
+        "required": [
+          "url",
+          "events"
+        ]
+      },
+      "UpdateWebhookDto": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "events": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "enum": [
+                "resume.created",
+                "resume.published",
+                "ats.score.updated"
+              ]
+            }
+          },
+          "enabled": {
+            "type": "boolean"
+          }
+        }
       }
     }
   }

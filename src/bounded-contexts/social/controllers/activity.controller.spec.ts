@@ -35,12 +35,16 @@ class StubActivityReader extends ActivityReaderPort {
   });
 
   getFeed = mock(
-    async (_userId: string, _pagination: PaginationParams): Promise<PaginatedResult<ActivityWithUser>> =>
-      this.feedResult,
+    async (
+      _userId: string,
+      _pagination: PaginationParams,
+    ): Promise<PaginatedResult<ActivityWithUser>> => this.feedResult,
   );
   getUserActivities = mock(
-    async (_userId: string, _pagination: PaginationParams): Promise<PaginatedResult<ActivityWithUser>> =>
-      this.userActivitiesResult,
+    async (
+      _userId: string,
+      _pagination: PaginationParams,
+    ): Promise<PaginatedResult<ActivityWithUser>> => this.userActivitiesResult,
   );
   getActivitiesByType = mock(
     async (

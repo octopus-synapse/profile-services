@@ -5,6 +5,7 @@
 
 import type { TranslationCoreService } from '../../../domain/services/translation-core.service';
 import type {
+  SourceLanguage,
   TranslationLanguage,
   TranslationResult,
 } from '../../../domain/types/translation.types';
@@ -14,7 +15,7 @@ export class TranslateTextUseCase {
 
   async execute(
     text: string,
-    sourceLanguage: TranslationLanguage,
+    sourceLanguage: SourceLanguage,
     targetLanguage: TranslationLanguage,
   ): Promise<TranslationResult> {
     return this.translationService.translate(text, sourceLanguage, targetLanguage);

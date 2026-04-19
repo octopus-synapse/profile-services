@@ -1,0 +1,31 @@
+// Badges — discrete achievement unlocks. Public on the profile, never show a
+// point tally or leaderboard. Kind is a closed enum so awarding logic lives
+// in one place (see BadgeAwardService); backend is the only authority.
+
+model UserBadge {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation("UserBadges", fields: [userId], references: [id], onDelete: Cascade)
+
+  kind BadgeKind
+
+  // Optional context captured when the badge unlocks (e.g. the first BUILD
+  // post id that triggered FIRST_BUILD, the ATS score that crossed 90).
+  context Json?
+
+  awardedAt DateTime @default(now())
+
+  // One badge per kind per user.
+  @@unique([userId, kind])
+  @@index([userId])
+  @@index([kind])
+}
+
+enum BadgeKind {
+  FIRST_BUILD          // Posted their first BUILD.
+  ATS_90_PLUS          // Their resume crossed 90% ATS score.
+  MENTORED_10          // Ran ≥10 mentorship sessions.
+  INTERVIEWS_5         // Got ≥5 interviews scheduled.
+  CONTRIBUTOR          // Their comments were marked helpful ≥5 times.
+  EVENT_SPEAKER        // Presented at an AMA/event.
+}

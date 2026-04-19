@@ -23,6 +23,10 @@ const EnvironmentSchema = z.object({
   // Auth
   JWT_SECRET: z.string().min(32),
   JWT_EXPIRATION: z.string().default('7d'),
+  // When 'true', EmailVerifiedGuard is bypassed — safe default for dev &
+  // E2E, should be unset (or 'false') in production so unverified accounts
+  // can't hit protected endpoints.
+  SKIP_EMAIL_VERIFICATION: z.string().default('true'),
 
   // Redis
   REDIS_HOST: z.string().default('localhost'),
@@ -48,12 +52,42 @@ const EnvironmentSchema = z.object({
 
   // Frontend
   FRONTEND_URL: z.string().url().default('http://localhost:3000'),
+  UI_BASE_URL: z.string().url().default('http://localhost:3000'),
 
   // Logging
   LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
 
   // Internal integrations
   INTERNAL_API_TOKEN: z.string().min(1).optional(),
+
+  // OpenAI (AI features fail at call time if unset)
+  OPENAI_API_KEY: z.string().optional(),
+  OPENAI_MODEL: z.string().default('gpt-4o-mini'),
+
+  // SendGrid (fallback for transactional email when SMTP_HOST is not set)
+  SENDGRID_API_KEY: z.string().optional(),
+
+  // LibreTranslate
+  LIBRETRANSLATE_URL: z.string().url().default('http://libretranslate:5000'),
+  LIBRETRANSLATE_API_KEY: z.string().optional(),
+
+  // OAuth — GitHub
+  GITHUB_CLIENT_ID: z.string().optional(),
+  GITHUB_CLIENT_SECRET: z.string().optional(),
+
+  // OAuth — LinkedIn
+  LINKEDIN_CLIENT_ID: z.string().optional(),
+  LINKEDIN_CLIENT_SECRET: z.string().optional(),
+
+  // OAuth — shared callback host (backend base URL used to build redirect URIs)
+  OAUTH_CALLBACK_BASE: z.string().url().default('http://localhost:3001'),
+
+  // Password reset tokens
+  PASSWORD_RESET_TOKEN_TTL_MINUTES: z.coerce.number().int().positive().default(30),
+
+  // Account lockout
+  LOGIN_MAX_FAILED_ATTEMPTS: z.coerce.number().int().positive().default(5),
+  LOGIN_LOCK_DURATION_MINUTES: z.coerce.number().int().positive().default(15),
 });
 
 export type EnvironmentVariables = z.infer<typeof EnvironmentSchema>;

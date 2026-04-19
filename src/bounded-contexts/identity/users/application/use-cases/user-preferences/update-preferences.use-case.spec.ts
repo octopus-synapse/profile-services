@@ -35,6 +35,8 @@ describe('UpdatePreferencesUseCase', () => {
         allowSearchEngineIndex: false,
         defaultExportFormat: 'pdf',
         includePhotoInExport: true,
+        applyMode: 'ONE_CLICK' as const,
+        applyCriteria: null,
         createdAt: new Date(),
         updatedAt: new Date(),
       })),

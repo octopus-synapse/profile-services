@@ -14,6 +14,10 @@ export class AdminAnalyticsService {
       mostUsedSections,
       importSources,
       viewSources,
+      activeUsers,
+      contentStats,
+      socialStats,
+      jobStats,
     ] = await Promise.all([
       this.getUserGrowth(period),
       this.getResumesByLanguage(),
@@ -21,6 +25,10 @@ export class AdminAnalyticsService {
       this.getMostUsedSections(),
       this.getImportSources(),
       this.getViewSources(),
+      this.getActiveUsers(),
+      this.getContentStats(),
+      this.getSocialStats(),
+      this.getJobStats(),
     ]);
 
     return {
@@ -30,6 +38,80 @@ export class AdminAnalyticsService {
       mostUsedSections,
       importSources,
       viewSources,
+      activeUsers,
+      contentStats,
+      socialStats,
+      jobStats,
+    };
+  }
+
+  /**
+   * DAU and MAU calculated from PlatformEvent — falls back to 0 if the
+   * tracking endpoint is silent (e.g., during local dev without UI events).
+   */
+  private async getActiveUsers() {
+    const [dau, mau] = await Promise.all([
+      this.prisma.$queryRaw<[{ count: bigint }]>`
+        SELECT COUNT(DISTINCT "userId")::bigint as count
+        FROM "platform_event"
+        WHERE "occurredAt" >= NOW() - INTERVAL '1 day' AND "userId" IS NOT NULL
+      `,
+      this.prisma.$queryRaw<[{ count: bigint }]>`
+        SELECT COUNT(DISTINCT "userId")::bigint as count
+        FROM "platform_event"
+        WHERE "occurredAt" >= NOW() - INTERVAL '30 days' AND "userId" IS NOT NULL
+      `,
+    ]);
+    return {
+      dau: Number(dau[0]?.count ?? 0),
+      mau: Number(mau[0]?.count ?? 0),
+    };
+  }
+
+  private async getContentStats() {
+    const [posts, comments, reactions] = await Promise.all([
+      this.prisma.post.count({ where: { isDeleted: false } }),
+      this.prisma.postComment.count({ where: { isDeleted: false } }),
+      this.prisma.postLike.count(),
+    ]);
+    return { posts, comments, reactions };
+  }
+
+  private async getSocialStats() {
+    const [pendingInvitations, acceptedConnections, rejectedConnections, blockedUsers] =
+      await Promise.all([
+        this.prisma.connection.count({ where: { status: 'PENDING' } }),
+        this.prisma.connection.count({ where: { status: 'ACCEPTED' } }),
+        this.prisma.connection.count({ where: { status: 'REJECTED' } }),
+        this.prisma.blockedUser.count(),
+      ]);
+    const totalDecided = acceptedConnections + rejectedConnections;
+    const acceptanceRate =
+      totalDecided > 0 ? Math.round((acceptedConnections / totalDecided) * 100) : 0;
+    return {
+      pendingInvitations,
+      acceptedConnections,
+      rejectedConnections,
+      blockedUsers,
+      acceptanceRate,
+    };
+  }
+
+  private async getJobStats() {
+    const [postedJobs, activeJobs, applications, withdrawn] = await Promise.all([
+      this.prisma.job.count(),
+      this.prisma.job.count({ where: { isActive: true } }),
+      this.prisma.jobApplication.count({ where: { status: { not: 'WITHDRAWN' } } }),
+      this.prisma.jobApplication.count({ where: { status: 'WITHDRAWN' } }),
+    ]);
+    const applicationsPerJob =
+      postedJobs > 0 ? Math.round((applications / postedJobs) * 100) / 100 : 0;
+    return {
+      postedJobs,
+      activeJobs,
+      applications,
+      withdrawn,
+      applicationsPerJob,
     };
   }
 

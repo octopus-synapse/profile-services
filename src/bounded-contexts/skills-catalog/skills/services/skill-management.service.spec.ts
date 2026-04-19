@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import type { SkillManagementRepositoryPort } from './skill-management/ports/skill-management-repository.port';
 import { SkillManagementPort } from './skill-management/ports/skill-management.port';
+import type { SkillManagementRepositoryPort } from './skill-management/ports/skill-management-repository.port';
 import { SkillManagementService } from './skill-management/skill-management.service';
 import { ListSkillsUseCase } from './skill-management/use-cases/list-skills.use-case';
 

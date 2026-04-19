@@ -7,6 +7,12 @@ export {
   type RefreshTokenData,
   type SessionAuthUser,
 } from './authentication-repository.port';
+export {
+  LOGIN_ATTEMPTS_PORT,
+  type LoginAttemptRecord,
+  type LoginAttemptsPort,
+  type LoginLockStatus,
+} from './login-attempts.port';
 export type { PasswordHasherPort } from './password-hasher.port';
 export type {
   CookieReader,

@@ -1,5 +1,6 @@
 import { Global, Module } from '@nestjs/common';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
+import { IdempotencyService } from '../idempotency/idempotency.service';
 import { LoggerModule } from '../logger/logger.module';
 import { CacheService } from './cache.service';
 import { CacheLockService } from './cache-lock.service';
@@ -22,6 +23,7 @@ import {
     CacheInvalidationService,
     CacheWarmingService,
     CacheService,
+    IdempotencyService,
   ],
   exports: [
     CacheService,
@@ -31,6 +33,7 @@ import {
     CacheWarmingService,
     RedisConnectionService,
     CacheLockService,
+    IdempotencyService,
   ],
 })
 export class CacheModule {}

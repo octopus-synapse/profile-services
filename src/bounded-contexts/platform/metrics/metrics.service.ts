@@ -271,4 +271,74 @@ export class MetricsService implements OnModuleInit {
 
     return results.sort((a, b) => (b.totalRequests as number) - (a.totalRequests as number));
   }
+
+  /**
+   * Aggregated overview used by the admin dashboard. Computing it here keeps
+   * the controller free of prometheus-shape parsing and metric arithmetic.
+   */
+  async getOverviewSnapshot(): Promise<{
+    counters: { resumeCreated: number; userSignups: number; exportCompleted: number };
+    gauges: { activeUsers: number; pendingExports: number };
+    process: {
+      uptimeSeconds: number;
+      heapUsedMb: number;
+      heapTotalMb: number;
+      eventLoopLagMs: number;
+    };
+    latency: Record<string, unknown>[];
+  }> {
+    const [metricsJson, latencySummary] = await Promise.all([
+      this.getMetricsJson(),
+      this.getLatencySummary(),
+    ]);
+
+    const asMetric = (name: string) => metricsJson[name] as Record<string, unknown> | undefined;
+
+    const resumeCreated = asMetric('resume_created_total');
+    const userSignups = asMetric('user_signup_total');
+    const exportCompleted = asMetric('export_completed_total');
+    const activeUsers = asMetric('active_users_total');
+    const pendingExports = asMetric('pending_exports_total');
+    const processUptime = asMetric('process_start_time_seconds');
+    const heapUsed = asMetric('nodejs_heap_size_used_bytes');
+    const heapTotal = asMetric('nodejs_heap_size_total_bytes');
+    const eventLoopLag = asMetric('nodejs_eventloop_lag_seconds');
+
+    return {
+      counters: {
+        resumeCreated: MetricsService.sumValues(resumeCreated),
+        userSignups: MetricsService.sumValues(userSignups),
+        exportCompleted: MetricsService.sumValues(exportCompleted),
+      },
+      gauges: {
+        activeUsers: MetricsService.sumValues(activeUsers),
+        pendingExports: MetricsService.sumValues(pendingExports),
+      },
+      process: {
+        uptimeSeconds: processUptime
+          ? Math.round(Date.now() / 1000 - MetricsService.firstValue(processUptime))
+          : 0,
+        heapUsedMb: heapUsed ? Math.round(MetricsService.firstValue(heapUsed) / 1024 / 1024) : 0,
+        heapTotalMb: heapTotal ? Math.round(MetricsService.firstValue(heapTotal) / 1024 / 1024) : 0,
+        eventLoopLagMs: eventLoopLag
+          ? Math.round(MetricsService.firstValue(eventLoopLag) * 1000 * 100) / 100
+          : 0,
+      },
+      latency: latencySummary,
+    };
+  }
+
+  private static sumValues(metric: Record<string, unknown> | undefined): number {
+    if (!metric?.values) return 0;
+    const values = metric.values as { value: number }[];
+    let total = 0;
+    for (const v of values) total += v.value;
+    return total;
+  }
+
+  private static firstValue(metric: Record<string, unknown> | undefined): number {
+    if (!metric?.values) return 0;
+    const values = metric.values as { value: number }[];
+    return values[0]?.value ?? 0;
+  }
 }
