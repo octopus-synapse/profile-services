@@ -28,7 +28,13 @@ jobs:
     secrets: inherit
 
   finalize-release:
-    if: github.ref == 'refs/heads/main' && startsWith(github.event.head_commit.message, 'chore(release):')
+    # Two entry points:
+    #  - push to main where the head commit message contains 'chore(release):'
+    #    (covers both squash-merges where the title becomes the commit message
+    #     AND merge-commits where the chore line lives in the body).
+    #  - manual workflow_dispatch on main (no head_commit payload to inspect),
+    #    used to recover from a release PR merged with the wrong strategy.
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, 'chore(release):'))
     uses: octopus-synapse/octopus-workflows/.github/workflows/_release-finalize.yml@v1
     with:
       commit_sha: ${{ github.sha }}
