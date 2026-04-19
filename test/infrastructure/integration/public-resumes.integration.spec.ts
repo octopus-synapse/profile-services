@@ -162,6 +162,83 @@ describe('Public Resumes Integration', () => {
     });
   });
 
+  describe('Slug Aliases', () => {
+    let aliasShareId: string;
+    const primarySlug = uniqueTestSlug('primary');
+    const aliasSlug = uniqueTestSlug('alias');
+
+    it('should create a share for alias tests', async () => {
+      const response = await getRequest()
+        .post('/api/v1/shares')
+        .set(authHeader())
+        .send({ resumeId, slug: primarySlug });
+
+      expect(response.status).toBe(201);
+      const prisma = getPrisma();
+      const share = await prisma.resumeShare.findUnique({ where: { slug: primarySlug } });
+      expect(share).not.toBeNull();
+      aliasShareId = share!.id;
+    });
+
+    it('should add an alias to the share', async () => {
+      const response = await getRequest()
+        .post(`/api/v1/shares/${aliasShareId}/aliases`)
+        .set(authHeader())
+        .send({ slug: aliasSlug });
+
+      expect(response.status).toBe(201);
+      expect(response.body.data.alias.slug).toBe(aliasSlug);
+      expect(response.body.data.alias.shareId).toBe(aliasShareId);
+    });
+
+    it('should resolve the public resume via alias slug', async () => {
+      const response = await getRequest().get(`/api/v1/public/resumes/${aliasSlug}`);
+      expect(response.status).toBe(200);
+    });
+
+    it('should keep primary slug working after alias is added', async () => {
+      const response = await getRequest().get(`/api/v1/public/resumes/${primarySlug}`);
+      expect(response.status).toBe(200);
+    });
+
+    it('should reject alias slug already in use as a primary slug', async () => {
+      const response = await getRequest()
+        .post(`/api/v1/shares/${aliasShareId}/aliases`)
+        .set(authHeader())
+        .send({ slug: primarySlug });
+
+      expect(response.status).toBe(409);
+    });
+
+    it('should list aliases for the share', async () => {
+      const response = await getRequest()
+        .get(`/api/v1/shares/${aliasShareId}/aliases`)
+        .set(authHeader());
+
+      expect(response.status).toBe(200);
+      expect(response.body.data.aliases.length).toBeGreaterThanOrEqual(1);
+      expect(response.body.data.aliases.some((a: { slug: string }) => a.slug === aliasSlug)).toBe(
+        true,
+      );
+    });
+
+    it('should remove the alias and stop resolving', async () => {
+      const list = await getRequest()
+        .get(`/api/v1/shares/${aliasShareId}/aliases`)
+        .set(authHeader());
+      const target = list.body.data.aliases.find((a: { slug: string }) => a.slug === aliasSlug);
+      expect(target).toBeDefined();
+
+      const del = await getRequest()
+        .delete(`/api/v1/shares/aliases/${target.id}`)
+        .set(authHeader());
+      expect(del.status).toBe(200);
+
+      const lookup = await getRequest().get(`/api/v1/public/resumes/${aliasSlug}`);
+      expect(lookup.status).toBe(404);
+    });
+  });
+
   describe('Resume Caching', () => {
     it('should cache public resume data', async () => {
       const prisma = getPrisma();

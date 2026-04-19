@@ -12,7 +12,10 @@ import {
   ShareListDataDto,
 } from '../dto/share-management-response.dto';
 import {
+  type AliasPayload,
   type SharePayload,
+  toAliasPayload,
+  toAliasPayloadList,
   toSharePayload,
   toSharePayloadList,
 } from '../presenters/share-management.presenter';
@@ -91,6 +94,52 @@ export class ShareManagementController {
     return {
       success: true,
       message: 'Share deleted successfully',
+      data: { deleted: true },
+    };
+  }
+
+  @Post(':shareId/aliases')
+  @RequirePermission(Permission.RESUME_UPDATE)
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Add a slug alias to a share' })
+  async addAlias(
+    @CurrentUser() user: UserPayload,
+    @Param('shareId') shareId: string,
+    @Body() dto: { slug: string },
+  ): Promise<DataResponse<{ alias: AliasPayload }>> {
+    const alias = await this.shareService.addAlias(user.userId, shareId, dto.slug);
+    return {
+      success: true,
+      data: { alias: toAliasPayload(alias) },
+    };
+  }
+
+  @Get(':shareId/aliases')
+  @RequirePermission(Permission.RESUME_READ)
+  @ApiOperation({ summary: 'List slug aliases for a share' })
+  async listAliases(
+    @CurrentUser() user: UserPayload,
+    @Param('shareId') shareId: string,
+  ): Promise<DataResponse<{ aliases: AliasPayload[] }>> {
+    const aliases = await this.shareService.listAliases(user.userId, shareId);
+    return {
+      success: true,
+      data: { aliases: toAliasPayloadList(aliases) },
+    };
+  }
+
+  @Delete('aliases/:aliasId')
+  @RequirePermission(Permission.RESUME_UPDATE)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Remove a slug alias' })
+  async removeAlias(
+    @CurrentUser() user: UserPayload,
+    @Param('aliasId') aliasId: string,
+  ): Promise<DataResponse<{ deleted: boolean }>> {
+    await this.shareService.removeAlias(user.userId, aliasId);
+    return {
+      success: true,
+      message: 'Alias deleted successfully',
       data: { deleted: true },
     };
   }

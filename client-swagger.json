@@ -8280,6 +8280,103 @@
         "tags": ["shares"]
       }
     },
+    "/api/v1/shares/{shareId}/aliases": {
+      "post": {
+        "operationId": "resumes_addAlias",
+        "parameters": [
+          {
+            "name": "shareId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: resume:update"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Add a slug alias to a share",
+        "tags": ["shares"]
+      },
+      "get": {
+        "operationId": "resumes_listAliases",
+        "parameters": [
+          {
+            "name": "shareId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: resume:read"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List slug aliases for a share",
+        "tags": ["shares"]
+      }
+    },
+    "/api/v1/shares/aliases/{aliasId}": {
+      "delete": {
+        "operationId": "resumes_removeAlias",
+        "parameters": [
+          {
+            "name": "aliasId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: resume:update"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Remove a slug alias",
+        "tags": ["shares"]
+      }
+    },
     "/api/v1/resumes/{resumeId}/shares/{shareId}/analytics": {
       "get": {
         "operationId": "shareAnalytics_getAnalyticsNested",

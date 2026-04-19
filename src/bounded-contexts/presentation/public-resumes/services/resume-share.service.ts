@@ -89,9 +89,102 @@ export class ResumeShareService {
   }
 
   async getBySlug(slug: string) {
-    return this.prisma.resumeShare.findUnique({
+    const direct = await this.prisma.resumeShare.findUnique({
       where: { slug },
       include: { resume: true },
+    });
+    if (direct) return direct;
+
+    const alias = await this.prisma.resumeShareAlias.findUnique({
+      where: { slug },
+    });
+    if (!alias) return null;
+
+    return this.prisma.resumeShare.findUnique({
+      where: { id: alias.shareId },
+      include: { resume: true },
+    });
+  }
+
+  async addAlias(userId: string, shareId: string, slug: string) {
+    if (!this.isValidSlug(slug)) {
+      throw new BadRequestException(
+        'Invalid slug format. Use alphanumeric characters and hyphens only.',
+      );
+    }
+
+    const share = await this.prisma.resumeShare.findUnique({
+      where: { id: shareId },
+      include: { resume: { select: { userId: true } } },
+    });
+
+    if (!share) {
+      throw new NotFoundException('Share not found');
+    }
+
+    if (share.resume.userId !== userId) {
+      throw new ForbiddenException('You do not have access to this share');
+    }
+
+    const collidesWithShare = await this.prisma.resumeShare.findUnique({
+      where: { slug },
+    });
+    if (collidesWithShare) {
+      throw new ConflictException('Slug already in use');
+    }
+
+    const collidesWithAlias = await this.prisma.resumeShareAlias.findUnique({
+      where: { slug },
+    });
+    if (collidesWithAlias) {
+      throw new ConflictException('Slug already in use');
+    }
+
+    return this.prisma.resumeShareAlias.create({
+      data: { shareId, slug },
+    });
+  }
+
+  async removeAlias(userId: string, aliasId: string) {
+    const alias = await this.prisma.resumeShareAlias.findUnique({
+      where: { id: aliasId },
+    });
+
+    if (!alias) {
+      throw new NotFoundException('Alias not found');
+    }
+
+    const share = await this.prisma.resumeShare.findUnique({
+      where: { id: alias.shareId },
+      include: { resume: { select: { userId: true } } },
+    });
+
+    if (!share || share.resume.userId !== userId) {
+      throw new ForbiddenException('You do not have access to this alias');
+    }
+
+    return this.prisma.resumeShareAlias.delete({
+      where: { id: aliasId },
+    });
+  }
+
+  async listAliases(userId: string, shareId: string) {
+    const share = await this.prisma.resumeShare.findUnique({
+      where: { id: shareId },
+      include: { resume: { select: { userId: true } } },
+    });
+
+    if (!share) {
+      throw new NotFoundException('Share not found');
+    }
+
+    if (share.resume.userId !== userId) {
+      throw new ForbiddenException('You do not have access to this share');
+    }
+
+    return this.prisma.resumeShareAlias.findMany({
+      where: { shareId },
+      orderBy: { createdAt: 'desc' },
     });
   }
 
