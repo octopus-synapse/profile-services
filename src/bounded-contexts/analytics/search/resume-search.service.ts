@@ -10,7 +10,6 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 
 /**
@@ -117,34 +116,37 @@ export class ResumeSearchService {
     const whereClause = conditions.join(' AND ');
     const orderClause = this.buildOrderClause(sortBy);
 
-    // Execute search query
-    const searchQuery = Prisma.sql`
-      SELECT 
-        id, 
-        "userId", 
-        "fullName", 
-        "jobTitle", 
-        summary, 
-        slug, 
+    // Execute search query. We use $queryRawUnsafe because the WHERE clause
+    // is assembled from parameterized fragments ($1, $2, ...) whose indexes
+    // are already encoded in whereClause; Prisma.sql renumbers placeholders
+    // and would drop our bindings.
+    const searchSql = `
+      SELECT
+        id,
+        "userId",
+        "fullName",
+        "jobTitle",
+        summary,
+        slug,
         location,
         "profileViews",
         "createdAt"
       FROM "Resume"
-      WHERE ${Prisma.raw(whereClause)}
-      ORDER BY ${Prisma.raw(orderClause)}
-      LIMIT ${limit}
-      OFFSET ${offset}
+      WHERE ${whereClause}
+      ORDER BY ${orderClause}
+      LIMIT $${paramIndex}
+      OFFSET $${paramIndex + 1}
     `;
 
-    const countQuery = Prisma.sql`
+    const countSql = `
       SELECT COUNT(*)::int as count
       FROM "Resume"
-      WHERE ${Prisma.raw(whereClause)}
+      WHERE ${whereClause}
     `;
 
     const [results, countResult] = await Promise.all([
-      this.prisma.$queryRaw<SearchResultItem[]>(searchQuery),
-      this.prisma.$queryRaw<[{ count: number }]>(countQuery),
+      this.prisma.$queryRawUnsafe<SearchResultItem[]>(searchSql, ...values, limit, offset),
+      this.prisma.$queryRawUnsafe<[{ count: number }]>(countSql, ...values),
     ]);
 
     // Filter by skills if provided (post-query filter for simplicity)
