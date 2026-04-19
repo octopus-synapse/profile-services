@@ -8,6 +8,13 @@ import { ConfigModule } from '@nestjs/config';
 import { InternalAuthGuard } from '@/bounded-contexts/integration/mec-sync/guards/internal-auth.guard';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 import {
+  LanguageQueryPort,
+  SkillQueryPort,
+  SkillSearchPort,
+  TechAreaQueryPort,
+  TechNicheQueryPort,
+} from './application/ports/query-facade.ports';
+import {
   TechAreaController,
   TechNicheController,
   TechSkillController,
@@ -54,6 +61,12 @@ import { TechSkillsSyncService } from './services/tech-skills-sync.service';
     // Parser services
     GithubLinguistParserService,
     StackOverflowParserService,
+    // Query Facade Ports
+    { provide: TechAreaQueryPort, useExisting: TechAreaQueryService },
+    { provide: TechNicheQueryPort, useExisting: TechNicheQueryService },
+    { provide: LanguageQueryPort, useExisting: LanguageQueryService },
+    { provide: SkillQueryPort, useExisting: SkillQueryService },
+    { provide: SkillSearchPort, useExisting: SkillSearchService },
     // Guards
     InternalAuthGuard,
   ],

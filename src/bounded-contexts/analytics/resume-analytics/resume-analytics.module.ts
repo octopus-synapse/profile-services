@@ -30,6 +30,7 @@ import {
   ANALYTICS_EVENT_BUS_PORT,
   AnalyticsEventBusPort,
 } from './application/ports/analytics-event-bus.port';
+import { AtsScoringPort } from './application/ports/facade.ports';
 import {
   AtsScoreCatalogPort,
   BenchmarkRepositoryPort,
@@ -119,6 +120,10 @@ import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service
     {
       provide: SNAPSHOT_PORT,
       useExisting: SnapshotService,
+    },
+    {
+      provide: AtsScoringPort,
+      useExisting: ATSScoreService,
     },
   ],
   exports: [ResumeAnalyticsFacade],
