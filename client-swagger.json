@@ -2896,6 +2896,76 @@
         "tags": ["shadow-profile"]
       }
     },
+    "/api/v1/me/ui-state": {
+      "get": {
+        "operationId": "users_getAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Returns every UI-state row for the current user. UI bootstraps once and reads keys locally.",
+        "tags": ["users"]
+      }
+    },
+    "/api/v1/me/ui-state/{key}": {
+      "patch": {
+        "operationId": "users_setKey",
+        "parameters": [
+          {
+            "name": "key",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Upsert a single UI-state key/value (idempotent).",
+        "tags": ["users"]
+      },
+      "delete": {
+        "operationId": "users_deleteKey",
+        "parameters": [
+          {
+            "name": "key",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Remove a UI-state key.",
+        "tags": ["users"]
+      }
+    },
     "/api/v1/users/{username}/profile": {
       "get": {
         "operationId": "users_getPublicProfileByUsername",
@@ -13850,6 +13920,87 @@
         ],
         "summary": "List recent delivery attempts for a webhook.",
         "tags": ["Webhooks"]
+      }
+    },
+    "/api/v1/enums": {
+      "get": {
+        "operationId": "uiMetadata_listEnums",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "List all enum keys exposed by the catalog.",
+        "tags": ["ui-metadata"]
+      }
+    },
+    "/api/v1/enums/{key}": {
+      "get": {
+        "operationId": "uiMetadata_getEnumByKey",
+        "parameters": [
+          {
+            "name": "key",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Full descriptor for a UI enum (notification-types, job-application-event-types, etc.) with localized labels + icon hints.",
+        "tags": ["ui-metadata"]
+      }
+    },
+    "/api/v1/me/menu": {
+      "get": {
+        "operationId": "uiMetadata_getMenu",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Permission-aware navigation tree for the current user with labels in the request locale.",
+        "tags": ["ui-metadata"]
+      }
+    },
+    "/api/v1/pages/me-dashboard": {
+      "get": {
+        "operationId": "pages_load",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          }
+        ],
+        "summary": "Single payload for the dashboard: counts (resumes, applications, unread notifications), latest activity items, viewer summary. Replaces ~5 parallel UI fetches.",
+        "tags": ["pages"]
       }
     }
   },
