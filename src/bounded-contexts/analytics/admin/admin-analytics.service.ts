@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 
 @Injectable()
@@ -33,18 +34,20 @@ export class AdminAnalyticsService {
   }
 
   private async getUserGrowth(period: 'day' | 'week' | 'month') {
-    const _intervalMap = { day: '1 day', week: '1 week', month: '1 month' };
     const limitMap = { day: 30, week: 12, month: 12 };
-    const truncMap = { day: 'day', week: 'week', month: 'month' };
+    const truncMap = { day: 'day', week: 'week', month: 'month' } as const;
+    // `period` is a closed type union, so the interval expansion is a
+    // whitelist — safe to render as raw. The TRUNC unit is also whitelisted.
+    const intervalSql = Prisma.raw(`'${limitMap[period]} ${truncMap[period]}s'`);
+    const trunc = truncMap[period];
 
-    const results = await this.prisma.$queryRawUnsafe<{ date: Date; count: bigint }[]>(
-      `SELECT DATE_TRUNC($1, "createdAt") as date, COUNT(*)::bigint as count
-       FROM "User"
-       WHERE "createdAt" >= NOW() - INTERVAL '${limitMap[period]} ${truncMap[period]}s'
-       GROUP BY date
-       ORDER BY date`,
-      truncMap[period],
-    );
+    const results = await this.prisma.$queryRaw<{ date: Date; count: bigint }[]>`
+      SELECT DATE_TRUNC(${trunc}, "createdAt") as date, COUNT(*)::bigint as count
+      FROM "User"
+      WHERE "createdAt" >= NOW() - INTERVAL ${intervalSql}
+      GROUP BY date
+      ORDER BY date
+    `;
 
     return results.map((r) => ({ date: r.date.toISOString(), count: Number(r.count) }));
   }

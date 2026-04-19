@@ -10,6 +10,7 @@
  */
 
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 
 /**
@@ -76,51 +77,38 @@ export class ResumeSearchService {
     const offset = (page - 1) * limit;
     const searchTerms = this.normalizeSearchTerms(query);
 
-    // Build dynamic WHERE conditions
-    const conditions: string[] = ['"isPublic" = true'];
-    const values: unknown[] = [];
-    let paramIndex = 1;
+    // Build the WHERE clause as a Prisma.Sql so every user-supplied value stays
+    // a bound parameter. Prisma.join then renumbers placeholders automatically.
+    const conditions: Prisma.Sql[] = [Prisma.sql`"isPublic" = true`];
 
-    // Full-text search condition
     if (searchTerms) {
-      conditions.push(`(
-        "fullName" ILIKE $${paramIndex} OR
-        "jobTitle" ILIKE $${paramIndex} OR
-        "summary" ILIKE $${paramIndex} OR
-        "techPersona" ILIKE $${paramIndex}
+      const pattern = `%${searchTerms}%`;
+      conditions.push(Prisma.sql`(
+        "fullName" ILIKE ${pattern} OR
+        "jobTitle" ILIKE ${pattern} OR
+        "summary" ILIKE ${pattern} OR
+        "techPersona" ILIKE ${pattern}
       )`);
-      values.push(`%${searchTerms}%`);
-      paramIndex++;
     }
 
-    // Location filter
     if (location) {
-      conditions.push(`"location" ILIKE $${paramIndex}`);
-      values.push(`%${location}%`);
-      paramIndex++;
+      conditions.push(Prisma.sql`"location" ILIKE ${`%${location}%`}`);
     }
 
-    // Experience years filter
     if (minExperienceYears !== undefined) {
-      conditions.push(`"experienceYears" >= $${paramIndex}`);
-      values.push(minExperienceYears);
-      paramIndex++;
+      conditions.push(Prisma.sql`"experienceYears" >= ${minExperienceYears}`);
     }
 
     if (maxExperienceYears !== undefined) {
-      conditions.push(`"experienceYears" <= $${paramIndex}`);
-      values.push(maxExperienceYears);
-      paramIndex++;
+      conditions.push(Prisma.sql`"experienceYears" <= ${maxExperienceYears}`);
     }
 
-    const whereClause = conditions.join(' AND ');
-    const orderClause = this.buildOrderClause(sortBy);
+    const whereClause = Prisma.join(conditions, ' AND ');
+    // ORDER BY must stay a raw fragment — buildOrderClause returns a
+    // whitelisted column/direction string, never user input.
+    const orderClause = Prisma.raw(this.buildOrderClause(sortBy));
 
-    // Execute search query. We use $queryRawUnsafe because the WHERE clause
-    // is assembled from parameterized fragments ($1, $2, ...) whose indexes
-    // are already encoded in whereClause; Prisma.sql renumbers placeholders
-    // and would drop our bindings.
-    const searchSql = `
+    const searchQuery = Prisma.sql`
       SELECT
         id,
         "userId",
@@ -134,19 +122,19 @@ export class ResumeSearchService {
       FROM "Resume"
       WHERE ${whereClause}
       ORDER BY ${orderClause}
-      LIMIT $${paramIndex}
-      OFFSET $${paramIndex + 1}
+      LIMIT ${limit}
+      OFFSET ${offset}
     `;
 
-    const countSql = `
+    const countQuery = Prisma.sql`
       SELECT COUNT(*)::int as count
       FROM "Resume"
       WHERE ${whereClause}
     `;
 
     const [results, countResult] = await Promise.all([
-      this.prisma.$queryRawUnsafe<SearchResultItem[]>(searchSql, ...values, limit, offset),
-      this.prisma.$queryRawUnsafe<[{ count: number }]>(countSql, ...values),
+      this.prisma.$queryRaw<SearchResultItem[]>(searchQuery),
+      this.prisma.$queryRaw<[{ count: number }]>(countQuery),
     ]);
 
     // Filter by skills if provided (post-query filter for simplicity)
