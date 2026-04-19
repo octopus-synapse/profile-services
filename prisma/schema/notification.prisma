@@ -46,6 +46,7 @@ model NotificationPreference {
 enum EmailDeliveryMode {
   INSTANT
   DAILY
+  WEEKLY
   OFF
 }
 
