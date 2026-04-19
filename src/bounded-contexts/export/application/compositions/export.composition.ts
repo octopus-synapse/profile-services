@@ -11,6 +11,7 @@ import type { PdfGeneratorPort } from '../../domain/ports/pdf-generator.port';
 import { ResumeDataRepository } from '../../infrastructure/adapters/persistence/resume-data.repository';
 import { SectionOrderingAdapter } from '../../infrastructure/adapters/persistence/section-ordering.adapter';
 import { EXPORT_USE_CASES, type ExportUseCases } from '../ports/export.port';
+import { ExportBundleUseCase } from '../use-cases/export-bundle/export-bundle.use-case';
 import { ExportDocxUseCase } from '../use-cases/export-docx/export-docx.use-case';
 import { ExportJsonUseCase } from '../use-cases/export-json/export-json.use-case';
 import { ExportLatexUseCase } from '../use-cases/export-latex/export-latex.use-case';
@@ -27,10 +28,20 @@ export function buildExportUseCases(
   const resumeDataRepository = new ResumeDataRepository(prisma);
   const sectionOrdering = sectionTypeRepo ? new SectionOrderingAdapter(sectionTypeRepo) : undefined;
 
+  const exportDocxUseCase = new ExportDocxUseCase(docxBuilder);
+  const exportPdfUseCase = new ExportPdfUseCase(pdfGenerator);
+  const exportJsonUseCase = new ExportJsonUseCase(resumeDataRepository);
+  const exportLatexUseCase = new ExportLatexUseCase(resumeDataRepository, sectionOrdering);
+
   return {
-    exportDocxUseCase: new ExportDocxUseCase(docxBuilder),
-    exportPdfUseCase: new ExportPdfUseCase(pdfGenerator),
-    exportJsonUseCase: new ExportJsonUseCase(resumeDataRepository),
-    exportLatexUseCase: new ExportLatexUseCase(resumeDataRepository, sectionOrdering),
+    exportDocxUseCase,
+    exportPdfUseCase,
+    exportJsonUseCase,
+    exportLatexUseCase,
+    exportBundleUseCase: new ExportBundleUseCase(
+      exportPdfUseCase,
+      exportDocxUseCase,
+      exportJsonUseCase,
+    ),
   };
 }
