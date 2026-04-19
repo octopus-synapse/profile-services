@@ -1,6 +1,5 @@
-import { NotFoundException } from '@nestjs/common';
-import sanitizeHtml from 'sanitize-html';
 import type { UpdateResume } from '@/shared-kernel';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type { ResumeEventPublisher } from '../../../../domain/ports';
 import { ResumeVersionServicePort } from '../../../ports/resume-version-service.port';
 import { ResumesRepositoryPort } from '../../../ports/resumes-repository.port';
@@ -9,10 +8,7 @@ import type { ResumeResult } from '../../../ports/resumes-service.port';
 function sanitizeContent(text: string | undefined | null): string | undefined {
   if (!text) return undefined;
   if (typeof text !== 'string') return undefined;
-  return sanitizeHtml(text, {
-    allowedTags: [],
-    allowedAttributes: {},
-  });
+  return text.replace(/<[^>]*>/g, '');
 }
 
 export class UpdateResumeForUserUseCase {
@@ -32,7 +28,7 @@ export class UpdateResumeForUserUseCase {
     };
 
     const resume = await this.repository.updateResumeForUser(id, userId, sanitizedData);
-    if (!resume) throw new NotFoundException('Resume not found');
+    if (!resume) throw new EntityNotFoundException('Resume', id);
 
     this.eventPublisher.publishResumeUpdated(id, {
       userId,

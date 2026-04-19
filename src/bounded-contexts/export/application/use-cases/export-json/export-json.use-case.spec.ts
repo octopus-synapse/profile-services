@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
 import { createMockResume } from '@test/shared/factories/resume.factory';
-import type {
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
+import {
   ResumeDataRepositoryPort,
-  ResumeForJsonExport,
+  type ResumeForJsonExport,
 } from '../../../domain/ports/resume-data.repository.port';
 import { ExportJsonUseCase } from './export-json.use-case';
 
@@ -45,8 +46,7 @@ function isProfileExportLike(value: unknown): value is ProfileExportLike {
 /**
  * In-Memory Resume Data Repository for testing
  */
-class InMemoryResumeDataRepository
-  implements Pick<ResumeDataRepositoryPort, 'findForJsonExport' | 'findForLatexExport'>
+class InMemoryResumeDataRepository implements ResumeDataRepositoryPort
 {
   private resumes = new Map<string, ResumeForJsonExport>();
 
@@ -180,7 +180,7 @@ describe('ExportJsonUseCase', () => {
     repository = new InMemoryResumeDataRepository();
     repository.seedResume(mockResume);
 
-    useCase = new ExportJsonUseCase(repository as unknown as ResumeDataRepositoryPort);
+    useCase = new ExportJsonUseCase(repository);
   });
 
   describe('execute', () => {
@@ -247,7 +247,9 @@ describe('ExportJsonUseCase', () => {
     it('should throw NotFoundException when resume not found', async () => {
       repository.clear();
 
-      await expect(useCase.execute({ resumeId: 'unknown' })).rejects.toThrow('Resume not found');
+      await expect(useCase.execute({ resumeId: 'unknown' })).rejects.toThrow(
+        EntityNotFoundException,
+      );
     });
   });
 

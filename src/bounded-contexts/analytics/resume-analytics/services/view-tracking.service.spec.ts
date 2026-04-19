@@ -17,21 +17,8 @@ describe('ViewTrackingService', () => {
 
   beforeEach(() => {
     viewTrackingRepo = new InMemoryViewTrackingRepository();
-    mockEventEmitter = {
-      emit: mock(() => {}),
-    };
-
-    const mockPrisma = {
-      resumeViewEvent: {
-        create: (args: Parameters<typeof viewTrackingRepo.create>[0]) =>
-          viewTrackingRepo.create(args),
-        count: (args?: Parameters<typeof viewTrackingRepo.count>[0]) =>
-          viewTrackingRepo.count(args),
-        groupBy: (args: Parameters<typeof viewTrackingRepo.groupBy>[0]) =>
-          viewTrackingRepo.groupBy(args),
-      },
-    };
-    service = new ViewTrackingService(mockPrisma as never, mockEventEmitter as never);
+    mockEventEmitter = { emit: mock(() => {}) };
+    service = new ViewTrackingService(viewTrackingRepo, mockEventEmitter);
   });
 
   describe('trackView', () => {

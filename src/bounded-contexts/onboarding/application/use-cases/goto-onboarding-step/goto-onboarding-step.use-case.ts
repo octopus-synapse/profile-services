@@ -1,4 +1,4 @@
-import { BadRequestException } from '@nestjs/common';
+import { ValidationException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { buildOnboardingSteps, getStepIndex } from '../../../domain/config/onboarding-steps.config';
 import type { OnboardingProgressData } from '../../../domain/ports/onboarding-progress.port';
 import type { SectionTypeDefinitionPort } from '../../../domain/ports/section-type-definition.port';
@@ -17,7 +17,7 @@ export class GotoOnboardingStepUseCase {
     const targetIndex = getStepIndex(stepId, steps);
 
     if (targetIndex < 0) {
-      throw new BadRequestException(`Unknown step: ${stepId}`);
+      throw new ValidationException(`Unknown step: ${stepId}`);
     }
 
     await this.saveProgress(userId, {

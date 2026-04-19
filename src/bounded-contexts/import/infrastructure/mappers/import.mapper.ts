@@ -63,20 +63,20 @@ export function parseMappedData(value: unknown): ParsedResumeData | undefined {
   const sections: ParsedResumeData['sections'] = [];
 
   for (const { field, sectionTypeKey } of LEGACY_SECTION_KEYS) {
-    if (!Array.isArray(data[field]) || (data[field] as unknown[]).length === 0) continue;
+    const value = data[field];
+    if (!Array.isArray(value) || value.length === 0) continue;
 
     if (field === 'skills') {
-      const skills = data[field] as unknown[];
       sections.push({
         sectionTypeKey,
-        items: skills
+        items: value
           .filter((item): item is string => typeof item === 'string')
           .map((name) => ({ name })),
       });
     } else {
       sections.push({
         sectionTypeKey,
-        items: data[field] as Array<Record<string, unknown>>,
+        items: value as Array<Record<string, unknown>>,
       });
     }
   }

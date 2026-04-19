@@ -1,20 +1,45 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import {
+  type ShareAnalyticsEventItem,
+  ShareAnalyticsReaderPort,
+  type ShareAnalyticsSummary,
+} from '../application/ports/share-analytics-reader.port';
 import { type RequestWithUser, ShareAnalyticsController } from './share-analytics.controller';
 
-const createAnalyticsService = () => ({
-  getAnalytics: mock(() => Promise.resolve({ shareId: 'share-1', totalViews: 10 })),
-  getEvents: mock(() => Promise.resolve([{ eventType: 'VIEW' }])),
-});
+class StubShareAnalyticsReader extends ShareAnalyticsReaderPort {
+  getAnalytics = mock(
+    async (shareId: string, _userId: string): Promise<ShareAnalyticsSummary> => ({
+      shareId,
+      totalViews: 10,
+      totalDownloads: 0,
+      uniqueVisitors: 5,
+      byCountry: [],
+      recentEvents: [],
+    }),
+  );
+  getEvents = mock(
+    async (): Promise<ShareAnalyticsEventItem[]> => [
+      {
+        eventType: 'VIEW',
+        ipAddress: 'hash',
+        userAgent: null,
+        referrer: null,
+        country: null,
+        city: null,
+        createdAt: new Date(),
+      },
+    ],
+  );
+}
 
 describe('ShareAnalyticsController - Contract', () => {
   let controller: ShareAnalyticsController;
-  const buildReq = (): RequestWithUser =>
-    ({
-      user: { userId: 'user-1', email: 'john@example.com' },
-    }) as unknown as RequestWithUser;
+  const buildReq = (): RequestWithUser => ({
+    user: { userId: 'user-1', email: 'john@example.com' },
+  });
 
   beforeEach(() => {
-    controller = new ShareAnalyticsController(createAnalyticsService() as never);
+    controller = new ShareAnalyticsController(new StubShareAnalyticsReader());
   });
 
   it('getAnalyticsNested returns data with analytics', async () => {

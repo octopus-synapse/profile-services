@@ -8,16 +8,16 @@ import {
   ShareAnalyticsEventsDataDto,
   ShareAnalyticsSummaryDataDto,
 } from '../dto/controller-response.dto';
-import { ShareAnalyticsService } from '../services/share-analytics.service';
+import { ShareAnalyticsReaderPort } from '../application/ports/share-analytics-reader.port';
 
-export interface RequestWithUser extends Request {
+export interface RequestWithUser extends Partial<Request> {
   user: { userId: string; email: string };
 }
 
 @ApiTags('share-analytics')
 @Controller('v1')
 export class ShareAnalyticsController {
-  constructor(private readonly analyticsService: ShareAnalyticsService) {}
+  constructor(private readonly analyticsService: ShareAnalyticsReaderPort) {}
 
   // Original nested endpoint
   @Get('resumes/:resumeId/shares/:shareId/analytics')

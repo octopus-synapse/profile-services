@@ -1,4 +1,7 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  EntityNotFoundException,
+  ValidationException,
+} from '@/shared-kernel/exceptions/domain.exceptions';
 import type { ConnectionRepositoryPort } from '../../ports/connection.port';
 
 export class RemoveConnectionUseCase {
@@ -7,15 +10,15 @@ export class RemoveConnectionUseCase {
   async execute(connectionId: string, currentUserId: string): Promise<void> {
     const connection = await this.repository.findConnectionById(connectionId);
     if (!connection) {
-      throw new NotFoundException('Connection not found');
+      throw new EntityNotFoundException('Connection', connectionId);
     }
 
     if (connection.status !== 'ACCEPTED') {
-      throw new BadRequestException('Connection is not accepted');
+      throw new ValidationException('Connection is not accepted');
     }
 
     if (connection.requesterId !== currentUserId && connection.targetId !== currentUserId) {
-      throw new BadRequestException('You are not part of this connection');
+      throw new ValidationException('You are not part of this connection');
     }
 
     await this.repository.deleteConnection(connectionId);

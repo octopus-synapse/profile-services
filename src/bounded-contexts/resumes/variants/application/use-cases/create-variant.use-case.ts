@@ -1,3 +1,7 @@
+import {
+  EntityNotFoundException,
+  ForbiddenException,
+} from '@/shared-kernel/exceptions/domain.exceptions';
 import type {
   CreateVariantInput,
   VariantData,
@@ -25,9 +29,9 @@ export class CreateVariantUseCase {
     orderOverrides?: Record<string, number>;
   }): Promise<VariantData> {
     const baseResume = await this.resumeReader.findById(input.baseResumeId);
-    if (!baseResume) throw new Error('Base resume not found');
+    if (!baseResume) throw new EntityNotFoundException('Resume', input.baseResumeId);
 
-    if (baseResume.userId !== input.userId) throw new Error('Not authorized');
+    if (baseResume.userId !== input.userId) throw new ForbiddenException();
 
     const createInput: CreateVariantInput = {
       baseResumeId: input.baseResumeId,

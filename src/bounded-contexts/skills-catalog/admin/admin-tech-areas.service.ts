@@ -1,7 +1,11 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Prisma, TechAreaType } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { paginate, patchData } from '@/shared-kernel/database';
+import { paginate, patchData, searchWhere } from '@/shared-kernel/database';
+import {
+  EntityNotFoundException,
+  ValidationException,
+} from '@/shared-kernel/exceptions/domain.exceptions';
 
 @Injectable()
 export class AdminTechAreasService {
@@ -11,10 +15,7 @@ export class AdminTechAreasService {
     const where: Prisma.TechAreaWhereInput = {};
 
     if (query.search) {
-      where.OR = [
-        { nameEn: { contains: query.search, mode: 'insensitive' } },
-        { namePtBr: { contains: query.search, mode: 'insensitive' } },
-      ];
+      where.OR = searchWhere(query.search, ['nameEn', 'namePtBr']);
     }
     if (query.isActive !== undefined) where.isActive = query.isActive;
 
@@ -28,7 +29,7 @@ export class AdminTechAreasService {
 
   async findOne(id: string) {
     const item = await this.prisma.techArea.findUnique({ where: { id } });
-    if (!item) throw new NotFoundException(`Tech area '${id}' not found`);
+    if (!item) throw new EntityNotFoundException('TechArea', id);
     return item;
   }
 
@@ -50,7 +51,7 @@ export class AdminTechAreasService {
 
   async update(id: string, dto: Record<string, unknown>) {
     const existing = await this.prisma.techArea.findUnique({ where: { id } });
-    if (!existing) throw new NotFoundException(`Tech area '${id}' not found`);
+    if (!existing) throw new EntityNotFoundException('TechArea', id);
 
     const data = patchData(dto, [
       'nameEn',
@@ -68,11 +69,11 @@ export class AdminTechAreasService {
 
   async remove(id: string) {
     const existing = await this.prisma.techArea.findUnique({ where: { id } });
-    if (!existing) throw new NotFoundException(`Tech area '${id}' not found`);
+    if (!existing) throw new EntityNotFoundException('TechArea', id);
 
     const childCount = await this.prisma.techNiche.count({ where: { areaId: id } });
     if (childCount > 0) {
-      throw new BadRequestException(
+      throw new ValidationException(
         `Cannot delete tech area - it has ${childCount} niche(s). Remove them first.`,
       );
     }

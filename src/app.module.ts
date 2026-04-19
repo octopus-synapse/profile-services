@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { AdminAnalyticsModule } from '@/bounded-contexts/analytics/admin/admin-analytics.module';
 import { ResumeAnalyticsModule } from '@/bounded-contexts/analytics/resume-analytics/resume-analytics.module';
@@ -40,7 +40,7 @@ import { validate } from '@/bounded-contexts/platform/common/config/env.validati
 import { CustomThrottlerGuard } from '@/bounded-contexts/platform/common/guards/custom-throttler.guard';
 import { LoggerModule } from '@/bounded-contexts/platform/common/logger/logger.module';
 import { PlatformModule } from '@/bounded-contexts/platform/common/platform.module';
-import { GraphqlModule } from '@/bounded-contexts/platform/graphql/graphql.module';
+
 import { HealthModule } from '@/bounded-contexts/platform/health/health.module';
 import { MetricsModule } from '@/bounded-contexts/platform/metrics/metrics.module';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
@@ -63,6 +63,7 @@ import { TranslationModule } from '@/bounded-contexts/translation';
 import { RATE_LIMIT_CONFIG } from '@/shared-kernel';
 // Shared Kernel
 import { EventBusModule } from '@/shared-kernel/event-bus/event-bus.module';
+import { DomainExceptionFilter } from '@/shared-kernel/filters/domain-exception.filter';
 import { ApiResponseInterceptor } from '@/shared-kernel/interceptors/api-response.interceptor';
 import { AppController } from './app.controller';
 
@@ -90,8 +91,6 @@ import { AppController } from './app.controller';
     PlatformModule,
     HealthModule,
     MetricsModule,
-    GraphqlModule,
-
     // Domain Modules
     AuthorizationModule,
     IdentityModule,
@@ -124,6 +123,11 @@ import { AppController } from './app.controller';
   ],
   controllers: [AppController],
   providers: [
+    // Domain → HTTP exception mapping
+    {
+      provide: APP_FILTER,
+      useClass: DomainExceptionFilter,
+    },
     // Global Interceptor (wraps responses with { success, data })
     {
       provide: APP_INTERCEPTOR,

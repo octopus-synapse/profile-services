@@ -1,8 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ConnectionService } from '@/bounded-contexts/social/services/connection.service';
 import { FollowService } from '@/bounded-contexts/social/services/follow.service';
+import { ValidationException } from '@/shared-kernel/exceptions/domain.exceptions';
 
 // --- Types ---
 
@@ -54,7 +55,7 @@ export class TestRunnerService {
       case 'onboarding-resume':
         return this.runSuite(suite, () => this.onboardingResume());
       default:
-        throw new BadRequestException(
+        throw new ValidationException(
           `Unknown suite "${suite}". Available: ${AVAILABLE_SUITES.join(', ')}`,
         );
     }

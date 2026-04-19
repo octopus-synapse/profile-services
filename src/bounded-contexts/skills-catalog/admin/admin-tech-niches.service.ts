@@ -1,7 +1,11 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { paginate, patchData } from '@/shared-kernel/database';
+import { paginate, patchData, searchWhere } from '@/shared-kernel/database';
+import {
+  EntityNotFoundException,
+  ValidationException,
+} from '@/shared-kernel/exceptions/domain.exceptions';
 
 @Injectable()
 export class AdminTechNichesService {
@@ -17,10 +21,7 @@ export class AdminTechNichesService {
     const where: Prisma.TechNicheWhereInput = {};
 
     if (query.search) {
-      where.OR = [
-        { nameEn: { contains: query.search, mode: 'insensitive' } },
-        { namePtBr: { contains: query.search, mode: 'insensitive' } },
-      ];
+      where.OR = searchWhere(query.search, ['nameEn', 'namePtBr']);
     }
     if (query.areaId) where.areaId = query.areaId;
     if (query.isActive !== undefined) where.isActive = query.isActive;
@@ -35,7 +36,7 @@ export class AdminTechNichesService {
 
   async findOne(id: string) {
     const item = await this.prisma.techNiche.findUnique({ where: { id } });
-    if (!item) throw new NotFoundException(`Tech niche '${id}' not found`);
+    if (!item) throw new EntityNotFoundException('TechNiche', id);
     return item;
   }
 
@@ -58,7 +59,7 @@ export class AdminTechNichesService {
 
   async update(id: string, dto: Record<string, unknown>) {
     const existing = await this.prisma.techNiche.findUnique({ where: { id } });
-    if (!existing) throw new NotFoundException(`Tech niche '${id}' not found`);
+    if (!existing) throw new EntityNotFoundException('TechNiche', id);
 
     const data = patchData(dto, [
       'slug',
@@ -78,11 +79,11 @@ export class AdminTechNichesService {
 
   async remove(id: string) {
     const existing = await this.prisma.techNiche.findUnique({ where: { id } });
-    if (!existing) throw new NotFoundException(`Tech niche '${id}' not found`);
+    if (!existing) throw new EntityNotFoundException('TechNiche', id);
 
     const childCount = await this.prisma.techSkill.count({ where: { nicheId: id } });
     if (childCount > 0) {
-      throw new BadRequestException(
+      throw new ValidationException(
         `Cannot delete tech niche - it has ${childCount} skill(s). Remove them first.`,
       );
     }

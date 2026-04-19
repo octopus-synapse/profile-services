@@ -67,6 +67,14 @@ export abstract class ConnectionRepositoryPort {
 
   abstract findSuggestions(userId: string, limit: number): Promise<ConnectionUser[]>;
 
+  abstract findRankedSuggestions(
+    userId: string,
+    pagination: PaginationParams,
+  ): Promise<{
+    data: Array<ConnectionUser & { reason: string; score: number }>;
+    total: number;
+  }>;
+
   abstract userExists(userId: string): Promise<boolean>;
 }
 

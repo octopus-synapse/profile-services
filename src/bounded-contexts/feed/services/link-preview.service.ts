@@ -7,12 +7,12 @@
 
 import { Injectable } from '@nestjs/common';
 
-export interface LinkPreviewData {
+export type LinkPreviewData = {
   title: string | null;
   description: string | null;
   image: string | null;
   domain: string;
-}
+};
 
 @Injectable()
 export class LinkPreviewService {

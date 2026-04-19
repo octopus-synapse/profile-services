@@ -1,20 +1,9 @@
 /**
  * Resume Analytics Module
  *
- * Provides resume insights and analytics:
- * - View tracking with time-series data
- * - ATS score calculation
- * - Keyword optimization
- * - Industry benchmarking
- * - Historical tracking
- *
- * Architecture: Clean Architecture with Facade pattern
- * The ResumeAnalyticsFacade orchestrates specialized services
- * while preserving a stable controller API.
- *
- * Event Handlers:
- * - ResumeCreatedHandler: Initializes analytics on resume creation
- * - ResumeUpdatedHandler: Tracks field updates for analytics patterns
+ * Architecture: Clean Architecture / Hexagonal.
+ * Services depend on ports defined in `application/ports/`.
+ * Adapters under `infrastructure/adapters/persistence/` bind ports to Prisma.
  */
 
 import { Module } from '@nestjs/common';
@@ -31,9 +20,29 @@ import {
   SyncProjectionOnSectionUpdatedHandler,
   VIEW_TRACKER,
 } from '../application/handlers';
-import { AnalyticsRecorderAdapter, ViewTrackerAdapter } from '../infrastructure/adapters';
+import { ANALYTICS_PROJECTION_PORT } from '../application/ports/analytics-projection.port';
+import {
+  AnalyticsProjectionAdapter,
+  AnalyticsRecorderAdapter,
+  ViewTrackerAdapter,
+} from '../infrastructure/adapters';
+import {
+  ANALYTICS_EVENT_BUS_PORT,
+  AnalyticsEventBusPort,
+} from './application/ports/analytics-event-bus.port';
+import {
+  AtsScoreCatalogPort,
+  BenchmarkRepositoryPort,
+  SnapshotRepositoryPort,
+  ViewTrackingRepositoryPort,
+} from './application/ports/resume-analytics.port';
 import { AnalyticsSseController } from './controllers/analytics-sse.controller';
 import { ResumeAnalyticsController } from './controllers/resume-analytics.controller';
+import { PrismaAtsScoreCatalogRepository } from './infrastructure/adapters/persistence/ats-score-catalog.repository';
+import { PrismaBenchmarkRepository } from './infrastructure/adapters/persistence/benchmark.repository';
+import { EventEmitterAnalyticsEventBusAdapter } from './infrastructure/adapters/persistence/event-emitter-analytics-event-bus.adapter';
+import { PrismaSnapshotRepository } from './infrastructure/adapters/persistence/snapshot.repository';
+import { PrismaViewTrackingRepository } from './infrastructure/adapters/persistence/view-tracking.repository';
 import { SNAPSHOT_PORT, VIEW_TRACKING_PORT } from './ports';
 import { ATSScoreService } from './services/ats-score.service';
 import { BenchmarkService } from './services/benchmark.service';
@@ -42,6 +51,7 @@ import { KeywordAnalysisService } from './services/keyword-analysis.service';
 import { ResumeAnalyticsFacade } from './services/resume-analytics.facade';
 import { SnapshotService } from './services/snapshot.service';
 import { ViewTrackingService } from './services/view-tracking.service';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 
 @Module({
   imports: [PrismaModule],
@@ -59,13 +69,16 @@ import { ViewTrackingService } from './services/view-tracking.service';
     ResumeCreatedHandler,
     ResumeUpdatedHandler,
     InitializeAnalyticsOnUserRegisteredHandler,
-    // Projection Sync Handlers
     SyncProjectionOnResumeCreatedHandler,
     SyncProjectionOnResumeDeletedHandler,
     SyncProjectionOnSectionAddedHandler,
     SyncProjectionOnSectionUpdatedHandler,
     SyncProjectionOnSectionRemovedHandler,
-    // Port Adapters
+    // Port Adapters (infrastructure)
+    {
+      provide: ANALYTICS_PROJECTION_PORT,
+      useClass: AnalyticsProjectionAdapter,
+    },
     {
       provide: ANALYTICS_RECORDER,
       useClass: AnalyticsRecorderAdapter,
@@ -73,6 +86,30 @@ import { ViewTrackingService } from './services/view-tracking.service';
     {
       provide: VIEW_TRACKER,
       useClass: ViewTrackerAdapter,
+    },
+    {
+      provide: ANALYTICS_EVENT_BUS_PORT,
+      useClass: EventEmitterAnalyticsEventBusAdapter,
+    },
+    {
+      provide: ViewTrackingRepositoryPort,
+      useFactory: (prisma: PrismaService) => new PrismaViewTrackingRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: SnapshotRepositoryPort,
+      useFactory: (prisma: PrismaService) => new PrismaSnapshotRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: BenchmarkRepositoryPort,
+      useFactory: (prisma: PrismaService) => new PrismaBenchmarkRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: AtsScoreCatalogPort,
+      useFactory: (prisma: PrismaService) => new PrismaAtsScoreCatalogRepository(prisma),
+      inject: [PrismaService],
     },
     // Dashboard Ports
     {

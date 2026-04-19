@@ -10,18 +10,17 @@ import type {
   ScoreProgressionPoint,
   ViewStats,
 } from '../../../interfaces';
+import type { AtsScoringPort, ViewStatsProviderPort } from '../../ports/facade.ports';
 import type {
   ResumeOwnershipPort,
   SnapshotRepositoryPort,
 } from '../../ports/resume-analytics.port';
-import type { CalculateAtsScoreUseCase } from '../calculate-ats-score/calculate-ats-score.use-case';
-import type { GetViewStatsUseCase } from '../get-view-stats/get-view-stats.use-case';
 
 export class BuildAnalyticsDashboardUseCase {
   constructor(
     private readonly ownership: ResumeOwnershipPort,
-    private readonly viewStatsUseCase: GetViewStatsUseCase,
-    private readonly atsScore: CalculateAtsScoreUseCase,
+    private readonly viewStats: ViewStatsProviderPort,
+    private readonly atsScore: AtsScoringPort,
     private readonly snapshotRepo: SnapshotRepositoryPort,
   ) {}
 
@@ -30,7 +29,7 @@ export class BuildAnalyticsDashboardUseCase {
     const resume = await this.ownership.getResumeWithDetails(resumeId);
 
     const [viewStats, progression] = await Promise.all([
-      this.viewStatsUseCase.getViewStats(resumeId, { period: 'month' }),
+      this.viewStats.getViewStats(resumeId, { period: 'month' }),
       this.snapshotRepo.getScoreProgression(resumeId, 30),
     ]);
     const atsResult = await this.atsScore.calculate(resume);

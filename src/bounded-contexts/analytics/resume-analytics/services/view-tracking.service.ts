@@ -1,44 +1,44 @@
 import { createHash } from 'node:crypto';
-import { Injectable } from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { Inject, Injectable } from '@nestjs/common';
+import {
+  ANALYTICS_EVENT_BUS_PORT,
+  AnalyticsEventBusPort,
+} from '../application/ports/analytics-event-bus.port';
+import { ViewTrackingRepositoryPort } from '../application/ports/resume-analytics.port';
 import { TRAFFIC_SOURCES } from '../domain/value-objects/traffic-sources';
 import type { TrackView, ViewStats, ViewStatsOptions } from '../interfaces';
 
 @Injectable()
 export class ViewTrackingService {
   constructor(
-    private readonly prisma: PrismaService,
-    private readonly eventEmitter: EventEmitter2,
+    private readonly repository: ViewTrackingRepositoryPort,
+    @Inject(ANALYTICS_EVENT_BUS_PORT)
+    private readonly eventBus: AnalyticsEventBusPort,
   ) {}
 
   async trackView(dto: TrackView): Promise<void> {
     const ipHash = this.anonymizeIP(dto.ip);
     const source = this.detectSource(dto.referer);
 
-    await this.prisma.resumeViewEvent.create({
-      data: {
-        resumeId: dto.resumeId,
-        ipHash,
-        userAgent: dto.userAgent,
-        referer: dto.referer,
-        country: dto.country,
-        city: dto.city,
-        source,
-      },
+    await this.repository.trackView({
+      resumeId: dto.resumeId,
+      ipHash,
+      userAgent: dto.userAgent,
+      referer: dto.referer,
+      country: dto.country,
+      city: dto.city,
+      source,
     });
 
-    // Emit SSE event with updated view count
-    const totalViews = await this.prisma.resumeViewEvent.count({
-      where: { resumeId: dto.resumeId },
-    });
+    const now = new Date();
+    const totalViews = await this.repository.countViews(dto.resumeId, new Date(0), now);
 
-    this.eventEmitter.emit(`analytics:${dto.resumeId}:view`, {
+    this.eventBus.emit(`analytics:${dto.resumeId}:view`, {
       type: 'view',
       resumeId: dto.resumeId,
       data: {
         views: totalViews,
-        timestamp: new Date(),
+        timestamp: now,
       },
     });
   }
@@ -47,18 +47,13 @@ export class ViewTrackingService {
     const { startDate, endDate } = this.getDateRange(options.period);
 
     const [totalViews, uniqueVisitors] = await Promise.all([
-      this.prisma.resumeViewEvent.count({
-        where: { resumeId, createdAt: { gte: startDate, lte: endDate } },
-      }),
-      this.prisma.resumeViewEvent.groupBy({
-        by: ['ipHash'],
-        where: { resumeId, createdAt: { gte: startDate, lte: endDate } },
-      }),
+      this.repository.countViews(resumeId, startDate, endDate),
+      this.repository.countUniqueVisitors(resumeId, startDate, endDate),
     ]);
 
     return {
       totalViews,
-      uniqueVisitors: uniqueVisitors.length,
+      uniqueVisitors,
       viewsByDay: [],
       topSources: [],
     };

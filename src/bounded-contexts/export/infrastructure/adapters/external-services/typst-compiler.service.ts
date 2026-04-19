@@ -10,10 +10,10 @@
  */
 
 import { execFile } from 'node:child_process';
+import { randomBytes } from 'node:crypto';
 import { access, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { Injectable, Logger } from '@nestjs/common';
-import { nanoid } from 'nanoid';
 
 const DEFAULT_TIMEOUT_MS = 30_000;
 const TYPST_BINARY = process.env.TYPST_BINARY_PATH ?? 'typst';
@@ -42,7 +42,7 @@ export class TypstCompilerService {
     templatesPath: string,
     options: TypstCompileOptions = {},
   ): Promise<Buffer> {
-    const workDir = join('/tmp', `typst-${nanoid(10)}`);
+    const workDir = join('/tmp', `typst-${randomBytes(5).toString('hex')}`);
     const timeout = options.timeout ?? DEFAULT_TIMEOUT_MS;
 
     try {
@@ -211,7 +211,7 @@ export class TypstCompilerService {
     templatesPath: string,
     options: TypstCompileOptions & { ppi?: number } = {},
   ): Promise<Buffer> {
-    const workDir = join('/tmp', `typst-${nanoid(10)}`);
+    const workDir = join('/tmp', `typst-${randomBytes(5).toString('hex')}`);
     const timeout = options.timeout ?? DEFAULT_TIMEOUT_MS;
 
     try {

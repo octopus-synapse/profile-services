@@ -9,10 +9,13 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { CreateResume, UpdateResume } from '@/shared-kernel';
+import {
+  EntityNotFoundException,
+  ForbiddenException,
+} from '@/shared-kernel/exceptions/domain.exceptions';
 import { ResumesRepository } from './resumes.repository';
 
 class InMemoryResumesStore {
@@ -265,10 +268,10 @@ describe('ResumesRepository', () => {
       expect(result).toBe(true);
     });
 
-    it('should throw NotFoundException when resume does not exist', async () => {
+    it('should throw EntityNotFoundException when resume does not exist', async () => {
       await expect(
         async () => await repository.deleteResumeForUser('non-existent', 'user-1'),
-      ).toThrow(NotFoundException);
+      ).toThrow(EntityNotFoundException);
     });
 
     it('should throw ForbiddenException when user does not own resume', async () => {

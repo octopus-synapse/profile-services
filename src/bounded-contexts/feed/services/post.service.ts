@@ -5,9 +5,13 @@
  * Supports creation, retrieval, soft deletion, and cursor-based pagination.
  */
 
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import type { PostType, Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import {
+  EntityNotFoundException,
+  ForbiddenException,
+} from '@/shared-kernel/exceptions/domain.exceptions';
 
 const AUTHOR_SELECT = {
   id: true,
@@ -69,9 +73,7 @@ export class PostService {
         scheduledAt,
         isPublished,
         threadId: dto.threadId,
-        codeSnippet: dto.codeSnippet
-          ? (dto.codeSnippet as unknown as Prisma.InputJsonValue)
-          : undefined,
+        codeSnippet: dto.codeSnippet,
       },
       include: {
         author: { select: AUTHOR_SELECT },
@@ -106,7 +108,7 @@ export class PostService {
     });
 
     if (!post || post.isDeleted) {
-      throw new NotFoundException('Post not found');
+      throw new EntityNotFoundException('Post', id);
     }
 
     return post;
@@ -121,7 +123,7 @@ export class PostService {
     });
 
     if (!post || post.isDeleted) {
-      throw new NotFoundException('Post not found');
+      throw new EntityNotFoundException('Post', id);
     }
 
     if (post.authorId !== userId) {

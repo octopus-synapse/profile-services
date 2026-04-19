@@ -1,23 +1,19 @@
-/**
- * Sync Projection on Resume Created Handler
- *
- * Maintains the analytics read model by creating a projection
- * when a resume is created in the Resumes context.
- *
- * This eliminates cross-context database queries.
- * GENERIC: Uses JSON sectionCounts instead of individual columns.
- */
-
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ResumeCreatedEvent } from '@/bounded-contexts/resumes';
+import {
+  ANALYTICS_PROJECTION_PORT,
+  AnalyticsProjectionPort,
+} from '../ports/analytics-projection.port';
 
 @Injectable()
 export class SyncProjectionOnResumeCreatedHandler {
   private readonly logger = new Logger(SyncProjectionOnResumeCreatedHandler.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    @Inject(ANALYTICS_PROJECTION_PORT)
+    private readonly projection: AnalyticsProjectionPort,
+  ) {}
 
   @OnEvent(ResumeCreatedEvent.TYPE)
   async handle(event: ResumeCreatedEvent): Promise<void> {
@@ -26,19 +22,7 @@ export class SyncProjectionOnResumeCreatedHandler {
 
     this.logger.log(`Creating analytics projection for resume: ${resumeId}`);
 
-    await this.prisma.analyticsResumeProjection.upsert({
-      where: { id: resumeId },
-      create: {
-        id: resumeId,
-        userId,
-        title,
-        sectionCounts: {},
-      },
-      update: {
-        userId,
-        title,
-      },
-    });
+    await this.projection.upsertProjection(resumeId, { userId, title });
 
     this.logger.log(`Analytics projection created for resume: ${resumeId}`);
   }

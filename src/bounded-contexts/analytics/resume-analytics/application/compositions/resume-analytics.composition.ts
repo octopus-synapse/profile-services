@@ -9,6 +9,7 @@ import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.se
 import type { EventPublisher } from '@/shared-kernel';
 import { PrismaAtsScoreCatalogRepository } from '../../infrastructure/adapters/persistence/ats-score-catalog.repository';
 import { PrismaBenchmarkRepository } from '../../infrastructure/adapters/persistence/benchmark.repository';
+import { EventEmitterAnalyticsEventBusAdapter } from '../../infrastructure/adapters/persistence/event-emitter-analytics-event-bus.adapter';
 import { PrismaResumeOwnershipRepository } from '../../infrastructure/adapters/persistence/resume-ownership.repository';
 import { PrismaSnapshotRepository } from '../../infrastructure/adapters/persistence/snapshot.repository';
 import { PrismaViewTrackingRepository } from '../../infrastructure/adapters/persistence/view-tracking.repository';
@@ -39,12 +40,13 @@ export function buildResumeAnalyticsUseCases(
   const snapshotRepo = new PrismaSnapshotRepository(prisma);
   const viewTrackingRepo = new PrismaViewTrackingRepository(prisma);
   const ownershipRepo = new PrismaResumeOwnershipRepository(prisma);
+  const analyticsEventBus = new EventEmitterAnalyticsEventBusAdapter(eventEmitter);
 
   // Use cases
   const calculateAtsScoreUseCase = new CalculateAtsScoreUseCase(
     catalogRepo,
     ownershipRepo,
-    eventEmitter,
+    analyticsEventBus,
     eventPublisher,
   );
 
@@ -75,7 +77,7 @@ export function buildResumeAnalyticsUseCases(
 
   const getScoreProgressionUseCase = new GetScoreProgressionUseCase(ownershipRepo, snapshotRepo);
 
-  const trackViewUseCase = new TrackViewUseCase(ownershipRepo, viewTrackingRepo, eventEmitter);
+  const trackViewUseCase = new TrackViewUseCase(ownershipRepo, viewTrackingRepo, analyticsEventBus);
 
   return {
     calculateAtsScoreUseCase,

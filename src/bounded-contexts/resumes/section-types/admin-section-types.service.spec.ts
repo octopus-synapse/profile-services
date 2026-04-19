@@ -1,7 +1,11 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import {
+  ConflictException,
+  EntityNotFoundException,
+  ValidationException,
+} from '@/shared-kernel/exceptions/domain.exceptions';
 import { AdminSectionTypesService } from './admin-section-types.service';
 import { InMemorySectionTypesRepository } from './testing';
 
@@ -135,8 +139,8 @@ describe('AdminSectionTypesService', () => {
       expect(result.key).toBe('test_section_v1');
     });
 
-    it('should throw NotFoundException when not found', async () => {
-      await expect(service.findOne('nonexistent')).rejects.toThrow(NotFoundException);
+    it('should throw EntityNotFoundException when not found', async () => {
+      await expect(service.findOne('nonexistent')).rejects.toThrow(EntityNotFoundException);
     });
   });
 
@@ -216,11 +220,13 @@ describe('AdminSectionTypesService', () => {
       expect(result.icon).toBe('🔄');
     });
 
-    it('should throw NotFoundException when not found', async () => {
-      await expect(service.update('nonexistent', updateDto)).rejects.toThrow(NotFoundException);
+    it('should throw EntityNotFoundException when not found', async () => {
+      await expect(service.update('nonexistent', updateDto)).rejects.toThrow(
+        EntityNotFoundException,
+      );
     });
 
-    it('should throw BadRequestException when updating restricted fields on system types', async () => {
+    it('should throw ValidationException when updating restricted fields on system types', async () => {
       repository.seedSectionType({
         key: 'system_section_v1',
         slug: 'system',
@@ -232,7 +238,7 @@ describe('AdminSectionTypesService', () => {
         service.update('system_section_v1', {
           definition: { fields: [{ key: 'newField', type: 'string' }] },
         }),
-      ).rejects.toThrow(BadRequestException);
+      ).rejects.toThrow(ValidationException);
     });
 
     it('should allow updating non-restricted fields on system types', async () => {
@@ -288,11 +294,11 @@ describe('AdminSectionTypesService', () => {
       expect(repository.getSectionType('test_section_v1')).toBeUndefined();
     });
 
-    it('should throw NotFoundException when not found', async () => {
-      await expect(service.remove('nonexistent')).rejects.toThrow(NotFoundException);
+    it('should throw EntityNotFoundException when not found', async () => {
+      await expect(service.remove('nonexistent')).rejects.toThrow(EntityNotFoundException);
     });
 
-    it('should throw BadRequestException for system types', async () => {
+    it('should throw ValidationException for system types', async () => {
       repository.seedSectionType({
         key: 'system_section_v1',
         slug: 'system',
@@ -300,10 +306,10 @@ describe('AdminSectionTypesService', () => {
         isSystem: true,
       });
 
-      await expect(service.remove('system_section_v1')).rejects.toThrow(BadRequestException);
+      await expect(service.remove('system_section_v1')).rejects.toThrow(ValidationException);
     });
 
-    it('should throw BadRequestException if section type is in use', async () => {
+    it('should throw ValidationException if section type is in use', async () => {
       const sectionType = repository.getSectionType('test_section_v1');
       if (!sectionType) throw new Error('Section type not found in test setup');
       repository.seedResumeSection({
@@ -311,7 +317,7 @@ describe('AdminSectionTypesService', () => {
         sectionTypeId: sectionType.id,
       });
 
-      await expect(service.remove('test_section_v1')).rejects.toThrow(BadRequestException);
+      await expect(service.remove('test_section_v1')).rejects.toThrow(ValidationException);
     });
   });
 

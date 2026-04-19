@@ -12,8 +12,12 @@
  */
 
 import { createHash } from 'node:crypto';
-import { ForbiddenException, Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import type { AnalyticsEvent } from '@prisma/client';
+import {
+  EntityNotFoundException,
+  ForbiddenException,
+} from '@/shared-kernel/exceptions/domain.exceptions';
 import { SHARE_ANALYTICS_REPOSITORY, type ShareAnalyticsRepositoryPort } from '../ports';
 
 interface TrackEvent {
@@ -53,7 +57,7 @@ export class ShareAnalyticsService {
     const share = await this.repository.findShareWithOwner(shareId);
 
     if (!share) {
-      throw new ForbiddenException('Share not found');
+      throw new EntityNotFoundException('Share', shareId);
     }
 
     if (share.resume.userId !== userId) {
@@ -98,7 +102,7 @@ export class ShareAnalyticsService {
     const share = await this.repository.findShareWithOwner(shareId);
 
     if (!share) {
-      throw new ForbiddenException('Share not found');
+      throw new EntityNotFoundException('Share', shareId);
     }
 
     if (share.resume.userId !== userId) {

@@ -26,7 +26,7 @@ describe('SkillQueryService', () => {
 
     cacheService = new InMemoryCacheService();
 
-    service = new SkillQueryService(techSkillRepo as never, cacheService as never);
+    service = new SkillQueryService(techSkillRepo, cacheService);
   });
 
   describe('getAllSkills', () => {

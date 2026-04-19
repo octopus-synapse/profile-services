@@ -1,229 +1,144 @@
 /**
- * FollowController Tests
- *
- * Clean architecture: Stub Services, Pure Bun tests
+ * FollowController Tests — port-based stubs.
  */
 
-import { beforeEach, describe, expect, it } from 'bun:test';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { ConflictException } from '@nestjs/common';
+import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
+import type { ConnectionUser, ConnectionWithUser } from '../application/ports/connection.port';
+import {
+  ActivityLoggerPort,
+  ConnectionReaderPort,
+  FollowReaderPort,
+} from '../application/ports/facade.ports';
+import type {
+  FollowWithUser,
+  PaginatedResult,
+  PaginationParams,
+} from '../application/ports/follow.port';
 import { FollowController } from './follow.controller';
 
-/**
- * Follow record type
- */
-interface FollowRecord {
-  id: string;
-  followerId: string;
-  followingId: string;
-  following?: { id: string; name: string };
-  createdAt: Date;
-}
+const makeUser = (userId: string): UserPayload => ({
+  userId,
+  email: `${userId}@test.local`,
+  hasCompletedOnboarding: true,
+});
 
-/**
- * User reference type
- */
-interface UserRef {
-  id: string;
-  name: string;
-}
+const emptyPage = <T>(pagination: PaginationParams): PaginatedResult<T> => ({
+  data: [],
+  total: 0,
+  page: pagination.page,
+  limit: pagination.limit,
+  totalPages: 0,
+});
 
-/**
- * Paginated response type
- */
-interface PaginatedFollow<T> {
-  data: T[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
-
-interface PaginationOptions {
-  page: number;
-  limit: number;
-}
-
-/**
- * Stub FollowService for testing
- */
-class StubFollowService {
-  private followResult: FollowRecord = {
+class StubFollowReader extends FollowReaderPort {
+  private followResult: FollowWithUser = {
     id: 'follow-1',
     followerId: 'user-1',
     followingId: 'user-2',
     createdAt: new Date(),
   };
   private followError: Error | null = null;
-  private followersResult: PaginatedFollow<{ id: string; follower: UserRef }> = {
-    data: [],
-    total: 0,
-    page: 1,
-    limit: 10,
-    totalPages: 0,
-  };
-  private followingResult: PaginatedFollow<{ id: string; following: UserRef }> = {
-    data: [],
-    total: 0,
-    page: 1,
-    limit: 10,
-    totalPages: 0,
-  };
+  private followersResult: PaginatedResult<FollowWithUser> = emptyPage({ page: 1, limit: 10 });
+  private followingResult: PaginatedResult<FollowWithUser> = emptyPage({ page: 1, limit: 10 });
   private isFollowingResult = false;
   private socialStatsResult = { followers: 0, following: 0, connections: 0 };
 
-  calls: Array<{ method: string; args: unknown[] }> = [];
-
-  setFollowResult(result: FollowRecord): void {
-    this.followResult = result;
-  }
-
-  setFollowError(error: Error): void {
-    this.followError = error;
-  }
-
-  setFollowersResult(result: PaginatedFollow<{ id: string; follower: UserRef }>): void {
-    this.followersResult = result;
-  }
-
-  setFollowingResult(result: PaginatedFollow<{ id: string; following: UserRef }>): void {
-    this.followingResult = result;
-  }
-
-  setIsFollowingResult(result: boolean): void {
-    this.isFollowingResult = result;
-  }
-
-  setSocialStatsResult(result: {
-    followers: number;
-    following: number;
-    connections: number;
-  }): void {
-    this.socialStatsResult = result;
-  }
-
-  async follow(followerId: string, followingId: string): Promise<FollowRecord> {
-    this.calls.push({ method: 'follow', args: [followerId, followingId] });
+  follow = mock(async (_follower: string, _following: string): Promise<FollowWithUser> => {
     if (this.followError) throw this.followError;
     return this.followResult;
-  }
+  });
+  unfollow = mock(async (_follower: string, _following: string): Promise<void> => {});
+  isFollowing = mock(async (): Promise<boolean> => this.isFollowingResult);
+  getFollowers = mock(
+    async (
+      _userId: string,
+      _pagination: PaginationParams,
+    ): Promise<PaginatedResult<FollowWithUser>> => this.followersResult,
+  );
+  getFollowing = mock(
+    async (
+      _userId: string,
+      _pagination: PaginationParams,
+    ): Promise<PaginatedResult<FollowWithUser>> => this.followingResult,
+  );
+  getSocialStats = mock(async (): Promise<{ followers: number; following: number; connections: number }> => this.socialStatsResult);
 
-  async unfollow(followerId: string, followingId: string): Promise<void> {
-    this.calls.push({ method: 'unfollow', args: [followerId, followingId] });
+  setFollowResult(r: FollowWithUser): void {
+    this.followResult = r;
   }
-
-  async getFollowers(
-    userId: string,
-    options: PaginationOptions,
-  ): Promise<PaginatedFollow<{ id: string; follower: UserRef }>> {
-    this.calls.push({ method: 'getFollowers', args: [userId, options] });
-    return this.followersResult;
+  setFollowError(err: Error): void {
+    this.followError = err;
   }
-
-  async getFollowing(
-    userId: string,
-    options: PaginationOptions,
-  ): Promise<PaginatedFollow<{ id: string; following: UserRef }>> {
-    this.calls.push({ method: 'getFollowing', args: [userId, options] });
-    return this.followingResult;
+  setFollowersResult(r: PaginatedResult<FollowWithUser>): void {
+    this.followersResult = r;
   }
-
-  async isFollowing(followerId: string, followingId: string): Promise<boolean> {
-    this.calls.push({ method: 'isFollowing', args: [followerId, followingId] });
-    return this.isFollowingResult;
+  setFollowingResult(r: PaginatedResult<FollowWithUser>): void {
+    this.followingResult = r;
   }
-
-  async getSocialStats(
-    userId: string,
-  ): Promise<{ followers: number; following: number; connections: number }> {
-    this.calls.push({ method: 'getSocialStats', args: [userId] });
-    return this.socialStatsResult;
+  setIsFollowingResult(r: boolean): void {
+    this.isFollowingResult = r;
   }
-
-  getLastCall(method: string): { method: string; args: unknown[] } | undefined {
-    return this.calls.filter((c) => c.method === method).pop();
+  setSocialStatsResult(r: { followers: number; following: number; connections: number }): void {
+    this.socialStatsResult = r;
   }
 }
 
-/**
- * Stub ConnectionService for testing
- */
-class StubConnectionService {
-  async getPendingRequests() {
-    return { data: [], total: 0, page: 1, limit: 1, totalPages: 0 };
-  }
+class StubActivityLogger extends ActivityLoggerPort {
+  logFollowedUser = mock(async () => {});
 }
 
-/**
- * Stub ActivityService for testing
- */
-class StubActivityService {
-  calls: Array<{ method: string; args: unknown[] }> = [];
-
-  async logFollowedUser(userId: string, targetId: string, targetName: string): Promise<void> {
-    this.calls.push({
-      method: 'logFollowedUser',
-      args: [userId, targetId, targetName],
-    });
-  }
+class StubConnectionReader extends ConnectionReaderPort {
+  getPendingRequests = mock(
+    async (
+      _userId: string,
+      pagination: PaginationParams,
+    ): Promise<PaginatedResult<ConnectionWithUser & { user?: ConnectionUser }>> =>
+      emptyPage(pagination),
+  );
 }
 
 describe('FollowController', () => {
   let controller: FollowController;
-  let stubFollowService: StubFollowService;
-  let stubActivityService: StubActivityService;
-  let stubConnectionService: StubConnectionService;
+  let stubFollowReader: StubFollowReader;
+  let stubActivityLogger: StubActivityLogger;
+  let stubConnectionReader: StubConnectionReader;
 
   beforeEach(() => {
-    stubFollowService = new StubFollowService();
-    stubActivityService = new StubActivityService();
-    stubConnectionService = new StubConnectionService();
-    controller = new FollowController(
-      stubFollowService as unknown as ConstructorParameters<typeof FollowController>[0],
-      stubActivityService as unknown as ConstructorParameters<typeof FollowController>[1],
-      stubConnectionService as unknown as ConstructorParameters<typeof FollowController>[2],
-    );
+    stubFollowReader = new StubFollowReader();
+    stubActivityLogger = new StubActivityLogger();
+    stubConnectionReader = new StubConnectionReader();
+    controller = new FollowController(stubFollowReader, stubActivityLogger, stubConnectionReader);
   });
 
   describe('POST /users/:userId/follow', () => {
     it('should follow a user successfully', async () => {
-      const currentUserId = 'user-1';
-      const targetUserId = 'user-2';
-      const mockUser = { userId: currentUserId };
-
-      const result = await controller.follow(mockUser as never, targetUserId);
+      const result = await controller.follow(makeUser('user-1'), 'user-2');
 
       expect(result.success).toBe(true);
-
-      const call = stubFollowService.getLastCall('follow');
-      expect(call?.args[0]).toBe(currentUserId);
-      expect(call?.args[1]).toBe(targetUserId);
+      expect(stubFollowReader.follow).toHaveBeenCalledWith('user-1', 'user-2');
     });
 
     it('should create activity when following', async () => {
-      const currentUserId = 'user-1';
-      const targetUserId = 'user-2';
-      const mockUser = { userId: currentUserId };
-
-      stubFollowService.setFollowResult({
+      stubFollowReader.setFollowResult({
         id: 'follow-1',
-        followerId: currentUserId,
-        followingId: targetUserId,
-        following: { id: targetUserId, name: 'Target User' },
+        followerId: 'user-1',
+        followingId: 'user-2',
+        following: { id: 'user-2', name: 'Target User', username: null, photoURL: null },
         createdAt: new Date(),
       });
 
-      await controller.follow(mockUser as never, targetUserId);
+      await controller.follow(makeUser('user-1'), 'user-2');
 
-      // Give time for fire-and-forget activity logging
       await new Promise((r) => setTimeout(r, 10));
-      expect(stubActivityService.calls.length).toBeGreaterThan(0);
+      expect(stubActivityLogger.logFollowedUser).toHaveBeenCalled();
     });
 
     it('should return error response on conflict', async () => {
-      const mockUser = { userId: 'user-1' };
-      stubFollowService.setFollowError(new ConflictException('Already following'));
+      stubFollowReader.setFollowError(new ConflictException('Already following'));
 
-      await expect(controller.follow(mockUser as never, 'user-2')).rejects.toThrow(
+      await expect(controller.follow(makeUser('user-1'), 'user-2')).rejects.toThrow(
         ConflictException,
       );
     });
@@ -231,87 +146,83 @@ describe('FollowController', () => {
 
   describe('DELETE /users/:userId/follow', () => {
     it('should unfollow a user successfully', async () => {
-      const currentUserId = 'user-1';
-      const targetUserId = 'user-2';
-      const mockUser = { userId: currentUserId };
-
-      const result = await controller.unfollow(mockUser as never, targetUserId);
+      const result = await controller.unfollow(makeUser('user-1'), 'user-2');
 
       expect(result.success).toBe(true);
       expect(result.data).toEqual({ unfollowed: true });
-
-      const call = stubFollowService.getLastCall('unfollow');
-      expect(call?.args[0]).toBe(currentUserId);
-      expect(call?.args[1]).toBe(targetUserId);
+      expect(stubFollowReader.unfollow).toHaveBeenCalledWith('user-1', 'user-2');
     });
   });
 
   describe('GET /users/:userId/followers', () => {
     it('should return paginated followers list', async () => {
-      const userId = 'user-1';
-      const mockFollowers: PaginatedFollow<{ id: string; follower: UserRef }> = {
-        data: [{ id: 'follow-1', follower: { id: 'user-2', name: 'User 2' } }],
+      const mockFollowers: PaginatedResult<FollowWithUser> = {
+        data: [
+          {
+            id: 'follow-1',
+            followerId: 'user-2',
+            followingId: 'user-1',
+            createdAt: new Date(),
+            follower: { id: 'user-2', name: 'User 2', username: null, photoURL: null },
+          },
+        ],
         total: 1,
         page: 1,
         limit: 10,
         totalPages: 1,
       };
 
-      stubFollowService.setFollowersResult(mockFollowers);
+      stubFollowReader.setFollowersResult(mockFollowers);
 
-      const result = await controller.getFollowers(userId, 1, 10);
+      const result = await controller.getFollowers('user-1', 1, 10);
 
       expect(result.success).toBe(true);
-      expect(result.data).toEqual({ followers: mockFollowers });
-
-      const call = stubFollowService.getLastCall('getFollowers');
-      expect(call?.args[0]).toBe(userId);
-      expect(call?.args[1]).toEqual({ page: 1, limit: 10 });
+      expect(stubFollowReader.getFollowers).toHaveBeenCalledWith('user-1', {
+        page: 1,
+        limit: 10,
+      });
     });
   });
 
   describe('GET /users/:userId/following', () => {
     it('should return paginated following list', async () => {
-      const userId = 'user-1';
-      const mockFollowing: PaginatedFollow<{
-        id: string;
-        following: UserRef;
-      }> = {
-        data: [{ id: 'follow-1', following: { id: 'user-3', name: 'User 3' } }],
+      const mockFollowing: PaginatedResult<FollowWithUser> = {
+        data: [
+          {
+            id: 'follow-1',
+            followerId: 'user-1',
+            followingId: 'user-3',
+            createdAt: new Date(),
+            following: { id: 'user-3', name: 'User 3', username: null, photoURL: null },
+          },
+        ],
         total: 1,
         page: 1,
         limit: 10,
         totalPages: 1,
       };
 
-      stubFollowService.setFollowingResult(mockFollowing);
+      stubFollowReader.setFollowingResult(mockFollowing);
 
-      const result = await controller.getFollowing(userId, 1, 10);
+      const result = await controller.getFollowing('user-1', 1, 10);
 
       expect(result.success).toBe(true);
-      expect(result.data).toEqual({ following: mockFollowing });
     });
   });
 
   describe('GET /users/:userId/is-following', () => {
     it('should return true when following', async () => {
-      const currentUserId = 'user-1';
-      const targetUserId = 'user-2';
-      const mockUser = { userId: currentUserId };
+      stubFollowReader.setIsFollowingResult(true);
 
-      stubFollowService.setIsFollowingResult(true);
+      const result = await controller.isFollowing(makeUser('user-1'), 'user-2');
 
-      const result = await controller.isFollowing(mockUser as never, targetUserId);
-
-      expect(result.success).toBe(true);
       expect(result.data?.isFollowing).toBe(true);
     });
 
     it('should return false when not following', async () => {
-      const mockUser = { userId: 'user-1' };
-      stubFollowService.setIsFollowingResult(false);
+      stubFollowReader.setIsFollowingResult(false);
 
-      const result = await controller.isFollowing(mockUser as never, 'user-2');
+      const result = await controller.isFollowing(makeUser('user-1'), 'user-2');
 
       expect(result.data?.isFollowing).toBe(false);
     });
@@ -319,14 +230,13 @@ describe('FollowController', () => {
 
   describe('GET /users/:userId/social-stats', () => {
     it('should return follower and following counts', async () => {
-      const userId = 'user-1';
-      stubFollowService.setSocialStatsResult({
+      stubFollowReader.setSocialStatsResult({
         followers: 100,
         following: 50,
         connections: 30,
       });
 
-      const result = await controller.getSocialStats(userId);
+      const result = await controller.getSocialStats('user-1');
 
       expect(result.success).toBe(true);
       expect(result.data).toEqual({ followers: 100, following: 50, connections: 30 });

@@ -4,10 +4,10 @@
  * Infrastructure adapter for resume style configuration operations.
  */
 
-import { ForbiddenException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ERROR_MESSAGES } from '@/shared-kernel';
+import { ForbiddenException } from '@/shared-kernel/exceptions/domain.exceptions';
 import {
   type ResumeConfig,
   ResumeConfigRepositoryPort,

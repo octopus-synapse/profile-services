@@ -148,7 +148,7 @@ const PublicProfileResumeSchema = z.object({
   updatedAt: z.date(),
 });
 
-const PublicProfileDataSchema = z.object({
+export const PublicProfileDataSchema = z.object({
   user: PublicProfileUserSchema,
   resume: PublicProfileResumeSchema.nullable(),
 });
@@ -220,7 +220,7 @@ const UserPreferencesDataSchema = z.object({
   preferences: BasicUserPreferencesSchema,
 });
 
-const UserFullPreferencesDataSchema = z.object({
+export const UserFullPreferencesDataSchema = z.object({
   preferences: FullUserPreferencesSchema,
 });
 

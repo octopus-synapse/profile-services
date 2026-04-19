@@ -51,9 +51,41 @@ export interface IGroupRepository {
   findAncestors(groupId: GroupId): Promise<Group[]>;
 }
 
-/** User authorization repository port */
+/** User authorization repository port — covers both read and write operations. */
 export interface IUserAuthorizationRepository {
+  // Read
   getUserPermissions(userId: UserId): Promise<UserPermissionAssignment[]>;
   getUserRoles(userId: UserId): Promise<UserRoleAssignment[]>;
   getUserGroups(userId: UserId): Promise<UserGroupMembership[]>;
+
+  // Role management
+  assignRole(
+    userId: UserId,
+    roleId: RoleId,
+    options?: { assignedBy?: string; expiresAt?: Date },
+  ): Promise<void>;
+  revokeRole(userId: UserId, roleId: RoleId): Promise<void>;
+
+  // Group membership
+  addToGroup(
+    userId: UserId,
+    groupId: GroupId,
+    options?: { assignedBy?: string; expiresAt?: Date },
+  ): Promise<void>;
+  removeFromGroup(userId: UserId, groupId: GroupId): Promise<void>;
+
+  // Direct permissions
+  grantPermission(
+    userId: UserId,
+    permissionId: PermissionId,
+    options?: { assignedBy?: string; expiresAt?: Date; reason?: string },
+  ): Promise<void>;
+  denyPermission(
+    userId: UserId,
+    permissionId: PermissionId,
+    options?: { assignedBy?: string; expiresAt?: Date; reason?: string },
+  ): Promise<void>;
+
+  // Read — batch
+  countUsersWithRoleName(roleName: string): Promise<number>;
 }

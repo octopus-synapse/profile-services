@@ -8,7 +8,6 @@ import {
   DEFAULT_SPOKEN_LANGUAGES,
   InMemorySpokenLanguageRepository,
 } from '../../../../testing';
-import { SpokenLanguagesRepository } from '../../../infrastructure/adapters/persistence/spoken-languages.repository';
 import { GetActiveSpokenLanguagesUseCase } from './get-active-spoken-languages.use-case';
 
 describe('GetActiveSpokenLanguagesUseCase', () => {
@@ -18,8 +17,7 @@ describe('GetActiveSpokenLanguagesUseCase', () => {
   beforeEach(() => {
     languageRepo = new InMemorySpokenLanguageRepository();
     languageRepo.seed(DEFAULT_SPOKEN_LANGUAGES);
-    const repository = new SpokenLanguagesRepository(languageRepo as never);
-    useCase = new GetActiveSpokenLanguagesUseCase(repository);
+    useCase = new GetActiveSpokenLanguagesUseCase(languageRepo);
   });
 
   it('should return all active languages ordered by order field', async () => {

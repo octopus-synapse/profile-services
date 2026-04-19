@@ -1,4 +1,4 @@
-import { BadRequestException } from '@nestjs/common';
+import { ValidationException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { buildOnboardingSteps, getStepIndex } from '../../../domain/config/onboarding-steps.config';
 import type { OnboardingProgressData } from '../../../domain/ports/onboarding-progress.port';
 import type { SectionTypeDefinitionPort } from '../../../domain/ports/section-type-definition.port';
@@ -18,7 +18,7 @@ export class GoBackOnboardingStepUseCase {
     const prevStep = currentIndex > 0 ? steps[currentIndex - 1] : null;
 
     if (!prevStep) {
-      throw new BadRequestException('Already at the first step');
+      throw new ValidationException('Already at the first step');
     }
 
     await this.saveProgress(userId, {

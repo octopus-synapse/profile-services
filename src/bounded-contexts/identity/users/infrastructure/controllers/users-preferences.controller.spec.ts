@@ -4,6 +4,32 @@ import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infr
 import { USER_PREFERENCES_USE_CASES } from '../../application/ports/user-preferences.port';
 import { UsersPreferencesController } from './users-preferences.controller';
 
+const makeFullPreferences = () => ({
+  id: 'prefs-1',
+  userId: 'user-1',
+  theme: 'dark',
+  palette: 'default',
+  bannerColor: null,
+  language: 'pt-BR',
+  dateFormat: 'DD/MM/YYYY',
+  timezone: 'America/Sao_Paulo',
+  emailNotifications: true,
+  resumeExpiryAlerts: true,
+  weeklyDigest: true,
+  marketingEmails: false,
+  emailMilestones: true,
+  emailShareExpiring: true,
+  digestFrequency: 'weekly',
+  profileVisibility: 'public',
+  showEmail: false,
+  showPhone: false,
+  allowSearchEngineIndex: true,
+  defaultExportFormat: 'pdf',
+  includePhotoInExport: true,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+});
+
 const createMockPreferencesUseCases = () => ({
   getPreferencesUseCase: {
     execute: mock(() => Promise.resolve({ locale: 'pt-BR', timezone: 'America/Sao_Paulo' })),
@@ -12,10 +38,10 @@ const createMockPreferencesUseCases = () => ({
     execute: mock(() => Promise.resolve()),
   },
   getFullPreferencesUseCase: {
-    execute: mock(() => Promise.resolve({ locale: 'pt-BR', theme: 'dark' })),
+    execute: mock(() => Promise.resolve(makeFullPreferences())),
   },
   updateFullPreferencesUseCase: {
-    execute: mock(() => Promise.resolve({ locale: 'en-US', theme: 'light' })),
+    execute: mock(() => Promise.resolve(makeFullPreferences())),
   },
 });
 

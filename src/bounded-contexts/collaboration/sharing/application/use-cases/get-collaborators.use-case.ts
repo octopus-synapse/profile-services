@@ -1,4 +1,4 @@
-import { ForbiddenException } from '@nestjs/common';
+import { ForbiddenException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type { CollaborationRepositoryPort } from '../../domain/ports/collaboration-repository.port';
 import type { CollaboratorWithUser } from '../../domain/types/collaboration.types';
 

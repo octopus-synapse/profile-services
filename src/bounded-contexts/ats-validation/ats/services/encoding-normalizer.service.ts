@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import iconv from 'iconv-lite';
 import { ValidationIssue, ValidationResult, ValidationSeverity } from '../interfaces';
 
 @Injectable()
@@ -34,8 +33,7 @@ export class EncodingNormalizerService {
 
       // Attempt to fix encoding
       try {
-        const buffer = Buffer.from(text, 'binary');
-        normalizedText = iconv.decode(buffer, 'utf8');
+        normalizedText = Buffer.from(text, 'binary').toString('utf8');
       } catch {
         issues.push({
           code: 'ENCODING_FIX_FAILED',

@@ -7,8 +7,9 @@
  * Single Responsibility: Facade that delegates to specific use cases.
  */
 
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { AuthorizationServicePort } from '@/bounded-contexts/identity/authorization';
+import { ValidationException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type {
   AdminCreateUserDto,
   AdminResetPasswordDto,
@@ -94,7 +95,7 @@ export class UserManagementService {
     const validRoles = ['role_user', 'role_admin'];
     for (const role of roles) {
       if (!validRoles.includes(role)) {
-        throw new BadRequestException(`Invalid role: ${role}`);
+        throw new ValidationException(`Invalid role: ${role}`);
       }
     }
 
@@ -107,7 +108,7 @@ export class UserManagementService {
       ) {
         const adminCount = await this.authService.countUsersWithRole('admin');
         if (adminCount <= 1) {
-          throw new BadRequestException('Cannot remove admin role from the last admin user');
+          throw new ValidationException('Cannot remove admin role from the last admin user');
         }
       }
     }
@@ -128,7 +129,7 @@ export class UserManagementService {
     const usersWithManage = await this.authService.countUsersWithRole('admin');
 
     if (usersWithManage <= 1) {
-      throw new BadRequestException('Cannot delete the last user with management permissions');
+      throw new ValidationException('Cannot delete the last user with management permissions');
     }
   }
 }

@@ -1,7 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Prisma, SkillType } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { paginate, patchData } from '@/shared-kernel/database';
+import { paginate, patchData, searchWhere } from '@/shared-kernel/database';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 
 @Injectable()
 export class AdminTechSkillsService {
@@ -18,10 +19,7 @@ export class AdminTechSkillsService {
     const where: Prisma.TechSkillWhereInput = {};
 
     if (query.search) {
-      where.OR = [
-        { nameEn: { contains: query.search, mode: 'insensitive' } },
-        { namePtBr: { contains: query.search, mode: 'insensitive' } },
-      ];
+      where.OR = searchWhere(query.search, ['nameEn', 'namePtBr']);
     }
     if (query.nicheId) where.nicheId = query.nicheId;
     if (query.type) where.type = query.type as SkillType;
@@ -37,7 +35,7 @@ export class AdminTechSkillsService {
 
   async findOne(id: string) {
     const item = await this.prisma.techSkill.findUnique({ where: { id } });
-    if (!item) throw new NotFoundException(`Tech skill '${id}' not found`);
+    if (!item) throw new EntityNotFoundException('TechSkill', id);
     return item;
   }
 
@@ -65,7 +63,7 @@ export class AdminTechSkillsService {
 
   async update(id: string, dto: Record<string, unknown>) {
     const existing = await this.prisma.techSkill.findUnique({ where: { id } });
-    if (!existing) throw new NotFoundException(`Tech skill '${id}' not found`);
+    if (!existing) throw new EntityNotFoundException('TechSkill', id);
 
     const data = patchData(dto, [
       'slug',
@@ -90,7 +88,7 @@ export class AdminTechSkillsService {
 
   async remove(id: string) {
     const existing = await this.prisma.techSkill.findUnique({ where: { id } });
-    if (!existing) throw new NotFoundException(`Tech skill '${id}' not found`);
+    if (!existing) throw new EntityNotFoundException('TechSkill', id);
 
     await this.prisma.techSkill.delete({ where: { id } });
   }

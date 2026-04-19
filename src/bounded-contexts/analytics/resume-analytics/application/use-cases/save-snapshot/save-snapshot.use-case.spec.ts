@@ -1,63 +1,12 @@
 /**
  * Save Snapshot / Get History / Get Progression Use Case Tests
  *
- * Tests for analytics snapshot persistence and retrieval.
+ * Tests for analytics snapshot persistence and retrieval via SnapshotRepositoryPort.
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import {
-  InMemorySnapshotRepository,
-  type SnapshotRecord,
-} from '@/bounded-contexts/analytics/testing';
+import { InMemorySnapshotRepository } from '@/bounded-contexts/analytics/testing';
 import type { SnapshotRepositoryPort } from '../../ports/resume-analytics.port';
-
-/**
- * Adapter to expose InMemorySnapshotRepository through the SnapshotRepositoryPort interface.
- */
-function toAnalyticsSnapshot(
-  record: SnapshotRecord,
-): import('../../../interfaces').AnalyticsSnapshot {
-  return {
-    id: record.id,
-    resumeId: record.resumeId,
-    atsScore: record.atsScore,
-    keywordScore: record.keywordScore,
-    completenessScore: record.completenessScore,
-    industryRank: record.industryRank ?? undefined,
-    totalInIndustry: record.totalInIndustry ?? undefined,
-    topKeywords: record.topKeywords,
-    missingKeywords: record.missingKeywords,
-    createdAt: record.createdAt,
-  };
-}
-
-function createSnapshotPort(repo: InMemorySnapshotRepository): SnapshotRepositoryPort {
-  return {
-    save: async (input) =>
-      toAnalyticsSnapshot(await repo.create({ data: { ...input, improvementSuggestions: [] } })),
-    getHistory: async (resumeId, limit = 10) => {
-      const records = await repo.findMany({
-        where: { resumeId },
-        orderBy: { createdAt: 'desc' },
-        take: limit,
-      });
-      return (records as SnapshotRecord[]).map(toAnalyticsSnapshot);
-    },
-    getScoreProgression: async (resumeId, days = 30) => {
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - days);
-      const snapshots = (await repo.findMany({
-        where: { resumeId, createdAt: { gte: startDate } },
-        orderBy: { createdAt: 'asc' },
-        select: { atsScore: true, createdAt: true },
-      })) as Array<{ atsScore: number; createdAt: Date }>;
-      return snapshots.map((s) => ({
-        date: s.createdAt.toISOString().split('T')[0],
-        score: s.atsScore,
-      }));
-    },
-  };
-}
 
 describe('Snapshot Use Cases (via SnapshotRepositoryPort)', () => {
   let snapshotPort: SnapshotRepositoryPort;
@@ -65,7 +14,7 @@ describe('Snapshot Use Cases (via SnapshotRepositoryPort)', () => {
 
   beforeEach(() => {
     snapshotRepo = new InMemorySnapshotRepository();
-    snapshotPort = createSnapshotPort(snapshotRepo);
+    snapshotPort = snapshotRepo;
   });
 
   describe('save', () => {
@@ -90,14 +39,12 @@ describe('Snapshot Use Cases (via SnapshotRepositoryPort)', () => {
     });
 
     it('should use empty arrays for optional keywords', async () => {
-      const input = {
+      const result = await snapshotPort.save({
         resumeId: 'resume-1',
         atsScore: 85,
         keywordScore: 80,
         completenessScore: 90,
-      };
-
-      const result = await snapshotPort.save(input);
+      });
 
       expect(result.topKeywords).toEqual([]);
       expect(result.missingKeywords).toEqual([]);

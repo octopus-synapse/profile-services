@@ -3,10 +3,8 @@
  * Handles basic translation operations using LibreTranslate
  */
 
-import { HttpService } from '@nestjs/axios';
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { firstValueFrom, timeout } from 'rxjs';
 import type { TranslationLanguage, TranslationResult } from '../../domain/types/translation.types';
 
 @Injectable()
@@ -15,13 +13,9 @@ export class TranslationCoreService implements OnModuleInit {
   private readonly libreTranslateUrl: string;
   private isServiceAvailable = false;
 
-  constructor(
-    private readonly configService: ConfigService,
-    private readonly httpService: HttpService,
-  ) {
+  constructor(private readonly configService: ConfigService) {
     const url = this.configService.get<string>('LIBRETRANSLATE_URL');
     this.libreTranslateUrl = url ?? 'http://libretranslate:5000';
-    // Validate URL to prevent SSRF
     new URL(this.libreTranslateUrl);
   }
 
@@ -31,10 +25,10 @@ export class TranslationCoreService implements OnModuleInit {
 
   async checkServiceHealth(): Promise<boolean> {
     try {
-      const response = await firstValueFrom(
-        this.httpService.get(`${this.libreTranslateUrl}/languages`).pipe(timeout(5000)),
-      );
-      this.isServiceAvailable = response.status === 200;
+      const response = await fetch(`${this.libreTranslateUrl}/languages`, {
+        signal: AbortSignal.timeout(5000),
+      });
+      this.isServiceAvailable = response.ok;
       this.logger.log(
         `LibreTranslate service is ${this.isServiceAvailable ? 'available' : 'unavailable'}`,
       );
@@ -54,41 +48,31 @@ export class TranslationCoreService implements OnModuleInit {
     targetLanguage: TranslationLanguage,
   ): Promise<TranslationResult> {
     if (!text || text.trim().length === 0) {
-      return {
-        original: text,
-        translated: text,
-        sourceLanguage,
-        targetLanguage,
-      };
+      return { original: text, translated: text, sourceLanguage, targetLanguage };
     }
 
     if (!this.isServiceAvailable) {
       this.logger.warn('Translation service unavailable, returning original text');
-      return {
-        original: text,
-        translated: text,
-        sourceLanguage,
-        targetLanguage,
-      };
+      return { original: text, translated: text, sourceLanguage, targetLanguage };
     }
 
     try {
-      const response = await firstValueFrom(
-        this.httpService
-          .post(`${this.libreTranslateUrl}/translate`, {
-            q: text,
-            source: sourceLanguage,
-            target: targetLanguage,
-            format: 'text',
-          })
-          .pipe(timeout(15000)),
-      );
+      const response = await fetch(`${this.libreTranslateUrl}/translate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          q: text,
+          source: sourceLanguage,
+          target: targetLanguage,
+          format: 'text',
+        }),
+        signal: AbortSignal.timeout(15000),
+      });
 
-      const responseData = response.data as { translatedText?: string } | undefined;
-      const translatedText = responseData?.translatedText ?? text;
+      const data = (await response.json()) as { translatedText?: string };
       return {
         original: text,
-        translated: translatedText,
+        translated: data.translatedText ?? text,
         sourceLanguage,
         targetLanguage,
       };
@@ -96,12 +80,7 @@ export class TranslationCoreService implements OnModuleInit {
       this.logger.error(
         `Translation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
       );
-      return {
-        original: text,
-        translated: text,
-        sourceLanguage,
-        targetLanguage,
-      };
+      return { original: text, translated: text, sourceLanguage, targetLanguage };
     }
   }
 

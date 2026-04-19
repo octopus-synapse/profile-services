@@ -1,4 +1,7 @@
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  EntityNotFoundException,
+  ForbiddenException,
+} from '@/shared-kernel/exceptions/domain.exceptions';
 import type { ConversationResponse } from '../../../schemas/chat.schema';
 import { mapConversationToResponse } from '../../mappers/chat.mapper';
 import type { ConversationRepositoryPort, MessageRepositoryPort } from '../../ports/chat.port';
@@ -12,7 +15,7 @@ export class GetConversationUseCase {
   async execute(userId: string, conversationId: string): Promise<ConversationResponse> {
     const conversation = await this.conversationRepo.findById(conversationId);
     if (!conversation) {
-      throw new NotFoundException('Conversation not found');
+      throw new EntityNotFoundException('Conversation', conversationId);
     }
 
     const isParticipant =

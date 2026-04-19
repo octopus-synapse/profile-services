@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import { ConflictException, NotFoundException } from '@nestjs/common';
 import { ERROR_MESSAGES } from '@/shared-kernel';
+import {
+  ConflictException,
+  EntityNotFoundException,
+} from '@/shared-kernel/exceptions/domain.exceptions';
 import type { OnboardingCompletionPort } from '../../../domain/ports/onboarding-completion.port';
 import {
   createOnboardingData,
@@ -105,7 +108,7 @@ describe('CompleteOnboardingUseCase', () => {
       );
     });
 
-    it('should throw NotFoundException if user does not exist', async () => {
+    it('should throw EntityNotFoundException if user does not exist', async () => {
       const userId = 'invalid-user';
       const onboardingData = createOnboardingData({
         username: 'johndoe',
@@ -124,9 +127,8 @@ describe('CompleteOnboardingUseCase', () => {
         sections: [],
       });
 
-      await expect(useCase.execute(userId, onboardingData)).rejects.toThrow(NotFoundException);
       await expect(useCase.execute(userId, onboardingData)).rejects.toThrow(
-        ERROR_MESSAGES.USER_NOT_FOUND,
+        EntityNotFoundException,
       );
       expect(mockLogger.warn).toHaveBeenCalled();
     });

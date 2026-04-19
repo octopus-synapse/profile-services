@@ -1,5 +1,8 @@
-import { ConflictException, NotFoundException } from '@nestjs/common';
 import { ERROR_MESSAGES } from '@/shared-kernel';
+import {
+  ConflictException,
+  EntityNotFoundException,
+} from '@/shared-kernel/exceptions/domain.exceptions';
 import {
   type OnboardingValidationError,
   OnboardingValidationException,
@@ -60,7 +63,7 @@ export class CompleteOnboardingUseCase {
       this.logger.warn('Onboarding attempted for non-existent user', 'CompleteOnboardingUseCase', {
         userId,
       });
-      throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
+      throw new EntityNotFoundException('User', userId);
     }
 
     if (user.hasCompletedOnboarding) {

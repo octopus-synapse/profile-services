@@ -2,7 +2,10 @@
  * Delete Share Use Case
  */
 
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  EntityNotFoundException,
+  ForbiddenException,
+} from '@/shared-kernel/exceptions/domain.exceptions';
 import type { ShareRepositoryPort } from '../../domain/ports/share.repository.port';
 
 export class DeleteShareUseCase {
@@ -12,7 +15,7 @@ export class DeleteShareUseCase {
     const share = await this.shareRepo.findByIdWithResume(shareId);
 
     if (!share) {
-      throw new NotFoundException('Share not found');
+      throw new EntityNotFoundException('Share', shareId);
     }
 
     if (share.resume.userId !== userId) {

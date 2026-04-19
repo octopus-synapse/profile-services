@@ -5,8 +5,8 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { BadRequestException } from '@nestjs/common';
 import { createMockResume } from '@test/shared/factories/resume.factory';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { resolveTranslation, type TranslationsJson } from '@/shared-kernel/utils/locale-resolver';
 import { DslRepository } from './dsl.repository';
 import { InMemoryDslCompiler, InMemoryDslValidator, mockAst } from './testing';
@@ -178,13 +178,13 @@ describe('DslRepository', () => {
 
     it('should throw if resume not found', async () => {
       await expect(async () => await repository.render('non-existent', 'user-123')).toThrow(
-        BadRequestException,
+        EntityNotFoundException,
       );
     });
 
     it('should throw if user does not own resume', async () => {
       await expect(async () => await repository.render('resume-123', 'other-user')).toThrow(
-        BadRequestException,
+        EntityNotFoundException,
       );
     });
 
@@ -258,7 +258,7 @@ describe('DslRepository', () => {
 
     it('should throw if public resume not found', async () => {
       await expect(async () => await repository.renderPublic('non-existent')).toThrow(
-        BadRequestException,
+        EntityNotFoundException,
       );
     });
 
@@ -272,7 +272,7 @@ describe('DslRepository', () => {
       });
 
       await expect(async () => await repository.renderPublic('inactive-share')).toThrow(
-        BadRequestException,
+        EntityNotFoundException,
       );
     });
 
@@ -286,7 +286,7 @@ describe('DslRepository', () => {
       });
 
       await expect(async () => await repository.renderPublic('expired-share')).toThrow(
-        BadRequestException,
+        EntityNotFoundException,
       );
     });
   });

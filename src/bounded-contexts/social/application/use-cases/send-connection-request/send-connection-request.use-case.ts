@@ -1,5 +1,9 @@
-import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
 import type { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
+import {
+  ConflictException,
+  EntityNotFoundException,
+  ValidationException,
+} from '@/shared-kernel/exceptions/domain.exceptions';
 import { ConnectionRequestedEvent } from '../../../domain/events';
 import type { ConnectionRepositoryPort, ConnectionWithUser } from '../../ports/connection.port';
 
@@ -11,12 +15,12 @@ export class SendConnectionRequestUseCase {
 
   async execute(requesterId: string, targetId: string): Promise<ConnectionWithUser> {
     if (requesterId === targetId) {
-      throw new BadRequestException('Cannot connect with yourself');
+      throw new ValidationException('Cannot connect with yourself');
     }
 
     const targetExists = await this.repository.userExists(targetId);
     if (!targetExists) {
-      throw new NotFoundException('User not found');
+      throw new EntityNotFoundException('User', targetId);
     }
 
     const existing = await this.repository.findConnectionBetween(requesterId, targetId);

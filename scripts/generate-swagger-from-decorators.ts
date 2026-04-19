@@ -6,8 +6,10 @@ import { NestFactory } from '@nestjs/core';
 import type { OpenAPIObject } from '@nestjs/swagger';
 import { AppModule } from '../src/app.module';
 import { createSwaggerDocument } from '../src/bounded-contexts/platform/common/config/swagger.config';
+import { unwrapClientSpec } from '../src/bounded-contexts/platform/common/config/unwrap-client-spec';
 
 const SWAGGER_PATH = resolve(__dirname, '../swagger.json');
+const CLIENT_SWAGGER_PATH = resolve(__dirname, '../client-swagger.json');
 const REPORT_PATH = resolve(__dirname, '../swagger-generation-report.json');
 
 type SwaggerReport = {
@@ -46,12 +48,15 @@ async function generateSwagger(): Promise<void> {
     app.setGlobalPrefix('api');
 
     const document = createSwaggerDocument(app);
+    const clientDocument = unwrapClientSpec(document);
     const report = createReport(document);
 
     writeFileSync(SWAGGER_PATH, `${JSON.stringify(document, null, 2)}\n`);
+    writeFileSync(CLIENT_SWAGGER_PATH, `${JSON.stringify(clientDocument, null, 2)}\n`);
     writeFileSync(REPORT_PATH, `${JSON.stringify(report, null, 2)}\n`);
 
     console.log(`✅ Swagger JSON generated: ${SWAGGER_PATH}`);
+    console.log(`✅ Client-ready spec generated: ${CLIENT_SWAGGER_PATH}`);
     console.log(`📊 Paths: ${report.paths}`);
     console.log(`📊 Operations: ${report.operations}`);
     console.log(`📊 Schemas: ${report.schemas}`);

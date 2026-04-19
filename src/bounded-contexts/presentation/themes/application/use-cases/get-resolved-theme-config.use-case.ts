@@ -2,8 +2,8 @@
  * Get Resolved Theme Config Use Case
  */
 
-import { ForbiddenException } from '@nestjs/common';
 import { ERROR_MESSAGES } from '@/shared-kernel';
+import { ForbiddenException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type { ResumeRepositoryPort } from '../../domain/ports/resume.repository.port';
 import { deepMerge } from '../../utils';
 

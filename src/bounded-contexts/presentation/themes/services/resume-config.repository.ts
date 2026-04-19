@@ -3,10 +3,11 @@
  * Low-level access to resume style configurations
  */
 
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ERROR_MESSAGES } from '@/shared-kernel';
+import { ForbiddenException } from '@/shared-kernel/exceptions/domain.exceptions';
 
 export interface ResumeConfig {
   sections: Array<{

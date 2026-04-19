@@ -3,6 +3,7 @@ import { seedAuthorization } from '../src/bounded-contexts/identity/authorizatio
 import { createPrismaClientOptions } from '../src/bounded-contexts/platform/prisma/prisma-client-options';
 import { seedAnalyticsProjections } from './seeds/analytics-projection.seed';
 import { seedEnzoferracini } from './seeds/enzoferracini.seed';
+import { seedJobs } from './seeds/job.seed';
 import { seedOnboardingSteps } from './seeds/onboarding-step.seed';
 import { seedSectionTypes } from './seeds/section-type.seed';
 import { seedSpokenLanguages } from './seeds/spoken-language.seed';
@@ -96,6 +97,9 @@ async function main() {
 
   // Seed tech skills catalog (areas, niches, skills, programming languages)
   await seedTechSkills(prisma);
+
+  // Seed jobs catalog
+  await seedJobs(prisma, admin.id);
 
   // Seed usernames for existing users without one
   await seedUsernames(prisma);

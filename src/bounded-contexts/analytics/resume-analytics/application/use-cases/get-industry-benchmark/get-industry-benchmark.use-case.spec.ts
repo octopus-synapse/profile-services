@@ -9,7 +9,8 @@ import {
   defaultResumeAnalytics,
   InMemoryBenchmarkRepository,
 } from '@/bounded-contexts/analytics/testing';
-import type { BenchmarkRepositoryPort } from '../../ports/resume-analytics.port';
+import type { AtsScoringPort } from '../../ports/facade.ports';
+import type { ResumeOwnershipPort } from '../../ports/resume-analytics.port';
 import { GetIndustryBenchmarkUseCase } from './get-industry-benchmark.use-case';
 
 describe('GetIndustryBenchmarkUseCase', () => {
@@ -20,17 +21,24 @@ describe('GetIndustryBenchmarkUseCase', () => {
     benchmarkRepo = new InMemoryBenchmarkRepository();
     benchmarkRepo.seedMultipleAnalytics(defaultResumeAnalytics);
 
-    const benchmarkPort: BenchmarkRepositoryPort = {
-      getAllAtsScores: async () => {
-        const records = await benchmarkRepo.findMany({ select: { atsScore: true } });
-        return records.map((r) => r.atsScore);
+    const ownership: ResumeOwnershipPort = {
+      async verifyOwnership() {
+        throw new Error('not used in test');
+      },
+      async verifyResumeExists() {
+        throw new Error('not used in test');
+      },
+      async getResumeWithDetails() {
+        throw new Error('not used in test');
+      },
+    };
+    const atsScore: AtsScoringPort = {
+      async calculate() {
+        throw new Error('not used in test');
       },
     };
 
-    const mockOwnership = {} as never;
-    const mockAtsScore = {} as never;
-
-    useCase = new GetIndustryBenchmarkUseCase(benchmarkPort, mockOwnership, mockAtsScore);
+    useCase = new GetIndustryBenchmarkUseCase(benchmarkRepo, ownership, atsScore);
   });
 
   describe('getIndustryBenchmark', () => {

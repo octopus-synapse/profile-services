@@ -3,46 +3,31 @@
  *
  * Calculates ATS compatibility scores using section type definitions
  * loaded from the database. ZERO hardcoded section knowledge.
- *
- * Scoring algorithm:
- *   Per section: baseScore + Σ(fieldWeight for each filled field)
- *   Overall:     average of section scores − resume-level deductions
- *
- * All scoring configuration (baseScore, fieldWeights, isMandatory)
- * comes from SectionType.definition.ats in the database.
  */
 
-import { Injectable } from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { Inject, Injectable } from '@nestjs/common';
+import {
+  ANALYTICS_EVENT_BUS_PORT,
+  AnalyticsEventBusPort,
+} from '../application/ports/analytics-event-bus.port';
+import {
+  AtsScoreCatalogPort,
+  type SectionTypeAtsConfig,
+} from '../application/ports/resume-analytics.port';
 import { generateRecommendations } from '../domain/services';
 import type { AnalyticsSection, ResumeForAnalytics } from '../domain/types';
 import type { ATSIssue, ATSScoreResult, SectionScoreBreakdown } from '../interfaces';
 
-interface SectionTypeAtsConfig {
-  key: string;
-  kind: string;
-  ats: {
-    isMandatory: boolean;
-    recommendedPosition: number;
-    scoring: {
-      baseScore: number;
-      fieldWeights: Record<string, number>;
-    };
-  };
-  /** Maps semantic roles (e.g. ORGANIZATION) → content field keys (e.g. company) */
-  roleToFieldKey: Record<string, string>;
-}
-
 @Injectable()
 export class ATSScoreService {
   constructor(
-    private readonly prisma: PrismaService,
-    private readonly eventEmitter: EventEmitter2,
+    private readonly catalog: AtsScoreCatalogPort,
+    @Inject(ANALYTICS_EVENT_BUS_PORT)
+    private readonly eventBus: AnalyticsEventBusPort,
   ) {}
 
   async calculate(resume: ResumeForAnalytics, resumeId?: string): Promise<ATSScoreResult> {
-    const catalog = await this.loadCatalog();
+    const catalog = await this.catalog.loadCatalog();
 
     const resumeIssues = this.checkResumeLevel(resume);
     const mandatoryIssues = this.checkMandatorySections(resume.sections, catalog);
@@ -60,7 +45,7 @@ export class ATSScoreService {
     };
 
     if (resumeId) {
-      this.eventEmitter.emit(`analytics:${resumeId}:ats_score`, {
+      this.eventBus.emit(`analytics:${resumeId}:ats_score`, {
         type: 'ats_score',
         resumeId,
         data: { atsScore: result.score, timestamp: new Date() },
@@ -69,49 +54,6 @@ export class ATSScoreService {
 
     return result;
   }
-
-  // ---------------------------------------------------------------------------
-  // Catalog loading — single source of truth from SectionType definitions
-  // ---------------------------------------------------------------------------
-
-  private async loadCatalog(): Promise<SectionTypeAtsConfig[]> {
-    const sectionTypes = await this.prisma.sectionType.findMany({
-      where: { isActive: true },
-      select: { key: true, semanticKind: true, definition: true },
-    });
-
-    return sectionTypes.map((st) => {
-      const def = (st.definition ?? {}) as Record<string, unknown>;
-      const ats = (def.ats ?? {}) as Record<string, unknown>;
-      const scoring = (ats.scoring ?? {}) as Record<string, unknown>;
-      const fields = (def.fields ?? []) as Array<Record<string, unknown>>;
-
-      const roleToFieldKey: Record<string, string> = {};
-      for (const field of fields) {
-        if (typeof field.semanticRole === 'string' && typeof field.key === 'string') {
-          roleToFieldKey[field.semanticRole] = field.key;
-        }
-      }
-
-      return {
-        key: st.key,
-        kind: st.semanticKind,
-        ats: {
-          isMandatory: (ats.isMandatory as boolean) ?? false,
-          recommendedPosition: (ats.recommendedPosition as number) ?? 99,
-          scoring: {
-            baseScore: (scoring.baseScore as number) ?? 30,
-            fieldWeights: (scoring.fieldWeights as Record<string, number>) ?? {},
-          },
-        },
-        roleToFieldKey,
-      };
-    });
-  }
-
-  // ---------------------------------------------------------------------------
-  // Resume-level checks (contact info, summary)
-  // ---------------------------------------------------------------------------
 
   private checkResumeLevel(resume: ResumeForAnalytics): ATSIssue[] {
     const issues: ATSIssue[] = [];
@@ -135,10 +77,6 @@ export class ATSScoreService {
     return issues;
   }
 
-  // ---------------------------------------------------------------------------
-  // Mandatory section checks — reads isMandatory from definitions
-  // ---------------------------------------------------------------------------
-
   private checkMandatorySections(
     sections: readonly AnalyticsSection[],
     catalog: SectionTypeAtsConfig[],
@@ -160,10 +98,6 @@ export class ATSScoreService {
     return issues;
   }
 
-  // ---------------------------------------------------------------------------
-  // Per-section scoring — reads baseScore + fieldWeights from definitions
-  // ---------------------------------------------------------------------------
-
   private scoreSections(
     sections: readonly AnalyticsSection[],
     catalog: SectionTypeAtsConfig[],
@@ -182,7 +116,6 @@ export class ATSScoreService {
         let itemScore = baseScore;
 
         if (Object.keys(fieldWeights).length === 0) {
-          // Density-based fallback when no weights are defined
           const values = Object.values(item.content);
           const nonEmpty = values.filter((v) => this.isNonEmpty(v)).length;
           const density = values.length > 0 ? nonEmpty / values.length : 0;
@@ -209,10 +142,6 @@ export class ATSScoreService {
 
     return breakdown;
   }
-
-  // ---------------------------------------------------------------------------
-  // Content quality — checks for missing weighted fields per definition
-  // ---------------------------------------------------------------------------
 
   private checkContentQuality(
     sections: readonly AnalyticsSection[],
@@ -255,10 +184,6 @@ export class ATSScoreService {
 
     return issues;
   }
-
-  // ---------------------------------------------------------------------------
-  // Overall score — weighted average of section scores minus deductions
-  // ---------------------------------------------------------------------------
 
   private calculateOverallScore(
     sectionBreakdown: SectionScoreBreakdown[],

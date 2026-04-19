@@ -9,8 +9,9 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { NotFoundException, UnprocessableEntityException } from '@nestjs/common';
+import { UnprocessableEntityException } from '@nestjs/common';
 import { createMockResume } from '@test/shared/factories/resume.factory';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { ResumesService } from './resumes.service';
 import {
   createTestResumesService,
@@ -126,9 +127,9 @@ describe('ResumesService', () => {
       expect(result?.id).toBe('resume-1');
     });
 
-    it('should throw NotFoundException for non-existent resume', async () => {
+    it('should throw EntityNotFoundException for non-existent resume', async () => {
       await expect(async () => await service.findResumeByIdForUser('nonexistent', userId)).toThrow(
-        NotFoundException,
+        EntityNotFoundException,
       );
     });
 

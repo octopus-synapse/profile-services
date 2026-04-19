@@ -1,111 +1,92 @@
 /**
  * Skills Catalog Testing Module
  *
- * In-memory implementations for testing skills catalog functionality.
+ * Port-level in-memory fakes for testing skills catalog functionality.
  */
 
+import {
+  type SpokenLanguage,
+  SpokenLanguagesRepositoryPort,
+} from '../spoken-languages/application/ports/spoken-languages.port';
+import {
+  CachePort,
+  TechSkillRepositoryPort,
+} from '../tech-skills/application/ports/tech-skills.port';
+import type { TechSkill } from '../tech-skills/dto/tech-skill.dto';
 import type { SkillType } from '../tech-skills/interfaces';
 
 // ═══════════════════════════════════════════════════════════════
-// TYPES
+// TYPES (test data carries the extra fields needed by seeds)
 // ═══════════════════════════════════════════════════════════════
 
-export interface TechSkillData {
-  id: string;
-  slug: string;
-  nameEn: string;
-  namePtBr: string;
-  type: SkillType;
-  icon: string | null;
-  color: string | null;
-  website: string | null;
-  aliases: string[];
-  popularity: number;
+export interface TechSkillData extends TechSkill {
   isActive: boolean;
-  niche: {
-    slug: string;
-    nameEn: string;
-    namePtBr: string;
-  };
 }
 
-export interface SpokenLanguageData {
-  code: string;
-  nameEn: string;
-  namePtBr: string;
-  nameEs: string;
-  nativeName: string | null;
+export interface SpokenLanguageData extends SpokenLanguage {
   isActive: boolean;
   order: number;
 }
 
 // ═══════════════════════════════════════════════════════════════
-// IN-MEMORY TECH SKILL REPOSITORY
+// IN-MEMORY TECH SKILL REPOSITORY — implements TechSkillRepositoryPort
 // ═══════════════════════════════════════════════════════════════
 
-export class InMemoryTechSkillRepository {
+export class InMemoryTechSkillRepository extends TechSkillRepositoryPort {
   private skills: TechSkillData[] = [];
 
-  // Prisma-like interface
-  readonly techSkill = {
-    findMany: async (args?: {
-      where?: { isActive?: boolean; type?: SkillType; niche?: { slug?: string } };
-      orderBy?: { popularity?: 'asc' | 'desc' };
-      include?: { niche?: boolean };
-      take?: number;
-    }) => {
-      let result = [...this.skills];
+  async findAllActive(): Promise<TechSkill[]> {
+    return this.skills
+      .filter((s) => s.isActive)
+      .sort((a, b) => b.popularity - a.popularity)
+      .map((s) => this.toTechSkill(s));
+  }
 
-      if (args?.where?.isActive !== undefined) {
-        result = result.filter((s) => s.isActive === args.where?.isActive);
-      }
+  async findByNiche(nicheSlug: string): Promise<TechSkill[]> {
+    return this.skills
+      .filter((s) => s.isActive && s.niche?.slug === nicheSlug)
+      .sort((a, b) => b.popularity - a.popularity)
+      .map((s) => this.toTechSkill(s));
+  }
 
-      if (args?.where?.type) {
-        result = result.filter((s) => s.type === args.where?.type);
-      }
+  async findByType(type: SkillType, limit: number): Promise<TechSkill[]> {
+    return this.skills
+      .filter((s) => s.isActive && s.type === type)
+      .sort((a, b) => b.popularity - a.popularity)
+      .slice(0, limit)
+      .map((s) => this.toTechSkill(s));
+  }
 
-      if (args?.where?.niche?.slug) {
-        result = result.filter((s) => s.niche.slug === args.where?.niche?.slug);
-      }
+  async searchSkills(query: string, limit: number): Promise<TechSkill[]> {
+    const q = query.toLowerCase();
+    return this.skills
+      .filter(
+        (s) =>
+          s.isActive &&
+          (s.nameEn.toLowerCase().includes(q) ||
+            s.namePtBr.toLowerCase().includes(q) ||
+            s.slug.toLowerCase().includes(q) ||
+            s.aliases.some((a) => a.toLowerCase().includes(q))),
+      )
+      .sort((a, b) => b.popularity - a.popularity)
+      .slice(0, limit)
+      .map((s) => this.toTechSkill(s));
+  }
 
-      if (args?.orderBy?.popularity) {
-        result.sort((a, b) =>
-          args.orderBy?.popularity === 'desc'
-            ? b.popularity - a.popularity
-            : a.popularity - b.popularity,
-        );
-      }
-
-      if (args?.take) {
-        result = result.slice(0, args.take);
-      }
-
-      return result;
-    },
-
-    findUnique: async (args: { where: { slug: string } }) => {
-      return this.skills.find((s) => s.slug === args.where.slug) ?? null;
-    },
-  };
-
-  // Raw query support for search
-  async $queryRaw<T = unknown>(): Promise<T> {
-    // Transform to raw query format
-    return this.skills.map((s) => ({
-      id: s.id,
-      slug: s.slug,
-      nameEn: s.nameEn,
-      namePtBr: s.namePtBr,
-      type: s.type,
-      icon: s.icon,
-      color: s.color,
-      website: s.website,
-      aliases: s.aliases,
-      popularity: s.popularity,
-      niche_slug: s.niche.slug,
-      niche_nameEn: s.niche.nameEn,
-      niche_namePtBr: s.niche.namePtBr,
-    })) as T;
+  private toTechSkill(data: TechSkillData): TechSkill {
+    return {
+      id: data.id,
+      slug: data.slug,
+      nameEn: data.nameEn,
+      namePtBr: data.namePtBr,
+      type: data.type,
+      icon: data.icon,
+      color: data.color,
+      website: data.website,
+      aliases: data.aliases,
+      popularity: data.popularity,
+      niche: data.niche,
+    };
   }
 
   // Test helpers
@@ -127,102 +108,49 @@ export class InMemoryTechSkillRepository {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// IN-MEMORY SPOKEN LANGUAGE REPOSITORY
+// IN-MEMORY SPOKEN LANGUAGE REPOSITORY — implements SpokenLanguagesRepositoryPort
 // ═══════════════════════════════════════════════════════════════
 
-export class InMemorySpokenLanguageRepository {
+export class InMemorySpokenLanguageRepository extends SpokenLanguagesRepositoryPort {
   private languages: SpokenLanguageData[] = [];
 
-  // Prisma-like interface
-  readonly spokenLanguage = {
-    findMany: async (args?: {
-      where?: {
-        isActive?: boolean;
-        OR?: Array<{
-          nameEn?: { contains: string; mode: string };
-          namePtBr?: { contains: string; mode: string };
-          nameEs?: { contains: string; mode: string };
-          nativeName?: { contains: string; mode: string };
-        }>;
-      };
-      orderBy?: { order?: 'asc' | 'desc' };
-      select?: Record<string, boolean>;
-      take?: number;
-    }) => {
-      let result = [...this.languages];
+  async findAllActive(): Promise<SpokenLanguage[]> {
+    return this.languages
+      .filter((l) => l.isActive)
+      .sort((a, b) => a.order - b.order)
+      .map((l) => this.toSpokenLanguage(l));
+  }
 
-      if (args?.where?.isActive !== undefined) {
-        result = result.filter((l) => l.isActive === args.where?.isActive);
-      }
+  async searchByName(query: string, limit: number): Promise<SpokenLanguage[]> {
+    const q = query.toLowerCase();
+    return this.languages
+      .filter(
+        (l) =>
+          l.isActive &&
+          (l.nameEn.toLowerCase().includes(q) ||
+            l.namePtBr.toLowerCase().includes(q) ||
+            l.nameEs.toLowerCase().includes(q) ||
+            (l.nativeName !== null && l.nativeName.toLowerCase().includes(q))),
+      )
+      .sort((a, b) => a.order - b.order)
+      .slice(0, limit)
+      .map((l) => this.toSpokenLanguage(l));
+  }
 
-      if (args?.where?.OR) {
-        const orConditions = args.where.OR;
-        result = result.filter((l) =>
-          orConditions.some((condition) => {
-            if (condition.nameEn?.contains) {
-              return l.nameEn.toLowerCase().includes(condition.nameEn.contains.toLowerCase());
-            }
-            if (condition.namePtBr?.contains) {
-              return l.namePtBr.toLowerCase().includes(condition.namePtBr.contains.toLowerCase());
-            }
-            if (condition.nameEs?.contains) {
-              return l.nameEs.toLowerCase().includes(condition.nameEs.contains.toLowerCase());
-            }
-            if (condition.nativeName?.contains && l.nativeName) {
-              return l.nativeName
-                .toLowerCase()
-                .includes(condition.nativeName.contains.toLowerCase());
-            }
-            return false;
-          }),
-        );
-      }
+  async findByCode(code: string): Promise<SpokenLanguage | null> {
+    const language = this.languages.find((l) => l.code === code);
+    return language ? this.toSpokenLanguage(language) : null;
+  }
 
-      if (args?.orderBy?.order) {
-        result.sort((a, b) =>
-          args.orderBy?.order === 'asc' ? a.order - b.order : b.order - a.order,
-        );
-      }
-
-      if (args?.take) {
-        result = result.slice(0, args.take);
-      }
-
-      // Apply select if provided
-      const selectClause = args?.select;
-      if (selectClause) {
-        return result.map((l) => {
-          const selected: Record<string, unknown> = {};
-          for (const key of Object.keys(selectClause)) {
-            if (selectClause[key] && key in l) {
-              selected[key] = l[key as keyof SpokenLanguageData];
-            }
-          }
-          return selected as unknown as SpokenLanguageData;
-        });
-      }
-
-      return result;
-    },
-
-    findUnique: async (args: { where: { code: string }; select?: Record<string, boolean> }) => {
-      const language = this.languages.find((l) => l.code === args.where.code);
-      if (!language) return null;
-
-      if (args.select) {
-        const selectClause = args.select;
-        const selected: Record<string, unknown> = {};
-        for (const key of Object.keys(selectClause)) {
-          if (selectClause[key] && key in language) {
-            selected[key] = language[key as keyof SpokenLanguageData];
-          }
-        }
-        return selected as unknown as SpokenLanguageData;
-      }
-
-      return language;
-    },
-  };
+  private toSpokenLanguage(data: SpokenLanguageData): SpokenLanguage {
+    return {
+      code: data.code,
+      nameEn: data.nameEn,
+      namePtBr: data.namePtBr,
+      nameEs: data.nameEs,
+      nativeName: data.nativeName,
+    };
+  }
 
   // Test helpers
   seed(languages: SpokenLanguageData[]): void {
@@ -243,10 +171,10 @@ export class InMemorySpokenLanguageRepository {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// IN-MEMORY CACHE SERVICE
+// IN-MEMORY CACHE — implements CachePort
 // ═══════════════════════════════════════════════════════════════
 
-export class InMemoryCacheService {
+export class InMemoryCacheService extends CachePort {
   private cache = new Map<string, unknown>();
 
   async get<T>(key: string): Promise<T | null> {
@@ -257,14 +185,6 @@ export class InMemoryCacheService {
     this.cache.set(key, value);
   }
 
-  async del(key: string): Promise<void> {
-    this.cache.delete(key);
-  }
-
-  async clear(): Promise<void> {
-    this.cache.clear();
-  }
-
   // Test helpers
   has(key: string): boolean {
     return this.cache.has(key);
@@ -272,6 +192,10 @@ export class InMemoryCacheService {
 
   size(): number {
     return this.cache.size;
+  }
+
+  clearAll(): void {
+    this.cache.clear();
   }
 }
 

@@ -1,5 +1,6 @@
 import type { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { searchWhere } from '@/shared-kernel/database';
 import {
   AdminSectionTypesRepositoryPort,
   type CreateSectionTypeData,
@@ -82,11 +83,7 @@ export class AdminSectionTypesRepository extends AdminSectionTypesRepositoryPort
     if (filter.isActive !== undefined) where.isActive = filter.isActive;
     if (filter.semanticKind) where.semanticKind = filter.semanticKind;
     if (filter.search) {
-      where.OR = [
-        { key: { contains: filter.search, mode: 'insensitive' } },
-        { title: { contains: filter.search, mode: 'insensitive' } },
-        { slug: { contains: filter.search, mode: 'insensitive' } },
-      ];
+      where.OR = searchWhere(filter.search, ['key', 'title', 'slug']);
     }
 
     return where;

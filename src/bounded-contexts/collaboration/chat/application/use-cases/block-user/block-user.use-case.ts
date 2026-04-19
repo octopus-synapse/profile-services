@@ -1,4 +1,4 @@
-import { BadRequestException } from '@nestjs/common';
+import { ValidationException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type { BlockedUserResponse, BlockUser } from '../../../schemas/chat.schema';
 import { mapBlockedUserToResponse } from '../../mappers/chat.mapper';
 import type { BlockRepositoryPort } from '../../ports/block.port';
@@ -8,7 +8,7 @@ export class BlockUserUseCase {
 
   async execute(blockerId: string, dto: BlockUser): Promise<BlockedUserResponse> {
     if (blockerId === dto.userId) {
-      throw new BadRequestException('Cannot block yourself');
+      throw new ValidationException('Cannot block yourself');
     }
 
     const record = await this.repository.block(blockerId, dto.userId, dto.reason);

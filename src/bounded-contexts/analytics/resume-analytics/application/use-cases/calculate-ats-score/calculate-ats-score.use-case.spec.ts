@@ -11,12 +11,19 @@ import {
   InMemoryATSScoreRepository,
 } from '@/bounded-contexts/analytics/testing';
 import type { AnalyticsSection, ResumeForAnalytics } from '../../../domain/types';
-import type { AtsScoreCatalogPort } from '../../ports/resume-analytics.port';
+import type { EventPublisherPort } from '@/shared-kernel';
+import type { DomainEvent } from '@/shared-kernel/event-bus/domain/domain-event';
+import { AnalyticsEventBusPort } from '../../ports/analytics-event-bus.port';
+import type { ResumeOwnershipPort } from '../../ports/resume-analytics.port';
 import { CalculateAtsScoreUseCase } from './calculate-ats-score.use-case';
+
+class StubEventBus extends AnalyticsEventBusPort {
+  emit = mock((_event: string, _payload: unknown) => {});
+}
 
 describe('CalculateAtsScoreUseCase', () => {
   let useCase: CalculateAtsScoreUseCase;
-  let mockEventEmitter: { emit: ReturnType<typeof mock> };
+  let eventBus: StubEventBus;
   let atsScoreRepo: InMemoryATSScoreRepository;
 
   const createSection = (
@@ -54,52 +61,27 @@ describe('CalculateAtsScoreUseCase', () => {
   });
 
   beforeEach(() => {
-    mockEventEmitter = { emit: mock(() => {}) };
+    eventBus = new StubEventBus();
     atsScoreRepo = new InMemoryATSScoreRepository();
     atsScoreRepo.seedSectionTypes(defaultSectionTypes);
 
-    const catalog: AtsScoreCatalogPort = {
-      loadCatalog: () =>
-        atsScoreRepo.findMany({ where: { isActive: true } }).then((types) =>
-          types.map((st) => {
-            const def = (st.definition ?? {}) as Record<string, unknown>;
-            const ats = (def.ats ?? {}) as Record<string, unknown>;
-            const scoring = (ats.scoring ?? {}) as Record<string, unknown>;
-            const fields = (def.fields ?? []) as Array<Record<string, unknown>>;
-
-            const roleToFieldKey: Record<string, string> = {};
-            for (const field of fields) {
-              if (typeof field.semanticRole === 'string' && typeof field.key === 'string') {
-                roleToFieldKey[field.semanticRole] = field.key;
-              }
-            }
-
-            return {
-              key: st.key,
-              kind: st.semanticKind,
-              ats: {
-                isMandatory: (ats.isMandatory as boolean) ?? false,
-                recommendedPosition: (ats.recommendedPosition as number) ?? 99,
-                scoring: {
-                  baseScore: (scoring.baseScore as number) ?? 30,
-                  fieldWeights: (scoring.fieldWeights as Record<string, number>) ?? {},
-                },
-              },
-              roleToFieldKey,
-            };
-          }),
-        ),
+    const ownership: ResumeOwnershipPort = {
+      async verifyOwnership() {
+        throw new Error('not used in test');
+      },
+      async verifyResumeExists() {
+        throw new Error('not used in test');
+      },
+      async getResumeWithDetails() {
+        throw new Error('not used in test');
+      },
+    };
+    const eventPublisher: EventPublisherPort = {
+      publish: mock(<T>(_event: DomainEvent<T>) => {}),
+      publishAsync: mock(async <T>(_event: DomainEvent<T>) => {}),
     };
 
-    const mockEventPublisher = { publish: mock(() => {}) };
-    const mockOwnership = {} as never;
-
-    useCase = new CalculateAtsScoreUseCase(
-      catalog,
-      mockOwnership,
-      mockEventEmitter as never,
-      mockEventPublisher as never,
-    );
+    useCase = new CalculateAtsScoreUseCase(atsScoreRepo, ownership, eventBus, eventPublisher);
   });
 
   describe('calculate', () => {
@@ -222,7 +204,7 @@ describe('CalculateAtsScoreUseCase', () => {
 
     it('should emit SSE event when resumeId is provided', async () => {
       await useCase.calculate(createResume(), 'resume-123');
-      expect(mockEventEmitter.emit).toHaveBeenCalledWith(
+      expect(eventBus.emit).toHaveBeenCalledWith(
         'analytics:resume-123:ats_score',
         expect.objectContaining({
           type: 'ats_score',
@@ -233,7 +215,7 @@ describe('CalculateAtsScoreUseCase', () => {
 
     it('should not emit event when resumeId is not provided', async () => {
       await useCase.calculate(createResume());
-      expect(mockEventEmitter.emit).not.toHaveBeenCalled();
+      expect(eventBus.emit).not.toHaveBeenCalled();
     });
 
     it('should load catalog from repository', async () => {

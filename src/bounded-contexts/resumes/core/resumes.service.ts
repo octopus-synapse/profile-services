@@ -1,6 +1,6 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import sanitizeHtml from 'sanitize-html';
+import { Inject, Injectable } from '@nestjs/common';
 import type { CreateResume, UpdateResume } from '@/shared-kernel';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { RESUME_EVENT_PUBLISHER, type ResumeEventPublisher } from '../domain/ports';
 import { ResumeVersionServicePort } from './ports/resume-version-service.port';
 import { ResumesRepositoryPort } from './ports/resumes-repository.port';
@@ -15,11 +15,8 @@ const MAX_RESUMES_PER_USER = 4;
  */
 function sanitizeContent(text: string | undefined | null): string | undefined {
   if (!text) return undefined;
-  if (typeof text !== 'string') return undefined; // Reject non-strings
-  return sanitizeHtml(text, {
-    allowedTags: [], // No HTML allowed
-    allowedAttributes: {},
-  });
+  if (typeof text !== 'string') return undefined;
+  return text.replace(/<[^>]*>/g, '');
 }
 
 @Injectable()
@@ -48,7 +45,7 @@ export class ResumesService extends ResumesServicePort {
 
   async findResumeByIdForUser(id: string, userId: string) {
     const resume = await this.repository.findResumeByIdAndUserId(id, userId);
-    if (!resume) throw new NotFoundException('Resume not found');
+    if (!resume) throw new EntityNotFoundException('Resume', id);
     return resume;
   }
 
@@ -87,7 +84,7 @@ export class ResumesService extends ResumesServicePort {
     };
 
     const resume = await this.repository.updateResumeForUser(id, userId, sanitizedData);
-    if (!resume) throw new NotFoundException('Resume not found');
+    if (!resume) throw new EntityNotFoundException('Resume', id);
 
     this.eventPublisher.publishResumeUpdated(id, {
       userId,
@@ -99,7 +96,7 @@ export class ResumesService extends ResumesServicePort {
 
   async deleteResumeForUser(id: string, userId: string) {
     const deleted = await this.repository.deleteResumeForUser(id, userId);
-    if (!deleted) throw new NotFoundException('Resume not found');
+    if (!deleted) throw new EntityNotFoundException('Resume', id);
 
     this.eventPublisher.publishResumeDeleted(id, { userId });
 

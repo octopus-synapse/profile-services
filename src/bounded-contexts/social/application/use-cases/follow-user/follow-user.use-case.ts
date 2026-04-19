@@ -1,5 +1,9 @@
-import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
 import type { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
+import {
+  ConflictException,
+  EntityNotFoundException,
+  ValidationException,
+} from '@/shared-kernel/exceptions/domain.exceptions';
 import { UserFollowedEvent } from '../../../domain/events';
 import type { FollowRepositoryPort, FollowWithUser } from '../../ports/follow.port';
 
@@ -11,12 +15,12 @@ export class FollowUserUseCase {
 
   async execute(followerId: string, followingId: string): Promise<FollowWithUser> {
     if (followerId === followingId) {
-      throw new BadRequestException('Cannot follow yourself');
+      throw new ValidationException('Cannot follow yourself');
     }
 
     const targetExists = await this.repository.userExists(followingId);
     if (!targetExists) {
-      throw new NotFoundException('User not found');
+      throw new EntityNotFoundException('User', followingId);
     }
 
     const existingFollow = await this.repository.findFollow(followerId, followingId);

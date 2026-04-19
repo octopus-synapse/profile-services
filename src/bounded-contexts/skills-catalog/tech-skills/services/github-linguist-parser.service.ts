@@ -4,10 +4,11 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import * as yaml from 'js-yaml';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import { parse } from '@/shared-kernel/utils/yaml-parser';
 import { GITHUB_LINGUIST_URL, LANGUAGE_METADATA } from '../constants/language-metadata.const';
 import type { GithubLanguagesYml, ParsedLanguage } from '../interfaces';
+import { githubLanguagesYmlSchema } from '../schemas/github-linguist.schema';
 import { createLanguageSlug } from '../utils';
 
 @Injectable()
@@ -25,7 +26,7 @@ export class GithubLinguistParserService {
       }
 
       const yamlContent = await response.text();
-      const languages = yaml.load(yamlContent) as GithubLanguagesYml;
+      const languages = githubLanguagesYmlSchema.parse(parse(yamlContent));
 
       return this.parseLanguages(languages);
     } catch (error) {

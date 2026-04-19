@@ -3,10 +3,10 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import type { FollowRepositoryPort, FollowWithUser } from '../../ports/follow.port';
+import { FollowRepositoryPort, type FollowWithUser } from '../../ports/follow.port';
 import { GetFollowersUseCase } from './get-followers.use-case';
 
-class StubFollowRepository {
+class StubFollowRepository implements FollowRepositoryPort {
   private _data: FollowWithUser[] = [];
   private _total = 0;
 
@@ -18,8 +18,8 @@ class StubFollowRepository {
   async findFollowers() {
     return { data: this._data, total: this._total };
   }
-  async createFollow() {
-    return {} as never;
+  async createFollow(): Promise<FollowWithUser> {
+    throw new Error('not used in test');
   }
   async deleteFollow() {}
   async findFollow() {
@@ -51,7 +51,7 @@ describe('GetFollowersUseCase', () => {
 
   beforeEach(() => {
     repository = new StubFollowRepository();
-    useCase = new GetFollowersUseCase(repository as unknown as FollowRepositoryPort);
+    useCase = new GetFollowersUseCase(repository);
   });
 
   it('should return paginated list of followers', async () => {

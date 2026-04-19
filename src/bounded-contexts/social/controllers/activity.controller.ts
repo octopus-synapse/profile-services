@@ -17,15 +17,15 @@ import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/curre
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import type { ActivityType } from '../application/ports/activity.port';
+import { ActivityReaderPort } from '../application/ports/facade.ports';
 import { ActivityFeedDataDto, ActivityListDataDto } from '../dto/controller-response.dto';
-import { ActivityService } from '../services/activity.service';
 
 // --- Controller ---
 
 @ApiTags('social-activity')
 @Controller('v1/users')
 export class ActivityController {
-  constructor(private readonly activityService: ActivityService) {}
+  constructor(private readonly activityService: ActivityReaderPort) {}
 
   /**
    * Get activity feed for authenticated user.

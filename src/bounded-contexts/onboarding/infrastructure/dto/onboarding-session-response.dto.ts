@@ -14,6 +14,10 @@ const StepFieldSchema = z.object({
   required: z.boolean(),
   options: z.array(z.string()).optional(),
   widget: z.string().optional(),
+  minLength: z.number().int().nonnegative().optional(),
+  maxLength: z.number().int().positive().optional(),
+  pattern: z.string().optional(),
+  examples: z.array(z.string()).optional(),
 });
 
 const StepMetaSchema = z.object({
