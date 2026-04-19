@@ -53,6 +53,7 @@ import { MetricsModule } from '@/bounded-contexts/platform/metrics/metrics.modul
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
 // Test Runner
 import { TestRunnerModule } from '@/bounded-contexts/platform/test-runner/test-runner.module';
+import { UiMetadataModule } from '@/bounded-contexts/platform/ui-metadata/ui-metadata.module';
 import { WebhookModule } from '@/bounded-contexts/platform/webhooks/webhook.module';
 import { PublicResumesModule } from '@/bounded-contexts/presentation/public-resumes/public-resumes.module';
 // Presentation Context
@@ -75,6 +76,7 @@ import { RATE_LIMIT_CONFIG } from '@/shared-kernel';
 import { EventBusModule } from '@/shared-kernel/event-bus/event-bus.module';
 import { DomainExceptionFilter } from '@/shared-kernel/filters/domain-exception.filter';
 import { ApiResponseInterceptor } from '@/shared-kernel/interceptors/api-response.interceptor';
+import { HumanRelativeInterceptor } from '@/shared-kernel/interceptors/human-relative.interceptor';
 import { AppController } from './app.controller';
 
 @Module({
@@ -165,6 +167,7 @@ import { AppController } from './app.controller';
     NotificationsModule,
     TestRunnerModule,
     WebhookModule,
+    UiMetadataModule,
   ],
   controllers: [AppController],
   providers: [
@@ -177,6 +180,12 @@ import { AppController } from './app.controller';
     {
       provide: APP_INTERCEPTOR,
       useClass: ApiResponseInterceptor,
+    },
+    // Adds `<key>AtRelative` siblings to every ISO date in the response so
+    // the UI never needs a date-formatting library.
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: HumanRelativeInterceptor,
     },
     // Global Guards (order matters: Throttler → JWT Auth)
     {
