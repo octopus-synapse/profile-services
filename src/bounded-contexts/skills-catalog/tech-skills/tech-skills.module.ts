@@ -6,7 +6,9 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { InternalAuthGuard } from '@/bounded-contexts/integration/mec-sync/guards/internal-auth.guard';
+import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
+import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import {
   LanguageQueryPort,
   SkillQueryPort,
@@ -68,8 +70,16 @@ import { TechSkillsSyncService } from './services/tech-skills-sync.service';
     { provide: SkillQueryPort, useExisting: SkillQueryService },
     { provide: SkillSearchPort, useExisting: SkillSearchService },
     // Repository / cache ports → adapters
-    { provide: TechSkillRepositoryPort, useClass: TechSkillRepository },
-    { provide: CachePort, useClass: CacheAdapter },
+    {
+      provide: TechSkillRepositoryPort,
+      useFactory: (prisma: PrismaService) => new TechSkillRepository(prisma),
+      inject: [PrismaService],
+    },
+    {
+      provide: CachePort,
+      useFactory: (cache: CacheService) => new CacheAdapter(cache),
+      inject: [CacheService],
+    },
     // Parser services
     GithubLinguistParserService,
     StackOverflowParserService,

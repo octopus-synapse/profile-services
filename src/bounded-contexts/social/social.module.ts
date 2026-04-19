@@ -6,6 +6,7 @@
 
 import { Module } from '@nestjs/common';
 import { EventEmitter2, EventEmitterModule } from '@nestjs/event-emitter';
+import { CacheModule } from '@/bounded-contexts/platform/common/cache/cache.module';
 import { LoggerModule } from '@/bounded-contexts/platform/common/logger/logger.module';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { PrismaModule } from '@/bounded-contexts/platform/prisma/prisma.module';
@@ -48,7 +49,7 @@ import { SkillProficiencyService } from './services/skill-proficiency.service';
 import { SkillProficiencyController } from './skill-proficiency.controller';
 
 @Module({
-  imports: [PrismaModule, LoggerModule, EventEmitterModule, EventBusModule],
+  imports: [PrismaModule, LoggerModule, EventEmitterModule, EventBusModule, CacheModule],
   controllers: [
     FollowController,
     ConnectionController,
