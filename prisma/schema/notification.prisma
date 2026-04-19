@@ -13,14 +13,6 @@ model Notification {
   entityId   String?
 
   message String
-  /**
-   * Stable i18n key (e.g. "notification.application_stale") so the same
-   * notification can be re-rendered in any language without hitting the
-   * backend again. The literal `message` above stays as a fallback for
-   * old rows and for plain-text channels (push, SMS).
-   */
-  messageKey    String?
-  messageParams Json?
   read    Boolean @default(false)
 
   // Email delivery tracking — null means "never sent", value means "sent at that time".
@@ -54,7 +46,6 @@ model NotificationPreference {
 enum EmailDeliveryMode {
   INSTANT
   DAILY
-  WEEKLY
   OFF
 }
 

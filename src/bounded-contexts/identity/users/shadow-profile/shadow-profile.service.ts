@@ -87,11 +87,6 @@ export class ShadowProfileService {
       throw new ConflictException('Shadow profile already claimed by another user');
     }
 
-    // Apply the shadow payload to the user's primary resume so the claim is
-    // user-visible. Creates a fresh resume if there isn't one yet, otherwise
-    // merges (existing skills win on conflict — never overwrite curated data).
-    await this.applyPayloadToUser(userId, existing.payload as PayloadShape);
-
     const claimed = await this.prisma.shadowProfile.update({
       where: { id: shadowId },
       data: { claimedByUserId: userId, claimedAt: new Date() },
@@ -106,53 +101,4 @@ export class ShadowProfileService {
       claimedByUserId: claimed.claimedByUserId,
     };
   }
-
-  private async applyPayloadToUser(userId: string, payload: PayloadShape): Promise<void> {
-    const stack = (payload.primaryStack ?? []).filter(
-      (s): s is string => typeof s === 'string' && s.length > 0,
-    );
-    const headline = typeof payload.headline === 'string' ? payload.headline : null;
-
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { primaryResumeId: true },
-    });
-
-    if (user?.primaryResumeId) {
-      const resume = await this.prisma.resume.findUnique({
-        where: { id: user.primaryResumeId },
-        select: { primaryStack: true, jobTitle: true },
-      });
-      const merged = Array.from(new Set([...(resume?.primaryStack ?? []), ...stack]));
-      await this.prisma.resume.update({
-        where: { id: user.primaryResumeId },
-        data: {
-          primaryStack: merged,
-          // Don't clobber a custom job title; only fill when empty.
-          jobTitle: resume?.jobTitle ?? headline,
-        },
-      });
-      return;
-    }
-
-    const created = await this.prisma.resume.create({
-      data: {
-        userId,
-        title: 'My resume',
-        primaryStack: stack,
-        jobTitle: headline,
-        contentPtBr: { sections: [] },
-      },
-    });
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { primaryResumeId: created.id },
-    });
-  }
-}
-
-interface PayloadShape {
-  headline?: string | null;
-  primaryStack?: string[];
-  projects?: Array<{ name: string; url: string; summary: string }>;
 }

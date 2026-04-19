@@ -187,9 +187,6 @@ export class NotificationService {
       'CONNECTION_REQUEST',
       'CONNECTION_ACCEPTED',
       'FOLLOW_NEW',
-      'SKILL_DECAY',
-      'APPLICATION_STALE',
-      'CONNECTION_RECOMMENDATION',
     ];
     return allTypes.map((type) => {
       const o = overrideMap.get(type);
@@ -208,7 +205,7 @@ export class NotificationService {
     input: {
       enabled?: boolean;
       emailEnabled?: boolean;
-      emailDelivery?: 'INSTANT' | 'DAILY' | 'WEEKLY' | 'OFF';
+      emailDelivery?: 'INSTANT' | 'DAILY' | 'OFF';
     },
   ) {
     return this.prisma.notificationPreference.upsert({
