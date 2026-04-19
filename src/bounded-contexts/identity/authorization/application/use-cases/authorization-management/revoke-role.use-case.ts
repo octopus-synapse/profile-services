@@ -4,9 +4,9 @@
  * Revokes a role from a user and publishes a domain event.
  */
 
-import type { EventPublisherPort } from '@/shared-kernel';
+import { EventPublisherPort } from '@/shared-kernel';
 import { RoleRevokedEvent } from '../../../domain/events';
-import type { UserAuthorizationRepository } from '../../../infrastructure/repositories/user-authorization.repository';
+import type { IUserAuthorizationRepository } from '../../../domain/ports/authorization-repositories.port';
 
 export interface RevokeRoleParams {
   userId: string;
@@ -17,7 +17,7 @@ export interface RevokeRoleParams {
 
 export class RevokeRoleUseCase {
   constructor(
-    private readonly userAuthRepo: UserAuthorizationRepository,
+    private readonly userAuthRepo: IUserAuthorizationRepository,
     private readonly eventPublisher: EventPublisherPort,
   ) {}
 

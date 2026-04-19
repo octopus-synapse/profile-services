@@ -1,13 +1,11 @@
-/**
- * Track View Use Case
- *
- * Tracks a resume view event with IP anonymization and source detection.
- */
-
 import { createHash } from 'node:crypto';
-import type { EventEmitter2 } from '@nestjs/event-emitter';
+import { Inject } from '@nestjs/common';
 import { TRAFFIC_SOURCES } from '../../../domain/value-objects/traffic-sources';
 import type { TrackView } from '../../../interfaces';
+import {
+  ANALYTICS_EVENT_BUS_PORT,
+  AnalyticsEventBusPort,
+} from '../../ports/analytics-event-bus.port';
 import type {
   ResumeOwnershipPort,
   ViewTrackingRepositoryPort,
@@ -17,7 +15,8 @@ export class TrackViewUseCase {
   constructor(
     private readonly ownership: ResumeOwnershipPort,
     private readonly viewTrackingRepo: ViewTrackingRepositoryPort,
-    private readonly eventEmitter: EventEmitter2,
+    @Inject(ANALYTICS_EVENT_BUS_PORT)
+    private readonly eventBus: AnalyticsEventBusPort,
   ) {}
 
   async execute(input: TrackView): Promise<void> {
@@ -36,18 +35,15 @@ export class TrackViewUseCase {
       source,
     });
 
-    // Emit SSE event with updated view count
     const now = new Date();
-    const startOfDay = new Date(now);
-    startOfDay.setHours(0, 0, 0, 0);
     const totalViews = await this.viewTrackingRepo.countViews(input.resumeId, new Date(0), now);
 
-    this.eventEmitter.emit(`analytics:${input.resumeId}:view`, {
+    this.eventBus.emit(`analytics:${input.resumeId}:view`, {
       type: 'view',
       resumeId: input.resumeId,
       data: {
         views: totalViews,
-        timestamp: new Date(),
+        timestamp: now,
       },
     });
   }

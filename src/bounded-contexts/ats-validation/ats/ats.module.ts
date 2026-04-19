@@ -5,6 +5,7 @@ import { SectionTypeRepository } from '@/bounded-contexts/resumes/infrastructure
 import { CalculateThemeATSScoreUseCase } from '../application/use-cases/calculate-theme-ats-score/calculate-theme-ats-score.use-case';
 import { ThemeATSAdapter } from '../infrastructure/adapters/theme-ats.adapter';
 import { ATSController } from '../infrastructure/controllers/ats.controller';
+import { AtsSimulatorController } from '../infrastructure/controllers/ats-simulator.controller';
 import { DateRangeExtractor, JobTitleExtractor, OrganizationExtractor } from './extractors';
 import { SECTION_SEMANTIC_CATALOG, THEME_ATS_PORT } from './interfaces';
 import { CVSectionParser } from './parsers/cv-section.parser';
@@ -32,7 +33,7 @@ import { SectionOrderValidator } from './validators/section-order.validator';
 
 @Module({
   imports: [PrismaModule],
-  controllers: [ATSController],
+  controllers: [ATSController, AtsSimulatorController],
   providers: [
     // Shared-kernel dependency
     SectionTypeRepository,

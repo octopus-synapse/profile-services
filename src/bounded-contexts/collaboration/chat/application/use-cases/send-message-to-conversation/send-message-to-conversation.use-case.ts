@@ -1,4 +1,7 @@
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  EntityNotFoundException,
+  ForbiddenException,
+} from '@/shared-kernel/exceptions/domain.exceptions';
 import type { MessageResponse } from '../../../schemas/chat.schema';
 import { mapMessageToResponse } from '../../mappers/chat.mapper';
 import type {
@@ -31,7 +34,7 @@ export class SendMessageToConversationUseCase {
       senderId,
     );
     if (!otherParticipant) {
-      throw new NotFoundException('Conversation not found');
+      throw new EntityNotFoundException('Conversation', conversationId);
     }
 
     const isBlocked = await this.blockedUserRepo.isBlockedBetween(senderId, otherParticipant.id);

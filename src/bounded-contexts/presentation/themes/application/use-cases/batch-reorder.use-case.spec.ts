@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
 
-import type {
-  ResumeConfig,
+import {
+  type ResumeConfig,
   ResumeConfigRepositoryPort,
 } from '../../domain/ports/resume-config.repository.port';
 import { BatchReorderUseCase } from './batch-reorder.use-case';
@@ -20,18 +20,21 @@ describe('BatchReorderUseCase', () => {
     itemOverrides: {},
   };
 
-  const repo = {
+  const repo: ResumeConfigRepositoryPort = {
     get: async (userId: string, resumeId: string) => {
       getCalled = { userId, resumeId };
       if (shouldThrowOnGet) throw shouldThrowOnGet;
       return { ...fakeConfig };
     },
-    batchUpdateSectionsDirect: async (resumeId: string, updates: unknown[]) => {
+    batchUpdateSectionsDirect: async (
+      resumeId: string,
+      updates: Array<{ id: string; order?: number; visible?: boolean }>,
+    ) => {
       batchUpdateCalled = { resumeId, updates };
     },
     save: async () => {},
     reorderSectionDirect: async () => {},
-  } as unknown as ResumeConfigRepositoryPort;
+  };
 
   beforeEach(() => {
     getCalled = null;

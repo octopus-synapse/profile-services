@@ -4,9 +4,9 @@
  * BUG-013 FIX: Admin can create themes directly as PUBLISHED.
  */
 
-import { ForbiddenException } from '@nestjs/common';
 import type { CreateTheme } from '@/shared-kernel';
 import { ERROR_MESSAGES } from '@/shared-kernel';
+import { ForbiddenException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type { AuthorizationPort } from '../../domain/ports/authorization.port';
 import type { ThemeRepositoryPort } from '../../domain/ports/theme.repository.port';
 import { type JsonValue, ThemeStatus } from '../../domain/ports/theme.repository.port';

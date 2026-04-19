@@ -3,10 +3,10 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import type { FollowRepositoryPort } from '../../ports/follow.port';
+import { FollowRepositoryPort, type FollowWithUser } from '../../ports/follow.port';
 import { GetFollowingIdsUseCase } from './get-following-ids.use-case';
 
-class StubFollowRepository {
+class StubFollowRepository implements FollowRepositoryPort {
   private _ids: string[] = [];
 
   setFollowingIds(ids: string[]) {
@@ -16,8 +16,8 @@ class StubFollowRepository {
   async findFollowingIds() {
     return this._ids;
   }
-  async createFollow() {
-    return {} as never;
+  async createFollow(): Promise<FollowWithUser> {
+    throw new Error('not used in test');
   }
   async deleteFollow() {}
   async findFollow() {
@@ -49,7 +49,7 @@ describe('GetFollowingIdsUseCase', () => {
 
   beforeEach(() => {
     repository = new StubFollowRepository();
-    useCase = new GetFollowingIdsUseCase(repository as unknown as FollowRepositoryPort);
+    useCase = new GetFollowingIdsUseCase(repository);
   });
 
   it('should return array of followed user IDs', async () => {

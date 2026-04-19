@@ -2,9 +2,11 @@ import { Module } from '@nestjs/common';
 import { AccountLifecycleModule } from './account-lifecycle';
 import { AuthenticationModule } from './authentication';
 import { EmailVerificationModule } from './email-verification';
+import { OAuthModule } from './oauth/oauth.module';
 // Bounded Context Modules
 import { PasswordManagementModule } from './password-management';
 import { TwoFactorAuthModule } from './two-factor-auth';
+import { ShadowProfileModule } from './users/shadow-profile/shadow-profile.module';
 
 /**
  * Identity Module
@@ -26,6 +28,8 @@ import { TwoFactorAuthModule } from './two-factor-auth';
     AccountLifecycleModule,
     AuthenticationModule,
     TwoFactorAuthModule,
+    OAuthModule,
+    ShadowProfileModule,
   ],
   exports: [
     PasswordManagementModule,
@@ -33,6 +37,8 @@ import { TwoFactorAuthModule } from './two-factor-auth';
     AccountLifecycleModule,
     AuthenticationModule,
     TwoFactorAuthModule,
+    OAuthModule,
+    ShadowProfileModule,
   ],
 })
 export class IdentityModule {}

@@ -18,7 +18,7 @@ permissions:
 jobs:
   create-release-pr:
     if: github.ref == 'refs/heads/homolog'
-    uses: ./.github/workflows/_release-create-pr.yml
+    uses: octopus-synapse/octopus-workflows/.github/workflows/_release-create-pr.yml@v1
     with:
       sha: ${{ github.sha }}
       forced_type: ${{ github.event.inputs.force_release_type || '' }}
@@ -29,13 +29,13 @@ jobs:
 
   finalize-release:
     if: github.ref == 'refs/heads/main' && startsWith(github.event.head_commit.message, 'chore(release):')
-    uses: ./.github/workflows/_release-finalize.yml
+    uses: octopus-synapse/octopus-workflows/.github/workflows/_release-finalize.yml@v1
     with:
       commit_sha: ${{ github.sha }}
 
   build-docker:
     needs: finalize-release
     if: needs.finalize-release.outputs.released == 'true'
-    uses: ./.github/workflows/_release-docker.yml
+    uses: octopus-synapse/octopus-workflows/.github/workflows/_release-docker.yml@v1
     with:
       tag: ${{ needs.finalize-release.outputs.tag }}

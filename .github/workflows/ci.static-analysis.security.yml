@@ -5,7 +5,7 @@ on:
 
 jobs:
   test:
-    uses: ./.github/workflows/_static-analysis-template.yml
+    uses: octopus-synapse/octopus-workflows/.github/workflows/_static-analysis-template.yml@v1
     with:
       test-command: "bun test --config=bunfig.security.toml"
       test-name: "Security"

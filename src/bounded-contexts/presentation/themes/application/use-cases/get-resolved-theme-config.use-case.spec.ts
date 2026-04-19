@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
 
-import { ForbiddenException } from '@nestjs/common';
-import type {
+import { ForbiddenException } from '@/shared-kernel/exceptions/domain.exceptions';
+import {
   ResumeRepositoryPort,
-  ResumeWithTheme,
+  type ResumeWithTheme,
 } from '../../domain/ports/resume.repository.port';
 import { GetResolvedThemeConfigUseCase } from './get-resolved-theme-config.use-case';
 
@@ -22,9 +22,15 @@ describe('GetResolvedThemeConfigUseCase', () => {
     },
   };
 
-  const resumeRepo = {
+  const resumeRepo: ResumeRepositoryPort = {
     findByIdWithTheme: async () => foundResume,
-  } as unknown as ResumeRepositoryPort;
+    findById: async () => {
+      throw new Error('not used in test');
+    },
+    applyTheme: async () => {
+      throw new Error('not used in test');
+    },
+  };
 
   beforeEach(() => {
     foundResume = { ...baseResume };

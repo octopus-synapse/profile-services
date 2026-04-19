@@ -32,6 +32,9 @@ const mockExportUseCases: ExportUseCases = {
     execute: async () => '\\documentclass{}',
     executeAsBuffer: async () => Buffer.from('\\documentclass{}'),
   },
+  exportBundleUseCase: {
+    execute: async () => Buffer.from('mock-zip-content'),
+  },
 };
 
 describe('ExportController', () => {

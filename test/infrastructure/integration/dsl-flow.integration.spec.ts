@@ -344,10 +344,10 @@ describe('DSL Smoke Tests (e2e)', () => {
       expect(ast.page).toBeDefined();
     });
 
-    it('should return 400 for non-public resume', async () => {
+    it('should return 404 for non-public resume', async () => {
       return request(app.getHttpServer())
         .get('/api/v1/dsl/render/public/non-public-dsl-smoke-test')
-        .expect(400);
+        .expect(404);
     });
   });
 

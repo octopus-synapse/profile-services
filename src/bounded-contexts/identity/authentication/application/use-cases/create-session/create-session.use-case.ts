@@ -9,7 +9,12 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+
+/** Narrow view of ConfigService used by this use case (DIP). */
+export interface SessionConfigPort {
+  get<T>(key: string, defaultValue: T): T;
+}
+
 import type { EventBusPort } from '../../../../shared-kernel/ports';
 import { Session, SessionCreatedEvent } from '../../../domain';
 import type {
@@ -43,7 +48,7 @@ export class CreateSessionUseCase implements CreateSessionPort {
     private readonly sessionStorage: SessionStoragePort,
     @Inject(EVENT_BUS)
     private readonly eventBus: EventBusPort,
-    private readonly configService: ConfigService,
+    private readonly configService: SessionConfigPort,
   ) {
     this.sessionExpiryDays = this.configService.get<number>('SESSION_EXPIRY_DAYS', 7);
   }

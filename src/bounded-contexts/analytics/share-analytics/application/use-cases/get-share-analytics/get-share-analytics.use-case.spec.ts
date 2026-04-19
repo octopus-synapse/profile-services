@@ -6,7 +6,10 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { ForbiddenException } from '@nestjs/common';
+import {
+  EntityNotFoundException,
+  ForbiddenException,
+} from '@/shared-kernel/exceptions/domain.exceptions';
 import { InMemoryShareAnalyticsRepository } from '../../../testing';
 import { GetShareAnalyticsUseCase } from './get-share-analytics.use-case';
 
@@ -29,8 +32,8 @@ describe('GetShareAnalyticsUseCase', () => {
     });
   });
 
-  it('should throw ForbiddenException when share not found', async () => {
-    await expect(useCase.execute('non-existent', userId)).rejects.toThrow(ForbiddenException);
+  it('should throw EntityNotFoundException when share not found', async () => {
+    await expect(useCase.execute('non-existent', userId)).rejects.toThrow(EntityNotFoundException);
   });
 
   it('should throw ForbiddenException when user does not own the resume', async () => {
@@ -84,5 +87,20 @@ describe('GetShareAnalyticsUseCase', () => {
 
     expect(result.byCountry).toContainEqual({ country: 'BR', count: 2 });
     expect(result.byCountry).toContainEqual({ country: 'US', count: 1 });
+  });
+
+  it('should group by deviceType', async () => {
+    repository.seedAnalytics([
+      { shareId, event: 'VIEW', ipHash: 'h1', deviceType: 'mobile' },
+      { shareId, event: 'VIEW', ipHash: 'h2', deviceType: 'mobile' },
+      { shareId, event: 'VIEW', ipHash: 'h3', deviceType: 'desktop' },
+      { shareId, event: 'VIEW', ipHash: 'h4', deviceType: 'bot' },
+    ]);
+
+    const result = await useCase.execute(shareId, userId);
+
+    expect(result.byDeviceType).toContainEqual({ deviceType: 'mobile', count: 2 });
+    expect(result.byDeviceType).toContainEqual({ deviceType: 'desktop', count: 1 });
+    expect(result.byDeviceType).toContainEqual({ deviceType: 'bot', count: 1 });
   });
 });

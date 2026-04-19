@@ -5,6 +5,8 @@
 
 import type {
   BatchTranslationResult,
+  LanguageDetectionResult,
+  SourceLanguage,
   TranslationLanguage,
   TranslationResult,
 } from '../types/translation.types';
@@ -12,15 +14,17 @@ import type {
 export interface TranslationPort {
   translate(
     text: string,
-    sourceLanguage: TranslationLanguage,
+    sourceLanguage: SourceLanguage,
     targetLanguage: TranslationLanguage,
   ): Promise<TranslationResult>;
 
   translateBatch(
     texts: string[],
-    sourceLanguage: TranslationLanguage,
+    sourceLanguage: SourceLanguage,
     targetLanguage: TranslationLanguage,
   ): Promise<BatchTranslationResult>;
+
+  detectLanguage?(text: string): Promise<LanguageDetectionResult[]>;
 
   checkServiceHealth(): Promise<boolean>;
   isAvailable(): boolean;

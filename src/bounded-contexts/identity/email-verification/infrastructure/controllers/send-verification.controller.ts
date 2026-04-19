@@ -7,6 +7,7 @@ import {
   ApiTags,
   ApiTooManyRequestsResponse,
 } from '@nestjs/swagger';
+import { AllowUnverifiedEmail } from '@/bounded-contexts/identity/shared-kernel/infrastructure/decorators/allow-unverified-email.decorator';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure/guards/jwt-auth.guard';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
@@ -25,6 +26,7 @@ interface AuthenticatedUser {
   description: 'Send verification email',
 })
 @ApiTags('Email Verification')
+@AllowUnverifiedEmail()
 @Controller('email-verification')
 export class SendVerificationController {
   constructor(

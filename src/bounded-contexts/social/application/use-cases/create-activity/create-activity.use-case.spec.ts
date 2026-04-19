@@ -3,9 +3,12 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import type { ActivityRepositoryPort, ActivityWithUser } from '../../ports/activity.port';
-import { ActivityType } from '../../ports/activity.port';
-import type { FollowRepositoryPort } from '../../ports/follow.port';
+import {
+  ActivityRepositoryPort,
+  ActivityType,
+  type ActivityWithUser,
+} from '../../ports/activity.port';
+import { FollowRepositoryPort } from '../../ports/follow.port';
 import { CreateActivityUseCase } from './create-activity.use-case';
 
 function createActivityRecord(overrides: Partial<ActivityWithUser> = {}): ActivityWithUser {
@@ -27,7 +30,7 @@ function createActivityRecord(overrides: Partial<ActivityWithUser> = {}): Activi
   };
 }
 
-class StubActivityRepository {
+class StubActivityRepository implements ActivityRepositoryPort {
   private _createResult: ActivityWithUser = createActivityRecord();
   private _findResult: ActivityWithUser | null = createActivityRecord();
 
@@ -37,7 +40,7 @@ class StubActivityRepository {
     this._createResult = val;
   }
 
-  async createActivity(data: unknown) {
+  async createActivity(data: Parameters<ActivityRepositoryPort['createActivity']>[0]) {
     this.calls.push({ method: 'createActivity', args: [data] });
     return this._createResult;
   }
@@ -58,12 +61,12 @@ class StubActivityRepository {
   }
 }
 
-class StubFollowRepository {
+class StubFollowRepository implements FollowRepositoryPort {
   async findFollowerIds() {
     return [];
   }
-  async createFollow() {
-    return {} as never;
+  async createFollow(): Promise<never> {
+    throw new Error('not used in test');
   }
   async deleteFollow() {}
   async findFollow() {
@@ -106,10 +109,10 @@ describe('CreateActivityUseCase', () => {
   beforeEach(() => {
     activityRepo = new StubActivityRepository();
     useCase = new CreateActivityUseCase(
-      activityRepo as unknown as ActivityRepositoryPort,
-      new StubFollowRepository() as unknown as FollowRepositoryPort,
+      activityRepo,
+      new StubFollowRepository(),
       stubEventPublisher,
-      stubEventEmitter as never,
+      stubEventEmitter,
     );
   });
 

@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { AtsScoringPort } from '../application/ports/facade.ports';
 import type { ResumeForAnalytics } from '../domain/types';
 import type {
   AnalyticsDashboard,
@@ -12,14 +13,13 @@ import {
   VIEW_TRACKING_PORT,
   type ViewTrackingPort,
 } from '../ports';
-import { ATSScoreService } from './ats-score.service';
 
 @Injectable()
 export class DashboardService {
   constructor(
     @Inject(VIEW_TRACKING_PORT)
     private readonly viewTracking: ViewTrackingPort,
-    private readonly atsScore: ATSScoreService,
+    private readonly atsScore: AtsScoringPort,
     @Inject(SNAPSHOT_PORT)
     private readonly snapshot: SnapshotPort,
   ) {}

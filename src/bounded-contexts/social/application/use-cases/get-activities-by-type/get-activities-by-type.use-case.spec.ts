@@ -3,19 +3,26 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import type { ActivityRepositoryPort } from '../../ports/activity.port';
-import { ActivityType } from '../../ports/activity.port';
+import {
+  ActivityRepositoryPort,
+  ActivityType,
+  type ActivityWithUser,
+} from '../../ports/activity.port';
 import { GetActivitiesByTypeUseCase } from './get-activities-by-type.use-case';
 
-class StubActivityRepository {
+class StubActivityRepository implements ActivityRepositoryPort {
   calls: Array<{ method: string; args: unknown[] }> = [];
 
-  async findUserActivitiesByType(userId: string, type: unknown, pagination: unknown) {
+  async findUserActivitiesByType(
+    userId: string,
+    type: ActivityType,
+    pagination: { page: number; limit: number },
+  ) {
     this.calls.push({ method: 'findUserActivitiesByType', args: [userId, type, pagination] });
-    return { data: [], total: 0 };
+    return { data: [] as ActivityWithUser[], total: 0 };
   }
-  async createActivity() {
-    return {} as never;
+  async createActivity(): Promise<ActivityWithUser> {
+    throw new Error('not used in test');
   }
   async findActivityWithUser() {
     return null;
@@ -37,7 +44,7 @@ describe('GetActivitiesByTypeUseCase', () => {
 
   beforeEach(() => {
     repository = new StubActivityRepository();
-    useCase = new GetActivitiesByTypeUseCase(repository as unknown as ActivityRepositoryPort);
+    useCase = new GetActivitiesByTypeUseCase(repository);
   });
 
   it('should filter activities by type', async () => {

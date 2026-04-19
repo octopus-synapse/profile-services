@@ -1,6 +1,5 @@
-import { NotFoundException } from '@nestjs/common';
 import type { ResumeEventPublisher } from '@/bounded-contexts/resumes/domain/ports';
-import { ERROR_MESSAGES } from '@/shared-kernel';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { ResumeManagementRepositoryPort } from '../ports/resume-management.port';
 
 export class DeleteResumeUseCase {
@@ -13,7 +12,7 @@ export class DeleteResumeUseCase {
     const resume = await this.repository.findResumeForDelete(resumeId);
 
     if (!resume) {
-      throw new NotFoundException(ERROR_MESSAGES.RESUME_NOT_FOUND);
+      throw new EntityNotFoundException('Resume', resumeId);
     }
 
     // Delete first, then publish event (prevents cache invalidation if delete fails)

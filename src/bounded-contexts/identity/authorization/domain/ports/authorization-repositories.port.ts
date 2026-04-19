@@ -1,33 +1,26 @@
 /**
- * Authorization Repository Interfaces
+ * Authorization Lookup Repository Interfaces
  *
- * Port interfaces following Dependency Inversion Principle.
+ * Per-entity read ports following Dependency Inversion Principle.
  * Domain services depend on these abstractions, not implementations.
+ *
+ * User-scoped role/group/permission mutations live in
+ * `user-authorization.port.ts` so this file stays within the ISP budget.
  */
 
 import type { Group, GroupId } from '../entities/group.entity';
 import type { Permission, PermissionId } from '../entities/permission.entity';
 import type { Role, RoleId } from '../entities/role.entity';
-import type { UserId } from '../entities/user-auth-context.entity';
 
-/** User's direct permission assignment */
-export interface UserPermissionAssignment {
-  permissionId: PermissionId;
-  granted: boolean;
-  expiresAt?: Date;
-}
-
-/** User's role assignment */
-export interface UserRoleAssignment {
-  roleId: RoleId;
-  expiresAt?: Date;
-}
-
-/** User's group membership */
-export interface UserGroupMembership {
-  groupId: GroupId;
-  expiresAt?: Date;
-}
+/** Re-exported so callers importing the user-scoped port from this file
+ * keep working during the split. New code should import directly from
+ * `user-authorization.port.ts`. */
+export type {
+  IUserAuthorizationRepository,
+  UserGroupMembership,
+  UserPermissionAssignment,
+  UserRoleAssignment,
+} from './user-authorization.port';
 
 /** Permission repository port */
 export interface IPermissionRepository {
@@ -49,11 +42,4 @@ export interface IGroupRepository {
   findByIds(ids: GroupId[]): Promise<Group[]>;
   findByName(name: string): Promise<Group | null>;
   findAncestors(groupId: GroupId): Promise<Group[]>;
-}
-
-/** User authorization repository port */
-export interface IUserAuthorizationRepository {
-  getUserPermissions(userId: UserId): Promise<UserPermissionAssignment[]>;
-  getUserRoles(userId: UserId): Promise<UserRoleAssignment[]>;
-  getUserGroups(userId: UserId): Promise<UserGroupMembership[]>;
 }

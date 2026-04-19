@@ -272,6 +272,7 @@ describeIntegration('Pagination & Filtering Integration', () => {
     it('should return followers with default pagination', async () => {
       const res = await request(app.getHttpServer())
         .get(`/api/v1/users/${userId}/followers`)
+        .set('Authorization', `Bearer ${userToken}`)
         .expect(200);
 
       expect(res.body.success).toBe(true);
@@ -281,6 +282,7 @@ describeIntegration('Pagination & Filtering Integration', () => {
     it('should accept page and limit params', async () => {
       const res = await request(app.getHttpServer())
         .get(`/api/v1/users/${userId}/followers?page=1&limit=5`)
+        .set('Authorization', `Bearer ${userToken}`)
         .expect(200);
 
       expect(res.body.success).toBe(true);
@@ -289,6 +291,7 @@ describeIntegration('Pagination & Filtering Integration', () => {
     it('should return empty followers for new user', async () => {
       const res = await request(app.getHttpServer())
         .get(`/api/v1/users/${userId}/followers?page=1&limit=10`)
+        .set('Authorization', `Bearer ${userToken}`)
         .expect(200);
 
       // New user should have no followers
@@ -305,6 +308,7 @@ describeIntegration('Pagination & Filtering Integration', () => {
     it('should cap limit at 100', async () => {
       const res = await request(app.getHttpServer())
         .get(`/api/v1/users/${userId}/followers?page=1&limit=500`)
+        .set('Authorization', `Bearer ${userToken}`)
         .expect(200);
 
       // Should not error, limit is capped at 100 in controller

@@ -1,4 +1,4 @@
-import { BadRequestException } from '@nestjs/common';
+import { ValidationException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { SectionDefinitionSchema } from '@/shared-kernel/schemas/sections';
 import { GenericResumeSectionsRepositoryPort } from '../ports/generic-resume-sections-repository.port';
 
@@ -42,7 +42,7 @@ export class ItemLimitPolicy {
     const currentCount = await this.repository.countSectionItems(resumeSectionId);
 
     if (currentCount >= maxItems) {
-      throw new BadRequestException(`Section reached maximum item limit (${maxItems})`);
+      throw new ValidationException(`Section reached maximum item limit (${maxItems})`);
     }
   }
 }

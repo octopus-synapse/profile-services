@@ -72,16 +72,37 @@ model EmailVerificationToken {
 }
 
 model RefreshToken {
-  id        String   @id @default(cuid())
-  token     String   @unique
-  userId    String
-  expiresAt DateTime
-  revokedAt DateTime?
-  createdAt DateTime @default(now())
+  id         String    @id @default(cuid())
+  token      String    @unique
+  userId     String
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime?
+  ipAddress  String?
+  userAgent  String?   @db.Text
+  deviceName String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([token])
   @@index([expiresAt])
+}
+
+// Tracks per-user failed login attempts for account lockout
+model LoginAttempt {
+  id          String    @id @default(cuid())
+  userId      String?
+  email       String
+  success     Boolean
+  ipAddress   String?
+  userAgent   String?   @db.Text
+  failureCode String?
+  createdAt   DateTime  @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([email, createdAt])
 }

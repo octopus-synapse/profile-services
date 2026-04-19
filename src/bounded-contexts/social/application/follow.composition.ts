@@ -1,5 +1,5 @@
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import type { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
+import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import { FollowRepository } from '../infrastructure/adapters/persistence/follow.repository';
 import { FOLLOW_USE_CASES, type FollowUseCases } from './ports/follow.port';
 import { CheckFollowingUseCase } from './use-cases/check-following/check-following.use-case';

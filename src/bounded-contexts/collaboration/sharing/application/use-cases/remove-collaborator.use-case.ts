@@ -1,4 +1,7 @@
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  EntityNotFoundException,
+  ForbiddenException,
+} from '@/shared-kernel/exceptions/domain.exceptions';
 import type { CollaborationRepositoryPort } from '../../domain/ports/collaboration-repository.port';
 import type { RemoveCollaboratorParams } from '../../domain/types/collaboration.types';
 
@@ -7,7 +10,7 @@ export class RemoveCollaboratorUseCase {
 
   async execute(params: RemoveCollaboratorParams): Promise<void> {
     const resume = await this.repo.findResumeOwner(params.resumeId);
-    if (!resume) throw new NotFoundException('Resume not found');
+    if (!resume) throw new EntityNotFoundException('Resume', params.resumeId);
 
     const isOwner = resume.userId === params.requesterId;
     const isSelf = params.requesterId === params.targetUserId;
@@ -19,7 +22,7 @@ export class RemoveCollaboratorUseCase {
     }
 
     const collaborator = await this.repo.findCollaborator(params.resumeId, params.targetUserId);
-    if (!collaborator) throw new NotFoundException('Collaborator not found');
+    if (!collaborator) throw new EntityNotFoundException('Collaborator', params.targetUserId);
 
     await this.repo.deleteCollaborator(params.resumeId, params.targetUserId);
   }

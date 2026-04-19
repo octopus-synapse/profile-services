@@ -1,6 +1,6 @@
 import { DomainEvent } from '@/shared-kernel';
 
-export type ExportFormat = 'pdf' | 'docx' | 'json' | 'latex' | 'banner';
+export type ExportFormat = 'pdf' | 'docx' | 'json' | 'latex' | 'banner' | 'bundle';
 
 export interface ExportRequestedPayload {
   readonly resumeId: string;

@@ -5,16 +5,65 @@
  * Supports creation, retrieval, soft deletion, and cursor-based pagination.
  */
 
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import type { PostType, Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import {
+  EntityNotFoundException,
+  ForbiddenException,
+} from '@/shared-kernel/exceptions/domain.exceptions';
 
 const AUTHOR_SELECT = {
   id: true,
   name: true,
   username: true,
   photoURL: true,
+  bio: true,
+  location: true,
 } as const;
+
+type PostAuthor = {
+  id: string;
+  name: string | null;
+  username: string | null;
+  photoURL: string | null;
+  bio?: string | null;
+  location?: string | null;
+};
+
+/**
+ * Blind-mode serializer: when a post is marked anonymous, strip identity
+ * fields from the author and replace with a derived label
+ * ("Anonymous · SP"). The real `authorId` is still tracked server-side for
+ * moderation, rate limits and ban enforcement — we just never ship it.
+ */
+export function maskAnonymous<
+  T extends { isAnonymous: boolean; author: PostAuthor | null | undefined },
+>(post: T): T {
+  if (!post.isAnonymous) return post;
+  const label = buildAnonymousLabel(post.author);
+  return {
+    ...post,
+    author: {
+      id: '__anonymous__',
+      name: label,
+      username: null,
+      photoURL: null,
+      bio: null,
+      location: null,
+    },
+  };
+}
+
+function buildAnonymousLabel(author: PostAuthor | null | undefined): string {
+  if (!author) return 'Anonymous';
+  const bioLead = author.bio?.split(/[\n.–—|·]/)[0]?.trim();
+  const city = author.location?.split(',')[0]?.trim();
+  if (bioLead && city) return `${bioLead} · ${city}`;
+  if (bioLead) return bioLead;
+  if (city) return `Anonymous · ${city}`;
+  return 'Anonymous';
+}
 
 @Injectable()
 export class PostService {
@@ -43,6 +92,8 @@ export class PostService {
       scheduledAt?: string;
       threadId?: string;
       codeSnippet?: { language: string; code: string; filename?: string };
+      isAnonymous?: boolean;
+      anonymousCategory?: 'SALARY' | 'INTERVIEW' | 'LAYOFF' | 'TOXIC_CULTURE' | 'HARASSMENT';
     },
   ) {
     const hashtags = dto.content ? this.parseHashtags(dto.content) : [];
@@ -69,9 +120,11 @@ export class PostService {
         scheduledAt,
         isPublished,
         threadId: dto.threadId,
-        codeSnippet: dto.codeSnippet
-          ? (dto.codeSnippet as unknown as Prisma.InputJsonValue)
-          : undefined,
+        codeSnippet: dto.codeSnippet,
+        // Blind Mode — author id is still persisted for moderation/anti-spam;
+        // the read-time serializer hides identity fields when `isAnonymous`.
+        isAnonymous: dto.isAnonymous === true,
+        anonymousCategory: dto.isAnonymous ? (dto.anonymousCategory ?? null) : null,
       },
       include: {
         author: { select: AUTHOR_SELECT },
@@ -106,10 +159,16 @@ export class PostService {
     });
 
     if (!post || post.isDeleted) {
-      throw new NotFoundException('Post not found');
+      throw new EntityNotFoundException('Post', id);
     }
 
-    return post;
+    // Blind mode — hide identity when flagged. Applies recursively to the
+    // embedded originalPost (a repost of an anonymous post stays anonymous).
+    const masked = maskAnonymous(post) as typeof post;
+    if (masked.originalPost) {
+      masked.originalPost = maskAnonymous(masked.originalPost) as typeof masked.originalPost;
+    }
+    return masked;
   }
 
   /**
@@ -121,7 +180,7 @@ export class PostService {
     });
 
     if (!post || post.isDeleted) {
-      throw new NotFoundException('Post not found');
+      throw new EntityNotFoundException('Post', id);
     }
 
     if (post.authorId !== userId) {

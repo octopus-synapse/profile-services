@@ -50,6 +50,7 @@ const ConnectionStatsSchema = z.object({
 
 const ConnectionCheckSchema = z.object({
   isConnected: z.boolean(),
+  pendingSentConnectionId: z.string().nullable(),
 });
 
 const SuggestionUserSchema = z.object({

@@ -1,90 +1,114 @@
 /**
  * Authorization Service Unit Tests
  *
- * Tests the permission checking and caching system.
- * Focus: Permission resolution, context caching, cache invalidation.
- *
- * Kent Beck: "Test the behaviors, not the implementation details"
- * Uncle Bob: "Each test should have a single reason to fail"
- *
- * Note: This service has complex internal dependencies (PermissionResolverService).
- * These tests verify the public API contract and caching behavior.
+ * Port-based in-memory repositories.
  */
 
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import type { GroupRepository } from '../../infrastructure/repositories/group.repository';
-import type { PermissionRepository } from '../../infrastructure/repositories/permission.repository';
-import type { RoleRepository } from '../../infrastructure/repositories/role.repository';
-import type { UserAuthorizationRepository } from '../../infrastructure/repositories/user-authorization.repository';
+import { Group, type GroupId } from '../../domain/entities/group.entity';
+import { Permission, type PermissionId } from '../../domain/entities/permission.entity';
+import { Role, type RoleId } from '../../domain/entities/role.entity';
+import type { UserId } from '../../domain/entities/user-auth-context.entity';
+import type {
+  IGroupRepository,
+  IPermissionRepository,
+  IRoleRepository,
+  IUserAuthorizationRepository,
+  UserGroupMembership,
+  UserPermissionAssignment,
+  UserRoleAssignment,
+} from '../../domain/ports/authorization-repositories.port';
 import { AuthorizationService } from './authorization.service';
+
+const makePermission = (id: string, resource: string, action: string): Permission =>
+  Permission.fromPersistence({
+    id,
+    resource,
+    action,
+    description: undefined,
+    isSystem: false,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
+
+const makeRole = (id: string, name: string, permissionIds: string[]): Role =>
+  Role.fromPersistence({
+    id,
+    name,
+    displayName: name,
+    description: undefined,
+    isSystem: false,
+    priority: 0,
+    permissionIds,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
 
 describe('AuthorizationService', () => {
   let service: AuthorizationService;
-  let mockPermissionRepo: Record<string, ReturnType<typeof mock>>;
-  let mockRoleRepo: Record<string, ReturnType<typeof mock>>;
-  let mockGroupRepo: Record<string, ReturnType<typeof mock>>;
-  let mockUserAuthRepo: Record<string, ReturnType<typeof mock>>;
+  let mockPermissionRepo: IPermissionRepository;
+  let mockRoleRepo: IRoleRepository;
+  let mockGroupRepo: IGroupRepository;
+  let mockUserAuthRepo: IUserAuthorizationRepository;
 
   const mockUserId = 'user-123';
 
   beforeEach(() => {
-    // Mock permissions
     const mockPermissions = [
-      { id: 'perm-1', resource: 'resume', action: 'read', key: 'resume:read' },
-      {
-        id: 'perm-2',
-        resource: 'resume',
-        action: 'write',
-        key: 'resume:write',
-      },
-      { id: 'perm-3', resource: 'export', action: 'pdf', key: 'export:pdf' },
+      makePermission('perm-1', 'resume', 'read'),
+      makePermission('perm-2', 'resume', 'write'),
+      makePermission('perm-3', 'export', 'pdf'),
     ];
-
-    // Mock roles
-    const mockRoles = [
-      {
-        id: 'role-1',
-        name: 'user',
-        displayName: 'User',
-        permissionIds: ['perm-1', 'perm-2'],
-      },
-    ];
+    const mockRoles = [makeRole('role-1', 'user', ['perm-1', 'perm-2'])];
 
     mockPermissionRepo = {
-      findById: mock((id: string) =>
-        Promise.resolve(mockPermissions.find((p) => p.id === id) ?? null),
+      findById: mock(async (id: PermissionId) => mockPermissions.find((p) => p.id === id) ?? null),
+      findByIds: mock(async (ids: PermissionId[]) =>
+        mockPermissions.filter((p) => ids.includes(p.id)),
       ),
-      findByIds: mock((ids: string[]) =>
-        Promise.resolve(mockPermissions.filter((p) => ids.includes(p.id))),
+      findByKey: mock(
+        async (resource: string, action: string) =>
+          mockPermissions.find((p) => p.resource === resource && p.action === action) ?? null,
       ),
-      findAll: mock(() => Promise.resolve(mockPermissions)),
     };
 
     mockRoleRepo = {
-      findById: mock((id: string) => Promise.resolve(mockRoles.find((r) => r.id === id) ?? null)),
-      findByIds: mock((ids: string[]) =>
-        Promise.resolve(mockRoles.filter((r) => ids.includes(r.id))),
-      ),
-      findAll: mock(() => Promise.resolve(mockRoles)),
+      findById: mock(async (id: RoleId) => mockRoles.find((r) => r.id === id) ?? null),
+      findByIds: mock(async (ids: RoleId[]) => mockRoles.filter((r) => ids.includes(r.id))),
+      findByName: mock(async (name: string) => mockRoles.find((r) => r.name === name) ?? null),
     };
 
     mockGroupRepo = {
-      findById: mock(() => Promise.resolve(null)),
-      findByIds: mock(() => Promise.resolve([])),
-      findAll: mock(() => Promise.resolve([])),
+      findById: mock(async (_id: GroupId): Promise<Group | null> => null),
+      findByIds: mock(async (_ids: GroupId[]): Promise<Group[]> => []),
+      findByName: mock(async (_name: string): Promise<Group | null> => null),
+      findAncestors: mock(async (_id: GroupId): Promise<Group[]> => []),
     };
 
     mockUserAuthRepo = {
-      getUserPermissions: mock(() => Promise.resolve([{ permissionId: 'perm-3', granted: true }])),
-      getUserRoles: mock(() => Promise.resolve([{ roleId: 'role-1' }])),
-      getUserGroups: mock(() => Promise.resolve([])),
+      getUserPermissions: mock(
+        async (_userId: UserId): Promise<UserPermissionAssignment[]> => [
+          { permissionId: 'perm-3', granted: true },
+        ],
+      ),
+      getUserRoles: mock(
+        async (_userId: UserId): Promise<UserRoleAssignment[]> => [{ roleId: 'role-1' }],
+      ),
+      getUserGroups: mock(async (_userId: UserId): Promise<UserGroupMembership[]> => []),
+      assignRole: mock(async () => {}),
+      revokeRole: mock(async () => {}),
+      addToGroup: mock(async () => {}),
+      removeFromGroup: mock(async () => {}),
+      grantPermission: mock(async () => {}),
+      denyPermission: mock(async () => {}),
+      countUsersWithRoleName: mock(async () => 0),
     };
 
     service = new AuthorizationService(
-      mockPermissionRepo as unknown as PermissionRepository,
-      mockRoleRepo as unknown as RoleRepository,
-      mockGroupRepo as unknown as GroupRepository,
-      mockUserAuthRepo as unknown as UserAuthorizationRepository,
+      mockPermissionRepo,
+      mockRoleRepo,
+      mockGroupRepo,
+      mockUserAuthRepo,
     );
   });
 
@@ -165,12 +189,10 @@ describe('AuthorizationService', () => {
     });
 
     it('should provide invalidateCache method', () => {
-      // Should not throw
       expect(() => service.invalidateCache(mockUserId)).not.toThrow();
     });
 
     it('should provide invalidateAllCaches method', () => {
-      // Should not throw
       expect(() => service.invalidateAllCaches()).not.toThrow();
     });
   });

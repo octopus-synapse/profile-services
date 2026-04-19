@@ -3,12 +3,18 @@ import { AccountDeactivatedException } from '../../../../account-lifecycle/domai
 import type { EventBusPort } from '../../../../shared-kernel/ports';
 import type { Validate2faInboundPort } from '../../../../two-factor-auth/application/ports';
 import { LoginFailedEvent, UserLoggedInEvent } from '../../../domain/events';
-import { Invalid2faCodeException, InvalidCredentialsException } from '../../../domain/exceptions';
+import {
+  AccountLockedException,
+  Invalid2faCodeException,
+  InvalidCredentialsException,
+} from '../../../domain/exceptions';
 import type {
   AuthenticationRepositoryPort,
+  LoginAttemptsPort,
   PasswordHasherPort,
   TokenGeneratorPort,
 } from '../../../domain/ports';
+import { LOGIN_ATTEMPTS_PORT } from '../../../domain/ports';
 import type { LoginCommand, LoginPort, LoginResult, LoginVerify2faCommand } from '../../ports';
 
 const AUTH_REPOSITORY = Symbol('AuthenticationRepositoryPort');
@@ -33,21 +39,47 @@ export class LoginUseCase implements LoginPort {
     private readonly eventBus: EventBusPort,
     @Inject(VALIDATE_2FA)
     private readonly validate2fa: Validate2faInboundPort,
+    @Inject(LOGIN_ATTEMPTS_PORT)
+    private readonly loginAttempts: LoginAttemptsPort,
   ) {}
 
   async execute(command: LoginCommand): Promise<LoginResult> {
     const { email, password, ipAddress, userAgent } = command;
 
+    // Short-circuit: is the email currently locked out?
+    const lock = await this.loginAttempts.getLockStatus(email);
+    if (lock.locked) {
+      const remainingMinutes = Math.max(1, Math.ceil((lock.resetInSeconds ?? 60) / 60));
+      this.eventBus.publish(new LoginFailedEvent(email, 'account_locked', ipAddress));
+      throw new AccountLockedException(remainingMinutes);
+    }
+
     // Find user
     const user = await this.repository.findUserByEmail(email);
 
     if (!user?.passwordHash) {
+      await this.loginAttempts.record({
+        userId: null,
+        email,
+        success: false,
+        ipAddress,
+        userAgent,
+        failureCode: 'invalid_credentials',
+      });
       this.eventBus.publish(new LoginFailedEvent(email, 'invalid_credentials', ipAddress));
       throw new InvalidCredentialsException();
     }
 
     // Check if account is active
     if (!user.isActive) {
+      await this.loginAttempts.record({
+        userId: user.id,
+        email,
+        success: false,
+        ipAddress,
+        userAgent,
+        failureCode: 'account_inactive',
+      });
       this.eventBus.publish(new LoginFailedEvent(email, 'account_inactive', ipAddress));
       throw new AccountDeactivatedException();
     }
@@ -55,9 +87,27 @@ export class LoginUseCase implements LoginPort {
     // Verify password
     const isValid = await this.passwordHasher.compare(password, user.passwordHash);
     if (!isValid) {
+      await this.loginAttempts.record({
+        userId: user.id,
+        email,
+        success: false,
+        ipAddress,
+        userAgent,
+        failureCode: 'invalid_credentials',
+      });
       this.eventBus.publish(new LoginFailedEvent(email, 'invalid_credentials', ipAddress));
       throw new InvalidCredentialsException();
     }
+
+    // Password OK — clear failed attempt history and record success.
+    await this.loginAttempts.clearFailedAttempts(email);
+    await this.loginAttempts.record({
+      userId: user.id,
+      email,
+      success: true,
+      ipAddress,
+      userAgent,
+    });
 
     // Check if 2FA is enabled — halt before issuing tokens
     const has2fa = await this.validate2fa.isEnabled(user.id);

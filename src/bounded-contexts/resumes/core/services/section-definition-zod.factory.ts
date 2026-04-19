@@ -1,5 +1,6 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { z } from 'zod';
+import { ValidationException } from '@/shared-kernel/exceptions/domain.exceptions';
 import {
   type SectionDefinition,
   SectionDefinitionSchema,
@@ -25,7 +26,7 @@ export class SectionDefinitionZodFactory {
   buildSchema(definition: unknown): z.ZodType<Record<string, unknown>> {
     const parsed = SectionDefinitionSchema.safeParse(definition);
     if (!parsed.success) {
-      throw new BadRequestException('Invalid section type definition');
+      throw new ValidationException('Invalid section type definition');
     }
 
     // Cache by content hash to handle same kind with different fields
@@ -62,11 +63,11 @@ export class SectionDefinitionZodFactory {
 
     for (const field of definition.fields) {
       if (!field.key) {
-        throw new BadRequestException('Top-level section fields must define a key');
+        throw new ValidationException('Top-level section fields must define a key');
       }
 
       if (uniqueKeys.has(field.key)) {
-        throw new BadRequestException(`Duplicated section field key: ${field.key}`);
+        throw new ValidationException(`Duplicated section field key: ${field.key}`);
       }
 
       uniqueKeys.add(field.key);
@@ -199,7 +200,7 @@ export class SectionDefinitionZodFactory {
 
     for (const nestedField of field.fields ?? []) {
       if (!nestedField.key) {
-        throw new BadRequestException('Nested object fields must define a key');
+        throw new ValidationException('Nested object fields must define a key');
       }
 
       shape[nestedField.key] = this.buildFieldSchema(nestedField, true);

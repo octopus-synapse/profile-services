@@ -5,9 +5,10 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { BadRequestException, UnprocessableEntityException } from '@nestjs/common';
+import { UnprocessableEntityException } from '@nestjs/common';
 import { createMockResume } from '@test/shared/factories/resume.factory';
 import type { CreateResume } from '@/shared-kernel';
+import { ValidationException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type { ResumeEventPublisher } from '../domain/ports';
 import { ResumesService } from './resumes.service';
 
@@ -182,7 +183,7 @@ describe('ResumesService - Bug Detection', () => {
       ).rejects.toThrow(UnprocessableEntityException);
     });
 
-    it('should NOT throw BadRequestException (400) for limit error', async () => {
+    it('should NOT throw ValidationException (400) for limit error', async () => {
       stubRepository.setResumes([
         createMockResume({ id: '1', userId: 'user-123' }),
         createMockResume({ id: '2', userId: 'user-123' }),
@@ -190,13 +191,13 @@ describe('ResumesService - Bug Detection', () => {
         createMockResume({ id: '4', userId: 'user-123' }),
       ]);
 
-      // This exposes the bug: it currently throws BadRequestException
+      // This exposes the bug: it currently throws ValidationException
       try {
         await service.createResumeForUser('user-123', createResumeDto({ title: 'Fifth Resume' }));
         throw new Error('Should have thrown an exception');
       } catch (error) {
-        // Bug: this will fail because error IS BadRequestException
-        expect(error).not.toBeInstanceOf(BadRequestException);
+        // Bug: this will fail because error IS ValidationException
+        expect(error).not.toBeInstanceOf(ValidationException);
         expect(error).toBeInstanceOf(UnprocessableEntityException);
       }
     });

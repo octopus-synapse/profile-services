@@ -10,6 +10,18 @@ export type UserPreferences = {
   emailNotifications?: boolean;
 };
 
+export type ApplyMode = 'ONE_CLICK' | 'WEEKLY_CURATED' | 'AUTO_APPLY';
+
+export type UserApplyCriteriaData = {
+  minFit: number | null;
+  stacks: string[];
+  seniorities: string[];
+  remotePolicies: Array<'REMOTE' | 'HYBRID' | 'ONSITE'>;
+  paymentCurrencies: Array<'BRL' | 'USD' | 'EUR' | 'GBP'>;
+  minSalaryUsd: number | null;
+  defaultCover: string | null;
+};
+
 export type FullUserPreferences = {
   id: string;
   userId: string;
@@ -32,6 +44,8 @@ export type FullUserPreferences = {
   allowSearchEngineIndex: boolean;
   defaultExportFormat: string;
   includePhotoInExport: boolean;
+  applyMode: ApplyMode;
+  applyCriteria: UserApplyCriteriaData | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -44,8 +58,10 @@ export type UpdatePreferencesData = {
 };
 
 export type UpdateFullPreferencesData = Partial<
-  Omit<FullUserPreferences, 'id' | 'userId' | 'createdAt' | 'updatedAt'>
->;
+  Omit<FullUserPreferences, 'id' | 'userId' | 'createdAt' | 'updatedAt' | 'applyCriteria'>
+> & {
+  applyCriteria?: Partial<UserApplyCriteriaData>;
+};
 
 // Use Cases Interface Symbol
 export const USER_PREFERENCES_USE_CASES = Symbol('USER_PREFERENCES_USE_CASES');

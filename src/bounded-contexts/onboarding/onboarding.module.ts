@@ -22,9 +22,11 @@ import {
 } from './application/compositions/onboarding-progress.composition';
 import { OnboardingConfigPort } from './domain/ports/onboarding-config.port';
 import { PreviewRendererPort } from './domain/ports/preview-renderer.port';
+import { SectionTypeDefinitionPort } from './domain/ports/section-type-definition.port';
 import { SystemThemesPort } from './domain/ports/system-themes.port';
 import { OnboardingConfigAdapter } from './infrastructure/adapters/onboarding-config.adapter';
 import { OnboardingPreviewAdapter } from './infrastructure/adapters/onboarding-preview.adapter';
+import { SectionTypeDefinitionAdapter } from './infrastructure/adapters/persistence/section-type-definition.adapter';
 import { SystemThemesAdapter } from './infrastructure/adapters/system-themes.adapter';
 import { AdminOnboardingController } from './infrastructure/controllers/admin-onboarding.controller';
 import { OnboardingController } from './infrastructure/controllers/onboarding.controller';
@@ -42,6 +44,11 @@ import { AdminOnboardingService } from './infrastructure/services/admin-onboardi
     { provide: SystemThemesPort, useExisting: SystemThemesAdapter },
     { provide: OnboardingConfigPort, useExisting: OnboardingConfigAdapter },
     { provide: PreviewRendererPort, useExisting: OnboardingPreviewAdapter },
+    {
+      provide: SectionTypeDefinitionPort,
+      useFactory: (prisma: PrismaService) => new SectionTypeDefinitionAdapter(prisma),
+      inject: [PrismaService],
+    },
     {
       provide: ONBOARDING_PROGRESS_USE_CASES,
       useFactory: (prisma: PrismaService) => buildOnboardingProgressUseCases(prisma),

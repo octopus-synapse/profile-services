@@ -1,7 +1,11 @@
-import { ForbiddenException, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { Resume } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { type CreateResumeData, type UpdateResumeData } from '@/shared-kernel';
+import {
+  EntityNotFoundException,
+  ForbiddenException,
+} from '@/shared-kernel/exceptions/domain.exceptions';
 import { ResumesRepositoryPort } from './ports/resumes-repository.port';
 
 @Injectable()
@@ -88,7 +92,7 @@ export class ResumesRepository extends ResumesRepositoryPort {
         throw new ForbiddenException('Access denied to resume');
       }
       // Resume doesn't exist - could have been deleted by concurrent request
-      throw new NotFoundException('Resume not found');
+      throw new EntityNotFoundException('Resume', id);
     }
 
     return true;

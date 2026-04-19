@@ -3,7 +3,6 @@
  * Provides text translation services using Opus-MT
  */
 
-import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
 import {
   ResumeTranslationService,
@@ -14,12 +13,7 @@ import {
 import { TranslationController } from './infrastructure/controllers';
 
 @Module({
-  imports: [
-    HttpModule.register({
-      timeout: 30000,
-      maxRedirects: 5,
-    }),
-  ],
+  imports: [],
   controllers: [TranslationController],
   providers: [
     TranslationCoreService,

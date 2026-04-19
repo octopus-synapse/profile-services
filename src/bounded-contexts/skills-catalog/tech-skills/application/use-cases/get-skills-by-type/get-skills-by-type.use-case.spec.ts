@@ -8,7 +8,6 @@ import {
   InMemoryCacheService,
   InMemoryTechSkillRepository,
 } from '../../../../testing';
-import { TechSkillRepository } from '../../../infrastructure/adapters/persistence/tech-skill.repository';
 import { GetSkillsByTypeUseCase } from './get-skills-by-type.use-case';
 
 describe('GetSkillsByTypeUseCase', () => {
@@ -20,9 +19,7 @@ describe('GetSkillsByTypeUseCase', () => {
     techSkillRepo = new InMemoryTechSkillRepository();
     techSkillRepo.seed(DEFAULT_TECH_SKILLS);
     cacheService = new InMemoryCacheService();
-
-    const repository = new TechSkillRepository(techSkillRepo as never);
-    useCase = new GetSkillsByTypeUseCase(repository);
+    useCase = new GetSkillsByTypeUseCase(techSkillRepo);
   });
 
   it('should filter skills by type', async () => {

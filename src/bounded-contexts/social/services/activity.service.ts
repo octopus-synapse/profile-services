@@ -1,54 +1,50 @@
 /**
  * Activity Service
  *
- * Handles user activity tracking and feed generation.
- * Activities are events that users can see in their feed.
- *
- * Kent Beck: "Make it work, make it right, make it fast."
+ * Handles user activity tracking and feed generation. Delegates persistence
+ * to ActivityRepositoryPort and follower lookup to FollowRepositoryPort.
  */
 
-import { Injectable } from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { EventPublisher } from '@/shared-kernel';
-import { ActivityType } from '../application/ports/activity.port';
-import { ActivityCreatedEvent, SocialActivityType } from '../domain/events';
-import { FollowService, PaginatedResult, PaginationParams } from './follow.service';
+import { Inject, Injectable } from '@nestjs/common';
+import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
+import {
+  ActivityRepositoryPort,
+  type ActivityType,
+  type ActivityWithUser,
+} from '../application/ports/activity.port';
+import {
+  ActivityCreatorPort,
+  ActivityLoggerPort,
+  ActivityReaderPort,
+} from '../application/ports/facade.ports';
+import { FollowRepositoryPort } from '../application/ports/follow.port';
+import {
+  SOCIAL_EVENT_BUS_PORT,
+  SocialEventBusPort,
+} from '../application/ports/social-event-bus.port';
+import { SOCIAL_LOGGER_PORT, SocialLoggerPort } from '../application/ports/social-logger.port';
+import { ActivityCreatedEvent, type SocialActivityType } from '../domain/events';
+import type { PaginatedResult, PaginationParams } from './follow.service';
 
-// --- Types ---
-
-export interface ActivityWithUser {
-  id: string;
-  userId: string;
-  type: ActivityType;
-  metadata: unknown;
-  entityId: string | null;
-  entityType: string | null;
-  createdAt: Date;
-  user?: {
-    id: string;
-    name: string | null;
-    username: string | null;
-    photoURL: string | null;
-  };
-}
-
-// --- Service ---
+export type { ActivityWithUser };
 
 @Injectable()
-export class ActivityService {
+export class ActivityService
+  extends ActivityCreatorPort
+  implements ActivityReaderPort, ActivityLoggerPort
+{
   constructor(
-    private readonly prisma: PrismaService,
-    private readonly followService: FollowService,
-    private readonly logger: AppLoggerService,
-    private readonly eventPublisher: EventPublisher,
-    private readonly eventEmitter: EventEmitter2,
-  ) {}
+    private readonly activityRepo: ActivityRepositoryPort,
+    private readonly followRepo: FollowRepositoryPort,
+    private readonly eventPublisher: EventPublisherPort,
+    @Inject(SOCIAL_LOGGER_PORT)
+    private readonly logger: SocialLoggerPort,
+    @Inject(SOCIAL_EVENT_BUS_PORT)
+    private readonly eventBus: SocialEventBusPort,
+  ) {
+    super();
+  }
 
-  /**
-   * Create a new activity record.
-   */
   async createActivity(
     userId: string,
     type: ActivityType,
@@ -56,14 +52,12 @@ export class ActivityService {
     entityId?: string,
     entityType?: string,
   ): Promise<ActivityWithUser> {
-    const activity = await this.prisma.activity.create({
-      data: {
-        userId,
-        type,
-        metadata: metadata ?? undefined,
-        entityId,
-        entityType,
-      },
+    const activity = await this.activityRepo.createActivity({
+      userId,
+      type,
+      metadata: metadata ?? undefined,
+      entityId,
+      entityType,
     });
 
     this.eventPublisher.publish(
@@ -74,25 +68,11 @@ export class ActivityService {
       }),
     );
 
-    // Emit SSE event to followers' feeds
-    const activityWithUser = await this.prisma.activity.findUnique({
-      where: { id: activity.id },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            username: true,
-            photoURL: true,
-          },
-        },
-      },
-    });
+    const activityWithUser = await this.activityRepo.findActivityWithUser(activity.id);
 
-    // Get followers and emit to their feeds
-    const followerIds = await this.getFollowerIds(userId);
+    const followerIds = await this.followRepo.findFollowerIds(userId);
     for (const followerId of followerIds) {
-      this.eventEmitter.emit(`feed:user:${followerId}`, activityWithUser);
+      this.eventBus.emit(`feed:user:${followerId}`, activityWithUser);
     }
 
     this.logger.debug(
@@ -100,7 +80,7 @@ export class ActivityService {
       'ActivityService',
     );
 
-    return activity as ActivityWithUser;
+    return activity;
   }
 
   private mapActivityType(prismaType: ActivityType): SocialActivityType {
@@ -119,151 +99,60 @@ export class ActivityService {
     return mapping[prismaType];
   }
 
-  /**
-   * Get activity feed for a user.
-   * Returns activities from users the current user follows.
-   */
   async getFeed(
     userId: string,
     pagination: PaginationParams,
   ): Promise<PaginatedResult<ActivityWithUser>> {
     const { page, limit } = pagination;
-    const skip = (page - 1) * limit;
 
-    // Get list of followed user IDs
-    const followingIds = await this.followService.getFollowingIds(userId);
+    const followingIds = await this.followRepo.findFollowingIds(userId);
 
     if (followingIds.length === 0) {
-      return {
-        data: [],
-        total: 0,
-        page,
-        limit,
-        totalPages: 0,
-      };
+      return { data: [], total: 0, page, limit, totalPages: 0 };
     }
 
-    const [data, total] = await Promise.all([
-      this.prisma.activity.findMany({
-        where: { userId: { in: followingIds } },
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              username: true,
-              photoURL: true,
-            },
-          },
-        },
-        orderBy: { createdAt: 'desc' },
-        skip,
-        take: limit,
-      }),
-      this.prisma.activity.count({
-        where: { userId: { in: followingIds } },
-      }),
-    ]);
+    const { data, total } = await this.activityRepo.findActivitiesByUserIds(
+      followingIds,
+      pagination,
+    );
 
-    return {
-      data: data as ActivityWithUser[],
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
+    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
-  /**
-   * Get activities for a specific user.
-   */
   async getUserActivities(
     userId: string,
     pagination: PaginationParams,
   ): Promise<PaginatedResult<ActivityWithUser>> {
     const { page, limit } = pagination;
-    const skip = (page - 1) * limit;
-
-    const [data, total] = await Promise.all([
-      this.prisma.activity.findMany({
-        where: { userId },
-        orderBy: { createdAt: 'desc' },
-        skip,
-        take: limit,
-      }),
-      this.prisma.activity.count({
-        where: { userId },
-      }),
-    ]);
-
-    return {
-      data: data as ActivityWithUser[],
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
+    const { data, total } = await this.activityRepo.findUserActivities(userId, pagination);
+    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
-  /**
-   * Get activities for a user filtered by type.
-   */
   async getActivitiesByType(
     userId: string,
     type: ActivityType,
     pagination: PaginationParams,
   ): Promise<PaginatedResult<ActivityWithUser>> {
     const { page, limit } = pagination;
-    const skip = (page - 1) * limit;
-
-    const [data, total] = await Promise.all([
-      this.prisma.activity.findMany({
-        where: { userId, type },
-        orderBy: { createdAt: 'desc' },
-        skip,
-        take: limit,
-      }),
-      this.prisma.activity.count({
-        where: { userId, type },
-      }),
-    ]);
-
-    return {
-      data: data as ActivityWithUser[],
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
+    const { data, total } = await this.activityRepo.findUserActivitiesByType(
+      userId,
+      type,
+      pagination,
+    );
+    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
-  /**
-   * Delete activities older than specified number of days.
-   * Useful for cleanup cron jobs.
-   */
   async deleteOldActivities(days: number): Promise<number> {
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - days);
 
-    const result = await this.prisma.activity.deleteMany({
-      where: {
-        createdAt: {
-          lt: cutoffDate,
-        },
-      },
-    });
+    const count = await this.activityRepo.deleteOlderThan(cutoffDate);
 
-    this.logger.log(
-      `Deleted ${result.count} activities older than ${days} days`,
-      'ActivityService',
-    );
+    this.logger.log(`Deleted ${count} activities older than ${days} days`, 'ActivityService');
 
-    return result.count;
+    return count;
   }
 
-  /**
-   * Log when a user follows another user.
-   */
   async logFollowedUser(
     userId: string,
     followedUserId: string,
@@ -271,21 +160,10 @@ export class ActivityService {
   ): Promise<void> {
     await this.createActivity(
       userId,
-      ActivityType.FOLLOWED_USER,
+      'FOLLOWED_USER',
       { followedUserId, followedUserName },
       followedUserId,
       'user',
     );
-  }
-
-  /**
-   * Get IDs of users following the given user
-   */
-  private async getFollowerIds(userId: string): Promise<string[]> {
-    const followers = await this.prisma.follow.findMany({
-      where: { followingId: userId },
-      select: { followerId: true },
-    });
-    return followers.map((f) => f.followerId);
   }
 }

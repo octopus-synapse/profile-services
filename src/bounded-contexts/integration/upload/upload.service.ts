@@ -1,8 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { v4 } from 'uuid';
+import { randomUUID } from 'node:crypto';
+import { Injectable } from '@nestjs/common';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { S3UploadService } from '@/bounded-contexts/platform/common/services/s3-upload.service';
 import { ERROR_MESSAGES, FILE_UPLOAD_CONFIG } from '@/shared-kernel';
+import { ValidationException } from '@/shared-kernel/exceptions/domain.exceptions';
 
 export interface FileUpload {
   buffer: Buffer;
@@ -25,12 +26,12 @@ export class UploadService {
     this.validateFile(file);
 
     const extension = this.getFileExtension(file.originalname);
-    const key = `profiles/${userId}/${v4()}.${extension}`;
+    const key = `profiles/${userId}/${randomUUID()}.${extension}`;
 
     const result = await this.s3Service.uploadFile(file.buffer, key, file.mimetype);
 
     if (!result) {
-      throw new BadRequestException(ERROR_MESSAGES.FILE_UPLOAD_UNAVAILABLE);
+      throw new ValidationException(ERROR_MESSAGES.FILE_UPLOAD_UNAVAILABLE);
     }
 
     this.logger.log('Profile image uploaded', 'UploadService', {
@@ -46,12 +47,12 @@ export class UploadService {
     this.validateFile(file);
 
     const extension = this.getFileExtension(file.originalname);
-    const key = `logos/${userId}/${resumeId}/${v4()}.${extension}`;
+    const key = `logos/${userId}/${resumeId}/${randomUUID()}.${extension}`;
 
     const result = await this.s3Service.uploadFile(file.buffer, key, file.mimetype);
 
     if (!result) {
-      throw new BadRequestException(ERROR_MESSAGES.FILE_UPLOAD_UNAVAILABLE);
+      throw new ValidationException(ERROR_MESSAGES.FILE_UPLOAD_UNAVAILABLE);
     }
 
     this.logger.log('Company logo uploaded', 'UploadService', {
@@ -76,13 +77,13 @@ export class UploadService {
 
   private validateFile(file: FileUpload) {
     if (file.size > this.maxFileSize) {
-      throw new BadRequestException(
+      throw new ValidationException(
         `File size exceeds maximum allowed size of ${this.maxFileSize / 1024 / 1024}MB`,
       );
     }
 
     if (!this.allowedMimeTypes.includes(file.mimetype as (typeof this.allowedMimeTypes)[number])) {
-      throw new BadRequestException(
+      throw new ValidationException(
         `Invalid file type. Allowed types: ${this.allowedMimeTypes.join(', ')}`,
       );
     }
@@ -95,12 +96,12 @@ export class UploadService {
 
   private validateFilenameSafety(filename: string) {
     if (filename.includes('\0')) {
-      throw new BadRequestException('Invalid filename: contains null bytes');
+      throw new ValidationException('Invalid filename: contains null bytes');
     }
 
     // Check for directory traversal
     if (filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
-      throw new BadRequestException('Invalid filename: directory traversal detected');
+      throw new ValidationException('Invalid filename: directory traversal detected');
     }
   }
 
@@ -117,7 +118,7 @@ export class UploadService {
 
     const allowedExts = mimeToExt[file.mimetype] ?? [];
     if (!allowedExts.includes(ext)) {
-      throw new BadRequestException(
+      throw new ValidationException(
         `File extension .${ext} does not match file type ${file.mimetype}`,
       );
     }
@@ -125,29 +126,29 @@ export class UploadService {
 
   private validateMagicBytes(file: FileUpload) {
     if (file.buffer.length < 4) {
-      throw new BadRequestException('Invalid file content');
+      throw new ValidationException('Invalid file content');
     }
 
     const header = file.buffer.toString('hex', 0, 12).toUpperCase();
 
     // JPEG: FFD8FF
     if (file.mimetype === 'image/jpeg' && !header.startsWith('FFD8FF')) {
-      throw new BadRequestException('Invalid JPEG file content');
+      throw new ValidationException('Invalid JPEG file content');
     }
     // PNG: 89504E47
     if (file.mimetype === 'image/png' && !header.startsWith('89504E47')) {
-      throw new BadRequestException('Invalid PNG file content');
+      throw new ValidationException('Invalid PNG file content');
     }
     // WEBP: RIFF....WEBP (52494646....57454250)
     if (file.mimetype === 'image/webp') {
       if (!header.startsWith('52494646')) {
         // RIFF
-        throw new BadRequestException('Invalid WEBP file content');
+        throw new ValidationException('Invalid WEBP file content');
       }
       // Check bytes 8-11 for WEBP
       const webpType = file.buffer.toString('hex', 8, 12).toUpperCase();
       if (webpType !== '57454250') {
-        throw new BadRequestException('Invalid WEBP file content');
+        throw new ValidationException('Invalid WEBP file content');
       }
     }
   }

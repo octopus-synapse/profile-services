@@ -5,7 +5,7 @@ on:
 
 jobs:
   test:
-    uses: ./.github/workflows/_infrastructure-test-template.yml
+    uses: octopus-synapse/octopus-workflows/.github/workflows/_infrastructure-test-template.yml@v1
     with:
       test-command: "bun test --config=bunfig.e2e.toml"
       test-name: "E2E"

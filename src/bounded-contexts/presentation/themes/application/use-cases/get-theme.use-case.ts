@@ -2,8 +2,7 @@
  * Get Theme Use Case
  */
 
-import { NotFoundException } from '@nestjs/common';
-import { ERROR_MESSAGES } from '@/shared-kernel';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type { ThemeRepositoryPort } from '../../domain/ports/theme.repository.port';
 
 export class GetThemeUseCase {
@@ -11,7 +10,7 @@ export class GetThemeUseCase {
 
   async execute(themeId: string) {
     const theme = await this.themeRepo.findById(themeId);
-    if (!theme) throw new NotFoundException(ERROR_MESSAGES.THEME_NOT_FOUND);
+    if (!theme) throw new EntityNotFoundException('Theme', themeId);
     return theme;
   }
 }

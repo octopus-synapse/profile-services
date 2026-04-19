@@ -5,7 +5,7 @@
  * Definition-driven - field extraction done generically from section item content.
  */
 
-import { NotFoundException } from '@nestjs/common';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type {
   GenericSectionContent,
   GenericSectionWithMeta,
@@ -38,7 +38,7 @@ export class ExportLatexUseCase {
     const resume = await this.resumeDataRepository.findForLatexExport(dto.resumeId);
 
     if (!resume) {
-      throw new NotFoundException('Resume not found');
+      throw new EntityNotFoundException('Resume', dto.resumeId);
     }
 
     // Sort sections by recommended position

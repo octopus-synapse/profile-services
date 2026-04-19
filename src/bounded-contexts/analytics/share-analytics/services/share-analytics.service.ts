@@ -12,9 +12,15 @@
  */
 
 import { createHash } from 'node:crypto';
-import { ForbiddenException, Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import type { AnalyticsEvent } from '@prisma/client';
+import {
+  EntityNotFoundException,
+  ForbiddenException,
+} from '@/shared-kernel/exceptions/domain.exceptions';
+import { parseUserAgent } from '../application/utils/parse-user-agent';
 import { SHARE_ANALYTICS_REPOSITORY, type ShareAnalyticsRepositoryPort } from '../ports';
+import { GEO_LOOKUP_PORT, type GeoLookupPort } from '../ports/geo-lookup.port';
 
 interface TrackEvent {
   shareId: string;
@@ -24,6 +30,9 @@ interface TrackEvent {
   referer?: string;
   country?: string;
   city?: string;
+  deviceType?: string;
+  browser?: string;
+  os?: string;
 }
 
 @Injectable()
@@ -31,11 +40,24 @@ export class ShareAnalyticsService {
   constructor(
     @Inject(SHARE_ANALYTICS_REPOSITORY)
     private readonly repository: ShareAnalyticsRepositoryPort,
+    @Inject(GEO_LOOKUP_PORT)
+    private readonly geoLookup: GeoLookupPort,
   ) {}
 
   async trackEvent(dto: TrackEvent) {
     // Anonymize IP (GDPR compliance)
     const ipHash = this.anonymizeIP(dto.ip);
+    const parsed = parseUserAgent(dto.userAgent);
+
+    let country = dto.country;
+    let city = dto.city;
+    if (country === undefined || city === undefined) {
+      const geo = await this.geoLookup.lookup(dto.ip);
+      if (geo) {
+        country ??= geo.country ?? undefined;
+        city ??= geo.city ?? undefined;
+      }
+    }
 
     return this.repository.create({
       shareId: dto.shareId,
@@ -43,8 +65,12 @@ export class ShareAnalyticsService {
       ipHash,
       userAgent: dto.userAgent,
       referer: dto.referer,
-      country: dto.country,
-      city: dto.city,
+      country,
+      city,
+      deviceType:
+        dto.deviceType ?? (parsed.deviceType === 'unknown' ? undefined : parsed.deviceType),
+      browser: dto.browser ?? parsed.browser ?? undefined,
+      os: dto.os ?? parsed.os ?? undefined,
     });
   }
 
@@ -53,7 +79,7 @@ export class ShareAnalyticsService {
     const share = await this.repository.findShareWithOwner(shareId);
 
     if (!share) {
-      throw new ForbiddenException('Share not found');
+      throw new EntityNotFoundException('Share', shareId);
     }
 
     if (share.resume.userId !== userId) {
@@ -69,6 +95,9 @@ export class ShareAnalyticsService {
     // Get geo data
     const byCountry = await this.repository.groupByCountry(shareId, 10);
 
+    // Device/browser breakdown
+    const byDeviceType = await this.repository.groupByDeviceType(shareId);
+
     // Recent events
     const recentEvents = await this.repository.getRecentEvents(shareId, 20);
 
@@ -80,6 +109,10 @@ export class ShareAnalyticsService {
       byCountry: byCountry.map((c) => ({
         country: c.country,
         count: c._count.country,
+      })),
+      byDeviceType: byDeviceType.map((d) => ({
+        deviceType: d.deviceType,
+        count: d._count.deviceType,
       })),
       recentEvents,
     };
@@ -98,7 +131,7 @@ export class ShareAnalyticsService {
     const share = await this.repository.findShareWithOwner(shareId);
 
     if (!share) {
-      throw new ForbiddenException('Share not found');
+      throw new EntityNotFoundException('Share', shareId);
     }
 
     if (share.resume.userId !== userId) {
@@ -114,6 +147,9 @@ export class ShareAnalyticsService {
       referrer: event.referer,
       country: event.country,
       city: event.city,
+      deviceType: event.deviceType,
+      browser: event.browser,
+      os: event.os,
       createdAt: event.createdAt,
     }));
   }

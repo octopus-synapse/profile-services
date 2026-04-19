@@ -14,6 +14,7 @@ import {
 import { CollaborationController } from './collaboration.controller';
 import { COLLABORATION_REPOSITORY } from './domain/ports/collaboration-repository.port';
 import { PrismaCollaborationRepository } from './infrastructure/adapters/collaboration.repository';
+import { CollabCommentService } from './services/collab-comment.service';
 
 @Module({
   imports: [PrismaModule],
@@ -25,7 +26,8 @@ import { PrismaCollaborationRepository } from './infrastructure/adapters/collabo
       useFactory: buildCollaborationUseCases,
       inject: [COLLABORATION_REPOSITORY, EventPublisher],
     },
+    CollabCommentService,
   ],
-  exports: [COLLABORATION_USE_CASES],
+  exports: [COLLABORATION_USE_CASES, CollabCommentService],
 })
 export class ResumeSharingModule {}

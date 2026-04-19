@@ -1,221 +1,153 @@
 /**
- * ActivityController Tests
- *
- * Clean architecture: Stub Service, Pure Bun tests
+ * ActivityController Tests — port-based stub.
  */
 
-import { beforeEach, describe, expect, it } from 'bun:test';
-import type { ActivityType } from '../application/ports/activity.port';
+import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
+import type { ActivityType, ActivityWithUser } from '../application/ports/activity.port';
+import { ActivityReaderPort } from '../application/ports/facade.ports';
+import type { PaginatedResult, PaginationParams } from '../application/ports/follow.port';
 import { ActivityController } from './activity.controller';
 
-/**
- * Paginated response type for activities
- */
-interface PaginatedActivity {
-  data: Activity[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
+const makeUser = (userId: string): UserPayload => ({
+  userId,
+  email: `${userId}@test.local`,
+  hasCompletedOnboarding: true,
+});
 
-interface Activity {
-  id: string;
-  type: string;
-  userId: string;
-  targetId: string;
-  metadata: Record<string, unknown>;
-  createdAt: Date;
-}
+const emptyPage = <T>(pagination: PaginationParams): PaginatedResult<T> => ({
+  data: [],
+  total: 0,
+  page: pagination.page,
+  limit: pagination.limit,
+  totalPages: 0,
+});
 
-interface PaginationOptions {
-  page: number;
-  limit: number;
-}
-
-/**
- * Stub ActivityService for testing
- */
-class StubActivityService {
-  private feedResult: PaginatedActivity = {
-    data: [],
-    total: 0,
+class StubActivityReader extends ActivityReaderPort {
+  private feedResult: PaginatedResult<ActivityWithUser> = emptyPage({ page: 1, limit: 20 });
+  private userActivitiesResult: PaginatedResult<ActivityWithUser> = emptyPage({
     page: 1,
     limit: 20,
-    totalPages: 0,
-  };
-  private userActivitiesResult: PaginatedActivity = {
-    data: [],
-    total: 0,
+  });
+  private activitiesByTypeResult: PaginatedResult<ActivityWithUser> = emptyPage({
     page: 1,
     limit: 20,
-    totalPages: 0,
-  };
-  private activitiesByTypeResult: PaginatedActivity = {
-    data: [],
-    total: 0,
-    page: 1,
-    limit: 20,
-    totalPages: 0,
-  };
+  });
 
-  calls: Array<{ method: string; args: unknown[] }> = [];
+  getFeed = mock(
+    async (
+      _userId: string,
+      _pagination: PaginationParams,
+    ): Promise<PaginatedResult<ActivityWithUser>> => this.feedResult,
+  );
+  getUserActivities = mock(
+    async (
+      _userId: string,
+      _pagination: PaginationParams,
+    ): Promise<PaginatedResult<ActivityWithUser>> => this.userActivitiesResult,
+  );
+  getActivitiesByType = mock(
+    async (
+      _userId: string,
+      _type: ActivityType,
+      _pagination: PaginationParams,
+    ): Promise<PaginatedResult<ActivityWithUser>> => this.activitiesByTypeResult,
+  );
 
-  setFeedResult(result: PaginatedActivity): void {
+  setFeedResult(result: PaginatedResult<ActivityWithUser>): void {
     this.feedResult = result;
   }
 
-  setUserActivitiesResult(result: PaginatedActivity): void {
+  setUserActivitiesResult(result: PaginatedResult<ActivityWithUser>): void {
     this.userActivitiesResult = result;
   }
 
-  setActivitiesByTypeResult(result: PaginatedActivity): void {
+  setActivitiesByTypeResult(result: PaginatedResult<ActivityWithUser>): void {
     this.activitiesByTypeResult = result;
-  }
-
-  async getFeed(userId: string, options: PaginationOptions): Promise<PaginatedActivity> {
-    this.calls.push({ method: 'getFeed', args: [userId, options] });
-    return this.feedResult;
-  }
-
-  async getUserActivities(userId: string, options: PaginationOptions): Promise<PaginatedActivity> {
-    this.calls.push({ method: 'getUserActivities', args: [userId, options] });
-    return this.userActivitiesResult;
-  }
-
-  async getActivitiesByType(
-    userId: string,
-    type: ActivityType,
-    options: PaginationOptions,
-  ): Promise<PaginatedActivity> {
-    this.calls.push({
-      method: 'getActivitiesByType',
-      args: [userId, type, options],
-    });
-    return this.activitiesByTypeResult;
-  }
-
-  getLastCall(method: string): { method: string; args: unknown[] } | undefined {
-    return this.calls.filter((c) => c.method === method).pop();
   }
 }
 
+const makeActivity = (overrides: Partial<ActivityWithUser> = {}): ActivityWithUser => ({
+  id: 'activity-1',
+  userId: 'user-2',
+  type: 'FOLLOWED_USER',
+  metadata: {},
+  entityId: null,
+  entityType: null,
+  createdAt: new Date(),
+  ...overrides,
+});
+
 describe('ActivityController', () => {
   let controller: ActivityController;
-  let stubActivityService: StubActivityService;
+  let stubActivityReader: StubActivityReader;
 
   beforeEach(() => {
-    stubActivityService = new StubActivityService();
-    controller = new ActivityController(stubActivityService as never);
+    stubActivityReader = new StubActivityReader();
+    controller = new ActivityController(stubActivityReader);
   });
 
   describe('GET /users/:userId/feed', () => {
     it('should return paginated activity feed', async () => {
-      const userId = 'user-1';
-      const mockFeed: PaginatedActivity = {
-        data: [
-          {
-            id: 'activity-1',
-            type: 'FOLLOWED_USER',
-            userId: 'user-2',
-            targetId: userId,
-            metadata: {},
-            createdAt: new Date(),
-          },
-        ],
+      stubActivityReader.setFeedResult({
+        data: [makeActivity()],
         total: 1,
         page: 1,
         limit: 20,
         totalPages: 1,
-      };
+      });
 
-      stubActivityService.setFeedResult(mockFeed);
-
-      const result = await controller.getFeed({ userId } as never, 1, 20);
+      const result = await controller.getFeed(makeUser('user-1'), 1, 20);
 
       expect(result.success).toBe(true);
-      expect(result.data).toEqual({ feed: mockFeed });
-
-      const call = stubActivityService.getLastCall('getFeed');
-      expect(call?.args[0]).toBe(userId);
-      expect(call?.args[1]).toEqual({ page: 1, limit: 20 });
+      expect(stubActivityReader.getFeed).toHaveBeenCalledWith('user-1', { page: 1, limit: 20 });
     });
 
     it('should cap limit at 100', async () => {
-      const userId = 'user-1';
+      await controller.getFeed(makeUser('user-1'), 1, 200);
 
-      await controller.getFeed({ userId } as never, 1, 200);
-
-      const call = stubActivityService.getLastCall('getFeed');
-      expect(call?.args[1]).toEqual({ page: 1, limit: 100 });
+      expect(stubActivityReader.getFeed).toHaveBeenCalledWith('user-1', { page: 1, limit: 100 });
     });
   });
 
   describe('GET /users/:userId/activities', () => {
     it('should return paginated user activities', async () => {
-      const userId = 'user-1';
-      const mockActivities: PaginatedActivity = {
-        data: [
-          {
-            id: 'activity-1',
-            type: 'UPDATED_RESUME',
-            userId,
-            targetId: 'resume-1',
-            metadata: { title: 'My Resume' },
-            createdAt: new Date(),
-          },
-        ],
+      stubActivityReader.setUserActivitiesResult({
+        data: [makeActivity({ userId: 'user-1' })],
         total: 1,
         page: 1,
         limit: 20,
         totalPages: 1,
-      };
+      });
 
-      stubActivityService.setUserActivitiesResult(mockActivities);
-
-      const result = await controller.getUserActivities(userId, 1, 20);
+      const result = await controller.getUserActivities('user-1', 1, 20);
 
       expect(result.success).toBe(true);
-      expect(result.data).toEqual({ activities: mockActivities });
-
-      const call = stubActivityService.getLastCall('getUserActivities');
-      expect(call?.args[0]).toBe(userId);
-      expect(call?.args[1]).toEqual({ page: 1, limit: 20 });
+      expect(stubActivityReader.getUserActivities).toHaveBeenCalledWith('user-1', {
+        page: 1,
+        limit: 20,
+      });
     });
   });
 
   describe('GET /users/:userId/activities/by-type/:type', () => {
     it('should return activities filtered by type', async () => {
-      const userId = 'user-1';
-      const type = 'FOLLOWED_USER';
-      const mockActivities: PaginatedActivity = {
-        data: [
-          {
-            id: 'activity-1',
-            type,
-            userId,
-            targetId: 'user-2',
-            metadata: { userName: 'John' },
-            createdAt: new Date(),
-          },
-        ],
+      stubActivityReader.setActivitiesByTypeResult({
+        data: [makeActivity({ userId: 'user-1' })],
         total: 1,
         page: 1,
         limit: 20,
         totalPages: 1,
-      };
+      });
 
-      stubActivityService.setActivitiesByTypeResult(mockActivities);
-
-      const result = await controller.getActivitiesByType(userId, type, 1, 20);
+      const result = await controller.getActivitiesByType('user-1', 'FOLLOWED_USER', 1, 20);
 
       expect(result.success).toBe(true);
-      expect(result.data).toEqual({ activities: mockActivities });
-
-      const call = stubActivityService.getLastCall('getActivitiesByType');
-      expect(call?.args[0]).toBe(userId);
-      expect(call?.args[1]).toBe(type);
-      expect(call?.args[2]).toEqual({ page: 1, limit: 20 });
+      expect(stubActivityReader.getActivitiesByType).toHaveBeenCalledWith(
+        'user-1',
+        'FOLLOWED_USER',
+        { page: 1, limit: 20 },
+      );
     });
   });
 });

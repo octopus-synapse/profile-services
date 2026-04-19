@@ -3,11 +3,15 @@
  * Handles applying themes to resumes and managing customizations
  */
 
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Prisma, ThemeStatus } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { ApplyThemeToResume, ForkTheme } from '@/shared-kernel';
 import { ERROR_MESSAGES, EventPublisher } from '@/shared-kernel';
+import {
+  EntityNotFoundException,
+  ForbiddenException,
+} from '@/shared-kernel/exceptions/domain.exceptions';
 import { ThemeAppliedEvent } from '../../domain/events';
 import { deepMerge } from '../utils';
 import { ThemeCrudService } from './theme-crud.service';
@@ -38,7 +42,7 @@ export class ThemeApplicationService {
     // Verify theme access
     const selectedTheme = await this.query.findThemeById(applyThemeData.themeId, userId);
     if (!selectedTheme) {
-      throw new NotFoundException(ERROR_MESSAGES.THEME_ACCESS_DENIED);
+      throw new EntityNotFoundException('Theme', applyThemeData.themeId);
     }
 
     // Apply theme and increment usage

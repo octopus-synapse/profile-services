@@ -4,13 +4,13 @@
  */
 
 import { Body, Controller, Get, HttpCode, HttpStatus, Inject, Patch } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
-import type { UpdateFullPreferences, UpdatePreferences } from '@/shared-kernel';
+import { UpdateFullPreferencesDto, UpdatePreferencesDto } from '@/shared-kernel';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import {
   USER_PREFERENCES_USE_CASES,
@@ -18,6 +18,7 @@ import {
 } from '../../application/ports/user-preferences.port';
 import {
   UserFullPreferencesDataDto,
+  UserFullPreferencesDataSchema,
   UserOperationMessageDataDto,
   UserPreferencesDataDto,
 } from '../../dto/controller-response.dto';
@@ -47,10 +48,11 @@ export class UsersPreferencesController {
   @Patch('preferences')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update user preferences (basic)' })
+  @ApiBody({ type: UpdatePreferencesDto })
   @ApiDataResponse(UserOperationMessageDataDto, { description: 'Preferences updated successfully' })
   async updatePreferences(
     @CurrentUser() user: UserPayload,
-    @Body() updatePreferences: UpdatePreferences,
+    @Body() updatePreferences: UpdatePreferencesDto,
   ): Promise<DataResponse<UserOperationMessageDataDto>> {
     await this.preferences.updatePreferencesUseCase.execute(user.userId, updatePreferences);
     return { success: true, data: { message: 'Preferences updated successfully' } };
@@ -68,7 +70,7 @@ export class UsersPreferencesController {
     const preferences = await this.preferences.getFullPreferencesUseCase.execute(user.userId);
     return {
       success: true,
-      data: { preferences } as unknown as UserFullPreferencesDataDto,
+      data: UserFullPreferencesDataSchema.parse({ preferences }),
     };
   }
 
@@ -76,12 +78,13 @@ export class UsersPreferencesController {
   @Patch('preferences/full')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Update all user preferences' })
+  @ApiBody({ type: UpdateFullPreferencesDto })
   @ApiDataResponse(UserFullPreferencesDataDto, {
     description: 'Full preferences updated successfully',
   })
   async updateFullPreferences(
     @CurrentUser() user: UserPayload,
-    @Body() updateFullPreferences: UpdateFullPreferences,
+    @Body() updateFullPreferences: UpdateFullPreferencesDto,
   ): Promise<DataResponse<UserFullPreferencesDataDto>> {
     const preferences = await this.preferences.updateFullPreferencesUseCase.execute(
       user.userId,

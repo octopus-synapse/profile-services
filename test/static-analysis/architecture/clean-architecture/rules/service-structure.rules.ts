@@ -50,6 +50,7 @@ const MODULES_WITHOUT_PERSISTENCE = [
   'identity/authentication', // Uses other modules' repositories
   'identity/authorization', // In-memory/cross-cutting
   'translation', // External API (LibreTranslate) - no database
+  'ai', // External API (OpenAI) - no database
 ];
 
 export function checkPersistenceAdaptersDirectory(): RuleResult {

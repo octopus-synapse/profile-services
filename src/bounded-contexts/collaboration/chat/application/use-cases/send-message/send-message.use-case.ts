@@ -1,5 +1,8 @@
-import { BadRequestException, ForbiddenException } from '@nestjs/common';
-import type { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
+import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
+import {
+  ForbiddenException,
+  ValidationException,
+} from '@/shared-kernel/exceptions/domain.exceptions';
 import { MessageSentEvent } from '../../../../shared-kernel/domain/events';
 import type { MessageResponse, SendMessage } from '../../../schemas/chat.schema';
 import { mapMessageToResponse } from '../../mappers/chat.mapper';
@@ -26,7 +29,7 @@ export class SendMessageUseCase {
     }
 
     if (senderId === dto.recipientId) {
-      throw new BadRequestException('Cannot send message to yourself');
+      throw new ValidationException('Cannot send message to yourself');
     }
 
     const conversation = await this.conversationRepo.findOrCreate(senderId, dto.recipientId);

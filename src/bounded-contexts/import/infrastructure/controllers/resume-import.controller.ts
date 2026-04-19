@@ -17,8 +17,19 @@ import {
   NotFoundException,
   Param,
   Post,
+  ServiceUnavailableException,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+} from '@nestjs/swagger';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import {
   ApiDataResponse,
@@ -41,6 +52,8 @@ import {
 } from '../../domain/exceptions/import.exceptions';
 import { JsonResumeParser } from '../../domain/services/json-resume-parser';
 import type { JsonResumeSchema } from '../../domain/types/import.types';
+import { GithubImportService } from '../adapters/github-import.service';
+import { PdfImportService } from '../adapters/pdf-import.service';
 import {
   ImportJobDto,
   ImportJsonDto,
@@ -48,7 +61,12 @@ import {
   ParsedResumeDataDto,
   RetryImportRequestDto,
 } from '../dto';
-import { toImportJobDto, toImportResultDto, toParsedResumeDataDto } from '../mappers/import.mapper';
+import {
+  toImportJobDto,
+  toImportJobDtoList,
+  toImportResultDto,
+  toParsedResumeDataDto,
+} from '../mappers/import.mapper';
 
 // Use-case injection tokens
 export const CREATE_IMPORT_JOB = Symbol('CreateImportJobUseCase');
@@ -76,7 +94,90 @@ export class ResumeImportController {
     @Inject(LIST_IMPORT_HISTORY) private readonly listImportHistory: ListImportHistoryUseCase,
     @Inject(CANCEL_IMPORT) private readonly cancelImport: CancelImportUseCase,
     @Inject(RETRY_IMPORT) private readonly retryImport: RetryImportUseCase,
+    private readonly pdfImport: PdfImportService,
+    private readonly githubImport: GithubImportService,
   ) {}
+
+  @Post('pdf')
+  @ApiOperation({
+    summary: 'Import resume from a PDF file',
+    description:
+      'Accepts a PDF upload (multipart/form-data, field name `file`), extracts the text with pdf-parse and structures it with the LLM. Creates a Resume row and marks it as primary when the user has none.',
+  })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'Binary PDF payload',
+    required: true,
+    schema: {
+      type: 'object',
+      required: ['file'],
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+          description: 'PDF file (max 5MB)',
+        },
+      },
+    },
+  })
+  @ApiDataResponse(ImportResultDto, {
+    status: HttpStatus.CREATED,
+    description: 'CV imported from PDF',
+  })
+  @UseInterceptors(FileInterceptor('file'))
+  async importPdf(
+    @CurrentUser() user: UserPayload,
+    @UploadedFile() file: Express.Multer.File | undefined,
+  ): Promise<DataResponse<{ resumeId: string }>> {
+    if (!file) {
+      throw new BadRequestException('Missing file (multipart field "file")');
+    }
+    const result = await this.pdfImport.import(user.userId, {
+      buffer: file.buffer,
+      originalname: file.originalname,
+    });
+    return { success: true, data: { resumeId: result.resumeId } };
+  }
+
+  @Post('github')
+  @ApiOperation({
+    summary: 'Import profile data from GitHub',
+    description:
+      "Uses the user's previously-connected GitHub OAuth token to fetch top repos and derive skills + BUILD posts. Fails with 409 GITHUB_NOT_CONNECTED if the user hasn't linked GitHub yet.",
+  })
+  @ApiDataResponse(ImportResultDto, {
+    status: HttpStatus.OK,
+    description: 'GitHub data imported',
+  })
+  async importGithub(@CurrentUser() user: UserPayload): Promise<
+    DataResponse<{
+      primaryStack: string[];
+      buildPostsCreated: number;
+      profileUpdated: boolean;
+    }>
+  > {
+    const result = await this.githubImport.import(user.userId);
+    return {
+      success: true,
+      data: {
+        primaryStack: result.primaryStack,
+        buildPostsCreated: result.buildPostsCreated,
+        profileUpdated: result.profileUpdated,
+      },
+    };
+  }
+
+  @Post('linkedin')
+  @ApiOperation({
+    summary: 'Import profile data from LinkedIn (scaffold)',
+    description:
+      "Placeholder endpoint. Returns 503 until the LinkedIn v2 API client lands. Frontend should treat this as 'em breve' for now.",
+  })
+  async importLinkedin(): Promise<DataResponse<{ status: 'not_implemented' }>> {
+    // We keep the route live so the UI can call `available` and get a clean
+    // 503 rather than a 404 — this also reminds us where the work lands.
+    throw new ServiceUnavailableException('LinkedIn import not implemented yet');
+  }
 
   @Post('json')
   @ApiOperation({
@@ -153,7 +254,7 @@ export class ResumeImportController {
   @ApiDataResponse(ImportJobDto, { description: 'List of import jobs' })
   async getHistory(@CurrentUser() user: UserPayload): Promise<DataResponse<ImportJobDto[]>> {
     const jobs = await this.listImportHistory.execute(user.userId);
-    return { success: true, data: jobs.map(toImportJobDto) };
+    return { success: true, data: toImportJobDtoList(jobs) };
   }
 
   @Delete(':importId')

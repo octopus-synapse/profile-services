@@ -3,12 +3,15 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import type { ActivityRepositoryPort, ActivityWithUser } from '../../ports/activity.port';
-import { ActivityType } from '../../ports/activity.port';
-import type { FollowRepositoryPort } from '../../ports/follow.port';
+import {
+  ActivityRepositoryPort,
+  ActivityType,
+  type ActivityWithUser,
+} from '../../ports/activity.port';
+import { FollowRepositoryPort, type FollowWithUser } from '../../ports/follow.port';
 import { GetFeedUseCase } from './get-feed.use-case';
 
-class StubActivityRepository {
+class StubActivityRepository implements ActivityRepositoryPort {
   private _data: ActivityWithUser[] = [];
   private _total = 0;
 
@@ -20,8 +23,8 @@ class StubActivityRepository {
   async findActivitiesByUserIds() {
     return { data: this._data, total: this._total };
   }
-  async createActivity() {
-    return {} as never;
+  async createActivity(): Promise<ActivityWithUser> {
+    throw new Error('not used in test');
   }
   async findActivityWithUser() {
     return null;
@@ -37,7 +40,7 @@ class StubActivityRepository {
   }
 }
 
-class StubFollowRepository {
+class StubFollowRepository implements FollowRepositoryPort {
   private _ids: string[] = ['user-2', 'user-3'];
 
   setFollowingIds(ids: string[]) {
@@ -47,8 +50,8 @@ class StubFollowRepository {
   async findFollowingIds() {
     return this._ids;
   }
-  async createFollow() {
-    return {} as never;
+  async createFollow(): Promise<FollowWithUser> {
+    throw new Error('not used in test');
   }
   async deleteFollow() {}
   async findFollow() {
@@ -82,10 +85,7 @@ describe('GetFeedUseCase', () => {
   beforeEach(() => {
     activityRepo = new StubActivityRepository();
     followRepo = new StubFollowRepository();
-    useCase = new GetFeedUseCase(
-      activityRepo as unknown as ActivityRepositoryPort,
-      followRepo as unknown as FollowRepositoryPort,
-    );
+    useCase = new GetFeedUseCase(activityRepo, followRepo);
   });
 
   it('should return activities from followed users', async () => {

@@ -8,6 +8,7 @@ import { Prisma, ThemeStatus } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { QueryThemes } from '@/shared-kernel';
 import { APP_CONFIG } from '@/shared-kernel';
+import { searchWhere } from '@/shared-kernel/database';
 
 export type ThemePagination = {
   total: number;
@@ -115,10 +116,7 @@ export class ThemeQueryService {
     if (query.authorId) where.authorId = query.authorId;
 
     if (query.search) {
-      where.OR = [
-        { name: { contains: query.search, mode: 'insensitive' } },
-        { description: { contains: query.search, mode: 'insensitive' } },
-      ];
+      where.OR = searchWhere(query.search, ['name', 'description']);
     }
 
     return where;

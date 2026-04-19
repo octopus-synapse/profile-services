@@ -1,4 +1,3 @@
-import sanitizeHtml from 'sanitize-html';
 import type { CreateResume } from '@/shared-kernel';
 import type { ResumeEventPublisher } from '../../../../domain/ports';
 import { ResumesRepositoryPort } from '../../../ports/resumes-repository.port';
@@ -9,10 +8,7 @@ const MAX_RESUMES_PER_USER = 4;
 function sanitizeContent(text: string | undefined | null): string | undefined {
   if (!text) return undefined;
   if (typeof text !== 'string') return undefined;
-  return sanitizeHtml(text, {
-    allowedTags: [],
-    allowedAttributes: {},
-  });
+  return text.replace(/<[^>]*>/g, '');
 }
 
 export class CreateResumeForUserUseCase {

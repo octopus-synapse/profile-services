@@ -56,13 +56,7 @@ describe('ATSScoreService', () => {
     mockEventEmitter = { emit: mock(() => {}) };
     atsScoreRepo = new InMemoryATSScoreRepository();
     atsScoreRepo.seedSectionTypes(defaultSectionTypes);
-
-    const mockPrisma = {
-      sectionType: {
-        findMany: (args?: { where?: { isActive?: boolean } }) => atsScoreRepo.findMany(args),
-      },
-    };
-    service = new ATSScoreService(mockPrisma as never, mockEventEmitter as never);
+    service = new ATSScoreService(atsScoreRepo, mockEventEmitter);
   });
 
   describe('calculate', () => {

@@ -143,6 +143,7 @@ export interface ApiStreamResponseOptions {
   mimeType:
     | 'application/pdf'
     | 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    | 'application/zip'
     | 'image/png'
     | 'application/octet-stream'
     | 'text/plain';

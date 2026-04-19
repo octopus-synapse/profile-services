@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { ForbiddenException } from '@nestjs/common';
 import type { CreateTheme } from '@/shared-kernel';
+import { ForbiddenException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { InMemoryThemeRepository, StubAuthorizationService } from '../../../testing';
 import { ThemeCategory, ThemeStatus } from '../../domain/ports/theme.repository.port';
 import { CreateThemeAsAdminUseCase } from './create-theme-as-admin.use-case';

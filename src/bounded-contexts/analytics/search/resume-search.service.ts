@@ -74,72 +74,63 @@ export class ResumeSearchService {
       sortBy = 'relevance',
     } = params;
 
-    const offset = (page - 1) * limit;
+    const safeLimit = Number(limit) || 20;
+    const safePage = Number(page) || 1;
+    const offset = (safePage - 1) * safeLimit;
     const searchTerms = this.normalizeSearchTerms(query);
 
-    // Build dynamic WHERE conditions
-    const conditions: string[] = ['"isPublic" = true'];
-    const values: unknown[] = [];
-    let paramIndex = 1;
+    // Build dynamic WHERE conditions as Prisma.Sql fragments so values are
+    // bound through Prisma's parameterizer (avoids `$N` collisions when the
+    // outer template also injects values like LIMIT/OFFSET).
+    const conditions: Prisma.Sql[] = [Prisma.sql`"isPublic" = true`];
 
-    // Full-text search condition
     if (searchTerms) {
-      conditions.push(`(
-        "fullName" ILIKE $${paramIndex} OR
-        "jobTitle" ILIKE $${paramIndex} OR
-        "summary" ILIKE $${paramIndex} OR
-        "techPersona" ILIKE $${paramIndex}
+      const like = `%${searchTerms}%`;
+      conditions.push(Prisma.sql`(
+        "fullName" ILIKE ${like} OR
+        "jobTitle" ILIKE ${like} OR
+        "summary" ILIKE ${like} OR
+        "techPersona" ILIKE ${like}
       )`);
-      values.push(`%${searchTerms}%`);
-      paramIndex++;
     }
 
-    // Location filter
     if (location) {
-      conditions.push(`"location" ILIKE $${paramIndex}`);
-      values.push(`%${location}%`);
-      paramIndex++;
+      conditions.push(Prisma.sql`"location" ILIKE ${`%${location}%`}`);
     }
 
-    // Experience years filter
     if (minExperienceYears !== undefined) {
-      conditions.push(`"experienceYears" >= $${paramIndex}`);
-      values.push(minExperienceYears);
-      paramIndex++;
+      conditions.push(Prisma.sql`"experienceYears" >= ${minExperienceYears}`);
     }
 
     if (maxExperienceYears !== undefined) {
-      conditions.push(`"experienceYears" <= $${paramIndex}`);
-      values.push(maxExperienceYears);
-      paramIndex++;
+      conditions.push(Prisma.sql`"experienceYears" <= ${maxExperienceYears}`);
     }
 
-    const whereClause = conditions.join(' AND ');
-    const orderClause = this.buildOrderClause(sortBy);
+    const whereClause = Prisma.join(conditions, ' AND ');
+    const orderClause = this.buildOrderClauseSql(sortBy);
 
-    // Execute search query
     const searchQuery = Prisma.sql`
-      SELECT 
-        id, 
-        "userId", 
-        "fullName", 
-        "jobTitle", 
-        summary, 
-        slug, 
+      SELECT
+        id,
+        "userId",
+        "fullName",
+        "jobTitle",
+        summary,
+        slug,
         location,
         "profileViews",
         "createdAt"
       FROM "Resume"
-      WHERE ${Prisma.raw(whereClause)}
-      ORDER BY ${Prisma.raw(orderClause)}
-      LIMIT ${limit}
+      WHERE ${whereClause}
+      ORDER BY ${orderClause}
+      LIMIT ${safeLimit}
       OFFSET ${offset}
     `;
 
     const countQuery = Prisma.sql`
       SELECT COUNT(*)::int as count
       FROM "Resume"
-      WHERE ${Prisma.raw(whereClause)}
+      WHERE ${whereClause}
     `;
 
     const [results, countResult] = await Promise.all([
@@ -297,16 +288,17 @@ export class ResumeSearchService {
   }
 
   /**
-   * Build ORDER BY clause based on sort option
+   * Build ORDER BY clause as a Prisma.Sql fragment so it can be safely
+   * interpolated inside a Prisma.sql template.
    */
-  private buildOrderClause(sortBy: string): string {
+  private buildOrderClauseSql(sortBy: string): Prisma.Sql {
     switch (sortBy) {
       case 'date':
-        return '"createdAt" DESC';
+        return Prisma.sql`"createdAt" DESC`;
       case 'views':
-        return '"profileViews" DESC';
+        return Prisma.sql`"profileViews" DESC`;
       default:
-        return '"profileViews" DESC, "createdAt" DESC';
+        return Prisma.sql`"profileViews" DESC, "createdAt" DESC`;
     }
   }
 

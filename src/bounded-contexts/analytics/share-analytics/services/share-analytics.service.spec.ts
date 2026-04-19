@@ -11,7 +11,10 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { ForbiddenException } from '@nestjs/common';
+import {
+  EntityNotFoundException,
+  ForbiddenException,
+} from '@/shared-kernel/exceptions/domain.exceptions';
 import { InMemoryShareAnalyticsRepository } from '../testing';
 import { ShareAnalyticsService } from './share-analytics.service';
 
@@ -26,7 +29,7 @@ describe('ShareAnalyticsService', () => {
 
   beforeEach(() => {
     repository = new InMemoryShareAnalyticsRepository();
-    service = new ShareAnalyticsService(repository);
+    service = new ShareAnalyticsService(repository, { lookup: async () => null });
 
     // Seed a share with owner
     repository.seedShare({
@@ -157,9 +160,9 @@ describe('ShareAnalyticsService', () => {
       expect(result.totalDownloads).toBe(1);
     });
 
-    it('should throw ForbiddenException when share not found', async () => {
+    it('should throw EntityNotFoundException when share not found', async () => {
       await expect(service.getAnalytics('non-existent-share', userId)).rejects.toThrow(
-        ForbiddenException,
+        EntityNotFoundException,
       );
     });
 

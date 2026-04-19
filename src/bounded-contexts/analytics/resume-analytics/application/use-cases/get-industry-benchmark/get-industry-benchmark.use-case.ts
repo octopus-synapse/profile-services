@@ -11,17 +11,17 @@ import type {
   IndustryComparison,
   TopPerformersProfile,
 } from '../../../interfaces';
+import type { AtsScoringPort } from '../../ports/facade.ports';
 import type {
   BenchmarkRepositoryPort,
   ResumeOwnershipPort,
 } from '../../ports/resume-analytics.port';
-import type { CalculateAtsScoreUseCase } from '../calculate-ats-score/calculate-ats-score.use-case';
 
 export class GetIndustryBenchmarkUseCase {
   constructor(
     private readonly benchmarkRepo: BenchmarkRepositoryPort,
     private readonly ownership: ResumeOwnershipPort,
-    private readonly atsScore: CalculateAtsScoreUseCase,
+    private readonly atsScore: AtsScoringPort,
   ) {}
 
   async execute(

@@ -10,6 +10,7 @@ import {
   ResumeVersionListDataDto,
   ResumeVersionRestoreDataDto,
 } from '../dto/controller-response.dto';
+import { toVersionIsoList } from '../presenters/resume-version.presenter';
 
 interface RequestWithUser extends Request {
   user: { userId: string; email: string };
@@ -37,7 +38,7 @@ export class ResumeVersionController {
     return {
       success: true,
       data: {
-        versions: versions.map((v) => ({ ...v, createdAt: v.createdAt.toISOString() })),
+        versions: toVersionIsoList(versions),
       },
     };
   }
@@ -81,7 +82,7 @@ export class ResumeVersionController {
     return {
       success: true,
       data: {
-        versions: versions.map((v) => ({ ...v, createdAt: v.createdAt.toISOString() })),
+        versions: toVersionIsoList(versions),
       },
     };
   }

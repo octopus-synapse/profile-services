@@ -5,7 +5,9 @@
  */
 
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
+import type { AtsScoringPort } from '../application/ports/facade.ports';
 import type { ResumeForAnalytics } from '../domain/types';
+import type { ATSScoreResult } from '../interfaces';
 import { InMemorySnapshot, InMemoryViewTracking } from '../testing';
 import { DashboardService } from './dashboard.service';
 
@@ -14,25 +16,18 @@ describe('DashboardService', () => {
   let viewTracking: InMemoryViewTracking;
   let snapshot: InMemorySnapshot;
 
-  // Mock ATS service (pure calculation, no I/O)
-  const mockAtsScore = {
-    calculate: mock(() => ({
-      score: 85,
-      sectionBreakdown: [
-        {
-          sectionKind: 'SKILLS',
-          sectionTypeKey: 'skill_v1',
-          score: 80,
-        },
-        {
-          sectionKind: 'WORK_EXPERIENCE',
-          sectionTypeKey: 'work_experience_v1',
-          score: 90,
-        },
-      ],
-      issues: [],
-      recommendations: ['Add more keywords'],
-    })),
+  const mockAtsScoreResult: ATSScoreResult = {
+    score: 85,
+    sectionBreakdown: [
+      { sectionKind: 'SKILLS', sectionTypeKey: 'skill_v1', score: 80 },
+      { sectionKind: 'WORK_EXPERIENCE', sectionTypeKey: 'work_experience_v1', score: 90 },
+    ],
+    issues: [],
+    recommendations: ['Add more keywords'],
+  };
+
+  const mockAtsScore: AtsScoringPort = {
+    calculate: mock(async () => mockAtsScoreResult),
   };
 
   const mockResume: ResumeForAnalytics = {
@@ -69,7 +64,7 @@ describe('DashboardService', () => {
     viewTracking = new InMemoryViewTracking();
     snapshot = new InMemorySnapshot();
 
-    service = new DashboardService(viewTracking, mockAtsScore as never, snapshot);
+    service = new DashboardService(viewTracking, mockAtsScore, snapshot);
 
     // Seed default data
     viewTracking.seedViewStats('resume-1', {

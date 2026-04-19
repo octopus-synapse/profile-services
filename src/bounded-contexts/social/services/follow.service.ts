@@ -2,108 +2,57 @@
  * Follow Service
  *
  * Handles follow/unfollow operations between users.
- * Implements social networking features.
- *
- * Kent Beck: "Make it work, make it right, make it fast."
+ * Delegates persistence to FollowRepositoryPort and ConnectionRepositoryPort.
  */
 
+import { Inject, Injectable } from '@nestjs/common';
+import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import {
-  BadRequestException,
   ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
-import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { EventPublisher } from '@/shared-kernel';
+  EntityNotFoundException,
+  ValidationException,
+} from '@/shared-kernel/exceptions/domain.exceptions';
+import { ConnectionRepositoryPort } from '../application/ports/connection.port';
+import { FollowReaderPort } from '../application/ports/facade.ports';
+import {
+  FollowRepositoryPort,
+  type FollowWithUser,
+  type PaginatedResult,
+  type PaginationParams,
+} from '../application/ports/follow.port';
+import { SOCIAL_LOGGER_PORT, SocialLoggerPort } from '../application/ports/social-logger.port';
 import { UserFollowedEvent } from '../domain/events';
 
-// --- Types ---
-
-export interface PaginationParams {
-  page: number;
-  limit: number;
-}
-
-export interface PaginatedResult<T> {
-  data: T[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
-
-export interface FollowWithUser {
-  id: string;
-  followerId: string;
-  followingId: string;
-  createdAt: Date;
-  follower?: {
-    id: string;
-    name: string | null;
-    username: string | null;
-    photoURL: string | null;
-  };
-  following?: {
-    id: string;
-    name: string | null;
-    username: string | null;
-    photoURL: string | null;
-  };
-}
-
-// --- Service ---
+export type { FollowWithUser, PaginatedResult, PaginationParams };
 
 @Injectable()
-export class FollowService {
+export class FollowService extends FollowReaderPort {
   constructor(
-    private readonly prisma: PrismaService,
-    private readonly logger: AppLoggerService,
-    private readonly eventPublisher: EventPublisher,
-  ) {}
+    private readonly followRepo: FollowRepositoryPort,
+    private readonly connectionRepo: ConnectionRepositoryPort,
+    private readonly eventPublisher: EventPublisherPort,
+    @Inject(SOCIAL_LOGGER_PORT)
+    private readonly logger: SocialLoggerPort,
+  ) {
+    super();
+  }
 
-  /**
-   * Follow a user.
-   * Creates a follow relationship between follower and following.
-   */
   async follow(followerId: string, followingId: string): Promise<FollowWithUser> {
-    // Cannot follow yourself
     if (followerId === followingId) {
-      throw new BadRequestException('Cannot follow yourself');
+      throw new ValidationException('Cannot follow yourself');
     }
 
-    // Check if target user exists
-    const targetUser = await this.prisma.user.findUnique({
-      where: { id: followingId },
-    });
-
-    if (!targetUser) {
-      throw new NotFoundException('User not found');
+    const targetExists = await this.followRepo.userExists(followingId);
+    if (!targetExists) {
+      throw new EntityNotFoundException('User');
     }
 
-    // Check if already following
-    const existingFollow = await this.prisma.follow.findFirst({
-      where: { followerId, followingId },
-    });
-
+    const existingFollow = await this.followRepo.findFollow(followerId, followingId);
     if (existingFollow) {
       throw new ConflictException('Already following this user');
     }
 
-    // Create follow relationship
-    const follow = await this.prisma.follow.create({
-      data: { followerId, followingId },
-      include: {
-        following: {
-          select: {
-            id: true,
-            name: true,
-            username: true,
-            photoURL: true,
-          },
-        },
-      },
-    });
+    const follow = await this.followRepo.createFollow(followerId, followingId);
 
     this.eventPublisher.publish(new UserFollowedEvent(followingId, { followerId }));
 
@@ -112,157 +61,74 @@ export class FollowService {
     return follow;
   }
 
-  /**
-   * Unfollow a user.
-   * Removes the follow relationship.
-   */
   async unfollow(followerId: string, followingId: string): Promise<void> {
-    await this.prisma.follow.deleteMany({
-      where: { followerId, followingId },
-    });
-
+    await this.followRepo.deleteFollow(followerId, followingId);
     this.logger.debug(`User ${followerId} unfollowed ${followingId}`, 'FollowService');
   }
 
-  /**
-   * Check if a user is following another user.
-   */
   async isFollowing(followerId: string, followingId: string): Promise<boolean> {
-    const follow = await this.prisma.follow.findFirst({
-      where: { followerId, followingId },
-    });
-
+    const follow = await this.followRepo.findFollow(followerId, followingId);
     return follow !== null;
   }
 
-  /**
-   * Get paginated list of followers for a user.
-   */
   async getFollowers(
     userId: string,
     pagination: PaginationParams,
+    viewerId?: string,
   ): Promise<PaginatedResult<FollowWithUser>> {
     const { page, limit } = pagination;
-    const skip = (page - 1) * limit;
-
-    const [data, total] = await Promise.all([
-      this.prisma.follow.findMany({
-        where: { followingId: userId },
-        include: {
-          follower: {
-            select: {
-              id: true,
-              name: true,
-              username: true,
-              photoURL: true,
-            },
-          },
-        },
-        orderBy: { createdAt: 'desc' },
-        skip,
-        take: limit,
-      }),
-      this.prisma.follow.count({
-        where: { followingId: userId },
-      }),
-    ]);
-
-    return {
-      data,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
+    const { data, total } = await this.followRepo.findFollowers(userId, pagination);
+    const enriched = await this.enrichWithViewerRelationship(data, viewerId, 'follower');
+    return { data: enriched, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
-  /**
-   * Get paginated list of users that a user is following.
-   */
   async getFollowing(
     userId: string,
     pagination: PaginationParams,
+    viewerId?: string,
   ): Promise<PaginatedResult<FollowWithUser>> {
     const { page, limit } = pagination;
-    const skip = (page - 1) * limit;
-
-    const [data, total] = await Promise.all([
-      this.prisma.follow.findMany({
-        where: { followerId: userId },
-        include: {
-          following: {
-            select: {
-              id: true,
-              name: true,
-              username: true,
-              photoURL: true,
-            },
-          },
-        },
-        orderBy: { createdAt: 'desc' },
-        skip,
-        take: limit,
-      }),
-      this.prisma.follow.count({
-        where: { followerId: userId },
-      }),
-    ]);
-
-    return {
-      data,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    };
+    const { data, total } = await this.followRepo.findFollowing(userId, pagination);
+    const enriched = await this.enrichWithViewerRelationship(data, viewerId, 'following');
+    return { data: enriched, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
-  /**
-   * Get count of followers for a user.
-   */
+  private async enrichWithViewerRelationship(
+    rows: FollowWithUser[],
+    viewerId: string | undefined,
+    edge: 'follower' | 'following',
+  ): Promise<FollowWithUser[]> {
+    if (!viewerId || rows.length === 0) return rows;
+    const viewerFollowingIds = new Set(await this.followRepo.findFollowingIds(viewerId));
+    return rows.map((row) => {
+      const targetId = edge === 'follower' ? row.follower?.id : row.following?.id;
+      const isSelf = targetId === viewerId;
+      return {
+        ...row,
+        isFollowedByMe: isSelf ? false : targetId ? viewerFollowingIds.has(targetId) : false,
+      };
+    });
+  }
+
   async getFollowersCount(userId: string): Promise<number> {
-    return this.prisma.follow.count({
-      where: { followingId: userId },
-    });
+    return this.followRepo.countFollowers(userId);
   }
 
-  /**
-   * Get count of users that a user is following.
-   */
   async getFollowingCount(userId: string): Promise<number> {
-    return this.prisma.follow.count({
-      where: { followerId: userId },
-    });
+    return this.followRepo.countFollowing(userId);
   }
 
-  /**
-   * Get array of user IDs that a user is following.
-   * Useful for building activity feeds.
-   */
   async getFollowingIds(userId: string): Promise<string[]> {
-    const following = await this.prisma.follow.findMany({
-      where: { followerId: userId },
-      select: { followingId: true },
-    });
-
-    return following.map((f) => f.followingId);
+    return this.followRepo.findFollowingIds(userId);
   }
 
-  /**
-   * Get social stats for a user.
-   */
   async getSocialStats(
     userId: string,
   ): Promise<{ followers: number; following: number; connections: number }> {
     const [followers, following, connections] = await Promise.all([
-      this.getFollowersCount(userId),
-      this.getFollowingCount(userId),
-      this.prisma.connection.count({
-        where: {
-          status: 'ACCEPTED',
-          OR: [{ requesterId: userId }, { targetId: userId }],
-        },
-      }),
+      this.followRepo.countFollowers(userId),
+      this.followRepo.countFollowing(userId),
+      this.connectionRepo.countAcceptedConnections(userId),
     ]);
 
     return { followers, following, connections };

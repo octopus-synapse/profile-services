@@ -1,87 +1,52 @@
 /**
  * Spoken Languages Service
- * Query service for spoken language catalog
+ * Query service for spoken language catalog. Delegates persistence to the port.
  */
 
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import { APP_CONFIG } from '@/shared-kernel';
+import {
+  type SpokenLanguage,
+  SpokenLanguagesRepositoryPort,
+} from '../application/ports/spoken-languages.port';
 
-export interface SpokenLanguage {
-  code: string;
-  nameEn: string;
-  namePtBr: string;
-  nameEs: string;
-  nativeName: string | null;
-}
+export type { SpokenLanguage };
+
+const SPOKEN_LANGUAGES_ALL_KEY = 'spoken_languages:all_active';
+const SPOKEN_LANGUAGES_BY_CODE_PREFIX = 'spoken_languages:by_code:';
+const SPOKEN_LANGUAGES_TTL = 60 * 60; // 1h — catalog quasi-static
 
 @Injectable()
 export class SpokenLanguagesService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly repository: SpokenLanguagesRepositoryPort,
+    private readonly cache: CacheService,
+  ) {}
 
-  /**
-   * Get all active spoken languages ordered by order field
-   */
   async findAllActiveLanguages(): Promise<SpokenLanguage[]> {
-    const activeLanguages = await this.prisma.spokenLanguage.findMany({
-      where: { isActive: true },
-      orderBy: { order: 'asc' },
-      select: {
-        code: true,
-        nameEn: true,
-        namePtBr: true,
-        nameEs: true,
-        nativeName: true,
-      },
-    });
+    const cached = await this.cache.get<SpokenLanguage[]>(SPOKEN_LANGUAGES_ALL_KEY);
+    if (cached) return cached;
 
-    return activeLanguages;
+    const languages = await this.repository.findAllActive();
+    await this.cache.set(SPOKEN_LANGUAGES_ALL_KEY, languages, SPOKEN_LANGUAGES_TTL);
+    return languages;
   }
 
-  /**
-   * Search spoken languages by name (in any supported language)
-   */
   async searchLanguagesByName(
     searchQuery: string,
     limit: number = APP_CONFIG.SEARCH_AUTOCOMPLETE_LIMIT,
   ): Promise<SpokenLanguage[]> {
-    const matchingLanguages = await this.prisma.spokenLanguage.findMany({
-      where: {
-        isActive: true,
-        OR: [
-          { nameEn: { contains: searchQuery, mode: 'insensitive' } },
-          { namePtBr: { contains: searchQuery, mode: 'insensitive' } },
-          { nameEs: { contains: searchQuery, mode: 'insensitive' } },
-          { nativeName: { contains: searchQuery, mode: 'insensitive' } },
-        ],
-      },
-      orderBy: { order: 'asc' },
-      take: limit,
-      select: {
-        code: true,
-        nameEn: true,
-        namePtBr: true,
-        nameEs: true,
-        nativeName: true,
-      },
-    });
-
-    return matchingLanguages;
+    return this.repository.searchByName(searchQuery, limit);
   }
 
-  /**
-   * Get a single language by code
-   */
   async findLanguageByCode(code: string): Promise<SpokenLanguage | null> {
-    return this.prisma.spokenLanguage.findUnique({
-      where: { code },
-      select: {
-        code: true,
-        nameEn: true,
-        namePtBr: true,
-        nameEs: true,
-        nativeName: true,
-      },
-    });
+    const key = `${SPOKEN_LANGUAGES_BY_CODE_PREFIX}${code}`;
+    const cached = await this.cache.get<SpokenLanguage | null>(key);
+    if (cached !== null && cached !== undefined) return cached;
+
+    const language = await this.repository.findByCode(code);
+    if (language) await this.cache.set(key, language, SPOKEN_LANGUAGES_TTL);
+    return language;
   }
 }

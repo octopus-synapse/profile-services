@@ -3,10 +3,10 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import type { FollowRepositoryPort } from '../../ports/follow.port';
+import { FollowRepositoryPort, type FollowWithUser } from '../../ports/follow.port';
 import { GetSocialStatsUseCase } from './get-social-stats.use-case';
 
-class StubFollowRepository {
+class StubFollowRepository implements FollowRepositoryPort {
   private _followers = 0;
   private _following = 0;
 
@@ -23,8 +23,8 @@ class StubFollowRepository {
   async countFollowing() {
     return this._following;
   }
-  async createFollow() {
-    return {} as never;
+  async createFollow(): Promise<FollowWithUser> {
+    throw new Error('not used in test');
   }
   async deleteFollow() {}
   async findFollow() {
@@ -53,7 +53,7 @@ describe('GetSocialStatsUseCase', () => {
 
   beforeEach(() => {
     repository = new StubFollowRepository();
-    useCase = new GetSocialStatsUseCase(repository as unknown as FollowRepositoryPort);
+    useCase = new GetSocialStatsUseCase(repository);
   });
 
   it('should return follower and following counts', async () => {

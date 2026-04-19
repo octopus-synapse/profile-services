@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
 
-import type {
-  ResumeConfig,
+import {
+  type ResumeConfig,
   ResumeConfigRepositoryPort,
 } from '../../domain/ports/resume-config.repository.port';
 import { ReorderSectionUseCase } from './reorder-section.use-case';
@@ -17,7 +17,7 @@ describe('ReorderSectionUseCase', () => {
     itemOverrides: {},
   };
 
-  const repo = {
+  const repo: ResumeConfigRepositoryPort = {
     get: async (userId: string, resumeId: string) => {
       getCalled = { userId, resumeId };
       if (shouldThrowOnGet) throw shouldThrowOnGet;
@@ -28,7 +28,7 @@ describe('ReorderSectionUseCase', () => {
     },
     save: async () => {},
     batchUpdateSectionsDirect: async () => {},
-  } as unknown as ResumeConfigRepositoryPort;
+  };
 
   beforeEach(() => {
     getCalled = null;

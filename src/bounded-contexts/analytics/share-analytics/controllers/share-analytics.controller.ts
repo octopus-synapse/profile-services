@@ -4,20 +4,20 @@ import type { Request } from 'express';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
+import { ShareAnalyticsReaderPort } from '../application/ports/share-analytics-reader.port';
 import {
   ShareAnalyticsEventsDataDto,
   ShareAnalyticsSummaryDataDto,
 } from '../dto/controller-response.dto';
-import { ShareAnalyticsService } from '../services/share-analytics.service';
 
-export interface RequestWithUser extends Request {
+export interface RequestWithUser extends Partial<Request> {
   user: { userId: string; email: string };
 }
 
 @ApiTags('share-analytics')
 @Controller('v1')
 export class ShareAnalyticsController {
-  constructor(private readonly analyticsService: ShareAnalyticsService) {}
+  constructor(private readonly analyticsService: ShareAnalyticsReaderPort) {}
 
   // Original nested endpoint
   @Get('resumes/:resumeId/shares/:shareId/analytics')

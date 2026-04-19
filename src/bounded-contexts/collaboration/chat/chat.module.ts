@@ -6,9 +6,11 @@ import { EventPublisher } from '@/shared-kernel';
 import { BLOCK_USE_CASES, buildBlockUseCases } from './application/block.composition';
 import { buildChatUseCases, CHAT_USE_CASES } from './application/chat.composition';
 import { BlockController, ChatController } from './controllers';
+import { ChatPreferenceController } from './controllers/chat-preference.controller';
 import { ChatGateway } from './gateways';
 import { BlockedUserRepository, ConversationRepository, MessageRepository } from './repositories';
 import { ChatCacheService } from './services';
+import { ChatPreferenceService } from './services/chat-preference.service';
 import { ChatUserSearchService } from './services/user-search.service';
 
 @Module({
@@ -21,10 +23,11 @@ import { ChatUserSearchService } from './services/user-search.service';
       }),
     }),
   ],
-  controllers: [ChatController, BlockController],
+  controllers: [ChatController, BlockController, ChatPreferenceController],
   providers: [
     // Infrastructure
     ChatCacheService,
+    ChatPreferenceService,
     ChatUserSearchService,
     ConversationRepository,
     MessageRepository,

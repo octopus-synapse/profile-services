@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { BadRequestException } from '@nestjs/common';
+import { ValidationException } from '@/shared-kernel/exceptions/domain.exceptions';
 import {
   createOnboardingProgress,
   DEFAULT_SECTION_TYPES,
@@ -96,7 +96,7 @@ describe('GotoOnboardingStepUseCase', () => {
     );
 
     // Act & Assert
-    await expect(useCase.execute(USER_ID, 'nonexistent-step')).rejects.toThrow(BadRequestException);
+    await expect(useCase.execute(USER_ID, 'nonexistent-step')).rejects.toThrow(ValidationException);
     await expect(useCase.execute(USER_ID, 'nonexistent-step')).rejects.toThrow(
       'Unknown step: nonexistent-step',
     );

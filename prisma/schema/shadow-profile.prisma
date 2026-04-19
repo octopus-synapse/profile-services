@@ -1,0 +1,39 @@
+// Shadow profiles: pre-built profile skeletons assembled from public
+// data (currently GitHub) for people who haven't signed up. When a
+// matching user signs up — same email or a successful GitHub OAuth —
+// the data flips into their real profile and the shadow row is marked
+// as claimed.
+
+model ShadowProfile {
+  id String @id @default(cuid())
+
+  // Origin of the data: 'github', 'devto', etc. Today only github but
+  // the column is here so the claim flow doesn't need a migration when
+  // we add the next source.
+  source String
+
+  // External handle on the source platform (e.g. github "enzoferracini").
+  // Unique per source so a sync run is idempotent.
+  externalHandle String
+
+  // Best-effort email pulled from the public source. May be null if
+  // GitHub hides the address; in that case the claim is keyed off the
+  // OAuth identity instead of email match.
+  contactEmail String?
+
+  // The parsed payload (matches ParsedGithubProfile shape today). Stored
+  // as JSON because the structure is source-specific and we want the
+  // claim flow to be lossless.
+  payload Json
+
+  claimedByUserId String?
+  claimedAt       DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([source, externalHandle])
+  @@index([contactEmail])
+  @@index([claimedByUserId])
+  @@map("shadow_profiles")
+}

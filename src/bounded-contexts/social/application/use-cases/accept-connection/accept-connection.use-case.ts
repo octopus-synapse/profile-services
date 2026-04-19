@@ -1,5 +1,8 @@
-import { BadRequestException, NotFoundException } from '@nestjs/common';
-import type { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
+import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
+import {
+  EntityNotFoundException,
+  ValidationException,
+} from '@/shared-kernel/exceptions/domain.exceptions';
 import { ConnectionAcceptedEvent } from '../../../domain/events';
 import type { ConnectionRepositoryPort, ConnectionWithUser } from '../../ports/connection.port';
 
@@ -12,15 +15,15 @@ export class AcceptConnectionUseCase {
   async execute(connectionId: string, currentUserId: string): Promise<ConnectionWithUser> {
     const connection = await this.repository.findConnectionById(connectionId);
     if (!connection) {
-      throw new NotFoundException('Connection request not found');
+      throw new EntityNotFoundException('Connection', connectionId);
     }
 
     if (connection.status !== 'PENDING') {
-      throw new BadRequestException('Connection request is not pending');
+      throw new ValidationException('Connection request is not pending');
     }
 
     if (connection.targetId !== currentUserId) {
-      throw new BadRequestException('Only the target user can accept a connection request');
+      throw new ValidationException('Only the target user can accept a connection request');
     }
 
     const updated = await this.repository.updateConnectionStatus(connectionId, 'ACCEPTED');

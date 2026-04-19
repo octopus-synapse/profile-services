@@ -1,7 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { paginate, patchData } from '@/shared-kernel/database';
+import { paginate, patchData, searchWhere } from '@/shared-kernel/database';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 
 @Injectable()
 export class AdminSpokenLanguagesService {
@@ -11,11 +12,7 @@ export class AdminSpokenLanguagesService {
     const where: Prisma.SpokenLanguageWhereInput = {};
 
     if (query.search) {
-      where.OR = [
-        { nameEn: { contains: query.search, mode: 'insensitive' } },
-        { namePtBr: { contains: query.search, mode: 'insensitive' } },
-        { nameEs: { contains: query.search, mode: 'insensitive' } },
-      ];
+      where.OR = searchWhere(query.search, ['nameEn', 'namePtBr', 'nameEs']);
     }
     if (query.isActive !== undefined) where.isActive = query.isActive;
 
@@ -29,7 +26,7 @@ export class AdminSpokenLanguagesService {
 
   async findOne(code: string) {
     const item = await this.prisma.spokenLanguage.findUnique({ where: { code } });
-    if (!item) throw new NotFoundException(`Spoken language '${code}' not found`);
+    if (!item) throw new EntityNotFoundException('SpokenLanguage', code);
     return item;
   }
 
@@ -49,7 +46,7 @@ export class AdminSpokenLanguagesService {
 
   async update(code: string, dto: Record<string, unknown>) {
     const existing = await this.prisma.spokenLanguage.findUnique({ where: { code } });
-    if (!existing) throw new NotFoundException(`Spoken language '${code}' not found`);
+    if (!existing) throw new EntityNotFoundException('SpokenLanguage', code);
 
     const data = patchData(dto, [
       'nameEn',
@@ -65,7 +62,7 @@ export class AdminSpokenLanguagesService {
 
   async remove(code: string) {
     const existing = await this.prisma.spokenLanguage.findUnique({ where: { code } });
-    if (!existing) throw new NotFoundException(`Spoken language '${code}' not found`);
+    if (!existing) throw new EntityNotFoundException('SpokenLanguage', code);
 
     await this.prisma.spokenLanguage.delete({ where: { code } });
   }

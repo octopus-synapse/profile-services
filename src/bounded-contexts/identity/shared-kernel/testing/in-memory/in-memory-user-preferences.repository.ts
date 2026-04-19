@@ -63,6 +63,8 @@ export class InMemoryUserPreferencesRepository extends UserPreferencesRepository
       allowSearchEngineIndex: prefs.allowSearchEngineIndex ?? false,
       defaultExportFormat: prefs.defaultExportFormat ?? 'pdf',
       includePhotoInExport: prefs.includePhotoInExport ?? true,
+      applyMode: prefs.applyMode ?? 'ONE_CLICK',
+      applyCriteria: prefs.applyCriteria ?? null,
       createdAt: prefs.createdAt ?? now,
       updatedAt: prefs.updatedAt ?? now,
     };
@@ -125,10 +127,31 @@ export class InMemoryUserPreferencesRepository extends UserPreferencesRepository
     const existing = this.fullPreferences.get(userId);
     const now = new Date();
 
+    // Pull applyCriteria out so the base spread doesn't clobber the full
+    // criteria object with a partial patch. We merge it explicitly below.
+    const { applyCriteria: criteriaPatch, ...scalarPatch } = data;
+
     if (existing) {
-      const updated = {
+      const mergedCriteria = criteriaPatch
+        ? {
+            minFit: criteriaPatch.minFit ?? existing.applyCriteria?.minFit ?? null,
+            stacks: criteriaPatch.stacks ?? existing.applyCriteria?.stacks ?? [],
+            seniorities: criteriaPatch.seniorities ?? existing.applyCriteria?.seniorities ?? [],
+            remotePolicies:
+              criteriaPatch.remotePolicies ?? existing.applyCriteria?.remotePolicies ?? [],
+            paymentCurrencies:
+              criteriaPatch.paymentCurrencies ?? existing.applyCriteria?.paymentCurrencies ?? [],
+            minSalaryUsd:
+              criteriaPatch.minSalaryUsd ?? existing.applyCriteria?.minSalaryUsd ?? null,
+            defaultCover:
+              criteriaPatch.defaultCover ?? existing.applyCriteria?.defaultCover ?? null,
+          }
+        : existing.applyCriteria;
+
+      const updated: FullUserPreferences = {
         ...existing,
-        ...data,
+        ...scalarPatch,
+        applyCriteria: mergedCriteria,
         updatedAt: now,
       };
       this.fullPreferences.set(userId, updated);
@@ -157,6 +180,18 @@ export class InMemoryUserPreferencesRepository extends UserPreferencesRepository
       allowSearchEngineIndex: data.allowSearchEngineIndex ?? false,
       defaultExportFormat: data.defaultExportFormat ?? 'pdf',
       includePhotoInExport: data.includePhotoInExport ?? true,
+      applyMode: data.applyMode ?? 'ONE_CLICK',
+      applyCriteria: criteriaPatch
+        ? {
+            minFit: criteriaPatch.minFit ?? null,
+            stacks: criteriaPatch.stacks ?? [],
+            seniorities: criteriaPatch.seniorities ?? [],
+            remotePolicies: criteriaPatch.remotePolicies ?? [],
+            paymentCurrencies: criteriaPatch.paymentCurrencies ?? [],
+            minSalaryUsd: criteriaPatch.minSalaryUsd ?? null,
+            defaultCover: criteriaPatch.defaultCover ?? null,
+          }
+        : null,
       createdAt: now,
       updatedAt: now,
     };

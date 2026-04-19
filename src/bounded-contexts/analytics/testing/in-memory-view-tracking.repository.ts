@@ -1,9 +1,10 @@
 /**
  * In-Memory View Tracking Repository
  *
- * Test implementation for ViewTrackingService dependencies.
- * Stores resume view events in memory for testing.
+ * Port-level fake for ViewTrackingRepositoryPort.
  */
+
+import { ViewTrackingRepositoryPort } from '../resume-analytics/application/ports/resume-analytics.port';
 
 export interface ViewEventRecord {
   id: string;
@@ -17,92 +18,46 @@ export interface ViewEventRecord {
   createdAt: Date;
 }
 
-export class InMemoryViewTrackingRepository {
+export class InMemoryViewTrackingRepository extends ViewTrackingRepositoryPort {
   private viewEvents: Map<string, ViewEventRecord> = new Map();
   private idCounter = 0;
 
-  /**
-   * Mimics PrismaService.resumeViewEvent.create
-   */
-  async create(args: {
-    data: {
-      resumeId: string;
-      ipHash: string;
-      userAgent?: string;
-      referer?: string;
-      country?: string;
-      city?: string;
-      source: string;
-    };
-  }): Promise<ViewEventRecord> {
+  async trackView(data: {
+    resumeId: string;
+    ipHash: string;
+    userAgent?: string;
+    referer?: string;
+    country?: string;
+    city?: string;
+    source: string;
+  }): Promise<void> {
     const id = `view-${++this.idCounter}`;
-    const event: ViewEventRecord = {
+    this.viewEvents.set(id, {
       id,
-      resumeId: args.data.resumeId,
-      ipHash: args.data.ipHash,
-      userAgent: args.data.userAgent ?? null,
-      referer: args.data.referer ?? null,
-      country: args.data.country ?? null,
-      city: args.data.city ?? null,
-      source: args.data.source,
+      resumeId: data.resumeId,
+      ipHash: data.ipHash,
+      userAgent: data.userAgent ?? null,
+      referer: data.referer ?? null,
+      country: data.country ?? null,
+      city: data.city ?? null,
+      source: data.source,
       createdAt: new Date(),
-    };
-    this.viewEvents.set(id, event);
-    return event;
+    });
   }
 
-  /**
-   * Mimics PrismaService.resumeViewEvent.count
-   */
-  async count(args?: {
-    where?: { resumeId?: string; createdAt?: { gte?: Date; lte?: Date } };
-  }): Promise<number> {
-    let results = Array.from(this.viewEvents.values());
-
-    if (args?.where?.resumeId) {
-      results = results.filter((e) => e.resumeId === args.where?.resumeId);
-    }
-    const gteDate = args?.where?.createdAt?.gte;
-    if (gteDate) {
-      results = results.filter((e) => e.createdAt >= gteDate);
-    }
-    const lteDate = args?.where?.createdAt?.lte;
-    if (lteDate) {
-      results = results.filter((e) => e.createdAt <= lteDate);
-    }
-
-    return results.length;
+  async countViews(resumeId: string, startDate: Date, endDate: Date): Promise<number> {
+    return Array.from(this.viewEvents.values()).filter(
+      (e) => e.resumeId === resumeId && e.createdAt >= startDate && e.createdAt <= endDate,
+    ).length;
   }
 
-  /**
-   * Mimics PrismaService.resumeViewEvent.groupBy
-   */
-  async groupBy(args: {
-    by: string[];
-    where?: { resumeId?: string; createdAt?: { gte?: Date; lte?: Date } };
-  }): Promise<Array<{ ipHash: string }>> {
-    let results = Array.from(this.viewEvents.values());
-
-    if (args.where?.resumeId) {
-      results = results.filter((e) => e.resumeId === args.where?.resumeId);
-    }
-    const groupGteDate = args.where?.createdAt?.gte;
-    if (groupGteDate) {
-      results = results.filter((e) => e.createdAt >= groupGteDate);
-    }
-    const groupLteDate = args.where?.createdAt?.lte;
-    if (groupLteDate) {
-      results = results.filter((e) => e.createdAt <= groupLteDate);
-    }
-
-    // Group by ipHash (simplified - assumes groupBy is always by ipHash)
-    const uniqueIpHashes = new Set(results.map((e) => e.ipHash));
-    return Array.from(uniqueIpHashes).map((ipHash) => ({ ipHash }));
+  async countUniqueVisitors(resumeId: string, startDate: Date, endDate: Date): Promise<number> {
+    const filtered = Array.from(this.viewEvents.values()).filter(
+      (e) => e.resumeId === resumeId && e.createdAt >= startDate && e.createdAt <= endDate,
+    );
+    return new Set(filtered.map((e) => e.ipHash)).size;
   }
 
-  /**
-   * Seeds a view event for testing
-   */
   seedViewEvent(event: Partial<ViewEventRecord>): void {
     const id = event.id ?? `view-${++this.idCounter}`;
     this.viewEvents.set(id, {
@@ -118,25 +73,16 @@ export class InMemoryViewTrackingRepository {
     });
   }
 
-  /**
-   * Seeds multiple view events at once
-   */
   seedViewEvents(events: Partial<ViewEventRecord>[]): void {
     for (const event of events) {
       this.seedViewEvent(event);
     }
   }
 
-  /**
-   * Gets all view events (for test verification)
-   */
   getAll(): ViewEventRecord[] {
     return Array.from(this.viewEvents.values());
   }
 
-  /**
-   * Clears all data
-   */
   clear(): void {
     this.viewEvents.clear();
     this.idCounter = 0;

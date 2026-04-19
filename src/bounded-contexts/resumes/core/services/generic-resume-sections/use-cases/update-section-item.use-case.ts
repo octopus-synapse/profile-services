@@ -1,5 +1,5 @@
-import { NotFoundException } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { ItemContentValidatorPolicy } from '../policies/item-content-validator.policy';
 import { ResumeOwnershipPolicy } from '../policies/resume-ownership.policy';
 import { SectionTypePolicy } from '../policies/section-type.policy';
@@ -32,7 +32,7 @@ export class UpdateSectionItemUseCase {
     );
 
     if (!existingItem) {
-      throw new NotFoundException('Section item not found');
+      throw new EntityNotFoundException('SectionItem', itemId);
     }
 
     return this.repository.updateSectionItem(itemId, validatedContent as Prisma.InputJsonValue);

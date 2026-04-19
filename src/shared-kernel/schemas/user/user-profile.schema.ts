@@ -5,6 +5,7 @@
  * Single source of truth for profile updates.
  */
 
+import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import { UsernameSchema } from '@/bounded-contexts/identity/users/domain/schemas/username.schema';
 
@@ -48,6 +49,25 @@ export const UpdatePreferencesSchema = z.object({
 
 export type UpdatePreferences = z.infer<typeof UpdatePreferencesSchema>;
 
+/** DTO class so controllers can accept typed bodies and Orval infers them. */
+export class UpdatePreferencesDto extends createZodDto(UpdatePreferencesSchema) {}
+
+/**
+ * User apply criteria — defaults consumed by Auto-Apply and Weekly Curated.
+ * Kept optional at every level so clients can update one field at a time.
+ */
+export const UpdateApplyCriteriaSchema = z.object({
+  minFit: z.number().int().min(0).max(100).optional(),
+  stacks: z.array(z.string().max(60)).max(40).optional(),
+  seniorities: z.array(z.string().max(30)).max(10).optional(),
+  remotePolicies: z.array(z.enum(['REMOTE', 'HYBRID', 'ONSITE'])).optional(),
+  paymentCurrencies: z.array(z.enum(['BRL', 'USD', 'EUR', 'GBP'])).optional(),
+  minSalaryUsd: z.number().int().min(0).optional(),
+  defaultCover: z.string().max(4000).optional(),
+});
+
+export type UpdateApplyCriteria = z.infer<typeof UpdateApplyCriteriaSchema>;
+
 /**
  * Update Full Preferences Schema
  * Extended preferences including all user preference fields.
@@ -79,9 +99,15 @@ export const UpdateFullPreferencesSchema = z.object({
   // Export defaults
   defaultExportFormat: z.string().optional(),
   includePhotoInExport: z.boolean().optional(),
+  // Apply mode
+  applyMode: z.enum(['ONE_CLICK', 'WEEKLY_CURATED', 'AUTO_APPLY']).optional(),
+  applyCriteria: UpdateApplyCriteriaSchema.optional(),
 });
 
 export type UpdateFullPreferences = z.infer<typeof UpdateFullPreferencesSchema>;
+
+/** Orval-friendly DTO for the PATCH /users/preferences/full body. */
+export class UpdateFullPreferencesDto extends createZodDto(UpdateFullPreferencesSchema) {}
 
 /**
  * Update Username Schema

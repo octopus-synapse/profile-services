@@ -29,23 +29,23 @@ export interface ThemeTypographyConfig {
     heading: string;
     body: string;
   };
-  fontSize: string;
-  headingStyle: string;
+  fontSize?: string;
+  headingStyle?: string;
 }
 
 export interface ThemeColorsConfig {
   colors: {
     primary: string;
-    secondary: string;
+    secondary?: string;
     background: string;
-    surface: string;
+    surface?: string;
     text: {
       primary: string;
-      secondary: string;
-      accent: string;
+      secondary?: string;
+      accent?: string;
     };
-    border: string;
-    divider: string;
+    border?: string;
+    divider?: string;
   };
   borderRadius: string;
   shadows: string;
@@ -57,9 +57,9 @@ export interface ThemeColorsConfig {
 
 export interface ThemeSpacingConfig {
   density: string;
-  sectionGap: string;
-  itemGap: string;
-  contentPadding: string;
+  sectionGap?: string;
+  itemGap?: string;
+  contentPadding?: string;
 }
 
 export interface ThemeSectionConfig {

@@ -11,6 +11,7 @@ import type {
   CountryResult,
   CreateShareAnalyticsData,
   DetailedEventResult,
+  DeviceTypeResult,
   EventCountResult,
   EventFilters,
   RecentEventResult,
@@ -34,6 +35,9 @@ export class PrismaShareAnalyticsRepository implements ShareAnalyticsRepositoryP
         referer: data.referer,
         country: data.country,
         city: data.city,
+        deviceType: data.deviceType,
+        browser: data.browser,
+        os: data.os,
       },
     });
   }
@@ -63,6 +67,17 @@ export class PrismaShareAnalyticsRepository implements ShareAnalyticsRepositoryP
     });
 
     return results as UniqueViewResult[];
+  }
+
+  async groupByDeviceType(shareId: string): Promise<DeviceTypeResult[]> {
+    const results = await this.prisma.shareAnalytics.groupBy({
+      by: ['deviceType'],
+      where: { shareId },
+      _count: { deviceType: true },
+      orderBy: { _count: { deviceType: 'desc' } },
+    });
+
+    return results as DeviceTypeResult[];
   }
 
   async groupByCountry(shareId: string, limit: number): Promise<CountryResult[]> {
@@ -122,6 +137,9 @@ export class PrismaShareAnalyticsRepository implements ShareAnalyticsRepositoryP
         referer: true,
         country: true,
         city: true,
+        deviceType: true,
+        browser: true,
+        os: true,
         createdAt: true,
       },
     });

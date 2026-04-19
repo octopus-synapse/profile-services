@@ -13,6 +13,11 @@ import type {
 } from '../../../../two-factor-auth/application/ports';
 import { LoginFailedEvent, UserLoggedInEvent } from '../../../domain/events';
 import { Invalid2faCodeException, InvalidCredentialsException } from '../../../domain/exceptions';
+import type {
+  LoginAttemptRecord,
+  LoginAttemptsPort,
+  LoginLockStatus,
+} from '../../../domain/ports/login-attempts.port';
 import {
   InMemoryAuthenticationRepository,
   InMemoryPasswordHasher,
@@ -56,6 +61,26 @@ class InMemoryValidate2fa implements Validate2faInboundPort {
 }
 
 // ═══════════════════════════════════════════════════════════════
+// IN-MEMORY LOGIN ATTEMPTS
+// ═══════════════════════════════════════════════════════════════
+
+class InMemoryLoginAttempts implements LoginAttemptsPort {
+  public records: LoginAttemptRecord[] = [];
+
+  async record(attempt: LoginAttemptRecord): Promise<void> {
+    this.records.push(attempt);
+  }
+
+  async getLockStatus(_email: string): Promise<LoginLockStatus> {
+    return { locked: false, failureCount: 0, lockUntil: null, resetInSeconds: null };
+  }
+
+  async clearFailedAttempts(_email: string): Promise<void> {
+    // no-op
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
 // TESTS
 // ═══════════════════════════════════════════════════════════════
 
@@ -66,6 +91,7 @@ describe('LoginUseCase', () => {
   let tokenGenerator: InMemoryTokenGenerator;
   let eventBus: InMemoryEventBus;
   let validate2fa: InMemoryValidate2fa;
+  let loginAttempts: InMemoryLoginAttempts;
 
   const userId = 'user-123';
   const email = 'john@example.com';
@@ -79,11 +105,19 @@ describe('LoginUseCase', () => {
     tokenGenerator = new InMemoryTokenGenerator();
     eventBus = new InMemoryEventBus();
     validate2fa = new InMemoryValidate2fa();
+    loginAttempts = new InMemoryLoginAttempts();
 
     const passwordHash = passwordHasher.hash(password);
     repository.seedUser({ id: userId, email, passwordHash, isActive: true });
 
-    useCase = new LoginUseCase(repository, passwordHasher, tokenGenerator, eventBus, validate2fa);
+    useCase = new LoginUseCase(
+      repository,
+      passwordHasher,
+      tokenGenerator,
+      eventBus,
+      validate2fa,
+      loginAttempts,
+    );
   });
 
   // ───────────────────────────────────────────────────────────────

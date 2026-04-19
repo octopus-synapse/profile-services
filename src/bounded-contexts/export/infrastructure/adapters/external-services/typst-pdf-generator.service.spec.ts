@@ -6,10 +6,10 @@
  */
 
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import { NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { DslRepository } from '@/bounded-contexts/dsl/dsl.repository';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { TypstCompilerService } from './typst-compiler.service';
 import { TypstDataSerializerService } from './typst-data-serializer.service';
 import { TypstPdfGeneratorService } from './typst-pdf-generator.service';
@@ -100,11 +100,11 @@ describe('TypstPdfGeneratorService', () => {
       });
     });
 
-    it('should throw NotFoundException if user has no primary resume', async () => {
+    it('should throw EntityNotFoundException if user has no primary resume', async () => {
       mockPrisma.user.findUnique.mockResolvedValueOnce({ primaryResumeId: null });
 
       await expect(service.generate({ userId: 'user-1' })).rejects.toBeInstanceOf(
-        NotFoundException,
+        EntityNotFoundException,
       );
     });
 

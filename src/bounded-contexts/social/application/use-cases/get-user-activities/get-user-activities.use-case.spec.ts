@@ -3,11 +3,14 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import type { ActivityRepositoryPort, ActivityWithUser } from '../../ports/activity.port';
-import { ActivityType } from '../../ports/activity.port';
+import {
+  ActivityRepositoryPort,
+  ActivityType,
+  type ActivityWithUser,
+} from '../../ports/activity.port';
 import { GetUserActivitiesUseCase } from './get-user-activities.use-case';
 
-class StubActivityRepository {
+class StubActivityRepository implements ActivityRepositoryPort {
   private _data: ActivityWithUser[] = [];
   private _total = 0;
 
@@ -19,8 +22,8 @@ class StubActivityRepository {
   async findUserActivities() {
     return { data: this._data, total: this._total };
   }
-  async createActivity() {
-    return {} as never;
+  async createActivity(): Promise<ActivityWithUser> {
+    throw new Error('not used in test');
   }
   async findActivityWithUser() {
     return null;
@@ -42,7 +45,7 @@ describe('GetUserActivitiesUseCase', () => {
 
   beforeEach(() => {
     repository = new StubActivityRepository();
-    useCase = new GetUserActivitiesUseCase(repository as unknown as ActivityRepositoryPort);
+    useCase = new GetUserActivitiesUseCase(repository);
   });
 
   it('should return activities for a specific user', async () => {

@@ -4,9 +4,11 @@
  * All themes are public — no visibility check needed.
  */
 
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
-import type { ApplyThemeToResume, EventPublisher } from '@/shared-kernel';
-import { ERROR_MESSAGES } from '@/shared-kernel';
+import { type ApplyThemeToResume, ERROR_MESSAGES, EventPublisherPort } from '@/shared-kernel';
+import {
+  EntityNotFoundException,
+  ForbiddenException,
+} from '@/shared-kernel/exceptions/domain.exceptions';
 import { ThemeAppliedEvent } from '../../../shared-kernel/domain/events';
 import type { ResumeRepositoryPort } from '../../domain/ports/resume.repository.port';
 import type { JsonValue, ThemeRepositoryPort } from '../../domain/ports/theme.repository.port';
@@ -15,7 +17,7 @@ export class ApplyThemeToResumeUseCase {
   constructor(
     private readonly themeRepo: ThemeRepositoryPort,
     private readonly resumeRepo: ResumeRepositoryPort,
-    private readonly eventPublisher: EventPublisher,
+    private readonly eventPublisher: EventPublisherPort,
   ) {}
 
   async execute(userId: string, applyThemeData: ApplyThemeToResume): Promise<void> {
@@ -27,7 +29,7 @@ export class ApplyThemeToResumeUseCase {
 
     const selectedTheme = await this.themeRepo.findById(applyThemeData.themeId);
     if (!selectedTheme) {
-      throw new NotFoundException(ERROR_MESSAGES.THEME_NOT_FOUND);
+      throw new EntityNotFoundException('Theme', applyThemeData.themeId);
     }
 
     await this.resumeRepo.applyTheme(

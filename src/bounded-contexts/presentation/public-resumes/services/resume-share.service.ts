@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto';
 import {
   BadRequestException,
   ConflictException,
@@ -5,7 +6,6 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { nanoid } from 'nanoid';
 import { CacheCoreService } from '@/bounded-contexts/platform/common/cache/services/cache-core.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { EventPublisher } from '@/shared-kernel';
@@ -89,9 +89,102 @@ export class ResumeShareService {
   }
 
   async getBySlug(slug: string) {
-    return this.prisma.resumeShare.findUnique({
+    const direct = await this.prisma.resumeShare.findUnique({
       where: { slug },
       include: { resume: true },
+    });
+    if (direct) return direct;
+
+    const alias = await this.prisma.resumeShareAlias.findUnique({
+      where: { slug },
+    });
+    if (!alias) return null;
+
+    return this.prisma.resumeShare.findUnique({
+      where: { id: alias.shareId },
+      include: { resume: true },
+    });
+  }
+
+  async addAlias(userId: string, shareId: string, slug: string) {
+    if (!this.isValidSlug(slug)) {
+      throw new BadRequestException(
+        'Invalid slug format. Use alphanumeric characters and hyphens only.',
+      );
+    }
+
+    const share = await this.prisma.resumeShare.findUnique({
+      where: { id: shareId },
+      include: { resume: { select: { userId: true } } },
+    });
+
+    if (!share) {
+      throw new NotFoundException('Share not found');
+    }
+
+    if (share.resume.userId !== userId) {
+      throw new ForbiddenException('You do not have access to this share');
+    }
+
+    const collidesWithShare = await this.prisma.resumeShare.findUnique({
+      where: { slug },
+    });
+    if (collidesWithShare) {
+      throw new ConflictException('Slug already in use');
+    }
+
+    const collidesWithAlias = await this.prisma.resumeShareAlias.findUnique({
+      where: { slug },
+    });
+    if (collidesWithAlias) {
+      throw new ConflictException('Slug already in use');
+    }
+
+    return this.prisma.resumeShareAlias.create({
+      data: { shareId, slug },
+    });
+  }
+
+  async removeAlias(userId: string, aliasId: string) {
+    const alias = await this.prisma.resumeShareAlias.findUnique({
+      where: { id: aliasId },
+    });
+
+    if (!alias) {
+      throw new NotFoundException('Alias not found');
+    }
+
+    const share = await this.prisma.resumeShare.findUnique({
+      where: { id: alias.shareId },
+      include: { resume: { select: { userId: true } } },
+    });
+
+    if (!share || share.resume.userId !== userId) {
+      throw new ForbiddenException('You do not have access to this alias');
+    }
+
+    return this.prisma.resumeShareAlias.delete({
+      where: { id: aliasId },
+    });
+  }
+
+  async listAliases(userId: string, shareId: string) {
+    const share = await this.prisma.resumeShare.findUnique({
+      where: { id: shareId },
+      include: { resume: { select: { userId: true } } },
+    });
+
+    if (!share) {
+      throw new NotFoundException('Share not found');
+    }
+
+    if (share.resume.userId !== userId) {
+      throw new ForbiddenException('You do not have access to this share');
+    }
+
+    return this.prisma.resumeShareAlias.findMany({
+      where: { shareId },
+      orderBy: { createdAt: 'desc' },
     });
   }
 
@@ -156,6 +249,36 @@ export class ResumeShareService {
     return Bun.password.verify(plaintext, hash);
   }
 
+  async getShareWithOwner(shareId: string) {
+    return this.prisma.resumeShare.findUnique({
+      where: { id: shareId },
+      include: { resume: { select: { userId: true } } },
+    });
+  }
+
+  async getShareOgContext(slug: string): Promise<{ name: string; title: string | null } | null> {
+    const share = await this.getBySlug(slug);
+    if (!share || !share.isActive) return null;
+    if (share.expiresAt && new Date() > share.expiresAt) return null;
+
+    const resume = await this.prisma.resume.findUnique({
+      where: { id: share.resumeId },
+      select: {
+        title: true,
+        fullName: true,
+        jobTitle: true,
+        user: { select: { name: true } },
+      },
+    });
+
+    if (!resume) return null;
+
+    return {
+      name: resume.fullName || resume.user?.name || 'Profile',
+      title: resume.jobTitle || resume.title || null,
+    };
+  }
+
   async deleteShare(userId: string, shareId: string) {
     // Check if share exists first
     const share = await this.prisma.resumeShare.findUnique({
@@ -201,7 +324,11 @@ export class ResumeShareService {
   }
 
   private generateSlug(): string {
-    return nanoid(10); // 10 characters
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+    const bytes = randomBytes(10);
+    let slug = '';
+    for (let i = 0; i < 10; i++) slug += alphabet[bytes[i] % alphabet.length];
+    return slug;
   }
 
   private isValidSlug(slug: string): boolean {

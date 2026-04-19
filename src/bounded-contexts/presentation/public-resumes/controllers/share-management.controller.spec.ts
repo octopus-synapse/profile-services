@@ -33,7 +33,11 @@ describe('ShareManagementController - Contract', () => {
   let controller: ShareManagementController;
 
   beforeEach(() => {
-    controller = new ShareManagementController(createShareService() as never);
+    controller = new ShareManagementController(
+      createShareService() as never,
+      { generatePng: async () => Buffer.from([]), generateSvg: async () => '' } as never,
+      { get: () => 'https://patchcareers.com' } as never,
+    );
   });
 
   it('createShare returns data with share', async () => {

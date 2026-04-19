@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { BadRequestException } from '@nestjs/common';
+import { ValidationException } from '@/shared-kernel/exceptions/domain.exceptions';
 import {
   createOnboardingProgress,
   DEFAULT_SECTION_TYPES,
@@ -55,7 +55,7 @@ describe('GoBackOnboardingStepUseCase', () => {
     // Arrange — user at welcome (first step), no progress record = initial state
 
     // Act & Assert
-    await expect(useCase.execute(USER_ID)).rejects.toThrow(BadRequestException);
+    await expect(useCase.execute(USER_ID)).rejects.toThrow(ValidationException);
     await expect(useCase.execute(USER_ID)).rejects.toThrow('Already at the first step');
   });
 

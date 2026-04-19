@@ -26,7 +26,7 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
-import { ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure/decorators/public.decorator';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
@@ -160,6 +160,26 @@ export class ConnectionController {
   }
 
   /**
+   * Withdraw a sent (still pending) connection request.
+   */
+  @Delete('v1/connections/:id/withdraw')
+  @RequirePermission(Permission.SOCIAL_USE)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Withdraw a sent (pending) connection request' })
+  @ApiParam({ name: 'id', type: 'string' })
+  async withdrawSentRequest(
+    @CurrentUser() user: UserPayload,
+    @Param('id') connectionId: string,
+  ): Promise<DataResponse<{ id: string }>> {
+    await this.connectionService.withdrawSentRequest(connectionId, user.userId);
+    return {
+      success: true,
+      data: { id: connectionId },
+      message: 'Connection request withdrawn',
+    };
+  }
+
+  /**
    * Remove an accepted connection.
    */
   @Delete('v1/connections/:id')
@@ -187,6 +207,8 @@ export class ConnectionController {
   @RequirePermission(Permission.SOCIAL_USE)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get accepted connections' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiDataResponse(ConnectionListDataDto, { description: 'Connections list returned' })
   async getConnections(
     @CurrentUser() user: UserPayload,
@@ -211,6 +233,8 @@ export class ConnectionController {
   @RequirePermission(Permission.SOCIAL_USE)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get pending connection requests' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiDataResponse(PendingRequestsDataDto, { description: 'Pending requests returned' })
   async getPendingRequests(
     @CurrentUser() user: UserPayload,
@@ -229,12 +253,40 @@ export class ConnectionController {
   }
 
   /**
+   * Get connection requests sent by the current user (still pending).
+   */
+  @Get('v1/users/me/connections/sent')
+  @RequirePermission(Permission.SOCIAL_USE)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get sent (pending) connection requests' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiDataResponse(PendingRequestsDataDto, { description: 'Sent requests returned' })
+  async getSentRequests(
+    @CurrentUser() user: UserPayload,
+    @Query('page') page = 1,
+    @Query('limit') limit = 10,
+  ): Promise<DataResponse<PendingRequestsDataDto>> {
+    const result = await this.connectionService.getSentRequests(user.userId, {
+      page: Number(page),
+      limit: Math.min(Number(limit), 100),
+    });
+
+    return {
+      success: true,
+      data: { pendingRequests: result },
+    };
+  }
+
+  /**
    * Get connection suggestions for the current user.
    */
   @Get('v1/users/me/connections/suggestions')
   @RequirePermission(Permission.SOCIAL_USE)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Get connection suggestions' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiDataResponse(SuggestionsDataDto, { description: 'Suggestions returned' })
   async getConnectionSuggestions(
     @CurrentUser() user: UserPayload,
@@ -273,7 +325,8 @@ export class ConnectionController {
   }
 
   /**
-   * Check if the current user is connected with target user.
+   * Check connection status with a user. Returns both whether they're connected
+   * and the pending outbound request id (if any), so the UI can offer withdraw.
    */
   @Get('v1/users/:userId/is-connected')
   @RequirePermission(Permission.SOCIAL_USE)
@@ -285,11 +338,11 @@ export class ConnectionController {
     @CurrentUser() user: UserPayload,
     @Param('userId') targetUserId: string,
   ): Promise<DataResponse<ConnectionCheckDto>> {
-    const isConnected = await this.connectionService.isConnected(user.userId, targetUserId);
+    const status = await this.connectionService.getConnectionStatusWith(user.userId, targetUserId);
 
     return {
       success: true,
-      data: { isConnected },
+      data: status,
     };
   }
 }

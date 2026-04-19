@@ -1,4 +1,4 @@
-import { BadRequestException } from '@nestjs/common';
+import { ValidationException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { SectionDefinitionZodFactory } from '../../section-definition-zod.factory';
 
 export class ItemContentValidatorPolicy {
@@ -9,10 +9,7 @@ export class ItemContentValidatorPolicy {
     const result = schema.safeParse(content);
 
     if (!result.success) {
-      throw new BadRequestException({
-        message: 'Section item content is invalid for section type',
-        errors: result.error.issues,
-      });
+      throw new ValidationException('Section item content is invalid for section type');
     }
 
     return result.data;

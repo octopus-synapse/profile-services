@@ -1,9 +1,12 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
-
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
-import type { EventPublisher } from '@/shared-kernel';
+import { EventPublisherPort } from '@/shared-kernel';
+import type { DomainEvent } from '@/shared-kernel/event-bus/domain/domain-event';
+import {
+  EntityNotFoundException,
+  ForbiddenException,
+} from '@/shared-kernel/exceptions/domain.exceptions';
 import { createTestTheme, InMemoryThemeRepository } from '../../../testing';
-import type { ResumeRepositoryPort } from '../../domain/ports/resume.repository.port';
+import { ResumeRepositoryPort } from '../../domain/ports/resume.repository.port';
 import { ApplyThemeToResumeUseCase } from './apply-theme-to-resume.use-case';
 
 describe('ApplyThemeToResumeUseCase', () => {
@@ -13,18 +16,24 @@ describe('ApplyThemeToResumeUseCase', () => {
   let appliedTheme: { resumeId: string; themeId: string } | null;
   let publishedEvents: unknown[];
 
-  const resumeRepo = {
+  const resumeRepo: ResumeRepositoryPort = {
     findById: async () => foundResume,
+    findByIdWithTheme: async () => {
+      throw new Error('not used in test');
+    },
     applyTheme: async (resumeId: string, themeId: string) => {
       appliedTheme = { resumeId, themeId };
     },
-  } as unknown as ResumeRepositoryPort;
+  };
 
-  const eventPublisher = {
-    publish: (event: unknown) => {
+  const eventPublisher: EventPublisherPort = {
+    publish: (event: DomainEvent<unknown>) => {
       publishedEvents.push(event);
     },
-  } as unknown as EventPublisher;
+    publishAsync: async (event: DomainEvent<unknown>) => {
+      publishedEvents.push(event);
+    },
+  };
 
   beforeEach(() => {
     themeRepo = new InMemoryThemeRepository();
@@ -66,9 +75,9 @@ describe('ApplyThemeToResumeUseCase', () => {
     ).rejects.toThrow(ForbiddenException);
   });
 
-  it('should throw NotFoundException when theme does not exist', async () => {
+  it('should throw EntityNotFoundException when theme does not exist', async () => {
     await expect(
       useCase.execute('user-1', { resumeId: 'resume-1', themeId: 'nonexistent' }),
-    ).rejects.toThrow(NotFoundException);
+    ).rejects.toThrow(EntityNotFoundException);
   });
 });

@@ -8,6 +8,7 @@
 
 import type { Prisma } from '@prisma/client';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { searchWhere } from '@/shared-kernel/database';
 import {
   type CreateThemeData,
   type ThemeEntity,
@@ -152,10 +153,7 @@ export class ThemeRepository extends ThemeRepositoryPort {
     if (filter.isSystemTheme !== undefined) where.isSystemTheme = filter.isSystemTheme;
 
     if (filter.search) {
-      where.OR = [
-        { name: { contains: filter.search, mode: 'insensitive' } },
-        { description: { contains: filter.search, mode: 'insensitive' } },
-      ];
+      where.OR = searchWhere(filter.search, ['name', 'description']);
     }
 
     return where;

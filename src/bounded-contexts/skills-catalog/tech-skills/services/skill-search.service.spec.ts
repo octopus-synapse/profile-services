@@ -23,7 +23,7 @@ describe('SkillSearchService', () => {
     techSkillRepo = new InMemoryTechSkillRepository();
     techSkillRepo.seed(DEFAULT_TECH_SKILLS);
     cacheService = new InMemoryCacheService();
-    service = new SkillSearchService(techSkillRepo as never, cacheService as never);
+    service = new SkillSearchService(techSkillRepo, cacheService);
   });
 
   describe('searchSkills', () => {

@@ -73,6 +73,8 @@ const UserDetailsSchema = z.object({
   image: z.string().nullable(),
   emailVerified: z.string().datetime().nullable(),
   isActive: z.boolean(),
+  lastLoginAt: z.string().datetime().nullable(),
+  roles: z.array(z.string()),
   resumes: z.array(UserResumeItemSchema),
   preferences: z.unknown().nullable(),
   counts: UserCountsSchema,
@@ -148,7 +150,7 @@ const PublicProfileResumeSchema = z.object({
   updatedAt: z.date(),
 });
 
-const PublicProfileDataSchema = z.object({
+export const PublicProfileDataSchema = z.object({
   user: PublicProfileUserSchema,
   resume: PublicProfileResumeSchema.nullable(),
 });
@@ -182,12 +184,23 @@ const UsernameUpdateDataSchema = z.object({
 const UsernameAvailabilityDataSchema = z.object({
   username: z.string(),
   available: z.boolean(),
+  reason: z.enum(['taken', 'reserved', 'invalid_format']).optional(),
 });
 
 const BasicUserPreferencesSchema = z.object({
   theme: z.string().optional(),
   language: z.string().optional(),
   emailNotifications: z.boolean().optional(),
+});
+
+const UserApplyCriteriaSchema = z.object({
+  minFit: z.number().int().min(0).max(100).nullable(),
+  stacks: z.array(z.string()),
+  seniorities: z.array(z.string()),
+  remotePolicies: z.array(z.enum(['REMOTE', 'HYBRID', 'ONSITE'])),
+  paymentCurrencies: z.array(z.enum(['BRL', 'USD', 'EUR', 'GBP'])),
+  minSalaryUsd: z.number().int().nullable(),
+  defaultCover: z.string().nullable(),
 });
 
 const FullUserPreferencesSchema = z.object({
@@ -212,6 +225,8 @@ const FullUserPreferencesSchema = z.object({
   allowSearchEngineIndex: z.boolean(),
   defaultExportFormat: z.string(),
   includePhotoInExport: z.boolean(),
+  applyMode: z.enum(['ONE_CLICK', 'WEEKLY_CURATED', 'AUTO_APPLY']),
+  applyCriteria: UserApplyCriteriaSchema.nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -220,7 +235,7 @@ const UserPreferencesDataSchema = z.object({
   preferences: BasicUserPreferencesSchema,
 });
 
-const UserFullPreferencesDataSchema = z.object({
+export const UserFullPreferencesDataSchema = z.object({
   preferences: FullUserPreferencesSchema,
 });
 

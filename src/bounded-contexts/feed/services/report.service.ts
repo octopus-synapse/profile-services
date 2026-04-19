@@ -4,8 +4,12 @@
  * Handles post reporting for moderation.
  */
 
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import {
+  ConflictException,
+  EntityNotFoundException,
+} from '@/shared-kernel/exceptions/domain.exceptions';
 
 @Injectable()
 export class ReportService {
@@ -21,7 +25,7 @@ export class ReportService {
     });
 
     if (!post || post.isDeleted) {
-      throw new NotFoundException('Post not found');
+      throw new EntityNotFoundException('Post', postId);
     }
 
     // Check if already reported by this user

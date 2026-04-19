@@ -43,4 +43,12 @@ export interface ExportUseCases {
       language?: 'en' | 'pt';
     }) => Promise<Buffer>;
   };
+  exportBundleUseCase: {
+    execute: (dto: {
+      userId: string;
+      resumeId: string;
+      formats?: Array<'pdf' | 'docx' | 'json'>;
+      language?: 'en' | 'pt';
+    }) => Promise<Buffer>;
+  };
 }

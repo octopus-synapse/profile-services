@@ -1,112 +1,68 @@
 /**
  * In-Memory Snapshot Repository
  *
- * Test implementation for SnapshotService dependencies.
- * Stores resume analytics snapshots in memory for testing.
+ * Port-level fake for SnapshotRepositoryPort.
  */
 
-export interface SnapshotRecord {
-  id: string;
-  resumeId: string;
-  atsScore: number;
-  keywordScore: number;
-  completenessScore: number;
-  industryRank: number | null;
-  totalInIndustry: number | null;
-  topKeywords: string[];
-  missingKeywords: string[];
-  createdAt: Date;
-}
+import { SnapshotRepositoryPort } from '../resume-analytics/application/ports/resume-analytics.port';
+import type { AnalyticsSnapshot } from '../resume-analytics/interfaces';
 
-export class InMemorySnapshotRepository {
-  private snapshots: Map<string, SnapshotRecord> = new Map();
+export type SnapshotRecord = AnalyticsSnapshot;
+
+export class InMemorySnapshotRepository extends SnapshotRepositoryPort {
+  private snapshots: Map<string, AnalyticsSnapshot> = new Map();
   private idCounter = 0;
 
-  /**
-   * Mimics PrismaService.resumeAnalytics.create
-   */
-  async create(args: {
-    data: {
-      resumeId: string;
-      atsScore: number;
-      keywordScore: number;
-      completenessScore: number;
-      topKeywords?: string[];
-      missingKeywords?: string[];
-      improvementSuggestions?: string[];
-    };
-  }): Promise<SnapshotRecord> {
+  async save(input: {
+    resumeId: string;
+    atsScore: number;
+    keywordScore: number;
+    completenessScore: number;
+    topKeywords?: string[];
+    missingKeywords?: string[];
+  }): Promise<AnalyticsSnapshot> {
     const id = `snapshot-${++this.idCounter}`;
-    const snapshot: SnapshotRecord = {
+    const snapshot: AnalyticsSnapshot = {
       id,
-      resumeId: args.data.resumeId,
-      atsScore: args.data.atsScore,
-      keywordScore: args.data.keywordScore,
-      completenessScore: args.data.completenessScore,
-      industryRank: null,
-      totalInIndustry: null,
-      topKeywords: args.data.topKeywords ?? [],
-      missingKeywords: args.data.missingKeywords ?? [],
+      resumeId: input.resumeId,
+      atsScore: input.atsScore,
+      keywordScore: input.keywordScore,
+      completenessScore: input.completenessScore,
+      industryRank: undefined,
+      totalInIndustry: undefined,
+      topKeywords: input.topKeywords ?? [],
+      missingKeywords: input.missingKeywords ?? [],
       createdAt: new Date(),
     };
     this.snapshots.set(id, snapshot);
     return snapshot;
   }
 
-  /**
-   * Mimics PrismaService.resumeAnalytics.findMany
-   */
-  async findMany(args: {
-    where?: { resumeId?: string; createdAt?: { gte?: Date } };
-    orderBy?: { createdAt?: 'asc' | 'desc' };
-    take?: number;
-    select?: Record<string, boolean>;
-  }): Promise<SnapshotRecord[] | Array<{ atsScore: number; createdAt: Date }>> {
-    let results = Array.from(this.snapshots.values());
-
-    // Apply filtering
-    if (args.where?.resumeId) {
-      results = results.filter((s) => s.resumeId === args.where?.resumeId);
-    }
-    const gteDate = args.where?.createdAt?.gte;
-    if (gteDate) {
-      results = results.filter((s) => s.createdAt >= gteDate);
-    }
-
-    // Apply sorting
-    if (args.orderBy?.createdAt) {
-      results.sort((a, b) => {
-        const diff = a.createdAt.getTime() - b.createdAt.getTime();
-        return args.orderBy?.createdAt === 'desc' ? -diff : diff;
-      });
-    }
-
-    // Apply limit
-    if (args.take) {
-      results = results.slice(0, args.take);
-    }
-
-    // Apply selection
-    const selectClause = args.select;
-    if (selectClause) {
-      return results.map((s) => {
-        const selected: Record<string, unknown> = {};
-        for (const key of Object.keys(selectClause)) {
-          if (selectClause[key] && key in s) {
-            selected[key] = s[key as keyof SnapshotRecord];
-          }
-        }
-        return selected as { atsScore: number; createdAt: Date };
-      });
-    }
-
+  async getHistory(resumeId: string, limit: number = 10): Promise<AnalyticsSnapshot[]> {
+    const results = Array.from(this.snapshots.values())
+      .filter((s) => s.resumeId === resumeId)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+      .slice(0, limit);
     return results;
   }
 
-  /**
-   * Seeds a snapshot for testing
-   */
-  seedSnapshot(snapshot: Partial<SnapshotRecord>): void {
+  async getScoreProgression(
+    resumeId: string,
+    days: number = 30,
+  ): Promise<Array<{ date: string; score: number }>> {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - days);
+
+    return Array.from(this.snapshots.values())
+      .filter((s) => s.resumeId === resumeId && s.createdAt >= cutoff)
+      .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+      .map((s) => ({
+        date: s.createdAt.toISOString().split('T')[0],
+        score: s.atsScore,
+      }));
+  }
+
+  seedSnapshot(snapshot: Partial<AnalyticsSnapshot>): void {
     const id = snapshot.id ?? `snapshot-${++this.idCounter}`;
     this.snapshots.set(id, {
       id,
@@ -114,33 +70,24 @@ export class InMemorySnapshotRepository {
       atsScore: snapshot.atsScore ?? 0,
       keywordScore: snapshot.keywordScore ?? 0,
       completenessScore: snapshot.completenessScore ?? 0,
-      industryRank: snapshot.industryRank ?? null,
-      totalInIndustry: snapshot.totalInIndustry ?? null,
+      industryRank: snapshot.industryRank,
+      totalInIndustry: snapshot.totalInIndustry,
       topKeywords: snapshot.topKeywords ?? [],
       missingKeywords: snapshot.missingKeywords ?? [],
       createdAt: snapshot.createdAt ?? new Date(),
     });
   }
 
-  /**
-   * Seeds multiple snapshots at once
-   */
-  seedSnapshots(snapshots: Partial<SnapshotRecord>[]): void {
+  seedSnapshots(snapshots: Partial<AnalyticsSnapshot>[]): void {
     for (const snapshot of snapshots) {
       this.seedSnapshot(snapshot);
     }
   }
 
-  /**
-   * Gets all snapshots (for test verification)
-   */
-  getAll(): SnapshotRecord[] {
+  getAll(): AnalyticsSnapshot[] {
     return Array.from(this.snapshots.values());
   }
 
-  /**
-   * Clears all data
-   */
   clear(): void {
     this.snapshots.clear();
     this.idCounter = 0;

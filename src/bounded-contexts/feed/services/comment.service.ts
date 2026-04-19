@@ -5,8 +5,12 @@
  * Manages denormalized commentsCount on posts.
  */
 
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import {
+  EntityNotFoundException,
+  ForbiddenException,
+} from '@/shared-kernel/exceptions/domain.exceptions';
 
 const AUTHOR_SELECT = {
   id: true,
@@ -30,7 +34,7 @@ export class CommentService {
     });
 
     if (!post || post.isDeleted) {
-      throw new NotFoundException('Post not found');
+      throw new EntityNotFoundException('Post', postId);
     }
 
     // If replying, verify parent comment exists
@@ -40,7 +44,7 @@ export class CommentService {
       });
 
       if (!parent || parent.isDeleted) {
-        throw new NotFoundException('Parent comment not found');
+        throw new EntityNotFoundException('Comment', parentId);
       }
     }
 
@@ -108,7 +112,7 @@ export class CommentService {
     });
 
     if (!comment || comment.isDeleted) {
-      throw new NotFoundException('Comment not found');
+      throw new EntityNotFoundException('Comment', id);
     }
 
     if (comment.authorId !== userId) {
@@ -127,6 +131,41 @@ export class CommentService {
     ]);
 
     return updatedComment;
+  }
+
+  /**
+   * List comments authored by a user across all posts (for profile activity tab).
+   * Cursor-paginated by createdAt DESC.
+   */
+  async getByUser(userId: string, cursor?: string, limit = 20) {
+    const safeLimit = Math.min(limit, 50);
+
+    const comments = await this.prisma.postComment.findMany({
+      where: {
+        authorId: userId,
+        isDeleted: false,
+        ...(cursor ? { createdAt: { lt: new Date(cursor) } } : {}),
+      },
+      include: {
+        author: { select: AUTHOR_SELECT },
+        post: {
+          select: {
+            id: true,
+            type: true,
+            content: true,
+            authorId: true,
+            author: { select: AUTHOR_SELECT },
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: safeLimit,
+    });
+
+    const nextCursor =
+      comments.length === safeLimit ? comments[comments.length - 1].createdAt.toISOString() : null;
+
+    return { comments, nextCursor };
   }
 
   /**

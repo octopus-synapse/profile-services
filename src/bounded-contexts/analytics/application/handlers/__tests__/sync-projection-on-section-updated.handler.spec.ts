@@ -1,24 +1,31 @@
-/**
- * SyncProjectionOnSectionUpdatedHandler - Unit Tests
- *
- * Verifies the handler touches updatedAt on the analytics projection
- * when a section is updated (empty update triggers @updatedAt).
- */
-
 import { describe, expect, it, mock } from 'bun:test';
 import { SectionUpdatedEvent } from '@/bounded-contexts/resumes';
+import { AnalyticsProjectionPort } from '../../ports/analytics-projection.port';
 import { SyncProjectionOnSectionUpdatedHandler } from '../sync-projection-on-section-updated.handler';
 
-describe('SyncProjectionOnSectionUpdatedHandler', () => {
-  it('updates the projection to touch updatedAt', async () => {
-    const updateMock = mock(async () => ({}));
-    const prisma = {
-      analyticsResumeProjection: {
-        update: updateMock,
-      },
-    } as unknown as ConstructorParameters<typeof SyncProjectionOnSectionUpdatedHandler>[0];
+class StubAnalyticsProjection implements AnalyticsProjectionPort {
+  touchProjection = mock(async (_resumeId: string) => {});
+  async upsertProjection(
+    _resumeId: string,
+    _data: { userId: string; title: string },
+  ): Promise<void> {
+    throw new Error('not used in test');
+  }
+  async deleteProjection(_resumeId: string): Promise<void> {
+    throw new Error('not used in test');
+  }
+  async incrementSectionCount(_resumeId: string, _semanticKind: string): Promise<void> {
+    throw new Error('not used in test');
+  }
+  async decrementSectionCount(_resumeId: string, _semanticKind: string): Promise<void> {
+    throw new Error('not used in test');
+  }
+}
 
-    const handler = new SyncProjectionOnSectionUpdatedHandler(prisma);
+describe('SyncProjectionOnSectionUpdatedHandler', () => {
+  it('touches the projection for the event resumeId', async () => {
+    const projection = new StubAnalyticsProjection();
+    const handler = new SyncProjectionOnSectionUpdatedHandler(projection);
     const event = new SectionUpdatedEvent('resume-1', {
       userId: 'user-1',
       sectionId: 'section-1',
@@ -29,21 +36,12 @@ describe('SyncProjectionOnSectionUpdatedHandler', () => {
 
     await handler.handle(event);
 
-    expect(updateMock).toHaveBeenCalledWith({
-      where: { id: 'resume-1' },
-      data: {},
-    });
+    expect(projection.touchProjection).toHaveBeenCalledWith('resume-1');
   });
 
   it('passes correct resumeId from event aggregateId', async () => {
-    const updateMock = mock(async () => ({}));
-    const prisma = {
-      analyticsResumeProjection: {
-        update: updateMock,
-      },
-    } as unknown as ConstructorParameters<typeof SyncProjectionOnSectionUpdatedHandler>[0];
-
-    const handler = new SyncProjectionOnSectionUpdatedHandler(prisma);
+    const projection = new StubAnalyticsProjection();
+    const handler = new SyncProjectionOnSectionUpdatedHandler(projection);
     const event = new SectionUpdatedEvent('resume-xyz', {
       userId: 'user-1',
       sectionId: 'section-2',
@@ -52,9 +50,6 @@ describe('SyncProjectionOnSectionUpdatedHandler', () => {
 
     await handler.handle(event);
 
-    expect(updateMock).toHaveBeenCalledWith({
-      where: { id: 'resume-xyz' },
-      data: {},
-    });
+    expect(projection.touchProjection).toHaveBeenCalledWith('resume-xyz');
   });
 });

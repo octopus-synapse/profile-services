@@ -6,9 +6,12 @@
  */
 
 import { beforeEach, describe, expect, it, mock } from 'bun:test';
-import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import {
+  EntityNotFoundException,
+  ForbiddenException,
+} from '@/shared-kernel/exceptions/domain.exceptions';
 import { createTestTheme, InMemoryThemeRepository, StubAuthorizationService } from '../../testing';
 import { AuthorizationPort } from '../domain/ports/authorization.port';
 import type { JsonValue, ThemeEntity } from '../domain/ports/theme.repository.port';
@@ -161,10 +164,10 @@ describe('ThemeCrudService', () => {
       ).rejects.toThrow(ForbiddenException);
     });
 
-    it('should throw NotFoundException for non-existent theme', async () => {
+    it('should throw EntityNotFoundException for non-existent theme', async () => {
       await expect(
         service.updateThemeForUser('user-123', 'nonexistent', { name: 'Test' }),
-      ).rejects.toThrow(NotFoundException);
+      ).rejects.toThrow(EntityNotFoundException);
     });
   });
 
@@ -193,9 +196,9 @@ describe('ThemeCrudService', () => {
       );
     });
 
-    it('should throw NotFoundException for non-existent theme', async () => {
+    it('should throw EntityNotFoundException for non-existent theme', async () => {
       await expect(service.deleteThemeForUser('user-123', 'nonexistent')).rejects.toThrow(
-        NotFoundException,
+        EntityNotFoundException,
       );
     });
   });
@@ -209,8 +212,10 @@ describe('ThemeCrudService', () => {
       expect(result).toEqual(expect.objectContaining({ id: 'theme-1', name: 'My Theme' }));
     });
 
-    it('should throw NotFoundException when not found', async () => {
-      await expect(service.findThemeByIdOrThrow('nonexistent')).rejects.toThrow(NotFoundException);
+    it('should throw EntityNotFoundException when not found', async () => {
+      await expect(service.findThemeByIdOrThrow('nonexistent')).rejects.toThrow(
+        EntityNotFoundException,
+      );
     });
   });
 });

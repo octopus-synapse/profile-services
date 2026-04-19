@@ -3,17 +3,17 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import type { FollowRepositoryPort } from '../../ports/follow.port';
+import { FollowRepositoryPort, type FollowWithUser } from '../../ports/follow.port';
 import { UnfollowUserUseCase } from './unfollow-user.use-case';
 
-class StubFollowRepository {
+class StubFollowRepository implements FollowRepositoryPort {
   calls: Array<{ method: string; args: unknown[] }> = [];
 
   async deleteFollow(followerId: string, followingId: string) {
     this.calls.push({ method: 'deleteFollow', args: [followerId, followingId] });
   }
-  async createFollow() {
-    return {} as never;
+  async createFollow(): Promise<FollowWithUser> {
+    throw new Error('not used in test');
   }
   async findFollow() {
     return null;
@@ -47,7 +47,7 @@ describe('UnfollowUserUseCase', () => {
 
   beforeEach(() => {
     repository = new StubFollowRepository();
-    useCase = new UnfollowUserUseCase(repository as unknown as FollowRepositoryPort);
+    useCase = new UnfollowUserUseCase(repository);
   });
 
   it('should remove follow relationship', async () => {

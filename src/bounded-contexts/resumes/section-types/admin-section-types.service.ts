@@ -1,12 +1,12 @@
-import {
-  BadRequestException,
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { paginate } from '@/shared-kernel/database';
+import { paginate, searchWhere } from '@/shared-kernel/database';
+import {
+  ConflictException,
+  EntityNotFoundException,
+  ValidationException,
+} from '@/shared-kernel/exceptions/domain.exceptions';
 import type {
   CreateSectionTypeDto,
   ListSectionTypesQueryDto,
@@ -27,11 +27,7 @@ export class AdminSectionTypesService {
     const where: Prisma.SectionTypeWhereInput = {};
 
     if (search) {
-      where.OR = [
-        { key: { contains: search, mode: 'insensitive' } },
-        { title: { contains: search, mode: 'insensitive' } },
-        { slug: { contains: search, mode: 'insensitive' } },
-      ];
+      where.OR = searchWhere(search, ['key', 'title', 'slug']);
     }
 
     if (isActive !== undefined) {
@@ -64,7 +60,7 @@ export class AdminSectionTypesService {
     });
 
     if (!sectionType) {
-      throw new NotFoundException(`Section type '${key}' not found`);
+      throw new EntityNotFoundException('SectionType', key);
     }
 
     return this.toResponseDto(sectionType);
@@ -129,7 +125,7 @@ export class AdminSectionTypesService {
     });
 
     if (!existing) {
-      throw new NotFoundException(`Section type '${key}' not found`);
+      throw new EntityNotFoundException('SectionType', key);
     }
 
     // For system types, restrict which fields can be updated
@@ -140,7 +136,7 @@ export class AdminSectionTypesService {
       );
 
       if (attemptedRestrictedUpdate) {
-        throw new BadRequestException(
+        throw new ValidationException(
           'Cannot modify key, semanticKind, or definition of system section types',
         );
       }
@@ -215,11 +211,11 @@ export class AdminSectionTypesService {
     });
 
     if (!existing) {
-      throw new NotFoundException(`Section type '${key}' not found`);
+      throw new EntityNotFoundException('SectionType', key);
     }
 
     if (existing.isSystem) {
-      throw new BadRequestException('Cannot delete system section types');
+      throw new ValidationException('Cannot delete system section types');
     }
 
     // Check if any resumes are using this section type
@@ -228,7 +224,7 @@ export class AdminSectionTypesService {
     });
 
     if (usageCount > 0) {
-      throw new BadRequestException(
+      throw new ValidationException(
         `Cannot delete section type '${key}' - it is used by ${usageCount} resume(s). ` +
           'Deactivate it instead.',
       );

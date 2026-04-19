@@ -14,8 +14,24 @@ model ResumeShare {
   updatedAt DateTime @updatedAt
 
   analytics ShareAnalytics[]
+  aliases   ResumeShareAlias[]
 
   @@index([resumeId])
   @@index([slug])
   @@map("resume_shares")
+}
+
+// Slug aliases let a single share be reachable via multiple URLs.
+// Adding an alias never breaks a previously published link, so users
+// can rename without invalidating cards/QR codes already in the wild.
+model ResumeShareAlias {
+  id        String      @id @default(cuid())
+  shareId   String
+  share     ResumeShare @relation(fields: [shareId], references: [id], onDelete: Cascade)
+  slug      String      @unique
+  createdAt DateTime    @default(now())
+
+  @@index([shareId])
+  @@index([slug])
+  @@map("resume_share_aliases")
 }

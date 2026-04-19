@@ -38,6 +38,7 @@ import {
 import { UsernameService } from '../../application/services/username.service';
 import {
   PublicProfileDataDto,
+  PublicProfileDataSchema,
   UsernameAvailabilityDataDto,
   UsernameUpdateDataDto,
   UserProfileDataDto,
@@ -87,7 +88,7 @@ export class UsersProfileController {
     const data = await this.profile.getPublicProfileUseCase.execute(username);
     return {
       success: true,
-      data: { user: data.user, resume: data.resume } as unknown as PublicProfileDataDto,
+      data: PublicProfileDataSchema.parse({ user: data.user, resume: data.resume }),
     };
   }
 
@@ -157,7 +158,11 @@ export class UsersProfileController {
     );
     return {
       success: true,
-      data: { username: availability.username, available: availability.available },
+      data: {
+        username: availability.username,
+        available: availability.available,
+        ...(availability.reason ? { reason: availability.reason } : {}),
+      },
     };
   }
 }

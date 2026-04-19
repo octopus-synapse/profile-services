@@ -1,0 +1,16 @@
+// Platform analytics events: frontend-emitted product events (clicks, applies,
+// feature usage). Free-form JSON `props` — no schema validation at DB level so
+// new events can be added without migrations. Queried by admin analytics.
+
+model PlatformEvent {
+  id         String   @id @default(cuid())
+  userId     String?
+  event      String
+  props      Json?
+  occurredAt DateTime
+  createdAt  DateTime @default(now())
+
+  @@index([event, occurredAt])
+  @@index([userId, occurredAt])
+  @@map("platform_event")
+}

@@ -15,15 +15,7 @@ describe('SnapshotService', () => {
 
   beforeEach(() => {
     snapshotRepo = new InMemorySnapshotRepository();
-
-    const mockPrisma = {
-      resumeAnalytics: {
-        create: (args: Parameters<typeof snapshotRepo.create>[0]) => snapshotRepo.create(args),
-        findMany: (args: Parameters<typeof snapshotRepo.findMany>[0]) =>
-          snapshotRepo.findMany(args),
-      },
-    };
-    service = new SnapshotService(mockPrisma as never);
+    service = new SnapshotService(snapshotRepo);
   });
 
   describe('save', () => {

@@ -1,52 +1,30 @@
 /**
  * Social Bounded Context Testing Module
  *
- * In-memory implementations for testing social features:
- * - Follow relationships
- * - Activity tracking
- * - User interactions
+ * Port-level in-memory fakes for social features.
  */
 
-import type { ActivityType } from '../application/ports/activity.port';
+import {
+  ActivityRepositoryPort,
+  type ActivityType,
+  type ActivityWithUser,
+} from '../application/ports/activity.port';
+import {
+  ConnectionRepositoryPort,
+  type ConnectionUser,
+  type ConnectionWithUser,
+} from '../application/ports/connection.port';
+import {
+  FollowRepositoryPort,
+  type FollowWithUser,
+  type PaginationParams,
+} from '../application/ports/follow.port';
+import { SocialEventBusPort } from '../application/ports/social-event-bus.port';
+import { SocialLoggerPort } from '../application/ports/social-logger.port';
 
 // ═══════════════════════════════════════════════════════════════
-// TYPES
+// USER RECORD (fixture type)
 // ═══════════════════════════════════════════════════════════════
-
-export interface FollowRecord {
-  id: string;
-  followerId: string;
-  followingId: string;
-  createdAt: Date;
-  follower?: {
-    id: string;
-    name: string | null;
-    username: string | null;
-    photoURL: string | null;
-  };
-  following?: {
-    id: string;
-    name: string | null;
-    username: string | null;
-    photoURL: string | null;
-  };
-}
-
-export interface ActivityRecord {
-  id: string;
-  userId: string;
-  type: ActivityType;
-  metadata?: unknown;
-  entityId?: string | null;
-  entityType?: string | null;
-  createdAt: Date;
-  user?: {
-    id: string;
-    name: string | null;
-    username: string | null;
-    photoURL: string | null;
-  };
-}
 
 export interface UserRecord {
   id: string;
@@ -56,804 +34,422 @@ export interface UserRecord {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// IN-MEMORY FOLLOW REPOSITORY
+// IN-MEMORY FOLLOW REPOSITORY — implements FollowRepositoryPort
 // ═══════════════════════════════════════════════════════════════
 
-export class InMemoryFollowRepository {
-  private follows: FollowRecord[] = [];
+export class InMemoryFollowRepository extends FollowRepositoryPort {
+  private follows: FollowWithUser[] = [];
+  private users: UserRecord[] = [];
+  private idCounter = 0;
 
-  // Prisma-like interface
-  readonly follow = {
-    create: async (args: {
-      data: {
-        followerId: string;
-        followingId: string;
-      };
-      include?: {
-        follower?: { select?: Record<string, boolean> };
-        following?: { select?: Record<string, boolean> };
-      };
-    }): Promise<FollowRecord> => {
-      const follow: FollowRecord = {
-        id: `follow-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-        followerId: args.data.followerId,
-        followingId: args.data.followingId,
-        createdAt: new Date(),
-      };
-
-      this.follows.push(follow);
-      return follow;
-    },
-
-    findFirst: async (args: {
-      where: {
-        followerId?: string;
-        followingId?: string;
-      };
-    }): Promise<FollowRecord | null> => {
-      const follow = this.follows.find(
-        (f) =>
-          (!args.where.followerId || f.followerId === args.where.followerId) &&
-          (!args.where.followingId || f.followingId === args.where.followingId),
-      );
-      return follow ?? null;
-    },
-
-    findMany: async (args?: {
-      where?: {
-        followerId?: string;
-        followingId?: string;
-      };
-      include?: {
-        follower?: { select?: Record<string, boolean> };
-        following?: { select?: Record<string, boolean> };
-      };
-      select?: {
-        followingId?: boolean;
-        followerId?: boolean;
-      };
-      orderBy?: { createdAt?: 'asc' | 'desc' };
-      skip?: number;
-      take?: number;
-    }): Promise<FollowRecord[] | Array<{ followingId?: string; followerId?: string }>> => {
-      let result = [...this.follows];
-
-      // Filter by where conditions
-      if (args?.where?.followerId) {
-        result = result.filter((f) => f.followerId === args.where?.followerId);
-      }
-
-      if (args?.where?.followingId) {
-        result = result.filter((f) => f.followingId === args.where?.followingId);
-      }
-
-      // Order by
-      if (args?.orderBy?.createdAt) {
-        result.sort((a, b) => {
-          const order = args.orderBy?.createdAt === 'desc' ? -1 : 1;
-          return order * (a.createdAt.getTime() - b.createdAt.getTime());
-        });
-      }
-
-      // Pagination
-      if (args?.skip !== undefined) {
-        result = result.slice(args.skip);
-      }
-
-      if (args?.take !== undefined) {
-        result = result.slice(0, args.take);
-      }
-
-      // Apply select if provided
-      if (args?.select) {
-        return result.map((f) => {
-          const selected: { followingId?: string; followerId?: string } = {};
-          if (args.select?.followingId) selected.followingId = f.followingId;
-          if (args.select?.followerId) selected.followerId = f.followerId;
-          return selected;
-        });
-      }
-
-      return result;
-    },
-
-    count: async (args?: {
-      where?: {
-        followerId?: string;
-        followingId?: string;
-      };
-    }): Promise<number> => {
-      let result = this.follows;
-
-      if (args?.where?.followerId) {
-        result = result.filter((f) => f.followerId === args.where?.followerId);
-      }
-
-      if (args?.where?.followingId) {
-        result = result.filter((f) => f.followingId === args.where?.followingId);
-      }
-
-      return result.length;
-    },
-
-    deleteMany: async (args: {
-      where: {
-        followerId?: string;
-        followingId?: string;
-      };
-    }): Promise<{ count: number }> => {
-      const initialLength = this.follows.length;
-
-      this.follows = this.follows.filter(
-        (f) =>
-          !(
-            (!args.where.followerId || f.followerId === args.where.followerId) &&
-            (!args.where.followingId || f.followingId === args.where.followingId)
-          ),
-      );
-
-      return { count: initialLength - this.follows.length };
-    },
-  };
-
-  // Test helpers
-  seed(follows: FollowRecord[]): void {
-    this.follows = [...follows];
+  async createFollow(followerId: string, followingId: string): Promise<FollowWithUser> {
+    const following = this.users.find((u) => u.id === followingId);
+    const follow: FollowWithUser = {
+      id: `follow-${++this.idCounter}`,
+      followerId,
+      followingId,
+      createdAt: new Date(),
+      following: following ?? undefined,
+    };
+    this.follows.push(follow);
+    return follow;
   }
 
-  add(follow: FollowRecord): void {
-    this.follows.push(follow);
+  async deleteFollow(followerId: string, followingId: string): Promise<void> {
+    this.follows = this.follows.filter(
+      (f) => !(f.followerId === followerId && f.followingId === followingId),
+    );
+  }
+
+  async findFollow(followerId: string, followingId: string): Promise<FollowWithUser | null> {
+    return (
+      this.follows.find((f) => f.followerId === followerId && f.followingId === followingId) ?? null
+    );
+  }
+
+  async findFollowers(
+    userId: string,
+    pagination: PaginationParams,
+  ): Promise<{ data: FollowWithUser[]; total: number }> {
+    const { page, limit } = pagination;
+    const filtered = this.follows
+      .filter((f) => f.followingId === userId)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    return {
+      data: filtered.slice((page - 1) * limit, page * limit),
+      total: filtered.length,
+    };
+  }
+
+  async findFollowing(
+    userId: string,
+    pagination: PaginationParams,
+  ): Promise<{ data: FollowWithUser[]; total: number }> {
+    const { page, limit } = pagination;
+    const filtered = this.follows
+      .filter((f) => f.followerId === userId)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    return {
+      data: filtered.slice((page - 1) * limit, page * limit),
+      total: filtered.length,
+    };
+  }
+
+  async countFollowers(userId: string): Promise<number> {
+    return this.follows.filter((f) => f.followingId === userId).length;
+  }
+
+  async countFollowing(userId: string): Promise<number> {
+    return this.follows.filter((f) => f.followerId === userId).length;
+  }
+
+  async findFollowingIds(userId: string): Promise<string[]> {
+    return this.follows.filter((f) => f.followerId === userId).map((f) => f.followingId);
+  }
+
+  async findFollowerIds(userId: string): Promise<string[]> {
+    return this.follows.filter((f) => f.followingId === userId).map((f) => f.followerId);
+  }
+
+  async userExists(userId: string): Promise<boolean> {
+    return this.users.some((u) => u.id === userId);
+  }
+
+  // Test helpers
+  seedUser(user: UserRecord): void {
+    this.users.push(user);
+  }
+
+  seedUsers(users: UserRecord[]): void {
+    this.users.push(...users);
+  }
+
+  seedFollow(follow: Partial<FollowWithUser> & { followerId: string; followingId: string }): void {
+    this.follows.push({
+      id: follow.id ?? `follow-${++this.idCounter}`,
+      followerId: follow.followerId,
+      followingId: follow.followingId,
+      createdAt: follow.createdAt ?? new Date(),
+      follower: follow.follower,
+      following: follow.following,
+    });
   }
 
   clear(): void {
     this.follows = [];
+    this.users = [];
+    this.idCounter = 0;
   }
 
-  getAll(): FollowRecord[] {
+  getAll(): FollowWithUser[] {
     return [...this.follows];
   }
 }
 
 // ═══════════════════════════════════════════════════════════════
-// IN-MEMORY ACTIVITY REPOSITORY
+// IN-MEMORY ACTIVITY REPOSITORY — implements ActivityRepositoryPort
 // ═══════════════════════════════════════════════════════════════
 
-export class InMemoryActivityRepository {
-  private activities: ActivityRecord[] = [];
+export class InMemoryActivityRepository extends ActivityRepositoryPort {
+  private activities: ActivityWithUser[] = [];
+  private idCounter = 0;
 
-  // Prisma-like interface
-  readonly activity = {
-    create: async (args: {
-      data: {
-        userId: string;
-        type: ActivityType;
-        metadata?: unknown;
-        entityId?: string;
-        entityType?: string;
-      };
-      include?: {
-        user?: { select?: Record<string, boolean> };
-      };
-    }): Promise<ActivityRecord> => {
-      const activity: ActivityRecord = {
-        id: `activity-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-        userId: args.data.userId,
-        type: args.data.type,
-        metadata: args.data.metadata ?? null,
-        entityId: args.data.entityId ?? null,
-        entityType: args.data.entityType ?? null,
-        createdAt: new Date(),
-      };
-
-      this.activities.push(activity);
-      return activity;
-    },
-
-    findMany: async (args?: {
-      where?: {
-        userId?: string | { in: string[] };
-        type?: ActivityType;
-        createdAt?: { lt?: Date };
-      };
-      include?: {
-        user?: { select?: Record<string, boolean> };
-      };
-      orderBy?: { createdAt?: 'asc' | 'desc' };
-      skip?: number;
-      take?: number;
-    }): Promise<ActivityRecord[]> => {
-      let result = [...this.activities];
-
-      // Filter by where conditions
-      if (args?.where?.userId) {
-        const userId = args.where.userId;
-        if (typeof userId === 'string') {
-          result = result.filter((a) => a.userId === userId);
-        } else if (userId.in) {
-          result = result.filter((a) => userId.in.includes(a.userId));
-        }
-      }
-
-      if (args?.where?.type) {
-        result = result.filter((a) => a.type === args.where?.type);
-      }
-
-      const ltDateFilter = args?.where?.createdAt?.lt;
-      if (ltDateFilter) {
-        result = result.filter((a) => a.createdAt < ltDateFilter);
-      }
-
-      // Order by
-      if (args?.orderBy?.createdAt) {
-        result.sort((a, b) => {
-          const order = args.orderBy?.createdAt === 'desc' ? -1 : 1;
-          return order * (a.createdAt.getTime() - b.createdAt.getTime());
-        });
-      }
-
-      // Pagination
-      if (args?.skip !== undefined) {
-        result = result.slice(args.skip);
-      }
-
-      if (args?.take !== undefined) {
-        result = result.slice(0, args.take);
-      }
-
-      return result;
-    },
-
-    findUnique: async (args: {
-      where: { id: string };
-      include?: {
-        user?: { select?: Record<string, boolean> };
-      };
-    }): Promise<ActivityRecord | null> => {
-      const activity = this.activities.find((a) => a.id === args.where.id);
-      return activity ?? null;
-    },
-
-    count: async (args?: {
-      where?: {
-        userId?: string | { in: string[] };
-        type?: ActivityType;
-      };
-    }): Promise<number> => {
-      let result = this.activities;
-
-      if (args?.where?.userId) {
-        const userId = args.where.userId;
-        if (typeof userId === 'string') {
-          result = result.filter((a) => a.userId === userId);
-        } else if (userId.in) {
-          result = result.filter((a) => userId.in.includes(a.userId));
-        }
-      }
-
-      if (args?.where?.type) {
-        result = result.filter((a) => a.type === args.where?.type);
-      }
-
-      return result.length;
-    },
-
-    deleteMany: async (args: {
-      where: {
-        createdAt?: { lt: Date };
-      };
-    }): Promise<{ count: number }> => {
-      const initialLength = this.activities.length;
-
-      const ltDate = args.where.createdAt?.lt;
-      if (ltDate) {
-        this.activities = this.activities.filter((a) => a.createdAt >= ltDate);
-      }
-
-      return { count: initialLength - this.activities.length };
-    },
-  };
-
-  // Test helpers
-  seed(activities: ActivityRecord[]): void {
-    this.activities = [...activities];
+  async createActivity(data: {
+    userId: string;
+    type: ActivityType;
+    metadata?: unknown;
+    entityId?: string;
+    entityType?: string;
+  }): Promise<ActivityWithUser> {
+    const activity: ActivityWithUser = {
+      id: `activity-${++this.idCounter}`,
+      userId: data.userId,
+      type: data.type,
+      metadata: data.metadata ?? null,
+      entityId: data.entityId ?? null,
+      entityType: data.entityType ?? null,
+      createdAt: new Date(),
+    };
+    this.activities.push(activity);
+    return activity;
   }
 
-  add(activity: ActivityRecord): void {
-    this.activities.push(activity);
+  async findActivityWithUser(activityId: string): Promise<ActivityWithUser | null> {
+    return this.activities.find((a) => a.id === activityId) ?? null;
+  }
+
+  async findActivitiesByUserIds(
+    userIds: string[],
+    pagination: PaginationParams,
+  ): Promise<{ data: ActivityWithUser[]; total: number }> {
+    const { page, limit } = pagination;
+    const filtered = this.activities
+      .filter((a) => userIds.includes(a.userId))
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    return {
+      data: filtered.slice((page - 1) * limit, page * limit),
+      total: filtered.length,
+    };
+  }
+
+  async findUserActivities(
+    userId: string,
+    pagination: PaginationParams,
+  ): Promise<{ data: ActivityWithUser[]; total: number }> {
+    const { page, limit } = pagination;
+    const filtered = this.activities
+      .filter((a) => a.userId === userId)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    return {
+      data: filtered.slice((page - 1) * limit, page * limit),
+      total: filtered.length,
+    };
+  }
+
+  async findUserActivitiesByType(
+    userId: string,
+    type: ActivityType,
+    pagination: PaginationParams,
+  ): Promise<{ data: ActivityWithUser[]; total: number }> {
+    const { page, limit } = pagination;
+    const filtered = this.activities
+      .filter((a) => a.userId === userId && a.type === type)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    return {
+      data: filtered.slice((page - 1) * limit, page * limit),
+      total: filtered.length,
+    };
+  }
+
+  async deleteOlderThan(date: Date): Promise<number> {
+    const before = this.activities.length;
+    this.activities = this.activities.filter((a) => a.createdAt >= date);
+    return before - this.activities.length;
+  }
+
+  seedActivity(activity: Partial<ActivityWithUser> & { userId: string; type: ActivityType }): void {
+    this.activities.push({
+      id: activity.id ?? `activity-${++this.idCounter}`,
+      userId: activity.userId,
+      type: activity.type,
+      metadata: activity.metadata ?? null,
+      entityId: activity.entityId ?? null,
+      entityType: activity.entityType ?? null,
+      createdAt: activity.createdAt ?? new Date(),
+      user: activity.user,
+    });
   }
 
   clear(): void {
     this.activities = [];
+    this.idCounter = 0;
   }
 
-  getAll(): ActivityRecord[] {
+  getAll(): ActivityWithUser[] {
     return [...this.activities];
   }
 }
 
 // ═══════════════════════════════════════════════════════════════
-// IN-MEMORY USER REPOSITORY
+// IN-MEMORY CONNECTION REPOSITORY — implements ConnectionRepositoryPort
 // ═══════════════════════════════════════════════════════════════
 
-export class InMemoryUserRepository {
+export class InMemoryConnectionRepository extends ConnectionRepositoryPort {
+  private connections: ConnectionWithUser[] = [];
   private users: UserRecord[] = [];
+  private idCounter = 0;
 
-  // Prisma-like interface
-  readonly user = {
-    findUnique: async (args: {
-      where: { id?: string; username?: string };
-      select?: Record<string, boolean>;
-    }): Promise<UserRecord | null> => {
-      const user = this.users.find(
-        (u) =>
-          (args.where.id && u.id === args.where.id) ||
-          (args.where.username && u.username === args.where.username),
-      );
-
-      if (!user) return null;
-
-      if (args.select) {
-        const selectClause = args.select;
-        const selected: Record<string, unknown> = {};
-        for (const key of Object.keys(selectClause)) {
-          if (selectClause[key] && key in user) {
-            selected[key] = user[key as keyof UserRecord];
-          }
-        }
-        return selected as unknown as UserRecord;
-      }
-
-      return user;
-    },
-  };
-
-  // Test helpers
-  seed(users: UserRecord[]): void {
-    this.users = [...users];
+  async createConnection(requesterId: string, targetId: string): Promise<ConnectionWithUser> {
+    const requester = this.users.find((u) => u.id === requesterId);
+    const target = this.users.find((u) => u.id === targetId);
+    const connection: ConnectionWithUser = {
+      id: `connection-${++this.idCounter}`,
+      requesterId,
+      targetId,
+      status: 'PENDING',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      requester: requester ?? undefined,
+      target: target ?? undefined,
+    };
+    this.connections.push(connection);
+    return connection;
   }
 
-  add(user: UserRecord): void {
+  async findConnectionById(id: string): Promise<ConnectionWithUser | null> {
+    return this.connections.find((c) => c.id === id) ?? null;
+  }
+
+  async findConnection(requesterId: string, targetId: string): Promise<ConnectionWithUser | null> {
+    return (
+      this.connections.find((c) => c.requesterId === requesterId && c.targetId === targetId) ?? null
+    );
+  }
+
+  async findConnectionBetween(userA: string, userB: string): Promise<ConnectionWithUser | null> {
+    return (
+      this.connections.find(
+        (c) =>
+          (c.requesterId === userA && c.targetId === userB) ||
+          (c.requesterId === userB && c.targetId === userA),
+      ) ?? null
+    );
+  }
+
+  async updateConnectionStatus(
+    id: string,
+    status: 'ACCEPTED' | 'REJECTED',
+  ): Promise<ConnectionWithUser> {
+    const connection = this.connections.find((c) => c.id === id);
+    if (!connection) throw new Error(`Connection ${id} not found`);
+    connection.status = status;
+    connection.updatedAt = new Date();
+    return connection;
+  }
+
+  async deleteConnection(id: string): Promise<void> {
+    this.connections = this.connections.filter((c) => c.id !== id);
+  }
+
+  async findPendingRequests(
+    userId: string,
+    pagination: PaginationParams,
+  ): Promise<{ data: ConnectionWithUser[]; total: number }> {
+    const { page, limit } = pagination;
+    const filtered = this.connections
+      .filter((c) => c.targetId === userId && c.status === 'PENDING')
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    return {
+      data: filtered.slice((page - 1) * limit, page * limit),
+      total: filtered.length,
+    };
+  }
+
+  async findSentRequests(
+    userId: string,
+    pagination: PaginationParams,
+  ): Promise<{ data: ConnectionWithUser[]; total: number }> {
+    const { page, limit } = pagination;
+    const filtered = this.connections
+      .filter((c) => c.requesterId === userId && c.status === 'PENDING')
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    return {
+      data: filtered.slice((page - 1) * limit, page * limit),
+      total: filtered.length,
+    };
+  }
+
+  async findAcceptedConnections(
+    userId: string,
+    pagination: PaginationParams,
+  ): Promise<{ data: ConnectionWithUser[]; total: number }> {
+    const { page, limit } = pagination;
+    const filtered = this.connections
+      .filter((c) => c.status === 'ACCEPTED' && (c.requesterId === userId || c.targetId === userId))
+      .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+    return {
+      data: filtered.slice((page - 1) * limit, page * limit),
+      total: filtered.length,
+    };
+  }
+
+  async countAcceptedConnections(userId: string): Promise<number> {
+    return this.connections.filter(
+      (c) => c.status === 'ACCEPTED' && (c.requesterId === userId || c.targetId === userId),
+    ).length;
+  }
+
+  async findSuggestions(userId: string, limit: number): Promise<ConnectionUser[]> {
+    const excludeIds = new Set<string>([userId]);
+    for (const c of this.connections) {
+      if (c.requesterId === userId) excludeIds.add(c.targetId);
+      if (c.targetId === userId) excludeIds.add(c.requesterId);
+    }
+    return this.users.filter((u) => !excludeIds.has(u.id)).slice(0, limit);
+  }
+
+  async findRankedSuggestions(
+    userId: string,
+    pagination: PaginationParams,
+  ): Promise<{
+    data: Array<ConnectionUser & { reason: string; score: number }>;
+    total: number;
+  }> {
+    const { page, limit } = pagination;
+    const suggestions = await this.findSuggestions(userId, 1000);
+    const ranked = suggestions.map((u) => ({
+      ...u,
+      reason: 'Suggested for you',
+      score: 0,
+    }));
+    return {
+      data: ranked.slice((page - 1) * limit, page * limit),
+      total: ranked.length,
+    };
+  }
+
+  async userExists(userId: string): Promise<boolean> {
+    return this.users.some((u) => u.id === userId);
+  }
+
+  // Test helpers
+  seedUser(user: UserRecord): void {
     this.users.push(user);
   }
 
-  clear(): void {
-    this.users = [];
+  seedUsers(users: UserRecord[]): void {
+    this.users.push(...users);
   }
 
-  getAll(): UserRecord[] {
-    return [...this.users];
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════
-// TYPES - CONNECTIONS
-// ═══════════════════════════════════════════════════════════════
-
-export type ConnectionStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED';
-
-export interface ConnectionRecord {
-  id: string;
-  requesterId: string;
-  targetId: string;
-  status: ConnectionStatus;
-  createdAt: Date;
-  updatedAt: Date;
-  requester?: {
-    id: string;
-    name: string | null;
-    username: string | null;
-    photoURL: string | null;
-  };
-  target?: {
-    id: string;
-    name: string | null;
-    username: string | null;
-    photoURL: string | null;
-  };
-}
-
-// ═══════════════════════════════════════════════════════════════
-// IN-MEMORY CONNECTION REPOSITORY
-// ═══════════════════════════════════════════════════════════════
-
-export class InMemoryConnectionRepository {
-  private connections: ConnectionRecord[] = [];
-
-  // Prisma-like interface
-  readonly connection = {
-    create: async (args: {
-      data: {
-        requesterId: string;
-        targetId: string;
-      };
-      include?: {
-        requester?: { select?: Record<string, boolean> };
-        target?: { select?: Record<string, boolean> };
-      };
-    }): Promise<ConnectionRecord> => {
-      const now = new Date();
-      const connection: ConnectionRecord = {
-        id: `conn-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-        requesterId: args.data.requesterId,
-        targetId: args.data.targetId,
-        status: 'PENDING',
-        createdAt: now,
-        updatedAt: now,
-      };
-
-      this.connections.push(connection);
-      return connection;
+  seedConnection(
+    connection: Partial<ConnectionWithUser> & {
+      requesterId: string;
+      targetId: string;
+      status: 'PENDING' | 'ACCEPTED' | 'REJECTED';
     },
-
-    findUnique: async (args: {
-      where: { id?: string; requesterId_targetId?: { requesterId: string; targetId: string } };
-      include?: {
-        requester?: { select?: Record<string, boolean> };
-        target?: { select?: Record<string, boolean> };
-      };
-    }): Promise<ConnectionRecord | null> => {
-      let connection: ConnectionRecord | undefined;
-
-      if (args.where.id) {
-        connection = this.connections.find((c) => c.id === args.where.id);
-      } else if (args.where.requesterId_targetId) {
-        const { requesterId, targetId } = args.where.requesterId_targetId;
-        connection = this.connections.find(
-          (c) => c.requesterId === requesterId && c.targetId === targetId,
-        );
-      }
-
-      return connection ?? null;
-    },
-
-    findFirst: async (args: {
-      where: {
-        OR?: Array<{ requesterId?: string; targetId?: string }>;
-        requesterId?: string;
-        targetId?: string;
-        status?: ConnectionStatus;
-      };
-      include?: {
-        requester?: { select?: Record<string, boolean> };
-        target?: { select?: Record<string, boolean> };
-      };
-    }): Promise<ConnectionRecord | null> => {
-      const connection = this.connections.find((c) => {
-        if (args.where.status && c.status !== args.where.status) return false;
-
-        if (args.where.OR) {
-          return args.where.OR.some(
-            (cond) =>
-              (!cond.requesterId || c.requesterId === cond.requesterId) &&
-              (!cond.targetId || c.targetId === cond.targetId),
-          );
-        }
-
-        return (
-          (!args.where.requesterId || c.requesterId === args.where.requesterId) &&
-          (!args.where.targetId || c.targetId === args.where.targetId)
-        );
-      });
-
-      return connection ?? null;
-    },
-
-    findMany: async (args?: {
-      where?: {
-        OR?: Array<{ requesterId?: string; targetId?: string }>;
-        requesterId?: string;
-        targetId?: string;
-        status?: ConnectionStatus;
-      };
-      include?: {
-        requester?: { select?: Record<string, boolean> };
-        target?: { select?: Record<string, boolean> };
-      };
-      select?: {
-        requesterId?: boolean;
-        targetId?: boolean;
-      };
-      orderBy?: { createdAt?: 'asc' | 'desc'; updatedAt?: 'asc' | 'desc' };
-      skip?: number;
-      take?: number;
-    }): Promise<ConnectionRecord[] | Array<{ requesterId?: string; targetId?: string }>> => {
-      let result = [...this.connections];
-
-      if (args?.where) {
-        result = result.filter((c) => {
-          if (args.where?.status && c.status !== args.where.status) return false;
-
-          if (args.where?.OR) {
-            return args.where.OR.some(
-              (cond) =>
-                (!cond.requesterId || c.requesterId === cond.requesterId) &&
-                (!cond.targetId || c.targetId === cond.targetId),
-            );
-          }
-
-          return (
-            (!args.where?.requesterId || c.requesterId === args.where.requesterId) &&
-            (!args.where?.targetId || c.targetId === args.where.targetId)
-          );
-        });
-      }
-
-      // Order by
-      if (args?.orderBy?.createdAt) {
-        result.sort((a, b) => {
-          const order = args.orderBy?.createdAt === 'desc' ? -1 : 1;
-          return order * (a.createdAt.getTime() - b.createdAt.getTime());
-        });
-      }
-      if (args?.orderBy?.updatedAt) {
-        result.sort((a, b) => {
-          const order = args.orderBy?.updatedAt === 'desc' ? -1 : 1;
-          return order * (a.updatedAt.getTime() - b.updatedAt.getTime());
-        });
-      }
-
-      // Pagination
-      if (args?.skip !== undefined) {
-        result = result.slice(args.skip);
-      }
-      if (args?.take !== undefined) {
-        result = result.slice(0, args.take);
-      }
-
-      // Apply select if provided
-      if (args?.select) {
-        return result.map((c) => {
-          const selected: { requesterId?: string; targetId?: string } = {};
-          if (args.select?.requesterId) selected.requesterId = c.requesterId;
-          if (args.select?.targetId) selected.targetId = c.targetId;
-          return selected;
-        });
-      }
-
-      return result;
-    },
-
-    count: async (args?: {
-      where?: {
-        OR?: Array<{ requesterId?: string; targetId?: string }>;
-        requesterId?: string;
-        targetId?: string;
-        status?: ConnectionStatus;
-      };
-    }): Promise<number> => {
-      let result = this.connections;
-
-      if (args?.where) {
-        result = result.filter((c) => {
-          if (args.where?.status && c.status !== args.where.status) return false;
-
-          if (args.where?.OR) {
-            return args.where.OR.some(
-              (cond) =>
-                (!cond.requesterId || c.requesterId === cond.requesterId) &&
-                (!cond.targetId || c.targetId === cond.targetId),
-            );
-          }
-
-          return (
-            (!args.where?.requesterId || c.requesterId === args.where.requesterId) &&
-            (!args.where?.targetId || c.targetId === args.where.targetId)
-          );
-        });
-      }
-
-      return result.length;
-    },
-
-    update: async (args: {
-      where: { id: string };
-      data: { status: ConnectionStatus };
-      include?: {
-        requester?: { select?: Record<string, boolean> };
-        target?: { select?: Record<string, boolean> };
-      };
-    }): Promise<ConnectionRecord> => {
-      const index = this.connections.findIndex((c) => c.id === args.where.id);
-      if (index === -1) throw new Error('Connection not found');
-
-      this.connections[index] = {
-        ...this.connections[index],
-        status: args.data.status,
-        updatedAt: new Date(),
-      };
-
-      return this.connections[index];
-    },
-
-    delete: async (args: { where: { id: string } }): Promise<ConnectionRecord> => {
-      const index = this.connections.findIndex((c) => c.id === args.where.id);
-      if (index === -1) throw new Error('Connection not found');
-
-      const [removed] = this.connections.splice(index, 1);
-      return removed;
-    },
-
-    deleteMany: async (args: {
-      where: {
-        requesterId?: string;
-        targetId?: string;
-      };
-    }): Promise<{ count: number }> => {
-      const initialLength = this.connections.length;
-
-      this.connections = this.connections.filter(
-        (c) =>
-          !(
-            (!args.where.requesterId || c.requesterId === args.where.requesterId) &&
-            (!args.where.targetId || c.targetId === args.where.targetId)
-          ),
-      );
-
-      return { count: initialLength - this.connections.length };
-    },
-  };
-
-  // Test helpers
-  seed(connections: ConnectionRecord[]): void {
-    this.connections = [...connections];
-  }
-
-  add(connection: ConnectionRecord): void {
-    this.connections.push(connection);
+  ): void {
+    this.connections.push({
+      id: connection.id ?? `connection-${++this.idCounter}`,
+      requesterId: connection.requesterId,
+      targetId: connection.targetId,
+      status: connection.status,
+      createdAt: connection.createdAt ?? new Date(),
+      updatedAt: connection.updatedAt ?? new Date(),
+      requester: connection.requester,
+      target: connection.target,
+    });
   }
 
   clear(): void {
     this.connections = [];
+    this.users = [];
+    this.idCounter = 0;
   }
 
-  getAll(): ConnectionRecord[] {
+  getAll(): ConnectionWithUser[] {
     return [...this.connections];
   }
 }
 
 // ═══════════════════════════════════════════════════════════════
-// FACTORY FUNCTIONS
+// IN-MEMORY LOGGER + EVENT BUS
 // ═══════════════════════════════════════════════════════════════
 
-export function createFollowRecord(overrides: Partial<FollowRecord> = {}): FollowRecord {
-  return {
-    id: `follow-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-    followerId: 'user-1',
-    followingId: 'user-2',
-    createdAt: new Date(),
-    ...overrides,
-  };
+export class InMemorySocialLogger extends SocialLoggerPort {
+  log(): void {}
+  debug(): void {}
+  warn(): void {}
+  error(): void {}
 }
 
-export function createActivityRecord(overrides: Partial<ActivityRecord> = {}): ActivityRecord {
-  return {
-    id: `activity-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-    userId: 'user-1',
-    type: 'RESUME_CREATED' as ActivityType,
-    metadata: {},
-    entityId: null,
-    entityType: null,
-    createdAt: new Date(),
-    ...overrides,
-  };
+export class InMemorySocialEventBus extends SocialEventBusPort {
+  readonly emitted: Array<{ event: string; payload: unknown }> = [];
+
+  emit(event: string, payload: unknown): void {
+    this.emitted.push({ event, payload });
+  }
+
+  clear(): void {
+    this.emitted.length = 0;
+  }
 }
-
-export function createConnectionRecord(
-  overrides: Partial<ConnectionRecord> = {},
-): ConnectionRecord {
-  const now = new Date();
-  return {
-    id: `conn-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-    requesterId: 'user-1',
-    targetId: 'user-2',
-    status: 'PENDING',
-    createdAt: now,
-    updatedAt: now,
-    ...overrides,
-  };
-}
-
-export function createUserRecord(overrides: Partial<UserRecord> = {}): UserRecord {
-  return {
-    id: `user-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-    name: 'Test User',
-    username: 'testuser',
-    photoURL: null,
-    ...overrides,
-  };
-}
-
-// ═══════════════════════════════════════════════════════════════
-// DEFAULT TEST DATA
-// ═══════════════════════════════════════════════════════════════
-
-export const DEFAULT_USERS: UserRecord[] = [
-  createUserRecord({
-    id: 'user-1',
-    name: 'Alice Smith',
-    username: 'alice',
-    photoURL: null,
-  }),
-  createUserRecord({
-    id: 'user-2',
-    name: 'Bob Johnson',
-    username: 'bob',
-    photoURL: null,
-  }),
-  createUserRecord({
-    id: 'user-3',
-    name: 'Charlie Brown',
-    username: 'charlie',
-    photoURL: null,
-  }),
-];
-
-export const DEFAULT_FOLLOWS: FollowRecord[] = [
-  createFollowRecord({
-    id: 'follow-1',
-    followerId: 'user-1',
-    followingId: 'user-2',
-    createdAt: new Date('2024-01-01'),
-  }),
-  createFollowRecord({
-    id: 'follow-2',
-    followerId: 'user-1',
-    followingId: 'user-3',
-    createdAt: new Date('2024-01-02'),
-  }),
-  createFollowRecord({
-    id: 'follow-3',
-    followerId: 'user-2',
-    followingId: 'user-1',
-    createdAt: new Date('2024-01-03'),
-  }),
-];
-
-export const DEFAULT_CONNECTIONS: ConnectionRecord[] = [
-  createConnectionRecord({
-    id: 'conn-1',
-    requesterId: 'user-1',
-    targetId: 'user-2',
-    status: 'ACCEPTED',
-    createdAt: new Date('2024-01-01'),
-    updatedAt: new Date('2024-01-02'),
-  }),
-  createConnectionRecord({
-    id: 'conn-2',
-    requesterId: 'user-3',
-    targetId: 'user-1',
-    status: 'PENDING',
-    createdAt: new Date('2024-01-03'),
-    updatedAt: new Date('2024-01-03'),
-  }),
-];
-
-export const DEFAULT_ACTIVITIES: ActivityRecord[] = [
-  createActivityRecord({
-    id: 'activity-1',
-    userId: 'user-1',
-    type: 'RESUME_CREATED' as ActivityType,
-    metadata: { resumeId: 'resume-1', title: 'Software Engineer Resume' },
-    entityId: 'resume-1',
-    entityType: 'resume',
-    createdAt: new Date('2024-01-01'),
-  }),
-  createActivityRecord({
-    id: 'activity-2',
-    userId: 'user-2',
-    type: 'SKILL_ADDED' as ActivityType,
-    metadata: { skillSlug: 'javascript', skillName: 'JavaScript' },
-    entityId: 'skill-1',
-    entityType: 'skill',
-    createdAt: new Date('2024-01-02'),
-  }),
-  createActivityRecord({
-    id: 'activity-3',
-    userId: 'user-3',
-    type: 'RESUME_UPDATED' as ActivityType,
-    metadata: { resumeId: 'resume-2', changes: ['title', 'summary'] },
-    entityId: 'resume-2',
-    entityType: 'resume',
-    createdAt: new Date('2024-01-03'),
-  }),
-];

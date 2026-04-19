@@ -10,8 +10,8 @@ import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service
 import type {
   ThemeATSPort,
   ThemeForATSScoring,
-  ThemeStyleConfig,
 } from '../../ats/interfaces/theme-ats-scoring.interface';
+import { themeStyleConfigSchema } from './theme-style-config.schema';
 
 @Injectable()
 export class ThemeATSAdapter implements ThemeATSPort {
@@ -34,7 +34,7 @@ export class ThemeATSAdapter implements ThemeATSPort {
     return {
       id: theme.id,
       name: theme.name,
-      styleConfig: theme.styleConfig as unknown as ThemeStyleConfig,
+      styleConfig: themeStyleConfigSchema.parse(theme.styleConfig),
     };
   }
 }

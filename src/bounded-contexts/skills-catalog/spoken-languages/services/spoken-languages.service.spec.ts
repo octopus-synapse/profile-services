@@ -1,10 +1,16 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
+import type { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import {
   createSpokenLanguage,
   DEFAULT_SPOKEN_LANGUAGES,
   InMemorySpokenLanguageRepository,
 } from '../../testing';
 import { SpokenLanguagesService } from './spoken-languages.service';
+
+const noopCache = {
+  get: async () => null,
+  set: async () => {},
+} as unknown as CacheService;
 
 describe('SpokenLanguagesService', () => {
   let service: SpokenLanguagesService;
@@ -13,7 +19,7 @@ describe('SpokenLanguagesService', () => {
   beforeEach(() => {
     languageRepo = new InMemorySpokenLanguageRepository();
     languageRepo.seed(DEFAULT_SPOKEN_LANGUAGES);
-    service = new SpokenLanguagesService(languageRepo as never);
+    service = new SpokenLanguagesService(languageRepo, noopCache);
   });
 
   describe('getAll', () => {

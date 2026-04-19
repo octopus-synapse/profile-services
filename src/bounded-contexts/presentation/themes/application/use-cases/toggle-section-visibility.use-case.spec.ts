@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
 
-import type {
-  ResumeConfig,
+import {
+  type ResumeConfig,
   ResumeConfigRepositoryPort,
 } from '../../domain/ports/resume-config.repository.port';
 import { ToggleSectionVisibilityUseCase } from './toggle-section-visibility.use-case';
@@ -22,7 +22,7 @@ describe('ToggleSectionVisibilityUseCase', () => {
 
   let currentConfig: ResumeConfig;
 
-  const repo = {
+  const repo: ResumeConfigRepositoryPort = {
     get: async (_userId: string, _resumeId: string) => {
       if (shouldThrowOnGet) throw shouldThrowOnGet;
       return currentConfig;
@@ -32,7 +32,7 @@ describe('ToggleSectionVisibilityUseCase', () => {
     },
     reorderSectionDirect: async () => {},
     batchUpdateSectionsDirect: async () => {},
-  } as unknown as ResumeConfigRepositoryPort;
+  };
 
   beforeEach(() => {
     savedConfig = null;

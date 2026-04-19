@@ -1,5 +1,5 @@
 import type { EventEmitter2 } from '@nestjs/event-emitter';
-import type { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
+import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
 import { ActivityCreatedEvent, type SocialActivityType } from '../../../domain/events';
 import type {
   ActivityRepositoryPort,
@@ -26,7 +26,7 @@ export class CreateActivityUseCase {
     private readonly activityRepository: ActivityRepositoryPort,
     private readonly followRepository: FollowRepositoryPort,
     private readonly eventPublisher: EventPublisherPort,
-    private readonly eventEmitter: EventEmitter2,
+    private readonly eventEmitter: Pick<EventEmitter2, 'emit'>,
   ) {}
 
   async execute(
