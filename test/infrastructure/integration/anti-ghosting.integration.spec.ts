@@ -76,10 +76,20 @@ describe('Anti-ghosting Integration', () => {
 
   it('does not remind when the last event is a recruiter reply', async () => {
     const prisma = getPrisma();
-    // Fresh application that got a VIEWED event yesterday — user shouldn't be nudged.
+    // Distinct Job row — JobApplication has @@unique([jobId, userId]) so we
+    // can't reuse the one from beforeAll for a second application.
+    const otherJob = await prisma.job.create({
+      data: {
+        title: 'Staff Backend',
+        company: 'Acme-2',
+        description: 'x',
+        jobType: 'FULL_TIME',
+        authorId: userId,
+      },
+    });
     const freshApp = await prisma.jobApplication.create({
       data: {
-        jobId,
+        jobId: otherJob.id,
         userId,
         status: 'SUBMITTED',
         createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
@@ -103,5 +113,6 @@ describe('Anti-ghosting Integration', () => {
 
     await prisma.jobApplicationEvent.deleteMany({ where: { applicationId: freshApp.id } });
     await prisma.jobApplication.delete({ where: { id: freshApp.id } });
+    await prisma.job.delete({ where: { id: otherJob.id } });
   });
 });
