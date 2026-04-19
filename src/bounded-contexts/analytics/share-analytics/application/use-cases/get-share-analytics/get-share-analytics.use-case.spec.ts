@@ -88,4 +88,19 @@ describe('GetShareAnalyticsUseCase', () => {
     expect(result.byCountry).toContainEqual({ country: 'BR', count: 2 });
     expect(result.byCountry).toContainEqual({ country: 'US', count: 1 });
   });
+
+  it('should group by deviceType', async () => {
+    repository.seedAnalytics([
+      { shareId, event: 'VIEW', ipHash: 'h1', deviceType: 'mobile' },
+      { shareId, event: 'VIEW', ipHash: 'h2', deviceType: 'mobile' },
+      { shareId, event: 'VIEW', ipHash: 'h3', deviceType: 'desktop' },
+      { shareId, event: 'VIEW', ipHash: 'h4', deviceType: 'bot' },
+    ]);
+
+    const result = await useCase.execute(shareId, userId);
+
+    expect(result.byDeviceType).toContainEqual({ deviceType: 'mobile', count: 2 });
+    expect(result.byDeviceType).toContainEqual({ deviceType: 'desktop', count: 1 });
+    expect(result.byDeviceType).toContainEqual({ deviceType: 'bot', count: 1 });
+  });
 });

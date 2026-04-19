@@ -5,6 +5,7 @@
  */
 
 import type { ShareAnalyticsRepositoryPort } from '../../ports';
+import type { GeoLookupPort } from '../../ports/geo-lookup.port';
 import {
   SHARE_ANALYTICS_USE_CASES,
   type ShareAnalyticsUseCases,
@@ -17,8 +18,9 @@ export { SHARE_ANALYTICS_USE_CASES };
 
 export function buildShareAnalyticsUseCases(
   repository: ShareAnalyticsRepositoryPort,
+  geoLookup: GeoLookupPort,
 ): ShareAnalyticsUseCases {
-  const trackShareEventUseCase = new TrackShareEventUseCase(repository);
+  const trackShareEventUseCase = new TrackShareEventUseCase(repository, geoLookup);
   const getShareAnalyticsUseCase = new GetShareAnalyticsUseCase(repository);
   const getShareEventsUseCase = new GetShareEventsUseCase(repository);
 

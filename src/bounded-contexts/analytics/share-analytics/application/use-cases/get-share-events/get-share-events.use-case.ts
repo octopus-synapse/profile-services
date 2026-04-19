@@ -41,6 +41,9 @@ export class GetShareEventsUseCase {
       referrer: event.referer,
       country: event.country,
       city: event.city,
+      deviceType: event.deviceType,
+      browser: event.browser,
+      os: event.os,
       createdAt: event.createdAt,
     }));
   }

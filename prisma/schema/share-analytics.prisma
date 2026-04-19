@@ -5,18 +5,22 @@ model ShareAnalytics {
   shareId String
   share   ResumeShare @relation(fields: [shareId], references: [id], onDelete: Cascade)
 
-  event     AnalyticsEvent
-  ipHash    String // Anonymized IP (SHA-256)
-  userAgent String?
-  referer   String?
-  country   String? // ISO 3166-1 alpha-2
-  city      String?
+  event      AnalyticsEvent
+  ipHash     String // Anonymized IP (SHA-256)
+  userAgent  String?
+  referer    String?
+  country    String? // ISO 3166-1 alpha-2
+  city       String?
+  deviceType String? // mobile | tablet | desktop | bot | unknown
+  browser    String?
+  os         String?
 
   createdAt DateTime @default(now())
 
   @@index([shareId])
   @@index([createdAt])
   @@index([event])
+  @@index([deviceType])
   @@map("share_analytics")
 }
 

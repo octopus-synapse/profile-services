@@ -24,6 +24,9 @@ export interface ShareAnalyticsRecord {
   referer: string | null;
   country: string | null;
   city: string | null;
+  deviceType: string | null;
+  browser: string | null;
+  os: string | null;
   createdAt: Date;
 }
 
@@ -35,6 +38,9 @@ export interface CreateShareAnalyticsData {
   referer?: string;
   country?: string;
   city?: string;
+  deviceType?: string;
+  browser?: string;
+  os?: string;
 }
 
 export interface ShareWithOwner {
@@ -58,6 +64,11 @@ export interface CountryResult {
   _count: { country: number };
 }
 
+export interface DeviceTypeResult {
+  deviceType: string | null;
+  _count: { deviceType: number };
+}
+
 export interface RecentEventResult {
   event: AnalyticsEvent;
   country: string | null;
@@ -78,6 +89,9 @@ export interface DetailedEventResult {
   referer: string | null;
   country: string | null;
   city: string | null;
+  deviceType: string | null;
+  browser: string | null;
+  os: string | null;
   createdAt: Date;
 }
 
@@ -112,6 +126,11 @@ export interface ShareAnalyticsRepositoryPort {
    * Groups analytics by country
    */
   groupByCountry(shareId: string, limit: number): Promise<CountryResult[]>;
+
+  /**
+   * Groups analytics by device type (mobile/tablet/desktop/bot/unknown)
+   */
+  groupByDeviceType(shareId: string): Promise<DeviceTypeResult[]>;
 
   /**
    * Gets recent events for a share
