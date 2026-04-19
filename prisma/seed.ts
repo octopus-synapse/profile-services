@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { seedAuthorization } from '../src/bounded-contexts/identity/authorization/seeds/seed-runner';
 import { createPrismaClientOptions } from '../src/bounded-contexts/platform/prisma/prisma-client-options';
 import { seedAnalyticsProjections } from './seeds/analytics-projection.seed';
+import { seedEnzoferracini } from './seeds/enzoferracini.seed';
 import { seedOnboardingSteps } from './seeds/onboarding-step.seed';
 import { seedSectionTypes } from './seeds/section-type.seed';
 import { seedSpokenLanguages } from './seeds/spoken-language.seed';
@@ -133,6 +134,9 @@ async function main() {
   } else {
     console.log('✅ E2E test user already exists');
   }
+
+  // Seed enzoferracini fixture user (patch-careers-ui e2e resume-download + search-people tests)
+  await seedEnzoferracini(prisma);
 }
 
 main()
