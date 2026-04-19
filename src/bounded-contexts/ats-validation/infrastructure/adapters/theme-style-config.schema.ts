@@ -13,23 +13,23 @@ const layoutSchema = z.object({
 
 const typographySchema = z.object({
   fontFamily: z.object({ heading: z.string(), body: z.string() }),
-  fontSize: z.string(),
-  headingStyle: z.string(),
+  fontSize: z.string().optional(),
+  headingStyle: z.string().optional(),
 });
 
 const colorsSchema = z.object({
   colors: z.object({
     primary: z.string(),
-    secondary: z.string(),
+    secondary: z.string().optional(),
     background: z.string(),
-    surface: z.string(),
+    surface: z.string().optional(),
     text: z.object({
       primary: z.string(),
-      secondary: z.string(),
-      accent: z.string(),
+      secondary: z.string().optional(),
+      accent: z.string().optional(),
     }),
-    border: z.string(),
-    divider: z.string(),
+    border: z.string().optional(),
+    divider: z.string().optional(),
   }),
   borderRadius: z.string(),
   shadows: z.string(),
@@ -38,9 +38,9 @@ const colorsSchema = z.object({
 
 const spacingSchema = z.object({
   density: z.string(),
-  sectionGap: z.string(),
-  itemGap: z.string(),
-  contentPadding: z.string(),
+  sectionGap: z.string().optional(),
+  itemGap: z.string().optional(),
+  contentPadding: z.string().optional(),
 });
 
 const sectionSchema = z.object({
