@@ -35,24 +35,8 @@ export class WeeklyDigestService {
     const cutoff = new Date(now.getTime() - WEEK_MS);
     const weekKey = this.isoWeekKey(now);
 
-    // Only include users who have at least one notification preference with
-    // emailDelivery=WEEKLY. Without that filter the digest would spam every
-    // active user regardless of opt-in.
-    const optedInUserIds = await this.prisma.notificationPreference
-      .findMany({
-        where: { emailDelivery: 'WEEKLY', emailEnabled: true },
-        select: { userId: true },
-        distinct: ['userId'],
-      })
-      .then((rows) => rows.map((r) => r.userId));
-
-    if (optedInUserIds.length === 0) {
-      return { usersEmailed: 0, usersSkipped: 0 };
-    }
-
     const users = await this.prisma.user.findMany({
       where: {
-        id: { in: optedInUserIds },
         email: { not: '' },
         emailVerified: { not: null },
         isActive: true,

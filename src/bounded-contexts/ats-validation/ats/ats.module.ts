@@ -22,7 +22,6 @@ import {
 } from './scoring';
 import { ATSService } from './services/ats.service';
 import { ATSSectionTypeAdapter } from './services/ats-section-type.adapter';
-import { AtsSimulatorService } from './services/ats-simulator.service';
 import { EncodingNormalizerService } from './services/encoding-normalizer.service';
 import { SectionSemanticCatalogAdapter } from './services/section-semantic-catalog.adapter';
 import { TextExtractionService } from './services/text-extraction.service';
@@ -41,7 +40,6 @@ import { SectionOrderValidator } from './validators/section-order.validator';
     // ATS Definition-driven adapter
     ATSSectionTypeAdapter,
     ATSService,
-    AtsSimulatorService,
     TextExtractionService,
     EncodingNormalizerService,
     CVSectionParser,

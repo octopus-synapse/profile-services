@@ -7,7 +7,6 @@ import { OAuthModule } from './oauth/oauth.module';
 import { PasswordManagementModule } from './password-management';
 import { TwoFactorAuthModule } from './two-factor-auth';
 import { ShadowProfileModule } from './users/shadow-profile/shadow-profile.module';
-import { UiStateModule } from './users/ui-state/ui-state.module';
 
 /**
  * Identity Module
@@ -31,7 +30,6 @@ import { UiStateModule } from './users/ui-state/ui-state.module';
     TwoFactorAuthModule,
     OAuthModule,
     ShadowProfileModule,
-    UiStateModule,
   ],
   exports: [
     PasswordManagementModule,
@@ -41,7 +39,6 @@ import { UiStateModule } from './users/ui-state/ui-state.module';
     TwoFactorAuthModule,
     OAuthModule,
     ShadowProfileModule,
-    UiStateModule,
   ],
 })
 export class IdentityModule {}
