@@ -286,6 +286,41 @@ describe('Public Resumes Integration', () => {
     });
   });
 
+  describe('OG image', () => {
+    let ogSlug: string;
+
+    it('should create a share for OG tests', async () => {
+      ogSlug = uniqueTestSlug('og');
+      const response = await getRequest()
+        .post('/api/v1/shares')
+        .set(authHeader())
+        .send({ resumeId, slug: ogSlug });
+      expect(response.status).toBe(201);
+    });
+
+    it('should serve a PNG OG image without auth', async () => {
+      const response = await getRequest()
+        .get(`/api/v1/public/resumes/${ogSlug}/og.png`)
+        .responseType('blob');
+
+      expect(response.status).toBe(200);
+      expect(response.headers['content-type']).toContain('image/png');
+
+      const body = response.body as Buffer;
+      expect(Buffer.isBuffer(body)).toBe(true);
+      expect(body.length).toBeGreaterThan(500);
+      expect(body[0]).toBe(0x89);
+      expect(body[1]).toBe(0x50);
+      expect(body[2]).toBe(0x4e);
+      expect(body[3]).toBe(0x47);
+    });
+
+    it('should return 404 for unknown slug', async () => {
+      const response = await getRequest().get('/api/v1/public/resumes/no-such-slug/og.png');
+      expect(response.status).toBe(404);
+    });
+  });
+
   describe('Resume Caching', () => {
     it('should cache public resume data', async () => {
       const prisma = getPrisma();

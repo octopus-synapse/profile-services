@@ -256,6 +256,29 @@ export class ResumeShareService {
     });
   }
 
+  async getShareOgContext(slug: string): Promise<{ name: string; title: string | null } | null> {
+    const share = await this.getBySlug(slug);
+    if (!share || !share.isActive) return null;
+    if (share.expiresAt && new Date() > share.expiresAt) return null;
+
+    const resume = await this.prisma.resume.findUnique({
+      where: { id: share.resumeId },
+      select: {
+        title: true,
+        fullName: true,
+        jobTitle: true,
+        user: { select: { name: true } },
+      },
+    });
+
+    if (!resume) return null;
+
+    return {
+      name: resume.fullName || resume.user?.name || 'Profile',
+      title: resume.jobTitle || resume.title || null,
+    };
+  }
+
   async deleteShare(userId: string, shareId: string) {
     // Check if share exists first
     const share = await this.prisma.resumeShare.findUnique({

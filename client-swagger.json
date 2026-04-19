@@ -8104,6 +8104,28 @@
         "tags": ["ATS Validation"]
       }
     },
+    "/api/v1/public/resumes/{slug}/og.png": {
+      "get": {
+        "operationId": "resumes_getOgImage",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "OpenGraph preview image for a public share slug",
+        "tags": ["public-resumes"]
+      }
+    },
     "/api/v1/public/resumes/{slug}": {
       "get": {
         "operationId": "resumes_getPublicResume",

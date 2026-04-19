@@ -2,12 +2,14 @@ import {
   Controller,
   ForbiddenException,
   Get,
+  Header,
   Headers,
   NotFoundException,
   Param,
   Req,
+  StreamableFile,
 } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiOperation, ApiProduces, ApiTags } from '@nestjs/swagger';
 import type { Request } from 'express';
 import { Public } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
@@ -16,6 +18,7 @@ import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-re
 import { EventPublisher } from '@/shared-kernel';
 import { ShareDownloadedEvent, ShareViewedEvent } from '../../shared-kernel/domain/events';
 import { PublicResumeDataDto } from '../dto/public-resume-response.dto';
+import { OgImageService } from '../services/og-image.service';
 import { ResumeShareService } from '../services/resume-share.service';
 
 @SdkExport({
@@ -30,7 +33,23 @@ export class PublicResumeController {
   constructor(
     private readonly shareService: ResumeShareService,
     private readonly eventPublisher: EventPublisher,
+    private readonly ogImageService: OgImageService,
   ) {}
+
+  @Get(':slug/og.png')
+  @Header('Content-Type', 'image/png')
+  @Header('Cache-Control', 'public, max-age=86400')
+  @ApiOperation({ summary: 'OpenGraph preview image for a public share slug' })
+  @ApiProduces('image/png')
+  async getOgImage(@Param('slug') slug: string): Promise<StreamableFile> {
+    const context = await this.shareService.getShareOgContext(slug);
+    if (!context) {
+      throw new NotFoundException('Resume not found');
+    }
+
+    const buffer = await this.ogImageService.generatePng(context);
+    return new StreamableFile(buffer);
+  }
 
   @Get(':slug')
   @ApiOperation({ summary: 'Get public resume by share slug' })
