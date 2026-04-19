@@ -70,7 +70,12 @@ export function checkModuleFile(): RuleResult {
 }
 
 // Modules that don't need controllers (cross-cutting concerns)
-const MODULES_WITHOUT_CONTROLLERS = ['identity/authorization'];
+const MODULES_WITHOUT_CONTROLLERS = [
+  'identity/authorization',
+  // AI is consumed internally by other modules (use-cases); there's no REST
+  // surface yet, just the LLM adapter.
+  'ai',
+];
 
 export function checkInfrastructureControllersDirectory(): RuleResult {
   return runRule(
