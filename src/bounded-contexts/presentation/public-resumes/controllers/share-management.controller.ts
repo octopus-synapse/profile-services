@@ -1,5 +1,20 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Delete,
+  ForbiddenException,
+  Get,
+  Header,
+  HttpCode,
+  HttpStatus,
+  NotFoundException,
+  Param,
+  Post,
+  Query,
+  StreamableFile,
+} from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { ApiBearerAuth, ApiOperation, ApiProduces, ApiQuery, ApiTags } from '@nestjs/swagger';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
@@ -19,6 +34,7 @@ import {
   toSharePayload,
   toSharePayloadList,
 } from '../presenters/share-management.presenter';
+import { QrCodeService } from '../services/qr-code.service';
 import { ResumeShareService } from '../services/resume-share.service';
 
 interface CreateShare {
@@ -33,7 +49,11 @@ interface CreateShare {
 @ApiBearerAuth('JWT-auth')
 @Controller('v1/shares')
 export class ShareManagementController {
-  constructor(private readonly shareService: ResumeShareService) {}
+  constructor(
+    private readonly shareService: ResumeShareService,
+    private readonly qrCodeService: QrCodeService,
+    private readonly configService: ConfigService,
+  ) {}
 
   @Post()
   @RequirePermission(Permission.RESUME_UPDATE)
@@ -126,6 +146,38 @@ export class ShareManagementController {
       success: true,
       data: { aliases: toAliasPayloadList(aliases) },
     };
+  }
+
+  @Get(':shareId/qr.png')
+  @RequirePermission(Permission.RESUME_READ)
+  @Header('Content-Type', 'image/png')
+  @Header('Cache-Control', 'public, max-age=86400')
+  @ApiOperation({ summary: 'Render a QR code PNG pointing to the share public URL' })
+  @ApiProduces('image/png')
+  @ApiQuery({
+    name: 'size',
+    required: false,
+    type: Number,
+    description: 'Pixel size (default 256)',
+  })
+  async getQrCodePng(
+    @CurrentUser() user: UserPayload,
+    @Param('shareId') shareId: string,
+    @Query('size') sizeParam?: string,
+  ): Promise<StreamableFile> {
+    const share = await this.shareService.getShareWithOwner(shareId);
+    if (!share) throw new NotFoundException('Share not found');
+    if (share.resume.userId !== user.userId)
+      throw new ForbiddenException('You do not have access to this share');
+
+    const size = sizeParam
+      ? Math.min(1024, Math.max(64, Number.parseInt(sizeParam, 10) || 256))
+      : 256;
+    const baseUrl = this.configService.get<string>('PUBLIC_APP_URL') ?? 'https://patchcareers.com';
+    const targetUrl = `${baseUrl.replace(/\/$/, '')}/u/${share.slug}`;
+
+    const buffer = await this.qrCodeService.generatePng(targetUrl, { size });
+    return new StreamableFile(buffer);
   }
 
   @Delete('aliases/:aliasId')

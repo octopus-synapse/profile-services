@@ -8344,6 +8344,48 @@
         "tags": ["shares"]
       }
     },
+    "/api/v1/shares/{shareId}/qr.png": {
+      "get": {
+        "operationId": "resumes_getQrCodePng",
+        "parameters": [
+          {
+            "name": "shareId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "size",
+            "required": false,
+            "in": "query",
+            "description": "Pixel size (default 256)",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: resume:read"
+          }
+        },
+        "security": [
+          {
+            "JWT-auth": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Render a QR code PNG pointing to the share public URL",
+        "tags": ["shares"]
+      }
+    },
     "/api/v1/shares/aliases/{aliasId}": {
       "delete": {
         "operationId": "resumes_removeAlias",

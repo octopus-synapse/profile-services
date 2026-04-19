@@ -249,6 +249,13 @@ export class ResumeShareService {
     return Bun.password.verify(plaintext, hash);
   }
 
+  async getShareWithOwner(shareId: string) {
+    return this.prisma.resumeShare.findUnique({
+      where: { id: shareId },
+      include: { resume: { select: { userId: true } } },
+    });
+  }
+
   async deleteShare(userId: string, shareId: string) {
     // Check if share exists first
     const share = await this.prisma.resumeShare.findUnique({

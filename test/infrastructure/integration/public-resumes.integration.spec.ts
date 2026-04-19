@@ -239,6 +239,53 @@ describe('Public Resumes Integration', () => {
     });
   });
 
+  describe('QR code', () => {
+    let qrShareId: string;
+
+    it('should create a share for QR tests', async () => {
+      const response = await getRequest()
+        .post('/api/v1/shares')
+        .set(authHeader())
+        .send({ resumeId, slug: uniqueTestSlug('qr') });
+
+      expect(response.status).toBe(201);
+      const prisma = getPrisma();
+      const share = await prisma.resumeShare.findUnique({ where: { slug: response.body.slug } });
+      expect(share).not.toBeNull();
+      qrShareId = share!.id;
+    });
+
+    it('should return a PNG QR code for the owner', async () => {
+      const response = await getRequest()
+        .get(`/api/v1/shares/${qrShareId}/qr.png`)
+        .set(authHeader())
+        .responseType('blob');
+
+      expect(response.status).toBe(200);
+      expect(response.headers['content-type']).toContain('image/png');
+
+      const body = response.body as Buffer;
+      expect(Buffer.isBuffer(body)).toBe(true);
+      expect(body.length).toBeGreaterThan(100);
+      expect(body[0]).toBe(0x89);
+      expect(body[1]).toBe(0x50);
+      expect(body[2]).toBe(0x4e);
+      expect(body[3]).toBe(0x47);
+    });
+
+    it('should reject QR request without auth', async () => {
+      const response = await getRequest().get(`/api/v1/shares/${qrShareId}/qr.png`);
+      expect(response.status).toBe(401);
+    });
+
+    it('should return 404 for unknown shareId', async () => {
+      const response = await getRequest()
+        .get('/api/v1/shares/unknown-share-id/qr.png')
+        .set(authHeader());
+      expect(response.status).toBe(404);
+    });
+  });
+
   describe('Resume Caching', () => {
     it('should cache public resume data', async () => {
       const prisma = getPrisma();
