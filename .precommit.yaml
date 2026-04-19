@@ -4,9 +4,10 @@
 
 serial:
   - name: swagger
-    cmd: bun run scripts/generate-swagger-from-decorators.ts
+    cmd: "bun run scripts/generate-swagger-from-decorators.ts && bunx biome format --write swagger.json client-swagger.json"
     stage:
       - swagger.json
+      - client-swagger.json
       - swagger-generation-report.json
       - src/graphql/schema.graphql
       - generated/schema.graphql
