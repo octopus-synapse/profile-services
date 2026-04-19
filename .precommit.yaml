@@ -1,0 +1,27 @@
+# Pre-commit check definitions consumed by `octopus-run-parallel`.
+# Serial phase runs before parallel and can stage generated files into
+# the current commit via `stage:`.
+
+serial:
+  - name: swagger
+    cmd: bun run scripts/generate-swagger-from-decorators.ts
+    stage:
+      - swagger.json
+      - swagger-generation-report.json
+      - src/graphql/schema.graphql
+      - generated/schema.graphql
+
+checks:
+  - name: typecheck
+    cmd: bun run typecheck
+  - name: lint
+    cmd: bun run lint:fast
+  - name: unit
+    cmd: bun test src
+    runner: bun
+  - name: arch
+    cmd: bun test ./test/static-analysis/architecture
+    runner: bun
+  - name: contract
+    cmd: bun test ./test/static-analysis/contracts
+    runner: bun

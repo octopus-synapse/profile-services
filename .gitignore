@@ -128,3 +128,6 @@ prisma/*.db-journal
 data/mec-courses.csv
 generated/
 .claude/worktrees/
+
+# pre-commit attestation metrics (temporary, per-run)
+.attestation-metrics.json
