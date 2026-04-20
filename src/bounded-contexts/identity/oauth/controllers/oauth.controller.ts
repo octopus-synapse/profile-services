@@ -96,8 +96,21 @@ export class OAuthController {
     // the userId + marker and calls our create-session endpoint (which sets
     // the httpOnly cookie). Keeping this controller session-agnostic avoids
     // duplicating the JWT/cookie logic that already lives in Authentication.
+    //
+    // We also forward the verified email and (for github) the external
+    // username so the UI can immediately probe for a pre-built shadow
+    // profile and offer to claim it.
     const base = this.config.get<string>('UI_BASE_URL') ?? '';
-    const target = `${base}/auth/oauth-complete?provider=${provider}&userId=${userId}&created=${created}`;
-    res.redirect(target);
+    const params = new URLSearchParams({
+      provider,
+      userId,
+      created: String(created),
+    });
+    if (req.user.email) params.set('email', req.user.email);
+    const externalLogin = (req.user.raw as { login?: unknown } | null)?.login;
+    if (provider === 'github' && typeof externalLogin === 'string') {
+      params.set('githubLogin', externalLogin);
+    }
+    res.redirect(`${base}/auth/oauth-complete?${params.toString()}`);
   }
 }

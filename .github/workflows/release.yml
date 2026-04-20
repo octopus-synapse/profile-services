@@ -28,7 +28,13 @@ jobs:
     secrets: inherit
 
   finalize-release:
-    if: github.ref == 'refs/heads/main' && startsWith(github.event.head_commit.message, 'chore(release):')
+    # Two entry points:
+    #  - push to main where the head commit message contains 'chore(release):'
+    #    (covers both squash-merges where the title becomes the commit message
+    #     AND merge-commits where the chore line lives in the body).
+    #  - manual workflow_dispatch on main (no head_commit payload to inspect),
+    #    used to recover from a release PR merged with the wrong strategy.
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, 'chore(release):'))
     uses: octopus-synapse/octopus-workflows/.github/workflows/_release-finalize.yml@v1
     with:
       commit_sha: ${{ github.sha }}
@@ -39,3 +45,47 @@ jobs:
     uses: octopus-synapse/octopus-workflows/.github/workflows/_release-docker.yml@v1
     with:
       tag: ${{ needs.finalize-release.outputs.tag }}
+
+  # release-please reads .release-please-manifest.json from whichever branch
+  # it's running on. Our flow is homolog -> main, so the chore(release) commit
+  # that bumps the manifest only ever lands on main. Without this sync step
+  # the next push to homolog would re-read the OLD manifest and recompute the
+  # changelog from the previous baseline, including every PR that's already
+  # been released. This job fast-forwards homolog with main's manifest right
+  # after the tag exists.
+  sync-manifest-to-homolog:
+    needs: finalize-release
+    if: needs.finalize-release.outputs.released == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout main (the branch that just got the bump)
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          token: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
+      - name: Open sync PR back to homolog
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.finalize-release.outputs.tag }}
+        run: |
+          set -euo pipefail
+          BRANCH="chore/sync-manifest-${TAG}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          # Branch off main so we carry just the manifest + version bumps that
+          # already happened on main. Hard-reset would diverge homolog; a PR
+          # is the only safe path because of branch protection.
+          git checkout -B "$BRANCH"
+          git push -u origin "$BRANCH" --force
+          gh pr create \
+            --base homolog \
+            --head "$BRANCH" \
+            --title "chore(release): sync manifest to ${TAG}" \
+            --body "Automated sync after release ${TAG} so release-please's manifest stays accurate on homolog. Without this the next release PR re-includes already-shipped commits in its changelog." \
+            --label patch || true
+          # If a PR already exists for this exact tag, let it 404 silently —
+          # the previous attempt's PR is still there and humans can merge it.

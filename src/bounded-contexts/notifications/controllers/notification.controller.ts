@@ -96,7 +96,7 @@ export class NotificationController {
     body: {
       enabled?: boolean;
       emailEnabled?: boolean;
-      emailDelivery?: 'INSTANT' | 'DAILY' | 'OFF';
+      emailDelivery?: 'INSTANT' | 'DAILY' | 'WEEKLY' | 'OFF';
     },
   ) {
     return this.notificationService.setPreference(req.user.userId, type, body);

@@ -83,7 +83,13 @@ export class AllExceptionsFilter implements ExceptionFilter {
     success: false;
     statusCode: number;
     message: string;
-    error: { code: string; message: string; details?: Record<string, unknown> };
+    error: {
+      code: string;
+      message: string;
+      userMessage?: string;
+      action?: string;
+      details?: Record<string, unknown>;
+    };
   } {
     // Default values
     let code: string = this.statusToDefaultCode(status);
@@ -176,9 +182,47 @@ export class AllExceptionsFilter implements ExceptionFilter {
       error: {
         code,
         message,
+        userMessage: this.codeToUserMessage(code, message),
+        action: this.codeToAction(code, status),
         details,
       },
     };
+  }
+
+  /**
+   * Localized, user-safe message that the UI can show in a toast without
+   * additional translation. Falls back to the raw message for codes we
+   * haven't curated copy for.
+   */
+  private codeToUserMessage(code: string, fallback: string): string {
+    switch (code) {
+      case ERROR_CODES.UNAUTHORIZED:
+        return 'Sua sessão expirou. Faça login novamente.';
+      case ERROR_CODES.FORBIDDEN:
+        return 'Você não tem permissão para essa ação.';
+      case ERROR_CODES.NOT_FOUND:
+        return 'Não encontramos esse recurso.';
+      case ERROR_CODES.CONFLICT:
+        return 'Esse recurso entrou em conflito com outro existente.';
+      case ERROR_CODES.VALIDATION_ERROR:
+        return 'Algum campo está inválido. Confira os dados.';
+      case ERROR_CODES.INTERNAL_ERROR:
+        return 'Tivemos um problema temporário. Tente novamente em alguns segundos.';
+      default:
+        return fallback;
+    }
+  }
+
+  /**
+   * UI-side action hint. The frontend reads this to know whether to redirect
+   * (`redirect:/login`), surface a retry button, or just show the toast.
+   */
+  private codeToAction(code: string, status: number): string {
+    if (status === HttpStatus.UNAUTHORIZED) return 'redirect:/login';
+    if (status === HttpStatus.FORBIDDEN) return 'redirect:/dashboard';
+    if (code === ERROR_CODES.VALIDATION_ERROR) return 'highlight-fields';
+    if (status >= 500) return 'retry';
+    return 'toast';
   }
 
   private statusToDefaultCode(status: number): string {
