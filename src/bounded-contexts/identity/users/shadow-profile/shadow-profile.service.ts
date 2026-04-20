@@ -11,9 +11,10 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ConflictException } from '@/shared-kernel/exceptions/domain.exceptions';
-import { buildShadowPayload } from './build-shadow-payload';
+import { buildShadowPayload, ShadowPayloadSchema } from './build-shadow-payload';
 import { SHADOW_GITHUB_API, type ShadowGithubApi } from './ports/github-api.port';
 
 export interface ShadowProfileSnapshot {
@@ -35,7 +36,8 @@ export class ShadowProfileService {
   async upsertGithub(input: { token: string; username: string }): Promise<ShadowProfileSnapshot> {
     const user = await this.github.getUser(input.token, input.username);
     const repos = await this.github.listRepositories(input.token, user.login, { limit: 50 });
-    const parsed = buildShadowPayload(user, repos);
+    const parsed = ShadowPayloadSchema.parse(buildShadowPayload(user, repos));
+    const payload = parsed as unknown as Prisma.InputJsonValue;
 
     const row = await this.prisma.shadowProfile.upsert({
       where: { source_externalHandle: { source: 'github', externalHandle: user.login } },
@@ -43,9 +45,9 @@ export class ShadowProfileService {
         source: 'github',
         externalHandle: user.login,
         contactEmail: null,
-        payload: parsed as unknown as object,
+        payload,
       },
-      update: { payload: parsed as unknown as object },
+      update: { payload },
     });
 
     return {

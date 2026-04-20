@@ -82,7 +82,9 @@ export class CuratedSelectorService {
     });
 
     const scored: Array<{ jobId: string; matchScore: number }> = [];
-    for (const job of candidates) {
+    let scoringFailures = 0;
+    const jobs = candidates;
+    for (const job of jobs) {
       const jobText = [
         job.title,
         (job.requirements ?? []).join('\n'),
@@ -102,10 +104,22 @@ export class CuratedSelectorService {
           scored.push({ jobId: job.id, matchScore: match.matchScore });
         }
       } catch (err) {
+        scoringFailures++;
         this.logger.warn(
           `Scoring failed for user=${userId} job=${job.id}: ${(err as Error).message}`,
         );
       }
+    }
+
+    if (scoringFailures > 0 && scoringFailures === jobs.length) {
+      throw new Error(
+        `Curated selector: all ${jobs.length} scoring calls failed for user=${userId} — likely a downstream outage`,
+      );
+    }
+    if (scoringFailures > jobs.length / 2) {
+      this.logger.error(
+        `Curated selector: ${scoringFailures}/${jobs.length} scoring calls failed for user=${userId} — investigate`,
+      );
     }
 
     scored.sort((a, b) => b.matchScore - a.matchScore);

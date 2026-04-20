@@ -1,15 +1,26 @@
+import { z } from 'zod';
 import type { ShadowGithubRepo, ShadowGithubUser } from './ports/github-api.port';
 
-export interface ShadowPayload {
-  headline: string | null;
-  primaryStack: string[];
-  projects: Array<{ name: string; url: string; summary: string }>;
-  stats: {
-    totalRepos: number;
-    nonForkRepos: number;
-    totalStars: number;
-  };
-}
+export const ShadowPayloadSchema = z.object({
+  headline: z.string().max(120).nullable(),
+  primaryStack: z.array(z.string().min(1).max(80)).max(20),
+  projects: z
+    .array(
+      z.object({
+        name: z.string().min(1).max(120),
+        url: z.string().url().max(500),
+        summary: z.string().max(500),
+      }),
+    )
+    .max(10),
+  stats: z.object({
+    totalRepos: z.number().int().min(0),
+    nonForkRepos: z.number().int().min(0),
+    totalStars: z.number().int().min(0),
+  }),
+});
+
+export type ShadowPayload = z.infer<typeof ShadowPayloadSchema>;
 
 const MIN_LANGUAGE_BYTES = 1000;
 

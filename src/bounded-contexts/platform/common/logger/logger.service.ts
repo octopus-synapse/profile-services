@@ -1,5 +1,8 @@
 import { Injectable, LoggerService } from '@nestjs/common';
 import * as winston from 'winston';
+import { z } from 'zod';
+
+const LogLevelSchema = z.enum(['error', 'warn', 'info', 'http', 'verbose', 'debug', 'silly']);
 
 @Injectable()
 export class AppLoggerService implements LoggerService {
@@ -8,9 +11,18 @@ export class AppLoggerService implements LoggerService {
 
   constructor() {
     const isProduction = process.env.NODE_ENV === 'production';
+    const defaultLevel = isProduction ? 'info' : 'debug';
+    const parsedLevel = LogLevelSchema.safeParse(process.env.LOG_LEVEL);
+    const level = parsedLevel.success ? parsedLevel.data : defaultLevel;
+    if (process.env.LOG_LEVEL && !parsedLevel.success) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        `[AppLoggerService] LOG_LEVEL="${process.env.LOG_LEVEL}" invalid, falling back to "${defaultLevel}"`,
+      );
+    }
 
     this.logger = winston.createLogger({
-      level: process.env.LOG_LEVEL ?? (isProduction ? 'info' : 'debug'),
+      level,
       format: winston.format.combine(
         winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
         winston.format.errors({ stack: true }),

@@ -187,7 +187,12 @@ describe('Architecture - Generic Sections Guardrail', () => {
         const normalizedLine = line.replace(/\s+/g, '');
 
         for (const delegate of LEGACY_PRISMA_DELEGATES) {
-          if (normalizedLine.includes(delegate)) {
+          // Word-boundary so `prisma.skill` doesn't accidentally match
+          // valid current models like `prisma.skillEndorsement` or
+          // `prisma.skillDecayLog`. Must not be followed by an identifier char.
+          const escaped = delegate.replace(/[.]/g, '\\.');
+          const pattern = new RegExp(`${escaped}(?![A-Za-z0-9_])`);
+          if (pattern.test(normalizedLine)) {
             violations.push(
               `${filePath}:${index + 1} uses removed legacy Prisma delegate ${delegate}`,
             );

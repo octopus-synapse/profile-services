@@ -46,11 +46,15 @@ export class RageApplyService {
     const user = await this.prisma.user.findUnique({
       where: { id: input.userId },
       select: {
+        isActive: true,
         primaryResumeId: true,
         preferences: { select: { applyCriteria: true } },
       },
     });
-    if (!user?.primaryResumeId) {
+    if (!user?.isActive) {
+      throw new EntityNotFoundException('User', input.userId);
+    }
+    if (!user.primaryResumeId) {
       throw new EntityNotFoundException('Resume', 'primary');
     }
 

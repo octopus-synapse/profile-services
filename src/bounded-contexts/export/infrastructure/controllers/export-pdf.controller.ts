@@ -28,35 +28,7 @@ import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logg
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import { EXPORT_USE_CASES, type ExportUseCases } from '../../application/ports/export.port';
 import { ExportCompletedEvent, ExportFailedEvent, ExportRequestedEvent } from '../../domain/events';
-
-/**
- * Sanitizes query parameters to prevent path traversal attacks.
- * Only allows alphanumeric characters, hyphens, underscores, and spaces.
- * Returns undefined if input contains dangerous characters.
- */
-function sanitizeQueryParam(input: string | undefined): string | undefined {
-  if (!input) return undefined;
-
-  // Detect path traversal attempts
-  if (input.includes('..') || input.includes('/') || input.includes('\\')) {
-    return undefined;
-  }
-
-  // Detect shell injection attempts
-  if (/[;|`$(){}]/.test(input)) {
-    return undefined;
-  }
-
-  // Only allow safe characters: alphanumeric, hyphens, underscores, spaces
-  const sanitized = input.replace(/[^a-zA-Z0-9\-_ ]/g, '');
-
-  // If sanitization changed the input significantly, reject it
-  if (sanitized.length < input.length * 0.8) {
-    return undefined;
-  }
-
-  return sanitized || undefined;
-}
+import { sanitizeQueryParam } from '../helpers';
 
 @SdkExport({ tag: 'export', description: 'Export API' })
 @ApiTags('export')

@@ -19,6 +19,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          # Need full history because the commit step does `git pull --rebase`.
+          fetch-depth: 0
 
       # Reads version from .bun-version file
       - name: Setup Bun
