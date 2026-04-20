@@ -44,7 +44,14 @@ jobs:
 
   build-docker:
     needs: finalize-release
-    if: needs.finalize-release.outputs.released == 'true'
+    # Two paths in:
+    #  - normal: finalize created a new tag/release (`released == 'true'`)
+    #  - recovery: manual workflow_dispatch — run docker build for whatever
+    #    version is in package.json, even when the tag already exists. Used
+    #    to republish an image after a transient docker build failure
+    #    (the original failure mode that bit v0.2.2: GITHUB_TOKEN wasn't
+    #    being passed to the build secret in the shared workflow).
+    if: needs.finalize-release.outputs.tag != '' && (needs.finalize-release.outputs.released == 'true' || github.event_name == 'workflow_dispatch')
     uses: octopus-synapse/octopus-workflows/.github/workflows/_release-docker.yml@v1
     with:
       tag: ${{ needs.finalize-release.outputs.tag }}
