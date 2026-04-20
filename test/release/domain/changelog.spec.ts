@@ -39,6 +39,32 @@ describe('changelog', () => {
       expect(lines[1]).toContain('#2');
       expect(lines[2]).toContain('#3');
     });
+
+    it('filters PRs merged before baseDate', () => {
+      // Regression: gather-changelog-data ships every PR merged on main +
+      // homolog without a date filter. If formatPatchChangelog doesn't honor
+      // baseDate, every patch release regurgitates the entire repo history
+      // (the bug that produced the 100-entry changelog on profile-services
+      // PR #218 / v0.2.3).
+      const result = formatPatchChangelog(basePRs, '2024-01-10T23:00:00Z');
+      const lines = result.split('\n').filter((l) => l.startsWith('-'));
+
+      expect(lines.length).toBe(2);
+      expect(result).not.toContain('#1');
+      expect(result).toContain('#2');
+      expect(result).toContain('#3');
+    });
+
+    it('is inclusive of baseDate (strict >)', () => {
+      // baseDate is the last release tag's date. A PR merged at that exact
+      // instant was already included in the previous release, so the new
+      // changelog must start strictly after it.
+      const result = formatPatchChangelog(basePRs, '2024-01-11T10:00:00Z');
+      const lines = result.split('\n').filter((l) => l.startsWith('-'));
+
+      expect(lines.length).toBe(1);
+      expect(result).toContain('#3');
+    });
   });
 
   describe('formatMinorChangelog', () => {

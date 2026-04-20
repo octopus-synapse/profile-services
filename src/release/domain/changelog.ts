@@ -54,12 +54,21 @@ function findPatchesForMinor(patchTags: Tag[], majorNum: number, minorNum: numbe
 
 /**
  * Formats a simple changelog for PATCH releases.
- * Just a flat list of PRs.
+ * Flat list of PRs merged since the last tagged release.
+ *
+ * When `baseDate` is provided, only PRs merged strictly AFTER it are
+ * included — this is the behavior callers want 99% of the time because
+ * `gather-changelog-data` ships every merged PR on main + homolog (no
+ * date filter upstream), so without this guard every patch release
+ * regurgitates the entire history. `baseDate` is optional only so the
+ * older test fixtures that call `formatPatchChangelog(prs)` directly
+ * keep working.
  */
-export function formatPatchChangelog(prs: PullRequest[]): string {
+export function formatPatchChangelog(prs: PullRequest[], baseDate?: string): string {
   const lines: string[] = ['### Changes', ''];
+  const relevantPRs = baseDate ? prs.filter((pr) => pr.mergedAt > baseDate) : prs;
 
-  for (const pr of prs) {
+  for (const pr of relevantPRs) {
     lines.push(`- ${pr.title} #${pr.number}`);
   }
 
