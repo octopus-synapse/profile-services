@@ -7,14 +7,9 @@ import {
 @Injectable()
 export class TypstWasmPdfRendererAdapter extends PdfRendererPort {
   async render(astJson: string, options?: PdfRenderOptions): Promise<Buffer> {
-    // TODO: Replace with actual Typst WASM binding
-    // Expected integration: @aspect-build/typst-ts-wasm or similar
-    //
-    // Implementation steps:
-    // 1. Write astJson to a virtual filesystem as "data.json"
-    // 2. Load the Typst template from templates-v2/resume.typ
-    // 3. Compile via WASM: typst.compile(mainFile, virtualFs) -> Uint8Array
-    // 4. Return Buffer.from(result)
+    // Stub adapter: kept in place so the DI container can wire a Typst WASM
+    // path once a real binding lands (e.g. @aspect-build/typst-ts-wasm).
+    // Until then, callers must use TypstCompilerService instead.
     void astJson;
     void options;
 

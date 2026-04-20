@@ -218,8 +218,8 @@ export class InMemorySectionItemRepository {
  * In-Memory Transaction Handler
  */
 export class InMemoryTransactionHandler {
-  async execute(operations: Array<() => Promise<unknown>>): Promise<unknown[]> {
-    const results: unknown[] = [];
+  async execute<T>(operations: Array<() => Promise<T>>): Promise<T[]> {
+    const results: T[] = [];
     for (const operation of operations) {
       results.push(await operation());
     }

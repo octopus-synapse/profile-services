@@ -1,4 +1,15 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -98,6 +109,7 @@ export class GenericResumeSectionsController {
   }
 
   @Post(':sectionTypeKey/items')
+  @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Create section item in a dynamic section type' })
   @ApiParam({ name: 'resumeId', description: 'Resume ID' })
   @ApiParam({

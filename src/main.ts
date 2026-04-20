@@ -1,4 +1,5 @@
 import { NestFactory } from '@nestjs/core';
+import { z } from 'zod';
 import {
   configureCors,
   configureSecurityHeaders,
@@ -55,7 +56,8 @@ async function bootstrap() {
     configureSwagger(app);
   }
 
-  const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3001;
+  const PortSchema = z.coerce.number().int().min(1).max(65535).default(3001);
+  const port = PortSchema.parse(process.env.PORT);
   await app.listen(port);
 
   logger.log(`Application is running on: ${await app.getUrl()}`);

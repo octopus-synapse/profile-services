@@ -112,7 +112,7 @@ export class WeeklyDigestService {
           createdAt: { gte: cutoff },
         },
       }),
-      this.prisma['skillEndorsement'].count({
+      this.prisma.skillEndorsement.count({
         where: {
           endorsedUserId: userId,
           createdAt: { gte: cutoff },

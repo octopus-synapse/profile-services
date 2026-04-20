@@ -25,9 +25,10 @@ export class WeeklyDigestWorker {
         `Weekly digest sent to ${result.usersEmailed} users (${result.usersSkipped} skipped)`,
       );
     } catch (error) {
-      this.logger.error(
-        `Weekly digest failed: ${error instanceof Error ? error.message : 'unknown'}`,
-      );
+      const message = error instanceof Error ? error.message : 'unknown';
+      const stack = error instanceof Error ? error.stack : undefined;
+      this.logger.error(`Weekly digest failed: ${message}`, stack);
+      throw error;
     }
   }
 }

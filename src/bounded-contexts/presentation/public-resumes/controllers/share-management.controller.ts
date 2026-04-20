@@ -15,11 +15,13 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ApiBearerAuth, ApiOperation, ApiProduces, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { z } from 'zod';
 import type { UserPayload } from '@/bounded-contexts/identity/shared-kernel/infrastructure';
 import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
+import { createZodPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import {
   ShareCreateDataDto,
@@ -28,7 +30,6 @@ import {
 } from '../dto/share-management-response.dto';
 import {
   type AliasPayload,
-  type SharePayload,
   toAliasPayload,
   toAliasPayloadList,
   toSharePayload,
@@ -37,12 +38,29 @@ import {
 import { QrCodeService } from '../services/qr-code.service';
 import { ResumeShareService } from '../services/resume-share.service';
 
-interface CreateShare {
-  resumeId: string;
-  slug?: string;
-  password?: string;
-  expiresAt?: string;
-}
+const CreateShareSchema = z.object({
+  resumeId: z.string().min(1),
+  slug: z
+    .string()
+    .min(3)
+    .max(80)
+    .regex(/^[a-zA-Z0-9-]+$/, 'Slug must be alphanumeric with hyphens')
+    .optional(),
+  password: z.string().min(4).max(200).optional(),
+  expiresAt: z.coerce.date().optional(),
+});
+
+const AddAliasSchema = z.object({
+  slug: z
+    .string()
+    .min(3)
+    .max(80)
+    .regex(/^[a-zA-Z0-9-]+$/, 'Slug must be alphanumeric with hyphens'),
+});
+
+const QrSizeSchema = z.object({
+  size: z.coerce.number().int().min(64).max(1024).default(256),
+});
 
 @SdkExport({ tag: 'resumes', description: 'Share Management API' })
 @ApiTags('shares')
@@ -65,19 +83,13 @@ export class ShareManagementController {
   })
   async createShare(
     @CurrentUser() user: UserPayload,
-    @Body() dto: CreateShare,
+    @Body(createZodPipe(CreateShareSchema)) dto: z.infer<typeof CreateShareSchema>,
   ): Promise<DataResponse<ShareCreateDataDto>> {
-    const share = await this.shareService.createShare(user.userId, {
-      ...dto,
-      expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : undefined,
-    });
-    const sharePayload = toSharePayload(share);
-
+    const share = await this.shareService.createShare(user.userId, dto);
     return {
       success: true,
-      data: { share: sharePayload },
-      ...sharePayload,
-    } as DataResponse<ShareCreateDataDto> & SharePayload;
+      data: { share: toSharePayload(share) },
+    };
   }
 
   @Get('resume/:resumeId')
@@ -89,13 +101,10 @@ export class ShareManagementController {
     @CurrentUser() user: UserPayload,
   ): Promise<DataResponse<ShareListDataDto>> {
     const shares = await this.shareService.listUserShares(user.userId, resumeId);
-    const sharePayloads = toSharePayloadList(shares);
-
     return {
       success: true,
-      data: { shares: sharePayloads },
-      shares: sharePayloads,
-    } as DataResponse<ShareListDataDto> & { shares: SharePayload[] };
+      data: { shares: toSharePayloadList(shares) },
+    };
   }
 
   @Delete(':shareId')
@@ -125,7 +134,7 @@ export class ShareManagementController {
   async addAlias(
     @CurrentUser() user: UserPayload,
     @Param('shareId') shareId: string,
-    @Body() dto: { slug: string },
+    @Body(createZodPipe(AddAliasSchema)) dto: z.infer<typeof AddAliasSchema>,
   ): Promise<DataResponse<{ alias: AliasPayload }>> {
     const alias = await this.shareService.addAlias(user.userId, shareId, dto.slug);
     return {
@@ -163,20 +172,17 @@ export class ShareManagementController {
   async getQrCodePng(
     @CurrentUser() user: UserPayload,
     @Param('shareId') shareId: string,
-    @Query('size') sizeParam?: string,
+    @Query(createZodPipe(QrSizeSchema)) q: z.infer<typeof QrSizeSchema>,
   ): Promise<StreamableFile> {
     const share = await this.shareService.getShareWithOwner(shareId);
     if (!share) throw new NotFoundException('Share not found');
     if (share.resume.userId !== user.userId)
       throw new ForbiddenException('You do not have access to this share');
 
-    const size = sizeParam
-      ? Math.min(1024, Math.max(64, Number.parseInt(sizeParam, 10) || 256))
-      : 256;
     const baseUrl = this.configService.get<string>('PUBLIC_APP_URL') ?? 'https://patchcareers.com';
     const targetUrl = `${baseUrl.replace(/\/$/, '')}/u/${share.slug}`;
 
-    const buffer = await this.qrCodeService.generatePng(targetUrl, { size });
+    const buffer = await this.qrCodeService.generatePng(targetUrl, { size: q.size });
     return new StreamableFile(buffer);
   }
 

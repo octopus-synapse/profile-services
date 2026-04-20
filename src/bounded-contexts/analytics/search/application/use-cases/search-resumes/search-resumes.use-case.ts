@@ -129,18 +129,17 @@ export class SearchResumesUseCase {
   async findSimilar(resumeId: string, limit = 5): Promise<SearchResultItem[]> {
     const sourceResume = await this.prisma.resume.findUnique({
       where: { id: resumeId },
-      include: {
+      select: {
+        id: true,
         resumeSections: {
           where: {
             sectionType: {
               semanticKind: { contains: 'SKILL', mode: 'insensitive' },
             },
           },
-          include: {
+          select: {
             items: {
-              select: {
-                content: true,
-              },
+              select: { content: true },
             },
           },
         },
@@ -178,11 +177,9 @@ export class SearchResumesUseCase {
               semanticKind: { contains: 'SKILL', mode: 'insensitive' },
             },
           },
-          include: {
+          select: {
             items: {
-              select: {
-                content: true,
-              },
+              select: { content: true },
             },
           },
         },

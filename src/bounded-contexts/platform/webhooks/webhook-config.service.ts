@@ -15,12 +15,31 @@ export interface UpdateWebhookInput {
   enabled?: boolean;
 }
 
+export interface WebhookView {
+  id: string;
+  url: string;
+  events: WebhookEvent[];
+  enabled: boolean;
+  createdAt: Date;
+  updatedAt?: Date;
+}
+
+export interface WebhookDeliveryView {
+  id: string;
+  eventType: string;
+  attempt: number;
+  success: boolean;
+  statusCode: number | null;
+  errorMessage: string | null;
+  createdAt: Date;
+}
+
 @Injectable()
 export class WebhookConfigService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async listForUser(userId: string): Promise<unknown[]> {
-    return this.prisma.webhookConfig.findMany({
+  async listForUser(userId: string): Promise<WebhookView[]> {
+    const rows = await this.prisma.webhookConfig.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
       select: {
@@ -32,12 +51,13 @@ export class WebhookConfigService {
         updatedAt: true,
       },
     });
+    return rows as WebhookView[];
   }
 
   async createForUser(
     userId: string,
     input: CreateWebhookInput,
-  ): Promise<{ webhook: unknown; secret: string }> {
+  ): Promise<{ webhook: WebhookView; secret: string }> {
     const secret = crypto.randomBytes(32).toString('hex');
     const webhook = await this.prisma.webhookConfig.create({
       data: {
@@ -48,16 +68,24 @@ export class WebhookConfigService {
       },
       select: { id: true, url: true, events: true, enabled: true, createdAt: true },
     });
-    return { webhook, secret };
+    return { webhook: webhook as WebhookView, secret };
   }
 
-  async updateForUser(userId: string, id: string, input: UpdateWebhookInput): Promise<unknown> {
+  async updateForUser(userId: string, id: string, input: UpdateWebhookInput): Promise<WebhookView> {
     await this.assertOwnership(userId, id);
-    return this.prisma.webhookConfig.update({
+    const updated = await this.prisma.webhookConfig.update({
       where: { id },
       data: input,
-      select: { id: true, url: true, events: true, enabled: true, updatedAt: true },
+      select: {
+        id: true,
+        url: true,
+        events: true,
+        enabled: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
+    return updated as WebhookView;
   }
 
   async deleteForUser(userId: string, id: string): Promise<void> {
@@ -69,9 +97,9 @@ export class WebhookConfigService {
     }
   }
 
-  async listDeliveries(userId: string, webhookId: string): Promise<unknown[]> {
+  async listDeliveries(userId: string, webhookId: string): Promise<WebhookDeliveryView[]> {
     await this.assertOwnership(userId, webhookId);
-    return this.prisma.webhookDelivery.findMany({
+    const rows = await this.prisma.webhookDelivery.findMany({
       where: { webhookId },
       orderBy: { createdAt: 'desc' },
       take: 50,
@@ -85,6 +113,7 @@ export class WebhookConfigService {
         createdAt: true,
       },
     });
+    return rows as WebhookDeliveryView[];
   }
 
   private async assertOwnership(userId: string, id: string): Promise<void> {

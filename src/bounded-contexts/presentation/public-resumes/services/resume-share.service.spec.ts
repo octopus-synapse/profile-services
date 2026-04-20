@@ -48,57 +48,81 @@ describe('ResumeShareService', () => {
   };
 
   // Build Prisma-compatible interface from in-memory repositories
-  const buildPrismaService = () => ({
+  type Mocked = ReturnType<typeof mock>;
+  type PrismaStub = {
+    $transaction: Mocked;
     resumeShare: {
-      create: mock(
-        async (args: {
-          data: {
-            slug: string;
-            password?: string | null;
-            expiresAt?: Date | null;
-            resumeId: string;
-          };
-        }) => {
-          return shareRepo.create({
-            resumeId: args.data.resumeId,
-            slug: args.data.slug,
-            password: args.data.password ?? null,
-            expiresAt: args.data.expiresAt ?? null,
-          });
-        },
-      ),
-      findUnique: mock(
-        async (args: { where: { id?: string; slug?: string }; include?: unknown }) => {
-          const share = await shareRepo.findUnique(args.where);
-          if (!share) return null;
-          if (args.include) {
-            const resume = await resumeRepo.findUnique({ id: share.resumeId });
-            return { ...share, resume };
-          }
-          return share;
-        },
-      ),
-      findMany: mock(async (args: { where: { resumeId: string }; orderBy?: unknown }) => {
-        return shareRepo.findMany({ resumeId: args.where.resumeId });
-      }),
-      delete: mock(async (args: { where: { id: string } }) => {
-        return shareRepo.delete({ id: args.where.id });
-      }),
-    },
-    resume: {
-      findUnique: mock(
-        async (args: { where: { id: string }; select?: unknown; include?: unknown }) => {
-          const resume = await resumeRepo.findUnique({ id: args.where.id });
-          if (!resume) return null;
-          // If select only includes userId, return just that
-          if (args.select && 'userId' in (args.select as object)) {
-            return { userId: resume.userId };
-          }
-          return resume;
-        },
-      ),
-    },
-  });
+      create: Mocked;
+      findUnique: Mocked;
+      findMany: Mocked;
+      delete: Mocked;
+    };
+    resume: { findUnique: Mocked };
+    resumeShareAlias?: {
+      create: Mocked;
+      findUnique: Mocked;
+      findMany: Mocked;
+      delete: Mocked;
+    };
+  };
+  const buildPrismaService = (): PrismaStub => {
+    const service = {} as PrismaStub;
+    service.$transaction = mock(
+      async <T>(cb: (tx: PrismaStub) => Promise<T>): Promise<T> => cb(service),
+    );
+    Object.assign(service, {
+      resumeShare: {
+        create: mock(
+          async (args: {
+            data: {
+              slug: string;
+              password?: string | null;
+              expiresAt?: Date | null;
+              resumeId: string;
+            };
+          }) => {
+            return shareRepo.create({
+              resumeId: args.data.resumeId,
+              slug: args.data.slug,
+              password: args.data.password ?? null,
+              expiresAt: args.data.expiresAt ?? null,
+            });
+          },
+        ),
+        findUnique: mock(
+          async (args: { where: { id?: string; slug?: string }; include?: unknown }) => {
+            const share = await shareRepo.findUnique(args.where);
+            if (!share) return null;
+            if (args.include) {
+              const resume = await resumeRepo.findUnique({ id: share.resumeId });
+              return { ...share, resume };
+            }
+            return share;
+          },
+        ),
+        findMany: mock(async (args: { where: { resumeId: string }; orderBy?: unknown }) => {
+          return shareRepo.findMany({ resumeId: args.where.resumeId });
+        }),
+        delete: mock(async (args: { where: { id: string } }) => {
+          return shareRepo.delete({ id: args.where.id });
+        }),
+      },
+      resume: {
+        findUnique: mock(
+          async (args: { where: { id: string }; select?: unknown; include?: unknown }) => {
+            const resume = await resumeRepo.findUnique({ id: args.where.id });
+            if (!resume) return null;
+            // If select only includes userId, return just that
+            if (args.select && 'userId' in (args.select as object)) {
+              return { userId: resume.userId };
+            }
+            return resume;
+          },
+        ),
+      },
+    });
+    return service;
+  };
 
   const buildCacheService = () => ({
     get: mock(async <T>(key: string): Promise<T | null> => {
@@ -394,8 +418,7 @@ describe('ResumeShareService', () => {
       createdShareId = created.id;
 
       // Wire alias prisma surface used by service
-      // biome-ignore lint/suspicious/noExplicitAny: test stub typed loosely
-      (prismaService as any).resumeShareAlias = {
+      prismaService.resumeShareAlias = {
         create: mock(async (args: { data: { shareId: string; slug: string } }) => {
           const id = `alias-${aliases.size + 1}`;
           const record = { id, shareId: args.data.shareId, slug: args.data.slug };

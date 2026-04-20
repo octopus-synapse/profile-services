@@ -13,7 +13,9 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import type { EnglishLevel, JobType, PaymentCurrency, RemotePolicy } from '@prisma/client';
+import { z } from 'zod';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
+import { createZodPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
 import {
   parsePaymentCurrencies,
@@ -21,6 +23,22 @@ import {
   parseSkillsCsv,
 } from '../presenters/job.presenter';
 import { JobService } from '../services/job.service';
+
+const JobListQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).max(1000).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  search: z.string().max(500).optional(),
+  jobType: z.string().optional(),
+  skills: z.string().max(500).optional(),
+  paymentCurrency: z.string().max(100).optional(),
+  remotePolicy: z.string().max(100).optional(),
+  minEnglishLevel: z.string().optional(),
+});
+
+const PageOnlyQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).max(1000).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+});
 
 @SdkExport({ tag: 'jobs', description: 'Jobs API' })
 @ApiTags('jobs')
@@ -42,28 +60,18 @@ export class JobController {
   })
   async findAll(
     @Req() req: { user: { userId: string } },
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
-    @Query('search') search?: string,
-    @Query('jobType') jobType?: JobType,
-    @Query('skills') skills?: string,
-    @Query('paymentCurrency') paymentCurrency?: string,
-    @Query('remotePolicy') remotePolicy?: string,
-    @Query('minEnglishLevel') minEnglishLevel?: EnglishLevel,
+    @Query(createZodPipe(JobListQuerySchema)) q: z.infer<typeof JobListQuerySchema>,
   ) {
-    const skillsArray = parseSkillsCsv(skills);
-    const currencyArray = parsePaymentCurrencies(paymentCurrency);
-    const remoteArray = parseRemotePolicies(remotePolicy);
     return this.jobService.findAll(
       {
-        page: page ? Number(page) : undefined,
-        limit: limit ? Number(limit) : undefined,
-        search,
-        jobType,
-        skills: skillsArray,
-        paymentCurrency: currencyArray,
-        remotePolicy: remoteArray,
-        minEnglishLevel,
+        page: q.page,
+        limit: q.limit,
+        search: q.search,
+        jobType: q.jobType as JobType | undefined,
+        skills: parseSkillsCsv(q.skills),
+        paymentCurrency: parsePaymentCurrencies(q.paymentCurrency),
+        remotePolicy: parseRemotePolicies(q.remotePolicy),
+        minEnglishLevel: q.minEnglishLevel as EnglishLevel | undefined,
       },
       req.user.userId,
     );
@@ -78,28 +86,18 @@ export class JobController {
   })
   async findAllWithFitScore(
     @Req() req: { user: { userId: string } },
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
-    @Query('search') search?: string,
-    @Query('jobType') jobType?: JobType,
-    @Query('skills') skills?: string,
-    @Query('paymentCurrency') paymentCurrency?: string,
-    @Query('remotePolicy') remotePolicy?: string,
-    @Query('minEnglishLevel') minEnglishLevel?: EnglishLevel,
+    @Query(createZodPipe(JobListQuerySchema)) q: z.infer<typeof JobListQuerySchema>,
   ) {
-    const skillsArray = parseSkillsCsv(skills);
-    const currencyArray = parsePaymentCurrencies(paymentCurrency);
-    const remoteArray = parseRemotePolicies(remotePolicy);
     return this.jobService.findAllWithFitScore(
       {
-        page: page ? Number(page) : undefined,
-        limit: limit ? Number(limit) : undefined,
-        search,
-        jobType,
-        skills: skillsArray,
-        paymentCurrency: currencyArray,
-        remotePolicy: remoteArray,
-        minEnglishLevel,
+        page: q.page,
+        limit: q.limit,
+        search: q.search,
+        jobType: q.jobType as JobType | undefined,
+        skills: parseSkillsCsv(q.skills),
+        paymentCurrency: parsePaymentCurrencies(q.paymentCurrency),
+        remotePolicy: parseRemotePolicies(q.remotePolicy),
+        minEnglishLevel: q.minEnglishLevel as EnglishLevel | undefined,
       },
       req.user.userId,
     );
@@ -110,14 +108,9 @@ export class JobController {
   @HttpCode(HttpStatus.OK)
   async getMyJobs(
     @Req() req: { user: { userId: string } },
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
+    @Query(createZodPipe(PageOnlyQuerySchema)) q: z.infer<typeof PageOnlyQuerySchema>,
   ) {
-    return this.jobService.getMyJobs(
-      req.user.userId,
-      page ? Number(page) : undefined,
-      limit ? Number(limit) : undefined,
-    );
+    return this.jobService.getMyJobs(req.user.userId, q.page, q.limit);
   }
 
   @Get('bookmarks')
@@ -128,14 +121,9 @@ export class JobController {
   @ApiQuery({ name: 'limit', required: false, type: Number })
   async getBookmarkedJobs(
     @Req() req: { user: { userId: string } },
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
+    @Query(createZodPipe(PageOnlyQuerySchema)) q: z.infer<typeof PageOnlyQuerySchema>,
   ) {
-    return this.jobService.getBookmarkedJobs(
-      req.user.userId,
-      page ? Number(page) : undefined,
-      limit ? Number(limit) : undefined,
-    );
+    return this.jobService.getBookmarkedJobs(req.user.userId, q.page, q.limit);
   }
 
   @Get('recommended')
@@ -146,14 +134,9 @@ export class JobController {
   @ApiQuery({ name: 'limit', required: false, type: Number })
   async getRecommendedJobs(
     @Req() req: { user: { userId: string } },
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
+    @Query(createZodPipe(PageOnlyQuerySchema)) q: z.infer<typeof PageOnlyQuerySchema>,
   ) {
-    return this.jobService.getRecommendedJobs(
-      req.user.userId,
-      page ? Number(page) : undefined,
-      limit ? Number(limit) : undefined,
-    );
+    return this.jobService.getRecommendedJobs(req.user.userId, q.page, q.limit);
   }
 
   @Get('applications')
@@ -164,14 +147,9 @@ export class JobController {
   @ApiQuery({ name: 'limit', required: false, type: Number })
   async getMyApplications(
     @Req() req: { user: { userId: string } },
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
+    @Query(createZodPipe(PageOnlyQuerySchema)) q: z.infer<typeof PageOnlyQuerySchema>,
   ) {
-    return this.jobService.getMyApplications(
-      req.user.userId,
-      page ? Number(page) : undefined,
-      limit ? Number(limit) : undefined,
-    );
+    return this.jobService.getMyApplications(req.user.userId, q.page, q.limit);
   }
 
   @Get(':id')
