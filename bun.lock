@@ -56,10 +56,10 @@
         "@nestjs/cli": "^11.0.17",
         "@nestjs/schematics": "^11.0.10",
         "@nestjs/testing": "^11.1.17",
-        "@octokit/graphql": "^9.0.3",
         "@octopus-synapse/biome-config": "^1",
         "@octopus-synapse/commitlint-config": "^1",
         "@octopus-synapse/precommit": "^1",
+        "@octopus-synapse/release-cli": "^1.7.0",
         "@swc/cli": "^0.6.0",
         "@swc/core": "^1.15.21",
         "@types/bun": "latest",
@@ -495,6 +495,8 @@
     "@octopus-synapse/commitlint-config": ["@octopus-synapse/commitlint-config@1.3.0", "https://npm.pkg.github.com/download/@octopus-synapse/commitlint-config/1.3.0/e548a47b2f4aab8e73313ca4e0017495ae8f1da4", { "dependencies": { "@commitlint/config-conventional": "^19", "@commitlint/types": "^19" } }, "sha512-Cw+WnCHoplKe2g2HkCin1IgzOH2G+hoco7HBHUYkVlKwyApcrOQfD4PKA1zSSLTS0vIUUY4wf+BmpP4ul7wVuQ=="],
 
     "@octopus-synapse/precommit": ["@octopus-synapse/precommit@1.3.0", "https://npm.pkg.github.com/download/@octopus-synapse/precommit/1.3.0/8744b4bd3b54bcf04aecf19fade181d4e21fb480", { "bin": { "octopus-attest": "dist/bin/attest.js", "octopus-run-parallel": "dist/bin/run-parallel.js" } }, "sha512-oKdAxlxVqzpglnIFttlps/Xtrsbs+BQKNzwpWfuQ2jUcGoek5Wo9/cpkBg8tfmqo3tWrcxdWYi2+QZLTt1Ni4Q=="],
+
+    "@octopus-synapse/release-cli": ["@octopus-synapse/release-cli@1.7.0", "https://npm.pkg.github.com/download/@octopus-synapse/release-cli/1.7.0/f960258345e11cf132cde0d5a38292f7716d275a", { "dependencies": { "@octokit/graphql": "^9.0.3", "zod": "^3.25.76" }, "bin": { "octopus-release-calc-version": "dist/cli/calc-version.js", "octopus-release-detect": "dist/cli/detect-release.js", "octopus-release-gather-data": "dist/cli/gather-changelog-data.js", "octopus-release-gen-changelog": "dist/cli/gen-changelog.js", "octopus-release-get-pr-labels": "dist/cli/get-pr-labels.js" } }, "sha512-qL7PcQbU1/Id4cdzSEfJM+jBfWI+0lKA+C/lMc7g9/SjzlURr+W3+qkXr3nRpS2KOcRwoTXdZs8m3hG0IJowMA=="],
 
     "@opentelemetry/api": ["@opentelemetry/api@1.9.0", "", {}, "sha512-3giAOQvZiH5F9bMlMiv8+GSPMeqg0dbaeo58/0SlA9sxSqZhnUtxzX9/2FzyhS9sWQf5S0GJE0AKBrFqjpeYcg=="],
 
