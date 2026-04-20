@@ -59,9 +59,13 @@ export class AutoApplyWorker extends WorkerHost implements OnModuleInit {
       select: { id: true },
     });
     this.logger.log(`Enqueueing auto-apply for ${users.length} users`);
-    for (const u of users) {
-      await this.queue.add('auto-apply-run', { kind: 'run-for-user', userId: u.id });
-    }
+    if (users.length === 0) return;
+    await this.queue.addBulk(
+      users.map((u) => ({
+        name: 'auto-apply-run',
+        data: { kind: 'run-for-user' as const, userId: u.id },
+      })),
+    );
   }
 
   private async runForUser(userId: string): Promise<void> {
@@ -98,42 +102,50 @@ export class AutoApplyWorker extends WorkerHost implements OnModuleInit {
     if (picks.length === 0) return;
 
     let submitted = 0;
+    const failures: Array<{ jobId: string; reason: string }> = [];
+    const primaryResumeId = user.primaryResumeId;
     for (const pick of picks) {
       try {
-        // Idempotent — the unique (jobId, userId) constraint protects us;
-        // skip early so we don't pay the LLM cost for a re-application.
         const existing = await this.prisma.jobApplication.findUnique({
           where: { jobId_userId: { jobId: pick.jobId, userId } },
         });
         if (existing) continue;
 
-        // Generate a tailored variant first so the CV + cover letter reflect
-        // the specific job. The returned versionId is linked on the
-        // JobApplication so the tracker + analytics can show "applied with
-        // tailored variant" and measure tailoring ROI.
         const tailored = await this.tailor.tailorForJob({
-          resumeId: user.primaryResumeId,
+          resumeId: primaryResumeId,
           userId,
           jobId: pick.jobId,
         });
 
-        await this.prisma.jobApplication.create({
-          data: {
-            jobId: pick.jobId,
-            userId,
-            resumeId: user.primaryResumeId,
-            tailoredVersionId: tailored.versionId,
-            coverLetter: tailored.summary ?? user.preferences?.applyCriteria?.defaultCover ?? null,
-          },
+        await this.prisma.$transaction(async (tx) => {
+          const raceCheck = await tx.jobApplication.findUnique({
+            where: { jobId_userId: { jobId: pick.jobId, userId } },
+          });
+          if (raceCheck) return;
+          await tx.jobApplication.create({
+            data: {
+              jobId: pick.jobId,
+              userId,
+              resumeId: primaryResumeId,
+              tailoredVersionId: tailored.versionId,
+              coverLetter:
+                tailored.summary ?? user.preferences?.applyCriteria?.defaultCover ?? null,
+            },
+          });
         });
         submitted++;
       } catch (err) {
-        this.logger.warn(
-          `Auto-apply for user=${userId} job=${pick.jobId} failed: ${(err as Error).message}`,
-        );
+        const reason = (err as Error).message;
+        failures.push({ jobId: pick.jobId, reason });
+        this.logger.error(`Auto-apply user=${userId} job=${pick.jobId} failed: ${reason}`);
       }
     }
     this.logger.log(`Auto-apply: user=${userId} submitted=${submitted} (of ${picks.length})`);
+    if (failures.length === picks.length && picks.length > 0) {
+      throw new Error(
+        `Auto-apply user=${userId} all ${picks.length} picks failed; first reason: ${failures[0].reason}`,
+      );
+    }
   }
 
   @OnWorkerEvent('failed')

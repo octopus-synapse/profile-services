@@ -32,58 +32,48 @@ export class ResumeShareService {
   async createShare(userId: string, dto: CreateShare) {
     const slug = dto.slug ?? this.generateSlug();
 
-    // Validate custom slug
     if (dto.slug && !this.isValidSlug(dto.slug)) {
       throw new BadRequestException(
         'Invalid slug format. Use alphanumeric characters and hyphens only.',
       );
     }
 
-    // Check slug uniqueness
-    const existing = await this.prisma.resumeShare.findUnique({
-      where: { slug },
-    });
-
-    if (existing) {
-      throw new ConflictException('Slug already in use');
-    }
-
-    // Hash password if provided
     const hashedPassword = dto.password
       ? await Bun.password.hash(dto.password, { algorithm: 'bcrypt', cost: 10 })
       : null;
 
-    // Verify resume ownership
-    const resume = await this.prisma.resume.findUnique({
-      where: { id: dto.resumeId },
-      select: { userId: true },
-    });
+    const { share, ownerId } = await this.prisma.$transaction(async (tx) => {
+      const existing = await tx.resumeShare.findUnique({ where: { slug } });
+      if (existing) {
+        throw new ConflictException('Slug already in use');
+      }
 
-    if (!resume) {
-      throw new NotFoundException('Resume not found');
-    }
+      const resume = await tx.resume.findUnique({
+        where: { id: dto.resumeId },
+        select: { userId: true },
+      });
 
-    if (resume.userId !== userId) {
-      throw new ForbiddenException('You do not have access to this resume');
-    }
+      if (!resume) {
+        throw new NotFoundException('Resume not found');
+      }
 
-    const share = await this.prisma.resumeShare.create({
-      data: {
-        resumeId: dto.resumeId,
-        slug,
-        password: hashedPassword,
-        expiresAt: dto.expiresAt,
-      },
-    });
+      if (resume.userId !== userId) {
+        throw new ForbiddenException('You do not have access to this resume');
+      }
 
-    if (resume) {
-      this.eventPublisher.publish(
-        new ResumePublishedEvent(dto.resumeId, {
-          userId: resume.userId,
+      const created = await tx.resumeShare.create({
+        data: {
+          resumeId: dto.resumeId,
           slug,
-        }),
-      );
-    }
+          password: hashedPassword,
+          expiresAt: dto.expiresAt,
+        },
+      });
+
+      return { share: created, ownerId: resume.userId };
+    });
+
+    this.eventPublisher.publish(new ResumePublishedEvent(dto.resumeId, { userId: ownerId, slug }));
 
     return share;
   }

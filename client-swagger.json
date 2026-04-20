@@ -9439,8 +9439,51 @@
         "operationId": "search_search",
         "parameters": [
           {
-            "name": "q",
-            "required": true,
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": ["relevance", "date", "views"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Default 20, max 100",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Default 1, max 1000",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "maxExp",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "minExp",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "location",
+            "required": false,
             "in": "query",
             "schema": {
               "type": "string"
@@ -9448,56 +9491,18 @@
           },
           {
             "name": "skills",
-            "required": true,
+            "required": false,
             "in": "query",
+            "description": "Comma-separated",
             "schema": {
               "type": "string"
             }
           },
           {
-            "name": "location",
-            "required": true,
+            "name": "q",
+            "required": false,
             "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "minExp",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "maxExp",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "page",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "limit",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "sortBy",
-            "required": true,
-            "in": "query",
+            "description": "Free-text query (max 500)",
             "schema": {
               "type": "string"
             }
@@ -9524,17 +9529,19 @@
         "operationId": "search_suggestions",
         "parameters": [
           {
-            "name": "prefix",
-            "required": true,
+            "name": "limit",
+            "required": false,
             "in": "query",
+            "description": "Default 10, max 50",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
           },
           {
-            "name": "limit",
-            "required": true,
+            "name": "prefix",
+            "required": false,
             "in": "query",
+            "description": "Max 50 chars",
             "schema": {
               "type": "string"
             }
@@ -9570,10 +9577,11 @@
           },
           {
             "name": "limit",
-            "required": true,
+            "required": false,
             "in": "query",
+            "description": "Default 5, max 50",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
           }
         ],
@@ -12757,60 +12765,24 @@
         "operationId": "jobs_findAll",
         "parameters": [
           {
-            "name": "page",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "search",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "skills",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "paymentCurrency",
+            "name": "minEnglishLevel",
             "required": false,
             "in": "query",
-            "description": "CSV of BRL|USD|EUR|GBP",
-            "schema": {
-              "type": "string"
-            }
+            "description": "Max level the viewer accepts. Returns jobs whose required level is ≤ this (or null).",
+            "schema": {}
           },
           {
             "name": "remotePolicy",
             "required": false,
             "in": "query",
             "description": "CSV of REMOTE|HYBRID|ONSITE",
-            "schema": {
-              "type": "string"
-            }
+            "schema": {}
           },
           {
-            "name": "minEnglishLevel",
+            "name": "paymentCurrency",
             "required": false,
             "in": "query",
-            "description": "Max level the viewer accepts. Returns jobs whose required level is ≤ this (or null).",
+            "description": "CSV of BRL|USD|EUR|GBP",
             "schema": {}
           }
         ],
@@ -12857,56 +12829,7 @@
     "/api/v1/jobs/with-fit-score": {
       "get": {
         "operationId": "jobs_findAllWithFitScore",
-        "parameters": [
-          {
-            "name": "page",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "search",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "skills",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "paymentCurrency",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "remotePolicy",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "parameters": [],
         "responses": {
           "401": {
             "description": "Authentication required"
@@ -12930,24 +12853,7 @@
     "/api/v1/jobs/mine": {
       "get": {
         "operationId": "jobs_getMyJobs",
-        "parameters": [
-          {
-            "name": "page",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          },
-          {
-            "name": "limit",
-            "required": true,
-            "in": "query",
-            "schema": {
-              "type": "number"
-            }
-          }
-        ],
+        "parameters": [],
         "responses": {
           "401": {
             "description": "Authentication required"
@@ -12972,7 +12878,7 @@
         "operationId": "jobs_getBookmarkedJobs",
         "parameters": [
           {
-            "name": "page",
+            "name": "limit",
             "required": false,
             "in": "query",
             "schema": {
@@ -12980,7 +12886,7 @@
             }
           },
           {
-            "name": "limit",
+            "name": "page",
             "required": false,
             "in": "query",
             "schema": {
@@ -13013,7 +12919,7 @@
         "operationId": "jobs_getRecommendedJobs",
         "parameters": [
           {
-            "name": "page",
+            "name": "limit",
             "required": false,
             "in": "query",
             "schema": {
@@ -13021,7 +12927,7 @@
             }
           },
           {
-            "name": "limit",
+            "name": "page",
             "required": false,
             "in": "query",
             "schema": {
@@ -13054,7 +12960,7 @@
         "operationId": "jobs_getMyApplications",
         "parameters": [
           {
-            "name": "page",
+            "name": "limit",
             "required": false,
             "in": "query",
             "schema": {
@@ -13062,7 +12968,7 @@
             }
           },
           {
-            "name": "limit",
+            "name": "page",
             "required": false,
             "in": "query",
             "schema": {
@@ -13459,7 +13365,14 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": ""
+            "description": "This week's curated batch",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurrentBatchDataDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -13486,7 +13399,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Application created or already existed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApproveResultDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -13513,7 +13433,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "Item marked as rejected",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RejectResultDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -13530,11 +13457,15 @@
         "operationId": "automation_run",
         "parameters": [],
         "responses": {
-          "401": {
-            "description": "Authentication required"
-          },
-          "403": {
-            "description": "Requires permission: feed:use"
+          "200": {
+            "description": "Batch apply summary",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RageApplyResultDto"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -25250,6 +25181,83 @@
           }
         },
         "required": ["type"]
+      },
+      "CurrentBatchDataDto": {
+        "type": "object",
+        "properties": {
+          "batch": {
+            "type": "object",
+            "nullable": true,
+            "description": "This week's batch or null if none active"
+          }
+        },
+        "required": ["batch"]
+      },
+      "ApproveResultDto": {
+        "type": "object",
+        "properties": {
+          "applicationId": {
+            "type": "string",
+            "example": "app_abc123"
+          },
+          "alreadyApplied": {
+            "type": "boolean",
+            "example": false
+          }
+        },
+        "required": ["applicationId", "alreadyApplied"]
+      },
+      "RejectResultDto": {
+        "type": "object",
+        "properties": {
+          "itemId": {
+            "type": "string",
+            "example": "item_abc123"
+          }
+        },
+        "required": ["itemId"]
+      },
+      "RageApplyFailureDto": {
+        "type": "object",
+        "properties": {
+          "jobId": {
+            "type": "string",
+            "example": "job_abc123"
+          },
+          "reason": {
+            "type": "string",
+            "example": "Tailor service timeout"
+          }
+        },
+        "required": ["jobId", "reason"]
+      },
+      "RageApplyResultDto": {
+        "type": "object",
+        "properties": {
+          "attempted": {
+            "type": "number",
+            "example": 18,
+            "description": "How many jobs we tried to apply to"
+          },
+          "submitted": {
+            "type": "number",
+            "example": 12,
+            "description": "Successful submissions"
+          },
+          "skippedExisting": {
+            "type": "number",
+            "example": 4,
+            "description": "Skipped because user already applied"
+          },
+          "failed": {
+            "description": "Per-job failures with reason",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RageApplyFailureDto"
+            }
+          }
+        },
+        "required": ["attempted", "submitted", "skippedExisting", "failed"]
       },
       "CreateSuccessStoryDto": {
         "type": "object",

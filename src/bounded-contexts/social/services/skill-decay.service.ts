@@ -38,7 +38,7 @@ export class SkillDecayService {
     let flagged = 0;
     for (const row of stale) {
       try {
-        const already = await this.prisma['skillDecayLog'].findUnique({
+        const already = await this.prisma.skillDecayLog.findUnique({
           where: {
             userId_skillName_quarterKey: {
               userId: row.userId,
@@ -51,7 +51,7 @@ export class SkillDecayService {
 
         const days = Math.floor((now.getTime() - row.updatedAt.getTime()) / MS_PER_DAY);
         await this.emit({ userId: row.userId, skillName: row.skillName, daysSinceTouched: days });
-        await this.prisma['skillDecayLog'].create({
+        await this.prisma.skillDecayLog.create({
           data: {
             userId: row.userId,
             skillName: row.skillName,

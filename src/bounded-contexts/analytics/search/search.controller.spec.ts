@@ -46,7 +46,7 @@ describe('SearchController', () => {
 
   describe('search', () => {
     it('should search resumes with query', async () => {
-      const result = await controller.search('developer');
+      const result = await controller.search({ q: 'developer', page: 1, limit: 20 });
 
       expect(result).toBeDefined();
       expect(result.success).toBe(true);
@@ -54,21 +54,18 @@ describe('SearchController', () => {
     });
 
     it('should parse skills from comma-separated string', async () => {
-      const result = await controller.search('', 'react,typescript');
+      const result = await controller.search({
+        q: '',
+        skills: 'react,typescript',
+        page: 1,
+        limit: 20,
+      });
 
       expect(result.data?.data).toHaveLength(2); // Both have React
     });
 
     it('should parse pagination params', async () => {
-      const result = await controller.search(
-        '',
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        '1',
-        '1',
-      );
+      const result = await controller.search({ q: '', page: 1, limit: 1 });
 
       expect(result.data?.page).toBe(1);
       expect(result.data?.limit).toBe(1);
@@ -76,7 +73,7 @@ describe('SearchController', () => {
     });
 
     it('should filter by location', async () => {
-      const result = await controller.search('', undefined, 'São Paulo');
+      const result = await controller.search({ q: '', location: 'São Paulo', page: 1, limit: 20 });
 
       expect(result.data?.data).toHaveLength(1);
       expect(result.data?.data[0].fullName).toBe('John Doe');
@@ -85,7 +82,7 @@ describe('SearchController', () => {
 
   describe('suggestions', () => {
     it('should return suggestions for prefix', async () => {
-      const result = await controller.suggestions('dev');
+      const result = await controller.suggestions({ prefix: 'dev', limit: 10 });
 
       expect(result).toBeDefined();
       expect(result.success).toBe(true);
@@ -94,7 +91,7 @@ describe('SearchController', () => {
     });
 
     it('should respect limit parameter', async () => {
-      const result = await controller.suggestions('dev', '1');
+      const result = await controller.suggestions({ prefix: 'dev', limit: 1 });
 
       expect(result.data?.suggestions).toHaveLength(1);
     });
@@ -102,7 +99,7 @@ describe('SearchController', () => {
 
   describe('similar', () => {
     it('should find similar resumes', async () => {
-      const result = await controller.similar('resume-1');
+      const result = await controller.similar('resume-1', { limit: 5 });
 
       expect(result).toBeDefined();
       expect(result.success).toBe(true);
@@ -118,7 +115,7 @@ describe('SearchController', () => {
         skills: ['TypeScript', 'React', 'Node.js'],
       });
 
-      const result = await controller.similar('resume-1', '1');
+      const result = await controller.similar('resume-1', { limit: 1 });
 
       expect(result.data?.resumes).toHaveLength(1);
     });

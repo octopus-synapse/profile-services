@@ -10,39 +10,7 @@ import {
 } from '@/shared-kernel/exceptions/domain.exceptions';
 import { ApplicationTrackerService } from '../tracker/application-tracker.service';
 import { computeFitScore, type FitScore } from './compute-fit-score';
-
-/** 0–100 coverage of `needles` that appear (case-insensitively) in `haystack`. */
-function percentOverlap(needles: string[], haystack: string[]): number {
-  if (needles.length === 0) return 0;
-  const hs = new Set(haystack.map((h) => h.toLowerCase()));
-  const hit = needles.filter((n) => hs.has(n.toLowerCase())).length;
-  return Math.round((hit / needles.length) * 100);
-}
-
-/**
- * Coarse soft-skill signal extractor. Scans free-form text for the usual
- * suspects so we have *something* to feed into the soft-skills dimension
- * until the skills catalog exposes a canonical list.
- */
-function extractSoftSignals(text: string | null | undefined): string[] {
-  if (!text) return [];
-  const vocab = [
-    'communication',
-    'collaboration',
-    'leadership',
-    'ownership',
-    'mentorship',
-    'problem-solving',
-    'autonomy',
-    'teamwork',
-    'english',
-    'portuguese',
-    'stakeholder',
-    'presentation',
-  ];
-  const lower = text.toLowerCase();
-  return vocab.filter((v) => lower.includes(v));
-}
+import { extractSoftSignals, percentOverlap } from './fit-signals';
 
 @Injectable()
 export class JobService {

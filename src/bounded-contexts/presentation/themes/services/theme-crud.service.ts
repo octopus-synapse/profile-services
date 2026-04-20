@@ -55,13 +55,22 @@ export class ThemeCrudService {
       },
     });
 
-    this.previewService.generateAndUploadPreview(theme.id).catch((err) => {
-      this.logger.warn(
-        `Preview generation failed for theme ${theme.id}: ${(err as Error).message}`,
-      );
-    });
+    void this.runPreviewGeneration(theme.id);
 
     return theme;
+  }
+
+  private async runPreviewGeneration(themeId: string): Promise<void> {
+    try {
+      await this.previewService.generateAndUploadPreview(themeId);
+    } catch (err) {
+      const error = err as Error;
+      this.logger.error(
+        `Preview generation failed for theme ${themeId}: ${error.message}`,
+        error.stack,
+        { themeId },
+      );
+    }
   }
 
   async updateThemeForUser(adminId: string, themeId: string, updateThemeData: UpdateTheme) {

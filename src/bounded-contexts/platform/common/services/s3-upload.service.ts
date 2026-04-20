@@ -5,7 +5,20 @@ import {
   S3Client,
 } from '@aws-sdk/client-s3';
 import { Injectable } from '@nestjs/common';
+import { z } from 'zod';
 import { AppLoggerService } from '../logger/logger.service';
+
+const MinioConfigSchema = z.object({
+  MINIO_ENDPOINT: z.string().url().optional(),
+  MINIO_ACCESS_KEY: z.string().min(3).optional(),
+  MINIO_SECRET_KEY: z.string().min(3).optional(),
+  MINIO_BUCKET: z
+    .string()
+    .min(3)
+    .max(63)
+    .regex(/^[a-z0-9.-]+$/, 'Bucket must be lowercase alphanumeric with dots/hyphens')
+    .optional(),
+});
 
 @Injectable()
 export class S3UploadService {
@@ -14,11 +27,29 @@ export class S3UploadService {
   private _isEnabled: boolean;
 
   constructor(private readonly logger: AppLoggerService) {
-    const endpoint = process.env.MINIO_ENDPOINT;
-    const accessKeyId = process.env.MINIO_ACCESS_KEY;
-    const secretAccessKey = process.env.MINIO_SECRET_KEY;
-    const bucket = process.env.MINIO_BUCKET;
+    const parsed = MinioConfigSchema.safeParse({
+      MINIO_ENDPOINT: process.env.MINIO_ENDPOINT,
+      MINIO_ACCESS_KEY: process.env.MINIO_ACCESS_KEY,
+      MINIO_SECRET_KEY: process.env.MINIO_SECRET_KEY,
+      MINIO_BUCKET: process.env.MINIO_BUCKET,
+    });
 
+    if (!parsed.success) {
+      this.logger.error(
+        'MinIO config invalid — service disabled',
+        JSON.stringify(parsed.error.flatten()),
+        'S3UploadService',
+      );
+      this._isEnabled = false;
+      return;
+    }
+
+    const {
+      MINIO_ENDPOINT: endpoint,
+      MINIO_ACCESS_KEY: accessKeyId,
+      MINIO_SECRET_KEY: secretAccessKey,
+      MINIO_BUCKET: bucket,
+    } = parsed.data;
     this._isEnabled = !!(endpoint && accessKeyId && secretAccessKey && bucket);
 
     if (this._isEnabled && endpoint && accessKeyId && secretAccessKey) {
