@@ -5,34 +5,34 @@
   "metrics": {
     "typecheck": {
       "status": "ok",
-      "time_ms": 4667
+      "time_ms": 4156
     },
     "lint": {
       "status": "ok",
-      "time_ms": 1243
+      "time_ms": 1139
     },
     "unit": {
       "status": "ok",
-      "time_ms": 6307,
+      "time_ms": 6086,
       "passed": 2876,
       "failed": 0,
       "skipped": 0
     },
     "arch": {
       "status": "ok",
-      "time_ms": 1640,
+      "time_ms": 1835,
       "passed": 42,
       "failed": 0,
       "skipped": 1
     },
     "contract": {
       "status": "ok",
-      "time_ms": 832,
+      "time_ms": 958,
       "passed": 42,
       "failed": 0,
       "skipped": 0
     }
   },
-  "timestamp": "2026-04-20T14:51:14Z",
+  "timestamp": "2026-04-20T14:54:00Z",
   "git_user": "enzo.patti@aluno.senai.br"
 }
