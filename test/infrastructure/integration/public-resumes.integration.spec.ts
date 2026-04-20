@@ -59,13 +59,16 @@ describe('Public Resumes Integration', () => {
           expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
         });
 
+      // Response shape was unified to the canonical `{ success, data: { share } }`
+      // envelope by the backend-audit hardening PR (#213). The duplicated
+      // top-level fields (slug, resumeId, isActive, publicUrl) are gone.
       expect(response.status).toBe(201);
-      expect(response.body.slug).toBe('my-awesome-resume');
-      expect(response.body.resumeId).toBe(resumeId);
-      expect(response.body.isActive).toBe(true);
-      expect(response.body).toHaveProperty('publicUrl');
+      expect(response.body.data.share.slug).toBe('my-awesome-resume');
+      expect(response.body.data.share.resumeId).toBe(resumeId);
+      expect(response.body.data.share.isActive).toBe(true);
+      expect(response.body.data.share).toHaveProperty('publicUrl');
 
-      shareSlug = response.body.slug;
+      shareSlug = response.body.data.share.slug;
     });
 
     it('should create a password-protected share', async () => {
@@ -75,8 +78,8 @@ describe('Public Resumes Integration', () => {
       });
 
       expect(response.status).toBe(201);
-      expect(response.body).toHaveProperty('slug');
-      expect(response.body.hasPassword).toBe(true);
+      expect(response.body.data.share).toHaveProperty('slug');
+      expect(response.body.data.share.hasPassword).toBe(true);
     });
 
     it('should list user shares for a resume', async () => {
@@ -250,7 +253,9 @@ describe('Public Resumes Integration', () => {
 
       expect(response.status).toBe(201);
       const prisma = getPrisma();
-      const share = await prisma.resumeShare.findUnique({ where: { slug: response.body.slug } });
+      const share = await prisma.resumeShare.findUnique({
+        where: { slug: response.body.data.share.slug },
+      });
       expect(share).not.toBeNull();
       qrShareId = share!.id;
     });

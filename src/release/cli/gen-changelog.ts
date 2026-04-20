@@ -70,7 +70,7 @@ async function main(): Promise<void> {
 
     switch (input.releaseType) {
       case 'patch':
-        changelog = formatPatchChangelog(input.prs as PullRequest[]);
+        changelog = formatPatchChangelog(input.prs as PullRequest[], input.baseDate);
         break;
 
       case 'minor':
