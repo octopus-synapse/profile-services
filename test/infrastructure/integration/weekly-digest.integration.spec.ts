@@ -25,6 +25,20 @@ describe('Weekly Digest Integration', () => {
     });
     resumeId = resume.id;
 
+    // The service filters to users who explicitly opted in with
+    // emailDelivery='WEEKLY' + emailEnabled. Seed that preference so the test
+    // user is actually eligible — otherwise the service correctly returns
+    // { usersEmailed: 0, usersSkipped: 0 }.
+    await prisma.notificationPreference.create({
+      data: {
+        userId,
+        type: 'APPLICATION_STALE',
+        enabled: true,
+        emailEnabled: true,
+        emailDelivery: 'WEEKLY',
+      },
+    });
+
     sentEmails = [];
     const stubEmail = {
       sendEmail: async (opts: { to: string; subject: string; text: string }) => {
@@ -46,6 +60,7 @@ describe('Weekly Digest Integration', () => {
     await prisma.resumeViewEvent.deleteMany({ where: { resumeId } });
     await prisma.resumeVersion.deleteMany({ where: { resumeId } });
     await prisma.resume.delete({ where: { id: resumeId } });
+    await prisma.notificationPreference.deleteMany({ where: { userId } });
     await prisma.user.delete({ where: { id: userId } });
     await closeApp();
   });

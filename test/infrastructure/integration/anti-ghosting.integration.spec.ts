@@ -52,6 +52,9 @@ describe('Anti-ghosting Integration', () => {
     await prisma.jobApplicationEvent.deleteMany({ where: { applicationId } });
     await prisma.jobApplication.delete({ where: { id: applicationId } });
     await prisma.job.delete({ where: { id: jobId } });
+    // Anti-ghosting service creates Notification rows as part of scanAndNotify;
+    // they FK to User and must be cleared before the user delete.
+    await prisma.notification.deleteMany({ where: { userId } });
     await prisma.user.delete({ where: { id: userId } });
     await closeApp();
   });
