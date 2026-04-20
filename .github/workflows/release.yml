@@ -34,10 +34,13 @@ jobs:
     #     AND merge-commits where the chore line lives in the body).
     #  - manual workflow_dispatch on main (no head_commit payload to inspect),
     #    used to recover from a release PR merged with the wrong strategy.
-    if: github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, 'chore(release):'))
+    # `head_commit.message` is null on workflow_dispatch — `|| ''` keeps
+    # `contains()` from blowing up with a null reference in that branch.
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message || '', 'chore(release):'))
     uses: octopus-synapse/octopus-workflows/.github/workflows/_release-finalize.yml@v1
     with:
       commit_sha: ${{ github.sha }}
+    secrets: inherit
 
   build-docker:
     needs: finalize-release
@@ -45,6 +48,7 @@ jobs:
     uses: octopus-synapse/octopus-workflows/.github/workflows/_release-docker.yml@v1
     with:
       tag: ${{ needs.finalize-release.outputs.tag }}
+    secrets: inherit
 
   # release-please reads .release-please-manifest.json from whichever branch
   # it's running on. Our flow is homolog -> main, so the chore(release) commit
@@ -66,10 +70,10 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
-          token: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
       - name: Open sync PR back to homolog
         env:
-          GH_TOKEN: ${{ secrets.GH_PAT || secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ needs.finalize-release.outputs.tag }}
         run: |
           set -euo pipefail
