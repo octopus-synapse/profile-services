@@ -1,10 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import type { JobApplicationEventType } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import {
-  EntityNotFoundException,
-  ForbiddenException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { ApplicationNotOwnedException } from '../domain/exceptions/jobs.exceptions';
 
 /** Events the tracker considers a "recruiter-side response" — they reset the
  *  silence detector because something is clearly happening. Everything else
@@ -147,7 +145,7 @@ export class ApplicationTrackerService {
     });
     if (!application) throw new EntityNotFoundException('JobApplication', applicationId);
     if (application.userId !== userId) {
-      throw new ForbiddenException('You do not own this application');
+      throw new ApplicationNotOwnedException();
     }
 
     const event = await this.prisma.jobApplicationEvent.create({

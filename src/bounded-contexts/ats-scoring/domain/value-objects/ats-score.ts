@@ -1,3 +1,5 @@
+import { InvalidAtsScoreException } from '../exceptions/ats-scoring.exceptions';
+
 export interface AtsScoreBreakdown {
   criterion: string;
   score: number;
@@ -12,7 +14,7 @@ export class AtsScore {
     readonly recommendations: string[],
   ) {
     if (overall < 0 || overall > 100) {
-      throw new Error('ATS score must be 0-100');
+      throw new InvalidAtsScoreException(overall);
     }
   }
 

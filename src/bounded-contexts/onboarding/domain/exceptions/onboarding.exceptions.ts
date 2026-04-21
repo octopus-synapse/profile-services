@@ -2,6 +2,8 @@
  * Structured error response for onboarding validation failures.
  * Frontend displays these messages directly - no hardcoded validation needed.
  */
+import { DomainException } from '@/shared-kernel/exceptions';
+
 export interface OnboardingValidationError {
   code: string;
   field: string;
@@ -12,15 +14,18 @@ export interface OnboardingValidationError {
  * Domain exception for onboarding validation failures.
  * Mapped to HTTP 400 by the infrastructure layer (exception filter).
  */
-export class OnboardingValidationException extends Error {
+export class OnboardingValidationException extends DomainException {
+  readonly code: string;
   readonly statusCode = 400;
+  readonly statusHint = 400;
 
   constructor(
-    public readonly code: string,
+    code: string,
     message: string,
     public readonly details: OnboardingValidationError[] = [],
   ) {
     super(message);
+    this.code = code;
     this.name = 'OnboardingValidationException';
   }
 

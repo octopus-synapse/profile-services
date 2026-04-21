@@ -1,7 +1,8 @@
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import {
-  EntityNotFoundException,
-  ValidationException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
+  ConnectionNotAcceptedException,
+  NotPartOfConnectionException,
+} from '../../../domain/exceptions/social.exceptions';
 import type { ConnectionRepositoryPort } from '../../ports/connection.port';
 
 export class RemoveConnectionUseCase {
@@ -14,11 +15,11 @@ export class RemoveConnectionUseCase {
     }
 
     if (connection.status !== 'ACCEPTED') {
-      throw new ValidationException('Connection is not accepted');
+      throw new ConnectionNotAcceptedException();
     }
 
     if (connection.requesterId !== currentUserId && connection.targetId !== currentUserId) {
-      throw new ValidationException('You are not part of this connection');
+      throw new NotPartOfConnectionException();
     }
 
     await this.repository.deleteConnection(connectionId);

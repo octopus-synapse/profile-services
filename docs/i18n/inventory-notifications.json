@@ -12,7 +12,7 @@
         },
         {
           "file": "src/bounded-contexts/feed/services/engagement.service.ts",
-          "line": 83
+          "line": 81
         },
         {
           "file": "src/bounded-contexts/notifications/services/notification.service.ts",
@@ -42,11 +42,11 @@
         },
         {
           "file": "src/bounded-contexts/feed/services/engagement.service.ts",
-          "line": 236
+          "line": 234
         },
         {
           "file": "src/bounded-contexts/feed/services/engagement.service.ts",
-          "line": 254
+          "line": 252
         },
         {
           "file": "src/bounded-contexts/notifications/services/notification.service.ts",

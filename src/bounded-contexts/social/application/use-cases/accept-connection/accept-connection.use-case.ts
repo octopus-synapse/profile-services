@@ -1,9 +1,10 @@
 import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
-import {
-  EntityNotFoundException,
-  ValidationException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { ConnectionAcceptedEvent } from '../../../domain/events';
+import {
+  ConnectionNotPendingException,
+  NotConnectionTargetException,
+} from '../../../domain/exceptions/social.exceptions';
 import type { ConnectionRepositoryPort, ConnectionWithUser } from '../../ports/connection.port';
 
 export class AcceptConnectionUseCase {
@@ -19,11 +20,11 @@ export class AcceptConnectionUseCase {
     }
 
     if (connection.status !== 'PENDING') {
-      throw new ValidationException('Connection request is not pending');
+      throw new ConnectionNotPendingException();
     }
 
     if (connection.targetId !== currentUserId) {
-      throw new ValidationException('Only the target user can accept a connection request');
+      throw new NotConnectionTargetException('accept');
     }
 
     const updated = await this.repository.updateConnectionStatus(connectionId, 'ACCEPTED');

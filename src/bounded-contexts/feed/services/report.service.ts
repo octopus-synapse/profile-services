@@ -6,10 +6,8 @@
 
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import {
-  ConflictException,
-  EntityNotFoundException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { PostAlreadyReportedException } from '../domain/exceptions/feed.exceptions';
 
 @Injectable()
 export class ReportService {
@@ -34,7 +32,7 @@ export class ReportService {
     });
 
     if (existing) {
-      throw new ConflictException('You have already reported this post');
+      throw new PostAlreadyReportedException();
     }
 
     return this.prisma.postReport.create({

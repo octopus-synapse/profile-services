@@ -9,10 +9,8 @@ import { Injectable } from '@nestjs/common';
 import type { ReactionType } from '@prisma/client';
 import { NotificationService } from '@/bounded-contexts/notifications/services/notification.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import {
-  ConflictException,
-  EntityNotFoundException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { PostAlreadyRepostedException } from '../domain/exceptions/feed.exceptions';
 
 const AUTHOR_SELECT = {
   id: true,
@@ -206,7 +204,7 @@ export class EngagementService {
     });
 
     if (existingRepost) {
-      throw new ConflictException('You have already reposted this post');
+      throw new PostAlreadyRepostedException();
     }
 
     if (commentary) {

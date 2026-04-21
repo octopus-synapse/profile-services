@@ -5,11 +5,16 @@ import { LlmPort } from '@/bounded-contexts/ai/domain/ports/llm.port';
 import { ResumeAnalyticsFacade } from '@/bounded-contexts/analytics/resume-analytics/services/resume-analytics.facade';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { paginate, searchWhere } from '@/shared-kernel/database';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import {
-  ConflictException,
-  EntityNotFoundException,
-  ForbiddenException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
+  CannotApplyToOwnJobException,
+  CannotModifyOthersJobException,
+  JobImportFetchFailedException,
+  JobImportInvalidUrlException,
+  JobImportPageTooThinException,
+  NoPrimaryResumeException,
+  NotJobOwnerException,
+} from '../domain/exceptions/jobs.exceptions';
 import { ApplicationTrackerService } from '../tracker/application-tracker.service';
 import { computeFitScore, type FitScore } from './compute-fit-score';
 import { extractSoftSignals, percentOverlap } from './fit-signals';
@@ -142,7 +147,7 @@ export class JobService {
     });
 
     if (!user?.primaryResumeId) {
-      throw new ConflictException('NO_PRIMARY_RESUME');
+      throw new NoPrimaryResumeException();
     }
 
     // Consolidated text the matcher can scan. Requirements/skills first so
@@ -209,7 +214,7 @@ export class JobService {
     if (!job) throw new EntityNotFoundException('Job', jobId);
 
     if (job.authorId === userId) {
-      throw new ForbiddenException('You cannot apply to your own job');
+      throw new CannotApplyToOwnJobException();
     }
 
     const existing = await this.prisma.jobApplication.findUnique({
@@ -305,10 +310,10 @@ export class JobService {
     try {
       parsedUrl = new URL(url);
     } catch {
-      throw new ConflictException('INVALID_URL');
+      throw new JobImportInvalidUrlException();
     }
     if (parsedUrl.protocol !== 'http:' && parsedUrl.protocol !== 'https:') {
-      throw new ConflictException('INVALID_URL');
+      throw new JobImportInvalidUrlException();
     }
 
     const controller = new AbortController();
@@ -321,22 +326,22 @@ export class JobService {
         redirect: 'follow',
       });
       if (!res.ok) {
-        throw new ConflictException('FETCH_FAILED');
+        throw new JobImportFetchFailedException();
       }
       const buf = new Uint8Array(await res.arrayBuffer());
       const slice =
         buf.byteLength > IMPORT_MAX_HTML_BYTES ? buf.slice(0, IMPORT_MAX_HTML_BYTES) : buf;
       html = new TextDecoder('utf-8', { fatal: false }).decode(slice);
     } catch (err) {
-      if (err instanceof ConflictException) throw err;
-      throw new ConflictException('FETCH_FAILED');
+      if (err instanceof JobImportFetchFailedException) throw err;
+      throw new JobImportFetchFailedException();
     } finally {
       clearTimeout(timer);
     }
 
     const text = stripHtml(html);
     if (text.trim().length < 50) {
-      throw new ConflictException('PAGE_TOO_THIN');
+      throw new JobImportPageTooThinException();
     }
 
     const preview = await this.llm.extractJobFromText(text);
@@ -593,7 +598,7 @@ export class JobService {
     }
 
     if (job.authorId !== userId) {
-      throw new ForbiddenException('You can only update your own jobs');
+      throw new CannotModifyOthersJobException('update');
     }
 
     const { expiresAt, ...rest } = dto;
@@ -611,7 +616,7 @@ export class JobService {
     }
 
     if (job.authorId !== userId) {
-      throw new ForbiddenException('You can only delete your own jobs');
+      throw new CannotModifyOthersJobException('delete');
     }
 
     return this.prisma.job.delete({ where: { id } });
@@ -637,7 +642,7 @@ export class JobService {
     });
     if (!job) throw new EntityNotFoundException('Job', jobId);
     if (job.authorId !== ownerId) {
-      throw new ForbiddenException('Only the job owner can list its applications');
+      throw new NotJobOwnerException();
     }
 
     const safeLimit = Math.min(limit, 100);

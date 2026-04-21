@@ -1,0 +1,63 @@
+/**
+ * Jobs Bounded Context Exceptions
+ */
+import { ConflictException, DomainException, ForbiddenException } from '@/shared-kernel/exceptions';
+
+export class NoPrimaryResumeException extends ConflictException {
+  readonly code: string = 'NO_PRIMARY_RESUME';
+  constructor() {
+    super('User has no primary resume to compute fit score against');
+  }
+}
+
+export class CannotApplyToOwnJobException extends ForbiddenException {
+  readonly code: string = 'CANNOT_APPLY_TO_OWN_JOB';
+  constructor() {
+    super('You cannot apply to your own job');
+  }
+}
+
+export class CannotModifyOthersJobException extends ForbiddenException {
+  readonly code: string = 'CANNOT_MODIFY_OTHERS_JOB';
+  constructor(action: 'update' | 'delete') {
+    super(`You can only ${action} your own jobs`);
+  }
+}
+
+export class NotJobOwnerException extends ForbiddenException {
+  readonly code: string = 'NOT_JOB_OWNER';
+  constructor() {
+    super('Only the job owner can perform this action');
+  }
+}
+
+export class ApplicationNotOwnedException extends ForbiddenException {
+  readonly code: string = 'APPLICATION_NOT_OWNED';
+  constructor() {
+    super('You do not own this application');
+  }
+}
+
+export class JobImportInvalidUrlException extends DomainException {
+  readonly code: string = 'JOB_IMPORT_INVALID_URL';
+  readonly statusHint = 422;
+  constructor() {
+    super('The URL provided is not a valid HTTP/HTTPS URL');
+  }
+}
+
+export class JobImportFetchFailedException extends DomainException {
+  readonly code: string = 'JOB_IMPORT_FETCH_FAILED';
+  readonly statusHint = 502;
+  constructor() {
+    super('Could not fetch the URL within the allowed window');
+  }
+}
+
+export class JobImportPageTooThinException extends DomainException {
+  readonly code: string = 'JOB_IMPORT_PAGE_TOO_THIN';
+  readonly statusHint = 422;
+  constructor() {
+    super('The page did not contain enough text to extract a job posting');
+  }
+}

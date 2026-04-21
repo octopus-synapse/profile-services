@@ -12,7 +12,6 @@
 
 import { randomUUID } from 'node:crypto';
 import {
-  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -39,8 +38,14 @@ import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/a
 import { CurrentUser } from '@/bounded-contexts/platform/common/decorators/current-user.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { S3UploadService } from '@/bounded-contexts/platform/common/services/s3-upload.service';
-import { ERROR_MESSAGES, FILE_UPLOAD_CONFIG } from '@/shared-kernel';
+import { FILE_UPLOAD_CONFIG } from '@/shared-kernel';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
+import {
+  FileRequiredException,
+  FileTooLargeException,
+  FileUploadUnavailableException,
+  InvalidFileTypeException,
+} from '../domain/exceptions/feed.exceptions';
 import { CreatePostDto } from '../dto/create-post-request.dto';
 import {
   PostByIdDataDto,
@@ -144,18 +149,16 @@ export class PostController {
   })
   async uploadImage(@CurrentUser() user: UserPayload, @UploadedFile() file: Express.Multer.File) {
     if (!file) {
-      throw new BadRequestException('File is required');
+      throw new FileRequiredException();
     }
 
     if (file.size > FILE_UPLOAD_CONFIG.MAX_SIZE) {
-      throw new BadRequestException(
-        `File size exceeds maximum allowed size of ${FILE_UPLOAD_CONFIG.MAX_SIZE / 1024 / 1024}MB`,
-      );
+      throw new FileTooLargeException(FILE_UPLOAD_CONFIG.MAX_SIZE);
     }
 
     const allowedTypes = FILE_UPLOAD_CONFIG.ALLOWED_IMAGE_TYPES;
     if (!allowedTypes.includes(file.mimetype as (typeof allowedTypes)[number])) {
-      throw new BadRequestException(`Invalid file type. Allowed types: ${allowedTypes.join(', ')}`);
+      throw new InvalidFileTypeException([...allowedTypes]);
     }
 
     const extension = file.originalname.split('.').pop()?.toLowerCase() ?? 'jpg';
@@ -164,7 +167,7 @@ export class PostController {
     const result = await this.s3UploadService.uploadFile(file.buffer, key, file.mimetype);
 
     if (!result) {
-      throw new BadRequestException(ERROR_MESSAGES.FILE_UPLOAD_UNAVAILABLE);
+      throw new FileUploadUnavailableException();
     }
 
     return result;

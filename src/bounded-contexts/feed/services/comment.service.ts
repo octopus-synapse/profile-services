@@ -7,10 +7,8 @@
 
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import {
-  EntityNotFoundException,
-  ForbiddenException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { CannotDeleteOthersCommentException } from '../domain/exceptions/feed.exceptions';
 
 const AUTHOR_SELECT = {
   id: true,
@@ -116,7 +114,7 @@ export class CommentService {
     }
 
     if (comment.authorId !== userId) {
-      throw new ForbiddenException('You can only delete your own comments');
+      throw new CannotDeleteOthersCommentException();
     }
 
     const [updatedComment] = await this.prisma.$transaction([

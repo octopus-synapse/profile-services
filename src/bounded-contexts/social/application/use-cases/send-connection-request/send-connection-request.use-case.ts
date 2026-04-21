@@ -1,10 +1,12 @@
 import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
-import {
-  ConflictException,
-  EntityNotFoundException,
-  ValidationException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { ConnectionRequestedEvent } from '../../../domain/events';
+import {
+  AlreadyConnectedException,
+  CannotConnectWithSelfException,
+  ConnectionRequestExistsException,
+  ConnectionRequestPendingException,
+} from '../../../domain/exceptions/social.exceptions';
 import type { ConnectionRepositoryPort, ConnectionWithUser } from '../../ports/connection.port';
 
 export class SendConnectionRequestUseCase {
@@ -15,7 +17,7 @@ export class SendConnectionRequestUseCase {
 
   async execute(requesterId: string, targetId: string): Promise<ConnectionWithUser> {
     if (requesterId === targetId) {
-      throw new ValidationException('Cannot connect with yourself');
+      throw new CannotConnectWithSelfException();
     }
 
     const targetExists = await this.repository.userExists(targetId);
@@ -26,13 +28,13 @@ export class SendConnectionRequestUseCase {
     const existing = await this.repository.findConnectionBetween(requesterId, targetId);
     if (existing) {
       if (existing.status === 'ACCEPTED') {
-        throw new ConflictException('Already connected with this user');
+        throw new AlreadyConnectedException();
       }
       if (existing.status === 'PENDING') {
-        throw new ConflictException('Connection request already pending');
+        throw new ConnectionRequestPendingException();
       }
       if (existing.status === 'REJECTED') {
-        throw new ConflictException('Connection request already exists');
+        throw new ConnectionRequestExistsException();
       }
     }
 

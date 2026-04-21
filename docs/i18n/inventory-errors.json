@@ -1,9 +1,9 @@
 {
   "summary": {
-    "classifiedCount": 42,
-    "ambiguousCount": 354,
-    "unstableCount": 131,
-    "distinctCodes": 30
+    "classifiedCount": 165,
+    "ambiguousCount": 327,
+    "unstableCount": 121,
+    "distinctCodes": 156
   },
   "classified": [
     {
@@ -37,9 +37,225 @@
       "extends": "DomainException"
     },
     {
+      "className": "AggregationBackendUnavailableException",
+      "code": "AGGREGATION_BACKEND_UNAVAILABLE",
+      "file": "src/bounded-contexts/analytics/domain/exceptions/analytics.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "AiEmptyInputException",
+      "code": "AI_EMPTY_INPUT",
+      "file": "src/bounded-contexts/ai/domain/exceptions/ai.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "AiEmptyResponseException",
+      "code": "AI_EMPTY_RESPONSE",
+      "file": "src/bounded-contexts/ai/domain/exceptions/ai.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "AiInvalidOutputException",
+      "code": "AI_INVALID_OUTPUT",
+      "file": "src/bounded-contexts/ai/domain/exceptions/ai.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "AiNotConfiguredException",
+      "code": "AI_NOT_CONFIGURED",
+      "file": "src/bounded-contexts/ai/domain/exceptions/ai.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "AlreadyBlockedException",
+      "code": "ALREADY_BLOCKED",
+      "file": "src/bounded-contexts/collaboration/domain/exceptions/collaboration.exceptions.ts",
+      "extends": "ConflictException"
+    },
+    {
+      "className": "AlreadyConnectedException",
+      "code": "ALREADY_CONNECTED",
+      "file": "src/bounded-contexts/social/domain/exceptions/social.exceptions.ts",
+      "extends": "ConflictException"
+    },
+    {
+      "className": "AlreadyEndorsedException",
+      "code": "ALREADY_ENDORSED",
+      "file": "src/bounded-contexts/collaboration/domain/exceptions/collaboration.exceptions.ts",
+      "extends": "ConflictException"
+    },
+    {
+      "className": "AlreadyFollowingException",
+      "code": "ALREADY_FOLLOWING",
+      "file": "src/bounded-contexts/social/domain/exceptions/social.exceptions.ts",
+      "extends": "ConflictException"
+    },
+    {
+      "className": "AnalyticsConsentRequiredException",
+      "code": "ANALYTICS_CONSENT_REQUIRED",
+      "file": "src/bounded-contexts/analytics/domain/exceptions/analytics.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "AnalyticsForbiddenException",
+      "code": "ANALYTICS_CONSENT_REQUIRED",
+      "file": "src/bounded-contexts/presentation/domain/exceptions/presentation.exceptions.ts",
+      "extends": "ForbiddenException"
+    },
+    {
+      "className": "ApplicationNotOwnedException",
+      "code": "APPLICATION_NOT_OWNED",
+      "file": "src/bounded-contexts/jobs/domain/exceptions/jobs.exceptions.ts",
+      "extends": "ForbiddenException"
+    },
+    {
+      "className": "AtsRuleInvalidException",
+      "code": "ATS_RULE_INVALID",
+      "file": "src/bounded-contexts/ats-validation/domain/exceptions/ats-validation.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "AtsRuleSetNotFoundException",
+      "code": "ATS_RULE_SET_NOT_FOUND",
+      "file": "src/bounded-contexts/ats-validation/domain/exceptions/ats-validation.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "AtsValidationUnavailableException",
+      "code": "ATS_VALIDATION_UNAVAILABLE",
+      "file": "src/bounded-contexts/ats-validation/domain/exceptions/ats-validation.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "AuditLogFailedException",
+      "code": "AUDIT_LOG_FAILED",
+      "file": "src/bounded-contexts/platform/common/exceptions/platform.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "AutoApplyAlreadyRunningException",
+      "code": "AUTO_APPLY_ALREADY_RUNNING",
+      "file": "src/bounded-contexts/automation/domain/exceptions/automation.exceptions.ts",
+      "extends": "ConflictException"
+    },
+    {
+      "className": "AutomationWorkerUnavailableException",
+      "code": "AUTOMATION_WORKER_UNAVAILABLE",
+      "file": "src/bounded-contexts/automation/domain/exceptions/automation.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "BadgeAlreadyAwardedException",
+      "code": "BADGE_ALREADY_AWARDED",
+      "file": "src/bounded-contexts/badges/domain/exceptions/badges.exceptions.ts",
+      "extends": "ConflictException"
+    },
+    {
+      "className": "BadgeCriteriaNotMetException",
+      "code": "BADGE_CRITERIA_NOT_MET",
+      "file": "src/bounded-contexts/badges/domain/exceptions/badges.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "BlockNotFoundException",
+      "code": "BLOCK_NOT_FOUND",
+      "file": "src/bounded-contexts/collaboration/domain/exceptions/collaboration.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "BundleAssemblyPartialException",
+      "code": "BUNDLE_ASSEMBLY_PARTIAL",
+      "file": "src/bounded-contexts/export/domain/exceptions/export.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
       "className": "BusinessRuleViolationException",
       "code": "BUSINESS_RULE_VIOLATION",
       "file": "src/shared-kernel/exceptions/domain.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "CannotApplyToOwnJobException",
+      "code": "CANNOT_APPLY_TO_OWN_JOB",
+      "file": "src/bounded-contexts/jobs/domain/exceptions/jobs.exceptions.ts",
+      "extends": "ForbiddenException"
+    },
+    {
+      "className": "CannotBlockSelfException",
+      "code": "CANNOT_BLOCK_SELF",
+      "file": "src/bounded-contexts/collaboration/domain/exceptions/collaboration.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "CannotConnectWithSelfException",
+      "code": "CANNOT_CONNECT_WITH_SELF",
+      "file": "src/bounded-contexts/social/domain/exceptions/social.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "CannotDeleteOthersCommentException",
+      "code": "CANNOT_DELETE_OTHERS_COMMENT",
+      "file": "src/bounded-contexts/feed/domain/exceptions/feed.exceptions.ts",
+      "extends": "ForbiddenException"
+    },
+    {
+      "className": "CannotDeleteOthersPostException",
+      "code": "CANNOT_DELETE_OTHERS_POST",
+      "file": "src/bounded-contexts/feed/domain/exceptions/feed.exceptions.ts",
+      "extends": "ForbiddenException"
+    },
+    {
+      "className": "CannotEndorseSelfException",
+      "code": "CANNOT_ENDORSE_SELF",
+      "file": "src/bounded-contexts/collaboration/domain/exceptions/collaboration.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "CannotFollowSelfException",
+      "code": "CANNOT_FOLLOW_SELF",
+      "file": "src/bounded-contexts/social/domain/exceptions/social.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "CannotModifyOthersJobException",
+      "code": "CANNOT_MODIFY_OTHERS_JOB",
+      "file": "src/bounded-contexts/jobs/domain/exceptions/jobs.exceptions.ts",
+      "extends": "ForbiddenException"
+    },
+    {
+      "className": "CannotRecommendSelfException",
+      "code": "CANNOT_RECOMMEND_SELF",
+      "file": "src/bounded-contexts/collaboration/domain/exceptions/collaboration.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "CollaboratorAlreadyInvitedException",
+      "code": "COLLABORATOR_ALREADY_INVITED",
+      "file": "src/bounded-contexts/collaboration/domain/exceptions/collaboration.exceptions.ts",
+      "extends": "ConflictException"
+    },
+    {
+      "className": "CollaboratorLimitReachedException",
+      "code": "COLLABORATOR_LIMIT_REACHED",
+      "file": "src/bounded-contexts/collaboration/domain/exceptions/collaboration.exceptions.ts",
+      "extends": "ConflictException"
+    },
+    {
+      "className": "CommentNotOwnedException",
+      "code": "COMMENT_NOT_OWNED",
+      "file": "src/bounded-contexts/collaboration/domain/exceptions/collaboration.exceptions.ts",
+      "extends": "ForbiddenException"
+    },
+    {
+      "className": "CommentThreadClosedException",
+      "code": "COMMENT_THREAD_CLOSED",
+      "file": "src/bounded-contexts/collaboration/domain/exceptions/collaboration.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "ConfigurationMissingException",
+      "code": "CONFIGURATION_MISSING",
+      "file": "src/bounded-contexts/platform/common/exceptions/platform.exceptions.ts",
       "extends": "DomainException"
     },
     {
@@ -55,6 +271,36 @@
       "extends": "DomainException"
     },
     {
+      "className": "ConnectionNotAcceptedException",
+      "code": "CONNECTION_NOT_ACCEPTED",
+      "file": "src/bounded-contexts/social/domain/exceptions/social.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "ConnectionNotPendingException",
+      "code": "CONNECTION_NOT_PENDING",
+      "file": "src/bounded-contexts/social/domain/exceptions/social.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "ConnectionRequestExistsException",
+      "code": "CONNECTION_REQUEST_EXISTS",
+      "file": "src/bounded-contexts/social/domain/exceptions/social.exceptions.ts",
+      "extends": "ConflictException"
+    },
+    {
+      "className": "ConnectionRequestPendingException",
+      "code": "CONNECTION_REQUEST_PENDING",
+      "file": "src/bounded-contexts/social/domain/exceptions/social.exceptions.ts",
+      "extends": "ConflictException"
+    },
+    {
+      "className": "DateRangeTooLargeException",
+      "code": "DATE_RANGE_TOO_LARGE",
+      "file": "src/bounded-contexts/analytics/domain/exceptions/analytics.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
       "className": "DomainException",
       "code": "(no literal)",
       "file": "src/shared-kernel/exceptions/domain.exceptions.ts",
@@ -65,6 +311,36 @@
       "code": "(no literal)",
       "file": "src/bounded-contexts/identity/shared-kernel/exceptions/domain.exception.ts",
       "extends": "Error"
+    },
+    {
+      "className": "DslCyclicReferenceException",
+      "code": "DSL_CYCLIC_REFERENCE",
+      "file": "src/bounded-contexts/dsl/domain/exceptions/dsl.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "DslEvaluationLimitExceededException",
+      "code": "DSL_EVALUATION_LIMIT_EXCEEDED",
+      "file": "src/bounded-contexts/dsl/domain/exceptions/dsl.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "DslParseErrorException",
+      "code": "DSL_PARSE_ERROR",
+      "file": "src/bounded-contexts/dsl/domain/exceptions/dsl.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "DslTypeMismatchException",
+      "code": "DSL_TYPE_MISMATCH",
+      "file": "src/bounded-contexts/dsl/domain/exceptions/dsl.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "DslUnknownFunctionException",
+      "code": "DSL_UNKNOWN_FUNCTION",
+      "file": "src/bounded-contexts/dsl/domain/exceptions/dsl.exceptions.ts",
+      "extends": "ValidationException"
     },
     {
       "className": "EmailAlreadyExistsException",
@@ -85,6 +361,60 @@
       "extends": "DomainException"
     },
     {
+      "className": "ExportEngineFailedException",
+      "code": "EXPORT_ENGINE_FAILED",
+      "file": "src/bounded-contexts/export/domain/exceptions/export.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "ExportEngineUnavailableException",
+      "code": "RESUME_EXPORT_UNAVAILABLE",
+      "file": "src/bounded-contexts/resumes/domain/exceptions/resumes.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "ExportPayloadTooLargeException",
+      "code": "EXPORT_PAYLOAD_TOO_LARGE",
+      "file": "src/bounded-contexts/export/domain/exceptions/export.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "ExportThemeInvalidException",
+      "code": "EXPORT_THEME_INVALID",
+      "file": "src/bounded-contexts/export/domain/exceptions/export.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "ExternalHandleInvalidException",
+      "code": "EXTERNAL_HANDLE_INVALID",
+      "file": "src/bounded-contexts/integration/domain/exceptions/integration.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "FeatureDisabledException",
+      "code": "FEATURE_DISABLED",
+      "file": "src/bounded-contexts/platform/common/exceptions/platform.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "FileRequiredException",
+      "code": "FILE_REQUIRED",
+      "file": "src/bounded-contexts/feed/domain/exceptions/feed.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "FileTooLargeException",
+      "code": "FILE_TOO_LARGE",
+      "file": "src/bounded-contexts/feed/domain/exceptions/feed.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "FileUploadUnavailableException",
+      "code": "FILE_UPLOAD_UNAVAILABLE",
+      "file": "src/bounded-contexts/feed/domain/exceptions/feed.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
       "className": "ForbiddenException",
       "code": "FORBIDDEN",
       "file": "src/shared-kernel/exceptions/domain.exceptions.ts",
@@ -98,27 +428,63 @@
     },
     {
       "className": "ImportCannotBeCancelledException",
-      "code": "(no literal)",
+      "code": "IMPORT_CANNOT_BE_CANCELLED",
       "file": "src/bounded-contexts/import/domain/exceptions/import.exceptions.ts",
-      "extends": "Error"
+      "extends": "ConflictException"
     },
     {
       "className": "ImportCannotBeRetriedException",
-      "code": "(no literal)",
+      "code": "IMPORT_CANNOT_BE_RETRIED",
       "file": "src/bounded-contexts/import/domain/exceptions/import.exceptions.ts",
-      "extends": "Error"
+      "extends": "ConflictException"
     },
     {
       "className": "ImportNotFoundException",
-      "code": "(no literal)",
+      "code": "IMPORT_NOT_FOUND",
       "file": "src/bounded-contexts/import/domain/exceptions/import.exceptions.ts",
-      "extends": "Error"
+      "extends": "DomainException"
+    },
+    {
+      "className": "IntegrationAuthFailedException",
+      "code": "INTEGRATION_AUTH_FAILED",
+      "file": "src/bounded-contexts/integration/domain/exceptions/integration.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "IntegrationNotConfiguredException",
+      "code": "INTEGRATION_NOT_CONFIGURED",
+      "file": "src/bounded-contexts/integration/domain/exceptions/integration.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "IntegrationRateLimitedException",
+      "code": "INTEGRATION_RATE_LIMITED",
+      "file": "src/bounded-contexts/integration/domain/exceptions/integration.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "IntegrationResponseInvalidException",
+      "code": "INTEGRATION_RESPONSE_INVALID",
+      "file": "src/bounded-contexts/integration/domain/exceptions/integration.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "IntegrationTimeoutException",
+      "code": "INTEGRATION_TIMEOUT",
+      "file": "src/bounded-contexts/integration/domain/exceptions/integration.exceptions.ts",
+      "extends": "DomainException"
     },
     {
       "className": "Invalid2faCodeException",
       "code": "INVALID_2FA_CODE",
       "file": "src/bounded-contexts/identity/authentication/domain/exceptions/authentication.exceptions.ts",
       "extends": "UnauthorizedException"
+    },
+    {
+      "className": "InvalidAtsScoreException",
+      "code": "ATS_SCORE_OUT_OF_RANGE",
+      "file": "src/bounded-contexts/ats-scoring/domain/exceptions/ats-scoring.exceptions.ts",
+      "extends": "ValidationException"
     },
     {
       "className": "InvalidCredentialsException",
@@ -139,10 +505,22 @@
       "extends": "UnauthorizedException"
     },
     {
+      "className": "InvalidDateRangeException",
+      "code": "INVALID_DATE_RANGE",
+      "file": "src/bounded-contexts/analytics/domain/exceptions/analytics.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "InvalidFileTypeException",
+      "code": "INVALID_FILE_TYPE",
+      "file": "src/bounded-contexts/feed/domain/exceptions/feed.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
       "className": "InvalidImportDataException",
-      "code": "(no literal)",
+      "code": "INVALID_IMPORT_DATA",
       "file": "src/bounded-contexts/import/domain/exceptions/import.exceptions.ts",
-      "extends": "Error"
+      "extends": "ValidationException"
     },
     {
       "className": "InvalidRefreshTokenException",
@@ -163,6 +541,12 @@
       "extends": "DomainException"
     },
     {
+      "className": "InvalidSkillCategoryException",
+      "code": "INVALID_SKILL_CATEGORY",
+      "file": "src/bounded-contexts/skills-catalog/domain/exceptions/skills-catalog.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
       "className": "InvalidTokenException",
       "code": "INVALID_TOKEN",
       "file": "src/bounded-contexts/identity/shared-kernel/exceptions/unauthorized.exception.ts",
@@ -181,16 +565,214 @@
       "extends": "DomainException"
     },
     {
+      "className": "JobImportFetchFailedException",
+      "code": "JOB_IMPORT_FETCH_FAILED",
+      "file": "src/bounded-contexts/jobs/domain/exceptions/jobs.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "JobImportInvalidUrlException",
+      "code": "JOB_IMPORT_INVALID_URL",
+      "file": "src/bounded-contexts/jobs/domain/exceptions/jobs.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "JobImportPageTooThinException",
+      "code": "JOB_IMPORT_PAGE_TOO_THIN",
+      "file": "src/bounded-contexts/jobs/domain/exceptions/jobs.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
       "className": "LimitExceededException",
       "code": "LIMIT_EXCEEDED",
       "file": "src/shared-kernel/exceptions/domain.exceptions.ts",
       "extends": "DomainException"
     },
     {
+      "className": "NoPrimaryResumeException",
+      "code": "NO_PRIMARY_RESUME",
+      "file": "src/bounded-contexts/jobs/domain/exceptions/jobs.exceptions.ts",
+      "extends": "ConflictException"
+    },
+    {
+      "className": "NotConnectionTargetException",
+      "code": "NOT_CONNECTION_TARGET",
+      "file": "src/bounded-contexts/social/domain/exceptions/social.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "NotificationDeliveryFailedException",
+      "code": "NOTIFICATION_DELIVERY_FAILED",
+      "file": "src/bounded-contexts/notifications/domain/exceptions/notifications.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "NotificationNotOwnedException",
+      "code": "NOTIFICATION_NOT_OWNED",
+      "file": "src/bounded-contexts/notifications/domain/exceptions/notifications.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "NotJobOwnerException",
+      "code": "NOT_JOB_OWNER",
+      "file": "src/bounded-contexts/jobs/domain/exceptions/jobs.exceptions.ts",
+      "extends": "ForbiddenException"
+    },
+    {
+      "className": "NotPartOfConnectionException",
+      "code": "NOT_PART_OF_CONNECTION",
+      "file": "src/bounded-contexts/social/domain/exceptions/social.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "OnboardingAlreadyCompletedException",
+      "code": "ONBOARDING_ALREADY_COMPLETED",
+      "file": "src/bounded-contexts/onboarding/domain/exceptions/onboarding-extra.exceptions.ts",
+      "extends": "ConflictException"
+    },
+    {
+      "className": "OnboardingSessionExpiredException",
+      "code": "ONBOARDING_SESSION_EXPIRED",
+      "file": "src/bounded-contexts/onboarding/domain/exceptions/onboarding-extra.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "OnboardingStepOutOfOrderException",
+      "code": "ONBOARDING_STEP_OUT_OF_ORDER",
+      "file": "src/bounded-contexts/onboarding/domain/exceptions/onboarding-extra.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
       "className": "OnboardingValidationException",
       "code": "(no literal)",
       "file": "src/bounded-contexts/onboarding/domain/exceptions/onboarding.exceptions.ts",
-      "extends": "Error"
+      "extends": "DomainException"
+    },
+    {
+      "className": "PollAlreadyVotedException",
+      "code": "POLL_ALREADY_VOTED",
+      "file": "src/bounded-contexts/feed/domain/exceptions/feed.exceptions.ts",
+      "extends": "ConflictException"
+    },
+    {
+      "className": "PollClosedException",
+      "code": "POLL_CLOSED",
+      "file": "src/bounded-contexts/feed/domain/exceptions/feed.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "PostAlreadyReportedException",
+      "code": "POST_ALREADY_REPORTED",
+      "file": "src/bounded-contexts/feed/domain/exceptions/feed.exceptions.ts",
+      "extends": "ConflictException"
+    },
+    {
+      "className": "PostAlreadyRepostedException",
+      "code": "POST_ALREADY_REPOSTED",
+      "file": "src/bounded-contexts/feed/domain/exceptions/feed.exceptions.ts",
+      "extends": "ConflictException"
+    },
+    {
+      "className": "PrimaryResumeRequiredException",
+      "code": "PRIMARY_RESUME_REQUIRED",
+      "file": "src/bounded-contexts/resumes/domain/exceptions/resumes.exceptions.ts",
+      "extends": "ConflictException"
+    },
+    {
+      "className": "ProgrammingLanguageInvalidException",
+      "code": "PROGRAMMING_LANGUAGE_INVALID",
+      "file": "src/bounded-contexts/skills-catalog/domain/exceptions/skills-catalog.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "RageApplyLimitReachedException",
+      "code": "RAGE_APPLY_LIMIT_REACHED",
+      "file": "src/bounded-contexts/automation/domain/exceptions/automation.exceptions.ts",
+      "extends": "LimitExceededException"
+    },
+    {
+      "className": "RageApplyMinFitInvalidException",
+      "code": "RAGE_APPLY_MIN_FIT_INVALID",
+      "file": "src/bounded-contexts/automation/domain/exceptions/automation.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "RateLimitedException",
+      "code": "RATE_LIMITED",
+      "file": "src/bounded-contexts/platform/common/exceptions/platform.exceptions.ts",
+      "extends": "LimitExceededException"
+    },
+    {
+      "className": "RecommendationAlreadyWrittenException",
+      "code": "RECOMMENDATION_ALREADY_WRITTEN",
+      "file": "src/bounded-contexts/collaboration/domain/exceptions/collaboration.exceptions.ts",
+      "extends": "ConflictException"
+    },
+    {
+      "className": "ReportAlreadySubmittedException",
+      "code": "REPORT_ALREADY_SUBMITTED",
+      "file": "src/bounded-contexts/collaboration/domain/exceptions/collaboration.exceptions.ts",
+      "extends": "ConflictException"
+    },
+    {
+      "className": "ReportNotReviewableException",
+      "code": "REPORT_NOT_REVIEWABLE",
+      "file": "src/bounded-contexts/collaboration/domain/exceptions/collaboration.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "ResumeNotOwnedException",
+      "code": "RESUME_NOT_OWNED",
+      "file": "src/bounded-contexts/resumes/domain/exceptions/resumes.exceptions.ts",
+      "extends": "ForbiddenException"
+    },
+    {
+      "className": "ResumeSectionInvalidException",
+      "code": "RESUME_SECTION_INVALID",
+      "file": "src/bounded-contexts/resumes/domain/exceptions/resumes.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "ResumeShareExpiredException",
+      "code": "RESUME_SHARE_EXPIRED",
+      "file": "src/bounded-contexts/resumes/domain/exceptions/resumes.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "ResumeSharePasswordInvalidException",
+      "code": "RESUME_SHARE_PASSWORD_INVALID",
+      "file": "src/bounded-contexts/resumes/domain/exceptions/resumes.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "ResumeSharePasswordRequiredException",
+      "code": "RESUME_SHARE_PASSWORD_REQUIRED",
+      "file": "src/bounded-contexts/resumes/domain/exceptions/resumes.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "ResumeShareRevokedException",
+      "code": "RESUME_SHARE_REVOKED",
+      "file": "src/bounded-contexts/resumes/domain/exceptions/resumes.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "ResumeShareSlugTakenException",
+      "code": "RESUME_SHARE_SLUG_TAKEN",
+      "file": "src/bounded-contexts/resumes/domain/exceptions/resumes.exceptions.ts",
+      "extends": "ConflictException"
+    },
+    {
+      "className": "ResumeSlotLimitReachedException",
+      "code": "RESUME_SLOT_LIMIT_REACHED",
+      "file": "src/bounded-contexts/resumes/domain/exceptions/resumes.exceptions.ts",
+      "extends": "ConflictException"
+    },
+    {
+      "className": "ResumeVersionNotFoundException",
+      "code": "RESUME_VERSION_NOT_FOUND",
+      "file": "src/bounded-contexts/resumes/domain/exceptions/resumes.exceptions.ts",
+      "extends": "DomainException"
     },
     {
       "className": "SamePasswordException",
@@ -199,10 +781,136 @@
       "extends": "ValidationException"
     },
     {
+      "className": "ScreenRenderFailedException",
+      "code": "SCREEN_RENDER_FAILED",
+      "file": "src/bounded-contexts/presentation/domain/exceptions/presentation.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "SectionItemInvalidException",
+      "code": "SECTION_ITEM_INVALID",
+      "file": "src/bounded-contexts/resumes/domain/exceptions/resumes.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "SectionTypeInvalidException",
+      "code": "SECTION_TYPE_INVALID",
+      "file": "src/bounded-contexts/resumes/domain/exceptions/resumes.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
       "className": "SessionExpiredException",
       "code": "SESSION_EXPIRED",
       "file": "src/bounded-contexts/identity/authentication/domain/exceptions/authentication.exceptions.ts",
       "extends": "UnauthorizedException"
+    },
+    {
+      "className": "SkillAlreadyExistsException",
+      "code": "SKILL_ALREADY_EXISTS",
+      "file": "src/bounded-contexts/skills-catalog/domain/exceptions/skills-catalog.exceptions.ts",
+      "extends": "ConflictException"
+    },
+    {
+      "className": "SkillInUseException",
+      "code": "SKILL_IN_USE",
+      "file": "src/bounded-contexts/skills-catalog/domain/exceptions/skills-catalog.exceptions.ts",
+      "extends": "ConflictException"
+    },
+    {
+      "className": "SkillSlugTakenException",
+      "code": "SKILL_SLUG_TAKEN",
+      "file": "src/bounded-contexts/skills-catalog/domain/exceptions/skills-catalog.exceptions.ts",
+      "extends": "ConflictException"
+    },
+    {
+      "className": "StorageConfigurationException",
+      "code": "STORAGE_NOT_CONFIGURED",
+      "file": "src/bounded-contexts/platform/common/exceptions/platform.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "StorageObjectNotFoundException",
+      "code": "STORAGE_OBJECT_NOT_FOUND",
+      "file": "src/bounded-contexts/platform/common/exceptions/platform.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "StorageUploadFailedException",
+      "code": "STORAGE_UPLOAD_FAILED",
+      "file": "src/bounded-contexts/platform/common/exceptions/platform.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "SuccessStoryAlreadyPublishedException",
+      "code": "SUCCESS_STORY_ALREADY_PUBLISHED",
+      "file": "src/bounded-contexts/success-stories/domain/exceptions/success-stories.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "SyncCooldownActiveException",
+      "code": "SYNC_COOLDOWN_ACTIVE",
+      "file": "src/bounded-contexts/integration/domain/exceptions/integration.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "TailorEngineUnavailableException",
+      "code": "RESUME_TAILOR_UNAVAILABLE",
+      "file": "src/bounded-contexts/resumes/domain/exceptions/resumes.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "TechAreaInvalidException",
+      "code": "TECH_AREA_INVALID",
+      "file": "src/bounded-contexts/skills-catalog/domain/exceptions/skills-catalog.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "TechNicheInvalidException",
+      "code": "TECH_NICHE_INVALID",
+      "file": "src/bounded-contexts/skills-catalog/domain/exceptions/skills-catalog.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "ThemeAlreadyPublishedException",
+      "code": "THEME_ALREADY_PUBLISHED",
+      "file": "src/bounded-contexts/themes/domain/exceptions/themes.exceptions.ts",
+      "extends": "ConflictException"
+    },
+    {
+      "className": "ThemeApprovalPendingException",
+      "code": "THEME_APPROVAL_PENDING",
+      "file": "src/bounded-contexts/themes/domain/exceptions/themes.exceptions.ts",
+      "extends": "ConflictException"
+    },
+    {
+      "className": "ThemeInvalidException",
+      "code": "THEME_INVALID",
+      "file": "src/bounded-contexts/themes/domain/exceptions/themes.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "ThemeNotOwnedException",
+      "code": "THEME_NOT_OWNED",
+      "file": "src/bounded-contexts/themes/domain/exceptions/themes.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "ThemeSlugTakenException",
+      "code": "THEME_SLUG_TAKEN",
+      "file": "src/bounded-contexts/themes/domain/exceptions/themes.exceptions.ts",
+      "extends": "ConflictException"
+    },
+    {
+      "className": "TranslationBackendUnavailableException",
+      "code": "TRANSLATION_BACKEND_UNAVAILABLE",
+      "file": "src/bounded-contexts/translation/domain/exceptions/translation.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "TranslationPayloadTooLargeException",
+      "code": "TRANSLATION_PAYLOAD_TOO_LARGE",
+      "file": "src/bounded-contexts/translation/domain/exceptions/translation.exceptions.ts",
+      "extends": "ValidationException"
     },
     {
       "className": "TwoFactorAlreadyEnabledException",
@@ -227,6 +935,36 @@
       "code": "UNAUTHORIZED",
       "file": "src/bounded-contexts/identity/shared-kernel/exceptions/unauthorized.exception.ts",
       "extends": "DomainException"
+    },
+    {
+      "className": "UnknownEventException",
+      "code": "UNKNOWN_EVENT",
+      "file": "src/bounded-contexts/presentation/domain/exceptions/presentation.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "UnknownNotificationTypeException",
+      "code": "UNKNOWN_NOTIFICATION_TYPE",
+      "file": "src/bounded-contexts/notifications/domain/exceptions/notifications.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "UnknownScreenException",
+      "code": "UNKNOWN_SCREEN",
+      "file": "src/bounded-contexts/presentation/domain/exceptions/presentation.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "UnsupportedExportFormatException",
+      "code": "UNSUPPORTED_EXPORT_FORMAT",
+      "file": "src/bounded-contexts/export/domain/exceptions/export.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "UnsupportedLocalePairException",
+      "code": "UNSUPPORTED_LOCALE_PAIR",
+      "file": "src/bounded-contexts/translation/domain/exceptions/translation.exceptions.ts",
+      "extends": "ValidationException"
     },
     {
       "className": "UserNotFoundException",
@@ -699,112 +1437,84 @@
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "Post",
       "file": "src/bounded-contexts/feed/services/comment.service.ts",
-      "line": 37
+      "line": 35
     },
     {
       "className": "EntityNotFoundException",
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "Comment",
       "file": "src/bounded-contexts/feed/services/comment.service.ts",
-      "line": 47
+      "line": 45
     },
     {
       "className": "EntityNotFoundException",
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "Comment",
       "file": "src/bounded-contexts/feed/services/comment.service.ts",
-      "line": 115
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "You can only delete your own comments",
-      "file": "src/bounded-contexts/feed/services/comment.service.ts",
-      "line": 119
+      "line": 113
     },
     {
       "className": "EntityNotFoundException",
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "Post",
       "file": "src/bounded-contexts/feed/services/engagement.service.ts",
-      "line": 41
+      "line": 39
     },
     {
       "className": "EntityNotFoundException",
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "Like",
       "file": "src/bounded-contexts/feed/services/engagement.service.ts",
-      "line": 108
+      "line": 106
     },
     {
       "className": "EntityNotFoundException",
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "Post",
       "file": "src/bounded-contexts/feed/services/engagement.service.ts",
-      "line": 134
+      "line": 132
     },
     {
       "className": "EntityNotFoundException",
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "Bookmark",
       "file": "src/bounded-contexts/feed/services/engagement.service.ts",
-      "line": 167
+      "line": 165
     },
     {
       "className": "EntityNotFoundException",
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "Post",
       "file": "src/bounded-contexts/feed/services/engagement.service.ts",
-      "line": 195
+      "line": 193
     },
     {
-      "className": "ConflictException",
-      "sharedCode": "CONFLICT",
-      "message": "You have already reposted this post",
-      "file": "src/bounded-contexts/feed/services/engagement.service.ts",
-      "line": 209
-    },
-    {
-      "className": "ConflictException",
-      "sharedCode": "CONFLICT",
-      "message": "You have already voted on this poll",
+      "className": "EntityNotFoundException",
+      "sharedCode": "ENTITY_NOT_FOUND",
+      "message": "Post",
       "file": "src/bounded-contexts/feed/services/poll.service.ts",
-      "line": 43
+      "line": 29
     },
     {
       "className": "EntityNotFoundException",
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "Post",
       "file": "src/bounded-contexts/feed/services/post.service.ts",
-      "line": 162
+      "line": 160
     },
     {
       "className": "EntityNotFoundException",
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "Post",
       "file": "src/bounded-contexts/feed/services/post.service.ts",
-      "line": 183
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "You can only delete your own posts",
-      "file": "src/bounded-contexts/feed/services/post.service.ts",
-      "line": 187
+      "line": 181
     },
     {
       "className": "EntityNotFoundException",
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "Post",
       "file": "src/bounded-contexts/feed/services/report.service.ts",
-      "line": 28
-    },
-    {
-      "className": "ConflictException",
-      "sharedCode": "CONFLICT",
-      "message": "You have already reported this post",
-      "file": "src/bounded-contexts/feed/services/report.service.ts",
-      "line": 37
+      "line": 26
     },
     {
       "className": "EntityNotFoundException",
@@ -1252,147 +1962,70 @@
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "Job",
       "file": "src/bounded-contexts/jobs/services/job.service.ts",
-      "line": 137
-    },
-    {
-      "className": "ConflictException",
-      "sharedCode": "CONFLICT",
-      "message": "NO_PRIMARY_RESUME",
-      "file": "src/bounded-contexts/jobs/services/job.service.ts",
-      "line": 145
+      "line": 142
     },
     {
       "className": "EntityNotFoundException",
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "Job",
       "file": "src/bounded-contexts/jobs/services/job.service.ts",
-      "line": 200
+      "line": 205
     },
     {
       "className": "EntityNotFoundException",
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "Job",
       "file": "src/bounded-contexts/jobs/services/job.service.ts",
-      "line": 209
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "You cannot apply to your own job",
-      "file": "src/bounded-contexts/jobs/services/job.service.ts",
-      "line": 212
+      "line": 214
     },
     {
       "className": "EntityNotFoundException",
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "JobApplication",
       "file": "src/bounded-contexts/jobs/services/job.service.ts",
-      "line": 240
-    },
-    {
-      "className": "ConflictException",
-      "sharedCode": "CONFLICT",
-      "message": "INVALID_URL",
-      "file": "src/bounded-contexts/jobs/services/job.service.ts",
-      "line": 308
-    },
-    {
-      "className": "ConflictException",
-      "sharedCode": "CONFLICT",
-      "message": "INVALID_URL",
-      "file": "src/bounded-contexts/jobs/services/job.service.ts",
-      "line": 311
-    },
-    {
-      "className": "ConflictException",
-      "sharedCode": "CONFLICT",
-      "message": "FETCH_FAILED",
-      "file": "src/bounded-contexts/jobs/services/job.service.ts",
-      "line": 324
-    },
-    {
-      "className": "ConflictException",
-      "sharedCode": "CONFLICT",
-      "message": "FETCH_FAILED",
-      "file": "src/bounded-contexts/jobs/services/job.service.ts",
-      "line": 332
-    },
-    {
-      "className": "ConflictException",
-      "sharedCode": "CONFLICT",
-      "message": "PAGE_TOO_THIN",
-      "file": "src/bounded-contexts/jobs/services/job.service.ts",
-      "line": 339
+      "line": 245
     },
     {
       "className": "EntityNotFoundException",
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "Job",
       "file": "src/bounded-contexts/jobs/services/job.service.ts",
-      "line": 357
+      "line": 362
     },
     {
       "className": "EntityNotFoundException",
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "Job",
       "file": "src/bounded-contexts/jobs/services/job.service.ts",
-      "line": 592
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "You can only update your own jobs",
-      "file": "src/bounded-contexts/jobs/services/job.service.ts",
-      "line": 596
+      "line": 597
     },
     {
       "className": "EntityNotFoundException",
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "Job",
       "file": "src/bounded-contexts/jobs/services/job.service.ts",
-      "line": 610
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "You can only delete your own jobs",
-      "file": "src/bounded-contexts/jobs/services/job.service.ts",
-      "line": 614
+      "line": 615
     },
     {
       "className": "EntityNotFoundException",
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "Job",
       "file": "src/bounded-contexts/jobs/services/job.service.ts",
-      "line": 638
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "Only the job owner can list its applications",
-      "file": "src/bounded-contexts/jobs/services/job.service.ts",
-      "line": 640
+      "line": 643
     },
     {
       "className": "EntityNotFoundException",
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "Job",
       "file": "src/bounded-contexts/jobs/services/job.service.ts",
-      "line": 704
+      "line": 709
     },
     {
       "className": "EntityNotFoundException",
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "JobApplication",
       "file": "src/bounded-contexts/jobs/tracker/application-tracker.service.ts",
-      "line": 148
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "You do not own this application",
-      "file": "src/bounded-contexts/jobs/tracker/application-tracker.service.ts",
-      "line": 150
+      "line": 146
     },
     {
       "className": "ValidationException",
@@ -2386,28 +3019,7 @@
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "Connection",
       "file": "src/bounded-contexts/social/application/use-cases/accept-connection/accept-connection.use-case.ts",
-      "line": 18
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "Connection request is not pending",
-      "file": "src/bounded-contexts/social/application/use-cases/accept-connection/accept-connection.use-case.ts",
-      "line": 22
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "Only the target user can accept a connection request",
-      "file": "src/bounded-contexts/social/application/use-cases/accept-connection/accept-connection.use-case.ts",
-      "line": 26
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "Cannot follow yourself",
-      "file": "src/bounded-contexts/social/application/use-cases/follow-user/follow-user.use-case.ts",
-      "line": 18
+      "line": 19
     },
     {
       "className": "EntityNotFoundException",
@@ -2417,88 +3029,25 @@
       "line": 23
     },
     {
-      "className": "ConflictException",
-      "sharedCode": "CONFLICT",
-      "message": "Already following this user",
-      "file": "src/bounded-contexts/social/application/use-cases/follow-user/follow-user.use-case.ts",
-      "line": 28
-    },
-    {
       "className": "EntityNotFoundException",
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "Connection",
       "file": "src/bounded-contexts/social/application/use-cases/reject-connection/reject-connection.use-case.ts",
-      "line": 13
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "Connection request is not pending",
-      "file": "src/bounded-contexts/social/application/use-cases/reject-connection/reject-connection.use-case.ts",
-      "line": 17
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "Only the target user can reject a connection request",
-      "file": "src/bounded-contexts/social/application/use-cases/reject-connection/reject-connection.use-case.ts",
-      "line": 21
+      "line": 14
     },
     {
       "className": "EntityNotFoundException",
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "Connection",
       "file": "src/bounded-contexts/social/application/use-cases/remove-connection/remove-connection.use-case.ts",
-      "line": 13
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "Connection is not accepted",
-      "file": "src/bounded-contexts/social/application/use-cases/remove-connection/remove-connection.use-case.ts",
-      "line": 17
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "You are not part of this connection",
-      "file": "src/bounded-contexts/social/application/use-cases/remove-connection/remove-connection.use-case.ts",
-      "line": 21
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "Cannot connect with yourself",
-      "file": "src/bounded-contexts/social/application/use-cases/send-connection-request/send-connection-request.use-case.ts",
-      "line": 18
+      "line": 14
     },
     {
       "className": "EntityNotFoundException",
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "User",
       "file": "src/bounded-contexts/social/application/use-cases/send-connection-request/send-connection-request.use-case.ts",
-      "line": 23
-    },
-    {
-      "className": "ConflictException",
-      "sharedCode": "CONFLICT",
-      "message": "Already connected with this user",
-      "file": "src/bounded-contexts/social/application/use-cases/send-connection-request/send-connection-request.use-case.ts",
-      "line": 29
-    },
-    {
-      "className": "ConflictException",
-      "sharedCode": "CONFLICT",
-      "message": "Connection request already pending",
-      "file": "src/bounded-contexts/social/application/use-cases/send-connection-request/send-connection-request.use-case.ts",
-      "line": 32
-    },
-    {
-      "className": "ConflictException",
-      "sharedCode": "CONFLICT",
-      "message": "Connection request already exists",
-      "file": "src/bounded-contexts/social/application/use-cases/send-connection-request/send-connection-request.use-case.ts",
-      "line": 35
+      "line": 25
     },
     {
       "className": "ValidationException",
@@ -2740,66 +3289,6 @@
     }
   ],
   "unstable": [
-    {
-      "kind": "Error",
-      "message": "OpenAI returned an empty response for tailorResume",
-      "file": "src/bounded-contexts/ai/infrastructure/adapters/openai.adapter.ts",
-      "line": 123
-    },
-    {
-      "kind": "Error",
-      "message": "Invalid LLM output shape",
-      "file": "src/bounded-contexts/ai/infrastructure/adapters/openai.adapter.ts",
-      "line": 137
-    },
-    {
-      "kind": "Error",
-      "message": "extractResumeFromText called with empty input",
-      "file": "src/bounded-contexts/ai/infrastructure/adapters/openai.adapter.ts",
-      "line": 145
-    },
-    {
-      "kind": "Error",
-      "message": "OpenAI returned an empty response for extractResumeFromText",
-      "file": "src/bounded-contexts/ai/infrastructure/adapters/openai.adapter.ts",
-      "line": 162
-    },
-    {
-      "kind": "Error",
-      "message": "Invalid LLM extract output shape",
-      "file": "src/bounded-contexts/ai/infrastructure/adapters/openai.adapter.ts",
-      "line": 176
-    },
-    {
-      "kind": "Error",
-      "message": "extractJobFromText called with empty input",
-      "file": "src/bounded-contexts/ai/infrastructure/adapters/openai.adapter.ts",
-      "line": 184
-    },
-    {
-      "kind": "Error",
-      "message": "OpenAI returned an empty response for extractJobFromText",
-      "file": "src/bounded-contexts/ai/infrastructure/adapters/openai.adapter.ts",
-      "line": 200
-    },
-    {
-      "kind": "Error",
-      "message": "Invalid LLM extract-job output shape",
-      "file": "src/bounded-contexts/ai/infrastructure/adapters/openai.adapter.ts",
-      "line": 214
-    },
-    {
-      "kind": "Error",
-      "message": "OPENAI_API_KEY is not set; cannot call OpenAI.",
-      "file": "src/bounded-contexts/ai/infrastructure/adapters/openai.adapter.ts",
-      "line": 222
-    },
-    {
-      "kind": "Error",
-      "message": "ATS score must be 0-100",
-      "file": "src/bounded-contexts/ats-scoring/domain/value-objects/ats-score.ts",
-      "line": 15
-    },
     {
       "kind": "Error",
       "message": "",

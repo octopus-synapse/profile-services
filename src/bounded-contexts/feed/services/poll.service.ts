@@ -4,13 +4,13 @@
  * Handles poll voting, results, and vote checking on posts.
  */
 
-import {
-  BadRequestException,
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions';
+import {
+  PollAlreadyVotedException,
+  PollClosedException,
+} from '../domain/exceptions/feed.exceptions';
 
 @Injectable()
 export class PollService {
@@ -26,21 +26,19 @@ export class PollService {
     });
 
     if (!post || post.isDeleted) {
-      throw new NotFoundException('Post not found');
+      throw new EntityNotFoundException('Post', postId);
     }
 
-    // Check if poll deadline has passed
     if (post.pollDeadline && new Date(post.pollDeadline) < new Date()) {
-      throw new BadRequestException('Poll is closed');
+      throw new PollClosedException();
     }
 
-    // Check if already voted (unique constraint)
     const existing = await this.prisma.pollVote.findUnique({
       where: { postId_userId: { postId, userId } },
     });
 
     if (existing) {
-      throw new ConflictException('You have already voted on this poll');
+      throw new PollAlreadyVotedException();
     }
 
     const [vote] = await this.prisma.$transaction([

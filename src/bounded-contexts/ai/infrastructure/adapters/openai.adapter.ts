@@ -3,6 +3,12 @@ import { ConfigService } from '@nestjs/config';
 import OpenAI from 'openai';
 import { z } from 'zod';
 import {
+  AiEmptyInputException,
+  AiEmptyResponseException,
+  AiInvalidOutputException,
+  AiNotConfiguredException,
+} from '../../domain/exceptions/ai.exceptions';
+import {
   type ExtractedJob,
   type ExtractedResume,
   LlmPort,
@@ -120,7 +126,7 @@ export class OpenAIAdapter extends LlmPort implements OnModuleInit {
 
     const raw = response.choices[0]?.message?.content ?? '';
     if (!raw) {
-      throw new Error('OpenAI returned an empty response for tailorResume');
+      throw new AiEmptyResponseException('tailorResume');
     }
 
     let parsed: unknown;
@@ -134,7 +140,7 @@ export class OpenAIAdapter extends LlmPort implements OnModuleInit {
     const result = TailorOutputSchema.safeParse(parsed);
     if (!result.success) {
       this.logger.error(`OpenAI tailor response failed schema validation: ${result.error.message}`);
-      throw new Error('Invalid LLM output shape');
+      throw new AiInvalidOutputException('tailorResume');
     }
     return result.data;
   }
@@ -142,7 +148,7 @@ export class OpenAIAdapter extends LlmPort implements OnModuleInit {
   async extractResumeFromText(text: string): Promise<ExtractedResume> {
     this.assertConfigured();
     if (!text.trim()) {
-      throw new Error('extractResumeFromText called with empty input');
+      throw new AiEmptyInputException('extractResumeFromText');
     }
     // Guard against absurdly long inputs — most CVs fit easily. Trim conservatively.
     const trimmed = text.length > 40000 ? text.slice(0, 40000) : text;
@@ -159,7 +165,7 @@ export class OpenAIAdapter extends LlmPort implements OnModuleInit {
     });
 
     const raw = response.choices[0]?.message?.content ?? '';
-    if (!raw) throw new Error('OpenAI returned an empty response for extractResumeFromText');
+    if (!raw) throw new AiEmptyResponseException('extractResumeFromText');
 
     let parsed: unknown;
     try {
@@ -173,7 +179,7 @@ export class OpenAIAdapter extends LlmPort implements OnModuleInit {
       this.logger.error(
         `OpenAI extract response failed schema validation: ${result.error.message}`,
       );
-      throw new Error('Invalid LLM extract output shape');
+      throw new AiInvalidOutputException('extractResumeFromText');
     }
     return result.data;
   }
@@ -181,7 +187,7 @@ export class OpenAIAdapter extends LlmPort implements OnModuleInit {
   async extractJobFromText(text: string): Promise<ExtractedJob> {
     this.assertConfigured();
     if (!text.trim()) {
-      throw new Error('extractJobFromText called with empty input');
+      throw new AiEmptyInputException('extractJobFromText');
     }
     const trimmed = text.length > 30000 ? text.slice(0, 30000) : text;
 
@@ -197,7 +203,7 @@ export class OpenAIAdapter extends LlmPort implements OnModuleInit {
     });
 
     const raw = response.choices[0]?.message?.content ?? '';
-    if (!raw) throw new Error('OpenAI returned an empty response for extractJobFromText');
+    if (!raw) throw new AiEmptyResponseException('extractJobFromText');
 
     let parsed: unknown;
     try {
@@ -211,7 +217,7 @@ export class OpenAIAdapter extends LlmPort implements OnModuleInit {
       this.logger.error(
         `OpenAI extract-job response failed schema validation: ${result.error.message}`,
       );
-      throw new Error('Invalid LLM extract-job output shape');
+      throw new AiInvalidOutputException('extractJobFromText');
     }
     return result.data;
   }
@@ -219,7 +225,7 @@ export class OpenAIAdapter extends LlmPort implements OnModuleInit {
   private assertConfigured() {
     const apiKey = this.config.get<string>('OPENAI_API_KEY');
     if (!apiKey) {
-      throw new Error('OPENAI_API_KEY is not set; cannot call OpenAI.');
+      throw new AiNotConfiguredException();
     }
   }
 }

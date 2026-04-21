@@ -1,10 +1,10 @@
 import { EventPublisherPort } from '@/shared-kernel/event-bus/event-publisher';
-import {
-  ConflictException,
-  EntityNotFoundException,
-  ValidationException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { UserFollowedEvent } from '../../../domain/events';
+import {
+  AlreadyFollowingException,
+  CannotFollowSelfException,
+} from '../../../domain/exceptions/social.exceptions';
 import type { FollowRepositoryPort, FollowWithUser } from '../../ports/follow.port';
 
 export class FollowUserUseCase {
@@ -15,7 +15,7 @@ export class FollowUserUseCase {
 
   async execute(followerId: string, followingId: string): Promise<FollowWithUser> {
     if (followerId === followingId) {
-      throw new ValidationException('Cannot follow yourself');
+      throw new CannotFollowSelfException();
     }
 
     const targetExists = await this.repository.userExists(followingId);
@@ -25,7 +25,7 @@ export class FollowUserUseCase {
 
     const existingFollow = await this.repository.findFollow(followerId, followingId);
     if (existingFollow) {
-      throw new ConflictException('Already following this user');
+      throw new AlreadyFollowingException();
     }
 
     const follow = await this.repository.createFollow(followerId, followingId);

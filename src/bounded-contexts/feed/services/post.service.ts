@@ -8,10 +8,8 @@
 import { Injectable } from '@nestjs/common';
 import type { PostType, Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import {
-  EntityNotFoundException,
-  ForbiddenException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { CannotDeleteOthersPostException } from '../domain/exceptions/feed.exceptions';
 
 const AUTHOR_SELECT = {
   id: true,
@@ -184,7 +182,7 @@ export class PostService {
     }
 
     if (post.authorId !== userId) {
-      throw new ForbiddenException('You can only delete your own posts');
+      throw new CannotDeleteOthersPostException();
     }
 
     return this.prisma.post.update({
