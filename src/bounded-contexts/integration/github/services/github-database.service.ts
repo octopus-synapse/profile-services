@@ -5,10 +5,11 @@
  * GENERIC SECTIONS: Uses SectionItem for all data, not legacy models.
  */
 
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { ERROR_MESSAGES } from '@/shared-kernel';
+import { ResumeAccessDeniedException } from '@/bounded-contexts/presentation/domain/exceptions/presentation.exceptions';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions';
 import type { GitHubAchievementContent } from './github-achievement.service';
 import type { GitHubContributionInput } from './github-contribution.service';
 
@@ -26,11 +27,11 @@ export class GitHubDatabaseService {
     });
 
     if (!resume) {
-      throw new HttpException(ERROR_MESSAGES.RESUME_NOT_FOUND, HttpStatus.NOT_FOUND);
+      throw new EntityNotFoundException('Resume', resumeId);
     }
 
     if (resume.userId !== userId) {
-      throw new HttpException(ERROR_MESSAGES.ACCESS_DENIED, HttpStatus.FORBIDDEN);
+      throw new ResumeAccessDeniedException();
     }
 
     return resume;

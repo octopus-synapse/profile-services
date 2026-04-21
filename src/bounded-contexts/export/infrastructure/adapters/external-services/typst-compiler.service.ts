@@ -14,6 +14,11 @@ import { randomBytes } from 'node:crypto';
 import { access, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { Injectable, Logger } from '@nestjs/common';
+import {
+  TypstAtsTemplatesNotFoundException,
+  TypstCompilationFailedException,
+  TypstTemplatesNotFoundException,
+} from '../../../domain/exceptions/export.exceptions';
 
 const DEFAULT_TIMEOUT_MS = 30_000;
 const TYPST_BINARY = process.env.TYPST_BINARY_PATH ?? 'typst';
@@ -64,7 +69,7 @@ export class TypstCompilerService {
 
       if (result.exitCode !== 0) {
         this.logger.error(`Typst compilation failed: ${result.stderr}`);
-        throw new Error(`Typst compilation failed: ${this.parseTypstError(result.stderr)}`);
+        throw new TypstCompilationFailedException('pdf', this.parseTypstError(result.stderr));
       }
 
       return await readFile(outputPath);
@@ -109,9 +114,7 @@ export class TypstCompilerService {
       }
     }
 
-    throw new Error(
-      `Typst templates not found. Tried: ${candidates.join(', ')}. Set TYPST_TEMPLATES_PATH env var.`,
-    );
+    throw new TypstTemplatesNotFoundException(candidates);
   }
 
   /**
@@ -130,9 +133,7 @@ export class TypstCompilerService {
       this.logger.log(`ATS Typst templates found at: ${atsPath}`);
       return atsPath;
     } catch {
-      throw new Error(
-        `ATS Typst templates not found at ${atsPath}. Ensure templates-ats/ directory exists.`,
-      );
+      throw new TypstAtsTemplatesNotFoundException(atsPath);
     }
   }
 
@@ -232,7 +233,7 @@ export class TypstCompilerService {
       );
 
       if (result.exitCode !== 0) {
-        throw new Error(`Typst PNG compilation failed: ${this.parseTypstError(result.stderr)}`);
+        throw new TypstCompilationFailedException('png', this.parseTypstError(result.stderr));
       }
 
       // Read first page

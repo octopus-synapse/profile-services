@@ -1,11 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { LLM_PORT, type LlmPort } from '@/bounded-contexts/ai/domain/ports/llm.port';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import {
-  ConflictException,
-  EntityNotFoundException,
-  ForbiddenException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
+  ResumeNotOwnedException,
+  ResumeTailorInputRequiredException,
+} from '../../../domain/exceptions/resumes.exceptions';
 
 /**
  * Result shape returned to the UI after a tailor call — carries both the new
@@ -220,7 +220,7 @@ export class ResumeTailorService {
       },
     });
     if (!resume) throw new EntityNotFoundException('Resume', resumeId);
-    if (resume.userId !== userId) throw new ForbiddenException('You do not own this resume');
+    if (resume.userId !== userId) throw new ResumeNotOwnedException();
     return resume;
   }
 
@@ -230,7 +230,7 @@ export class ResumeTailorService {
       select: { userId: true },
     });
     if (!resume) throw new EntityNotFoundException('Resume', resumeId);
-    if (resume.userId !== userId) throw new ForbiddenException('You do not own this resume');
+    if (resume.userId !== userId) throw new ResumeNotOwnedException();
   }
 
   private async resolveJob(params: {
@@ -252,7 +252,7 @@ export class ResumeTailorService {
     }
 
     if (!params.jobDescription || params.jobDescription.trim().length < 10) {
-      throw new ConflictException('TAILOR_INPUT_REQUIRED');
+      throw new ResumeTailorInputRequiredException();
     }
 
     return {

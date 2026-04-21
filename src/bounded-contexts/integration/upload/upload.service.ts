@@ -2,8 +2,15 @@ import { randomUUID } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { S3UploadService } from '@/bounded-contexts/platform/common/services/s3-upload.service';
-import { ERROR_MESSAGES, FILE_UPLOAD_CONFIG } from '@/shared-kernel';
-import { ValidationException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { FILE_UPLOAD_CONFIG } from '@/shared-kernel';
+import {
+  UploadContentInvalidException,
+  UploadExtensionMismatchException,
+  UploadFilenameUnsafeException,
+  UploadFileTooLargeException,
+  UploadInvalidFileTypeException,
+  UploadStorageUnavailableException,
+} from '../domain/exceptions/integration.exceptions';
 
 export interface FileUpload {
   buffer: Buffer;
@@ -31,7 +38,7 @@ export class UploadService {
     const result = await this.s3Service.uploadFile(file.buffer, key, file.mimetype);
 
     if (!result) {
-      throw new ValidationException(ERROR_MESSAGES.FILE_UPLOAD_UNAVAILABLE);
+      throw new UploadStorageUnavailableException();
     }
 
     this.logger.log('Profile image uploaded', 'UploadService', {
@@ -52,7 +59,7 @@ export class UploadService {
     const result = await this.s3Service.uploadFile(file.buffer, key, file.mimetype);
 
     if (!result) {
-      throw new ValidationException(ERROR_MESSAGES.FILE_UPLOAD_UNAVAILABLE);
+      throw new UploadStorageUnavailableException();
     }
 
     this.logger.log('Company logo uploaded', 'UploadService', {
@@ -77,18 +84,13 @@ export class UploadService {
 
   private validateFile(file: FileUpload) {
     if (file.size > this.maxFileSize) {
-      throw new ValidationException(
-        `File size exceeds maximum allowed size of ${this.maxFileSize / 1024 / 1024}MB`,
-      );
+      throw new UploadFileTooLargeException(this.maxFileSize);
     }
 
     if (!this.allowedMimeTypes.includes(file.mimetype as (typeof this.allowedMimeTypes)[number])) {
-      throw new ValidationException(
-        `Invalid file type. Allowed types: ${this.allowedMimeTypes.join(', ')}`,
-      );
+      throw new UploadInvalidFileTypeException([...this.allowedMimeTypes]);
     }
 
-    // Security Validations
     this.validateFilenameSafety(file.originalname);
     this.validateExtensionMatch(file);
     this.validateMagicBytes(file);
@@ -96,19 +98,17 @@ export class UploadService {
 
   private validateFilenameSafety(filename: string) {
     if (filename.includes('\0')) {
-      throw new ValidationException('Invalid filename: contains null bytes');
+      throw new UploadFilenameUnsafeException('null_bytes');
     }
 
-    // Check for directory traversal
     if (filename.includes('..') || filename.includes('/') || filename.includes('\\')) {
-      throw new ValidationException('Invalid filename: directory traversal detected');
+      throw new UploadFilenameUnsafeException('directory_traversal');
     }
   }
 
   private validateExtensionMatch(file: FileUpload) {
     const ext = this.getFileExtension(file.originalname);
 
-    // Map mime to allowed extensions
     const mimeToExt: Record<string, string[]> = {
       'image/jpeg': ['jpg', 'jpeg'],
       'image/png': ['png'],
@@ -118,37 +118,30 @@ export class UploadService {
 
     const allowedExts = mimeToExt[file.mimetype] ?? [];
     if (!allowedExts.includes(ext)) {
-      throw new ValidationException(
-        `File extension .${ext} does not match file type ${file.mimetype}`,
-      );
+      throw new UploadExtensionMismatchException(ext, file.mimetype);
     }
   }
 
   private validateMagicBytes(file: FileUpload) {
     if (file.buffer.length < 4) {
-      throw new ValidationException('Invalid file content');
+      throw new UploadContentInvalidException('too_small');
     }
 
     const header = file.buffer.toString('hex', 0, 12).toUpperCase();
 
-    // JPEG: FFD8FF
     if (file.mimetype === 'image/jpeg' && !header.startsWith('FFD8FF')) {
-      throw new ValidationException('Invalid JPEG file content');
+      throw new UploadContentInvalidException('bad_magic_jpeg');
     }
-    // PNG: 89504E47
     if (file.mimetype === 'image/png' && !header.startsWith('89504E47')) {
-      throw new ValidationException('Invalid PNG file content');
+      throw new UploadContentInvalidException('bad_magic_png');
     }
-    // WEBP: RIFF....WEBP (52494646....57454250)
     if (file.mimetype === 'image/webp') {
       if (!header.startsWith('52494646')) {
-        // RIFF
-        throw new ValidationException('Invalid WEBP file content');
+        throw new UploadContentInvalidException('bad_magic_webp');
       }
-      // Check bytes 8-11 for WEBP
       const webpType = file.buffer.toString('hex', 8, 12).toUpperCase();
       if (webpType !== '57454250') {
-        throw new ValidationException('Invalid WEBP file content');
+        throw new UploadContentInvalidException('bad_magic_webp');
       }
     }
   }
@@ -156,9 +149,5 @@ export class UploadService {
   private getFileExtension(filename: string): string {
     const parts = filename.split('.');
     return parts[parts.length - 1].toLowerCase();
-  }
-
-  isServiceAvailable(): boolean {
-    return this.s3Service.isEnabled;
   }
 }

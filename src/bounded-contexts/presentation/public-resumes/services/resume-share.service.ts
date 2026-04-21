@@ -1,16 +1,20 @@
 import { randomBytes } from 'node:crypto';
-import {
-  BadRequestException,
-  ConflictException,
-  ForbiddenException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CacheCoreService } from '@/bounded-contexts/platform/common/cache/services/cache-core.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { EventPublisher } from '@/shared-kernel';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions';
 import { toGenericSections } from '@/shared-kernel/schemas/sections';
 import { ResumePublishedEvent } from '../../domain/events';
+import {
+  ResumeAccessDeniedException,
+  ResumeShareAccessDeniedException,
+  ResumeShareAliasAccessDeniedException,
+  ResumeShareSlugInvalidException,
+  ResumeShareSlugTakenException,
+  ShareAliasNotFoundException,
+  ShareNotFoundException,
+} from '../../domain/exceptions/presentation.exceptions';
 
 interface CreateShare {
   resumeId: string;
@@ -33,9 +37,7 @@ export class ResumeShareService {
     const slug = dto.slug ?? this.generateSlug();
 
     if (dto.slug && !this.isValidSlug(dto.slug)) {
-      throw new BadRequestException(
-        'Invalid slug format. Use alphanumeric characters and hyphens only.',
-      );
+      throw new ResumeShareSlugInvalidException();
     }
 
     const hashedPassword = dto.password
@@ -45,7 +47,7 @@ export class ResumeShareService {
     const { share, ownerId } = await this.prisma.$transaction(async (tx) => {
       const existing = await tx.resumeShare.findUnique({ where: { slug } });
       if (existing) {
-        throw new ConflictException('Slug already in use');
+        throw new ResumeShareSlugTakenException();
       }
 
       const resume = await tx.resume.findUnique({
@@ -54,11 +56,11 @@ export class ResumeShareService {
       });
 
       if (!resume) {
-        throw new NotFoundException('Resume not found');
+        throw new EntityNotFoundException('Resume');
       }
 
       if (resume.userId !== userId) {
-        throw new ForbiddenException('You do not have access to this resume');
+        throw new ResumeAccessDeniedException();
       }
 
       const created = await tx.resumeShare.create({
@@ -98,9 +100,7 @@ export class ResumeShareService {
 
   async addAlias(userId: string, shareId: string, slug: string) {
     if (!this.isValidSlug(slug)) {
-      throw new BadRequestException(
-        'Invalid slug format. Use alphanumeric characters and hyphens only.',
-      );
+      throw new ResumeShareSlugInvalidException();
     }
 
     const share = await this.prisma.resumeShare.findUnique({
@@ -109,25 +109,25 @@ export class ResumeShareService {
     });
 
     if (!share) {
-      throw new NotFoundException('Share not found');
+      throw new ShareNotFoundException();
     }
 
     if (share.resume.userId !== userId) {
-      throw new ForbiddenException('You do not have access to this share');
+      throw new ResumeShareAccessDeniedException();
     }
 
     const collidesWithShare = await this.prisma.resumeShare.findUnique({
       where: { slug },
     });
     if (collidesWithShare) {
-      throw new ConflictException('Slug already in use');
+      throw new ResumeShareSlugTakenException();
     }
 
     const collidesWithAlias = await this.prisma.resumeShareAlias.findUnique({
       where: { slug },
     });
     if (collidesWithAlias) {
-      throw new ConflictException('Slug already in use');
+      throw new ResumeShareSlugTakenException();
     }
 
     return this.prisma.resumeShareAlias.create({
@@ -141,7 +141,7 @@ export class ResumeShareService {
     });
 
     if (!alias) {
-      throw new NotFoundException('Alias not found');
+      throw new ShareAliasNotFoundException();
     }
 
     const share = await this.prisma.resumeShare.findUnique({
@@ -150,7 +150,7 @@ export class ResumeShareService {
     });
 
     if (!share || share.resume.userId !== userId) {
-      throw new ForbiddenException('You do not have access to this alias');
+      throw new ResumeShareAliasAccessDeniedException();
     }
 
     return this.prisma.resumeShareAlias.delete({
@@ -165,11 +165,11 @@ export class ResumeShareService {
     });
 
     if (!share) {
-      throw new NotFoundException('Share not found');
+      throw new ShareNotFoundException();
     }
 
     if (share.resume.userId !== userId) {
-      throw new ForbiddenException('You do not have access to this share');
+      throw new ResumeShareAccessDeniedException();
     }
 
     return this.prisma.resumeShareAlias.findMany({
@@ -281,11 +281,11 @@ export class ResumeShareService {
     });
 
     if (!share) {
-      throw new NotFoundException('Share not found');
+      throw new ShareNotFoundException();
     }
 
     if (share.resume.userId !== userId) {
-      throw new ForbiddenException('You do not have access to this share');
+      throw new ResumeShareAccessDeniedException();
     }
 
     return this.prisma.resumeShare.delete({
@@ -300,11 +300,11 @@ export class ResumeShareService {
     });
 
     if (!resume) {
-      throw new NotFoundException('Resume not found');
+      throw new EntityNotFoundException('Resume');
     }
 
     if (resume.userId !== userId) {
-      throw new ForbiddenException('You do not have access to this resume');
+      throw new ResumeAccessDeniedException();
     }
 
     return this.prisma.resumeShare.findMany({

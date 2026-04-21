@@ -147,12 +147,15 @@ describe('GitHubSyncService', () => {
       expect(result.stats.achievementsAdded).toBe(1);
     });
 
-    it('should wrap unknown errors in HttpException', async () => {
+    it('should wrap unknown errors in GitHubSyncFailedException', async () => {
       fakeApiService.getUserProfile.mockRejectedValue(new Error('Network error'));
 
-      await expect(service.syncUserGitHub('user-123', 'testuser', 'resume-123')).rejects.toThrow(
-        HttpException,
-      );
+      try {
+        await service.syncUserGitHub('user-123', 'testuser', 'resume-123');
+        expect(true).toBe(false); // should not reach
+      } catch (error) {
+        expect((error as { code?: string }).code).toBe('GITHUB_SYNC_FAILED');
+      }
     });
 
     it('should rethrow HttpException as-is', async () => {

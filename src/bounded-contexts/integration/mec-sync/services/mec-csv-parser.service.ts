@@ -5,6 +5,10 @@
 
 import { Injectable } from '@nestjs/common';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
+import {
+  MecCsvDownloadFailedException,
+  MecCsvEmptyException,
+} from '../../domain/exceptions/integration.exceptions';
 import { MEC_CSV_URL } from '../constants';
 import {
   NormalizedCourse,
@@ -69,7 +73,7 @@ export class MecCsvParserService {
       return this.fileCache.read();
     }
 
-    throw new Error(`MEC CSV download failed: ${message}. No cache available.`);
+    throw new MecCsvDownloadFailedException(message);
   }
 
   private parse(content: string, fileSize: number): ParseResult {
@@ -102,7 +106,7 @@ export class MecCsvParserService {
 
   private validateMinimumLines(lines: string[]): void {
     if (lines.length < 2) {
-      throw new Error('CSV file is empty or has no data rows');
+      throw new MecCsvEmptyException();
     }
   }
 }

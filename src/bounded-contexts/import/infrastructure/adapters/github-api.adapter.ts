@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { GitHubApiRequestFailedException } from '@/bounded-contexts/integration/domain/exceptions/integration.exceptions';
 import type {
   GithubApiPort,
   GithubRepoSummary,
@@ -90,7 +91,7 @@ export class GithubApiAdapter implements GithubApiPort {
         Accept: 'application/vnd.github+json',
       },
     });
-    if (!res.ok) throw new Error(`GitHub languages ${res.status}`);
+    if (!res.ok) throw new GitHubApiRequestFailedException('languages', res.status);
     return (await res.json()) as Record<string, number>;
   }
 
@@ -106,7 +107,7 @@ export class GithubApiAdapter implements GithubApiPort {
     if (!res.ok) {
       const body = await res.text().catch(() => '');
       this.logger.warn(`GitHub ${path} failed ${res.status}: ${body.slice(0, 200)}`);
-      throw new Error(`GitHub API ${path} ${res.status}`);
+      throw new GitHubApiRequestFailedException(path, res.status);
     }
     return (await res.json()) as T;
   }

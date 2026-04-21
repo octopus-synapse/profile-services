@@ -1,9 +1,9 @@
 {
   "summary": {
-    "classifiedCount": 165,
-    "ambiguousCount": 327,
-    "unstableCount": 121,
-    "distinctCodes": 156
+    "classifiedCount": 215,
+    "ambiguousCount": 270,
+    "unstableCount": 67,
+    "distinctCodes": 205
   },
   "classified": [
     {
@@ -319,10 +319,46 @@
       "extends": "ValidationException"
     },
     {
+      "className": "DslErrorExpressionException",
+      "code": "DSL_ERROR_EXPRESSION",
+      "file": "src/bounded-contexts/dsl/domain/exceptions/dsl.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
       "className": "DslEvaluationLimitExceededException",
       "code": "DSL_EVALUATION_LIMIT_EXCEEDED",
       "file": "src/bounded-contexts/dsl/domain/exceptions/dsl.exceptions.ts",
       "extends": "DomainException"
+    },
+    {
+      "className": "DslExpectedTokenException",
+      "code": "DSL_EXPECTED_TOKEN",
+      "file": "src/bounded-contexts/dsl/domain/exceptions/dsl.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "DslMigrationLoopException",
+      "code": "DSL_MIGRATION_LOOP",
+      "file": "src/bounded-contexts/dsl/domain/exceptions/dsl.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "DslMigrationPathNotFoundException",
+      "code": "DSL_MIGRATION_PATH_NOT_FOUND",
+      "file": "src/bounded-contexts/dsl/domain/exceptions/dsl.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "DslMigrationResultVersionMismatchException",
+      "code": "DSL_MIGRATION_RESULT_VERSION_MISMATCH",
+      "file": "src/bounded-contexts/dsl/domain/exceptions/dsl.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "DslNormalizedMissingException",
+      "code": "DSL_NORMALIZED_MISSING",
+      "file": "src/bounded-contexts/dsl/domain/exceptions/dsl.exceptions.ts",
+      "extends": "ValidationException"
     },
     {
       "className": "DslParseErrorException",
@@ -337,8 +373,32 @@
       "extends": "ValidationException"
     },
     {
+      "className": "DslUnexpectedTokenException",
+      "code": "DSL_UNEXPECTED_TOKEN",
+      "file": "src/bounded-contexts/dsl/domain/exceptions/dsl.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
       "className": "DslUnknownFunctionException",
       "code": "DSL_UNKNOWN_FUNCTION",
+      "file": "src/bounded-contexts/dsl/domain/exceptions/dsl.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "DslUnknownOperatorException",
+      "code": "DSL_UNKNOWN_OPERATOR",
+      "file": "src/bounded-contexts/dsl/domain/exceptions/dsl.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "DslUnsupportedVersionException",
+      "code": "DSL_UNSUPPORTED_VERSION",
+      "file": "src/bounded-contexts/dsl/domain/exceptions/dsl.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "DslValidationFailedException",
+      "code": "DSL_VALIDATION_FAILED",
       "file": "src/bounded-contexts/dsl/domain/exceptions/dsl.exceptions.ts",
       "extends": "ValidationException"
     },
@@ -425,6 +485,24 @@
       "code": "FORBIDDEN",
       "file": "src/bounded-contexts/identity/shared-kernel/exceptions/forbidden.exception.ts",
       "extends": "DomainException"
+    },
+    {
+      "className": "GitHubApiRequestFailedException",
+      "code": "GITHUB_API_REQUEST_FAILED",
+      "file": "src/bounded-contexts/integration/domain/exceptions/integration.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "GitHubSyncFailedException",
+      "code": "GITHUB_SYNC_FAILED",
+      "file": "src/bounded-contexts/integration/domain/exceptions/integration.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "GitHubUsernameMissingException",
+      "code": "GITHUB_USERNAME_MISSING",
+      "file": "src/bounded-contexts/integration/domain/exceptions/integration.exceptions.ts",
+      "extends": "ValidationException"
     },
     {
       "className": "ImportCannotBeCancelledException",
@@ -589,10 +667,40 @@
       "extends": "DomainException"
     },
     {
+      "className": "MecCsvBlockedException",
+      "code": "MEC_CSV_BLOCKED",
+      "file": "src/bounded-contexts/integration/domain/exceptions/integration.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "MecCsvDownloadFailedException",
+      "code": "MEC_CSV_DOWNLOAD_FAILED",
+      "file": "src/bounded-contexts/integration/domain/exceptions/integration.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "MecCsvEmptyException",
+      "code": "MEC_CSV_EMPTY",
+      "file": "src/bounded-contexts/integration/domain/exceptions/integration.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "MecCsvNoResponseException",
+      "code": "MEC_CSV_NO_RESPONSE",
+      "file": "src/bounded-contexts/integration/domain/exceptions/integration.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
       "className": "NoPrimaryResumeException",
       "code": "NO_PRIMARY_RESUME",
       "file": "src/bounded-contexts/jobs/domain/exceptions/jobs.exceptions.ts",
       "extends": "ConflictException"
+    },
+    {
+      "className": "NotConnectionRequesterException",
+      "code": "NOT_CONNECTION_REQUESTER",
+      "file": "src/bounded-contexts/social/domain/exceptions/social.exceptions.ts",
+      "extends": "ValidationException"
     },
     {
       "className": "NotConnectionTargetException",
@@ -721,6 +829,12 @@
       "extends": "ValidationException"
     },
     {
+      "className": "ResumeAccessDeniedException",
+      "code": "RESUME_ACCESS_DENIED",
+      "file": "src/bounded-contexts/presentation/domain/exceptions/presentation.exceptions.ts",
+      "extends": "ForbiddenException"
+    },
+    {
       "className": "ResumeNotOwnedException",
       "code": "RESUME_NOT_OWNED",
       "file": "src/bounded-contexts/resumes/domain/exceptions/resumes.exceptions.ts",
@@ -731,6 +845,18 @@
       "code": "RESUME_SECTION_INVALID",
       "file": "src/bounded-contexts/resumes/domain/exceptions/resumes.exceptions.ts",
       "extends": "ValidationException"
+    },
+    {
+      "className": "ResumeShareAccessDeniedException",
+      "code": "RESUME_SHARE_ACCESS_DENIED",
+      "file": "src/bounded-contexts/presentation/domain/exceptions/presentation.exceptions.ts",
+      "extends": "ForbiddenException"
+    },
+    {
+      "className": "ResumeShareAliasAccessDeniedException",
+      "code": "RESUME_SHARE_ALIAS_ACCESS_DENIED",
+      "file": "src/bounded-contexts/presentation/domain/exceptions/presentation.exceptions.ts",
+      "extends": "ForbiddenException"
     },
     {
       "className": "ResumeShareExpiredException",
@@ -757,16 +883,34 @@
       "extends": "DomainException"
     },
     {
+      "className": "ResumeShareSlugInvalidException",
+      "code": "RESUME_SHARE_SLUG_INVALID",
+      "file": "src/bounded-contexts/presentation/domain/exceptions/presentation.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
       "className": "ResumeShareSlugTakenException",
       "code": "RESUME_SHARE_SLUG_TAKEN",
       "file": "src/bounded-contexts/resumes/domain/exceptions/resumes.exceptions.ts",
       "extends": "ConflictException"
     },
     {
+      "className": "ResumeShareSlugTakenException",
+      "code": "RESUME_SHARE_SLUG_TAKEN",
+      "file": "src/bounded-contexts/presentation/domain/exceptions/presentation.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
       "className": "ResumeSlotLimitReachedException",
       "code": "RESUME_SLOT_LIMIT_REACHED",
       "file": "src/bounded-contexts/resumes/domain/exceptions/resumes.exceptions.ts",
       "extends": "ConflictException"
+    },
+    {
+      "className": "ResumeTailorInputRequiredException",
+      "code": "RESUME_TAILOR_INPUT_REQUIRED",
+      "file": "src/bounded-contexts/resumes/domain/exceptions/resumes.exceptions.ts",
+      "extends": "ValidationException"
     },
     {
       "className": "ResumeVersionNotFoundException",
@@ -793,16 +937,46 @@
       "extends": "ValidationException"
     },
     {
+      "className": "SectionTypeAlreadyExistsException",
+      "code": "SECTION_TYPE_ALREADY_EXISTS",
+      "file": "src/bounded-contexts/resumes/domain/exceptions/resumes.exceptions.ts",
+      "extends": "ConflictException"
+    },
+    {
+      "className": "SectionTypeInUseException",
+      "code": "SECTION_TYPE_IN_USE",
+      "file": "src/bounded-contexts/resumes/domain/exceptions/resumes.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
       "className": "SectionTypeInvalidException",
       "code": "SECTION_TYPE_INVALID",
       "file": "src/bounded-contexts/resumes/domain/exceptions/resumes.exceptions.ts",
       "extends": "ValidationException"
     },
     {
+      "className": "SectionTypeSlugVersionTakenException",
+      "code": "SECTION_TYPE_SLUG_VERSION_TAKEN",
+      "file": "src/bounded-contexts/resumes/domain/exceptions/resumes.exceptions.ts",
+      "extends": "ConflictException"
+    },
+    {
       "className": "SessionExpiredException",
       "code": "SESSION_EXPIRED",
       "file": "src/bounded-contexts/identity/authentication/domain/exceptions/authentication.exceptions.ts",
       "extends": "UnauthorizedException"
+    },
+    {
+      "className": "ShareAliasNotFoundException",
+      "code": "SHARE_ALIAS_NOT_FOUND",
+      "file": "src/bounded-contexts/presentation/domain/exceptions/presentation.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "ShareNotFoundException",
+      "code": "SHARE_NOT_FOUND",
+      "file": "src/bounded-contexts/presentation/domain/exceptions/presentation.exceptions.ts",
+      "extends": "DomainException"
     },
     {
       "className": "SkillAlreadyExistsException",
@@ -853,14 +1027,38 @@
       "extends": "ValidationException"
     },
     {
+      "className": "SystemSectionTypeImmutableException",
+      "code": "SYSTEM_SECTION_TYPE_IMMUTABLE",
+      "file": "src/bounded-contexts/resumes/domain/exceptions/resumes.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "SystemSectionTypeUndeletableException",
+      "code": "SYSTEM_SECTION_TYPE_UNDELETABLE",
+      "file": "src/bounded-contexts/resumes/domain/exceptions/resumes.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
       "className": "TailorEngineUnavailableException",
       "code": "RESUME_TAILOR_UNAVAILABLE",
       "file": "src/bounded-contexts/resumes/domain/exceptions/resumes.exceptions.ts",
       "extends": "DomainException"
     },
     {
+      "className": "TechAreaInUseException",
+      "code": "TECH_AREA_IN_USE",
+      "file": "src/bounded-contexts/skills-catalog/domain/exceptions/skills-catalog.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
       "className": "TechAreaInvalidException",
       "code": "TECH_AREA_INVALID",
+      "file": "src/bounded-contexts/skills-catalog/domain/exceptions/skills-catalog.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "TechNicheInUseException",
+      "code": "TECH_NICHE_IN_USE",
       "file": "src/bounded-contexts/skills-catalog/domain/exceptions/skills-catalog.exceptions.ts",
       "extends": "ValidationException"
     },
@@ -883,10 +1081,22 @@
       "extends": "ConflictException"
     },
     {
+      "className": "ThemeConfigInvalidException",
+      "code": "THEME_CONFIG_INVALID",
+      "file": "src/bounded-contexts/presentation/domain/exceptions/presentation.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
       "className": "ThemeInvalidException",
       "code": "THEME_INVALID",
       "file": "src/bounded-contexts/themes/domain/exceptions/themes.exceptions.ts",
       "extends": "ValidationException"
+    },
+    {
+      "className": "ThemeNotFoundException",
+      "code": "THEME_NOT_FOUND",
+      "file": "src/bounded-contexts/presentation/domain/exceptions/presentation.exceptions.ts",
+      "extends": "DomainException"
     },
     {
       "className": "ThemeNotOwnedException",
@@ -922,6 +1132,24 @@
       "className": "TwoFactorNotSetupException",
       "code": "TWO_FACTOR_NOT_SETUP",
       "file": "src/bounded-contexts/identity/two-factor-auth/domain/exceptions/two-factor-not-setup.exception.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "TypstAtsTemplatesNotFoundException",
+      "code": "TYPST_ATS_TEMPLATES_NOT_FOUND",
+      "file": "src/bounded-contexts/export/domain/exceptions/export.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "TypstCompilationFailedException",
+      "code": "TYPST_COMPILATION_FAILED",
+      "file": "src/bounded-contexts/export/domain/exceptions/export.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "TypstTemplatesNotFoundException",
+      "code": "TYPST_TEMPLATES_NOT_FOUND",
+      "file": "src/bounded-contexts/export/domain/exceptions/export.exceptions.ts",
       "extends": "DomainException"
     },
     {
@@ -965,6 +1193,78 @@
       "code": "UNSUPPORTED_LOCALE_PAIR",
       "file": "src/bounded-contexts/translation/domain/exceptions/translation.exceptions.ts",
       "extends": "ValidationException"
+    },
+    {
+      "className": "UploadContentInvalidException",
+      "code": "UPLOAD_CONTENT_INVALID",
+      "file": "src/bounded-contexts/integration/domain/exceptions/integration.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "UploadExtensionMismatchException",
+      "code": "UPLOAD_EXTENSION_MISMATCH",
+      "file": "src/bounded-contexts/integration/domain/exceptions/integration.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "UploadFilenameUnsafeException",
+      "code": "UPLOAD_FILENAME_UNSAFE",
+      "file": "src/bounded-contexts/integration/domain/exceptions/integration.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "UploadFileTooLargeException",
+      "code": "UPLOAD_FILE_TOO_LARGE",
+      "file": "src/bounded-contexts/integration/domain/exceptions/integration.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "UploadInvalidFileTypeException",
+      "code": "UPLOAD_INVALID_FILE_TYPE",
+      "file": "src/bounded-contexts/integration/domain/exceptions/integration.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "UploadStorageUnavailableException",
+      "code": "UPLOAD_STORAGE_UNAVAILABLE",
+      "file": "src/bounded-contexts/integration/domain/exceptions/integration.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "UsernameBadUnderscoresException",
+      "code": "USERNAME_BAD_UNDERSCORES",
+      "file": "src/bounded-contexts/identity/users/domain/exceptions/users.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "UsernameCooldownActiveException",
+      "code": "USERNAME_COOLDOWN_ACTIVE",
+      "file": "src/bounded-contexts/identity/users/domain/exceptions/users.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "UsernameInvalidFormatException",
+      "code": "USERNAME_INVALID_FORMAT",
+      "file": "src/bounded-contexts/identity/users/domain/exceptions/users.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "UsernameMustBeLowercaseException",
+      "code": "USERNAME_MUST_BE_LOWERCASE",
+      "file": "src/bounded-contexts/identity/users/domain/exceptions/users.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "UsernameReservedException",
+      "code": "USERNAME_RESERVED",
+      "file": "src/bounded-contexts/identity/users/domain/exceptions/users.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
+      "className": "UsernameTakenException",
+      "code": "USERNAME_TAKEN",
+      "file": "src/bounded-contexts/identity/users/domain/exceptions/users.exceptions.ts",
+      "extends": "ConflictException"
     },
     {
       "className": "UserNotFoundException",
@@ -1300,41 +1600,6 @@
       "line": 104
     },
     {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "Invalid DSL",
-      "file": "src/bounded-contexts/dsl/dsl-validator.service.ts",
-      "line": 44
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "Validation succeeded but normalized DSL is missing",
-      "file": "src/bounded-contexts/dsl/dsl-validator.service.ts",
-      "line": 49
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "",
-      "file": "src/bounded-contexts/dsl/dsl-validator.service.ts",
-      "line": 69
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "",
-      "file": "src/bounded-contexts/dsl/dsl-validator.service.ts",
-      "line": 77
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "Migration loop detected",
-      "file": "src/bounded-contexts/dsl/dsl-validator.service.ts",
-      "line": 84
-    },
-    {
       "className": "EntityNotFoundException",
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "ResumeShare",
@@ -1361,41 +1626,6 @@
       "message": "Resume has no active theme. Please apply a theme before rendering.",
       "file": "src/bounded-contexts/dsl/dsl.repository.ts",
       "line": 277
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "",
-      "file": "src/bounded-contexts/dsl/migrators/dsl-migration.service.ts",
-      "line": 46
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "",
-      "file": "src/bounded-contexts/dsl/migrators/dsl-migration.service.ts",
-      "line": 53
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "",
-      "file": "src/bounded-contexts/dsl/migrators/dsl-migration.service.ts",
-      "line": 65
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "",
-      "file": "src/bounded-contexts/dsl/migrators/dsl-migration.service.ts",
-      "line": 109
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "",
-      "file": "src/bounded-contexts/dsl/migrators/dsl-migration.service.ts",
-      "line": 115
     },
     {
       "className": "EntityNotFoundException",
@@ -1766,49 +1996,7 @@
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "User",
       "file": "src/bounded-contexts/identity/users/application/use-cases/username/update-username.use-case.ts",
-      "line": 65
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "",
-      "file": "src/bounded-contexts/identity/users/application/use-cases/username/update-username.use-case.ts",
-      "line": 97
-    },
-    {
-      "className": "ConflictException",
-      "sharedCode": "CONFLICT",
-      "message": "Username already in use",
-      "file": "src/bounded-contexts/identity/users/application/use-cases/username/update-username.use-case.ts",
-      "line": 106
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "Username must be lowercase",
-      "file": "src/bounded-contexts/identity/users/application/use-cases/username/update-username.use-case.ts",
-      "line": 112
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "This username is reserved",
-      "file": "src/bounded-contexts/identity/users/application/use-cases/username/update-username.use-case.ts",
-      "line": 116
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "Invalid username format",
-      "file": "src/bounded-contexts/identity/users/application/use-cases/username/update-username.use-case.ts",
-      "line": 120
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "Username cannot contain consecutive underscores or end with an underscore",
-      "file": "src/bounded-contexts/identity/users/application/use-cases/username/update-username.use-case.ts",
-      "line": 124
+      "line": 69
     },
     {
       "className": "ConflictException",
@@ -1853,6 +2041,13 @@
       "line": 48
     },
     {
+      "className": "EntityNotFoundException",
+      "sharedCode": "ENTITY_NOT_FOUND",
+      "message": "Resume",
+      "file": "src/bounded-contexts/integration/github/services/github-database.service.ts",
+      "line": 30
+    },
+    {
       "className": "UnauthorizedException",
       "sharedCode": "UNAUTHORIZED",
       "message": "Internal API token not configured. Set INTERNAL_API_TOKEN environment variable.",
@@ -1872,90 +2067,6 @@
       "message": "",
       "file": "src/bounded-contexts/integration/mec-sync/guards/internal-auth.guard.ts",
       "line": 40
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "",
-      "file": "src/bounded-contexts/integration/upload/upload.service.ts",
-      "line": 34
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "",
-      "file": "src/bounded-contexts/integration/upload/upload.service.ts",
-      "line": 55
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "",
-      "file": "src/bounded-contexts/integration/upload/upload.service.ts",
-      "line": 80
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": ",",
-      "file": "src/bounded-contexts/integration/upload/upload.service.ts",
-      "line": 86
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "Invalid filename: contains null bytes",
-      "file": "src/bounded-contexts/integration/upload/upload.service.ts",
-      "line": 99
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "Invalid filename: directory traversal detected",
-      "file": "src/bounded-contexts/integration/upload/upload.service.ts",
-      "line": 104
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "",
-      "file": "src/bounded-contexts/integration/upload/upload.service.ts",
-      "line": 121
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "Invalid file content",
-      "file": "src/bounded-contexts/integration/upload/upload.service.ts",
-      "line": 129
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "Invalid JPEG file content",
-      "file": "src/bounded-contexts/integration/upload/upload.service.ts",
-      "line": 136
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "Invalid PNG file content",
-      "file": "src/bounded-contexts/integration/upload/upload.service.ts",
-      "line": 140
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "Invalid WEBP file content",
-      "file": "src/bounded-contexts/integration/upload/upload.service.ts",
-      "line": 146
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "Invalid WEBP file content",
-      "file": "src/bounded-contexts/integration/upload/upload.service.ts",
-      "line": 151
     },
     {
       "className": "EntityNotFoundException",
@@ -2203,67 +2314,18 @@
       "line": 180
     },
     {
-      "className": "ConflictException",
-      "sharedCode": "CONFLICT",
-      "message": "Slug already in use",
+      "className": "EntityNotFoundException",
+      "sharedCode": "ENTITY_NOT_FOUND",
+      "message": "Resume",
       "file": "src/bounded-contexts/presentation/public-resumes/services/resume-share.service.ts",
-      "line": 48
+      "line": 59
     },
     {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "You do not have access to this resume",
+      "className": "EntityNotFoundException",
+      "sharedCode": "ENTITY_NOT_FOUND",
+      "message": "Resume",
       "file": "src/bounded-contexts/presentation/public-resumes/services/resume-share.service.ts",
-      "line": 61
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "You do not have access to this share",
-      "file": "src/bounded-contexts/presentation/public-resumes/services/resume-share.service.ts",
-      "line": 116
-    },
-    {
-      "className": "ConflictException",
-      "sharedCode": "CONFLICT",
-      "message": "Slug already in use",
-      "file": "src/bounded-contexts/presentation/public-resumes/services/resume-share.service.ts",
-      "line": 123
-    },
-    {
-      "className": "ConflictException",
-      "sharedCode": "CONFLICT",
-      "message": "Slug already in use",
-      "file": "src/bounded-contexts/presentation/public-resumes/services/resume-share.service.ts",
-      "line": 130
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "You do not have access to this alias",
-      "file": "src/bounded-contexts/presentation/public-resumes/services/resume-share.service.ts",
-      "line": 153
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "You do not have access to this share",
-      "file": "src/bounded-contexts/presentation/public-resumes/services/resume-share.service.ts",
-      "line": 172
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "You do not have access to this share",
-      "file": "src/bounded-contexts/presentation/public-resumes/services/resume-share.service.ts",
-      "line": 288
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "You do not have access to this resume",
-      "file": "src/bounded-contexts/presentation/public-resumes/services/resume-share.service.ts",
-      "line": 307
+      "line": 303
     },
     {
       "className": "ForbiddenException",
@@ -2637,13 +2699,6 @@
       "line": 222
     },
     {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "You do not own this resume",
-      "file": "src/bounded-contexts/resumes/resume-versions/services/resume-tailor/resume-tailor.service.ts",
-      "line": 223
-    },
-    {
       "className": "EntityNotFoundException",
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "Resume",
@@ -2651,25 +2706,11 @@
       "line": 232
     },
     {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "You do not own this resume",
-      "file": "src/bounded-contexts/resumes/resume-versions/services/resume-tailor/resume-tailor.service.ts",
-      "line": 233
-    },
-    {
       "className": "EntityNotFoundException",
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "Job",
       "file": "src/bounded-contexts/resumes/resume-versions/services/resume-tailor/resume-tailor.service.ts",
       "line": 244
-    },
-    {
-      "className": "ConflictException",
-      "sharedCode": "CONFLICT",
-      "message": "TAILOR_INPUT_REQUIRED",
-      "file": "src/bounded-contexts/resumes/resume-versions/services/resume-tailor/resume-tailor.service.ts",
-      "line": 255
     },
     {
       "className": "EntityNotFoundException",
@@ -2718,21 +2759,7 @@
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "SectionType",
       "file": "src/bounded-contexts/resumes/section-types/admin-section-types.service.ts",
-      "line": 63
-    },
-    {
-      "className": "ConflictException",
-      "sharedCode": "CONFLICT",
-      "message": "${dto.key}",
-      "file": "src/bounded-contexts/resumes/section-types/admin-section-types.service.ts",
-      "line": 79
-    },
-    {
-      "className": "ConflictException",
-      "sharedCode": "CONFLICT",
-      "message": "${dto.slug}",
-      "file": "src/bounded-contexts/resumes/section-types/admin-section-types.service.ts",
-      "line": 88
+      "line": 66
     },
     {
       "className": "EntityNotFoundException",
@@ -2742,39 +2769,11 @@
       "line": 128
     },
     {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "Cannot modify key, semanticKind, or definition of system section types",
-      "file": "src/bounded-contexts/resumes/section-types/admin-section-types.service.ts",
-      "line": 139
-    },
-    {
-      "className": "ConflictException",
-      "sharedCode": "CONFLICT",
-      "message": "${dto.slug}",
-      "file": "src/bounded-contexts/resumes/section-types/admin-section-types.service.ts",
-      "line": 156
-    },
-    {
       "className": "EntityNotFoundException",
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "SectionType",
       "file": "src/bounded-contexts/resumes/section-types/admin-section-types.service.ts",
-      "line": 214
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "Cannot delete system section types",
-      "file": "src/bounded-contexts/resumes/section-types/admin-section-types.service.ts",
-      "line": 218
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "${key}",
-      "file": "src/bounded-contexts/resumes/section-types/admin-section-types.service.ts",
-      "line": 227
+      "line": 210
     },
     {
       "className": "ConflictException",
@@ -2907,56 +2906,42 @@
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "TechArea",
       "file": "src/bounded-contexts/skills-catalog/admin/admin-tech-areas.service.ts",
-      "line": 32
+      "line": 30
     },
     {
       "className": "EntityNotFoundException",
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "TechArea",
       "file": "src/bounded-contexts/skills-catalog/admin/admin-tech-areas.service.ts",
-      "line": 54
+      "line": 52
     },
     {
       "className": "EntityNotFoundException",
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "TechArea",
       "file": "src/bounded-contexts/skills-catalog/admin/admin-tech-areas.service.ts",
-      "line": 72
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "",
-      "file": "src/bounded-contexts/skills-catalog/admin/admin-tech-areas.service.ts",
-      "line": 76
+      "line": 70
     },
     {
       "className": "EntityNotFoundException",
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "TechNiche",
       "file": "src/bounded-contexts/skills-catalog/admin/admin-tech-niches.service.ts",
-      "line": 39
+      "line": 37
     },
     {
       "className": "EntityNotFoundException",
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "TechNiche",
       "file": "src/bounded-contexts/skills-catalog/admin/admin-tech-niches.service.ts",
-      "line": 62
+      "line": 60
     },
     {
       "className": "EntityNotFoundException",
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "TechNiche",
       "file": "src/bounded-contexts/skills-catalog/admin/admin-tech-niches.service.ts",
-      "line": 82
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "",
-      "file": "src/bounded-contexts/skills-catalog/admin/admin-tech-niches.service.ts",
-      "line": 86
+      "line": 80
     },
     {
       "className": "EntityNotFoundException",
@@ -3050,123 +3035,39 @@
       "line": 25
     },
     {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "Cannot connect with yourself",
-      "file": "src/bounded-contexts/social/services/connection.service.ts",
-      "line": 48
-    },
-    {
       "className": "EntityNotFoundException",
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "User",
       "file": "src/bounded-contexts/social/services/connection.service.ts",
-      "line": 53
-    },
-    {
-      "className": "ConflictException",
-      "sharedCode": "CONFLICT",
-      "message": "Already connected with this user",
-      "file": "src/bounded-contexts/social/services/connection.service.ts",
       "line": 60
     },
     {
-      "className": "ConflictException",
-      "sharedCode": "CONFLICT",
-      "message": "Connection request already pending",
+      "className": "EntityNotFoundException",
+      "sharedCode": "ENTITY_NOT_FOUND",
+      "message": "Connection",
       "file": "src/bounded-contexts/social/services/connection.service.ts",
-      "line": 63
-    },
-    {
-      "className": "ConflictException",
-      "sharedCode": "CONFLICT",
-      "message": "Connection request already exists",
-      "file": "src/bounded-contexts/social/services/connection.service.ts",
-      "line": 66
+      "line": 93
     },
     {
       "className": "EntityNotFoundException",
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "Connection",
       "file": "src/bounded-contexts/social/services/connection.service.ts",
-      "line": 86
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "Connection request is not pending",
-      "file": "src/bounded-contexts/social/services/connection.service.ts",
-      "line": 89
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "Only the target user can accept a connection request",
-      "file": "src/bounded-contexts/social/services/connection.service.ts",
-      "line": 92
+      "line": 123
     },
     {
       "className": "EntityNotFoundException",
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "Connection",
       "file": "src/bounded-contexts/social/services/connection.service.ts",
-      "line": 116
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "Connection request is not pending",
-      "file": "src/bounded-contexts/social/services/connection.service.ts",
-      "line": 119
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "Only the target user can reject a connection request",
-      "file": "src/bounded-contexts/social/services/connection.service.ts",
-      "line": 122
+      "line": 146
     },
     {
       "className": "EntityNotFoundException",
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "Connection",
       "file": "src/bounded-contexts/social/services/connection.service.ts",
-      "line": 139
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "Connection request is not pending",
-      "file": "src/bounded-contexts/social/services/connection.service.ts",
-      "line": 142
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "Only the requester can withdraw a sent request",
-      "file": "src/bounded-contexts/social/services/connection.service.ts",
-      "line": 145
-    },
-    {
-      "className": "EntityNotFoundException",
-      "sharedCode": "ENTITY_NOT_FOUND",
-      "message": "Connection",
-      "file": "src/bounded-contexts/social/services/connection.service.ts",
-      "line": 160
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "Connection is not accepted",
-      "file": "src/bounded-contexts/social/services/connection.service.ts",
-      "line": 163
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "You are not part of this connection",
-      "file": "src/bounded-contexts/social/services/connection.service.ts",
-      "line": 166
+      "line": 167
     },
     {
       "className": "ValidationException",
@@ -3303,99 +3204,9 @@
     },
     {
       "kind": "Error",
-      "message": "",
-      "file": "src/bounded-contexts/collaboration/chat/testing/in-memory/in-memory-conversation.repository.ts",
-      "line": 110
-    },
-    {
-      "kind": "Error",
-      "message": "Collaborator not found",
-      "file": "src/bounded-contexts/collaboration/sharing/testing/in-memory-collaboration.service.ts",
-      "line": 87
-    },
-    {
-      "kind": "Error",
-      "message": "",
-      "file": "src/bounded-contexts/dsl/application/compilers/token-evaluator.ts",
-      "line": 55
-    },
-    {
-      "kind": "Error",
-      "message": "",
-      "file": "src/bounded-contexts/dsl/application/compilers/token-evaluator.ts",
-      "line": 102
-    },
-    {
-      "kind": "Error",
-      "message": "",
-      "file": "src/bounded-contexts/dsl/application/compilers/token-evaluator.ts",
-      "line": 160
-    },
-    {
-      "kind": "Error",
-      "message": "Expected } after expression",
-      "file": "src/bounded-contexts/dsl/application/parsers/expression-parser.ts",
-      "line": 98
-    },
-    {
-      "kind": "Error",
-      "message": "",
-      "file": "src/bounded-contexts/dsl/application/parsers/expression-parser.ts",
-      "line": 190
-    },
-    {
-      "kind": "Error",
-      "message": "Expected identifier after .",
-      "file": "src/bounded-contexts/dsl/application/parsers/expression-parser.ts",
-      "line": 221
-    },
-    {
-      "kind": "Error",
-      "message": "",
-      "file": "src/bounded-contexts/dsl/application/parsers/expression-parser.ts",
-      "line": 234
-    },
-    {
-      "kind": "Error",
-      "message": "",
-      "file": "src/bounded-contexts/dsl/application/parsers/expression-parser.ts",
-      "line": 240
-    },
-    {
-      "kind": "Error",
-      "message": "Invalid DSL",
-      "file": "src/bounded-contexts/dsl/testing/index.ts",
-      "line": 184
-    },
-    {
-      "kind": "Error",
       "message": "Banner element not found",
       "file": "src/bounded-contexts/export/infrastructure/adapters/external-services/banner-capture.service.ts",
       "line": 47
-    },
-    {
-      "kind": "Error",
-      "message": "",
-      "file": "src/bounded-contexts/export/infrastructure/adapters/external-services/typst-compiler.service.ts",
-      "line": 67
-    },
-    {
-      "kind": "Error",
-      "message": ",",
-      "file": "src/bounded-contexts/export/infrastructure/adapters/external-services/typst-compiler.service.ts",
-      "line": 112
-    },
-    {
-      "kind": "Error",
-      "message": "",
-      "file": "src/bounded-contexts/export/infrastructure/adapters/external-services/typst-compiler.service.ts",
-      "line": 133
-    },
-    {
-      "kind": "Error",
-      "message": "",
-      "file": "src/bounded-contexts/export/infrastructure/adapters/external-services/typst-compiler.service.ts",
-      "line": 235
     },
     {
       "kind": "Error",
@@ -3411,27 +3222,9 @@
     },
     {
       "kind": "Error",
-      "message": "Resume not found",
-      "file": "src/bounded-contexts/export/testing/index.ts",
-      "line": 150
-    },
-    {
-      "kind": "Error",
       "message": "User not found after session creation",
       "file": "src/bounded-contexts/identity/authentication/application/use-cases/create-session/create-session.use-case.ts",
       "line": 71
-    },
-    {
-      "kind": "Error",
-      "message": "Invalid access token",
-      "file": "src/bounded-contexts/identity/authentication/testing/index.ts",
-      "line": 197
-    },
-    {
-      "kind": "Error",
-      "message": "Invalid session token",
-      "file": "src/bounded-contexts/identity/authentication/testing/index.ts",
-      "line": 205
     },
     {
       "kind": "Error",
@@ -3513,30 +3306,6 @@
     },
     {
       "kind": "Error",
-      "message": "Invalid or expired reset token",
-      "file": "src/bounded-contexts/identity/password-management/testing/index.ts",
-      "line": 121
-    },
-    {
-      "kind": "Error",
-      "message": "Invalid or expired reset token",
-      "file": "src/bounded-contexts/identity/password-management/testing/index.ts",
-      "line": 126
-    },
-    {
-      "kind": "Error",
-      "message": "Invalid or expired reset token",
-      "file": "src/bounded-contexts/identity/password-management/testing/index.ts",
-      "line": 135
-    },
-    {
-      "kind": "Error",
-      "message": "Invalid or expired reset token",
-      "file": "src/bounded-contexts/identity/password-management/testing/index.ts",
-      "line": 140
-    },
-    {
-      "kind": "Error",
       "message": "UserId cannot be empty",
       "file": "src/bounded-contexts/identity/shared-kernel/domain/value-objects/user-id.vo.ts",
       "line": 20
@@ -3548,166 +3317,16 @@
       "line": 71
     },
     {
-      "kind": "Error",
-      "message": "",
-      "file": "src/bounded-contexts/identity/shared-kernel/testing/in-memory/in-memory-two-factor.repository.ts",
-      "line": 46
-    },
-    {
-      "kind": "Error",
-      "message": "",
-      "file": "src/bounded-contexts/identity/shared-kernel/testing/in-memory/in-memory-user-management.repository.ts",
-      "line": 210
-    },
-    {
-      "kind": "Error",
-      "message": "",
-      "file": "src/bounded-contexts/identity/shared-kernel/testing/in-memory/in-memory-users.repository.ts",
-      "line": 268
-    },
-    {
-      "kind": "Error",
-      "message": "",
-      "file": "src/bounded-contexts/identity/shared-kernel/testing/in-memory/in-memory-users.repository.ts",
-      "line": 292
-    },
-    {
-      "kind": "Error",
-      "message": "",
-      "file": "src/bounded-contexts/identity/shared-kernel/testing/in-memory/in-memory-users.repository.ts",
-      "line": 378
-    },
-    {
-      "kind": "Error",
-      "message": "Email sending failed",
-      "file": "src/bounded-contexts/identity/shared-kernel/testing/stubs/stub-email-sender.ts",
-      "line": 22
-    },
-    {
-      "kind": "Error",
-      "message": "Invalid or expired token",
-      "file": "src/bounded-contexts/identity/shared-kernel/testing/stubs/stub-token-service.ts",
-      "line": 20
-    },
-    {
-      "kind": "Error",
-      "message": "Invalid or expired token",
-      "file": "src/bounded-contexts/identity/shared-kernel/testing/stubs/stub-token-service.ts",
-      "line": 27
-    },
-    {
-      "kind": "Error",
-      "message": "",
-      "file": "src/bounded-contexts/identity/two-factor-auth/testing/index.ts",
-      "line": 51
-    },
-    {
-      "kind": "Error",
-      "message": "",
-      "file": "src/bounded-contexts/identity/two-factor-auth/testing/index.ts",
-      "line": 61
-    },
-    {
-      "kind": "Error",
-      "message": "",
-      "file": "src/bounded-contexts/identity/users/shadow-profile/github-api.adapter.ts",
-      "line": 88
-    },
-    {
-      "kind": "Error",
-      "message": "",
-      "file": "src/bounded-contexts/identity/users/shadow-profile/github-api.adapter.ts",
-      "line": 104
-    },
-    {
-      "kind": "Error",
-      "message": "",
-      "file": "src/bounded-contexts/import/infrastructure/adapters/github-api.adapter.ts",
-      "line": 93
-    },
-    {
-      "kind": "Error",
-      "message": "",
-      "file": "src/bounded-contexts/import/infrastructure/adapters/github-api.adapter.ts",
-      "line": 109
-    },
-    {
-      "kind": "Error",
-      "message": "",
-      "file": "src/bounded-contexts/import/testing/in-memory-import-job.repository.ts",
-      "line": 60
-    },
-    {
-      "kind": "Error",
-      "message": "",
-      "file": "src/bounded-contexts/import/testing/index.ts",
-      "line": 79
-    },
-    {
       "kind": "HttpException",
       "message": "Failed to fetch GitHub summary",
       "file": "src/bounded-contexts/integration/github/github.service.ts",
       "line": 136
     },
     {
-      "kind": "HttpException",
-      "message": "",
-      "file": "src/bounded-contexts/integration/github/services/github-database.service.ts",
-      "line": 29
-    },
-    {
-      "kind": "HttpException",
-      "message": "",
-      "file": "src/bounded-contexts/integration/github/services/github-database.service.ts",
-      "line": 33
-    },
-    {
-      "kind": "HttpException",
-      "message": "Failed to sync GitHub data",
-      "file": "src/bounded-contexts/integration/github/services/github-sync.service.ts",
-      "line": 98
-    },
-    {
-      "kind": "HttpException",
-      "message": "No GitHub username found in resume",
-      "file": "src/bounded-contexts/integration/github/services/github-sync.service.ts",
-      "line": 110
-    },
-    {
-      "kind": "Error",
-      "message": "No response received",
-      "file": "src/bounded-contexts/integration/mec-sync/services/csv-downloader.service.ts",
-      "line": 92
-    },
-    {
-      "kind": "Error",
-      "message": "Received HTML instead of CSV - Cloudflare may still be blocking",
-      "file": "src/bounded-contexts/integration/mec-sync/services/csv-downloader.service.ts",
-      "line": 110
-    },
-    {
-      "kind": "Error",
-      "message": "",
-      "file": "src/bounded-contexts/integration/mec-sync/services/mec-csv-parser.service.ts",
-      "line": 72
-    },
-    {
-      "kind": "Error",
-      "message": "CSV file is empty or has no data rows",
-      "file": "src/bounded-contexts/integration/mec-sync/services/mec-csv-parser.service.ts",
-      "line": 105
-    },
-    {
       "kind": "Error",
       "message": "Sync already in progress. Please wait for the current sync to complete.",
       "file": "src/bounded-contexts/integration/mec-sync/services/mec-sync.service.ts",
       "line": 83
-    },
-    {
-      "kind": "Error",
-      "message": "",
-      "file": "src/bounded-contexts/integration/testing/index.ts",
-      "line": 60
     },
     {
       "kind": "Error",
@@ -3892,32 +3511,8 @@
     {
       "kind": "Error",
       "message": "",
-      "file": "src/bounded-contexts/platform/testing/repositories/in-memory-email-log.repository.ts",
-      "line": 102
-    },
-    {
-      "kind": "Error",
-      "message": "",
       "file": "src/bounded-contexts/platform/webhooks/webhook.service.ts",
       "line": 156
-    },
-    {
-      "kind": "Error",
-      "message": "Share not found",
-      "file": "src/bounded-contexts/presentation/testing/index.ts",
-      "line": 119
-    },
-    {
-      "kind": "Error",
-      "message": "Theme not found",
-      "file": "src/bounded-contexts/presentation/testing/index.ts",
-      "line": 244
-    },
-    {
-      "kind": "Error",
-      "message": "Theme not found",
-      "file": "src/bounded-contexts/presentation/testing/index.ts",
-      "line": 268
     },
     {
       "kind": "Error",
@@ -3930,18 +3525,6 @@
       "message": "",
       "file": "src/bounded-contexts/presentation/themes/services/resume-config.repository.ts",
       "line": 74
-    },
-    {
-      "kind": "Error",
-      "message": "",
-      "file": "src/bounded-contexts/resumes/core/testing/in-memory-generic-resume-sections.repository.ts",
-      "line": 159
-    },
-    {
-      "kind": "Error",
-      "message": "",
-      "file": "src/bounded-contexts/resumes/core/testing/in-memory-generic-resume-sections.repository.ts",
-      "line": 174
     },
     {
       "kind": "Error",
@@ -3966,12 +3549,6 @@
       "message": "",
       "file": "src/bounded-contexts/skills-catalog/tech-skills/services/github-linguist-parser.service.ts",
       "line": 25
-    },
-    {
-      "kind": "Error",
-      "message": "",
-      "file": "src/bounded-contexts/social/testing/index.ts",
-      "line": 304
     },
     {
       "kind": "Error",

@@ -112,3 +112,47 @@ export class ExportEngineUnavailableException extends DomainException {
     super(`Resume export to ${format} is temporarily unavailable`);
   }
 }
+
+export class SectionTypeAlreadyExistsException extends ConflictException {
+  readonly code: string = 'SECTION_TYPE_ALREADY_EXISTS';
+  constructor(key: string) {
+    super(`Section type '${key}' already exists`);
+  }
+}
+
+export class SectionTypeSlugVersionTakenException extends ConflictException {
+  readonly code: string = 'SECTION_TYPE_SLUG_VERSION_TAKEN';
+  constructor(slug: string, version: number) {
+    super(`Section type with slug '${slug}' and version ${version} already exists`);
+  }
+}
+
+export class SystemSectionTypeImmutableException extends ValidationException {
+  readonly code: string = 'SYSTEM_SECTION_TYPE_IMMUTABLE';
+  constructor() {
+    super('Cannot modify key, semanticKind, or definition of system section types');
+  }
+}
+
+export class SystemSectionTypeUndeletableException extends ValidationException {
+  readonly code: string = 'SYSTEM_SECTION_TYPE_UNDELETABLE';
+  constructor() {
+    super('Cannot delete system section types');
+  }
+}
+
+export class SectionTypeInUseException extends ValidationException {
+  readonly code: string = 'SECTION_TYPE_IN_USE';
+  constructor(key: string, count: number) {
+    super(
+      `Cannot delete section type '${key}' - it is used by ${count} resume(s). Deactivate it instead.`,
+    );
+  }
+}
+
+export class ResumeTailorInputRequiredException extends ValidationException {
+  readonly code: string = 'RESUME_TAILOR_INPUT_REQUIRED';
+  constructor() {
+    super('Tailor input is required (job id or pasted description)');
+  }
+}

@@ -1,8 +1,12 @@
+import { EntityNotFoundException } from '@/shared-kernel/exceptions';
 import {
-  ConflictException,
-  EntityNotFoundException,
-  ValidationException,
-} from '@/shared-kernel/exceptions';
+  UsernameBadUnderscoresException,
+  UsernameCooldownActiveException,
+  UsernameInvalidFormatException,
+  UsernameMustBeLowercaseException,
+  UsernameReservedException,
+  UsernameTakenException,
+} from '../../../domain/exceptions/users.exceptions';
 import type { UpdatedUsername, UsernameRepositoryPort } from '../../ports/username.port';
 
 const USERNAME_UPDATE_COOLDOWN_DAYS = 30;
@@ -94,36 +98,32 @@ export class UpdateUsernameUseCase {
 
     if (daysSinceLastUpdate < USERNAME_UPDATE_COOLDOWN_DAYS) {
       const daysRemaining = USERNAME_UPDATE_COOLDOWN_DAYS - daysSinceLastUpdate;
-      throw new ValidationException(
-        `You can only change your username once every ${USERNAME_UPDATE_COOLDOWN_DAYS} days. Please wait ${daysRemaining} more day(s).`,
-      );
+      throw new UsernameCooldownActiveException(USERNAME_UPDATE_COOLDOWN_DAYS, daysRemaining);
     }
   }
 
   private async ensureUsernameAvailable(username: string, userId: string): Promise<void> {
     const isTaken = await this.repository.isUsernameTaken(username, userId);
     if (isTaken) {
-      throw new ConflictException('Username already in use');
+      throw new UsernameTakenException();
     }
   }
 
   private validateUsernameFormat(username: string): void {
     if (username !== username.toLowerCase()) {
-      throw new ValidationException('Username must be lowercase');
+      throw new UsernameMustBeLowercaseException();
     }
 
     if (RESERVED_USERNAMES.has(username.toLowerCase())) {
-      throw new ValidationException('This username is reserved');
+      throw new UsernameReservedException();
     }
 
     if (!USERNAME_REGEX.test(username)) {
-      throw new ValidationException('Invalid username format');
+      throw new UsernameInvalidFormatException();
     }
 
     if (username.includes('__') || username.endsWith('_')) {
-      throw new ValidationException(
-        'Username cannot contain consecutive underscores or end with an underscore',
-      );
+      throw new UsernameBadUnderscoresException();
     }
   }
 }

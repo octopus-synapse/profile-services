@@ -74,3 +74,10 @@ export class NotConnectionTargetException extends ValidationException {
     super(`Only the target user can ${action} a connection request`);
   }
 }
+
+export class NotConnectionRequesterException extends ValidationException {
+  readonly code: string = 'NOT_CONNECTION_REQUESTER';
+  constructor() {
+    super('Only the requester can withdraw a sent request');
+  }
+}

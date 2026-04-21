@@ -54,3 +54,17 @@ export class ProgrammingLanguageInvalidException extends ValidationException {
     super(`Programming language is invalid: ${reason}`);
   }
 }
+
+export class TechAreaInUseException extends ValidationException {
+  readonly code: string = 'TECH_AREA_IN_USE';
+  constructor(childCount: number) {
+    super(`Cannot delete tech area - it has ${childCount} niche(s). Remove them first.`);
+  }
+}
+
+export class TechNicheInUseException extends ValidationException {
+  readonly code: string = 'TECH_NICHE_IN_USE';
+  constructor(childCount: number) {
+    super(`Cannot delete tech niche - it has ${childCount} skill(s). Remove them first.`);
+  }
+}

@@ -2,11 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { paginate, searchWhere } from '@/shared-kernel/database';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import {
-  ConflictException,
-  EntityNotFoundException,
-  ValidationException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
+  SectionTypeAlreadyExistsException,
+  SectionTypeInUseException,
+  SectionTypeSlugVersionTakenException,
+  SystemSectionTypeImmutableException,
+  SystemSectionTypeUndeletableException,
+} from '../domain/exceptions/resumes.exceptions';
 import type {
   CreateSectionTypeDto,
   ListSectionTypesQueryDto,
@@ -76,18 +79,15 @@ export class AdminSectionTypesService {
     });
 
     if (existing) {
-      throw new ConflictException(`Section type '${dto.key}' already exists`);
+      throw new SectionTypeAlreadyExistsException(dto.key);
     }
 
-    // Check slug + version uniqueness
     const existingSlug = await this.prisma.sectionType.findFirst({
       where: { slug: dto.slug, version: dto.version },
     });
 
     if (existingSlug) {
-      throw new ConflictException(
-        `Section type with slug '${dto.slug}' and version ${dto.version} already exists`,
-      );
+      throw new SectionTypeSlugVersionTakenException(dto.slug, dto.version);
     }
 
     const sectionType = await this.prisma.sectionType.create({
@@ -136,9 +136,7 @@ export class AdminSectionTypesService {
       );
 
       if (attemptedRestrictedUpdate) {
-        throw new ValidationException(
-          'Cannot modify key, semanticKind, or definition of system section types',
-        );
+        throw new SystemSectionTypeImmutableException();
       }
     }
 
@@ -153,9 +151,7 @@ export class AdminSectionTypesService {
       });
 
       if (existingSlug) {
-        throw new ConflictException(
-          `Section type with slug '${dto.slug}' and version ${existing.version} already exists`,
-        );
+        throw new SectionTypeSlugVersionTakenException(dto.slug, existing.version);
       }
     }
 
@@ -215,19 +211,15 @@ export class AdminSectionTypesService {
     }
 
     if (existing.isSystem) {
-      throw new ValidationException('Cannot delete system section types');
+      throw new SystemSectionTypeUndeletableException();
     }
 
-    // Check if any resumes are using this section type
     const usageCount = await this.prisma.resumeSection.count({
       where: { sectionTypeId: existing.id },
     });
 
     if (usageCount > 0) {
-      throw new ValidationException(
-        `Cannot delete section type '${key}' - it is used by ${usageCount} resume(s). ` +
-          'Deactivate it instead.',
-      );
+      throw new SectionTypeInUseException(key, usageCount);
     }
 
     // Hard delete if not used

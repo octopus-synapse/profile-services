@@ -3,8 +3,13 @@
  * Single Responsibility: Orchestrate GitHub sync operations
  */
 
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { API_LIMITS } from '@/shared-kernel';
+import { DomainException } from '@/shared-kernel/exceptions';
+import {
+  GitHubSyncFailedException,
+  GitHubUsernameMissingException,
+} from '../../domain/exceptions/integration.exceptions';
 import { extractGitHubUsername } from '../github.utils';
 import { GitHubAchievementService } from './github-achievement.service';
 import { GitHubApiService } from './github-api.service';
@@ -93,9 +98,9 @@ export class GitHubSyncService {
         },
       };
     } catch (error) {
-      // Error transformation - see ERROR_HANDLING_STRATEGY.md
       if (error instanceof HttpException) throw error;
-      throw new HttpException('Failed to sync GitHub data', HttpStatus.INTERNAL_SERVER_ERROR);
+      if (error instanceof DomainException) throw error;
+      throw new GitHubSyncFailedException();
     }
   }
 
@@ -107,7 +112,7 @@ export class GitHubSyncService {
     const resume = await this.databaseService.verifyResumeOwnership(userId, resumeId);
 
     if (!resume.github) {
-      throw new HttpException('No GitHub username found in resume', HttpStatus.BAD_REQUEST);
+      throw new GitHubUsernameMissingException();
     }
 
     const githubUsername = extractGitHubUsername(resume.github);

@@ -2,10 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { Prisma, TechAreaType } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { paginate, patchData, searchWhere } from '@/shared-kernel/database';
-import {
-  EntityNotFoundException,
-  ValidationException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { TechAreaInUseException } from '../domain/exceptions/skills-catalog.exceptions';
 
 @Injectable()
 export class AdminTechAreasService {
@@ -73,9 +71,7 @@ export class AdminTechAreasService {
 
     const childCount = await this.prisma.techNiche.count({ where: { areaId: id } });
     if (childCount > 0) {
-      throw new ValidationException(
-        `Cannot delete tech area - it has ${childCount} niche(s). Remove them first.`,
-      );
+      throw new TechAreaInUseException(childCount);
     }
 
     await this.prisma.techArea.delete({ where: { id } });

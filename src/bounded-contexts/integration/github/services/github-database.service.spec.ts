@@ -9,7 +9,6 @@
  */
 
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { HttpException, HttpStatus } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import type { Prisma } from '@prisma/client';
 import { createMockResume } from '@test/shared/factories/resume.factory';
@@ -146,19 +145,18 @@ describe('GitHubDatabaseService', () => {
       expect(result).toEqual(mockResume);
     });
 
-    it('should throw NOT_FOUND when resume does not exist', async () => {
+    it('should throw EntityNotFoundException when resume does not exist', async () => {
       resumeRepository.clear();
 
       try {
         await service.verifyResumeOwnership('user-123', 'nonexistent');
         expect(true).toBe(false); // Should not reach here
       } catch (error) {
-        expect(error).toBeInstanceOf(HttpException);
-        expect((error as HttpException).getStatus()).toBe(HttpStatus.NOT_FOUND);
+        expect((error as { code?: string }).code).toBe('ENTITY_NOT_FOUND');
       }
     });
 
-    it('should throw FORBIDDEN when user does not own resume', async () => {
+    it('should throw RESUME_ACCESS_DENIED when user does not own resume', async () => {
       resumeRepository.clear();
       resumeRepository.seedResume({
         ...mockResume,
@@ -169,8 +167,7 @@ describe('GitHubDatabaseService', () => {
         await service.verifyResumeOwnership('user-123', 'resume-123');
         expect(true).toBe(false); // Should not reach here
       } catch (error) {
-        expect(error).toBeInstanceOf(HttpException);
-        expect((error as HttpException).getStatus()).toBe(HttpStatus.FORBIDDEN);
+        expect((error as { code?: string }).code).toBe('RESUME_ACCESS_DENIED');
       }
     });
 

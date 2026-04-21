@@ -83,9 +83,14 @@ async function walk(dir: string, acc: string[] = []): Promise<string[]> {
   const entries = await readdir(dir, { withFileTypes: true });
   for (const entry of entries) {
     if (entry.name === 'node_modules' || entry.name.startsWith('.')) continue;
+    // Skip testing doubles and mocks — they intentionally throw bare Errors
+    // and never reach the HTTP boundary.
+    if (entry.name === 'testing' || entry.name === '__mocks__') continue;
     const full = join(dir, entry.name);
     if (entry.isDirectory()) await walk(full, acc);
-    else if (entry.name.endsWith('.ts')) acc.push(full);
+    else if (entry.name.endsWith('.ts') && !entry.name.endsWith('.spec.ts')) {
+      acc.push(full);
+    }
   }
   return acc;
 }

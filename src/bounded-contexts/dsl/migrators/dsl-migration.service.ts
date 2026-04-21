@@ -5,7 +5,11 @@
 
 import { Injectable, Logger } from '@nestjs/common';
 import type { ResumeDsl } from '@/bounded-contexts/dsl/domain/schemas/dsl';
-import { ValidationException } from '@/shared-kernel/exceptions/domain.exceptions';
+import {
+  DslMigrationLoopException,
+  DslMigrationPathNotFoundException,
+  DslMigrationResultVersionMismatchException,
+} from '../domain/exceptions/dsl.exceptions';
 import type { DslMigrator } from './base.migrator';
 
 @Injectable()
@@ -43,16 +47,13 @@ export class DslMigrationService {
     while (currentVersion !== targetVersion) {
       // Detect circular migration
       if (visitedVersions.has(currentVersion)) {
-        throw new ValidationException(`Circular migration detected at version ${currentVersion}`);
+        throw new DslMigrationLoopException(currentVersion);
       }
       visitedVersions.add(currentVersion);
 
-      // Get migrator for current version
       const migrator = this.migrators.get(currentVersion);
       if (!migrator) {
-        throw new ValidationException(
-          `No migrator found for version ${currentVersion}. Cannot migrate to ${targetVersion}`,
-        );
+        throw new DslMigrationPathNotFoundException(currentVersion, targetVersion);
       }
 
       // Apply migration
@@ -62,9 +63,7 @@ export class DslMigrationService {
 
       // Validate migration result
       if (currentDsl.version !== currentVersion) {
-        throw new ValidationException(
-          `Migration failed: expected version ${currentVersion}, got ${currentDsl.version}`,
-        );
+        throw new DslMigrationResultVersionMismatchException(currentVersion, currentDsl.version);
       }
     }
 
@@ -106,13 +105,13 @@ export class DslMigrationService {
 
     while (currentVersion !== toVersion) {
       if (visitedVersions.has(currentVersion)) {
-        throw new ValidationException(`Circular migration path detected`);
+        throw new DslMigrationLoopException();
       }
       visitedVersions.add(currentVersion);
 
       const migrator = this.migrators.get(currentVersion);
       if (!migrator) {
-        throw new ValidationException(`No migration path from ${fromVersion} to ${toVersion}`);
+        throw new DslMigrationPathNotFoundException(fromVersion, toVersion);
       }
 
       currentVersion = migrator.toVersion;

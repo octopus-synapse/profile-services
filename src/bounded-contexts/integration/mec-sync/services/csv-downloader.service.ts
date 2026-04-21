@@ -7,6 +7,10 @@ import { Injectable } from '@nestjs/common';
 import type { Browser, Page } from 'puppeteer';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { API_LIMITS, CRYPTO_CONSTANTS } from '@/shared-kernel';
+import {
+  MecCsvBlockedException,
+  MecCsvNoResponseException,
+} from '../../domain/exceptions/integration.exceptions';
 import { MEC_CSV_URL, PUPPETEER_ARGS, PUPPETEER_CONFIG } from '../constants';
 import { CloudflareHandlerService } from './cloudflare-handler.service';
 
@@ -89,7 +93,7 @@ export class CsvDownloaderService {
     });
 
     if (!response) {
-      throw new Error('No response received');
+      throw new MecCsvNoResponseException();
     }
 
     await this.cloudflareHandler.waitForChallengeIfNeeded(page);
@@ -107,7 +111,7 @@ export class CsvDownloaderService {
     const isHtml = start.includes('<!doctype') || start.includes('<html');
 
     if (isHtml) {
-      throw new Error('Received HTML instead of CSV - Cloudflare may still be blocking');
+      throw new MecCsvBlockedException();
     }
   }
 

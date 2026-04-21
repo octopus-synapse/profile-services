@@ -7,7 +7,13 @@
 
 import { Injectable } from '@nestjs/common';
 import { type ResumeDsl, ResumeDslSchema } from '@/bounded-contexts/dsl/domain/schemas/dsl';
-import { ValidationException } from '@/shared-kernel/exceptions/domain.exceptions';
+import {
+  DslMigrationLoopException,
+  DslMigrationPathNotFoundException,
+  DslNormalizedMissingException,
+  DslUnsupportedVersionException,
+  DslValidationFailedException,
+} from './domain/exceptions/dsl.exceptions';
 
 export interface ValidationResult {
   valid: boolean;
@@ -41,12 +47,10 @@ export class DslValidatorService {
   validateOrThrow(input: unknown): ResumeDsl {
     const result = this.validate(input);
     if (!result.valid) {
-      throw new ValidationException('Invalid DSL', {
-        dsl: result.errors ?? [],
-      });
+      throw new DslValidationFailedException({ dsl: result.errors ?? [] });
     }
     if (!result.normalized) {
-      throw new ValidationException('Validation succeeded but normalized DSL is missing');
+      throw new DslNormalizedMissingException();
     }
     return result.normalized;
   }
@@ -66,7 +70,7 @@ export class DslValidatorService {
    */
   migrate(dsl: ResumeDsl, targetVersion: string): ResumeDsl {
     if (!this.isSupportedVersion(targetVersion)) {
-      throw new ValidationException(`Target DSL version ${targetVersion} is not supported`);
+      throw new DslUnsupportedVersionException(targetVersion);
     }
 
     let current: ResumeDsl = dsl;
@@ -74,14 +78,12 @@ export class DslValidatorService {
     while (current.version !== targetVersion) {
       const step = MIGRATIONS[current.version];
       if (!step) {
-        throw new ValidationException(
-          `No migration path from ${current.version} to ${targetVersion}`,
-        );
+        throw new DslMigrationPathNotFoundException(current.version, targetVersion);
       }
       current = step(current);
       guard += 1;
       if (guard > 20) {
-        throw new ValidationException('Migration loop detected');
+        throw new DslMigrationLoopException();
       }
     }
     return current;

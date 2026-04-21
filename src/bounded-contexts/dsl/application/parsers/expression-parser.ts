@@ -5,6 +5,10 @@
  * Uses recursive descent parsing with operator precedence.
  */
 
+import {
+  DslExpectedTokenException,
+  DslUnexpectedTokenException,
+} from '../../domain/exceptions/dsl.exceptions';
 import { ExpressionLexer, type Token, TokenType } from './expression-lexer';
 
 export enum ExpressionType {
@@ -95,7 +99,7 @@ export class ExpressionParser {
         parts.push(expr);
 
         if (!this.check(TokenType.EXPR_END)) {
-          throw new Error('Expected } after expression');
+          throw new DslExpectedTokenException('} after expression');
         }
         this.advance(); // consume }
       } else {
@@ -187,7 +191,7 @@ export class ExpressionParser {
       }
 
       if (!this.check(TokenType.RPAREN)) {
-        throw new Error('Expected ) after function arguments');
+        throw new DslExpectedTokenException(') after function arguments');
       }
       this.advance(); // consume )
 
@@ -218,7 +222,7 @@ export class ExpressionParser {
       while (this.check(TokenType.DOT)) {
         this.advance(); // consume .
         if (!this.check(TokenType.IDENTIFIER)) {
-          throw new Error('Expected identifier after .');
+          throw new DslExpectedTokenException('identifier after .');
         }
         path.push(this.advance().value);
       }
@@ -231,13 +235,13 @@ export class ExpressionParser {
       this.advance(); // consume (
       const expr = this.parseExpression();
       if (!this.check(TokenType.RPAREN)) {
-        throw new Error('Expected )');
+        throw new DslExpectedTokenException(')');
       }
       this.advance(); // consume )
       return expr;
     }
 
-    throw new Error(`Unexpected token: ${this.peek().type}`);
+    throw new DslUnexpectedTokenException(this.peek().type);
   }
 
   private check(type: TokenType): boolean {
