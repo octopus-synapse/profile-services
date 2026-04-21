@@ -2,7 +2,7 @@
  * Get Theme Use Case
  */
 
-import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { ThemeNotFoundException } from '../../../domain/exceptions/presentation.exceptions';
 import type { ThemeRepositoryPort } from '../../domain/ports/theme.repository.port';
 
 export class GetThemeUseCase {
@@ -10,7 +10,7 @@ export class GetThemeUseCase {
 
   async execute(themeId: string) {
     const theme = await this.themeRepo.findById(themeId);
-    if (!theme) throw new EntityNotFoundException('Theme', themeId);
+    if (!theme) throw new ThemeNotFoundException();
     return theme;
   }
 }

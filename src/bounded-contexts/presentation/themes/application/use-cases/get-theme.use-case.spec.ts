@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { ThemeNotFoundException } from '../../../domain/exceptions/presentation.exceptions';
 import { createTestTheme, InMemoryThemeRepository } from '../../../testing';
 import { GetThemeUseCase } from './get-theme.use-case';
 
@@ -21,11 +21,11 @@ describe('GetThemeUseCase', () => {
     expect(result.id).toBe(themeId);
   });
 
-  it('should throw EntityNotFoundException when theme does not exist', async () => {
-    expect(useCase.execute('nonexistent')).rejects.toThrow(EntityNotFoundException);
+  it('should throw ThemeNotFoundException when theme does not exist', async () => {
+    expect(useCase.execute('nonexistent')).rejects.toThrow(ThemeNotFoundException);
   });
 
   it('should throw with correct error message when theme not found', async () => {
-    expect(useCase.execute('nonexistent')).rejects.toThrow(EntityNotFoundException);
+    expect(useCase.execute('nonexistent')).rejects.toThrow(ThemeNotFoundException);
   });
 });

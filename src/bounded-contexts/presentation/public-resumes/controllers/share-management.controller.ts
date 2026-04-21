@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Delete,
-  ForbiddenException,
   Get,
   Header,
   HttpCode,
@@ -23,6 +22,7 @@ import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-exp
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { createZodPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
+import { ResumeShareAccessDeniedException } from '../../domain/exceptions/presentation.exceptions';
 import {
   ShareCreateDataDto,
   ShareDeleteDataDto,
@@ -176,8 +176,7 @@ export class ShareManagementController {
   ): Promise<StreamableFile> {
     const share = await this.shareService.getShareWithOwner(shareId);
     if (!share) throw new NotFoundException('Share not found');
-    if (share.resume.userId !== user.userId)
-      throw new ForbiddenException('You do not have access to this share');
+    if (share.resume.userId !== user.userId) throw new ResumeShareAccessDeniedException();
 
     const baseUrl = this.configService.get<string>('PUBLIC_APP_URL') ?? 'https://patchcareers.com';
     const targetUrl = `${baseUrl.replace(/\/$/, '')}/u/${share.slug}`;

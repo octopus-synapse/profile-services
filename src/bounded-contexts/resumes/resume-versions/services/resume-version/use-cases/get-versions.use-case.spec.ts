@@ -5,7 +5,10 @@
  * Pure tests - no mocks.
  */
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { EntityNotFoundException, ForbiddenException } from '@/shared-kernel/exceptions';
+import {
+  ResumeAccessDeniedException,
+  ResumeNotFoundException,
+} from '../../../../domain/exceptions/resumes.exceptions';
 import { InMemoryResumeVersionRepository } from '../testing';
 import { GetVersionsUseCase } from './get-versions.use-case';
 
@@ -22,18 +25,18 @@ describe('GetVersionsUseCase', () => {
   });
 
   describe('execute', () => {
-    it('should throw EntityNotFoundException when resume not found', async () => {
-      await expect(useCase.execute(resumeId, userId)).rejects.toThrow(EntityNotFoundException);
+    it('should throw ResumeNotFoundException when resume not found', async () => {
+      await expect(useCase.execute(resumeId, userId)).rejects.toThrow(ResumeNotFoundException);
     });
 
-    it('should throw ForbiddenException when user is not owner', async () => {
+    it('should throw ResumeAccessDeniedException when user is not owner', async () => {
       repository.seedResume({
         id: resumeId,
         userId: 'other-user',
         resumeSections: [],
       });
 
-      await expect(useCase.execute(resumeId, userId)).rejects.toThrow(ForbiddenException);
+      await expect(useCase.execute(resumeId, userId)).rejects.toThrow(ResumeAccessDeniedException);
     });
 
     it('should return versions when user is owner', async () => {

@@ -6,8 +6,7 @@
 
 import { Prisma } from '@prisma/client';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { ERROR_MESSAGES } from '@/shared-kernel';
-import { ForbiddenException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { ResumeAccessDeniedException } from '../../../../domain/exceptions/presentation.exceptions';
 import {
   type ResumeConfig,
   ResumeConfigRepositoryPort,
@@ -25,7 +24,7 @@ export class ResumeConfigRepository extends ResumeConfigRepositoryPort {
     });
 
     if (!resume || resume.userId !== userId) {
-      throw new ForbiddenException(ERROR_MESSAGES.RESUME_NOT_FOUND);
+      throw new ResumeAccessDeniedException();
     }
 
     const base = (resume.activeTheme?.styleConfig ?? {}) as ResumeConfig;

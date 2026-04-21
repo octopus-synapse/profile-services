@@ -2,8 +2,7 @@
  * Get Resolved Theme Config Use Case
  */
 
-import { ERROR_MESSAGES } from '@/shared-kernel';
-import { ForbiddenException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { ResumeAccessDeniedException } from '../../../domain/exceptions/presentation.exceptions';
 import type { ResumeRepositoryPort } from '../../domain/ports/resume.repository.port';
 import { deepMerge } from '../../utils';
 
@@ -14,7 +13,7 @@ export class GetResolvedThemeConfigUseCase {
     const existingResume = await this.resumeRepo.findByIdWithTheme(resumeId);
 
     if (!existingResume || existingResume.userId !== userId) {
-      throw new ForbiddenException(ERROR_MESSAGES.RESUME_NOT_FOUND);
+      throw new ResumeAccessDeniedException();
     }
 
     if (!existingResume.activeTheme) {

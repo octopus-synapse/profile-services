@@ -3,9 +3,9 @@ import { Resume } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { type CreateResumeData, type UpdateResumeData } from '@/shared-kernel';
 import {
-  EntityNotFoundException,
-  ForbiddenException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
+  ResumeAccessDeniedException,
+  ResumeNotFoundException,
+} from '../domain/exceptions/resumes.exceptions';
 import { ResumesRepositoryPort } from './ports/resumes-repository.port';
 
 @Injectable()
@@ -89,10 +89,10 @@ export class ResumesRepository extends ResumesRepositoryPort {
       // Check if resume exists but belongs to another user
       const resume = await this.prisma.resume.findUnique({ where: { id } });
       if (resume) {
-        throw new ForbiddenException('Access denied to resume');
+        throw new ResumeAccessDeniedException();
       }
       // Resume doesn't exist - could have been deleted by concurrent request
-      throw new EntityNotFoundException('Resume', id);
+      throw new ResumeNotFoundException();
     }
 
     return true;
@@ -101,7 +101,7 @@ export class ResumesRepository extends ResumesRepositoryPort {
   private async ensureResumeOwnership(id: string, userId: string): Promise<void> {
     const resume = await this.findResumeByIdAndUserId(id, userId);
     if (!resume) {
-      throw new ForbiddenException('Access denied to resume');
+      throw new ResumeAccessDeniedException();
     }
   }
 

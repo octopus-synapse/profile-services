@@ -1,7 +1,7 @@
 import {
-  EntityNotFoundException,
-  ForbiddenException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
+  ResumeAccessDeniedException,
+  ResumeNotFoundException,
+} from '../../../../domain/exceptions/resumes.exceptions';
 import { GenericResumeSectionsRepositoryPort } from '../ports/generic-resume-sections-repository.port';
 
 export class ResumeOwnershipPolicy {
@@ -11,11 +11,11 @@ export class ResumeOwnershipPolicy {
     const resume = await this.repository.findResumeOwner(resumeId);
 
     if (!resume) {
-      throw new EntityNotFoundException('Resume', resumeId);
+      throw new ResumeNotFoundException();
     }
 
     if (resume.userId !== userId) {
-      throw new ForbiddenException('Access denied to resume');
+      throw new ResumeAccessDeniedException();
     }
   }
 }

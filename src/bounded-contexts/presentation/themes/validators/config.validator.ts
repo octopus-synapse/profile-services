@@ -6,7 +6,7 @@
  */
 
 import { ERROR_MESSAGES } from '@/shared-kernel';
-import { ValidationException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { ThemeConfigInvalidException } from '../../domain/exceptions/presentation.exceptions';
 
 const VALID_LAYOUT_TYPES = [
   'single-column',
@@ -39,31 +39,31 @@ function isValidSectionId(sectionId: string): boolean {
 
 export function validateLayoutConfig(layout: unknown): void {
   if (!layout || typeof layout !== 'object') {
-    throw new ValidationException(ERROR_MESSAGES.LAYOUT_CONFIG_REQUIRED);
+    throw new ThemeConfigInvalidException(ERROR_MESSAGES.LAYOUT_CONFIG_REQUIRED);
   }
 
   const l = layout as Record<string, unknown>;
 
   if (l.type && typeof l.type === 'string' && !VALID_LAYOUT_TYPES.includes(l.type)) {
-    throw new ValidationException(`Invalid layout type: ${String(l.type)}`);
+    throw new ThemeConfigInvalidException(`Invalid layout type: ${String(l.type)}`);
   }
 }
 
 export function validateSectionsConfig(sections: unknown): void {
   if (!Array.isArray(sections)) {
-    throw new ValidationException(ERROR_MESSAGES.SECTIONS_MUST_BE_ARRAY);
+    throw new ThemeConfigInvalidException(ERROR_MESSAGES.SECTIONS_MUST_BE_ARRAY);
   }
 
   for (const section of sections as Array<Record<string, unknown>>) {
     const sectionId = section.id as string;
     if (!sectionId || !isValidSectionId(sectionId)) {
-      throw new ValidationException(`Invalid section id: ${String(sectionId)}`);
+      throw new ThemeConfigInvalidException(`Invalid section id: ${String(sectionId)}`);
     }
     if (typeof section.visible !== 'boolean') {
-      throw new ValidationException(`Section ${sectionId} must have visible property`);
+      throw new ThemeConfigInvalidException(`Section ${sectionId} must have visible property`);
     }
     if (typeof section.order !== 'number') {
-      throw new ValidationException(`Section ${sectionId} must have order property`);
+      throw new ThemeConfigInvalidException(`Section ${sectionId} must have order property`);
     }
   }
 }
@@ -72,15 +72,15 @@ export function validateItemOverrides(overrides: unknown): void {
   if (!overrides) return;
 
   if (typeof overrides !== 'object') {
-    throw new ValidationException(ERROR_MESSAGES.ITEM_OVERRIDES_MUST_BE_OBJECT);
+    throw new ThemeConfigInvalidException(ERROR_MESSAGES.ITEM_OVERRIDES_MUST_BE_OBJECT);
   }
 
   for (const [sectionId, items] of Object.entries(overrides)) {
     if (!isValidSectionId(sectionId)) {
-      throw new ValidationException(`Invalid section in overrides: ${sectionId}`);
+      throw new ThemeConfigInvalidException(`Invalid section in overrides: ${sectionId}`);
     }
     if (!Array.isArray(items)) {
-      throw new ValidationException(`Overrides for ${sectionId} must be array`);
+      throw new ThemeConfigInvalidException(`Overrides for ${sectionId} must be array`);
     }
   }
 }

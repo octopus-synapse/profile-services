@@ -1,7 +1,12 @@
 /**
  * Feed Bounded Context Exceptions
  */
-import { ConflictException, DomainException, ForbiddenException } from '@/shared-kernel/exceptions';
+import {
+  ConflictException,
+  DomainException,
+  EntityNotFoundException,
+  ForbiddenException,
+} from '@/shared-kernel/exceptions';
 
 export class PollClosedException extends DomainException {
   readonly code: string = 'POLL_CLOSED';
@@ -75,5 +80,26 @@ export class FileUploadUnavailableException extends DomainException {
   readonly statusHint = 503;
   constructor() {
     super('File upload service is currently unavailable');
+  }
+}
+
+export class PostNotFoundException extends EntityNotFoundException {
+  readonly code: string = 'POST_NOT_FOUND';
+  constructor(postId: string) {
+    super('Post', postId);
+  }
+}
+
+export class PostLikeNotFoundException extends EntityNotFoundException {
+  readonly code: string = 'POST_LIKE_NOT_FOUND';
+  constructor(postId: string) {
+    super('Like', postId);
+  }
+}
+
+export class PostBookmarkNotFoundException extends EntityNotFoundException {
+  readonly code: string = 'POST_BOOKMARK_NOT_FOUND';
+  constructor(postId: string) {
+    super('Bookmark', postId);
   }
 }

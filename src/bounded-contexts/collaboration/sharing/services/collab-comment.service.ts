@@ -1,5 +1,9 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import {
+  CannotDeleteAnotherUsersCommentException,
+  NotACollaboratorException,
+} from '../../domain/exceptions/collaboration.exceptions';
 
 export interface CreateCommentInput {
   resumeId: string;
@@ -81,7 +85,7 @@ export class CollabCommentService {
         select: { userId: true },
       });
       if (!resume || resume.userId !== viewerId) {
-        throw new ForbiddenException("Cannot delete another user's comment");
+        throw new CannotDeleteAnotherUsersCommentException();
       }
     }
     await this.prisma.collaborationComment.delete({ where: { id: commentId } });
@@ -101,7 +105,7 @@ export class CollabCommentService {
       select: { role: true },
     });
     if (!collab) {
-      throw new ForbiddenException('Not a collaborator on this resume');
+      throw new NotACollaboratorException();
     }
   }
 }

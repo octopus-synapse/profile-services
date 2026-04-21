@@ -1,4 +1,4 @@
-import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { VariantNotFoundException } from '../../../domain/exceptions/resumes.exceptions';
 import type { VariantData, VariantRepositoryPort } from '../ports/variant-repository.port';
 
 interface GenericResumeSection {
@@ -39,7 +39,7 @@ export class ResolveVariantUseCase {
     variantId: string,
   ): Promise<{ sections: GenericResumeSection[]; variant: VariantData }> {
     const variant = await this.variantRepo.findById(variantId);
-    if (!variant) throw new EntityNotFoundException('Variant', variantId);
+    if (!variant) throw new VariantNotFoundException(variantId);
 
     const baseSections = await this.sectionsReader.getSections(variant.baseResumeId);
 

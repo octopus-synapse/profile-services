@@ -13,9 +13,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { CreateResume, UpdateResume } from '@/shared-kernel';
 import {
-  EntityNotFoundException,
-  ForbiddenException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
+  ResumeAccessDeniedException,
+  ResumeNotFoundException,
+} from '../domain/exceptions/resumes.exceptions';
 import { ResumesRepository } from './resumes.repository';
 
 class InMemoryResumesStore {
@@ -234,15 +234,15 @@ describe('ResumesRepository', () => {
       });
     });
 
-    it('should throw ForbiddenException when resume does not exist', async () => {
+    it('should throw ResumeAccessDeniedException when resume does not exist', async () => {
       await expect(
         repository.updateResumeForUser('non-existent', 'user-1', {
           title: 'New',
         }),
-      ).rejects.toThrow(ForbiddenException);
+      ).rejects.toThrow(ResumeAccessDeniedException);
     });
 
-    it('should throw ForbiddenException when user does not own resume', async () => {
+    it('should throw ResumeAccessDeniedException when user does not own resume', async () => {
       store.seed({
         id: 'r1',
         userId: 'user-1',
@@ -251,7 +251,7 @@ describe('ResumesRepository', () => {
 
       await expect(
         repository.updateResumeForUser('r1', 'user-2', { title: 'Stolen' }),
-      ).rejects.toThrow(ForbiddenException);
+      ).rejects.toThrow(ResumeAccessDeniedException);
     });
   });
 
@@ -268,13 +268,13 @@ describe('ResumesRepository', () => {
       expect(result).toBe(true);
     });
 
-    it('should throw EntityNotFoundException when resume does not exist', async () => {
+    it('should throw ResumeNotFoundException when resume does not exist', async () => {
       await expect(
         async () => await repository.deleteResumeForUser('non-existent', 'user-1'),
-      ).toThrow(EntityNotFoundException);
+      ).toThrow(ResumeNotFoundException);
     });
 
-    it('should throw ForbiddenException when user does not own resume', async () => {
+    it('should throw ResumeAccessDeniedException when user does not own resume', async () => {
       store.seed({
         id: 'r1',
         userId: 'user-1',
@@ -282,7 +282,7 @@ describe('ResumesRepository', () => {
       });
 
       await expect(async () => await repository.deleteResumeForUser('r1', 'user-2')).toThrow(
-        ForbiddenException,
+        ResumeAccessDeniedException,
       );
     });
   });

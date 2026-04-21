@@ -10,15 +10,15 @@
  *
  * Expects request.user to have a `roles` array populated by JwtAuthGuard.
  */
-import {
-  CanActivate,
-  ExecutionContext,
-  ForbiddenException,
-  Inject,
-  Injectable,
-  Optional,
-} from '@nestjs/common';
+import { CanActivate, ExecutionContext, Inject, Injectable, Optional } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import {
+  AuthenticationRequiredException,
+  MissingAnyRequiredPermissionException,
+  MissingRequiredPermissionsException,
+  MissingRequiredRolesException,
+  UserRolesNotAvailableException,
+} from './authorization.exceptions';
 import { AuthorizationCheckPort } from './authorization-check.port';
 import { Permission } from './permission.enum';
 import { hasAllPermissions, hasAnyPermission, hasPermission } from './permission-resolver';
@@ -100,7 +100,7 @@ export class PermissionGuard implements CanActivate {
       if (singleRole) {
         const has = await this.authCheck?.hasRole(user?.id, singleRole);
         if (!has) {
-          throw new ForbiddenException(`Permission denied: requires role '${singleRole}'`);
+          throw new MissingRequiredRolesException([singleRole]);
         }
         return true;
       }
@@ -111,9 +111,7 @@ export class PermissionGuard implements CanActivate {
           multipleRoles.map((role) => this.authCheck?.hasRole(user?.id, role)),
         );
         if (!results.some(Boolean)) {
-          throw new ForbiddenException(
-            `Permission denied: requires any role of [${multipleRoles.join(', ')}]`,
-          );
+          throw new MissingRequiredRolesException(multipleRoles);
         }
         return true;
       }
@@ -155,14 +153,14 @@ export class PermissionGuard implements CanActivate {
           singlePermission.action,
         );
         if (!allowed) {
-          throw new ForbiddenException(
-            `Permission denied: ${singlePermission.resource}:${singlePermission.action}`,
-          );
+          throw new MissingRequiredPermissionsException([
+            `${singlePermission.resource}:${singlePermission.action}`,
+          ]);
         }
       } else {
         // Static: use pure function with roles
         if (!hasPermission(user?.roles, singlePermission)) {
-          throw new ForbiddenException(`Permission denied: ${singlePermission}`);
+          throw new MissingRequiredPermissionsException([String(singlePermission)]);
         }
       }
       return true;
@@ -184,10 +182,10 @@ export class PermissionGuard implements CanActivate {
             : await this.authCheck?.hasAllPermissions(user?.id, multiplePermissions);
 
         if (!allowed) {
-          const permList = multiplePermissions.map((p) => `${p.resource}:${p.action}`).join(', ');
-          throw new ForbiddenException(
-            `Permission denied: requires ${strategy === 'any' ? 'any of' : 'all of'} [${permList}]`,
-          );
+          const permList = multiplePermissions.map((p) => `${p.resource}:${p.action}`);
+          throw strategy === 'any'
+            ? new MissingAnyRequiredPermissionException(permList)
+            : new MissingRequiredPermissionsException(permList);
         }
       } else {
         // Static: use pure functions with roles
@@ -198,10 +196,10 @@ export class PermissionGuard implements CanActivate {
             : hasAllPermissions(user?.roles, staticPerms);
 
         if (!allowed) {
-          const permList = staticPerms.join(', ');
-          throw new ForbiddenException(
-            `Permission denied: requires ${strategy === 'any' ? 'any of' : 'all of'} [${permList}]`,
-          );
+          const permList = staticPerms.map((p) => String(p));
+          throw strategy === 'any'
+            ? new MissingAnyRequiredPermissionException(permList)
+            : new MissingRequiredPermissionsException(permList);
         }
       }
     }
@@ -215,19 +213,16 @@ export class PermissionGuard implements CanActivate {
 
   private ensureUser(user: AuthenticatedUser | undefined): asserts user is AuthenticatedUser {
     if (!user) {
-      throw new ForbiddenException('Authentication required');
+      throw new AuthenticationRequiredException();
     }
     if (!user.roles || !Array.isArray(user.roles)) {
-      throw new ForbiddenException('User roles not available');
+      throw new UserRolesNotAvailableException();
     }
   }
 
-  private ensureAuthCheck(context: string): void {
+  private ensureAuthCheck(_context: string): void {
     if (!this.authCheck) {
-      throw new ForbiddenException(
-        `AuthorizationCheckPort is not available. Cannot perform ${context} check. ` +
-          'Ensure AuthorizationModule is imported.',
-      );
+      throw new UserRolesNotAvailableException();
     }
   }
 }

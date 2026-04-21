@@ -5,7 +5,11 @@
  * Pure tests - no mocks.
  */
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { EntityNotFoundException, ForbiddenException } from '@/shared-kernel/exceptions';
+import {
+  ResumeAccessDeniedException,
+  ResumeNotFoundException,
+  ResumeVersionNotFoundException,
+} from '../../../../domain/exceptions/resumes.exceptions';
 import { InMemoryResumeEventPublisher, InMemoryResumeVersionRepository } from '../testing';
 import { CreateSnapshotUseCase } from './create-snapshot.use-case';
 import { RestoreVersionUseCase } from './restore-version.use-case';
@@ -28,13 +32,13 @@ describe('RestoreVersionUseCase', () => {
   });
 
   describe('execute', () => {
-    it('should throw EntityNotFoundException when resume not found', async () => {
+    it('should throw ResumeNotFoundException when resume not found', async () => {
       await expect(useCase.execute(resumeId, versionId, userId)).rejects.toThrow(
-        EntityNotFoundException,
+        ResumeNotFoundException,
       );
     });
 
-    it('should throw ForbiddenException when user is not owner', async () => {
+    it('should throw ResumeAccessDeniedException when user is not owner', async () => {
       repository.seedResume({
         id: resumeId,
         userId: 'other-user',
@@ -42,11 +46,11 @@ describe('RestoreVersionUseCase', () => {
       });
 
       await expect(useCase.execute(resumeId, versionId, userId)).rejects.toThrow(
-        ForbiddenException,
+        ResumeAccessDeniedException,
       );
     });
 
-    it('should throw EntityNotFoundException when version not found', async () => {
+    it('should throw ResumeVersionNotFoundException when version not found', async () => {
       repository.seedResume({
         id: resumeId,
         userId,
@@ -54,11 +58,11 @@ describe('RestoreVersionUseCase', () => {
       });
 
       await expect(useCase.execute(resumeId, versionId, userId)).rejects.toThrow(
-        EntityNotFoundException,
+        ResumeVersionNotFoundException,
       );
     });
 
-    it('should throw EntityNotFoundException when version belongs to different resume', async () => {
+    it('should throw ResumeVersionNotFoundException when version belongs to different resume', async () => {
       repository.seedResume({
         id: resumeId,
         userId,
@@ -74,7 +78,7 @@ describe('RestoreVersionUseCase', () => {
       });
 
       await expect(useCase.execute(resumeId, versionId, userId)).rejects.toThrow(
-        EntityNotFoundException,
+        ResumeVersionNotFoundException,
       );
     });
 

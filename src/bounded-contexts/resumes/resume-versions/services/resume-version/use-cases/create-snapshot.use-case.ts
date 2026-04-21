@@ -1,5 +1,5 @@
 import type { ResumeEventPublisher } from '@/bounded-contexts/resumes/domain/ports';
-import { EntityNotFoundException } from '@/shared-kernel/exceptions';
+import { ResumeNotFoundException } from '../../../../domain/exceptions/resumes.exceptions';
 import {
   type ResumeForSnapshot,
   type ResumeVersionRecord,
@@ -18,7 +18,7 @@ export class CreateSnapshotUseCase {
     const resume = await this.repository.findResumeForSnapshot(resumeId);
 
     if (!resume) {
-      throw new EntityNotFoundException('Resume');
+      throw new ResumeNotFoundException();
     }
 
     const lastVersionNumber = await this.repository.findLastVersionNumber(resumeId);

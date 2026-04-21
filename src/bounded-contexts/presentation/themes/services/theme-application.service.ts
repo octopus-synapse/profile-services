@@ -7,12 +7,13 @@ import { Injectable } from '@nestjs/common';
 import { Prisma, ThemeStatus } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type { ApplyThemeToResume, ForkTheme } from '@/shared-kernel';
-import { ERROR_MESSAGES, EventPublisher } from '@/shared-kernel';
-import {
-  EntityNotFoundException,
-  ForbiddenException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
+import { EventPublisher } from '@/shared-kernel';
 import { ThemeAppliedEvent } from '../../domain/events';
+import {
+  CannotForkThemeException,
+  ResumeAccessDeniedException,
+  ThemeNotFoundException,
+} from '../../domain/exceptions/presentation.exceptions';
 import { deepMerge } from '../utils';
 import { ThemeCrudService } from './theme-crud.service';
 import { ThemeQueryService } from './theme-query.service';
@@ -36,13 +37,13 @@ export class ThemeApplicationService {
     });
 
     if (existingResume?.userId !== userId) {
-      throw new ForbiddenException(ERROR_MESSAGES.RESUME_ACCESS_DENIED);
+      throw new ResumeAccessDeniedException();
     }
 
     // Verify theme access
     const selectedTheme = await this.query.findThemeById(applyThemeData.themeId, userId);
     if (!selectedTheme) {
-      throw new EntityNotFoundException('Theme', applyThemeData.themeId);
+      throw new ThemeNotFoundException();
     }
 
     // Apply theme and increment usage
@@ -73,7 +74,7 @@ export class ThemeApplicationService {
 
     // Can fork published or own themes
     if (originalTheme.status !== ThemeStatus.PUBLISHED && originalTheme.authorId !== userId) {
-      throw new ForbiddenException(ERROR_MESSAGES.CANNOT_FORK_THEME);
+      throw new CannotForkThemeException();
     }
 
     const forkedThemeData = {
@@ -99,7 +100,7 @@ export class ThemeApplicationService {
     });
 
     if (!existingResume || existingResume.userId !== userId) {
-      throw new ForbiddenException(ERROR_MESSAGES.RESUME_NOT_FOUND);
+      throw new ResumeAccessDeniedException();
     }
 
     if (!existingResume.activeTheme) {

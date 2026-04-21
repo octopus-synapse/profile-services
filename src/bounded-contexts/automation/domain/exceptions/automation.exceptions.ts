@@ -6,6 +6,7 @@
 import {
   ConflictException,
   DomainException,
+  ForbiddenException,
   LimitExceededException,
   ValidationException,
 } from '@/shared-kernel/exceptions';
@@ -36,5 +37,12 @@ export class AutomationWorkerUnavailableException extends DomainException {
   readonly statusHint = 503;
   constructor() {
     super('Automation workers are temporarily unavailable');
+  }
+}
+
+export class AutomationItemNotOwnedException extends ForbiddenException {
+  readonly code: string = 'AUTOMATION_ITEM_NOT_OWNED';
+  constructor() {
+    super('You do not own this item');
   }
 }

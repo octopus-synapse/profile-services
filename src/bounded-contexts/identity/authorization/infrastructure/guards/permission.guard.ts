@@ -18,12 +18,17 @@ import {
   applyDecorators,
   CanActivate,
   ExecutionContext,
-  ForbiddenException,
   Injectable,
   SetMetadata,
   UseGuards,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import {
+  AuthenticationRequiredException,
+  MissingAnyRequiredPermissionException,
+  MissingRequiredPermissionsException,
+  MissingRequiredRolesException,
+} from '@/shared-kernel/authorization/authorization.exceptions';
 import { AuthorizationService } from '../../application/services/authorization.service';
 
 // ============================================================================
@@ -207,7 +212,7 @@ export class PermissionGuard implements CanActivate {
     const user = request.user;
 
     if (!user?.id) {
-      throw new ForbiddenException('Authentication required');
+      throw new AuthenticationRequiredException();
     }
 
     // Check permission-based requirements
@@ -219,9 +224,9 @@ export class PermissionGuard implements CanActivate {
       );
 
       if (!hasPermission) {
-        throw new ForbiddenException(
-          `Permission denied: ${singlePermission.resource}:${singlePermission.action}`,
-        );
+        throw new MissingRequiredPermissionsException([
+          `${singlePermission.resource}:${singlePermission.action}`,
+        ]);
       }
     }
 
@@ -238,13 +243,11 @@ export class PermissionGuard implements CanActivate {
           : await this.authService.hasAnyPermission(user.id, multiplePermissions);
 
       if (!hasPermission) {
-        const permissionList = multiplePermissions
-          .map((p) => `${p.resource}:${p.action}`)
-          .join(', ');
+        const permissionList = multiplePermissions.map((p) => `${p.resource}:${p.action}`);
 
-        throw new ForbiddenException(
-          `Permission denied: requires ${strategy === 'all' ? 'all of' : 'any of'} [${permissionList}]`,
-        );
+        throw strategy === 'all'
+          ? new MissingRequiredPermissionsException(permissionList)
+          : new MissingAnyRequiredPermissionException(permissionList);
       }
     }
 
@@ -253,7 +256,7 @@ export class PermissionGuard implements CanActivate {
       const hasRole = await this.authService.hasRole(user.id, singleRole);
 
       if (!hasRole) {
-        throw new ForbiddenException(`Permission denied: requires role "${singleRole}"`);
+        throw new MissingRequiredRolesException([singleRole]);
       }
     }
 
@@ -267,9 +270,7 @@ export class PermissionGuard implements CanActivate {
       }
 
       if (!hasAnyRole) {
-        throw new ForbiddenException(
-          `Permission denied: requires any of roles [${multipleRoles.join(', ')}]`,
-        );
+        throw new MissingRequiredRolesException(multipleRoles);
       }
     }
 

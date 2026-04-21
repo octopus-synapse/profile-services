@@ -1,5 +1,9 @@
 import type { ResumeEventPublisher } from '@/bounded-contexts/resumes/domain/ports';
-import { EntityNotFoundException, ForbiddenException } from '@/shared-kernel/exceptions';
+import {
+  ResumeAccessDeniedException,
+  ResumeNotFoundException,
+  ResumeVersionNotFoundException,
+} from '../../../../domain/exceptions/resumes.exceptions';
 import {
   ResumeVersionRepositoryPort,
   type VersionRestoreResult,
@@ -60,17 +64,17 @@ export class RestoreVersionUseCase {
     const resume = await this.repository.findResumeOwner(resumeId);
 
     if (!resume) {
-      throw new EntityNotFoundException('Resume');
+      throw new ResumeNotFoundException();
     }
 
     if (resume.userId !== userId) {
-      throw new ForbiddenException('Not authorized to access this resume');
+      throw new ResumeAccessDeniedException();
     }
 
     const version = await this.repository.findResumeVersionById(versionId);
 
     if (!version || version.resumeId !== resumeId) {
-      throw new EntityNotFoundException('Version');
+      throw new ResumeVersionNotFoundException(versionId);
     }
 
     await this.createSnapshotUseCase.execute(resumeId, 'Before restore');

@@ -1,5 +1,6 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { NotConversationParticipantException } from '../../domain/exceptions/collaboration.exceptions';
 
 @Injectable()
 export class ChatPreferenceService {
@@ -37,7 +38,7 @@ export class ChatPreferenceService {
     });
     if (!conv) throw new NotFoundException('Conversation not found');
     if (conv.participant1Id !== userId && conv.participant2Id !== userId) {
-      throw new ForbiddenException('Not a participant of this conversation');
+      throw new NotConversationParticipantException();
     }
   }
 }

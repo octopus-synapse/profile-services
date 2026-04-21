@@ -8,10 +8,8 @@
 
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import {
-  EntityNotFoundException,
-  ForbiddenException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { ResumeAccessDeniedException } from '../../domain/exceptions/ats-validation.exceptions';
 import { type AtsSimulationResult, simulateAtsParsing } from '../simulation/ats-parser-simulator';
 import { buildSimulationInput } from '../simulation/build-simulation-input';
 
@@ -42,7 +40,7 @@ export class AtsSimulatorService {
 
     if (!resume) throw new EntityNotFoundException('Resume', resumeId);
     if (resume.userId !== viewerId) {
-      throw new ForbiddenException('You do not have access to this resume');
+      throw new ResumeAccessDeniedException();
     }
 
     const input = buildSimulationInput({

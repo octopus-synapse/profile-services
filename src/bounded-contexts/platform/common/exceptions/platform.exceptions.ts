@@ -62,3 +62,19 @@ export class ConfigurationMissingException extends DomainException {
     super(`Required configuration "${key}" is missing`);
   }
 }
+
+export class MetricsNotConfiguredException extends DomainException {
+  readonly code: string = 'METRICS_NOT_CONFIGURED';
+  readonly statusHint = 503;
+  constructor() {
+    super('Metrics endpoint is not configured');
+  }
+}
+
+export class InvalidMetricsApiKeyException extends DomainException {
+  readonly code: string = 'INVALID_METRICS_API_KEY';
+  readonly statusHint = 403;
+  constructor() {
+    super('Invalid metrics API key');
+  }
+}

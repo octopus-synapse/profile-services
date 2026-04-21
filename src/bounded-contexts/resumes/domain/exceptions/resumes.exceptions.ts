@@ -15,6 +15,29 @@ export class ResumeNotOwnedException extends ForbiddenException {
   }
 }
 
+export class ResumeAccessDeniedException extends ForbiddenException {
+  readonly code: string = 'RESUME_ACCESS_DENIED';
+  constructor() {
+    super('Access denied to resume');
+  }
+}
+
+export class ResumeNotFoundException extends DomainException {
+  readonly code: string = 'RESUME_NOT_FOUND';
+  readonly statusHint = 404;
+  constructor() {
+    super('Resume not found');
+  }
+}
+
+export class VariantNotFoundException extends DomainException {
+  readonly code: string = 'RESUME_VARIANT_NOT_FOUND';
+  readonly statusHint = 404;
+  constructor(variantId?: string) {
+    super(variantId ? `Variant ${variantId} not found` : 'Variant not found');
+  }
+}
+
 export class ResumeSlotLimitReachedException extends ConflictException {
   readonly code: string = 'RESUME_SLOT_LIMIT_REACHED';
   constructor(max: number) {

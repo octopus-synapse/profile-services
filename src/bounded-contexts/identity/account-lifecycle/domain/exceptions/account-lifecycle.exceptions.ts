@@ -1,7 +1,11 @@
 /**
  * Account Lifecycle Domain Exceptions
  */
-import { ConflictException, DomainException } from '../../../shared-kernel/exceptions';
+import {
+  ConflictException,
+  DomainException,
+  ForbiddenException,
+} from '../../../shared-kernel/exceptions';
 
 /**
  * Account Already Exists Exception
@@ -49,5 +53,19 @@ export class AccountDeletionRequiresConfirmationException extends DomainExceptio
   readonly code = 'DELETION_REQUIRES_CONFIRMATION';
   constructor() {
     super('Account deletion requires explicit confirmation');
+  }
+}
+
+/**
+ * Consent Required Exception
+ *
+ * Thrown when the user has not accepted the current Terms of Service or
+ * Privacy Policy versions. The ConsentGuard raises this to halt the
+ * request pipeline until consent is recorded.
+ */
+export class ConsentRequiredException extends ForbiddenException {
+  readonly code: string = 'CONSENT_REQUIRED';
+  constructor() {
+    super('consent_required');
   }
 }

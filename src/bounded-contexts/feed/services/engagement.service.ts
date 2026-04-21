@@ -9,8 +9,12 @@ import { Injectable } from '@nestjs/common';
 import type { ReactionType } from '@prisma/client';
 import { NotificationService } from '@/bounded-contexts/notifications/services/notification.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
-import { PostAlreadyRepostedException } from '../domain/exceptions/feed.exceptions';
+import {
+  PostAlreadyRepostedException,
+  PostBookmarkNotFoundException,
+  PostLikeNotFoundException,
+  PostNotFoundException,
+} from '../domain/exceptions/feed.exceptions';
 
 const AUTHOR_SELECT = {
   id: true,
@@ -36,7 +40,7 @@ export class EngagementService {
     });
 
     if (!post || post.isDeleted) {
-      throw new EntityNotFoundException('Post', postId);
+      throw new PostNotFoundException(postId);
     }
 
     // Check if already reacted
@@ -103,7 +107,7 @@ export class EngagementService {
     });
 
     if (!existing) {
-      throw new EntityNotFoundException('Like', postId);
+      throw new PostLikeNotFoundException(postId);
     }
 
     await this.prisma.$transaction([
@@ -129,7 +133,7 @@ export class EngagementService {
     });
 
     if (!post || post.isDeleted) {
-      throw new EntityNotFoundException('Post', postId);
+      throw new PostNotFoundException(postId);
     }
 
     const existing = await this.prisma.postBookmark.findUnique({
@@ -162,7 +166,7 @@ export class EngagementService {
     });
 
     if (!existing) {
-      throw new EntityNotFoundException('Bookmark', postId);
+      throw new PostBookmarkNotFoundException(postId);
     }
 
     await this.prisma.$transaction([
@@ -190,7 +194,7 @@ export class EngagementService {
     });
 
     if (!post || post.isDeleted) {
-      throw new EntityNotFoundException('Post', postId);
+      throw new PostNotFoundException(postId);
     }
 
     // Check for duplicate repost

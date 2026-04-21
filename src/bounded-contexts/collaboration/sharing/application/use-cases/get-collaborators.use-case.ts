@@ -1,4 +1,4 @@
-import { ForbiddenException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { ResumeAccessDeniedException } from '../../../domain/exceptions/collaboration.exceptions';
 import type { CollaborationRepositoryPort } from '../../domain/ports/collaboration-repository.port';
 import type { CollaboratorWithUser } from '../../domain/types/collaboration.types';
 
@@ -11,7 +11,7 @@ export class GetCollaboratorsUseCase {
 
     if (!isOwner) {
       const collaborator = await this.repo.findCollaborator(resumeId, requesterId);
-      if (!collaborator) throw new ForbiddenException('Access denied to this resume');
+      if (!collaborator) throw new ResumeAccessDeniedException();
     }
 
     return this.repo.findCollaborators(resumeId);

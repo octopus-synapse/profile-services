@@ -4,11 +4,11 @@
  * All themes are public — no visibility check needed.
  */
 
-import { type ApplyThemeToResume, ERROR_MESSAGES, EventPublisherPort } from '@/shared-kernel';
+import { type ApplyThemeToResume, EventPublisherPort } from '@/shared-kernel';
 import {
-  EntityNotFoundException,
-  ForbiddenException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
+  ResumeAccessDeniedException,
+  ThemeNotFoundException,
+} from '../../../domain/exceptions/presentation.exceptions';
 import { ThemeAppliedEvent } from '../../../shared-kernel/domain/events';
 import type { ResumeRepositoryPort } from '../../domain/ports/resume.repository.port';
 import type { JsonValue, ThemeRepositoryPort } from '../../domain/ports/theme.repository.port';
@@ -24,12 +24,12 @@ export class ApplyThemeToResumeUseCase {
     const existingResume = await this.resumeRepo.findById(applyThemeData.resumeId);
 
     if (!existingResume || existingResume.userId !== userId) {
-      throw new ForbiddenException(ERROR_MESSAGES.RESUME_ACCESS_DENIED);
+      throw new ResumeAccessDeniedException();
     }
 
     const selectedTheme = await this.themeRepo.findById(applyThemeData.themeId);
     if (!selectedTheme) {
-      throw new EntityNotFoundException('Theme', applyThemeData.themeId);
+      throw new ThemeNotFoundException();
     }
 
     await this.resumeRepo.applyTheme(

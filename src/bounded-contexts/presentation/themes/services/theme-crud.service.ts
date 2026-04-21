@@ -8,11 +8,13 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { CreateTheme, ERROR_MESSAGES, UpdateTheme } from '@/shared-kernel';
+import { CreateTheme, UpdateTheme } from '@/shared-kernel';
 import {
-  EntityNotFoundException,
-  ForbiddenException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
+  CannotDeleteSystemThemesException,
+  CanOnlyEditOwnThemesException,
+  OnlyAdminsCanDoThisException,
+  ThemeNotFoundException,
+} from '../../domain/exceptions/presentation.exceptions';
 import { AtsScorngPort } from '../domain/ports/ats-scoring.port';
 import { AuthorizationPort } from '../domain/ports/authorization.port';
 import { ThemePreviewPort } from '../domain/ports/theme-preview.port';
@@ -110,7 +112,7 @@ export class ThemeCrudService {
     const existingTheme = await this.findThemeByIdOrThrow(themeId);
 
     if (existingTheme.isSystemTheme) {
-      throw new ForbiddenException(ERROR_MESSAGES.CANNOT_DELETE_SYSTEM_THEMES);
+      throw new CannotDeleteSystemThemesException();
     }
     if (existingTheme.authorId !== adminId) {
       await this.assertIsAdmin(adminId);
@@ -123,14 +125,14 @@ export class ThemeCrudService {
     const foundTheme = await this.prisma.resumeTheme.findUnique({
       where: { id: themeId },
     });
-    if (!foundTheme) throw new EntityNotFoundException('Theme', themeId);
+    if (!foundTheme) throw new ThemeNotFoundException();
     return foundTheme;
   }
 
   private async assertIsAdmin(userId: string) {
     const hasPermission = await this.authorizationService.hasPermission(userId, 'theme', 'manage');
     if (!hasPermission) {
-      throw new ForbiddenException(ERROR_MESSAGES.ONLY_ADMINS_CAN_DO_THIS);
+      throw new OnlyAdminsCanDoThisException();
     }
   }
 
@@ -143,7 +145,7 @@ export class ThemeCrudService {
     if (theme.isSystemTheme) {
       await this.assertIsAdmin(userId);
     } else if (theme.authorId !== userId) {
-      throw new ForbiddenException(ERROR_MESSAGES.CAN_ONLY_EDIT_OWN_THEMES);
+      throw new CanOnlyEditOwnThemesException();
     }
   }
 }

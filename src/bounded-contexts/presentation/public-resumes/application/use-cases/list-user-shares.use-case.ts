@@ -3,9 +3,9 @@
  */
 
 import {
-  EntityNotFoundException,
-  ForbiddenException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
+  ResumeAccessDeniedException,
+  ResumeNotFoundException,
+} from '../../../domain/exceptions/presentation.exceptions';
 import type { ResumeReadRepositoryPort } from '../../domain/ports/resume-read.repository.port';
 import type { ShareRepositoryPort } from '../../domain/ports/share.repository.port';
 
@@ -19,11 +19,11 @@ export class ListUserSharesUseCase {
     const resume = await this.resumeRepo.findById(resumeId);
 
     if (!resume) {
-      throw new EntityNotFoundException('Resume', resumeId);
+      throw new ResumeNotFoundException();
     }
 
     if (resume.userId !== userId) {
-      throw new ForbiddenException('You do not have access to this resume');
+      throw new ResumeAccessDeniedException();
     }
 
     return this.shareRepo.findByResumeId(resumeId);

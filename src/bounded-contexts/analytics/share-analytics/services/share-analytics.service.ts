@@ -14,10 +14,8 @@
 import { createHash } from 'node:crypto';
 import { Inject, Injectable } from '@nestjs/common';
 import type { AnalyticsEvent } from '@prisma/client';
-import {
-  EntityNotFoundException,
-  ForbiddenException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { ShareAnalyticsNotAuthorizedException } from '../../domain/exceptions/analytics.exceptions';
 import { parseUserAgent } from '../application/utils/parse-user-agent';
 import { SHARE_ANALYTICS_REPOSITORY, type ShareAnalyticsRepositoryPort } from '../ports';
 import { GEO_LOOKUP_PORT, type GeoLookupPort } from '../ports/geo-lookup.port';
@@ -83,7 +81,7 @@ export class ShareAnalyticsService {
     }
 
     if (share.resume.userId !== userId) {
-      throw new ForbiddenException('Not authorized');
+      throw new ShareAnalyticsNotAuthorizedException();
     }
 
     // Get event counts
@@ -135,7 +133,7 @@ export class ShareAnalyticsService {
     }
 
     if (share.resume.userId !== userId) {
-      throw new ForbiddenException('Not authorized');
+      throw new ShareAnalyticsNotAuthorizedException();
     }
 
     const events = await this.repository.getDetailedEvents(shareId, filters);

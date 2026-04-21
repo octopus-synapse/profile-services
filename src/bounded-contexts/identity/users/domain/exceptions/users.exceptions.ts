@@ -1,7 +1,11 @@
 /**
  * Users Bounded Context Exceptions
  */
-import { ConflictException, ValidationException } from '../../../shared-kernel/exceptions';
+import {
+  ConflictException,
+  ForbiddenException,
+  ValidationException,
+} from '../../../shared-kernel/exceptions';
 
 export class UsernameTakenException extends ConflictException {
   readonly code: string = 'USERNAME_TAKEN';
@@ -44,5 +48,12 @@ export class UsernameBadUnderscoresException extends ValidationException {
   readonly code: string = 'USERNAME_BAD_UNDERSCORES';
   constructor() {
     super('Username cannot contain consecutive underscores or end with an underscore');
+  }
+}
+
+export class CannotDeleteOwnAccountAsAdminException extends ForbiddenException {
+  readonly code: string = 'CANNOT_DELETE_OWN_ACCOUNT_AS_ADMIN';
+  constructor() {
+    super('Cannot delete your own account through admin interface');
   }
 }

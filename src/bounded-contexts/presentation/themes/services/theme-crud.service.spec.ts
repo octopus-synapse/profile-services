@@ -9,9 +9,11 @@ import { beforeEach, describe, expect, it, mock } from 'bun:test';
 import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import {
-  EntityNotFoundException,
-  ForbiddenException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
+  CannotDeleteSystemThemesException,
+  CanOnlyEditOwnThemesException,
+  OnlyAdminsCanDoThisException,
+  ThemeNotFoundException,
+} from '../../domain/exceptions/presentation.exceptions';
 import { createTestTheme, InMemoryThemeRepository, StubAuthorizationService } from '../../testing';
 import { AuthorizationPort } from '../domain/ports/authorization.port';
 import type { JsonValue, ThemeEntity } from '../domain/ports/theme.repository.port';
@@ -143,7 +145,7 @@ describe('ThemeCrudService', () => {
 
       await expect(
         service.updateThemeForUser('different-user', 'theme-1', { name: 'Hacked' }),
-      ).rejects.toThrow(ForbiddenException);
+      ).rejects.toThrow(CanOnlyEditOwnThemesException);
     });
 
     it('should allow user with theme:manage permission to update system theme', async () => {
@@ -161,13 +163,13 @@ describe('ThemeCrudService', () => {
 
       await expect(
         service.updateThemeForUser('user', 'theme-1', { name: 'Hacked' }),
-      ).rejects.toThrow(ForbiddenException);
+      ).rejects.toThrow(OnlyAdminsCanDoThisException);
     });
 
-    it('should throw EntityNotFoundException for non-existent theme', async () => {
+    it('should throw ThemeNotFoundException for non-existent theme', async () => {
       await expect(
         service.updateThemeForUser('user-123', 'nonexistent', { name: 'Test' }),
-      ).rejects.toThrow(EntityNotFoundException);
+      ).rejects.toThrow(ThemeNotFoundException);
     });
   });
 
@@ -184,7 +186,7 @@ describe('ThemeCrudService', () => {
       themeRepo.seed([testTheme]);
 
       await expect(service.deleteThemeForUser('different-user', 'theme-1')).rejects.toThrow(
-        ForbiddenException,
+        OnlyAdminsCanDoThisException,
       );
     });
 
@@ -192,13 +194,13 @@ describe('ThemeCrudService', () => {
       themeRepo.seed([{ ...testTheme, isSystemTheme: true }]);
 
       await expect(service.deleteThemeForUser('user-123', 'theme-1')).rejects.toThrow(
-        ForbiddenException,
+        CannotDeleteSystemThemesException,
       );
     });
 
-    it('should throw EntityNotFoundException for non-existent theme', async () => {
+    it('should throw ThemeNotFoundException for non-existent theme', async () => {
       await expect(service.deleteThemeForUser('user-123', 'nonexistent')).rejects.toThrow(
-        EntityNotFoundException,
+        ThemeNotFoundException,
       );
     });
   });
@@ -212,9 +214,9 @@ describe('ThemeCrudService', () => {
       expect(result).toEqual(expect.objectContaining({ id: 'theme-1', name: 'My Theme' }));
     });
 
-    it('should throw EntityNotFoundException when not found', async () => {
+    it('should throw ThemeNotFoundException when not found', async () => {
       await expect(service.findThemeByIdOrThrow('nonexistent')).rejects.toThrow(
-        EntityNotFoundException,
+        ThemeNotFoundException,
       );
     });
   });

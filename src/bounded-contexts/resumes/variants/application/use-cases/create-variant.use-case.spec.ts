@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
 import {
-  EntityNotFoundException,
-  ForbiddenException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
+  ResumeAccessDeniedException,
+  ResumeNotFoundException,
+} from '../../../domain/exceptions/resumes.exceptions';
 import type {
   CreateVariantInput,
   VariantData,
@@ -104,7 +104,7 @@ describe('CreateVariantUseCase', () => {
         userId: 'user-1',
         name: 'My Variant',
       }),
-    ).rejects.toThrow(EntityNotFoundException);
+    ).rejects.toThrow(ResumeNotFoundException);
   });
 
   it('throws when user does not own base resume', async () => {
@@ -116,7 +116,7 @@ describe('CreateVariantUseCase', () => {
         userId: 'user-2',
         name: 'Unauthorized Variant',
       }),
-    ).rejects.toThrow(ForbiddenException);
+    ).rejects.toThrow(ResumeAccessDeniedException);
   });
 
   it('defaults empty overrides when not provided', async () => {

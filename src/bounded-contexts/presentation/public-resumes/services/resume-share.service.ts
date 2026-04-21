@@ -3,11 +3,11 @@ import { Injectable } from '@nestjs/common';
 import { CacheCoreService } from '@/bounded-contexts/platform/common/cache/services/cache-core.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { EventPublisher } from '@/shared-kernel';
-import { EntityNotFoundException } from '@/shared-kernel/exceptions';
 import { toGenericSections } from '@/shared-kernel/schemas/sections';
 import { ResumePublishedEvent } from '../../domain/events';
 import {
   ResumeAccessDeniedException,
+  ResumeNotFoundException,
   ResumeShareAccessDeniedException,
   ResumeShareAliasAccessDeniedException,
   ResumeShareSlugInvalidException,
@@ -56,7 +56,7 @@ export class ResumeShareService {
       });
 
       if (!resume) {
-        throw new EntityNotFoundException('Resume');
+        throw new ResumeNotFoundException();
       }
 
       if (resume.userId !== userId) {
@@ -300,7 +300,7 @@ export class ResumeShareService {
     });
 
     if (!resume) {
-      throw new EntityNotFoundException('Resume');
+      throw new ResumeNotFoundException();
     }
 
     if (resume.userId !== userId) {

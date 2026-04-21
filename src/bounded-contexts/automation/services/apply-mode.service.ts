@@ -1,9 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import {
-  EntityNotFoundException,
-  ForbiddenException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { AutomationItemNotOwnedException } from '../domain/exceptions/automation.exceptions';
 
 export interface WeeklyCuratedBatchView {
   id: string;
@@ -104,7 +102,7 @@ export class ApplyModeService {
     });
     if (!item) throw new EntityNotFoundException('WeeklyCuratedItem', itemId);
     if (item.batch.userId !== userId) {
-      throw new ForbiddenException('You do not own this item');
+      throw new AutomationItemNotOwnedException();
     }
     return item;
   }

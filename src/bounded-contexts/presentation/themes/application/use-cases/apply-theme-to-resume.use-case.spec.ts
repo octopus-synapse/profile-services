@@ -2,9 +2,9 @@ import { beforeEach, describe, expect, it } from 'bun:test';
 import { EventPublisherPort } from '@/shared-kernel';
 import type { DomainEvent } from '@/shared-kernel/event-bus/domain/domain-event';
 import {
-  EntityNotFoundException,
-  ForbiddenException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
+  ResumeAccessDeniedException,
+  ThemeNotFoundException,
+} from '../../../domain/exceptions/presentation.exceptions';
 import { createTestTheme, InMemoryThemeRepository } from '../../../testing';
 import { ResumeRepositoryPort } from '../../domain/ports/resume.repository.port';
 import { ApplyThemeToResumeUseCase } from './apply-theme-to-resume.use-case';
@@ -58,26 +58,26 @@ describe('ApplyThemeToResumeUseCase', () => {
     expect(theme?.usageCount).toBe(1);
   });
 
-  it('should throw ForbiddenException when resume does not belong to user', async () => {
+  it('should throw ResumeAccessDeniedException when resume does not belong to user', async () => {
     foundResume = { id: 'resume-1', userId: 'other-user' };
 
     await expect(
       useCase.execute('user-1', { resumeId: 'resume-1', themeId: 'theme-1' }),
-    ).rejects.toThrow(ForbiddenException);
+    ).rejects.toThrow(ResumeAccessDeniedException);
     expect(appliedTheme).toBeNull();
   });
 
-  it('should throw ForbiddenException when resume is not found', async () => {
+  it('should throw ResumeAccessDeniedException when resume is not found', async () => {
     foundResume = null;
 
     await expect(
       useCase.execute('user-1', { resumeId: 'resume-1', themeId: 'theme-1' }),
-    ).rejects.toThrow(ForbiddenException);
+    ).rejects.toThrow(ResumeAccessDeniedException);
   });
 
-  it('should throw EntityNotFoundException when theme does not exist', async () => {
+  it('should throw ThemeNotFoundException when theme does not exist', async () => {
     await expect(
       useCase.execute('user-1', { resumeId: 'resume-1', themeId: 'nonexistent' }),
-    ).rejects.toThrow(EntityNotFoundException);
+    ).rejects.toThrow(ThemeNotFoundException);
   });
 });

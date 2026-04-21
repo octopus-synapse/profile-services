@@ -1,6 +1,5 @@
 import {
   Controller,
-  ForbiddenException,
   Get,
   Header,
   Headers,
@@ -16,6 +15,10 @@ import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/a
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-response.dto';
 import { EventPublisher } from '@/shared-kernel';
+import {
+  SharePasswordInvalidException,
+  SharePasswordRequiredException,
+} from '../../domain/exceptions/presentation.exceptions';
 import { ShareDownloadedEvent, ShareViewedEvent } from '../../shared-kernel/domain/events';
 import { PublicResumeDataDto } from '../dto/public-resume-response.dto';
 import { OgImageService } from '../services/og-image.service';
@@ -79,13 +82,13 @@ export class PublicResumeController {
     // Check password
     if (share.password) {
       if (!password) {
-        throw new ForbiddenException('Password required');
+        throw new SharePasswordRequiredException();
       }
 
       const isValid = await this.shareService.verifyPassword(password, share.password);
 
       if (!isValid) {
-        throw new ForbiddenException('Invalid password');
+        throw new SharePasswordInvalidException();
       }
     }
 
@@ -153,13 +156,13 @@ export class PublicResumeController {
     // Check password
     if (share.password) {
       if (!password) {
-        throw new ForbiddenException('Password required');
+        throw new SharePasswordRequiredException();
       }
 
       const isValid = await this.shareService.verifyPassword(password, share.password);
 
       if (!isValid) {
-        throw new ForbiddenException('Invalid password');
+        throw new SharePasswordInvalidException();
       }
     }
 

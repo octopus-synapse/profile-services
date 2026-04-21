@@ -4,10 +4,8 @@
  * Retrieves aggregated analytics for a shared resume.
  */
 
-import {
-  EntityNotFoundException,
-  ForbiddenException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { ShareAnalyticsNotAuthorizedException } from '../../../../domain/exceptions/analytics.exceptions';
 import type { ShareAnalyticsRepositoryPort } from '../../../ports';
 
 export class GetShareAnalyticsUseCase {
@@ -21,7 +19,7 @@ export class GetShareAnalyticsUseCase {
     }
 
     if (share.resume.userId !== userId) {
-      throw new ForbiddenException('Not authorized');
+      throw new ShareAnalyticsNotAuthorizedException();
     }
 
     const analytics = await this.repository.groupByEvent(shareId);

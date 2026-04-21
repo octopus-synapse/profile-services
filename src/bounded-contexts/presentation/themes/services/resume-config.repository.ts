@@ -6,8 +6,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { ERROR_MESSAGES } from '@/shared-kernel';
-import { ForbiddenException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { ResumeAccessDeniedException } from '../../domain/exceptions/presentation.exceptions';
 
 export interface ResumeConfig {
   sections: Array<{
@@ -31,7 +30,7 @@ export class ResumeConfigRepository {
     });
 
     if (!resume || resume.userId !== userId) {
-      throw new ForbiddenException(ERROR_MESSAGES.RESUME_NOT_FOUND);
+      throw new ResumeAccessDeniedException();
     }
 
     const base = (resume.activeTheme?.styleConfig ?? {}) as ResumeConfig;

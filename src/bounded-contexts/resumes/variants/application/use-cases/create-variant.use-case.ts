@@ -1,7 +1,7 @@
 import {
-  EntityNotFoundException,
-  ForbiddenException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
+  ResumeAccessDeniedException,
+  ResumeNotFoundException,
+} from '../../../domain/exceptions/resumes.exceptions';
 import type {
   CreateVariantInput,
   VariantData,
@@ -29,9 +29,9 @@ export class CreateVariantUseCase {
     orderOverrides?: Record<string, number>;
   }): Promise<VariantData> {
     const baseResume = await this.resumeReader.findById(input.baseResumeId);
-    if (!baseResume) throw new EntityNotFoundException('Resume', input.baseResumeId);
+    if (!baseResume) throw new ResumeNotFoundException();
 
-    if (baseResume.userId !== input.userId) throw new ForbiddenException();
+    if (baseResume.userId !== input.userId) throw new ResumeAccessDeniedException();
 
     const createInput: CreateVariantInput = {
       baseResumeId: input.baseResumeId,

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { VariantNotFoundException } from '../../../domain/exceptions/resumes.exceptions';
 import type {
   CreateVariantInput,
   VariantData,
@@ -125,7 +125,7 @@ describe('ResolveVariantUseCase', () => {
   });
 
   it('throws when variant not found', async () => {
-    await expect(useCase.execute('nonexistent')).rejects.toThrow(EntityNotFoundException);
+    await expect(useCase.execute('nonexistent')).rejects.toThrow(VariantNotFoundException);
   });
 
   it('applies text overrides to item content', async () => {

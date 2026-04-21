@@ -4,7 +4,11 @@
  * Covers resume view tracking, platform events, share analytics, and
  * search history.
  */
-import { DomainException, ValidationException } from '@/shared-kernel/exceptions';
+import {
+  DomainException,
+  ForbiddenException,
+  ValidationException,
+} from '@/shared-kernel/exceptions';
 
 export class AnalyticsConsentRequiredException extends DomainException {
   readonly code: string = 'ANALYTICS_CONSENT_REQUIRED';
@@ -33,5 +37,12 @@ export class AggregationBackendUnavailableException extends DomainException {
   readonly statusHint = 503;
   constructor() {
     super('Analytics backend is temporarily unavailable');
+  }
+}
+
+export class ShareAnalyticsNotAuthorizedException extends ForbiddenException {
+  readonly code: string = 'SHARE_ANALYTICS_NOT_AUTHORIZED';
+  constructor() {
+    super('Not authorized');
   }
 }

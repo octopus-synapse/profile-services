@@ -5,7 +5,7 @@
  * Pure tests - no mocks.
  */
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { EntityNotFoundException } from '@/shared-kernel/exceptions';
+import { ResumeNotFoundException } from '../../../../domain/exceptions/resumes.exceptions';
 import { InMemoryResumeEventPublisher, InMemoryResumeVersionRepository } from '../testing';
 import { CreateSnapshotUseCase } from './create-snapshot.use-case';
 
@@ -23,8 +23,8 @@ describe('CreateSnapshotUseCase', () => {
   });
 
   describe('execute', () => {
-    it('should throw EntityNotFoundException when resume not found', async () => {
-      await expect(useCase.execute(resumeId)).rejects.toThrow(EntityNotFoundException);
+    it('should throw ResumeNotFoundException when resume not found', async () => {
+      await expect(useCase.execute(resumeId)).rejects.toThrow(ResumeNotFoundException);
     });
 
     it('should create snapshot with incremented version number', async () => {

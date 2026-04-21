@@ -1,4 +1,4 @@
-import { ForbiddenException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { NotConversationParticipantException } from '../../../../domain/exceptions/collaboration.exceptions';
 import type {
   ChatCachePort,
   ConversationRepositoryPort,
@@ -15,7 +15,7 @@ export class MarkConversationReadUseCase {
   async execute(userId: string, conversationId: string): Promise<{ count: number }> {
     const isParticipant = await this.conversationRepo.isParticipant(conversationId, userId);
     if (!isParticipant) {
-      throw new ForbiddenException('Not a participant of this conversation');
+      throw new NotConversationParticipantException();
     }
 
     const result = await this.messageRepo.markConversationAsRead(conversationId, userId);

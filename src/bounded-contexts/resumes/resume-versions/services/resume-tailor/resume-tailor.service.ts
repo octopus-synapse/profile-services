@@ -3,8 +3,10 @@ import { LLM_PORT, type LlmPort } from '@/bounded-contexts/ai/domain/ports/llm.p
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import {
+  ResumeNotFoundException,
   ResumeNotOwnedException,
   ResumeTailorInputRequiredException,
+  ResumeVersionNotFoundException,
 } from '../../../domain/exceptions/resumes.exceptions';
 
 /**
@@ -162,7 +164,7 @@ export class ResumeTailorService {
     });
 
     if (!version || version.resumeId !== resumeId) {
-      throw new EntityNotFoundException('ResumeVersion', versionId);
+      throw new ResumeVersionNotFoundException(versionId);
     }
 
     const snap = version.snapshot as {
@@ -219,7 +221,7 @@ export class ResumeTailorService {
         },
       },
     });
-    if (!resume) throw new EntityNotFoundException('Resume', resumeId);
+    if (!resume) throw new ResumeNotFoundException();
     if (resume.userId !== userId) throw new ResumeNotOwnedException();
     return resume;
   }
@@ -229,7 +231,7 @@ export class ResumeTailorService {
       where: { id: resumeId },
       select: { userId: true },
     });
-    if (!resume) throw new EntityNotFoundException('Resume', resumeId);
+    if (!resume) throw new ResumeNotFoundException();
     if (resume.userId !== userId) throw new ResumeNotOwnedException();
   }
 

@@ -1,7 +1,11 @@
 /**
  * ATS Validation Bounded Context Exceptions
  */
-import { DomainException, ValidationException } from '@/shared-kernel/exceptions';
+import {
+  DomainException,
+  ForbiddenException,
+  ValidationException,
+} from '@/shared-kernel/exceptions';
 
 export class AtsRuleSetNotFoundException extends DomainException {
   readonly code: string = 'ATS_RULE_SET_NOT_FOUND';
@@ -23,5 +27,12 @@ export class AtsValidationUnavailableException extends DomainException {
   readonly statusHint = 503;
   constructor() {
     super('ATS validation is temporarily unavailable');
+  }
+}
+
+export class ResumeAccessDeniedException extends ForbiddenException {
+  readonly code: string = 'ATS_RESUME_ACCESS_DENIED';
+  constructor() {
+    super('You do not have access to this resume');
   }
 }

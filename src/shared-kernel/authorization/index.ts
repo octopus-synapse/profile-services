@@ -7,6 +7,17 @@
  * import { Permission, RequirePermission, hasPermission } from '@/shared-kernel/authorization';
  */
 
+// Authorization Exceptions
+export {
+  AuthenticationRequiredException,
+  MissingAnyRequiredPermissionException,
+  MissingRequiredPermissionsException,
+  MissingRequiredRolesException,
+  OwnershipAccessDeniedException,
+  OwnershipMissingParamException,
+  OwnershipResourceMissingException,
+  UserRolesNotAvailableException,
+} from './authorization.exceptions';
 // Authorization Port (ISP - for cross-BC consumers)
 export { AuthorizationCheckPort } from './authorization-check.port';
 // Ownership Decorators

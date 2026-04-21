@@ -1,4 +1,5 @@
-import { EntityNotFoundException, ForbiddenException } from '@/shared-kernel/exceptions';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions';
+import { CannotDeleteOwnAccountAsAdminException } from '../../../domain/exceptions/users.exceptions';
 import type { UserManagementRepositoryPort } from '../../ports/user-management.port';
 
 export class DeleteUserUseCase {
@@ -12,7 +13,7 @@ export class DeleteUserUseCase {
     }
 
     if (userId === requesterId) {
-      throw new ForbiddenException('Cannot delete your own account through admin interface');
+      throw new CannotDeleteOwnAccountAsAdminException();
     }
 
     await this.repository.deleteUser(userId);

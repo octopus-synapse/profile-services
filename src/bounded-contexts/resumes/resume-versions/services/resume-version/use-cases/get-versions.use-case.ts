@@ -1,4 +1,7 @@
-import { EntityNotFoundException, ForbiddenException } from '@/shared-kernel/exceptions';
+import {
+  ResumeAccessDeniedException,
+  ResumeNotFoundException,
+} from '../../../../domain/exceptions/resumes.exceptions';
 import {
   type ResumeVersionListItem,
   ResumeVersionRepositoryPort,
@@ -11,11 +14,11 @@ export class GetVersionsUseCase {
     const resume = await this.repository.findResumeOwner(resumeId);
 
     if (!resume) {
-      throw new EntityNotFoundException('Resume');
+      throw new ResumeNotFoundException();
     }
 
     if (resume.userId !== userId) {
-      throw new ForbiddenException('Not authorized to access this resume');
+      throw new ResumeAccessDeniedException();
     }
 
     return this.repository.findResumeVersions(resumeId);

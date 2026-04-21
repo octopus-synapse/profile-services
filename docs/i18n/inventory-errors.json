@@ -1,9 +1,9 @@
 {
   "summary": {
-    "classifiedCount": 215,
-    "ambiguousCount": 270,
+    "classifiedCount": 254,
+    "ambiguousCount": 168,
     "unstableCount": 67,
-    "distinctCodes": 205
+    "distinctCodes": 240
   },
   "classified": [
     {
@@ -133,10 +133,22 @@
       "extends": "DomainException"
     },
     {
+      "className": "AuthenticationRequiredException",
+      "code": "AUTHENTICATION_REQUIRED",
+      "file": "src/shared-kernel/authorization/authorization.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
       "className": "AutoApplyAlreadyRunningException",
       "code": "AUTO_APPLY_ALREADY_RUNNING",
       "file": "src/bounded-contexts/automation/domain/exceptions/automation.exceptions.ts",
       "extends": "ConflictException"
+    },
+    {
+      "className": "AutomationItemNotOwnedException",
+      "code": "AUTOMATION_ITEM_NOT_OWNED",
+      "file": "src/bounded-contexts/automation/domain/exceptions/automation.exceptions.ts",
+      "extends": "ForbiddenException"
     },
     {
       "className": "AutomationWorkerUnavailableException",
@@ -193,6 +205,12 @@
       "extends": "ValidationException"
     },
     {
+      "className": "CannotDeleteAnotherUsersCommentException",
+      "code": "CANNOT_DELETE_ANOTHER_USERS_COMMENT",
+      "file": "src/bounded-contexts/collaboration/domain/exceptions/collaboration.exceptions.ts",
+      "extends": "ForbiddenException"
+    },
+    {
       "className": "CannotDeleteOthersCommentException",
       "code": "CANNOT_DELETE_OTHERS_COMMENT",
       "file": "src/bounded-contexts/feed/domain/exceptions/feed.exceptions.ts",
@@ -202,6 +220,18 @@
       "className": "CannotDeleteOthersPostException",
       "code": "CANNOT_DELETE_OTHERS_POST",
       "file": "src/bounded-contexts/feed/domain/exceptions/feed.exceptions.ts",
+      "extends": "ForbiddenException"
+    },
+    {
+      "className": "CannotDeleteOwnAccountAsAdminException",
+      "code": "CANNOT_DELETE_OWN_ACCOUNT_AS_ADMIN",
+      "file": "src/bounded-contexts/identity/users/domain/exceptions/users.exceptions.ts",
+      "extends": "ForbiddenException"
+    },
+    {
+      "className": "CannotDeleteSystemThemesException",
+      "code": "CANNOT_DELETE_SYSTEM_THEMES",
+      "file": "src/bounded-contexts/presentation/domain/exceptions/presentation.exceptions.ts",
       "extends": "ForbiddenException"
     },
     {
@@ -217,6 +247,18 @@
       "extends": "ValidationException"
     },
     {
+      "className": "CannotForkThemeException",
+      "code": "CANNOT_FORK_THEME",
+      "file": "src/bounded-contexts/presentation/domain/exceptions/presentation.exceptions.ts",
+      "extends": "ForbiddenException"
+    },
+    {
+      "className": "CannotMessageSelfException",
+      "code": "CANNOT_MESSAGE_SELF",
+      "file": "src/bounded-contexts/collaboration/domain/exceptions/collaboration.exceptions.ts",
+      "extends": "ValidationException"
+    },
+    {
       "className": "CannotModifyOthersJobException",
       "code": "CANNOT_MODIFY_OTHERS_JOB",
       "file": "src/bounded-contexts/jobs/domain/exceptions/jobs.exceptions.ts",
@@ -227,6 +269,18 @@
       "code": "CANNOT_RECOMMEND_SELF",
       "file": "src/bounded-contexts/collaboration/domain/exceptions/collaboration.exceptions.ts",
       "extends": "ValidationException"
+    },
+    {
+      "className": "CannotSendMessageToUserException",
+      "code": "CANNOT_SEND_MESSAGE_TO_USER",
+      "file": "src/bounded-contexts/collaboration/domain/exceptions/collaboration.exceptions.ts",
+      "extends": "ForbiddenException"
+    },
+    {
+      "className": "CanOnlyEditOwnThemesException",
+      "code": "CAN_ONLY_EDIT_OWN_THEMES",
+      "file": "src/bounded-contexts/presentation/domain/exceptions/presentation.exceptions.ts",
+      "extends": "ForbiddenException"
     },
     {
       "className": "CollaboratorAlreadyInvitedException",
@@ -293,6 +347,12 @@
       "code": "CONNECTION_REQUEST_PENDING",
       "file": "src/bounded-contexts/social/domain/exceptions/social.exceptions.ts",
       "extends": "ConflictException"
+    },
+    {
+      "className": "ConsentRequiredException",
+      "code": "CONSENT_REQUIRED",
+      "file": "src/bounded-contexts/identity/account-lifecycle/domain/exceptions/account-lifecycle.exceptions.ts",
+      "extends": "ForbiddenException"
     },
     {
       "className": "DateRangeTooLargeException",
@@ -601,6 +661,12 @@
       "extends": "ValidationException"
     },
     {
+      "className": "InvalidMetricsApiKeyException",
+      "code": "INVALID_METRICS_API_KEY",
+      "file": "src/bounded-contexts/platform/common/exceptions/platform.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
       "className": "InvalidRefreshTokenException",
       "code": "INVALID_REFRESH_TOKEN",
       "file": "src/bounded-contexts/identity/authentication/domain/exceptions/authentication.exceptions.ts",
@@ -691,10 +757,40 @@
       "extends": "DomainException"
     },
     {
+      "className": "MetricsNotConfiguredException",
+      "code": "METRICS_NOT_CONFIGURED",
+      "file": "src/bounded-contexts/platform/common/exceptions/platform.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "MissingAnyRequiredPermissionException",
+      "code": "MISSING_ANY_REQUIRED_PERMISSION",
+      "file": "src/shared-kernel/authorization/authorization.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "MissingRequiredPermissionsException",
+      "code": "MISSING_REQUIRED_PERMISSIONS",
+      "file": "src/shared-kernel/authorization/authorization.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "MissingRequiredRolesException",
+      "code": "MISSING_REQUIRED_ROLES",
+      "file": "src/shared-kernel/authorization/authorization.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
       "className": "NoPrimaryResumeException",
       "code": "NO_PRIMARY_RESUME",
       "file": "src/bounded-contexts/jobs/domain/exceptions/jobs.exceptions.ts",
       "extends": "ConflictException"
+    },
+    {
+      "className": "NotACollaboratorException",
+      "code": "NOT_A_COLLABORATOR",
+      "file": "src/bounded-contexts/collaboration/domain/exceptions/collaboration.exceptions.ts",
+      "extends": "ForbiddenException"
     },
     {
       "className": "NotConnectionRequesterException",
@@ -707,6 +803,12 @@
       "code": "NOT_CONNECTION_TARGET",
       "file": "src/bounded-contexts/social/domain/exceptions/social.exceptions.ts",
       "extends": "ValidationException"
+    },
+    {
+      "className": "NotConversationParticipantException",
+      "code": "NOT_CONVERSATION_PARTICIPANT",
+      "file": "src/bounded-contexts/collaboration/domain/exceptions/collaboration.exceptions.ts",
+      "extends": "ForbiddenException"
     },
     {
       "className": "NotificationDeliveryFailedException",
@@ -757,6 +859,48 @@
       "extends": "DomainException"
     },
     {
+      "className": "OnlyAdminsCanDoThisException",
+      "code": "ONLY_ADMINS_CAN_DO_THIS",
+      "file": "src/bounded-contexts/presentation/domain/exceptions/presentation.exceptions.ts",
+      "extends": "ForbiddenException"
+    },
+    {
+      "className": "OnlyResumeOwnerCanInviteException",
+      "code": "ONLY_RESUME_OWNER_CAN_INVITE",
+      "file": "src/bounded-contexts/collaboration/domain/exceptions/collaboration.exceptions.ts",
+      "extends": "ForbiddenException"
+    },
+    {
+      "className": "OnlyResumeOwnerCanUpdateRolesException",
+      "code": "ONLY_RESUME_OWNER_CAN_UPDATE_ROLES",
+      "file": "src/bounded-contexts/collaboration/domain/exceptions/collaboration.exceptions.ts",
+      "extends": "ForbiddenException"
+    },
+    {
+      "className": "OnlyResumeOwnerOrSelfCanRemoveException",
+      "code": "ONLY_RESUME_OWNER_OR_SELF_CAN_REMOVE",
+      "file": "src/bounded-contexts/collaboration/domain/exceptions/collaboration.exceptions.ts",
+      "extends": "ForbiddenException"
+    },
+    {
+      "className": "OwnershipAccessDeniedException",
+      "code": "OWNERSHIP_ACCESS_DENIED",
+      "file": "src/shared-kernel/authorization/authorization.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "OwnershipMissingParamException",
+      "code": "OWNERSHIP_MISSING_PARAM",
+      "file": "src/shared-kernel/authorization/authorization.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "OwnershipResourceMissingException",
+      "code": "OWNERSHIP_RESOURCE_MISSING",
+      "file": "src/shared-kernel/authorization/authorization.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
       "className": "PollAlreadyVotedException",
       "code": "POLL_ALREADY_VOTED",
       "file": "src/bounded-contexts/feed/domain/exceptions/feed.exceptions.ts",
@@ -779,6 +923,24 @@
       "code": "POST_ALREADY_REPOSTED",
       "file": "src/bounded-contexts/feed/domain/exceptions/feed.exceptions.ts",
       "extends": "ConflictException"
+    },
+    {
+      "className": "PostBookmarkNotFoundException",
+      "code": "POST_BOOKMARK_NOT_FOUND",
+      "file": "src/bounded-contexts/feed/domain/exceptions/feed.exceptions.ts",
+      "extends": "EntityNotFoundException"
+    },
+    {
+      "className": "PostLikeNotFoundException",
+      "code": "POST_LIKE_NOT_FOUND",
+      "file": "src/bounded-contexts/feed/domain/exceptions/feed.exceptions.ts",
+      "extends": "EntityNotFoundException"
+    },
+    {
+      "className": "PostNotFoundException",
+      "code": "POST_NOT_FOUND",
+      "file": "src/bounded-contexts/feed/domain/exceptions/feed.exceptions.ts",
+      "extends": "EntityNotFoundException"
     },
     {
       "className": "PrimaryResumeRequiredException",
@@ -831,8 +993,38 @@
     {
       "className": "ResumeAccessDeniedException",
       "code": "RESUME_ACCESS_DENIED",
+      "file": "src/bounded-contexts/resumes/domain/exceptions/resumes.exceptions.ts",
+      "extends": "ForbiddenException"
+    },
+    {
+      "className": "ResumeAccessDeniedException",
+      "code": "RESUME_ACCESS_DENIED",
       "file": "src/bounded-contexts/presentation/domain/exceptions/presentation.exceptions.ts",
       "extends": "ForbiddenException"
+    },
+    {
+      "className": "ResumeAccessDeniedException",
+      "code": "ATS_RESUME_ACCESS_DENIED",
+      "file": "src/bounded-contexts/ats-validation/domain/exceptions/ats-validation.exceptions.ts",
+      "extends": "ForbiddenException"
+    },
+    {
+      "className": "ResumeAccessDeniedException",
+      "code": "RESUME_ACCESS_DENIED",
+      "file": "src/bounded-contexts/collaboration/domain/exceptions/collaboration.exceptions.ts",
+      "extends": "ForbiddenException"
+    },
+    {
+      "className": "ResumeNotFoundException",
+      "code": "RESUME_NOT_FOUND",
+      "file": "src/bounded-contexts/resumes/domain/exceptions/resumes.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "ResumeNotFoundException",
+      "code": "RESUME_NOT_FOUND",
+      "file": "src/bounded-contexts/presentation/domain/exceptions/presentation.exceptions.ts",
+      "extends": "DomainException"
     },
     {
       "className": "ResumeNotOwnedException",
@@ -967,16 +1159,40 @@
       "extends": "UnauthorizedException"
     },
     {
+      "className": "ShadowGitHubApiRequestFailedException",
+      "code": "GITHUB_API_REQUEST_FAILED",
+      "file": "src/bounded-contexts/identity/users/shadow-profile/shadow-profile.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
       "className": "ShareAliasNotFoundException",
       "code": "SHARE_ALIAS_NOT_FOUND",
       "file": "src/bounded-contexts/presentation/domain/exceptions/presentation.exceptions.ts",
       "extends": "DomainException"
     },
     {
+      "className": "ShareAnalyticsNotAuthorizedException",
+      "code": "SHARE_ANALYTICS_NOT_AUTHORIZED",
+      "file": "src/bounded-contexts/analytics/domain/exceptions/analytics.exceptions.ts",
+      "extends": "ForbiddenException"
+    },
+    {
       "className": "ShareNotFoundException",
       "code": "SHARE_NOT_FOUND",
       "file": "src/bounded-contexts/presentation/domain/exceptions/presentation.exceptions.ts",
       "extends": "DomainException"
+    },
+    {
+      "className": "SharePasswordInvalidException",
+      "code": "SHARE_PASSWORD_INVALID",
+      "file": "src/bounded-contexts/presentation/domain/exceptions/presentation.exceptions.ts",
+      "extends": "ForbiddenException"
+    },
+    {
+      "className": "SharePasswordRequiredException",
+      "code": "SHARE_PASSWORD_REQUIRED",
+      "file": "src/bounded-contexts/presentation/domain/exceptions/presentation.exceptions.ts",
+      "extends": "ForbiddenException"
     },
     {
       "className": "SkillAlreadyExistsException",
@@ -1067,6 +1283,12 @@
       "code": "TECH_NICHE_INVALID",
       "file": "src/bounded-contexts/skills-catalog/domain/exceptions/skills-catalog.exceptions.ts",
       "extends": "ValidationException"
+    },
+    {
+      "className": "ThemeAccessDeniedException",
+      "code": "THEME_ACCESS_DENIED",
+      "file": "src/bounded-contexts/presentation/domain/exceptions/presentation.exceptions.ts",
+      "extends": "ForbiddenException"
     },
     {
       "className": "ThemeAlreadyPublishedException",
@@ -1273,6 +1495,12 @@
       "extends": "DomainException"
     },
     {
+      "className": "UserRolesNotAvailableException",
+      "code": "USER_ROLES_NOT_AVAILABLE",
+      "file": "src/shared-kernel/authorization/authorization.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
       "className": "ValidationException",
       "code": "VALIDATION_ERROR",
       "file": "src/shared-kernel/exceptions/domain.exceptions.ts",
@@ -1282,6 +1510,12 @@
       "className": "ValidationException",
       "code": "VALIDATION_ERROR",
       "file": "src/bounded-contexts/identity/shared-kernel/exceptions/validation.exception.ts",
+      "extends": "DomainException"
+    },
+    {
+      "className": "VariantNotFoundException",
+      "code": "RESUME_VARIANT_NOT_FOUND",
+      "file": "src/bounded-contexts/resumes/domain/exceptions/resumes.exceptions.ts",
       "extends": "DomainException"
     },
     {
@@ -1331,56 +1565,28 @@
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "Share",
       "file": "src/bounded-contexts/analytics/share-analytics/application/use-cases/get-share-analytics/get-share-analytics.use-case.ts",
-      "line": 20
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "Not authorized",
-      "file": "src/bounded-contexts/analytics/share-analytics/application/use-cases/get-share-analytics/get-share-analytics.use-case.ts",
-      "line": 24
+      "line": 18
     },
     {
       "className": "EntityNotFoundException",
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "Share",
       "file": "src/bounded-contexts/analytics/share-analytics/application/use-cases/get-share-events/get-share-events.use-case.ts",
-      "line": 28
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "Not authorized",
-      "file": "src/bounded-contexts/analytics/share-analytics/application/use-cases/get-share-events/get-share-events.use-case.ts",
-      "line": 32
+      "line": 26
     },
     {
       "className": "EntityNotFoundException",
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "Share",
       "file": "src/bounded-contexts/analytics/share-analytics/services/share-analytics.service.ts",
-      "line": 82
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "Not authorized",
-      "file": "src/bounded-contexts/analytics/share-analytics/services/share-analytics.service.ts",
-      "line": 86
+      "line": 80
     },
     {
       "className": "EntityNotFoundException",
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "Share",
       "file": "src/bounded-contexts/analytics/share-analytics/services/share-analytics.service.ts",
-      "line": 134
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "Not authorized",
-      "file": "src/bounded-contexts/analytics/share-analytics/services/share-analytics.service.ts",
-      "line": 138
+      "line": 132
     },
     {
       "className": "EntityNotFoundException",
@@ -1394,14 +1600,7 @@
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "Resume",
       "file": "src/bounded-contexts/ats-validation/ats/services/ats-simulator.service.ts",
-      "line": 43
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "You do not have access to this resume",
-      "file": "src/bounded-contexts/ats-validation/ats/services/ats-simulator.service.ts",
-      "line": 45
+      "line": 41
     },
     {
       "className": "ValidationException",
@@ -1415,14 +1614,7 @@
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "WeeklyCuratedItem",
       "file": "src/bounded-contexts/automation/services/apply-mode.service.ts",
-      "line": 105
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "You do not own this item",
-      "file": "src/bounded-contexts/automation/services/apply-mode.service.ts",
-      "line": 107
+      "line": 103
     },
     {
       "className": "EntityNotFoundException",
@@ -1450,63 +1642,14 @@
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "Conversation",
       "file": "src/bounded-contexts/collaboration/chat/application/use-cases/get-conversation/get-conversation.use-case.ts",
-      "line": 18
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "Not a participant of this conversation",
-      "file": "src/bounded-contexts/collaboration/chat/application/use-cases/get-conversation/get-conversation.use-case.ts",
-      "line": 24
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "Not a participant of this conversation",
-      "file": "src/bounded-contexts/collaboration/chat/application/use-cases/get-messages/get-messages.use-case.ts",
-      "line": 15
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "Not a participant of this conversation",
-      "file": "src/bounded-contexts/collaboration/chat/application/use-cases/mark-conversation-read/mark-conversation-read.use-case.ts",
-      "line": 18
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "Not a participant of this conversation",
-      "file": "src/bounded-contexts/collaboration/chat/application/use-cases/send-message-to-conversation/send-message-to-conversation.use-case.ts",
-      "line": 29
+      "line": 16
     },
     {
       "className": "EntityNotFoundException",
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "Conversation",
       "file": "src/bounded-contexts/collaboration/chat/application/use-cases/send-message-to-conversation/send-message-to-conversation.use-case.ts",
-      "line": 37
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "Cannot send message to this user",
-      "file": "src/bounded-contexts/collaboration/chat/application/use-cases/send-message-to-conversation/send-message-to-conversation.use-case.ts",
-      "line": 42
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "Cannot send message to this user",
-      "file": "src/bounded-contexts/collaboration/chat/application/use-cases/send-message/send-message.use-case.ts",
-      "line": 28
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "Cannot send message to yourself",
-      "file": "src/bounded-contexts/collaboration/chat/application/use-cases/send-message/send-message.use-case.ts",
-      "line": 32
+      "line": 38
     },
     {
       "className": "EntityNotFoundException",
@@ -1516,88 +1659,32 @@
       "line": 10
     },
     {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "Not a participant of this conversation",
-      "file": "src/bounded-contexts/collaboration/chat/services/chat-preference.service.ts",
-      "line": 40
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "Access denied to this resume",
-      "file": "src/bounded-contexts/collaboration/sharing/application/use-cases/get-collaborators.use-case.ts",
-      "line": 14
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "Only resume owner can invite collaborators",
-      "file": "src/bounded-contexts/collaboration/sharing/application/use-cases/invite-collaborator.use-case.ts",
-      "line": 25
-    },
-    {
-      "className": "ConflictException",
-      "sharedCode": "CONFLICT",
-      "message": "User is already a collaborator",
-      "file": "src/bounded-contexts/collaboration/sharing/application/use-cases/invite-collaborator.use-case.ts",
-      "line": 30
-    },
-    {
       "className": "EntityNotFoundException",
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "Resume",
       "file": "src/bounded-contexts/collaboration/sharing/application/use-cases/remove-collaborator.use-case.ts",
-      "line": 13
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "Only owner can remove collaborators, or you can remove yourself",
-      "file": "src/bounded-contexts/collaboration/sharing/application/use-cases/remove-collaborator.use-case.ts",
-      "line": 19
+      "line": 11
     },
     {
       "className": "EntityNotFoundException",
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "Collaborator",
       "file": "src/bounded-contexts/collaboration/sharing/application/use-cases/remove-collaborator.use-case.ts",
-      "line": 25
-    },
-    {
-      "className": "EntityNotFoundException",
-      "sharedCode": "ENTITY_NOT_FOUND",
-      "message": "Resume",
-      "file": "src/bounded-contexts/collaboration/sharing/application/use-cases/update-role.use-case.ts",
-      "line": 16
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "Only resume owner can update roles",
-      "file": "src/bounded-contexts/collaboration/sharing/application/use-cases/update-role.use-case.ts",
-      "line": 18
-    },
-    {
-      "className": "EntityNotFoundException",
-      "sharedCode": "ENTITY_NOT_FOUND",
-      "message": "Collaborator",
-      "file": "src/bounded-contexts/collaboration/sharing/application/use-cases/update-role.use-case.ts",
       "line": 21
     },
     {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "Cannot delete another user",
-      "file": "src/bounded-contexts/collaboration/sharing/services/collab-comment.service.ts",
-      "line": 84
+      "className": "EntityNotFoundException",
+      "sharedCode": "ENTITY_NOT_FOUND",
+      "message": "Resume",
+      "file": "src/bounded-contexts/collaboration/sharing/application/use-cases/update-role.use-case.ts",
+      "line": 14
     },
     {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "Not a collaborator on this resume",
-      "file": "src/bounded-contexts/collaboration/sharing/services/collab-comment.service.ts",
-      "line": 104
+      "className": "EntityNotFoundException",
+      "sharedCode": "ENTITY_NOT_FOUND",
+      "message": "Collaborator",
+      "file": "src/bounded-contexts/collaboration/sharing/application/use-cases/update-role.use-case.ts",
+      "line": 18
     },
     {
       "className": "EntityNotFoundException",
@@ -1687,41 +1774,6 @@
       "className": "EntityNotFoundException",
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "Post",
-      "file": "src/bounded-contexts/feed/services/engagement.service.ts",
-      "line": 39
-    },
-    {
-      "className": "EntityNotFoundException",
-      "sharedCode": "ENTITY_NOT_FOUND",
-      "message": "Like",
-      "file": "src/bounded-contexts/feed/services/engagement.service.ts",
-      "line": 106
-    },
-    {
-      "className": "EntityNotFoundException",
-      "sharedCode": "ENTITY_NOT_FOUND",
-      "message": "Post",
-      "file": "src/bounded-contexts/feed/services/engagement.service.ts",
-      "line": 132
-    },
-    {
-      "className": "EntityNotFoundException",
-      "sharedCode": "ENTITY_NOT_FOUND",
-      "message": "Bookmark",
-      "file": "src/bounded-contexts/feed/services/engagement.service.ts",
-      "line": 165
-    },
-    {
-      "className": "EntityNotFoundException",
-      "sharedCode": "ENTITY_NOT_FOUND",
-      "message": "Post",
-      "file": "src/bounded-contexts/feed/services/engagement.service.ts",
-      "line": 193
-    },
-    {
-      "className": "EntityNotFoundException",
-      "sharedCode": "ENTITY_NOT_FOUND",
-      "message": "Post",
       "file": "src/bounded-contexts/feed/services/poll.service.ts",
       "line": 29
     },
@@ -1768,41 +1820,6 @@
       "line": 79
     },
     {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "Authentication required",
-      "file": "src/bounded-contexts/identity/authorization/infrastructure/guards/permission.guard.ts",
-      "line": 210
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "",
-      "file": "src/bounded-contexts/identity/authorization/infrastructure/guards/permission.guard.ts",
-      "line": 222
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "all",
-      "file": "src/bounded-contexts/identity/authorization/infrastructure/guards/permission.guard.ts",
-      "line": 245
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "${singleRole}",
-      "file": "src/bounded-contexts/identity/authorization/infrastructure/guards/permission.guard.ts",
-      "line": 256
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": ",",
-      "file": "src/bounded-contexts/identity/authorization/infrastructure/guards/permission.guard.ts",
-      "line": 270
-    },
-    {
       "className": "EntityNotFoundException",
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "User",
@@ -1829,13 +1846,6 @@
       "message": "Invalid email format",
       "file": "src/bounded-contexts/identity/shared-kernel/domain/value-objects/email.vo.ts",
       "line": 22
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "",
-      "file": "src/bounded-contexts/identity/shared-kernel/infrastructure/guards/consent.guard.ts",
-      "line": 92
     },
     {
       "className": "UnauthorizedException",
@@ -1898,14 +1908,7 @@
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "User",
       "file": "src/bounded-contexts/identity/users/application/use-cases/user-management/delete-user.use-case.ts",
-      "line": 11
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "Cannot delete your own account through admin interface",
-      "file": "src/bounded-contexts/identity/users/application/use-cases/user-management/delete-user.use-case.ts",
-      "line": 15
+      "line": 12
     },
     {
       "className": "EntityNotFoundException",
@@ -2216,284 +2219,11 @@
       "line": 385
     },
     {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "Metrics endpoint is not configured",
-      "file": "src/bounded-contexts/platform/metrics/metrics.guard.ts",
-      "line": 35
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "Invalid metrics API key",
-      "file": "src/bounded-contexts/platform/metrics/metrics.guard.ts",
-      "line": 42
-    },
-    {
       "className": "ValidationException",
       "sharedCode": "VALIDATION_ERROR",
       "message": "${suite}",
       "file": "src/bounded-contexts/platform/test-runner/test-runner.service.ts",
       "line": 58
-    },
-    {
-      "className": "ConflictException",
-      "sharedCode": "CONFLICT",
-      "message": "Slug already in use",
-      "file": "src/bounded-contexts/presentation/public-resumes/application/use-cases/create-share.use-case.ts",
-      "line": 42
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "You do not have access to this resume",
-      "file": "src/bounded-contexts/presentation/public-resumes/application/use-cases/create-share.use-case.ts",
-      "line": 54
-    },
-    {
-      "className": "EntityNotFoundException",
-      "sharedCode": "ENTITY_NOT_FOUND",
-      "message": "Share",
-      "file": "src/bounded-contexts/presentation/public-resumes/application/use-cases/delete-share.use-case.ts",
-      "line": 18
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "You do not have access to this share",
-      "file": "src/bounded-contexts/presentation/public-resumes/application/use-cases/delete-share.use-case.ts",
-      "line": 22
-    },
-    {
-      "className": "EntityNotFoundException",
-      "sharedCode": "ENTITY_NOT_FOUND",
-      "message": "Resume",
-      "file": "src/bounded-contexts/presentation/public-resumes/application/use-cases/list-user-shares.use-case.ts",
-      "line": 22
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "You do not have access to this resume",
-      "file": "src/bounded-contexts/presentation/public-resumes/application/use-cases/list-user-shares.use-case.ts",
-      "line": 26
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "Password required",
-      "file": "src/bounded-contexts/presentation/public-resumes/controllers/public-resume.controller.ts",
-      "line": 82
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "Invalid password",
-      "file": "src/bounded-contexts/presentation/public-resumes/controllers/public-resume.controller.ts",
-      "line": 88
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "Password required",
-      "file": "src/bounded-contexts/presentation/public-resumes/controllers/public-resume.controller.ts",
-      "line": 156
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "Invalid password",
-      "file": "src/bounded-contexts/presentation/public-resumes/controllers/public-resume.controller.ts",
-      "line": 162
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "You do not have access to this share",
-      "file": "src/bounded-contexts/presentation/public-resumes/controllers/share-management.controller.ts",
-      "line": 180
-    },
-    {
-      "className": "EntityNotFoundException",
-      "sharedCode": "ENTITY_NOT_FOUND",
-      "message": "Resume",
-      "file": "src/bounded-contexts/presentation/public-resumes/services/resume-share.service.ts",
-      "line": 59
-    },
-    {
-      "className": "EntityNotFoundException",
-      "sharedCode": "ENTITY_NOT_FOUND",
-      "message": "Resume",
-      "file": "src/bounded-contexts/presentation/public-resumes/services/resume-share.service.ts",
-      "line": 303
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "",
-      "file": "src/bounded-contexts/presentation/themes/application/use-cases/apply-theme-to-resume.use-case.ts",
-      "line": 27
-    },
-    {
-      "className": "EntityNotFoundException",
-      "sharedCode": "ENTITY_NOT_FOUND",
-      "message": "Theme",
-      "file": "src/bounded-contexts/presentation/themes/application/use-cases/apply-theme-to-resume.use-case.ts",
-      "line": 32
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "",
-      "file": "src/bounded-contexts/presentation/themes/application/use-cases/create-theme-as-admin.use-case.ts",
-      "line": 43
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "",
-      "file": "src/bounded-contexts/presentation/themes/application/use-cases/get-resolved-theme-config.use-case.ts",
-      "line": 17
-    },
-    {
-      "className": "EntityNotFoundException",
-      "sharedCode": "ENTITY_NOT_FOUND",
-      "message": "Theme",
-      "file": "src/bounded-contexts/presentation/themes/application/use-cases/get-theme.use-case.ts",
-      "line": 13
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "",
-      "file": "src/bounded-contexts/presentation/themes/infrastructure/adapters/persistence/resume-config.repository.ts",
-      "line": 28
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "",
-      "file": "src/bounded-contexts/presentation/themes/services/resume-config.repository.ts",
-      "line": 34
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "",
-      "file": "src/bounded-contexts/presentation/themes/services/theme-application.service.ts",
-      "line": 39
-    },
-    {
-      "className": "EntityNotFoundException",
-      "sharedCode": "ENTITY_NOT_FOUND",
-      "message": "Theme",
-      "file": "src/bounded-contexts/presentation/themes/services/theme-application.service.ts",
-      "line": 45
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "",
-      "file": "src/bounded-contexts/presentation/themes/services/theme-application.service.ts",
-      "line": 76
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "",
-      "file": "src/bounded-contexts/presentation/themes/services/theme-application.service.ts",
-      "line": 102
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "",
-      "file": "src/bounded-contexts/presentation/themes/services/theme-crud.service.ts",
-      "line": 113
-    },
-    {
-      "className": "EntityNotFoundException",
-      "sharedCode": "ENTITY_NOT_FOUND",
-      "message": "Theme",
-      "file": "src/bounded-contexts/presentation/themes/services/theme-crud.service.ts",
-      "line": 126
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "",
-      "file": "src/bounded-contexts/presentation/themes/services/theme-crud.service.ts",
-      "line": 133
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "",
-      "file": "src/bounded-contexts/presentation/themes/services/theme-crud.service.ts",
-      "line": 146
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "",
-      "file": "src/bounded-contexts/presentation/themes/validators/config.validator.ts",
-      "line": 42
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "",
-      "file": "src/bounded-contexts/presentation/themes/validators/config.validator.ts",
-      "line": 48
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "",
-      "file": "src/bounded-contexts/presentation/themes/validators/config.validator.ts",
-      "line": 54
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "",
-      "file": "src/bounded-contexts/presentation/themes/validators/config.validator.ts",
-      "line": 60
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "",
-      "file": "src/bounded-contexts/presentation/themes/validators/config.validator.ts",
-      "line": 63
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "",
-      "file": "src/bounded-contexts/presentation/themes/validators/config.validator.ts",
-      "line": 66
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "",
-      "file": "src/bounded-contexts/presentation/themes/validators/config.validator.ts",
-      "line": 75
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "",
-      "file": "src/bounded-contexts/presentation/themes/validators/config.validator.ts",
-      "line": 80
-    },
-    {
-      "className": "ValidationException",
-      "sharedCode": "VALIDATION_ERROR",
-      "message": "",
-      "file": "src/bounded-contexts/presentation/themes/validators/config.validator.ts",
-      "line": 83
     },
     {
       "className": "EntityNotFoundException",
@@ -2531,27 +2261,6 @@
       "line": 191
     },
     {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "Access denied to resume",
-      "file": "src/bounded-contexts/resumes/core/resumes.repository.ts",
-      "line": 92
-    },
-    {
-      "className": "EntityNotFoundException",
-      "sharedCode": "ENTITY_NOT_FOUND",
-      "message": "Resume",
-      "file": "src/bounded-contexts/resumes/core/resumes.repository.ts",
-      "line": 95
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "Access denied to resume",
-      "file": "src/bounded-contexts/resumes/core/resumes.repository.ts",
-      "line": 104
-    },
-    {
       "className": "EntityNotFoundException",
       "sharedCode": "ENTITY_NOT_FOUND",
       "message": "Resume",
@@ -2585,20 +2294,6 @@
       "message": "",
       "file": "src/bounded-contexts/resumes/core/services/generic-resume-sections/policies/item-limit.policy.ts",
       "line": 45
-    },
-    {
-      "className": "EntityNotFoundException",
-      "sharedCode": "ENTITY_NOT_FOUND",
-      "message": "Resume",
-      "file": "src/bounded-contexts/resumes/core/services/generic-resume-sections/policies/resume-ownership.policy.ts",
-      "line": 14
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "Access denied to resume",
-      "file": "src/bounded-contexts/resumes/core/services/generic-resume-sections/policies/resume-ownership.policy.ts",
-      "line": 18
     },
     {
       "className": "EntityNotFoundException",
@@ -2687,72 +2382,9 @@
     {
       "className": "EntityNotFoundException",
       "sharedCode": "ENTITY_NOT_FOUND",
-      "message": "ResumeVersion",
-      "file": "src/bounded-contexts/resumes/resume-versions/services/resume-tailor/resume-tailor.service.ts",
-      "line": 165
-    },
-    {
-      "className": "EntityNotFoundException",
-      "sharedCode": "ENTITY_NOT_FOUND",
-      "message": "Resume",
-      "file": "src/bounded-contexts/resumes/resume-versions/services/resume-tailor/resume-tailor.service.ts",
-      "line": 222
-    },
-    {
-      "className": "EntityNotFoundException",
-      "sharedCode": "ENTITY_NOT_FOUND",
-      "message": "Resume",
-      "file": "src/bounded-contexts/resumes/resume-versions/services/resume-tailor/resume-tailor.service.ts",
-      "line": 232
-    },
-    {
-      "className": "EntityNotFoundException",
-      "sharedCode": "ENTITY_NOT_FOUND",
       "message": "Job",
       "file": "src/bounded-contexts/resumes/resume-versions/services/resume-tailor/resume-tailor.service.ts",
-      "line": 244
-    },
-    {
-      "className": "EntityNotFoundException",
-      "sharedCode": "ENTITY_NOT_FOUND",
-      "message": "Resume",
-      "file": "src/bounded-contexts/resumes/resume-versions/services/resume-version/use-cases/create-snapshot.use-case.ts",
-      "line": 21
-    },
-    {
-      "className": "EntityNotFoundException",
-      "sharedCode": "ENTITY_NOT_FOUND",
-      "message": "Resume",
-      "file": "src/bounded-contexts/resumes/resume-versions/services/resume-version/use-cases/get-versions.use-case.ts",
-      "line": 14
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "Not authorized to access this resume",
-      "file": "src/bounded-contexts/resumes/resume-versions/services/resume-version/use-cases/get-versions.use-case.ts",
-      "line": 18
-    },
-    {
-      "className": "EntityNotFoundException",
-      "sharedCode": "ENTITY_NOT_FOUND",
-      "message": "Resume",
-      "file": "src/bounded-contexts/resumes/resume-versions/services/resume-version/use-cases/restore-version.use-case.ts",
-      "line": 63
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "Not authorized to access this resume",
-      "file": "src/bounded-contexts/resumes/resume-versions/services/resume-version/use-cases/restore-version.use-case.ts",
-      "line": 67
-    },
-    {
-      "className": "EntityNotFoundException",
-      "sharedCode": "ENTITY_NOT_FOUND",
-      "message": "Version",
-      "file": "src/bounded-contexts/resumes/resume-versions/services/resume-version/use-cases/restore-version.use-case.ts",
-      "line": 73
+      "line": 246
     },
     {
       "className": "EntityNotFoundException",
@@ -2836,27 +2468,6 @@
       "sharedCode": "CONFLICT",
       "message": "${dto.slug}",
       "file": "src/bounded-contexts/resumes/section-types/application/use-cases/update-section-type/update-section-type.use-case.ts",
-      "line": 42
-    },
-    {
-      "className": "EntityNotFoundException",
-      "sharedCode": "ENTITY_NOT_FOUND",
-      "message": "Resume",
-      "file": "src/bounded-contexts/resumes/variants/application/use-cases/create-variant.use-case.ts",
-      "line": 32
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "",
-      "file": "src/bounded-contexts/resumes/variants/application/use-cases/create-variant.use-case.ts",
-      "line": 34
-    },
-    {
-      "className": "EntityNotFoundException",
-      "sharedCode": "ENTITY_NOT_FOUND",
-      "message": "Variant",
-      "file": "src/bounded-contexts/resumes/variants/application/use-cases/resolve-variant.use-case.ts",
       "line": 42
     },
     {
@@ -3096,97 +2707,6 @@
       "message": "SuccessStory",
       "file": "src/bounded-contexts/success-stories/services/success-story.service.ts",
       "line": 87
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "Authentication required",
-      "file": "src/shared-kernel/authorization/ownership.guard.ts",
-      "line": 98
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "",
-      "file": "src/shared-kernel/authorization/ownership.guard.ts",
-      "line": 109
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "Resource not found",
-      "file": "src/shared-kernel/authorization/ownership.guard.ts",
-      "line": 116
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "You do not own this resource",
-      "file": "src/shared-kernel/authorization/ownership.guard.ts",
-      "line": 122
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "${singleRole}",
-      "file": "src/shared-kernel/authorization/permission.guard.ts",
-      "line": 103
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": ",",
-      "file": "src/shared-kernel/authorization/permission.guard.ts",
-      "line": 114
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "",
-      "file": "src/shared-kernel/authorization/permission.guard.ts",
-      "line": 158
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "",
-      "file": "src/shared-kernel/authorization/permission.guard.ts",
-      "line": 165
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "any",
-      "file": "src/shared-kernel/authorization/permission.guard.ts",
-      "line": 188
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "any",
-      "file": "src/shared-kernel/authorization/permission.guard.ts",
-      "line": 202
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "Authentication required",
-      "file": "src/shared-kernel/authorization/permission.guard.ts",
-      "line": 218
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "User roles not available",
-      "file": "src/shared-kernel/authorization/permission.guard.ts",
-      "line": 221
-    },
-    {
-      "className": "ForbiddenException",
-      "sharedCode": "FORBIDDEN",
-      "message": "Ensure AuthorizationModule is imported.",
-      "file": "src/shared-kernel/authorization/permission.guard.ts",
-      "line": 227
     }
   ],
   "unstable": [
@@ -3518,13 +3038,13 @@
       "kind": "Error",
       "message": "",
       "file": "src/bounded-contexts/presentation/themes/infrastructure/adapters/persistence/resume-config.repository.ts",
-      "line": 62
+      "line": 61
     },
     {
       "kind": "Error",
       "message": "",
       "file": "src/bounded-contexts/presentation/themes/services/resume-config.repository.ts",
-      "line": 74
+      "line": 73
     },
     {
       "kind": "Error",
@@ -3584,13 +3104,13 @@
       "kind": "Error",
       "message": "",
       "file": "src/shared-kernel/authorization/ownership.guard.ts",
-      "line": 131
+      "line": 136
     },
     {
       "kind": "Error",
       "message": "",
       "file": "src/shared-kernel/authorization/ownership.guard.ts",
-      "line": 142
+      "line": 147
     }
   ]
 }

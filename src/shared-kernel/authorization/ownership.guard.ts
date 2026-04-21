@@ -14,13 +14,18 @@ import {
   applyDecorators,
   CanActivate,
   ExecutionContext,
-  ForbiddenException,
   Injectable,
   SetMetadata,
   UseGuards,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import {
+  AuthenticationRequiredException,
+  OwnershipAccessDeniedException,
+  OwnershipMissingParamException,
+  OwnershipResourceMissingException,
+} from './authorization.exceptions';
 import { Permission } from './permission.enum';
 import { hasPermission } from './permission-resolver';
 
@@ -95,7 +100,7 @@ export class OwnershipGuard implements CanActivate {
     const user = request.user;
 
     if (!user) {
-      throw new ForbiddenException('Authentication required');
+      throw new AuthenticationRequiredException();
     }
 
     // Admin bypass
@@ -106,20 +111,20 @@ export class OwnershipGuard implements CanActivate {
     const resourceId = request.params[metadata.paramName];
 
     if (!resourceId) {
-      throw new ForbiddenException(`Missing parameter: ${metadata.paramName}`);
+      throw new OwnershipMissingParamException(metadata.paramName);
     }
 
     // Load resource and check ownership
     const resource = await this.loadResource(metadata.model, resourceId);
 
     if (!resource) {
-      throw new ForbiddenException('Resource not found');
+      throw new OwnershipResourceMissingException();
     }
 
     const ownerId = (resource as Record<string, unknown>)[metadata.ownerField];
 
     if (ownerId !== user.id) {
-      throw new ForbiddenException('You do not own this resource');
+      throw new OwnershipAccessDeniedException();
     }
 
     return true;

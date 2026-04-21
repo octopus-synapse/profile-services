@@ -105,3 +105,60 @@ export class ShareNotFoundException extends DomainException {
     super('Share not found');
   }
 }
+
+export class SharePasswordRequiredException extends ForbiddenException {
+  readonly code: string = 'SHARE_PASSWORD_REQUIRED';
+  constructor() {
+    super('Password required');
+  }
+}
+
+export class SharePasswordInvalidException extends ForbiddenException {
+  readonly code: string = 'SHARE_PASSWORD_INVALID';
+  constructor() {
+    super('Invalid password');
+  }
+}
+
+export class ThemeAccessDeniedException extends ForbiddenException {
+  readonly code: string = 'THEME_ACCESS_DENIED';
+  constructor() {
+    super('Access denied to theme');
+  }
+}
+
+export class CannotForkThemeException extends ForbiddenException {
+  readonly code: string = 'CANNOT_FORK_THEME';
+  constructor() {
+    super('Cannot fork this theme');
+  }
+}
+
+export class OnlyAdminsCanDoThisException extends ForbiddenException {
+  readonly code: string = 'ONLY_ADMINS_CAN_DO_THIS';
+  constructor() {
+    super('Only admins can perform this action');
+  }
+}
+
+export class CannotDeleteSystemThemesException extends ForbiddenException {
+  readonly code: string = 'CANNOT_DELETE_SYSTEM_THEMES';
+  constructor() {
+    super('Cannot delete system themes');
+  }
+}
+
+export class CanOnlyEditOwnThemesException extends ForbiddenException {
+  readonly code: string = 'CAN_ONLY_EDIT_OWN_THEMES';
+  constructor() {
+    super('Can only edit your own themes');
+  }
+}
+
+export class ResumeNotFoundException extends DomainException {
+  readonly code: string = 'RESUME_NOT_FOUND';
+  readonly statusHint = 404;
+  constructor() {
+    super('Resume not found');
+  }
+}

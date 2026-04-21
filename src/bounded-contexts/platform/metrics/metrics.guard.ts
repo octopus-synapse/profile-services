@@ -6,15 +6,13 @@
  * If METRICS_API_KEY is not configured, the endpoint is blocked by default.
  */
 
-import {
-  CanActivate,
-  ExecutionContext,
-  ForbiddenException,
-  Injectable,
-  Logger,
-} from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { Request } from 'express';
+import {
+  InvalidMetricsApiKeyException,
+  MetricsNotConfiguredException,
+} from '@/bounded-contexts/platform/common/exceptions/platform.exceptions';
 
 @Injectable()
 export class MetricsGuard implements CanActivate {
@@ -32,14 +30,14 @@ export class MetricsGuard implements CanActivate {
 
   canActivate(context: ExecutionContext): boolean {
     if (!this.metricsApiKey) {
-      throw new ForbiddenException('Metrics endpoint is not configured');
+      throw new MetricsNotConfiguredException();
     }
 
     const request = context.switchToHttp().getRequest<Request>();
     const providedKey = request.headers['x-metrics-key'];
 
     if (providedKey !== this.metricsApiKey) {
-      throw new ForbiddenException('Invalid metrics API key');
+      throw new InvalidMetricsApiKeyException();
     }
 
     return true;

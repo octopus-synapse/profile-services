@@ -5,8 +5,7 @@
  */
 
 import type { CreateTheme } from '@/shared-kernel';
-import { ERROR_MESSAGES } from '@/shared-kernel';
-import { ForbiddenException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { OnlyAdminsCanDoThisException } from '../../../domain/exceptions/presentation.exceptions';
 import type { AuthorizationPort } from '../../domain/ports/authorization.port';
 import type { ThemeRepositoryPort } from '../../domain/ports/theme.repository.port';
 import { type JsonValue, ThemeStatus } from '../../domain/ports/theme.repository.port';
@@ -40,7 +39,7 @@ export class CreateThemeAsAdminUseCase {
   private async assertIsAdmin(userId: string) {
     const hasPermission = await this.authorization.hasPermission(userId, 'theme', 'manage');
     if (!hasPermission) {
-      throw new ForbiddenException(ERROR_MESSAGES.ONLY_ADMINS_CAN_DO_THIS);
+      throw new OnlyAdminsCanDoThisException();
     }
   }
 

@@ -4,8 +4,9 @@
  * Uses In-Memory repository for clean, behavior-focused testing.
  */
 import { beforeEach, describe, expect, it } from 'bun:test';
-import { EntityNotFoundException, ForbiddenException } from '@/shared-kernel/exceptions';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions';
 import { InMemoryUserManagementRepository } from '../../../../shared-kernel/testing';
+import { CannotDeleteOwnAccountAsAdminException } from '../../../domain/exceptions/users.exceptions';
 import { DeleteUserUseCase } from './delete-user.use-case';
 
 describe('DeleteUserUseCase', () => {
@@ -21,10 +22,12 @@ describe('DeleteUserUseCase', () => {
     await expect(useCase.execute('user-123', 'admin-456')).rejects.toThrow(EntityNotFoundException);
   });
 
-  it('should throw ForbiddenException when trying to delete self', async () => {
+  it('should throw CannotDeleteOwnAccountAsAdminException when trying to delete self', async () => {
     repository.seedUser({ id: 'user-123' });
 
-    await expect(useCase.execute('user-123', 'user-123')).rejects.toThrow(ForbiddenException);
+    await expect(useCase.execute('user-123', 'user-123')).rejects.toThrow(
+      CannotDeleteOwnAccountAsAdminException,
+    );
   });
 
   it('should delete user when valid', async () => {
