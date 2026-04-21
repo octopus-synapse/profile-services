@@ -26,7 +26,7 @@ export abstract class DomainException extends Error {
  * Maps to HTTP 404 Not Found.
  */
 export class EntityNotFoundException extends DomainException {
-  readonly code = 'ENTITY_NOT_FOUND';
+  readonly code: string = 'ENTITY_NOT_FOUND';
   readonly statusHint = 404;
 
   constructor(
@@ -46,7 +46,7 @@ export class EntityNotFoundException extends DomainException {
  * Maps to HTTP 409 Conflict.
  */
 export class ConflictException extends DomainException {
-  readonly code = 'CONFLICT';
+  readonly code: string = 'CONFLICT';
   readonly statusHint = 409;
 
   constructor(message: string) {
@@ -59,7 +59,7 @@ export class ConflictException extends DomainException {
  * Maps to HTTP 401 Unauthorized.
  */
 export class UnauthorizedException extends DomainException {
-  readonly code = 'UNAUTHORIZED';
+  readonly code: string = 'UNAUTHORIZED';
   readonly statusHint = 401;
 
   constructor(message = 'Unauthorized') {
@@ -72,7 +72,7 @@ export class UnauthorizedException extends DomainException {
  * Maps to HTTP 403 Forbidden.
  */
 export class ForbiddenException extends DomainException {
-  readonly code = 'FORBIDDEN';
+  readonly code: string = 'FORBIDDEN';
   readonly statusHint = 403;
 
   constructor(message = 'Access denied') {
@@ -85,7 +85,7 @@ export class ForbiddenException extends DomainException {
  * Maps to HTTP 400 Bad Request.
  */
 export class ValidationException extends DomainException {
-  readonly code = 'VALIDATION_ERROR';
+  readonly code: string = 'VALIDATION_ERROR';
   readonly statusHint = 400;
 
   constructor(
@@ -101,7 +101,7 @@ export class ValidationException extends DomainException {
  * Maps to HTTP 422 Unprocessable Entity.
  */
 export class BusinessRuleViolationException extends DomainException {
-  readonly code = 'BUSINESS_RULE_VIOLATION';
+  readonly code: string = 'BUSINESS_RULE_VIOLATION';
   readonly statusHint = 422;
 
   constructor(message: string) {
@@ -114,7 +114,7 @@ export class BusinessRuleViolationException extends DomainException {
  * Maps to HTTP 429 Too Many Requests.
  */
 export class LimitExceededException extends DomainException {
-  readonly code = 'LIMIT_EXCEEDED';
+  readonly code: string = 'LIMIT_EXCEEDED';
   readonly statusHint = 422;
 
   constructor(

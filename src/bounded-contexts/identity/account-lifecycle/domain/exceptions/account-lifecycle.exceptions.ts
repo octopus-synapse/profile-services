@@ -9,6 +9,7 @@ import { ConflictException, DomainException } from '../../../shared-kernel/excep
  * Thrown when trying to create an account with existing email.
  */
 export class AccountAlreadyExistsException extends ConflictException {
+  readonly code: string = 'ACCOUNT_ALREADY_EXISTS';
   constructor(email: string) {
     super(`An account with email ${email} already exists`);
   }

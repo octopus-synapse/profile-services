@@ -7,7 +7,7 @@
 import { DomainException } from './domain.exception';
 
 export class ForbiddenException extends DomainException {
-  readonly code = 'FORBIDDEN';
+  readonly code: string = 'FORBIDDEN';
   readonly statusHint = 403;
 
   constructor(message: string = 'Access denied') {

@@ -7,7 +7,7 @@
 import { DomainException } from './domain.exception';
 
 export class ValidationException extends DomainException {
-  readonly code = 'VALIDATION_ERROR';
+  readonly code: string = 'VALIDATION_ERROR';
   readonly statusHint = 400;
   readonly violations: string[];
 

@@ -9,6 +9,7 @@ import { DomainException, UnauthorizedException } from '../../../shared-kernel/e
  * Thrown when login credentials are invalid.
  */
 export class InvalidCredentialsException extends UnauthorizedException {
+  readonly code = 'INVALID_CREDENTIALS';
   constructor() {
     super('Invalid email or password');
   }
@@ -20,6 +21,7 @@ export class InvalidCredentialsException extends UnauthorizedException {
  * Thrown when a 2FA code is invalid during login verification.
  */
 export class Invalid2faCodeException extends UnauthorizedException {
+  readonly code = 'INVALID_2FA_CODE';
   constructor() {
     super('Invalid two-factor authentication code');
   }
@@ -31,6 +33,7 @@ export class Invalid2faCodeException extends UnauthorizedException {
  * Thrown when the user's session has expired.
  */
 export class SessionExpiredException extends UnauthorizedException {
+  readonly code = 'SESSION_EXPIRED';
   constructor() {
     super('Session has expired. Please login again.');
   }
@@ -42,6 +45,7 @@ export class SessionExpiredException extends UnauthorizedException {
  * Thrown when refresh token is invalid or expired.
  */
 export class InvalidRefreshTokenException extends UnauthorizedException {
+  readonly code = 'INVALID_REFRESH_TOKEN';
   constructor() {
     super('Invalid or expired refresh token');
   }

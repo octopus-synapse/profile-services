@@ -7,7 +7,7 @@
 import { DomainException } from './domain.exception';
 
 export class UnauthorizedException extends DomainException {
-  readonly code = 'UNAUTHORIZED';
+  readonly code: string = 'UNAUTHORIZED';
   readonly statusHint = 401;
 
   constructor(message: string = 'Unauthorized') {
@@ -21,6 +21,7 @@ export class UnauthorizedException extends DomainException {
  * Specific unauthorized for login failures.
  */
 export class InvalidCredentialsException extends UnauthorizedException {
+  readonly code: string = 'INVALID_CREDENTIALS';
   constructor() {
     super('Invalid email or password');
   }
@@ -32,6 +33,7 @@ export class InvalidCredentialsException extends UnauthorizedException {
  * Specific unauthorized for token failures.
  */
 export class InvalidTokenException extends UnauthorizedException {
+  readonly code: string = 'INVALID_TOKEN';
   constructor(tokenType: string = 'Token') {
     super(`${tokenType} is invalid or expired`);
   }

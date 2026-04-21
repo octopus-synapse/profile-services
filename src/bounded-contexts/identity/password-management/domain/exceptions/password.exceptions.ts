@@ -13,6 +13,7 @@ import {
  * Thrown when password doesn't meet strength requirements.
  */
 export class WeakPasswordException extends ValidationException {
+  readonly code: string = 'PASSWORD_WEAK';
   constructor(violations: string[]) {
     super('Password does not meet security requirements', violations);
   }
@@ -38,6 +39,7 @@ export class InvalidResetTokenException extends DomainException {
  * Thrown when current password verification fails.
  */
 export class InvalidCurrentPasswordException extends UnauthorizedException {
+  readonly code: string = 'INVALID_CURRENT_PASSWORD';
   constructor() {
     super('Current password is incorrect');
   }
@@ -49,6 +51,7 @@ export class InvalidCurrentPasswordException extends UnauthorizedException {
  * Thrown when new password is same as current.
  */
 export class SamePasswordException extends ValidationException {
+  readonly code: string = 'PASSWORD_SAME_AS_CURRENT';
   constructor() {
     super('New password must be different from current password', [
       'New password cannot be the same as current password',

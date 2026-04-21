@@ -8,7 +8,7 @@
 import { DomainException } from './domain.exception';
 
 export class ConflictException extends DomainException {
-  readonly code = 'CONFLICT';
+  readonly code: string = 'CONFLICT';
   readonly statusHint = 409;
 
   constructor(message: string) {
@@ -22,6 +22,7 @@ export class ConflictException extends DomainException {
  * Specific conflict for duplicate email addresses.
  */
 export class EmailAlreadyExistsException extends ConflictException {
+  readonly code: string = 'EMAIL_IN_USE';
   constructor(email?: string) {
     super(email ? `Email "${email}" already exists` : 'Email already exists');
   }

@@ -3,7 +3,7 @@
     "classifiedCount": 42,
     "ambiguousCount": 354,
     "unstableCount": 131,
-    "distinctCodes": 19
+    "distinctCodes": 30
   },
   "classified": [
     {
@@ -14,7 +14,7 @@
     },
     {
       "className": "AccountAlreadyExistsException",
-      "code": "(no literal)",
+      "code": "ACCOUNT_ALREADY_EXISTS",
       "file": "src/bounded-contexts/identity/account-lifecycle/domain/exceptions/account-lifecycle.exceptions.ts",
       "extends": "ConflictException"
     },
@@ -68,13 +68,13 @@
     },
     {
       "className": "EmailAlreadyExistsException",
-      "code": "(no literal)",
+      "code": "EMAIL_IN_USE",
       "file": "src/bounded-contexts/identity/shared-kernel/exceptions/conflict.exception.ts",
       "extends": "ConflictException"
     },
     {
       "className": "EmailAlreadyVerifiedException",
-      "code": "(no literal)",
+      "code": "EMAIL_ALREADY_VERIFIED",
       "file": "src/bounded-contexts/identity/email-verification/domain/exceptions/email-verification.exceptions.ts",
       "extends": "ConflictException"
     },
@@ -116,25 +116,25 @@
     },
     {
       "className": "Invalid2faCodeException",
-      "code": "(no literal)",
+      "code": "INVALID_2FA_CODE",
       "file": "src/bounded-contexts/identity/authentication/domain/exceptions/authentication.exceptions.ts",
       "extends": "UnauthorizedException"
     },
     {
       "className": "InvalidCredentialsException",
-      "code": "(no literal)",
+      "code": "INVALID_CREDENTIALS",
       "file": "src/bounded-contexts/identity/shared-kernel/exceptions/unauthorized.exception.ts",
       "extends": "UnauthorizedException"
     },
     {
       "className": "InvalidCredentialsException",
-      "code": "(no literal)",
+      "code": "INVALID_CREDENTIALS",
       "file": "src/bounded-contexts/identity/authentication/domain/exceptions/authentication.exceptions.ts",
       "extends": "UnauthorizedException"
     },
     {
       "className": "InvalidCurrentPasswordException",
-      "code": "(no literal)",
+      "code": "INVALID_CURRENT_PASSWORD",
       "file": "src/bounded-contexts/identity/password-management/domain/exceptions/password.exceptions.ts",
       "extends": "UnauthorizedException"
     },
@@ -146,7 +146,7 @@
     },
     {
       "className": "InvalidRefreshTokenException",
-      "code": "(no literal)",
+      "code": "INVALID_REFRESH_TOKEN",
       "file": "src/bounded-contexts/identity/authentication/domain/exceptions/authentication.exceptions.ts",
       "extends": "UnauthorizedException"
     },
@@ -164,7 +164,7 @@
     },
     {
       "className": "InvalidTokenException",
-      "code": "(no literal)",
+      "code": "INVALID_TOKEN",
       "file": "src/bounded-contexts/identity/shared-kernel/exceptions/unauthorized.exception.ts",
       "extends": "UnauthorizedException"
     },
@@ -194,13 +194,13 @@
     },
     {
       "className": "SamePasswordException",
-      "code": "(no literal)",
+      "code": "PASSWORD_SAME_AS_CURRENT",
       "file": "src/bounded-contexts/identity/password-management/domain/exceptions/password.exceptions.ts",
       "extends": "ValidationException"
     },
     {
       "className": "SessionExpiredException",
-      "code": "(no literal)",
+      "code": "SESSION_EXPIRED",
       "file": "src/bounded-contexts/identity/authentication/domain/exceptions/authentication.exceptions.ts",
       "extends": "UnauthorizedException"
     },
@@ -254,7 +254,7 @@
     },
     {
       "className": "WeakPasswordException",
-      "code": "(no literal)",
+      "code": "PASSWORD_WEAK",
       "file": "src/bounded-contexts/identity/password-management/domain/exceptions/password.exceptions.ts",
       "extends": "ValidationException"
     }
