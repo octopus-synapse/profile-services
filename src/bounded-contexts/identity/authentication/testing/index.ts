@@ -56,12 +56,18 @@ export class InMemoryAuthenticationRepository implements AuthenticationRepositor
     return this.sessionUsers.get(userId) ?? null;
   }
 
-  async createRefreshToken(userId: string, token: string, expiresAt: Date): Promise<void> {
+  async createRefreshToken(
+    userId: string,
+    token: string,
+    expiresAt: Date,
+    authMethod?: string,
+  ): Promise<void> {
     this.refreshTokens.set(token, {
       id: `rt-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       userId,
       token,
       expiresAt,
+      authMethod,
     });
   }
 

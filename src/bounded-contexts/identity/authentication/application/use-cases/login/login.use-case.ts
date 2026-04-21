@@ -153,7 +153,14 @@ export class LoginUseCase implements LoginPort {
 
     const refreshTokenExpiry = new Date();
     refreshTokenExpiry.setDate(refreshTokenExpiry.getDate() + REFRESH_TOKEN_DAYS);
-    await this.repository.createRefreshToken(userId, tokenPair.refreshToken, refreshTokenExpiry);
+    const authMethod =
+      method === 'password' ? 'PASSWORD' : method === '2fa_totp' ? '2FA_TOTP' : '2FA_BACKUP_CODE';
+    await this.repository.createRefreshToken(
+      userId,
+      tokenPair.refreshToken,
+      refreshTokenExpiry,
+      authMethod,
+    );
 
     await this.repository.updateLastLogin(userId);
 

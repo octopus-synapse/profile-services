@@ -33,6 +33,7 @@ export interface RefreshTokenData {
   userId: string;
   token: string;
   expiresAt: Date;
+  authMethod?: string | null;
 }
 
 export interface AuthenticationRepositoryPort {
@@ -53,9 +54,16 @@ export interface AuthenticationRepositoryPort {
   findSessionUser(userId: string): Promise<SessionAuthUser | null>;
 
   /**
-   * Stores a refresh token
+   * Stores a refresh token. `authMethod` identifies how the session was
+   * authenticated (PASSWORD, 2FA_TOTP, 2FA_BACKUP_CODE, OAUTH_* ...) and is
+   * surfaced to the user in the "Sessions" settings page.
    */
-  createRefreshToken(userId: string, token: string, expiresAt: Date): Promise<void>;
+  createRefreshToken(
+    userId: string,
+    token: string,
+    expiresAt: Date,
+    authMethod?: string,
+  ): Promise<void>;
 
   /**
    * Finds a refresh token

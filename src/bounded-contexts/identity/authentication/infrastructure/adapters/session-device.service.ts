@@ -9,6 +9,7 @@ export interface SessionDeviceView {
   ipAddress: string | null;
   userAgent: string | null;
   deviceName: string | null;
+  authMethod: string | null;
   revoked: boolean;
 }
 
@@ -34,6 +35,7 @@ export class SessionDeviceService {
         ipAddress: true,
         userAgent: true,
         deviceName: true,
+        authMethod: true,
         revokedAt: true,
       },
     });
@@ -58,6 +60,7 @@ export class SessionDeviceService {
     ipAddress: string | null;
     userAgent: string | null;
     deviceName: string | null;
+    authMethod: string | null;
     revokedAt: Date | null;
   }): SessionDeviceView {
     return {
@@ -68,6 +71,7 @@ export class SessionDeviceService {
       ipAddress: t.ipAddress,
       userAgent: t.userAgent,
       deviceName: t.deviceName,
+      authMethod: t.authMethod,
       revoked: t.revokedAt !== null,
     };
   }

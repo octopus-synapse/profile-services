@@ -58,7 +58,12 @@ export class RefreshTokenUseCase implements RefreshTokenPort {
     const refreshTokenExpiry = new Date();
     refreshTokenExpiry.setDate(refreshTokenExpiry.getDate() + REFRESH_TOKEN_DAYS);
 
-    await this.repository.createRefreshToken(user.id, tokenPair.refreshToken, refreshTokenExpiry);
+    await this.repository.createRefreshToken(
+      user.id,
+      tokenPair.refreshToken,
+      refreshTokenExpiry,
+      tokenData.authMethod ?? undefined,
+    );
 
     // Publish event
     this.eventBus.publish(new TokenRefreshedEvent(user.id));

@@ -128,12 +128,18 @@ export class PrismaAuthenticationRepository implements AuthenticationRepositoryP
     await this.cacheService.delete(`auth:user:email:${email.toLowerCase()}`);
   }
 
-  async createRefreshToken(userId: string, token: string, expiresAt: Date): Promise<void> {
+  async createRefreshToken(
+    userId: string,
+    token: string,
+    expiresAt: Date,
+    authMethod?: string,
+  ): Promise<void> {
     await this.prisma.refreshToken.create({
       data: {
         userId,
         token,
         expiresAt,
+        authMethod,
       },
     });
   }
@@ -152,6 +158,7 @@ export class PrismaAuthenticationRepository implements AuthenticationRepositoryP
       userId: tokenRecord.userId,
       token: tokenRecord.token,
       expiresAt: tokenRecord.expiresAt,
+      authMethod: tokenRecord.authMethod,
     };
   }
 

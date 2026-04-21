@@ -12748,6 +12748,15 @@
             }
           },
           {
+            "name": "followingOnly",
+            "required": false,
+            "in": "query",
+            "description": "When true, restricts to posts from users the viewer follows (\"Minha bolha\").",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
             "name": "type",
             "required": false,
             "in": "query",

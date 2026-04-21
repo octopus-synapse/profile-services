@@ -82,6 +82,10 @@ model RefreshToken {
   ipAddress  String?
   userAgent  String?   @db.Text
   deviceName String?
+  // How the session was authenticated — "PASSWORD", "2FA_TOTP", "2FA_BACKUP_CODE",
+  // or future OAuth values like "OAUTH_GITHUB". Nullable so existing rows stay
+  // compatible; we fill it going forward for all new sessions.
+  authMethod String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
