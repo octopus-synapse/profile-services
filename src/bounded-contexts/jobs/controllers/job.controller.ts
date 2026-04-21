@@ -12,11 +12,23 @@ import {
   Req,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
-import type { EnglishLevel, JobType, PaymentCurrency, RemotePolicy } from '@prisma/client';
+import type { EnglishLevel, JobType } from '@prisma/client';
 import { z } from 'zod';
+import { ApiDataResponse } from '@/bounded-contexts/platform/common/decorators/api-data-response.decorator';
 import { SdkExport } from '@/bounded-contexts/platform/common/decorators/sdk-export.decorator';
 import { createZodPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
 import { Permission, RequirePermission } from '@/shared-kernel/authorization';
+import {
+  ApplyToJobDto,
+  ApplyToJobSchema,
+  CreateJobDto,
+  CreateJobSchema,
+  JobApplicationsByJobDto,
+  JobResponseDto,
+  PaginatedJobsDto,
+  UpdateJobDto,
+  UpdateJobSchema,
+} from '../dto/job.dto';
 import {
   parsePaymentCurrencies,
   parseRemotePolicies,
@@ -50,6 +62,11 @@ export class JobController {
   @Get()
   @RequirePermission(Permission.FEED_USE)
   @HttpCode(HttpStatus.OK)
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'search', required: false, type: String })
+  @ApiQuery({ name: 'jobType', required: false, type: String })
+  @ApiQuery({ name: 'skills', required: false, description: 'CSV of skill names' })
   @ApiQuery({ name: 'paymentCurrency', required: false, description: 'CSV of BRL|USD|EUR|GBP' })
   @ApiQuery({ name: 'remotePolicy', required: false, description: 'CSV of REMOTE|HYBRID|ONSITE' })
   @ApiQuery({
@@ -106,6 +123,10 @@ export class JobController {
   @Get('mine')
   @RequirePermission(Permission.JOB_CREATE)
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'List jobs the current user (recruiter) authored' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiDataResponse(PaginatedJobsDto, { description: 'Paginated jobs owned by the recruiter' })
   async getMyJobs(
     @Req() req: { user: { userId: string } },
     @Query(createZodPipe(PageOnlyQuerySchema)) q: z.infer<typeof PageOnlyQuerySchema>,
@@ -152,9 +173,32 @@ export class JobController {
     return this.jobService.getMyApplications(req.user.userId, q.page, q.limit);
   }
 
+  @Get(':id/applications')
+  @RequirePermission(Permission.JOB_CREATE)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'List applications received for a job (job owner only)',
+  })
+  @ApiParam({ name: 'id', type: 'string' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiDataResponse(JobApplicationsByJobDto, {
+    description: 'Paginated applications received for the job',
+  })
+  async getApplicationsForJob(
+    @Param('id') id: string,
+    @Req() req: { user: { userId: string } },
+    @Query(createZodPipe(PageOnlyQuerySchema)) q: z.infer<typeof PageOnlyQuerySchema>,
+  ) {
+    return this.jobService.getApplicationsByJob(id, req.user.userId, q.page, q.limit);
+  }
+
   @Get(':id')
   @RequirePermission(Permission.FEED_USE)
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Fetch a single job by id' })
+  @ApiParam({ name: 'id', type: 'string' })
+  @ApiDataResponse(JobResponseDto, { description: 'Job details' })
   async findById(@Param('id') id: string, @Req() req: { user: { userId: string } }) {
     return this.jobService.findById(id, req.user.userId);
   }
@@ -196,7 +240,7 @@ export class JobController {
   async apply(
     @Param('id') id: string,
     @Req() req: { user: { userId: string } },
-    @Body() body: { coverLetter?: string; resumeId?: string },
+    @Body(createZodPipe(ApplyToJobSchema)) body: ApplyToJobDto,
   ) {
     return this.jobService.apply(id, req.user.userId, body ?? {});
   }
@@ -213,24 +257,14 @@ export class JobController {
   @Post()
   @RequirePermission(Permission.JOB_CREATE)
   @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Create a new job posting' })
+  @ApiDataResponse(JobResponseDto, {
+    description: 'Job created',
+    status: HttpStatus.CREATED,
+  })
   async create(
     @Req() req: { user: { userId: string } },
-    @Body()
-    body: {
-      title: string;
-      company: string;
-      location?: string;
-      jobType: JobType;
-      description: string;
-      requirements?: string[];
-      skills?: string[];
-      salaryRange?: string;
-      applyUrl?: string;
-      expiresAt?: Date;
-      paymentCurrency?: PaymentCurrency;
-      remotePolicy?: RemotePolicy;
-      minEnglishLevel?: EnglishLevel;
-    },
+    @Body(createZodPipe(CreateJobSchema)) body: CreateJobDto,
   ) {
     return this.jobService.create(req.user.userId, body);
   }
@@ -238,26 +272,13 @@ export class JobController {
   @Patch(':id')
   @RequirePermission(Permission.JOB_CREATE)
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Update a job posting' })
+  @ApiParam({ name: 'id', type: 'string' })
+  @ApiDataResponse(JobResponseDto, { description: 'Job updated' })
   async update(
     @Param('id') id: string,
     @Req() req: { user: { userId: string } },
-    @Body()
-    body: {
-      title?: string;
-      company?: string;
-      location?: string;
-      jobType?: JobType;
-      description?: string;
-      requirements?: string[];
-      skills?: string[];
-      salaryRange?: string;
-      applyUrl?: string;
-      isActive?: boolean;
-      expiresAt?: Date;
-      paymentCurrency?: PaymentCurrency | null;
-      remotePolicy?: RemotePolicy | null;
-      minEnglishLevel?: EnglishLevel | null;
-    },
+    @Body(createZodPipe(UpdateJobSchema)) body: UpdateJobDto,
   ) {
     return this.jobService.update(id, req.user.userId, body);
   }
@@ -265,6 +286,8 @@ export class JobController {
   @Delete(':id')
   @RequirePermission(Permission.JOB_CREATE)
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Delete a job posting' })
+  @ApiParam({ name: 'id', type: 'string' })
   async delete(@Param('id') id: string, @Req() req: { user: { userId: string } }) {
     return this.jobService.delete(id, req.user.userId);
   }

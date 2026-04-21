@@ -368,7 +368,7 @@ describe('Password Reset Security - Bug Discovery Tests', () => {
         'abc123',
         '12345678',
         'password123',
-        (user) => user.email.split('@')[0], // Username as password
+        (user: { email: string }) => user.email.split('@')[0], // Username as password
       ];
 
       const results: { password: string; accepted: boolean }[] = [];

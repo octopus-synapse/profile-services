@@ -120,10 +120,26 @@ const EVENT_BUS = Symbol('EventBusPort');
         passwordHasher: PasswordHasherPort,
         eventBus: EventBusPort,
         tokenGenerator: TokenGeneratorPort,
+        acceptConsent: AcceptConsentUseCase,
+        versionConfig: VersionConfigPort,
       ) => {
-        return new CreateAccountUseCase(repository, passwordHasher, eventBus, tokenGenerator);
+        return new CreateAccountUseCase(
+          repository,
+          passwordHasher,
+          eventBus,
+          tokenGenerator,
+          acceptConsent,
+          versionConfig,
+        );
       },
-      inject: [ACCOUNT_REPOSITORY, PASSWORD_HASHER, EVENT_BUS, TOKEN_GENERATOR_PORT],
+      inject: [
+        ACCOUNT_REPOSITORY,
+        PASSWORD_HASHER,
+        EVENT_BUS,
+        TOKEN_GENERATOR_PORT,
+        ACCEPT_CONSENT_USE_CASE,
+        VERSION_CONFIG_PORT,
+      ],
     },
     {
       provide: DEACTIVATE_ACCOUNT_PORT,
@@ -171,6 +187,9 @@ const EVENT_BUS = Symbol('EventBusPort');
     DELETE_ACCOUNT_PORT,
     ACCOUNT_REPOSITORY,
     DATA_EXPORT_REPOSITORY_PORT,
+    // Exported so ConsentGuard (registered as APP_GUARD in app.module)
+    // can inject the use-case and enforce LGPD consent on every request.
+    GET_CONSENT_STATUS_USE_CASE,
   ],
 })
 export class AccountLifecycleModule {}

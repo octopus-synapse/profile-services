@@ -8,6 +8,12 @@ export interface CreateAccountCommand {
   name?: string;
   email: string;
   password: string;
+  // LGPD: explicit consent captured at signup (versions sent by client must match current TOS/Privacy versions).
+  acceptedTosVersion: string;
+  acceptedPrivacyVersion: string;
+  // Audit trail for the consent records.
+  ipAddress?: string;
+  userAgent?: string;
 }
 
 export interface CreateAccountResult {

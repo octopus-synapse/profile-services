@@ -31,11 +31,13 @@ import {
 } from '../../application/use-cases/accept-consent/accept-consent.dto';
 import { AcceptConsentUseCase } from '../../application/use-cases/accept-consent/accept-consent.use-case';
 
+import { ACCEPT_CONSENT_USE_CASE } from '../../application/use-cases/tokens';
+
 interface RequestWithUser extends Request {
   user: { userId: string; email: string };
 }
 
-export const ACCEPT_CONSENT_USE_CASE = Symbol('AcceptConsentUseCase');
+export { ACCEPT_CONSENT_USE_CASE };
 
 @SdkExport({ tag: 'user-consent', description: 'User Consent API' })
 @ApiTags('User Consent')

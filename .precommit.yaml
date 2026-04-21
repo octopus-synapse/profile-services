@@ -4,7 +4,10 @@
 
 serial:
   - name: swagger
-    cmd: "bun run scripts/generate-swagger-from-decorators.ts && bunx biome format --write swagger.json client-swagger.json"
+    # biome 2.x exits non-zero when ignored files are passed explicitly; pipe
+    # the format step through `|| true` since swagger.json is in biome's
+    # ignore list and we only call it for the unlikely case it gets unignored.
+    cmd: "bun run scripts/generate-swagger-from-decorators.ts && (bunx biome format --write swagger.json client-swagger.json 2>/dev/null || true)"
     stage:
       - swagger.json
       - client-swagger.json

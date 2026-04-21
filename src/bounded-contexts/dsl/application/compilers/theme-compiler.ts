@@ -276,8 +276,8 @@ export class ThemeCompiler {
     }
 
     const headingSize = Math.round(baseSize * scale * scale);
-    // biome-ignore lint/complexity/useLiteralKeys: dynamic theme context property
-    const primaryColor = String(evalContext.colors?.['primary'] || '#2563eb');
+    const colors = (evalContext.colors ?? {}) as Record<string, unknown>;
+    const primaryColor = String(colors.primary ?? '#2563eb');
 
     return {
       fontFamily: {

@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import {
   TOKEN_GENERATOR_PORT,
   type TokenGeneratorPort,
@@ -12,7 +12,12 @@ import type {
 } from '../../../application/ports';
 import { AccountCreatedEvent } from '../../../domain/events';
 import { AccountAlreadyExistsException } from '../../../domain/exceptions';
-import type { AccountLifecycleRepositoryPort, PasswordHasherPort } from '../../../domain/ports';
+import type {
+  AccountLifecycleRepositoryPort,
+  PasswordHasherPort,
+  VersionConfigPort,
+} from '../../../domain/ports';
+import { AcceptConsentUseCase } from '../accept-consent/accept-consent.use-case';
 
 const ACCOUNT_REPOSITORY = Symbol('AccountLifecycleRepositoryPort');
 const PASSWORD_HASHER = Symbol('PasswordHasherPort');
@@ -29,10 +34,29 @@ export class CreateAccountUseCase implements CreateAccountPort {
     private readonly eventBus: EventBusPort,
     @Inject(TOKEN_GENERATOR_PORT)
     private readonly tokenGenerator: TokenGeneratorPort,
+    private readonly acceptConsent: AcceptConsentUseCase,
+    private readonly versionConfig: VersionConfigPort,
   ) {}
 
   async execute(command: CreateAccountCommand): Promise<CreateAccountResult> {
-    const { name, email, password } = command;
+    const {
+      name,
+      email,
+      password,
+      acceptedTosVersion,
+      acceptedPrivacyVersion,
+      ipAddress,
+      userAgent,
+    } = command;
+
+    // LGPD: reject signup if the client didn't acknowledge the current legal versions.
+    const currentTos = this.versionConfig.getTosVersion();
+    const currentPrivacy = this.versionConfig.getPrivacyPolicyVersion();
+    if (acceptedTosVersion !== currentTos || acceptedPrivacyVersion !== currentPrivacy) {
+      throw new BadRequestException(
+        `consent_version_mismatch: expected TOS=${currentTos}, Privacy=${currentPrivacy}`,
+      );
+    }
 
     // Validate password strength (throws WeakPasswordException if invalid)
     Password.create(password);
@@ -52,6 +76,22 @@ export class CreateAccountUseCase implements CreateAccountPort {
       email,
       passwordHash,
     });
+
+    // LGPD: persist the two consents atomically with the audit trail (IP + user agent).
+    await Promise.all([
+      this.acceptConsent.execute({
+        userId: account.id,
+        documentType: 'TERMS_OF_SERVICE',
+        ipAddress,
+        userAgent,
+      }),
+      this.acceptConsent.execute({
+        userId: account.id,
+        documentType: 'PRIVACY_POLICY',
+        ipAddress,
+        userAgent,
+      }),
+    ]);
 
     // Generate auth tokens for auto-login (eliminates extra login request)
     const tokens = await this.tokenGenerator.generateTokenPair({

@@ -137,6 +137,15 @@ export const PERMISSION_GROUPS = {
     displayName: 'Super Admin',
     permissions: [Permission.ADMIN_FULL_ACCESS],
   },
+
+  // Beta automation access: rage-apply and auto-apply worker.
+  // Kept as a dedicated group so we can grant it to individual users from the
+  // admin UI without handing out broader admin privileges.
+  AUTOMATION_BETA: {
+    id: 'grp_automation_beta',
+    displayName: 'Automation Beta',
+    permissions: [Permission.RAGE_APPLY, Permission.AUTO_APPLY],
+  },
 } as const satisfies Record<string, PermissionGroup>;
 
 export type PermissionGroupId = (typeof PERMISSION_GROUPS)[keyof typeof PERMISSION_GROUPS]['id'];

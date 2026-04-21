@@ -14,13 +14,14 @@ import {
 } from '../../../shared-kernel/infrastructure';
 import { ConsentHistoryResponseDto } from '../../application/use-cases/get-consent-history/get-consent-history.dto';
 import { GetConsentHistoryUseCase } from '../../application/use-cases/get-consent-history/get-consent-history.use-case';
+import { GET_CONSENT_HISTORY_USE_CASE } from '../../application/use-cases/tokens';
 import { toConsentHistoryResponse } from '../presenters/get-consent-history.presenter';
 
 interface RequestWithUser extends Request {
   user: { userId: string; email: string };
 }
 
-export const GET_CONSENT_HISTORY_USE_CASE = Symbol('GetConsentHistoryUseCase');
+export { GET_CONSENT_HISTORY_USE_CASE };
 
 @ApiTags('User Consent')
 @Controller('v1/users/me')

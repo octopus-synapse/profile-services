@@ -6,6 +6,9 @@ export const CreateAccountSchema = z.object({
   name: z.string().optional(),
   email: z.string().email(),
   password: z.string().min(8),
+  // LGPD: explicit consent required at signup. Versions must match current TOS_VERSION/PRIVACY_POLICY_VERSION.
+  acceptedTosVersion: z.string().min(1),
+  acceptedPrivacyVersion: z.string().min(1),
 });
 
 // Response Schema - includes tokens for auto-login after signup

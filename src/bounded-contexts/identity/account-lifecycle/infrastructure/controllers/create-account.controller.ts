@@ -78,6 +78,10 @@ export class CreateAccountController {
       name: dto.name,
       email: dto.email,
       password: dto.password,
+      acceptedTosVersion: dto.acceptedTosVersion,
+      acceptedPrivacyVersion: dto.acceptedPrivacyVersion,
+      ipAddress: req.ip,
+      userAgent: req.headers['user-agent'],
     });
 
     // Set session cookie for cookie-based auth (same as login)

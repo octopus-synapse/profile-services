@@ -39,6 +39,28 @@ export const ROLES = {
   },
 
   // ============================================================================
+  // Beta Tester — allowlist for automation features (rage-apply, auto-apply)
+  // during the ramp-up before graduating the feature to all users.
+  // ============================================================================
+  BETA_TESTER: {
+    id: 'role_beta_tester',
+    displayName: 'Beta Tester',
+    description: 'Standard user plus access to gated automation features',
+    groups: [
+      // Inherits standard user capabilities
+      'grp_resume_owner',
+      'grp_user_profile',
+      'grp_analytics_own',
+      'grp_catalog_reader',
+      'grp_collaborator',
+      'grp_social',
+      // Gated automation access
+      'grp_automation_beta',
+    ],
+    isSystem: true,
+  },
+
+  // ============================================================================
   // Administrator
   // ============================================================================
   ADMIN: {
@@ -53,6 +75,8 @@ export const ROLES = {
       'grp_catalog_reader',
       'grp_collaborator',
       'grp_social',
+      // Automation (ADMIN always has access to gated features)
+      'grp_automation_beta',
       // Admin permissions
       'grp_resume_admin',
       'grp_user_admin',

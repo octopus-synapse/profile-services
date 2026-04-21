@@ -19406,6 +19406,45 @@
             "in": "query",
             "description": "CSV of BRL|USD|EUR|GBP",
             "schema": {}
+          },
+          {
+            "name": "skills",
+            "required": false,
+            "in": "query",
+            "description": "CSV of skill names",
+            "schema": {}
+          },
+          {
+            "name": "jobType",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
           }
         ],
         "responses": {
@@ -19431,7 +19470,42 @@
       "post": {
         "operationId": "jobs_create",
         "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateJobDto"
+              }
+            }
+          }
+        },
         "responses": {
+          "201": {
+            "description": "Job created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/JobResponseDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
           "401": {
             "description": "Authentication required"
           },
@@ -19447,6 +19521,7 @@
             "bearer": []
           }
         ],
+        "summary": "Create a new job posting",
         "tags": [
           "jobs"
         ]
@@ -19481,8 +19556,50 @@
     "/api/v1/jobs/mine": {
       "get": {
         "operationId": "jobs_getMyJobs",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
         "responses": {
+          "200": {
+            "description": "Paginated jobs owned by the recruiter",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/PaginatedJobsDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
           "401": {
             "description": "Authentication required"
           },
@@ -19498,6 +19615,7 @@
             "bearer": []
           }
         ],
+        "summary": "List jobs the current user (recruiter) authored",
         "tags": [
           "jobs"
         ]
@@ -19632,6 +19750,82 @@
         ]
       }
     },
+    "/api/v1/jobs/{id}/applications": {
+      "get": {
+        "operationId": "jobs_getApplicationsForJob",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated applications received for the job",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/JobApplicationsByJobDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: job:create"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "List applications received for a job (job owner only)",
+        "tags": [
+          "jobs"
+        ]
+      }
+    },
     "/api/v1/jobs/{id}": {
       "get": {
         "operationId": "jobs_findById",
@@ -19646,6 +19840,31 @@
           }
         ],
         "responses": {
+          "200": {
+            "description": "Job details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/JobResponseDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
           "401": {
             "description": "Authentication required"
           },
@@ -19661,6 +19880,7 @@
             "bearer": []
           }
         ],
+        "summary": "Fetch a single job by id",
         "tags": [
           "jobs"
         ]
@@ -19677,7 +19897,42 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateJobDto"
+              }
+            }
+          }
+        },
         "responses": {
+          "200": {
+            "description": "Job updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/JobResponseDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
           "401": {
             "description": "Authentication required"
           },
@@ -19693,6 +19948,7 @@
             "bearer": []
           }
         ],
+        "summary": "Update a job posting",
         "tags": [
           "jobs"
         ]
@@ -19725,6 +19981,7 @@
             "bearer": []
           }
         ],
+        "summary": "Delete a job posting",
         "tags": [
           "jobs"
         ]
@@ -19846,6 +20103,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApplyToJobDto"
+              }
+            }
+          }
+        },
         "responses": {
           "401": {
             "description": "Authentication required"
@@ -20195,7 +20462,7 @@
             "description": "Authentication required"
           },
           "403": {
-            "description": "Requires permission: feed:use"
+            "description": "Requires permission: automation:rage_apply"
           }
         },
         "security": [
@@ -22928,11 +23195,21 @@
           "password": {
             "type": "string",
             "minLength": 8
+          },
+          "acceptedTosVersion": {
+            "type": "string",
+            "minLength": 1
+          },
+          "acceptedPrivacyVersion": {
+            "type": "string",
+            "minLength": 1
           }
         },
         "required": [
           "email",
-          "password"
+          "password",
+          "acceptedTosVersion",
+          "acceptedPrivacyVersion"
         ]
       },
       "DeactivateAccountResponseDto": {
@@ -33264,6 +33541,662 @@
         "required": [
           "count"
         ]
+      },
+      "PaginatedJobsDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "company": {
+                  "type": "string"
+                },
+                "location": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "jobType": {
+                  "type": "string",
+                  "enum": [
+                    "INTERNSHIP",
+                    "CONTRACT",
+                    "FULL_TIME",
+                    "PART_TIME",
+                    "VOLUNTEER",
+                    "FREELANCE"
+                  ],
+                  "x-enumNames": [
+                    "INTERNSHIP",
+                    "CONTRACT",
+                    "FULL_TIME",
+                    "PART_TIME",
+                    "VOLUNTEER",
+                    "FREELANCE"
+                  ]
+                },
+                "description": {
+                  "type": "string"
+                },
+                "requirements": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "skills": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "salaryRange": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "applyUrl": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "isActive": {
+                  "type": "boolean"
+                },
+                "authorId": {
+                  "type": "string"
+                },
+                "createdAt": {
+                  "type": "string"
+                },
+                "updatedAt": {
+                  "type": "string"
+                },
+                "expiresAt": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "paymentCurrency": {
+                  "type": "string",
+                  "enum": [
+                    "BRL",
+                    "USD",
+                    "EUR",
+                    "GBP"
+                  ],
+                  "x-enumNames": [
+                    "BRL",
+                    "USD",
+                    "EUR",
+                    "GBP"
+                  ],
+                  "nullable": true
+                },
+                "remotePolicy": {
+                  "type": "string",
+                  "enum": [
+                    "REMOTE",
+                    "HYBRID",
+                    "ONSITE"
+                  ],
+                  "x-enumNames": [
+                    "REMOTE",
+                    "HYBRID",
+                    "ONSITE"
+                  ],
+                  "nullable": true
+                },
+                "minEnglishLevel": {
+                  "type": "string",
+                  "enum": [
+                    "BASIC",
+                    "INTERMEDIATE",
+                    "ADVANCED",
+                    "FLUENT"
+                  ],
+                  "x-enumNames": [
+                    "BASIC",
+                    "INTERMEDIATE",
+                    "ADVANCED",
+                    "FLUENT"
+                  ],
+                  "nullable": true
+                }
+              },
+              "required": [
+                "id",
+                "title",
+                "company",
+                "jobType",
+                "description",
+                "requirements",
+                "skills",
+                "isActive",
+                "authorId",
+                "createdAt",
+                "updatedAt"
+              ]
+            }
+          },
+          "pagination": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "integer"
+              },
+              "pageSize": {
+                "type": "integer"
+              },
+              "total": {
+                "type": "integer"
+              },
+              "totalPages": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "page",
+              "pageSize",
+              "total",
+              "totalPages"
+            ],
+            "x-nestjs_zod-self-required": true
+          }
+        },
+        "required": [
+          "items",
+          "pagination"
+        ]
+      },
+      "JobApplicationsByJobDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "SUBMITTED",
+                    "VIEWED",
+                    "REJECTED",
+                    "ACCEPTED",
+                    "WITHDRAWN"
+                  ]
+                },
+                "createdAt": {
+                  "type": "string"
+                },
+                "coverLetter": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "resumeId": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "tailoredVersionId": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "user": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "username": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "email": {
+                      "type": "string"
+                    },
+                    "photoURL": {
+                      "type": "string",
+                      "nullable": true
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "username",
+                    "email",
+                    "photoURL"
+                  ],
+                  "nullable": true
+                }
+              },
+              "required": [
+                "id",
+                "status",
+                "createdAt",
+                "coverLetter",
+                "resumeId",
+                "tailoredVersionId",
+                "user"
+              ]
+            }
+          },
+          "pagination": {
+            "type": "object",
+            "properties": {
+              "page": {
+                "type": "integer"
+              },
+              "pageSize": {
+                "type": "integer"
+              },
+              "total": {
+                "type": "integer"
+              },
+              "totalPages": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "page",
+              "pageSize",
+              "total",
+              "totalPages"
+            ],
+            "x-nestjs_zod-self-required": true
+          }
+        },
+        "required": [
+          "items",
+          "pagination"
+        ]
+      },
+      "JobResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "company": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string",
+            "nullable": true
+          },
+          "jobType": {
+            "type": "string",
+            "enum": [
+              "INTERNSHIP",
+              "CONTRACT",
+              "FULL_TIME",
+              "PART_TIME",
+              "VOLUNTEER",
+              "FREELANCE"
+            ],
+            "x-enumNames": [
+              "INTERNSHIP",
+              "CONTRACT",
+              "FULL_TIME",
+              "PART_TIME",
+              "VOLUNTEER",
+              "FREELANCE"
+            ]
+          },
+          "description": {
+            "type": "string"
+          },
+          "requirements": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "salaryRange": {
+            "type": "string",
+            "nullable": true
+          },
+          "applyUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "authorId": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string",
+            "nullable": true
+          },
+          "paymentCurrency": {
+            "type": "string",
+            "enum": [
+              "BRL",
+              "USD",
+              "EUR",
+              "GBP"
+            ],
+            "x-enumNames": [
+              "BRL",
+              "USD",
+              "EUR",
+              "GBP"
+            ],
+            "nullable": true
+          },
+          "remotePolicy": {
+            "type": "string",
+            "enum": [
+              "REMOTE",
+              "HYBRID",
+              "ONSITE"
+            ],
+            "x-enumNames": [
+              "REMOTE",
+              "HYBRID",
+              "ONSITE"
+            ],
+            "nullable": true
+          },
+          "minEnglishLevel": {
+            "type": "string",
+            "enum": [
+              "BASIC",
+              "INTERMEDIATE",
+              "ADVANCED",
+              "FLUENT"
+            ],
+            "x-enumNames": [
+              "BASIC",
+              "INTERMEDIATE",
+              "ADVANCED",
+              "FLUENT"
+            ],
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "company",
+          "jobType",
+          "description",
+          "requirements",
+          "skills",
+          "isActive",
+          "authorId",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "ApplyToJobDto": {
+        "type": "object",
+        "properties": {
+          "coverLetter": {
+            "type": "string"
+          },
+          "resumeId": {
+            "type": "string"
+          }
+        }
+      },
+      "CreateJobDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "company": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "location": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "jobType": {
+            "type": "string",
+            "enum": [
+              "INTERNSHIP",
+              "CONTRACT",
+              "FULL_TIME",
+              "PART_TIME",
+              "VOLUNTEER",
+              "FREELANCE"
+            ],
+            "x-enumNames": [
+              "INTERNSHIP",
+              "CONTRACT",
+              "FULL_TIME",
+              "PART_TIME",
+              "VOLUNTEER",
+              "FREELANCE"
+            ]
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "requirements": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "salaryRange": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "applyUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "paymentCurrency": {
+            "type": "string",
+            "enum": [
+              "BRL",
+              "USD",
+              "EUR",
+              "GBP"
+            ],
+            "x-enumNames": [
+              "BRL",
+              "USD",
+              "EUR",
+              "GBP"
+            ]
+          },
+          "remotePolicy": {
+            "type": "string",
+            "enum": [
+              "REMOTE",
+              "HYBRID",
+              "ONSITE"
+            ],
+            "x-enumNames": [
+              "REMOTE",
+              "HYBRID",
+              "ONSITE"
+            ]
+          },
+          "minEnglishLevel": {
+            "type": "string",
+            "enum": [
+              "BASIC",
+              "INTERMEDIATE",
+              "ADVANCED",
+              "FLUENT"
+            ],
+            "x-enumNames": [
+              "BASIC",
+              "INTERMEDIATE",
+              "ADVANCED",
+              "FLUENT"
+            ]
+          }
+        },
+        "required": [
+          "title",
+          "company",
+          "jobType",
+          "description"
+        ]
+      },
+      "UpdateJobDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "company": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "location": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "jobType": {
+            "type": "string",
+            "enum": [
+              "INTERNSHIP",
+              "CONTRACT",
+              "FULL_TIME",
+              "PART_TIME",
+              "VOLUNTEER",
+              "FREELANCE"
+            ],
+            "x-enumNames": [
+              "INTERNSHIP",
+              "CONTRACT",
+              "FULL_TIME",
+              "PART_TIME",
+              "VOLUNTEER",
+              "FREELANCE"
+            ]
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "requirements": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "salaryRange": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "applyUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "paymentCurrency": {
+            "type": "string",
+            "enum": [
+              "BRL",
+              "USD",
+              "EUR",
+              "GBP"
+            ],
+            "x-enumNames": [
+              "BRL",
+              "USD",
+              "EUR",
+              "GBP"
+            ],
+            "nullable": true
+          },
+          "remotePolicy": {
+            "type": "string",
+            "enum": [
+              "REMOTE",
+              "HYBRID",
+              "ONSITE"
+            ],
+            "x-enumNames": [
+              "REMOTE",
+              "HYBRID",
+              "ONSITE"
+            ],
+            "nullable": true
+          },
+          "minEnglishLevel": {
+            "type": "string",
+            "enum": [
+              "BASIC",
+              "INTERMEDIATE",
+              "ADVANCED",
+              "FLUENT"
+            ],
+            "x-enumNames": [
+              "BASIC",
+              "INTERMEDIATE",
+              "ADVANCED",
+              "FLUENT"
+            ],
+            "nullable": true
+          }
+        }
       },
       "RecordApplicationEventDto": {
         "type": "object",

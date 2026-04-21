@@ -46,7 +46,7 @@ export class RageApplyController {
   constructor(private readonly service: RageApplyService) {}
 
   @Post()
-  @RequirePermission(Permission.FEED_USE)
+  @RequirePermission(Permission.RAGE_APPLY)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary:

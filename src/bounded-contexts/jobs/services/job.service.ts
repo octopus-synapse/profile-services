@@ -32,7 +32,7 @@ export class JobService {
       skills?: string[];
       salaryRange?: string;
       applyUrl?: string;
-      expiresAt?: Date;
+      expiresAt?: string;
       paymentCurrency?: PaymentCurrency;
       remotePolicy?: RemotePolicy;
       minEnglishLevel?: EnglishLevel;
@@ -50,7 +50,7 @@ export class JobService {
         skills: dto.skills ?? [],
         salaryRange: dto.salaryRange,
         applyUrl: dto.applyUrl,
-        expiresAt: dto.expiresAt,
+        expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : undefined,
         paymentCurrency: dto.paymentCurrency,
         remotePolicy: dto.remotePolicy,
         minEnglishLevel: dto.minEnglishLevel,
@@ -473,7 +473,7 @@ export class JobService {
       salaryRange?: string;
       applyUrl?: string;
       isActive?: boolean;
-      expiresAt?: Date;
+      expiresAt?: string;
       paymentCurrency?: PaymentCurrency | null;
       remotePolicy?: RemotePolicy | null;
       minEnglishLevel?: EnglishLevel | null;
@@ -489,9 +489,10 @@ export class JobService {
       throw new ForbiddenException('You can only update your own jobs');
     }
 
+    const { expiresAt, ...rest } = dto;
     return this.prisma.job.update({
       where: { id },
-      data: dto,
+      data: { ...rest, expiresAt: expiresAt ? new Date(expiresAt) : undefined },
     });
   }
 
@@ -516,6 +517,79 @@ export class JobService {
       where: { authorId: userId },
       orderBy: { createdAt: 'desc' },
     });
+  }
+
+  /**
+   * Employer-side: list applications received for a job the caller owns.
+   * Guards against reading applications for jobs authored by other users.
+   */
+  async getApplicationsByJob(jobId: string, ownerId: string, page = 1, limit = 20) {
+    const job = await this.prisma.job.findUnique({
+      where: { id: jobId },
+      select: { id: true, authorId: true },
+    });
+    if (!job) throw new EntityNotFoundException('Job', jobId);
+    if (job.authorId !== ownerId) {
+      throw new ForbiddenException('Only the job owner can list its applications');
+    }
+
+    const safeLimit = Math.min(limit, 100);
+    const safePage = Math.max(1, page);
+    const skip = (safePage - 1) * safeLimit;
+
+    const [applications, total] = await Promise.all([
+      this.prisma.jobApplication.findMany({
+        where: { jobId, status: { not: 'WITHDRAWN' } },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: safeLimit,
+        select: {
+          id: true,
+          userId: true,
+          status: true,
+          createdAt: true,
+          coverLetter: true,
+          resumeId: true,
+          tailoredVersionId: true,
+        },
+      }),
+      this.prisma.jobApplication.count({
+        where: { jobId, status: { not: 'WITHDRAWN' } },
+      }),
+    ]);
+
+    // JobApplication has no direct `user` relation — hydrate candidate info in a
+    // second query instead of changing the Prisma schema. Cheap: limit is ≤ 100.
+    const userIds = applications.map((a) => a.userId);
+    const users =
+      userIds.length === 0
+        ? []
+        : await this.prisma.user.findMany({
+            where: { id: { in: userIds } },
+            select: {
+              id: true,
+              name: true,
+              username: true,
+              email: true,
+              photoURL: true,
+            },
+          });
+    const userById = new Map(users.map((u) => [u.id, u]));
+
+    const items = applications.map(({ userId, ...rest }) => ({
+      ...rest,
+      user: userById.get(userId) ?? null,
+    }));
+
+    return {
+      items,
+      pagination: {
+        page: safePage,
+        pageSize: safeLimit,
+        total,
+        totalPages: Math.ceil(total / safeLimit),
+      },
+    };
   }
 
   async bookmark(jobId: string, userId: string) {

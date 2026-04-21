@@ -28,6 +28,7 @@ import { FeedModule } from '@/bounded-contexts/feed/feed.module';
 // Identity Context
 import { IdentityModule } from '@/bounded-contexts/identity';
 import { AuthorizationModule } from '@/bounded-contexts/identity/authorization/authorization.module';
+import { ConsentGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure/guards/consent.guard';
 import { EmailVerifiedGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure/guards/email-verified.guard';
 import { JwtAuthGuard } from '@/bounded-contexts/identity/shared-kernel/infrastructure/guards/jwt-auth.guard';
 import { UsersModule } from '@/bounded-contexts/identity/users/users.module';
@@ -202,6 +203,13 @@ import { AppController } from './app.controller';
     {
       provide: APP_GUARD,
       useClass: EmailVerifiedGuard,
+    },
+    // LGPD: blocks authenticated requests unless the user accepted the current
+    // TOS + Privacy Policy versions. @SkipTosCheck() exempts consent endpoints,
+    // account deletion and export. @Public() routes always bypass.
+    {
+      provide: APP_GUARD,
+      useClass: ConsentGuard,
     },
   ],
 })

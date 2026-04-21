@@ -3,6 +3,7 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { type Job, type Queue } from 'bullmq';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ResumeTailorService } from '@/bounded-contexts/resumes/resume-versions/services/resume-tailor/resume-tailor.service';
+import { hasPermission, Permission } from '@/shared-kernel/authorization';
 import { CuratedSelectorService } from '../services/curated-selector.service';
 
 export const AUTO_APPLY_QUEUE = 'auto-apply';
@@ -51,17 +52,24 @@ export class AutoApplyWorker extends WorkerHost implements OnModuleInit {
   }
 
   private async enqueuePerUser(): Promise<void> {
-    const users = await this.prisma.user.findMany({
+    const candidates = await this.prisma.user.findMany({
       where: {
         isActive: true,
         preferences: { applyMode: 'AUTO_APPLY' },
       },
-      select: { id: true },
+      select: { id: true, roles: true },
     });
-    this.logger.log(`Enqueueing auto-apply for ${users.length} users`);
-    if (users.length === 0) return;
+    // Allowlist-gated: only users with AUTO_APPLY permission (granted by the
+    // BETA_TESTER role or ADMIN) are actually enqueued. Users that opted into
+    // AUTO_APPLY in preferences but lack the permission are logged and skipped.
+    const allowed = candidates.filter((u) => hasPermission(u.roles, Permission.AUTO_APPLY));
+    const skipped = candidates.length - allowed.length;
+    this.logger.log(
+      `Enqueueing auto-apply for ${allowed.length} users (skipped ${skipped} without AUTO_APPLY permission)`,
+    );
+    if (allowed.length === 0) return;
     await this.queue.addBulk(
-      users.map((u) => ({
+      allowed.map((u) => ({
         name: 'auto-apply-run',
         data: { kind: 'run-for-user' as const, userId: u.id },
       })),

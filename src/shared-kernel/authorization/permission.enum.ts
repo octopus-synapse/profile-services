@@ -100,6 +100,14 @@ export enum Permission {
   NOTIFICATION_READ = 'notification:read',
 
   // ============================================================================
+  // Automation (behind allowlist until the feature graduates)
+  // Granted by BETA_TESTER role + ADMIN. Controls access to rage-apply and the
+  // auto-apply BullMQ worker so we can monitor cost/abuse before GA.
+  // ============================================================================
+  AUTO_APPLY = 'automation:auto_apply',
+  RAGE_APPLY = 'automation:rage_apply',
+
+  // ============================================================================
   // Super Admin (bypass all checks)
   // ============================================================================
   ADMIN_FULL_ACCESS = 'admin:full_access',
