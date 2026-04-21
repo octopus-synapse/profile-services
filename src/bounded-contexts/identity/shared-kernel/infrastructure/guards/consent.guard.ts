@@ -5,6 +5,7 @@ import {
   Inject,
   Injectable,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 // Import from a leaf token file (NOT a controller, NOT a use-case) to avoid
 // any circular dependency: the account-lifecycle controllers and use-cases
@@ -40,13 +41,27 @@ const CONSENT_REQUIRED_MESSAGE = 'consent_required';
  */
 @Injectable()
 export class ConsentGuard implements CanActivate {
+  /**
+   * When SKIP_TOS_CHECK=true the guard short-circuits to allow.
+   * Mirrors EmailVerifiedGuard's SKIP_EMAIL_VERIFICATION escape hatch and
+   * the env var that's already wired through docker-compose.dev.yml; lets
+   * existing dev users (seeded before the consent gate landed) keep working
+   * without first having to backfill UserConsent rows.
+   */
+  private readonly skipTosCheck: boolean;
+
   constructor(
     private readonly reflector: Reflector,
+    config: ConfigService,
     @Inject(GET_CONSENT_STATUS_USE_CASE)
     private readonly getConsentStatus: ConsentStatusReader,
-  ) {}
+  ) {
+    this.skipTosCheck = config.get<string>('SKIP_TOS_CHECK') === 'true';
+  }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    if (this.skipTosCheck) return true;
+
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
