@@ -1,9 +1,9 @@
 {
   "summary": {
-    "classifiedCount": 301,
+    "classifiedCount": 307,
     "ambiguousCount": 116,
     "unstableCount": 49,
-    "distinctCodes": 286
+    "distinctCodes": 292
   },
   "classified": [
     {
@@ -382,12 +382,6 @@
       "className": "DomainException",
       "code": "(no literal)",
       "file": "src/shared-kernel/exceptions/domain.exceptions.ts",
-      "extends": "Error"
-    },
-    {
-      "className": "DomainException",
-      "code": "(no literal)",
-      "file": "src/bounded-contexts/identity/shared-kernel/exceptions/domain.exception.ts",
       "extends": "Error"
     },
     {
@@ -967,16 +961,58 @@
       "extends": "ConflictException"
     },
     {
+      "className": "OnboardingDataValidationFailedException",
+      "code": "ONBOARDING_DATA_VALIDATION_FAILED",
+      "file": "src/bounded-contexts/onboarding/domain/exceptions/onboarding.exceptions.ts",
+      "extends": "OnboardingValidationException"
+    },
+    {
+      "className": "OnboardingGenericValidationException",
+      "code": "ONBOARDING_GENERIC_VALIDATION",
+      "file": "src/bounded-contexts/onboarding/domain/exceptions/onboarding.exceptions.ts",
+      "extends": "OnboardingValidationException"
+    },
+    {
+      "className": "OnboardingInvalidPersonalInfoException",
+      "code": "INVALID_PERSONAL_INFO",
+      "file": "src/bounded-contexts/onboarding/domain/exceptions/onboarding.exceptions.ts",
+      "extends": "OnboardingValidationException"
+    },
+    {
+      "className": "OnboardingInvalidProfessionalProfileException",
+      "code": "INVALID_PROFESSIONAL_PROFILE",
+      "file": "src/bounded-contexts/onboarding/domain/exceptions/onboarding.exceptions.ts",
+      "extends": "OnboardingValidationException"
+    },
+    {
       "className": "OnboardingInvalidSectionTypeException",
       "code": "ONBOARDING_INVALID_SECTION_TYPE",
       "file": "src/bounded-contexts/onboarding/domain/exceptions/onboarding-extra.exceptions.ts",
       "extends": "ValidationException"
     },
     {
+      "className": "OnboardingInvalidUsernameException",
+      "code": "INVALID_USERNAME",
+      "file": "src/bounded-contexts/onboarding/domain/exceptions/onboarding.exceptions.ts",
+      "extends": "OnboardingValidationException"
+    },
+    {
+      "className": "OnboardingMissingRequiredDataException",
+      "code": "ONBOARDING_INCOMPLETE",
+      "file": "src/bounded-contexts/onboarding/domain/exceptions/onboarding.exceptions.ts",
+      "extends": "OnboardingValidationException"
+    },
+    {
       "className": "OnboardingSessionExpiredException",
       "code": "ONBOARDING_SESSION_EXPIRED",
       "file": "src/bounded-contexts/onboarding/domain/exceptions/onboarding-extra.exceptions.ts",
       "extends": "DomainException"
+    },
+    {
+      "className": "OnboardingStepNotCompletedException",
+      "code": "STEP_NOT_COMPLETED",
+      "file": "src/bounded-contexts/onboarding/domain/exceptions/onboarding.exceptions.ts",
+      "extends": "OnboardingValidationException"
     },
     {
       "className": "OnboardingStepOutOfOrderException",
@@ -989,6 +1025,12 @@
       "code": "ONBOARDING_UNKNOWN_STEP",
       "file": "src/bounded-contexts/onboarding/domain/exceptions/onboarding-extra.exceptions.ts",
       "extends": "ValidationException"
+    },
+    {
+      "className": "OnboardingUsernameAlreadyTakenException",
+      "code": "USERNAME_TAKEN",
+      "file": "src/bounded-contexts/onboarding/domain/exceptions/onboarding.exceptions.ts",
+      "extends": "OnboardingValidationException"
     },
     {
       "className": "OnboardingUsernameTakenException",
@@ -1763,12 +1805,6 @@
       "code": "USERNAME_TAKEN",
       "file": "src/bounded-contexts/identity/users/domain/exceptions/users.exceptions.ts",
       "extends": "ConflictException"
-    },
-    {
-      "className": "UserNotFoundException",
-      "code": "USER_NOT_FOUND",
-      "file": "src/bounded-contexts/identity/shared-kernel/exceptions/domain.exception.ts",
-      "extends": "DomainException"
     },
     {
       "className": "UserRolesNotAvailableException",
