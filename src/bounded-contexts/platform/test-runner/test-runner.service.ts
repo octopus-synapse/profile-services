@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
+import { InvalidTestSuiteException } from '@/bounded-contexts/platform/common/exceptions/platform.exceptions';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ConnectionService } from '@/bounded-contexts/social/services/connection.service';
 import { FollowService } from '@/bounded-contexts/social/services/follow.service';
-import { ValidationException } from '@/shared-kernel/exceptions/domain.exceptions';
 
 // --- Types ---
 
@@ -55,9 +55,7 @@ export class TestRunnerService {
       case 'onboarding-resume':
         return this.runSuite(suite, () => this.onboardingResume());
       default:
-        throw new ValidationException(
-          `Unknown suite "${suite}". Available: ${AVAILABLE_SUITES.join(', ')}`,
-        );
+        throw new InvalidTestSuiteException(suite, AVAILABLE_SUITES);
     }
   }
 
@@ -84,6 +82,16 @@ export class TestRunnerService {
   // Test helper
   // ---------------------------------------------------------------------------
 
+  /**
+   * Wraps a single test step so its assertions can use plain JS Error throws.
+   *
+   * The bare error throws inside the per-suite methods below
+   * (seedCheck, authFlow, socialCrud, onboardingResume) are intentional internal
+   * test assertions: they are caught here and converted into a `TestResult`
+   * whose `detail` field surfaces the message in the suite report. They never
+   * propagate to the HTTP layer, so they are not user-facing exceptions and do
+   * not need stable codes.
+   */
   private async runTest(name: string, fn: () => Promise<string>): Promise<TestResult> {
     const start = performance.now();
     try {

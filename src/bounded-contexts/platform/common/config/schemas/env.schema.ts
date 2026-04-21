@@ -109,6 +109,8 @@ export function validateEnv(config: Record<string, unknown>): EnvironmentVariabl
         .map((err) => `${err.path.join('.')}: ${err.message}`)
         .join('\n');
 
+      // Boot-time env validation. Not user-facing — fails fast during app
+      // bootstrap, before any HTTP listener is up.
       throw new Error(`Environment validation failed:\n${errorMessages}`);
     }
     throw error;

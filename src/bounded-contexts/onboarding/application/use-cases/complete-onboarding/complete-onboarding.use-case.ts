@@ -1,12 +1,12 @@
-import { ERROR_MESSAGES } from '@/shared-kernel';
-import {
-  ConflictException,
-  EntityNotFoundException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import {
   type OnboardingValidationError,
   OnboardingValidationException,
 } from '../../../domain/exceptions/onboarding.exceptions';
+import {
+  OnboardingAlreadyCompletedException,
+  OnboardingUsernameTakenException,
+} from '../../../domain/exceptions/onboarding-extra.exceptions';
 import type { OnboardingRepositoryPort } from '../../../domain/ports/onboarding.port';
 import type {
   CompletionResult,
@@ -70,7 +70,7 @@ export class CompleteOnboardingUseCase {
       this.logger.warn('Onboarding already completed for user', 'CompleteOnboardingUseCase', {
         userId,
       });
-      throw new ConflictException(ERROR_MESSAGES.ONBOARDING_ALREADY_COMPLETED);
+      throw new OnboardingAlreadyCompletedException();
     }
 
     return user;
@@ -113,7 +113,7 @@ export class CompleteOnboardingUseCase {
           userId,
         },
       );
-      throw new ConflictException(ERROR_MESSAGES.USERNAME_ALREADY_IN_USE);
+      throw new OnboardingUsernameTakenException();
     }
 
     throw error;

@@ -4,7 +4,11 @@
  * Covers tech skills, programming languages, tech niches, and tech areas —
  * the curated taxonomy that autocomplete and suggestion features depend on.
  */
-import { ConflictException, ValidationException } from '@/shared-kernel/exceptions';
+import {
+  ConflictException,
+  DomainException,
+  ValidationException,
+} from '@/shared-kernel/exceptions';
 
 export class SkillAlreadyExistsException extends ConflictException {
   readonly code: string = 'SKILL_ALREADY_EXISTS';
@@ -66,5 +70,13 @@ export class TechNicheInUseException extends ValidationException {
   readonly code: string = 'TECH_NICHE_IN_USE';
   constructor(childCount: number) {
     super(`Cannot delete tech niche - it has ${childCount} skill(s). Remove them first.`);
+  }
+}
+
+export class SkillSectionTypeNotConfiguredException extends DomainException {
+  readonly code: string = 'SKILL_SECTION_TYPE_NOT_CONFIGURED';
+  readonly statusHint = 503;
+  constructor(public readonly sectionTypeKey: string) {
+    super(`SectionType '${sectionTypeKey}' not found`);
   }
 }

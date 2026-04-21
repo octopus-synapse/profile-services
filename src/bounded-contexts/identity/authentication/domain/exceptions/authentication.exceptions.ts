@@ -74,3 +74,46 @@ export class InvalidSessionException extends DomainException {
     super(`Invalid session: ${reason}`);
   }
 }
+
+/**
+ * Session User Not Found Exception
+ *
+ * Thrown when a user record cannot be found immediately after a session was created
+ * (race / data inconsistency). HTTP 500.
+ */
+export class SessionUserNotFoundException extends DomainException {
+  readonly code = 'SESSION_USER_NOT_FOUND';
+  readonly statusHint = 500;
+  constructor() {
+    super('User not found after session creation');
+  }
+}
+
+/**
+ * Token Invalid Exception
+ *
+ * The token itself passed JWT signature/expiry checks but is no longer
+ * acceptable — typically because the user behind `sub` no longer exists or
+ * the token was forcibly invalidated (password change, logout-all).
+ */
+export class TokenInvalidException extends UnauthorizedException {
+  readonly code = 'TOKEN_INVALID';
+  constructor(reason: string) {
+    super(reason);
+  }
+}
+
+/**
+ * Token Verification Failed Exception
+ *
+ * Raised when the cache layer used for the "valid-after" revocation check is
+ * unreachable. We fail closed on security-critical paths so this surfaces as
+ * 401 rather than 503 — the caller should retry rather than treat the user
+ * as authenticated.
+ */
+export class TokenVerificationFailedException extends UnauthorizedException {
+  readonly code = 'TOKEN_VERIFICATION_FAILED';
+  constructor() {
+    super('Unable to verify token validity - please try again');
+  }
+}

@@ -5,7 +5,11 @@
  * cache misses, audit failures. Each carries a stable code so the envelope
  * is localizable.
  */
-import { DomainException, LimitExceededException } from '@/shared-kernel/exceptions';
+import {
+  DomainException,
+  LimitExceededException,
+  ValidationException,
+} from '@/shared-kernel/exceptions';
 
 export class RateLimitedException extends LimitExceededException {
   readonly code: string = 'RATE_LIMITED';
@@ -76,5 +80,15 @@ export class InvalidMetricsApiKeyException extends DomainException {
   readonly statusHint = 403;
   constructor() {
     super('Invalid metrics API key');
+  }
+}
+
+export class InvalidTestSuiteException extends ValidationException {
+  readonly code: string = 'INVALID_TEST_SUITE';
+  constructor(
+    public readonly suite: string,
+    public readonly available: readonly string[],
+  ) {
+    super(`Unknown suite "${suite}". Available: ${available.join(', ')}`);
   }
 }

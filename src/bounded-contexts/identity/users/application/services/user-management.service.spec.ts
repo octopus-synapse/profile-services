@@ -9,7 +9,7 @@ import {
   InMemoryUserManagementRepository,
   StubAuthorizationService,
 } from '@/bounded-contexts/identity/shared-kernel/testing';
-import { ValidationException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { LastManagerCannotBeDeletedException } from '../../domain/exceptions/users.exceptions';
 import type { UserManagementUseCases } from '../ports/user-management.port';
 import { CreateUserUseCase } from '../use-cases/user-management/create-user.use-case';
 import { DeleteUserUseCase } from '../use-cases/user-management/delete-user.use-case';
@@ -136,7 +136,7 @@ describe('UserManagementService (Facade)', () => {
       authService.setUsersWithAdminRole(1);
 
       await expect(service.deleteUser(mockUserId, mockRequesterId)).rejects.toThrow(
-        ValidationException,
+        LastManagerCannotBeDeletedException,
       );
 
       expect(repository.getUser(mockUserId)).toBeDefined();

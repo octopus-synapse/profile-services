@@ -38,3 +38,56 @@ export class InvalidImportDataException extends ValidationException {
     super(message);
   }
 }
+
+/**
+ * GitHub Not Connected Exception
+ *
+ * Raised by the GitHub import flow when the user hasn't linked a GitHub
+ * OAuth account yet — we can't fetch any viewer data without a token.
+ */
+export class GithubNotConnectedException extends ConflictException {
+  readonly code: string = 'GITHUB_NOT_CONNECTED';
+  constructor() {
+    super('GitHub account is not connected');
+  }
+}
+
+/**
+ * PDF Buffer Required Exception
+ *
+ * Raised by the PDF import flow when the multipart payload arrived without
+ * a usable buffer (field missing / empty upload).
+ */
+export class PdfBufferRequiredException extends ValidationException {
+  readonly code: string = 'PDF_BUFFER_REQUIRED';
+  constructor() {
+    super('PDF file buffer is required');
+  }
+}
+
+/**
+ * PDF Too Large Exception
+ *
+ * Raised when the uploaded PDF exceeds the hard size cap. Hard cap exists
+ * so a malicious upload can't blow up memory during parsing.
+ */
+export class PdfTooLargeException extends ValidationException {
+  readonly code: string = 'PDF_TOO_LARGE';
+  constructor() {
+    super('PDF file exceeds the maximum allowed size');
+  }
+}
+
+/**
+ * PDF No Text Exception
+ *
+ * Raised when the PDF parsed successfully but yielded almost no text —
+ * usually an image-only PDF that `pdf-parse` couldn't OCR. The UI should
+ * prompt the user to upload a text-based PDF instead.
+ */
+export class PdfNoTextException extends ValidationException {
+  readonly code: string = 'PDF_NO_TEXT';
+  constructor() {
+    super('PDF does not contain extractable text');
+  }
+}

@@ -7,7 +7,11 @@ import {
   type LlmPort,
 } from '@/bounded-contexts/ai/domain/ports/llm.port';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { ConflictException } from '@/shared-kernel/exceptions/domain.exceptions';
+import {
+  PdfBufferRequiredException,
+  PdfNoTextException,
+  PdfTooLargeException,
+} from '../../domain/exceptions/import.exceptions';
 
 export type PdfImportResult = {
   userId: string;
@@ -33,10 +37,10 @@ export class PdfImportService {
     file: { buffer: Buffer; originalname?: string },
   ): Promise<PdfImportResult> {
     if (!file?.buffer) {
-      throw new ConflictException('PDF_BUFFER_REQUIRED');
+      throw new PdfBufferRequiredException();
     }
     if (file.buffer.byteLength > MAX_BYTES) {
-      throw new ConflictException('PDF_TOO_LARGE');
+      throw new PdfTooLargeException();
     }
 
     const parser = new PDFParse({ data: new Uint8Array(file.buffer) });
@@ -45,7 +49,7 @@ export class PdfImportService {
     if (text.length < 100) {
       // Too short to be a real CV — usually means the PDF is image-based and
       // pdf-parse couldn't OCR it. Fail loudly so the UI prompts upload again.
-      throw new ConflictException('PDF_NO_TEXT');
+      throw new PdfNoTextException();
     }
 
     const extracted = await this.llm.extractResumeFromText(text);

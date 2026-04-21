@@ -1,5 +1,5 @@
-import { ValidationException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { buildOnboardingSteps, getStepIndex } from '../../../domain/config/onboarding-steps.config';
+import { OnboardingAlreadyAtLastStepException } from '../../../domain/exceptions/onboarding-extra.exceptions';
 import type { OnboardingProgressData } from '../../../domain/ports/onboarding-progress.port';
 import type { SectionTypeDefinitionPort } from '../../../domain/ports/section-type-definition.port';
 import type { GetProgressFn, SaveProgressFn } from '../shared/navigation.types';
@@ -27,7 +27,7 @@ export class AdvanceOnboardingStepUseCase {
     const nextStep = currentIndex < steps.length - 1 ? steps[currentIndex + 1] : null;
 
     if (!nextStep) {
-      throw new ValidationException('Already at the last step');
+      throw new OnboardingAlreadyAtLastStepException();
     }
 
     // Business rule: navigation through the onboarding is free — users can advance

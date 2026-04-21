@@ -17,4 +17,4 @@ export {
   InvalidTokenException,
   UnauthorizedException,
 } from './unauthorized.exception';
-export { ValidationException } from './validation.exception';
+export { InvalidEmailFormatException, ValidationException } from './validation.exception';

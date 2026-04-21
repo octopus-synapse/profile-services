@@ -77,6 +77,8 @@ export function createGitHubClient(options: GitHubClientOptions): GitHubClient {
     });
 
     if (!response.ok) {
+      // CLI tooling (CI/CD only): not user-facing. Bubbles up to fail the
+      // GitHub Actions step when the GitHub API returns a non-2xx.
       throw new Error(`GitHub API error: ${response.status} ${response.statusText}`);
     }
 
@@ -91,6 +93,7 @@ export function createGitHubClient(options: GitHubClientOptions): GitHubClient {
     });
 
     if (!response.ok) {
+      // CLI tooling (CI/CD only): not user-facing.
       throw new Error(`GitHub API error: ${response.status} ${response.statusText}`);
     }
 
@@ -105,6 +108,7 @@ export function createGitHubClient(options: GitHubClientOptions): GitHubClient {
     });
 
     if (!response.ok) {
+      // CLI tooling (CI/CD only): not user-facing.
       throw new Error(`GitHub API error: ${response.status} ${response.statusText}`);
     }
 

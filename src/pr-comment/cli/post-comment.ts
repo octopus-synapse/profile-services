@@ -130,6 +130,8 @@ function parseRepository(): { owner: string; repo: string } {
     }
   }
 
+  // CLI tooling (CI/CD only): not user-facing. Fails the GitHub Actions step
+  // when the workflow is misconfigured.
   throw new Error(
     'Could not determine repository. Set GITHUB_REPOSITORY or GITHUB_OWNER + GITHUB_REPO',
   );

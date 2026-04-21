@@ -17,6 +17,7 @@ export interface SessionConfigPort {
 
 import type { EventBusPort } from '../../../../shared-kernel/ports';
 import { Session, SessionCreatedEvent } from '../../../domain';
+import { SessionUserNotFoundException } from '../../../domain/exceptions/authentication.exceptions';
 import type {
   AuthenticationRepositoryPort,
   SessionStoragePort,
@@ -68,7 +69,7 @@ export class CreateSessionUseCase implements CreateSessionPort {
     // 4. Fetch user data for response
     const userData = await this.repository.findSessionUser(userId);
     if (!userData) {
-      throw new Error('User not found after session creation');
+      throw new SessionUserNotFoundException();
     }
 
     // 5. Publish event

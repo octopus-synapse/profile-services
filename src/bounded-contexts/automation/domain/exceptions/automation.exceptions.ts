@@ -46,3 +46,28 @@ export class AutomationItemNotOwnedException extends ForbiddenException {
     super('You do not own this item');
   }
 }
+
+export class CuratedSelectorAllScoringFailedException extends DomainException {
+  readonly code: string = 'CURATED_SELECTOR_ALL_SCORING_FAILED';
+  readonly statusHint = 503;
+  constructor(
+    public readonly userId: string,
+    public readonly totalJobs: number,
+  ) {
+    super(
+      `Curated selector: all ${totalJobs} scoring calls failed for user=${userId} — likely a downstream outage`,
+    );
+  }
+}
+
+export class AutoApplyAllPicksFailedException extends DomainException {
+  readonly code: string = 'AUTO_APPLY_ALL_PICKS_FAILED';
+  readonly statusHint = 503;
+  constructor(
+    public readonly userId: string,
+    public readonly totalPicks: number,
+    public readonly firstReason: string,
+  ) {
+    super(`Auto-apply user=${userId} all ${totalPicks} picks failed; first reason: ${firstReason}`);
+  }
+}

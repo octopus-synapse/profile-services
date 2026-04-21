@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
+import { SkillSectionTypeNotConfiguredException } from '@/bounded-contexts/skills-catalog/domain/exceptions/skills-catalog.exceptions';
 import type { SectionItem, SkillItemRecord, SkillSection } from '../ports/skill-management.port';
 import { SkillManagementPort } from '../ports/skill-management.port';
 import type { ISkillManagementRepositoryPort } from '../ports/skill-management-repository.port';
@@ -34,7 +35,7 @@ export class SkillManagementRepository
     });
 
     if (!sectionType) {
-      throw new Error(`SectionType '${SKILL_SECTION_TYPE_KEY}' not found`);
+      throw new SkillSectionTypeNotConfiguredException(SKILL_SECTION_TYPE_KEY);
     }
 
     const existing = await this.prisma.resumeSection.findUnique({

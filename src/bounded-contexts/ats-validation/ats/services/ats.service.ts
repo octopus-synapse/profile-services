@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { ResumeIdRequiredForSemanticValidationException } from '@/bounded-contexts/ats-validation/domain/exceptions/ats-validation.exceptions';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
-import { ValidationException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type {
   ValidationIssue as InternalValidationIssue,
   SectionSemanticCatalogPort,
@@ -194,7 +194,7 @@ export class ATSService {
 
   private async buildSemanticSnapshot(resumeId?: string): Promise<SemanticResumeSnapshot> {
     if (!resumeId) {
-      throw new ValidationException('resumeId is required when semantic validation is enabled');
+      throw new ResumeIdRequiredForSemanticValidationException();
     }
 
     return this.semanticCatalog.getSemanticResumeSnapshot(resumeId);

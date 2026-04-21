@@ -71,6 +71,8 @@ export class CreateSnapshotUseCase {
     const cloned = JSON.parse(JSON.stringify(value));
 
     if (!this.isJsonObject(cloned)) {
+      // Defensive guard for the type narrower. Internal: callers are expected
+      // to pass JSON-serializable plain objects; failure indicates a logic bug.
       throw new Error('Snapshot contains non-JSON-serializable value');
     }
 

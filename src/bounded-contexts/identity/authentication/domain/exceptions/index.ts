@@ -5,4 +5,7 @@ export {
   InvalidRefreshTokenException,
   InvalidSessionException,
   SessionExpiredException,
+  SessionUserNotFoundException,
+  TokenInvalidException,
+  TokenVerificationFailedException,
 } from './authentication.exceptions';

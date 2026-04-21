@@ -20,7 +20,6 @@
 
 import {
   Body,
-  ConflictException,
   Controller,
   Get,
   HttpCode,
@@ -41,6 +40,7 @@ import type { DataResponse } from '@/bounded-contexts/platform/common/dto/api-re
 import { createZodPipe } from '@/bounded-contexts/platform/common/validation/zod-validation.pipe';
 import { parseLocale } from '@/shared-kernel/utils/locale-resolver';
 import type { OnboardingThemeOption } from '../../domain/config/onboarding-steps.config';
+import { OnboardingCompletionInProgressException } from '../../domain/exceptions/onboarding-extra.exceptions';
 import { ONBOARDING_USE_CASES, type OnboardingUseCases } from '../../domain/ports/onboarding.port';
 import { OnboardingConfigPort } from '../../domain/ports/onboarding-config.port';
 import {
@@ -278,7 +278,7 @@ export class OnboardingController {
     const lockKey = `onboarding:complete:${user.userId}`;
     const acquired = await this.cacheLock.acquireLock(lockKey, 60);
     if (!acquired) {
-      throw new ConflictException('Onboarding completion already in progress');
+      throw new OnboardingCompletionInProgressException();
     }
     try {
       const result = await this.useCases.completeOnboardingFromProgressUseCase.execute(user.userId);
@@ -382,7 +382,7 @@ export class OnboardingController {
     const lockKey = `onboarding:complete:${user.userId}`;
     const acquired = await this.cacheLock.acquireLock(lockKey, 60);
     if (!acquired) {
-      throw new ConflictException('Onboarding completion already in progress');
+      throw new OnboardingCompletionInProgressException();
     }
     try {
       const result = await this.useCases.completeOnboardingUseCase.execute(user.userId, data);

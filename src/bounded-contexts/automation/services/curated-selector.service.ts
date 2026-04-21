@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ResumeAnalyticsFacade } from '@/bounded-contexts/analytics/resume-analytics/services/resume-analytics.facade';
+import { CuratedSelectorAllScoringFailedException } from '@/bounded-contexts/automation/domain/exceptions/automation.exceptions';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 
 /**
@@ -112,9 +113,7 @@ export class CuratedSelectorService {
     }
 
     if (scoringFailures > 0 && scoringFailures === jobs.length) {
-      throw new Error(
-        `Curated selector: all ${jobs.length} scoring calls failed for user=${userId} — likely a downstream outage`,
-      );
+      throw new CuratedSelectorAllScoringFailedException(userId, jobs.length);
     }
     if (scoringFailures > jobs.length / 2) {
       this.logger.error(

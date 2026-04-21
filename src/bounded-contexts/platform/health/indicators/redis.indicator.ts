@@ -32,6 +32,8 @@ export class RedisHealthIndicator extends HealthIndicator {
         });
       }
 
+      // Internal health-check assertion: caught immediately below and converted
+      // to a HealthCheckError with the proper indicator status. Not user-facing.
       throw new Error('Redis get/set verification failed');
     } catch (error) {
       throw new HealthCheckError(

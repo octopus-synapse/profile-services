@@ -52,6 +52,8 @@ function mapDefinitionToFields(definition: SectionDefinition): StepField[] {
     .map((f) => {
       const fieldKey = f.key;
       if (!fieldKey) {
+        // Internal invariant: filtered above by `f.key` predicate. This guard
+        // is for the type narrower; not user-facing.
         throw new Error('Section definition field key is required');
       }
 

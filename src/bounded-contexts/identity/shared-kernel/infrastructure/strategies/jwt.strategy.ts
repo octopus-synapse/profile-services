@@ -1,8 +1,13 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import type { Request } from 'express';
 import { Strategy } from 'passport-jwt';
+import {
+  TokenInvalidException,
+  TokenVerificationFailedException,
+} from '@/bounded-contexts/identity/authentication/domain/exceptions';
+import { UnauthorizedException } from '@/bounded-contexts/identity/shared-kernel/exceptions';
 import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { AUTH_CONFIG } from '@/shared-kernel/constants/app.constants';
@@ -68,6 +73,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   ) {
     const jwtSecret = configService.get<string>('JWT_SECRET');
     if (!jwtSecret) {
+      // Boot-time configuration assertion. Not user-facing: this fails fast
+      // during NestJS module initialization when env is missing.
       throw new Error('JWT_SECRET environment variable is required');
     }
     super({
@@ -91,7 +98,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
 
     if (!user) {
-      throw new UnauthorizedException(USER_NOT_FOUND_MESSAGE);
+      throw new TokenInvalidException(USER_NOT_FOUND_MESSAGE);
     }
 
     // Check if token was issued before a password change
@@ -108,16 +115,16 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         );
 
         if (tokenValidAfter && payload.iat && payload.iat <= tokenValidAfter) {
-          throw new UnauthorizedException(TOKEN_INVALIDATED_MESSAGE);
+          throw new TokenInvalidException(TOKEN_INVALIDATED_MESSAGE);
         }
       } catch (error) {
-        // If it's already an UnauthorizedException, rethrow it
+        // If it's already an UnauthorizedException (domain or nest), rethrow it
         if (error instanceof UnauthorizedException) {
           throw error;
         }
         // For cache errors when cache IS configured, fail-closed for security
         // This prevents invalidated tokens from being accepted if Redis is down
-        throw new UnauthorizedException('Unable to verify token validity - please try again');
+        throw new TokenVerificationFailedException();
       }
     }
     // If cache is disabled, skip invalidation check (fail-open for availability)

@@ -110,6 +110,10 @@ export class RateLimitGuard implements CanActivate {
         resetAt: Math.floor((Date.now() + result.msBeforeNext) / 1000),
       };
 
+      // Intentional HttpException: the rate-limit response carries a rich
+      // payload (retryAfter / limit / remaining / resetAt) that the
+      // DomainExceptionFilter does not currently serialize. The error string
+      // 'Too Many Requests' below is the stable, well-known HTTP-level code.
       throw new HttpException(
         {
           statusCode: HttpStatus.TOO_MANY_REQUESTS,

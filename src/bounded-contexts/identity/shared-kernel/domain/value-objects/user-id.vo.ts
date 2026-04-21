@@ -17,6 +17,8 @@ export class UserId {
    */
   static create(id: string): UserId {
     if (!id || id.trim().length === 0) {
+      // Value-object construction-time guard. Not user-facing — callers must
+      // validate input upstream and surface a proper domain exception.
       throw new Error('UserId cannot be empty');
     }
     return new UserId(id.trim());

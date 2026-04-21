@@ -12,6 +12,7 @@ import { DslRepository } from '@/bounded-contexts/dsl/dsl.repository';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type { SupportedLocale } from '@/shared-kernel/utils/locale-resolver';
+import { TypstUserIdRequiredException } from '../../../domain/exceptions/export.exceptions';
 import type { PdfGeneratorOptions } from '../../../domain/ports/pdf-generator.port';
 import { TypstCompilerService } from './typst-compiler.service';
 import { TypstDataSerializerService } from './typst-data-serializer.service';
@@ -43,7 +44,7 @@ export class TypstPdfGeneratorService {
   async generate(options: PdfGeneratorOptions = {}): Promise<Buffer> {
     const userId = options.userId;
     if (!userId) {
-      throw new Error('userId is required for Typst PDF generation');
+      throw new TypstUserIdRequiredException();
     }
 
     const locale = resolveLocale(options.lang);

@@ -153,6 +153,8 @@ export class WebhookService {
 
         if (!response.ok) {
           await this.logDelivery(webhookId, eventType, payload, attempt, false, response.status);
+          // Internal retry-loop signal: caught immediately by the surrounding
+          // catch block to drive exponential backoff. Not user-facing.
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
 

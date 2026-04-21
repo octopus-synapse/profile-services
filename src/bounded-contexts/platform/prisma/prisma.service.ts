@@ -48,6 +48,8 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 
   async cleanDatabase(): Promise<void> {
     if (process.env.NODE_ENV === 'production') {
+      // Test-only safety guard. Not user-facing — prevents catastrophic misuse
+      // by failing loud if invoked outside dev/test environments.
       throw new Error('Cannot clean database in production!');
     }
 

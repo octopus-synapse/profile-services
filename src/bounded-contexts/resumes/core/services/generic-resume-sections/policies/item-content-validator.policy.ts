@@ -1,4 +1,4 @@
-import { ValidationException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { SectionItemInvalidException } from '@/bounded-contexts/resumes/domain/exceptions/resumes.exceptions';
 import { SectionDefinitionZodFactory } from '../../section-definition-zod.factory';
 
 export class ItemContentValidatorPolicy {
@@ -9,7 +9,7 @@ export class ItemContentValidatorPolicy {
     const result = schema.safeParse(content);
 
     if (!result.success) {
-      throw new ValidationException('Section item content is invalid for section type');
+      throw new SectionItemInvalidException('content is invalid for section type');
     }
 
     return result.data;

@@ -23,3 +23,15 @@ export class ValidationException extends DomainException {
     };
   }
 }
+
+/**
+ * Invalid Email Format Exception
+ *
+ * Specific validation failure for malformed email addresses.
+ */
+export class InvalidEmailFormatException extends ValidationException {
+  readonly code: string = 'EMAIL_INVALID_FORMAT';
+  constructor() {
+    super('Invalid email format', ['Email must be a valid email address']);
+  }
+}

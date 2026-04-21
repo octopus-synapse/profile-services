@@ -42,3 +42,18 @@ export class VerificationTokenAlreadySentException extends DomainException {
     );
   }
 }
+
+/**
+ * Email Not Verified Exception
+ *
+ * Raised by EmailVerifiedGuard when a protected endpoint is accessed by an
+ * authenticated user whose email is still pending verification. Maps to 403
+ * — the user is identified but lacks the verification credential.
+ */
+export class EmailNotVerifiedException extends DomainException {
+  readonly code = 'EMAIL_NOT_VERIFIED';
+  readonly statusHint = 403;
+  constructor() {
+    super('Email address must be verified to access this resource');
+  }
+}

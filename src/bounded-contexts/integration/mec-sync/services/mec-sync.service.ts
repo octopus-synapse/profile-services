@@ -5,6 +5,7 @@
  */
 
 import { Injectable } from '@nestjs/common';
+import { MecSyncInProgressException } from '@/bounded-contexts/integration/domain/exceptions/integration.exceptions';
 import { CacheService } from '@/bounded-contexts/platform/common/cache/cache.service';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { APP_CONFIG } from '@/shared-kernel';
@@ -80,7 +81,7 @@ export class MecSyncOrchestratorService {
     );
 
     if (!lockAcquired) {
-      throw new Error('Sync already in progress. Please wait for the current sync to complete.');
+      throw new MecSyncInProgressException();
     }
   }
 

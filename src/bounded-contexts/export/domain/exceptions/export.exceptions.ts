@@ -67,3 +67,28 @@ export class TypstAtsTemplatesNotFoundException extends DomainException {
     super(`ATS Typst templates not found at ${path}. Ensure templates-ats/ directory exists.`);
   }
 }
+
+export class BannerElementNotFoundException extends DomainException {
+  readonly code: string = 'BANNER_ELEMENT_NOT_FOUND';
+  readonly statusHint = 502;
+  constructor() {
+    super('Banner element not found');
+  }
+}
+
+export class TypstUserIdRequiredException extends ValidationException {
+  readonly code: string = 'TYPST_USER_ID_REQUIRED';
+  constructor() {
+    super('userId is required for Typst PDF generation');
+  }
+}
+
+export class TypstWasmRendererNotImplementedException extends DomainException {
+  readonly code: string = 'TYPST_WASM_RENDERER_NOT_IMPLEMENTED';
+  readonly statusHint = 501;
+  constructor() {
+    super(
+      'TypstWasmPdfRenderer is not yet implemented. Awaiting Typst WASM binding integration. Use the existing TypstCompilerService as fallback.',
+    );
+  }
+}

@@ -22,6 +22,8 @@ export class GithubLinguistParserService {
     try {
       const response = await fetch(GITHUB_LINGUIST_URL);
       if (!response.ok) {
+        // Internal fetch error: caught immediately by the try/catch below and
+        // re-thrown with logging. Not user-facing — runs in admin/seed flows.
         throw new Error(`Failed to fetch: ${response.status} ${response.statusText}`);
       }
 

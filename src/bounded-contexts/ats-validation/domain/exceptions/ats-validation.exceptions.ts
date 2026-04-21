@@ -36,3 +36,10 @@ export class ResumeAccessDeniedException extends ForbiddenException {
     super('You do not have access to this resume');
   }
 }
+
+export class ResumeIdRequiredForSemanticValidationException extends ValidationException {
+  readonly code: string = 'ATS_RESUME_ID_REQUIRED_FOR_SEMANTIC';
+  constructor() {
+    super('resumeId is required when semantic validation is enabled');
+  }
+}

@@ -1,11 +1,9 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
+import { ResumeNoActiveThemeException } from '@/bounded-contexts/dsl/domain/exceptions/dsl.exceptions';
 import type { ResumeAst } from '@/bounded-contexts/dsl/domain/schemas/ast/resume-ast.schema';
 import type { ResumeDsl } from '@/bounded-contexts/dsl/domain/schemas/dsl';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import {
-  EntityNotFoundException,
-  ValidationException,
-} from '@/shared-kernel/exceptions/domain.exceptions';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type {
   GenericResume,
   GenericResumeSection,
@@ -274,9 +272,7 @@ export class DslRepository {
     const baseDsl = resume.activeTheme?.styleConfig;
 
     if (!baseDsl || Object.keys(baseDsl as object).length === 0) {
-      throw new ValidationException(
-        'Resume has no active theme. Please apply a theme before rendering.',
-      );
+      throw new ResumeNoActiveThemeException();
     }
 
     const customDsl = (resume.customTheme ?? {}) as Record<string, unknown>;

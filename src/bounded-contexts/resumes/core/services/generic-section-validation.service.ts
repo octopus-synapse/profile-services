@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
+import {
+  SectionItemContentInvalidException,
+  UnknownSectionTypeException,
+} from '@/bounded-contexts/resumes/domain/exceptions/resumes.exceptions';
 import { SectionTypeRepository } from '@/bounded-contexts/resumes/infrastructure/repositories';
-import { ValidationException } from '@/shared-kernel/exceptions/domain.exceptions';
 import type {
   FieldValidationError,
   SectionItemValidationResult,
@@ -64,7 +67,7 @@ export class GenericSectionValidationService {
     const result = schema.safeParse(content);
 
     if (!result.success) {
-      throw new ValidationException(`Invalid content for section type ${sectionTypeKey}`);
+      throw new SectionItemContentInvalidException(sectionTypeKey);
     }
 
     return result.data;
@@ -195,7 +198,7 @@ export class GenericSectionValidationService {
   private getSectionType(key: string): SectionTypeWithDefinition {
     const sectionType = this.sectionTypeRepo.getByKey(key);
     if (!sectionType) {
-      throw new ValidationException(`Unknown section type: ${key}`);
+      throw new UnknownSectionTypeException(key);
     }
     return sectionType;
   }

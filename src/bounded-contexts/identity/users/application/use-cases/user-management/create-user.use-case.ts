@@ -1,4 +1,4 @@
-import { ConflictException } from '@/shared-kernel/exceptions';
+import { EmailAlreadyExistsException } from '../../../../shared-kernel/exceptions';
 import type {
   CreatedUser,
   CreateUserData,
@@ -22,7 +22,7 @@ export class CreateUserUseCase {
       });
     } catch (error) {
       if (this.isUniqueConstraintViolation(error)) {
-        throw new ConflictException('Email already exists');
+        throw new EmailAlreadyExistsException();
       }
       throw error;
     }

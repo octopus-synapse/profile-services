@@ -1,4 +1,9 @@
-import { ConflictException, EntityNotFoundException } from '@/shared-kernel/exceptions';
+import { EntityNotFoundException } from '@/shared-kernel/exceptions';
+import { EmailAlreadyExistsException } from '../../../../shared-kernel/exceptions';
+import {
+  UniqueConstraintViolatedException,
+  UsernameTakenException,
+} from '../../../domain/exceptions/users.exceptions';
 import type {
   UpdatedUser,
   UpdateUserData,
@@ -21,12 +26,12 @@ export class UpdateUserUseCase {
       if (this.isUniqueConstraintViolation(error)) {
         const target = this.getConstraintTarget(error);
         if (target?.includes('email')) {
-          throw new ConflictException('Email already in use');
+          throw new EmailAlreadyExistsException();
         }
         if (target?.includes('username')) {
-          throw new ConflictException('Username already in use');
+          throw new UsernameTakenException();
         }
-        throw new ConflictException('A unique constraint was violated');
+        throw new UniqueConstraintViolatedException();
       }
       throw error;
     }

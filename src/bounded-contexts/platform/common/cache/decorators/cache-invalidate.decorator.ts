@@ -68,6 +68,8 @@ export function CacheInvalidate(options: CacheInvalidateOptions): MethodDecorato
     const originalMethod = descriptor.value as (...args: unknown[]) => Promise<unknown>;
 
     if (typeof originalMethod !== 'function') {
+      // Decorator misuse — fires at class evaluation time. Not user-facing:
+      // this is a programmer error caught at module load.
       throw new Error(
         `@CacheInvalidate can only be applied to methods. Got: ${typeof originalMethod}`,
       );

@@ -179,3 +179,49 @@ export class ResumeTailorInputRequiredException extends ValidationException {
     super('Tailor input is required (job id or pasted description)');
   }
 }
+
+export class SectionItemLimitExceededException extends ValidationException {
+  readonly code: string = 'SECTION_ITEM_LIMIT_EXCEEDED';
+  constructor(maxItems: number) {
+    super(`Section reached maximum item limit (${maxItems})`);
+  }
+}
+
+export class InvalidSectionTypeDefinitionException extends ValidationException {
+  readonly code: string = 'INVALID_SECTION_TYPE_DEFINITION';
+  constructor() {
+    super('Invalid section type definition');
+  }
+}
+
+export class SectionFieldKeyRequiredException extends ValidationException {
+  readonly code: string = 'SECTION_FIELD_KEY_REQUIRED';
+  constructor(location: 'top-level' | 'nested' = 'top-level') {
+    super(
+      location === 'nested'
+        ? 'Nested object fields must define a key'
+        : 'Top-level section fields must define a key',
+    );
+  }
+}
+
+export class DuplicatedSectionFieldKeyException extends ValidationException {
+  readonly code: string = 'DUPLICATED_SECTION_FIELD_KEY';
+  constructor(key: string) {
+    super(`Duplicated section field key: ${key}`);
+  }
+}
+
+export class UnknownSectionTypeException extends ValidationException {
+  readonly code: string = 'UNKNOWN_SECTION_TYPE';
+  constructor(key: string) {
+    super(`Unknown section type: ${key}`);
+  }
+}
+
+export class SectionItemContentInvalidException extends ValidationException {
+  readonly code: string = 'SECTION_ITEM_CONTENT_INVALID';
+  constructor(sectionTypeKey: string) {
+    super(`Invalid content for section type ${sectionTypeKey}`);
+  }
+}

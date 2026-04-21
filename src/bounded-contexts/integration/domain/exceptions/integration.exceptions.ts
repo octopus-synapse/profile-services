@@ -4,7 +4,11 @@
  * Covers external connectors: GitHub, LinkedIn, Lattes, Google Scholar,
  * Orcid, SendGrid, PostHog, etc.
  */
-import { DomainException, ValidationException } from '@/shared-kernel/exceptions';
+import {
+  DomainException,
+  UnauthorizedException,
+  ValidationException,
+} from '@/shared-kernel/exceptions';
 
 export class IntegrationAuthFailedException extends DomainException {
   readonly code: string = 'INTEGRATION_AUTH_FAILED';
@@ -169,5 +173,61 @@ export class MecCsvBlockedException extends DomainException {
   readonly statusHint = 502;
   constructor() {
     super('Received HTML instead of CSV - Cloudflare may still be blocking');
+  }
+}
+
+export class GitHubSummaryFetchFailedException extends DomainException {
+  readonly code: string = 'GITHUB_SUMMARY_FETCH_FAILED';
+  readonly statusHint = 502;
+  constructor() {
+    super('Failed to fetch GitHub summary');
+  }
+}
+
+export class MecSyncInProgressException extends DomainException {
+  readonly code: string = 'MEC_SYNC_IN_PROGRESS';
+  readonly statusHint = 409;
+  constructor() {
+    super('Sync already in progress. Please wait for the current sync to complete.');
+  }
+}
+
+/**
+ * Internal Auth Not Configured Exception
+ *
+ * Raised when `INTERNAL_API_TOKEN` is missing on a request that tries to
+ * use an internal endpoint — we deny access rather than silently allow
+ * everyone through.
+ */
+export class InternalAuthNotConfiguredException extends UnauthorizedException {
+  readonly code: string = 'INTERNAL_AUTH_NOT_CONFIGURED';
+  constructor() {
+    super('Internal API token not configured. Set INTERNAL_API_TOKEN environment variable.');
+  }
+}
+
+/**
+ * Internal Token Missing Exception
+ *
+ * Raised when the `x-internal-token` header is absent from a request hitting
+ * an internal endpoint.
+ */
+export class InternalTokenMissingException extends UnauthorizedException {
+  readonly code: string = 'INTERNAL_TOKEN_MISSING';
+  constructor(headerName: string) {
+    super(`Missing ${headerName} header`);
+  }
+}
+
+/**
+ * Internal Token Invalid Exception
+ *
+ * Raised when the provided `x-internal-token` header doesn't match the
+ * configured secret (timing-safe comparison).
+ */
+export class InternalTokenInvalidException extends UnauthorizedException {
+  readonly code: string = 'INTERNAL_TOKEN_INVALID';
+  constructor() {
+    super('Invalid internal token');
   }
 }

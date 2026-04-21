@@ -1,4 +1,7 @@
-import { ConflictException } from '@/shared-kernel/exceptions/domain.exceptions';
+import {
+  SectionTypeAlreadyExistsException,
+  SectionTypeSlugVersionTakenException,
+} from '@/bounded-contexts/resumes/domain/exceptions/resumes.exceptions';
 import type { CreateSectionTypeDto, SectionTypeResponseDto } from '../../../dto';
 import type { JsonValue } from '../../ports/admin-section-types.port';
 import { AdminSectionTypesRepositoryPort } from '../../ports/admin-section-types.port';
@@ -10,14 +13,12 @@ export class CreateSectionTypeUseCase {
   async execute(dto: CreateSectionTypeDto): Promise<SectionTypeResponseDto> {
     const existing = await this.repository.findByKey(dto.key);
     if (existing) {
-      throw new ConflictException(`Section type '${dto.key}' already exists`);
+      throw new SectionTypeAlreadyExistsException(dto.key);
     }
 
     const existingSlug = await this.repository.findBySlugAndVersion(dto.slug, dto.version);
     if (existingSlug) {
-      throw new ConflictException(
-        `Section type with slug '${dto.slug}' and version ${dto.version} already exists`,
-      );
+      throw new SectionTypeSlugVersionTakenException(dto.slug, dto.version);
     }
 
     const sectionType = await this.repository.create({

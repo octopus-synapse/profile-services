@@ -1,10 +1,9 @@
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
+import { EmailNotVerifiedException } from '@/bounded-contexts/identity/email-verification/domain/exceptions';
 import { ALLOW_UNVERIFIED_EMAIL_KEY } from '../decorators/allow-unverified-email.decorator';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
-
-const EMAIL_NOT_VERIFIED_MESSAGE = 'Email address must be verified to access this resource';
 
 /**
  * Email Verified Guard
@@ -68,7 +67,7 @@ export class EmailVerifiedGuard implements CanActivate {
 
     // Check if email is verified
     if (!user.emailVerified) {
-      throw new UnauthorizedException(EMAIL_NOT_VERIFIED_MESSAGE);
+      throw new EmailNotVerifiedException();
     }
 
     return true;

@@ -133,6 +133,9 @@ export class OwnershipGuard implements CanActivate {
   private async loadResource(model: string, id: string): Promise<unknown> {
     // Use Prisma's dynamic model access
     if (!(model in this.prisma)) {
+      // Programmer-error assertion: caller passed a model name that is not on
+      // the Prisma client. Not user-facing — fires only on misconfigured guard
+      // metadata (controller/decorator typo).
       throw new Error(`Unknown model: ${model}`);
     }
 
@@ -144,6 +147,9 @@ export class OwnershipGuard implements CanActivate {
       !('findUnique' in delegate) ||
       typeof delegate.findUnique !== 'function'
     ) {
+      // Programmer-error assertion: same as above. The model exists on the
+      // Prisma client but is not a delegate with `findUnique` — indicates a
+      // wiring bug, not a user-input error.
       throw new Error(`Unknown model: ${model}`);
     }
 

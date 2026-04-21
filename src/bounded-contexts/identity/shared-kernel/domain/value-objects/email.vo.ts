@@ -4,7 +4,7 @@
  * Encapsulates email address with validation.
  * Immutable, normalized (lowercase), and equality-based.
  */
-import { ValidationException } from '../../exceptions';
+import { InvalidEmailFormatException } from '../../exceptions';
 
 export class Email {
   private readonly value: string;
@@ -19,9 +19,7 @@ export class Email {
    */
   static create(email: string): Email {
     if (!email || !Email.isValid(email)) {
-      throw new ValidationException('Invalid email format', [
-        'Email must be a valid email address',
-      ]);
+      throw new InvalidEmailFormatException();
     }
     return new Email(email);
   }

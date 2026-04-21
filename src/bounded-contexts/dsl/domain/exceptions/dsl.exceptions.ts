@@ -114,3 +114,10 @@ export class DslMigrationResultVersionMismatchException extends ValidationExcept
     super(`Migration failed: expected version ${expected}, got ${got}`);
   }
 }
+
+export class ResumeNoActiveThemeException extends ValidationException {
+  readonly code: string = 'DSL_RESUME_NO_ACTIVE_THEME';
+  constructor() {
+    super('Resume has no active theme. Please apply a theme before rendering.');
+  }
+}

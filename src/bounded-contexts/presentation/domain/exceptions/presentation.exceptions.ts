@@ -162,3 +162,11 @@ export class ResumeNotFoundException extends DomainException {
     super('Resume not found');
   }
 }
+
+export class SectionNotFoundInResumeException extends DomainException {
+  readonly code: string = 'SECTION_NOT_FOUND_IN_RESUME';
+  readonly statusHint = 404;
+  constructor(public readonly sectionTypeKey: string) {
+    super(`Section ${sectionTypeKey} not found`);
+  }
+}

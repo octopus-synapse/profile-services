@@ -6,7 +6,10 @@
 
 import { Prisma } from '@prisma/client';
 import type { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { ResumeAccessDeniedException } from '../../../../domain/exceptions/presentation.exceptions';
+import {
+  ResumeAccessDeniedException,
+  SectionNotFoundInResumeException,
+} from '../../../../domain/exceptions/presentation.exceptions';
 import {
   type ResumeConfig,
   ResumeConfigRepositoryPort,
@@ -58,7 +61,7 @@ export class ResumeConfigRepository extends ResumeConfigRepositoryPort {
 
     const fromIndex = resumeSections.findIndex((rs) => rs.sectionType.key === sectionTypeKey);
     if (fromIndex === -1) {
-      throw new Error(`Section ${sectionTypeKey} not found`);
+      throw new SectionNotFoundInResumeException(sectionTypeKey);
     }
 
     const toIndex = Math.max(0, Math.min(newOrder, resumeSections.length - 1));

@@ -4,9 +4,13 @@
  * Used for GitHub Actions and other internal services
  */
 
-import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { ERROR_MESSAGES } from '@/shared-kernel';
+import {
+  InternalAuthNotConfiguredException,
+  InternalTokenInvalidException,
+  InternalTokenMissingException,
+} from '../../domain/exceptions/integration.exceptions';
 
 const INTERNAL_TOKEN_HEADER = 'x-internal-token';
 
@@ -21,9 +25,7 @@ export class InternalAuthGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     // If no token is configured, deny all access (security by default)
     if (!this.internalToken) {
-      throw new UnauthorizedException(
-        'Internal API token not configured. Set INTERNAL_API_TOKEN environment variable.',
-      );
+      throw new InternalAuthNotConfiguredException();
     }
 
     const request = context.switchToHttp().getRequest<{
@@ -32,12 +34,12 @@ export class InternalAuthGuard implements CanActivate {
     const providedToken = request.headers[INTERNAL_TOKEN_HEADER] as string | undefined;
 
     if (!providedToken) {
-      throw new UnauthorizedException(`Missing ${INTERNAL_TOKEN_HEADER} header`);
+      throw new InternalTokenMissingException(INTERNAL_TOKEN_HEADER);
     }
 
     // Use timing-safe comparison to prevent timing attacks
     if (!this.timingSafeEqual(providedToken, this.internalToken)) {
-      throw new UnauthorizedException(ERROR_MESSAGES.INVALID_INTERNAL_TOKEN);
+      throw new InternalTokenInvalidException();
     }
 
     return true;

@@ -1,6 +1,7 @@
 import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
 import { Injectable, Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
+import { UnsupportedExportFormatException } from '@/bounded-contexts/export/domain/exceptions/export.exceptions';
 import type { ExportJobData } from '../queue.service';
 
 interface ResumePdfService {
@@ -73,7 +74,7 @@ export class ExportProcessor extends WorkerHost {
           extension = 'docx';
           break;
         default:
-          throw new Error(`Unsupported export type: ${type}`);
+          throw new UnsupportedExportFormatException(type);
       }
 
       await job.updateProgress(60);

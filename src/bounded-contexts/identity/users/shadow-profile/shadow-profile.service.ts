@@ -13,9 +13,12 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { ConflictException } from '@/shared-kernel/exceptions/domain.exceptions';
 import { buildShadowPayload, ShadowPayloadSchema } from './build-shadow-payload';
 import { SHADOW_GITHUB_API, type ShadowGithubApi } from './ports/github-api.port';
+import {
+  ShadowProfileAlreadyClaimedException,
+  ShadowProfileNotFoundException,
+} from './shadow-profile.exceptions';
 
 export interface ShadowProfileSnapshot {
   id: string;
@@ -84,9 +87,9 @@ export class ShadowProfileService {
 
   async claimForUser(shadowId: string, userId: string): Promise<ShadowProfileSnapshot> {
     const existing = await this.prisma.shadowProfile.findUnique({ where: { id: shadowId } });
-    if (!existing) throw new ConflictException('Shadow profile not found');
+    if (!existing) throw new ShadowProfileNotFoundException();
     if (existing.claimedByUserId && existing.claimedByUserId !== userId) {
-      throw new ConflictException('Shadow profile already claimed by another user');
+      throw new ShadowProfileAlreadyClaimedException();
     }
 
     // Apply the shadow payload to the user's primary resume so the claim is

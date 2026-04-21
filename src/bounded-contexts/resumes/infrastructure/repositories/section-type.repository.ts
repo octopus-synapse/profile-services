@@ -221,6 +221,8 @@ export class SectionTypeRepository implements OnModuleInit {
 
   private ensureInitialized(): void {
     if (!this.initialized) {
+      // Lifecycle / programmer-error assertion. Not user-facing — fires only
+      // when module wiring is incorrect (onModuleInit was not invoked).
       throw new Error('SectionTypeRepository not initialized. Ensure onModuleInit was called.');
     }
   }

@@ -57,3 +57,53 @@ export class CannotDeleteOwnAccountAsAdminException extends ForbiddenException {
     super('Cannot delete your own account through admin interface');
   }
 }
+
+/**
+ * Unique Constraint Violated Exception
+ *
+ * Fallback for Prisma P2002 errors when the violated field isn't one we've
+ * already specialised (email / username).
+ */
+export class UniqueConstraintViolatedException extends ConflictException {
+  readonly code: string = 'UNIQUE_CONSTRAINT_VIOLATED';
+  constructor() {
+    super('A unique constraint was violated');
+  }
+}
+
+/**
+ * Invalid User Role Exception
+ *
+ * Raised when an admin tries to assign a role that isn't in the allow-list.
+ */
+export class InvalidUserRoleException extends ValidationException {
+  readonly code: string = 'INVALID_USER_ROLE';
+  constructor(role: string) {
+    super(`Invalid role: ${role}`);
+  }
+}
+
+/**
+ * Last Admin Cannot Be Removed Exception
+ *
+ * Blocks demoting the last remaining admin — would lock the system out of
+ * admin-only operations.
+ */
+export class LastAdminCannotBeRemovedException extends ValidationException {
+  readonly code: string = 'LAST_ADMIN_CANNOT_BE_REMOVED';
+  constructor() {
+    super('Cannot remove admin role from the last admin user');
+  }
+}
+
+/**
+ * Last Manager Cannot Be Deleted Exception
+ *
+ * Blocks deleting the last user holding the `user:manage` permission.
+ */
+export class LastManagerCannotBeDeletedException extends ValidationException {
+  readonly code: string = 'LAST_MANAGER_CANNOT_BE_DELETED';
+  constructor() {
+    super('Cannot delete the last user with management permissions');
+  }
+}

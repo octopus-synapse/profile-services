@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { TypstWasmRendererNotImplementedException } from '@/bounded-contexts/export/domain/exceptions/export.exceptions';
 import {
   PdfRendererPort,
   type PdfRenderOptions,
@@ -13,10 +14,6 @@ export class TypstWasmPdfRendererAdapter extends PdfRendererPort {
     void astJson;
     void options;
 
-    throw new Error(
-      'TypstWasmPdfRenderer is not yet implemented. ' +
-        'Awaiting Typst WASM binding integration. ' +
-        'Use the existing TypstCompilerService as fallback.',
-    );
+    throw new TypstWasmRendererNotImplementedException();
   }
 }

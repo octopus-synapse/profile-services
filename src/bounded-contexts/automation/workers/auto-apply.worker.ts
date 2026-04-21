@@ -4,6 +4,7 @@ import { type Job, type Queue } from 'bullmq';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import { ResumeTailorService } from '@/bounded-contexts/resumes/resume-versions/services/resume-tailor/resume-tailor.service';
 import { hasPermission, Permission } from '@/shared-kernel/authorization';
+import { AutoApplyAllPicksFailedException } from '../domain/exceptions/automation.exceptions';
 import { CuratedSelectorService } from '../services/curated-selector.service';
 
 export const AUTO_APPLY_QUEUE = 'auto-apply';
@@ -150,9 +151,7 @@ export class AutoApplyWorker extends WorkerHost implements OnModuleInit {
     }
     this.logger.log(`Auto-apply: user=${userId} submitted=${submitted} (of ${picks.length})`);
     if (failures.length === picks.length && picks.length > 0) {
-      throw new Error(
-        `Auto-apply user=${userId} all ${picks.length} picks failed; first reason: ${failures[0].reason}`,
-      );
+      throw new AutoApplyAllPicksFailedException(userId, picks.length, failures[0].reason);
     }
   }
 

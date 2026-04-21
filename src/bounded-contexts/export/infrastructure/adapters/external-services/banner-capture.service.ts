@@ -6,6 +6,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Page } from 'puppeteer';
+import { BannerElementNotFoundException } from '@/bounded-contexts/export/domain/exceptions/export.exceptions';
 import { DEFAULT } from '../../constants/ui.constants';
 import { BannerPageSetup, BannerReadyWaiter } from '../helpers';
 import { BrowserManagerService } from './browser-manager.service';
@@ -44,7 +45,7 @@ export class BannerCaptureService {
     const banner = await page.$('#banner');
     if (!banner) {
       this.logger.error('[BannerCapture] #banner not found!');
-      throw new Error('Banner element not found');
+      throw new BannerElementNotFoundException();
     }
 
     return (await banner.screenshot({

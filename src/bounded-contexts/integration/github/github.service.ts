@@ -4,8 +4,10 @@
  * Delegates to specialized services for implementation
  */
 
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
+import { GitHubSummaryFetchFailedException } from '@/bounded-contexts/integration/domain/exceptions/integration.exceptions';
 import { API_LIMITS } from '@/shared-kernel';
+import { DomainException } from '@/shared-kernel/exceptions';
 import { extractGitHubUsername } from './github.utils';
 import { GitHubApiService, GitHubDatabaseService, GitHubSyncService } from './services';
 
@@ -133,7 +135,8 @@ export class GitHubService {
     } catch (error) {
       // Error transformation - see ERROR_HANDLING_STRATEGY.md
       if (error instanceof HttpException) throw error;
-      throw new HttpException('Failed to fetch GitHub summary', HttpStatus.INTERNAL_SERVER_ERROR);
+      if (error instanceof DomainException) throw error;
+      throw new GitHubSummaryFetchFailedException();
     }
   }
 

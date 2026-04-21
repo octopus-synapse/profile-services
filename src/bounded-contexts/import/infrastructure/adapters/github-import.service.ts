@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { graphql } from '@octokit/graphql';
 import { OAuthService } from '@/bounded-contexts/identity/oauth/services/oauth.service';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { ConflictException } from '@/shared-kernel/exceptions/domain.exceptions';
+import { GithubNotConnectedException } from '../../domain/exceptions/import.exceptions';
 
 type GithubViewer = {
   login: string;
@@ -91,7 +91,7 @@ export class GithubImportService {
   async import(userId: string): Promise<GithubImportResult> {
     const token = await this.oauth.getAccessToken(userId, 'github');
     if (!token) {
-      throw new ConflictException('GITHUB_NOT_CONNECTED');
+      throw new GithubNotConnectedException();
     }
 
     const client = graphql.defaults({ headers: { authorization: `token ${token}` } });

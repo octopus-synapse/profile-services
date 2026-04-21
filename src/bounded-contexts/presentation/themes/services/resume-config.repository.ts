@@ -6,7 +6,10 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
-import { ResumeAccessDeniedException } from '../../domain/exceptions/presentation.exceptions';
+import {
+  ResumeAccessDeniedException,
+  SectionNotFoundInResumeException,
+} from '../../domain/exceptions/presentation.exceptions';
 
 export interface ResumeConfig {
   sections: Array<{
@@ -70,7 +73,7 @@ export class ResumeConfigRepository {
     // Find the section to move
     const fromIndex = resumeSections.findIndex((rs) => rs.sectionType.key === sectionTypeKey);
     if (fromIndex === -1) {
-      throw new Error(`Section ${sectionTypeKey} not found`);
+      throw new SectionNotFoundInResumeException(sectionTypeKey);
     }
 
     // Clamp newOrder to valid range
