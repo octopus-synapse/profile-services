@@ -1,7 +1,7 @@
 import { EntityNotFoundException } from '@/shared-kernel/exceptions/domain.exceptions';
 import {
+  OnboardingDataValidationFailedException,
   type OnboardingValidationError,
-  OnboardingValidationException,
 } from '../../../domain/exceptions/onboarding.exceptions';
 import {
   OnboardingAlreadyCompletedException,
@@ -53,7 +53,7 @@ export class CompleteOnboardingUseCase {
       field: err.path.join('.'),
       message: err.message,
     }));
-    throw new OnboardingValidationException('VALIDATION_FAILED', 'Invalid onboarding data', errors);
+    throw new OnboardingDataValidationFailedException(errors);
   }
 
   private async findVerifiedUser(userId: string) {

@@ -39,6 +39,7 @@ export class AccountDeactivatedException extends DomainException {
  */
 export class AccountAlreadyActiveException extends DomainException {
   readonly code = 'ACCOUNT_ALREADY_ACTIVE';
+  readonly statusHint = 409;
   constructor() {
     super('Account is already active');
   }
@@ -51,6 +52,7 @@ export class AccountAlreadyActiveException extends DomainException {
  */
 export class AccountDeletionRequiresConfirmationException extends DomainException {
   readonly code = 'DELETION_REQUIRES_CONFIRMATION';
+  readonly statusHint = 400;
   constructor() {
     super('Account deletion requires explicit confirmation');
   }

@@ -58,6 +58,7 @@ export class InvalidRefreshTokenException extends UnauthorizedException {
  */
 export class AccountLockedException extends DomainException {
   readonly code = 'ACCOUNT_LOCKED';
+  readonly statusHint = 423;
   constructor(remainingMinutes: number) {
     super(`Account is temporarily locked. Try again in ${remainingMinutes} minutes.`);
   }
@@ -70,6 +71,7 @@ export class AccountLockedException extends DomainException {
  */
 export class InvalidSessionException extends DomainException {
   readonly code = 'INVALID_SESSION';
+  readonly statusHint = 401;
   constructor(reason: string) {
     super(`Invalid session: ${reason}`);
   }

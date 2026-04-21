@@ -8,16 +8,30 @@
 
 /**
  * Base class for all domain exceptions.
- * Provides a code property for programmatic error handling.
+ *
+ * Every concrete subclass MUST declare:
+ * - `code`: a stable SCREAMING_SNAKE_CASE identifier used as the catalog key.
+ * - `statusHint`: the HTTP status the filter should emit when this class
+ *   reaches the HTTP boundary unhandled.
+ *
+ * Both fields are `abstract readonly` so TypeScript breaks compilation if a
+ * new exception class forgets either. That is the first line of enforcement;
+ * the arch test in `test/static-analysis/architecture/` is the second.
  */
 export abstract class DomainException extends Error {
   abstract readonly code: string;
+  abstract readonly statusHint: number;
 
   constructor(message: string) {
     super(message);
     this.name = this.constructor.name;
     // Maintains proper stack trace in V8 environments
     Error.captureStackTrace?.(this, this.constructor);
+  }
+
+  /** Plain-object representation used by the exception filter and logs. */
+  toJSON(): Record<string, unknown> {
+    return { code: this.code, message: this.message, name: this.name };
   }
 }
 
