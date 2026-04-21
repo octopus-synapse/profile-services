@@ -499,6 +499,57 @@
         ]
       }
     },
+    "/api/v1/admin/alerts": {
+      "get": {
+        "operationId": "adminAlerts_getAlerts",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Admin alert counts",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiResponseDto"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AdminAlertsDataDto"
+                        }
+                      },
+                      "required": [
+                        "data"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Requires permission: platform:stats_read"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          },
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Counts of admin-actionable queues: reports, verifications, stale shadow profiles",
+        "tags": [
+          "Admin - Alerts"
+        ]
+      }
+    },
     "/api/v1/resumes": {
       "get": {
         "operationId": "resumes_getAllUserResumes",
@@ -21393,6 +21444,29 @@
           "resumesThisMonth",
           "averageAtsScore",
           "onboardingCompletionRate"
+        ]
+      },
+      "AdminAlertsDataDto": {
+        "type": "object",
+        "properties": {
+          "reportsPending": {
+            "type": "integer"
+          },
+          "usersPendingVerification": {
+            "type": "integer"
+          },
+          "shadowProfilesStale": {
+            "type": "integer"
+          },
+          "total": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "reportsPending",
+          "usersPendingVerification",
+          "shadowProfilesStale",
+          "total"
         ]
       },
       "PaginatedResumesDataDto": {

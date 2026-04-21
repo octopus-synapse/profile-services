@@ -30,6 +30,8 @@ export interface ConnectionSuggestion {
   photoURL: string | null;
   reason: string;
   score: number;
+  mutualCount: number;
+  commonSkills: string[];
 }
 
 @Injectable()

@@ -76,7 +76,14 @@ export abstract class ConnectionRepositoryPort {
     userId: string,
     pagination: PaginationParams,
   ): Promise<{
-    data: Array<ConnectionUser & { reason: string; score: number }>;
+    data: Array<
+      ConnectionUser & {
+        reason: string;
+        score: number;
+        mutualCount: number;
+        commonSkills: string[];
+      }
+    >;
     total: number;
   }>;
 

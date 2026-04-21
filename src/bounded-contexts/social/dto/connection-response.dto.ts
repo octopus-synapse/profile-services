@@ -60,6 +60,8 @@ const SuggestionUserSchema = z.object({
   photoURL: z.string().nullable(),
   reason: z.string(),
   score: z.number(),
+  mutualCount: z.number().int(),
+  commonSkills: z.array(z.string()),
 });
 
 const SuggestionsDataSchema = z.object({

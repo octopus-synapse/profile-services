@@ -207,7 +207,14 @@ export class ConnectionRepository extends ConnectionRepositoryPort {
     userId: string,
     pagination: PaginationParams,
   ): Promise<{
-    data: Array<ConnectionUser & { reason: string; score: number }>;
+    data: Array<
+      ConnectionUser & {
+        reason: string;
+        score: number;
+        mutualCount: number;
+        commonSkills: string[];
+      }
+    >;
     total: number;
   }> {
     const { page, limit } = pagination;
@@ -277,21 +284,67 @@ export class ConnectionRepository extends ConnectionRepositoryPort {
           COUNT(*) OVER()::int AS total_count
         FROM candidates c
       )
-      SELECT id, name, username, "photoURL", reason, score, total_count
-      FROM scored
-      ORDER BY score DESC, name ASC, id ASC
+      SELECT
+        s.id, s.name, s.username, s."photoURL", s.reason, s.score,
+        c.mutual_connections AS "mutualCount",
+        s.total_count
+      FROM scored s
+      JOIN candidates c ON c.id = s.id
+      ORDER BY s.score DESC, s.name ASC, s.id ASC
       LIMIT ${limit} OFFSET ${offset}
     `;
 
     const total = rows.length > 0 ? Number(rows[0].total_count) : 0;
 
+    // Compute skill overlap in a second pass — joins the viewer's primary
+    // resume primaryStack against each suggestion's primary resume.
+    const suggestedIds = rows.map((r) => r.id);
+    const commonSkillsById = await this.fetchCommonSkills(userId, suggestedIds);
+
     return {
-      data: rows.map(({ total_count: _total, ...row }) => ({
+      data: rows.map(({ total_count: _total, mutualCount, ...row }) => ({
         ...row,
         score: Number(row.score),
+        mutualCount: Number(mutualCount ?? 0),
+        commonSkills: commonSkillsById.get(row.id) ?? [],
       })),
       total,
     };
+  }
+
+  private async fetchCommonSkills(
+    viewerId: string,
+    candidateIds: string[],
+  ): Promise<Map<string, string[]>> {
+    if (candidateIds.length === 0) return new Map();
+
+    const viewerResume = await this.prisma.user.findUnique({
+      where: { id: viewerId },
+      select: {
+        primaryResume: { select: { primaryStack: true } },
+      },
+    });
+    const viewerStack = (viewerResume?.primaryResume?.primaryStack ?? []).map((s) =>
+      s.toLowerCase(),
+    );
+    if (viewerStack.length === 0) return new Map();
+    const viewerSet = new Set(viewerStack);
+
+    const candidates = await this.prisma.user.findMany({
+      where: { id: { in: candidateIds } },
+      select: {
+        id: true,
+        primaryResume: { select: { primaryStack: true } },
+      },
+    });
+
+    const out = new Map<string, string[]>();
+    for (const c of candidates) {
+      const stack = c.primaryResume?.primaryStack ?? [];
+      const common = stack.filter((s) => viewerSet.has(s.toLowerCase())).slice(0, 4);
+      out.set(c.id, common);
+    }
+    return out;
   }
 
   async userExists(userId: string): Promise<boolean> {
@@ -310,5 +363,6 @@ interface SuggestionRow {
   photoURL: string | null;
   reason: string;
   score: number;
+  mutualCount: number;
   total_count: number;
 }

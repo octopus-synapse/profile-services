@@ -26,13 +26,19 @@ import {
 } from './infrastructure/adapters/persistence';
 import {
   UserManagementController,
+  UserPermissionsController,
   UsersPreferencesController,
   UsersProfileController,
 } from './infrastructure/controllers';
 
 @Module({
   imports: [PrismaModule, ResumesCoreModule, LoggerModule, AuthorizationModule],
-  controllers: [UsersProfileController, UsersPreferencesController, UserManagementController],
+  controllers: [
+    UsersProfileController,
+    UsersPreferencesController,
+    UserManagementController,
+    UserPermissionsController,
+  ],
   providers: [
     // Use Cases
     {

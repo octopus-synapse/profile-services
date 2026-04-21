@@ -372,7 +372,14 @@ export class InMemoryConnectionRepository extends ConnectionRepositoryPort {
     userId: string,
     pagination: PaginationParams,
   ): Promise<{
-    data: Array<ConnectionUser & { reason: string; score: number }>;
+    data: Array<
+      ConnectionUser & {
+        reason: string;
+        score: number;
+        mutualCount: number;
+        commonSkills: string[];
+      }
+    >;
     total: number;
   }> {
     const { page, limit } = pagination;
@@ -381,6 +388,8 @@ export class InMemoryConnectionRepository extends ConnectionRepositoryPort {
       ...u,
       reason: 'Suggested for you',
       score: 0,
+      mutualCount: 0,
+      commonSkills: [],
     }));
     return {
       data: ranked.slice((page - 1) * limit, page * limit),
