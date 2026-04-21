@@ -290,6 +290,59 @@ export class JobService {
   }
 
   /**
+   * Jobs similar to a reference job, ranked by skill overlap. Used on the
+   * job detail page to surface adjacent opportunities without running the
+   * full fit-score pipeline.
+   */
+  async findSimilarJobs(jobId: string, viewerId?: string, limit = 5) {
+    const safeLimit = Math.max(1, Math.min(limit, 10));
+    const source = await this.prisma.job.findUnique({
+      where: { id: jobId },
+      select: { id: true, skills: true },
+    });
+    if (!source) throw new EntityNotFoundException('Job', jobId);
+
+    const sourceSkills = (source.skills ?? []).filter((s) => s?.trim());
+    if (sourceSkills.length === 0) {
+      return { items: [] };
+    }
+
+    const candidates = await this.prisma.job.findMany({
+      where: {
+        isActive: true,
+        id: { not: jobId },
+        skills: { hasSome: sourceSkills },
+      },
+      include: {
+        author: {
+          select: { id: true, name: true, username: true, photoURL: true },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+    });
+
+    const sourceSet = new Set(sourceSkills.map((s) => s.toLowerCase()));
+    const scored = candidates
+      .map((job) => {
+        const jobSkills = (job.skills ?? []).map((s) => s.toLowerCase());
+        const overlap = jobSkills.filter((s) => sourceSet.has(s)).length;
+        return { job, overlap };
+      })
+      .filter((e) => e.overlap > 0)
+      .sort((a, b) => b.overlap - a.overlap)
+      .slice(0, safeLimit);
+
+    const enriched = await this.enrichWithBookmarked(
+      scored.map((e) => e.job),
+      viewerId,
+    );
+    return {
+      items: enriched.map((job, i) => ({ ...job, skillOverlap: scored[i].overlap })),
+    };
+  }
+
+  /**
    * Collect skill names from the user's resumes — both `primaryStack`
    * (top-level array on the resume) and items inside SKILL-like sections.
    */

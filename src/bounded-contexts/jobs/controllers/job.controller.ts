@@ -193,6 +193,21 @@ export class JobController {
     return this.jobService.getApplicationsByJob(id, req.user.userId, q.page, q.limit);
   }
 
+  @Get(':id/similar')
+  @RequirePermission(Permission.FEED_USE)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Jobs similar to the given one (by skill overlap)' })
+  @ApiParam({ name: 'id', type: 'string' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Max 10, default 5' })
+  async findSimilar(
+    @Param('id') id: string,
+    @Req() req: { user: { userId: string } },
+    @Query(createZodPipe(z.object({ limit: z.coerce.number().int().min(1).max(10).default(5) })))
+    q: { limit: number },
+  ) {
+    return this.jobService.findSimilarJobs(id, req.user.userId, q.limit);
+  }
+
   @Get(':id')
   @RequirePermission(Permission.FEED_USE)
   @HttpCode(HttpStatus.OK)
