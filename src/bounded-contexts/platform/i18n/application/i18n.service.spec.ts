@@ -5,16 +5,14 @@ import { I18nService } from './i18n.service';
 describe('I18nService', () => {
   const i18n = new I18nService();
 
-  it('loads the en catalog and resolves a known static code', () => {
+  it('resolves a known static code in en', () => {
     const msg = i18n.translate('ACCOUNT_DEACTIVATED', {}, 'en');
-    expect(typeof msg).toBe('string');
-    expect(msg.length).toBeGreaterThan(0);
+    expect(msg).toBe('Account is deactivated');
   });
 
-  it('loads the pt-BR catalog and resolves a known static code', () => {
+  it('resolves a known static code in pt-BR', () => {
     const msg = i18n.translate('ACCOUNT_DEACTIVATED', {}, 'pt-BR');
-    expect(typeof msg).toBe('string');
-    expect(msg.length).toBeGreaterThan(0);
+    expect(msg).toBe('A conta está desativada');
   });
 
   it('throws MissingTranslationError for an unknown code', () => {
@@ -28,21 +26,15 @@ describe('I18nService', () => {
     expect(i18n.has('DEFINITELY_NOT_A_REAL_CODE_XYZ', 'en')).toBe(false);
   });
 
-  it('interpolates {param} placeholders using supplied params', () => {
-    // We can't rely on a real code carrying a placeholder yet, so verify the
-    // interpolation mechanism via rawTemplate-backed instance behaviour.
-    // biome-ignore lint/suspicious/noExplicitAny: test-only private access
-    const anyService = i18n as any;
-    const result = anyService.interpolate(
-      'Hello {name}, you owe {cents} cents',
-      { name: 'World', cents: 42 },
-      'TEST',
-      'en',
-    );
-    expect(result).toBe('Hello World, you owe 42 cents');
+  it('interpolates {param} placeholders from supplied params', () => {
+    // ENTITY_NOT_FOUND has `{entityType}` in both locales.
+    const msg = i18n.translate('ENTITY_NOT_FOUND', { entityType: 'User' }, 'en');
+    expect(msg).toBe('User not found');
+    const msgPt = i18n.translate('ENTITY_NOT_FOUND', { entityType: 'Usuário' }, 'pt-BR');
+    expect(msgPt).toBe('Usuário não encontrado');
   });
 
-  it('leaves unknown placeholders intact and logs a warning instead of silently dropping', () => {
+  it('leaves unknown placeholders intact instead of silently dropping', () => {
     // biome-ignore lint/suspicious/noExplicitAny: test-only private access
     const anyService = i18n as any;
     const result = anyService.interpolate('Hi {unknown}', {}, 'TEST', 'en');

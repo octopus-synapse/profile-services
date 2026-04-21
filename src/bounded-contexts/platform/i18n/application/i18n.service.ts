@@ -1,50 +1,43 @@
 /**
  * I18nService
  *
- * Loads the JSON error catalogs at module init and resolves
- * `(code, params, locale)` to a localized message by:
- *   1. Looking up `catalog[locale][code]`.
- *   2. If present and the template has `{param}` placeholders, interpolate
- *      using the supplied params. Unknown placeholders are left intact so
- *      logs can reveal the missing param instead of silently swallowing it.
- *   3. If absent, throw `MissingTranslationError` — the filter converts that
- *      to a 500/INTERNAL. Zero silent fallbacks.
+ * Resolves `(code, params, locale)` to a localized message by looking the
+ * code up in the `@packages/i18n` dictionary and interpolating `{param}`
+ * placeholders from the supplied params. The dictionary is the source of
+ * truth — no JSON loading, no runtime fetches, no locale fallback.
  *
- * Supported placeholder syntax: `{name}`. Values are coerced with String(v).
- * Null / undefined params resolve to empty string.
+ * Missing code → `MissingTranslationError` (which the filter converts to
+ * 500/INTERNAL_TRANSLATION_MISSING). Missing param → warn log + placeholder
+ * kept intact so the gap surfaces in staging, not silently in prod.
  */
 
 import { Injectable, Logger } from '@nestjs/common';
+import { ERROR_DICTIONARY, type ErrorCode } from '@packages/i18n';
 import {
   MissingTranslationError,
   type SupportedLocale,
   type TranslationParams,
   TranslationPort,
 } from '../domain/translation.port';
-import {
-  type Catalog,
-  type CatalogsByLocale,
-  loadErrorCatalogs,
-} from '../infrastructure/json-catalog-loader';
 
 const PLACEHOLDER_RE = /\{([a-zA-Z_][a-zA-Z0-9_]*)\}/g;
+
+function isKnownCode(code: string): code is ErrorCode {
+  return Object.hasOwn(ERROR_DICTIONARY, code);
+}
 
 @Injectable()
 export class I18nService extends TranslationPort {
   private readonly logger = new Logger(I18nService.name);
-  private readonly catalogs: CatalogsByLocale = loadErrorCatalogs();
 
   translate(code: string, params: TranslationParams, locale: SupportedLocale): string {
-    const catalog = this.catalogs[locale];
-    const template = catalog[code];
-    if (template === undefined) {
-      throw new MissingTranslationError(code, locale);
-    }
+    if (!isKnownCode(code)) throw new MissingTranslationError(code, locale);
+    const template = ERROR_DICTIONARY[code][locale];
     return this.interpolate(template, params, code, locale);
   }
 
-  has(code: string, locale: SupportedLocale): boolean {
-    return Object.hasOwn(this.catalogs[locale], code);
+  has(code: string, _locale: SupportedLocale): boolean {
+    return isKnownCode(code);
   }
 
   private interpolate(
@@ -66,14 +59,14 @@ export class I18nService extends TranslationPort {
     });
   }
 
-  /** Test / tooling helper — returns raw template without interpolation. */
+  /** Test / tooling helper — raw template for a code in a locale. */
   rawTemplate(code: string, locale: SupportedLocale): string | undefined {
-    const cat: Catalog | undefined = this.catalogs[locale];
-    return cat?.[code];
+    if (!isKnownCode(code)) return undefined;
+    return ERROR_DICTIONARY[code][locale];
   }
 
-  /** Test / tooling helper — all codes that have an entry in this locale. */
-  allCodes(locale: SupportedLocale): string[] {
-    return Object.keys(this.catalogs[locale]).sort();
+  /** Test / tooling helper — sorted list of every code the dictionary knows. */
+  allCodes(): ErrorCode[] {
+    return Object.keys(ERROR_DICTIONARY).sort() as ErrorCode[];
   }
 }

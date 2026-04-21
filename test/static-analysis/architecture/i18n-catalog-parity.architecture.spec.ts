@@ -1,25 +1,24 @@
 /**
  * i18n Catalog Parity Architecture Test
  *
- * Ensures that every stable error code emitted by a concrete DomainException
- * subclass has a matching entry in BOTH locale catalogs (pt-BR and en), and
- * that catalogs have no orphan keys that don't map to any code in the source.
+ * Ensures every stable error code emitted by a concrete DomainException
+ * subclass has a matching entry in the `@packages/i18n` dictionary for BOTH
+ * locales, and that the dictionary has no orphan keys that no class emits.
  *
- * This test is the PR-time guarantee that no production request ever hits
- * `MissingTranslationError` — the filter's loud crash on missing catalog
+ * This is the PR-time guarantee that no production request ever hits
+ * `MissingTranslationError`. The filter's crash-loud behaviour on missing
  * entries is a last-resort safety net, not the primary defense.
  *
- * Runs via static parsing of `src/**\/*.ts` (no module import) so it stays
- * fast and resilient to bootstrap-time regressions.
+ * Discovery is by static parse of `src/**\/*.ts` so the test stays fast and
+ * resilient to bootstrap-time regressions.
  */
 
 import { describe, expect, it } from 'bun:test';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { ERROR_DICTIONARY, LOCALES } from '@packages/i18n';
 
 const SOURCE_ROOT = 'src';
-const EN_PATH = 'src/bounded-contexts/platform/i18n/messages/errors.en.json';
-const PT_PATH = 'src/bounded-contexts/platform/i18n/messages/errors.pt-BR.json';
 
 const KNOWN_BASES = new Set([
   'DomainException',
@@ -83,70 +82,55 @@ function discoverCodes(): Set<string> {
   return codes;
 }
 
-describe('i18n catalog parity', () => {
+describe('i18n catalog parity (@packages/i18n ERROR_DICTIONARY)', () => {
   const discovered = discoverCodes();
-  const en = JSON.parse(fs.readFileSync(EN_PATH, 'utf8')) as Record<string, string>;
-  const pt = JSON.parse(fs.readFileSync(PT_PATH, 'utf8')) as Record<string, string>;
+  const dictionaryKeys = new Set(Object.keys(ERROR_DICTIONARY));
 
-  it('every DomainException code has an entry in the en catalog', () => {
-    const missing = [...discovered].filter((c) => !Object.hasOwn(en, c)).sort();
+  it('every DomainException code has an entry in ERROR_DICTIONARY', () => {
+    const missing = [...discovered].filter((c) => !dictionaryKeys.has(c)).sort();
     expect(
       missing,
-      `en catalog missing ${missing.length} codes:\n${missing.join('\n')}\n` +
-        `Run: bun run scripts/seed-i18n-catalogs.ts to populate placeholders.`,
+      `ERROR_DICTIONARY missing ${missing.length} codes:\n${missing.join('\n')}\n` +
+        `Add entries to packages/i18n/src/errors.ts.`,
     ).toEqual([]);
   });
 
-  it('every DomainException code has an entry in the pt-BR catalog', () => {
-    const missing = [...discovered].filter((c) => !Object.hasOwn(pt, c)).sort();
-    expect(
-      missing,
-      `pt-BR catalog missing ${missing.length} codes:\n${missing.join('\n')}\n` +
-        `Run: bun run scripts/seed-i18n-catalogs.ts to populate placeholders.`,
-    ).toEqual([]);
-  });
-
-  it('en catalog has no orphan keys (codes that no class emits)', () => {
-    const orphans = Object.keys(en)
-      .filter((c) => !discovered.has(c))
-      .sort();
-    expect(orphans, `en catalog has ${orphans.length} orphan keys:\n${orphans.join('\n')}`).toEqual(
-      [],
-    );
-  });
-
-  it('pt-BR catalog has no orphan keys (codes that no class emits)', () => {
-    const orphans = Object.keys(pt)
-      .filter((c) => !discovered.has(c))
-      .sort();
+  it('ERROR_DICTIONARY has no orphan keys (codes no class emits)', () => {
+    const orphans = [...dictionaryKeys].filter((c) => !discovered.has(c)).sort();
     expect(
       orphans,
-      `pt-BR catalog has ${orphans.length} orphan keys:\n${orphans.join('\n')}`,
+      `ERROR_DICTIONARY has ${orphans.length} orphan keys:\n${orphans.join('\n')}`,
     ).toEqual([]);
   });
 
-  it('en and pt-BR catalogs have identical keys', () => {
-    const enKeys = new Set(Object.keys(en));
-    const ptKeys = new Set(Object.keys(pt));
-    const onlyEn = [...enKeys].filter((k) => !ptKeys.has(k)).sort();
-    const onlyPt = [...ptKeys].filter((k) => !enKeys.has(k)).sort();
-    expect(
-      { onlyEn, onlyPt },
-      `Catalogs diverge:\n  only in en: ${onlyEn.join(', ')}\n  only in pt-BR: ${onlyPt.join(', ')}`,
-    ).toEqual({ onlyEn: [], onlyPt: [] });
+  it('every entry has non-empty messages for every supported locale', () => {
+    const gaps: string[] = [];
+    for (const [code, entry] of Object.entries(ERROR_DICTIONARY)) {
+      for (const locale of LOCALES) {
+        const msg = entry[locale];
+        if (!msg || typeof msg !== 'string' || msg.trim().length === 0) {
+          gaps.push(`${code} (${locale}) is empty`);
+        }
+      }
+    }
+    expect(gaps, `Empty translations:\n${gaps.join('\n')}`).toEqual([]);
   });
 
-  it('no catalog entry contains unresolved template-literal leakage', () => {
+  it('no entry contains unresolved template-literal leakage', () => {
     const leaks: string[] = [];
-    for (const [code, msg] of Object.entries(en)) {
-      if (msg.includes('${')) leaks.push(`en: ${code}`);
-    }
-    for (const [code, msg] of Object.entries(pt)) {
-      if (msg.includes('${')) leaks.push(`pt-BR: ${code}`);
+    for (const [code, entry] of Object.entries(ERROR_DICTIONARY)) {
+      for (const locale of LOCALES) {
+        if (entry[locale].includes('${')) leaks.push(`${code} (${locale})`);
+      }
     }
     expect(
       leaks,
-      `Catalog entries contain raw \${...} template leakage. Use {param} named placeholders instead.\n${leaks.join('\n')}`,
+      `Entries with raw \${...} template leakage. Use {param} named placeholders instead.\n${leaks.join('\n')}`,
     ).toEqual([]);
   });
+
+  // Note: we intentionally do not assert `en !== 'pt-BR'` here — the
+  // `as const satisfies LocalizedDictionary` annotation on `ERROR_DICTIONARY`
+  // proves this at compile time (the literal types are disjoint, so TS
+  // won't even let you write a mirror entry).
 });
