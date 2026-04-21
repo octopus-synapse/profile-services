@@ -225,3 +225,11 @@ export class SectionItemContentInvalidException extends ValidationException {
     super(`Invalid content for section type ${sectionTypeKey}`);
   }
 }
+
+export class ResumeSnapshotNotSerializableException extends DomainException {
+  readonly code: string = 'RESUME_SNAPSHOT_NOT_SERIALIZABLE';
+  readonly statusHint = 500;
+  constructor() {
+    super('Snapshot contains a non-JSON-serializable value');
+  }
+}

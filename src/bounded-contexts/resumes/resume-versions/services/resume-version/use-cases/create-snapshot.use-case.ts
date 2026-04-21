@@ -1,5 +1,8 @@
 import type { ResumeEventPublisher } from '@/bounded-contexts/resumes/domain/ports';
-import { ResumeNotFoundException } from '../../../../domain/exceptions/resumes.exceptions';
+import {
+  ResumeNotFoundException,
+  ResumeSnapshotNotSerializableException,
+} from '../../../../domain/exceptions/resumes.exceptions';
 import {
   type ResumeForSnapshot,
   type ResumeVersionRecord,
@@ -71,9 +74,7 @@ export class CreateSnapshotUseCase {
     const cloned = JSON.parse(JSON.stringify(value));
 
     if (!this.isJsonObject(cloned)) {
-      // Defensive guard for the type narrower. Internal: callers are expected
-      // to pass JSON-serializable plain objects; failure indicates a logic bug.
-      throw new Error('Snapshot contains non-JSON-serializable value');
+      throw new ResumeSnapshotNotSerializableException();
     }
 
     return cloned;

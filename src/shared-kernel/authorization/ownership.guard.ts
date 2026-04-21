@@ -25,6 +25,7 @@ import {
   OwnershipAccessDeniedException,
   OwnershipMissingParamException,
   OwnershipResourceMissingException,
+  OwnershipUnknownModelException,
 } from './authorization.exceptions';
 import { Permission } from './permission.enum';
 import { hasPermission } from './permission-resolver';
@@ -133,10 +134,9 @@ export class OwnershipGuard implements CanActivate {
   private async loadResource(model: string, id: string): Promise<unknown> {
     // Use Prisma's dynamic model access
     if (!(model in this.prisma)) {
-      // Programmer-error assertion: caller passed a model name that is not on
-      // the Prisma client. Not user-facing — fires only on misconfigured guard
-      // metadata (controller/decorator typo).
-      throw new Error(`Unknown model: ${model}`);
+      // Programmer error — misconfigured guard metadata (controller/decorator typo).
+      // Typed so the envelope carries a stable code if it ever leaks past a test.
+      throw new OwnershipUnknownModelException(model);
     }
 
     const delegate = this.prisma[model as keyof typeof this.prisma];
@@ -147,10 +147,8 @@ export class OwnershipGuard implements CanActivate {
       !('findUnique' in delegate) ||
       typeof delegate.findUnique !== 'function'
     ) {
-      // Programmer-error assertion: same as above. The model exists on the
-      // Prisma client but is not a delegate with `findUnique` — indicates a
-      // wiring bug, not a user-input error.
-      throw new Error(`Unknown model: ${model}`);
+      // Same shape as above: the model resolves but has no `findUnique`.
+      throw new OwnershipUnknownModelException(model);
     }
 
     // Call findUnique dynamically via Reflect to avoid type incompatibility

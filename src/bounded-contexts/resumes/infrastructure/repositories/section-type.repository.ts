@@ -1,4 +1,5 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { RepositoryNotInitializedException } from '@/bounded-contexts/platform/common/exceptions/platform.exceptions';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 import type {
   SectionTypeRecord,
@@ -221,9 +222,7 @@ export class SectionTypeRepository implements OnModuleInit {
 
   private ensureInitialized(): void {
     if (!this.initialized) {
-      // Lifecycle / programmer-error assertion. Not user-facing — fires only
-      // when module wiring is incorrect (onModuleInit was not invoked).
-      throw new Error('SectionTypeRepository not initialized. Ensure onModuleInit was called.');
+      throw new RepositoryNotInitializedException('SectionTypeRepository');
     }
   }
 }

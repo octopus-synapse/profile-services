@@ -92,3 +92,43 @@ export class InvalidTestSuiteException extends ValidationException {
     super(`Unknown suite "${suite}". Available: ${available.join(', ')}`);
   }
 }
+
+/**
+ * Terminal webhook delivery error — raised inside the retry loop so the outer
+ * catch can log it with structured detail. If it ever escapes the retry, the
+ * envelope carries a stable code instead of leaking HTTP status text.
+ */
+export class WebhookDeliveryFailedException extends DomainException {
+  readonly code: string = 'WEBHOOK_DELIVERY_FAILED';
+  readonly statusHint = 502;
+  constructor(
+    public readonly status: number,
+    public readonly statusText: string,
+  ) {
+    super(`HTTP ${status}: ${statusText}`);
+  }
+}
+
+/**
+ * Repository used before onModuleInit finished. Programmer error — typed so
+ * the envelope surfaces a stable code if DI wiring ever regresses in prod.
+ */
+export class RepositoryNotInitializedException extends DomainException {
+  readonly code: string = 'REPOSITORY_NOT_INITIALIZED';
+  readonly statusHint = 500;
+  constructor(repositoryName: string) {
+    super(`${repositoryName} not initialized. Ensure onModuleInit was called.`);
+  }
+}
+
+/**
+ * Parser produced an unrecognized output. Used by external-data parsers that
+ * depend on a third-party payload shape (e.g. GitHub Linguist YAML).
+ */
+export class ExternalDataParseFailedException extends DomainException {
+  readonly code: string = 'EXTERNAL_DATA_PARSE_FAILED';
+  readonly statusHint = 502;
+  constructor(source: string, reason?: string) {
+    super(`${source} parse failed${reason ? `: ${reason}` : ''}`);
+  }
+}

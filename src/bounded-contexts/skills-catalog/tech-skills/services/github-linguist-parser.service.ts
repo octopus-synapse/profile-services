@@ -4,6 +4,7 @@
  */
 
 import { Injectable } from '@nestjs/common';
+import { ExternalDataParseFailedException } from '@/bounded-contexts/platform/common/exceptions/platform.exceptions';
 import { AppLoggerService } from '@/bounded-contexts/platform/common/logger/logger.service';
 import { parse } from '@/shared-kernel/utils/yaml-parser';
 import { GITHUB_LINGUIST_URL, LANGUAGE_METADATA } from '../constants/language-metadata.const';
@@ -22,9 +23,10 @@ export class GithubLinguistParserService {
     try {
       const response = await fetch(GITHUB_LINGUIST_URL);
       if (!response.ok) {
-        // Internal fetch error: caught immediately by the try/catch below and
-        // re-thrown with logging. Not user-facing — runs in admin/seed flows.
-        throw new Error(`Failed to fetch: ${response.status} ${response.statusText}`);
+        throw new ExternalDataParseFailedException(
+          'GitHub Linguist',
+          `fetch ${response.status} ${response.statusText}`,
+        );
       }
 
       const yamlContent = await response.text();

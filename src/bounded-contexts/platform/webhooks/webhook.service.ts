@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
+import { WebhookDeliveryFailedException } from '@/bounded-contexts/platform/common/exceptions/platform.exceptions';
 import { PrismaService } from '@/bounded-contexts/platform/prisma/prisma.service';
 
 /**
@@ -153,9 +154,10 @@ export class WebhookService {
 
         if (!response.ok) {
           await this.logDelivery(webhookId, eventType, payload, attempt, false, response.status);
-          // Internal retry-loop signal: caught immediately by the surrounding
-          // catch block to drive exponential backoff. Not user-facing.
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          // Retry-loop signal, caught immediately below to drive exponential
+          // backoff. Typed so that if the retry ever escapes, the envelope
+          // carries WEBHOOK_DELIVERY_FAILED instead of a raw Error.
+          throw new WebhookDeliveryFailedException(response.status, response.statusText);
         }
 
         await this.logDelivery(webhookId, eventType, payload, attempt, true, response.status);

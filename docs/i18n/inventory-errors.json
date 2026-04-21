@@ -1,9 +1,9 @@
 {
   "summary": {
-    "classifiedCount": 296,
+    "classifiedCount": 301,
     "ambiguousCount": 116,
-    "unstableCount": 55,
-    "distinctCodes": 281
+    "unstableCount": 49,
+    "distinctCodes": 286
   },
   "classified": [
     {
@@ -535,6 +535,12 @@
       "extends": "ValidationException"
     },
     {
+      "className": "ExternalDataParseFailedException",
+      "code": "EXTERNAL_DATA_PARSE_FAILED",
+      "file": "src/bounded-contexts/platform/common/exceptions/platform.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
       "className": "ExternalHandleInvalidException",
       "code": "EXTERNAL_HANDLE_INVALID",
       "file": "src/bounded-contexts/integration/domain/exceptions/integration.exceptions.ts",
@@ -1039,6 +1045,12 @@
       "extends": "DomainException"
     },
     {
+      "className": "OwnershipUnknownModelException",
+      "code": "OWNERSHIP_UNKNOWN_MODEL",
+      "file": "src/shared-kernel/authorization/authorization.exceptions.ts",
+      "extends": "DomainException"
+    },
+    {
       "className": "PdfBufferRequiredException",
       "code": "PDF_BUFFER_REQUIRED",
       "file": "src/bounded-contexts/import/domain/exceptions/import.exceptions.ts",
@@ -1145,6 +1157,12 @@
       "code": "REPORT_NOT_REVIEWABLE",
       "file": "src/bounded-contexts/collaboration/domain/exceptions/collaboration.exceptions.ts",
       "extends": "ValidationException"
+    },
+    {
+      "className": "RepositoryNotInitializedException",
+      "code": "REPOSITORY_NOT_INITIALIZED",
+      "file": "src/bounded-contexts/platform/common/exceptions/platform.exceptions.ts",
+      "extends": "DomainException"
     },
     {
       "className": "ResumeAccessDeniedException",
@@ -1265,6 +1283,12 @@
       "code": "RESUME_SLOT_LIMIT_REACHED",
       "file": "src/bounded-contexts/resumes/domain/exceptions/resumes.exceptions.ts",
       "extends": "ConflictException"
+    },
+    {
+      "className": "ResumeSnapshotNotSerializableException",
+      "code": "RESUME_SNAPSHOT_NOT_SERIALIZABLE",
+      "file": "src/bounded-contexts/resumes/domain/exceptions/resumes.exceptions.ts",
+      "extends": "DomainException"
     },
     {
       "className": "ResumeTailorInputRequiredException",
@@ -1781,6 +1805,12 @@
       "code": "PASSWORD_WEAK",
       "file": "src/bounded-contexts/identity/password-management/domain/exceptions/password.exceptions.ts",
       "extends": "ValidationException"
+    },
+    {
+      "className": "WebhookDeliveryFailedException",
+      "code": "WEBHOOK_DELIVERY_FAILED",
+      "file": "src/bounded-contexts/platform/common/exceptions/platform.exceptions.ts",
+      "extends": "DomainException"
     }
   ],
   "ambiguous": [
@@ -2864,30 +2894,6 @@
     },
     {
       "kind": "Error",
-      "message": "",
-      "file": "src/bounded-contexts/platform/webhooks/webhook.service.ts",
-      "line": 158
-    },
-    {
-      "kind": "Error",
-      "message": "SectionTypeRepository not initialized. Ensure onModuleInit was called.",
-      "file": "src/bounded-contexts/resumes/infrastructure/repositories/section-type.repository.ts",
-      "line": 226
-    },
-    {
-      "kind": "Error",
-      "message": "Snapshot contains non-JSON-serializable value",
-      "file": "src/bounded-contexts/resumes/resume-versions/services/resume-version/use-cases/create-snapshot.use-case.ts",
-      "line": 76
-    },
-    {
-      "kind": "Error",
-      "message": "",
-      "file": "src/bounded-contexts/skills-catalog/tech-skills/services/github-linguist-parser.service.ts",
-      "line": 27
-    },
-    {
-      "kind": "Error",
       "message": "Could not determine repository. Set GITHUB_REPOSITORY or GITHUB_OWNER + GITHUB_REPO",
       "file": "src/pr-comment/cli/post-comment.ts",
       "line": 135
@@ -2915,18 +2921,6 @@
       "message": "",
       "file": "src/pr-comment/infrastructure/github-client.ts",
       "line": 112
-    },
-    {
-      "kind": "Error",
-      "message": "",
-      "file": "src/shared-kernel/authorization/ownership.guard.ts",
-      "line": 139
-    },
-    {
-      "kind": "Error",
-      "message": "",
-      "file": "src/shared-kernel/authorization/ownership.guard.ts",
-      "line": 153
     }
   ]
 }

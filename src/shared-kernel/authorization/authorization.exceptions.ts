@@ -69,3 +69,11 @@ export class OwnershipMissingParamException extends DomainException {
     super(`Missing parameter: ${paramName}`);
   }
 }
+
+export class OwnershipUnknownModelException extends DomainException {
+  readonly code: string = 'OWNERSHIP_UNKNOWN_MODEL';
+  readonly statusHint = 500;
+  constructor(public readonly model: string) {
+    super(`Unknown model: ${model}`);
+  }
+}
